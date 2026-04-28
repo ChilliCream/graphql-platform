@@ -40,13 +40,16 @@ internal class MochaEventProcessor : EventProcessor<EventProcessorPartition>
         ICheckpointStore checkpointStore,
         IPartitionOwnershipStore? ownershipStore,
         int checkpointInterval,
-        EventPosition defaultStartingPosition)
+        EventPosition defaultStartingPosition,
+        int eventBatchMaximumCount,
+        EventProcessorOptions processorOptions)
         : base(
-            eventBatchMaximumCount: 1,
-            consumerGroup: consumerGroup,
-            fullyQualifiedNamespace: fullyQualifiedNamespace,
-            eventHubName: eventHubName,
-            credential: credential)
+            eventBatchMaximumCount,
+            consumerGroup,
+            fullyQualifiedNamespace,
+            eventHubName,
+            credential,
+            processorOptions)
     {
         _logger = logger;
         _messageHandler = messageHandler;
@@ -71,12 +74,15 @@ internal class MochaEventProcessor : EventProcessor<EventProcessorPartition>
         ICheckpointStore checkpointStore,
         IPartitionOwnershipStore? ownershipStore,
         int checkpointInterval,
-        EventPosition defaultStartingPosition)
+        EventPosition defaultStartingPosition,
+        int eventBatchMaximumCount,
+        EventProcessorOptions processorOptions)
         : base(
-            eventBatchMaximumCount: 1,
-            consumerGroup: consumerGroup,
-            connectionString: connectionString,
-            eventHubName: eventHubName)
+            eventBatchMaximumCount,
+            consumerGroup,
+            connectionString,
+            eventHubName,
+            processorOptions)
     {
         _logger = logger;
         _messageHandler = messageHandler;

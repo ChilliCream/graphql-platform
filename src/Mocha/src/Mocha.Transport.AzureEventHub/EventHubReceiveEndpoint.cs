@@ -1,5 +1,6 @@
 using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Consumer;
+using Azure.Messaging.EventHubs.Primitives;
 using Mocha.Features;
 using Mocha.Transport.AzureEventHub.Features;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,6 +29,8 @@ public sealed class EventHubReceiveEndpoint(EventHubMessagingTransport transport
 
     private int _checkpointInterval = 100;
     private EventPosition _defaultStartingPosition = EventPosition.Earliest;
+    private int _eventBatchMaximumCount = 100;
+    private EventProcessorOptions? _processorOptions;
     private MochaEventProcessor? _processor;
 
     /// <summary>
@@ -48,6 +51,8 @@ public sealed class EventHubReceiveEndpoint(EventHubMessagingTransport transport
         _consumerGroup = configuration.ConsumerGroup;
         _checkpointInterval = configuration.CheckpointInterval;
         _defaultStartingPosition = configuration.DefaultStartingPosition;
+        _eventBatchMaximumCount = configuration.EventBatchMaximumCount;
+        _processorOptions = configuration.ProcessorOptions;
     }
 
     /// <inheritdoc />
@@ -104,8 +109,10 @@ public sealed class EventHubReceiveEndpoint(EventHubMessagingTransport transport
                 messageHandler,
                 checkpointStore,
                 ownershipStore,
-                checkpointInterval: _checkpointInterval,
-                defaultStartingPosition: _defaultStartingPosition);
+                _checkpointInterval,
+                _defaultStartingPosition,
+                _eventBatchMaximumCount,
+                _processorOptions);
         }
         else if (connectionProvider.Credential is not null)
         {
@@ -118,8 +125,10 @@ public sealed class EventHubReceiveEndpoint(EventHubMessagingTransport transport
                 messageHandler,
                 checkpointStore,
                 ownershipStore,
-                checkpointInterval: _checkpointInterval,
-                defaultStartingPosition: _defaultStartingPosition);
+                _checkpointInterval,
+                _defaultStartingPosition,
+                _eventBatchMaximumCount,
+                _processorOptions);
         }
         else
         {

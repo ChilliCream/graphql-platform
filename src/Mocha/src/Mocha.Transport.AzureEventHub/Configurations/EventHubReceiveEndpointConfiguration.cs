@@ -1,4 +1,5 @@
 using Azure.Messaging.EventHubs.Consumer;
+using Azure.Messaging.EventHubs.Primitives;
 
 namespace Mocha.Transport.AzureEventHub;
 
@@ -29,4 +30,17 @@ public sealed class EventHubReceiveEndpointConfiguration : ReceiveEndpointConfig
     /// Defaults to <see cref="EventPosition.Earliest"/> to prevent silent data loss on first deploy.
     /// </summary>
     public EventPosition DefaultStartingPosition { get; set; } = EventPosition.Earliest;
+
+    /// <summary>
+    /// Gets or sets the maximum number of events per batch delivered to the processor.
+    /// Defaults to 100. Set to 1 for single-event processing.
+    /// </summary>
+    public int EventBatchMaximumCount { get; set; } = 100;
+
+    /// <summary>
+    /// Gets or sets optional processor options controlling load balancing, prefetch,
+    /// retry, and other <see cref="EventProcessor{TPartition}"/> behaviors.
+    /// When <c>null</c>, the SDK defaults are used.
+    /// </summary>
+    public EventProcessorOptions? ProcessorOptions { get; set; }
 }
