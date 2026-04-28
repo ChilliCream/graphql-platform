@@ -6,35 +6,52 @@ using Mocha.Scheduling;
 namespace Mocha.Transport.AzureServiceBus.Scheduling;
 
 /// <summary>
-/// Implements <see cref="IScheduledMessageStore"/> for Azure Service Bus by delegating cancellation
-/// to <see cref="ServiceBusSender.CancelScheduledMessageAsync(long, CancellationToken)"/> using the
-/// sequence number embedded in the opaque token.
+/// Implements <see cref="IScheduledMessageStore"/> for Azure Service Bus by scheduling messages
+/// through <see cref="ServiceBusSender.ScheduleMessageAsync(ServiceBusMessage, DateTimeOffset, CancellationToken)"/>
+/// and cancelling them through
+/// <see cref="ServiceBusSender.CancelScheduledMessageAsync(long, CancellationToken)"/>.
 /// </summary>
-/// <remarks>
-/// The Azure Service Bus transport sets <see cref="SchedulingTransportFeature.SupportsSchedulingNatively"/>
-/// to <c>true</c>, so the dispatch scheduling middleware never invokes <see cref="PersistAsync"/> on this
-/// store. Persistence is handled directly in the dispatch endpoint via
-/// <see cref="ServiceBusSender.ScheduleMessageAsync(ServiceBusMessage, DateTimeOffset, CancellationToken)"/>.
-/// </remarks>
 internal sealed class AzureServiceBusScheduledMessageStore(AzureServiceBusClientManager clientManager)
     : IScheduledMessageStore
 {
     private const string TokenPrefix = "asb:";
 
     /// <inheritdoc />
-    /// <remarks>
-    /// This method is unreachable when the Azure Service Bus transport is in use because
-    /// <see cref="SchedulingTransportFeature.SupportsSchedulingNatively"/> is set to <c>true</c>,
-    /// causing the dispatch scheduling middleware to be skipped during pipeline construction.
-    /// </remarks>
-    public ValueTask<string> PersistAsync(
-        MessageEnvelope envelope,
-        DateTimeOffset scheduledTime,
-        CancellationToken cancellationToken)
-        => throw new InvalidOperationException(
-            "AzureServiceBusScheduledMessageStore.PersistAsync is unreachable; "
-                + "the Azure Service Bus transport schedules messages via ScheduleMessageAsync "
-                + "in the dispatch endpoint (SupportsSchedulingNatively = true).");
+    public async ValueTask<string> PersistAsync(IDispatchContext context, CancellationToken cancellationToken)
+    {
+        if (context.Endpoint is not AzureServiceBusDispatchEndpoint endpoint)
+        {
+            throw new InvalidOperationException(
+                "AzureServiceBusScheduledMessageStore requires an AzureServiceBusDispatchEndpoint, "
+                + $"but the dispatch context carries a '{context.Endpoint.GetType().Name}'.");
+        }
+
+        if (context.Envelope is not { } envelope)
+        {
+            throw new InvalidOperationException(
+                "AzureServiceBusScheduledMessageStore requires a serialized envelope on the dispatch context.");
+        }
+
+        if (envelope.ScheduledTime is not { } scheduledTime)
+        {
+            throw new InvalidOperationException(
+                "AzureServiceBusScheduledMessageStore requires the envelope to carry a scheduled time.");
+        }
+
+        await endpoint.EnsureProvisionedAsync(cancellationToken);
+
+        var entityPath = AzureServiceBusEntityPathResolver.Resolve(endpoint, envelope);
+        var message = AzureServiceBusMessageFactory.Create(envelope);
+
+        var sequenceNumber = await AzureServiceBusEntityNotFoundRetry.ExecuteAsync(
+            clientManager,
+            endpoint,
+            entityPath,
+            (sender, ct) => sender.ScheduleMessageAsync(message, scheduledTime, ct),
+            cancellationToken);
+
+        return $"{TokenPrefix}{entityPath}:{sequenceNumber.ToString(CultureInfo.InvariantCulture)}";
+    }
 
     /// <inheritdoc />
     public async ValueTask<bool> CancelAsync(string token, CancellationToken cancellationToken)
@@ -73,7 +90,6 @@ internal sealed class AzureServiceBusScheduledMessageStore(AzureServiceBusClient
             return false;
         }
 
-        // "asb:{entityPath}:{sequenceNumber}"
         if (!token.StartsWith(TokenPrefix, StringComparison.Ordinal))
         {
             return false;
