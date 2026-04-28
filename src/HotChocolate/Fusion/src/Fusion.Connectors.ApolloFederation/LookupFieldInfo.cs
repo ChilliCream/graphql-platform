@@ -1,7 +1,7 @@
 namespace HotChocolate.Fusion.Execution.Clients;
 
 /// <summary>
-/// Describes a single lookup field on the composite schema that maps
+/// Describes a single lookup field on the source schema that maps
 /// to an Apollo Federation entity type. Used by <see cref="FederationQueryRewriter"/>
 /// to detect entity lookups and rewrite them into <c>_entities</c> queries.
 /// </summary>

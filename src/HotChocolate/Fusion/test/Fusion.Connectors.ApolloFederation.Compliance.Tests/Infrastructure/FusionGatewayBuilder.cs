@@ -68,7 +68,7 @@ internal static class FusionGatewayBuilder
 
                 var info = await BuildSubgraphInfoAsync(host).ConfigureAwait(false);
 
-                sourceSchemaTexts.Add(new SourceSchemaText(name, info.CompositeSdl));
+                sourceSchemaTexts.Add(new SourceSchemaText(name, info.SourceSchemaSdl));
                 subgraphInfos.Add(info);
             }
 
@@ -119,13 +119,13 @@ internal static class FusionGatewayBuilder
                 $"Apollo Federation transform failed for subgraph '{host.Name}': {messages}");
         }
 
-        var compositeSdl = transformResult.Value;
-        var lookups = ExtractLookups(compositeSdl);
-        var entityRequires = ExtractEntityRequires(compositeSdl, lookups);
+        var sourceSchemaSdl = transformResult.Value;
+        var lookups = ExtractLookups(sourceSchemaSdl);
+        var entityRequires = ExtractEntityRequires(sourceSchemaSdl, lookups);
 
         return new SubgraphInfo(
             host.Name,
-            compositeSdl,
+            sourceSchemaSdl,
             lookups,
             entityRequires,
             new Uri(DefaultBaseAddress));
@@ -325,9 +325,9 @@ internal static class FusionGatewayBuilder
         return new JsonDocumentOwner(document, EmptyMemoryOwner.Instance);
     }
 
-    private static IReadOnlyDictionary<string, LookupFieldSettings> ExtractLookups(string compositeSdl)
+    private static IReadOnlyDictionary<string, LookupFieldSettings> ExtractLookups(string sourceSchemaSdl)
     {
-        var document = Utf8GraphQLParser.Parse(compositeSdl);
+        var document = Utf8GraphQLParser.Parse(sourceSchemaSdl);
         var queryName = FindRootQueryName(document) ?? "Query";
 
         var lookups = new Dictionary<string, LookupFieldSettings>(StringComparer.Ordinal);
@@ -386,7 +386,7 @@ internal static class FusionGatewayBuilder
     /// </summary>
     private static IReadOnlyDictionary<string, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>>
         ExtractEntityRequires(
-            string compositeSdl,
+            string sourceSchemaSdl,
             IReadOnlyDictionary<string, LookupFieldSettings> lookups)
     {
         var entityTypeNames = new HashSet<string>(StringComparer.Ordinal);
@@ -402,7 +402,7 @@ internal static class FusionGatewayBuilder
                 StringComparer.Ordinal);
         }
 
-        var document = Utf8GraphQLParser.Parse(compositeSdl);
+        var document = Utf8GraphQLParser.Parse(sourceSchemaSdl);
 
         var entityRequires =
             new Dictionary<string, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>>(
@@ -592,7 +592,7 @@ internal static class FusionGatewayBuilder
 
     private sealed record SubgraphInfo(
         string Name,
-        string CompositeSdl,
+        string SourceSchemaSdl,
         IReadOnlyDictionary<string, LookupFieldSettings> Lookups,
         IReadOnlyDictionary<string, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>> EntityRequires,
         Uri BaseAddress);

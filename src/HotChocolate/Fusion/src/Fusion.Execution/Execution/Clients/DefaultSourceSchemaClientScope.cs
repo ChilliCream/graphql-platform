@@ -14,6 +14,7 @@ public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
 #endif
     private readonly ConcurrentDictionary<(string Name, OperationType Type), ISourceSchemaClient> _clients = [];
     private readonly ISourceSchemaClientFactory[] _clientFactories;
+    private readonly FusionSchemaDefinition _schemaDefinition;
     private readonly SourceSchemaClientConfigurations _configurations;
     private bool _disposed;
 
@@ -25,6 +26,7 @@ public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
         ArgumentNullException.ThrowIfNull(clientFactories);
 
         _clientFactories = clientFactories;
+        _schemaDefinition = schemaDefinition;
         _configurations = schemaDefinition.Features.GetRequired<SourceSchemaClientConfigurations>();
     }
 
@@ -58,25 +60,26 @@ public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
     private ISourceSchemaClient CreateClient(ISourceSchemaClientConfiguration configuration)
     {
         var factories = _clientFactories;
+        var schema = _schemaDefinition;
 
         if (factories.Length > 0 && factories[0].CanHandle(configuration))
         {
-            return factories[0].CreateClient(configuration);
+            return factories[0].CreateClient(schema, configuration);
         }
 
         if (factories.Length > 1 && factories[1].CanHandle(configuration))
         {
-            return factories[1].CreateClient(configuration);
+            return factories[1].CreateClient(schema, configuration);
         }
 
         if (factories.Length > 2 && factories[2].CanHandle(configuration))
         {
-            return factories[2].CreateClient(configuration);
+            return factories[2].CreateClient(schema, configuration);
         }
 
         if (factories.Length > 3 && factories[3].CanHandle(configuration))
         {
-            return factories[3].CreateClient(configuration);
+            return factories[3].CreateClient(schema, configuration);
         }
 
         if (factories.Length > 4)
@@ -85,7 +88,7 @@ public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
             {
                 if (factories[i].CanHandle(configuration))
                 {
-                    return factories[i].CreateClient(configuration);
+                    return factories[i].CreateClient(schema, configuration);
                 }
             }
         }

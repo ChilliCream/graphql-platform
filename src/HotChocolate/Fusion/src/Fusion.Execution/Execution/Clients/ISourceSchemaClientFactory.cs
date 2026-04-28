@@ -1,3 +1,5 @@
+using HotChocolate.Fusion.Types;
+
 namespace HotChocolate.Fusion.Execution.Clients;
 
 /// <summary>
@@ -17,7 +19,10 @@ public interface ISourceSchemaClientFactory
     /// <summary>
     /// Creates a new <see cref="ISourceSchemaClient"/> for the given configuration.
     /// </summary>
+    /// <param name="schema">The composed Fusion gateway schema.</param>
     /// <param name="configuration">The client configuration.</param>
     /// <returns>A new source schema client instance.</returns>
-    ISourceSchemaClient CreateClient(ISourceSchemaClientConfiguration configuration);
+    ISourceSchemaClient CreateClient(
+        FusionSchemaDefinition schema,
+        ISourceSchemaClientConfiguration configuration);
 }

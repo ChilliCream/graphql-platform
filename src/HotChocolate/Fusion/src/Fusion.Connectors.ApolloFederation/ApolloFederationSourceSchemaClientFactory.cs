@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using HotChocolate.Fusion.Transport.Http;
+using HotChocolate.Fusion.Types;
 
 namespace HotChocolate.Fusion.Execution.Clients;
 
@@ -26,6 +27,7 @@ public sealed class ApolloFederationSourceSchemaClientFactory
 
     /// <inheritdoc />
     protected override ISourceSchemaClient CreateClient(
+        FusionSchemaDefinition schema,
         ApolloFederationSourceSchemaClientConfiguration configuration)
     {
         var httpClient = _httpClientFactory.CreateClient(configuration.HttpClientName);
