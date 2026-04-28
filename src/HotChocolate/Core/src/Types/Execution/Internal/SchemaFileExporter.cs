@@ -7,23 +7,15 @@ namespace HotChocolate.Execution.Internal;
 
 internal static class SchemaFileExporter
 {
-    public static Task<SchemaFileInfo> Export(
-        string schemaFileName,
-        IRequestExecutor executor,
-        CancellationToken cancellationToken)
-        => Export(schemaFileName, executor, rewriteToSemanticNonNull: false, cancellationToken);
-
     public static async Task<SchemaFileInfo> Export(
         string schemaFileName,
         IRequestExecutor executor,
         bool rewriteToSemanticNonNull,
         CancellationToken cancellationToken)
     {
-        var sdl = rewriteToSemanticNonNull
-            ? SchemaFormatter.FormatAsString(
-                executor.Schema,
-                new SchemaFormatterOptions { RewriteToSemanticNonNull = true })
-            : executor.Schema.ToString();
+        var sdl = SchemaFormatter.FormatAsString(
+            executor.Schema,
+            new SchemaFormatterOptions { RewriteToSemanticNonNull = rewriteToSemanticNonNull });
 
         if (Directory.Exists(schemaFileName))
         {
