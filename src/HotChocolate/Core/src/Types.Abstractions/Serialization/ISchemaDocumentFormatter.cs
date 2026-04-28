@@ -12,11 +12,14 @@ public interface ISchemaDocumentFormatter
     /// <summary>
     /// Formats the schema document.
     /// </summary>
+    /// <param name="schema">
+    /// The schema definition that produced the document.
+    /// </param>
     /// <param name="schemaDocument">
     /// The schema document that shall be formatted.
     /// </param>
     /// <returns>
     /// Returns the formatted schema document.
     /// </returns>
-    DocumentNode Format(DocumentNode schemaDocument);
+    DocumentNode Format(ISchemaDefinition schema, DocumentNode schemaDocument);
 }

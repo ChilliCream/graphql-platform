@@ -49,7 +49,7 @@ public static class SchemaFormatter
 
         if (schema.Features.Get<ISchemaDocumentFormatter>() is { } postProcessor)
         {
-            document = postProcessor.Format(document);
+            document = postProcessor.Format(schema, document);
         }
 
         return document;
