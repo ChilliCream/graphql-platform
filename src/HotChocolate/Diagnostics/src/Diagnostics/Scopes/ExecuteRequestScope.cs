@@ -21,7 +21,6 @@ internal sealed class ExecuteRequestScope : RequestScopeBase
     {
         if (Context.Result is null or IOperationResult { Errors: [_, ..] })
         {
-            Activity.SetStatus(Status.Error);
             Activity.SetStatus(ActivityStatusCode.Error);
         }
     }

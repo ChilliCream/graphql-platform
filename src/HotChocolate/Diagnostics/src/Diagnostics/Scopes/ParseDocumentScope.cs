@@ -21,7 +21,6 @@ internal sealed class ParseDocumentScope : RequestScopeBase
     {
         if (Context.Document is not null)
         {
-            Activity.SetStatus(Status.Ok);
             Activity.SetStatus(ActivityStatusCode.Ok);
         }
     }

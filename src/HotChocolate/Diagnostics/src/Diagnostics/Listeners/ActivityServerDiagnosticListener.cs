@@ -82,7 +82,7 @@ internal sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventLi
         {
             var activity = (Activity)value!;
             _enricher.EnrichHttpRequestError(context, error, activity);
-            activity.SetStatus(Status.Error);
+            activity.SetStatus(ActivityStatusCode.Error);
         }
     }
 
@@ -92,7 +92,7 @@ internal sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventLi
         {
             var activity = (Activity)value!;
             _enricher.EnrichHttpRequestError(context, exception, activity);
-            activity.SetStatus(Status.Error);
+            activity.SetStatus(ActivityStatusCode.Error);
         }
     }
 
@@ -111,7 +111,6 @@ internal sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventLi
         }
 
         _enricher.EnrichParseHttpRequest(context, activity);
-        activity.SetStatus(Status.Ok);
         activity.SetStatus(ActivityStatusCode.Ok);
         context.Items[ParseHttpRequestActivity] = activity;
 
@@ -129,7 +128,6 @@ internal sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventLi
                 _enricher.EnrichParserErrors(context, error, activity);
             }
 
-            activity.SetStatus(Status.Error);
             activity.SetStatus(ActivityStatusCode.Error);
         }
     }

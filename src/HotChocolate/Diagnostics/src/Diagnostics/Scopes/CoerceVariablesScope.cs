@@ -21,7 +21,6 @@ internal sealed class CoerceVariablesScope : RequestScopeBase
     {
         if (Context.Variables is not null)
         {
-            Activity.SetStatus(Status.Ok);
             Activity.SetStatus(ActivityStatusCode.Ok);
         }
     }

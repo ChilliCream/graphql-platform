@@ -21,12 +21,10 @@ internal sealed class ExecuteOperationScope : RequestScopeBase
     {
         if (Context.Result is null or IOperationResult { Errors: [_, ..] })
         {
-            Activity.SetStatus(Status.Error);
             Activity.SetStatus(ActivityStatusCode.Error);
         }
         else
         {
-            Activity.SetStatus(Status.Ok);
             Activity.SetStatus(ActivityStatusCode.Ok);
         }
     }

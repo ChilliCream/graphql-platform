@@ -21,7 +21,6 @@ internal sealed class ValidateDocumentScope : RequestScopeBase
     {
         if (Context.IsValidDocument)
         {
-            Activity.SetStatus(Status.Ok);
             Activity.SetStatus(ActivityStatusCode.Ok);
         }
     }

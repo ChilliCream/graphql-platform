@@ -1,4 +1,4 @@
-﻿{
+{
   "activities": [
     {
       "OperationName": "ExecuteHttpRequest",
@@ -28,12 +28,7 @@
           "OperationName": "ParseHttpRequest",
           "DisplayName": "Parse HTTP Request",
           "Status": "Ok",
-          "tags": [
-            {
-              "Key": "otel.status_code",
-              "Value": "OK"
-            }
-          ],
+          "tags": [],
           "event": []
         },
         {
@@ -44,10 +39,6 @@
             {
               "Key": "graphql.document.id",
               "Value": "e2b13c5332af8a70da160fcb96894e5c"
-            },
-            {
-              "Key": "otel.status_code",
-              "Value": "ERROR"
             }
           ],
           "event": [],
@@ -57,10 +48,6 @@
               "DisplayName": "Validate Document",
               "Status": "Error",
               "tags": [
-                {
-                  "Key": "otel.status_code",
-                  "Value": "ERROR"
-                },
                 {
                   "Key": "graphql.document.id",
                   "Value": "e2b13c5332af8a70da160fcb96894e5c"

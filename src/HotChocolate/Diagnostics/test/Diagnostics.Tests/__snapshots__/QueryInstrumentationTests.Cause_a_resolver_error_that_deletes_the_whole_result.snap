@@ -1,4 +1,4 @@
-﻿{
+{
   "activities": [
     {
       "OperationName": "ExecuteRequest",
@@ -24,10 +24,6 @@
         {
           "Key": "graphql.document.body",
           "Value": "query SayHelloOperation {\n  causeFatalError\n}"
-        },
-        {
-          "Key": "otel.status_code",
-          "Value": "ERROR"
         }
       ],
       "event": [
@@ -45,12 +41,7 @@
           "OperationName": "ParseDocument",
           "DisplayName": "Parse Document",
           "Status": "Ok",
-          "tags": [
-            {
-              "Key": "otel.status_code",
-              "Value": "OK"
-            }
-          ],
+          "tags": [],
           "event": []
         },
         {
@@ -65,10 +56,6 @@
             {
               "Key": "graphql.document.hash",
               "Value": "851fb754d9ba6b5cc5a55ebcbea2621d"
-            },
-            {
-              "Key": "otel.status_code",
-              "Value": "OK"
             }
           ],
           "event": []
@@ -77,24 +64,14 @@
           "OperationName": "CompileOperation",
           "DisplayName": "Compile Operation",
           "Status": "Ok",
-          "tags": [
-            {
-              "Key": "otel.status_code",
-              "Value": "OK"
-            }
-          ],
+          "tags": [],
           "event": []
         },
         {
           "OperationName": "ExecuteOperation",
           "DisplayName": "Execute Operation SayHelloOperation",
           "Status": "Error",
-          "tags": [
-            {
-              "Key": "otel.status_code",
-              "Value": "ERROR"
-            }
-          ],
+          "tags": [],
           "event": [],
           "activities": [
             {
@@ -129,10 +106,6 @@
                 {
                   "Key": "graphql.selection.field.declaringType",
                   "Value": "SimpleQuery"
-                },
-                {
-                  "Key": "otel.status_code",
-                  "Value": "ERROR"
                 }
               ],
               "event": [

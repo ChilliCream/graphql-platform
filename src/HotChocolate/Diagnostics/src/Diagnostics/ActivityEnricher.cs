@@ -589,7 +589,7 @@ public class ActivityEnricher
     {
         if (error.Exception is { } exception)
         {
-            activity.RecordException(exception);
+            activity.AddException(exception);
         }
 
         var tags = new ActivityTagsCollection
