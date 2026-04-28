@@ -13,6 +13,9 @@
           { "Name": "test-hub-concurrency", "PartitionCount": "4", "ConsumerGroups": [] },
           { "Name": "mocha.test-helpers.order-created", "PartitionCount": "4", "ConsumerGroups": [] },
           { "Name": "test-hub-partition", "PartitionCount": "4", "ConsumerGroups": [{ "Name": "group-a" }, { "Name": "group-b" }] },
+          { "Name": "test-hub-recovery", "PartitionCount": "4", "ConsumerGroups": [] },
+          { "Name": "test-hub-inbox", "PartitionCount": "4", "ConsumerGroups": [] },
+          { "Name": "test-hub-middleware", "PartitionCount": "4", "ConsumerGroups": [] },
           { "Name": "error", "PartitionCount": "2", "ConsumerGroups": [] },
           { "Name": "replies", "PartitionCount": "4", "ConsumerGroups": [] }
         ]

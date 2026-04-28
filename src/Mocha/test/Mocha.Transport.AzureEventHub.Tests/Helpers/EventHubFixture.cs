@@ -28,6 +28,9 @@ public sealed class EventHubFixture : IAsyncLifetime
             "concurrency" => "test-hub-concurrency",
             "headers" => "mocha.test-helpers.order-created",
             "partition" => "test-hub-partition",
+            "recovery" => "test-hub-recovery",
+            "inbox" => "test-hub-inbox",
+            "middleware" => "test-hub-middleware",
             _ => throw new ArgumentException($"Unknown test category: {testCategory}")
         };
     }
