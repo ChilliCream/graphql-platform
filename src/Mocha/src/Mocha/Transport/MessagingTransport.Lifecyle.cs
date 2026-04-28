@@ -98,7 +98,7 @@ public abstract partial class MessagingTransport
                 if (route is not null
                     // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
                     && route.Endpoint is null
-                    && route.Destination is not null)
+                    && route.Destination is null)
                 {
                     route.ConnectEndpoint(context, endpoint);
                 }
@@ -221,10 +221,7 @@ public abstract partial class MessagingTransport
 
         foreach (var endpoint in _dispatchEndpoints)
         {
-            if (!endpoint.IsCompleted)
-            {
-                endpoint.DiscoverTopology(context);
-            }
+            endpoint.DiscoverTopology(context);
         }
 
         OnAfterDiscoverEndpoints(context);
@@ -282,7 +279,6 @@ public abstract partial class MessagingTransport
             if (!endpoint.IsCompleted)
             {
                 endpoint.Complete(context);
-                context.Endpoints.AddOrUpdate(endpoint);
             }
         }
     }

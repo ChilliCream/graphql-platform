@@ -155,30 +155,15 @@ public sealed class MessageRouter : IMessageRouter
     {
         lock (_lock)
         {
-            // MessageType.Initialize registers routes from AddMessage(...).Send/Publish
-            // before transports have connected them to dispatch endpoints. Reuse such a
-            // route instead of creating a duplicate so the router indexes keep tracking the
-            // configured route object. If it already has an endpoint, the endpoint was
-            // resolved before and can be returned immediately. Otherwise the route is
-            // connected below, after the transport materializes and completes the dispatch
-            // endpoint so the route's destination reflects the endpoint's final address.
-            OutboundRoute route;
             if (_outboundByType.TryGetValue(messageType, out var set)
-                && set.FirstOrDefault(r => r.Kind == kind) is { } existingRoute)
+                && set.FirstOrDefault(r => r.Kind == kind) is { } route)
             {
-                route = existingRoute;
-                // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
-                if (route.Endpoint is not null)
-                {
-                    return route.Endpoint;
-                }
+                return route.Endpoint;
             }
-            else
-            {
-                route = new OutboundRoute();
-                var configuration = new OutboundRouteConfiguration { MessageType = messageType, Kind = kind };
-                route.Initialize(context, configuration);
-            }
+
+            route = new OutboundRoute();
+            var configuration = new OutboundRouteConfiguration { MessageType = messageType, Kind = kind };
+            route.Initialize(context, configuration);
 
             // TODO not sure about this. What is the "default" transport?
             foreach (var transport in context.Transports)
@@ -189,17 +174,11 @@ public sealed class MessageRouter : IMessageRouter
                 {
                     endpoint.DiscoverTopology(context);
                     endpoint.Complete(context);
-                    context.Endpoints.AddOrUpdate(endpoint);
-                    route.ConnectEndpoint(context, endpoint);
-                }
-
-                if (!route.IsCompleted)
-                {
-                    route.Complete(context);
                 }
 
                 return endpoint;
             }
+            route.Complete(context);
 
             throw ThrowHelper.NoTransportForMessageType(messageType);
         }

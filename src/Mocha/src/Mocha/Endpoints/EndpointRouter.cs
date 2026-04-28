@@ -123,7 +123,7 @@ public sealed class EndpointRouter : IEndpointRouter
             }
         }
 
-        if (changed)
+        if (changed && resolved.IsCompleted)
         {
             _changeTokens.Rotate();
         }
@@ -142,7 +142,7 @@ public sealed class EndpointRouter : IEndpointRouter
             changed = Upsert(endpoint, null);
         }
 
-        if (changed)
+        if (changed && endpoint.IsCompleted)
         {
             _changeTokens.Rotate();
         }
@@ -173,7 +173,7 @@ public sealed class EndpointRouter : IEndpointRouter
             changed = true;
         }
 
-        if (changed)
+        if (changed && endpoint.IsCompleted)
         {
             _changeTokens.Rotate();
         }
@@ -223,11 +223,6 @@ public sealed class EndpointRouter : IEndpointRouter
 
     private bool Upsert(DispatchEndpoint endpoint, Uri? resolvedAddress)
     {
-        if (!endpoint.IsCompleted)
-        {
-            throw ThrowHelper.EndpointMustBeCompleted();
-        }
-
         var endpointAddress = endpoint.Address;
         var resourceAddress = endpoint.Destination?.Address;
 
