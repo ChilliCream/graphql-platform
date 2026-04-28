@@ -131,7 +131,7 @@ jobs:
           NitroIdentityScopes: ${{ secrets.NITRO_IDENTITY_SCOPES }}
 
       - name: 📤 Upload Nitro CLI client operations
-        uses: ChilliCream/nitro-client-upload@v16.0.0-rc.1.40
+        uses: ChilliCream/nitro-client-upload@v16.0.0-rc.1.43
         with:
           tag: ${{ env.GIT_TAG }}
           operations-file: src/Nitro/CommandLine/src/ChilliCream.Nitro.Client/persisted/operations.json
@@ -139,7 +139,7 @@ jobs:
           api-key: ${{ secrets.NITRO_API_KEY }}
 
       - name: 🚀 Publish Nitro CLI client (Dev)
-        uses: ChilliCream/nitro-client-publish@v16.0.0-rc.1.40
+        uses: ChilliCream/nitro-client-publish@v16.0.0-rc.1.43
         with:
           tag: ${{ env.GIT_TAG }}
           stage: Dev
@@ -148,7 +148,7 @@ jobs:
           force: true
 
       - name: 🚀 Publish Nitro CLI client (Prod)
-        uses: ChilliCream/nitro-client-publish@v16.0.0-rc.1.40
+        uses: ChilliCream/nitro-client-publish@v16.0.0-rc.1.43
         with:
           tag: ${{ env.GIT_TAG }}
           stage: Prod
