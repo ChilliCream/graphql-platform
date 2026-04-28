@@ -1,18 +1,19 @@
 using System.Collections.Immutable;
 using System.Net.Http.Headers;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Clients;
 
 /// <summary>
 /// Represents the configuration for fetching data from a source schema over HTTP.
 /// </summary>
-public class SourceSchemaHttpClientConfiguration : ISourceSchemaClientConfiguration
+public class HttpSourceSchemaClientConfiguration : ISourceSchemaClientConfiguration
 {
     public const string DefaultClientName = "fusion";
 
     /// <summary>
-    /// Initializes a new instance of <see cref="SourceSchemaHttpClientConfiguration"/>.
+    /// Initializes a new instance of <see cref="HttpSourceSchemaClientConfiguration"/>.
     /// </summary>
     /// <param name="name">
     /// The name of the source schema.
@@ -25,6 +26,9 @@ public class SourceSchemaHttpClientConfiguration : ISourceSchemaClientConfigurat
     /// </param>
     /// <param name="capabilities">
     /// The client capabilities.
+    /// </param>
+    /// <param name="onError">
+    /// The error handling mode requested by the source schema.
     /// </param>
     /// <param name="defaultAcceptHeaderValues">
     /// The <c>Accept</c> header values sent in case of a single, non-Subscription GraphQL request.
@@ -44,11 +48,12 @@ public class SourceSchemaHttpClientConfiguration : ISourceSchemaClientConfigurat
     /// <param name="onSourceSchemaResult">
     /// The action to call after a <see cref="SourceSchemaResult"/> was materialized.
     /// </param>
-    public SourceSchemaHttpClientConfiguration(
+    public HttpSourceSchemaClientConfiguration(
         string name,
         Uri baseAddress,
         SupportedOperationType supportedOperations = SupportedOperationType.All,
         SourceSchemaClientCapabilities capabilities = SourceSchemaClientCapabilities.All,
+        ErrorHandlingMode? onError = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null,
@@ -61,6 +66,7 @@ public class SourceSchemaHttpClientConfiguration : ISourceSchemaClientConfigurat
             baseAddress,
             supportedOperations,
             capabilities,
+            onError,
             defaultAcceptHeaderValues,
             batchingAcceptHeaderValues,
             subscriptionAcceptHeaderValues,
@@ -71,7 +77,7 @@ public class SourceSchemaHttpClientConfiguration : ISourceSchemaClientConfigurat
     }
 
     /// <summary>
-    /// Initializes a new instance of <see cref="SourceSchemaHttpClientConfiguration"/>.
+    /// Initializes a new instance of <see cref="HttpSourceSchemaClientConfiguration"/>.
     /// </summary>
     /// <param name="name">
     /// The name of the source schema.
@@ -88,6 +94,9 @@ public class SourceSchemaHttpClientConfiguration : ISourceSchemaClientConfigurat
     /// <param name="capabilities">
     /// The client capabilities.
     /// </param>
+    /// <param name="onError">
+    /// The error handling mode requested by the source schema.
+    /// </param>
     /// <param name="defaultAcceptHeaderValues">
     /// The <c>Accept</c> header values sent in case of a single, non-Subscription GraphQL request.
     /// </param>
@@ -106,12 +115,13 @@ public class SourceSchemaHttpClientConfiguration : ISourceSchemaClientConfigurat
     /// <param name="onSourceSchemaResult">
     /// The action to call after a <see cref="SourceSchemaResult"/> was materialized.
     /// </param>
-    public SourceSchemaHttpClientConfiguration(
+    public HttpSourceSchemaClientConfiguration(
         string name,
         string httpClientName,
         Uri baseAddress,
         SupportedOperationType supportedOperations = SupportedOperationType.All,
         SourceSchemaClientCapabilities capabilities = SourceSchemaClientCapabilities.All,
+        ErrorHandlingMode? onError = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null,
@@ -128,6 +138,7 @@ public class SourceSchemaHttpClientConfiguration : ISourceSchemaClientConfigurat
         BaseAddress = baseAddress;
         SupportedOperations = supportedOperations;
         Capabilities = capabilities;
+        OnError = onError;
 
         DefaultAcceptHeaderValue = defaultAcceptHeaderValues is null
             ? AcceptContentTypes.DefaultHeader
@@ -170,6 +181,11 @@ public class SourceSchemaHttpClientConfiguration : ISourceSchemaClientConfigurat
     /// Gets the client capabilities.
     /// </summary>
     public SourceSchemaClientCapabilities Capabilities { get; }
+
+    /// <summary>
+    /// Gets the error handling mode requested by the source schema.
+    /// </summary>
+    public ErrorHandlingMode? OnError { get; }
 
     /// <summary>
     /// Gets a pre-formatted Accept header string for single, non-Subscription GraphQL requests.
