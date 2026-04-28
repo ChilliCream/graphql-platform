@@ -69,10 +69,10 @@ public sealed partial class SyntaxSerializer
             case SyntaxKind.IntValue:
             case SyntaxKind.NullValue:
             case SyntaxKind.StringValue:
-                writer.WriteValue((IValueNode)node, _indented);
+                WriteValue((IValueNode)node, writer);
                 break;
             case SyntaxKind.ObjectField:
-                writer.WriteObjectField((ObjectFieldNode)node, _indented);
+                WriteObjectField((ObjectFieldNode)node, writer);
                 break;
             case SyntaxKind.SchemaDefinition:
                 VisitSchemaDefinition((SchemaDefinitionNode)node, writer);

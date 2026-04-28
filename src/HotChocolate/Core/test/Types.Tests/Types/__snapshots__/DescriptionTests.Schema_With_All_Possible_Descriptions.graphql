@@ -15,10 +15,15 @@ type Query {
   comment
   """
   outputFieldMulti: String
-  outputFieldWithArgs("Single line comment" arg1: SomeInput!, """
-  Multi line
-  comment
-  """ arg2: OtherInput!): String
+  outputFieldWithArgs(
+    "Single line comment"
+    arg1: SomeInput!
+    """
+    Multi line
+    comment
+    """
+    arg2: OtherInput!
+  ): String
 }
 
 """
@@ -48,10 +53,15 @@ interface SomeInterface {
   comment
   """
   fieldMulti: String
-  fieldWithArgs("Single line comment" arg1: String!, """
-  Multi line
-  comment
-  """ arg2: String!): String
+  fieldWithArgs(
+    "Single line comment"
+    arg1: String!
+    """
+    Multi line
+    comment
+    """
+    arg2: String!
+  ): String
 }
 
 "Single line comment"
@@ -123,16 +133,26 @@ scalar Other
 scalar Some
 
 "Single line comment"
-directive @other("Single line comment" arg1: String, """
-Multi line
-comment
-""" arg2: String) on FIELD
+directive @other(
+  "Single line comment"
+  arg1: String
+  """
+  Multi line
+  comment
+  """
+  arg2: String
+) on FIELD
 
 """
 Multi line
 comment
 """
-directive @some("Single line comment" arg1: String, """
-Multi line
-comment
-""" arg2: String) on FIELD
+directive @some(
+  "Single line comment"
+  arg1: String
+  """
+  Multi line
+  comment
+  """
+  arg2: String
+) on FIELD

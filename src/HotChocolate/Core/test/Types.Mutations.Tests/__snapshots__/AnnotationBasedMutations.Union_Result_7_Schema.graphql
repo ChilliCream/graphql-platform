@@ -35,7 +35,12 @@ interface Error {
   message: String!
 }
 
-union DoSomethingError = CustomError | Custom2Error | Custom4Error | Custom5 | Custom6
+union DoSomethingError =
+  | CustomError
+  | Custom2Error
+  | Custom4Error
+  | Custom5
+  | Custom6
 
 input DoSomethingInput {
   something: String!

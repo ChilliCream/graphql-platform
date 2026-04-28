@@ -12,15 +12,9 @@ input ComplexInput {
 
 input InputWithDefaultInput {
   withStringDefault: String = "abc"
-  withNullDefault: String
+  withNullDefault: String = null
   enum: FooEnum! = BAR
-  complexInput: [[ComplexInput!]!]! = [
-    [
-      {
-        foo: 1
-      }
-    ]
-  ]
+  complexInput: [[ComplexInput!]!]! = [[{ foo: 1 }]]
   withoutDefault: String
 }
 
