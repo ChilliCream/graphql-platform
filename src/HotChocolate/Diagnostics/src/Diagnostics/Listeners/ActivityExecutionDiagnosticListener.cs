@@ -5,7 +5,6 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
-using OpenTelemetry.Trace;
 using static HotChocolate.Diagnostics.ContextKeys;
 using static HotChocolate.Diagnostics.HotChocolateActivitySource;
 

@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.Execution;
 using HotChocolate.Language;
-using OpenTelemetry.Trace;
 using static HotChocolate.Diagnostics.ContextKeys;
 
 namespace HotChocolate.Diagnostics.Listeners;

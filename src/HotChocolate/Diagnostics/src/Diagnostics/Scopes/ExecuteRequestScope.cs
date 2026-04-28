@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using HotChocolate.Execution;
-using OpenTelemetry.Trace;
 
 namespace HotChocolate.Diagnostics.Scopes;
 

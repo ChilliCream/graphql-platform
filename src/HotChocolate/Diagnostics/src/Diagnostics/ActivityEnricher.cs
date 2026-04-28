@@ -12,7 +12,6 @@ using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using OpenTelemetry.Trace;
 using static HotChocolate.Diagnostics.SemanticConventions;
 using static HotChocolate.WellKnownContextData;
 
