@@ -71,6 +71,11 @@ internal sealed class ValueCompletion
             return ApplyPocketedErrors(target);
         }
 
+        if (target.ValueKind is JsonValueKind.Undefined)
+        {
+            InitializeTargetObject(source, target);
+        }
+
         foreach (var property in source.EnumerateObject())
         {
             if (!target.TryGetProperty(property.NameSpan, out var resultField))
@@ -121,6 +126,37 @@ internal sealed class ValueCompletion
         }
 
         return ApplyPocketedErrors(target);
+    }
+
+    private void InitializeTargetObject(
+        SourceResultElement source,
+        CompositeResultElement target)
+    {
+        var selection = target.Selection;
+
+        if (selection is null)
+        {
+            // The target is an array item. Array items have no PropertyName metadata,
+            // so Selection is null. Navigate to the logical parent (the list slot),
+            // get the list field's selection, and derive the element type from it.
+            var listElement = target.Parent;
+            selection = listElement.Selection
+                ?? throw new InvalidOperationException(
+                    "Cannot initialize a result object without selection metadata.");
+
+            var elementType = GetType(selection.Field.Type.ElementType(), source);
+            var elementSelectionSet = selection.DeclaringSelectionSet.DeclaringOperation
+                .GetSelectionSet(selection, elementType);
+
+            target.SetObjectValue(elementSelectionSet);
+            return;
+        }
+
+        var objectType = GetType(selection.Type, source);
+        var objectSelectionSet = selection.DeclaringSelectionSet.DeclaringOperation
+            .GetSelectionSet(selection, objectType);
+
+        target.SetObjectValue(objectSelectionSet);
     }
 
     /// <summary>

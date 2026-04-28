@@ -586,7 +586,9 @@ AddErrors_Next:
             return false;
         }
 
-        var element = path.IsRoot ? resultData : GetStartObjectResult(path);
+        var element = path.IsRoot ? resultData : GetStartResult(path);
+        Debug.Assert(element.ValueKind is JsonValueKind.Object or JsonValueKind.Null or JsonValueKind.Undefined);
+
         if (element.IsNullOrInvalidated)
         {
             return true;
@@ -1577,11 +1579,11 @@ AddErrors_Next:
 
     /// <summary>
     /// Copies variable value sets produced by another <see cref="FetchResultStore"/>
-    /// into this store's writer and path pool, so the resulting array has no
-    /// reference to the source store. Used by deferred sub-plans: plan-scope
-    /// requirement values are resolved once against the parent store at
-    /// sub-plan creation time, materialized here, and consumed without any
-    /// dependency on the parent store's lifetime.
+    /// into this store's writer and path pool, then initializes the child-store
+    /// containers needed to reach imported list-anchor paths. Used by deferred
+    /// sub-plans: plan-scope requirement values are resolved once against the
+    /// parent store at sub-plan creation time, materialized here, and consumed
+    /// without any dependency on the parent store's lifetime.
     /// </summary>
     internal ImmutableArray<VariableValues> ImportVariableValues(
         ImmutableArray<VariableValues> source)
@@ -1595,15 +1597,21 @@ AddErrors_Next:
 
         var builder = ImmutableArray.CreateBuilder<VariableValues>(source.Length);
 
+        ImmutableArray<VariableValues> imported;
+
         lock (_lock)
         {
             foreach (var entry in source)
             {
                 builder.Add(ImportVariableValuesEntry(entry));
             }
+
+            imported = builder.MoveToImmutable();
         }
 
-        return builder.MoveToImmutable();
+        InitializeTargetPaths(imported);
+
+        return imported;
     }
 
     private VariableValues ImportVariableValuesEntry(VariableValues source)
@@ -1826,18 +1834,6 @@ AddErrors_Next:
     {
         var result = GetStartResult(path);
         Debug.Assert(result.ValueKind is JsonValueKind.Object or JsonValueKind.Null or JsonValueKind.Undefined);
-
-        // The target slot itself can be Undefined when the defer's first
-        // surviving step writes into a path the planner did not materialize
-        // ahead of time. Promote the target to an empty StartObject backed by
-        // the target's declared selection set so the subsequent value-
-        // completion merge has a valid parent to populate.
-        if (result.ValueKind is JsonValueKind.Undefined)
-        {
-            MaterializeObject(result);
-            return result;
-        }
-
         return result.ValueKind is JsonValueKind.Object or JsonValueKind.Null ? result : default;
     }
 
@@ -1892,14 +1888,10 @@ AddErrors_Next:
 
             if (segment >= 0)
             {
-                // A deferred sub-plan may target a path whose enclosing object
-                // slot was never materialized by the parent's own fetch.
-                // Materialize an empty StartObject sized by the slot's selection
-                // set so the next GetPropertyBySelectionId call has a parent
-                // row to index into.
-                if (element.ValueKind is JsonValueKind.Undefined)
+                if (element.ValueKind is not JsonValueKind.Object)
                 {
-                    MaterializeObject(element);
+                    throw new InvalidOperationException(
+                        $"The path segment '{segment}' does not exist in the data.");
                 }
 
                 element = element.GetPropertyBySelectionId(segment);
@@ -1907,56 +1899,167 @@ AddErrors_Next:
             else
             {
                 var index = ~segment;
-
-                if (element.ValueKind is JsonValueKind.Undefined)
-                {
-                    element.SetArrayValue(index + 1);
-                }
-                else if (element.ValueKind is JsonValueKind.Array)
-                {
-                    element.EnsureArrayLength(index + 1);
-                }
-                else
-                {
-                    throw new InvalidOperationException(
-                        $"The path segment '[{index}]' does not exist in the data.");
-                }
-
-                var list = element;
-                element = list[index];
-
-                if (element.ValueKind is JsonValueKind.Undefined
-                    && (i == path.Length - 1 || path[i + 1] >= 0))
-                {
-                    MaterializeListItemObject(list, element);
-                }
+                element = element[index];
             }
         }
 
         return element;
     }
 
-    private void MaterializeObject(CompositeResultElement element)
+    private void InitializeTargetPaths(ImmutableArray<VariableValues> importedValues)
     {
-        var selection = element.AssertSelection();
-        var objectType = selection.Field.Type.NamedType<IObjectTypeDefinition>();
-        var selectionSet = _operation.GetSelectionSet(selection, objectType);
-        element.SetObjectValue(selectionSet);
-    }
-
-    private void MaterializeListItemObject(
-        CompositeResultElement list,
-        CompositeResultElement element)
-    {
-        var selection = list.AssertSelection();
-
-        if (selection.Field.Type.ElementType().NamedType() is not IObjectTypeDefinition objectType)
+        if (importedValues.IsDefaultOrEmpty)
         {
-            throw new InvalidOperationException(
-                "The target path resolves to a list item that is not an object.");
+            return;
         }
 
-        var selectionSet = _operation.GetSelectionSet(selection, objectType);
+        lock (_lock)
+        {
+            // Collect the maximum array index required for each distinct list container
+            // slot. Key = cursor index of the container element (unique in the meta-db).
+            // In practice there is at most one distinct list container per sub-plan
+            // because all requirements must originate from a single anchor.
+            Dictionary<int, (CompositeResultElement Container, int MaxIndex)>? containers = null;
+
+            foreach (var entry in importedValues)
+            {
+                TrackListContainer(entry.Path, ref containers);
+                foreach (var additional in entry.AdditionalPaths.AsSpan())
+                {
+                    TrackListContainer(additional, ref containers);
+                }
+            }
+
+            if (containers is null)
+            {
+                return;
+            }
+
+            foreach (var (_, (container, maxIndex)) in containers)
+            {
+                if (container.ValueKind is JsonValueKind.Undefined)
+                {
+                    container.SetArrayValue(maxIndex + 1);
+                }
+                else if (container.ValueKind is JsonValueKind.Array)
+                {
+                    if (container.GetArrayLength() <= maxIndex)
+                    {
+                        throw new InvalidOperationException(
+                            $"The target path list container is shorter than required for index {maxIndex}.");
+                    }
+                }
+                else if (container.ValueKind is not JsonValueKind.Null)
+                {
+                    throw new InvalidOperationException(
+                        "The target path list container does not exist in the data.");
+                }
+            }
+        }
+    }
+
+    private void TrackListContainer(
+        CompactPath path,
+        ref Dictionary<int, (CompositeResultElement Container, int MaxIndex)>? containers)
+    {
+        if (path.IsRoot)
+        {
+            return;
+        }
+
+        var element = _result.Data;
+        var segments = path.Segments;
+
+        for (var i = 0; i < segments.Length; i++)
+        {
+            var seg = segments[i];
+
+            if (element.ValueKind is JsonValueKind.Null)
+            {
+                return;
+            }
+
+            if (seg >= 0)
+            {
+                var hasListAnchor = HasListAnchor(segments, i + 1);
+
+                if (element.ValueKind is JsonValueKind.Undefined)
+                {
+                    if (!hasListAnchor)
+                    {
+                        return;
+                    }
+
+                    InitializeIntermediateObject(element);
+                }
+
+                if (element.ValueKind is not JsonValueKind.Object)
+                {
+                    if (!hasListAnchor)
+                    {
+                        return;
+                    }
+
+                    throw new InvalidOperationException(
+                        $"The path segment '{seg}' does not exist in the data.");
+                }
+
+                element = element.GetPropertyBySelectionId(seg);
+            }
+            else
+            {
+                // Negative segment encodes a list index as ~index.
+                var index = ~seg;
+                var cursorKey = element.Cursor.Index;
+
+                containers ??= new Dictionary<int, (CompositeResultElement, int)>();
+
+                if (containers.TryGetValue(cursorKey, out var existing))
+                {
+                    if (index > existing.MaxIndex)
+                    {
+                        containers[cursorKey] = (existing.Container, index);
+                    }
+                }
+                else
+                {
+                    containers[cursorKey] = (element, index);
+                }
+
+                // Only process the outermost list anchor; stop here.
+                return;
+            }
+        }
+    }
+
+    private static bool HasListAnchor(ReadOnlySpan<int> segments, int start)
+    {
+        for (var i = start; i < segments.Length; i++)
+        {
+            if (segments[i] < 0)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void InitializeIntermediateObject(CompositeResultElement element)
+    {
+        var selection = element.Selection
+            ?? throw new InvalidOperationException(
+                "Cannot initialize an intermediate target object without selection metadata.");
+
+        if (selection.Type.NamedType() is not IObjectTypeDefinition objectType)
+        {
+            throw new InvalidOperationException(
+                "Cannot initialize an intermediate target object for an abstract selection.");
+        }
+
+        var selectionSet = selection.DeclaringSelectionSet.DeclaringOperation
+            .GetSelectionSet(selection, objectType);
+
         element.SetObjectValue(selectionSet);
     }
 
