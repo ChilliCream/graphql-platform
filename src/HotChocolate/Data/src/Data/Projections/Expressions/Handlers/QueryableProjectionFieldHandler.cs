@@ -23,6 +23,13 @@ public class QueryableProjectionFieldHandler
 
         if (field.Member is PropertyInfo { CanWrite: true } propertyInfo)
         {
+            if (QueryableProjectionJsonbDetector.IsJsonbMappedProperty(context, propertyInfo))
+            {
+                action = SelectionVisitor.SkipAndLeave;
+
+                return true;
+            }
+
             memberType = propertyInfo.PropertyType;
             nestedProperty = Expression.Property(context.GetInstance(), propertyInfo);
         }
@@ -52,11 +59,32 @@ public class QueryableProjectionFieldHandler
     {
         var field = selection.Field;
 
-        if (field.Member is null)
+        if (field.Member is not PropertyInfo propertyInfo)
         {
             action = null;
 
             return false;
+        }
+
+        if (QueryableProjectionJsonbDetector.IsJsonbMappedProperty(context, propertyInfo))
+        {
+            if (context.Scopes.Count > 0
+                && context.Scopes.Peek() is QueryableProjectionScope closure)
+            {
+                var instance = closure.Instance.Peek();
+
+                closure.Level
+                    .Peek()
+                    .Enqueue(Expression.Bind(propertyInfo, Expression.Property(instance, propertyInfo)));
+
+                action = SelectionVisitor.Continue;
+
+                return true;
+            }
+
+            action = SelectionVisitor.Skip;
+
+            return true;
         }
 
         // Dequeue last
@@ -75,16 +103,7 @@ public class QueryableProjectionFieldHandler
         }
 
         Expression nestedProperty;
-        if (field.Member is PropertyInfo propertyInfo)
-        {
-            nestedProperty = Expression.Property(context.GetInstance(), propertyInfo);
-        }
-        else
-        {
-            action = SelectionVisitor.Skip;
-
-            return true;
-        }
+        nestedProperty = Expression.Property(context.GetInstance(), propertyInfo);
 
         // If the nested scope has no projectable members we keep the original value.
         // This happens for members like JsonDocument where selected subfields are read-only.
@@ -92,7 +111,7 @@ public class QueryableProjectionFieldHandler
         {
             parentScope.Level
                 .Peek()
-                .Enqueue(Expression.Bind(field.Member, nestedProperty));
+                .Enqueue(Expression.Bind(propertyInfo, nestedProperty));
 
             action = SelectionVisitor.Continue;
 
@@ -106,13 +125,13 @@ public class QueryableProjectionFieldHandler
         {
             parentScope.Level
                 .Peek()
-                .Enqueue(Expression.Bind(field.Member, NotNullAndAlso(nestedProperty, memberInit)));
+                .Enqueue(Expression.Bind(propertyInfo, NotNullAndAlso(nestedProperty, memberInit)));
         }
         else
         {
             parentScope.Level
                 .Peek()
-                .Enqueue(Expression.Bind(field.Member, memberInit));
+                .Enqueue(Expression.Bind(propertyInfo, memberInit));
         }
 
         action = SelectionVisitor.Continue;
