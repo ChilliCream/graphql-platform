@@ -19,6 +19,8 @@ public static class SchemaFormatter
         ISchemaDefinition schema,
         SchemaFormatterOptions? options = null)
     {
+        ArgumentNullException.ThrowIfNull(schema);
+
         options ??= new SchemaFormatterOptions();
         var document = FormatAsDocument(schema, options);
 
@@ -34,6 +36,8 @@ public static class SchemaFormatter
         ISchemaDefinition schema,
         SchemaFormatterOptions? options = null)
     {
+        ArgumentNullException.ThrowIfNull(schema);
+
         options ??= new SchemaFormatterOptions();
         var context = new VisitorContext
         {

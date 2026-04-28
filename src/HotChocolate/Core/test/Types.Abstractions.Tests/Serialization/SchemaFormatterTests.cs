@@ -6,6 +6,26 @@ namespace HotChocolate.Serialization;
 public class SchemaFormatterTests
 {
     [Fact]
+    public void FormatAsString_Schema_Is_Null_Throws()
+    {
+        // arrange & act
+        void Act() => SchemaFormatter.FormatAsString(null!);
+
+        // assert
+        Assert.Throws<ArgumentNullException>(Act);
+    }
+
+    [Fact]
+    public void FormatAsDocument_Schema_Is_Null_Throws()
+    {
+        // arrange & act
+        void Act() => SchemaFormatter.FormatAsDocument(null!);
+
+        // assert
+        Assert.Throws<ArgumentNullException>(Act);
+    }
+
+    [Fact]
     public void Format_Single_InputObject_Type()
     {
         // arrange
@@ -372,6 +392,135 @@ public class SchemaFormatterTests
             input Bar {
               a: Boolean
             }
+            """);
+    }
+
+    [Fact]
+    public void Format_Schema_With_Mutation_Without_Subscription()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Query {
+              foo: Foo
+            }
+
+            type Mutation {
+              mutate: String
+            }
+
+            type Foo implements Bar {
+              id: ID!
+            }
+
+            interface Bar {
+              id: ID!
+            }
+
+            type Baz {
+              name("some comment" baz: BazInput): String
+            }
+
+            union FooOrBaz = Foo | Baz
+
+            input BazInput {
+              name: String
+            }
+            """;
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // act
+        var formattedSdl = SchemaFormatter.FormatAsString(schema);
+
+        // assert
+        formattedSdl.MatchInlineSnapshot(
+            """
+            schema {
+              query: Query
+              mutation: Mutation
+            }
+
+            type Query {
+              foo: Foo
+            }
+
+            type Mutation {
+              mutate: String
+            }
+
+            type Baz {
+              name("some comment" baz: BazInput): String
+            }
+
+            type Foo implements Bar {
+              id: ID!
+            }
+
+            interface Bar {
+              id: ID!
+            }
+
+            union FooOrBaz = Foo | Baz
+
+            input BazInput {
+              name: String
+            }
+            """);
+    }
+
+    [Fact]
+    public void Format_Schema_With_Applied_Directive_On_Interface_Field()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Foo implements Bar {
+              id: ID!
+            }
+
+            interface Bar {
+              id: ID! @upper
+            }
+
+            type Baz {
+              name(baz: BazInput): String
+            }
+
+            union FooOrBaz = Foo | Baz
+
+            input BazInput {
+              name: String
+            }
+
+            directive @upper on FIELD_DEFINITION
+            """;
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // act
+        var formattedSdl = SchemaFormatter.FormatAsString(schema);
+
+        // assert
+        formattedSdl.MatchInlineSnapshot(
+            """
+            type Baz {
+              name(baz: BazInput): String
+            }
+
+            type Foo implements Bar {
+              id: ID!
+            }
+
+            interface Bar {
+              id: ID! @upper
+            }
+
+            union FooOrBaz = Foo | Baz
+
+            input BazInput {
+              name: String
+            }
+
+            directive @upper on FIELD_DEFINITION
             """);
     }
 
