@@ -1,31 +1,48 @@
 namespace HotChocolate.Serialization;
 
-public struct SchemaFormatterOptions
+public sealed class SchemaFormatterOptions
 {
-    /// <summary>
-    /// Master fallback for type and field ordering.
-    /// Use <see cref="OrderTypesByName"/> or <see cref="OrderFieldsByName"/> to
-    /// control ordering independently.
-    /// </summary>
-    public bool? OrderByName { get; set; }
+    public SchemaFormatterOptions() { }
 
     /// <summary>
-    /// Controls whether type definitions and directive definitions are emitted in
-    /// alphabetical order. When unset, falls back to <see cref="OrderByName"/>, then
-    /// <c>true</c>.
+    /// Controls whether type definitions and directive definitions are emitted
+    /// in alphabetical order.
+    /// Default: <c>true</c>.
     /// </summary>
-    public bool? OrderTypesByName { get; set; }
+    public bool OrderTypesByName { get; set; } = true;
 
     /// <summary>
     /// Controls whether fields, input fields, and enum values within a type are
-    /// emitted in alphabetical order. When unset, falls back to
-    /// <see cref="OrderByName"/>, then <c>true</c>.
+    /// emitted in alphabetical order.
+    /// Default: <c>true</c>.
     /// </summary>
-    public bool? OrderFieldsByName { get; set; }
+    public bool OrderFieldsByName { get; set; } = true;
 
-    public bool? Indented { get; set; }
+    /// <summary>
+    /// Controls whether the output is indented and pretty-printed.
+    /// Default: <c>true</c>.
+    /// </summary>
+    public bool Indented { get; set; } = true;
 
-    public bool? PrintSpecScalars { get; set; }
+    /// <summary>
+    /// Controls whether GraphQL spec scalars (String, Int, Float, Boolean, ID)
+    /// are emitted as type definitions.
+    /// Default: <c>false</c>.
+    /// </summary>
+    public bool PrintSpecScalars { get; set; }
 
-    public bool? PrintSpecDirectives { get; set; }
+    /// <summary>
+    /// Controls whether GraphQL spec directives (@skip, @include, @deprecated,
+    /// @specifiedBy, @oneOf) are emitted as directive definitions.
+    /// Default: <c>false</c>.
+    /// </summary>
+    public bool PrintSpecDirectives { get; set; }
+
+    /// <summary>
+    /// Controls whether directive definitions and applied directives whose
+    /// definition has <see cref="HotChocolate.Types.IDirectiveDefinition.IsPublic"/>
+    /// set to <c>false</c> are included in the output.
+    /// Default: <c>true</c>.
+    /// </summary>
+    public bool IncludeInternalDirectives { get; set; } = true;
 }

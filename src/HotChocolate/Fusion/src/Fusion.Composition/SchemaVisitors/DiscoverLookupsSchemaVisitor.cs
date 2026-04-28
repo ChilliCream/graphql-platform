@@ -7,7 +7,7 @@ using HotChocolate.Types.Mutable;
 namespace HotChocolate.Fusion.SchemaVisitors;
 
 internal sealed class DiscoverLookupsSchemaVisitor(MutableSchemaDefinition schema)
-    : MutableSchemaDefinitionVisitor<DiscoverLookupsContext>
+    : SchemaDefinitionVisitor<DiscoverLookupsContext>
 {
     private readonly MultiValueDictionary<string, MutableObjectTypeDefinition>
         _implementingTypesByInterfaceName = [];
@@ -39,13 +39,13 @@ internal sealed class DiscoverLookupsSchemaVisitor(MutableSchemaDefinition schem
     }
 
     // Overridden to avoid unnecessarily visiting directives.
-    public override void VisitObjectType(MutableObjectTypeDefinition type, DiscoverLookupsContext context)
+    public override void VisitObjectType(IObjectTypeDefinition type, DiscoverLookupsContext context)
     {
         VisitOutputFields(type.Fields, context);
     }
 
     public override void VisitOutputField(
-        MutableOutputFieldDefinition field,
+        IOutputFieldDefinition field,
         DiscoverLookupsContext context)
     {
         if (field.Type.IsListType())
@@ -60,7 +60,7 @@ internal sealed class DiscoverLookupsSchemaVisitor(MutableSchemaDefinition schem
         {
             context.LookupFieldGroup.Add(
                 new LookupFieldInfo(
-                    field,
+                    (MutableOutputFieldDefinition)field,
                     context.Path.Count == 0 ? null : string.Join(".", context.Path),
                     schema));
 

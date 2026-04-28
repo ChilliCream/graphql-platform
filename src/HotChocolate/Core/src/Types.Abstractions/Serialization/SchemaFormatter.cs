@@ -17,11 +17,12 @@ public static class SchemaFormatter
 
     public static string FormatAsString(
         ISchemaDefinition schema,
-        SchemaFormatterOptions options = default)
+        SchemaFormatterOptions? options = null)
     {
+        options ??= new SchemaFormatterOptions();
         var document = FormatAsDocument(schema, options);
 
-        if (options.Indented == false)
+        if (!options.Indented)
         {
             return document.ToString(false);
         }
@@ -31,15 +32,17 @@ public static class SchemaFormatter
 
     public static DocumentNode FormatAsDocument(
         ISchemaDefinition schema,
-        SchemaFormatterOptions options = default)
+        SchemaFormatterOptions? options = null)
     {
+        options ??= new SchemaFormatterOptions();
         var context = new VisitorContext
         {
             Schema = schema,
-            OrderTypesByName = options.OrderTypesByName ?? options.OrderByName ?? true,
-            OrderFieldsByName = options.OrderFieldsByName ?? options.OrderByName ?? true,
-            PrintSpecScalars = options.PrintSpecScalars ?? false,
-            PrintSpecDirectives = options.PrintSpecDirectives ?? false
+            OrderTypesByName = options.OrderTypesByName,
+            OrderFieldsByName = options.OrderFieldsByName,
+            PrintSpecScalars = options.PrintSpecScalars,
+            PrintSpecDirectives = options.PrintSpecDirectives,
+            IncludeInternalDirectives = options.IncludeInternalDirectives
         };
         s_visitor.VisitSchema(schema, context);
         return (DocumentNode)context.Result!;
@@ -129,6 +132,11 @@ public static class SchemaFormatter
                 {
                     if (!context.PrintSpecDirectives
                         && DirectiveNames.IsSpecDirective(directiveDefinition.Name))
+                    {
+                        continue;
+                    }
+
+                    if (!context.IncludeInternalDirectives && !directiveDefinition.IsPublic)
                     {
                         continue;
                     }
@@ -262,6 +270,11 @@ public static class SchemaFormatter
                 .OrderBy(t => t.Name, context.OrderTypesByName))
             {
                 if (DirectiveNames.IsSpecDirective(type.Name))
+                {
+                    continue;
+                }
+
+                if (!context.IncludeInternalDirectives && !type.IsPublic)
                 {
                     continue;
                 }
@@ -538,6 +551,11 @@ public static class SchemaFormatter
 
             foreach (var directive in directives)
             {
+                if (!context.IncludeInternalDirectives && !directive.Definition.IsPublic)
+                {
+                    continue;
+                }
+
                 VisitDirective(directive, context);
                 directiveNodes.Add((DirectiveNode)context.Result!);
             }
@@ -601,7 +619,7 @@ public static class SchemaFormatter
         }
 
         private static bool IsTypeExtension(IFeatureProvider type)
-            => type.Features.Get<TypeExtensionMarker>() is not null;
+            => type.Features?.Get<TypeExtensionMarker>() is not null;
     }
 
     private sealed record VisitorContext
@@ -615,6 +633,8 @@ public static class SchemaFormatter
         public required bool PrintSpecScalars { get; init; }
 
         public required bool PrintSpecDirectives { get; init; }
+
+        public required bool IncludeInternalDirectives { get; init; }
 
         public object? Result { get; set; }
     }

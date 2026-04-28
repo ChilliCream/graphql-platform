@@ -278,7 +278,9 @@ public class SchemaFormatterTests
         var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
 
         // act
-        var formattedSdl = SchemaFormatter.FormatAsString(schema, new SchemaFormatterOptions { OrderByName = false });
+        var formattedSdl = SchemaFormatter.FormatAsString(
+            schema,
+            new SchemaFormatterOptions { OrderTypesByName = false, OrderFieldsByName = false });
 
         // assert
         formattedSdl.MatchInlineSnapshot(
@@ -323,5 +325,73 @@ public class SchemaFormatterTests
 
         // assert
         formattedSdl.MatchInlineSnapshot(sdl);
+    }
+
+    [Fact]
+    public void Format_IncludeInternalDirectives_True_Emits_Internal_Directive_Definition()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Query {
+              foo: String
+            }
+
+            directive @internalDir on FIELD_DEFINITION
+            """;
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+        schema.DirectiveDefinitions["internalDir"].IsPublic = false;
+
+        // act
+        var formattedSdl = SchemaFormatter.FormatAsString(
+            schema,
+            new SchemaFormatterOptions { IncludeInternalDirectives = true });
+
+        // assert
+        formattedSdl.MatchInlineSnapshot(
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              foo: String
+            }
+
+            directive @internalDir on FIELD_DEFINITION
+            """);
+    }
+
+    [Fact]
+    public void Format_IncludeInternalDirectives_False_Strips_Internal_Directive_Definition()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Query {
+              foo: String
+            }
+
+            directive @internalDir on FIELD_DEFINITION
+            """;
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+        schema.DirectiveDefinitions["internalDir"].IsPublic = false;
+
+        // act
+        var formattedSdl = SchemaFormatter.FormatAsString(
+            schema,
+            new SchemaFormatterOptions { IncludeInternalDirectives = false });
+
+        // assert
+        formattedSdl.MatchInlineSnapshot(
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              foo: String
+            }
+            """);
     }
 }

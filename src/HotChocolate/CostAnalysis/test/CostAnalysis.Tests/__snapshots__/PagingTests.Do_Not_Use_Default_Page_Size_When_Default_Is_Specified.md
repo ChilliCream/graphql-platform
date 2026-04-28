@@ -37,6 +37,53 @@ schema {
   query: Query
 }
 
+type Query {
+  books(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+    where: BookFilterInput @cost(weight: "10")
+    order: [BookSortInput!] @cost(weight: "10")
+  ): BooksConnection
+    @listSize(assumedSize: 50, slicingArguments: ["first", "last"], sizedFields: ["edges", "nodes"], requireOneSlicingArgument: false)
+    @cost(weight: "10")
+  booksWithTotalCount(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+    where: BookFilterInput @cost(weight: "10")
+    order: [BookSortInput!] @cost(weight: "10")
+  ): BooksTotalConnection
+    @listSize(assumedSize: 50, slicingArguments: ["first", "last"], sizedFields: ["edges", "nodes"], requireOneSlicingArgument: false)
+    @cost(weight: "10")
+  booksOffset(
+    skip: Int
+    take: Int
+    where: BookFilterInput @cost(weight: "10")
+    order: [BookSortInput!] @cost(weight: "10")
+  ): BooksOffsetCollectionSegment
+    @listSize(assumedSize: 50, slicingArguments: ["take"], sizedFields: ["items"], requireOneSlicingArgument: false)
+    @cost(weight: "10")
+  booksOffsetWithTotalCount(
+    skip: Int
+    take: Int
+    where: BookFilterInput @cost(weight: "10")
+    order: [BookSortInput!] @cost(weight: "10")
+  ): BooksTotalCollectionSegment
+    @listSize(assumedSize: 50, slicingArguments: ["take"], sizedFields: ["items"], requireOneSlicingArgument: false)
+    @cost(weight: "10")
+}
+
 type Author {
   name: String!
 }
@@ -147,53 +194,6 @@ type PageInfo {
   startCursor: String
   "When paginating forwards, the cursor to continue."
   endCursor: String
-}
-
-type Query {
-  books(
-    "Returns the first _n_ elements from the list."
-    first: Int
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-    "Returns the last _n_ elements from the list."
-    last: Int
-    "Returns the elements in the list that come before the specified cursor."
-    before: String
-    where: BookFilterInput @cost(weight: "10")
-    order: [BookSortInput!] @cost(weight: "10")
-  ): BooksConnection
-    @listSize(assumedSize: 50, slicingArguments: ["first", "last"], sizedFields: ["edges", "nodes"], requireOneSlicingArgument: false)
-    @cost(weight: "10")
-  booksWithTotalCount(
-    "Returns the first _n_ elements from the list."
-    first: Int
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-    "Returns the last _n_ elements from the list."
-    last: Int
-    "Returns the elements in the list that come before the specified cursor."
-    before: String
-    where: BookFilterInput @cost(weight: "10")
-    order: [BookSortInput!] @cost(weight: "10")
-  ): BooksTotalConnection
-    @listSize(assumedSize: 50, slicingArguments: ["first", "last"], sizedFields: ["edges", "nodes"], requireOneSlicingArgument: false)
-    @cost(weight: "10")
-  booksOffset(
-    skip: Int
-    take: Int
-    where: BookFilterInput @cost(weight: "10")
-    order: [BookSortInput!] @cost(weight: "10")
-  ): BooksOffsetCollectionSegment
-    @listSize(assumedSize: 50, slicingArguments: ["take"], sizedFields: ["items"], requireOneSlicingArgument: false)
-    @cost(weight: "10")
-  booksOffsetWithTotalCount(
-    skip: Int
-    take: Int
-    where: BookFilterInput @cost(weight: "10")
-    order: [BookSortInput!] @cost(weight: "10")
-  ): BooksTotalCollectionSegment
-    @listSize(assumedSize: 50, slicingArguments: ["take"], sizedFields: ["items"], requireOneSlicingArgument: false)
-    @cost(weight: "10")
 }
 
 input BookFilterInput {

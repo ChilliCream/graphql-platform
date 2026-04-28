@@ -497,14 +497,8 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
     public override string ToString()
         => SchemaFormatter.FormatAsString(this);
 
-    public string ToString(SchemaFormatterOptions options)
-        => SchemaFormatter.FormatAsString(this, options);
-
     public DocumentNode ToSyntaxNode()
         => SchemaFormatter.FormatAsDocument(this);
-
-    public DocumentNode ToSyntaxNode(SchemaFormatterOptions options)
-        => SchemaFormatter.FormatAsDocument(this, options);
 
     ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode()
         => SchemaFormatter.FormatAsDocument(this);

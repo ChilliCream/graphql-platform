@@ -223,24 +223,16 @@ public partial class Schema
     /// Creates a schema document from the current schema.
     /// </summary>
     public DocumentNode ToSyntaxNode(bool includeSpecScalars = false)
-        => ToSyntaxNode(
+    {
+        _formatter ??= new AggregateSchemaDocumentFormatter(
+            Services.GetService<IEnumerable<ISchemaDocumentFormatter>>());
+        var document = SchemaFormatter.FormatAsDocument(
+            this,
             new SchemaFormatterOptions
             {
                 PrintSpecScalars = includeSpecScalars,
                 OrderFieldsByName = false
             });
-
-    /// <summary>
-    /// Creates a schema document from the current schema.
-    /// </summary>
-    /// <param name="options">
-    /// The options that control the formatting of the schema document.
-    /// </param>
-    public DocumentNode ToSyntaxNode(SchemaFormatterOptions options)
-    {
-        _formatter ??= new AggregateSchemaDocumentFormatter(
-            Services.GetService<IEnumerable<ISchemaDocumentFormatter>>());
-        var document = SchemaFormatter.FormatAsDocument(this, options);
         return _formatter.Format(document);
     }
 
@@ -251,12 +243,4 @@ public partial class Schema
     /// Returns the schema SDL representation.
     /// </summary>
     public override string ToString() => ToSyntaxNode().Print();
-
-    /// <summary>
-    /// Returns the schema SDL representation.
-    /// </summary>
-    /// <param name="options">
-    /// The options that control the formatting of the schema document.
-    /// </param>
-    public string ToString(SchemaFormatterOptions options) => ToSyntaxNode(options).Print();
 }

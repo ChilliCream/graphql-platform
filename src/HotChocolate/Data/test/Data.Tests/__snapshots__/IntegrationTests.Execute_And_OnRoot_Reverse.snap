@@ -19,6 +19,21 @@ schema {
   query: DifferentScope
 }
 
+type DifferentScope {
+  books(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+    where: Foo_BookFilterInput
+    order: [Foo_BookSortInput!]
+  ): BooksConnection
+}
+
 type Author {
   id: Int!
   name: String
@@ -50,21 +65,6 @@ type BooksEdge {
   cursor: String!
   "The item at the end of the edge."
   node: Book!
-}
-
-type DifferentScope {
-  books(
-    "Returns the first _n_ elements from the list."
-    first: Int
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-    "Returns the last _n_ elements from the list."
-    last: Int
-    "Returns the elements in the list that come before the specified cursor."
-    before: String
-    where: Foo_BookFilterInput
-    order: [Foo_BookSortInput!]
-  ): BooksConnection
 }
 
 "Information about pagination in a connection."

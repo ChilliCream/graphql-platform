@@ -15,22 +15,33 @@ schema {
   subscription: Subscription
 }
 
-interface Character {
-  id: ID!
-  name: String @semanticNonNull
-  friends(
-    "Returns the first _n_ elements from the list."
-    first: Int
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-    "Returns the last _n_ elements from the list."
-    last: Int
-    "Returns the elements in the list that come before the specified cursor."
-    before: String
-  ): FriendsConnection
-  appearsIn: [Episode]
-  traits: Any
-  height(unit: Unit): Float
+type Query {
+  hero(episode: Episode! = NEW_HOPE): Character
+  heroByTraits(traits: Any!): Character
+  heroes(episodes: [Episode!]!): [Character] @semanticNonNull(levels: [1])
+  character(characterIds: [String!]!): [Character]
+    @cost(weight: "10")
+    @semanticNonNull(levels: [0, 1])
+  search(text: String!): [SearchResult]
+  human(id: String!): Human
+  droid(id: String!): Droid
+  time: Long @semanticNonNull
+  evict: Boolean @semanticNonNull
+  wait(m: Int!): Boolean @cost(weight: "10") @semanticNonNull
+  someDeprecatedField(
+    deprecatedArg: String! = "foo" @deprecated(reason: "use something else")
+  ): String @deprecated(reason: "use something else") @semanticNonNull
+}
+
+type Mutation {
+  createReview(episode: Episode!, review: ReviewInput!): Review!
+    @cost(weight: "10")
+  complete(episode: Episode!): Boolean! @cost(weight: "10")
+}
+
+type Subscription {
+  onReview(episode: Episode!): Review @semanticNonNull
+  delay(delay: Int!, count: Int!): String @semanticNonNull
 }
 
 type Droid implements Character {
@@ -94,12 +105,6 @@ type Human implements Character {
   traits: Any
 }
 
-type Mutation {
-  createReview(episode: Episode!, review: ReviewInput!): Review!
-    @cost(weight: "10")
-  complete(episode: Episode!): Boolean! @cost(weight: "10")
-}
-
 "Information about pagination in a connection."
 type PageInfo {
   "Indicates whether more edges exist following the set defined by the clients arguments."
@@ -110,24 +115,6 @@ type PageInfo {
   startCursor: String
   "When paginating forwards, the cursor to continue."
   endCursor: String
-}
-
-type Query {
-  hero(episode: Episode! = NEW_HOPE): Character
-  heroByTraits(traits: Any!): Character
-  heroes(episodes: [Episode!]!): [Character] @semanticNonNull(levels: [1])
-  character(characterIds: [String!]!): [Character]
-    @cost(weight: "10")
-    @semanticNonNull(levels: [0, 1])
-  search(text: String!): [SearchResult]
-  human(id: String!): Human
-  droid(id: String!): Droid
-  time: Long @semanticNonNull
-  evict: Boolean @semanticNonNull
-  wait(m: Int!): Boolean @cost(weight: "10") @semanticNonNull
-  someDeprecatedField(
-    deprecatedArg: String! = "foo" @deprecated(reason: "use something else")
-  ): String @deprecated(reason: "use something else") @semanticNonNull
 }
 
 type Review {
@@ -141,9 +128,22 @@ type Starship {
   length(unit: Unit): Float @semanticNonNull
 }
 
-type Subscription {
-  onReview(episode: Episode!): Review @semanticNonNull
-  delay(delay: Int!, count: Int!): String @semanticNonNull
+interface Character {
+  id: ID!
+  name: String @semanticNonNull
+  friends(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+  ): FriendsConnection
+  appearsIn: [Episode]
+  traits: Any
+  height(unit: Unit): Float
 }
 
 union SearchResult = Starship | Human | Droid
@@ -163,6 +163,13 @@ enum Unit {
   FOOT
   METERS
 }
+
+"The `Any` scalar type represents any valid GraphQL value."
+scalar Any @specifiedBy(url: "https://scalars.graphql.org/chillicream/any.html")
+
+"The `Long` scalar type represents a signed 64-bit integer."
+scalar Long
+  @specifiedBy(url: "https://scalars.graphql.org/chillicream/long.html")
 
 "The purpose of the `cost` directive is to define a `weight` for GraphQL types, fields, and arguments. Static analysis can use these weights when calculating the overall cost of a query or response."
 directive @cost(
@@ -198,12 +205,6 @@ directive @semanticNonNull(levels: [Int!] = [
   0
 ]) on FIELD_DEFINITION
 
-"The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions."
-directive @specifiedBy(
-  "The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types."
-  url: String!
-) on SCALAR
-
 "The `@stream` directive may be provided for a field of `List` type so that the backend can leverage technology such as asynchronous iterators to provide a partial list in the initial response, and additional list items in subsequent responses. `@include` and `@skip` take precedence over `@stream`."
 directive @stream(
   "If this argument label has a value other than null, it will be passed on to the result of this stream directive. This label is intended to give client applications a way to identify to which fragment a streamed result belongs to."
@@ -213,11 +214,4 @@ directive @stream(
   "Streamed when true."
   if: Boolean
 ) on FIELD
-
-"The `Any` scalar type represents any valid GraphQL value."
-scalar Any @specifiedBy(url: "https://scalars.graphql.org/chillicream/any.html")
-
-"The `Long` scalar type represents a signed 64-bit integer."
-scalar Long
-  @specifiedBy(url: "https://scalars.graphql.org/chillicream/long.html")
 ```

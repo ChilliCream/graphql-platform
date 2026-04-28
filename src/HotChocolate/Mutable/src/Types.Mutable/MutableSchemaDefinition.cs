@@ -347,37 +347,13 @@ public class MutableSchemaDefinition
         => SchemaFormatter.FormatAsString(this);
 
     /// <summary>
-    /// Returns a string representation of the schema.
-    /// </summary>
-    /// <param name="options">
-    /// The options that control the formatting of the schema document.
-    /// </param>
-    /// <returns>
-    /// A string representation of the schema.
-    /// </returns>
-    public string ToString(SchemaFormatterOptions options)
-        => SchemaFormatter.FormatAsString(this, options);
-
-    /// <summary>
     /// Returns a syntax node representation of the schema.
     /// </summary>
     /// <returns>
     /// A syntax node representation of the schema.
     /// </returns>
     public DocumentNode ToSyntaxNode()
-        => ToSyntaxNode(default);
-
-    /// <summary>
-    /// Returns a syntax node representation of the schema.
-    /// </summary>
-    /// <param name="options">
-    /// The options that control the formatting of the schema document.
-    /// </param>
-    /// <returns>
-    /// A syntax node representation of the schema.
-    /// </returns>
-    public DocumentNode ToSyntaxNode(SchemaFormatterOptions options)
-        => SchemaFormatter.FormatAsDocument(this, options);
+        => SchemaFormatter.FormatAsDocument(this);
 
     ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode()
         => ToSyntaxNode();

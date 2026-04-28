@@ -2,6 +2,10 @@ schema {
   query: Query
 }
 
+type Query {
+  bars(skip: Int, take: Int): BarsCollectionSegment
+}
+
 type Bar {
   qux: String!
 }
@@ -20,8 +24,4 @@ type CollectionSegmentInfo {
   hasNextPage: Boolean!
   "Indicates whether more items exist prior the set defined by the clients arguments."
   hasPreviousPage: Boolean!
-}
-
-type Query {
-  bars(skip: Int, take: Int): BarsCollectionSegment
 }
