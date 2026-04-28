@@ -385,6 +385,34 @@ public class PostgresChannelTests
         Assert.Single(receivedMessages);
     }
 
+    [Fact]
+    public async Task SendAsync_Should_Not_Initialize_ListenConnection_When_SendOnly()
+    {
+        // arrange
+        var createdConnections = new List<NpgsqlConnection>();
+        var options = new PostgresSubscriptionOptions
+        {
+            ConnectionFactory = async ct =>
+            {
+                var connection = await ConnectionFactory(ct);
+                createdConnections.Add(connection);
+                return connection;
+            },
+            ChannelName = _channelName
+        };
+        var channel = new PostgresChannel(_events, options);
+        var message =
+            PostgresMessageEnvelope.Create("test", "foobar", options.MaxMessagePayloadSize);
+
+        // act
+        await channel.SendAsync(message, CancellationToken.None);
+
+        // assert
+        Assert.Single(createdConnections);
+
+        await channel.DisposeAsync();
+    }
+
     private NpgsqlConnection SyncConnectionFactory()
     {
         var connection = _resource.GetConnection(_dbName);
