@@ -78,9 +78,15 @@ public static class SchedulingServiceCollectionExtensions
 
         builder.Services.AddHostedService(sp => sp.GetRequiredService<ScheduledMessageWorker>());
 
-        builder.Services.TryAddScoped<IScheduledMessageStore>(sp =>
-            EfCoreScheduledMessageStore.Create(contextType, builder.Name, sp)
-        );
+        builder.Services.AddScoped(sp =>
+            EfCoreScheduledMessageStore.Create(contextType, builder.Name, sp));
+
+        builder.Services.AddSingleton(
+            new ScheduledMessageStoreRegistration(
+                TransportType: null,
+                TokenPrefix: "postgres-scheduler:",
+                StoreType: typeof(EfCoreScheduledMessageStore),
+                IsFallback: true));
 
         builder.UseSchedulingCore();
 

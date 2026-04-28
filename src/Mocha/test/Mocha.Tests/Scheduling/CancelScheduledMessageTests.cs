@@ -84,7 +84,13 @@ public class CancelScheduledMessageTests
 
         if (spyStore is not null)
         {
-            services.AddScoped<IScheduledMessageStore>(_ => spyStore);
+            services.AddScoped(_ => spyStore);
+            services.AddSingleton(
+                new ScheduledMessageStoreRegistration(
+                    TransportType: null,
+                    TokenPrefix: "test-provider:",
+                    StoreType: typeof(SpyScheduledMessageStore),
+                    IsFallback: true));
         }
 
         var provider = services.BuildServiceProvider();
@@ -98,8 +104,7 @@ public class CancelScheduledMessageTests
         public string? LastCancelledValue { get; private set; }
 
         public ValueTask<string> PersistAsync(
-            MessageEnvelope envelope,
-            DateTimeOffset scheduledTime,
+            IDispatchContext context,
             CancellationToken cancellationToken) =>
             ValueTask.FromResult("test-provider:test-id");
 

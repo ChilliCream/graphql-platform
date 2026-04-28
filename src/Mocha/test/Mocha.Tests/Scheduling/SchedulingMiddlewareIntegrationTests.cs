@@ -227,7 +227,7 @@ public class SchedulingMiddlewareIntegrationTests
     }
 
     [Fact]
-    public async Task SchedulePublishAsync_Should_ReturnNonCancellable_When_NoStoreRegistered()
+    public async Task SchedulePublishAsync_Should_Throw_When_NoStoreRegisteredForTransport()
     {
         // arrange
         var timeProvider = new FakeTimeProvider();
@@ -250,20 +250,17 @@ public class SchedulingMiddlewareIntegrationTests
 
             var scheduledTime = timeProvider.GetUtcNow().AddMinutes(10);
 
-            // act
-            var result = await bus.SchedulePublishAsync(
-                new SchedulingTestEvent { Payload = "no-store" },
-                scheduledTime,
-                CancellationToken.None);
-
-            // assert
-            Assert.False(result.IsCancellable);
-            Assert.Null(result.Token);
+            // act + assert
+            await Assert.ThrowsAsync<NotSupportedException>(
+                () => bus.SchedulePublishAsync(
+                    new SchedulingTestEvent { Payload = "no-store" },
+                    scheduledTime,
+                    CancellationToken.None).AsTask());
         }
     }
 
     [Fact]
-    public async Task Scheduling_Should_PassThrough_When_NoStoreRegistered()
+    public async Task PublishAsync_Should_Throw_When_ScheduledAndNoStoreRegistered()
     {
         // arrange
         var timeProvider = new FakeTimeProvider();
@@ -287,14 +284,12 @@ public class SchedulingMiddlewareIntegrationTests
             using var scope = provider.CreateScope();
             var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
-            // act - publish with ScheduledTime but no store registered
-            await bus.PublishAsync(
-                new SchedulingTestEvent { Payload = "no-store" },
-                new PublishOptions { ScheduledTime = timeProvider.GetUtcNow().AddSeconds(-1) },
-                CancellationToken.None);
-
-            // assert - message delivered to handler since middleware was skipped (no store)
-            Assert.True(await recorder.WaitAsync(s_timeout), "Message should be delivered to handler");
+            // act + assert - scheduled publish with no store now throws fast
+            await Assert.ThrowsAsync<NotSupportedException>(
+                () => bus.PublishAsync(
+                    new SchedulingTestEvent { Payload = "no-store" },
+                    new PublishOptions { ScheduledTime = timeProvider.GetUtcNow().AddSeconds(-1) },
+                    CancellationToken.None).AsTask());
         }
     }
 
@@ -327,7 +322,13 @@ public class SchedulingMiddlewareIntegrationTests
         TimeProvider? timeProvider = null)
     {
         var services = new ServiceCollection();
-        services.AddScoped<IScheduledMessageStore>(_ => store);
+        services.AddScoped(_ => store);
+        services.AddSingleton(
+            new ScheduledMessageStoreRegistration(
+                TransportType: null,
+                TokenPrefix: "in-memory:",
+                StoreType: typeof(InMemoryScheduledMessageStore),
+                IsFallback: true));
         services.AddSingleton<ISchedulerSignal, TestSchedulerSignal>();
 
         if (timeProvider is not null)
@@ -336,9 +337,6 @@ public class SchedulingMiddlewareIntegrationTests
         }
 
         var builder = services.AddMessageBus();
-
-        // Register middleware directly (bypassing factory-time DI check)
-        builder.ConfigureMessageBus(x => x.UseDispatch(CreateSchedulingMiddleware()));
 
         configure(builder);
         builder.AddInMemory();
@@ -355,7 +353,13 @@ public class SchedulingMiddlewareIntegrationTests
         TimeProvider? timeProvider = null)
     {
         var services = new ServiceCollection();
-        services.AddScoped<IScheduledMessageStore>(_ => store);
+        services.AddScoped(_ => store);
+        services.AddSingleton(
+            new ScheduledMessageStoreRegistration(
+                TransportType: null,
+                TokenPrefix: "in-memory:",
+                StoreType: typeof(InMemoryScheduledMessageStore),
+                IsFallback: true));
         services.AddSingleton<ISchedulerSignal, TestSchedulerSignal>();
 
         if (timeProvider is not null)
@@ -364,9 +368,6 @@ public class SchedulingMiddlewareIntegrationTests
         }
 
         var builder = services.AddMessageBus();
-
-        // Register middleware directly (bypassing factory-time DI check)
-        builder.ConfigureMessageBus(x => x.UseDispatch(CreateSchedulingMiddleware()));
 
         configure(builder);
         builder.AddInMemory();
@@ -407,8 +408,10 @@ public class SchedulingMiddlewareIntegrationTests
 
         public ConcurrentBag<(MessageEnvelope Envelope, DateTimeOffset ScheduledTime)> Entries { get; } = [];
 
-        public ValueTask<string> PersistAsync(MessageEnvelope envelope, DateTimeOffset scheduledTime, CancellationToken cancellationToken)
+        public ValueTask<string> PersistAsync(IDispatchContext context, CancellationToken cancellationToken)
         {
+            var envelope = context.Envelope!;
+            var scheduledTime = envelope.ScheduledTime!.Value;
             var id = Guid.NewGuid().ToString();
             Entries.Add((envelope, scheduledTime));
             _entriesById[id] = (envelope, scheduledTime);

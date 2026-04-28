@@ -23,7 +23,7 @@ internal sealed class AzureServiceBusReceiveFeature : IPooledFeature
     /// <summary>
     /// Gets the settlement actions for the current message.
     /// </summary>
-    internal IAzureServiceBusMessageActions Actions { get; private set; } = default!;
+    public IAzureServiceBusMessageActions Actions { get; private set; } = default!;
 
     /// <summary>
     /// Gets the underlying non-session event args, or <see langword="null"/> on a session dispatch.

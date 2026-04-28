@@ -51,8 +51,16 @@ internal sealed class AzureServiceBusAcknowledgementMiddleware
         }
         catch (ServiceBusException ex) when (IsLockLost(ex))
         {
-            // Message was already settled (e.g. handler called DeadLetterAsync directly via
-            // IAzureServiceBusMessageActions, or the lock expired). Treat as already-settled.
+            // Two cases collapse into MessageLockLost/SessionLockLost here:
+            //   1. The handler already settled the message itself (e.g. called DeadLetterAsync
+            //      or DeferAsync via IAzureServiceBusMessageActions). Completing again is a
+            //      no-op from the broker's perspective — the work is done.
+            //   2. The peek-lock or session lock expired before we reached this point (slow
+            //      handler exceeded LockDuration). The broker has already returned the message
+            //      to the queue and it will be redelivered to another consumer. There is
+            //      nothing we can do to settle it now; throwing would only mask the successful
+            //      handler invocation.
+            // Both cases are compatible with the at-least-once contract, so swallow.
         }
     }
 
@@ -64,13 +72,15 @@ internal sealed class AzureServiceBusAcknowledgementMiddleware
         }
         catch (ServiceBusException ex) when (IsLockLost(ex))
         {
-            // Message was already settled or the lock expired. Nothing else to do.
+            // Same two cases as in CompleteAsync: the handler settled the message before
+            // throwing, or the lock expired while the handler was running. In the lock-expired
+            // case the broker has already requeued the message for redelivery, which is exactly
+            // what abandoning would have done — so there is no recovery action to take.
         }
     }
 
     private static bool IsLockLost(ServiceBusException ex)
-        => ex.Reason is ServiceBusFailureReason.MessageLockLost
-            or ServiceBusFailureReason.SessionLockLost;
+        => ex.Reason is ServiceBusFailureReason.MessageLockLost or ServiceBusFailureReason.SessionLockLost;
 
     private static readonly AzureServiceBusAcknowledgementMiddleware s_instance = new();
 
@@ -79,7 +89,5 @@ internal sealed class AzureServiceBusAcknowledgementMiddleware
     /// </summary>
     /// <returns>A middleware configuration keyed as "AzureServiceBusAcknowledgement".</returns>
     public static ReceiveMiddlewareConfiguration Create()
-        => new(
-            static (_, next) => ctx => s_instance.InvokeAsync(ctx, next),
-            "AzureServiceBusAcknowledgement");
+        => new(static (_, next) => ctx => s_instance.InvokeAsync(ctx, next), "AzureServiceBusAcknowledgement");
 }

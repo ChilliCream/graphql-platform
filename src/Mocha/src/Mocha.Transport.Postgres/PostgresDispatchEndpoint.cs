@@ -52,7 +52,6 @@ public sealed class PostgresDispatchEndpoint(PostgresMessagingTransport transpor
         var feature = context.Features.GetOrSet<JsonHeadersFeature>();
         var headers = WriteHeadersJson(feature, envelope);
         var body = envelope.Body;
-        var scheduledTime = envelope.ScheduledTime;
 
         if (Kind == DispatchEndpointKind.Reply)
         {
@@ -72,13 +71,13 @@ public sealed class PostgresDispatchEndpoint(PostgresMessagingTransport transpor
 
                 if (kind is "t")
                 {
-                    await messageStore.PublishAsync(body, headers, new string(name), scheduledTime, cancellationToken);
+                    await messageStore.PublishAsync(body, headers, new string(name), scheduledTime: null, cancellationToken);
                     return;
                 }
 
                 if (kind is "q")
                 {
-                    await messageStore.SendAsync(body, headers, new string(name), scheduledTime, cancellationToken);
+                    await messageStore.SendAsync(body, headers, new string(name), scheduledTime: null, cancellationToken);
                     return;
                 }
             }
@@ -89,11 +88,11 @@ public sealed class PostgresDispatchEndpoint(PostgresMessagingTransport transpor
 
         if (Topic is not null)
         {
-            await messageStore.PublishAsync(body, headers, Topic.Name, scheduledTime, cancellationToken);
+            await messageStore.PublishAsync(body, headers, Topic.Name, scheduledTime: null, cancellationToken);
         }
         else if (Queue is not null)
         {
-            await messageStore.SendAsync(body, headers, Queue.Name, scheduledTime, cancellationToken);
+            await messageStore.SendAsync(body, headers, Queue.Name, scheduledTime: null, cancellationToken);
         }
         else
         {

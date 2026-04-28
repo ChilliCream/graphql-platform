@@ -26,45 +26,29 @@ internal sealed class AzureServiceBusMessagePropertiesMiddleware
         {
             var headers = context.Headers;
 
-            if (!headers.ContainsKey(AzureServiceBusMessageHeaders.SessionId)
-                && messageType.Features.TryGet<AzureServiceBusSessionIdExtractor>(out var sessionIdExtractor))
-            {
-                var sessionId = sessionIdExtractor.Extract(message);
-                if (sessionId is not null)
-                {
-                    headers.Set(AzureServiceBusMessageHeaders.SessionId, sessionId);
-                }
-            }
+            headers.SetIfExtracted<AzureServiceBusSessionIdExtractor>(
+                messageType,
+                message,
+                AzureServiceBusMessageHeaders.SessionId,
+                static (extractor, message) => extractor.Extract(message));
 
-            if (!headers.ContainsKey(AzureServiceBusMessageHeaders.PartitionKey)
-                && messageType.Features.TryGet<AzureServiceBusPartitionKeyExtractor>(out var partitionKeyExtractor))
-            {
-                var partitionKey = partitionKeyExtractor.Extract(message);
-                if (partitionKey is not null)
-                {
-                    headers.Set(AzureServiceBusMessageHeaders.PartitionKey, partitionKey);
-                }
-            }
+            headers.SetIfExtracted<AzureServiceBusPartitionKeyExtractor>(
+                messageType,
+                message,
+                AzureServiceBusMessageHeaders.PartitionKey,
+                static (extractor, message) => extractor.Extract(message));
 
-            if (!headers.ContainsKey(AzureServiceBusMessageHeaders.ReplyToSessionId)
-                && messageType.Features.TryGet<AzureServiceBusReplyToSessionIdExtractor>(out var replyToSessionIdExtractor))
-            {
-                var replyToSessionId = replyToSessionIdExtractor.Extract(message);
-                if (replyToSessionId is not null)
-                {
-                    headers.Set(AzureServiceBusMessageHeaders.ReplyToSessionId, replyToSessionId);
-                }
-            }
+            headers.SetIfExtracted<AzureServiceBusReplyToSessionIdExtractor>(
+                messageType,
+                message,
+                AzureServiceBusMessageHeaders.ReplyToSessionId,
+                static (extractor, message) => extractor.Extract(message));
 
-            if (!headers.ContainsKey(AzureServiceBusMessageHeaders.To)
-                && messageType.Features.TryGet<AzureServiceBusToExtractor>(out var toExtractor))
-            {
-                var to = toExtractor.Extract(message);
-                if (to is not null)
-                {
-                    headers.Set(AzureServiceBusMessageHeaders.To, to);
-                }
-            }
+            headers.SetIfExtracted<AzureServiceBusToExtractor>(
+                messageType,
+                message,
+                AzureServiceBusMessageHeaders.To,
+                static (extractor, message) => extractor.Extract(message));
         }
 
         return next(context);
@@ -78,4 +62,26 @@ internal sealed class AzureServiceBusMessagePropertiesMiddleware
     /// <returns>A middleware configuration keyed as "AzureServiceBusMessageProperties".</returns>
     public static DispatchMiddlewareConfiguration Create()
         => new(static (_, next) => ctx => s_instance.InvokeAsync(ctx, next), "AzureServiceBusMessageProperties");
+}
+
+file static class Extensions
+{
+    public static void SetIfExtracted<TExtractor>(
+        this IHeaders headers,
+        MessageType messageType,
+        object message,
+        string headerKey,
+        Func<TExtractor, object, string?> extract)
+    {
+        if (headers.ContainsKey(headerKey) || !messageType.Features.TryGet<TExtractor>(out var extractor))
+        {
+            return;
+        }
+
+        var value = extract(extractor, message);
+        if (value is not null)
+        {
+            headers.Set(headerKey, value);
+        }
+    }
 }

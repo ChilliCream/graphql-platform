@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using Mocha.Scheduling;
 
 namespace Mocha;
 
@@ -25,6 +26,7 @@ public static class MessageBusServiceCollectionExtensions
         services.AddLogging();
         services.AddScoped<ConsumeContextAccessor>();
         services.AddScoped<IMessageBus, DefaultMessageBus>();
+        services.AddScoped<IScheduledMessageStoreResolver, ScheduledMessageStoreResolver>();
 
         services.AddSingleton(static sp =>
         {

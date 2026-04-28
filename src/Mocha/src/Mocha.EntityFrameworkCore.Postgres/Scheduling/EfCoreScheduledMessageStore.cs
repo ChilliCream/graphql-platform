@@ -36,15 +36,25 @@ internal sealed class EfCoreScheduledMessageStore(
     /// <summary>
     /// Serializes the message envelope and inserts it into the Postgres scheduled messages table.
     /// </summary>
-    /// <param name="envelope">The message envelope to persist.</param>
-    /// <param name="scheduledTime">The time at which the message should be dispatched.</param>
+    /// <param name="context">The dispatch context whose envelope is to be persisted.</param>
     /// <param name="cancellationToken">A token to observe for cancellation.</param>
     /// <returns>An opaque token string for later cancellation.</returns>
     public async ValueTask<string> PersistAsync(
-        MessageEnvelope envelope,
-        DateTimeOffset scheduledTime,
+        IDispatchContext context,
         CancellationToken cancellationToken)
     {
+        if (context.Envelope is not { } envelope)
+        {
+            throw new InvalidOperationException(
+                "EfCoreScheduledMessageStore.PersistAsync requires a serialized envelope on the dispatch context.");
+        }
+
+        if (envelope.ScheduledTime is not { } scheduledTime)
+        {
+            throw new InvalidOperationException(
+                "EfCoreScheduledMessageStore.PersistAsync requires the envelope to carry a scheduled time.");
+        }
+
         await _semaphore.WaitAsync(cancellationToken);
 
         try

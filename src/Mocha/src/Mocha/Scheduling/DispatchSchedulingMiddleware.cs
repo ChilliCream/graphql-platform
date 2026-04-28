@@ -5,35 +5,25 @@ using Mocha.Middlewares;
 namespace Mocha.Scheduling;
 
 /// <summary>
-/// Dispatch middleware that intercepts outgoing messages with a scheduled time and persists them
-/// to the scheduled message store instead of forwarding them to the next pipeline stage.
+/// Dispatch middleware that intercepts outgoing messages with a scheduled time and routes them
+/// to the appropriate <see cref="IScheduledMessageStore"/> via <see cref="IScheduledMessageStoreResolver"/>.
 /// </summary>
 /// <remarks>
-/// Messages without a <see cref="IDispatchContext.ScheduledTime"/> and dispatches marked with
-/// <see cref="SchedulingMiddlewareFeature.SkipScheduler"/> pass through to the next middleware.
-/// When the transport registers <see cref="SchedulingTransportFeature"/>, this middleware is skipped
-/// entirely during pipeline construction.
+/// Messages without a <see cref="IDispatchContext.ScheduledTime"/>, dispatches marked with
+/// <see cref="SchedulingMiddlewareFeature.SkipScheduler"/>, or contexts without a built envelope
+/// pass through to the next middleware. When a scheduled dispatch targets a transport with no
+/// registered store and no fallback store, a <see cref="NotSupportedException"/> is thrown rather
+/// than silently sending the message immediately.
 /// </remarks>
 public sealed class DispatchSchedulingMiddleware
 {
     /// <summary>
-    /// Evaluates whether the message should be persisted to the scheduled message store or
-    /// forwarded down the pipeline.
+    /// Routes the dispatch through the scheduled-message store resolver when the message carries
+    /// a scheduled time, or forwards to the next middleware otherwise.
     /// </summary>
-    /// <param name="context">The current dispatch context containing the message envelope and metadata.</param>
-    /// <param name="next">The next middleware delegate in the dispatch pipeline.</param>
-    /// <returns>A value task that completes when the message has been persisted or forwarded.</returns>
     public async ValueTask InvokeAsync(IDispatchContext context, DispatchDelegate next)
     {
-        if (context.ScheduledTime is not { } scheduledTime)
-        {
-            await next(context);
-            return;
-        }
-
-        var feature = context.Features.GetOrSet<SchedulingMiddlewareFeature>();
-
-        if (feature.SkipScheduler)
+        if (context.ScheduledTime is null)
         {
             await next(context);
             return;
@@ -45,40 +35,35 @@ public sealed class DispatchSchedulingMiddleware
             return;
         }
 
-        var store = context.Services.GetRequiredService<IScheduledMessageStore>();
-        var token = await store.PersistAsync(context.Envelope, scheduledTime, context.CancellationToken);
+        var feature = context.Features.GetOrSet<SchedulingMiddlewareFeature>();
+        if (feature.SkipScheduler)
+        {
+            await next(context);
+            return;
+        }
+
+        var resolver = context.Services.GetRequiredService<IScheduledMessageStoreResolver>();
+        if (!resolver.TryGetForDispatch(context, out var store))
+        {
+            throw new NotSupportedException(
+                "Scheduled dispatch is not supported for transport "
+                + $"'{context.Transport.GetType().Name}'. Register a scheduled-message store for the "
+                + "transport, or configure a fallback scheduling store.");
+        }
+
+        var token = await store.PersistAsync(context, context.CancellationToken);
 
         context.Features.Configure<ScheduledMessageFeature>(f => f.Token = token);
     }
 
     /// <summary>
     /// Creates the middleware configuration that wires the scheduling middleware into the dispatch
-    /// pipeline.
+    /// pipeline. The middleware is always installed; resolver lookup happens at invocation time.
     /// </summary>
-    /// <remarks>
-    /// If the transport declares <see cref="SchedulingTransportFeature"/> with
-    /// <see cref="SchedulingTransportFeature.SupportsSchedulingNatively"/> set to <c>true</c>,
-    /// the middleware is not installed and the next delegate is returned directly.
-    /// </remarks>
-    /// <returns>
-    /// A <see cref="DispatchMiddlewareConfiguration"/> named "Scheduling" for pipeline registration.
-    /// </returns>
     public static DispatchMiddlewareConfiguration Create()
         => new(
-            static (context, next) =>
+            static (_, next) =>
             {
-                if (context.Transport.Features.Get<SchedulingTransportFeature>()?.SupportsSchedulingNatively is true)
-                {
-                    return next;
-                }
-
-                var appServices = context.Services.GetApplicationServices();
-                var isService = appServices.GetService<IServiceProviderIsService>();
-                if (isService?.IsService(typeof(IScheduledMessageStore)) is not true)
-                {
-                    return next;
-                }
-
                 var middleware = new DispatchSchedulingMiddleware();
                 return ctx => middleware.InvokeAsync(ctx, next);
             },

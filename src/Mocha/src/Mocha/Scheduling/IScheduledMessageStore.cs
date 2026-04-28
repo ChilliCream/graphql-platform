@@ -12,18 +12,21 @@ namespace Mocha.Scheduling;
 public interface IScheduledMessageStore
 {
     /// <summary>
-    /// Persists the specified message envelope to the scheduled message store for future delivery.
+    /// Persists the message envelope from the dispatch context to the scheduled message store
+    /// for future delivery at <see cref="MessageEnvelope.ScheduledTime"/>.
     /// </summary>
-    /// <param name="envelope">The message envelope to persist, containing headers and payload.</param>
-    /// <param name="scheduledTime">The time at which the message should be dispatched.</param>
+    /// <param name="context">
+    /// The dispatch context. <see cref="IDispatchContext.Envelope"/> is non-null when the
+    /// scheduling middleware invokes this method, and <see cref="MessageEnvelope.ScheduledTime"/>
+    /// is set on the envelope.
+    /// </param>
     /// <param name="cancellationToken">A token to cancel the persistence operation.</param>
     /// <returns>
     /// An opaque token string in the format <c>"provider:value"</c> that can be used to cancel
     /// the scheduled message.
     /// </returns>
     ValueTask<string> PersistAsync(
-        MessageEnvelope envelope,
-        DateTimeOffset scheduledTime,
+        IDispatchContext context,
         CancellationToken cancellationToken);
 
     /// <summary>
