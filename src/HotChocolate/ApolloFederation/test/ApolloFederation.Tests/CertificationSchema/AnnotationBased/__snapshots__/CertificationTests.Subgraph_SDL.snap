@@ -1,5 +1,8 @@
 schema
-  @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@external", "@key", "@provides", "@tag", "FieldSet"]) {
+  @link(
+    url: "https://specs.apollo.dev/federation/v2.6"
+    import: ["@external", "@key", "@provides", "@tag", "FieldSet"]
+  ) {
   query: Query
 }
 
@@ -53,7 +56,9 @@ scalar FieldSet
 directive @external on OBJECT | FIELD_DEFINITION
 
 "Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface."
-directive @key(fields: FieldSet!, resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+directive @key(fields: FieldSet!, resolvable: Boolean = true) repeatable on
+  | OBJECT
+  | INTERFACE
 
 "Links definitions within the document to external schemas."
 directive @link(

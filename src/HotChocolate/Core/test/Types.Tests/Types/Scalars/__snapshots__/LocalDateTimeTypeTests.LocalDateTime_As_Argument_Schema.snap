@@ -12,4 +12,6 @@ type Foo {
 
 "The `LocalDateTime` scalar type represents a date and time without time zone information."
 scalar LocalDateTime
-  @specifiedBy(url: "https://scalars.graphql.org/chillicream/local-date-time.html")
+  @specifiedBy(
+    url: "https://scalars.graphql.org/chillicream/local-date-time.html"
+  )

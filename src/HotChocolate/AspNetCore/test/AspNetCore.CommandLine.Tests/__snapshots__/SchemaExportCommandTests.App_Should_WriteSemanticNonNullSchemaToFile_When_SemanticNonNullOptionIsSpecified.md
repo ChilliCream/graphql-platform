@@ -11,9 +11,7 @@ type Query {
   foo: String @semanticNonNull
 }
 
-directive @semanticNonNull(levels: [Int!] = [
-  0
-]) on FIELD_DEFINITION
+directive @semanticNonNull(levels: [Int!] = [0]) on FIELD_DEFINITION
 
 ```
 

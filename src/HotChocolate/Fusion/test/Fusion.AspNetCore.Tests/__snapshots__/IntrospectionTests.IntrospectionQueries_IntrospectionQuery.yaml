@@ -14,14 +14,14 @@ request:
           name
         }
         types {
-          ... FullType
+          ...FullType
         }
         directives {
           name
           description
           isRepeatable
           args(includeDeprecated: true) {
-            ... InputValue
+            ...InputValue
           }
           locations
         }
@@ -38,19 +38,19 @@ request:
         name
         description
         args(includeDeprecated: true) {
-          ... InputValue
+          ...InputValue
         }
         type {
-          ... TypeRef
+          ...TypeRef
         }
         isDeprecated
         deprecationReason
       }
       inputFields(includeDeprecated: true) {
-        ... InputValue
+        ...InputValue
       }
       interfaces {
-        ... TypeRef
+        ...TypeRef
       }
       enumValues(includeDeprecated: true) {
         name
@@ -59,7 +59,7 @@ request:
         deprecationReason
       }
       possibleTypes {
-        ... TypeRef
+        ...TypeRef
       }
     }
 
@@ -67,7 +67,7 @@ request:
       name
       description
       type {
-        ... TypeRef
+        ...TypeRef
       }
       defaultValue
       isDeprecated
@@ -1872,7 +1872,26 @@ sourceSchemas:
       }
 
       "Directive description"
-      directive @test("Directive argument description" arg: String! = "default") repeatable on QUERY | MUTATION | SUBSCRIPTION | FIELD | FRAGMENT_DEFINITION | FRAGMENT_SPREAD | INLINE_FRAGMENT | VARIABLE_DEFINITION | SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
+      directive @test("Directive argument description" arg: String! = "default") repeatable on
+        | QUERY
+        | MUTATION
+        | SUBSCRIPTION
+        | FIELD
+        | FRAGMENT_DEFINITION
+        | FRAGMENT_SPREAD
+        | INLINE_FRAGMENT
+        | VARIABLE_DEFINITION
+        | SCHEMA
+        | SCALAR
+        | OBJECT
+        | FIELD_DEFINITION
+        | ARGUMENT_DEFINITION
+        | INTERFACE
+        | UNION
+        | ENUM
+        | ENUM_VALUE
+        | INPUT_OBJECT
+        | INPUT_FIELD_DEFINITION
 operationPlan:
   operation:
     - document: |
@@ -2081,7 +2100,7 @@ operationPlan:
           }
         }
       name: IntrospectionQuery
-      hash: 100115cb7dd55b6a817c8f83458b8fc5
+      hash: df63680b2f2c0fb31760baf2f4f0b505
       searchSpace: 1
       expandedNodes: 1
   nodes:

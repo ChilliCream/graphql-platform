@@ -13,4 +13,6 @@ type Foo {
 
 "The ObjectId scalar type represents a 12 byte ObjectId, represented as UTF-8 character sequences."
 scalar ObjectId
-  @specifiedBy(url: "https://docs.mongodb.com/manual/reference/bson-types/#objectid")
+  @specifiedBy(
+    url: "https://docs.mongodb.com/manual/reference/bson-types/#objectid"
+  )

@@ -201,7 +201,9 @@ scalar Short
 
 "The `UnsignedByte` scalar type represents an unsigned 8-bit integer."
 scalar UnsignedByte
-  @specifiedBy(url: "https://scalars.graphql.org/chillicream/unsigned-byte.html")
+  @specifiedBy(
+    url: "https://scalars.graphql.org/chillicream/unsigned-byte.html"
+  )
 
 "The `URI` scalar type represents a Uniform Resource Identifier (URI) as defined by RFC 3986."
 scalar URI @specifiedBy(url: "https://scalars.graphql.org/chillicream/uri.html")

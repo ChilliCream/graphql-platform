@@ -50,7 +50,13 @@ type Query {
     where: BookFilterInput @cost(weight: "10")
     order: [BookSortInput!] @cost(weight: "10")
   ): BooksConnection
-    @listSize(assumedSize: 50, slicingArguments: ["first", "last"], slicingArgumentDefaultValue: 2, sizedFields: ["edges", "nodes"], requireOneSlicingArgument: false)
+    @listSize(
+      assumedSize: 50
+      slicingArguments: ["first", "last"]
+      slicingArgumentDefaultValue: 2
+      sizedFields: ["edges", "nodes"]
+      requireOneSlicingArgument: false
+    )
     @cost(weight: "10")
   booksWithTotalCount(
     "Returns the first _n_ elements from the list."
@@ -64,7 +70,13 @@ type Query {
     where: BookFilterInput @cost(weight: "10")
     order: [BookSortInput!] @cost(weight: "10")
   ): BooksTotalConnection
-    @listSize(assumedSize: 50, slicingArguments: ["first", "last"], slicingArgumentDefaultValue: 2, sizedFields: ["edges", "nodes"], requireOneSlicingArgument: false)
+    @listSize(
+      assumedSize: 50
+      slicingArguments: ["first", "last"]
+      slicingArgumentDefaultValue: 2
+      sizedFields: ["edges", "nodes"]
+      requireOneSlicingArgument: false
+    )
     @cost(weight: "10")
   booksOffset(
     skip: Int
@@ -72,7 +84,13 @@ type Query {
     where: BookFilterInput @cost(weight: "10")
     order: [BookSortInput!] @cost(weight: "10")
   ): BooksOffsetCollectionSegment
-    @listSize(assumedSize: 50, slicingArguments: ["take"], slicingArgumentDefaultValue: 2, sizedFields: ["items"], requireOneSlicingArgument: false)
+    @listSize(
+      assumedSize: 50
+      slicingArguments: ["take"]
+      slicingArgumentDefaultValue: 2
+      sizedFields: ["items"]
+      requireOneSlicingArgument: false
+    )
     @cost(weight: "10")
   booksOffsetWithTotalCount(
     skip: Int
@@ -80,7 +98,13 @@ type Query {
     where: BookFilterInput @cost(weight: "10")
     order: [BookSortInput!] @cost(weight: "10")
   ): BooksTotalCollectionSegment
-    @listSize(assumedSize: 50, slicingArguments: ["take"], slicingArgumentDefaultValue: 2, sizedFields: ["items"], requireOneSlicingArgument: false)
+    @listSize(
+      assumedSize: 50
+      slicingArguments: ["take"]
+      slicingArgumentDefaultValue: 2
+      sizedFields: ["items"]
+      requireOneSlicingArgument: false
+    )
     @cost(weight: "10")
 }
 
@@ -118,7 +142,13 @@ type Book {
     "Returns the elements in the list that come before the specified cursor."
     before: String
   ): AuthorsConnection
-    @listSize(assumedSize: 50, slicingArguments: ["first", "last"], slicingArgumentDefaultValue: 2, sizedFields: ["edges", "nodes"], requireOneSlicingArgument: false)
+    @listSize(
+      assumedSize: 50
+      slicingArguments: ["first", "last"]
+      slicingArgumentDefaultValue: 2
+      sizedFields: ["edges", "nodes"]
+      requireOneSlicingArgument: false
+    )
 }
 
 "A connection to a list of items."
@@ -230,7 +260,13 @@ enum SortEnumType {
 directive @cost(
   "The `weight` argument defines what value to add to the overall cost for every appearance, or possible appearance, of a type, field, argument, etc."
   weight: String!
-) on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM | INPUT_FIELD_DEFINITION
+) on
+  | SCALAR
+  | OBJECT
+  | FIELD_DEFINITION
+  | ARGUMENT_DEFINITION
+  | ENUM
+  | INPUT_FIELD_DEFINITION
 
 "The purpose of the `@listSize` directive is to either inform the static analysis about the size of returned lists (if that information is statically available), or to point the analysis to where to find that information."
 directive @listSize(
