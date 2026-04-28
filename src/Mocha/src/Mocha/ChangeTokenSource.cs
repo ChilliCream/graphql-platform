@@ -4,49 +4,27 @@ namespace Mocha;
 
 internal sealed class ChangeTokenSource
 {
-#if NET9_0_OR_GREATER
-    private readonly Lock _lock = new();
-#else
-    private readonly object _lock = new();
-#endif
+    private TokenState _state = new(new CancellationTokenSource());
 
-    private CancellationTokenSource _source = new();
-    private IChangeToken _current;
-
-    public ChangeTokenSource()
-    {
-        _current = new CancellationChangeToken(_source.Token);
-    }
-
-    public IChangeToken Current
-    {
-        get
-        {
-            lock (_lock)
-            {
-                return _current;
-            }
-        }
-    }
+    public IChangeToken Current => Volatile.Read(ref _state).Token;
 
     public void Rotate()
     {
-        CancellationTokenSource previous;
-
-        lock (_lock)
-        {
-            previous = _source;
-            _source = new CancellationTokenSource();
-            _current = new CancellationChangeToken(_source.Token);
-        }
+        var previous = Interlocked.Exchange(ref _state, new TokenState(new CancellationTokenSource()));
 
         try
         {
-            previous.Cancel();
+            previous.Source.Cancel();
         }
         finally
         {
-            previous.Dispose();
+            previous.Source.Dispose();
         }
+    }
+
+    private sealed class TokenState(CancellationTokenSource source)
+    {
+        public CancellationTokenSource Source { get; } = source;
+        public IChangeToken Token { get; } = new CancellationChangeToken(source.Token);
     }
 }
