@@ -4,7 +4,8 @@ internal sealed class AzureServiceBusDispatchEndpointDescriptor
     : DispatchEndpointDescriptor<AzureServiceBusDispatchEndpointConfiguration>
     , IAzureServiceBusDispatchEndpointDescriptor
 {
-    private AzureServiceBusDispatchEndpointDescriptor(IMessagingConfigurationContext context, string name) : base(context)
+    private AzureServiceBusDispatchEndpointDescriptor(IMessagingConfigurationContext context, string name)
+        : base(context)
     {
         Configuration = new AzureServiceBusDispatchEndpointConfiguration { Name = name, TopicName = name };
     }

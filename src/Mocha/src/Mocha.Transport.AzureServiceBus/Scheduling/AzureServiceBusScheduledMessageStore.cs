@@ -30,11 +30,11 @@ internal sealed class AzureServiceBusScheduledMessageStore(AzureServiceBusClient
     public ValueTask<string> PersistAsync(
         MessageEnvelope envelope,
         DateTimeOffset scheduledTime,
-        CancellationToken cancellationToken) =>
-        throw new InvalidOperationException(
+        CancellationToken cancellationToken)
+        => throw new InvalidOperationException(
             "AzureServiceBusScheduledMessageStore.PersistAsync is unreachable; "
-            + "the Azure Service Bus transport schedules messages via ScheduleMessageAsync "
-            + "in the dispatch endpoint (SupportsSchedulingNatively = true).");
+                + "the Azure Service Bus transport schedules messages via ScheduleMessageAsync "
+                + "in the dispatch endpoint (SupportsSchedulingNatively = true).");
 
     /// <inheritdoc />
     public async ValueTask<bool> CancelAsync(string token, CancellationToken cancellationToken)
@@ -54,9 +54,10 @@ internal sealed class AzureServiceBusScheduledMessageStore(AzureServiceBusClient
         // MessageNotFound: scheduled message already cancelled or delivered.
         // MessagingEntityNotFound: the queue/topic itself is gone (e.g. AutoDeleteOnIdle fired),
         // so the scheduled message is gone with it. Either way, cancellation is vacuously satisfied.
-        catch (ServiceBusException ex) when (
-            ex.Reason == ServiceBusFailureReason.MessageNotFound
-            || ex.Reason == ServiceBusFailureReason.MessagingEntityNotFound)
+        catch (ServiceBusException ex)
+            when (ex.Reason == ServiceBusFailureReason.MessageNotFound
+                || ex.Reason == ServiceBusFailureReason.MessagingEntityNotFound
+            )
         {
             return false;
         }
