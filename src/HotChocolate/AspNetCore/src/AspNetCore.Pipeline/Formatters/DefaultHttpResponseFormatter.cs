@@ -876,7 +876,6 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                     schema,
                     new SchemaFormatterOptions
                     {
-                        OrderFieldsByName = false,
                         IncludeInternalDirectives = false
                     }));
             FileName = GetSchemaFileName(schema);
@@ -919,7 +918,6 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 schema,
                 new SchemaFormatterOptions
                 {
-                    OrderFieldsByName = false,
                     IncludeInternalDirectives = false
                 });
             var rewritten = SemanticNonNullSchemaRewriter.Rewrite(document);

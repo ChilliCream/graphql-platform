@@ -22,6 +22,7 @@ public static class SchemaFormatter
         ArgumentNullException.ThrowIfNull(schema);
 
         options ??= new SchemaFormatterOptions();
+
         var document = FormatAsDocument(schema, options);
 
         if (!options.Indented)
@@ -39,16 +40,21 @@ public static class SchemaFormatter
         ArgumentNullException.ThrowIfNull(schema);
 
         options ??= new SchemaFormatterOptions();
+
+        var schemaDefaults = schema.Features.Get<SchemaFormatterOptions>();
+
         var context = new VisitorContext
         {
             Schema = schema,
-            OrderTypesByName = options.OrderTypesByName,
-            OrderFieldsByName = options.OrderFieldsByName,
+            OrderTypesByName = options.OrderTypesByName ?? schemaDefaults?.OrderTypesByName ?? true,
+            OrderFieldsByName = options.OrderFieldsByName ?? schemaDefaults?.OrderFieldsByName ?? true,
             PrintSpecScalars = options.PrintSpecScalars,
             PrintSpecDirectives = options.PrintSpecDirectives,
             IncludeInternalDirectives = options.IncludeInternalDirectives
         };
+
         s_visitor.VisitSchema(schema, context);
+
         var document = (DocumentNode)context.Result!;
 
         if (schema.Features.Get<ISchemaDocumentFormatter>() is { } postProcessor)

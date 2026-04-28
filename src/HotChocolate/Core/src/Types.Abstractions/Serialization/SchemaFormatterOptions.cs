@@ -2,21 +2,21 @@ namespace HotChocolate.Serialization;
 
 public sealed class SchemaFormatterOptions
 {
-    public SchemaFormatterOptions() { }
-
     /// <summary>
     /// Controls whether type definitions and directive definitions are emitted
     /// in alphabetical order.
-    /// Default: <c>true</c>.
+    /// When <c>null</c>, the value is resolved from the schema-level
+    /// <see cref="SchemaFormatterOptions"/> feature, falling back to <c>true</c>.
     /// </summary>
-    public bool OrderTypesByName { get; set; } = true;
+    public bool? OrderTypesByName { get; set; }
 
     /// <summary>
     /// Controls whether fields, input fields, and enum values within a type are
     /// emitted in alphabetical order.
-    /// Default: <c>true</c>.
+    /// When <c>null</c>, the value is resolved from the schema-level
+    /// <see cref="SchemaFormatterOptions"/> feature, falling back to <c>true</c>.
     /// </summary>
-    public bool OrderFieldsByName { get; set; } = true;
+    public bool? OrderFieldsByName { get; set; }
 
     /// <summary>
     /// Controls whether the output is indented and pretty-printed.

@@ -222,9 +222,7 @@ public partial class Schema
     public override string ToString() => ToSyntaxNode().Print();
 
     public DocumentNode ToSyntaxNode()
-        => SchemaFormatter.FormatAsDocument(
-            this,
-            new SchemaFormatterOptions { OrderFieldsByName = false });
+        => SchemaFormatter.FormatAsDocument(this);
 
     ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode()
         => ToSyntaxNode();
