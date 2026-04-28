@@ -79,42 +79,22 @@ public sealed class AzureServiceBusReceiveEndpointTopologyConvention
                 continue;
             }
 
+            // Sends are dispatched directly to the receive queue (whose name matches
+            // GetSendEndpointName for Send/Request inbound routes), so only the publish
+            // topic and its subscription to the queue are needed here.
             var publishTopicName = context.Naming.GetPublishEndpointName(route.MessageType.RuntimeType);
             if (topology.Topics.FirstOrDefault(t => t.Name == publishTopicName) is null)
             {
                 topology.AddTopic(new AzureServiceBusTopicConfiguration { Name = publishTopicName });
             }
 
-            // make sure the topic for the message type exists
-            var sendTopicName = context.Naming.GetSendEndpointName(route.MessageType.RuntimeType);
-            if (sendTopicName != publishTopicName)
-            {
-                if (topology.Topics.FirstOrDefault(t => t.Name == sendTopicName) is null)
-                {
-                    topology.AddTopic(new AzureServiceBusTopicConfiguration { Name = sendTopicName });
-                }
-
-                // make sure the subscription between the publish topic and the send topic's queue exists
-                if (topology.Subscriptions.FirstOrDefault(s =>
-                        s.Source.Name == publishTopicName && s.Destination.Name == configuration.QueueName) is null)
-                {
-                    topology.AddSubscription(
-                        new AzureServiceBusSubscriptionConfiguration
-                        {
-                            Source = publishTopicName,
-                            Destination = configuration.QueueName
-                        });
-                }
-            }
-
-            // make sure the subscription between the send topic and the queue exists
             if (topology.Subscriptions.FirstOrDefault(s =>
-                    s.Source.Name == sendTopicName && s.Destination.Name == configuration.QueueName) is null)
+                    s.Source.Name == publishTopicName && s.Destination.Name == configuration.QueueName) is null)
             {
                 topology.AddSubscription(
                     new AzureServiceBusSubscriptionConfiguration
                     {
-                        Source = sendTopicName,
+                        Source = publishTopicName,
                         Destination = configuration.QueueName
                     });
             }

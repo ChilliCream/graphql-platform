@@ -124,13 +124,18 @@ The transport maps Mocha's routing model onto Azure Service Bus topics and queue
 ```mermaid
 graph LR
     P[Publisher] -->|publish| T[Topic<br/>order-placed]
-    T -->|subscription| Q[Queue<br/>billing.order-placed]
-    Q -->|consume| C[Consumer]
+    T -->|subscription| Q1[Queue<br/>billing.order-placed]
+    T -->|subscription| Q2[Queue<br/>shipping.order-placed]
+    Q1 -->|consume| C1[Consumer A]
+    Q2 -->|consume| C2[Consumer B]
+
+    S[Sender] -->|send| Q3[Queue<br/>process-invoice]
+    Q3 -->|consume| C3[Handler]
 ```
 
 **Events (publish/subscribe):** Each event type gets a topic. Each subscribing service gets a queue and a forwarding subscription that delivers messages from the topic into the queue. Publishing sends the message to the topic, which fans it out to all forwarded subscriber queues.
 
-**Commands (send):** Each command type gets a queue. Sending delivers the message directly to that queue.
+**Commands (send):** Each command type gets a queue named after the command. The sender writes directly to that queue - there is no intermediate topic on the send path. The receiving handler binds to the same queue, so a single message instance is delivered to exactly one handler. This mirrors the topology MassTransit provisions for ASB.
 
 **Request/reply:** The transport creates a temporary reply queue per service instance (`response-{instanceId}`). The reply address is embedded in the request message so the responder knows where to send the reply.
 
