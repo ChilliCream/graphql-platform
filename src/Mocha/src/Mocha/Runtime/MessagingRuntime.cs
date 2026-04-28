@@ -68,7 +68,8 @@ public sealed class MessagingRuntime(
 
     /// <inheritdoc />
     public IReadOnlyMessagingOptions Options => options;
-    private MessageBusChangeTokenSource ChangeTokenSource => field ??= new MessageBusChangeTokenSource(this);
+    private MessageBusChangeTokenSource? _changeTokenSource;
+    private MessageBusChangeTokenSource ChangeTokenSource => _changeTokenSource ??= new MessageBusChangeTokenSource(this);
 
     /// <inheritdoc />
     public MessageBusDescription Description => ChangeTokenSource.Description;
