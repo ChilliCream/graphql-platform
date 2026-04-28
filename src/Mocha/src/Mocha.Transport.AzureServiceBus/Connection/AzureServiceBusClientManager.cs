@@ -56,7 +56,7 @@ public sealed class AzureServiceBusClientManager : IAsyncDisposable
             return sender;
         }
 
-        return _senders.GetOrAdd(entityPath, path => _connection.CreateSender(path));
+        return _senders.GetOrAdd(entityPath, static (path, conn) => conn.CreateSender(path), _connection);
     }
 
     /// <summary>
@@ -154,9 +154,7 @@ public sealed class AzureServiceBusClientManager : IAsyncDisposable
     /// <summary>
     /// Provisions a subscription using the administration client.
     /// </summary>
-    public Task CreateSubscriptionAsync(
-        CreateSubscriptionOptions options,
-        CancellationToken cancellationToken)
+    public Task CreateSubscriptionAsync(CreateSubscriptionOptions options, CancellationToken cancellationToken)
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
         return _connection.CreateSubscriptionAsync(options, cancellationToken);
