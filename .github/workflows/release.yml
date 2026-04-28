@@ -1,57 +1,139 @@
-name: Release
+name: 🚀 Release
 
 on:
   push:
     tags:
       - '15.*'
 
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
-  release:
+  compute-release-context:
+    name: 🧮 Compute release context
     runs-on: ubuntu-22.04
     permissions:
-      contents: write
+      contents: read
+    outputs:
+      git_tag: ${{ steps.ctx.outputs.git_tag }}
+      is_stable: ${{ steps.ctx.outputs.is_stable }}
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        show-progress: false
+      - name: 🧮 Compute
+        id: ctx
+        shell: bash
+        run: |
+          set -euo pipefail
+          GIT_TAG="${GITHUB_REF#refs/tags/}"
 
-    - name: Install .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: |
-          8.x
-          9.x
+          if [[ "$GIT_TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            IS_STABLE=true
+          else
+            IS_STABLE=false
+          fi
 
-    - name: Get the version
-      id: get_version
-      run: echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+          echo "git_tag=$GIT_TAG" >> "$GITHUB_OUTPUT"
+          echo "is_stable=$IS_STABLE" >> "$GITHUB_OUTPUT"
 
-    - name: Build Packages
-      run: |
-        ./build.sh pack --SemVersion ${{ env.GIT_TAG }} --Configuration Release
+  create-draft:
+    name: 📝 Create Draft Release
+    runs-on: ubuntu-22.04
+    needs: [compute-release-context]
+    permissions:
+      contents: write
+    env:
+      GIT_TAG: ${{ needs.compute-release-context.outputs.git_tag }}
+      IS_STABLE: ${{ needs.compute-release-context.outputs.is_stable }}
+    steps:
+      - name: 📝 Create draft release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view "$GIT_TAG" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            echo "Release for $GIT_TAG already exists; leaving it untouched."
+            exit 0
+          fi
 
-    - name: Push Packages
-      run: |
-        ./build.cmd publish --skip
-      env:
-        NuGetApiKey: ${{ secrets.NUGETAPIKEY }}
+          prerelease_flag=()
+          if [[ "$IS_STABLE" != "true" ]]; then
+            prerelease_flag=(--prerelease)
+          fi
 
-    - name: Get release
-      id: get_release
-      run: |
-        RELEASE_ID=$(gh api repos/ChilliCream/graphql-platform/releases/tags/${{ env.GIT_TAG }} --jq '.id')
-        UPLOAD_URL=$(gh api repos/ChilliCream/graphql-platform/releases/$RELEASE_ID --jq '.upload_url')
-        echo "RELEASE_ID=$RELEASE_ID" >> $GITHUB_ENV
-        echo "UPLOAD_URL=${UPLOAD_URL}" >> $GITHUB_ENV
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          gh release create "$GIT_TAG" \
+            --repo "${{ github.repository }}" \
+            --draft \
+            "${prerelease_flag[@]}" \
+            --title "$GIT_TAG" \
+            --generate-notes \
+            --target "$GITHUB_SHA"
 
-    - name: Upload Release Assets
-      run: |
-        for file in ./output/packages/*.nupkg; do
-          echo "Uploading $file"
-          gh release upload ${{ env.GIT_TAG }} "$file" --repo ChilliCream/graphql-platform
-        done
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  release:
+    name: 📦 Build & Publish NuGet Packages
+    runs-on: ubuntu-22.04
+    needs: [compute-release-context, create-draft]
+    permissions:
+      contents: write
+    env:
+      GIT_TAG: ${{ needs.compute-release-context.outputs.git_tag }}
+
+    steps:
+      - name: 📦 Checkout
+        uses: actions/checkout@v6
+        with:
+          show-progress: false
+
+      - name: 🛠 Install .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: |
+            8.x
+            9.x
+
+      - name: 📦 Build NuGet Packages
+        run: |
+          ./build.sh pack --SemVersion ${{ env.GIT_TAG }} --Configuration Release
+
+      - name: 🚀 Push Packages to NuGet
+        run: |
+          ./build.sh publish --skip
+        env:
+          NuGetApiKey: ${{ secrets.NUGETAPIKEY }}
+
+      - name: 📤 Attach .nupkg assets to GitHub release
+        shell: bash
+        run: |
+          gh release upload "$GIT_TAG" ./output/packages/*.nupkg --repo "${{ github.repository }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-release:
+    name: 🚀 Publish Release
+    runs-on: ubuntu-22.04
+    needs:
+      - compute-release-context
+      - release
+    permissions:
+      contents: write
+    env:
+      GIT_TAG: ${{ needs.compute-release-context.outputs.git_tag }}
+      IS_STABLE: ${{ needs.compute-release-context.outputs.is_stable }}
+
+    steps:
+      - name: 🚀 Publish draft release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$IS_STABLE" == "true" ]]; then
+            prerelease=false
+          else
+            prerelease=true
+          fi
+          gh release edit "$GIT_TAG" \
+            --repo "${{ github.repository }}" \
+            --draft=false \
+            --prerelease=$prerelease
