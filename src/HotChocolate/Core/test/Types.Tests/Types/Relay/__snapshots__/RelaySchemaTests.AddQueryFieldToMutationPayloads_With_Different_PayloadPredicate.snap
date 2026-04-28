@@ -3,9 +3,13 @@ schema {
   mutation: Mutation2
 }
 
-"The node interface is implemented by entities that have a global unique identifier."
-interface Node {
-  id: ID!
+type QueryType {
+  some: Some
+}
+
+type Mutation2 {
+  baz: BazPayload!
+  bar: BarResult!
 }
 
 type BarResult {
@@ -16,15 +20,11 @@ type BazPayload {
   some: String
 }
 
-type Mutation2 {
-  baz: BazPayload!
-  bar: BarResult!
-}
-
-type QueryType {
-  some: Some
-}
-
 type Some implements Node {
+  id: ID!
+}
+
+"The node interface is implemented by entities that have a global unique identifier."
+interface Node {
   id: ID!
 }

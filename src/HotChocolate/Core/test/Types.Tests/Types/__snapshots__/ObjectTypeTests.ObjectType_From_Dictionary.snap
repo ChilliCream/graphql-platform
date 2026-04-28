@@ -2,12 +2,12 @@ schema {
   query: FooWithDict
 }
 
-type Bar {
-  baz: String!
-}
-
 type FooWithDict {
   map: [KeyValuePairOfStringAndBar!]!
+}
+
+type Bar {
+  baz: String!
 }
 
 type KeyValuePairOfStringAndBar {

@@ -3,17 +3,17 @@ schema {
   mutation: SimpleMutation
 }
 
-type DoSomethingPayload {
-  string: String
-  query: Query!
-}
-
 type Query {
   abc: String
 }
 
 type SimpleMutation {
   doSomething(input: DoSomethingInput!): DoSomethingPayload!
+}
+
+type DoSomethingPayload {
+  string: String
+  query: Query!
 }
 
 input DoSomethingInput {

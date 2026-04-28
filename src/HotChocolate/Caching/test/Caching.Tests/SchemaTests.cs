@@ -28,13 +28,13 @@ public class SchemaTests
               query: Query
             }
 
+            type Query {
+              book: Book! @cacheControl(maxAge: 0)
+            }
+
             type Book {
               title: String! @cacheControl(maxAge: 5000)
               description: String!
-            }
-
-            type Query {
-              book: Book! @cacheControl(maxAge: 0)
             }
 
             "The scope of a cache hint."
@@ -58,9 +58,6 @@ public class SchemaTests
               "The Vary HTTP response header describes the parts of the request message aside from the method and URL that influenced the content of the response it occurs in. Most often, this is used to create a cache key when content negotiation is in use."
               vary: [String]
             ) on OBJECT | FIELD_DEFINITION | INTERFACE | UNION
-
-            "The `@oneOf` directive is used within the type system definition language to indicate that an Input Object is a OneOf Input Object."
-            directive @oneOf on INPUT_OBJECT
 
             """
             The @tag directive is used to apply arbitrary string

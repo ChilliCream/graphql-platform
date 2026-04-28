@@ -2,16 +2,16 @@ schema {
   query: Query
 }
 
-type ListItem {
-  id: String
-  foo: String
-}
-
 type Query {
   root(where: TypeWithListFilterInput @cost(weight: "10")): [TypeWithList]
     @cost(weight: "10")
   rootExecutable(where: TypeWithListFilterInput @cost(weight: "10")): [TypeWithList]
     @cost(weight: "10")
+}
+
+type ListItem {
+  id: String
+  foo: String
 }
 
 type TypeWithList {

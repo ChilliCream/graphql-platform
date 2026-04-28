@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using HotChocolate.AspNetCore.Utilities;
+using HotChocolate.Serialization;
 using HotChocolate.Transport.Formatters;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Net.Http.Headers;
@@ -870,7 +871,13 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
         public CachedSchemaOutput(ISchemaDefinition schema, ulong version, DateTimeOffset lastModifiedTime)
         {
-            _schema = Encoding.UTF8.GetBytes(schema.ToString());
+            _schema = Encoding.UTF8.GetBytes(
+                SchemaFormatter.FormatAsString(
+                    schema,
+                    new SchemaFormatterOptions
+                    {
+                        IncludeInternalDirectives = false
+                    }));
             FileName = GetSchemaFileName(schema);
             ETag = CreateETag(_schema, version);
             LastModified = lastModifiedTime.ToString("R");
@@ -907,7 +914,12 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
         public CachedSemanticNonNullSchemaOutput(ISchemaDefinition schema, ulong version, DateTimeOffset lastModifiedTime)
         {
-            var document = (HotChocolate.Language.DocumentNode)schema.ToSyntaxNode();
+            var document = SchemaFormatter.FormatAsDocument(
+                schema,
+                new SchemaFormatterOptions
+                {
+                    IncludeInternalDirectives = false
+                });
             var rewritten = SemanticNonNullSchemaRewriter.Rewrite(document);
             _schema = Encoding.UTF8.GetBytes(rewritten.ToString(indented: true));
             FileName = GetSchemaFileName(schema);

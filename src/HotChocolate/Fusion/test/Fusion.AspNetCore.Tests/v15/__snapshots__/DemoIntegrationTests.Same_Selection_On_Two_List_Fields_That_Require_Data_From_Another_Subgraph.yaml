@@ -68,8 +68,10 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        productsA: [Product]
+        productsB: [Product]
+        productById(id: ID!): Product @lookup @internal
       }
 
       type Product implements Node {
@@ -77,10 +79,8 @@ sourceSchemas:
         name: String!
       }
 
-      type Query {
-        productsA: [Product]
-        productsB: [Product]
-        productById(id: ID!): Product @lookup @internal
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:
@@ -137,8 +137,9 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup
+        nodes(ids: [ID!]!): [Node]!
       }
 
       type Product implements Node {
@@ -147,9 +148,8 @@ sourceSchemas:
         reviewCount: Int!
       }
 
-      type Query {
-        node(id: ID!): Node @lookup
-        nodes(ids: [ID!]!): [Node]!
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:

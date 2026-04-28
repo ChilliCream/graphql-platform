@@ -20,13 +20,13 @@ public static class LookupTests
               query: Query1
             }
 
+            type Query1 {
+              bookById(id: Int!): Book1! @lookup
+            }
+
             type Book1 {
               id: Int!
               title: String!
-            }
-
-            type Query1 {
-              bookById(id: Int!): Book1! @lookup
             }
 
             """
@@ -53,14 +53,16 @@ public static class LookupTests
               query: Query2
             }
 
+            type Query2 {
+              bookById(id: Int! @is(field: "id")): Book2! @lookup
+            }
+
             type Book2 {
               id: Int!
               title: String!
             }
 
-            type Query2 {
-              bookById(id: Int! @is(field: "id")): Book2! @lookup
-            }
+            scalar FieldSelectionMap
 
             """
             The @is directive is utilized on lookup fields to describe how the arguments
@@ -74,8 +76,6 @@ public static class LookupTests
             a stable key.
             """
             directive @lookup on FIELD_DEFINITION
-
-            scalar FieldSelectionMap
             """");
     }
 
@@ -94,14 +94,18 @@ public static class LookupTests
               query: Query3
             }
 
+            type Query3 {
+              bookById(id: Int! @is(field: "id")): Book3! @lookup
+            }
+
             type Book3 @key(fields: "id") {
               id: Int!
               title: String!
             }
 
-            type Query3 {
-              bookById(id: Int! @is(field: "id")): Book3! @lookup
-            }
+            scalar FieldSelectionMap
+
+            scalar FieldSelectionSet
 
             """
             The @is directive is utilized on lookup fields to describe how the arguments
@@ -122,10 +126,6 @@ public static class LookupTests
             a stable key.
             """
             directive @lookup on FIELD_DEFINITION
-
-            scalar FieldSelectionMap
-
-            scalar FieldSelectionSet
             """");
     }
 
@@ -144,20 +144,24 @@ public static class LookupTests
               query: Query4
             }
 
-            type Book4 @key(fields: "id") {
-              id: Int!
-              title: String!
-            }
-
             type Query4 {
               book(by: Book4ByInput! @is(field: "{\n  id\n} | {\n  title\n}")): Book4!
                 @lookup
+            }
+
+            type Book4 @key(fields: "id") {
+              id: Int!
+              title: String!
             }
 
             input Book4ByInput @oneOf {
               id: Int
               title: String
             }
+
+            scalar FieldSelectionMap
+
+            scalar FieldSelectionSet
 
             """
             The @is directive is utilized on lookup fields to describe how the arguments
@@ -178,13 +182,6 @@ public static class LookupTests
             a stable key.
             """
             directive @lookup on FIELD_DEFINITION
-
-            "The `@oneOf` directive is used within the type system definition language to indicate that an Input Object is a OneOf Input Object."
-            directive @oneOf on INPUT_OBJECT
-
-            scalar FieldSelectionMap
-
-            scalar FieldSelectionSet
             """");
     }
 
@@ -203,15 +200,17 @@ public static class LookupTests
               query: Query5
             }
 
+            type Query5 {
+              book: Book5!
+            }
+
             type Book5 {
               someField(author: String! @require(field: "author")): String!
               id: Int!
               title: String!
             }
 
-            type Query5 {
-              book: Book5!
-            }
+            scalar FieldSelectionMap
 
             """
             The @require directive is used to express data requirements with other source schemas.
@@ -222,8 +221,6 @@ public static class LookupTests
             directive @require(field: FieldSelectionMap!) on ARGUMENT_DEFINITION
             """
             directive @require("The field selection map syntax." field: FieldSelectionMap!) on ARGUMENT_DEFINITION
-
-            scalar FieldSelectionMap
             """");
     }
 

@@ -37,10 +37,6 @@ public class ServiceTypeTests
                   query: Query
                 }
 
-                type Address @key(fields: "matchCode") {
-                  matchCode: String
-                }
-
                 type Query {
                   _service: _Service!
                   _entities(representations: [_Any!]!): [_Entity]!
@@ -51,8 +47,18 @@ public class ServiceTypeTests
                   sdl: String!
                 }
 
+                type Address @key(fields: "matchCode") {
+                  matchCode: String
+                }
+
                 "Union of all types that key directive applied. This information is needed by the Apollo federation gateway."
                 union _Entity = Address
+
+                "The _Any scalar is used to pass representations of entities from external services into the root _entities field for execution. Validation of the _Any scalar is done by matching the __typename and @external fields defined in the schema."
+                scalar _Any
+
+                "Scalar representing a set of fields."
+                scalar FieldSet
 
                 "Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface."
                 directive @key(fields: FieldSet!, resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
@@ -64,12 +70,6 @@ public class ServiceTypeTests
                   "Gets optional list of imported element names."
                   import: [String!]
                 ) repeatable on SCHEMA
-
-                "Scalar representing a set of fields."
-                scalar FieldSet
-
-                "The _Any scalar is used to pass representations of entities from external services into the root _entities field for execution. Validation of the _Any scalar is done by matching the __typename and @external fields defined in the schema."
-                scalar _Any
                 """);
     }
 
@@ -99,10 +99,6 @@ public class ServiceTypeTests
                   query: Query
                 }
 
-                type Address @key(fields: "matchCode") {
-                  matchCode: String
-                }
-
                 type Query {
                   address(id: Int!): Address!
                   _service: _Service!
@@ -114,8 +110,18 @@ public class ServiceTypeTests
                   sdl: String!
                 }
 
+                type Address @key(fields: "matchCode") {
+                  matchCode: String
+                }
+
                 "Union of all types that key directive applied. This information is needed by the Apollo federation gateway."
                 union _Entity = Address
+
+                "The _Any scalar is used to pass representations of entities from external services into the root _entities field for execution. Validation of the _Any scalar is done by matching the __typename and @external fields defined in the schema."
+                scalar _Any
+
+                "Scalar representing a set of fields."
+                scalar FieldSet
 
                 "Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface."
                 directive @key(fields: FieldSet!, resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
@@ -127,12 +133,6 @@ public class ServiceTypeTests
                   "Gets optional list of imported element names."
                   import: [String!]
                 ) repeatable on SCHEMA
-
-                "Scalar representing a set of fields."
-                scalar FieldSet
-
-                "The _Any scalar is used to pass representations of entities from external services into the root _entities field for execution. Validation of the _Any scalar is done by matching the __typename and @external fields defined in the schema."
-                scalar _Any
                 """);
     }
 

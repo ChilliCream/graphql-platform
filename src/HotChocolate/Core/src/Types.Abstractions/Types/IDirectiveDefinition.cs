@@ -30,6 +30,13 @@ public interface IDirectiveDefinition
     bool IsRepeatable { get; }
 
     /// <summary>
+    /// Defines if this directive is publicly visible through introspection
+    /// and external SDL output. Internal directives are part of the type system
+    /// but hidden from external observers.
+    /// </summary>
+    bool IsPublic => true;
+
+    /// <summary>
     /// Gets the directive arguments.
     /// </summary>
     IReadOnlyFieldDefinitionCollection<IInputValueDefinition> Arguments { get; }

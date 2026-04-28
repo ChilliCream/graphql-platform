@@ -58,6 +58,20 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        books(
+          "Returns the first _n_ elements from the list."
+          first: Int
+          "Returns the elements in the list that come after the specified cursor."
+          after: String
+          "Returns the last _n_ elements from the list."
+          last: Int
+          "Returns the elements in the list that come before the specified cursor."
+          before: String
+        ): BooksConnection
+        book(id: Int!): Book @lookup @shareable
+      }
+
       type Author {
         id: Int!
       }
@@ -97,20 +111,6 @@ sourceSchemas:
         startCursor: String
         "When paginating forwards, the cursor to continue."
         endCursor: String
-      }
-
-      type Query {
-        books(
-          "Returns the first _n_ elements from the list."
-          first: Int
-          "Returns the elements in the list that come after the specified cursor."
-          after: String
-          "Returns the last _n_ elements from the list."
-          last: Int
-          "Returns the elements in the list that come before the specified cursor."
-          before: String
-        ): BooksConnection
-        book(id: Int!): Book @lookup @shareable
       }
     interactions:
       - request:
@@ -165,6 +165,10 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        book(id: Int!): Book @lookup @shareable
+      }
+
       type Book {
         id: Int!
         dimension: BookDimension!
@@ -174,14 +178,14 @@ sourceSchemas:
         width: Int!
         height: Int!
       }
-
-      type Query {
-        book(id: Int!): Book @lookup @shareable
-      }
   - name: c
     schema: |
       schema {
         query: Query
+      }
+
+      type Query {
+        book(id: Int!): Book @lookup @shareable
       }
 
       type Book {
@@ -189,10 +193,6 @@ sourceSchemas:
           dimension: BookDimensionInput! @require(field: "{\n  title\n  width: dimension.width\n  height: dimension.height\n}")
         ): Int!
         id: Int!
-      }
-
-      type Query {
-        book(id: Int!): Book @lookup @shareable
       }
 
       input BookDimensionInput {
@@ -206,6 +206,10 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        book(id: Int!): Book @lookup @shareable
+      }
+
       type Book {
         genres(genreIds: [Int!]! @require(field: "genreIds")): [Genre!]!
         id: Int!
@@ -214,10 +218,6 @@ sourceSchemas:
       type Genre {
         id: Int!
         name: String!
-      }
-
-      type Query {
-        book(id: Int!): Book @lookup @shareable
       }
     interactions:
       - request:

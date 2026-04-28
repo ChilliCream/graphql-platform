@@ -1,7 +1,7 @@
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Types;
-using HotChocolate.Types.Mutable.Serialization;
 
 namespace HotChocolate.Serialization;
 
@@ -17,11 +17,15 @@ public static class SchemaFormatter
 
     public static string FormatAsString(
         ISchemaDefinition schema,
-        SchemaFormatterOptions options = default)
+        SchemaFormatterOptions? options = null)
     {
+        ArgumentNullException.ThrowIfNull(schema);
+
+        options ??= new SchemaFormatterOptions();
+
         var document = FormatAsDocument(schema, options);
 
-        if (options.Indented == false)
+        if (!options.Indented)
         {
             return document.ToString(false);
         }
@@ -31,17 +35,34 @@ public static class SchemaFormatter
 
     public static DocumentNode FormatAsDocument(
         ISchemaDefinition schema,
-        SchemaFormatterOptions options = default)
+        SchemaFormatterOptions? options = null)
     {
+        ArgumentNullException.ThrowIfNull(schema);
+
+        options ??= new SchemaFormatterOptions();
+
+        var schemaDefaults = schema.Features.Get<SchemaFormatterOptions>();
+
         var context = new VisitorContext
         {
             Schema = schema,
-            OrderByName = options.OrderByName ?? true,
-            PrintSpecScalars = options.PrintSpecScalars ?? false,
-            PrintSpecDirectives = options.PrintSpecDirectives ?? false
+            OrderTypesByName = options.OrderTypesByName ?? schemaDefaults?.OrderTypesByName ?? true,
+            OrderFieldsByName = options.OrderFieldsByName ?? schemaDefaults?.OrderFieldsByName ?? true,
+            PrintSpecScalars = options.PrintSpecScalars,
+            PrintSpecDirectives = options.PrintSpecDirectives,
+            IncludeInternalDirectives = options.IncludeInternalDirectives
         };
+
         s_visitor.VisitSchema(schema, context);
-        return (DocumentNode)context.Result!;
+
+        var document = (DocumentNode)context.Result!;
+
+        if (schema.Features.Get<ISchemaDocumentFormatter>() is { } postProcessor)
+        {
+            document = postProcessor.Format(schema, document);
+        }
+
+        return document;
     }
 
     private sealed class SchemaFormatterVisitor : SchemaDefinitionVisitor<VisitorContext>
@@ -56,39 +77,52 @@ public static class SchemaFormatter
 
             var definitions = new List<IDefinitionNode>();
 
-            var operationTypes = new List<OperationTypeDefinitionNode>
-            {
-                new(null, OperationType.Query, new NamedTypeNode(schema.QueryType.Name))
-            };
+            var hasQuery = schema.TryGetOperationType(OperationType.Query, out var queryType);
+            var hasMutation = schema.TryGetOperationType(OperationType.Mutation, out var mutationType);
+            var hasSubscription = schema.TryGetOperationType(OperationType.Subscription, out var subscriptionType);
 
-            if (schema.MutationType is not null)
+            if (hasQuery || hasMutation || hasSubscription || !string.IsNullOrEmpty(schema.Description))
             {
-                operationTypes.Add(
-                    new OperationTypeDefinitionNode(
-                        null,
-                        OperationType.Mutation,
-                        new NamedTypeNode(schema.MutationType.Name)));
+                var operationTypes = new List<OperationTypeDefinitionNode>();
+
+                if (hasQuery)
+                {
+                    operationTypes.Add(
+                        new OperationTypeDefinitionNode(
+                            null,
+                            OperationType.Query,
+                            new NamedTypeNode(queryType!.Name)));
+                }
+
+                if (hasMutation)
+                {
+                    operationTypes.Add(
+                        new OperationTypeDefinitionNode(
+                            null,
+                            OperationType.Mutation,
+                            new NamedTypeNode(mutationType!.Name)));
+                }
+
+                if (hasSubscription)
+                {
+                    operationTypes.Add(
+                        new OperationTypeDefinitionNode(
+                            null,
+                            OperationType.Subscription,
+                            new NamedTypeNode(subscriptionType!.Name)));
+                }
+
+                VisitDirectives(schema.Directives, context);
+
+                var schemaDefinition = new SchemaDefinitionNode(
+                    null,
+                    CreateDescription(schema.Description),
+                    (IReadOnlyList<DirectiveNode>)context.Result!,
+                    operationTypes);
+                definitions.Add(schemaDefinition);
             }
 
-            if (schema.SubscriptionType is not null)
-            {
-                operationTypes.Add(
-                    new OperationTypeDefinitionNode(
-                        null,
-                        OperationType.Subscription,
-                        new NamedTypeNode(schema.SubscriptionType.Name)));
-            }
-
-            VisitDirectives(schema.Directives, context);
-
-            var schemaDefinition = new SchemaDefinitionNode(
-                null,
-                CreateDescription(schema.Description),
-                (IReadOnlyList<DirectiveNode>)context.Result!,
-                operationTypes);
-            definitions.Add(schemaDefinition);
-
-            if (context.OrderByName)
+            if (context.OrderTypesByName)
             {
                 VisitTypes(schema.Types, context);
                 definitions.AddRange((List<IDefinitionNode>)context.Result!);
@@ -115,6 +149,11 @@ public static class SchemaFormatter
                 {
                     if (!context.PrintSpecDirectives
                         && DirectiveNames.IsSpecDirective(directiveDefinition.Name))
+                    {
+                        continue;
+                    }
+
+                    if (!context.IncludeInternalDirectives && !directiveDefinition.IsPublic)
                     {
                         continue;
                     }
@@ -146,18 +185,25 @@ public static class SchemaFormatter
         {
             var definitionNodes = new List<IDefinitionNode>();
 
-            VisitType(context.Schema.QueryType, context);
-            definitionNodes.Add((IDefinitionNode)context.Result!);
+            context.Schema.TryGetOperationType(OperationType.Query, out var queryType);
+            context.Schema.TryGetOperationType(OperationType.Mutation, out var mutationType);
+            context.Schema.TryGetOperationType(OperationType.Subscription, out var subscriptionType);
 
-            if (context.Schema.MutationType is not null)
+            if (queryType is not null)
             {
-                VisitType(context.Schema.MutationType, context);
+                VisitType(queryType, context);
                 definitionNodes.Add((IDefinitionNode)context.Result!);
             }
 
-            if (context.Schema.SubscriptionType is not null)
+            if (mutationType is not null)
             {
-                VisitType(context.Schema.SubscriptionType, context);
+                VisitType(mutationType, context);
+                definitionNodes.Add((IDefinitionNode)context.Result!);
+            }
+
+            if (subscriptionType is not null)
+            {
+                VisitType(subscriptionType, context);
                 definitionNodes.Add((IDefinitionNode)context.Result!);
             }
 
@@ -166,9 +212,9 @@ public static class SchemaFormatter
                 .Where(t => !t.IsIntrospectionType)
                 .OrderBy(t => t.Name))
             {
-                if (context.Schema?.QueryType == type
-                    || context.Schema?.MutationType == type
-                    || context.Schema?.SubscriptionType == type)
+                if (queryType == type
+                    || mutationType == type
+                    || subscriptionType == type)
                 {
                     continue;
                 }
@@ -238,9 +284,14 @@ public static class SchemaFormatter
             var definitionNodes = new List<IDefinitionNode>();
 
             foreach (var type in directiveTypes
-                .OrderBy(t => t.Name, context.OrderByName))
+                .OrderBy(t => t.Name, context.OrderTypesByName))
             {
                 if (DirectiveNames.IsSpecDirective(type.Name))
+                {
+                    continue;
+                }
+
+                if (!context.IncludeInternalDirectives && !type.IsPublic)
                 {
                     continue;
                 }
@@ -260,13 +311,21 @@ public static class SchemaFormatter
             VisitOutputFields(type.Fields, context);
             var fields = (List<FieldDefinitionNode>)context.Result!;
 
-            context.Result =
-                new ObjectTypeDefinitionNode(
+            var interfaces = type.Implements.Select(t => new NamedTypeNode(t.Name)).ToList();
+
+            context.Result = IsTypeExtension(type)
+                ? new ObjectTypeExtensionNode(
+                    null,
+                    new NameNode(type.Name),
+                    directives,
+                    interfaces,
+                    fields)
+                : new ObjectTypeDefinitionNode(
                     null,
                     new NameNode(type.Name),
                     CreateDescription(type.Description),
                     directives,
-                    type.Implements.Select(t => new NamedTypeNode(t.Name)).ToList(),
+                    interfaces,
                     fields);
         }
 
@@ -278,13 +337,21 @@ public static class SchemaFormatter
             VisitOutputFields(type.Fields, context);
             var fields = (List<FieldDefinitionNode>)context.Result!;
 
-            context.Result =
-                new InterfaceTypeDefinitionNode(
+            var interfaces = type.Implements.AsEnumerable().Select(t => new NamedTypeNode(t.Name)).ToList();
+
+            context.Result = IsTypeExtension(type)
+                ? new InterfaceTypeExtensionNode(
+                    null,
+                    new NameNode(type.Name),
+                    directives,
+                    interfaces,
+                    fields)
+                : new InterfaceTypeDefinitionNode(
                     null,
                     new NameNode(type.Name),
                     CreateDescription(type.Description),
                     directives,
-                    type.Implements.AsEnumerable().Select(t => new NamedTypeNode(t.Name)).ToList(),
+                    interfaces,
                     fields);
         }
 
@@ -296,8 +363,13 @@ public static class SchemaFormatter
             VisitInputFields(type.Fields, context);
             var fields = (List<InputValueDefinitionNode>)context.Result!;
 
-            context.Result =
-                new InputObjectTypeDefinitionNode(
+            context.Result = IsTypeExtension(type)
+                ? new InputObjectTypeExtensionNode(
+                    null,
+                    new NameNode(type.Name),
+                    directives,
+                    fields)
+                : new InputObjectTypeDefinitionNode(
                     null,
                     new NameNode(type.Name),
                     CreateDescription(type.Description),
@@ -310,8 +382,23 @@ public static class SchemaFormatter
             VisitDirectives(type.Directives, context);
             var directives = (List<DirectiveNode>)context.Result!;
 
-            context.Result =
-                new ScalarTypeDefinitionNode(
+            if (type.SpecifiedBy is not null
+                && !directives.Any(d => d.Name.Value == DirectiveNames.SpecifiedBy.Name))
+            {
+                directives.Add(
+                    new DirectiveNode(
+                        DirectiveNames.SpecifiedBy.Name,
+                        new ArgumentNode(
+                            DirectiveNames.SpecifiedBy.Arguments.Url,
+                            new StringValueNode(type.SpecifiedBy.ToString()))));
+            }
+
+            context.Result = IsTypeExtension(type)
+                ? new ScalarTypeExtensionNode(
+                    null,
+                    new NameNode(type.Name),
+                    directives)
+                : new ScalarTypeDefinitionNode(
                     null,
                     new NameNode(type.Name),
                     CreateDescription(type.Description),
@@ -326,8 +413,13 @@ public static class SchemaFormatter
             VisitEnumValues(type.Values, context);
             var values = (List<EnumValueDefinitionNode>)context.Result!;
 
-            context.Result =
-                new EnumTypeDefinitionNode(
+            context.Result = IsTypeExtension(type)
+                ? new EnumTypeExtensionNode(
+                    null,
+                    new NameNode(type.Name),
+                    directives,
+                    values)
+                : new EnumTypeDefinitionNode(
                     null,
                     new NameNode(type.Name),
                     CreateDescription(type.Description),
@@ -339,7 +431,7 @@ public static class SchemaFormatter
         {
             var definitionNodes = new List<EnumValueDefinitionNode>();
 
-            foreach (var value in values.AsEnumerable().OrderBy(t => t.Name, context.OrderByName))
+            foreach (var value in values.AsEnumerable().OrderBy(t => t.Name, context.OrderFieldsByName))
             {
                 VisitEnumValue(value, context);
                 definitionNodes.Add((EnumValueDefinitionNode)context.Result!);
@@ -367,13 +459,20 @@ public static class SchemaFormatter
             VisitDirectives(type.Directives, context);
             var directives = (List<DirectiveNode>)context.Result!;
 
-            context.Result =
-                new UnionTypeDefinitionNode(
+            var memberTypes = type.Types.AsEnumerable().Select(t => new NamedTypeNode(t.Name)).ToList();
+
+            context.Result = IsTypeExtension(type)
+                ? new UnionTypeExtensionNode(
+                    null,
+                    new NameNode(type.Name),
+                    directives,
+                    memberTypes)
+                : new UnionTypeDefinitionNode(
                     null,
                     new NameNode(type.Name),
                     CreateDescription(type.Description),
                     directives,
-                    [.. type.Types.AsEnumerable().Select(t => new NamedTypeNode(t.Name))]);
+                    memberTypes);
         }
 
         public override void VisitDirectiveDefinition(
@@ -399,7 +498,7 @@ public static class SchemaFormatter
         {
             var fieldNodes = new List<FieldDefinitionNode>();
 
-            foreach (var field in fields.AsEnumerable().OrderBy(t => t.Name, context.OrderByName))
+            foreach (var field in fields.AsEnumerable().OrderBy(t => t.Name, context.OrderFieldsByName))
             {
                 if (field.IsIntrospectionField)
                 {
@@ -438,7 +537,7 @@ public static class SchemaFormatter
         {
             var inputNodes = new List<InputValueDefinitionNode>();
 
-            foreach (var field in fields.AsEnumerable().OrderBy(t => t.Name, context.OrderByName))
+            foreach (var field in fields.AsEnumerable().OrderBy(t => t.Name, context.OrderFieldsByName))
             {
                 VisitInputField(field, context);
                 inputNodes.Add((InputValueDefinitionNode)context.Result!);
@@ -469,6 +568,11 @@ public static class SchemaFormatter
 
             foreach (var directive in directives)
             {
+                if (!context.IncludeInternalDirectives && !directive.Definition.IsPublic)
+                {
+                    continue;
+                }
+
                 VisitDirective(directive, context);
                 directiveNodes.Add((DirectiveNode)context.Result!);
             }
@@ -478,31 +582,7 @@ public static class SchemaFormatter
 
         public override void VisitDirective(IDirective directive, VisitorContext context)
         {
-            VisitArguments(directive.Arguments, context);
-            context.Result = new DirectiveNode(
-                null,
-                new NameNode(directive.Name),
-                (List<ArgumentNode>)context.Result!);
-        }
-
-        public override void VisitArguments(
-            ArgumentAssignmentCollection arguments,
-            VisitorContext context)
-        {
-            var argumentNodes = new List<ArgumentNode>();
-
-            foreach (var argument in arguments)
-            {
-                VisitArgument(argument, context);
-                argumentNodes.Add((ArgumentNode)context.Result!);
-            }
-
-            context.Result = argumentNodes;
-        }
-
-        public override void VisitArgument(ArgumentAssignment argument, VisitorContext context)
-        {
-            context.Result = new ArgumentNode(argument.Name, argument.Value);
+            context.Result = directive.ToSyntaxNode();
         }
 
         private static List<DirectiveNode> ApplyDeprecatedDirective(
@@ -530,11 +610,9 @@ public static class SchemaFormatter
 
         private static DirectiveNode CreateDeprecatedDirective(string? reason = null)
         {
-            const string defaultReason = "No longer supported.";
-
             if (string.IsNullOrEmpty(reason))
             {
-                reason = defaultReason;
+                reason = DirectiveNames.Deprecated.Arguments.DefaultReason;
             }
 
             return new DirectiveNode(
@@ -556,17 +634,24 @@ public static class SchemaFormatter
 
             return new StringValueNode(null, description, isBlock);
         }
+
+        private static bool IsTypeExtension(IFeatureProvider type)
+            => type.Features?.Get<TypeExtensionMarker>() is not null;
     }
 
     private sealed record VisitorContext
     {
         public required ISchemaDefinition Schema { get; init; }
 
-        public required bool OrderByName { get; init; }
+        public required bool OrderTypesByName { get; init; }
+
+        public required bool OrderFieldsByName { get; init; }
 
         public required bool PrintSpecScalars { get; init; }
 
         public required bool PrintSpecDirectives { get; init; }
+
+        public required bool IncludeInternalDirectives { get; init; }
 
         public object? Result { get; set; }
     }
