@@ -5,10 +5,6 @@ schema
   query: Query
 }
 
-type Address @key(fields: "field") {
-  field: String! @custom
-}
-
 type Query {
   _service: _Service!
   _entities(representations: [_Any!]!): [_Entity]!
@@ -19,8 +15,18 @@ type _Service {
   sdl: String!
 }
 
+type Address @key(fields: "field") {
+  field: String! @custom
+}
+
 "Union of all types that key directive applied. This information is needed by the Apollo federation gateway."
 union _Entity = Address
+
+"The _Any scalar is used to pass representations of entities from external services into the root _entities field for execution. Validation of the _Any scalar is done by matching the __typename and @external fields defined in the schema."
+scalar _Any
+
+"Scalar representing a set of fields."
+scalar FieldSet
 
 "Marks underlying custom directive to be included in the Supergraph schema."
 directive @composeDirective(name: String!) repeatable on SCHEMA
@@ -37,9 +43,3 @@ directive @link(
   "Gets optional list of imported element names."
   import: [String!]
 ) repeatable on SCHEMA
-
-"Scalar representing a set of fields."
-scalar FieldSet
-
-"The _Any scalar is used to pass representations of entities from external services into the root _entities field for execution. Validation of the _Any scalar is done by matching the __typename and @external fields defined in the schema."
-scalar _Any

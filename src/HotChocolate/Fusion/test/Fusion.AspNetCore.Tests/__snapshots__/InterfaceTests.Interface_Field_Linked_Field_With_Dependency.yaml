@@ -28,8 +28,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Authorable {
-        author: Author
+      type Query {
+        authorable: Authorable
       }
 
       type Author @key(fields: "id") {
@@ -44,8 +44,8 @@ sourceSchemas:
         author: Author
       }
 
-      type Query {
-        authorable: Authorable
+      interface Authorable {
+        author: Author
       }
     interactions:
       - request:
@@ -78,13 +78,13 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        authorById(id: ID!): Author @lookup
+      }
+
       type Author {
         id: ID!
         displayName: String!
-      }
-
-      type Query {
-        authorById(id: ID!): Author @lookup
       }
     interactions:
       - request:

@@ -2,7 +2,9 @@ schema {
   query: QueryAttr
 }
 
-interface ISome2 {
+type QueryAttr {
+  nestedObjectList(skip: Int, take: Int): NestedObjectListCollectionSegment
+  letters(skip: Int, take: Int): LettersCollectionSegment
   explicitType(skip: Int, take: Int): ExplicitTypeCollectionSegment
 }
 
@@ -43,8 +45,6 @@ type NestedObjectListCollectionSegment {
   totalCount: Int!
 }
 
-type QueryAttr {
-  nestedObjectList(skip: Int, take: Int): NestedObjectListCollectionSegment
-  letters(skip: Int, take: Int): LettersCollectionSegment
+interface ISome2 {
   explicitType(skip: Int, take: Int): ExplicitTypeCollectionSegment
 }

@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Features;
 using HotChocolate.Language;
-using HotChocolate.Types.Mutable.Serialization;
+using HotChocolate.Serialization;
 
 namespace HotChocolate.Types.Mutable;
 

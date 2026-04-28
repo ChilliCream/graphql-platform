@@ -17,4 +17,16 @@ public static class FeatureCollectionExtensions
 
         return metadata;
     }
+
+    /// <summary>
+    /// Marks a type definition as a type extension by setting both
+    /// <see cref="TypeMetadata.IsExtension"/> and the cross-cutting
+    /// <see cref="TypeExtensionMarker"/> feature consumed by the canonical SDL formatter.
+    /// </summary>
+    public static void MarkAsExtension<T>(this T type)
+        where T : ITypeDefinition, IFeatureProvider
+    {
+        type.GetTypeMetadata().IsExtension = true;
+        type.Features.Set(TypeExtensionMarker.Instance);
+    }
 }

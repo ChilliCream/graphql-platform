@@ -2,11 +2,11 @@ schema {
   query: DummyQuery
 }
 
+type DummyQuery {
+  bar: String!
+}
+
 interface Simple {
   a: String
   b: [String]
-}
-
-type DummyQuery {
-  bar: String!
 }

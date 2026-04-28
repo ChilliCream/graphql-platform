@@ -1,4 +1,5 @@
 using System.Text;
+using HotChocolate.Serialization;
 using HotChocolate.Types.Mutable.Serialization;
 
 namespace HotChocolate.Types.Mutable;

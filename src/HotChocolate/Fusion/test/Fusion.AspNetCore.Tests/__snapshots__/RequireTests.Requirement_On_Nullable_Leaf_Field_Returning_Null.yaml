@@ -22,13 +22,13 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        productById(id: ID!): Product @lookup @internal
+      }
+
       type Product {
         id: ID!
         nullableField: String @null
-      }
-
-      type Query {
-        productById(id: ID!): Product @lookup @internal
       }
     interactions:
       - request:
@@ -80,15 +80,15 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        productById(id: ID!): Product @lookup
+      }
+
       type Product {
         fieldWithNullableRequirement(
           nullableArgument: String @require(field: "nullableField")
         ): String!
         id: ID!
-      }
-
-      type Query {
-        productById(id: ID!): Product @lookup
       }
     interactions:
       - request:

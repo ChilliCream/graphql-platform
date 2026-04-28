@@ -67,6 +67,10 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        users: [User]
+      }
+
       type Discussion {
         id: ID!
         subgraph1: String
@@ -74,10 +78,6 @@ sourceSchemas:
 
       type Photo @key(fields: "id") {
         id: ID!
-      }
-
-      type Query {
-        users: [User]
       }
 
       type User {
@@ -165,13 +165,13 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        photoById(id: ID!): Photo @lookup
+      }
+
       type Photo {
         id: ID!
         subgraph2: String!
-      }
-
-      type Query {
-        photoById(id: ID!): Photo @lookup
       }
     interactions:
       - request:

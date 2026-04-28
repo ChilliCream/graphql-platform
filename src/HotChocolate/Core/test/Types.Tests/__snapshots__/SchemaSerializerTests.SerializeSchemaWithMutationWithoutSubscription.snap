@@ -3,8 +3,12 @@ schema {
   mutation: Mutation
 }
 
-interface Bar {
-  id: ID!
+type Query {
+  foo: Foo
+}
+
+type Mutation {
+  mutate: String
 }
 
 type Baz {
@@ -15,12 +19,8 @@ type Foo implements Bar {
   id: ID!
 }
 
-type Mutation {
-  mutate: String
-}
-
-type Query {
-  foo: Foo
+interface Bar {
+  id: ID!
 }
 
 union FooOrBaz = Foo | Baz

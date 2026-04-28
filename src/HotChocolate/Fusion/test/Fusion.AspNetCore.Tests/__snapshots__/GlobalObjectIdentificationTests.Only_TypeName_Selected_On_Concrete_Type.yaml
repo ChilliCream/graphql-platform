@@ -24,8 +24,9 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
       }
 
       type Discussion implements Node {
@@ -33,9 +34,8 @@ sourceSchemas:
         title: String!
       }
 
-      type Query {
-        node(id: ID!): Node @lookup @shareable
-        discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:
@@ -62,8 +62,9 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        discussionById(id: ID!): Discussion @lookup @internal
       }
 
       type Discussion implements Node {
@@ -71,9 +72,8 @@ sourceSchemas:
         commentCount: Int!
       }
 
-      type Query {
-        node(id: ID!): Node @lookup @shareable
-        discussionById(id: ID!): Discussion @lookup @internal
+      interface Node {
+        id: ID!
       }
 operationPlan:
   operation:

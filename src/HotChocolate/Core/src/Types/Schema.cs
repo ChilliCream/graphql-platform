@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
+using HotChocolate.Serialization;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Relay;
@@ -222,10 +223,24 @@ public partial class Schema
     /// Creates a schema document from the current schema.
     /// </summary>
     public DocumentNode ToSyntaxNode(bool includeSpecScalars = false)
+        => ToSyntaxNode(
+            new SchemaFormatterOptions
+            {
+                PrintSpecScalars = includeSpecScalars,
+                OrderFieldsByName = false
+            });
+
+    /// <summary>
+    /// Creates a schema document from the current schema.
+    /// </summary>
+    /// <param name="options">
+    /// The options that control the formatting of the schema document.
+    /// </param>
+    public DocumentNode ToSyntaxNode(SchemaFormatterOptions options)
     {
         _formatter ??= new AggregateSchemaDocumentFormatter(
             Services.GetService<IEnumerable<ISchemaDocumentFormatter>>());
-        var document = SchemaPrinter.PrintSchema(this, includeSpecScalars);
+        var document = SchemaFormatter.FormatAsDocument(this, options);
         return _formatter.Format(document);
     }
 
@@ -236,4 +251,12 @@ public partial class Schema
     /// Returns the schema SDL representation.
     /// </summary>
     public override string ToString() => ToSyntaxNode().Print();
+
+    /// <summary>
+    /// Returns the schema SDL representation.
+    /// </summary>
+    /// <param name="options">
+    /// The options that control the formatting of the schema document.
+    /// </param>
+    public string ToString(SchemaFormatterOptions options) => ToSyntaxNode(options).Print();
 }

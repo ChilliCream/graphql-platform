@@ -1,13 +1,13 @@
-﻿interface Bar {
-  id: ID! @upper
-}
-
 type Baz {
   name(baz: BazInput): String
 }
 
 type Foo implements Bar {
   id: ID!
+}
+
+interface Bar {
+  id: ID! @upper
 }
 
 union FooOrBaz = Foo | Baz
