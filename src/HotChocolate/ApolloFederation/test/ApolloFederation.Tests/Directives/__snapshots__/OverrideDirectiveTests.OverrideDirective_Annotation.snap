@@ -1,12 +1,9 @@
 schema
-  @link(url: "https://specs.apollo.dev/federation/v2.0", import: ["@key", "@override", "@tag", "FieldSet"]) {
+  @link(
+    url: "https://specs.apollo.dev/federation/v2.0"
+    import: ["@key", "@override", "@tag", "FieldSet"]
+  ) {
   query: Query
-}
-
-type Foo @key(fields: "id") {
-  id: ID!
-  name: String! @override(from: "bar")
-  description: String! @override(from: "bar")
 }
 
 type Query {
@@ -19,11 +16,25 @@ type _Service {
   sdl: String!
 }
 
+type Foo @key(fields: "id") {
+  id: ID!
+  name: String! @override(from: "bar")
+  description: String! @override(from: "bar")
+}
+
 "Union of all types that key directive applied. This information is needed by the Apollo federation gateway."
 union _Entity = Foo
 
+"The _Any scalar is used to pass representations of entities from external services into the root _entities field for execution. Validation of the _Any scalar is done by matching the __typename and @external fields defined in the schema."
+scalar _Any
+
+"Scalar representing a set of fields."
+scalar FieldSet
+
 "Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface."
-directive @key(fields: FieldSet!, resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+directive @key(fields: FieldSet!, resolvable: Boolean = true) repeatable on
+  | OBJECT
+  | INTERFACE
 
 "Links definitions within the document to external schemas."
 directive @link(
@@ -35,9 +46,3 @@ directive @link(
 
 "Overrides fields resolution logic from other subgraph. Used for migrating fields from one subgraph to another."
 directive @override(from: String!) on FIELD_DEFINITION
-
-"Scalar representing a set of fields."
-scalar FieldSet
-
-"The _Any scalar is used to pass representations of entities from external services into the root _entities field for execution. Validation of the _Any scalar is done by matching the __typename and @external fields defined in the schema."
-scalar _Any

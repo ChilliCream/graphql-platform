@@ -24,16 +24,16 @@ sourceSchemas:
         query: Query
       }
 
-      interface Votable @key(fields: "id") {
-        id: ID!
+      type Query {
+        votable: Votable
       }
 
       type Discussion implements Votable @key(fields: "id") {
         id: ID!
       }
 
-      type Query {
-        votable: Votable
+      interface Votable @key(fields: "id") {
+        id: ID!
       }
     interactions:
       - request:
@@ -62,9 +62,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Votable {
-        id: ID!
-        viewerCanVote: Boolean!
+      type Query {
+        votableById(id: ID!): Votable @lookup
       }
 
       type Discussion implements Votable {
@@ -72,8 +71,9 @@ sourceSchemas:
         viewerCanVote: Boolean!
       }
 
-      type Query {
-        votableById(id: ID!): Votable @lookup
+      interface Votable {
+        id: ID!
+        viewerCanVote: Boolean!
       }
     interactions:
       - request:

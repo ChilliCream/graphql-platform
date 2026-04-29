@@ -5,14 +5,14 @@ namespace Mocha;
 /// <summary>
 /// A visitor that traverses a <see cref="MessagingRuntime"/> and builds a <see cref="MessageBusDescription"/> for diagnostic output.
 /// </summary>
-public sealed class MessageBusDescriptionVisitor : MessagingVisitor<MessageBusDescriptionVisitor.Context>
+internal sealed class MessageBusDescriptionVisitor : MessagingVisitor<MessageBusDescriptionVisitor.Context>
 {
     /// <summary>
     /// Visits the specified runtime and returns a complete diagnostic description.
     /// </summary>
     /// <param name="runtime">The messaging runtime to describe.</param>
     /// <returns>A <see cref="MessageBusDescription"/> containing the full bus topology and configuration.</returns>
-    public static MessageBusDescription Visit(MessagingRuntime runtime)
+    public static MessageBusDescription Visit(IMessagingRuntime runtime)
     {
         var context = new Context();
         Instance.Visit(runtime, context);
@@ -22,7 +22,7 @@ public sealed class MessageBusDescriptionVisitor : MessagingVisitor<MessageBusDe
     /// <summary>
     /// Accumulates visitor results during traversal of the messaging runtime.
     /// </summary>
-    public sealed class Context
+    internal sealed class Context
     {
         internal HostDescription? Host { get; set; }
         internal List<MessageTypeDescription> MessageTypes { get; } = [];
@@ -35,14 +35,14 @@ public sealed class MessageBusDescriptionVisitor : MessagingVisitor<MessageBusDe
         internal MessageBusDescription ToDescription()
             => new(
                 Host ?? throw ThrowHelper.HostDescriptionMissing(),
-                MessageTypes,
-                Consumers,
-                new RoutesDescription(InboundRoutes, OutboundRoutes),
-                Transports,
-                Sagas is { Count: > 0 } ? Sagas : null);
+                [.. MessageTypes],
+                [.. Consumers],
+                new RoutesDescription([.. InboundRoutes], [.. OutboundRoutes]),
+                [.. Transports],
+                Sagas is { Count: > 0 } ? [.. Sagas] : null);
     }
 
-    protected override VisitorAction Enter(MessagingRuntime runtime, Context context)
+    protected override VisitorAction Enter(IMessagingRuntime runtime, Context context)
     {
         context.Host = new HostDescription(
             runtime.Host.ServiceName,
@@ -92,5 +92,5 @@ public sealed class MessageBusDescriptionVisitor : MessagingVisitor<MessageBusDe
     /// <summary>
     /// Gets the singleton instance of the description visitor.
     /// </summary>
-    public static MessageBusDescriptionVisitor Instance { get; } = new MessageBusDescriptionVisitor();
+    internal static MessageBusDescriptionVisitor Instance { get; } = new MessageBusDescriptionVisitor();
 }

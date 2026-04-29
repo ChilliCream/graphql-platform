@@ -2,10 +2,10 @@ schema {
   query: DummyQuery
 }
 
-interface Simple {
-  a: String @deprecated
-}
-
 type DummyQuery {
   bar: String!
+}
+
+interface Simple {
+  a: String @deprecated(reason: "No longer supported.")
 }

@@ -31,6 +31,7 @@ public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
 
     private readonly RequestExecutorProxy _executor;
     private readonly JsonResultFormatter _formatter;
+    private readonly ErrorHandlingMode? _onError;
     private bool _disposed;
 
     /// <summary>
@@ -42,15 +43,20 @@ public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
     /// <param name="formatter">
     /// The JSON result formatter used to serialize execution results.
     /// </param>
+    /// <param name="onError">
+    /// The error handling mode requested by the source schema.
+    /// </param>
     public InMemorySourceSchemaClient(
         RequestExecutorProxy executor,
-        JsonResultFormatter formatter)
+        JsonResultFormatter formatter,
+        ErrorHandlingMode? onError = null)
     {
         ArgumentNullException.ThrowIfNull(executor);
         ArgumentNullException.ThrowIfNull(formatter);
 
         _executor = executor;
         _formatter = formatter;
+        _onError = onError;
     }
 
     /// <inheritdoc />
@@ -68,7 +74,7 @@ public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
         ObjectDisposedException.ThrowIf(_disposed, this);
 
         ChunkedArrayWriter? buffer = null;
-        var operationRequest = BuildOperationRequest(context, request, ref buffer);
+        var operationRequest = BuildOperationRequest(context, request, _onError, ref buffer);
 
         try
         {
@@ -103,7 +109,7 @@ public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
         {
             for (var i = 0; i < requests.Length; i++)
             {
-                operationRequests[i] = BuildOperationRequest(context, requests[i], ref buffer);
+                operationRequests[i] = BuildOperationRequest(context, requests[i], _onError, ref buffer);
             }
         }
         catch
@@ -221,6 +227,7 @@ public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
     private static IOperationRequest BuildOperationRequest(
         OperationPlanContext context,
         SourceSchemaClientRequest request,
+        ErrorHandlingMode? onError,
         ref ChunkedArrayWriter? buffer)
     {
         IFeatureCollection? features = null;
@@ -236,6 +243,7 @@ public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
         {
             return OperationRequest.FromSourceText(
                 request.OperationSourceText,
+                errorHandlingMode: onError,
                 features: features);
         }
 
@@ -247,6 +255,7 @@ public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
             {
                 return OperationRequest.FromSourceText(
                     request.OperationSourceText,
+                    errorHandlingMode: onError,
                     variableValues: JsonDocument.Parse(sequence));
             }
 
@@ -254,6 +263,7 @@ public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
             var cleanedJson = StripFileMarkers(buffer, sequence);
             return OperationRequest.FromSourceText(
                 request.OperationSourceText,
+                errorHandlingMode: onError,
                 variableValues: JsonDocument.Parse(cleanedJson.AsSequence()),
                 features: features);
         }
@@ -279,6 +289,7 @@ public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
         return VariableBatchRequest.FromSourceText(
             request.OperationSourceText,
             variableValues: JsonDocument.Parse(variableSequence),
+            errorHandlingMode: onError,
             features: features);
     }
 

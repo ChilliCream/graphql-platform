@@ -41,8 +41,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Votable {
-        viewerCanVote: Boolean!
+      type Query {
+        votables: [Votable]
       }
 
       type Author @key(fields: "id") {
@@ -60,8 +60,8 @@ sourceSchemas:
         author: Author
       }
 
-      type Query {
-        votables: [Votable]
+      interface Votable {
+        viewerCanVote: Boolean!
       }
     interactions:
       - request:
@@ -111,13 +111,13 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        authorById(id: ID!): Author @lookup
+      }
+
       type Author {
         id: ID!
         displayName: String!
-      }
-
-      type Query {
-        authorById(id: ID!): Author @lookup
       }
     interactions:
       - request:

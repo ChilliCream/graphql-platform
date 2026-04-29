@@ -1,6 +1,5 @@
 using HotChocolate.ApolloFederation.Resolvers;
 using HotChocolate.ApolloFederation.Types;
-using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Suites.ComplexEntityCall.Products;

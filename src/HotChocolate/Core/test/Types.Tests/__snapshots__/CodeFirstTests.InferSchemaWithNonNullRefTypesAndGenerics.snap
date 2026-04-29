@@ -2,18 +2,6 @@ schema {
   query: QueryWithGenerics
 }
 
-interface IPet {
-  name: String
-}
-
-type Dog implements IPet {
-  name: String
-}
-
-type GenericWrapperOfIPet {
-  value: IPet!
-}
-
 type QueryWithGenerics {
   pet(id: Int!): IPet
   pets(
@@ -24,6 +12,18 @@ type QueryWithGenerics {
     arg5: GenericWrapperOfStringInput
     arg6: GreetingsInput
   ): GenericWrapperOfIPet!
+}
+
+type Dog implements IPet {
+  name: String
+}
+
+type GenericWrapperOfIPet {
+  value: IPet!
+}
+
+interface IPet {
+  name: String
 }
 
 input GenericWrapperOfStringInput {

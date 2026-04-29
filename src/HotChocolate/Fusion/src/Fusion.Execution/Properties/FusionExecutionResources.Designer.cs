@@ -99,39 +99,39 @@ namespace HotChocolate.Fusion.Properties {
             }
         }
 
-        internal static string SourceSchemaHttpClient_SubscriptionBatchNotSupported {
+        internal static string HttpSourceSchemaClient_SubscriptionBatchNotSupported {
             get {
-                return ResourceManager.GetString("SourceSchemaHttpClient_SubscriptionBatchNotSupported", resourceCulture);
+                return ResourceManager.GetString("HttpSourceSchemaClient_SubscriptionBatchNotSupported", resourceCulture);
             }
         }
 
-        internal static string SourceSchemaHttpClient_InvalidRequestIndex {
+        internal static string HttpSourceSchemaClient_InvalidRequestIndex {
             get {
-                return ResourceManager.GetString("SourceSchemaHttpClient_InvalidRequestIndex", resourceCulture);
+                return ResourceManager.GetString("HttpSourceSchemaClient_InvalidRequestIndex", resourceCulture);
             }
         }
 
-        internal static string SourceSchemaHttpClient_NoResponseChannelForNode {
+        internal static string HttpSourceSchemaClient_NoResponseChannelForNode {
             get {
-                return ResourceManager.GetString("SourceSchemaHttpClient_NoResponseChannelForNode", resourceCulture);
+                return ResourceManager.GetString("HttpSourceSchemaClient_NoResponseChannelForNode", resourceCulture);
             }
         }
 
-        internal static string SourceSchemaHttpClient_InvalidVariableIndex {
+        internal static string HttpSourceSchemaClient_InvalidVariableIndex {
             get {
-                return ResourceManager.GetString("SourceSchemaHttpClient_InvalidVariableIndex", resourceCulture);
+                return ResourceManager.GetString("HttpSourceSchemaClient_InvalidVariableIndex", resourceCulture);
             }
         }
 
-        internal static string SourceSchemaHttpClient_VariableIndexOutOfRange {
+        internal static string HttpSourceSchemaClient_VariableIndexOutOfRange {
             get {
-                return ResourceManager.GetString("SourceSchemaHttpClient_VariableIndexOutOfRange", resourceCulture);
+                return ResourceManager.GetString("HttpSourceSchemaClient_VariableIndexOutOfRange", resourceCulture);
             }
         }
 
-        internal static string SourceSchemaHttpClient_NoResultForNode {
+        internal static string HttpSourceSchemaClient_NoResultForNode {
             get {
-                return ResourceManager.GetString("SourceSchemaHttpClient_NoResultForNode", resourceCulture);
+                return ResourceManager.GetString("HttpSourceSchemaClient_NoResultForNode", resourceCulture);
             }
         }
 

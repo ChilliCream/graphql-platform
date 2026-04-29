@@ -1,4 +1,5 @@
 using HotChocolate.Configuration;
+using HotChocolate.Serialization;
 using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate;
@@ -13,6 +14,11 @@ internal sealed class StoreGlobalSchemaOptionsTypeInterceptor : TypeInterceptor
         {
             var options = completionContext.DescriptorContext.Options;
             schemaDef.Features.Set(options);
+            schemaDef.Features.Set(
+                new SchemaFormatterOptions
+                {
+                    OrderFieldsByName = options.SortFieldsByName
+                });
         }
     }
 }

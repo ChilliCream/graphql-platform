@@ -1,12 +1,11 @@
 schema
   @composeDirective(name: "@custom")
-  @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@composeDirective", "@key", "@tag", "FieldSet"])
+  @link(
+    url: "https://specs.apollo.dev/federation/v2.6"
+    import: ["@composeDirective", "@key", "@tag", "FieldSet"]
+  )
   @link(url: "https://specs.custom.dev/custom/v1.0", import: ["@custom"]) {
   query: Query
-}
-
-type Address @key(fields: "field") {
-  field: String! @custom
 }
 
 type Query {
@@ -19,8 +18,18 @@ type _Service {
   sdl: String!
 }
 
+type Address @key(fields: "field") {
+  field: String! @custom
+}
+
 "Union of all types that key directive applied. This information is needed by the Apollo federation gateway."
 union _Entity = Address
+
+"The _Any scalar is used to pass representations of entities from external services into the root _entities field for execution. Validation of the _Any scalar is done by matching the __typename and @external fields defined in the schema."
+scalar _Any
+
+"Scalar representing a set of fields."
+scalar FieldSet
 
 "Marks underlying custom directive to be included in the Supergraph schema."
 directive @composeDirective(name: String!) repeatable on SCHEMA
@@ -28,7 +37,9 @@ directive @composeDirective(name: String!) repeatable on SCHEMA
 directive @custom on FIELD_DEFINITION
 
 "Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface."
-directive @key(fields: FieldSet!, resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+directive @key(fields: FieldSet!, resolvable: Boolean = true) repeatable on
+  | OBJECT
+  | INTERFACE
 
 "Links definitions within the document to external schemas."
 directive @link(
@@ -37,9 +48,3 @@ directive @link(
   "Gets optional list of imported element names."
   import: [String!]
 ) repeatable on SCHEMA
-
-"Scalar representing a set of fields."
-scalar FieldSet
-
-"The _Any scalar is used to pass representations of entities from external services into the root _entities field for execution. Validation of the _Any scalar is done by matching the __typename and @external fields defined in the schema."
-scalar _Any

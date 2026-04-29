@@ -45,22 +45,22 @@
   <data name="SourceSchemaRequestDispatcher_NodeNotRegisteredInGroup" xml:space="preserve">
     <value>The execution node with id '{0}' is registered to be part of batching group '{1}', but no request was submitted for that node.</value>
   </data>
-  <data name="SourceSchemaHttpClient_SubscriptionBatchNotSupported" xml:space="preserve">
+  <data name="HttpSourceSchemaClient_SubscriptionBatchNotSupported" xml:space="preserve">
     <value>Subscription requests are not supported by batch execution.</value>
   </data>
-  <data name="SourceSchemaHttpClient_InvalidRequestIndex" xml:space="preserve">
+  <data name="HttpSourceSchemaClient_InvalidRequestIndex" xml:space="preserve">
     <value>The batch response contains an invalid requestIndex '{0}'.</value>
   </data>
-  <data name="SourceSchemaHttpClient_NoResponseChannelForNode" xml:space="preserve">
+  <data name="HttpSourceSchemaClient_NoResponseChannelForNode" xml:space="preserve">
     <value>No response channel exists for node '{0}'.</value>
   </data>
-  <data name="SourceSchemaHttpClient_InvalidVariableIndex" xml:space="preserve">
+  <data name="HttpSourceSchemaClient_InvalidVariableIndex" xml:space="preserve">
     <value>The batch response contains an invalid variableIndex '{0}' for node '{1}'.</value>
   </data>
-  <data name="SourceSchemaHttpClient_VariableIndexOutOfRange" xml:space="preserve">
+  <data name="HttpSourceSchemaClient_VariableIndexOutOfRange" xml:space="preserve">
     <value>The batch response contains an out-of-range variableIndex '{0}'.</value>
   </data>
-  <data name="SourceSchemaHttpClient_NoResultForNode" xml:space="preserve">
+  <data name="HttpSourceSchemaClient_NoResultForNode" xml:space="preserve">
     <value>The batch response does not contain any result for node '{0}'.</value>
   </data>
   <data name="SourceSchemaRequestDispatcher_DuplicateNodeSubmission" xml:space="preserve">

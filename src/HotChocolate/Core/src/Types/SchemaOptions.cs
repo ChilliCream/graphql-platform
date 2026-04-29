@@ -104,9 +104,6 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <inheritdoc cref="IReadOnlySchemaOptions.EnableStream"/>
     public bool EnableStream { get; set; }
 
-    /// <inheritdoc cref="IReadOnlySchemaOptions.EnableSemanticNonNull"/>
-    public bool EnableSemanticNonNull { get; set; }
-
     /// <inheritdoc cref="IReadOnlySchemaOptions.StripLeadingIFromInterface"/>
     public bool StripLeadingIFromInterface { get; set; }
 
@@ -224,7 +221,6 @@ public class SchemaOptions : IReadOnlySchemaOptions
             EnableFlagEnums = options.EnableFlagEnums,
             EnableDefer = options.EnableDefer,
             EnableStream = options.EnableStream,
-            EnableSemanticNonNull = options.EnableSemanticNonNull,
             DefaultFieldBindingFlags = options.DefaultFieldBindingFlags,
             StripLeadingIFromInterface = options.StripLeadingIFromInterface,
             EnableTag = options.EnableTag,

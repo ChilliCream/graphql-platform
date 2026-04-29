@@ -49,7 +49,7 @@ public class SourceSchemaErrorTests : FusionTestBase
     }
 
     [Fact]
-    public async Task SchemaDefault_Null_AppliesWithoutPerRequestOverride()
+    public async Task OnError_SchemaDefault_Null_AppliesWithoutPerRequestOverride()
     {
         // arrange
         using var server1 = CreateSourceSchema(
@@ -64,6 +64,40 @@ public class SourceSchemaErrorTests : FusionTestBase
             builder.ModifyOptions(o => o.DefaultErrorHandlingMode = ErrorHandlingMode.Null));
 
         // act — no per-request onError override
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              productById(id: 1) {
+                name
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task OnError_Null_OnSourceSchema_Forwards_To_Subgraph_Request()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<SourceSchema3.Query>(),
+            onError: ErrorHandlingMode.Null);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
         var request = new OperationRequest(

@@ -4,6 +4,7 @@ using HotChocolate.AspNetCore;
 using HotChocolate.Configuration;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Fusion.Execution.Clients;
+using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
@@ -23,6 +24,7 @@ public abstract partial class FusionTestBase
         bool isOffline = false,
         bool isTimingOut = false,
         SourceSchemaClientCapabilities capabilities = SourceSchemaClientCapabilities.All,
+        ErrorHandlingMode? onError = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null,
@@ -54,6 +56,7 @@ public abstract partial class FusionTestBase
                     opt.ConfigureHttpClient = configureHttpClient;
                     opt.MockHttpResponse = mockHttpResponse;
                     opt.Capabilities = capabilities;
+                    opt.OnError = onError;
                     opt.DefaultAcceptHeaderValues = defaultAcceptHeaderValues;
                     opt.BatchingAcceptHeaderValues = batchingAcceptHeaderValues;
                     opt.SubscriptionAcceptHeaderValues = subscriptionAcceptHeaderValues;
@@ -70,6 +73,7 @@ public abstract partial class FusionTestBase
         Action<HttpClient>? configureHttpClient = null,
         HttpClient? httpClient = null,
         SourceSchemaClientCapabilities capabilities = SourceSchemaClientCapabilities.All,
+        ErrorHandlingMode? onError = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null,
@@ -96,6 +100,7 @@ public abstract partial class FusionTestBase
                     opt.HttpClient = httpClient;
                     opt.MockHttpResponse = mockHttpResponse;
                     opt.Capabilities = capabilities;
+                    opt.OnError = onError;
                     opt.DefaultAcceptHeaderValues = defaultAcceptHeaderValues;
                     opt.BatchingAcceptHeaderValues = batchingAcceptHeaderValues;
                     opt.SubscriptionAcceptHeaderValues = subscriptionAcceptHeaderValues;
