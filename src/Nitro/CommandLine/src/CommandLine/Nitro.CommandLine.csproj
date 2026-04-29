@@ -18,6 +18,21 @@
     <GraphQLPersistedOperationFormat>relay</GraphQLPersistedOperationFormat>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(PublishAot)' == 'true'">
+    <OptimizationPreference>Size</OptimizationPreference>
+    <IlcFoldIdenticalMethodBodies>true</IlcFoldIdenticalMethodBodies>
+    <StackTraceSupport>false</StackTraceSupport>
+    <DebuggerSupport>false</DebuggerSupport>
+    <EventSourceSupport>false</EventSourceSupport>
+    <HttpActivityPropagationSupport>false</HttpActivityPropagationSupport>
+    <MetadataUpdaterSupport>false</MetadataUpdaterSupport>
+    <UseSystemResourceKeys>true</UseSystemResourceKeys>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <PredefinedCulturesOnly>true</PredefinedCulturesOnly>
+    <BuiltInComInteropSupport>false</BuiltInComInteropSupport>
+    <XmlResolverIsNetworkingEnabledByDefault>false</XmlResolverIsNetworkingEnabledByDefault>
+  </PropertyGroup>
+
   <ItemGroup>
     <Using Include="ChilliCream.Nitro.CommandLine" />
     <Using Include="Microsoft.Extensions.DependencyInjection" />
@@ -32,7 +47,6 @@
     <ProjectReference Include="..\..\..\..\HotChocolate\Adapters\src\Adapters.Mcp.Packaging\HotChocolate.Adapters.Mcp.Packaging.csproj" />
     <ProjectReference Include="..\..\..\..\HotChocolate\Adapters\src\Adapters.OpenApi.Core\HotChocolate.Adapters.OpenApi.Core.csproj" />
     <ProjectReference Include="..\..\..\..\HotChocolate\Adapters\src\Adapters.OpenApi.Packaging\HotChocolate.Adapters.OpenApi.Packaging.csproj" />
-    <ProjectReference Include="..\..\..\..\HotChocolate\Fusion\src\Fusion.AspNetCore\HotChocolate.Fusion.AspNetCore.csproj" />
     <ProjectReference Include="..\..\..\..\HotChocolate\Fusion\src\Fusion.Composition\HotChocolate.Fusion.Composition.csproj" />
     <ProjectReference Include="..\..\..\..\HotChocolate\Fusion\src\Fusion.Packaging\HotChocolate.Fusion.Packaging.csproj" />
     <ProjectReference Include="..\..\..\..\HotChocolate\Fusion\src\Fusion.SourceSchema.Packaging\HotChocolate.Fusion.SourceSchema.Packaging.csproj" />

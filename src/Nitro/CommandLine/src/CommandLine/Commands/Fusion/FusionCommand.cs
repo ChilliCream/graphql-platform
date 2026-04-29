@@ -18,7 +18,6 @@ internal sealed class FusionCommand : Command
         Subcommands.Add(new FusionDownloadCommand());
         Subcommands.Add(new FusionMigrateCommand());
         Subcommands.Add(new FusionPublishCommand());
-        Subcommands.Add(new FusionRunCommand());
         Subcommands.Add(new FusionSettingsCommand());
         Subcommands.Add(new FusionValidateCommand());
         Subcommands.Add(new FusionUploadCommand());
