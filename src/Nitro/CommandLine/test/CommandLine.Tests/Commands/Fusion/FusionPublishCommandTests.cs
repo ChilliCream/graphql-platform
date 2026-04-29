@@ -3,6 +3,7 @@ using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.FusionConfiguration;
 using ChilliCream.Nitro.CommandLine.FusionCompatibility;
 using HotChocolate.Fusion.Packaging;
+using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 
@@ -1606,6 +1607,130 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     }
 
     [Fact]
+    public async Task WithSourceSchemaFile_LocalLegacyArchive_ExistingRequestId_ReusesSlotAndSkipsClaim()
+    {
+        // arrange
+        // Simulates a v1 to v2 migration workflow where prior `fusion publish begin`
+        // and `fusion publish start` invocations stored the request ID on disk and
+        // claimed the slot. Publish must reuse the request ID and skip both the
+        // deployment slot request and the claim mutations.
+        SetupFusionPublishingStateCache(RequestId);
+        SetupSourceSchemaFile();
+        SetupLegacyArchiveFile();
+        SetupMissingFusionConfigurationDownload();
+        SetupMissingLegacyFusionConfigurationDownload();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        var capturedStream = SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema-file",
+            SourceSchemaFile,
+            "--legacy-v1-archive",
+            LegacyArchiveFile);
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
+            ├── Reusing existing publication request. (ID: request-id)
+            ├── Downloading existing configuration from 'dev'
+            │   └── ! There is no existing configuration on 'dev', using --legacy-v1-archive instead.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
+            ├── Uploading configuration to 'dev'
+            │   └── ✓ Uploaded configuration.
+            └── ✓ Published configuration 'v1' to 'dev'.
+            """);
+        var schema = await GetMigratedLegacyArchiveSchemaAsync(capturedStream);
+        AssertMigratedFusionSchema(schema);
+        FusionConfigurationClientMock.Verify(
+            x => x.RequestDeploymentSlotAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>(),
+                It.IsAny<SourceSchemaVersion[]?>(),
+                It.IsAny<bool>(),
+                It.IsAny<SourceMetadata?>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
+        FusionConfigurationClientMock.Verify(
+            x => x.ClaimDeploymentSlotAsync(
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task WithSourceSchemaFile_NoLegacyArchive_ExistingRequestId_IgnoredAndRequestsNewSlot()
+    {
+        // arrange
+        // Without --legacy-v1-archive the cached request ID must be ignored and
+        // publish must request a new deployment slot as usual.
+        SetupFusionPublishingStateCache(RequestId);
+        SetupSourceSchemaFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationDownload();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        var capturedStream = SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
+            ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
+            ├── Uploading configuration to 'dev'
+            │   └── ✓ Uploaded configuration.
+            └── ✓ Published configuration 'v1' to 'dev'.
+            """);
+        var schema = await GetFusionSchemaAsync(capturedStream);
+        AssertComposedFusionSchema(schema);
+    }
+
+    [Fact]
     public async Task WithSourceSchemaFile_WithEnvVars_ReturnsSuccess()
     {
         // arrange
@@ -3089,6 +3214,134 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         var schema = await GetOverriddenLegacyArchiveSchemaAsync(capturedStream);
         AssertOverriddenFusionSchema(schema);
+    }
+
+    [Fact]
+    public async Task WithSourceSchema_LocalLegacyArchive_ExistingRequestId_ReusesSlotAndSkipsClaim()
+    {
+        // arrange
+        // Simulates a v1 to v2 migration workflow where prior `fusion publish begin`
+        // and `fusion publish start` invocations stored the request ID on disk and
+        // claimed the slot. Publish must reuse the request ID and skip both the
+        // deployment slot request and the claim mutations.
+        SetupFusionPublishingStateCache(RequestId);
+        SetupSourceSchemaDownload();
+        SetupLegacyArchiveFile();
+        SetupMissingFusionConfigurationDownload();
+        SetupMissingLegacyFusionConfigurationDownload();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        var capturedStream = SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema",
+            SourceSchema,
+            "--legacy-v1-archive",
+            LegacyArchiveFile);
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
+            ├── Downloading 1 source schema(s)
+            │   └── ✓ Downloaded 1 source schema(s).
+            ├── Reusing existing publication request. (ID: request-id)
+            ├── Downloading existing configuration from 'dev'
+            │   └── ! There is no existing configuration on 'dev', using --legacy-v1-archive instead.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
+            ├── Uploading configuration to 'dev'
+            │   └── ✓ Uploaded configuration.
+            └── ✓ Published configuration 'v1' to 'dev'.
+            """);
+        var schema = await GetMigratedLegacyArchiveSchemaAsync(capturedStream);
+        AssertMigratedFusionSchema(schema);
+        FusionConfigurationClientMock.Verify(
+            x => x.RequestDeploymentSlotAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>(),
+                It.IsAny<SourceSchemaVersion[]?>(),
+                It.IsAny<bool>(),
+                It.IsAny<SourceMetadata?>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
+        FusionConfigurationClientMock.Verify(
+            x => x.ClaimDeploymentSlotAsync(
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task WithSourceSchema_NoLegacyArchive_ExistingRequestId_IgnoredAndRequestsNewSlot()
+    {
+        // arrange
+        // Without --legacy-v1-archive the cached request ID must be ignored and
+        // publish must request a new deployment slot as usual.
+        SetupFusionPublishingStateCache(RequestId);
+        SetupSourceSchemaDownload();
+        SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationDownload();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        var capturedStream = SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema",
+            SourceSchema);
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
+            ├── Downloading 1 source schema(s)
+            │   └── ✓ Downloaded 1 source schema(s).
+            ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
+            ├── Uploading configuration to 'dev'
+            │   └── ✓ Uploaded configuration.
+            └── ✓ Published configuration 'v1' to 'dev'.
+            """);
+        var schema = await GetFusionSchemaAsync(capturedStream);
+        AssertComposedFusionSchema(schema);
     }
 
     [Fact]
