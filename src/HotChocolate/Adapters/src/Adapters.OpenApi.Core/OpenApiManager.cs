@@ -17,7 +17,7 @@ namespace HotChocolate.Adapters.OpenApi;
 [RequiresUnreferencedCode(
     "JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
 #endif
-internal sealed class OpenApiManager : IOpenApiProvider, IAsyncDisposable
+internal sealed class OpenApiManager : IOpenApiProvider, IDisposable
 {
     private readonly IOptionsMonitor<OpenApiSetup> _setupMonitor;
     private readonly IOptionsMonitor<OpenApiTransportSetup> _transportSetupMonitor;
@@ -99,7 +99,7 @@ internal sealed class OpenApiManager : IOpenApiProvider, IAsyncDisposable
         return new OpenApiRegistration(registry, executorProxy, endpointDataSource, documentTransformer);
     }
 
-    public async ValueTask DisposeAsync()
+    public void Dispose()
     {
         if (_disposed)
         {
@@ -117,7 +117,7 @@ internal sealed class OpenApiManager : IOpenApiProvider, IAsyncDisposable
 
             var registration = lazy.Value;
 
-            await registration.Registry.DisposeAsync();
+            registration.Registry.Dispose();
             registration.ExecutorProxy.Dispose();
         }
 
