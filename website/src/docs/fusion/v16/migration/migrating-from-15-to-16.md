@@ -12,6 +12,26 @@ title: "Migrating from v15 to v16"
 
 ## Per repository migration
 
+<!-- TODO: At the start we want to check for and collect satisfiability issues so we can work on them
+
+exmaple ci output:
+
+Validating Fusion configuration of API 'QXBpCmcwMTlkMmIzMGUzNGY3YzQ2OTBjNTgxOTNkYjI1M2EyZg==' against stage 'dev'
+├── Downloading existing configuration from 'dev'
+│   └── ✓ Downloaded existing legacy v1 configuration from 'dev'.
+├── Composing new configuration
+│   └── ✕ Failed to compose new configuration.
+└── ✕ Failed to validate the Fusion configuration.
+
+## Composition log
+
+❌ [ERR] Unable to access the field 'Review.productVariant'.
+     Unable to transition between schemas 'REVIEWS' and 'PRODUCTS' for access to field 'PRODUCTS:Review.productVariant<Product>'.
+       No lookups found for type 'Review' in schema 'PRODUCTS'. (UNSATISFIABLE)
+Satisfiability validation failed.
+
+ -->
+
 ### Migrate subgraph-config.json
 
 For each subgraph in your repository, the existing `subgraph-config.json` file needs to be migrated to the new `schema-settings.json` format.
@@ -154,8 +174,8 @@ Add a step to the build job that uploads the exported source schema to Nitro. Th
     tag: <tag>
     api-id: <api-id>
     api-key: <api-key>
-    source-schema-files:
-      - ./src/SubgraphA/schema.graphql
+    source-schema-files: |
+      ./src/SubgraphA/schema.graphql
 ```
 
 </PipelineChoiceTabs.GitHubAction>
@@ -178,6 +198,11 @@ dotnet nitro fusion upload \
 
 In the deploy job, leave the existing v15 commands that download the latest `.fgp` and run v15 composition untouched. Only the trailing `dotnet nitro fusion-configuration publish commit` is removed:
 
+<!--
+TODO: This should remove all of the steps that deal with the registry. just download and compose
+      Discuss this with Pascal if we should just cancel instead to keep the idempotency
+ -->
+
 ```diff
 - dotnet nitro fusion-configuration publish commit \
 -   --configuration ./gateway.fgp \
@@ -197,8 +222,8 @@ Replace it with `dotnet nitro fusion publish`, passing the freshly composed `gat
     api-id: <api-id>
     api-key: <api-key>
     legacy-v1-archive: ./gateway.fgp
-    source-schemas:
-      - subgraph-a
+    source-schemas: |
+      subgraph-a
 ```
 
 </PipelineChoiceTabs.GitHubAction>
@@ -264,8 +289,8 @@ As with the deployment workflow, the v15 download and compose steps stay in plac
     api-id: <api-id>
     api-key: <api-key>
     legacy-v1-archive: ./gateway.fgp
-    source-schema-files:
-      - ./src/SubgraphA/schema.graphql
+    source-schema-files: |
+      ./src/SubgraphA/schema.graphql
 ```
 
 </PipelineChoiceTabs.GitHubAction>
