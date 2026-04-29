@@ -1,0 +1,5 @@
+{
+  "appHost": {
+    "path": "AzureServiceBusTransport.AppHost/AzureServiceBusTransport.AppHost.csproj"
+  }
+}
