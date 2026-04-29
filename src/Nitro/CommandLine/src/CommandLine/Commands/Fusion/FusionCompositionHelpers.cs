@@ -17,6 +17,17 @@ internal static class FusionCompositionHelpers
             || fileName.EndsWith(".graphqls", StringComparison.OrdinalIgnoreCase);
     }
 
+    public static bool IsExtensionsFile(string? fileName)
+    {
+        if (fileName is null)
+        {
+            return false;
+        }
+
+        var nameWithoutExt = Path.GetFileNameWithoutExtension(fileName);
+        return nameWithoutExt.EndsWith("-extensions", StringComparison.OrdinalIgnoreCase);
+    }
+
     public static async Task<Dictionary<string, (SourceSchemaText, JsonDocument)>> ReadSourceSchemasAsync(
         IFileSystem fileSystem,
         string? workingDirectory,
@@ -59,7 +70,8 @@ internal static class FusionCompositionHelpers
             schemaFilePath =
                 fileSystem
                     .GetFiles(sourceSchemaPath, "*.graphql*", SearchOption.AllDirectories)
-                    .FirstOrDefault(f => IsSchemaFile(Path.GetFileName(f)));
+                    .FirstOrDefault(f => IsSchemaFile(Path.GetFileName(f))
+                        && !IsExtensionsFile(Path.GetFileName(f)));
         }
         else if (fileSystem.FileExists(sourceSchemaPath))
         {
@@ -90,6 +102,24 @@ internal static class FusionCompositionHelpers
         }
 
         var sourceText = await fileSystem.ReadAllTextAsync(schemaFilePath, cancellationToken);
+
+        var extensionsFilePath = Path.Combine(
+            Path.GetDirectoryName(schemaFilePath)!,
+            Path.GetFileNameWithoutExtension(schemaFilePath)
+            + "-extensions"
+            + Path.GetExtension(schemaFilePath));
+
+        if (fileSystem.FileExists(extensionsFilePath))
+        {
+            var extensionsText = await fileSystem.ReadAllTextAsync(extensionsFilePath, cancellationToken);
+
+            if (sourceText.Length > 0 && !sourceText.EndsWith('\n'))
+            {
+                sourceText += "\n";
+            }
+
+            sourceText += extensionsText;
+        }
 
         return (schemaName, new SourceSchemaText(schemaName, sourceText), settings);
     }

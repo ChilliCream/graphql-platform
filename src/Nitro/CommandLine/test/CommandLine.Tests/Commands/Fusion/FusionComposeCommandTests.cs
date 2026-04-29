@@ -466,6 +466,78 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
+    public async Task Compose_Valid_Extensions()
+    {
+        // arrange
+        var archiveFileName = CreateTempFile();
+        SetupSourceSchemaFromResources("valid-extensions/source-schema-1.graphqls");
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--source-schema-file",
+            Path.Combine(s_resourcesDir, "valid-extensions/source-schema-1.graphqls"),
+            "--archive",
+            archiveFileName);
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+
+        using var archive = FusionArchive.Open(archiveFileName);
+        var config = await archive.TryGetGatewayConfigurationAsync(WellKnownVersions.LatestGatewayFormatVersion);
+        Assert.NotNull(config);
+        var sourceText = await ReadSchemaAsync(config);
+        sourceText
+            .ReplaceLineEndings("\n")
+            .MatchInlineSnapshot(
+                await File.ReadAllTextAsync("__resources__/valid-extensions-result/composite-schema.graphqls"));
+    }
+
+    [Fact]
+    public async Task Compose_Valid_Extensions_FromDirectory()
+    {
+        // arrange
+        var archiveFileName = CreateTempFile();
+        var workDir = Path.Combine(s_resourcesDir, "valid-extensions");
+
+        // Set up the directory mock to return both the primary and extensions file.
+        // Discovery must pick the primary schema, not the extensions sidecar.
+        SetupDirectory(workDir,
+            Path.Combine(workDir, "source-schema-1.graphqls"),
+            Path.Combine(workDir, "source-schema-1-extensions.graphqls"));
+
+        var schemaFile = Path.Combine(workDir, "source-schema-1.graphqls");
+        var settingsFile = Path.Combine(workDir, "source-schema-1-settings.json");
+        var extensionsFile = Path.Combine(workDir, "source-schema-1-extensions.graphqls");
+
+        SetupFile(schemaFile, (await File.ReadAllTextAsync(schemaFile)).TrimEnd());
+        SetupFile(settingsFile, new MemoryStream(await File.ReadAllBytesAsync(settingsFile)));
+        SetupFile(extensionsFile, new MemoryStream(await File.ReadAllBytesAsync(extensionsFile)));
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--source-schema-file",
+            workDir,
+            "--archive",
+            archiveFileName);
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+
+        using var archive = FusionArchive.Open(archiveFileName);
+        var config = await archive.TryGetGatewayConfigurationAsync(WellKnownVersions.LatestGatewayFormatVersion);
+        Assert.NotNull(config);
+        var sourceText = await ReadSchemaAsync(config);
+        sourceText
+            .ReplaceLineEndings("\n")
+            .MatchInlineSnapshot(
+                await File.ReadAllTextAsync("__resources__/valid-extensions-result/composite-schema.graphqls"));
+    }
+
+    [Fact]
     public async Task Compose_MissingSettingsFile_ReturnsError()
     {
         // arrange
@@ -618,9 +690,19 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
         var settingsPath = Path.Combine(
             Path.GetDirectoryName(fullPath)!,
             Path.GetFileNameWithoutExtension(fullPath) + "-settings.json");
+        var extensionsFilePath = Path.Combine(
+            Path.GetDirectoryName(fullPath)!,
+            Path.GetFileNameWithoutExtension(fullPath)
+            + "-extensions"
+            + Path.GetExtension(fullPath));
 
         SetupFile(fullPath, File.ReadAllText(fullPath));
         SetupFile(settingsPath, new MemoryStream(File.ReadAllBytes(settingsPath)));
+
+        if (File.Exists(extensionsFilePath))
+        {
+            SetupFile(extensionsFilePath, new MemoryStream(File.ReadAllBytes(extensionsFilePath)));
+        }
     }
 
     /// <summary>

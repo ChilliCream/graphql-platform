@@ -383,7 +383,27 @@ internal sealed class SchemaComposition(
                 return null;
             }
 
-            return await File.ReadAllTextAsync(schemaFile, cancellationToken);
+            var schemaText = await File.ReadAllTextAsync(schemaFile, cancellationToken);
+
+            var extensionsFile = IOPath.Combine(
+                IOPath.GetDirectoryName(schemaFile)!,
+                IOPath.GetFileNameWithoutExtension(schemaFile)
+                + "-extensions"
+                + IOPath.GetExtension(schemaFile));
+
+            if (File.Exists(extensionsFile))
+            {
+                var extensionsText = await File.ReadAllTextAsync(extensionsFile, cancellationToken);
+
+                if (schemaText.Length > 0 && !schemaText.EndsWith('\n'))
+                {
+                    schemaText += "\n";
+                }
+
+                schemaText += extensionsText;
+            }
+
+            return schemaText;
         }
         catch (Exception ex)
         {
