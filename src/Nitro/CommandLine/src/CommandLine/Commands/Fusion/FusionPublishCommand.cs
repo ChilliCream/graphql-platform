@@ -281,42 +281,57 @@ internal sealed class FusionPublishCommand : Command
             Func<Task<Stream>> prepareArchive)
         {
             string? requestId = null;
+            if (legacyArchiveFile is not null)
+            {
+                requestId = await FusionConfigurationPublishingState.GetRequestId(fileSystem, cancellationToken);
+            }
 
             try
             {
-                await using (var requestDeploymentSlotActivity = activity.StartChildActivity(
-                                 "Requesting deployment slot",
-                                 "Failed to request a deployment slot."))
+                if (!string.IsNullOrWhiteSpace(requestId))
                 {
-                    requestId = await FusionPublishHelpers.RequestDeploymentSlotAsync(
-                        apiId,
-                        stageName,
-                        tag,
-                        subgraphId: null,
-                        subgraphName: null,
-                        sourceSchemaVersions,
-                        waitForApproval,
-                        source,
-                        requestDeploymentSlotActivity,
-                        console,
-                        client,
-                        cancellationToken);
-
-                    requestDeploymentSlotActivity.Success("Deployment slot ready.");
+                    // The deployment slot was already requested and claimed by prior
+                    // `fusion publish begin` and `fusion publish start` invocations,
+                    // so we resume from the existing request ID.
+                    activity.Update(
+                        $"Reusing existing publication request. {$"(ID: {requestId.EscapeMarkup()})".Dim()}");
                 }
-
-                await using (var claimDeploymentSlotActivity = activity.StartChildActivity(
-                                 "Claiming deployment slot",
-                                 "Failed to claim the deployment slot."))
+                else
                 {
-                    await FusionPublishHelpers.ClaimDeploymentSlotAsync(
-                        requestId,
-                        claimDeploymentSlotActivity,
-                        console,
-                        client,
-                        cancellationToken);
+                    await using (var requestDeploymentSlotActivity = activity.StartChildActivity(
+                                     "Requesting deployment slot",
+                                     "Failed to request a deployment slot."))
+                    {
+                        requestId = await FusionPublishHelpers.RequestDeploymentSlotAsync(
+                            apiId,
+                            stageName,
+                            tag,
+                            subgraphId: null,
+                            subgraphName: null,
+                            sourceSchemaVersions,
+                            waitForApproval,
+                            source,
+                            requestDeploymentSlotActivity,
+                            console,
+                            client,
+                            cancellationToken);
 
-                    claimDeploymentSlotActivity.Success("Claimed deployment slot.");
+                        requestDeploymentSlotActivity.Success("Deployment slot ready.");
+                    }
+
+                    await using (var claimDeploymentSlotActivity = activity.StartChildActivity(
+                                     "Claiming deployment slot",
+                                     "Failed to claim the deployment slot."))
+                    {
+                        await FusionPublishHelpers.ClaimDeploymentSlotAsync(
+                            requestId,
+                            claimDeploymentSlotActivity,
+                            console,
+                            client,
+                            cancellationToken);
+
+                        claimDeploymentSlotActivity.Success("Claimed deployment slot.");
+                    }
                 }
 
                 await using var archiveStream = await prepareArchive();
