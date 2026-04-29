@@ -76,7 +76,7 @@ public sealed class OperationCompiler
                 fields,
                 includeConditions,
                 partitioning.ByFragment,
-                parentDeferUsage: null);
+                parentDeliveryGroup: null);
 
             var hasIncrementalParts = HasDeferDirective(operationDefinition);
 
@@ -133,7 +133,7 @@ public sealed class OperationCompiler
                 fields,
                 includeConditions,
                 deferUsageByFragment,
-                parentDeferUsage: first.DeliveryGroup);
+                parentDeliveryGroup: first.DeliveryGroup);
 
             if (nodes.Length > 1)
             {
@@ -148,7 +148,7 @@ public sealed class OperationCompiler
                         fields,
                         includeConditions,
                         deferUsageByFragment,
-                        parentDeferUsage: nodes[i].DeliveryGroup);
+                        parentDeliveryGroup: nodes[i].DeliveryGroup);
                 }
             }
 
@@ -170,7 +170,7 @@ public sealed class OperationCompiler
         OrderedDictionary<string, List<FieldSelectionNode>> fields,
         IncludeConditionCollection includeConditions,
         IReadOnlyDictionary<InlineFragmentNode, DeliveryGroup> deferUsageByFragment,
-        DeliveryGroup? parentDeferUsage)
+        DeliveryGroup? parentDeliveryGroup)
     {
         for (var i = 0; i < selections.Count; i++)
         {
@@ -193,7 +193,7 @@ public sealed class OperationCompiler
                     pathIncludeFlags |= 1ul << index;
                 }
 
-                nodes.Add(new FieldSelectionNode(fieldNode, pathIncludeFlags, parentDeferUsage));
+                nodes.Add(new FieldSelectionNode(fieldNode, pathIncludeFlags, parentDeliveryGroup));
             }
             else if (selection is InlineFragmentNode inlineFragmentNode
                 && DoesTypeApply(inlineFragmentNode.TypeCondition, typeContext))
@@ -212,7 +212,7 @@ public sealed class OperationCompiler
                 // set-identity comparisons work correctly.
                 var newDeferUsage = deferUsageByFragment.TryGetValue(inlineFragmentNode, out var canonical)
                     ? canonical
-                    : parentDeferUsage;
+                    : parentDeliveryGroup;
 
                 CollectFields(
                     pathIncludeFlags,

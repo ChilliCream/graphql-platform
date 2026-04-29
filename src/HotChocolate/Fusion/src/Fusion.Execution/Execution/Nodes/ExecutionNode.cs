@@ -61,7 +61,7 @@ public abstract class ExecutionNode : IOperationPlanNode, IEquatable<ExecutionNo
     /// this node depends on. Used by deferred sub-plan nodes to reference
     /// steps that live in the parent plan rather than the sub-plan itself.
     /// </summary>
-    public ReadOnlySpan<int> ParentDependencies => _parentDependencies.AsSpan(0, _parentDependencyCount);
+    public ReadOnlySpan<int> ParentDependencies => _parentDependencies;
 
 #pragma warning disable CA2012
     public void BeginExecute(
