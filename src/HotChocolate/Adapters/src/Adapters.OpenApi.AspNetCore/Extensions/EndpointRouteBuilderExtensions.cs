@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.Adapters.OpenApi;
+namespace Microsoft.AspNetCore.Builder;
 
 public static class EndpointRouteBuilderExtensions
 {

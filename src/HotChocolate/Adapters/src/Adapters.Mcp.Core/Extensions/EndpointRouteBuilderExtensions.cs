@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using ModelContextProtocol.Protocol;
 
-namespace HotChocolate.Adapters.Mcp.Extensions;
+namespace Microsoft.AspNetCore.Builder;
 
 public static class EndpointRouteBuilderExtensions
 {
