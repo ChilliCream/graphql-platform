@@ -54,8 +54,8 @@ For public APIs, require clients to specify how many items they want by enabling
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyPagingOptions(opt =>
     {
         opt.MaxPageSize = 100;
@@ -74,8 +74,8 @@ Hot Chocolate enables cost analysis by default. The default limits (`MaxFieldCos
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyCostOptions(options =>
     {
         options.MaxFieldCost = 5_000;
@@ -145,8 +145,8 @@ Introspection lets anyone discover every type, field, and argument in your schem
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AllowIntrospection(builder.Environment.IsDevelopment());
 ```
 
@@ -173,8 +173,8 @@ public class IntrospectionInterceptor : DefaultHttpRequestInterceptor
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AllowIntrospection(false)
     .AddHttpRequestInterceptor<IntrospectionInterceptor>();
 ```
@@ -257,8 +257,8 @@ Set a maximum query depth to reject pathologically nested queries before cost an
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddMaxExecutionDepthRule(15);
 ```
 
@@ -299,8 +299,8 @@ In Hot Chocolate v16, request batching is disabled by default. If you have expli
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyRequestOptions(opt => opt.AllowedBatchOperations = AllowedBatchOperations.None);
 ```
 
@@ -335,8 +335,8 @@ builder.Services.AddRateLimiter(options =>
 });
 
 // GraphQL server
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddAuthorization()
     .AddMaxExecutionDepthRule(15)
     .ModifyPagingOptions(opt =>

@@ -28,9 +28,7 @@ nodes:
     type: Operation
     schema: c
     operation: |
-      query GetTopProducts_123456789101112_2(
-        $__fusion_1_sku: String!
-      ) {
+      query GetTopProducts_123456789101112_2($__fusion_1_sku: String!) {
         productBySku(sku: $__fusion_1_sku) {
           name
         }

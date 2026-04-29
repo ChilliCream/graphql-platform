@@ -27,7 +27,7 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
         new()
         {
             Indented = true,
-            MaxDirectivesPerLine = 0
+            PrintWidth = 80
         };
 
     private readonly Package _package;
@@ -46,7 +46,7 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
     /// <param name="access">
     /// The access mode for the Fusion graph package.
     /// </param>
-    /// <returns></returns>
+    /// <returns>The opened Fusion graph package.</returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="stream"/> is <c>null</c>.
     /// </exception>
@@ -78,7 +78,7 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
     /// <param name="access">
     /// The access mode for the Fusion graph package.
     /// </param>
-    /// <returns></returns>
+    /// <returns>The opened Fusion graph package.</returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="path"/> is <c>null</c>.
     /// </exception>
@@ -202,6 +202,62 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
         var relationship = _package.GetRelationship(FusionSettingsId);
         var part = _package.GetPart(relationship.TargetUri);
         return ReadJsonPartAsync(part, cancellationToken);
+    }
+
+    internal async Task<ReadOnlyMemory<byte>?> TryGetFusionGraphSettingsRawAsync(
+        CancellationToken cancellationToken = default)
+    {
+        if ((_package.FileOpenAccess & FileAccess.Read) != FileAccess.Read)
+        {
+            throw new FusionGraphPackageException(FusionGraphPackage_CannotRead);
+        }
+
+        if (!_package.RelationshipExists(FusionSettingsId))
+        {
+            return null;
+        }
+
+        var relationship = _package.GetRelationship(FusionSettingsId);
+        var part = _package.GetPart(relationship.TargetUri);
+        return await ReadPartRawBytesAsync(part, cancellationToken);
+    }
+
+    internal async Task<ReadOnlyMemory<byte>?> TryGetSubgraphConfigurationRawAsync(
+        string name,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(name);
+
+        if ((_package.FileOpenAccess & FileAccess.Read) != FileAccess.Read)
+        {
+            throw new FusionGraphPackageException(FusionGraphPackage_CannotRead);
+        }
+
+        if (!_package.RelationshipExists(name))
+        {
+            return null;
+        }
+
+        var relationship = _package.GetRelationship(name);
+        var rootPart = _package.GetPart(relationship.TargetUri);
+        return await ReadPartRawBytesAsync(rootPart, cancellationToken);
+    }
+
+    private static async Task<ReadOnlyMemory<byte>> ReadPartRawBytesAsync(
+        PackagePart part,
+        CancellationToken ct)
+    {
+        await using var stream = part.GetStream(FileMode.Open, FileAccess.Read);
+        var buffer = new ArrayBufferWriter<byte>();
+        int read;
+
+        do
+        {
+            read = await stream.ReadAsync(buffer.GetMemory(256), ct);
+            buffer.Advance(read);
+        } while (read > 0);
+
+        return buffer.WrittenMemory;
     }
 
     public Task SetFusionGraphSettingsAsync(
@@ -433,7 +489,9 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
     /// </exception>
     public Task RemoveSubgraphConfigurationAsync(
         string subgraphName,
+#pragma warning disable RCS1163 // Unused parameter
         CancellationToken cancellationToken = default)
+#pragma warning restore RCS1163 // Unused parameter
     {
         ArgumentNullException.ThrowIfNull(subgraphName);
 

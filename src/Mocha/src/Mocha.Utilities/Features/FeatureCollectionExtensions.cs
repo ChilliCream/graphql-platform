@@ -84,6 +84,24 @@ public static class FeatureCollectionExtensions
     }
 
     /// <summary>
+    /// Gets or creates a feature and applies a configuration action to it.
+    /// </summary>
+    /// <typeparam name="TFeature">The feature key.</typeparam>
+    /// <param name="featureCollection">The feature collection.</param>
+    /// <param name="configure">The action to apply to the feature.</param>
+    /// <returns>The configured feature.</returns>
+    public static TFeature Configure<TFeature>(
+        this IFeatureCollection featureCollection,
+        Action<TFeature> configure) where TFeature : new()
+    {
+        ArgumentNullException.ThrowIfNull(configure);
+
+        var feature = featureCollection.GetOrSet<TFeature>();
+        configure(feature);
+        return feature;
+    }
+
+    /// <summary>
     /// Updates a feature in the collection by applying a transformation function to the existing value.
     /// </summary>
     /// <typeparam name="TFeature">The feature key.</typeparam>

@@ -274,7 +274,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         _schemaTypeCfg
             .GetLegacyConfiguration()
             .AddDirective(
-                new LinkDirective(version.ToUrl(), federationTypes),
+                new LinkDirective(version.ToUrl(), federationTypes.Order().ToArray()),
                 _typeInspector);
 
         foreach (var import in _imports)
@@ -287,7 +287,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             _schemaTypeCfg
                 .GetLegacyConfiguration()
                 .AddDirective(
-                    new LinkDirective(import.Key, import.Value),
+                    new LinkDirective(import.Key, import.Value.Order().ToArray()),
                     _typeInspector);
         }
     }

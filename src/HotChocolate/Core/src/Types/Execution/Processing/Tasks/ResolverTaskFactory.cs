@@ -349,7 +349,15 @@ internal static class ResolverTaskFactory
 
         if (fieldValue is { IsNullable: false, IsNullOrInvalidated: true })
         {
-            PropagateNullValues(fieldValue);
+            if (operationContext.PropagateNullValues)
+            {
+                PropagateNullValues(fieldValue);
+            }
+            else
+            {
+                fieldValue.SetNullValue();
+            }
+
             operationContext.Result.AddNonNullViolation(fieldValue.Path);
         }
     }

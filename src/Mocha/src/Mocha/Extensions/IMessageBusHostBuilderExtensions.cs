@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -25,6 +26,45 @@ public static class MessageBusHostBuilderExtensions
         builder.Services.TryAddScoped<THandler>();
         builder.ConfigureMessageBus(static h => h.AddHandler<THandler>());
 
+        return builder;
+    }
+
+    /// <summary>
+    /// Registers an event handler with the message bus and adds it to the service collection,
+    /// with additional consumer configuration.
+    /// </summary>
+    /// <typeparam name="THandler">The event handler type.</typeparam>
+    /// <param name="builder">The host builder.</param>
+    /// <param name="configure">The action to configure the consumer descriptor.</param>
+    /// <returns>The builder for method chaining.</returns>
+    public static IMessageBusHostBuilder AddEventHandler<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>(
+        this IMessageBusHostBuilder builder,
+        Action<IConsumerDescriptor> configure)
+        where THandler : class, IEventHandler
+    {
+        builder.Services.TryAddScoped<THandler>();
+        builder.ConfigureMessageBus(h => h.AddHandler<THandler>(configure));
+
+        return builder;
+    }
+
+    /// <summary>
+    /// Registers a handler using pre-built configuration from the source generator.
+    /// </summary>
+    /// <typeparam name="THandler">The handler type.</typeparam>
+    /// <param name="builder">The host builder.</param>
+    /// <param name="configuration">The pre-built handler configuration.</param>
+    /// <returns>The builder for method chaining.</returns>
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public static IMessageBusHostBuilder AddHandlerConfiguration<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>(
+        this IMessageBusHostBuilder builder,
+        MessagingHandlerConfiguration configuration)
+        where THandler : class, IHandler
+    {
+        builder.Services.TryAddScoped<THandler>();
+        builder.ConfigureMessageBus(h => h.AddHandlerConfiguration(configuration));
         return builder;
     }
 
@@ -75,6 +115,25 @@ public static class MessageBusHostBuilderExtensions
     }
 
     /// <summary>
+    /// Registers a request handler with the message bus and adds it to the service collection,
+    /// with additional consumer configuration.
+    /// </summary>
+    /// <typeparam name="THandler">The request handler type.</typeparam>
+    /// <param name="builder">The host builder.</param>
+    /// <param name="configure">The action to configure the consumer descriptor.</param>
+    /// <returns>The builder for method chaining.</returns>
+    public static IMessageBusHostBuilder AddRequestHandler<THandler>(
+        this IMessageBusHostBuilder builder,
+        Action<IConsumerDescriptor> configure)
+        where THandler : class, IEventRequestHandler
+    {
+        builder.Services.TryAddScoped<THandler>();
+        builder.ConfigureMessageBus(h => h.AddHandler<THandler>(configure));
+
+        return builder;
+    }
+
+    /// <summary>
     /// Registers a consumer with the message bus and adds it to the service collection.
     /// </summary>
     /// <typeparam name="TConsumer">The consumer type implementing <see cref="IConsumer"/>.</typeparam>
@@ -87,6 +146,26 @@ public static class MessageBusHostBuilderExtensions
     {
         builder.Services.TryAddScoped<TConsumer>();
         builder.ConfigureMessageBus(static h => h.AddHandler<TConsumer>());
+
+        return builder;
+    }
+
+    /// <summary>
+    /// Registers a consumer with the message bus and adds it to the service collection,
+    /// with additional consumer configuration.
+    /// </summary>
+    /// <typeparam name="TConsumer">The consumer type implementing <see cref="IConsumer"/>.</typeparam>
+    /// <param name="builder">The host builder.</param>
+    /// <param name="configure">The action to configure the consumer descriptor.</param>
+    /// <returns>The builder for method chaining.</returns>
+    public static IMessageBusHostBuilder AddConsumer<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TConsumer>(
+        this IMessageBusHostBuilder builder,
+        Action<IConsumerDescriptor> configure)
+        where TConsumer : class, IConsumer
+    {
+        builder.Services.TryAddScoped<TConsumer>();
+        builder.ConfigureMessageBus(h => h.AddHandler<TConsumer>(configure));
 
         return builder;
     }

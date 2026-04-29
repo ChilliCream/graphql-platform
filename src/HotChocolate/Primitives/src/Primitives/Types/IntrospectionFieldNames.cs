@@ -34,4 +34,24 @@ public static class IntrospectionFieldNames
     /// Gets the field name of the __type introspection field as a span of utf-8 bytes.
     /// </summary>
     public static ReadOnlySpan<byte> TypeSpan => "__type"u8;
+
+    /// <summary>
+    /// Gets the field name of the __search introspection field.
+    /// </summary>
+    public const string Search = "__search";
+
+    /// <summary>
+    /// Gets the field name of the __search introspection field as a span of utf-8 bytes.
+    /// </summary>
+    public static ReadOnlySpan<byte> SearchSpan => "__search"u8;
+
+    /// <summary>
+    /// Gets the field name of the __definitions introspection field.
+    /// </summary>
+    public const string Definitions = "__definitions";
+
+    /// <summary>
+    /// Gets the field name of the __definitions introspection field as a span of utf-8 bytes.
+    /// </summary>
+    public static ReadOnlySpan<byte> DefinitionsSpan => "__definitions"u8;
 }

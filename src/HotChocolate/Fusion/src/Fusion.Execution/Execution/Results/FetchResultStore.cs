@@ -19,6 +19,9 @@ namespace HotChocolate.Fusion.Execution.Results;
 
 internal sealed partial class FetchResultStore : IDisposable
 {
+    private static readonly ArrayPool<VariableValues> s_variableValuePool = ArrayPool<VariableValues>.Shared;
+    private static readonly ArrayPool<object> s_objectPool = ArrayPool<object>.Shared;
+
 #if NET9_0_OR_GREATER
     private readonly Lock _lock = new();
 #else
@@ -33,6 +36,7 @@ internal sealed partial class FetchResultStore : IDisposable
     private Operation _operation = default!;
     private ErrorHandlingMode _errorHandlingMode;
     private ulong _includeFlags;
+    private ulong _deferFlags;
     private CompositeResultElement[] _collectTargetA = ArrayPool<CompositeResultElement>.Shared.Rent(64);
     private CompositeResultElement[] _collectTargetB = ArrayPool<CompositeResultElement>.Shared.Rent(64);
     private CompositeResultElement[] _collectTargetCombined = ArrayPool<CompositeResultElement>.Shared.Rent(64);
@@ -311,7 +315,9 @@ internal sealed partial class FetchResultStore : IDisposable
 
             return _valueCompletion.BuildResult(
                 partial,
-                data, errorTrie: null, resultSelectionSet: resultSelectionSet);
+                data,
+                errorTrie: null,
+                resultSelectionSet: resultSelectionSet);
         }
     }
 
@@ -464,38 +470,49 @@ AddErrors_Next:
             return true;
         }
 
-        var segments = path.ToList();
+        var buffer = s_objectPool.Rent(path.Length);
+        var segments = buffer.AsSpan(0, path.Length);
 
-        for (var i = 0; i < segments.Count; i++)
+        try
         {
-            switch (segments[i])
+            path.CopyTo(segments);
+
+            for (var i = 0; i < segments.Length; i++)
             {
-                case string fieldName:
-                    if (element.ValueKind is not JsonValueKind.Object
-                        || !element.TryGetProperty(fieldName, out element))
-                    {
+                switch (segments[i])
+                {
+                    case string fieldName:
+                        if (element.ValueKind is not JsonValueKind.Object
+                            || !element.TryGetProperty(fieldName, out element))
+                        {
+                            return false;
+                        }
+
+                        break;
+
+                    case int index:
+                        if (element.ValueKind is not JsonValueKind.Array
+                            || index < 0
+                            || element.GetArrayLength() <= index)
+                        {
+                            return false;
+                        }
+
+                        element = element[index];
+                        break;
+
+                    default:
                         return false;
-                    }
-
-                    break;
-
-                case int index:
-                    if (element.ValueKind is not JsonValueKind.Array
-                        || index < 0
-                        || element.GetArrayLength() <= index)
-                    {
-                        return false;
-                    }
-
-                    element = element[index];
-                    break;
-
-                default:
-                    return false;
+                }
             }
-        }
 
-        return true;
+            return true;
+        }
+        finally
+        {
+            segments.Clear();
+            s_objectPool.Return(buffer);
+        }
     }
 
     public void FinalizePocketedErrors()
@@ -800,7 +817,7 @@ AddErrors_Next:
 
         foreach (var result in elements)
         {
-            variableValueSets ??= new VariableValues[elements.Length];
+            variableValueSets ??= s_variableValuePool.Rent(elements.Length);
 
             _jsonWriter.Reset(_variableWriter);
             var startPosition = _variableWriter.Position;
@@ -902,7 +919,7 @@ AddErrors_Next:
                 continue;
             }
 
-            variableValueSets ??= new VariableValues[elements.Length];
+            variableValueSets ??= s_variableValuePool.Rent(elements.Length);
 
             _jsonWriter.Reset(_variableWriter);
             var startPosition = _variableWriter.Position;
@@ -939,7 +956,7 @@ AddErrors_Next:
 
         foreach (var result in elements)
         {
-            variableValueSets ??= new VariableValues[elements.Length];
+            variableValueSets ??= s_variableValuePool.Rent(elements.Length);
 
             _jsonWriter.Reset(_variableWriter);
             var startPosition = _variableWriter.Position;
@@ -1020,7 +1037,7 @@ AddErrors_Next:
                 continue;
             }
 
-            variableValueSets ??= new VariableValues[elements.Length];
+            variableValueSets ??= s_variableValuePool.Rent(elements.Length);
 
             _jsonWriter.Reset(_variableWriter);
             var startPosition = _variableWriter.Position;
@@ -1057,7 +1074,7 @@ AddErrors_Next:
 
         foreach (var result in elements)
         {
-            variableValueSets ??= new VariableValues[elements.Length];
+            variableValueSets ??= s_variableValuePool.Rent(elements.Length);
 
             _jsonWriter.Reset(_variableWriter);
             var startPosition = _variableWriter.Position;
@@ -1161,7 +1178,7 @@ AddErrors_Next:
                 continue;
             }
 
-            variableValueSets ??= new VariableValues[elements.Length];
+            variableValueSets ??= s_variableValuePool.Rent(elements.Length);
 
             _jsonWriter.Reset(_variableWriter);
             var startPosition = _variableWriter.Position;
@@ -1200,7 +1217,7 @@ AddErrors_Next:
 
         foreach (var result in elements)
         {
-            variableValueSets ??= new VariableValues[elements.Length];
+            variableValueSets ??= s_variableValuePool.Rent(elements.Length);
 
             _jsonWriter.Reset(_variableWriter);
             var startPosition = _variableWriter.Position;
@@ -1673,6 +1690,11 @@ AddErrors_Next:
     {
         if (variableValueSets is null || nextIndex == 0)
         {
+            if (variableValueSets is not null)
+            {
+                s_variableValuePool.Return(variableValueSets, clearArray: true);
+            }
+
             additionalPaths.Dispose();
             return [];
         }
@@ -1680,12 +1702,12 @@ AddErrors_Next:
         additionalPaths.ApplyTo(variableValueSets, nextIndex);
         additionalPaths.Dispose();
 
-        if (variableValueSets.Length != nextIndex)
-        {
-            Array.Resize(ref variableValueSets, nextIndex);
-        }
+        var span = variableValueSets.AsSpan(0, nextIndex);
+        var result = span.ToArray();
+        span.Clear();
+        s_variableValuePool.Return(variableValueSets);
 
-        return ImmutableCollectionsMarshal.AsImmutableArray(variableValueSets);
+        return ImmutableCollectionsMarshal.AsImmutableArray(result);
     }
 
     private sealed class VariableDedupTable(ChunkedArrayWriter writer) : IDisposable

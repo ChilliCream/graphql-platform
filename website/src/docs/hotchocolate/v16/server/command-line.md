@@ -11,7 +11,7 @@ Here is an example of using the `HotChocolate.AspNetCore.CommandLine` package wi
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddGraphQLServer().AddQueryType<Query>();
+builder.AddGraphQL().AddQueryType<Query>();
 
 var app = builder.Build();
 

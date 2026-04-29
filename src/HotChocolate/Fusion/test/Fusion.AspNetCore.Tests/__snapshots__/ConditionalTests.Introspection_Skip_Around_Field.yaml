@@ -1,9 +1,7 @@
 title: Introspection_Skip_Around_Field
 request:
   document: |
-    query testQuery(
-      $skip: Boolean!
-    ) {
+    query testQuery($skip: Boolean!) {
       ... @skip(if: $skip) {
         __typename
         __type(name: "Query") {
@@ -33,9 +31,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query testQuery(
-          $skip: Boolean!
-        ) {
+        query testQuery($skip: Boolean!) {
           ... @skip(if: $skip) {
             __typename
             __type(name: "Query") {

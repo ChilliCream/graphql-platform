@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Text;
 using HotChocolate.Language;
@@ -10,9 +11,13 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 /// </summary>
 public sealed class Selection : ISelection
 {
+    private static readonly DeferUsage[] s_emptyDeferUsages = [];
+
     private readonly FieldSelectionNode[] _syntaxNodes;
     private readonly ulong[] _includeFlags;
     private readonly byte[] _utf8ResponseName;
+    private readonly ulong _deferMask;
+    private readonly DeferUsage[] _deferUsages;
     private Flags _flags;
 
     public Selection(
@@ -21,7 +26,9 @@ public sealed class Selection : ISelection
         IOutputFieldDefinition field,
         FieldSelectionNode[] syntaxNodes,
         ulong[] includeFlags,
-        bool isInternal)
+        bool isInternal,
+        ulong deferMask = 0,
+        DeferUsage[]? deferUsages = null)
     {
         ArgumentNullException.ThrowIfNull(field);
 
@@ -37,6 +44,8 @@ public sealed class Selection : ISelection
         Field = field;
         _syntaxNodes = syntaxNodes;
         _includeFlags = includeFlags;
+        _deferMask = deferMask;
+        _deferUsages = deferUsages ?? s_emptyDeferUsages;
         _flags = isInternal ? Flags.Internal : Flags.None;
 
         if (field.Type.NamedType().IsLeafType())
@@ -84,6 +93,8 @@ public sealed class Selection : ISelection
     public ReadOnlySpan<FieldSelectionNode> SyntaxNodes => _syntaxNodes;
 
     internal ResolveFieldValue? Resolver => Field.Features.Get<ResolveFieldValue>();
+
+    internal AsyncResolveFieldValue? AsyncResolver => Field.Features.Get<AsyncResolveFieldValue>();
 
     IEnumerable<FieldNode> ISelection.GetSyntaxNodes()
     {
@@ -160,9 +171,158 @@ public sealed class Selection : ISelection
         DeclaringSelectionSet = selectionSet;
     }
 
-    public bool IsDeferred(ulong deferFlags)
+    public bool IsDeferred(ulong deferFlags) => (_deferMask & deferFlags) != 0;
+
+    /// <summary>
+    /// Returns the active defer usages for this selection given the runtime
+    /// <paramref name="deferFlags"/>, after resolving inactive defers to their
+    /// nearest active ancestor and applying parent-child pruning (ancestors win).
+    /// Returns <c>null</c> when any occurrence of the field falls outside an
+    /// active defer chain (meaning the field belongs in the initial response).
+    /// </summary>
+    public DeferUsage[]? GetActiveDeferUsages(ulong deferFlags)
     {
-        throw new NotImplementedException();
+        if (_deferUsages.Length == 0)
+        {
+            return null;
+        }
+
+        if (_deferUsages.Length == 1)
+        {
+            var active = ResolveActiveAncestor(_deferUsages[0], deferFlags);
+            return active is null ? null : [active];
+        }
+
+        DeferUsage[]? result = null;
+        var count = 0;
+
+        for (var i = 0; i < _deferUsages.Length; i++)
+        {
+            var effective = ResolveActiveAncestor(_deferUsages[i], deferFlags);
+
+            if (effective is null)
+            {
+                // One occurrence is non-deferred; the field is non-deferred overall.
+                return null;
+            }
+
+            var duplicate = false;
+            if (result is not null)
+            {
+                for (var j = 0; j < count; j++)
+                {
+                    if (result[j] == effective)
+                    {
+                        duplicate = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!duplicate)
+            {
+                result ??= new DeferUsage[_deferUsages.Length];
+                result[count++] = effective;
+            }
+        }
+
+        if (result is null || count == 0)
+        {
+            return null;
+        }
+
+        // Parent-child pruning: if a parent and child are both in the set,
+        // keep only the outermost.
+        for (var i = count - 1; i >= 0; i--)
+        {
+            var ancestor = result[i].Parent;
+
+            while (ancestor is not null)
+            {
+                for (var j = 0; j < count; j++)
+                {
+                    if (j != i && result[j] == ancestor)
+                    {
+                        result[i] = result[--count];
+                        goto nextItem;
+                    }
+                }
+
+                ancestor = ancestor.Parent;
+            }
+
+nextItem:
+            ;
+        }
+
+        if (count == 0)
+        {
+            return null;
+        }
+
+        if (count < result.Length)
+        {
+            Array.Resize(ref result, count);
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Determines whether <paramref name="target"/> is among this selection's
+    /// active defer usages under the runtime <paramref name="deferFlags"/>
+    /// (using the same parent-chain walk and parent-child pruning as
+    /// <see cref="GetActiveDeferUsages(ulong)"/>).
+    /// </summary>
+    public bool HasActiveDeferUsage(ulong deferFlags, DeferUsage target)
+    {
+        if (_deferUsages.Length == 0)
+        {
+            return false;
+        }
+
+        var found = false;
+
+        for (var i = 0; i < _deferUsages.Length; i++)
+        {
+            var effective = ResolveActiveAncestor(_deferUsages[i], deferFlags);
+
+            if (effective is null)
+            {
+                // Any non-deferred occurrence makes the whole field non-deferred.
+                return false;
+            }
+
+            if (effective == target)
+            {
+                found = true;
+            }
+        }
+
+        return found;
+    }
+
+    // Walks up the @defer parent chain and returns the first one that is
+    // actually turned on for this request (its bit in deferFlags is set).
+    // A nested @defer whose own `if:` is false falls back to its enclosing
+    // @defer. If none on the chain are active, returns null, meaning the
+    // field is not deferred at this occurrence.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static DeferUsage? ResolveActiveAncestor(DeferUsage start, ulong deferFlags)
+    {
+        var usage = start;
+
+        while (usage is not null)
+        {
+            if ((deferFlags & (1UL << usage.DeferConditionIndex)) != 0)
+            {
+                return usage;
+            }
+
+            usage = usage.Parent;
+        }
+
+        return null;
     }
 
     [Flags]

@@ -15,7 +15,9 @@ public sealed partial class ResultDocument
         private static readonly ArrayPool<byte[]> s_arrayPool = ArrayPool<byte[]>.Shared;
 
         private byte[][] _chunks;
+        private byte[][]? _previousChunks;
         private Cursor _next;
+        private volatile uint _nextValue;
         private bool _disposed;
 
         internal static MetaDb CreateForEstimatedRows(int estimatedRows)
@@ -38,11 +40,20 @@ public sealed partial class ResultDocument
             return new MetaDb
             {
                 _chunks = chunks,
-                _next = Cursor.Zero
+                _next = Cursor.Zero,
+                _nextValue = Cursor.Zero.Value
             };
         }
 
-        public Cursor NextCursor => _next;
+        public readonly Cursor NextCursor
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get
+            {
+                var value = _nextValue;
+                return Unsafe.As<uint, Cursor>(ref value);
+            }
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal Cursor Append(
@@ -87,9 +98,16 @@ public sealed partial class ResultDocument
                     newChunks[i] = [];
                 }
 
-                // clear and return old chunks buffer
-                chunks.Clear();
-                s_arrayPool.Return(_chunks);
+                // Concurrent readers may still reference the current chunks array.
+                // Return the previously retained one and keep the current one
+                // alive until the next expansion or Dispose.
+                if (_previousChunks is not null)
+                {
+                    _previousChunks.AsSpan().Clear();
+                    s_arrayPool.Return(_previousChunks);
+                }
+
+                _previousChunks = _chunks;
 
                 // assign new chunks buffer
                 _chunks = newChunks;
@@ -119,7 +137,9 @@ public sealed partial class ResultDocument
             Unsafe.WriteUnaligned(ref Unsafe.Add(ref dest, byteOffset), row);
 
             // Advance write head by one row
-            _next = next + 1;
+            var newNext = next + 1;
+            _next = newNext;
+            _nextValue = newNext.Value;
             return next;
         }
 
@@ -331,7 +351,9 @@ public sealed partial class ResultDocument
             Debug.Assert(cursor.Chunk < _chunks.Length, "Chunk index out of bounds");
             Debug.Assert(_chunks[cursor.Chunk].Length > 0, "Accessing unallocated chunk");
 
-            var maxExclusive = _next.Chunk * Cursor.RowsPerChunk + _next.Row;
+            var value = _nextValue;
+            var maxCursor = Unsafe.As<uint, Cursor>(ref value);
+            var maxExclusive = maxCursor.Chunk * Cursor.RowsPerChunk + maxCursor.Row;
             var absoluteIndex = (cursor.Chunk * Cursor.RowsPerChunk) + cursor.Row;
 
             Debug.Assert(absoluteIndex >= 0 && absoluteIndex < maxExclusive,
@@ -347,6 +369,13 @@ public sealed partial class ResultDocument
                 var chunksLength = cursor.Chunk + 1;
                 var chunks = _chunks.AsSpan(0, chunksLength);
                 Log.MetaDbDisposed(2, chunksLength, cursor.Row);
+
+                if (_previousChunks is not null)
+                {
+                    _previousChunks.AsSpan().Clear();
+                    s_arrayPool.Return(_previousChunks);
+                    _previousChunks = null;
+                }
 
                 foreach (var chunk in chunks)
                 {

@@ -13,7 +13,7 @@ public sealed partial class SourceResultDocument : IDisposable
     private readonly byte[][] _dataChunks;
     private readonly int _usedChunks;
     private readonly bool _pooledMemory;
-    private bool _disposed;
+    private int _disposed;
 
     private SourceResultDocument(MetaDb parsedData, byte[][] dataChunks, int usedChunks, bool pooledMemory)
     {
@@ -34,7 +34,7 @@ public sealed partial class SourceResultDocument : IDisposable
 
     internal int GetArrayLength(Cursor cursor)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var row = _parsedData.Get(cursor);
 
@@ -45,7 +45,7 @@ public sealed partial class SourceResultDocument : IDisposable
 
     internal int GetPropertyCount(Cursor cursor)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var row = _parsedData.Get(cursor);
 
@@ -56,7 +56,7 @@ public sealed partial class SourceResultDocument : IDisposable
 
     internal SourceResultElement GetArrayIndexElement(Cursor startCursor, int arrayIndex)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var row = _parsedData.Get(startCursor);
 
@@ -234,24 +234,32 @@ public sealed partial class SourceResultDocument : IDisposable
 
     public void Dispose()
     {
-        if (!_disposed)
-        {
-            if (_pooledMemory)
-            {
-                JsonMemory.Return(JsonMemoryKind.Json, _dataChunks, _usedChunks);
-
-                if (_dataChunks.Length > 1)
-                {
-                    _dataChunks.AsSpan(0, _usedChunks).Clear();
-                    ArrayPool<byte[]>.Shared.Return(_dataChunks);
-                }
-            }
-
-            _parsedData.Dispose();
-
-            _disposed = true;
-        }
+        ReturnRentedMemory();
+        GC.SuppressFinalize(this);
     }
+
+    private void ReturnRentedMemory()
+    {
+        if (Interlocked.Exchange(ref _disposed, 1) != 0)
+        {
+            return;
+        }
+
+        if (_pooledMemory)
+        {
+            JsonMemory.Return(JsonMemoryKind.Json, _dataChunks, _usedChunks);
+
+            if (_dataChunks.Length > 1)
+            {
+                _dataChunks.AsSpan(0, _usedChunks).Clear();
+                ArrayPool<byte[]>.Shared.Return(_dataChunks);
+            }
+        }
+
+        _parsedData.Dispose();
+    }
+
+    ~SourceResultDocument() => ReturnRentedMemory();
 
     public override string ToString()
     {

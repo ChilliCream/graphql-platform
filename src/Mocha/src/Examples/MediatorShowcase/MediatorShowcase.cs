@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using MediatorShowcase;
 using Mocha.Mediator;
 
@@ -8,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddMediator()
     .AddMediatorShowcase()
     .Use(LoggingMiddleware.Create())
+    .Use(CommandAuditMiddleware.Create())
     .Use(PlaceOrderValidationMiddleware.Create())
     .Use(PlaceOrderAuditMiddleware.Create())
     .Use(ExceptionHandlingMiddleware.Create())
@@ -19,7 +19,7 @@ var app = builder.Build();
 // Commands
 // ──────────────────────────────────────────────────
 
-// Void command — no return value
+// Void command - no return value
 app.MapPost("/api/products", async (CreateProductRequest req, ISender sender) =>
 {
     await sender.SendAsync(new CreateProductCommand(req.Name, req.Price));

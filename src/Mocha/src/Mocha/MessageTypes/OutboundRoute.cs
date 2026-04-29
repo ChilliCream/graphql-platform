@@ -139,6 +139,7 @@ public sealed class OutboundRoute
             Kind,
             MessageType.Identity,
             Destination?.ToString(),
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
             Endpoint is not null
                 ? new EndpointReferenceDescription(Endpoint.Name, Endpoint.Address?.ToString(), Endpoint.Transport.Name)
                 : null);

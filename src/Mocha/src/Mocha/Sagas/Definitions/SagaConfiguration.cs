@@ -21,6 +21,12 @@ public sealed class SagaConfiguration : MessagingConfiguration
     public SagaStateConfiguration? DuringAny { get; set; }
 
     /// <summary>
+    /// Gets or sets the timeout duration for the saga. When set, the saga will automatically
+    /// transition to the timed-out final state after this duration.
+    /// </summary>
+    public TimeSpan? Timeout { get; set; }
+
+    /// <summary>
     /// Gets or sets a factory for creating a custom saga state serializer.
     /// </summary>
     public Func<IServiceProvider, ISagaStateSerializer>? StateSerializer { get; set; }

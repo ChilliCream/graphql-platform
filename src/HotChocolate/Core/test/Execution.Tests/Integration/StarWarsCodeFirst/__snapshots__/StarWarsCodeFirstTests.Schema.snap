@@ -7,7 +7,16 @@ schema {
 interface Character {
   id: ID!
   name: String!
-  friends("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): FriendsConnection
+  friends(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+  ): FriendsConnection
   appearsIn: [Episode]
   traits: Any
   height(unit: Unit): Float
@@ -17,7 +26,16 @@ type Droid implements Character {
   id: ID!
   name: String!
   appearsIn: [Episode]
-  friends("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): FriendsConnection
+  friends(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+  ): FriendsConnection
   height(unit: Unit): Float
   primaryFunction: String
   traits: Any
@@ -45,7 +63,16 @@ type Human implements Character {
   id: ID!
   name: String!
   appearsIn: [Episode]
-  friends("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): FriendsConnection
+  friends(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+  ): FriendsConnection
   otherHuman: Human
   height(unit: Unit): Float
   homePlanet: String
@@ -53,7 +80,7 @@ type Human implements Character {
 }
 
 type Mutation {
-  createReview(episode: Episode! review: ReviewInput!): Review!
+  createReview(episode: Episode!, review: ReviewInput!): Review!
   complete(episode: Episode!): Boolean!
 }
 
@@ -113,7 +140,10 @@ enum Unit {
 }
 
 "The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions."
-directive @specifiedBy("The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types." url: String!) on SCALAR
+directive @specifiedBy(
+  "The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types."
+  url: String!
+) on SCALAR
 
 "The `Any` scalar type represents any valid GraphQL value."
 scalar Any @specifiedBy(url: "https://scalars.graphql.org/chillicream/any.html")

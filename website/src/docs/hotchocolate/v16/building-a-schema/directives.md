@@ -40,8 +40,8 @@ public class MyDirectiveType : DirectiveType
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddDirectiveType<MyDirectiveType>();
 ```
 

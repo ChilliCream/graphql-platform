@@ -92,6 +92,7 @@ public static class FusionRequestContextExtensions
         ArgumentNullException.ThrowIfNull(plan);
 
         context.Features.GetOrSet<FusionOperationInfo>().OperationPlan = plan;
+        context.Features.Set<IOperation>(plan.Operation);
     }
 
     internal static bool CollectOperationPlanTelemetry(

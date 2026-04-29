@@ -1,9 +1,11 @@
+using System.Buffers;
 using System.Collections.Frozen;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using CookieCrumble.HotChocolate.Formatters;
 using HotChocolate.Buffers;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
@@ -24,16 +26,40 @@ public abstract partial class FusionTestBase
         OperationRequest request,
         GraphQLHttpResponse response,
         string? postFix = null,
-        RawRequest? rawRequest = null)
+        RawRequest? rawRequest = null,
+        bool stableStream = false)
     {
         var snapshot = new Snapshot(postFix, ".yaml");
 
         var results = new List<OperationResult>();
+        string? stableStreamText = null;
 
-        // We first wait and capture all possible gateway responses.
-        await foreach (var result in response.ReadAsResultStreamAsync())
+        if (stableStream)
         {
-            results.Add(result);
+            var bodyBytes = await response.HttpResponseMessage.Content.ReadAsByteArrayAsync();
+
+            using var formatterResponseMessage = CloneHttpResponseMessage(response.HttpResponseMessage, bodyBytes);
+            using var formatterResponse = new GraphQLHttpResponse(formatterResponseMessage);
+
+            var buffer = new ArrayBufferWriter<byte>();
+            SnapshotValueFormatters.GraphQLHttpStable.Format(buffer, formatterResponse);
+            stableStreamText = Encoding.UTF8.GetString(buffer.WrittenSpan);
+
+            using var resultsResponseMessage = CloneHttpResponseMessage(response.HttpResponseMessage, bodyBytes);
+            using var resultsResponse = new GraphQLHttpResponse(resultsResponseMessage);
+
+            await foreach (var result in resultsResponse.ReadAsResultStreamAsync())
+            {
+                results.Add(result);
+            }
+        }
+        else
+        {
+            // We first wait and capture all possible gateway responses.
+            await foreach (var result in response.ReadAsResultStreamAsync())
+            {
+                results.Add(result);
+            }
         }
 
         var testServerRegistrations = gateway.Services
@@ -50,7 +76,7 @@ public abstract partial class FusionTestBase
         WriteOperationRequest(writer, request, rawRequest);
         writer.Unindent();
 
-        WriteResults(writer, results);
+        WriteResults(writer, results, stableStreamText);
 
         writer.WriteLine("sourceSchemas:");
         writer.Indent();
@@ -86,47 +112,47 @@ public abstract partial class FusionTestBase
     {
         foreach (var result in results)
         {
-            try
+            if (result.Extensions.ValueKind is JsonValueKind.Object
+                && result.Extensions.TryGetProperty("fusion", out var fusionProperty)
+                && fusionProperty.TryGetProperty("operationPlan", out var operationPlanProperty))
             {
-                if (result.Extensions.ValueKind is JsonValueKind.Object
-                    && result.Extensions.TryGetProperty("fusion", out var fusionProperty)
-                    && fusionProperty.TryGetProperty("operationPlan", out var operationPlanProperty))
-                {
-                    var manager = gateway.Services.GetRequiredService<FusionRequestExecutorManager>();
-                    var executor = await manager.GetExecutorAsync();
-                    var operationCompiler = executor.Schema.Services.GetRequiredService<OperationCompiler>();
-                    var parser = new JsonOperationPlanParser(operationCompiler);
+                var manager = gateway.Services.GetRequiredService<FusionRequestExecutorManager>();
+                var executor = await manager.GetExecutorAsync();
+                var operationCompiler = executor.Schema.Services.GetRequiredService<OperationCompiler>();
+                var parser = new JsonOperationPlanParser(operationCompiler);
 
-                    var buffer = new PooledArrayWriter();
-                    await using var jsonWriter = new Utf8JsonWriter(buffer);
+                var buffer = new PooledArrayWriter();
+                await using var jsonWriter = new Utf8JsonWriter(buffer);
 
-                    operationPlanProperty.WriteTo(jsonWriter);
-                    await jsonWriter.FlushAsync();
+                operationPlanProperty.WriteTo(jsonWriter);
+                await jsonWriter.FlushAsync();
 
-                    var plan = parser.Parse(buffer.WrittenMemory);
+                var plan = parser.Parse(buffer.WrittenMemory);
 
-                    var operationPlanFormatter = new YamlOperationPlanFormatter();
-                    var formattedOperationPlan = operationPlanFormatter.Format(plan);
+                var operationPlanFormatter = new YamlOperationPlanFormatter();
+                var formattedOperationPlan = operationPlanFormatter.Format(plan);
 
-                    writer.WriteLine("operationPlan:");
-                    writer.Indent();
-                    WriteMultilineString(writer, formattedOperationPlan);
-                    writer.Unindent();
+                writer.WriteLine("operationPlan:");
+                writer.Indent();
+                WriteMultilineString(writer, formattedOperationPlan);
+                writer.Unindent();
 
-                    break;
-                }
-            }
-            catch
-            {
-                // For some reason
-                // CancellationTests.Request_Is_Running_Into_Execution_Timeout_While_Http_Request_In_Node_Is_Still_Ongoing
-                // runs into an issue here
+                break;
             }
         }
     }
 
-    private void WriteResults(CodeWriter writer, List<OperationResult> results)
+    private void WriteResults(CodeWriter writer, List<OperationResult> results, string? stableStreamText = null)
     {
+        if (stableStreamText is not null)
+        {
+            writer.WriteLine("stableResponseStream: |");
+            writer.Indent();
+            WriteMultilineString(writer, stableStreamText.TrimEnd());
+            writer.Unindent();
+            return;
+        }
+
         if (results is [{ } singleResult])
         {
             writer.WriteLine("response:");
@@ -156,6 +182,39 @@ public abstract partial class FusionTestBase
 
             writer.Unindent();
         }
+    }
+
+    private static HttpResponseMessage CloneHttpResponseMessage(HttpResponseMessage source, byte[] bodyBytes)
+    {
+        var clone = new HttpResponseMessage(source.StatusCode);
+
+        foreach (var header in source.Headers)
+        {
+            clone.Headers.TryAddWithoutValidation(header.Key, header.Value);
+        }
+
+        var content = new ByteArrayContent(bodyBytes);
+
+        if (source.Content.Headers.ContentType is not null)
+        {
+            content.Headers.ContentType =
+                MediaTypeHeaderValue.Parse(source.Content.Headers.ContentType.ToString());
+        }
+
+        foreach (var header in source.Content.Headers)
+        {
+            if (string.Equals(header.Key, "Content-Type", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(header.Key, "Content-Length", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            content.Headers.TryAddWithoutValidation(header.Key, header.Value);
+        }
+
+        clone.Content = content;
+
+        return clone;
     }
 
     private static void WriteResult(CodeWriter writer, OperationResult result)
@@ -229,13 +288,23 @@ public abstract partial class FusionTestBase
             writer.WriteLine("interactions:");
             writer.Indent();
 
-            foreach (var (_, interaction) in interactions.OrderBy(x => x.Key))
+            // Order by (OperationPlanId, NodeId) so parallel mini-plans (e.g.
+            // deferred groups) render in a stable order independent of the
+            // runtime arrival order of their subgraph responses.
+            foreach (var interaction in interactions.Values
+                .OrderBy(x => x.OperationPlanId, StringComparer.Ordinal)
+                .ThenBy(x => x.NodeId))
             {
                 var request = interaction.Request!;
 
                 writer.WriteLine("- request:");
                 writer.Indent();
                 writer.Indent();
+
+                if (!string.IsNullOrEmpty(request.Accept))
+                {
+                    writer.WriteLine("accept: {0}", request.Accept);
+                }
 
                 if (request.ContentType.MediaType?.StartsWith("multipart/", StringComparison.OrdinalIgnoreCase) == true)
                 {

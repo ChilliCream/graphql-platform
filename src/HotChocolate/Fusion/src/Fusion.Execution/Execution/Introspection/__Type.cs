@@ -55,7 +55,7 @@ internal sealed class __Type : ITypeResolverInterceptor
                 features.Set(new ResolveFieldValue(IsOneOf));
                 break;
 
-            case "specifiedBy":
+            case "specifiedByURL":
                 features.Set(new ResolveFieldValue(SpecifiedBy));
                 break;
         }

@@ -1,3 +1,4 @@
+using System.Text;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
 using static HotChocolate.Fusion.CompositionTestHelper;
@@ -376,6 +377,10 @@ public sealed class SatisfiabilityValidatorTests
         Assert.True(result.IsFailure);
         string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
             """
+            Unable to access the field 'Category.name' on path 'B:Query.categoryById<Category>'.
+              Unable to transition between schemas 'B' and 'A' for access to field 'A:Category.name<String>'.
+                No lookups found for type 'Category' in schema 'A'.
+
             Unable to access the field 'Category.id' on path 'A:Query.productById<Product> -> A:Product.category<Category>'.
               Unable to transition between schemas 'A' and 'B' for access to field 'B:Category.id<ID>'.
                 Unable to satisfy the requirement '{ id }' for lookup 'categoryById' in schema 'B'.
@@ -389,10 +394,6 @@ public sealed class SatisfiabilityValidatorTests
                   Unable to satisfy the requirement 'id'.
                     Unable to access the required field 'Category.id' on path 'A:Product.category<Category>'.
                         No other schemas contain the field 'Category.id'.
-
-            Unable to access the field 'Category.name' on path 'B:Query.categoryById<Category>'.
-              Unable to transition between schemas 'B' and 'A' for access to field 'A:Category.name<String>'.
-                No lookups found for type 'Category' in schema 'A'.
             """);
     }
 
@@ -2134,14 +2135,6 @@ public sealed class SatisfiabilityValidatorTests
                       Unable to transition between schemas 'B' and 'C' for access to required field 'C:Section.name<String>'.
                         No lookups found for type 'Section' in schema 'C'.
 
-            Unable to access the field 'Category.name' on path 'A:Query.productById<Product> -> B:Product.category<Category>'.
-              Unable to transition between schemas 'B' and 'C' for access to field 'C:Category.name<String>'.
-                No lookups found for type 'Category' in schema 'C'.
-
-            Unable to access the field 'Section.name' on path 'A:Query.productById<Product> -> B:Product.section<Section>'.
-              Unable to transition between schemas 'B' and 'C' for access to field 'C:Section.name<String>'.
-                No lookups found for type 'Section' in schema 'C'.
-
             Unable to access the field 'Product.title' on path 'B:Query.productById<Product>'.
               Unable to satisfy the requirement '{ category { name } section { name } }' on field 'A:Product.title<String>'.
                 Unable to satisfy the requirement 'category { name }'.
@@ -2154,6 +2147,14 @@ public sealed class SatisfiabilityValidatorTests
                     Unable to access the required field 'Section.name' on path 'B:Query.productById<Product> -> B:Product.section<Section>'.
                       Unable to transition between schemas 'B' and 'C' for access to required field 'C:Section.name<String>'.
                         No lookups found for type 'Section' in schema 'C'.
+
+            Unable to access the field 'Category.name' on path 'A:Query.productById<Product> -> B:Product.category<Category>'.
+              Unable to transition between schemas 'B' and 'C' for access to field 'C:Category.name<String>'.
+                No lookups found for type 'Category' in schema 'C'.
+
+            Unable to access the field 'Section.name' on path 'A:Query.productById<Product> -> B:Product.section<Section>'.
+              Unable to transition between schemas 'B' and 'C' for access to field 'C:Section.name<String>'.
+                No lookups found for type 'Section' in schema 'C'.
             """);
     }
 
@@ -2556,6 +2557,55 @@ public sealed class SatisfiabilityValidatorTests
                 }
                 """
             ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    public void LargeTypeCycle_DoesNotCauseStackOverflow()
+    {
+        // arrange
+        // Creates a long type cycle (T1 → T2 → … → T500 → T1) across 5 identical schemas,
+        // where every schema provides every type and field.
+        const int typeCount = 500;
+        const int schemaCount = 5;
+        var schemas = new string[schemaCount];
+
+        var sb = new StringBuilder();
+        sb.AppendLine("type Query {");
+
+        for (var t = 1; t <= typeCount; t++)
+        {
+            sb.AppendLine($"    t{t}ById(id: ID!): T{t} @lookup");
+        }
+
+        sb.AppendLine("}");
+
+        for (var t = 1; t <= typeCount; t++)
+        {
+            var next = (t % typeCount) + 1;
+            sb.AppendLine(
+                $"type T{t} @key(fields: \"id\") {{ id: ID! @shareable next: T{next} @shareable }}");
+        }
+
+        var sdl = sb.ToString();
+
+        for (var i = 0; i < schemaCount; i++)
+        {
+            schemas[i] = sdl;
+        }
+
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(schemas),
             new SourceSchemaMergerOptions { AddFusionDefinitions = false });
 
         var schema = merger.Merge().Value;

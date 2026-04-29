@@ -65,6 +65,7 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             mutation Op_192dc5f8_1 {
               a: createBook(input: { title: "Book1" }) {
@@ -86,6 +87,7 @@ sourceSchemas:
                 }
               }
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             mutation Op_192dc5f8_3 {
               b: createBook(input: { title: "Book2" }) {
@@ -120,14 +122,13 @@ sourceSchemas:
       }
 
       type Query {
-        bookById(id: Int!): Book! @internal @lookup
+        bookById(id: Int!): Book @internal @lookup
       }
     interactions:
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query Op_192dc5f8_2(
-              $__fusion_1_id: Int!
-            ) {
+            query Op_192dc5f8_2($__fusion_1_id: Int!) {
               bookById(id: $__fusion_1_id) {
                 author
               }
@@ -199,9 +200,7 @@ operationPlan:
       type: OperationBatch
       schema: B
       operation: |
-        query Op_192dc5f8_2(
-          $__fusion_1_id: Int!
-        ) {
+        query Op_192dc5f8_2($__fusion_1_id: Int!) {
           bookById(id: $__fusion_1_id) {
             author
           }

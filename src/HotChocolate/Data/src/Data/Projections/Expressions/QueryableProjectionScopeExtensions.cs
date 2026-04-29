@@ -22,7 +22,7 @@ public static class QueryableProjectionScopeExtensions
     /// <param name="scope">The scope that contains the projection information</param>
     /// <typeparam name="T">The target type</typeparam>
     /// <typeparam name="TTarget">The target result type of the expression</typeparam>
-    /// <returns></returns>
+    /// <returns>The projection expression.</returns>
     public static Expression<Func<T, TTarget>> Project<T, TTarget>(
         this QueryableProjectionScope scope)
         where T : TTarget

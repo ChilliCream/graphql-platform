@@ -225,4 +225,27 @@ public class MessageEnvelopeReaderTests
         const string json = """{"unknownField": "value"}""";
         Assert.Throws<JsonException>(() => MessageEnvelopeReader.Parse(ToBytes(json)));
     }
+
+    [Fact]
+    public void Parse_Should_ParseIso8601DateTime_When_ScheduledTimeIsPresent()
+    {
+        const string json = """{"scheduledTime": "2026-06-01T12:00:00+00:00"}""";
+
+        var envelope = MessageEnvelopeReader.Parse(ToBytes(json));
+
+        Assert.NotNull(envelope.ScheduledTime);
+        Assert.Equal(2026, envelope.ScheduledTime!.Value.Year);
+        Assert.Equal(6, envelope.ScheduledTime!.Value.Month);
+        Assert.Equal(1, envelope.ScheduledTime!.Value.Day);
+    }
+
+    [Fact]
+    public void Parse_Should_ReturnNullScheduledTime_When_ScheduledTimeAbsent()
+    {
+        const string json = """{"messageId": "msg-100"}""";
+
+        var envelope = MessageEnvelopeReader.Parse(ToBytes(json));
+
+        Assert.Null(envelope.ScheduledTime);
+    }
 }

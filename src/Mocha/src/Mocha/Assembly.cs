@@ -11,6 +11,7 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Mocha.Transport.AzureEventHub")]
 [assembly: InternalsVisibleTo("Mocha.Transport.RabbitMQ")]
 [assembly: InternalsVisibleTo("Mocha.Transport.Postgres")]
+[assembly: InternalsVisibleTo("Mocha.Transport.InMemory")]
 [assembly: InternalsVisibleTo("Mocha.Tests")]
 [assembly: InternalsVisibleTo("Mocha.Sagas.TestHelpers")]
 [assembly: InternalsVisibleTo("Mocha.Sagas.Tests")]

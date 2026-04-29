@@ -20,7 +20,10 @@ public sealed class Operation : IOperation
     private readonly ConcurrentDictionary<(int, string), SelectionSet> _selectionSets = [];
     private readonly OperationCompiler _compiler;
     private readonly IncludeConditionCollection _includeConditions;
+    private readonly DeferConditionCollection _deferConditions;
+    private readonly IReadOnlyDictionary<InlineFragmentNode, DeferUsage> _deferUsageByFragment;
     private readonly OperationFeatureCollection _features;
+    private readonly bool _hasIncrementalParts;
     private object[] _elementsById;
     private int _lastId;
 
@@ -33,6 +36,9 @@ public sealed class Operation : IOperation
         SelectionSet rootSelectionSet,
         OperationCompiler compiler,
         IncludeConditionCollection includeConditions,
+        DeferConditionCollection deferConditions,
+        IReadOnlyDictionary<InlineFragmentNode, DeferUsage> deferUsageByFragment,
+        bool hasIncrementalParts,
         int lastId,
         object[] elementsById)
     {
@@ -44,6 +50,8 @@ public sealed class Operation : IOperation
         ArgumentNullException.ThrowIfNull(rootSelectionSet);
         ArgumentNullException.ThrowIfNull(compiler);
         ArgumentNullException.ThrowIfNull(includeConditions);
+        ArgumentNullException.ThrowIfNull(deferConditions);
+        ArgumentNullException.ThrowIfNull(deferUsageByFragment);
         ArgumentNullException.ThrowIfNull(elementsById);
 
         Id = id;
@@ -54,6 +62,9 @@ public sealed class Operation : IOperation
         RootSelectionSet = rootSelectionSet;
         _compiler = compiler;
         _includeConditions = includeConditions;
+        _deferConditions = deferConditions;
+        _deferUsageByFragment = deferUsageByFragment;
+        _hasIncrementalParts = hasIncrementalParts;
         _lastId = lastId;
         _elementsById = elementsById;
 
@@ -105,7 +116,7 @@ public sealed class Operation : IOperation
     /// <inheritdoc cref="IFeatureProvider"/>
     public IFeatureCollection Features => _features;
 
-    public bool HasIncrementalParts => throw new NotImplementedException();
+    public bool HasIncrementalParts => _hasIncrementalParts;
 
     /// <summary>
     /// Gets the selection set for the specified <paramref name="selection"/>
@@ -165,6 +176,7 @@ public sealed class Operation : IOperation
                             selection,
                             (FusionObjectTypeDefinition)typeContext,
                             _includeConditions,
+                            _deferUsageByFragment,
                             ref _elementsById,
                             ref _lastId);
                     selectionSet.Seal(this);
@@ -235,6 +247,33 @@ public sealed class Operation : IOperation
         }
 
         return includeFlags;
+    }
+
+    /// <summary>
+    /// Creates the defer flags for the specified variable values.
+    /// </summary>
+    /// <param name="variables">
+    /// The variable values.
+    /// </param>
+    /// <returns>
+    /// Returns the defer flags for the specified variable values.
+    /// </returns>
+    public ulong CreateDeferFlags(IVariableValueCollection variables)
+    {
+        var index = 0;
+        var deferFlags = 0ul;
+
+        foreach (var deferCondition in _deferConditions)
+        {
+            if (deferCondition.IsDeferred(variables))
+            {
+                deferFlags |= 1ul << index;
+            }
+
+            index++;
+        }
+
+        return deferFlags;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

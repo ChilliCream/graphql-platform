@@ -553,4 +553,104 @@ public class ResolverTests
             """
         ]).MatchMarkdownAsync();
     }
+
+    [Fact]
+    public async Task GenerateSource_ResolverWithIsSelectedSingleField_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            [ObjectType<Test>]
+            internal static partial class TestType
+            {
+                public static int GetTest([IsSelected("email")] bool isSelected)
+                {
+                    return isSelected ? 1 : 0;
+                }
+            }
+
+            internal class Test;
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task GenerateSource_ResolverWithIsSelectedMultipleFields_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            [ObjectType<Test>]
+            internal static partial class TestType
+            {
+                public static int GetTest([IsSelected("email", "password", "name", "address")] bool isSelected)
+                {
+                    return isSelected ? 1 : 0;
+                }
+            }
+
+            internal class Test;
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task GenerateSource_ResolverWithIsSelectedPattern_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            [ObjectType<Test>]
+            internal static partial class TestType
+            {
+                public static int GetTest([IsSelected("email category { name }")] bool isSelected)
+                {
+                    return isSelected ? 1 : 0;
+                }
+            }
+
+            internal class Test;
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task GenerateSource_NodeResolverWithIsSelectedPattern_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Relay;
+            using System.Threading.Tasks;
+
+            namespace TestNamespace;
+
+            [ObjectType<Test>]
+            internal static partial class TestType
+            {
+                [NodeResolver]
+                internal static Task<Test?> GetTestByIdAsync(
+                    int id,
+                    [IsSelected("name address { city }")] bool isSelected)
+                    => Task.FromResult<Test?>(null);
+            }
+
+            internal class Test
+            {
+                public int Id { get; set; }
+
+                public string Name { get; set; }
+            }
+            """).MatchMarkdownAsync();
+    }
 }

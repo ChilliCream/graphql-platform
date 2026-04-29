@@ -1,7 +1,6 @@
 using System.Globalization;
 using System.Text;
 using HotChocolate;
-using StrawberryShake.CodeGeneration.CSharp;
 using Path = HotChocolate.Path;
 
 namespace StrawberryShake.CodeGeneration.Utilities;

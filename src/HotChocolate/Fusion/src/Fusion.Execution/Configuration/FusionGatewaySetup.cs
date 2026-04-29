@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Configuration;
 
-internal sealed class FusionGatewaySetup
+public sealed class FusionGatewaySetup
 {
     public Func<IServiceProvider, IFusionConfigurationProvider>? DocumentProvider { get; set; }
 
@@ -29,4 +29,6 @@ internal sealed class FusionGatewaySetup
     public List<Action<IServiceProvider, DocumentValidatorBuilder>> DocumentValidatorBuilderModifiers { get; } = [];
 
     public List<Func<IServiceProvider, ISourceSchemaClientConfiguration>> ClientConfigurationModifiers { get; } = [];
+
+    public List<ISourceSchemaClientConfigurationParser> SourceSchemaClientConfigurationParsers { get; } = [];
 }

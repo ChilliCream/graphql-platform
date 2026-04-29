@@ -23,5 +23,5 @@ type CollectionSegmentInfo {
 }
 
 type Query {
-  bars(skip: Int take: Int): BarsCollectionSegment
+  bars(skip: Int, take: Int): BarsCollectionSegment
 }

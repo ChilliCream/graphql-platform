@@ -29,6 +29,12 @@ internal sealed partial class OperationContext : IFeatureProvider
         }
     }
 
+    /// <summary>
+    /// Gets whether null values should be propagated to nullable parents
+    /// (standard GraphQL behavior). When false, null stays at the field that caused it.
+    /// </summary>
+    public bool PropagateNullValues => _propagateNullValues;
+
     /// <inheritdoc />
     public IFeatureCollection Features
     {

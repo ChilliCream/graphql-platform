@@ -96,7 +96,6 @@ public class MutableInputFieldDefinition
     /// <summary>
     /// Gets or sets the default value for this input field.
     /// </summary>
-    /// <value></value>
     public IValueNode? DefaultValue { get; set; }
 
     /// <inheritdoc cref="IMutableFieldDefinition.IsDeprecated" />

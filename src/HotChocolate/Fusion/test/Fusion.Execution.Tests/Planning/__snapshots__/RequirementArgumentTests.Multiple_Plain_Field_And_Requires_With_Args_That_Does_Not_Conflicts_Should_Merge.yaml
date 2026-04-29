@@ -26,10 +26,7 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_2(
-        $__fusion_1_otherField: String!
-          $__fusion_2_id: ID!
-      ) {
+      query Op_123456789101112_2($__fusion_1_otherField: String!, $__fusion_2_id: ID!) {
         testById(id: $__fusion_2_id) {
           fieldWithRequiresAndArgs(otherField: $__fusion_1_otherField)
         }
@@ -49,9 +46,7 @@ nodes:
     type: OperationBatch
     schema: b
     operation: |
-      query Op_123456789101112_3(
-        $__fusion_3_id: ID!
-      ) {
+      query Op_123456789101112_3($__fusion_3_id: ID!) {
         testById(id: $__fusion_3_id) {
           otherField
         }
@@ -71,9 +66,7 @@ nodes:
     type: Operation
     schema: b
     operation: |
-      query Op_123456789101112_4(
-        $__fusion_4_id: ID!
-      ) {
+      query Op_123456789101112_4($__fusion_4_id: ID!) {
         testById(id: $__fusion_4_id) {
           id
         }

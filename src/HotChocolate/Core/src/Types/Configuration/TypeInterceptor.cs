@@ -435,7 +435,7 @@ public abstract class TypeInterceptor
     /// The type discovery context.
     /// </param>
     /// <param name="dependencies">
-    ///
+    /// The type dependencies that define the scope.
     /// </param>
     public virtual bool TryCreateScope(
         ITypeDiscoveryContext context,

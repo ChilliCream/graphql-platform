@@ -1,9 +1,7 @@
 title: Lookup_Skip_On_Parent_Field_Of_Field_Fetched_Through_Lookup
 request:
   document: |
-    query testQuery(
-      $skip: Boolean!
-    ) {
+    query testQuery($skip: Boolean!) {
       productBySlug(slug: "product") {
         name
         review @skip(if: $skip) {
@@ -46,10 +44,9 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query testQuery_dcf2affd_1(
-              $skip: Boolean!
-            ) {
+            query testQuery_dcf2affd_1($skip: Boolean!) {
               productBySlug(slug: "product") {
                 name
                 review @skip(if: $skip) {
@@ -88,9 +85,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query testQuery(
-          $skip: Boolean!
-        ) {
+        query testQuery($skip: Boolean!) {
           productBySlug(slug: "product") {
             name
             review @skip(if: $skip) {
@@ -108,9 +103,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_dcf2affd_1(
-          $skip: Boolean!
-        ) {
+        query testQuery_dcf2affd_1($skip: Boolean!) {
           productBySlug(slug: "product") {
             name
             review @skip(if: $skip) {
@@ -124,9 +117,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_dcf2affd_2(
-          $__fusion_1_id: ID!
-        ) {
+        query testQuery_dcf2affd_2($__fusion_1_id: ID!) {
           reviewById(id: $__fusion_1_id) {
             title
           }

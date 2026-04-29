@@ -39,6 +39,7 @@ public static class WellKnownAttributes
     public const string ObsoleteAttribute = "System.ObsoleteAttribute";
     public const string BatchResolverAttribute = "HotChocolate.Types.BatchResolverAttribute";
     public const string GraphQLTypeAttribute = "HotChocolate.GraphQLTypeAttribute";
+    public const string IsSelectedAttribute = "HotChocolate.Types.IsSelectedAttribute";
 
     public static HashSet<string> BindAttributes { get; } =
     [

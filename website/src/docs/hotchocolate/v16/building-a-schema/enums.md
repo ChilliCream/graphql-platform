@@ -82,8 +82,8 @@ Code-first enum types are not automatically inferred because multiple `EnumType<
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddType<UserRoleType>();
 ```
 

@@ -1,5 +1,3 @@
-using System.Security.Cryptography;
-using System.Text;
 using Mocha.Analyzers.Utils;
 
 namespace Mocha.Analyzers.FileBuilders;
@@ -17,7 +15,7 @@ public sealed class DependencyInjectionFileBuilder : FileBuilderBase
     {
         _extensionsClassName = moduleName + "MediatorBuilderExtensions";
         _methodName = "Add" + moduleName;
-        HintName = _extensionsClassName + "." + ComputeSalt(assemblyName);
+        HintName = _extensionsClassName + "." + HashHelper.ComputeSalt(assemblyName);
     }
 
     public string HintName { get; }
@@ -127,23 +125,5 @@ public sealed class DependencyInjectionFileBuilder : FileBuilderBase
         Writer.WriteIndentedLine("return builder;");
         Writer.DecreaseIndent();
         Writer.WriteIndentedLine("}");
-    }
-
-#pragma warning disable CA5351 // MD5 is used for non-security hashing (file name salting)
-    private static readonly MD5 s_md5 = MD5.Create();
-#pragma warning restore CA5351
-
-    private static string ComputeSalt(string assemblyName)
-    {
-        byte[] hashBytes;
-
-        lock (s_md5)
-        {
-            hashBytes = s_md5.ComputeHash(Encoding.UTF8.GetBytes(assemblyName));
-        }
-
-        var base64 = Convert.ToBase64String(hashBytes, Base64FormattingOptions.None);
-
-        return base64.Replace("+", "-").Replace("/", "_").TrimEnd('=');
     }
 }

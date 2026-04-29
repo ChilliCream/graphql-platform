@@ -1,9 +1,7 @@
 title: Node_Field_Selections_On_Interface_And_Concrete_Type_Both_Have_Different_Dependencies
 request:
   document: |
-    query testQuery(
-      $id: ID!
-    ) {
+    query testQuery($id: ID!) {
       node(id: $id) {
         __typename
         id
@@ -86,10 +84,9 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query testQuery_f7a0a31d_3(
-              $id: ID!
-            ) {
+            query testQuery_f7a0a31d_3($id: ID!) {
               node(id: $id) {
                 __typename
                 ... on Item2 {
@@ -153,10 +150,9 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query testQuery_f7a0a31d_4(
-              $__fusion_1_id: ID!
-            ) {
+            query testQuery_f7a0a31d_4($__fusion_1_id: ID!) {
               node(id: $__fusion_1_id) {
                 __typename
                 ... on Product {
@@ -180,10 +176,9 @@ sourceSchemas:
                 }
               }
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query testQuery_f7a0a31d_5(
-              $__fusion_2_id: ID!
-            ) {
+            query testQuery_f7a0a31d_5($__fusion_2_id: ID!) {
               node(id: $__fusion_2_id) {
                 __typename
                 ... on Product {
@@ -236,9 +231,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query testQuery(
-          $id: ID!
-        ) {
+        query testQuery($id: ID!) {
           node(id: $id) {
             __typename
             id
@@ -273,9 +266,7 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query testQuery_f7a0a31d_2(
-          $id: ID!
-        ) {
+        query testQuery_f7a0a31d_2($id: ID!) {
           node(id: $id) {
             __typename
             id
@@ -289,9 +280,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_f7a0a31d_3(
-          $id: ID!
-        ) {
+        query testQuery_f7a0a31d_3($id: ID!) {
           node(id: $id) {
             __typename
             ... on Item2 {
@@ -314,9 +303,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_f7a0a31d_4(
-          $__fusion_1_id: ID!
-        ) {
+        query testQuery_f7a0a31d_4($__fusion_1_id: ID!) {
           node(id: $__fusion_1_id) {
             __typename
             ... on Product {
@@ -336,9 +323,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_f7a0a31d_5(
-          $__fusion_2_id: ID!
-        ) {
+        query testQuery_f7a0a31d_5($__fusion_2_id: ID!) {
           node(id: $__fusion_2_id) {
             __typename
             ... on Product {
@@ -358,9 +343,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_f7a0a31d_6(
-          $id: ID!
-        ) {
+        query testQuery_f7a0a31d_6($id: ID!) {
           node(id: $id) {
             __typename
             ... on Item1 {
@@ -380,9 +363,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_f7a0a31d_7(
-          $__fusion_3_id: ID!
-        ) {
+        query testQuery_f7a0a31d_7($__fusion_3_id: ID!) {
           node(id: $__fusion_3_id) {
             __typename
             ... on Product {

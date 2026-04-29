@@ -39,6 +39,7 @@ internal sealed partial class OperationContext
     private int _branchId;
     private int _variableIndex;
     private object? _rootValue;
+    private bool _propagateNullValues;
     private bool _isInitialized;
 
     public OperationContext(
@@ -69,7 +70,8 @@ internal sealed partial class OperationContext
         IVariableValueCollection variables,
         object? rootValue,
         Func<object?> resolveQueryRootValue,
-        int variableIndex = -1)
+        int variableIndex = -1,
+        CancellationToken requestAbortedOverride = default)
     {
         _requestContext = requestContext;
         _schema = Unsafe.As<Schema>(requestContext.Schema);
@@ -77,7 +79,9 @@ internal sealed partial class OperationContext
         _resolvers = scopedServices.GetRequiredService<ResolverProvider>();
         _diagnosticEvents = _schema.Services.GetRequiredService<IExecutionDiagnosticEvents>();
         _contextData = requestContext.ContextData;
-        _requestAborted = requestContext.RequestAborted;
+        _requestAborted = requestAbortedOverride.CanBeCanceled
+            ? requestAbortedOverride
+            : requestContext.RequestAborted;
         _operation = operation;
         _variables = variables;
         _services = scopedServices;
@@ -86,6 +90,10 @@ internal sealed partial class OperationContext
         _resolveQueryRootValue = resolveQueryRootValue;
         _batchDispatcher = batchDispatcher;
         _variableIndex = variableIndex;
+
+        var errorHandlingMode = _requestContext.Request.ErrorHandlingMode
+            ?? _schema.GetOptions().DefaultErrorHandlingMode;
+        _propagateNullValues = errorHandlingMode is Language.ErrorHandlingMode.Propagate;
 
         IncludeFlags = operation.CreateIncludeFlags(variables);
         DeferFlags = operation.CreateDeferFlags(variables);
@@ -128,6 +136,7 @@ internal sealed partial class OperationContext
         _currentBranchTracker = context._currentBranchTracker;
         _currentWorkScheduler = context._currentWorkScheduler;
         _currentDeferExecutionCoordinator = context._currentDeferExecutionCoordinator;
+        _propagateNullValues = context._propagateNullValues;
         _branchId = executionBranchId;
         _isInitialized = true;
 
@@ -178,6 +187,7 @@ internal sealed partial class OperationContext
             _resolveQueryRootValue = null!;
             _batchDispatcher = null!;
             _branchId = int.MinValue;
+            _propagateNullValues = false;
             _isInitialized = false;
             Result.Reset();
         }

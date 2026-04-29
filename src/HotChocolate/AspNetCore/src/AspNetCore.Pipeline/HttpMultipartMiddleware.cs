@@ -107,7 +107,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
 
         // Parse the string values of interest from the IFormCollection
         var multipartRequest = ParseMultipartRequest(form);
-        var requests = session.RequestParser.ParseRequest(multipartRequest.Operations);
+        var requests = session.ParseRequest(multipartRequest.Operations);
 
         // we add the file lookup as a feature on the HttpContext and can grab it from
         // there and put it on the GraphQL request.

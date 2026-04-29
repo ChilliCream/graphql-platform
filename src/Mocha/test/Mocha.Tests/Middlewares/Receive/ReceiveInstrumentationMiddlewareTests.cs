@@ -17,8 +17,8 @@ public sealed class ReceiveInstrumentationMiddlewareTests : ReceiveMiddlewareTes
     public async Task InvokeAsync_Should_CallObserverReceive_When_MiddlewareInvoked()
     {
         // arrange
-        var observer = new MockBusDiagnosticObserver();
-        var middleware = new ReceiveInstrumentationMiddleware(observer);
+        var events = new MockMessagingDiagnosticEvents();
+        var middleware = new ReceiveInstrumentationMiddleware(events);
         var context = new StubReceiveContext();
         var nextCalled = false;
 
@@ -32,7 +32,7 @@ public sealed class ReceiveInstrumentationMiddlewareTests : ReceiveMiddlewareTes
         await middleware.InvokeAsync(context, next);
 
         // assert
-        Assert.True(observer.ReceiveCalled, "Observer.Receive should be called");
+        Assert.True(events.ReceiveCalled, "Events.Receive should be called");
         Assert.True(nextCalled, "Next delegate should be called");
     }
 
@@ -41,8 +41,8 @@ public sealed class ReceiveInstrumentationMiddlewareTests : ReceiveMiddlewareTes
     {
         // arrange
         var activity = new MockDisposable();
-        var observer = new MockBusDiagnosticObserver { ActivityToReturn = activity };
-        var middleware = new ReceiveInstrumentationMiddleware(observer);
+        var events = new MockMessagingDiagnosticEvents { ActivityToReturn = activity };
+        var middleware = new ReceiveInstrumentationMiddleware(events);
         var context = new StubReceiveContext();
 
         ReceiveDelegate next = _ => ValueTask.CompletedTask;
@@ -55,11 +55,11 @@ public sealed class ReceiveInstrumentationMiddlewareTests : ReceiveMiddlewareTes
     }
 
     [Fact]
-    public async Task InvokeAsync_Should_CallOnReceiveError_When_ExceptionOccurs()
+    public async Task InvokeAsync_Should_CallReceiveError_When_ExceptionOccurs()
     {
         // arrange
-        var observer = new MockBusDiagnosticObserver();
-        var middleware = new ReceiveInstrumentationMiddleware(observer);
+        var events = new MockMessagingDiagnosticEvents();
+        var middleware = new ReceiveInstrumentationMiddleware(events);
         var context = new StubReceiveContext();
         var expectedException = new InvalidOperationException("Test exception");
 
@@ -71,17 +71,17 @@ public sealed class ReceiveInstrumentationMiddlewareTests : ReceiveMiddlewareTes
         );
 
         Assert.Same(expectedException, ex);
-        Assert.True(observer.OnReceiveErrorCalled, "OnReceiveError should be called on exception");
-        Assert.Same(expectedException, observer.RecordedException);
-        Assert.Same(context, observer.RecordedErrorContext);
+        Assert.True(events.ReceiveErrorCalled, "ReceiveError should be called on exception");
+        Assert.Same(expectedException, events.RecordedException);
+        Assert.Same(context, events.RecordedErrorContext);
     }
 
     [Fact]
     public async Task InvokeAsync_Should_RethrowException_When_ExceptionOccurs()
     {
         // arrange
-        var observer = new MockBusDiagnosticObserver();
-        var middleware = new ReceiveInstrumentationMiddleware(observer);
+        var events = new MockMessagingDiagnosticEvents();
+        var middleware = new ReceiveInstrumentationMiddleware(events);
         var context = new StubReceiveContext();
         var expectedException = new InvalidOperationException("Should be rethrown");
 
@@ -100,8 +100,8 @@ public sealed class ReceiveInstrumentationMiddlewareTests : ReceiveMiddlewareTes
     {
         // arrange
         var activity = new MockDisposable();
-        var observer = new MockBusDiagnosticObserver { ActivityToReturn = activity };
-        var middleware = new ReceiveInstrumentationMiddleware(observer);
+        var events = new MockMessagingDiagnosticEvents { ActivityToReturn = activity };
+        var middleware = new ReceiveInstrumentationMiddleware(events);
         var context = new StubReceiveContext();
 
         ReceiveDelegate next = _ => throw new InvalidOperationException("Test");
@@ -124,8 +124,8 @@ public sealed class ReceiveInstrumentationMiddlewareTests : ReceiveMiddlewareTes
     public async Task InvokeAsync_Should_PassContextToNext_When_Invoked()
     {
         // arrange
-        var observer = new MockBusDiagnosticObserver();
-        var middleware = new ReceiveInstrumentationMiddleware(observer);
+        var events = new MockMessagingDiagnosticEvents();
+        var middleware = new ReceiveInstrumentationMiddleware(events);
         var context = new StubReceiveContext();
         IReceiveContext? receivedContext = null;
 
@@ -146,8 +146,8 @@ public sealed class ReceiveInstrumentationMiddlewareTests : ReceiveMiddlewareTes
     public async Task InvokeAsync_Should_PassContextToObserver_When_Invoked()
     {
         // arrange
-        var observer = new MockBusDiagnosticObserver();
-        var middleware = new ReceiveInstrumentationMiddleware(observer);
+        var events = new MockMessagingDiagnosticEvents();
+        var middleware = new ReceiveInstrumentationMiddleware(events);
         var context = new StubReceiveContext();
 
         ReceiveDelegate next = _ => ValueTask.CompletedTask;
@@ -156,16 +156,16 @@ public sealed class ReceiveInstrumentationMiddlewareTests : ReceiveMiddlewareTes
         await middleware.InvokeAsync(context, next);
 
         // assert
-        Assert.Same(context, observer.RecordedReceiveContext);
+        Assert.Same(context, events.RecordedReceiveContext);
     }
 
     [Fact]
     public async Task Create_Should_ProduceWorkingMiddleware_When_UsedWithServiceProvider()
     {
         // arrange
-        var observer = new MockBusDiagnosticObserver();
+        var events = new MockMessagingDiagnosticEvents();
         var services = new ServiceCollection();
-        services.AddSingleton<IBusDiagnosticObserver>(observer);
+        services.AddSingleton<IMessagingDiagnosticEvents>(events);
         var provider = services.BuildServiceProvider();
 
         var configuration = ReceiveInstrumentationMiddleware.Create();
@@ -189,7 +189,7 @@ public sealed class ReceiveInstrumentationMiddlewareTests : ReceiveMiddlewareTes
         await middlewareDelegate(receiveContext);
 
         // assert
-        Assert.True(observer.ReceiveCalled);
+        Assert.True(events.ReceiveCalled);
         Assert.True(nextCalled);
     }
 
@@ -391,16 +391,18 @@ public sealed class ReceiveInstrumentationMiddlewareTests : ReceiveMiddlewareTes
         return provider;
     }
 
-    private sealed class MockBusDiagnosticObserver : IBusDiagnosticObserver
+    private sealed class MockMessagingDiagnosticEvents : IMessagingDiagnosticEvents
     {
         public bool ReceiveCalled { get; private set; }
-        public bool OnReceiveErrorCalled { get; private set; }
+        public bool ReceiveErrorCalled { get; private set; }
         public IReceiveContext? RecordedReceiveContext { get; private set; }
         public IReceiveContext? RecordedErrorContext { get; private set; }
         public Exception? RecordedException { get; private set; }
         public IDisposable? ActivityToReturn { get; set; }
 
         public IDisposable Dispatch(IDispatchContext context) => new MockDisposable();
+
+        public void DispatchError(IDispatchContext context, Exception exception) { }
 
         public IDisposable Receive(IReceiveContext context)
         {
@@ -409,18 +411,16 @@ public sealed class ReceiveInstrumentationMiddlewareTests : ReceiveMiddlewareTes
             return ActivityToReturn ?? new MockDisposable();
         }
 
-        public IDisposable Consume(IConsumeContext context) => new MockDisposable();
-
-        public void OnReceiveError(IReceiveContext context, Exception exception)
+        public void ReceiveError(IReceiveContext context, Exception exception)
         {
-            OnReceiveErrorCalled = true;
+            ReceiveErrorCalled = true;
             RecordedErrorContext = context;
             RecordedException = exception;
         }
 
-        public void OnDispatchError(IDispatchContext context, Exception exception) { }
+        public IDisposable Consume(IConsumeContext context) => new MockDisposable();
 
-        public void OnConsumeError(IConsumeContext context, Exception exception) { }
+        public void ConsumeError(IConsumeContext context, Exception exception) { }
     }
 
     private sealed class MockDisposable : IDisposable

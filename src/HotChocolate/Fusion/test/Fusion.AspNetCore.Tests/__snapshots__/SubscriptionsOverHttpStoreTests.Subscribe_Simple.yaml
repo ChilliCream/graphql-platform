@@ -56,6 +56,7 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             subscription Op_a6fc02fc_1 {
               onBookCreated {
@@ -101,14 +102,13 @@ sourceSchemas:
       }
 
       type Query {
-        bookById(id: Int!): Book! @internal @lookup
+        bookById(id: Int!): Book @internal @lookup
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_a6fc02fc_2(
-              $__fusion_1_id: Int!
-            ) {
+            query Op_a6fc02fc_2($__fusion_1_id: Int!) {
               bookById(id: $__fusion_1_id) {
                 title
               }
@@ -127,6 +127,20 @@ sourceSchemas:
                   }
                 }
               }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_a6fc02fc_2($__fusion_1_id: Int!) {
+              bookById(id: $__fusion_1_id) {
+                title
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": 2
+            }
+        response:
+          results:
             - |
               {
                 "data": {
@@ -135,6 +149,20 @@ sourceSchemas:
                   }
                 }
               }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_a6fc02fc_2($__fusion_1_id: Int!) {
+              bookById(id: $__fusion_1_id) {
+                title
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": 3
+            }
+        response:
+          results:
             - |
               {
                 "data": {
@@ -170,9 +198,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_a6fc02fc_2(
-          $__fusion_1_id: Int!
-        ) {
+        query Op_a6fc02fc_2($__fusion_1_id: Int!) {
           bookById(id: $__fusion_1_id) {
             title
           }

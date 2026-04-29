@@ -1,0 +1,22 @@
+{
+  "data": {
+    "____request0": [
+      {
+        "id": 1,
+        "name": "Product 1",
+        "price": 9.989999771118164
+      },
+      {
+        "id": 2,
+        "name": "Product 2",
+        "price": 9.989999771118164
+      }
+    ],
+    "____request1": [
+      {
+        "email": "test@example.com",
+        "name": "User test@example.com"
+      }
+    ]
+  }
+}

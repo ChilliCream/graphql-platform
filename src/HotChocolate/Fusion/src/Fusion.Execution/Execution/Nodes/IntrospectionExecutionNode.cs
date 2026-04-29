@@ -1,4 +1,5 @@
 using System.Text.Json;
+using HotChocolate.Fusion.Execution.Introspection;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -49,7 +50,7 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
     /// </summary>
     public ReadOnlySpan<Selection> Selections => _selections;
 
-    protected override ValueTask<ExecutionStatus> OnExecuteAsync(
+    protected override async ValueTask<ExecutionStatus> OnExecuteAsync(
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
     {
@@ -60,7 +61,7 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
 
         foreach (var selection in _selections)
         {
-            if (selection.Resolver is null
+            if ((selection.Resolver is null && selection.AsyncResolver is null)
                 || !selection.Field.IsIntrospectionField
                 || !selection.IsIncluded(context.IncludeFlags))
             {
@@ -71,38 +72,85 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
             backlog.Push((null, selection, property));
         }
 
-        ExecuteSelections(context, backlog);
+        try
+        {
+            await ExecuteSelectionsAsync(context, backlog, cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            return ExecutionStatus.Failed;
+        }
+        catch (GraphQLException ex)
+        {
+            foreach (var error in ex.Errors)
+            {
+                context.AddErrors(error, _resultSelectionSet, Path.Root);
+            }
+
+            return ExecutionStatus.Failed;
+        }
+        catch (Exception ex)
+        {
+            var error = ErrorBuilder.FromException(ex).Build();
+            context.AddErrors(error, _resultSelectionSet, Path.Root);
+
+            return ExecutionStatus.Failed;
+        }
+
         context.AddPartialResults(resultBuilder.Build(), _resultSelectionSet);
 
-        return new ValueTask<ExecutionStatus>(ExecutionStatus.Success);
+        return ExecutionStatus.Success;
     }
 
     protected override IDisposable CreateScope(OperationPlanContext context)
         => context.DiagnosticEvents.ExecuteIntrospectionNode(context, this);
 
-    private static void ExecuteSelections(
+    private static async ValueTask ExecuteSelectionsAsync(
         OperationPlanContext context,
-        Stack<(object? Parent, Selection Selection, SourceResultElementBuilder Result)> backlog)
+        Stack<(object? Parent, Selection Selection, SourceResultElementBuilder Result)> backlog,
+        CancellationToken cancellationToken)
     {
         var operation = context.OperationPlan.Operation;
         var fieldContext = new ReusableFieldContext(
             context.Schema,
             context.Variables,
             context.IncludeFlags,
-            context.CreateRentedBuffer());
+            context.CreateRentedBuffer(),
+            cancellationToken);
 
         while (backlog.TryPop(out var current))
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var (parent, selection, result) = current;
             fieldContext.Initialize(parent, selection, result);
 
-            selection.Resolver?.Invoke(fieldContext);
+            if (selection.AsyncResolver is { } asyncResolver)
+            {
+                await asyncResolver.Invoke(fieldContext).ConfigureAwait(false);
+            }
+            else if (selection.Resolver is { } resolver)
+            {
+                resolver.Invoke(fieldContext);
+            }
+            else
+            {
+                throw new InvalidOperationException(
+                    $"No resolver found for selection '{selection.ResponseName}' "
+                    + $"on field '{selection.Field.Name}'.");
+            }
 
             if (!selection.IsLeaf)
             {
-                if (result.ValueKind is JsonValueKind.Object && selection.Type.IsObjectType())
+                var namedType = selection.Type.NamedType();
+
+                if (result.ValueKind is JsonValueKind.Object
+                    && (namedType.IsObjectType() || namedType.IsAbstractType()))
                 {
-                    var objectType = selection.Type.NamedType<IObjectTypeDefinition>();
+                    var objectType = ResolveObjectType(
+                        namedType,
+                        fieldContext.RuntimeResults[0],
+                        context.Schema);
                     var selectionSet = operation.GetSelectionSet(selection, objectType);
 
                     var j = 0;
@@ -121,10 +169,18 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
                 }
                 else if (result.ValueKind is JsonValueKind.Array
                     && selection.Type.IsListType()
-                    && selection.Type.NamedType().IsObjectType())
+                    && (namedType.IsObjectType() || namedType.IsAbstractType()))
                 {
-                    var objectType = selection.Type.NamedType<IObjectTypeDefinition>();
-                    var selectionSet = operation.GetSelectionSet(selection, objectType);
+                    var isAbstract = namedType.IsAbstractType();
+
+                    // For non-abstract list types, resolve the selection set once.
+                    SelectionSet? staticSelectionSet = null;
+                    if (!isAbstract)
+                    {
+                        var objectType = namedType as IObjectTypeDefinition
+                            ?? selection.Type.NamedType<IObjectTypeDefinition>();
+                        staticSelectionSet = operation.GetSelectionSet(selection, objectType);
+                    }
 
                     var i = 0;
                     foreach (var element in result.EnumerateArray())
@@ -135,6 +191,11 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
                         {
                             continue;
                         }
+
+                        var selectionSet = staticSelectionSet
+                            ?? operation.GetSelectionSet(
+                                selection,
+                                ResolveObjectType(namedType, runtimeResult, context.Schema));
 
                         var k = 0;
                         for (var j = 0; j < selectionSet.Selections.Length; j++)
@@ -153,5 +214,18 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
                 }
             }
         }
+    }
+
+    private static IObjectTypeDefinition ResolveObjectType(
+        IType namedType,
+        object? runtimeResult,
+        ISchemaDefinition schema)
+    {
+        if (namedType is IObjectTypeDefinition objectType)
+        {
+            return objectType;
+        }
+
+        return SchemaDefinitionTypeResolver.ResolveObjectType(schema, runtimeResult);
     }
 }
