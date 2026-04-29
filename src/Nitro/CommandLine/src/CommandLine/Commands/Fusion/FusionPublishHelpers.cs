@@ -443,7 +443,7 @@ internal static class FusionPublishHelpers
             else if (legacyArchiveFile is not null)
             {
                 downloadActivity.Warning(
-                    $"There is no existing configuration on '{stageName}', using {OptionalLegacyFusionArchiveFileOption.OptionName} instead.");
+                    $"There is no existing configuration on '{stageName.EscapeMarkup()}', using {OptionalLegacyFusionArchiveFileOption.OptionName} instead.");
             }
             else
             {

@@ -281,25 +281,20 @@ internal sealed class FusionPublishCommand : Command
             Func<Task<Stream>> prepareArchive)
         {
             string? requestId = null;
-            // Resuming from a stored request ID is intended for the v1 to v2 migration
-            // workflow where a prior `fusion publish begin` and `fusion publish start`
-            // produced the request ID. We therefore only honor the cache when the caller
-            // is also providing a legacy v1 archive.
-            var existingRequestId = legacyArchiveFile is not null
-                ? await FusionConfigurationPublishingState.GetRequestId(fileSystem, cancellationToken)
-                : null;
+            if (legacyArchiveFile is not null)
+            {
+                requestId = await FusionConfigurationPublishingState.GetRequestId(fileSystem, cancellationToken);
+            }
 
             try
             {
-                if (existingRequestId is not null)
+                if (!string.IsNullOrWhiteSpace(requestId))
                 {
                     // The deployment slot was already requested and claimed by prior
                     // `fusion publish begin` and `fusion publish start` invocations,
                     // so we resume from the existing request ID.
-                    requestId = existingRequestId;
-
                     activity.Update(
-                        $"Reusing existing publication request. {$"(ID: {existingRequestId.EscapeMarkup()})".Dim()}");
+                        $"Reusing existing publication request. {$"(ID: {requestId.EscapeMarkup()})".Dim()}");
                 }
                 else
                 {
