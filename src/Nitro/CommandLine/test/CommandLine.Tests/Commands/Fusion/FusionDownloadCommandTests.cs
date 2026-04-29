@@ -239,7 +239,7 @@ public sealed class FusionDownloadCommandTests(NitroCommandFixture fixture) : Fu
         // assert
         result.AssertError(
             """
-            The API with the given ID does not exist or does not have a download URL.
+            The API with the given ID does not exist or there is no Fusion configuration that supports version '2.0.0'.
             """);
     }
 }
