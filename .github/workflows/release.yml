@@ -1,5 +1,7 @@
 name: 🚀 Release
 
+run-name: Release v${{ github.ref_name }}
+
 on:
   push:
     tags:
@@ -60,11 +62,13 @@ jobs:
             IS_HIGHEST_STABLE_MAJOR=false
           fi
 
-          echo "git_tag=$GIT_TAG" >> "$GITHUB_OUTPUT"
-          echo "major=$MAJOR" >> "$GITHUB_OUTPUT"
-          echo "is_stable=$IS_STABLE" >> "$GITHUB_OUTPUT"
-          echo "is_active_major=$IS_ACTIVE_MAJOR" >> "$GITHUB_OUTPUT"
-          echo "is_highest_stable_major=$IS_HIGHEST_STABLE_MAJOR" >> "$GITHUB_OUTPUT"
+          {
+            echo "git_tag=$GIT_TAG"
+            echo "major=$MAJOR"
+            echo "is_stable=$IS_STABLE"
+            echo "is_active_major=$IS_ACTIVE_MAJOR"
+            echo "is_highest_stable_major=$IS_HIGHEST_STABLE_MAJOR"
+          } | tee -a "$GITHUB_OUTPUT"
 
   create-draft:
     name: 📝 Create Draft Release
