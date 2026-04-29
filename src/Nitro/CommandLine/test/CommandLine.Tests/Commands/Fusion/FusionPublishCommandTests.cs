@@ -1281,7 +1281,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     }
 
     [Fact]
-    public async Task WithSourceSchemaFile_FarInRegistry_LegacyFlagIgnored_ReturnsSuccess()
+    public async Task WithSourceSchemaFile_FarInRegistry_WithLegacyArchive_ReturnsSuccess()
     {
         // arrange
         SetupSourceSchemaFile();
@@ -1330,12 +1330,12 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Uploaded configuration.
             └── ✓ Published configuration 'v1' to 'dev'.
             """);
-        var schema = await GetFarInRegistryLegacyFlagIgnoredSchemaAsync(capturedStream);
+        var schema = await GetFarInRegistryWithLegacyArchiveSchemaAsync(capturedStream);
         AssertComposedFusionSchema(schema);
     }
 
     [Fact]
-    public async Task WithSourceSchemaFile_FgpInRegistry_NewSourceSchema_ReturnsSuccess()
+    public async Task WithSourceSchemaFile_FgpInRegistry_NoLocalLegacyArchive_ReturnsError()
     {
         // arrange
         SetupSourceSchemaFile();
@@ -1344,10 +1344,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupClaimDeploymentSlotMutation();
         SetupMissingFusionConfigurationDownload();
         SetupLegacyFusionConfigurationDownload();
-        SetupFusionConfigurationValidationMutation();
-        SetupFusionConfigurationValidationSubscription();
-        var capturedStream = SetupFusionConfigurationUploadMutation();
-        SetupFusionConfigurationUploadSubscription();
+        SetupReleaseDeploymentSlotMutation();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -1363,7 +1360,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             SourceSchemaFile);
 
         // assert
-        result.AssertSuccess(
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Stage 'dev' currently has a Fusion v1 archive but no '--legacy-v1-archive' was provided. The server-stored Fusion v1 archive may be outdated and cannot be used as the composition base. Please provide a local Fusion v1 archive via '--legacy-v1-archive'.
+            """);
+        result.StdOut.MatchInlineSnapshot(
             """
             Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
@@ -1372,73 +1373,10 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Downloading existing configuration from 'dev'
-            │   └── ✓ Downloaded existing legacy v1 configuration from 'dev'.
-            ├── Composing new configuration
-            │   └── ✓ Composed new configuration.
-            ├── Validating configuration against 'dev'
-            │   ├── Validating...
-            │   └── ✓ Fusion configuration passed validation.
-            ├── Uploading configuration to 'dev'
-            │   └── ✓ Uploaded configuration.
-            └── ✓ Published configuration 'v1' to 'dev'.
+            │   └── ✕ Failed to download the existing Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
-        var schema = await GetMigratedLegacyArchiveSchemaAsync(capturedStream);
-        AssertMigratedFusionSchema(schema);
-    }
-
-    [Fact]
-    public async Task WithSourceSchemaFile_FgpInRegistry_OverridingSourceSchema_ReturnsSuccess()
-    {
-        // arrange
-        SetupSourceSchemaFile(
-            SourceSchemaReviewsFile,
-            SourceSchemaReviewsSettingsFile,
-            SourceSchemaReviews);
-        SetupRequestDeploymentSlotMutation();
-        SetupRequestDeploymentSlotSubscription();
-        SetupClaimDeploymentSlotMutation();
-        SetupMissingFusionConfigurationDownload();
-        SetupLegacyFusionConfigurationDownload();
-        SetupFusionConfigurationValidationMutation();
-        SetupFusionConfigurationValidationSubscription();
-        var capturedStream = SetupFusionConfigurationUploadMutation();
-        SetupFusionConfigurationUploadSubscription();
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "fusion",
-            "publish",
-            "--api-id",
-            ApiId,
-            "--stage",
-            Stage,
-            "--tag",
-            Tag,
-            "--source-schema-file",
-            SourceSchemaReviewsFile);
-
-        // assert
-        result.AssertSuccess(
-            """
-            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
-            ├── Requesting deployment slot
-            │   ├── Publication request created. (ID: request-id)
-            │   └── ✓ Deployment slot ready.
-            ├── Claiming deployment slot
-            │   └── ✓ Claimed deployment slot.
-            ├── Downloading existing configuration from 'dev'
-            │   └── ✓ Downloaded existing legacy v1 configuration from 'dev'.
-            ├── Composing new configuration
-            │   └── ✓ Composed new configuration.
-            ├── Validating configuration against 'dev'
-            │   ├── Validating...
-            │   └── ✓ Fusion configuration passed validation.
-            ├── Uploading configuration to 'dev'
-            │   └── ✓ Uploaded configuration.
-            └── ✓ Published configuration 'v1' to 'dev'.
-            """);
-        var schema = await GetOverriddenLegacyArchiveSchemaAsync(capturedStream);
-        AssertOverriddenFusionSchema(schema);
+        Assert.Equal(1, result.ExitCode);
     }
 
     [Fact]
@@ -1482,7 +1420,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Downloading existing configuration from 'dev'
-            │   └── ✓ Downloaded existing legacy v1 configuration from 'dev'.
+            │   └── ! There is no existing configuration on 'dev', using --legacy-v1-archive instead.
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
@@ -1540,7 +1478,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Downloading existing configuration from 'dev'
-            │   └── ✓ Downloaded existing legacy v1 configuration from 'dev'.
+            │   └── ! There is no existing configuration on 'dev', using --legacy-v1-archive instead.
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
@@ -1595,7 +1533,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Downloading existing configuration from 'dev'
-            │   └── ! There is no existing configuration on 'dev'.
+            │   └── ! There is no existing configuration on 'dev', using --legacy-v1-archive instead.
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
@@ -1653,7 +1591,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Downloading existing configuration from 'dev'
-            │   └── ! There is no existing configuration on 'dev'.
+            │   └── ! There is no existing configuration on 'dev', using --legacy-v1-archive instead.
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
@@ -2823,7 +2761,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     }
 
     [Fact]
-    public async Task WithSourceSchema_FarInRegistry_LegacyFlagIgnored_ReturnsSuccess()
+    public async Task WithSourceSchema_FarInRegistry_WithLegacyArchive_ReturnsSuccess()
     {
         // arrange
         SetupSourceSchemaDownload();
@@ -2874,12 +2812,12 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Uploaded configuration.
             └── ✓ Published configuration 'v1' to 'dev'.
             """);
-        var schema = await GetFarInRegistryLegacyFlagIgnoredSchemaAsync(capturedStream);
+        var schema = await GetFarInRegistryWithLegacyArchiveSchemaAsync(capturedStream);
         AssertComposedFusionSchema(schema);
     }
 
     [Fact]
-    public async Task WithSourceSchema_FgpInRegistry_NewSourceSchema_ReturnsSuccess()
+    public async Task WithSourceSchema_FgpInRegistry_NoLocalLegacyArchive_ReturnsError()
     {
         // arrange
         SetupSourceSchemaDownload();
@@ -2888,10 +2826,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupClaimDeploymentSlotMutation();
         SetupMissingFusionConfigurationDownload();
         SetupLegacyFusionConfigurationDownload();
-        SetupFusionConfigurationValidationMutation();
-        SetupFusionConfigurationValidationSubscription();
-        var capturedStream = SetupFusionConfigurationUploadMutation();
-        SetupFusionConfigurationUploadSubscription();
+        SetupReleaseDeploymentSlotMutation();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -2907,7 +2842,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             SourceSchema);
 
         // assert
-        result.AssertSuccess(
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Stage 'dev' currently has a Fusion v1 archive but no '--legacy-v1-archive' was provided. The server-stored Fusion v1 archive may be outdated and cannot be used as the composition base. Please provide a local Fusion v1 archive via '--legacy-v1-archive'.
+            """);
+        result.StdOut.MatchInlineSnapshot(
             """
             Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
@@ -2918,72 +2857,10 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Downloading existing configuration from 'dev'
-            │   └── ✓ Downloaded existing legacy v1 configuration from 'dev'.
-            ├── Composing new configuration
-            │   └── ✓ Composed new configuration.
-            ├── Validating configuration against 'dev'
-            │   ├── Validating...
-            │   └── ✓ Fusion configuration passed validation.
-            ├── Uploading configuration to 'dev'
-            │   └── ✓ Uploaded configuration.
-            └── ✓ Published configuration 'v1' to 'dev'.
+            │   └── ✕ Failed to download the existing Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
-        var schema = await GetMigratedLegacyArchiveSchemaAsync(capturedStream);
-        AssertMigratedFusionSchema(schema);
-    }
-
-    [Fact]
-    public async Task WithSourceSchema_FgpInRegistry_OverridingSourceSchema_ReturnsSuccess()
-    {
-        // arrange
-        SetupReviewsSourceSchemaDownload();
-        SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaReviewsVersions);
-        SetupRequestDeploymentSlotSubscription();
-        SetupClaimDeploymentSlotMutation();
-        SetupMissingFusionConfigurationDownload();
-        SetupLegacyFusionConfigurationDownload();
-        SetupFusionConfigurationValidationMutation();
-        SetupFusionConfigurationValidationSubscription();
-        var capturedStream = SetupFusionConfigurationUploadMutation();
-        SetupFusionConfigurationUploadSubscription();
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "fusion",
-            "publish",
-            "--api-id",
-            ApiId,
-            "--stage",
-            Stage,
-            "--tag",
-            Tag,
-            "--source-schema",
-            SourceSchemaReviews);
-
-        // assert
-        result.AssertSuccess(
-            """
-            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
-            ├── Downloading 1 source schema(s)
-            │   └── ✓ Downloaded 1 source schema(s).
-            ├── Requesting deployment slot
-            │   ├── Publication request created. (ID: request-id)
-            │   └── ✓ Deployment slot ready.
-            ├── Claiming deployment slot
-            │   └── ✓ Claimed deployment slot.
-            ├── Downloading existing configuration from 'dev'
-            │   └── ✓ Downloaded existing legacy v1 configuration from 'dev'.
-            ├── Composing new configuration
-            │   └── ✓ Composed new configuration.
-            ├── Validating configuration against 'dev'
-            │   ├── Validating...
-            │   └── ✓ Fusion configuration passed validation.
-            ├── Uploading configuration to 'dev'
-            │   └── ✓ Uploaded configuration.
-            └── ✓ Published configuration 'v1' to 'dev'.
-            """);
-        var schema = await GetOverriddenLegacyArchiveSchemaAsync(capturedStream);
-        AssertOverriddenFusionSchema(schema);
+        Assert.Equal(1, result.ExitCode);
     }
 
     [Fact]
@@ -3029,7 +2906,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Downloading existing configuration from 'dev'
-            │   └── ✓ Downloaded existing legacy v1 configuration from 'dev'.
+            │   └── ! There is no existing configuration on 'dev', using --legacy-v1-archive instead.
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
@@ -3086,7 +2963,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Downloading existing configuration from 'dev'
-            │   └── ✓ Downloaded existing legacy v1 configuration from 'dev'.
+            │   └── ! There is no existing configuration on 'dev', using --legacy-v1-archive instead.
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
@@ -3143,7 +3020,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Downloading existing configuration from 'dev'
-            │   └── ! There is no existing configuration on 'dev'.
+            │   └── ! There is no existing configuration on 'dev', using --legacy-v1-archive instead.
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
@@ -3200,7 +3077,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Downloading existing configuration from 'dev'
-            │   └── ! There is no existing configuration on 'dev'.
+            │   └── ! There is no existing configuration on 'dev', using --legacy-v1-archive instead.
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
@@ -4556,13 +4433,13 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
     }
 
-    private static async Task<string> GetFarInRegistryLegacyFlagIgnoredSchemaAsync(MemoryStream capturedStream)
+    private static async Task<string> GetFarInRegistryWithLegacyArchiveSchemaAsync(MemoryStream capturedStream)
     {
         using var archive = FusionArchive.Open(capturedStream);
 
         var schema = await GetFusionSchemaAsync(archive);
 
-        await AssertNoEmbeddedLegacyArchiveAsync(archive);
+        await AssertEmbeddedLegacyArchiveAsync(archive);
 
         return schema;
     }
@@ -4624,12 +4501,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         Assert.Equal(
             new[] { SourceSchemaReviews },
             configs.Select(c => c.Name).ToArray());
-    }
-
-    private static async Task AssertNoEmbeddedLegacyArchiveAsync(FusionArchive archive)
-    {
-        await using var stream = await archive.TryGetLegacyArchiveFileAsync();
-        Assert.Null(stream);
     }
 
     private void AssertComposedFusionSchema(string schema)
