@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using HotChocolate.Execution;
-using OpenTelemetry.Trace;
 
 namespace HotChocolate.Diagnostics.Scopes;
 
@@ -21,7 +20,6 @@ internal sealed class CompileOperationScope : RequestScopeBase
     {
         if (Context.Operation is not null)
         {
-            Activity.SetStatus(Status.Ok);
             Activity.SetStatus(ActivityStatusCode.Ok);
         }
     }

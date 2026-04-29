@@ -39,7 +39,7 @@
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageVersion Include="NodaTime" Version="3.0.0" />
     <PackageVersion Include="Npgsql" Version="8.0.4" />
-    <PackageVersion Include="OpenTelemetry.Api" Version="1.1.0" />
+    <PackageVersion Include="OpenTelemetry.Api" Version="1.15.3" />
     <PackageVersion Include="ProjNET" Version="2.0.0" />
     <PackageVersion Include="RabbitMQ.Client" Version="6.4.0" />
     <PackageVersion Include="RavenDB.Client" Version="6.0.104" />

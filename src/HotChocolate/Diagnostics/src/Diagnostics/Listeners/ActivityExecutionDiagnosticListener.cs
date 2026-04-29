@@ -5,7 +5,6 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
-using OpenTelemetry.Trace;
 using static HotChocolate.Diagnostics.ContextKeys;
 using static HotChocolate.Diagnostics.HotChocolateActivitySource;
 
@@ -121,7 +120,6 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
 
             var activity = (Activity)value;
             _enricher.EnrichSyntaxError(context, activity, error);
-            activity.SetStatus(Status.Error);
             activity.SetStatus(ActivityStatusCode.Error);
         }
     }
@@ -158,7 +156,6 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
                 _enricher.EnrichValidationError(context, activity, error);
             }
 
-            activity.SetStatus(Status.Error);
             activity.SetStatus(ActivityStatusCode.Error);
         }
     }
@@ -289,7 +286,6 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         }
 
         _enricher.EnrichResolveFieldValue(context, activity);
-        activity.SetStatus(Status.Ok);
         activity.SetStatus(ActivityStatusCode.Ok);
 
         context.SetLocalState(ResolverActivity, activity);
@@ -306,7 +302,6 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
 
             var activity = (Activity)value;
             _enricher.EnrichResolverError(context, error, activity);
-            activity.SetStatus(Status.Error);
             activity.SetStatus(ActivityStatusCode.Error);
         }
     }
@@ -320,7 +315,6 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
 
             var activity = (Activity)value;
             _enricher.EnrichResolverError(context, selection, error, activity);
-            activity.SetStatus(Status.Error);
             activity.SetStatus(ActivityStatusCode.Error);
         }
     }

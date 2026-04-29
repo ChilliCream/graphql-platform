@@ -12,7 +12,6 @@ using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using OpenTelemetry.Trace;
 using static HotChocolate.Diagnostics.SemanticConventions;
 using static HotChocolate.WellKnownContextData;
 
@@ -589,7 +588,7 @@ public class ActivityEnricher
     {
         if (error.Exception is { } exception)
         {
-            activity.RecordException(exception);
+            activity.AddException(exception);
         }
 
         var tags = new ActivityTagsCollection

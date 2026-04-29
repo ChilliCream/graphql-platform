@@ -1,4 +1,4 @@
-﻿{
+{
   "activities": [
     {
       "OperationName": "ExecuteRequest",
@@ -37,12 +37,7 @@
           "OperationName": "ParseDocument",
           "DisplayName": "Parse Document",
           "Status": "Ok",
-          "tags": [
-            {
-              "Key": "otel.status_code",
-              "Value": "OK"
-            }
-          ],
+          "tags": [],
           "event": []
         },
         {
@@ -57,10 +52,6 @@
             {
               "Key": "graphql.document.hash",
               "Value": "cee0e2939ece72d650cb0331f4be4669"
-            },
-            {
-              "Key": "otel.status_code",
-              "Value": "OK"
             }
           ],
           "event": []
@@ -69,24 +60,14 @@
           "OperationName": "CompileOperation",
           "DisplayName": "Compile Operation",
           "Status": "Ok",
-          "tags": [
-            {
-              "Key": "otel.status_code",
-              "Value": "OK"
-            }
-          ],
+          "tags": [],
           "event": []
         },
         {
           "OperationName": "ExecuteOperation",
           "DisplayName": "Execute Operation GetA",
           "Status": "Ok",
-          "tags": [
-            {
-              "Key": "otel.status_code",
-              "Value": "OK"
-            }
-          ],
+          "tags": [],
           "event": [],
           "activities": [
             {
@@ -121,10 +102,6 @@
                 {
                   "Key": "graphql.selection.field.declaringType",
                   "Value": "SimpleQuery"
-                },
-                {
-                  "Key": "otel.status_code",
-                  "Value": "OK"
                 }
               ],
               "event": []

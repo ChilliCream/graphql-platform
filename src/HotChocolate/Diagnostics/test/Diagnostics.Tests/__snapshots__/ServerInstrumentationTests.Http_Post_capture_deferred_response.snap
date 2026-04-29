@@ -1,4 +1,4 @@
-﻿{
+{
   "activities": [
     {
       "OperationName": "ExecuteHttpRequest",
@@ -28,12 +28,7 @@
           "OperationName": "ParseHttpRequest",
           "DisplayName": "Parse HTTP Request",
           "Status": "Ok",
-          "tags": [
-            {
-              "Key": "otel.status_code",
-              "Value": "OK"
-            }
-          ],
+          "tags": [],
           "event": []
         },
         {
@@ -69,10 +64,6 @@
                 {
                   "Key": "graphql.document.id",
                   "Value": "c563b5e7a3e68a1f25847ac7ab07017c"
-                },
-                {
-                  "Key": "otel.status_code",
-                  "Value": "OK"
                 }
               ],
               "event": []
@@ -93,24 +84,14 @@
               "OperationName": "CompileOperation",
               "DisplayName": "Compile Operation",
               "Status": "Ok",
-              "tags": [
-                {
-                  "Key": "otel.status_code",
-                  "Value": "OK"
-                }
-              ],
+              "tags": [],
               "event": []
             },
             {
               "OperationName": "ExecuteOperation",
               "DisplayName": "Execute Operation",
               "Status": "Ok",
-              "tags": [
-                {
-                  "Key": "otel.status_code",
-                  "Value": "OK"
-                }
-              ],
+              "tags": [],
               "event": [],
               "activities": [
                 {
@@ -145,10 +126,6 @@
                     {
                       "Key": "graphql.selection.field.declaringType",
                       "Value": "Query"
-                    },
-                    {
-                      "Key": "otel.status_code",
-                      "Value": "OK"
                     }
                   ],
                   "event": [],
@@ -185,10 +162,6 @@
                         {
                           "Key": "graphql.selection.field.declaringType",
                           "Value": "Droid"
-                        },
-                        {
-                          "Key": "otel.status_code",
-                          "Value": "OK"
                         }
                       ],
                       "event": []

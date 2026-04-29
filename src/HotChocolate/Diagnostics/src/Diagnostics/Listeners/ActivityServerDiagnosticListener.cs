@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.Execution;
 using HotChocolate.Language;
-using OpenTelemetry.Trace;
 using static HotChocolate.Diagnostics.ContextKeys;
 
 namespace HotChocolate.Diagnostics.Listeners;
@@ -82,7 +81,7 @@ internal sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventLi
         {
             var activity = (Activity)value!;
             _enricher.EnrichHttpRequestError(context, error, activity);
-            activity.SetStatus(Status.Error);
+            activity.SetStatus(ActivityStatusCode.Error);
         }
     }
 
@@ -92,7 +91,7 @@ internal sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventLi
         {
             var activity = (Activity)value!;
             _enricher.EnrichHttpRequestError(context, exception, activity);
-            activity.SetStatus(Status.Error);
+            activity.SetStatus(ActivityStatusCode.Error);
         }
     }
 
@@ -111,7 +110,6 @@ internal sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventLi
         }
 
         _enricher.EnrichParseHttpRequest(context, activity);
-        activity.SetStatus(Status.Ok);
         activity.SetStatus(ActivityStatusCode.Ok);
         context.Items[ParseHttpRequestActivity] = activity;
 
@@ -129,7 +127,6 @@ internal sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventLi
                 _enricher.EnrichParserErrors(context, error, activity);
             }
 
-            activity.SetStatus(Status.Error);
             activity.SetStatus(ActivityStatusCode.Error);
         }
     }

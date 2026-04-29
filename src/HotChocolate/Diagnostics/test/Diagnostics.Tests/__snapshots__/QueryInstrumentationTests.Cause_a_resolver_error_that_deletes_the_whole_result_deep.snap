@@ -1,4 +1,4 @@
-﻿{
+{
   "activities": [
     {
       "OperationName": "ExecuteRequest",
@@ -16,10 +16,6 @@
         {
           "Key": "graphql.document.body",
           "Value": "query SayHelloOperation {\n  deep {\n    deeper {\n      deeps {\n        deeper {\n          causeFatalError\n        }\n      }\n    }\n  }\n}"
-        },
-        {
-          "Key": "otel.status_code",
-          "Value": "ERROR"
         }
       ],
       "event": [],
@@ -28,12 +24,7 @@
           "OperationName": "ParseDocument",
           "DisplayName": "Parse Document",
           "Status": "Ok",
-          "tags": [
-            {
-              "Key": "otel.status_code",
-              "Value": "OK"
-            }
-          ],
+          "tags": [],
           "event": []
         },
         {
@@ -41,10 +32,6 @@
           "DisplayName": "Validate Document",
           "Status": "Error",
           "tags": [
-            {
-              "Key": "otel.status_code",
-              "Value": "ERROR"
-            },
             {
               "Key": "graphql.document.id",
               "Value": "803df9346db185e9dc0b22dd3909aa70"

@@ -1,4 +1,4 @@
-﻿{
+{
   "activities": [
     {
       "OperationName": "ExecuteHttpRequest",
@@ -16,12 +16,7 @@
           "OperationName": "ParseHttpRequest",
           "DisplayName": "Parse HTTP Request",
           "Status": "Error",
-          "tags": [
-            {
-              "Key": "otel.status_code",
-              "Value": "ERROR"
-            }
-          ],
+          "tags": [],
           "event": [
             {
               "Name": "exception",
