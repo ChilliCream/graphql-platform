@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <IsAotCompatible>true</IsAotCompatible>
     <NoWarn>HC8001;$(NoWarn)</NoWarn>
   </PropertyGroup>
 

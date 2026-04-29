@@ -1,3 +1,4 @@
+using HotChocolate;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Instrumentation;
@@ -10,6 +11,8 @@ using HotChocolate.Fusion.AspNetCore;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -18,24 +21,43 @@ public static class FusionServerServiceCollectionExtensions
     public static IFusionGatewayBuilder AddGraphQLGatewayServer(
         this IServiceCollection services,
         string? name = null,
-        int maxAllowedRequestSize = ServerDefaults.MaxAllowedRequestSize)
+        int maxAllowedRequestSize = ServerDefaults.MaxAllowedRequestSize,
+        bool disableDefaultSecurity = false)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentOutOfRangeException.ThrowIfNegative(maxAllowedRequestSize);
 
-        return services
+        var builder = services
             .AddGraphQLGateway(name)
             .AddGraphQLGatewayServerCore(maxAllowedRequestSize)
             .AddStartupInitialization()
             .AddDefaultHttpRequestInterceptor()
             .AddSubscriptionServices();
+
+        if (!disableDefaultSecurity)
+        {
+            builder.DisableIntrospection(
+                (sp, _) =>
+                {
+                    var environment = sp.GetService<IHostEnvironment>();
+                    return environment?.IsDevelopment() != true;
+                });
+            builder.AddMaxAllowedFieldCycleDepthRule(
+                isEnabled: (sp, _) =>
+                {
+                    var environment = sp.GetService<IHostEnvironment>();
+                    return environment?.IsDevelopment() != true;
+                });
+        }
+
+        return builder;
     }
 
     private static IFusionGatewayBuilder AddGraphQLGatewayServerCore(
         this IFusionGatewayBuilder builder,
         int maxAllowedRequestSize = ServerDefaults.MaxAllowedRequestSize)
     {
-        builder.ConfigureSchemaServices((_, sc) =>
+        builder.ConfigureSchemaServices((applicationServices, sc) =>
         {
             sc.TryAddSingleton<ITimeProvider, DefaultTimeProvider>();
 
@@ -61,6 +83,15 @@ public static class FusionServerServiceCollectionExtensions
                     1 => listeners[0],
                     _ => new AggregateServerDiagnosticEventListener(listeners)
                 };
+            });
+
+            sc.TryAddSingleton(schemaServices =>
+            {
+                var schemaName = schemaServices.GetRequiredService<ISchemaDefinition>().Name;
+                var serverOptions = applicationServices
+                    .GetRequiredService<IOptionsMonitor<GraphQLServerOptions>>()
+                    .Get(schemaName);
+                return new ExecutionConcurrencyGate(serverOptions.MaxConcurrentExecutions);
             });
         });
 

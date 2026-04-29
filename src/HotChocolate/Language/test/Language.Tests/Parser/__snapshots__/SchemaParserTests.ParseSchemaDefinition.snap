@@ -1,4 +1,4 @@
-﻿"""
+"""
 Description
 """
 schema @foo(a: "123") {

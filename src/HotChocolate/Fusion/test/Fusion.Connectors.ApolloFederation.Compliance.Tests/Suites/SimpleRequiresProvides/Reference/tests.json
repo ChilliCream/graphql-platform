@@ -1,0 +1,180 @@
+[
+  {
+    "query": "query {\n  me {\n    id\n  }\n}\n",
+    "expected": {
+      "data": {
+        "me": {
+          "id": "u1"
+        }
+      }
+    }
+  },
+  {
+    "query": "query {\n  me {\n    id\n    reviews {\n      id\n    }\n  }\n}\n",
+    "expected": {
+      "data": {
+        "me": {
+          "id": "u1",
+          "reviews": [
+            { "id": "r1" },
+            { "id": "r2" }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "query": "query {\n  me {\n    reviews {\n      id\n      author {\n        id\n        username\n      }\n      product {\n        inStock\n      }\n    }\n  }\n}\n",
+    "expected": {
+      "data": {
+        "me": {
+          "reviews": [
+            {
+              "id": "r1",
+              "author": {
+                "id": "u1",
+                "username": "u-username-1"
+              },
+              "product": {
+                "inStock": true
+              }
+            },
+            {
+              "id": "r2",
+              "author": {
+                "id": "u1",
+                "username": "u-username-1"
+              },
+              "product": {
+                "inStock": false
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "query": "query {\n  products {\n    name\n  }\n}\n",
+    "expected": {
+      "data": {
+        "products": [
+          { "name": "p-name-1" },
+          { "name": "p-name-2" }
+        ]
+      }
+    }
+  },
+  {
+    "query": "query {\n  products {\n    price\n  }\n}\n",
+    "expected": {
+      "data": {
+        "products": [
+          { "price": 11 },
+          { "price": 22 }
+        ]
+      }
+    }
+  },
+  {
+    "query": "query {\n  products {\n    shippingEstimate\n  }\n}\n",
+    "expected": {
+      "data": {
+        "products": [
+          { "shippingEstimate": 110 },
+          { "shippingEstimate": 440 }
+        ]
+      }
+    }
+  },
+  {
+    "query": "query {\n  products {\n    shippingEstimate\n    weight\n    price\n  }\n}\n",
+    "expected": {
+      "data": {
+        "products": [
+          { "shippingEstimate": 110, "weight": 1, "price": 11 },
+          { "shippingEstimate": 440, "weight": 2, "price": 22 }
+        ]
+      }
+    }
+  },
+  {
+    "query": "{\n  products {\n    reviews {\n      id\n      author {\n        username\n      }\n      product {\n        name\n        shippingEstimate\n      }\n    }\n  }\n}\n",
+    "expected": {
+      "data": {
+        "products": [
+          {
+            "reviews": [
+              {
+                "id": "r1",
+                "author": { "username": "u-username-1" },
+                "product": { "name": "p-name-1", "shippingEstimate": 110 }
+              }
+            ]
+          },
+          {
+            "reviews": [
+              {
+                "id": "r2",
+                "author": { "username": "u-username-1" },
+                "product": { "name": "p-name-2", "shippingEstimate": 440 }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "query": "{\n  me {\n    reviews {\n      product {\n        reviews {\n          id\n        }\n      }\n    }\n  }\n}\n",
+    "expected": {
+      "data": {
+        "me": {
+          "reviews": [
+            { "product": { "reviews": [{ "id": "r1" }] } },
+            { "product": { "reviews": [{ "id": "r2" }] } }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "query": "query {\n  me {\n    reviews {\n      product {\n        inStock\n      }\n    }\n  }\n}\n",
+    "expected": {
+      "data": {
+        "me": {
+          "reviews": [
+            { "product": { "inStock": true } },
+            { "product": { "inStock": false } }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "query": "query {\n  me {\n    reviews {\n      product {\n        shippingEstimate\n      }\n    }\n  }\n}\n",
+    "expected": {
+      "data": {
+        "me": {
+          "reviews": [
+            { "product": { "shippingEstimate": 110 } },
+            { "product": { "shippingEstimate": 440 } }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "query": "query {\n  me {\n    reviews {\n      product {\n        shippingEstimate\n        shippingEstimateTag\n      }\n    }\n  }\n}\n",
+    "expected": {
+      "data": {
+        "me": {
+          "reviews": [
+            { "product": { "shippingEstimate": 110, "shippingEstimateTag": "#p1#110#" } },
+            { "product": { "shippingEstimate": 440, "shippingEstimateTag": "#p2#440#" } }
+          ]
+        }
+      }
+    }
+  }
+]

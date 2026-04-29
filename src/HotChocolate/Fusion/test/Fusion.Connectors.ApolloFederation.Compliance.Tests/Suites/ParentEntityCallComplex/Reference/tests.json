@@ -1,0 +1,18 @@
+[
+  {
+    "query": "query { productFromD(id: \"1\") { id name category { id name details } } }",
+    "expected": {
+      "data": {
+        "productFromD": {
+          "id": "1",
+          "name": "Product#1",
+          "category": {
+            "id": "3",
+            "name": "Category#3",
+            "details": "Details for Product#1"
+          }
+        }
+      }
+    }
+  }
+]

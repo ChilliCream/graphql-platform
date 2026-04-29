@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
 using HotChocolate.Features;
 using HotChocolate.Types.Descriptors;
@@ -19,6 +20,11 @@ internal sealed class RequirementsTypeInterceptor : TypeInterceptor
         }
     }
 
+    [UnconditionalSuppressMessage(
+        "AOT",
+        "IL2072",
+        Justification =
+            "Runtime types come from the schema type model and are statically referenced.")]
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
         TypeSystemConfiguration configuration)

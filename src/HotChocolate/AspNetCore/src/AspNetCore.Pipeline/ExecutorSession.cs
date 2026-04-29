@@ -267,6 +267,14 @@ public sealed class ExecutorSession
             Version,
             context.RequestAborted);
 
+    public async Task WriteSemanticNonNullSchemaAsync(
+        HttpContext context)
+        => await _responseFormatter.FormatSemanticNonNullSchemaAsync(
+            context.Response,
+            Schema,
+            Version,
+            context.RequestAborted);
+
     public RequestFlags CreateRequestFlags(AcceptMediaType[] acceptMediaTypes)
         => _responseFormatter.CreateRequestFlags(acceptMediaTypes);
 }

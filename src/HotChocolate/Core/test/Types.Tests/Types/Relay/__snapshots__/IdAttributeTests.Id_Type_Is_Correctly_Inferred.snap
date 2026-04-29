@@ -2,26 +2,6 @@ schema {
   query: Query
 }
 
-interface IFooPayload {
-  someId: ID!
-  someNullableId: ID
-  someIds: [ID!]!
-  someNullableIds: [ID]
-  interceptedId: Int
-  interceptedIds: [Int!]
-  raw: String!
-}
-
-type FooPayload implements IFooPayload {
-  someId: ID!
-  someIds: [ID!]!
-  someNullableId: ID
-  someNullableIds: [ID]
-  interceptedId: Int
-  interceptedIds: [Int!]
-  raw: String!
-}
-
 type Query {
   intId(id: ID!): Int!
   intIdList(ids: [ID!]!): [Int!]!
@@ -50,6 +30,26 @@ type Query {
   foo(input: FooInput!): IFooPayload!
 }
 
+type FooPayload implements IFooPayload {
+  someId: ID!
+  someIds: [ID!]!
+  someNullableId: ID
+  someNullableIds: [ID]
+  interceptedId: Int
+  interceptedIds: [Int!]
+  raw: String!
+}
+
+interface IFooPayload {
+  someId: ID!
+  someNullableId: ID
+  someIds: [ID!]!
+  someNullableIds: [ID]
+  interceptedId: Int
+  interceptedIds: [Int!]
+  raw: String!
+}
+
 input FooInput {
   someId: ID!
   someNullableId: ID
@@ -60,12 +60,6 @@ input FooInput {
   interceptedId: ID
   interceptedIds: [ID!]
 }
-
-"The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions."
-directive @specifiedBy(
-  "The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types."
-  url: String!
-) on SCALAR
 
 "The `UUID` scalar type represents a Universally Unique Identifier (UUID) as defined by RFC 9562."
 scalar UUID

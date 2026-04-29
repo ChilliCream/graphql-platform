@@ -13,18 +13,21 @@ public sealed partial class CompositeResultDocument : IDisposable
     private readonly List<SourceResultDocument> _sources = [];
     private readonly Operation _operation;
     private readonly ulong _includeFlags;
+    private readonly ulong _deferFlags;
     private readonly PathSegmentLocalPool? _pathPool;
     internal MetaDb _metaDb;
-    private bool _disposed;
+    private int _disposed;
 
     internal CompositeResultDocument(
         Operation operation,
         ulong includeFlags,
+        ulong deferFlags = 0,
         PathSegmentLocalPool? pathPool = null)
     {
         _metaDb = MetaDb.CreateForEstimatedRows(Cursor.RowsPerChunk * 8);
         _operation = operation;
         _includeFlags = includeFlags;
+        _deferFlags = deferFlags;
         _pathPool = pathPool;
 
         Data = CreateObject(Cursor.Zero, operation.RootSelectionSet);
@@ -83,7 +86,7 @@ public sealed partial class CompositeResultDocument : IDisposable
 
     internal CompositeResultElement GetArrayIndexElement(Cursor current, int arrayIndex)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var row = _metaDb.GetValue(ref current);
         CheckExpectedType(ElementTokenType.StartArray, row.TokenType);
@@ -99,7 +102,7 @@ public sealed partial class CompositeResultDocument : IDisposable
 
     internal int GetArrayLength(Cursor current)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var row = _metaDb.GetValue(ref current);
         CheckExpectedType(ElementTokenType.StartArray, row.TokenType);
@@ -109,7 +112,7 @@ public sealed partial class CompositeResultDocument : IDisposable
 
     internal int GetPropertyCount(Cursor current)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var row = _metaDb.GetValue(ref current);
         CheckExpectedType(ElementTokenType.StartObject, row.TokenType);
@@ -226,7 +229,7 @@ public sealed partial class CompositeResultDocument : IDisposable
 
     internal bool IsInvalidated(Cursor current)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var row = _metaDb.Get(current);
 
@@ -250,7 +253,7 @@ public sealed partial class CompositeResultDocument : IDisposable
 
     internal bool IsNullOrInvalidated(Cursor current)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var row = _metaDb.Get(current);
 
@@ -274,7 +277,7 @@ public sealed partial class CompositeResultDocument : IDisposable
 
     internal bool IsInternalProperty(Cursor current)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         // The flag sits on the property row (one before value)
         var propertyCursor = current.AddRows(-1);
@@ -284,7 +287,7 @@ public sealed partial class CompositeResultDocument : IDisposable
 
     internal void Invalidate(Cursor current)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var row = _metaDb.Get(current);
 
@@ -341,16 +344,15 @@ public sealed partial class CompositeResultDocument : IDisposable
 
     internal CompositeResultElement CreateObject(Cursor parent, SelectionSet selectionSet)
     {
-        var startObjectCursor = WriteStartObject(parent, selectionSet.Id);
+        var selections = selectionSet.Selections;
+        var startObjectCursor = WriteStartObject(parent, selectionSet.Id, selections.Length);
 
-        var selectionCount = 0;
-        foreach (var selection in selectionSet.Selections)
+        foreach (var selection in selections)
         {
             WriteEmptyProperty(startObjectCursor, selection);
-            selectionCount++;
         }
 
-        WriteEndObject(startObjectCursor, selectionCount);
+        _metaDb.AppendEndObject();
 
         return new CompositeResultElement(this, startObjectCursor);
     }
@@ -359,10 +361,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     {
         var cursor = WriteStartArray(parent, length);
 
-        for (var i = 0; i < length; i++)
-        {
-            WriteEmptyValue(cursor);
-        }
+        _metaDb.AppendNullRange(cursor.Index, length);
 
         WriteEndArray();
 
@@ -431,7 +430,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private Cursor WriteStartObject(Cursor parent, int selectionSetId = 0)
+    private Cursor WriteStartObject(Cursor parent, int selectionSetId, int propertyCount)
     {
         var flags = ElementFlags.None;
         var parentRow = parent.Index;
@@ -442,21 +441,7 @@ public sealed partial class CompositeResultDocument : IDisposable
             flags = ElementFlags.IsRoot;
         }
 
-        return _metaDb.Append(
-            ElementTokenType.StartObject,
-            parentRow: parentRow,
-            operationReferenceId: selectionSetId,
-            operationReferenceType: OperationReferenceType.SelectionSet,
-            flags: flags);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void WriteEndObject(Cursor startObjectCursor, int length)
-    {
-        _metaDb.Append(ElementTokenType.EndObject);
-
-        _metaDb.SetNumberOfRows(startObjectCursor, (length * 2) + 1);
-        _metaDb.SetSizeOrLength(startObjectCursor, length);
+        return _metaDb.AppendStartObject(parentRow, selectionSetId, propertyCount, flags);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -471,16 +456,11 @@ public sealed partial class CompositeResultDocument : IDisposable
             flags = ElementFlags.IsRoot;
         }
 
-        return _metaDb.Append(
-            ElementTokenType.StartArray,
-            sizeOrLength: length,
-            parentRow: parentRow,
-            numberOfRows: length + 1,
-            flags: flags);
+        return _metaDb.AppendStartArray(parentRow, length, flags);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void WriteEndArray() => _metaDb.Append(ElementTokenType.EndArray);
+    private void WriteEndArray() => _metaDb.AppendEndArray();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void WriteEmptyProperty(Cursor parent, Selection selection)
@@ -492,7 +472,7 @@ public sealed partial class CompositeResultDocument : IDisposable
             flags = ElementFlags.IsInternal;
         }
 
-        if (!selection.IsIncluded(_includeFlags))
+        if (!selection.IsIncluded(_includeFlags) || selection.IsDeferred(_deferFlags))
         {
             flags |= ElementFlags.IsExcluded;
         }
@@ -502,25 +482,14 @@ public sealed partial class CompositeResultDocument : IDisposable
             flags |= ElementFlags.IsNullable;
         }
 
-        var prop = _metaDb.Append(
-            ElementTokenType.PropertyName,
+        _metaDb.AppendEmptyPropertyWithNullValue(
             parentRow: parent.Index,
-            operationReferenceId: selection.Id,
-            operationReferenceType: OperationReferenceType.Selection,
+            selectionId: selection.Id,
             flags: flags);
-
-        _metaDb.Append(
-            ElementTokenType.None,
-            parentRow: prop.Index);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void WriteEmptyValue(Cursor parent)
-    {
-        _metaDb.Append(
-            ElementTokenType.None,
-            parentRow: parent.Index);
-    }
+    private void WriteEmptyValue(Cursor parent) => _metaDb.AppendNull(parent.Index);
 
     private static void CheckExpectedType(ElementTokenType expected, ElementTokenType actual)
     {
@@ -532,10 +501,19 @@ public sealed partial class CompositeResultDocument : IDisposable
 
     public void Dispose()
     {
-        if (!_disposed)
-        {
-            _metaDb.Dispose();
-            _disposed = true;
-        }
+        ReturnRentedMemory();
+        GC.SuppressFinalize(this);
     }
+
+    private void ReturnRentedMemory()
+    {
+        if (Interlocked.Exchange(ref _disposed, 1) != 0)
+        {
+            return;
+        }
+
+        _metaDb.Dispose();
+    }
+
+    ~CompositeResultDocument() => ReturnRentedMemory();
 }

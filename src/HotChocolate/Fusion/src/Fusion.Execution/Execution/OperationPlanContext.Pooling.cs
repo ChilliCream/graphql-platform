@@ -30,11 +30,12 @@ public sealed partial class OperationPlanContext
         ArgumentNullException.ThrowIfNull(variables);
         ArgumentNullException.ThrowIfNull(operationPlan);
 
-        _disposed = false;
+        _disposed = 0;
         RequestContext = requestContext;
         Variables = variables;
         OperationPlan = operationPlan;
         IncludeFlags = operationPlan.Operation.CreateIncludeFlags(variables);
+        DeferFlags = operationPlan.Operation.CreateDeferFlags(variables);
         _collectTelemetry = requestContext.CollectOperationPlanTelemetry();
         _clientScope = requestContext.CreateClientScope();
 
@@ -44,6 +45,7 @@ public sealed partial class OperationPlanContext
             operationPlan.Operation,
             requestContext.ErrorHandlingMode(),
             IncludeFlags,
+            DeferFlags,
             requestContext.Schema.GetOptions().PathSegmentLocalPoolCapacity);
 
         _executionState.Initialize(_collectTelemetry, cancellationTokenSource);
@@ -75,6 +77,7 @@ public sealed partial class OperationPlanContext
         RequestContext = default!;
         Variables = default!;
         OperationPlan = default!;
+        DeferFlags = 0;
         _clientScope = default!;
         Traces =
 #if NET10_0_OR_GREATER
@@ -98,15 +101,16 @@ public sealed partial class OperationPlanContext
 
     public async ValueTask DisposeAsync()
     {
-        if (!_disposed)
+        if (Interlocked.Exchange(ref _disposed, 1) != 0)
         {
-            _disposed = true;
-            await _clientScope.DisposeAsync();
-
-            var pool = _pool;
-            _pool = null;
-            pool?.Return(this);
+            return;
         }
+
+        await _clientScope.DisposeAsync();
+
+        var pool = _pool;
+        _pool = null;
+        pool?.Return(this);
     }
 
     private void EnsureNodeArrayCapacity(int maxNodeId)

@@ -3,16 +3,13 @@ schema {
   mutation: MutationWithErrorInterface2
 }
 
-interface IErrorInterface {
-  message: String!
+type Query {
+  abc: String
 }
 
-interface IInterfaceError {
-  name: String!
-}
-
-interface IInterfaceError2 {
-  name: String!
+type MutationWithErrorInterface2 {
+  annotated(input: AnnotatedInput!): AnnotatedPayload!
+  exampleResult(input: ExampleResultInput!): ExampleResultPayload!
 }
 
 type AnnotatedPayload {
@@ -43,13 +40,16 @@ type ExampleResultPayload {
   exampleResult: ExampleResult
 }
 
-type MutationWithErrorInterface2 {
-  annotated(input: AnnotatedInput!): AnnotatedPayload!
-  exampleResult(input: ExampleResultInput!): ExampleResultPayload!
+interface IErrorInterface {
+  message: String!
 }
 
-type Query {
-  abc: String
+interface IInterfaceError {
+  name: String!
+}
+
+interface IInterfaceError2 {
+  name: String!
 }
 
 union AnnotatedError = ErrorAnnotated | ErrorAnnotatedAndNot

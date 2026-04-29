@@ -1,3 +1,4 @@
+using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Types.Metadata;
@@ -6,7 +7,9 @@ public sealed class SourceOutputField(
     string name,
     string schemaName,
     FieldRequirements? requirements,
-    IType type)
+    IType type,
+    bool isExternal,
+    SelectionSetNode? provides)
     : ISourceMember
 {
     public string Name { get; } = name;
@@ -17,5 +20,7 @@ public sealed class SourceOutputField(
 
     public IType Type { get; } = type;
 
-    public int BaseCost => 1;
+    public bool IsExternal { get; } = isExternal;
+
+    public SelectionSetNode? Provides { get; } = provides;
 }

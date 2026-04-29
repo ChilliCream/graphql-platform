@@ -52,6 +52,20 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
         var nodes = ParseNodes(rootElement.GetProperty("nodes"), operation);
 
+        var deliveryGroups = ImmutableArray<DeferUsage>.Empty;
+        var deferredSubPlans = ImmutableArray<ExecutionSubPlan>.Empty;
+        var deliveryGroupMap = new Dictionary<int, DeferUsage>();
+
+        if (rootElement.TryGetProperty("deliveryGroups", out var deliveryGroupsElement))
+        {
+            deliveryGroups = ParseDeliveryGroups(deliveryGroupsElement, deliveryGroupMap);
+        }
+
+        if (rootElement.TryGetProperty("deferredSubPlans", out var deferredSubPlansElement))
+        {
+            deferredSubPlans = ParseDeferredSubPlans(deferredSubPlansElement, deliveryGroupMap);
+        }
+
         // Root nodes are the entry points of the execution plan. A node is a
         // root when it has no dependencies at all, meaning the executor can
         // start it immediately without waiting for other nodes to finish.
@@ -60,8 +74,115 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             operation,
             [.. nodes.Where(n => n.Dependencies.Length == 0 && n.OptionalDependencies.Length == 0)],
             nodes,
+            deliveryGroups,
+            deferredSubPlans,
             searchSpace,
             expandedNodes);
+    }
+
+    private static ImmutableArray<DeferUsage> ParseDeliveryGroups(
+        JsonElement deliveryGroupsElement,
+        Dictionary<int, DeferUsage> deliveryGroupMap)
+    {
+        // Phase 1: Construct every DeferUsage without resolving parent references.
+        // Parents are captured as numeric ids for the second pass because a parent
+        // may appear after its child in the serialized array.
+        var ordered = new List<(DeferUsage Usage, int? ParentId)>();
+
+        foreach (var groupElement in deliveryGroupsElement.EnumerateArray())
+        {
+            var deferId = groupElement.GetProperty("id").GetInt32();
+            var path = SelectionPath.Parse(groupElement.GetProperty("path").GetString()!);
+
+            string? label = null;
+            if (groupElement.TryGetProperty("label", out var labelElement))
+            {
+                label = labelElement.GetString();
+            }
+
+            string? ifVariable = null;
+            if (groupElement.TryGetProperty("ifVariable", out var ifVarElement)
+                && ifVarElement.ValueKind == JsonValueKind.String)
+            {
+                ifVariable = ifVarElement.GetString()!.TrimStart('$');
+            }
+
+            int? parentId = null;
+            if (groupElement.TryGetProperty("parentId", out var parentIdElement)
+                && parentIdElement.ValueKind == JsonValueKind.Number)
+            {
+                parentId = parentIdElement.GetInt32();
+            }
+
+            var deliveryGroup = new DeferUsage(label, Parent: null, DeferConditionIndex: 0)
+            {
+                Id = deferId,
+                Path = path,
+                IfVariable = ifVariable
+            };
+
+            ordered.Add((deliveryGroup, parentId));
+            deliveryGroupMap[deferId] = deliveryGroup;
+        }
+
+        // Phase 2: Resolve every parent id against the map and rebuild the records
+        // so their Parent references point at the final, canonical instances.
+        // Update the map in place so downstream subplan parsing and the returned
+        // array both observe the same DeferUsage instances.
+        var builder = ImmutableArray.CreateBuilder<DeferUsage>(ordered.Count);
+
+        foreach (var (usage, parentId) in ordered)
+        {
+            var resolved = parentId is null
+                ? usage
+                : usage with { Parent = deliveryGroupMap[parentId.Value] };
+
+            deliveryGroupMap[usage.Id] = resolved;
+            builder.Add(resolved);
+        }
+
+        return builder.MoveToImmutable();
+    }
+
+    private ImmutableArray<ExecutionSubPlan> ParseDeferredSubPlans(
+        JsonElement deferredSubPlansElement,
+        Dictionary<int, DeferUsage> deliveryGroupMap)
+    {
+        var builder = ImmutableArray.CreateBuilder<ExecutionSubPlan>();
+
+        foreach (var subPlanElement in deferredSubPlansElement.EnumerateArray())
+        {
+            var deliveryGroupIdsElement = subPlanElement.GetProperty("deliveryGroupIds");
+            var subPlanDeliveryGroupsBuilder = ImmutableArray.CreateBuilder<DeferUsage>();
+
+            foreach (var idElement in deliveryGroupIdsElement.EnumerateArray())
+            {
+                subPlanDeliveryGroupsBuilder.Add(deliveryGroupMap[idElement.GetInt32()]);
+            }
+
+            var subPlanOperation = ParseOperation(subPlanElement.GetProperty("operation"));
+
+            var subPlanNodes = subPlanElement.TryGetProperty("nodes", out var subPlanNodesElement)
+                ? ParseNodes(subPlanNodesElement, subPlanOperation)
+                : [];
+
+            var rootSubPlanNodes = subPlanNodes
+                .Where(n => n.Dependencies.Length == 0 && n.OptionalDependencies.Length == 0)
+                .ToImmutableArray();
+
+            var subPlan = new ExecutionSubPlan(
+                subPlanOperation,
+                rootSubPlanNodes,
+                subPlanNodes,
+                subPlanDeliveryGroupsBuilder.ToImmutable())
+            {
+                ParentNodeId = subPlanElement.GetProperty("parentNodeId").GetInt32()
+            };
+
+            builder.Add(subPlan);
+        }
+
+        return builder.ToImmutable();
     }
 
     private Operation ParseOperation(JsonElement operationElement)

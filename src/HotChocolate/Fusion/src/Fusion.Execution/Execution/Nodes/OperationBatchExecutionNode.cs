@@ -79,7 +79,8 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
             OperationType = operation.Operation.Type,
             OperationSourceText = operation.Operation.SourceText,
             Variables = variables,
-            RequiresFileUpload = operation.RequiresFileUpload
+            RequiresFileUpload = operation.RequiresFileUpload,
+            OperationHash = operation.OperationHash
         };
 
         var hasSomeErrors = false;
@@ -295,7 +296,8 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
                 OperationType = operation.Operation.Type,
                 OperationSourceText = operation.Operation.SourceText,
                 Variables = variables,
-                RequiresFileUpload = _requiresFileUpload
+                RequiresFileUpload = _requiresFileUpload,
+                OperationHash = operation.OperationHash
             });
 
             operationByIndex[operationCount] = operation;

@@ -32,7 +32,10 @@ internal sealed class IsInvalidFieldsRule : IEventHandler<SchemaEvent>
             .SelectMany(x => x.o.Fields.AsEnumerable(), (x, f) => (x.s, x.o, f))
             .SelectMany(
                 x => x.f.Arguments.AsEnumerable().Where(a => a.HasIsDirective),
-                (x, a) => new FieldArgumentInfo(a, x.f, x.o, x.s));
+                (x, a) => new FieldArgumentInfo(a, x.f, x.o, x.s))
+            .Where(info =>
+                schema.Types.ContainsName(info.Argument.Type.AsTypeDefinition().Name)
+                && schema.Types.ContainsName(info.Field.Type.AsTypeDefinition().Name));
 
         var validator = new FieldSelectionMapValidator(schema);
 

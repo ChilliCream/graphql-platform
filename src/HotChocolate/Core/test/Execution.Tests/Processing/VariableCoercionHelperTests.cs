@@ -382,9 +382,7 @@ public class VariableCoercionHelperTests
                 Assert.False(Assert.IsType<SomeInput>(t.Value.RuntimeValue).OptionalField.HasValue);
                 t.Value.ValueLiteral.MatchInlineSnapshot(
                     """
-                    {
-                      field: true
-                    }
+                    { field: true }
                     """);
             });
     }
@@ -609,9 +607,7 @@ public class VariableCoercionHelperTests
 
         entry.Value.ValueLiteral.MatchInlineSnapshot(
             """
-            [
-              "xyz"
-            ]
+            ["xyz"]
             """);
     }
 
@@ -667,11 +663,7 @@ public class VariableCoercionHelperTests
         Assert.Equal("abc", entry.Key);
         entry.Value.ValueLiteral.MatchInlineSnapshot(
             """
-            [
-              {
-                enum: Foo
-              }
-            ]
+            [{ enum: Foo }]
             """);
     }
 
@@ -730,14 +722,7 @@ public class VariableCoercionHelperTests
         Assert.Equal("abc", entry.Key);
         entry.Value.ValueLiteral.MatchInlineSnapshot(
             """
-            [
-              {
-                enum: Foo
-              },
-              {
-                enum: Bar
-              }
-            ]
+            [{ enum: Foo }, { enum: Bar }]
             """);
     }
 
@@ -796,14 +781,7 @@ public class VariableCoercionHelperTests
         Assert.Equal("abc", entry.Key);
         entry.Value.ValueLiteral.MatchInlineSnapshot(
             """
-            [
-              {
-                enum: Foo
-              },
-              {
-                enum: Bar
-              }
-            ]
+            [{ enum: Foo }, { enum: Bar }]
             """);
     }
 
@@ -860,10 +838,7 @@ public class VariableCoercionHelperTests
         Assert.Equal("abc", entry.Key);
         entry.Value.ValueLiteral.MatchInlineSnapshot(
             """
-            {
-              enum: Foo,
-              enum2: Bar
-            }
+            { enum: Foo, enum2: Bar }
             """);
     }
 
@@ -920,10 +895,7 @@ public class VariableCoercionHelperTests
         Assert.Equal("abc", entry.Key);
         entry.Value.ValueLiteral.MatchInlineSnapshot(
             """
-            {
-              enum: Foo,
-              enum2: Bar
-            }
+            { enum: Foo, enum2: Bar }
             """);
     }
 
@@ -980,10 +952,7 @@ public class VariableCoercionHelperTests
         Assert.Equal("abc", entry.Key);
         entry.Value.ValueLiteral.MatchInlineSnapshot(
             """
-            {
-              value_a: "Foo",
-              value_b: Bar
-            }
+            { value_a: "Foo", value_b: Bar }
             """);
     }
 
@@ -1052,14 +1021,7 @@ public class VariableCoercionHelperTests
         Assert.Equal("abc", entry.Key);
         entry.Value.ValueLiteral.MatchInlineSnapshot(
             """
-            [
-              {
-                value_a: "Foo"
-              },
-              {
-                value_b: Bar
-              }
-            ]
+            [{ value_a: "Foo" }, { value_b: Bar }]
             """);
     }
 

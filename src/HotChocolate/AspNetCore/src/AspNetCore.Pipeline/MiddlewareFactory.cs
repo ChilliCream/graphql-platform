@@ -29,37 +29,6 @@ internal static class MiddlewareFactory
         };
     }
 
-    internal static Func<RequestDelegate, RequestDelegate> CreateConcurrencyGateMiddleware(
-        int? maxConcurrentRequests)
-    {
-        if (maxConcurrentRequests is null or <= 0)
-        {
-            return next => next;
-        }
-
-        var semaphore = new SemaphoreSlim(maxConcurrentRequests.Value, maxConcurrentRequests.Value);
-
-        return next => async context =>
-        {
-            if (context.WebSockets.IsWebSocketRequest)
-            {
-                await next(context);
-                return;
-            }
-
-            await semaphore.WaitAsync(context.RequestAborted);
-
-            try
-            {
-                await next(context);
-            }
-            finally
-            {
-                semaphore.Release();
-            }
-        };
-    }
-
     internal static Func<RequestDelegate, RequestDelegate> CreateWebSocketSubscriptionMiddleware(
         HttpRequestExecutorProxy executor,
         GraphQLServerOptions serverOptions)
@@ -114,6 +83,17 @@ internal static class MiddlewareFactory
         return next =>
         {
             var middleware = new HttpGetSchemaMiddleware(next, executor, serverOptions, path, routingType);
+            return context => middleware.InvokeAsync(context);
+        };
+    }
+
+    internal static Func<RequestDelegate, RequestDelegate> CreateHttpGetSemanticNonNullSchemaMiddleware(
+        HttpRequestExecutorProxy executor,
+        GraphQLServerOptions serverOptions)
+    {
+        return next =>
+        {
+            var middleware = new HttpGetSemanticNonNullSchemaMiddleware(next, executor, serverOptions);
             return context => middleware.InvokeAsync(context);
         };
     }

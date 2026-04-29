@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using HotChocolate.Utilities.CompilerServices;
 
@@ -117,6 +118,11 @@ internal readonly struct NullableHelper
         return null;
     }
 
+    [UnconditionalSuppressMessage(
+        "ReflectionAnalysis",
+        "IL2075",
+        Justification =
+            "NullableFlags is a well-known compiler-generated field on NullableAttribute.")]
     private static NullableAttribute? GetNullableAttribute(
         MethodInfo method)
     {
@@ -131,7 +137,8 @@ internal readonly struct NullableHelper
 
         try
         {
-            var flags = (byte[])attribute.GetType()
+            var flags = (byte[])attribute
+                .GetType()
                 .GetField("NullableFlags")!
                 .GetValue(attribute)!;
             return new NullableAttribute(flags);

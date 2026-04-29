@@ -26,6 +26,7 @@ public static class EndpointRouteBuilderExtensions
     private const string GraphQLHttpPath = "/graphql";
     private const string GraphQLWebSocketPath = "/graphql/ws";
     private const string GraphQLSchemaPath = "/graphql/sdl";
+    private const string GraphQLSemanticNonNullSchemaPath = "/graphql/semantic-non-null-schema.graphql";
     private const string GraphQLToolPath = "/graphql/ui";
     private const string GraphQLPersistedOperationPath = "/graphql/persisted";
     private const string GraphQLToolRelativeRequestPath = "..";
@@ -133,7 +134,6 @@ public static class EndpointRouteBuilderExtensions
 
         applicationBuilder
             .Use(MiddlewareFactory.CreateCancellationMiddleware())
-            .Use(MiddlewareFactory.CreateConcurrencyGateMiddleware(serverOptions.MaxConcurrentRequests))
             .Use(MiddlewareFactory.CreateWebSocketSubscriptionMiddleware(executor, serverOptions))
             .Use(MiddlewareFactory.CreateHttpPostMiddleware(executor, serverOptions))
             .Use(MiddlewareFactory.CreateHttpMultipartMiddleware(executor, serverOptions, formOptions))
@@ -216,7 +216,6 @@ public static class EndpointRouteBuilderExtensions
 
         requestPipeline
             .Use(MiddlewareFactory.CreateCancellationMiddleware())
-            .Use(MiddlewareFactory.CreateConcurrencyGateMiddleware(serverOptions.MaxConcurrentRequests))
             .Use(MiddlewareFactory.CreateHttpPostMiddleware(executor, serverOptions))
             .Use(MiddlewareFactory.CreateHttpMultipartMiddleware(executor, serverOptions, formOptions))
             .Use(MiddlewareFactory.CreateHttpGetMiddleware(executor, serverOptions))
@@ -377,7 +376,6 @@ public static class EndpointRouteBuilderExtensions
 
         requestPipeline
             .Use(MiddlewareFactory.CreateCancellationMiddleware())
-            .Use(MiddlewareFactory.CreateConcurrencyGateMiddleware(serverOptions.MaxConcurrentRequests))
             .Use(MiddlewareFactory.CreateHttpGetSchemaMiddleware(
                 executor, serverOptions, PathString.Empty, MiddlewareRoutingType.Explicit))
             .Use(_ => context =>
@@ -390,6 +388,88 @@ public static class EndpointRouteBuilderExtensions
             endpointRouteBuilder
                 .Map(pattern, requestPipeline.Build())
                 .WithDisplayName("Hot Chocolate GraphQL Schema Pipeline"));
+    }
+
+    /// <summary>
+    /// Adds a GraphQL semantic non-null schema SDL endpoint to the endpoint configurations.
+    /// The endpoint serves a schema document where non-null wrappers have been replaced with
+    /// the @semanticNonNull directive.
+    /// </summary>
+    /// <param name="endpointRouteBuilder">
+    /// The <see cref="IEndpointConventionBuilder"/>.
+    /// </param>
+    /// <param name="pattern">
+    /// The path to which the GraphQL semantic non-null schema endpoint shall be mapped.
+    /// </param>
+    /// <param name="schemaName">
+    /// The name of the schema that shall be used by this endpoint.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IEndpointConventionBuilder"/> so that
+    /// configuration can be chained.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="endpointRouteBuilder" /> is <c>null</c>.
+    /// </exception>
+    public static IEndpointConventionBuilder MapGraphQLSemanticNonNullSchema(
+        this IEndpointRouteBuilder endpointRouteBuilder,
+        [StringSyntax("Route")] string pattern = GraphQLSemanticNonNullSchemaPath,
+        string? schemaName = null)
+        => MapGraphQLSemanticNonNullSchema(endpointRouteBuilder, Parse(pattern), schemaName);
+
+    /// <summary>
+    /// Adds a GraphQL semantic non-null schema SDL endpoint to the endpoint configurations.
+    /// The endpoint serves a schema document where non-null wrappers have been replaced with
+    /// the @semanticNonNull directive.
+    /// </summary>
+    /// <param name="endpointRouteBuilder">
+    /// The <see cref="IEndpointConventionBuilder"/>.
+    /// </param>
+    /// <param name="pattern">
+    /// The path to which the GraphQL semantic non-null schema endpoint shall be mapped.
+    /// </param>
+    /// <param name="schemaName">
+    /// The name of the schema that shall be used by this endpoint.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IEndpointConventionBuilder"/> so that
+    /// configuration can be chained.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="endpointRouteBuilder" /> is <c>null</c>.
+    /// </exception>
+    public static IEndpointConventionBuilder MapGraphQLSemanticNonNullSchema(
+        this IEndpointRouteBuilder endpointRouteBuilder,
+        RoutePattern pattern,
+        string? schemaName = null)
+    {
+        ArgumentNullException.ThrowIfNull(endpointRouteBuilder);
+        ArgumentNullException.ThrowIfNull(pattern);
+
+        TryResolveSchemaName(endpointRouteBuilder.ServiceProvider, ref schemaName);
+
+        var requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
+        var schemaNameOrDefault = schemaName ?? ISchemaDefinition.DefaultName;
+
+        var services = endpointRouteBuilder.ServiceProvider;
+        var executorProvider = services.GetRequiredService<IRequestExecutorProvider>();
+        var executorEvents = services.GetRequiredService<IRequestExecutorEvents>();
+        var executor = new HttpRequestExecutorProxy(executorProvider, executorEvents, schemaNameOrDefault);
+        var serverOptions = services.GetServerOptions(schemaNameOrDefault);
+
+        requestPipeline
+            .Use(MiddlewareFactory.CreateCancellationMiddleware())
+            .Use(MiddlewareFactory.CreateHttpGetSemanticNonNullSchemaMiddleware(executor, serverOptions))
+            .Use(_ => context =>
+            {
+                context.Response.StatusCode = 404;
+                return Task.CompletedTask;
+            });
+
+        return new GraphQLEndpointConventionBuilder(
+            endpointRouteBuilder
+                .Map(pattern, requestPipeline.Build())
+                .WithDisplayName("Hot Chocolate GraphQL Semantic Non-Null Schema Pipeline"));
     }
 
     /// <summary>

@@ -36,8 +36,14 @@ export function BlogListPage({
           path: post.slug,
           title: post.title,
           author: post.author || undefined,
-          authorImageUrl: undefined,
-          date: post.date,
+          authorImageUrl: post.authorImageUrl || undefined,
+          date: post.date
+            ? new Date(post.date).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "2-digit",
+              })
+            : "",
         },
         fields: {
           readingTime: {

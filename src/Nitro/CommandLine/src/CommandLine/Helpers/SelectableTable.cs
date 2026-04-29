@@ -174,9 +174,7 @@ internal class SelectableTable<TEdge>
 
             ctx.UpdateTarget(new Rows(
                 title,
-                CreateTable()
-                    .Centered()
-                    .AddRows(SelectedIndex, Items.Select(CreateRow)),
+                Align.Center(CreateTable().AddRows(SelectedIndex, Items.Select(CreateRow))),
                 Align.Center(new Rows(columns))));
 
             ctx.Refresh();

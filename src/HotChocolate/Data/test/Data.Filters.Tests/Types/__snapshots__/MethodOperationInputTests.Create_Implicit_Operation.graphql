@@ -2,6 +2,10 @@ schema {
   query: Query
 }
 
+type Query {
+  foos(where: FooFilterInput): [Foo!]!
+}
+
 type Bar {
   stringOperation: String!
 }
@@ -9,10 +13,6 @@ type Bar {
 type Foo {
   simpleMethod: Boolean!
   complexMethod: Bar!
-}
-
-type Query {
-  foos(where: FooFilterInput): [Foo!]!
 }
 
 input FooFilterInput {

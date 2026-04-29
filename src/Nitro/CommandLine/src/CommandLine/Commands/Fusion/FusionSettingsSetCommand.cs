@@ -120,6 +120,7 @@ internal sealed class FusionSettingsSetCommand : Command
             environment,
             [],
             compositionSettings,
+            legacyArchive: null,
             cancellationToken);
 
         if (result.IsSuccess)

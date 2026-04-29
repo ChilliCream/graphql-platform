@@ -34,12 +34,19 @@ interface DocArticleMdx {
   } | null>;
 }
 
+interface ProductVersion {
+  path?: string;
+  title?: string;
+  preview?: boolean;
+}
+
 interface Product {
   path?: string;
   title?: string;
   description?: string;
   metaDescription?: string;
   latestStableVersion?: string;
+  versions?: Array<ProductVersion | null>;
 }
 
 interface DocArticleData {
@@ -118,6 +125,7 @@ interface ProductInformation {
   readonly version: string;
   readonly stableVersion: string;
   readonly description: string | null;
+  readonly isPreview: boolean;
 }
 
 export function useProductInformation(
@@ -137,11 +145,16 @@ export function useProductInformation(
   const selectedPath = result[1] || "";
   const selectedVersion = result[2] || "";
   let stableVersion = "";
+  let isPreview = false;
 
   const selectedProduct = products?.find((p) => p?.path === selectedPath);
 
   if (selectedProduct) {
     stableVersion = selectedProduct.latestStableVersion || "";
+    const activeVersion = selectedProduct.versions?.find(
+      (v) => v?.path === selectedVersion
+    );
+    isPreview = !!activeVersion?.preview;
   }
 
   return {
@@ -150,6 +163,7 @@ export function useProductInformation(
     version: selectedVersion,
     stableVersion,
     description: selectedProduct?.metaDescription || null,
+    isPreview,
   };
 }
 
@@ -236,6 +250,15 @@ const DocumentationNotes: FC<DocumentationNotesProps> = ({ product, slug }) => {
         </DocumentationVersionWarning>
       );
     }
+  }
+
+  if (product.isPreview) {
+    return (
+      <DocumentationVersionWarning>
+        This is documentation for <strong>{product.version}</strong>, which is
+        currently in preview.
+      </DocumentationVersionWarning>
+    );
   }
 
   return null;

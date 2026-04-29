@@ -207,8 +207,8 @@ internal sealed class ArchiveSession : IDisposable
     private int GetAllowedSize(FileKind kind)
         => kind switch
         {
-            FileKind.Schema
-                => _readOptions.MaxAllowedSchemaSize,
+            FileKind.LegacyArchive => _readOptions.MaxAllowedLegacyArchiveSize,
+            FileKind.Schema => _readOptions.MaxAllowedSchemaSize,
             FileKind.Manifest or FileKind.Settings or FileKind.Metadata or FileKind.Signature
                 => _readOptions.MaxAllowedSettingsSize,
             _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)

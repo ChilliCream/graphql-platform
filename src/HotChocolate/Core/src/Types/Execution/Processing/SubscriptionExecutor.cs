@@ -1,29 +1,19 @@
 using System.Collections.Immutable;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Execution.Options;
 using Microsoft.Extensions.ObjectPool;
 using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Processing;
 
-internal sealed partial class SubscriptionExecutor
+internal sealed partial class SubscriptionExecutor(
+    ObjectPool<OperationContext> operationContextPool,
+    QueryExecutor queryExecutor,
+    IErrorHandler errorHandler,
+    IExecutionDiagnosticEvents diagnosticEvents,
+    ExecutionConcurrencyGate? concurrencyGate,
+    IRequestTimeoutOptionsAccessor timeoutOptions)
 {
-    private readonly ObjectPool<OperationContext> _operationContextPool;
-    private readonly QueryExecutor _queryExecutor;
-    private readonly IErrorHandler _errorHandler;
-    private readonly IExecutionDiagnosticEvents _diagnosticEvents;
-
-    public SubscriptionExecutor(
-        ObjectPool<OperationContext> operationContextPool,
-        QueryExecutor queryExecutor,
-        IErrorHandler errorHandler,
-        IExecutionDiagnosticEvents diagnosticEvents)
-    {
-        _operationContextPool = operationContextPool;
-        _queryExecutor = queryExecutor;
-        _errorHandler = errorHandler;
-        _diagnosticEvents = diagnosticEvents;
-    }
-
     public async Task<IExecutionResult> ExecuteAsync(
         RequestContext requestContext,
         Func<object?> resolveQueryValue)
@@ -52,13 +42,15 @@ internal sealed partial class SubscriptionExecutor
         try
         {
             subscription = await Subscription.SubscribeAsync(
-                _operationContextPool,
-                _queryExecutor,
+                operationContextPool,
+                queryExecutor,
                 requestContext,
                 operation.RootType,
                 selectionSet,
                 resolveQueryValue,
-                _diagnosticEvents)
+                diagnosticEvents,
+                concurrencyGate,
+                timeoutOptions.ExecutionTimeout)
                 .ConfigureAwait(false);
 
             var response = new ResponseStream(() => subscription.ExecuteAsync());
@@ -77,7 +69,7 @@ internal sealed partial class SubscriptionExecutor
         }
         catch (Exception ex)
         {
-            var error = _errorHandler.Handle(ErrorBuilder.FromException(ex).Build());
+            var error = errorHandler.Handle(ErrorBuilder.FromException(ex).Build());
 
             if (subscription is not null)
             {

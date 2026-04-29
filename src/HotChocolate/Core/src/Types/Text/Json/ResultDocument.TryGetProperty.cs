@@ -10,7 +10,7 @@ public sealed partial class ResultDocument
         string propertyName,
         out ResultElement value)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         (startCursor, var tokenType) = _metaDb.GetStartCursor(startCursor);
         CheckExpectedType(ElementTokenType.StartObject, tokenType);
@@ -118,7 +118,7 @@ public sealed partial class ResultDocument
         ReadOnlySpan<byte> propertyName,
         out ResultElement value)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         (startCursor, var tokenType) = _metaDb.GetStartCursor(startCursor);
         CheckExpectedType(ElementTokenType.StartObject, tokenType);
@@ -238,14 +238,14 @@ public sealed partial class ResultDocument
 
     internal Cursor GetStartCursor(Cursor cursor)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
         (cursor, _) = _metaDb.GetStartCursor(cursor);
         return cursor;
     }
 
     internal Cursor GetEndCursor(Cursor cursor)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
         return cursor + _metaDb.GetNumberOfRows(cursor);
     }
 }

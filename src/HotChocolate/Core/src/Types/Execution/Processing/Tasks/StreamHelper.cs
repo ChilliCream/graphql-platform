@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -19,6 +20,8 @@ internal static class StreamHelper
 
     private static readonly ConcurrentDictionary<Type, Factory> s_streamFactories = new();
 
+    [RequiresDynamicCode("Creates generic methods and compiles expressions at runtime.")]
+    [RequiresUnreferencedCode("Inspects type interfaces via reflection.")]
     public static IAsyncEnumerable<object?> CreateStream(object result)
     {
         var resultType = result.GetType();
@@ -26,6 +29,8 @@ internal static class StreamHelper
         return factory.Invoke(result);
     }
 
+    [RequiresDynamicCode("Creates generic methods and compiles expressions at runtime.")]
+    [RequiresUnreferencedCode("Inspects type interfaces via reflection.")]
     private static Factory CreateFactory(Type resultType)
     {
         var resultTypeInfo = CreateResultTypeInfo(resultType);
@@ -38,7 +43,9 @@ internal static class StreamHelper
         return Expression.Lambda<Factory>(callMethod, resultParameter).Compile();
     }
 
-    private static ResultTypeInfo CreateResultTypeInfo(Type resultType)
+    private static ResultTypeInfo CreateResultTypeInfo(
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)]
+        Type resultType)
     {
         var interfaces = resultType.GetInterfaces();
         Type? elementType = null;

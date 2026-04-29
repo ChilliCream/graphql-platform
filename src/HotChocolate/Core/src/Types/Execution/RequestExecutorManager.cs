@@ -468,6 +468,14 @@ internal sealed partial class RequestExecutorManager
             .SchemaBuilder
             .TryAddTypeInterceptor(new SetSchemaNameInterceptor(context.SchemaName));
 
+        var schemaDocumentFormatter = new AggregateSchemaDocumentFormatter(
+            schemaServices.GetService<IEnumerable<ISchemaDocumentFormatter>>());
+
+        context
+            .SchemaBuilder
+            .AddSchemaConfiguration(d =>
+                d.Extend().Configuration.Features.Set<ISchemaDocumentFormatter>(schemaDocumentFormatter));
+
         var schema = context.SchemaBuilder.Create(descriptorContext);
         AssertSchemaNameValid(schema, context.SchemaName);
         return schema;

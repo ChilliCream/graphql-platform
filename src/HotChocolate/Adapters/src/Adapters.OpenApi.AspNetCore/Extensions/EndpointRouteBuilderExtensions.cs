@@ -1,3 +1,4 @@
+using HotChocolate.Execution;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -9,6 +10,7 @@ public static class EndpointRouteBuilderExtensions
         this IEndpointRouteBuilder endpoints,
         string? schemaName = null)
     {
+        TryResolveSchemaName(endpoints.ServiceProvider, ref schemaName);
         schemaName ??= ISchemaDefinition.DefaultName;
 
         var dataSource = endpoints.ServiceProvider.GetRequiredKeyedService<DynamicEndpointDataSource>(schemaName);
@@ -19,5 +21,15 @@ public static class EndpointRouteBuilderExtensions
         }
 
         return endpoints;
+    }
+
+    private static void TryResolveSchemaName(IServiceProvider services, ref string? schemaName)
+    {
+        if (schemaName is null
+            && services.GetService<IRequestExecutorProvider>() is { } provider
+            && provider.SchemaNames.Length == 1)
+        {
+            schemaName = provider.SchemaNames[0];
+        }
     }
 }

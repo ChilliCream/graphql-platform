@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Validation;
@@ -25,7 +26,8 @@ public static partial class RequestExecutorBuilderExtensions
     /// Returns an <see cref="IRequestExecutorBuilder"/> that can be used to chain
     /// configuration.
     /// </returns>
-    public static IRequestExecutorBuilder AddValidationVisitor<T>(
+    public static IRequestExecutorBuilder AddValidationVisitor<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IRequestExecutorBuilder builder,
         bool isCacheable = true)
         where T : DocumentValidatorVisitor, new()
@@ -54,7 +56,8 @@ public static partial class RequestExecutorBuilderExtensions
     /// Returns an <see cref="IRequestExecutorBuilder"/> that can be used to chain
     /// configuration.
     /// </returns>
-    public static IRequestExecutorBuilder AddValidationVisitor<T>(
+    public static IRequestExecutorBuilder AddValidationVisitor<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IRequestExecutorBuilder builder,
         Func<IServiceProvider, ValidationOptions, T> factory,
         bool isCacheable = true)
@@ -81,7 +84,8 @@ public static partial class RequestExecutorBuilderExtensions
     /// Returns an <see cref="IRequestExecutorBuilder"/> that can be used to chain
     /// configuration.
     /// </returns>
-    public static IRequestExecutorBuilder AddValidationRule<T>(
+    public static IRequestExecutorBuilder AddValidationRule<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IRequestExecutorBuilder builder)
         where T : class, IDocumentValidatorRule, new()
     {
@@ -105,7 +109,8 @@ public static partial class RequestExecutorBuilderExtensions
     /// Returns an <see cref="IRequestExecutorBuilder"/> that can be used to chain
     /// configuration.
     /// </returns>
-    public static IRequestExecutorBuilder AddValidationRule<T>(
+    public static IRequestExecutorBuilder AddValidationRule<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IRequestExecutorBuilder builder,
         Func<IServiceProvider, ValidationOptions, T> factory)
         where T : class, IDocumentValidatorRule

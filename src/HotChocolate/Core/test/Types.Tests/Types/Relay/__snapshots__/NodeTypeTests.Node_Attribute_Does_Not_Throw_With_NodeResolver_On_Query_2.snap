@@ -2,9 +2,12 @@ schema {
   query: Query8
 }
 
-"The node interface is implemented by entities that have a global unique identifier."
-interface Node {
-  id: ID!
+type Query8 {
+  "Fetches an object given its ID."
+  node("ID of the object." id: ID!): Node
+  "Lookup nodes by a list of IDs."
+  nodes("The list of node IDs." ids: [ID!]!): [Node]!
+  barById(id: ID!): Foo1!
 }
 
 type Foo1 implements Node {
@@ -12,10 +15,7 @@ type Foo1 implements Node {
   clearTextId: String!
 }
 
-type Query8 {
-  "Fetches an object given its ID."
-  node("ID of the object." id: ID!): Node
-  "Lookup nodes by a list of IDs."
-  nodes("The list of node IDs." ids: [ID!]!): [Node]!
-  barById(id: ID!): Foo1!
+"The node interface is implemented by entities that have a global unique identifier."
+interface Node {
+  id: ID!
 }

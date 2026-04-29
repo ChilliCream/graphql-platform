@@ -1,7 +1,7 @@
 {
   hero(episode: EMPIRE) {
     name
-    ... Foo @defer
+    ...Foo @defer
   }
 }
 

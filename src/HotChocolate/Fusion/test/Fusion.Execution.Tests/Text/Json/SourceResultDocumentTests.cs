@@ -6,6 +6,21 @@ namespace HotChocolate.Fusion.Text.Json;
 public class SourceResultDocumentTests
 {
     [Fact]
+    public void Parse_Should_NotThrow_When_DisposedAndInputBufferIsNotPooled()
+    {
+        var json = """
+                   {
+                     "id": 1
+                   }
+                   """u8.ToArray();
+
+        var result = SourceResultDocument.Parse(json, json.Length);
+        var exception = Record.Exception(result.Dispose);
+
+        Assert.Null(exception);
+    }
+
+    [Fact]
     public void TryGetProperty_String_Name()
     {
         var json = """

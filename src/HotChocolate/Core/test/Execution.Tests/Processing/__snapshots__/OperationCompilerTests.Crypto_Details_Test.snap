@@ -1,10 +1,10 @@
 query ViewerContainerQuery($symbol: String!) {
   assetBySymbol(symbol: $symbol) {
-    ... ViewerHeaderFragment_asset
-    ... ViewerSnapshotFragment_asset
-    ... ViewerStatsFragment_asset
-    ... ViewerOverviewFragment_asset
-    ... ViewerResourcesFragment_asset
+    ...ViewerHeaderFragment_asset
+    ...ViewerSnapshotFragment_asset
+    ...ViewerStatsFragment_asset
+    ...ViewerOverviewFragment_asset
+    ...ViewerResourcesFragment_asset
     id
   }
 }
@@ -31,7 +31,7 @@ fragment ViewerSnapshotFragment_asset on Asset {
   symbol
   color
   price {
-    ... ViewerSnapshotFragment_price
+    ...ViewerSnapshotFragment_price
     id
   }
 }

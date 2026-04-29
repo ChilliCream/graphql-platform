@@ -22,13 +22,13 @@ public class BindingBehaviorTests
               query: Query
             }
 
+            type Query {
+              books: Book1!
+            }
+
             type Book1 {
               title: String!
               category: BookCategory1!
-            }
-
-            type Query {
-              books: Book1!
             }
 
             enum BookCategory1 {
@@ -112,13 +112,13 @@ public class BindingBehaviorTests
               query: Query
             }
 
+            type Query {
+              books: Book3!
+            }
+
             type Book3 {
               title: String!
               category: BookCategory3!
-            }
-
-            type Query {
-              books: Book3!
             }
 
             enum BookCategory3 {

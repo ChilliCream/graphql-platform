@@ -11,7 +11,7 @@ public sealed partial class CompositeResultDocument
         string propertyName,
         out CompositeResultElement value)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var row = _metaDb.GetValue(ref startCursor);
         CheckExpectedType(ElementTokenType.StartObject, row.TokenType);
@@ -121,7 +121,7 @@ public sealed partial class CompositeResultDocument
         ReadOnlySpan<byte> propertyName,
         out CompositeResultElement value)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var row = _metaDb.GetValue(ref startCursor);
         CheckExpectedType(ElementTokenType.StartObject, row.TokenType);
@@ -245,7 +245,7 @@ public sealed partial class CompositeResultDocument
         Cursor startCursor,
         int selectionId)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var row = _metaDb.GetValue(ref startCursor);
         Debug.Assert(row.TokenType is ElementTokenType.StartObject);
@@ -263,14 +263,14 @@ public sealed partial class CompositeResultDocument
 
     internal Cursor GetStartCursor(Cursor cursor)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
         (cursor, _) = _metaDb.GetStartCursor(cursor);
         return cursor;
     }
 
     internal Cursor GetEndCursor(Cursor cursor)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
         return cursor + _metaDb.GetNumberOfRows(cursor);
     }
 }

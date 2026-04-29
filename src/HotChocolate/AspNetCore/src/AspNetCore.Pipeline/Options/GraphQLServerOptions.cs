@@ -65,10 +65,10 @@ public sealed class GraphQLServerOptions
     public int MaxBatchSize { get; set; } = 1024;
 
     /// <summary>
-    /// Gets or sets the maximum number of concurrent GraphQL requests that can be
+    /// Gets or sets the maximum number of concurrent GraphQL executions that can be
     /// processed simultaneously. A value of <c>null</c> means unlimited. Defaults to 64.
     /// </summary>
-    public int? MaxConcurrentRequests { get; set; } = 64;
+    public int? MaxConcurrentExecutions { get; set; } = 64;
 
     internal GraphQLServerOptions Clone()
         => new()
@@ -88,6 +88,6 @@ public sealed class GraphQLServerOptions
             EnableSchemaRequests = EnableSchemaRequests,
             Batching = Batching,
             MaxBatchSize = MaxBatchSize,
-            MaxConcurrentRequests = MaxConcurrentRequests
+            MaxConcurrentExecutions = MaxConcurrentExecutions
         };
 }

@@ -9,7 +9,6 @@ namespace HotChocolate.Fusion.Execution.Pipeline;
 
 internal sealed class OperationExecutionMiddleware
 {
-    private readonly OperationPlanExecutor _planExecutor = new();
     private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
 
     private OperationExecutionMiddleware(IFusionExecutionDiagnosticEvents diagnosticEvents)
@@ -46,18 +45,30 @@ internal sealed class OperationExecutionMiddleware
                     return;
                 }
 
-                context.Result = await _planExecutor.SubscribeAsync(context, operationPlan, cancellationToken);
+                context.Result = await OperationPlanExecutor.SubscribeAsync(context, operationPlan, cancellationToken);
             }
             else
             {
                 if (context.VariableValues.Length > 1)
                 {
+                    if (!operationPlan.DeferredSubPlans.IsEmpty)
+                    {
+                        var error = ErrorBuilder.New()
+                            .SetMessage("Variable batching is not supported with @defer.")
+                            .Build();
+
+                        _diagnosticEvents.RequestError(context, error);
+
+                        context.Result = OperationResult.FromError(error);
+                        return;
+                    }
+
                     var variableValues = ImmutableCollectionsMarshal.AsArray(context.VariableValues).AsSpan();
                     var tasks = new Task<IExecutionResult>[variableValues.Length];
 
                     for (var i = 0; i < variableValues.Length; i++)
                     {
-                        tasks[i] = _planExecutor.ExecuteAsync(
+                        tasks[i] = OperationPlanExecutor.ExecuteAsync(
                             context,
                             variableValues[i],
                             operationPlan,
@@ -67,9 +78,17 @@ internal sealed class OperationExecutionMiddleware
                     var results = ImmutableList.CreateRange(await Task.WhenAll(tasks));
                     context.Result = new OperationResultBatch(results);
                 }
+                else if (!operationPlan.DeferredSubPlans.IsEmpty)
+                {
+                    context.Result = await OperationPlanExecutor.ExecuteWithDeferAsync(
+                        context,
+                        context.VariableValues[0],
+                        operationPlan,
+                        cancellationToken);
+                }
                 else
                 {
-                    context.Result = await _planExecutor.ExecuteAsync(
+                    context.Result = await OperationPlanExecutor.ExecuteAsync(
                         context,
                         context.VariableValues[0],
                         operationPlan,

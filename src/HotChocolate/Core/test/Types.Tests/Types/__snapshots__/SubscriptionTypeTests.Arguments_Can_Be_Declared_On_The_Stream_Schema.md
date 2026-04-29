@@ -6,6 +6,10 @@ schema {
   subscription: MySubscription
 }
 
+type Query {
+  a: String
+}
+
 type MySubscription {
   onMessage(userId: String!): String!
   onSysMessage: String!
@@ -16,9 +20,5 @@ type MySubscription {
   onExplicitNonGenericSync: String!
   onExplicitSync: String!
   onArguments(arg: String!): String!
-}
-
-type Query {
-  a: String
 }
 ```

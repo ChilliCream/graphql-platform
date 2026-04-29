@@ -233,7 +233,7 @@ public class GlobalOptionsTests
         return provider;
     }
 
-    private static System.Net.Http.HttpClient CreateApiClient(ServiceProvider provider)
+    private static HttpClient CreateApiClient(ServiceProvider provider)
     {
         var factory = provider.GetRequiredService<IHttpClientFactory>();
         return factory.CreateClient(ApiClient.ClientName);

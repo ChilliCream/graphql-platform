@@ -36,18 +36,18 @@ sourceSchemas:
         query: Query
       }
 
-      type FileUploadResult {
-        fileName: String!
-        contentType: String
-        content: String!
-      }
-
       type Query {
         singleUpload(file: Upload!): FileUploadResult!
         nullableUpload(file: Upload): FileUploadResult
         singleUploadWithInput(input: FileInput!): FileUploadResult!
         multiUpload(files: [Upload!]!): [FileUploadResult!]!
         multiUploadWithInput(input: FilesInput!): [FileUploadResult!]!
+      }
+
+      type FileUploadResult {
+        fileName: String!
+        contentType: String
+        content: String!
       }
 
       input FileInput {
@@ -74,15 +74,15 @@ sourceSchemas:
         LIST
       }
 
+      "The `Upload` scalar type represents a file upload."
+      scalar Upload @serializeAs(type: STRING)
+
       directive @serializeAs(
         "The primitive type a scalar is serialized to."
         type: [ScalarSerializationType!]!
         "The ECMA-262 regex pattern that the serialized scalar value conforms to."
         pattern: String
       ) on SCALAR
-
-      "The `Upload` scalar type represents a file upload."
-      scalar Upload @serializeAs(type: STRING)
     interactions:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8

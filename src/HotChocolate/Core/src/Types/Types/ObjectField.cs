@@ -317,7 +317,9 @@ file static class ResolverHelpers
     private static IResolverResultPostProcessor GetFactoryMethod(Type elementType)
         => s_methodCache.GetOrAdd(
             elementType,
+#pragma warning disable IL2060, IL3050
             static t => (IResolverResultPostProcessor)s_createListPostProcessor.MakeGenericMethod(t).Invoke(null, [])!);
+#pragma warning restore IL2060, IL3050
 
     private static IResolverResultPostProcessor CreateListPostProcessor<T>()
         => ListPostProcessor<T>.Default;

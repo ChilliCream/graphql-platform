@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
@@ -504,6 +505,17 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
     }
 
     // Create an expression to get the resolver class instance.
+    [UnconditionalSuppressMessage(
+        "ReflectionAnalysis",
+        "IL2060",
+        Justification =
+            "The Parent<T> and Resolver<T> methods have no trimming constraints on their type parameters.")]
+    [UnconditionalSuppressMessage(
+        "AOT",
+        "IL3050",
+        Justification =
+            "This method builds expression trees at schema initialization time and is only used in JIT-compatible "
+            + "environments.")]
     private static Expression CreateResolverOwner(
         ParameterExpression context,
         Type source,

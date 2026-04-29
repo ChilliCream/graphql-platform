@@ -1,0 +1,7 @@
+extend schema
+  @link(url: "https://specs.apollo.dev/federation/v2.0", import: ["@key"])
+
+type Product @key(fields: "id") @key(fields: "id pid") {
+  id: String!
+  pid: String!
+}

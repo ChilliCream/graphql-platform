@@ -1,0 +1,19 @@
+[
+  {
+    "query": "query {\n  b {\n    id\n    a {\n      id\n      name\n      nameInB\n    }\n  }\n}\n",
+    "expected": {
+      "data": {
+        "b": {
+          "id": "100",
+          "a": [
+            {
+              "id": "1",
+              "name": "a.1",
+              "nameInB": "b.a.nameInB a.1"
+            }
+          ]
+        }
+      }
+    }
+  }
+]

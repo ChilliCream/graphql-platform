@@ -43,6 +43,10 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        books: [Book!]!
+      }
+
       type Author @key(fields: "id") {
         id: ID!
       }
@@ -51,10 +55,6 @@ sourceSchemas:
         id: ID!
         title: String!
         author: Author! @shareable
-      }
-
-      type Query {
-        books: [Book!]!
       }
     interactions:
       - request:
@@ -102,6 +102,10 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        lookups: InternalLookups! @internal
+      }
+
       type Author {
         id: ID!
         name: String!
@@ -109,10 +113,6 @@ sourceSchemas:
 
       type InternalLookups @internal {
         authorById(id: ID!): Author @lookup
-      }
-
-      type Query {
-        lookups: InternalLookups! @internal
       }
     interactions:
       - request:

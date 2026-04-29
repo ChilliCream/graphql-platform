@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Language;
@@ -124,7 +125,9 @@ public class InputObjectTypeDescriptor
             foreach (var member in members)
             {
                 if (member is PropertyInfo propertyInfo
+#pragma warning disable IL2072 // 'type' argument does not satisfy 'DynamicallyAccessedMembersAttribute' - type comes from runtime configuration which cannot be statically annotated.
                     && (propertyInfo.CanWrite || HasConstructorParameter(type, propertyInfo)))
+#pragma warning restore IL2072
                 {
                     var name = naming.GetMemberName(propertyInfo, MemberKind.InputObjectField);
 
@@ -234,7 +237,12 @@ public class InputObjectTypeDescriptor
     /// <returns>
     /// <c>true</c> if a matching constructor parameter exists; otherwise, <c>false</c>.
     /// </returns>
-    private static bool HasConstructorParameter(Type type, PropertyInfo property)
+    private static bool HasConstructorParameter(
+        [DynamicallyAccessedMembers(
+            DynamicallyAccessedMemberTypes.PublicConstructors
+            | DynamicallyAccessedMemberTypes.NonPublicConstructors)]
+        Type type,
+        PropertyInfo property)
     {
         return type.GetConstructors(NonPublic | Public | Instance).Any(
             c => c.GetParameters().Any(

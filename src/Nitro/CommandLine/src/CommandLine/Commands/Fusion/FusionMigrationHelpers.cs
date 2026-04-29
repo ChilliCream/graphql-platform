@@ -22,7 +22,10 @@ internal static class FusionMigrationHelpers
         writer.WriteStartObject();
 
         // Enable backwards compatibility
-        writer.WriteString("version", "1.0.0");
+        if (!root.TryGetProperty("version", out _))
+        {
+            writer.WriteString("version", "1.0.0");
+        }
 
         // "subgraph" -> "name"
         if (root.TryGetProperty("subgraph", out var subgraphElement))

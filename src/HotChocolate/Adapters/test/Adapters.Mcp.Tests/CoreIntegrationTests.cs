@@ -21,6 +21,42 @@ namespace HotChocolate.Adapters.Mcp;
 public sealed class CoreIntegrationTests : IntegrationTestBase
 {
     [Fact]
+    public async Task MapGraphQLMcp_Should_ResolveSchemaName_When_SingleNamedSchemaRegistered()
+    {
+        // arrange
+        var storage = new TestMcpStorage();
+        await storage.AddOrUpdateToolAsync(
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse("query GetBooks { books { title } }")));
+        var builder = new WebHostBuilder()
+            .ConfigureServices(
+                services => services
+                    .AddRouting()
+                    .AddGraphQL("NamedSchema")
+                    .AddAuthorization()
+                    .AddQueryType<TestSchema.Query>()
+                    .AddMutationType<TestSchema.Mutation>()
+                    .AddInterfaceType<TestSchema.IPet>()
+                    .AddUnionType<TestSchema.IPet>()
+                    .AddObjectType<TestSchema.Cat>()
+                    .AddObjectType<TestSchema.Dog>()
+                    .AddMcp()
+                    .AddMcpStorage(storage))
+            .Configure(
+                app => app
+                    .UseRouting()
+                    .UseEndpoints(endpoints => endpoints.MapGraphQLMcp()));
+        var server = new TestServer(builder);
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+
+        // act
+        var tools = await mcpClient.ListToolsAsync();
+
+        // assert
+        Assert.Equal("get_books", Assert.Single(tools).Name);
+    }
+
+    [Fact]
     public async Task ListTools_AfterSchemaUpdate_ReturnsUpdatedTools()
     {
         // arrange

@@ -1,0 +1,14 @@
+[
+  {
+    "query": "query {\n  bookContainers {\n    book {\n      upc\n      author { name }\n    }\n  }\n}\n",
+    "expected": {
+      "data": {
+        "bookContainers": [
+          { "book": { "upc": "b1", "author": { "name": "Alice" } } },
+          { "book": { "upc": "b2", "author": { "name": "Bob" } } },
+          { "book": { "upc": "b3", "author": null } }
+        ]
+      }
+    }
+  }
+]

@@ -1,4 +1,5 @@
 using System.Text;
+using HotChocolate.Execution;
 
 namespace HotChocolate.Fusion.Execution.Nodes.Serialization;
 
@@ -25,27 +26,116 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             ExecutionNodeTrace? nodeTrace = null;
             trace?.Nodes.TryGetValue(node.Id, out nodeTrace);
 
-            switch (node)
+            WriteNode(node, nodeTrace, writer);
+        }
+
+        writer.Unindent();
+
+        if (!plan.DeliveryGroups.IsDefaultOrEmpty)
+        {
+            writer.WriteLine("deliveryGroups:");
+            writer.Indent();
+
+            foreach (var deliveryGroup in plan.DeliveryGroups)
             {
-                case OperationExecutionNode operationNode:
-                    WriteOperationNode(operationNode, nodeTrace, writer);
-                    break;
-
-                case OperationBatchExecutionNode batchNode:
-                    WriteBatchExecutionNode(batchNode, nodeTrace, writer);
-                    break;
-
-                case IntrospectionExecutionNode introspectionNode:
-                    WriteIntrospectionNode(introspectionNode, nodeTrace, writer);
-                    break;
-
-                case NodeFieldExecutionNode nodeExecutionNode:
-                    WriteNodeFieldNode(nodeExecutionNode, nodeTrace, writer);
-                    break;
+                WriteDeliveryGroup(deliveryGroup, writer);
             }
+
+            writer.Unindent();
+        }
+
+        if (!plan.DeferredSubPlans.IsDefaultOrEmpty)
+        {
+            writer.WriteLine("deferredSubPlans:");
+            writer.Indent();
+
+            foreach (var subPlan in plan.DeferredSubPlans)
+            {
+                WriteDeferredSubPlan(subPlan, writer);
+            }
+
+            writer.Unindent();
         }
 
         return sb.ToString();
+    }
+
+    private static void WriteNode(ExecutionNode node, ExecutionNodeTrace? nodeTrace, CodeWriter writer)
+    {
+        switch (node)
+        {
+            case OperationExecutionNode operationNode:
+                WriteOperationNode(operationNode, nodeTrace, writer);
+                break;
+
+            case OperationBatchExecutionNode batchNode:
+                WriteBatchExecutionNode(batchNode, nodeTrace, writer);
+                break;
+
+            case IntrospectionExecutionNode introspectionNode:
+                WriteIntrospectionNode(introspectionNode, nodeTrace, writer);
+                break;
+
+            case NodeFieldExecutionNode nodeExecutionNode:
+                WriteNodeFieldNode(nodeExecutionNode, nodeTrace, writer);
+                break;
+        }
+    }
+
+    private static void WriteDeliveryGroup(DeferUsage deliveryGroup, CodeWriter writer)
+    {
+        writer.WriteLine("- id: {0}", deliveryGroup.Id);
+        writer.Indent();
+
+        writer.WriteLine("path: {0}", (deliveryGroup.Path ?? SelectionPath.Root).ToString());
+
+        if (deliveryGroup.Label is not null)
+        {
+            writer.WriteLine("label: {0}", deliveryGroup.Label);
+        }
+
+        if (deliveryGroup.IfVariable is not null)
+        {
+            writer.WriteLine("ifVariable: ${0}", deliveryGroup.IfVariable);
+        }
+
+        if (deliveryGroup.Parent is not null)
+        {
+            writer.WriteLine("parentId: {0}", deliveryGroup.Parent.Id);
+        }
+
+        writer.Unindent();
+    }
+
+    private static void WriteDeferredSubPlan(ExecutionSubPlan subPlan, CodeWriter writer)
+    {
+        writer.WriteLine("- deliveryGroupIds:");
+        writer.Indent();
+        writer.Indent();
+
+        foreach (var deliveryGroup in subPlan.DeliveryGroups)
+        {
+            writer.WriteLine("- {0}", deliveryGroup.Id);
+        }
+
+        writer.Unindent();
+
+        writer.WriteLine("parentNodeId: {0}", subPlan.ParentNodeId);
+
+        if (!subPlan.AllNodes.IsDefaultOrEmpty)
+        {
+            writer.WriteLine("nodes:");
+            writer.Indent();
+
+            foreach (var node in subPlan.AllNodes)
+            {
+                WriteNode(node, nodeTrace: null, writer);
+            }
+
+            writer.Unindent();
+        }
+
+        writer.Unindent();
     }
 
     private static void WriteOperation(

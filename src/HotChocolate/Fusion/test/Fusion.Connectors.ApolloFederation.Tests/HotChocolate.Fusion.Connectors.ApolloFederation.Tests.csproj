@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Xunit2.Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Fusion.Connectors.ApolloFederation.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.Fusion</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Fusion.Connectors.ApolloFederation\HotChocolate.Fusion.Connectors.ApolloFederation.csproj" />
+    <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble.HotChocolate\CookieCrumble.HotChocolate.csproj" />
+    <ProjectReference Include="..\..\..\ApolloFederation\src\ApolloFederation\HotChocolate.ApolloFederation.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -143,6 +143,16 @@ function ensureOutputDir(): void {
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });
 }
 
+function cachedVariantsExist(cached: CachedImage): boolean {
+  for (const entry of cached.srcSet) {
+    const outputPath = path.join(OUTPUT_DIR, path.basename(entry.src));
+    if (!fs.existsSync(outputPath)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 /**
  * Generate a tiny base64 placeholder image for blur-up effect.
  */
@@ -258,8 +268,12 @@ export async function getOptimizedImageProps(
   const cache = loadCache();
   const map = loadImageMap();
 
-  // Check cache
-  if (cache[hash]) {
+  // Check cache. The cache manifest is persisted across CI runs via
+  // actions/cache, but the generated variant files in public/optimized/ are
+  // not. A cache hit without the corresponding files on disk means the deploy
+  // would reference variants that do not exist, so verify file presence
+  // before trusting the cache.
+  if (cache[hash] && cachedVariantsExist(cache[hash])) {
     const cached = cache[hash];
     const result = buildPropsFromCached(cached, imagePath, sizes);
 

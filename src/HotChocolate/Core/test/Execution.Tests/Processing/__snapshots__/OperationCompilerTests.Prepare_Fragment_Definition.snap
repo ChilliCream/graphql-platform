@@ -1,8 +1,8 @@
 {
   hero(episode: EMPIRE) {
     name
-    ... abc
-    ... def
+    ...abc
+    ...def
   }
 }
 

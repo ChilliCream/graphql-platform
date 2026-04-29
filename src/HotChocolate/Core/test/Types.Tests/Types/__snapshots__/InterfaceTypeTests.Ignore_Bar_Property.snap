@@ -2,11 +2,11 @@ schema {
   query: Query
 }
 
+type Query {
+  foo: String
+}
+
 interface IFoo {
   baz: String
   qux(a: String!): Int!
-}
-
-type Query {
-  foo: String
 }

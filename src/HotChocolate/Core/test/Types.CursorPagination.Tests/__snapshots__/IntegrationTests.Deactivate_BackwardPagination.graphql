@@ -2,6 +2,39 @@ schema {
   query: Query
 }
 
+type Query {
+  letters(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+  ): LettersConnection
+  explicitType(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+  ): ExplicitTypeConnection
+  nestedObjectList(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+  ): NestedObjectListConnection
+  extendedTypeRef(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+  ): ExtendedTypeRefConnection
+  extendedTypeRefNested(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+  ): ExtendedTypeRefNestedConnection
+}
+
 "A connection to a list of items."
 type ExplicitTypeConnection {
   "Information to aid in pagination."
@@ -108,37 +141,4 @@ type PageInfo {
   startCursor: String
   "When paginating forwards, the cursor to continue."
   endCursor: String
-}
-
-type Query {
-  letters(
-    "Returns the first _n_ elements from the list."
-    first: Int
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-  ): LettersConnection
-  explicitType(
-    "Returns the first _n_ elements from the list."
-    first: Int
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-  ): ExplicitTypeConnection
-  nestedObjectList(
-    "Returns the first _n_ elements from the list."
-    first: Int
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-  ): NestedObjectListConnection
-  extendedTypeRef(
-    "Returns the first _n_ elements from the list."
-    first: Int
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-  ): ExtendedTypeRefConnection
-  extendedTypeRefNested(
-    "Returns the first _n_ elements from the list."
-    first: Int
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-  ): ExtendedTypeRefNestedConnection
 }

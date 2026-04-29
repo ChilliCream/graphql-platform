@@ -17,7 +17,12 @@ public sealed partial class SourceResultDocument
     internal static SourceResultDocument Parse(
         byte[] data,
         int size)
-        => Parse([data], size, usedChunks: 1, pooledMemory: true);
+    {
+        // Fixed-size pooled chunks are always BufferSize. Smaller arrays are typically
+        // ad-hoc input buffers and must not be returned to JsonMemory.
+        var pooledMemory = data.Length == JsonMemory.BufferSize;
+        return Parse([data], size, usedChunks: 1, pooledMemory);
+    }
 
     internal static SourceResultDocument Parse(
         byte[][] dataChunks,

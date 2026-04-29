@@ -1,3 +1,4 @@
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Properties;
 
 namespace HotChocolate.Fusion.Execution;
@@ -14,6 +15,11 @@ internal static class ThrowHelper
             FusionExecutionResources.OperationPlan_NodeNotFound,
             id));
 
+    public static InvalidOperationException DeferredSubPlanParentNotFound(SelectionPath path)
+        => new(string.Format(
+            FusionExecutionResources.OperationPlan_DeferredSubPlanParentNotFound,
+            path));
+
     public static InvalidOperationException MissingBatchResult(int operationId)
         => new(string.Format(
             FusionExecutionResources.OperationBatchExecutionNode_MissingBatchResult,
@@ -24,12 +30,12 @@ internal static class ThrowHelper
 
     public static InvalidOperationException RequestIndexOutOfRange(int requestIndex)
         => new(string.Format(
-            FusionExecutionResources.SourceSchemaHttpClient_InvalidRequestIndex,
+            FusionExecutionResources.HttpSourceSchemaClient_InvalidRequestIndex,
             requestIndex));
 
     public static InvalidOperationException VariableIndexOutOfRange(int variableIndex)
         => new(string.Format(
-            FusionExecutionResources.SourceSchemaHttpClient_VariableIndexOutOfRange,
+            FusionExecutionResources.HttpSourceSchemaClient_VariableIndexOutOfRange,
             variableIndex));
 
     public static ArgumentException InvalidClientConfiguration(Type expected, Type actual)

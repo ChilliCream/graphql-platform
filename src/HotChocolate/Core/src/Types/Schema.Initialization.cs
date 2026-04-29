@@ -10,7 +10,6 @@ namespace HotChocolate;
 
 public partial class Schema
 {
-    private AggregateSchemaDocumentFormatter? _formatter;
     private FrozenDictionary<string, ImmutableArray<ObjectType>> _possibleTypes = null!;
     private Action<ISchemaTypeDescriptor>? _configure;
     private bool _sealed;

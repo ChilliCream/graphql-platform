@@ -39,6 +39,7 @@ public class RequestExecutorBuilderExtensionsOptInFeaturesTests
     {
         (await new ServiceCollection()
             .AddGraphQLServer()
+            .DisableIntrospection(disable: false)
             .ModifyOptions(o => o.EnableOptInFeatures = true)
             .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
             .OptInFeatureStability("feature1", "stability1")

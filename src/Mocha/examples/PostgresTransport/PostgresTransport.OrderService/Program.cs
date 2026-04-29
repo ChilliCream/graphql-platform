@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using Mocha;
-using Mocha.Hosting;
 using Mocha.Transport.Postgres;
 using PostgresTransport.Contracts.Commands;
 using PostgresTransport.Contracts.Events;
@@ -243,8 +242,6 @@ app.MapGet(
 
         return Results.Ok(response);
     });
-
-app.MapMessageBusDeveloperTopology();
 
 app.Run();
 

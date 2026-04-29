@@ -105,7 +105,8 @@ public sealed class FusionArchive : IDisposable
         ArgumentNullException.ThrowIfNull(stream);
         var readOptions = new FusionArchiveReadOptions(
             options.MaxAllowedSchemaSize ?? FusionArchiveReadOptions.Default.MaxAllowedSchemaSize,
-            options.MaxAllowedSettingsSize ?? FusionArchiveReadOptions.Default.MaxAllowedSettingsSize);
+            options.MaxAllowedSettingsSize ?? FusionArchiveReadOptions.Default.MaxAllowedSettingsSize,
+            options.MaxAllowedLegacyArchiveSize ?? FusionArchiveReadOptions.Default.MaxAllowedLegacyArchiveSize);
         return new FusionArchive(stream, mode, leaveOpen, readOptions);
     }
 
@@ -531,6 +532,46 @@ public sealed class FusionArchive : IDisposable
 
         Task<Stream> OpenReadSchemaAsync(CancellationToken ct)
             => _session.OpenReadAsync(FileNames.GetSourceSchemaPath(schemaName), FileKind.Schema, ct);
+    }
+
+    /// <summary>
+    /// Sets the legacy archive file in the archive by copying the content from the provided stream.
+    /// </summary>
+    /// <param name="content">The stream containing the legacy archive content.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <exception cref="ArgumentNullException">Thrown when content is null.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when the archive is read-only.</exception>
+    public async Task SetLegacyArchiveFileAsync(
+        Stream content,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(content);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        EnsureMutable();
+
+        await using var stream = _session.OpenWrite(FileNames.LegacyArchive);
+        await content.CopyToAsync(stream, cancellationToken);
+    }
+
+    /// <summary>
+    /// Attempts to get the legacy archive file from the archive as a stream.
+    /// Returns null if no legacy archive file is present.
+    /// </summary>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>A stream to read the legacy archive content, or null if not present.</returns>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    public async Task<Stream?> TryGetLegacyArchiveFileAsync(
+        CancellationToken cancellationToken = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        if (!await _session.ExistsAsync(FileNames.LegacyArchive, FileKind.LegacyArchive, cancellationToken))
+        {
+            return null;
+        }
+
+        return await _session.OpenReadAsync(FileNames.LegacyArchive, FileKind.LegacyArchive, cancellationToken);
     }
 
     /// <summary>

@@ -20,6 +20,8 @@ public sealed record OperationPlan
         Operation operation,
         ImmutableArray<ExecutionNode> rootNodes,
         ImmutableArray<ExecutionNode> allNodes,
+        ImmutableArray<DeferUsage> deliveryGroups,
+        ImmutableArray<ExecutionSubPlan> deferredSubPlans,
         int searchSpace,
         int expandedNodes)
     {
@@ -29,6 +31,8 @@ public sealed record OperationPlan
         AllNodes = allNodes;
         SearchSpace = searchSpace;
         ExpandedNodes = expandedNodes;
+        DeliveryGroups = deliveryGroups;
+        DeferredSubPlans = deferredSubPlans;
         _nodesById = CreateNodeLookup(allNodes);
         MaxNodeId = _nodesById.Length > 0 ? _nodesById.Length - 1 : 0;
     }
@@ -73,6 +77,24 @@ public sealed record OperationPlan
     /// Gets the number of nodes expanded (dequeued) during the A* search.
     /// </summary>
     public int ExpandedNodes { get; }
+
+    /// <summary>
+    /// Gets every <see cref="DeferUsage"/> (delivery group) this plan uses, in
+    /// ascending <see cref="DeferUsage.Id"/> order. One element per <c>@defer</c>
+    /// occurrence in the operation. Empty if the operation has no <c>@defer</c>
+    /// directives.
+    /// </summary>
+    public ImmutableArray<DeferUsage> DeliveryGroups { get; }
+
+    /// <summary>
+    /// Gets the deferred execution subplans for this plan. Each subplan is
+    /// keyed by a unique <c>DeferUsageSet</c> and fetches the fields whose
+    /// active defer usage set matches that key. The subplan's data is
+    /// delivered to every <see cref="DeferUsage"/> in its
+    /// <see cref="ExecutionSubPlan.DeliveryGroups"/> when it completes.
+    /// Empty if the operation has no <c>@defer</c> directives.
+    /// </summary>
+    public ImmutableArray<ExecutionSubPlan> DeferredSubPlans { get; }
 
     /// <summary>
     /// Gets the maximum node identifier across all nodes in this plan.
@@ -131,6 +153,14 @@ public sealed record OperationPlan
     /// <param name="operation">The GraphQL operation.</param>
     /// <param name="rootNodes">The root execution nodes.</param>
     /// <param name="allNodes">All execution nodes in the plan.</param>
+    /// <param name="deliveryGroups">
+    /// Every <see cref="DeferUsage"/> (delivery group) this plan uses, in ascending
+    /// <see cref="DeferUsage.Id"/> order.
+    /// </param>
+    /// <param name="deferredSubPlans">
+    /// The deferred execution subplans for <c>@defer</c> support, one per unique
+    /// <c>DeferUsageSet</c>.
+    /// </param>
     /// <param name="searchSpace">A number specifying how many possible plans were considered during planning.</param>
     /// <param name="expandedNodes">The number of expanded nodes during planner search.</param>
     /// <returns>A new <see cref="OperationPlan"/> instance.</returns>
@@ -142,6 +172,8 @@ public sealed record OperationPlan
         Operation operation,
         ImmutableArray<ExecutionNode> rootNodes,
         ImmutableArray<ExecutionNode> allNodes,
+        ImmutableArray<DeferUsage> deliveryGroups,
+        ImmutableArray<ExecutionSubPlan> deferredSubPlans,
         int searchSpace,
         int expandedNodes)
     {
@@ -150,7 +182,8 @@ public sealed record OperationPlan
         ArgumentOutOfRangeException.ThrowIfLessThan(rootNodes.Length, 0);
         ArgumentOutOfRangeException.ThrowIfLessThan(allNodes.Length, 0);
 
-        return new OperationPlan(id, operation, rootNodes, allNodes, searchSpace, expandedNodes);
+        return new OperationPlan(
+            id, operation, rootNodes, allNodes, deliveryGroups, deferredSubPlans, searchSpace, expandedNodes);
     }
 
     /// <summary>
@@ -160,6 +193,14 @@ public sealed record OperationPlan
     /// <param name="operation">The GraphQL operation.</param>
     /// <param name="rootNodes">The root execution nodes.</param>
     /// <param name="allNodes">All execution nodes in the plan.</param>
+    /// <param name="deliveryGroups">
+    /// Every <see cref="DeferUsage"/> (delivery group) this plan uses, in ascending
+    /// <see cref="DeferUsage.Id"/> order.
+    /// </param>
+    /// <param name="deferredSubPlans">
+    /// The deferred execution subplans for <c>@defer</c> support, one per unique
+    /// <c>DeferUsageSet</c>.
+    /// </param>
     /// <param name="searchSpace">A number specifying how many possible plans were considered during planning.</param>
     /// <param name="expandedNodes">The number of expanded nodes during planner search.</param>
     /// <returns>A new <see cref="OperationPlan"/> instance with a content-based identifier.</returns>
@@ -169,6 +210,8 @@ public sealed record OperationPlan
         Operation operation,
         ImmutableArray<ExecutionNode> rootNodes,
         ImmutableArray<ExecutionNode> allNodes,
+        ImmutableArray<DeferUsage> deliveryGroups,
+        ImmutableArray<ExecutionSubPlan> deferredSubPlans,
         int searchSpace,
         int expandedNodes)
     {
@@ -192,7 +235,8 @@ public sealed record OperationPlan
         var id = Convert.ToHexString(buffer.WrittenSpan[^32..]).ToLowerInvariant();
 #endif
 
-        return new OperationPlan(id, operation, rootNodes, allNodes, searchSpace, expandedNodes);
+        return new OperationPlan(
+            id, operation, rootNodes, allNodes, deliveryGroups, deferredSubPlans, searchSpace, expandedNodes);
     }
 
     private static ExecutionNode?[] CreateNodeLookup(ImmutableArray<ExecutionNode> allNodes)

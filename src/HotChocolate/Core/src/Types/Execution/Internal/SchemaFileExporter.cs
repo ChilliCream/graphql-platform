@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using HotChocolate.Serialization;
 
 namespace HotChocolate.Execution.Internal;
 
@@ -9,9 +10,12 @@ internal static class SchemaFileExporter
     public static async Task<SchemaFileInfo> Export(
         string schemaFileName,
         IRequestExecutor executor,
+        bool rewriteToSemanticNonNull,
         CancellationToken cancellationToken)
     {
-        var sdl = executor.Schema.ToString();
+        var sdl = SchemaFormatter.FormatAsString(
+            executor.Schema,
+            new SchemaFormatterOptions { RewriteToSemanticNonNull = rewriteToSemanticNonNull });
 
         if (Directory.Exists(schemaFileName))
         {

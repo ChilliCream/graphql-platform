@@ -91,21 +91,54 @@ public sealed partial class OperationPlanner
 
         try
         {
+            // Check for @defer directives before planning. If present, we split the
+            // operation into a main (non-deferred) part and per-DeferUsageSet subplans.
+            // The main operation is planned without the deferred selections, and each
+            // subplan is planned independently.
+            //
+            // PERF: For non-deferred operations (the common case), the only overhead is
+            // the HasDeferDirective check which does a fast AST walk looking for @defer.
+            ImmutableArray<DeferUsage> deliveryGroups = [];
+            ImmutableArray<ExecutionSubPlan> deferredSubPlans = [];
+            DeferSplitResult? deferSplit = null;
+            DeferPartitioningResult? partitioning = null;
+            var mainOperationDefinition = operationDefinition;
+
+            if (_options.EnableDefer && DeferOperationRewriter.HasDeferDirective(operationDefinition))
+            {
+                // The partitioner walks the original AST once and hands every
+                // @defer fragment a canonical DeferUsage instance (with Id,
+                // Path and IfVariable populated). The rewriter consumes the
+                // same instances so its per-set grouping and the compiler's
+                // later Selection._deferUsages entries share object identity.
+                var deferConditions = new DeferConditionCollection();
+                partitioning = DeferPartitioner.Partition(operationDefinition, deferConditions);
+
+                var rewriter = new DeferOperationRewriter(_options.InlineUnlabeledDeferFragments);
+                var splitResult = rewriter.Split(operationDefinition, partitioning);
+
+                if (!splitResult.SubPlanDescriptors.IsEmpty)
+                {
+                    deferSplit = splitResult;
+                    mainOperationDefinition = splitResult.MainOperation;
+                }
+            }
+
             // We first need to create an index to keep track of the logical selections
             // sets before we can branch them. This allows us to inline requirements later
             // into the right place.
-            var index = SelectionSetIndexer.Create(operationDefinition);
+            var index = SelectionSetIndexer.Create(mainOperationDefinition);
 
             // Next, we create the seed plan with a set of initial work items exploring the root selection set.
-            var (node, selectionSet) = operationDefinition.Operation switch
+            var (node, selectionSet) = mainOperationDefinition.Operation switch
             {
-                OperationType.Query => CreateQueryPlanBase(operationDefinition, shortHash, index),
-                OperationType.Mutation => CreateMutationPlanBase(operationDefinition, shortHash, index),
-                OperationType.Subscription => CreateSubscriptionPlanBase(operationDefinition, shortHash, index),
+                OperationType.Query => CreateQueryPlanBase(mainOperationDefinition, shortHash, index),
+                OperationType.Mutation => CreateMutationPlanBase(mainOperationDefinition, shortHash, index),
+                OperationType.Subscription => CreateSubscriptionPlanBase(mainOperationDefinition, shortHash, index),
                 _ => throw new ArgumentOutOfRangeException()
             };
 
-            var internalOperationDefinition = operationDefinition;
+            var internalOperationDefinition = mainOperationDefinition;
             ImmutableList<PlanStep> planSteps = [];
 
             // The backlog is only empty for pure introspection queries, which the
@@ -150,14 +183,35 @@ public sealed partial class OperationPlanner
                 internalOperationDefinition =
                     AddTypeNameToAbstractSelections(
                         internalOperationDefinition,
-                        _schema.GetOperationType(operationDefinition.Operation));
+                        _schema.GetOperationType(mainOperationDefinition.Operation));
             }
 
+            // Always compile from the planner's internal definition. For defer,
+            // this is the stripped main operation (without deferred fragments),
+            // which ensures the result mapper only includes non-deferred fields.
             var operation = _operationCompiler.Compile(id, hash, internalOperationDefinition);
+
+            // Plan deferred subplans if @defer was detected. Each unique
+            // DeferUsageSet becomes one ExecutionSubPlan; the set of all
+            // DeferUsage instances (one per @defer occurrence) is kept on the
+            // plan for wire-level delivery-group identity.
+            if (deferSplit.HasValue && partitioning is not null)
+            {
+                deliveryGroups = partitioning.AllDeferUsages;
+                deferredSubPlans = PlanDeferredSubPlans(
+                    id,
+                    hash,
+                    deferSplit.Value,
+                    eventSourceEnabled,
+                    cancellationToken);
+            }
+
             var operationPlan = BuildExecutionPlan(
                 operation,
-                operationDefinition,
+                mainOperationDefinition,
                 planSteps,
+                deliveryGroups,
+                deferredSubPlans,
                 searchSpace,
                 expandedNodes,
                 cancellationToken);

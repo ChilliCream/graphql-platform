@@ -1,5 +1,6 @@
 #nullable disable
 
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace HotChocolate.Resolvers.Expressions;
@@ -7,6 +8,7 @@ namespace HotChocolate.Resolvers.Expressions;
 internal static class TypeInfoExtensions
 {
     public static MethodInfo GetDeclaredMethod(
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods | DynamicallyAccessedMemberTypes.NonPublicMethods)]
         this TypeInfo typeInfo,
         string name,
         params Type[] types)

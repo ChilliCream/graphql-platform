@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types;
 using static HotChocolate.Properties.Resources;
 
@@ -8,6 +9,11 @@ namespace HotChocolate.Execution.Processing;
 /// </summary>
 internal static class RootValueResolver
 {
+    [UnconditionalSuppressMessage(
+        "AOT",
+        "IL2072",
+        Justification =
+            "Root value types are statically referenced in the schema type model.")]
     public static object? Resolve(
         RequestContext context,
         IServiceProvider services,

@@ -1,0 +1,22 @@
+extend schema
+  @link(
+    url: "https://specs.apollo.dev/federation/v2.3"
+    import: ["@key", "@external", "@requires", "@shareable"]
+  )
+
+type Product @key(fields: "id") {
+  id: ID!
+  price: Float! @external
+  isExpensive: Boolean! @requires(fields: "price")
+  isAvailable: Boolean!
+}
+
+type Mutation {
+  delete(requestId: String!): Int!
+  addCategory(name: String!, requestId: String!): Category! @shareable
+}
+
+type Category @key(fields: "id") {
+  id: ID!
+  name: String!
+}

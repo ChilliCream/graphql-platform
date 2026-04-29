@@ -16,7 +16,6 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
     {
         // arrange
         var compositeSchema = CreateCompositeSchema();
-
         var originalPlan = PlanOperation(
             compositeSchema,
             """
@@ -42,26 +41,6 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
             });
         formatter.Format(buffer, originalPlan);
 
-        var json = JsonNode.Parse(buffer.WrittenSpan)!;
-        var operationNodes = json["nodes"]!
-            .AsArray()
-            .Select(t => t!.AsObject())
-            .Where(t =>
-            {
-                var type = t["type"]?.GetValue<string>();
-                return type is "Operation" or "OperationBatch";
-            })
-            .ToList();
-
-        Assert.NotEmpty(operationNodes);
-        Assert.All(
-            operationNodes,
-            node =>
-            {
-                Assert.True(node.ContainsKey("resultSelectionSet"));
-                Assert.False(node.ContainsKey("responseNames"));
-            });
-
         // act
         var compiler = new OperationCompiler(
             compositeSchema,
@@ -71,14 +50,15 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         var parsedPlan = parser.Parse(buffer.WrittenMemory);
 
         // assert
-        var parsedPlanFormatted = formatter.Format(parsedPlan);
-        parsedPlanFormatted.MatchInlineSnapshot(Encoding.UTF8.GetString(buffer.WrittenSpan));
+        formatter.Format(parsedPlan).MatchInlineSnapshot(Encoding.UTF8.GetString(buffer.WrittenSpan));
     }
 
     [Fact]
     public void Parse_Plan_Uses_SelectionSet_Syntax_When_Present()
     {
         // arrange
+        // Inject a custom selection set string into the formatted plan, then
+        // parse it back to confirm the parser preserves the syntax.
         var compositeSchema = CreateCompositeSchema();
         var originalPlan = PlanOperation(
             compositeSchema,
@@ -103,16 +83,8 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
             .Select(t => t!.AsObject())
             .First(t => t["type"]?.GetValue<string>() is "Operation");
         var operationNodeId = operationNode["id"]!.GetValue<int>();
-
         operationNode["resultSelectionSet"] = "{ __typename }";
-
-        var planSource = Encoding.UTF8.GetBytes(
-            json.ToJsonString(
-                new JsonSerializerOptions
-                {
-                    WriteIndented = true
-                }));
-
+        var planSource = Encoding.UTF8.GetBytes(json.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
         var compiler = new OperationCompiler(
             compositeSchema,
             new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
@@ -121,11 +93,11 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
 
         // act
         var parsedPlan = parser.Parse(planSource);
+
+        // assert
         var parsedOperationNode = parsedPlan.AllNodes
             .OfType<OperationExecutionNode>()
             .Single(t => t.Id == operationNodeId);
-
-        // assert
         Assert.Equal("{ __typename }", parsedOperationNode.ResultSelectionSet.ToString(indented: false));
     }
 
@@ -196,9 +168,89 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
     }
 
     [Fact]
+    public void Parse_Plan_Preserves_DeliveryGroup_Identity_Across_Plan_And_SubPlans()
+    {
+        // arrange
+        // Two sibling @defer fragments share a field (email) plus a nested @defer
+        // adds a parent chain. Round-trip must restore canonical DeferUsage instances.
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+                address: String!
+            }
+            """);
+
+        var originalPlan = PlanOperation(
+            schema,
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "contact") {
+                        email
+                        ... @defer(label: "nested") {
+                            address
+                        }
+                    }
+                    ... @defer(label: "location") {
+                        email
+                    }
+                }
+            }
+            """);
+
+        using var buffer = new PooledArrayWriter();
+        var formatter = new JsonOperationPlanFormatter(
+            new JsonWriterOptions
+            {
+                Indented = true,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            });
+        formatter.Format(buffer, originalPlan);
+
+        // act
+        var compiler = new OperationCompiler(
+            schema,
+            new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
+                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+        var parser = new JsonOperationPlanParser(compiler);
+        var parsedPlan = parser.Parse(buffer.WrittenMemory);
+
+        // assert
+        Encoding.UTF8.GetString(buffer.WrittenSpan).MatchSnapshot();
+        Assert.All(
+            parsedPlan.DeferredSubPlans,
+            p => Assert.All(
+                p.DeliveryGroups,
+                g => Assert.Same(parsedPlan.DeliveryGroups.Single(d => d.Id == g.Id), g)));
+        Assert.All(
+            parsedPlan.DeliveryGroups.Where(g => g.Parent is not null),
+            g => Assert.Same(parsedPlan.DeliveryGroups.Single(d => d.Id == g.Parent!.Id), g.Parent));
+    }
+
+    [Fact]
     public void Parse_Plan_Without_BatchingGroupId()
     {
         // arrange
+        // Strip batchingGroupId from a formatted plan to simulate a legacy payload.
         var compositeSchema = CreateCompositeSchema();
         var originalPlan = PlanOperation(
             compositeSchema,
@@ -222,34 +274,25 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         formatter.Format(buffer, originalPlan);
 
         var json = JsonNode.Parse(buffer.WrittenSpan)!;
-        var nodes = json["nodes"]!.AsArray();
-
-        foreach (var node in nodes)
+        foreach (var node in json["nodes"]!.AsArray())
         {
             if (node?["type"]?.GetValue<string>() is "Operation")
             {
                 node.AsObject().Remove("batchingGroupId");
             }
         }
-
         var legacyPlanSource = Encoding.UTF8.GetBytes(
-            json.ToJsonString(
-                new JsonSerializerOptions
-                {
-                    WriteIndented = true
-                }));
-
-        // act
+            json.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
         var compiler = new OperationCompiler(
             compositeSchema,
             new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
                 new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
         var parser = new JsonOperationPlanParser(compiler);
+
+        // act
         var parsedPlan = parser.Parse(legacyPlanSource);
 
         // assert
-        // BatchingGroupId no longer exists on OperationExecutionNode;
-        // the legacy plan without batchingGroupId should still parse successfully.
         Assert.NotEmpty(parsedPlan.AllNodes.OfType<OperationExecutionNode>());
     }
 }

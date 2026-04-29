@@ -1,0 +1,25 @@
+[
+  {
+    "query": "query {\n  usersInA(filter: { first: 1 }) { id }\n}\n",
+    "expected": {
+      "data": {
+        "usersInA": [
+          { "id": "u1" },
+          { "id": "u2" }
+        ]
+      }
+    }
+  },
+  {
+    "query": "query {\n  usersInA(filter: { first: 1, offset: 2 }) { id }\n}\n",
+    "expected": {
+      "errors": true
+    }
+  },
+  {
+    "query": "query {\n  usersInB(filter: { first: 1, offset: 2 }) { id }\n}\n",
+    "expected": {
+      "errors": true
+    }
+  }
+]

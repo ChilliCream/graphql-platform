@@ -1,0 +1,25 @@
+using HotChocolate.Language;
+
+namespace HotChocolate;
+
+/// <summary>
+/// A schema document formatter can be used to format/rewrite the
+/// schema document that is produced by an <see cref="ISchemaDefinition"/>
+/// instance.
+/// </summary>
+public interface ISchemaDocumentFormatter
+{
+    /// <summary>
+    /// Formats the schema document.
+    /// </summary>
+    /// <param name="schema">
+    /// The schema definition that produced the document.
+    /// </param>
+    /// <param name="schemaDocument">
+    /// The schema document that shall be formatted.
+    /// </param>
+    /// <returns>
+    /// Returns the formatted schema document.
+    /// </returns>
+    DocumentNode Format(ISchemaDefinition schema, DocumentNode schemaDocument);
+}

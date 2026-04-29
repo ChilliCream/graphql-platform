@@ -1012,6 +1012,72 @@ There is no 1:1 mapping for all old methods. In most cases:
 
 Also note that `SubscriptionTransportError(...)` is no longer exposed separately in the fusion diagnostics API; use `SourceSchemaTransportError(...)`. -->
 
+## Experimental @semanticNonNull support removed
+
+Hot Chocolate v15 included experimental support for the `@semanticNonNull` directive, which let you mark fields as semantically non-null while still returning `null` (rather than propagating to the parent) when a resolver errored. We've removed this feature in v16 in favor of the [`onError` proposal](https://github.com/graphql/graphql-spec/pull/1163).
+
+If you previously opted in to this feature, remove the option:
+
+```diff
+builder.AddGraphQL()
+    .ModifyOptions(o =>
+    {
+-       o.EnableSemanticNonNull = true;
+    });
+```
+
+If you still need to keep the behavior of not propagating nulls for errors on non-null fields, set the `DefaultErrorHandlingMode` to `ErrorHandlingMode.Null`:
+
+```csharp
+builder
+    .AddGraphQL()
+    .ModifyOptions(o => o.DefaultErrorHandlingMode = ErrorHandlingMode.Null);
+```
+
+### Clients that still need a schema with @semanticNonNull annotations
+
+If you have a client that still relies on the schema being annotated with `@semanticNonNull`, you have a few options to obtain such a schema.
+
+**Schema snapshot tests**
+
+If you're producing a schema string for snapshot tests like this:
+
+```csharp
+ISchemaDefinition schema = await new ServiceCollection()
+    .AddGraphQL()
+    // ...
+    .BuildSchemaAsync();
+
+string schemaStr = schema.ToString();
+
+// assert schemaStr ...
+```
+
+Switch to `SchemaFormatter` with `RewriteToSemanticNonNull` enabled:
+
+```csharp
+string schemaStr = SchemaFormatter.FormatAsString(
+    schema,
+    new SchemaFormatterOptions { RewriteToSemanticNonNull = true });
+```
+
+**Downloading the schema from the server**
+
+If you're using `MapGraphQLSchema()` to expose the schema at `/graphql/schema`, you can additionally call `MapGraphQLSemanticNonNullSchema()` to expose a variant annotated with `@semanticNonNull` at `/graphql/semantic-non-null-schema.graphql`:
+
+```csharp
+app.MapGraphQLSchema();
+app.MapGraphQLSemanticNonNullSchema();
+```
+
+**Exporting the schema via the CLI**
+
+If you're using the schema export command, add the `--semantic-non-null` flag to emit the schema with `@semanticNonNull` annotations:
+
+```bash
+dotnet run -- schema export --output schema.graphql --semantic-non-null
+```
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.
@@ -1083,3 +1149,21 @@ builder
     .AddGraphQL()
     .SetMaxAllowedFieldMergeComparisons(200_000);
 ```
+
+## Concurrent execution gate
+
+Hot Chocolate v16 introduces a concurrency gate that limits how many GraphQL operations execute at the same time. The gate sits in the request pipeline just before operation execution and applies uniformly to queries, mutations, subscription handshakes, and each subscription event.
+
+Configure the limit through `ModifyServerOptions`:
+
+```csharp
+builder
+    .AddGraphQL()
+    .ModifyServerOptions(o => o.MaxConcurrentExecutions = 128);
+```
+
+The default is **64**. Operations that arrive while the gate is full queue up and run as slots free. Set the limit to `null` to disable the gate entirely.
+
+Every execution is bounded by the `ExecutionTimeout` option (default 30 seconds). This applies uniformly to queries, mutations, subscription handshakes, and each subscription event. The budget covers both the time an execution spends waiting for a concurrency slot and the time it spends running. When the budget is exceeded, the execution is cancelled and the caller receives a clean timeout error. `ExecutionTimeout` is the single setting that controls cancellation for every execution.
+
+Subscriptions participate in the limit like any other operation. The initial subscribe consumes a slot while the subscribe resolver runs, and each emitted event consumes a slot while its result is being produced. Idle subscriptions (waiting on the next event) cost nothing. The slot is released between events.

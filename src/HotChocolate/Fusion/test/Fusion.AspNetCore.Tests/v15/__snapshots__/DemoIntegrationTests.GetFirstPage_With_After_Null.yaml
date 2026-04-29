@@ -38,16 +38,16 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        appointments(after: String): AppointmentConnection
+      }
+
       type Appointment {
         id: ID!
       }
 
       type AppointmentConnection {
         nodes: [Appointment!]
-      }
-
-      type Query {
-        appointments(after: String): AppointmentConnection
       }
     interactions:
       - request:

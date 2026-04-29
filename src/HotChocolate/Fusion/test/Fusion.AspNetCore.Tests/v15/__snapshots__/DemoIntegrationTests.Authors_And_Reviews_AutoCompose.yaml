@@ -44,10 +44,6 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
-      }
-
       type Query {
         node(id: ID!): Node @lookup @shareable
         nodes(ids: [ID!]!): [Node]! @shareable
@@ -61,6 +57,10 @@ sourceSchemas:
         name: String!
         username: String!
         birthdate: String!
+      }
+
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:
@@ -95,20 +95,16 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        reviews: [Review!]!
       }
 
       type Product implements Node {
         id: ID!
         reviews: [Review!]!
         reviewCount: Int!
-      }
-
-      type Query {
-        node(id: ID!): Node @lookup @shareable
-        nodes(ids: [ID!]!): [Node]! @shareable
-        reviews: [Review!]!
       }
 
       type Review implements Node {
@@ -122,6 +118,10 @@ sourceSchemas:
         id: ID!
         reviews: [Review!]!
         errorField: String @error
+      }
+
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:

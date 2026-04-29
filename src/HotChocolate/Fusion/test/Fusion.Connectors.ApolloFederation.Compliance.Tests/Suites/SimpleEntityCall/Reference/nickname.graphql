@@ -1,0 +1,10 @@
+extend schema
+  @link(
+    url: "https://specs.apollo.dev/federation/v2.0"
+    import: ["@key", "@external"]
+  )
+
+type User @key(fields: "email") {
+  email: String! @external
+  nickname: String!
+}

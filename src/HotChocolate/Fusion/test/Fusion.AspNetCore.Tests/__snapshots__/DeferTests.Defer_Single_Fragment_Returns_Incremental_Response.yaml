@@ -1,0 +1,256 @@
+title: Defer_Single_Fragment_Returns_Incremental_Response
+request:
+  document: |
+    query GetUser {
+      user(id: "1") {
+        name
+        ... @defer(label: "reviews") {
+          reviews {
+            title
+            body
+          }
+        }
+      }
+    }
+stableResponseStream: |
+  {
+    "kind": "stable-stream",
+    "payloadCount": 2,
+    "initial": {
+      "data": {
+        "user": {
+          "name": "User: VXNlcjox"
+        }
+      }
+    },
+    "pending": [
+      {
+        "id": "0",
+        "path": [
+          "user"
+        ],
+        "label": "reviews"
+      }
+    ],
+    "incremental": [
+      {
+        "id": "0",
+        "path": [
+          "user"
+        ],
+        "data": {
+          "reviews": [
+            {
+              "body": "Review: UmV2aWV3OjE=",
+              "title": "Review: UmV2aWV3OjE="
+            },
+            {
+              "body": "Review: UmV2aWV3OjI=",
+              "title": "Review: UmV2aWV3OjI="
+            },
+            {
+              "body": "Review: UmV2aWV3OjM=",
+              "title": "Review: UmV2aWV3OjM="
+            }
+          ]
+        }
+      }
+    ],
+    "completed": [
+      {
+        "id": "0"
+      }
+    ],
+    "final": {
+      "data": {
+        "user": {
+          "name": "User: VXNlcjox",
+          "reviews": [
+            {
+              "body": "Review: UmV2aWV3OjE=",
+              "title": "Review: UmV2aWV3OjE="
+            },
+            {
+              "body": "Review: UmV2aWV3OjI=",
+              "title": "Review: UmV2aWV3OjI="
+            },
+            {
+              "body": "Review: UmV2aWV3OjM=",
+              "title": "Review: UmV2aWV3OjM="
+            }
+          ]
+        }
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        user(id: ID!): User @lookup
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+        name: String!
+        email: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query GetUser_9d7b4d57_1 {
+              user(id: "1") {
+                name
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "user": {
+                    "name": "User: VXNlcjox"
+                  }
+                }
+              }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query GetUser_defer_1 {
+              user(id: "1") {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "user": {
+                    "id": "VXNlcjox"
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        userById(id: ID!): User @lookup
+      }
+
+      type Review {
+        title: String!
+        body: String!
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+        reviews: [Review!]!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query GetUser_defer_2($__fusion_1_id: ID!) {
+              userById(id: $__fusion_1_id) {
+                reviews {
+                  title
+                  body
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "VXNlcjox"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "reviews": [
+                      {
+                        "title": "Review: UmV2aWV3OjE=",
+                        "body": "Review: UmV2aWV3OjE="
+                      },
+                      {
+                        "title": "Review: UmV2aWV3OjI=",
+                        "body": "Review: UmV2aWV3OjI="
+                      },
+                      {
+                        "title": "Review: UmV2aWV3OjM=",
+                        "body": "Review: UmV2aWV3OjM="
+                      }
+                    ]
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query GetUser {
+          user(id: "1") {
+            name
+          }
+        }
+      name: GetUser
+      hash: 9d7b4d57fdf8672e3b4b1975babbc7a0
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query GetUser_9d7b4d57_1 {
+          user(id: "1") {
+            name
+          }
+        }
+  deliveryGroups:
+    - id: 0
+      path: $.user
+      label: reviews
+  deferredSubPlans:
+    - deliveryGroupIds:
+        - 0
+      parentNodeId: 1
+      nodes:
+        - id: 1
+          type: Operation
+          schema: A
+          operation: |
+            query GetUser_defer_1 {
+              user(id: "1") {
+                id
+              }
+            }
+        - id: 2
+          type: Operation
+          schema: B
+          operation: |
+            query GetUser_defer_2($__fusion_1_id: ID!) {
+              userById(id: $__fusion_1_id) {
+                reviews {
+                  title
+                  body
+                }
+              }
+            }
+          source: $.userById
+          target: $.user
+          requirements:
+            - name: __fusion_1_id
+              selectionMap: >-
+                id
+          dependencies:
+            - id: 1

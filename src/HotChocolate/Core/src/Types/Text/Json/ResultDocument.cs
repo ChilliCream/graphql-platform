@@ -25,7 +25,7 @@ public sealed partial class ResultDocument : IDisposable
 #else
     private readonly object _dataChunkLock = new();
 #endif
-    private bool _disposed;
+    private int _disposed;
 
     public ResultDocument(Operation operation, ulong includeFlags)
     {
@@ -105,7 +105,7 @@ public sealed partial class ResultDocument : IDisposable
 
     internal ResultElement GetArrayIndexElement(Cursor current, int arrayIndex)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var (start, tokenType) = _metaDb.GetStartCursor(current);
 
@@ -124,7 +124,7 @@ public sealed partial class ResultDocument : IDisposable
 
     internal int GetArrayLength(Cursor current)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         (current, var tokenType) = _metaDb.GetStartCursor(current);
 
@@ -135,7 +135,7 @@ public sealed partial class ResultDocument : IDisposable
 
     internal int GetPropertyCount(Cursor current)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         (current, var tokenType) = _metaDb.GetStartCursor(current);
 
@@ -245,7 +245,7 @@ public sealed partial class ResultDocument : IDisposable
 
     internal bool IsInvalidated(Cursor current)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var tokenType = _metaDb.GetElementTokenType(current, resolveReferences: false);
 
@@ -272,7 +272,7 @@ public sealed partial class ResultDocument : IDisposable
 
     internal bool IsNullOrInvalidated(Cursor current)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var tokenType = _metaDb.GetElementTokenType(current);
 
@@ -304,7 +304,7 @@ public sealed partial class ResultDocument : IDisposable
 
     internal bool IsInternalProperty(Cursor current)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         // The flag sits on the property row (one before value)
         var propertyCursor = current.AddRows(-1);
@@ -314,7 +314,7 @@ public sealed partial class ResultDocument : IDisposable
 
     internal void Invalidate(Cursor current)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var tokenType = _metaDb.GetElementTokenType(current, resolveReferences: false);
 
@@ -883,16 +883,24 @@ public sealed partial class ResultDocument : IDisposable
 
     public void Dispose()
     {
-        if (!_disposed)
+        ReturnRentedMemory();
+        GC.SuppressFinalize(this);
+    }
+
+    private void ReturnRentedMemory()
+    {
+        if (Interlocked.Exchange(ref _disposed, 1) != 0)
         {
-            _metaDb.Dispose();
+            return;
+        }
 
-            if (_data.Count > 0)
-            {
-                JsonMemory.Return(JsonMemoryKind.Json, _data);
-            }
+        _metaDb.Dispose();
 
-            _disposed = true;
+        if (_data.Count > 0)
+        {
+            JsonMemory.Return(JsonMemoryKind.Json, _data);
         }
     }
+
+    ~ResultDocument() => ReturnRentedMemory();
 }

@@ -31,6 +31,7 @@ export interface DocsProduct {
 export interface DocsVersion {
   path: string;
   title: string;
+  preview?: boolean;
   items: DocsNavItem[];
 }
 

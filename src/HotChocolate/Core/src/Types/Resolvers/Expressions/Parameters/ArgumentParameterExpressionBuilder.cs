@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
@@ -46,6 +47,18 @@ internal class ArgumentParameterExpressionBuilder
     public bool CanHandle(ParameterDescriptor parameter)
         => parameter.Attributes.Any(t => t is ArgumentAttribute);
 
+    [UnconditionalSuppressMessage(
+        "ReflectionAnalysis",
+        "IL2060",
+        Justification =
+            "The argument methods (ArgumentValue<T>, ArgumentLiteral<T>, ArgumentOptional<T>) have no trimming "
+            + "constraints on their type parameters.")]
+    [UnconditionalSuppressMessage(
+        "AOT",
+        "IL3050",
+        Justification =
+            "This method builds expression trees at schema initialization time and is only used in JIT-compatible "
+            + "environments.")]
     public Expression Build(ParameterExpressionBuilderContext context)
     {
         var parameter = context.Parameter;

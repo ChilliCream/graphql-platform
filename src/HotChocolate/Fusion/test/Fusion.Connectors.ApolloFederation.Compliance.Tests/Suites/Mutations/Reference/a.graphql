@@ -1,0 +1,31 @@
+extend schema
+  @link(
+    url: "https://specs.apollo.dev/federation/v2.3"
+    import: ["@key", "@shareable"]
+  )
+
+type Mutation {
+  addProduct(input: AddProductInput!): Product!
+  addCategory(name: String!, requestId: String!): Category! @shareable
+  multiply(by: Int!, requestId: String!): Int!
+}
+
+type Query {
+  product(id: ID!): Product!
+  products: [Product!]!
+}
+
+input AddProductInput {
+  name: String!
+  price: Float!
+}
+
+type Product @key(fields: "id") {
+  id: ID!
+  name: String!
+  price: Float!
+}
+
+type Category @key(fields: "id") {
+  id: ID!
+}

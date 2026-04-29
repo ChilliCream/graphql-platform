@@ -15,10 +15,15 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : SchemasCommandTestBase(fixture)
 {
     protected const string ArchiveFile = "fusion.far";
+    protected const string LegacyArchiveFile = "fusion-v1.fgp";
     protected const string SourceSchemaFile = "products/schema.graphqls";
     protected const string SourceSchemaSettingsFile = "products/schema-settings.json";
     protected const string SourceSchema = "products";
+    protected const string SourceSchemaReviewsFile = "reviews/schema.graphqls";
+    protected const string SourceSchemaReviewsSettingsFile = "reviews/schema-settings.json";
+    protected const string SourceSchemaReviews = "reviews";
     protected static readonly SourceSchemaVersion[] SourceSchemaVersions = [new(SourceSchema, Tag)];
+    protected static readonly SourceSchemaVersion[] SourceSchemaReviewsVersions = [new(SourceSchemaReviews, Tag)];
     private const string SourceSchemaText =
         """
         type Query {
@@ -42,6 +47,11 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
     {
         using var archive = FusionArchive.Open(stream);
 
+        return await GetFusionSchemaAsync(archive);
+    }
+
+    protected static async Task<string> GetFusionSchemaAsync(FusionArchive archive)
+    {
         var config = await archive.TryGetGatewayConfigurationAsync(
             WellKnownVersions.LatestGatewayFormatVersion);
         Assert.NotNull(config);
@@ -58,7 +68,22 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
                 SourceSchema,
                 version,
                 It.IsAny<CancellationToken>()))
-            .Returns(async () => await CreateSourceSchemaArchiveStreamAsync(SourceSchemaText));
+            .Returns(async () => await CreateSourceSchemaArchiveStreamAsync(
+                SourceSchemaText,
+                SourceSchemaSettings));
+    }
+
+    protected void SetupReviewsSourceSchemaDownload(string version = Tag)
+    {
+        FusionConfigurationClientMock
+            .Setup(x => x.DownloadSourceSchemaArchiveAsync(
+                ApiId,
+                SourceSchemaReviews,
+                version,
+                It.IsAny<CancellationToken>()))
+            .Returns(async () => await CreateSourceSchemaArchiveStreamAsync(
+                SourceSchemaText,
+                $$"""{ "name": "{{SourceSchemaReviews}}" }"""));
     }
 
     protected void SetupSourceSchemaDownloadWithInvalidSchema()
@@ -69,7 +94,9 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
                 SourceSchema,
                 Tag,
                 It.IsAny<CancellationToken>()))
-            .Returns(async () => await CreateSourceSchemaArchiveStreamAsync(InvalidSourceSchemaText));
+            .Returns(async () => await CreateSourceSchemaArchiveStreamAsync(
+                InvalidSourceSchemaText,
+                SourceSchemaSettings));
     }
 
     protected void SetupMissingSourceSchemaDownload()
@@ -90,6 +117,13 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
         SetupFile(ArchiveFile, stream);
     }
 
+    protected void SetupLegacyArchiveFile()
+    {
+        var stream = CreateFusionArchiveStream(ArchiveFormats.Fgp);
+
+        SetupFile(LegacyArchiveFile, stream);
+    }
+
     protected void SetupSourceSchemaFileWithInvalidSchema()
     {
         SetupSourceSchemaFile(InvalidSourceSchemaText);
@@ -102,6 +136,19 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
         SetupFile(SourceSchemaFile, schemaText);
 
         SetupFile(SourceSchemaSettingsFile, SourceSchemaSettings);
+    }
+
+    protected void SetupSourceSchemaFile(
+        string filePath,
+        string settingsFilePath,
+        string schemaName,
+        string? schemaText = null)
+    {
+        schemaText ??= SourceSchemaText;
+
+        SetupFile(filePath, schemaText);
+
+        SetupFile(settingsFilePath, $$"""{ "name": "{{schemaName}}" }""");
     }
 
     protected void SetupRequestDeploymentSlotMutation(
@@ -191,6 +238,20 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
                 archiveFormat,
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => null);
+    }
+
+    protected void SetupLegacyFusionConfigurationDownload()
+    {
+        SetupFusionConfigurationDownload(
+            WellKnownVersions.LegacyGatewayFormatVersion.ToString(),
+            ArchiveFormats.Fgp);
+    }
+
+    protected void SetupMissingLegacyFusionConfigurationDownload()
+    {
+        SetupMissingFusionConfigurationDownload(
+            WellKnownVersions.LegacyGatewayFormatVersion.ToString(),
+            ArchiveFormats.Fgp);
     }
 
     protected void SetupFusionConfigurationDownloadException()
@@ -572,11 +633,12 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
     }
 
     private async Task<Stream> CreateSourceSchemaArchiveStreamAsync(
-        string schema)
+        string schema,
+        string settings)
     {
         return await FusionSourceSchemaArchiveHelper.CreateArchiveStreamAsync(
             Encoding.UTF8.GetBytes(schema),
-            JsonDocument.Parse(SourceSchemaSettings));
+            JsonDocument.Parse(settings));
     }
 
     private static IBeginFusionConfigurationPublish_BeginFusionConfigurationPublish

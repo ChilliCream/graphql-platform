@@ -8,7 +8,7 @@ public sealed partial class ResultDocument
 {
     internal string? GetString(Cursor cursor, ElementTokenType expectedType)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var row = _metaDb.Get(cursor);
         var tokenType = row.TokenType;
@@ -52,7 +52,7 @@ public sealed partial class ResultDocument
 
     internal ReadOnlySpan<byte> GetPropertyNameRaw(Cursor valueCursor)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         // The property name is stored one row before the value
         var nameCursor = valueCursor + (-1);
@@ -70,7 +70,7 @@ public sealed partial class ResultDocument
 
     internal ReadOnlySpan<byte> GetRawValue(Cursor cursor, bool includeQuotes)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var row = _metaDb.Get(cursor);
 
@@ -101,7 +101,7 @@ public sealed partial class ResultDocument
 
     private ReadOnlySpan<byte> GetPropertyRawValue(Cursor valueCursor)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         // The property name is stored one row before the value
         Debug.Assert(_metaDb.GetElementTokenType(valueCursor - 1) == ElementTokenType.PropertyName);
@@ -121,7 +121,7 @@ public sealed partial class ResultDocument
 
     internal bool TextEquals(Cursor cursor, ReadOnlySpan<char> otherText, bool isPropertyName)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         byte[]? otherUtf8TextArray = null;
 
@@ -161,7 +161,7 @@ public sealed partial class ResultDocument
 
     internal bool TextEquals(Cursor cursor, ReadOnlySpan<byte> otherUtf8Text, bool isPropertyName, bool shouldUnescape)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var matchCursor = isPropertyName ? cursor + (-1) : cursor;
         var row = _metaDb.Get(matchCursor);

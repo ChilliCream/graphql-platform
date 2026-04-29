@@ -48,7 +48,27 @@
 <path style="mix-blend-mode:screen" d="M623 691.592C813.249 691.592 967.475 645.627 967.475 588.926C967.475 532.225 813.249 486.26 623 486.26C432.752 486.26 278.525 532.225 278.525 588.926C278.525 645.627 432.752 691.592 623 691.592Z" fill="url(#paint18_radial_2084_1918)"/>
 <path style="mix-blend-mode:screen" d="M623 609.567C967.073 609.567 1246 600.322 1246 588.918C1246 577.515 967.073 568.27 623 568.27C278.927 568.27 0 577.515 0 588.918C0 600.322 278.927 609.567 623 609.567Z" fill="url(#paint19_radial_2084_1918)"/>
 <path style="mix-blend-mode:screen" opacity="0.34" d="M370.375 577.627C370.375 716.41 483.186 828.956 621.657 828.956C760.128 828.956 873.322 716.41 873.322 577.627C873.322 438.844 760.44 325.338 621.657 325.338C482.874 325.338 370.375 438.196 370.375 577.627Z" fill="url(#paint20_radial_2084_1918)"/>
+<g style="mix-blend-mode:screen">
+<ellipse cx="621" cy="577" rx="2.6" ry="460" fill="url(#lensFlareRay)" opacity="0.95"/>
+<ellipse cx="621" cy="577" rx="1.8" ry="390" fill="url(#lensFlareRay)" opacity="0.72" transform="rotate(22 621 577)"/>
+<ellipse cx="621" cy="577" rx="1.6" ry="340" fill="url(#lensFlareRay)" opacity="0.62" transform="rotate(-28 621 577)"/>
+<ellipse cx="621" cy="577" rx="1.3" ry="290" fill="url(#lensFlareRay)" opacity="0.5" transform="rotate(48 621 577)"/>
+<ellipse cx="621" cy="577" rx="1.2" ry="260" fill="url(#lensFlareRay)" opacity="0.46" transform="rotate(-52 621 577)"/>
+<ellipse cx="621" cy="577" rx="1" ry="210" fill="url(#lensFlareRay)" opacity="0.38" transform="rotate(68 621 577)"/>
+<ellipse cx="621" cy="577" rx="1" ry="180" fill="url(#lensFlareRay)" opacity="0.34" transform="rotate(-72 621 577)"/>
+<ellipse cx="621" cy="577" rx="0.8" ry="160" fill="url(#lensFlareRay)" opacity="0.28" transform="rotate(10 621 577)"/>
+<ellipse cx="621" cy="577" rx="0.8" ry="170" fill="url(#lensFlareRay)" opacity="0.28" transform="rotate(-14 621 577)"/>
+<ellipse cx="621" cy="577" rx="0.7" ry="140" fill="url(#lensFlareRay)" opacity="0.24" transform="rotate(36 621 577)"/>
+<ellipse cx="621" cy="577" rx="0.7" ry="150" fill="url(#lensFlareRay)" opacity="0.24" transform="rotate(-40 621 577)"/>
+<ellipse cx="621" cy="577" rx="0.7" ry="120" fill="url(#lensFlareRay)" opacity="0.2" transform="rotate(60 621 577)"/>
+<ellipse cx="621" cy="577" rx="0.7" ry="130" fill="url(#lensFlareRay)" opacity="0.2" transform="rotate(-60 621 577)"/>
+</g>
 <defs>
+<radialGradient id="lensFlareRay">
+<stop offset="0" stop-color="#FFFFFF" stop-opacity="1"/>
+<stop offset="0.3" stop-color="#B4D4FF" stop-opacity="0.55"/>
+<stop offset="1" stop-color="#4CA1FF" stop-opacity="0"/>
+</radialGradient>
 <radialGradient id="paint0_radial_2084_1918" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(620.254 575.777) scale(240.095 240.095)">
 <stop stop-color="#250D0E"/>
 <stop offset="0.73" stop-color="#2A5694"/>
@@ -196,38 +216,38 @@
 </radialGradient>
 <radialGradient id="paint13_radial_2084_1918" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(623 592.059) scale(473.281 42.5953)">
 <stop stop-color="#4CA1FF" stop-opacity="0.65"/>
-<stop offset="0.915" stop-color="#0A0721" stop-opacity="0.75"/>
-<stop offset="1" stop-color="#0A0721" stop-opacity="0"/>
+<stop offset="0.7" stop-color="#4CA1FF" stop-opacity="0.15"/>
+<stop offset="1" stop-color="#4CA1FF" stop-opacity="0"/>
 </radialGradient>
 <radialGradient id="paint14_radial_2084_1918" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(622.525 532.597) scale(391.531 22.3024)">
 <stop stop-color="#4CA1FF" stop-opacity="0.65"/>
-<stop offset="0.915" stop-color="#0A0721" stop-opacity="0.75"/>
-<stop offset="1" stop-color="#0A0721" stop-opacity="0"/>
+<stop offset="0.7" stop-color="#4CA1FF" stop-opacity="0.15"/>
+<stop offset="1" stop-color="#4CA1FF" stop-opacity="0"/>
 </radialGradient>
 <radialGradient id="paint15_radial_2084_1918" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(623.055 577.471) scale(360.824 14.2431)">
 <stop stop-color="#4CA1FF" stop-opacity="0.65"/>
-<stop offset="0.915" stop-color="#0A0721" stop-opacity="0.75"/>
-<stop offset="1" stop-color="#0A0721" stop-opacity="0"/>
+<stop offset="0.7" stop-color="#4CA1FF" stop-opacity="0.15"/>
+<stop offset="1" stop-color="#4CA1FF" stop-opacity="0"/>
 </radialGradient>
 <radialGradient id="paint16_radial_2084_1918" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(618.841 577.687) scale(194.415 10.953)">
 <stop stop-color="#4CA1FF" stop-opacity="0.65"/>
-<stop offset="0.915" stop-color="#0A0721" stop-opacity="0.75"/>
-<stop offset="1" stop-color="#0A0721" stop-opacity="0"/>
+<stop offset="0.7" stop-color="#4CA1FF" stop-opacity="0.15"/>
+<stop offset="1" stop-color="#4CA1FF" stop-opacity="0"/>
 </radialGradient>
 <radialGradient id="paint17_radial_2084_1918" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(624.081 589.37) scale(339.492 81.7754)">
 <stop stop-color="#4CA1FF" stop-opacity="0.65"/>
-<stop offset="0.92" stop-color="#0A0721" stop-opacity="0.75"/>
-<stop offset="1" stop-color="#0A0721" stop-opacity="0"/>
+<stop offset="0.7" stop-color="#4CA1FF" stop-opacity="0.15"/>
+<stop offset="1" stop-color="#4CA1FF" stop-opacity="0"/>
 </radialGradient>
 <radialGradient id="paint18_radial_2084_1918" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(624.081 591.739) scale(339.492 91.6876)">
 <stop stop-color="#4CA1FF" stop-opacity="0.65"/>
-<stop offset="0.92" stop-color="#0A0721" stop-opacity="0.75"/>
-<stop offset="1" stop-color="#0A0721" stop-opacity="0"/>
+<stop offset="0.7" stop-color="#4CA1FF" stop-opacity="0.15"/>
+<stop offset="1" stop-color="#4CA1FF" stop-opacity="0"/>
 </radialGradient>
 <radialGradient id="paint19_radial_2084_1918" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(623.011 532.597) scale(612.981 19.2224)">
 <stop stop-color="#4CA1FF" stop-opacity="0.65"/>
-<stop offset="0.92" stop-color="#0A0721" stop-opacity="0.75"/>
-<stop offset="1" stop-color="#0A0721" stop-opacity="0"/>
+<stop offset="0.7" stop-color="#4CA1FF" stop-opacity="0.15"/>
+<stop offset="1" stop-color="#4CA1FF" stop-opacity="0"/>
 </radialGradient>
 <radialGradient id="paint20_radial_2084_1918" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(621.474 576.996) scale(251.064 251.064)">
 <stop stop-color="#250D0E"/>

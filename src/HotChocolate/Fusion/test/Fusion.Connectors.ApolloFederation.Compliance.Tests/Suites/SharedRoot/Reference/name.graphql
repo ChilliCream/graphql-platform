@@ -1,0 +1,21 @@
+extend schema
+  @link(
+    url: "https://specs.apollo.dev/federation/v2.3"
+    import: ["@key", "@shareable"]
+  )
+
+type Query {
+  product: Product! @shareable
+  products: [Product!]! @shareable
+}
+
+type Product {
+  id: ID! @shareable
+  name: Name!
+}
+
+type Name {
+  id: ID!
+  brand: String!
+  model: String!
+}

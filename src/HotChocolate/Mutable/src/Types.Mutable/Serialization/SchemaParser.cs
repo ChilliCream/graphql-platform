@@ -155,37 +155,37 @@ public static class SchemaParser
                 {
                     case EnumTypeExtensionNode:
                         var enumType = new MutableEnumTypeDefinition(typeExt.Name.Value);
-                        enumType.GetTypeMetadata().IsExtension = true;
+                        enumType.MarkAsExtension();
                         schema.Types.Add(enumType);
                         break;
 
                     case InputObjectTypeExtensionNode:
                         var inputObjectType = new MutableInputObjectTypeDefinition(typeExt.Name.Value);
-                        inputObjectType.GetTypeMetadata().IsExtension = true;
+                        inputObjectType.MarkAsExtension();
                         schema.Types.Add(inputObjectType);
                         break;
 
                     case InterfaceTypeExtensionNode:
                         var interfaceType = new MutableInterfaceTypeDefinition(typeExt.Name.Value);
-                        interfaceType.GetTypeMetadata().IsExtension = true;
+                        interfaceType.MarkAsExtension();
                         schema.Types.Add(interfaceType);
                         break;
 
                     case ObjectTypeExtensionNode:
                         var objectType = new MutableObjectTypeDefinition(typeExt.Name.Value);
-                        objectType.GetTypeMetadata().IsExtension = true;
+                        objectType.MarkAsExtension();
                         schema.Types.Add(objectType);
                         break;
 
                     case ScalarTypeExtensionNode:
                         var scalarType = new MutableScalarTypeDefinition(typeExt.Name.Value);
-                        scalarType.GetTypeMetadata().IsExtension = true;
+                        scalarType.MarkAsExtension();
                         schema.Types.Add(scalarType);
                         break;
 
                     case UnionTypeExtensionNode:
                         var unionType = new MutableUnionTypeDefinition(typeExt.Name.Value);
-                        unionType.GetTypeMetadata().IsExtension = true;
+                        unionType.MarkAsExtension();
                         schema.Types.Add(unionType);
                         break;
 

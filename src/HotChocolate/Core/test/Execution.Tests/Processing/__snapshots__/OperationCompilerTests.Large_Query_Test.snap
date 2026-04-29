@@ -1,16 +1,16 @@
 query getHero {
   a: hero(episode: NEW_HOPE) {
-    ... Hero
+    ...Hero
   }
   b: hero(episode: EMPIRE) {
-    ... Hero
+    ...Hero
   }
   c: hero(episode: JEDI) {
-    ... Hero
+    ...Hero
   }
   search(text: "") {
     __typename
-    ... Hero
+    ...Hero
     ... on Starship {
       shipId: id
       length
@@ -28,13 +28,13 @@ query getHero {
       name
     }
     types {
-      ... FullType
+      ...FullType
     }
     directives {
       name
       description
       args {
-        ... InputValue
+        ...InputValue
       }
       onOperation
       onFragment
@@ -45,27 +45,27 @@ query getHero {
 
 fragment Hero on Character {
   id
-  ... Human
-  ... Droid
+  ...Human
+  ...Droid
   appearsIn
   height
 }
 
 fragment Human on Human {
-  ... HasName
-  ... HasFriends
+  ...HasName
+  ...HasFriends
   height
 }
 
 fragment Droid on Droid {
-  ... HasName
-  ... HasFriends
+  ...HasName
+  ...HasFriends
   height
 }
 
 fragment Friend on FriendsConnection {
   nodes {
-    ... HasName
+    ...HasName
     friends {
       nodes {
         friends {
@@ -93,7 +93,7 @@ fragment HasName on Character {
 
 fragment HasFriends on Character {
   friends {
-    ... Friend
+    ...Friend
   }
 }
 
@@ -105,19 +105,19 @@ fragment FullType on __Type {
     name
     description
     args {
-      ... InputValue
+      ...InputValue
     }
     type {
-      ... TypeRef
+      ...TypeRef
     }
     isDeprecated
     deprecationReason
   }
   inputFields {
-    ... InputValue
+    ...InputValue
   }
   interfaces {
-    ... TypeRef
+    ...TypeRef
   }
   enumValues(includeDeprecated: true) {
     name
@@ -126,7 +126,7 @@ fragment FullType on __Type {
     deprecationReason
   }
   possibleTypes {
-    ... TypeRef
+    ...TypeRef
   }
 }
 
@@ -134,7 +134,7 @@ fragment InputValue on __InputValue {
   name
   description
   type {
-    ... TypeRef
+    ...TypeRef
   }
   defaultValue
 }
@@ -177,12 +177,20 @@ query getHero {
                           @__execute(id: 21, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
                             nodes
-                              @__execute(id: 23, kind: PURE, type: COMPOSITE_LIST) {
+                              @__execute(
+                                id: 23
+                                kind: PURE
+                                type: COMPOSITE_LIST
+                              ) {
                               ... on Human {
                                 id @__execute(id: 25, kind: PURE, type: LEAF)
                                 name @__execute(id: 26, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 27, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 27
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 28, kind: PURE, type: LEAF)
                                 homePlanet
@@ -192,7 +200,11 @@ query getHero {
                                 id @__execute(id: 31, kind: PURE, type: LEAF)
                                 name @__execute(id: 32, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 33, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 33
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 34, kind: PURE, type: LEAF)
                                 primaryFunction
@@ -207,12 +219,20 @@ query getHero {
                           @__execute(id: 37, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
                             nodes
-                              @__execute(id: 39, kind: PURE, type: COMPOSITE_LIST) {
+                              @__execute(
+                                id: 39
+                                kind: PURE
+                                type: COMPOSITE_LIST
+                              ) {
                               ... on Human {
                                 id @__execute(id: 41, kind: PURE, type: LEAF)
                                 name @__execute(id: 42, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 43, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 43
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 44, kind: PURE, type: LEAF)
                                 homePlanet
@@ -222,7 +242,11 @@ query getHero {
                                 id @__execute(id: 47, kind: PURE, type: LEAF)
                                 name @__execute(id: 48, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 49, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 49
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 50, kind: PURE, type: LEAF)
                                 primaryFunction
@@ -246,12 +270,20 @@ query getHero {
                           @__execute(id: 58, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
                             nodes
-                              @__execute(id: 60, kind: PURE, type: COMPOSITE_LIST) {
+                              @__execute(
+                                id: 60
+                                kind: PURE
+                                type: COMPOSITE_LIST
+                              ) {
                               ... on Human {
                                 id @__execute(id: 62, kind: PURE, type: LEAF)
                                 name @__execute(id: 63, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 64, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 64
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 65, kind: PURE, type: LEAF)
                                 homePlanet
@@ -261,7 +293,11 @@ query getHero {
                                 id @__execute(id: 68, kind: PURE, type: LEAF)
                                 name @__execute(id: 69, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 70, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 70
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 71, kind: PURE, type: LEAF)
                                 primaryFunction
@@ -276,12 +312,20 @@ query getHero {
                           @__execute(id: 74, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
                             nodes
-                              @__execute(id: 76, kind: PURE, type: COMPOSITE_LIST) {
+                              @__execute(
+                                id: 76
+                                kind: PURE
+                                type: COMPOSITE_LIST
+                              ) {
                               ... on Human {
                                 id @__execute(id: 78, kind: PURE, type: LEAF)
                                 name @__execute(id: 79, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 80, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 80
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 81, kind: PURE, type: LEAF)
                                 homePlanet
@@ -291,7 +335,11 @@ query getHero {
                                 id @__execute(id: 84, kind: PURE, type: LEAF)
                                 name @__execute(id: 85, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 86, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 86
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 87, kind: PURE, type: LEAF)
                                 primaryFunction
@@ -327,12 +375,20 @@ query getHero {
                           @__execute(id: 103, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
                             nodes
-                              @__execute(id: 105, kind: PURE, type: COMPOSITE_LIST) {
+                              @__execute(
+                                id: 105
+                                kind: PURE
+                                type: COMPOSITE_LIST
+                              ) {
                               ... on Human {
                                 id @__execute(id: 107, kind: PURE, type: LEAF)
                                 name @__execute(id: 108, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 109, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 109
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 110, kind: PURE, type: LEAF)
                                 homePlanet
@@ -342,7 +398,11 @@ query getHero {
                                 id @__execute(id: 113, kind: PURE, type: LEAF)
                                 name @__execute(id: 114, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 115, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 115
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 116, kind: PURE, type: LEAF)
                                 primaryFunction
@@ -357,12 +417,20 @@ query getHero {
                           @__execute(id: 119, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
                             nodes
-                              @__execute(id: 121, kind: PURE, type: COMPOSITE_LIST) {
+                              @__execute(
+                                id: 121
+                                kind: PURE
+                                type: COMPOSITE_LIST
+                              ) {
                               ... on Human {
                                 id @__execute(id: 123, kind: PURE, type: LEAF)
                                 name @__execute(id: 124, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 125, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 125
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 126, kind: PURE, type: LEAF)
                                 homePlanet
@@ -372,7 +440,11 @@ query getHero {
                                 id @__execute(id: 129, kind: PURE, type: LEAF)
                                 name @__execute(id: 130, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 131, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 131
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 132, kind: PURE, type: LEAF)
                                 primaryFunction
@@ -396,12 +468,20 @@ query getHero {
                           @__execute(id: 140, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
                             nodes
-                              @__execute(id: 142, kind: PURE, type: COMPOSITE_LIST) {
+                              @__execute(
+                                id: 142
+                                kind: PURE
+                                type: COMPOSITE_LIST
+                              ) {
                               ... on Human {
                                 id @__execute(id: 144, kind: PURE, type: LEAF)
                                 name @__execute(id: 145, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 146, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 146
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 147, kind: PURE, type: LEAF)
                                 homePlanet
@@ -411,7 +491,11 @@ query getHero {
                                 id @__execute(id: 150, kind: PURE, type: LEAF)
                                 name @__execute(id: 151, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 152, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 152
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 153, kind: PURE, type: LEAF)
                                 primaryFunction
@@ -426,12 +510,20 @@ query getHero {
                           @__execute(id: 156, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
                             nodes
-                              @__execute(id: 158, kind: PURE, type: COMPOSITE_LIST) {
+                              @__execute(
+                                id: 158
+                                kind: PURE
+                                type: COMPOSITE_LIST
+                              ) {
                               ... on Human {
                                 id @__execute(id: 160, kind: PURE, type: LEAF)
                                 name @__execute(id: 161, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 162, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 162
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 163, kind: PURE, type: LEAF)
                                 homePlanet
@@ -441,7 +533,11 @@ query getHero {
                                 id @__execute(id: 166, kind: PURE, type: LEAF)
                                 name @__execute(id: 167, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 168, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 168
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 169, kind: PURE, type: LEAF)
                                 primaryFunction
@@ -479,12 +575,20 @@ query getHero {
                           @__execute(id: 185, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
                             nodes
-                              @__execute(id: 187, kind: PURE, type: COMPOSITE_LIST) {
+                              @__execute(
+                                id: 187
+                                kind: PURE
+                                type: COMPOSITE_LIST
+                              ) {
                               ... on Human {
                                 id @__execute(id: 189, kind: PURE, type: LEAF)
                                 name @__execute(id: 190, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 191, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 191
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 192, kind: PURE, type: LEAF)
                                 homePlanet
@@ -494,7 +598,11 @@ query getHero {
                                 id @__execute(id: 195, kind: PURE, type: LEAF)
                                 name @__execute(id: 196, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 197, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 197
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 198, kind: PURE, type: LEAF)
                                 primaryFunction
@@ -509,12 +617,20 @@ query getHero {
                           @__execute(id: 201, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
                             nodes
-                              @__execute(id: 203, kind: PURE, type: COMPOSITE_LIST) {
+                              @__execute(
+                                id: 203
+                                kind: PURE
+                                type: COMPOSITE_LIST
+                              ) {
                               ... on Human {
                                 id @__execute(id: 205, kind: PURE, type: LEAF)
                                 name @__execute(id: 206, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 207, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 207
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 208, kind: PURE, type: LEAF)
                                 homePlanet
@@ -524,7 +640,11 @@ query getHero {
                                 id @__execute(id: 211, kind: PURE, type: LEAF)
                                 name @__execute(id: 212, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 213, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 213
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 214, kind: PURE, type: LEAF)
                                 primaryFunction
@@ -548,12 +668,20 @@ query getHero {
                           @__execute(id: 222, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
                             nodes
-                              @__execute(id: 224, kind: PURE, type: COMPOSITE_LIST) {
+                              @__execute(
+                                id: 224
+                                kind: PURE
+                                type: COMPOSITE_LIST
+                              ) {
                               ... on Human {
                                 id @__execute(id: 226, kind: PURE, type: LEAF)
                                 name @__execute(id: 227, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 228, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 228
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 229, kind: PURE, type: LEAF)
                                 homePlanet
@@ -563,7 +691,11 @@ query getHero {
                                 id @__execute(id: 232, kind: PURE, type: LEAF)
                                 name @__execute(id: 233, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 234, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 234
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 235, kind: PURE, type: LEAF)
                                 primaryFunction
@@ -578,12 +710,20 @@ query getHero {
                           @__execute(id: 238, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
                             nodes
-                              @__execute(id: 240, kind: PURE, type: COMPOSITE_LIST) {
+                              @__execute(
+                                id: 240
+                                kind: PURE
+                                type: COMPOSITE_LIST
+                              ) {
                               ... on Human {
                                 id @__execute(id: 242, kind: PURE, type: LEAF)
                                 name @__execute(id: 243, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 244, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 244
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 245, kind: PURE, type: LEAF)
                                 homePlanet
@@ -593,7 +733,11 @@ query getHero {
                                 id @__execute(id: 248, kind: PURE, type: LEAF)
                                 name @__execute(id: 249, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 250, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 250
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 251, kind: PURE, type: LEAF)
                                 primaryFunction
@@ -629,12 +773,20 @@ query getHero {
                           @__execute(id: 267, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
                             nodes
-                              @__execute(id: 269, kind: PURE, type: COMPOSITE_LIST) {
+                              @__execute(
+                                id: 269
+                                kind: PURE
+                                type: COMPOSITE_LIST
+                              ) {
                               ... on Human {
                                 id @__execute(id: 271, kind: PURE, type: LEAF)
                                 name @__execute(id: 272, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 273, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 273
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 274, kind: PURE, type: LEAF)
                                 homePlanet
@@ -644,7 +796,11 @@ query getHero {
                                 id @__execute(id: 277, kind: PURE, type: LEAF)
                                 name @__execute(id: 278, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 279, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 279
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 280, kind: PURE, type: LEAF)
                                 primaryFunction
@@ -659,12 +815,20 @@ query getHero {
                           @__execute(id: 283, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
                             nodes
-                              @__execute(id: 285, kind: PURE, type: COMPOSITE_LIST) {
+                              @__execute(
+                                id: 285
+                                kind: PURE
+                                type: COMPOSITE_LIST
+                              ) {
                               ... on Human {
                                 id @__execute(id: 287, kind: PURE, type: LEAF)
                                 name @__execute(id: 288, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 289, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 289
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 290, kind: PURE, type: LEAF)
                                 homePlanet
@@ -674,7 +838,11 @@ query getHero {
                                 id @__execute(id: 293, kind: PURE, type: LEAF)
                                 name @__execute(id: 294, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 295, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 295
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 296, kind: PURE, type: LEAF)
                                 primaryFunction
@@ -698,12 +866,20 @@ query getHero {
                           @__execute(id: 304, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
                             nodes
-                              @__execute(id: 306, kind: PURE, type: COMPOSITE_LIST) {
+                              @__execute(
+                                id: 306
+                                kind: PURE
+                                type: COMPOSITE_LIST
+                              ) {
                               ... on Human {
                                 id @__execute(id: 308, kind: PURE, type: LEAF)
                                 name @__execute(id: 309, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 310, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 310
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 311, kind: PURE, type: LEAF)
                                 homePlanet
@@ -713,7 +889,11 @@ query getHero {
                                 id @__execute(id: 314, kind: PURE, type: LEAF)
                                 name @__execute(id: 315, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 316, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 316
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 317, kind: PURE, type: LEAF)
                                 primaryFunction
@@ -728,12 +908,20 @@ query getHero {
                           @__execute(id: 320, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
                             nodes
-                              @__execute(id: 322, kind: PURE, type: COMPOSITE_LIST) {
+                              @__execute(
+                                id: 322
+                                kind: PURE
+                                type: COMPOSITE_LIST
+                              ) {
                               ... on Human {
                                 id @__execute(id: 324, kind: PURE, type: LEAF)
                                 name @__execute(id: 325, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 326, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 326
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 327, kind: PURE, type: LEAF)
                                 homePlanet
@@ -743,7 +931,11 @@ query getHero {
                                 id @__execute(id: 330, kind: PURE, type: LEAF)
                                 name @__execute(id: 331, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 332, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 332
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 333, kind: PURE, type: LEAF)
                                 primaryFunction
@@ -781,12 +973,20 @@ query getHero {
                           @__execute(id: 349, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
                             nodes
-                              @__execute(id: 351, kind: PURE, type: COMPOSITE_LIST) {
+                              @__execute(
+                                id: 351
+                                kind: PURE
+                                type: COMPOSITE_LIST
+                              ) {
                               ... on Human {
                                 id @__execute(id: 353, kind: PURE, type: LEAF)
                                 name @__execute(id: 354, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 355, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 355
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 356, kind: PURE, type: LEAF)
                                 homePlanet
@@ -796,7 +996,11 @@ query getHero {
                                 id @__execute(id: 359, kind: PURE, type: LEAF)
                                 name @__execute(id: 360, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 361, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 361
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 362, kind: PURE, type: LEAF)
                                 primaryFunction
@@ -811,12 +1015,20 @@ query getHero {
                           @__execute(id: 365, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
                             nodes
-                              @__execute(id: 367, kind: PURE, type: COMPOSITE_LIST) {
+                              @__execute(
+                                id: 367
+                                kind: PURE
+                                type: COMPOSITE_LIST
+                              ) {
                               ... on Human {
                                 id @__execute(id: 369, kind: PURE, type: LEAF)
                                 name @__execute(id: 370, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 371, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 371
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 372, kind: PURE, type: LEAF)
                                 homePlanet
@@ -826,7 +1038,11 @@ query getHero {
                                 id @__execute(id: 375, kind: PURE, type: LEAF)
                                 name @__execute(id: 376, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 377, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 377
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 378, kind: PURE, type: LEAF)
                                 primaryFunction
@@ -850,12 +1066,20 @@ query getHero {
                           @__execute(id: 386, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
                             nodes
-                              @__execute(id: 388, kind: PURE, type: COMPOSITE_LIST) {
+                              @__execute(
+                                id: 388
+                                kind: PURE
+                                type: COMPOSITE_LIST
+                              ) {
                               ... on Human {
                                 id @__execute(id: 390, kind: PURE, type: LEAF)
                                 name @__execute(id: 391, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 392, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 392
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 393, kind: PURE, type: LEAF)
                                 homePlanet
@@ -865,7 +1089,11 @@ query getHero {
                                 id @__execute(id: 396, kind: PURE, type: LEAF)
                                 name @__execute(id: 397, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 398, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 398
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 399, kind: PURE, type: LEAF)
                                 primaryFunction
@@ -880,12 +1108,20 @@ query getHero {
                           @__execute(id: 402, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
                             nodes
-                              @__execute(id: 404, kind: PURE, type: COMPOSITE_LIST) {
+                              @__execute(
+                                id: 404
+                                kind: PURE
+                                type: COMPOSITE_LIST
+                              ) {
                               ... on Human {
                                 id @__execute(id: 406, kind: PURE, type: LEAF)
                                 name @__execute(id: 407, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 408, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 408
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 409, kind: PURE, type: LEAF)
                                 homePlanet
@@ -895,7 +1131,11 @@ query getHero {
                                 id @__execute(id: 412, kind: PURE, type: LEAF)
                                 name @__execute(id: 413, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 414, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 414
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 415, kind: PURE, type: LEAF)
                                 primaryFunction
@@ -931,12 +1171,20 @@ query getHero {
                           @__execute(id: 431, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
                             nodes
-                              @__execute(id: 433, kind: PURE, type: COMPOSITE_LIST) {
+                              @__execute(
+                                id: 433
+                                kind: PURE
+                                type: COMPOSITE_LIST
+                              ) {
                               ... on Human {
                                 id @__execute(id: 435, kind: PURE, type: LEAF)
                                 name @__execute(id: 436, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 437, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 437
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 438, kind: PURE, type: LEAF)
                                 homePlanet
@@ -946,7 +1194,11 @@ query getHero {
                                 id @__execute(id: 441, kind: PURE, type: LEAF)
                                 name @__execute(id: 442, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 443, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 443
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 444, kind: PURE, type: LEAF)
                                 primaryFunction
@@ -961,12 +1213,20 @@ query getHero {
                           @__execute(id: 447, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
                             nodes
-                              @__execute(id: 449, kind: PURE, type: COMPOSITE_LIST) {
+                              @__execute(
+                                id: 449
+                                kind: PURE
+                                type: COMPOSITE_LIST
+                              ) {
                               ... on Human {
                                 id @__execute(id: 451, kind: PURE, type: LEAF)
                                 name @__execute(id: 452, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 453, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 453
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 454, kind: PURE, type: LEAF)
                                 homePlanet
@@ -976,7 +1236,11 @@ query getHero {
                                 id @__execute(id: 457, kind: PURE, type: LEAF)
                                 name @__execute(id: 458, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 459, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 459
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 460, kind: PURE, type: LEAF)
                                 primaryFunction
@@ -1000,12 +1264,20 @@ query getHero {
                           @__execute(id: 468, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
                             nodes
-                              @__execute(id: 470, kind: PURE, type: COMPOSITE_LIST) {
+                              @__execute(
+                                id: 470
+                                kind: PURE
+                                type: COMPOSITE_LIST
+                              ) {
                               ... on Human {
                                 id @__execute(id: 472, kind: PURE, type: LEAF)
                                 name @__execute(id: 473, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 474, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 474
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 475, kind: PURE, type: LEAF)
                                 homePlanet
@@ -1015,7 +1287,11 @@ query getHero {
                                 id @__execute(id: 478, kind: PURE, type: LEAF)
                                 name @__execute(id: 479, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 480, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 480
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 481, kind: PURE, type: LEAF)
                                 primaryFunction
@@ -1030,12 +1306,20 @@ query getHero {
                           @__execute(id: 484, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
                             nodes
-                              @__execute(id: 486, kind: PURE, type: COMPOSITE_LIST) {
+                              @__execute(
+                                id: 486
+                                kind: PURE
+                                type: COMPOSITE_LIST
+                              ) {
                               ... on Human {
                                 id @__execute(id: 488, kind: PURE, type: LEAF)
                                 name @__execute(id: 489, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 490, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 490
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 491, kind: PURE, type: LEAF)
                                 homePlanet
@@ -1045,7 +1329,11 @@ query getHero {
                                 id @__execute(id: 494, kind: PURE, type: LEAF)
                                 name @__execute(id: 495, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 496, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 496
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 497, kind: PURE, type: LEAF)
                                 primaryFunction
@@ -1090,12 +1378,20 @@ query getHero {
                           @__execute(id: 519, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
                             nodes
-                              @__execute(id: 521, kind: PURE, type: COMPOSITE_LIST) {
+                              @__execute(
+                                id: 521
+                                kind: PURE
+                                type: COMPOSITE_LIST
+                              ) {
                               ... on Human {
                                 id @__execute(id: 523, kind: PURE, type: LEAF)
                                 name @__execute(id: 524, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 525, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 525
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 526, kind: PURE, type: LEAF)
                                 homePlanet
@@ -1105,7 +1401,11 @@ query getHero {
                                 id @__execute(id: 529, kind: PURE, type: LEAF)
                                 name @__execute(id: 530, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 531, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 531
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 532, kind: PURE, type: LEAF)
                                 primaryFunction
@@ -1120,12 +1420,20 @@ query getHero {
                           @__execute(id: 535, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
                             nodes
-                              @__execute(id: 537, kind: PURE, type: COMPOSITE_LIST) {
+                              @__execute(
+                                id: 537
+                                kind: PURE
+                                type: COMPOSITE_LIST
+                              ) {
                               ... on Human {
                                 id @__execute(id: 539, kind: PURE, type: LEAF)
                                 name @__execute(id: 540, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 541, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 541
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 542, kind: PURE, type: LEAF)
                                 homePlanet
@@ -1135,7 +1443,11 @@ query getHero {
                                 id @__execute(id: 545, kind: PURE, type: LEAF)
                                 name @__execute(id: 546, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 547, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 547
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 548, kind: PURE, type: LEAF)
                                 primaryFunction
@@ -1159,12 +1471,20 @@ query getHero {
                           @__execute(id: 556, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
                             nodes
-                              @__execute(id: 558, kind: PURE, type: COMPOSITE_LIST) {
+                              @__execute(
+                                id: 558
+                                kind: PURE
+                                type: COMPOSITE_LIST
+                              ) {
                               ... on Human {
                                 id @__execute(id: 560, kind: PURE, type: LEAF)
                                 name @__execute(id: 561, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 562, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 562
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 563, kind: PURE, type: LEAF)
                                 homePlanet
@@ -1174,7 +1494,11 @@ query getHero {
                                 id @__execute(id: 566, kind: PURE, type: LEAF)
                                 name @__execute(id: 567, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 568, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 568
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 569, kind: PURE, type: LEAF)
                                 primaryFunction
@@ -1189,12 +1513,20 @@ query getHero {
                           @__execute(id: 572, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
                             nodes
-                              @__execute(id: 574, kind: PURE, type: COMPOSITE_LIST) {
+                              @__execute(
+                                id: 574
+                                kind: PURE
+                                type: COMPOSITE_LIST
+                              ) {
                               ... on Human {
                                 id @__execute(id: 576, kind: PURE, type: LEAF)
                                 name @__execute(id: 577, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 578, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 578
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 579, kind: PURE, type: LEAF)
                                 homePlanet
@@ -1204,7 +1536,11 @@ query getHero {
                                 id @__execute(id: 582, kind: PURE, type: LEAF)
                                 name @__execute(id: 583, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 584, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 584
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 585, kind: PURE, type: LEAF)
                                 primaryFunction
@@ -1241,12 +1577,20 @@ query getHero {
                           @__execute(id: 602, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
                             nodes
-                              @__execute(id: 604, kind: PURE, type: COMPOSITE_LIST) {
+                              @__execute(
+                                id: 604
+                                kind: PURE
+                                type: COMPOSITE_LIST
+                              ) {
                               ... on Human {
                                 id @__execute(id: 606, kind: PURE, type: LEAF)
                                 name @__execute(id: 607, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 608, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 608
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 609, kind: PURE, type: LEAF)
                                 homePlanet
@@ -1256,7 +1600,11 @@ query getHero {
                                 id @__execute(id: 612, kind: PURE, type: LEAF)
                                 name @__execute(id: 613, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 614, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 614
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 615, kind: PURE, type: LEAF)
                                 primaryFunction
@@ -1271,12 +1619,20 @@ query getHero {
                           @__execute(id: 618, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
                             nodes
-                              @__execute(id: 620, kind: PURE, type: COMPOSITE_LIST) {
+                              @__execute(
+                                id: 620
+                                kind: PURE
+                                type: COMPOSITE_LIST
+                              ) {
                               ... on Human {
                                 id @__execute(id: 622, kind: PURE, type: LEAF)
                                 name @__execute(id: 623, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 624, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 624
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 625, kind: PURE, type: LEAF)
                                 homePlanet
@@ -1286,7 +1642,11 @@ query getHero {
                                 id @__execute(id: 628, kind: PURE, type: LEAF)
                                 name @__execute(id: 629, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 630, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 630
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 631, kind: PURE, type: LEAF)
                                 primaryFunction
@@ -1310,12 +1670,20 @@ query getHero {
                           @__execute(id: 639, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
                             nodes
-                              @__execute(id: 641, kind: PURE, type: COMPOSITE_LIST) {
+                              @__execute(
+                                id: 641
+                                kind: PURE
+                                type: COMPOSITE_LIST
+                              ) {
                               ... on Human {
                                 id @__execute(id: 643, kind: PURE, type: LEAF)
                                 name @__execute(id: 644, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 645, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 645
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 646, kind: PURE, type: LEAF)
                                 homePlanet
@@ -1325,7 +1693,11 @@ query getHero {
                                 id @__execute(id: 649, kind: PURE, type: LEAF)
                                 name @__execute(id: 650, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 651, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 651
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 652, kind: PURE, type: LEAF)
                                 primaryFunction
@@ -1340,12 +1712,20 @@ query getHero {
                           @__execute(id: 655, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
                             nodes
-                              @__execute(id: 657, kind: PURE, type: COMPOSITE_LIST) {
+                              @__execute(
+                                id: 657
+                                kind: PURE
+                                type: COMPOSITE_LIST
+                              ) {
                               ... on Human {
                                 id @__execute(id: 659, kind: PURE, type: LEAF)
                                 name @__execute(id: 660, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 661, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 661
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 662, kind: PURE, type: LEAF)
                                 homePlanet
@@ -1355,7 +1735,11 @@ query getHero {
                                 id @__execute(id: 665, kind: PURE, type: LEAF)
                                 name @__execute(id: 666, kind: PURE, type: LEAF)
                                 appearsIn
-                                  @__execute(id: 667, kind: PURE, type: LEAF_LIST)
+                                  @__execute(
+                                    id: 667
+                                    kind: PURE
+                                    type: LEAF_LIST
+                                  )
                                 height
                                   @__execute(id: 668, kind: PURE, type: LEAF)
                                 primaryFunction
@@ -1421,12 +1805,24 @@ query getHero {
                                 kind @__execute(id: 712, kind: PURE, type: LEAF)
                                 name @__execute(id: 713, kind: PURE, type: LEAF)
                                 ofType
-                                  @__execute(id: 714, kind: PURE, type: COMPOSITE) {
+                                  @__execute(
+                                    id: 714
+                                    kind: PURE
+                                    type: COMPOSITE
+                                  ) {
                                   ... on __Type {
                                     kind
-                                      @__execute(id: 716, kind: PURE, type: LEAF)
+                                      @__execute(
+                                        id: 716
+                                        kind: PURE
+                                        type: LEAF
+                                      )
                                     name
-                                      @__execute(id: 717, kind: PURE, type: LEAF)
+                                      @__execute(
+                                        id: 717
+                                        kind: PURE
+                                        type: LEAF
+                                      )
                                   }
                                 }
                               }

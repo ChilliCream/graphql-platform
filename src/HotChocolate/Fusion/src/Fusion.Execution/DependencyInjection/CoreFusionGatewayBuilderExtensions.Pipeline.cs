@@ -71,6 +71,14 @@ public static partial class CoreFusionGatewayBuilderExtensions
         return builder.UseRequest(FusionMiddleware.OperationPlan);
     }
 
+    public static IFusionGatewayBuilder UseConcurrencyGate(
+        this IFusionGatewayBuilder builder)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        return builder.UseRequest(FusionMiddleware.ConcurrencyGate);
+    }
+
     public static IFusionGatewayBuilder UseOperationExecution(
         this IFusionGatewayBuilder builder)
     {
@@ -178,6 +186,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
             .UseOperationPlan()
             .UseSkipWarmupExecution()
             .UseOperationVariableCoercion()
+            .UseConcurrencyGate()
             .UseOperationExecution();
     }
 
@@ -202,6 +211,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
             .UseOperationPlan()
             .UseSkipWarmupExecution()
             .UseOperationVariableCoercion()
+            .UseConcurrencyGate()
             .UseOperationExecution();
     }
 
@@ -226,6 +236,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
             .UseOperationPlan()
             .UseSkipWarmupExecution()
             .UseOperationVariableCoercion()
+            .UseConcurrencyGate()
             .UseOperationExecution();
     }
 }

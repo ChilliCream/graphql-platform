@@ -1,11 +1,11 @@
-﻿schema {
+schema {
   query: Query
-}
-
-type MyFoo {
-  bar: String
 }
 
 type Query {
   foo: MyFoo
+}
+
+type MyFoo {
+  bar: String
 }

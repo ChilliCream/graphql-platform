@@ -17,6 +17,7 @@ internal sealed partial class FetchResultStore
         Operation operation,
         ErrorHandlingMode errorHandlingMode,
         ulong includeFlags,
+        ulong deferFlags,
         int pathSegmentLocalPoolCapacity)
     {
         ArgumentNullException.ThrowIfNull(schema);
@@ -27,10 +28,11 @@ internal sealed partial class FetchResultStore
         _operation = operation;
         _errorHandlingMode = errorHandlingMode;
         _includeFlags = includeFlags;
+        _deferFlags = deferFlags;
         _disposed = false;
 
         _pathPool ??= new PathSegmentLocalPool(pathSegmentLocalPoolCapacity);
-        _result = new CompositeResultDocument(operation, includeFlags, _pathPool);
+        _result = new CompositeResultDocument(operation, includeFlags, deferFlags, _pathPool);
 
         _valueCompletion = new ValueCompletion(
             this,
@@ -46,7 +48,7 @@ internal sealed partial class FetchResultStore
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        _result = new CompositeResultDocument(_operation, _includeFlags, _pathPool);
+        _result = new CompositeResultDocument(_operation, _includeFlags, _deferFlags, _pathPool);
         _errors?.Clear();
         _pocketedErrors?.Clear();
 

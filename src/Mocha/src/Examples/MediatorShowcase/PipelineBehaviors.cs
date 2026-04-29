@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using Mocha.Mediator;
 
 namespace MediatorShowcase;
@@ -12,133 +11,152 @@ namespace MediatorShowcase;
 /// Middleware that logs and times every message passing through the pipeline.
 /// Applies to all commands, queries, and notifications automatically.
 /// </summary>
-public static class LoggingMiddleware
+internal sealed class LoggingMiddleware(ILogger<LoggingMiddleware> logger)
 {
+    public async ValueTask InvokeAsync(IMediatorContext context, MediatorDelegate next)
+    {
+        var messageTypeName = context.MessageType.Name;
+        logger.LogInformation("[Pipeline] Handling {MessageType}...", messageTypeName);
+
+        var sw = Stopwatch.StartNew();
+        await next(context);
+        sw.Stop();
+
+        logger.LogInformation(
+            "[Pipeline] Handled {MessageType} in {ElapsedMs}ms",
+            messageTypeName, sw.ElapsedMilliseconds);
+    }
+
     public static MediatorMiddlewareConfiguration Create()
         => new(
             static (factoryCtx, next) =>
             {
-                var logger = factoryCtx.Services.GetRequiredService<ILoggerFactory>()
-                    .CreateLogger("Pipeline.Logging");
-
-                return ctx =>
-                {
-                    var messageTypeName = ctx.MessageType.Name;
-                    logger.LogInformation("[Pipeline] Handling {MessageType}...", messageTypeName);
-
-                    var sw = Stopwatch.StartNew();
-                    var task = next(ctx);
-
-                    if (task.IsCompletedSuccessfully)
-                    {
-                        sw.Stop();
-                        logger.LogInformation(
-                            "[Pipeline] Handled {MessageType} in {ElapsedMs}ms",
-                            messageTypeName, sw.ElapsedMilliseconds);
-                        return default;
-                    }
-
-                    return Awaited(task, sw, logger, messageTypeName);
-
-                    [MethodImpl(MethodImplOptions.NoInlining)]
-                    static async ValueTask Awaited(
-                        ValueTask t, Stopwatch sw, ILogger log, string msgType)
-                    {
-                        await t.ConfigureAwait(false);
-                        sw.Stop();
-                        log.LogInformation(
-                            "[Pipeline] Handled {MessageType} in {ElapsedMs}ms",
-                            msgType, sw.ElapsedMilliseconds);
-                    }
-                };
+                var logger = factoryCtx.Services.GetRequiredService<ILogger<LoggingMiddleware>>();
+                var middleware = new LoggingMiddleware(logger);
+                return ctx => middleware.InvokeAsync(ctx, next);
             },
             "Logging");
 }
 
 // ──────────────────────────────────────────────────
-// Validation Middleware (message-specific pre-check)
+// Command Audit Middleware (compile-time scoped to commands)
 // ──────────────────────────────────────────────────
 
 /// <summary>
-/// Middleware that validates PlaceOrderCommand before the handler runs.
-/// Demonstrates message-type-specific pre-processing.
+/// Middleware that audits every write operation. Demonstrates compile-time filtering by
+/// message kind: queries and notifications are skipped at startup with
+/// <see cref="MediatorMiddlewareFactoryContextExtensions.IsQuery"/> and
+/// <see cref="MediatorMiddlewareFactoryContextExtensions.IsNotification"/>, so this middleware
+/// is only compiled into command pipelines.
 /// </summary>
-public static class PlaceOrderValidationMiddleware
+internal sealed class CommandAuditMiddleware(ILogger<CommandAuditMiddleware> logger)
 {
+    public async ValueTask InvokeAsync(IMediatorContext context, MediatorDelegate next)
+    {
+        logger.LogInformation("[Audit] Executing command {CommandType}", context.MessageType.Name);
+        await next(context);
+        logger.LogInformation("[Audit] Completed command {CommandType}", context.MessageType.Name);
+    }
+
     public static MediatorMiddlewareConfiguration Create()
         => new(
             static (factoryCtx, next) =>
             {
-                var logger = factoryCtx.Services.GetRequiredService<ILoggerFactory>()
-                    .CreateLogger("Pipeline.Validation");
-
-                return ctx =>
+                // Compile-time filter: skip queries and notifications - audit only commands
+                if (factoryCtx.IsQuery() || factoryCtx.IsNotification())
                 {
-                    if (ctx.Message is PlaceOrderCommand order)
-                    {
-                        logger.LogInformation(
-                            "[PreProcessor] Validating order: {Quantity}x {Product}",
-                            order.Quantity, order.ProductName);
+                    return next;
+                }
 
-                        if (order.Quantity <= 0)
-                        {
-                            throw new ArgumentException("Quantity must be greater than zero.");
-                        }
-                    }
+                var logger = factoryCtx.Services.GetRequiredService<ILogger<CommandAuditMiddleware>>();
+                var middleware = new CommandAuditMiddleware(logger);
+                return ctx => middleware.InvokeAsync(ctx, next);
+            },
+            "CommandAudit");
+}
 
-                    return next(ctx);
-                };
+// ──────────────────────────────────────────────────
+// Validation Middleware (compile-time scoped to PlaceOrderCommand)
+// ──────────────────────────────────────────────────
+
+/// <summary>
+/// Middleware that validates <see cref="PlaceOrderCommand"/> before the handler runs.
+/// Demonstrates compile-time filtering: the factory inspects the message type and returns
+/// <c>next</c> for unrelated pipelines, so this middleware is only compiled into the
+/// PlaceOrderCommand pipeline - zero runtime cost everywhere else.
+/// </summary>
+internal sealed class PlaceOrderValidationMiddleware(ILogger<PlaceOrderValidationMiddleware> logger)
+{
+    public async ValueTask InvokeAsync(IMediatorContext context, MediatorDelegate next)
+    {
+        // Safe to cast - compile-time filter guarantees the message type
+        var order = (PlaceOrderCommand)context.Message;
+
+        logger.LogInformation(
+            "[PreProcessor] Validating order: {Quantity}x {Product}",
+            order.Quantity, order.ProductName);
+
+        if (order.Quantity <= 0)
+        {
+            throw new ArgumentException("Quantity must be greater than zero.");
+        }
+
+        await next(context);
+    }
+
+    public static MediatorMiddlewareConfiguration Create()
+        => new(
+            static (factoryCtx, next) =>
+            {
+                // Compile-time filter: skip every pipeline whose message is not PlaceOrderCommand
+                if (!factoryCtx.IsMessageAssignableTo<PlaceOrderCommand>())
+                {
+                    return next;
+                }
+
+                var logger = factoryCtx.Services.GetRequiredService<ILogger<PlaceOrderValidationMiddleware>>();
+                var middleware = new PlaceOrderValidationMiddleware(logger);
+                return ctx => middleware.InvokeAsync(ctx, next);
             },
             "Validation");
 }
 
 // ──────────────────────────────────────────────────
-// Auditing Middleware (post-processing)
+// Auditing Middleware (compile-time scoped to OrderResult responses)
 // ──────────────────────────────────────────────────
 
 /// <summary>
-/// Middleware that audits PlaceOrderCommand results after the handler runs.
-/// Demonstrates message-type-specific post-processing.
+/// Middleware that audits any handler returning an <see cref="OrderResult"/> after it runs.
+/// Demonstrates response-type-based compile-time filtering with
+/// <see cref="MediatorMiddlewareFactoryContextExtensions.IsResponseAssignableTo{T}"/>.
 /// </summary>
-public static class PlaceOrderAuditMiddleware
+internal sealed class PlaceOrderAuditMiddleware(ILogger<PlaceOrderAuditMiddleware> logger)
 {
+    public async ValueTask InvokeAsync(IMediatorContext context, MediatorDelegate next)
+    {
+        await next(context);
+
+        if (context.Result is OrderResult result)
+        {
+            logger.LogInformation(
+                "[PostProcessor] Order {OrderId} confirmed with total {Total:C}",
+                result.OrderId, result.Total);
+        }
+    }
+
     public static MediatorMiddlewareConfiguration Create()
         => new(
             static (factoryCtx, next) =>
             {
-                var logger = factoryCtx.Services.GetRequiredService<ILoggerFactory>()
-                    .CreateLogger("Pipeline.Audit");
-
-                return ctx =>
+                // Compile-time filter: only commands/queries that return OrderResult
+                if (!factoryCtx.IsResponseAssignableTo<OrderResult>())
                 {
-                    var task = next(ctx);
+                    return next;
+                }
 
-                    if (task.IsCompletedSuccessfully)
-                    {
-                        LogResult(ctx, logger);
-                        return default;
-                    }
-
-                    return Awaited(task, ctx, logger);
-
-                    [MethodImpl(MethodImplOptions.NoInlining)]
-                    static async ValueTask Awaited(
-                        ValueTask t, IMediatorContext ctx, ILogger log)
-                    {
-                        await t.ConfigureAwait(false);
-                        LogResult(ctx, log);
-                    }
-
-                    static void LogResult(IMediatorContext ctx, ILogger log)
-                    {
-                        if (ctx.Result is OrderResult result)
-                        {
-                            log.LogInformation(
-                                "[PostProcessor] Order {OrderId} confirmed with total {Total:C}",
-                                result.OrderId, result.Total);
-                        }
-                    }
-                };
+                var logger = factoryCtx.Services.GetRequiredService<ILogger<PlaceOrderAuditMiddleware>>();
+                var middleware = new PlaceOrderAuditMiddleware(logger);
+                return ctx => middleware.InvokeAsync(ctx, next);
             },
             "Audit");
 }
@@ -148,61 +166,34 @@ public static class PlaceOrderAuditMiddleware
 // ──────────────────────────────────────────────────
 
 /// <summary>
-/// Middleware that catches InvalidOperationException from RiskyCommand
+/// Middleware that catches <see cref="InvalidOperationException"/> from <see cref="RiskyCommand"/>
 /// and returns a fallback response instead of propagating the exception.
 /// </summary>
-public static class ExceptionHandlingMiddleware
+internal sealed class ExceptionHandlingMiddleware(ILogger<ExceptionHandlingMiddleware> logger)
 {
+    public async ValueTask InvokeAsync(IMediatorContext context, MediatorDelegate next)
+    {
+        try
+        {
+            await next(context);
+        }
+        catch (InvalidOperationException ex) when (context.Message is RiskyCommand)
+        {
+            logger.LogWarning(
+                "[ExceptionHandler] Caught {ExceptionType}: {Message}",
+                ex.GetType().Name, ex.Message);
+
+            context.Result = "Recovered gracefully from error.";
+        }
+    }
+
     public static MediatorMiddlewareConfiguration Create()
         => new(
             static (factoryCtx, next) =>
             {
-                var logger = factoryCtx.Services.GetRequiredService<ILoggerFactory>()
-                    .CreateLogger("Pipeline.ExceptionHandler");
-
-                return ctx =>
-                {
-                    try
-                    {
-                        var task = next(ctx);
-
-                        if (task.IsCompletedSuccessfully)
-                        {
-                            return default;
-                        }
-
-                        return Awaited(task, ctx, logger);
-                    }
-                    catch (InvalidOperationException ex) when (ctx.Message is RiskyCommand)
-                    {
-                        HandleException(ctx, ex, logger);
-                        return default;
-                    }
-
-                    [MethodImpl(MethodImplOptions.NoInlining)]
-                    static async ValueTask Awaited(
-                        ValueTask t, IMediatorContext ctx, ILogger log)
-                    {
-                        try
-                        {
-                            await t.ConfigureAwait(false);
-                        }
-                        catch (InvalidOperationException ex) when (ctx.Message is RiskyCommand)
-                        {
-                            HandleException(ctx, ex, log);
-                        }
-                    }
-
-                    static void HandleException(
-                        IMediatorContext ctx, InvalidOperationException ex, ILogger log)
-                    {
-                        log.LogWarning(
-                            "[ExceptionHandler] Caught {ExceptionType}: {Message}",
-                            ex.GetType().Name, ex.Message);
-
-                        ctx.Result = "Recovered gracefully from error.";
-                    }
-                };
+                var logger = factoryCtx.Services.GetRequiredService<ILogger<ExceptionHandlingMiddleware>>();
+                var middleware = new ExceptionHandlingMiddleware(logger);
+                return ctx => middleware.InvokeAsync(ctx, next);
             },
             "ExceptionHandler");
 }

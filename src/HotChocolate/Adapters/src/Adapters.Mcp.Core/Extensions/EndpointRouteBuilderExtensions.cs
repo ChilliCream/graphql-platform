@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Adapters.Mcp.Proxies;
+using HotChocolate.Execution;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Metadata;
@@ -16,6 +17,7 @@ public static class EndpointRouteBuilderExtensions
         [StringSyntax("Route")] string pattern = "/graphql/mcp",
         string? schemaName = null)
     {
+        TryResolveSchemaName(endpoints.ServiceProvider, ref schemaName);
         schemaName ??= ISchemaDefinition.DefaultName;
 
         var streamableHttpHandler =
@@ -63,5 +65,15 @@ public static class EndpointRouteBuilderExtensions
         }
 
         return mcpGroup;
+    }
+
+    private static void TryResolveSchemaName(IServiceProvider services, ref string? schemaName)
+    {
+        if (schemaName is null
+            && services.GetService<IRequestExecutorProvider>() is { } provider
+            && provider.SchemaNames.Length == 1)
+        {
+            schemaName = provider.SchemaNames[0];
+        }
     }
 }

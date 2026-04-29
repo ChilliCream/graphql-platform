@@ -1,0 +1,75 @@
+name: Dispatch and watch workflow
+description: Dispatches a workflow_dispatch in another repository and waits for it to complete.
+
+inputs:
+  repo:
+    description: Target repository in `owner/name` form.
+    required: true
+  workflow:
+    description: Workflow filename (e.g. `release.yaml`) or ID.
+    required: true
+  ref:
+    description: Git ref to dispatch the workflow against.
+    required: false
+    default: main
+  version:
+    description: Version passed as the `version` input to the dispatched workflow.
+    required: true
+  is_stable:
+    description: Whether the release is a stable (X.Y.Z) version. Forwarded to the dispatched workflow.
+    required: true
+  is_active_major:
+    description: Whether the release targets the top lane (version.major >= highest stable major). Forwarded to the dispatched workflow.
+    required: true
+  token:
+    description: "Token with `actions: write` on the target repository."
+    required: true
+
+outputs:
+  run-id:
+    description: Numeric ID of the dispatched run.
+    value: ${{ steps.dispatch.outputs.run-id }}
+  run-url:
+    description: HTML URL of the dispatched run.
+    value: ${{ steps.dispatch.outputs.run-url }}
+
+runs:
+  using: composite
+  steps:
+    - name: 🚀 Dispatch workflow
+      id: dispatch
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        REPO: ${{ inputs.repo }}
+        WORKFLOW: ${{ inputs.workflow }}
+        REF: ${{ inputs.ref }}
+        VERSION: ${{ inputs.version }}
+        IS_STABLE: ${{ inputs.is_stable }}
+        IS_ACTIVE_MAJOR: ${{ inputs.is_active_major }}
+      run: |
+        set -euo pipefail
+
+        RUN_URL=$(gh workflow run "$WORKFLOW" --repo "$REPO" --ref "$REF" \
+          -f version="$VERSION" \
+          -f is_stable="$IS_STABLE" \
+          -f is_active_major="$IS_ACTIVE_MAJOR")
+
+        if [ -z "$RUN_URL" ]; then
+          echo "::error::Dispatch did not return a run URL. Requires gh >= 2.87.0 against github.com."
+          exit 1
+        fi
+
+        RUN_ID="${RUN_URL##*/}"
+
+        echo "run-id=$RUN_ID" >> "$GITHUB_OUTPUT"
+        echo "run-url=$RUN_URL" >> "$GITHUB_OUTPUT"
+        echo "Dispatched run: $RUN_URL"
+
+    - name: 👀 Watch run
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        REPO: ${{ inputs.repo }}
+        RUN_ID: ${{ steps.dispatch.outputs.run-id }}
+      run: gh run watch "$RUN_ID" --repo "$REPO" --exit-status --compact

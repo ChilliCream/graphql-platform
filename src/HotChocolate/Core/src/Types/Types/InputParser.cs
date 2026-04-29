@@ -652,7 +652,9 @@ public sealed class InputParser
             // we will create a default instance and assign that instead.
             if (field.RuntimeType.IsValueType)
             {
+#pragma warning disable IL2072
                 value = Activator.CreateInstance(field.RuntimeType);
+#pragma warning restore IL2072
             }
 
             return field.IsOptional
@@ -749,7 +751,11 @@ public sealed class InputParser
     }
 
     private static IList CreateList(ListType type)
-        => (IList)Activator.CreateInstance(type.ToRuntimeType())!;
+    {
+#pragma warning disable IL2072
+        return (IList)Activator.CreateInstance(type.ToRuntimeType())!;
+#pragma warning restore IL2072
+    }
 
     private readonly struct Optional : IOptional
     {

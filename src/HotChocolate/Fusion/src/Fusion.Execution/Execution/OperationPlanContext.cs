@@ -40,7 +40,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     private ISourceSchemaClientScope _clientScope = default!;
     private string? _traceId;
     private long _start;
-    private bool _disposed;
+    private int _disposed;
     private int _nodeSlotCapacity;
     internal OperationPlanContextPool? _pool;
 
@@ -78,6 +78,11 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     /// Gets the evaluated include flags derived from <c>@skip</c> and <c>@include</c> directives.
     /// </summary>
     public ulong IncludeFlags { get; private set; }
+
+    /// <summary>
+    /// Gets the evaluated defer flags derived from <c>@defer</c> directives.
+    /// </summary>
+    public ulong DeferFlags { get; private set; }
 
     /// <summary>
     /// Gets a value indicating whether operation plan telemetry is being collected for this request.

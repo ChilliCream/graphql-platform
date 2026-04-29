@@ -1,11 +1,11 @@
-﻿schema {
+schema {
   query: GroupedQuery
-}
-
-type Foo {
-  id: Int!
 }
 
 type GroupedQuery {
   single: [Foo]
+}
+
+type Foo {
+  id: Int!
 }

@@ -642,6 +642,7 @@ const DeveloperNavItem: FC<DeveloperNavItemProps> = ({
         ({ hero, active, self }) => hero && active && self === false
       )
   );
+  const latestBlogPost = useLatestBlogPost();
 
   const [subNav, navHandlers, linkHandlers] = useSubNav(
     (hideTopAndSubNav, hideSubNav) => (
@@ -717,7 +718,7 @@ const DeveloperNavItem: FC<DeveloperNavItemProps> = ({
           </SubNavTools>
         </SubNavMain>
         <SubNavAdditionalInfo>
-          {workshop && (
+          {workshop ? (
             <>
               <SubNavTitle>Upcoming Workshop</SubNavTitle>
               <TeaserLink to={workshop.url}>
@@ -731,6 +732,37 @@ const DeveloperNavItem: FC<DeveloperNavItemProps> = ({
                 <TeaserTitle>{workshop.title}</TeaserTitle>
               </TeaserLink>
             </>
+          ) : (
+            latestBlogPost && (
+              <>
+                <SubNavTitle>Latest Blog Post</SubNavTitle>
+                <TeaserLink to={latestBlogPost.path}>
+                  {latestBlogPost.featuredImage && (
+                    <TeaserImage>
+                      <img
+                        src={latestBlogPost.featuredImage}
+                        alt={latestBlogPost.title}
+                        width={320}
+                        height={180}
+                        loading="lazy"
+                        decoding="async"
+                        style={{
+                          width: "100%",
+                          height: "auto",
+                          borderRadius: "var(--box-border-radius)",
+                        }}
+                      />
+                    </TeaserImage>
+                  )}
+                  <TeaserMetadata>
+                    {latestBlogPost.date}
+                    {latestBlogPost.readingTime &&
+                      " ・ " + latestBlogPost.readingTime}
+                  </TeaserMetadata>
+                  <TeaserTitle>{latestBlogPost.title}</TeaserTitle>
+                </TeaserLink>
+              </>
+            )
           )}
         </SubNavAdditionalInfo>
       </>

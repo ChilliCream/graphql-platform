@@ -39,8 +39,7 @@ public static class EntityKeyDescriptorExtensions
 
         try
         {
-            fields = $"{{ {fields.Trim('{', '}')} }}";
-            selectionSet = Utf8GraphQLParser.Syntax.ParseSelectionSet(fields);
+            selectionSet = FieldSelectionSetType.ParseSelectionSet(fields);
         }
         catch (SyntaxException ex)
         {
@@ -87,8 +86,7 @@ public static class EntityKeyDescriptorExtensions
 
         try
         {
-            fields = $"{{ {fields.Trim('{', '}')} }}";
-            selectionSet = Utf8GraphQLParser.Syntax.ParseSelectionSet(fields);
+            selectionSet = FieldSelectionSetType.ParseSelectionSet(fields);
         }
         catch (SyntaxException ex)
         {
