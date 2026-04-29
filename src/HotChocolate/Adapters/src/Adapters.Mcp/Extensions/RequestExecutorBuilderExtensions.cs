@@ -22,7 +22,7 @@ public static class RequestExecutorBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        builder.Services.AddMcpServices();
+        builder.Services.TryAddMcpServices();
         builder.Services.ConfigureMcpSetup(builder.Name, configureServerOptions, configureServer);
 
         builder.ConfigureSchemaServices(

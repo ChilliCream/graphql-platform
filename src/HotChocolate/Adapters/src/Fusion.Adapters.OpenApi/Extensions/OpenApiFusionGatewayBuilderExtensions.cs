@@ -149,7 +149,7 @@ public static class OpenApiFusionGatewayBuilderExtensions
         this IFusionGatewayBuilder builder,
         Func<IServiceProvider, bool>? skipIf)
     {
-        builder.Services.AddOpenApiServices();
+        builder.Services.TryAddOpenApiServices();
         builder.Services.AddOpenApiAspNetCoreServices();
 
         builder.ConfigureSchemaServices((_, schemaServices) =>

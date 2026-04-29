@@ -149,7 +149,7 @@ public static class OpenApiRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Func<IServiceProvider, bool>? skipIf)
     {
-        builder.Services.AddOpenApiServices();
+        builder.Services.TryAddOpenApiServices();
         builder.Services.AddOpenApiAspNetCoreServices();
 
         builder.ConfigureSchemaServices((_, schemaServices) =>

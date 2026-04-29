@@ -5,7 +5,7 @@ using ModelContextProtocol.Server;
 
 namespace HotChocolate.Adapters.Mcp.Extensions;
 
-public sealed class McpSetupCompositionTests
+public sealed class McpSetupTests
 {
     [Fact]
     public void AddMcp_Should_Compose_When_CalledMultipleTimes()

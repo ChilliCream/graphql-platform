@@ -12,7 +12,7 @@ namespace HotChocolate.Adapters.OpenApi;
 #endif
 internal static class InternalServiceCollectionExtensions
 {
-    public static IServiceCollection AddOpenApiServices(this IServiceCollection applicationServices)
+    public static IServiceCollection TryAddOpenApiServices(this IServiceCollection applicationServices)
     {
         applicationServices.AddOptions();
         applicationServices.TryAddSingleton<OpenApiManager>();

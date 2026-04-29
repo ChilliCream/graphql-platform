@@ -20,7 +20,7 @@ namespace HotChocolate.Adapters.Mcp.Extensions;
 #endif
 internal static class ServiceCollectionExtensions
 {
-    public static void AddMcpServices(this IServiceCollection services)
+    public static void TryAddMcpServices(this IServiceCollection services)
     {
         services.AddHttpContextAccessor();
         services.AddOptions();
