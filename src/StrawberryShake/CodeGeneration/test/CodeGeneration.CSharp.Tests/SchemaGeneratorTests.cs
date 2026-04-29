@@ -609,4 +609,19 @@ public class SchemaGeneratorTests
             }
             """);
     }
+
+    [Fact]
+    public void Enum_Value_With_Rename_Has_Renamed_CSharp_Member_And_Original_Wire_Value()
+    {
+        AssertResult(
+            """query GetStatus { status }""",
+            """
+            type Query { status: Status! }
+            enum Status {
+                ACTIVE   @rename(name: "Active")
+                INACTIVE @rename(name: "Inactive")
+            }
+            directive @rename(name: String!) on INPUT_FIELD_DEFINITION | INPUT_OBJECT | ENUM | ENUM_VALUE
+            """);
+    }
 }

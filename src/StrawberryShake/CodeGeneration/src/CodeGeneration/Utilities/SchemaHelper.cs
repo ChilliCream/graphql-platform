@@ -46,6 +46,15 @@ public static class SchemaHelper
                     leafTypes,
                     typeInfos);
 
+                // Forward input object extensions to the schema builder
+                var inputExtensions = document.Definitions
+                    .OfType<InputObjectTypeExtensionNode>()
+                    .ToList();
+                if (inputExtensions.Count > 0)
+                {
+                    builder.AddDocument(new DocumentNode(inputExtensions));
+                }
+
                 if (!noStore)
                 {
                     CollectGlobalEntityPatterns(
@@ -77,13 +86,23 @@ public static class SchemaHelper
                     }
                 }
 
-                builder.AddDocument(document);
+                // Filter out @rename directive declaration to prevent a duplicate-type
+                // error when the user's schema already declares it. We always register
+                // RenameDirectiveType programmatically so its C# binding is correct.
+                var definitions = document.Definitions
+                    .Where(d => !(d is DirectiveDefinitionNode dd && dd.Name.Value == "rename"))
+                    .ToList();
+                var docToAdd = definitions.Count == document.Definitions.Count
+                    ? document
+                    : new DocumentNode(definitions);
+                builder.AddDocument(docToAdd);
             }
         }
 
         AddDefaultScalarInfos(builder, leafTypes);
 
         return builder
+            .AddDirectiveType<RenameDirectiveType>()
             .ModifyOptions(
                 o =>
                 {
