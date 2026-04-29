@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 
 namespace HotChocolate.Adapters.Mcp;
 
-internal sealed class McpManager : IMcpProvider, IDisposable
+internal sealed class McpManager : IDisposable
 {
     private readonly IOptionsMonitor<McpSetup> _optionsMonitor;
     private readonly IServiceProvider _applicationServices;

@@ -66,11 +66,11 @@ public static class EndpointRouteBuilderExtensions
         return mcpGroup;
     }
 
-    private static void TryResolveSchemaName(IMcpProvider provider, ref string? schemaName)
+    private static void TryResolveSchemaName(McpManager manager, ref string? schemaName)
     {
-        if (schemaName is null && provider.Names.Length == 1)
+        if (schemaName is null && manager.Names.Length == 1)
         {
-            schemaName = provider.Names[0];
+            schemaName = manager.Names[0];
         }
     }
 }

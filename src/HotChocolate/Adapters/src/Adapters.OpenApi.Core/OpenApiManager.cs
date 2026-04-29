@@ -2,7 +2,6 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using HotChocolate.Adapters.OpenApi.Configuration;
 using HotChocolate.AspNetCore;
-using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 #if !NET9_0_OR_GREATER
@@ -17,7 +16,7 @@ namespace HotChocolate.Adapters.OpenApi;
 [RequiresUnreferencedCode(
     "JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
 #endif
-internal sealed class OpenApiManager : IOpenApiProvider, IDisposable
+internal sealed class OpenApiManager : IDisposable
 {
     private readonly IOptionsMonitor<OpenApiSetup> _setupMonitor;
     private readonly IOptionsMonitor<OpenApiTransportSetup> _transportSetupMonitor;

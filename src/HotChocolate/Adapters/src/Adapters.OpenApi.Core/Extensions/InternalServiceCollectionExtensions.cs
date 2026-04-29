@@ -16,7 +16,6 @@ internal static class InternalServiceCollectionExtensions
     {
         applicationServices.AddOptions();
         applicationServices.TryAddSingleton<OpenApiManager>();
-        applicationServices.TryAddSingleton<IOpenApiProvider>(static sp => sp.GetRequiredService<OpenApiManager>());
         return applicationServices;
     }
 

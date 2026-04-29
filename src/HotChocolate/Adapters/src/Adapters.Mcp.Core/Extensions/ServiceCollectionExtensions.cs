@@ -25,7 +25,6 @@ internal static class ServiceCollectionExtensions
         services.AddHttpContextAccessor();
         services.AddOptions();
         services.TryAddSingleton<McpManager>();
-        services.TryAddSingleton<IMcpProvider>(static sp => sp.GetRequiredService<McpManager>());
     }
 
     public static void ConfigureMcpSetup(

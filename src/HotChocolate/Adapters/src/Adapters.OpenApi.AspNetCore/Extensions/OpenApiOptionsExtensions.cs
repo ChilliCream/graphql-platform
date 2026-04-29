@@ -23,11 +23,11 @@ public static class OpenApiOptionsExtensions
         });
     }
 
-    private static void TryResolveSchemaName(IOpenApiProvider provider, ref string? schemaName)
+    private static void TryResolveSchemaName(OpenApiManager manager, ref string? schemaName)
     {
-        if (schemaName is null && provider.Names.Length == 1)
+        if (schemaName is null && manager.Names.Length == 1)
         {
-            schemaName = provider.Names[0];
+            schemaName = manager.Names[0];
         }
     }
 }
