@@ -88,6 +88,27 @@ public sealed class Selection : ISelection
     ISelectionSet ISelection.DeclaringSelectionSet => DeclaringSelectionSet;
 
     /// <summary>
+    /// Gets the child selection set for this selection's named return type.
+    /// </summary>
+    /// <returns>
+    /// The child selection set, or <c>null</c> when this selection has no child
+    /// selection set.
+    /// </returns>
+    public SelectionSet? GetSelectionSet()
+        => IsLeaf ? null : DeclaringSelectionSet.DeclaringOperation.GetSelectionSet(this);
+
+    /// <summary>
+    /// Gets the child selection set for this selection and the specified
+    /// <paramref name="typeContext"/>.
+    /// </summary>
+    /// <returns>
+    /// The child selection set, or <c>null</c> when this selection has no child
+    /// selection set.
+    /// </returns>
+    public SelectionSet? GetSelectionSet(IObjectTypeDefinition typeContext)
+        => IsLeaf ? null : DeclaringSelectionSet.DeclaringOperation.GetSelectionSet(this, typeContext);
+
+    /// <summary>
     /// Gets the syntax nodes that contributed to this selection.
     /// </summary>
     public ReadOnlySpan<FieldSelectionNode> SyntaxNodes => _syntaxNodes;
