@@ -67,15 +67,7 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
             var activity = span.Activity;
 
             activity.SetStatus(ActivityStatusCode.Error);
-
-            string? opType = null, opName = null;
-            if (context.GetOperationPlan() is { Operation: var operation })
-            {
-                opType = SemanticConventions.GraphQL.Operation.TypeValues[operation.Definition.Operation];
-                opName = operation.Name;
-            }
-
-            activity.AddGraphQLError(error, opType, opName);
+            activity.SetGraphQLErrorType(error, ActivityExtensions.ExecutionErrorType);
 
             enricher.EnrichRequestError(context, error, activity);
         }
@@ -123,16 +115,9 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
 
         activity.SetStatus(ActivityStatusCode.Error);
 
-        string? opType = null, opName = null;
-        if (context.GetOperationPlan() is { Operation: var operation })
-        {
-            opType = SemanticConventions.GraphQL.Operation.TypeValues[operation.Definition.Operation];
-            opName = operation.Name;
-        }
-
         foreach (var error in errors)
         {
-            activity.AddGraphQLError(error, opType, opName);
+            activity.SetGraphQLErrorType(error, ActivityExtensions.ValidationErrorType);
         }
 
         enricher.EnrichValidationErrors(context, errors, activity);

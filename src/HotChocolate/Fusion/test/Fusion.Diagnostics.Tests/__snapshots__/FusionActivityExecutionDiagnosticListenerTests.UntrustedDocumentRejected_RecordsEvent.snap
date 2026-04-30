@@ -7,6 +7,10 @@
       "Status": "Error",
       "tags": [
         {
+          "Key": "graphql.processing.type",
+          "Value": "request"
+        },
+        {
           "Key": "graphql.error.count",
           "Value": 1
         },
@@ -19,6 +23,31 @@
         {
           "Name": "UntrustedDocumentRejected",
           "Tags": []
+        },
+        {
+          "Name": "graphql.error",
+          "Tags": [
+            {
+              "Key": "graphql.error.message",
+              "Value": "Only persisted operations are allowed."
+            },
+            {
+              "Key": "graphql.error.code",
+              "Value": "HC0067"
+            },
+            {
+              "Key": "exception.type",
+              "Value": "GRAPHQL_ERROR"
+            },
+            {
+              "Key": "exception.message",
+              "Value": "Only persisted operations are allowed."
+            },
+            {
+              "Key": "exception.stacktrace",
+              "Value": ""
+            }
+          ]
         }
       ]
     }

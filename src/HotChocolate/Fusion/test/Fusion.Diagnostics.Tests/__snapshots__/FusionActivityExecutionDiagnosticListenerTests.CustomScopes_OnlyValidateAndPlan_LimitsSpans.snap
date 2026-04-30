@@ -57,7 +57,7 @@
           "Value": "sha256:35c1feb1208268226c7d5d5d0ae122e4d38cb79621e862b1e252d37fc83c530a"
         },
         {
-          "Key": "graphql.source.name",
+          "Key": "graphql.source_schema.name",
           "Value": "a"
         }
       ],

@@ -7,6 +7,10 @@
       "Status": "Ok",
       "tags": [
         {
+          "Key": "graphql.processing.type",
+          "Value": "request"
+        },
+        {
           "Key": "graphql.operation.type",
           "Value": "query"
         },
@@ -133,19 +137,15 @@
                   "Value": "705a22da1ff57dc3647c63b657d8c9a64922ea6bd90d3009ea51765837161df8"
                 },
                 {
-                  "Key": "graphql.source.name",
+                  "Key": "graphql.source_schema.name",
                   "Value": "a"
                 },
                 {
-                  "Key": "graphql.source.operation.name",
+                  "Key": "graphql.source_schema.operation.name",
                   "Value": "Op_073bf769_1"
                 },
                 {
-                  "Key": "graphql.source.operation.type",
-                  "Value": "query"
-                },
-                {
-                  "Key": "graphql.source.operation.hash",
+                  "Key": "graphql.source_schema.operation.hash",
                   "Value": "sha256:b6db85f78e867baa06bf8b4f45ed381a2b6bc9f7abd15948f0bfff0967fbc308"
                 }
               ],
@@ -170,7 +170,7 @@
                       "Value": "sha256:b6db85f78e867baa06bf8b4f45ed381a2b6bc9f7abd15948f0bfff0967fbc308"
                     },
                     {
-                      "Key": "graphql.source.name",
+                      "Key": "graphql.source_schema.name",
                       "Value": "a"
                     }
                   ],
@@ -209,19 +209,15 @@
                   "Value": "705a22da1ff57dc3647c63b657d8c9a64922ea6bd90d3009ea51765837161df8"
                 },
                 {
-                  "Key": "graphql.source.name",
+                  "Key": "graphql.source_schema.name",
                   "Value": "b"
                 },
                 {
-                  "Key": "graphql.source.operation.name",
+                  "Key": "graphql.source_schema.operation.name",
                   "Value": "Op_073bf769_2"
                 },
                 {
-                  "Key": "graphql.source.operation.type",
-                  "Value": "query"
-                },
-                {
-                  "Key": "graphql.source.operation.hash",
+                  "Key": "graphql.source_schema.operation.hash",
                   "Value": "sha256:1fa50769ad5084334414d5ceb8029c7787ded48ac5cc01dac775b0b814348e88"
                 }
               ],
@@ -246,7 +242,7 @@
                       "Value": "sha256:1fa50769ad5084334414d5ceb8029c7787ded48ac5cc01dac775b0b814348e88"
                     },
                     {
-                      "Key": "graphql.source.name",
+                      "Key": "graphql.source_schema.name",
                       "Value": "b"
                     }
                   ],

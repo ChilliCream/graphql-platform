@@ -41,7 +41,7 @@ internal sealed class ExecuteSourceSchemaRequestSpan(
 
         if (!string.IsNullOrWhiteSpace(schemaName))
         {
-            activity.SetTag(GraphQL.Source.Name, schemaName);
+            activity.SetTag(GraphQL.SourceSchema.Name, schemaName);
         }
 
         return new ExecuteSourceSchemaRequestSpan(activity, context, node, schemaName, enricher);
