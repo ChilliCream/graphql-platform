@@ -72,7 +72,7 @@ internal sealed class ExecutionState
             && (_failedOrSkippedBitset[index] & (1UL << (nodeId & 63))) != 0;
     }
 
-    public void FillBacklog(OperationPlan plan)
+    public void FillBacklog(IOperationPlan plan)
     {
         _ready.Clear();
         _backlogCount = 0;
@@ -180,7 +180,7 @@ internal sealed class ExecutionState
     }
 
     public void CompleteNode(
-        OperationPlan plan,
+        IOperationPlan plan,
         ExecutionNode node,
         ExecutionNodeResult result)
     {
@@ -279,7 +279,7 @@ internal sealed class ExecutionState
         }
     }
 
-    public void SkipNode(OperationPlan plan, ExecutionNode node)
+    public void SkipNode(IOperationPlan plan, ExecutionNode node)
     {
         _stack.Clear();
         _stack.Push(node);

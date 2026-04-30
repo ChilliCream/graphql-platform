@@ -464,7 +464,7 @@ public class DeferTests : FusionTestBase
 
         // assert
         // The stable-stream snapshot lays out the per-frame timeline (pending /
-        // incremental / completed) so the shared subplan emitting once under the
+        // incremental / completed) so the shared incremental plan emitting once under the
         // best delivery-group id while still completing both groups is visible
         // as a single block.
         await MatchSnapshotAsync(gateway, request, result, stableStream: true);
@@ -711,5 +711,240 @@ public class DeferTests : FusionTestBase
         {
             doc.Dispose();
         }
+    }
+
+    [Fact]
+    public async Task Defer_With_Forwarded_Variable_Merges_Into_Subgraph_Request()
+    {
+        // arrange
+        // Schema A owns the user lookup and exposes the entity key. Schema B owns the
+        // posts(first:) field, so the deferred fetch hops to B with both the imported
+        // parent key (__fusion_1_id) and the forwarded request variable ($limit).
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                posts(first: Int!): [Post!]!
+            }
+
+            type Post {
+                id: ID!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            query: """
+            query GetUserPosts($limit: Int!) {
+                user(id: "1") {
+                    id
+                    ... @defer(label: "posts") {
+                        posts(first: $limit) {
+                            id
+                        }
+                    }
+                }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["limit"] = 5 });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        // The snapshot's deferred subgraph interaction must show both the imported
+        // __fusion_*_id key and the forwarded $limit variable in the variables payload.
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Nested_With_Forwarded_Variable_At_Each_Level()
+    {
+        // arrange
+        // Three subgraphs so each defer level requires its own hop. Each hop carries an
+        // imported parent key plus a forwarded request variable scoped to that level.
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                posts(first: Int!): [Post!]!
+            }
+
+            type Post @key(fields: "id") {
+                id: ID!
+            }
+            """);
+
+        using var server3 = CreateSourceSchema(
+            "C",
+            """
+            type Query {
+                postById(id: ID!): Post @lookup
+            }
+
+            type Post @key(fields: "id") {
+                id: ID!
+                comments(first: Int!): [Comment!]!
+            }
+
+            type Comment {
+                id: ID!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2),
+            ("C", server3)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            query: """
+            query GetUserPostsAndComments($postLimit: Int!, $commentLimit: Int!) {
+                user(id: "1") {
+                    id
+                    ... @defer(label: "posts") {
+                        posts(first: $postLimit) {
+                            id
+                            ... @defer(label: "comments") {
+                                comments(first: $commentLimit) {
+                                    id
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            """,
+            variables: new Dictionary<string, object?>
+            {
+                ["postLimit"] = 3,
+                ["commentLimit"] = 2
+            });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        // The snapshot must show both deferred subgraph calls carrying their respective
+        // forwarded variables alongside the imported parent keys.
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_With_Forwarded_Variable_Over_List_Anchor()
+    {
+        // arrange
+        // Root list anchor so the deferred incremental plan expands across multiple imported
+        // entries. Each expanded entry must carry the forwarded $limit variable.
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                users: [User!]!
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                posts(first: Int!): [Post!]!
+            }
+
+            type Post {
+                id: ID!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            query: """
+            query GetUsersPosts($limit: Int!) {
+                users {
+                    id
+                    ... @defer(label: "posts") {
+                        posts(first: $limit) {
+                            id
+                        }
+                    }
+                }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["limit"] = 5 });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        // The deferred subgraph call expands across all imported user entries. Each
+        // outbound variable set carries the forwarded $limit alongside the parent key.
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
     }
 }

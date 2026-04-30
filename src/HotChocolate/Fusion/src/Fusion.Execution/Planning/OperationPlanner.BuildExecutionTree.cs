@@ -24,8 +24,8 @@ public sealed partial class OperationPlanner
         Operation operation,
         OperationDefinitionNode operationDefinition,
         ImmutableList<PlanStep> planSteps,
-        ImmutableArray<DeferUsage> deliveryGroups,
-        ImmutableArray<ExecutionSubPlan> deferredSubPlans,
+        ImmutableArray<DeliveryGroup> deliveryGroups,
+        ImmutableArray<IncrementalPlan> incrementalPlans,
         int searchSpace,
         int expandedNodes,
         CancellationToken cancellationToken)
@@ -77,44 +77,48 @@ public sealed partial class OperationPlanner
             node.Seal();
         }
 
-        // Resolve each deferred subplan's parent execution node id now that both
-        // the main plan's nodes and each subplan's own nodes are built.
-        // Top-level subplans resolve against the main plan's allNodes; a nested
-        // subplan resolves against the enclosing subplan's AllNodes, where the
-        // enclosing subplan is the one whose DeliveryGroups contain the parent
-        // DeferUsage of any usage in the nested subplan's key set.
-        if (!deferredSubPlans.IsDefaultOrEmpty)
-        {
-            foreach (var subPlan in deferredSubPlans)
-            {
-                var path = ResolveSubPlanPath(subPlan);
-                var parent = ResolveSubPlanParent(subPlan, deferredSubPlans);
-                var owningNodes = parent is null ? allNodes : parent.AllNodes;
-                subPlan.ParentNodeId = ResolveDeferParentNodeId(owningNodes, path)
-                    ?? throw ThrowHelper.DeferredSubPlanParentNotFound(path);
-            }
-        }
-
-        return OperationPlan.Create(
+        var operationPlan = OperationPlan.Create(
             operation,
             rootNodes,
             allNodes,
             deliveryGroups,
-            deferredSubPlans,
+            incrementalPlans,
             searchSpace,
             expandedNodes);
+
+        // Assign parent node ids and stable ids after the root plan and
+        // incremental plan nodes have been built. Nested incremental plans are
+        // associated with the plan that owns their parent delivery group.
+        if (!incrementalPlans.IsDefaultOrEmpty)
+        {
+            // Plan-time id: the parent id is known here because the root plan
+            // was just created above, and OperationPlan.Create's content hash
+            // does not include incremental plan ids.
+            for (var i = 0; i < incrementalPlans.Length; i++)
+            {
+                var incrementalPlan = incrementalPlans[i];
+                incrementalPlan.Id = $"{operationPlan.Id}#{i}";
+
+                var path = ResolveIncrementalPlanPath(incrementalPlan);
+                var parent = ResolveIncrementalPlanParent(incrementalPlan, incrementalPlans);
+                var owningNodes = parent is null ? allNodes : parent.AllNodes;
+                incrementalPlan.ParentNodeId = ResolveDeferParentNodeId(owningNodes, path)
+                    ?? throw ThrowHelper.IncrementalPlanParentNotFound(path);
+            }
+        }
+
+        return operationPlan;
     }
 
     /// <summary>
-    /// Returns the path at which the given subplan's data is inserted into the
-    /// result tree. Equivalent to the deepest
-    /// <see cref="DeferUsage.Path"/> across the subplan's delivery groups.
+    /// Returns the anchor path for the given incremental plan. When the plan
+    /// has multiple delivery groups, the deepest delivery group path is used.
     /// </summary>
-    private static SelectionPath ResolveSubPlanPath(ExecutionSubPlan subPlan)
+    private static SelectionPath ResolveIncrementalPlanPath(IncrementalPlan incrementalPlan)
     {
         SelectionPath? best = null;
 
-        foreach (var usage in subPlan.DeliveryGroups)
+        foreach (var usage in incrementalPlan.DeliveryGroups)
         {
             if (usage.Path is null)
             {
@@ -131,23 +135,21 @@ public sealed partial class OperationPlanner
     }
 
     /// <summary>
-    /// Finds the enclosing subplan for the given nested subplan. A subplan is
-    /// nested inside another subplan when some <see cref="DeferUsage"/> in its
-    /// key set has a <see cref="DeferUsage.Parent"/> that belongs to another
-    /// subplan's key set. Returns <c>null</c> for top-level subplans.
+    /// Finds the enclosing incremental plan for the given incremental plan.
+    /// Returns <c>null</c> for top-level incremental plans.
     /// </summary>
-    private static ExecutionSubPlan? ResolveSubPlanParent(
-        ExecutionSubPlan subPlan,
-        ImmutableArray<ExecutionSubPlan> subPlans)
+    private static IncrementalPlan? ResolveIncrementalPlanParent(
+        IncrementalPlan incrementalPlan,
+        ImmutableArray<IncrementalPlan> incrementalPlans)
     {
-        foreach (var usage in subPlan.DeliveryGroups)
+        foreach (var usage in incrementalPlan.DeliveryGroups)
         {
             var ancestor = usage.Parent;
             while (ancestor is not null)
             {
-                foreach (var candidate in subPlans)
+                foreach (var candidate in incrementalPlans)
                 {
-                    if (ReferenceEquals(candidate, subPlan))
+                    if (ReferenceEquals(candidate, incrementalPlan))
                     {
                         continue;
                     }
@@ -545,7 +547,7 @@ public sealed partial class OperationPlanner
         selectionSetNode = PruneNonValueTypeChildren(selectionSetNode, operationStep.Type, schema);
         var resultSelectionSet = ResultSelectionSet.Create(selectionSetNode, schema);
 
-        return new OperationExecutionNode(
+        var node = new OperationExecutionNode(
             operationStep.Id,
             operationSource,
             operationStep.SchemaName,
@@ -556,6 +558,13 @@ public sealed partial class OperationPlanner
             resultSelectionSet,
             operationStep.Conditions,
             requiresFileUpload);
+
+        foreach (var parentDependency in operationStep.ParentDependencies)
+        {
+            node.AddParentDependency(parentDependency.StepId);
+        }
+
+        return node;
     }
 
     private static void MergeAndBatchOperations(
@@ -924,7 +933,8 @@ public sealed partial class OperationPlanner
     private static BatchOperationDefinition CreateBatchOperationDefinition(MergeResult merge)
     {
         var primary = merge.Primary;
-        return new BatchOperationDefinition(
+
+        var definition = new BatchOperationDefinition(
             primary.Id,
             merge.CanonicalOp,
             primary.SchemaName,
@@ -935,11 +945,18 @@ public sealed partial class OperationPlanner
             primary.ResultSelectionSet,
             primary.Conditions.ToArray(),
             primary.RequiresFileUpload);
+
+        foreach (var parentDependency in primary.BufferedParentDependencies)
+        {
+            definition.AddParentDependency(parentDependency);
+        }
+
+        return definition;
     }
 
     private static SingleOperationDefinition CreateSingleOperationDefinition(OperationExecutionNode member)
     {
-        return new SingleOperationDefinition(
+        var definition = new SingleOperationDefinition(
             member.Id,
             member.Operation,
             member.SchemaName,
@@ -950,6 +967,13 @@ public sealed partial class OperationPlanner
             member.ResultSelectionSet,
             member.Conditions.ToArray(),
             member.RequiresFileUpload);
+
+        foreach (var parentDependency in member.BufferedParentDependencies)
+        {
+            definition.AddParentDependency(parentDependency);
+        }
+
+        return definition;
     }
 
     /// <summary>
@@ -1062,7 +1086,7 @@ public sealed partial class OperationPlanner
                 continue;
             }
 
-            // For a standalone operation node, wire dependencies directly.
+            // For a standalone operation node, attach dependencies directly.
             foreach (var dependencyId in stepDependencies)
             {
                 if (!ctx.ExecutionNodes.TryGetValue(dependencyId, out var childEntry)

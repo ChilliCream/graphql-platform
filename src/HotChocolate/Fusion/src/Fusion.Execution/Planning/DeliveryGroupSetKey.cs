@@ -4,19 +4,18 @@ using HotChocolate.Fusion.Execution.Nodes;
 namespace HotChocolate.Fusion.Planning;
 
 /// <summary>
-/// A canonical key for a <see cref="DeferUsage"/> set. The wrapped array is
-/// sorted ascending by <see cref="DeferUsage.Id"/> so sequence equality
-/// doubles as set equality.
+/// A key for a <see cref="DeliveryGroup"/> set, sorted ascending by
+/// <see cref="DeliveryGroup.Id"/>. The set can be empty.
 /// </summary>
-internal readonly record struct DeferUsageSetKey(ImmutableArray<DeferUsage> Items)
-    : IEquatable<DeferUsageSetKey>
-    , IComparable<DeferUsageSetKey>
+internal readonly record struct DeliveryGroupSetKey(ImmutableArray<DeliveryGroup> Items)
+    : IEquatable<DeliveryGroupSetKey>
+    , IComparable<DeliveryGroupSetKey>
 {
-    public static DeferUsageSetKey Empty { get; } = new([]);
+    public static DeliveryGroupSetKey Empty { get; } = new([]);
 
     public bool IsEmpty => Items.IsDefaultOrEmpty;
 
-    public bool Equals(DeferUsageSetKey other)
+    public bool Equals(DeliveryGroupSetKey other)
     {
         if (Items.IsDefaultOrEmpty)
         {
@@ -60,7 +59,7 @@ internal readonly record struct DeferUsageSetKey(ImmutableArray<DeferUsage> Item
         return hash.ToHashCode();
     }
 
-    public int CompareTo(DeferUsageSetKey other)
+    public int CompareTo(DeliveryGroupSetKey other)
     {
         if (Items.IsDefaultOrEmpty)
         {
