@@ -1,6 +1,4 @@
-#if !NET9_0_OR_GREATER
-using System.Diagnostics.CodeAnalysis;
-#endif
+using System.Reactive.Linq;
 using HotChocolate.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,8 +6,10 @@ using Microsoft.Extensions.DependencyInjection;
 namespace HotChocolate.Adapters.OpenApi;
 
 #if !NET9_0_OR_GREATER
-[RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
-[RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
+[RequiresDynamicCode(
+    "JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+[RequiresUnreferencedCode(
+    "JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
 #endif
 internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
 {
@@ -20,6 +20,7 @@ internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
     private readonly IDynamicEndpointDataSource _dynamicEndpointDataSource;
     private readonly SemaphoreSlim _updateSemaphore = new(1, 1);
     private readonly CancellationTokenSource _cancellationTokenSource = new();
+    private readonly IDisposable _subscription;
 
     private ISchemaDefinition? _schema;
     private bool _disposed;
@@ -33,7 +34,10 @@ internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
         _transformer = transformer;
         _dynamicEndpointDataSource = dynamicEndpointDataSource;
 
-        _storage.Changed += OnStorageChanged;
+        _subscription = _storage
+            .Buffer(TimeSpan.FromMilliseconds(500), 10)
+            .Where(batch => batch.Count > 0)
+            .Subscribe(_ => HandleStorageChangedAsync().FireAndForget());
     }
 
     public async ValueTask UpdateSchemaAsync(
@@ -63,38 +67,43 @@ internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
         {
             _disposed = true;
 
-            _storage.Changed -= OnStorageChanged;
-            _updateSemaphore.Dispose();
+            _subscription.Dispose();
 
+            // Cancel before disposing the semaphore so any in-flight WaitAsync(token)
+            // observes the cancellation and exits, instead of being orphaned forever
+            // in the semaphore's waiter list (Dispose does not complete pending waits).
             await _cancellationTokenSource.CancelAsync().ConfigureAwait(false);
+
+            _updateSemaphore.Dispose();
             _cancellationTokenSource.Dispose();
         }
     }
 
-    private void OnStorageChanged(object? sender, EventArgs e)
-    {
-        if (_schema is null)
-        {
-            return;
-        }
-
-        HandleStorageChangedAsync().FireAndForget();
-    }
-
     private async Task HandleStorageChangedAsync()
     {
-        if (_schema is null)
+        if (_disposed || _schema is null)
         {
             return;
         }
 
         var cancellationToken = _cancellationTokenSource.Token;
 
-        await _updateSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await _updateSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+        catch (ObjectDisposedException)
+        {
+            return;
+        }
 
         try
         {
-            if (_schema is null)
+            if (_disposed || _schema is null)
             {
                 return;
             }
@@ -110,7 +119,13 @@ internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
         }
         finally
         {
-            _updateSemaphore.Release();
+            try
+            {
+                _updateSemaphore.Release();
+            }
+            catch (ObjectDisposedException)
+            {
+            }
         }
     }
 

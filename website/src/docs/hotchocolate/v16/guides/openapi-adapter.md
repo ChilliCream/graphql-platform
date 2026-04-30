@@ -203,12 +203,11 @@ The `IOpenApiDefinitionStorage` interface provides endpoint and fragment definit
 ```csharp
 // Services/MyOpenApiStorage.cs
 using HotChocolate.Adapters.OpenApi;
+using HotChocolate.Adapters.OpenApi.Storage;
 using HotChocolate.Language;
 
 public class MyOpenApiStorage : IOpenApiDefinitionStorage
 {
-    public event EventHandler? Changed;
-
     public ValueTask<IEnumerable<IOpenApiDefinition>>
         GetDefinitionsAsync(
             CancellationToken cancellationToken = default)
@@ -230,6 +229,12 @@ public class MyOpenApiStorage : IOpenApiDefinitionStorage
         return ValueTask.FromResult<IEnumerable<IOpenApiDefinition>>(
             documents);
     }
+
+    // IOpenApiDefinitionStorage also extends IObservable, enabling
+    // hot-reload when definitions change.
+    public IDisposable Subscribe(
+        IObserver<OpenApiDefinitionStorageEventArgs> observer)
+        => /* your subscription logic */;
 }
 ```
 
@@ -245,7 +250,7 @@ builder
     .AddOpenApiDefinitionStorage(storage);
 ```
 
-The storage raises its `Changed` event when definitions are modified. The adapter picks up changes at runtime, adding, updating, or removing HTTP endpoints without a restart. This hot-reload behavior extends to the OpenAPI specification.
+The storage implements `IObservable<OpenApiDefinitionStorageEventArgs>`. When you push `Updated` or `Removed` events through this observable, the adapter picks up changes at runtime, adding, updating, or removing HTTP endpoints without a restart. This hot-reload behavior extends to the OpenAPI specification.
 
 # OpenAPI Specification
 
