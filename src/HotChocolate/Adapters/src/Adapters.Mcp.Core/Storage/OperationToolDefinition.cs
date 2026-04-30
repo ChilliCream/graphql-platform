@@ -3,7 +3,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using CaseConverter;
-using HotChocolate.Adapters.Mcp.Serialization;
 using HotChocolate.Language;
 using static HotChocolate.Adapters.Mcp.Properties.McpAdapterResources;
 
@@ -137,56 +136,6 @@ public sealed partial class OperationToolDefinition
     /// </list>
     /// </summary>
     public ImmutableArray<McpAppViewVisibility>? Visibility { get; init; }
-
-    public static OperationToolDefinition From(
-        DocumentNode document,
-        string name,
-        McpToolSettingsDto? settings,
-        string? viewHtml)
-    {
-        return new OperationToolDefinition(document)
-        {
-            Name = name,
-            Title = settings?.Title,
-            Icons =
-                settings?.Icons?.Select(
-                    i => new IconDefinition(i.Source)
-                    {
-                        MimeType = i.MimeType,
-                        Sizes = i.Sizes,
-                        Theme = i.Theme
-                    }).ToImmutableArray(),
-            DestructiveHint = settings?.Annotations?.DestructiveHint,
-            IdempotentHint = settings?.Annotations?.IdempotentHint,
-            OpenWorldHint = settings?.Annotations?.OpenWorldHint,
-            View = viewHtml is null ? null : new McpAppView(viewHtml)
-            {
-                Csp = settings?.View?.Csp is { } csp
-                    ? new McpAppViewCsp
-                    {
-                        BaseUriDomains = csp.BaseUriDomains?.ToImmutableArray(),
-                        ConnectDomains = csp.ConnectDomains?.ToImmutableArray(),
-                        FrameDomains = csp.FrameDomains?.ToImmutableArray(),
-                        ResourceDomains = csp.ResourceDomains?.ToImmutableArray()
-                    }
-                    : null,
-                Domain = settings?.View?.Domain,
-                Permissions = settings?.View?.Permissions is { } permissions
-                    ? new McpAppViewPermissions
-                    {
-                        Camera = permissions.Camera,
-                        ClipboardWrite = permissions.ClipboardWrite,
-                        Geolocation = permissions.Geolocation,
-                        Microphone = permissions.Microphone
-                    }
-                    : null,
-                PrefersBorder = settings?.View?.PrefersBorder
-            },
-            Visibility = settings?.Visibility is { } visibility
-                ? visibility.ToImmutableArray()
-                : null
-        };
-    }
 
     /// <summary>Regex that validates tool names.</summary>
     [GeneratedRegex(@"^[A-Za-z0-9_.-]{1,128}\z")]
