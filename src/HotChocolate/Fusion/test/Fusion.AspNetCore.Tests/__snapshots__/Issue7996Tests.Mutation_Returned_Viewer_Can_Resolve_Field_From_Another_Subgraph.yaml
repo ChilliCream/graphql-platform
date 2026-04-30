@@ -31,17 +31,17 @@ sourceSchemas:
         mutation: Mutation
       }
 
-      type DoSomethingPayload {
-        something: Int!
-        viewer: Viewer!
+      type Query {
+        viewer: Viewer! @shareable
       }
 
       type Mutation {
         doSomething: DoSomethingPayload!
       }
 
-      type Query {
-        viewer: Viewer! @shareable
+      type DoSomethingPayload {
+        something: Int!
+        viewer: Viewer!
       }
 
       type Viewer {

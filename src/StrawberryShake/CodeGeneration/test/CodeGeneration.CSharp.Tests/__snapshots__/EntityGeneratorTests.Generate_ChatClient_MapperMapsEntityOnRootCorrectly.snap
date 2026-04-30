@@ -970,12 +970,12 @@ namespace Foo.Bar
     ///     __typename
     ///     nodes {
     ///       __typename
-    ///       ... Person
+    ///       ...Person
     ///       messages {
     ///         __typename
     ///         nodes {
     ///           __typename
-    ///           ... Message
+    ///           ...Message
     ///           ... on Message {
     ///             id
     ///           }
@@ -995,7 +995,7 @@ namespace Foo.Bar
     /// fragment Message on Message {
     ///   sender {
     ///     __typename
-    ///     ... Person
+    ///     ...Person
     ///     ... on Person {
     ///       id
     ///     }
@@ -1013,8 +1013,8 @@ namespace Foo.Bar
 
         public static GetPeopleQueryDocument Instance { get; } = new GetPeopleQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => "query GetPeople { people(order_by: { name: ASC }) { __typename nodes { __typename ... Person messages { __typename nodes { __typename ... Message ... on Message { id } } } ... on Person { id } } } } fragment Person on Person { name } fragment Message on Message { sender { __typename ... Person ... on Person { id } } text }"u8;
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "0967ca09947e3a18370454229ece650b8ba8e2ef");
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "query GetPeople { people(order_by: { name: ASC }) { __typename nodes { __typename ...Person messages { __typename nodes { __typename ...Message ... on Message { id } } } ... on Person { id } } } } fragment Person on Person { name } fragment Message on Message { sender { __typename ...Person ... on Person { id } } text }"u8;
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "3aa724f0a7c7885275c950e8421338967a38e2a3");
 
         public override global::System.String ToString()
         {
@@ -1035,12 +1035,12 @@ namespace Foo.Bar
     ///     __typename
     ///     nodes {
     ///       __typename
-    ///       ... Person
+    ///       ...Person
     ///       messages {
     ///         __typename
     ///         nodes {
     ///           __typename
-    ///           ... Message
+    ///           ...Message
     ///           ... on Message {
     ///             id
     ///           }
@@ -1060,7 +1060,7 @@ namespace Foo.Bar
     /// fragment Message on Message {
     ///   sender {
     ///     __typename
-    ///     ... Person
+    ///     ...Person
     ///     ... on Person {
     ///       id
     ///     }
@@ -1144,12 +1144,12 @@ namespace Foo.Bar
     ///     __typename
     ///     nodes {
     ///       __typename
-    ///       ... Person
+    ///       ...Person
     ///       messages {
     ///         __typename
     ///         nodes {
     ///           __typename
-    ///           ... Message
+    ///           ...Message
     ///           ... on Message {
     ///             id
     ///           }
@@ -1169,7 +1169,7 @@ namespace Foo.Bar
     /// fragment Message on Message {
     ///   sender {
     ///     __typename
-    ///     ... Person
+    ///     ...Person
     ///     ... on Person {
     ///       id
     ///     }
@@ -1197,7 +1197,7 @@ namespace Foo.Bar
     ///     __typename
     ///     message {
     ///       __typename
-    ///       ... Message
+    ///       ...Message
     ///       ... on Message {
     ///         id
     ///       }
@@ -1208,7 +1208,7 @@ namespace Foo.Bar
     /// fragment Message on Message {
     ///   sender {
     ///     __typename
-    ///     ... Person
+    ///     ...Person
     ///     ... on Person {
     ///       id
     ///     }
@@ -1230,8 +1230,8 @@ namespace Foo.Bar
 
         public static WriteMessageMutationDocument Instance { get; } = new WriteMessageMutationDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Mutation;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => "mutation WriteMessage($text: String!, $address: String!) { sendMessage(input: { text: $text, recipientEmail: $address }) { __typename message { __typename ... Message ... on Message { id } } } } fragment Message on Message { sender { __typename ... Person ... on Person { id } } text } fragment Person on Person { name }"u8;
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "5b649ed10b73d2f35595b9d5f11fee8759ac4d72");
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "mutation WriteMessage($text: String!, $address: String!) { sendMessage(input: { text: $text, recipientEmail: $address }) { __typename message { __typename ...Message ... on Message { id } } } } fragment Message on Message { sender { __typename ...Person ... on Person { id } } text } fragment Person on Person { name }"u8;
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "4db8324430dd00ff2a44f6b285939d2ccb7ff412");
 
         public override global::System.String ToString()
         {
@@ -1252,7 +1252,7 @@ namespace Foo.Bar
     ///     __typename
     ///     message {
     ///       __typename
-    ///       ... Message
+    ///       ...Message
     ///       ... on Message {
     ///         id
     ///       }
@@ -1263,7 +1263,7 @@ namespace Foo.Bar
     /// fragment Message on Message {
     ///   sender {
     ///     __typename
-    ///     ... Person
+    ///     ...Person
     ///     ... on Person {
     ///       id
     ///     }
@@ -1377,7 +1377,7 @@ namespace Foo.Bar
     ///     __typename
     ///     message {
     ///       __typename
-    ///       ... Message
+    ///       ...Message
     ///       ... on Message {
     ///         id
     ///       }
@@ -1388,7 +1388,7 @@ namespace Foo.Bar
     /// fragment Message on Message {
     ///   sender {
     ///     __typename
-    ///     ... Person
+    ///     ...Person
     ///     ... on Person {
     ///       id
     ///     }

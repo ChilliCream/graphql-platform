@@ -6,8 +6,9 @@ namespace HotChocolate.Fusion.Suites.SimpleRequiresProvides.Reviews;
 /// <summary>
 /// Apollo Federation descriptor for the <c>Review</c> entity owned by the
 /// <c>reviews</c> subgraph. Mirrors the audit Schema Definition Language
-/// (SDL): <c>type Review @key(fields: "id") { id: ID!, body: String,
-/// author: User @provides(fields: "username"), product: Product }</c>.
+/// (SDL) <c>type Review @key(fields: "id")</c> with fields
+/// <c>id: ID!</c>, <c>body: String</c>,
+/// <c>author: User @provides(fields: "username")</c>, and <c>product: Product</c>.
 /// The <c>author</c> resolver inlines <c>username</c> alongside the
 /// returned <see cref="User"/> so the gateway can satisfy the provides
 /// selection without dispatching a fresh entity call to the

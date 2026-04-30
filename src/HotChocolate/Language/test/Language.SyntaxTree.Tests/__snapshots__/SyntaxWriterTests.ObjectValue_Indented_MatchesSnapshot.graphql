@@ -1,7 +1,1 @@
-{
-  enum: Foo,
-  enum2: Bar,
-  nested: {
-    inner: "value"
-  }
-}
+{ enum: Foo, enum2: Bar, nested: { inner: "value" } }

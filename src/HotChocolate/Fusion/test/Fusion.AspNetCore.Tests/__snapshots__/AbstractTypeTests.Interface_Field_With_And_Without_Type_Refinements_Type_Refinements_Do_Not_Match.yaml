@@ -35,12 +35,9 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
-      }
-
-      interface Votable @key(fields: "id") {
-        id: ID!
+      type Query {
+        abstractTypes: [Votable]
+        node(id: ID!): Node @lookup @shareable
       }
 
       type Author implements Votable & Node @key(fields: "id") {
@@ -51,9 +48,12 @@ sourceSchemas:
         id: ID!
       }
 
-      type Query {
-        abstractTypes: [Votable]
-        node(id: ID!): Node @lookup @shareable
+      interface Node {
+        id: ID!
+      }
+
+      interface Votable @key(fields: "id") {
+        id: ID!
       }
     interactions:
       - request:
@@ -92,13 +92,9 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
-      }
-
-      interface Votable @key(fields: "id") {
-        id: ID!
-        upvotes: Int!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        discussionById(id: ID!): Discussion @lookup @shareable
       }
 
       type Discussion implements Votable & Node @key(fields: "id") {
@@ -107,9 +103,13 @@ sourceSchemas:
         score: Int!
       }
 
-      type Query {
-        node(id: ID!): Node @lookup @shareable
-        discussionById(id: ID!): Discussion @lookup @shareable
+      interface Node {
+        id: ID!
+      }
+
+      interface Votable @key(fields: "id") {
+        id: ID!
+        upvotes: Int!
       }
     interactions:
       - request:
@@ -159,13 +159,9 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
-      }
-
-      interface Votable @key(fields: "id") {
-        id: ID!
-        upvotes: Int!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        authorById(id: ID!): Author @lookup @shareable
       }
 
       type Author implements Votable & Node @key(fields: "id") {
@@ -173,9 +169,13 @@ sourceSchemas:
         upvotes: Int!
       }
 
-      type Query {
-        node(id: ID!): Node @lookup @shareable
-        authorById(id: ID!): Author @lookup @shareable
+      interface Node {
+        id: ID!
+      }
+
+      interface Votable @key(fields: "id") {
+        id: ID!
+        upvotes: Int!
       }
     interactions:
       - request:

@@ -39,6 +39,6 @@ public sealed class InMemorySourceSchemaClientFactory
         InMemorySourceSchemaClientConfiguration configuration)
     {
         var proxy = new RequestExecutorProxy(_executorProvider, _executorEvents, configuration.Name);
-        return new InMemorySourceSchemaClient(proxy, _formatter);
+        return new InMemorySourceSchemaClient(proxy, _formatter, configuration.OnError);
     }
 }

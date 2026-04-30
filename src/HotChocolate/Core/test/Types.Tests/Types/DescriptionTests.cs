@@ -14,8 +14,7 @@ public class DescriptionTests
 
         // act
         // assert
-        SchemaPrinter
-            .PrintSchema(schema)
+        schema.ToSyntaxNode()
             .Print(indented: true)
             .MatchSnapshot(extension: ".graphql");
     }
@@ -28,8 +27,7 @@ public class DescriptionTests
 
         // act
         // assert
-        SchemaPrinter
-            .PrintSchema(schema)
+        schema.ToSyntaxNode()
             .Print(indented: false)
             .MatchSnapshot(extension: ".graphql");
     }

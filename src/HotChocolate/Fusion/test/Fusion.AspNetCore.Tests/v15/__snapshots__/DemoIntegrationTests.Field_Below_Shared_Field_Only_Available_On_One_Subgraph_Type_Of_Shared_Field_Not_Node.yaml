@@ -34,8 +34,10 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        productById(id: ID!): Product @lookup
+        productAvailabilityById(id: ID!): ProductAvailability @lookup @shareable
       }
 
       type Product implements Node {
@@ -52,10 +54,8 @@ sourceSchemas:
         subgraph1Only: String!
       }
 
-      type Query {
-        node(id: ID!): Node @lookup @shareable
-        productById(id: ID!): Product @lookup
-        productAvailabilityById(id: ID!): ProductAvailability @lookup @shareable
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:
@@ -96,8 +96,9 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node("ID of the object." id: ID!): Node @lookup @shareable
+        productAvailabilityById(id: ID!): ProductAvailability @lookup @shareable
       }
 
       type ProductAvailability implements Node {
@@ -109,9 +110,8 @@ sourceSchemas:
         subgraph2Only: Boolean!
       }
 
-      type Query {
-        node("ID of the object." id: ID!): Node @lookup @shareable
-        productAvailabilityById(id: ID!): ProductAvailability @lookup @shareable
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:

@@ -98,7 +98,7 @@ public abstract partial class MessagingTransport
                 if (route is not null
                     // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
                     && route.Endpoint is null
-                    && route.Destination is not null)
+                    && route.Destination is null)
                 {
                     route.ConnectEndpoint(context, endpoint);
                 }

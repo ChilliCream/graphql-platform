@@ -554,10 +554,7 @@ internal static class StableSnapshotHelpers
         {
             PayloadCount++;
 
-            if (InitialPayload is null)
-            {
-                InitialPayload = root.Clone();
-            }
+            InitialPayload ??= root.Clone();
 
             if (root.TryGetProperty("pending", out var pending))
             {

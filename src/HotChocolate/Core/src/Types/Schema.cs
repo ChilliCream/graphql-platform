@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
+using HotChocolate.Serialization;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Relay;
@@ -218,22 +219,11 @@ public partial class Schema
         return null;
     }
 
-    /// <summary>
-    /// Creates a schema document from the current schema.
-    /// </summary>
-    public DocumentNode ToSyntaxNode(bool includeSpecScalars = false)
-    {
-        _formatter ??= new AggregateSchemaDocumentFormatter(
-            Services.GetService<IEnumerable<ISchemaDocumentFormatter>>());
-        var document = SchemaPrinter.PrintSchema(this, includeSpecScalars);
-        return _formatter.Format(document);
-    }
+    public override string ToString() => ToSyntaxNode().Print();
+
+    public DocumentNode ToSyntaxNode()
+        => SchemaFormatter.FormatAsDocument(this);
 
     ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode()
         => ToSyntaxNode();
-
-    /// <summary>
-    /// Returns the schema SDL representation.
-    /// </summary>
-    public override string ToString() => ToSyntaxNode().Print();
 }

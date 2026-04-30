@@ -44,12 +44,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
-      }
-
-      interface ProductList {
-        products: [Product]
+      type Query {
+        node(id: ID!): Node @lookup @shareable
       }
 
       type Item1 implements Node & ProductList {
@@ -66,8 +62,12 @@ sourceSchemas:
         id: ID!
       }
 
-      type Query {
-        node(id: ID!): Node @lookup @shareable
+      interface Node {
+        id: ID!
+      }
+
+      interface ProductList {
+        products: [Product]
       }
     interactions:
       - request:
@@ -117,8 +117,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
       }
 
       type Product implements Node {
@@ -126,8 +126,8 @@ sourceSchemas:
         name: String
       }
 
-      type Query {
-        node(id: ID!): Node @lookup @shareable
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:

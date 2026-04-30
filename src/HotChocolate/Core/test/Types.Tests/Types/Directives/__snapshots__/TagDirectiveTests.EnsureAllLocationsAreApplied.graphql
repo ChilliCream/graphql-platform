@@ -2,19 +2,19 @@ schema @tag(name: "OnSchema") {
   query: Query
 }
 
-interface IFoo @tag(name: "OnInterface") {
-  bar(baz: String! @tag(name: "OnInterfaceFieldArg")): String!
-    @tag(name: "OnInterfaceField")
+type Query @tag(name: "OnObjectType") {
+  foo(a: String! @tag(name: "OnObjectFieldArg")): IFoo!
+    @tag(name: "OnObjectField")
+  fooEnum(input: FooInput!): FooEnum!
 }
 
 type Foo implements IFoo {
   bar(baz: String!): String!
 }
 
-type Query @tag(name: "OnObjectType") {
-  foo(a: String! @tag(name: "OnObjectFieldArg")): IFoo!
-    @tag(name: "OnObjectField")
-  fooEnum(input: FooInput!): FooEnum!
+interface IFoo @tag(name: "OnInterface") {
+  bar(baz: String! @tag(name: "OnInterfaceFieldArg")): String!
+    @tag(name: "OnInterfaceField")
 }
 
 input FooInput @tag(name: "OnInputObjectType") {
@@ -40,4 +40,15 @@ interface Book {
   author: String!
 }
 """
-directive @tag("The name of the tag." name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
+directive @tag("The name of the tag." name: String!) repeatable on
+  | SCHEMA
+  | SCALAR
+  | OBJECT
+  | FIELD_DEFINITION
+  | ARGUMENT_DEFINITION
+  | INTERFACE
+  | UNION
+  | ENUM
+  | ENUM_VALUE
+  | INPUT_OBJECT
+  | INPUT_FIELD_DEFINITION

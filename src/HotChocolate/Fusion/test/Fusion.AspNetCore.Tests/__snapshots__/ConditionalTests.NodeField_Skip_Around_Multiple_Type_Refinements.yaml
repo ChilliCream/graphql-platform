@@ -31,8 +31,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
       }
 
       type Discussion implements Node {
@@ -40,8 +40,8 @@ sourceSchemas:
         title: String
       }
 
-      type Query {
-        node(id: ID!): Node @lookup @shareable
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:
@@ -78,8 +78,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
       }
 
       type Author implements Node {
@@ -87,8 +87,8 @@ sourceSchemas:
         username: String
       }
 
-      type Query {
-        node(id: ID!): Node @lookup @shareable
+      interface Node {
+        id: ID!
       }
 operationPlan:
   operation:

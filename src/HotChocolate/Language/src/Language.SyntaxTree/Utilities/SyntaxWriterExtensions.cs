@@ -147,12 +147,17 @@ public static class SyntaxWriterExtensions
     {
         if (node.Block)
         {
-            writer.Write("\"\"\"");
-
             var lines = node.Value
                 .Replace("\"\"\"", "\\\"\"\"")
                 .Replace("\r", string.Empty)
                 .Split('\n');
+
+            if (lines.Length == 1)
+            {
+                lines[0] = lines[0].Trim();
+            }
+
+            writer.Write("\"\"\"");
 
             foreach (var line in lines)
             {
@@ -293,9 +298,15 @@ public static class SyntaxWriterExtensions
 
     public static void WriteObjectValue(this ISyntaxWriter writer, ObjectValueNode node, bool indented)
     {
+        if (node.Fields.Count == 0)
+        {
+            writer.Write("{}");
+            return;
+        }
+
         writer.Write('{');
 
-        if (indented && node.Fields.Count > 0)
+        if (indented)
         {
             writer.WriteLine();
             writer.Indent();

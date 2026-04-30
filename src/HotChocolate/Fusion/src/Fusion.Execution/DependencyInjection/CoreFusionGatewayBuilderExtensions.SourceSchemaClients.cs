@@ -4,6 +4,7 @@ using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Language;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -26,6 +27,9 @@ public static partial class CoreFusionGatewayBuilderExtensions
     /// </param>
     /// <param name="capabilities">
     /// The client capabilities.
+    /// </param>
+    /// <param name="onError">
+    /// The error handling mode requested by the source schema.
     /// </param>
     /// <param name="defaultAcceptHeaderValues">
     /// The <c>Accept</c> header values sent in case of a single, non-Subscription GraphQL request.
@@ -54,6 +58,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
         Uri baseAddress,
         SupportedOperationType supportedOperations = SupportedOperationType.All,
         SourceSchemaClientCapabilities capabilities = SourceSchemaClientCapabilities.All,
+        ErrorHandlingMode? onError = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null,
@@ -67,6 +72,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
             baseAddress,
             supportedOperations,
             capabilities,
+            onError,
             defaultAcceptHeaderValues,
             batchingAcceptHeaderValues,
             subscriptionAcceptHeaderValues,
@@ -94,6 +100,9 @@ public static partial class CoreFusionGatewayBuilderExtensions
     /// </param>
     /// <param name="capabilities">
     /// The client capabilities.
+    /// </param>
+    /// <param name="onError">
+    /// The error handling mode requested by the source schema.
     /// </param>
     /// <param name="defaultAcceptHeaderValues">
     /// The <c>Accept</c> header values sent in case of a single, non-Subscription GraphQL request.
@@ -123,6 +132,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
         Uri baseAddress,
         SupportedOperationType supportedOperations = SupportedOperationType.All,
         SourceSchemaClientCapabilities capabilities = SourceSchemaClientCapabilities.All,
+        ErrorHandlingMode? onError = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null,
@@ -137,12 +147,13 @@ public static partial class CoreFusionGatewayBuilderExtensions
 
         return AddHttpClientConfiguration(
             builder,
-            new SourceSchemaHttpClientConfiguration(
+            new HttpSourceSchemaClientConfiguration(
                 name,
                 httpClientName,
                 baseAddress,
                 supportedOperations,
                 capabilities,
+                onError,
                 defaultAcceptHeaderValues,
                 batchingAcceptHeaderValues,
                 subscriptionAcceptHeaderValues,
@@ -165,7 +176,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     /// </returns>
     public static IFusionGatewayBuilder AddHttpClientConfiguration(
         this IFusionGatewayBuilder builder,
-        SourceSchemaHttpClientConfiguration configuration)
+        HttpSourceSchemaClientConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(configuration);
@@ -187,7 +198,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     /// </returns>
     public static IFusionGatewayBuilder AddHttpClientConfiguration(
         this IFusionGatewayBuilder builder,
-        Func<IServiceProvider, SourceSchemaHttpClientConfiguration> create)
+        Func<IServiceProvider, HttpSourceSchemaClientConfiguration> create)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(create);

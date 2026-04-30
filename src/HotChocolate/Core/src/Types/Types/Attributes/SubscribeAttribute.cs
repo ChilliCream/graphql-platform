@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using HotChocolate.Resolvers;
 using HotChocolate.Subscriptions;

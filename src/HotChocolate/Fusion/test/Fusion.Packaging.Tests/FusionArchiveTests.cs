@@ -666,7 +666,7 @@ public class FusionArchiveTests : IDisposable
     {
         // arrange
         await using var stream = CreateStream();
-        var content = Encoding.UTF8.GetBytes("legacy archive payload");
+        var content = "legacy archive payload"u8.ToArray();
         await using var contentStream = new MemoryStream(content);
 
         // act

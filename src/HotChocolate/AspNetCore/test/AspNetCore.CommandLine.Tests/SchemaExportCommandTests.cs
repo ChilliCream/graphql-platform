@@ -92,6 +92,34 @@ public class SchemaExportCommandTests : IDisposable
     }
 
     [Fact]
+    public async Task App_Should_WriteSemanticNonNullSchemaToFile_When_SemanticNonNullOptionIsSpecified()
+    {
+        // arrange
+        var snapshot = new Snapshot();
+        var services = new ServiceCollection();
+        services.AddGraphQL()
+            .AddQueryType(x => x.Name("Query").Field("foo").Type<NonNullType<StringType>>().Resolve("bar"));
+
+        var hostMock = new Mock<IHost>();
+        hostMock
+            .Setup(x => x.Services)
+            .Returns(services.BuildServiceProvider());
+
+        var host = hostMock.Object;
+        var output = new StringWriter();
+        var app = new App(host);
+        var tempFile = CreateSchemaFileName();
+
+        // act
+        await app.InvokeAsync($"schema export --output {tempFile} --semantic-non-null", output);
+
+        // assert
+        snapshot.Add(await File.ReadAllTextAsync(tempFile + ".graphqls"), "Schema", markdownLanguage: "graphql");
+        snapshot.Add(await File.ReadAllTextAsync(tempFile + "-settings.json"), "Settings", markdownLanguage: "json");
+        await snapshot.MatchMarkdownAsync();
+    }
+
+    [Fact]
     public async Task App_Should_WriteNamedSchemaToOutput_When_SchemaNameIsSpecified()
     {
         // arrange

@@ -1,5 +1,9 @@
-﻿schema {
+schema {
   query: Query
+}
+
+type Query {
+  foo: Foo
 }
 
 type Foo {
@@ -9,8 +13,4 @@ type Foo {
   nullable_single_int: Int!
   nullable_list_int: [Int!]!
   nullable_matrix_int: [[Int!]!]!
-}
-
-type Query {
-  foo: Foo
 }

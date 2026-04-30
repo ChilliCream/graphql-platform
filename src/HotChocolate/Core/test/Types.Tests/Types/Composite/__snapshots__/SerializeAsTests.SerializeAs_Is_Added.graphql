@@ -24,15 +24,15 @@ enum ScalarSerializationType {
   LIST
 }
 
+scalar Custom1 @serializeAs(type: STRING)
+
+scalar Custom2 @serializeAs(type: [STRING, BOOLEAN, INT, FLOAT, OBJECT, LIST])
+
+scalar Custom3 @serializeAs(type: STRING, pattern: "\\b\\d{3}\\b")
+
 directive @serializeAs(
   "The primitive type a scalar is serialized to."
   type: [ScalarSerializationType!]!
   "The ECMA-262 regex pattern that the serialized scalar value conforms to."
   pattern: String
 ) on SCALAR
-
-scalar Custom1 @serializeAs(type: STRING)
-
-scalar Custom2 @serializeAs(type: [STRING, BOOLEAN, INT, FLOAT, OBJECT, LIST])
-
-scalar Custom3 @serializeAs(type: STRING, pattern: "\\b\\d{3}\\b")

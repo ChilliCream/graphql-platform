@@ -31,8 +31,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup
       }
 
       type Brand implements Node {
@@ -40,8 +40,8 @@ sourceSchemas:
         name: String
       }
 
-      type Query {
-        node(id: ID!): Node @lookup
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:

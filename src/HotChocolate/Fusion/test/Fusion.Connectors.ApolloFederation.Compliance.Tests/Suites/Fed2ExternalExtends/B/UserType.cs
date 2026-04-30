@@ -5,10 +5,10 @@ namespace HotChocolate.Fusion.Suites.Fed2ExternalExtends.B;
 
 /// <summary>
 /// Apollo Federation descriptor for the <c>User</c> entity owned by the
-/// <c>b</c> subgraph. Mirrors the audit SDL:
-/// <c>type User @key(fields: "id") { id: ID!, name: String! @shareable,
-/// nickname: String }</c>. The reference resolver looks up users by
-/// <c>id</c>.
+/// <c>b</c> subgraph. Mirrors the audit SDL
+/// <c>type User @key(fields: "id")</c> with fields
+/// <c>id: ID!</c>, <c>name: String! @shareable</c>, and <c>nickname: String</c>.
+/// The reference resolver looks up users by <c>id</c>.
 /// </summary>
 public sealed class UserType : ObjectType<User>
 {

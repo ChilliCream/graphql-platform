@@ -44,8 +44,9 @@ sourceSchemas:
         query: Query
       }
 
-      interface Votable {
-        viewerCanVote: Boolean!
+      type Query {
+        wrappers: [Wrapper]
+        discussionById(id: ID!): Discussion @lookup @shareable
       }
 
       type Comment implements Votable {
@@ -58,13 +59,12 @@ sourceSchemas:
         viewerCanVote: Boolean!
       }
 
-      type Query {
-        wrappers: [Wrapper]
-        discussionById(id: ID!): Discussion @lookup @shareable
-      }
-
       type Wrapper {
         votable: Votable
+      }
+
+      interface Votable {
+        viewerCanVote: Boolean!
       }
     interactions:
       - request:
@@ -117,13 +117,13 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        discussionById(id: ID!): Discussion @lookup @shareable
+      }
+
       type Discussion {
         id: ID!
         viewerRating: Float!
-      }
-
-      type Query {
-        discussionById(id: ID!): Discussion @lookup @shareable
       }
     interactions:
       - request:
