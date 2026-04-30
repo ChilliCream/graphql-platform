@@ -61,7 +61,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             deliveryGroups = ParseDeliveryGroups(deliveryGroupsElement, deliveryGroupMap);
         }
 
-        if (rootElement.TryGetProperty("deferredSubPlans", out var incrementalPlansElement))
+        if (rootElement.TryGetProperty("incrementalPlans", out var incrementalPlansElement))
         {
             incrementalPlans = ParseIncrementalPlans(incrementalPlansElement, deliveryGroupMap);
         }

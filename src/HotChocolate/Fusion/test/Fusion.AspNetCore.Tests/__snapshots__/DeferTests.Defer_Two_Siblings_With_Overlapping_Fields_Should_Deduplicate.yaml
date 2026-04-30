@@ -204,7 +204,7 @@ operationPlan:
     - id: 1
       path: $.user
       label: location
-  deferredSubPlans:
+  incrementalPlans:
     - deliveryGroupIds:
         - 0
         - 1

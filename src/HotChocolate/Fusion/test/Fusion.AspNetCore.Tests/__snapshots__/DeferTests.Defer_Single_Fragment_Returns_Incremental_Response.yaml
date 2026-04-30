@@ -206,7 +206,7 @@ operationPlan:
     - id: 0
       path: $.user
       label: reviews
-  deferredSubPlans:
+  incrementalPlans:
     - deliveryGroupIds:
         - 0
       parentNodeId: 1

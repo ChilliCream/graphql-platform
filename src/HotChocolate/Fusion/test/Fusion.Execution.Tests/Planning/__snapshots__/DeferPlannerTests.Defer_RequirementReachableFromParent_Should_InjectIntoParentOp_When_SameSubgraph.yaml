@@ -23,7 +23,7 @@ nodes:
 deliveryGroups:
   - id: 0
     path: $.user
-deferredSubPlans:
+incrementalPlans:
   - deliveryGroupIds:
       - 0
     parentNodeId: 1

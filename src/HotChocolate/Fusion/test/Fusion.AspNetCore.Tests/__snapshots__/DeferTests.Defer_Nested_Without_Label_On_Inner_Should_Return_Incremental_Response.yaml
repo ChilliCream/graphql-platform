@@ -165,7 +165,7 @@ operationPlan:
     - id: 1
       path: $.user
       parentId: 0
-  deferredSubPlans:
+  incrementalPlans:
     - deliveryGroupIds:
         - 0
       parentNodeId: 1

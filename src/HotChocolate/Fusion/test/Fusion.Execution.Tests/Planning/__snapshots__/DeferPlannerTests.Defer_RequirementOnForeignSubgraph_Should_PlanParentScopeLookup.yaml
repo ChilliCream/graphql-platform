@@ -38,7 +38,7 @@ nodes:
 deliveryGroups:
   - id: 0
     path: $.product
-deferredSubPlans:
+incrementalPlans:
   - deliveryGroupIds:
       - 0
     parentNodeId: 2

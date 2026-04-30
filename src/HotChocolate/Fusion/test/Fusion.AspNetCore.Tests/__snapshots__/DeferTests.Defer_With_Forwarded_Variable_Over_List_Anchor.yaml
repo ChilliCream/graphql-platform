@@ -334,7 +334,7 @@ operationPlan:
     - id: 0
       path: $.users
       label: posts
-  deferredSubPlans:
+  incrementalPlans:
     - deliveryGroupIds:
         - 0
       parentNodeId: 1

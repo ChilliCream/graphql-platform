@@ -43,7 +43,7 @@ deliveryGroups:
     path: $.product
     label: inner
     parentId: 0
-deferredSubPlans:
+incrementalPlans:
   - deliveryGroupIds:
       - 0
     parentNodeId: 2

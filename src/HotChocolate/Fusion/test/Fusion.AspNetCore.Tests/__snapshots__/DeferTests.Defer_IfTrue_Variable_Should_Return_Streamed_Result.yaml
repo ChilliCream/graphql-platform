@@ -250,7 +250,7 @@ operationPlan:
       path: $.user
       label: reviews
       ifVariable: $shouldDefer
-  deferredSubPlans:
+  incrementalPlans:
     - deliveryGroupIds:
         - 0
       parentNodeId: 2

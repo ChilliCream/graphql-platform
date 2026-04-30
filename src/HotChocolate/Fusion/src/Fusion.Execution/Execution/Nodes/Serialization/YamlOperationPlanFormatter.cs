@@ -46,7 +46,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
         if (!plan.IncrementalPlans.IsDefaultOrEmpty)
         {
-            writer.WriteLine("deferredSubPlans:");
+            writer.WriteLine("incrementalPlans:");
             writer.Indent();
 
             foreach (var subPlan in plan.IncrementalPlans)

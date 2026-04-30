@@ -471,7 +471,7 @@ operationPlan:
       path: $.user.posts
       label: comments
       parentId: 0
-  deferredSubPlans:
+  incrementalPlans:
     - deliveryGroupIds:
         - 0
       parentNodeId: 1

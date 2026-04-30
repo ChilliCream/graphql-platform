@@ -159,7 +159,7 @@ operationPlan:
     - id: 0
       path: $.user
       label: email
-  deferredSubPlans:
+  incrementalPlans:
     - deliveryGroupIds:
         - 0
       parentNodeId: 1

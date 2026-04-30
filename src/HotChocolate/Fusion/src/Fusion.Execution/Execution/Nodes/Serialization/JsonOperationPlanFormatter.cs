@@ -232,7 +232,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
             return;
         }
 
-        jsonWriter.WritePropertyName("deferredSubPlans");
+        jsonWriter.WritePropertyName("incrementalPlans");
         jsonWriter.WriteStartArray();
 
         foreach (var subPlan in incrementalPlans)
