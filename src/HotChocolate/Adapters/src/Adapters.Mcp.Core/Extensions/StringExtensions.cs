@@ -1,6 +1,10 @@
-using System.Globalization;
+// Adapted from https://github.com/markcastle/CaseConverter (MIT License).
+// See the upstream repository's LICENSE file for the original copyright notice.
 
-namespace System.Text;
+using System.Globalization;
+using System.Text;
+
+namespace HotChocolate.Adapters.Mcp.Extensions;
 
 internal static class StringExtensions
 {
@@ -8,7 +12,12 @@ internal static class StringExtensions
     {
         public string InsertSpaceBeforeUpperCase()
         {
-            var sb = new StringBuilder();
+            if (string.IsNullOrEmpty(text))
+            {
+                return text;
+            }
+
+            var sb = new StringBuilder(text.Length);
             var previousChar = char.MinValue;
 
             foreach (var c in text)
@@ -25,113 +34,74 @@ internal static class StringExtensions
             return sb.ToString();
         }
 
-        public string ToSnakeCase()
+        public string ToSnakeCase() => ConvertCase(text, '_');
+
+        public string ToKebabCase() => ConvertCase(text, '-');
+    }
+
+    private static string ConvertCase(string text, char separator)
+    {
+        if (string.IsNullOrEmpty(text))
         {
-            if (string.IsNullOrEmpty(text))
+            return text;
+        }
+
+        var builder = new StringBuilder(text.Length + Math.Min(2, text.Length / 5));
+        UnicodeCategory? previousCategory = default;
+
+        for (var currentIndex = 0; currentIndex < text.Length; currentIndex++)
+        {
+            var currentChar = text[currentIndex];
+
+            if (currentChar == '_' || currentChar == '-')
             {
-                return text;
+                builder.Append(separator);
+                previousCategory = null;
+                continue;
             }
 
-            var builder = new StringBuilder(text.Length + Math.Min(2, text.Length / 5));
-            UnicodeCategory? previousCategory = default;
+            var currentCategory = char.GetUnicodeCategory(currentChar);
 
-            for (var currentIndex = 0; currentIndex < text.Length; currentIndex++)
+            switch (currentCategory)
             {
-                var currentChar = text[currentIndex];
+                case UnicodeCategory.UppercaseLetter:
+                case UnicodeCategory.TitlecaseLetter:
+                    if (previousCategory == UnicodeCategory.SpaceSeparator
+                        || previousCategory == UnicodeCategory.LowercaseLetter
+                        || (previousCategory != UnicodeCategory.DecimalDigitNumber
+                            && previousCategory is not null
+                            && currentIndex > 0
+                            && currentIndex + 1 < text.Length
+                            && char.IsLower(text[currentIndex + 1])))
+                    {
+                        builder.Append(separator);
+                    }
 
-                if (currentChar == '_')
-                {
-                    builder.Append('_');
-                    previousCategory = null;
+                    currentChar = char.ToLowerInvariant(currentChar);
+                    break;
+
+                case UnicodeCategory.LowercaseLetter:
+                case UnicodeCategory.DecimalDigitNumber:
+                    if (previousCategory == UnicodeCategory.SpaceSeparator)
+                    {
+                        builder.Append(separator);
+                    }
+                    break;
+
+                default:
+                    // Treat punctuation/symbols as a separator boundary: skip the character but
+                    // ensure the next letter/digit gets a separator prepended.
+                    if (previousCategory is not null)
+                    {
+                        previousCategory = UnicodeCategory.SpaceSeparator;
+                    }
                     continue;
-                }
-
-                var currentCategory = char.GetUnicodeCategory(currentChar);
-
-                switch (currentCategory)
-                {
-                    case UnicodeCategory.UppercaseLetter:
-                    case UnicodeCategory.TitlecaseLetter:
-                        if (previousCategory == UnicodeCategory.SpaceSeparator
-                            || previousCategory == UnicodeCategory.LowercaseLetter
-                            || (previousCategory != UnicodeCategory.DecimalDigitNumber
-                                && previousCategory is not null
-                                && currentIndex > 0
-                                && currentIndex + 1 < text.Length
-                                && char.IsLower(text[currentIndex + 1])))
-                        {
-                            builder.Append('_');
-                        }
-
-                        currentChar = char.ToLower(currentChar, CultureInfo.InvariantCulture);
-                        break;
-
-                    case UnicodeCategory.LowercaseLetter:
-                    case UnicodeCategory.DecimalDigitNumber:
-                        if (previousCategory == UnicodeCategory.SpaceSeparator)
-                        {
-                            builder.Append('_');
-                        }
-                        break;
-
-                    default:
-                        if (previousCategory is not null)
-                        {
-                            previousCategory = UnicodeCategory.SpaceSeparator;
-                        }
-                        continue;
-                }
-
-                builder.Append(currentChar);
-                previousCategory = currentCategory;
             }
 
-            return builder.ToString();
+            builder.Append(currentChar);
+            previousCategory = currentCategory;
         }
 
-        public string ToKebabCase()
-        {
-            if (string.IsNullOrEmpty(text))
-            {
-                return text;
-            }
-
-            var result = new StringBuilder();
-            var previousCharacterIsSeparator = true;
-
-            for (var i = 0; i < text.Length; i++)
-            {
-                var currentChar = text[i];
-
-                if (char.IsUpper(currentChar) || char.IsDigit(currentChar))
-                {
-                    if (!previousCharacterIsSeparator
-                        && i > 0
-                        && (char.IsLower(text[i - 1])
-                            || (i < text.Length - 1 && char.IsLower(text[i + 1]))))
-                    {
-                        result.Append('-');
-                    }
-
-                    result.Append(char.ToLowerInvariant(currentChar));
-                    previousCharacterIsSeparator = false;
-                }
-                else if (char.IsLower(currentChar))
-                {
-                    result.Append(currentChar);
-                    previousCharacterIsSeparator = false;
-                }
-                else if (currentChar is ' ' or '_' or '-')
-                {
-                    if (!previousCharacterIsSeparator)
-                    {
-                        result.Append('-');
-                    }
-                    previousCharacterIsSeparator = true;
-                }
-            }
-
-            return result.ToString();
-        }
+        return builder.ToString();
     }
 }
