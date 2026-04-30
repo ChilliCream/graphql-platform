@@ -120,9 +120,17 @@ internal sealed class ActivityExecutionDiagnosticListener(
 
         activity.SetStatus(ActivityStatusCode.Error);
 
-        foreach (var error in errors)
+        if (errors is [var firstError, ..])
         {
-            activity.SetGraphQLErrorType(error, ActivityExtensions.ValidationErrorType);
+            activity.SetGraphQLErrorType(firstError, ActivityExtensions.ValidationErrorType);
+
+            // Propagate the phase-specific error.type to the root request span so
+            // it does not fall back to EXECUTION_ERROR when validation produced
+            // the failure. SetGraphQLErrorType is a no-op if the tag is already set.
+            if (context.Features.TryGet<ExecuteRequestSpan>(out var rootSpan))
+            {
+                rootSpan.Activity.SetGraphQLErrorType(firstError, ActivityExtensions.ValidationErrorType);
+            }
         }
 
         enricher.EnrichValidationErrors(context, errors, activity);

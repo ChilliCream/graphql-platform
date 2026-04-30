@@ -8,12 +8,6 @@ namespace HotChocolate.Diagnostics;
 internal static class ActivityExtensions
 {
     /// <summary>
-    /// The default <c>error.type</c> value used when a GraphQL error has no
-    /// <c>extensions.code</c> and is not associated with an exception.
-    /// </summary>
-    public const string DefaultErrorType = "GRAPHQL_ERROR";
-
-    /// <summary>
     /// The <c>error.type</c> value used as a fallback when an error occurs during
     /// the GraphQL operation execution phase.
     /// </summary>
@@ -61,7 +55,7 @@ internal static class ActivityExtensions
         /// </summary>
         public void SetGraphQLErrorType(
             IError error,
-            string fallback = DefaultErrorType,
+            string fallback,
             bool preferException = false)
         {
             if (activity.GetTagItem(SemanticConventions.ErrorType) is not null)
@@ -139,14 +133,6 @@ internal static class ActivityExtensions
                 tags[SemanticConventions.GraphQL.Document.Locations] = locations;
             }
 
-            if (error.Extensions is not null
-                && error.Extensions.TryGetValue("schemaCoordinate", out var schemaCoordinate)
-                && schemaCoordinate is string schemaCoordinateString
-                && !string.IsNullOrEmpty(schemaCoordinateString))
-            {
-                tags[SemanticConventions.GraphQL.Field.SchemaCoordinate] = schemaCoordinateString;
-            }
-
             if (operationType is not null)
             {
                 tags[SemanticConventions.GraphQL.Operation.Type] = operationType;
@@ -167,6 +153,7 @@ internal static class ActivityExtensions
             activity.AddEvent(new ActivityEvent("graphql.error", default, tags));
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetErrorType(Exception exception)
         {
             if (activity.GetTagItem(SemanticConventions.ErrorType) is null)

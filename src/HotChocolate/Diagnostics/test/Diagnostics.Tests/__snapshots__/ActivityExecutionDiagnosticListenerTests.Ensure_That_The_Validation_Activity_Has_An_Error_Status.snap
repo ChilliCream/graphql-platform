@@ -11,6 +11,10 @@
           "Value": "request"
         },
         {
+          "Key": "error.type",
+          "Value": "GRAPHQL_VALIDATION_FAILED"
+        },
+        {
           "Key": "graphql.document.hash",
           "Value": "md5:bb1d246465341a97bdc727d6cd8ead5c"
         },
@@ -21,10 +25,6 @@
         {
           "Key": "graphql.error.count",
           "Value": 1
-        },
-        {
-          "Key": "error.type",
-          "Value": "EXECUTION_ERROR"
         }
       ],
       "event": [
