@@ -4,7 +4,7 @@
       "OperationName": "GraphQL Operation",
       "DisplayName": "query",
       "Kind": "Internal",
-      "Status": "Ok",
+      "Status": "Error",
       "tags": [
         {
           "Key": "graphql.processing.type",
@@ -16,11 +16,15 @@
         },
         {
           "Key": "graphql.document.hash",
-          "Value": "md5:f7e9989fbb67af7fa747a9983313c9e5"
+          "Value": "md5:8e782a6a10f01f9f72ecb3f1ae638606"
         },
         {
           "Key": "graphql.error.count",
-          "Value": 0
+          "Value": 1
+        },
+        {
+          "Key": "error.type",
+          "Value": "System.InvalidOperationException"
         }
       ],
       "event": [
@@ -31,6 +35,35 @@
         {
           "Name": "AddedDocumentToCache",
           "Tags": []
+        },
+        {
+          "Name": "graphql.error",
+          "Tags": [
+            {
+              "Key": "graphql.error.message",
+              "Value": "Unexpected Execution Error"
+            },
+            {
+              "Key": "graphql.field.path",
+              "Value": "throwInvalidOperation"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "exception.type",
+              "Value": "System.InvalidOperationException"
+            },
+            {
+              "Key": "exception.message",
+              "Value": "custom resolver failure"
+            },
+            {
+              "Key": "exception.stacktrace",
+              "Value": "System.InvalidOperationException: custom resolver failure\n   at HotChocolate.Diagnostics.ActivityExecutionDiagnosticListenerTests.SimpleQuery.ThrowInvalidOperation() in ActivityExecutionDiagnosticListenerTests.cs\n   at lambda_method(Closure, IResolverContext)\n   at HotChocolate.Types.Helpers.FieldMiddlewareCompiler.<>c__DisplayClass9_0.<<CreateResolverMiddleware>b__0>d.MoveNext() in FieldMiddlewareCompiler.cs\n--- End of stack trace from previous location ---\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.ExecuteResolverPipelineAsync(CancellationToken cancellationToken) in ResolverTask.Execute.cs\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.TryExecuteAsync(CancellationToken cancellationToken) in ResolverTask.Execute.cs"
+            }
+          ]
         }
       ],
       "activities": [
@@ -42,7 +75,7 @@
           "tags": [
             {
               "Key": "graphql.document.hash",
-              "Value": "md5:f7e9989fbb67af7fa747a9983313c9e5"
+              "Value": "md5:8e782a6a10f01f9f72ecb3f1ae638606"
             }
           ],
           "event": []
@@ -59,28 +92,7 @@
             },
             {
               "Key": "graphql.document.hash",
-              "Value": "md5:f7e9989fbb67af7fa747a9983313c9e5"
-            }
-          ],
-          "event": []
-        },
-        {
-          "OperationName": "GraphQL Complexity Analysis",
-          "DisplayName": "GraphQL Complexity Analysis",
-          "Kind": "Internal",
-          "Status": "Ok",
-          "tags": [
-            {
-              "Key": "graphql.document.hash",
-              "Value": "md5:f7e9989fbb67af7fa747a9983313c9e5"
-            },
-            {
-              "Key": "graphql.operation.fieldCost",
-              "Value": 0.0
-            },
-            {
-              "Key": "graphql.operation.typeCost",
-              "Value": 1.0
+              "Value": "md5:8e782a6a10f01f9f72ecb3f1ae638606"
             }
           ],
           "event": []
@@ -97,7 +109,7 @@
             },
             {
               "Key": "graphql.document.hash",
-              "Value": "md5:f7e9989fbb67af7fa747a9983313c9e5"
+              "Value": "md5:8e782a6a10f01f9f72ecb3f1ae638606"
             },
             {
               "Key": "graphql.operation.type",
@@ -110,7 +122,7 @@
           "OperationName": "GraphQL Operation Execution",
           "DisplayName": "GraphQL Operation Execution",
           "Kind": "Internal",
-          "Status": "Ok",
+          "Status": "Error",
           "tags": [
             {
               "Key": "graphql.processing.type",
@@ -122,16 +134,20 @@
             },
             {
               "Key": "graphql.document.hash",
-              "Value": "md5:f7e9989fbb67af7fa747a9983313c9e5"
+              "Value": "md5:8e782a6a10f01f9f72ecb3f1ae638606"
+            },
+            {
+              "Key": "error.type",
+              "Value": "System.InvalidOperationException"
             }
           ],
           "event": [],
           "activities": [
             {
-              "OperationName": "SimpleQuery.sayHello",
-              "DisplayName": "SimpleQuery.sayHello",
+              "OperationName": "SimpleQuery.throwInvalidOperation",
+              "DisplayName": "SimpleQuery.throwInvalidOperation",
               "Kind": "Internal",
-              "Status": "Ok",
+              "Status": "Error",
               "tags": [
                 {
                   "Key": "graphql.processing.type",
@@ -139,23 +155,27 @@
                 },
                 {
                   "Key": "graphql.field.alias",
-                  "Value": "sayHello"
+                  "Value": "throwInvalidOperation"
                 },
                 {
                   "Key": "graphql.field.path",
-                  "Value": "sayHello"
+                  "Value": "throwInvalidOperation"
                 },
                 {
                   "Key": "graphql.field.name",
-                  "Value": "sayHello"
+                  "Value": "throwInvalidOperation"
                 },
                 {
                   "Key": "graphql.field.coordinate",
-                  "Value": "SimpleQuery.sayHello"
+                  "Value": "SimpleQuery.throwInvalidOperation"
                 },
                 {
                   "Key": "graphql.field.parent_type",
                   "Value": "SimpleQuery"
+                },
+                {
+                  "Key": "error.type",
+                  "Value": "System.InvalidOperationException"
                 }
               ],
               "event": []

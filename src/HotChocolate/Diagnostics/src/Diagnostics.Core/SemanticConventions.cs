@@ -5,15 +5,24 @@ namespace HotChocolate.Diagnostics;
 
 internal static class SemanticConventions
 {
+    public const string ErrorType = "error.type";
+
     public static class GraphQL
     {
         public static class Document
         {
             public const string Id = "graphql.document.id";
             public const string Hash = "graphql.document.hash";
+            public const string Locations = "graphql.document.locations";
 
             // Note: This is not part of the OTEL semantic conventions
             public const string Body = "graphql.document.body";
+
+            public static class Location
+            {
+                public const string Column = "column";
+                public const string Line = "line";
+            }
         }
 
         public static class Operation
@@ -62,6 +71,7 @@ internal static class SemanticConventions
 
             public static class TypeValues
             {
+                public const string Request = "request";
                 public const string Parse = "parse";
                 public const string Validate = "validate";
                 public const string VariableCoercion = "variable_coercion";
@@ -74,17 +84,14 @@ internal static class SemanticConventions
             }
         }
 
-        public static class Selection
+        public static class Field
         {
-            public const string Name = "graphql.selection.name";
-            public const string Path = "graphql.selection.path";
-
-            public static class Field
-            {
-                public const string Name = "graphql.selection.field.name";
-                public const string ParentType = "graphql.selection.field.parent_type";
-                public const string Coordinate = "graphql.selection.field.coordinate";
-            }
+            public const string Alias = "graphql.field.alias";
+            public const string Path = "graphql.field.path";
+            public const string Name = "graphql.field.name";
+            public const string ParentType = "graphql.field.parent_type";
+            public const string Coordinate = "graphql.field.coordinate";
+            public const string SchemaCoordinate = "graphql.field.schema_coordinate";
         }
 
         public static class DataLoader
@@ -104,37 +111,22 @@ internal static class SemanticConventions
             }
         }
 
-        public static class Source
+        public static class SourceSchema
         {
-            public const string Name = "graphql.source.name";
-            public const string Id = "graphql.source.id";
+            public const string Name = "graphql.source_schema.name";
 
             public static class Operation
             {
-                public const string Name = "graphql.source.operation.name";
-                public const string Kind = "graphql.source.operation.kind";
-                public const string Hash = "graphql.source.operation.hash";
+                public const string Name = "graphql.source_schema.operation.name";
+                public const string Hash = "graphql.source_schema.operation.hash";
             }
-        }
-
-        // Note: This is not part of the OTEL semantic conventions
-        public static class Errors
-        {
-            public const string Count = "graphql.errors.count";
         }
 
         public static class Error
         {
             public const string Message = "graphql.error.message";
-            public const string Locations = "graphql.error.locations";
-            public const string Path = "graphql.error.path";
             public const string Code = "graphql.error.code";
-
-            public static class Location
-            {
-                public const string Column = "column";
-                public const string Line = "line";
-            }
+            public const string Count = "graphql.error.count";
         }
 
         public static class Subscription

@@ -101,6 +101,13 @@ public class FusionExecutionDiagnosticEventListener : IFusionExecutionDiagnostic
         => EmptyScope;
 
     /// <inheritdoc />
+    public virtual IDisposable ExecuteSourceSchemaRequest(
+        OperationPlanContext context,
+        OperationExecutionNode node,
+        string schemaName)
+        => EmptyScope;
+
+    /// <inheritdoc />
     public virtual void SourceSchemaTransportError(
         OperationPlanContext context,
         ExecutionNode node,
