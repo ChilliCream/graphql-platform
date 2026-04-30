@@ -524,14 +524,12 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     }
 
     [Fact]
-    public async Task WithSourceSchemaFile_FgpInRegistry_NewSourceSchema_ReturnsSuccess()
+    public async Task WithSourceSchemaFile_FgpInRegistry_NoLocalLegacyArchive_ReturnsError()
     {
         // arrange
         SetupSourceSchemaFile();
         SetupMissingFusionConfigurationDownload();
         SetupLegacyFusionConfigurationDownload();
-        var capturedStream = SetupSchemaValidationMutation();
-        SetupSchemaValidationSubscription();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -545,55 +543,18 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             SourceSchemaFile);
 
         // assert
-        result.AssertSuccess(
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Stage 'dev' currently has a Fusion v1 archive but no '--legacy-v1-archive' was provided. The server-stored Fusion v1 archive may be outdated and cannot be used as the composition base. Please provide a local Fusion v1 archive via '--legacy-v1-archive'.
+            """);
+        result.StdOut.MatchInlineSnapshot(
             """
             Validating Fusion configuration of API 'api-1' against stage 'dev'
             ├── Downloading existing configuration from 'dev'
-            │   └── ✓ Downloaded existing legacy v1 configuration from 'dev'.
-            ├── Composing new configuration
-            │   └── ✓ Composed new configuration.
-            ├── Validation request created. (ID: request-id)
-            └── ✓ Fusion configuration passed validation.
+            │   └── ✕ Failed to download the existing Fusion configuration.
+            └── ✕ Failed to validate the Fusion configuration.
             """);
-        AssertSchemaUploadAfterCompose(capturedStream);
-    }
-
-    [Fact]
-    public async Task WithSourceSchemaFile_FgpInRegistry_OverridingSourceSchema_ReturnsSuccess()
-    {
-        // arrange
-        SetupSourceSchemaFile(
-            SourceSchemaReviewsFile,
-            SourceSchemaReviewsSettingsFile,
-            SourceSchemaReviews);
-        SetupMissingFusionConfigurationDownload();
-        SetupLegacyFusionConfigurationDownload();
-        var capturedStream = SetupSchemaValidationMutation();
-        SetupSchemaValidationSubscription();
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "fusion",
-            "validate",
-            "--api-id",
-            ApiId,
-            "--stage",
-            Stage,
-            "--source-schema-file",
-            SourceSchemaReviewsFile);
-
-        // assert
-        result.AssertSuccess(
-            """
-            Validating Fusion configuration of API 'api-1' against stage 'dev'
-            ├── Downloading existing configuration from 'dev'
-            │   └── ✓ Downloaded existing legacy v1 configuration from 'dev'.
-            ├── Composing new configuration
-            │   └── ✓ Composed new configuration.
-            ├── Validation request created. (ID: request-id)
-            └── ✓ Fusion configuration passed validation.
-            """);
-        AssertOverriddenSchemaUpload(capturedStream);
+        Assert.Equal(1, result.ExitCode);
     }
 
     [Fact]
@@ -625,7 +586,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             """
             Validating Fusion configuration of API 'api-1' against stage 'dev'
             ├── Downloading existing configuration from 'dev'
-            │   └── ✓ Downloaded existing legacy v1 configuration from 'dev'.
+            │   └── ! There is no existing configuration on 'dev', using --legacy-v1-archive instead.
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validation request created. (ID: request-id)
@@ -666,7 +627,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             """
             Validating Fusion configuration of API 'api-1' against stage 'dev'
             ├── Downloading existing configuration from 'dev'
-            │   └── ✓ Downloaded existing legacy v1 configuration from 'dev'.
+            │   └── ! There is no existing configuration on 'dev', using --legacy-v1-archive instead.
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validation request created. (ID: request-id)
@@ -704,7 +665,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             """
             Validating Fusion configuration of API 'api-1' against stage 'dev'
             ├── Downloading existing configuration from 'dev'
-            │   └── ! There is no existing configuration on 'dev'.
+            │   └── ! There is no existing configuration on 'dev', using --legacy-v1-archive instead.
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validation request created. (ID: request-id)
@@ -745,7 +706,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             """
             Validating Fusion configuration of API 'api-1' against stage 'dev'
             ├── Downloading existing configuration from 'dev'
-            │   └── ! There is no existing configuration on 'dev'.
+            │   └── ! There is no existing configuration on 'dev', using --legacy-v1-archive instead.
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validation request created. (ID: request-id)

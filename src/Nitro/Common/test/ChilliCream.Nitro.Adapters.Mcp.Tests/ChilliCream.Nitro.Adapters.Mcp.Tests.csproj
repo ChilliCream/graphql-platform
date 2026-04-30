@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Xunit2.Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
+
+  <PropertyGroup>
+    <AssemblyName>ChilliCream.Nitro.Adapters.Mcp.Tests</AssemblyName>
+    <RootNamespace>ChilliCream.Nitro.Adapters.Mcp</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\ChilliCream.Nitro.Adapters.Mcp\ChilliCream.Nitro.Adapters.Mcp.csproj" />
+  </ItemGroup>
+
+</Project>
