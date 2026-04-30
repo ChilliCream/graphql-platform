@@ -13,6 +13,7 @@ public class OpenApiIntegrationTests : OpenApiIntegrationTestBase
         OpenApiDiagnosticEventListener? eventListener)
     {
         services.AddGraphQLServer()
+            .AddOpenApi()
             .AddOpenApiDefinitionStorage(storage)
             .AddBasicServer();
     }
@@ -34,6 +35,7 @@ public class OpenApiIntegrationTests : OpenApiIntegrationTestBase
             {
                 services.AddRouting();
                 services.AddGraphQLServer("NamedSchema")
+                    .AddOpenApi()
                     .AddOpenApiDefinitionStorage(storage)
                     .AddBasicServer();
                 services.AddOpenApi(options => options.AddGraphQLTransformer());

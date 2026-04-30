@@ -2,7 +2,7 @@ using System.Collections.Immutable;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
-using CaseConverter;
+using HotChocolate.Adapters.Mcp.Extensions;
 using HotChocolate.Language;
 using static HotChocolate.Adapters.Mcp.Properties.McpAdapterResources;
 

@@ -1,3 +1,6 @@
+#if !NET9_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
 using System.Reactive.Linq;
 using HotChocolate.Utilities;
 using Microsoft.AspNetCore.Http;
@@ -11,7 +14,7 @@ namespace HotChocolate.Adapters.OpenApi;
 [RequiresUnreferencedCode(
     "JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
 #endif
-internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
+internal sealed class OpenApiDefinitionRegistry : IDisposable
 {
     private static readonly OpenApiDefinitionValidator s_validator = new();
 
@@ -61,7 +64,7 @@ internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
         }
     }
 
-    public async ValueTask DisposeAsync()
+    public void Dispose()
     {
         if (!_disposed)
         {
@@ -72,7 +75,7 @@ internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
             // Cancel before disposing the semaphore so any in-flight WaitAsync(token)
             // observes the cancellation and exits, instead of being orphaned forever
             // in the semaphore's waiter list (Dispose does not complete pending waits).
-            await _cancellationTokenSource.CancelAsync().ConfigureAwait(false);
+            _cancellationTokenSource.Cancel();
 
             _updateSemaphore.Dispose();
             _cancellationTokenSource.Dispose();

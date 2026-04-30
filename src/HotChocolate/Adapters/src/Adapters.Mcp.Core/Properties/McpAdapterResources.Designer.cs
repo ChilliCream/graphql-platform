@@ -87,42 +87,6 @@ namespace HotChocolate.Adapters.Mcp.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The MIME type must be a valid type/subtype string..
-        /// </summary>
-        internal static string IconDefinition_InvalidIconMimeType {
-            get {
-                return ResourceManager.GetString("IconDefinition_InvalidIconMimeType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Each size must have the format {WIDTH}x{HEIGHT} (e.g., 48x48) or be &apos;any&apos;..
-        /// </summary>
-        internal static string IconDefinition_InvalidIconSize {
-            get {
-                return ResourceManager.GetString("IconDefinition_InvalidIconSize", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The icon source URI must use the HTTP, HTTPS, or data scheme..
-        /// </summary>
-        internal static string IconDefinition_InvalidIconSourceScheme {
-            get {
-                return ResourceManager.GetString("IconDefinition_InvalidIconSourceScheme", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The icon theme must be &apos;light&apos; or &apos;dark&apos;..
-        /// </summary>
-        internal static string IconDefinition_InvalidIconTheme {
-            get {
-                return ResourceManager.GetString("IconDefinition_InvalidIconTheme", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to An operation tool document must have exactly one operation definition..
         /// </summary>
         internal static string OperationToolDefinition_DocumentMustContainSingleOperation {

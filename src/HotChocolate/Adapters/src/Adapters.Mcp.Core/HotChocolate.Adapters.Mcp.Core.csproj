@@ -12,13 +12,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CaseConverter" />
     <PackageReference Include="ChilliCream.ModelContextProtocol.AspNetCore" />
     <PackageReference Include="JsonSchema.Net" />
     <PackageReference Include="System.Reactive" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Adapters.Mcp.Abstractions\HotChocolate.Adapters.Mcp.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\AspNetCore\src\Transport.Formatters\HotChocolate.Transport.Formatters.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Execution.Abstractions\HotChocolate.Execution.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Types.Abstractions\HotChocolate.Types.Abstractions.csproj" />
