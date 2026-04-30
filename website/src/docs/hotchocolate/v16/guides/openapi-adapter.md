@@ -202,40 +202,54 @@ The `IOpenApiDefinitionStorage` interface provides endpoint and fragment definit
 
 ```csharp
 // Services/MyOpenApiStorage.cs
-using System.Reactive.Disposables;
+using System.Reactive.Subjects;
 using HotChocolate.Adapters.OpenApi;
 using HotChocolate.Adapters.OpenApi.Storage;
 using HotChocolate.Language;
 
-public class MyOpenApiStorage : IOpenApiDefinitionStorage
+public class MyOpenApiStorage : IOpenApiDefinitionStorage, IDisposable
 {
+    private readonly Dictionary<string, IOpenApiDefinition> _documents = [];
+    private readonly Subject<OpenApiDefinitionStorageEventArgs> _changes = new();
+
     public ValueTask<IEnumerable<IOpenApiDefinition>>
         GetDefinitionsAsync(
             CancellationToken cancellationToken = default)
-    {
-        var documents = new List<IOpenApiDefinition>();
-
-        var getUserDoc = Utf8GraphQLParser.Parse(
-            """
-            query GetUser($userId: ID!)
-              @http(method: GET, route: "/users/{userId}") {
-              userById(id: $userId) {
-                id
-                name
-              }
-            }
-            """);
-        documents.Add(OpenApiDefinitionParser.Parse(getUserDoc));
-
-        return ValueTask.FromResult<IEnumerable<IOpenApiDefinition>>(
-            documents);
-    }
+        => ValueTask.FromResult<IEnumerable<IOpenApiDefinition>>(
+            _documents.Values.ToList());
 
     public IDisposable Subscribe(
         IObserver<OpenApiDefinitionStorageEventArgs> observer)
-        => Disposable.Empty;
+        => _changes.Subscribe(observer);
+
+    public void AddOrUpdate(string id, string document)
+    {
+        var documentNode = Utf8GraphQLParser.Parse(document);
+        var definition = OpenApiDefinitionParser.Parse(documentNode);
+
+        _documents[id] = definition;
+
+        _changes.OnNext(new OpenApiDefinitionStorageEventArgs(
+            id,
+            OpenApiDefinitionStorageEventType.Updated,
+            definition));
+    }
+
+    public void Remove(string id)
+    {
+        if (_documents.Remove(id))
+        {
+            _changes.OnNext(new OpenApiDefinitionStorageEventArgs(
+                id,
+                OpenApiDefinitionStorageEventType.Removed));
+        }
+    }
+
+    public void Dispose() => _changes.Dispose();
 }
 ```
+
+Call `AddOrUpdate` to seed initial documents at startup, and call it again (or `Remove`) at any time to publish a change.
 
 Register it with your GraphQL server:
 
