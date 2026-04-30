@@ -32,12 +32,5 @@ public static class OpenApiEndpointDefinitionExtensions
                 fragmentReferences.Local,
                 fragmentReferences.External);
         }
-
-        public OpenApiEndpointSettings ToSettings()
-            => new(
-                openApiEndpointDefinition.Description,
-                openApiEndpointDefinition.RouteParameters,
-                openApiEndpointDefinition.QueryParameters,
-                openApiEndpointDefinition.BodyVariableName);
     }
 }

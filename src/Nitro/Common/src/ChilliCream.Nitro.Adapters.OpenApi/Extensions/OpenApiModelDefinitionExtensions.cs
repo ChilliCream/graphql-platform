@@ -39,8 +39,5 @@ public static class OpenApiModelDefinitionExtensions
                 fragmentReferences.Local,
                 fragmentReferences.External);
         }
-
-        public OpenApiModelSettings ToSettings()
-            => new(openApiModelDefinition.Description);
     }
 }

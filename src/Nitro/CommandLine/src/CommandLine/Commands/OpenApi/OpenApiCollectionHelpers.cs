@@ -40,7 +40,7 @@ internal static class OpenApiCollectionHelpers
             {
                 var endpointKey = new OpenApiEndpointKey(endpoint.HttpMethod, endpoint.Route);
                 var documentBytes = Encoding.UTF8.GetBytes(endpoint.Document.ToString());
-                var settings = endpoint.ToSettings();
+                var settings = OpenApiEndpointSettings.From(endpoint);
                 var settingsJson = OpenApiEndpointSettingsSerializer.Format(settings);
 
                 await collectionArchive.AddOpenApiEndpointAsync(
@@ -52,7 +52,7 @@ internal static class OpenApiCollectionHelpers
             else if (definition is OpenApiModelDefinition model)
             {
                 var documentBytes = Encoding.UTF8.GetBytes(model.Document.ToString());
-                var settings = model.ToSettings();
+                var settings = OpenApiModelSettings.From(model);
                 var settingsJson = OpenApiModelSettingsSerializer.Format(settings);
 
                 await collectionArchive.AddOpenApiModelAsync(

@@ -653,7 +653,7 @@ public class OpenApiCollectionArchiveTests : IDisposable
             }
             """);
         var endpointDefinition = (OpenApiEndpointDefinition)OpenApiDefinitionParser.Parse(document);
-        var settings = endpointDefinition.ToSettings();
+        var settings = OpenApiEndpointSettings.From(endpointDefinition);
         var key = new OpenApiEndpointKey(endpointDefinition.HttpMethod, endpointDefinition.Route);
 
         using var settingsJson = OpenApiEndpointSettingsSerializer.Format(settings);
@@ -731,7 +731,7 @@ public class OpenApiCollectionArchiveTests : IDisposable
             }
             """);
         var modelDefinition = (OpenApiModelDefinition)OpenApiDefinitionParser.Parse(document);
-        var settings = modelDefinition.ToSettings();
+        var settings = OpenApiModelSettings.From(modelDefinition);
 
         using var settingsJson = OpenApiModelSettingsSerializer.Format(settings);
 
