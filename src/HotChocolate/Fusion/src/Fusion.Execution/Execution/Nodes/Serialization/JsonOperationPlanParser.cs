@@ -125,10 +125,10 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             deliveryGroupMap[deferId] = deliveryGroup;
         }
 
-        // Phase 2: Resolve every parent id against the map and rebuild the records
-        // so their Parent references point at the final, canonical instances.
-        // Update the map in place so downstream subplan parsing and the returned
-        // array both observe the same DeliveryGroup instances.
+        // Phase 2: Resolve every parent id against the map and rebuild the
+        // records so their Parent references point at the canonical instances.
+        // Update the map so incremental plans and the returned collection share
+        // the same DeliveryGroup instances.
         var builder = ImmutableArray.CreateBuilder<DeliveryGroup>(ordered.Count);
 
         foreach (var (usage, parentId) in ordered)
@@ -150,29 +150,29 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
     {
         var builder = ImmutableArray.CreateBuilder<IncrementalPlan>();
 
-        foreach (var subPlanElement in incrementalPlansElement.EnumerateArray())
+        foreach (var incrementalPlanElement in incrementalPlansElement.EnumerateArray())
         {
-            var deliveryGroupIdsElement = subPlanElement.GetProperty("deliveryGroupIds");
-            var subPlanDeliveryGroupsBuilder = ImmutableArray.CreateBuilder<DeliveryGroup>();
+            var deliveryGroupIdsElement = incrementalPlanElement.GetProperty("deliveryGroupIds");
+            var incrementalPlanDeliveryGroupsBuilder = ImmutableArray.CreateBuilder<DeliveryGroup>();
 
             foreach (var idElement in deliveryGroupIdsElement.EnumerateArray())
             {
-                subPlanDeliveryGroupsBuilder.Add(deliveryGroupMap[idElement.GetInt32()]);
+                incrementalPlanDeliveryGroupsBuilder.Add(deliveryGroupMap[idElement.GetInt32()]);
             }
 
-            var subPlanOperation = ParseOperation(subPlanElement.GetProperty("operation"));
+            var incrementalPlanOperation = ParseOperation(incrementalPlanElement.GetProperty("operation"));
 
-            var subPlanNodes = subPlanElement.TryGetProperty("nodes", out var subPlanNodesElement)
-                ? ParseNodes(subPlanNodesElement, subPlanOperation)
+            var incrementalPlanNodes = incrementalPlanElement.TryGetProperty("nodes", out var incrementalPlanNodesElement)
+                ? ParseNodes(incrementalPlanNodesElement, incrementalPlanOperation)
                 : [];
 
-            var rootSubPlanNodes = subPlanNodes
+            var rootIncrementalPlanNodes = incrementalPlanNodes
                 .Where(n => n.Dependencies.Length == 0 && n.OptionalDependencies.Length == 0)
                 .ToImmutableArray();
 
-            var subPlanRequirements = ImmutableArray<OperationRequirement>.Empty;
+            var incrementalPlanRequirements = ImmutableArray<OperationRequirement>.Empty;
 
-            if (subPlanElement.TryGetProperty("requirements", out var requirementsElement))
+            if (incrementalPlanElement.TryGetProperty("requirements", out var requirementsElement))
             {
                 var requirementsBuilder = ImmutableArray.CreateBuilder<OperationRequirement>();
 
@@ -190,20 +190,20 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                         FieldSelectionMapParser.Parse(selectionMap)));
                 }
 
-                subPlanRequirements = requirementsBuilder.ToImmutable();
+                incrementalPlanRequirements = requirementsBuilder.ToImmutable();
             }
 
-            var subPlan = new IncrementalPlan(
-                subPlanOperation,
-                rootSubPlanNodes,
-                subPlanNodes,
-                subPlanDeliveryGroupsBuilder.ToImmutable(),
-                subPlanRequirements)
+            var incrementalPlan = new IncrementalPlan(
+                incrementalPlanOperation,
+                rootIncrementalPlanNodes,
+                incrementalPlanNodes,
+                incrementalPlanDeliveryGroupsBuilder.ToImmutable(),
+                incrementalPlanRequirements)
             {
-                ParentNodeId = subPlanElement.GetProperty("parentNodeId").GetInt32()
+                ParentNodeId = incrementalPlanElement.GetProperty("parentNodeId").GetInt32()
             };
 
-            builder.Add(subPlan);
+            builder.Add(incrementalPlan);
         }
 
         return builder.ToImmutable();

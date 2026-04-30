@@ -141,7 +141,7 @@ public sealed class FetchResultStoreTests
 
         // assert
         Assert.Equal(
-            "A deferred sub-plan fetch references a requirement that was not imported.",
+            "A deferred incremental plan fetch references a requirement that was not imported.",
             exception.Message);
     }
 

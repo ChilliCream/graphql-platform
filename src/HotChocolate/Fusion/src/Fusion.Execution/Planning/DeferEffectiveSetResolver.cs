@@ -6,10 +6,8 @@ namespace HotChocolate.Fusion.Planning;
 /// <summary>
 /// Resolves the effective <see cref="DeliveryGroupSetKey"/> for every leaf
 /// field location collected by <see cref="DeferOccurrenceCollector"/>.
-/// Fields whose set is empty are non-deferred; fields sharing a non-empty
-/// set form a single subplan, matching the GraphQL incremental-delivery
-/// spec rule that two sibling <c>... @defer</c> fragments which contribute
-/// the same field collapse into one delivery group.
+/// An empty set means the field belongs to the initial result. Otherwise,
+/// fields sharing the same set can be grouped into one incremental plan.
 /// </summary>
 internal static class DeferEffectiveSetResolver
 {
@@ -31,7 +29,7 @@ internal static class DeferEffectiveSetResolver
                 leavesByLocation[location] = acc;
             }
 
-            acc.Add(occurrence.EnclosingSubPlan);
+            acc.Add(occurrence.EnclosingDeliveryGroup);
         }
 
         var result = new Dictionary<FieldLocation, DeliveryGroupSetKey>(leavesByLocation.Count);

@@ -168,7 +168,7 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
     }
 
     [Fact]
-    public void Parse_Plan_Preserves_DeliveryGroup_Identity_Across_Plan_And_SubPlans()
+    public void Parse_Plan_Preserves_DeliveryGroup_Identity_Across_Plan_And_IncrementalPlans()
     {
         // arrange
         // Two sibling @defer fragments share a field (email) plus a nested @defer
@@ -247,11 +247,11 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
     }
 
     [Fact]
-    public void Parse_Plan_Preserves_ParentDependencies_On_Deferred_SubPlan_Nodes()
+    public void Parse_Plan_Preserves_ParentDependencies_On_Deferred_IncrementalPlan_Nodes()
     {
         // arrange
         // Same-subgraph hoist injects the key into the parent op so the
-        // deferred sub-plan node carries a ParentStepRef on its plan step
+        // deferred incremental plan node carries a ParentStepRef on its plan step
         // and a {"parentNodeId": N} entry in its serialized dependencies.
         var schema = ComposeSchema(
             """
@@ -309,22 +309,22 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         var parsedPlan = parser.Parse(buffer.WrittenMemory);
 
         // assert
-        var originalSubPlanNode = originalPlan.IncrementalPlans
+        var originalIncrementalPlanNode = originalPlan.IncrementalPlans
             .Single()
             .AllNodes
             .OfType<OperationExecutionNode>()
             .Single(n => n.ParentDependencies.Length > 0);
-        var parsedSubPlanNode = parsedPlan.IncrementalPlans
+        var parsedIncrementalPlanNode = parsedPlan.IncrementalPlans
             .Single()
             .AllNodes
             .OfType<OperationExecutionNode>()
-            .Single(n => n.Id == originalSubPlanNode.Id);
+            .Single(n => n.Id == originalIncrementalPlanNode.Id);
         Assert.Equal(
-            originalSubPlanNode.ParentDependencies.ToArray(),
-            parsedSubPlanNode.ParentDependencies.ToArray());
+            originalIncrementalPlanNode.ParentDependencies.ToArray(),
+            parsedIncrementalPlanNode.ParentDependencies.ToArray());
         Assert.Equal(
-            originalSubPlanNode.Dependencies.Length,
-            parsedSubPlanNode.Dependencies.Length);
+            originalIncrementalPlanNode.Dependencies.Length,
+            parsedIncrementalPlanNode.Dependencies.Length);
     }
 
     [Fact]

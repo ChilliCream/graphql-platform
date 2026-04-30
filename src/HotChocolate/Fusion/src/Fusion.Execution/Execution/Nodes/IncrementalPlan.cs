@@ -3,12 +3,7 @@ using System.Collections.Immutable;
 namespace HotChocolate.Fusion.Execution.Nodes;
 
 /// <summary>
-/// Represents a plan for executing the fields that belong to a specific
-/// <c>DeliveryGroupSet</c>. One <see cref="IncrementalPlan"/> is emitted per
-/// unique non-empty active delivery group set in the operation. The set can
-/// contain multiple <see cref="DeliveryGroup"/> instances, and the plan's data
-/// is delivered to every group in <see cref="DeliveryGroups"/> when the
-/// incremental plan completes.
+/// Represents a plan for fields associated with a delivery group set.
 /// </summary>
 public sealed class IncrementalPlan : IOperationPlan
 {
@@ -18,7 +13,7 @@ public sealed class IncrementalPlan : IOperationPlan
     /// Initializes a new instance of <see cref="IncrementalPlan"/>.
     /// </summary>
     /// <param name="operation">
-    /// The compiled operation for this incremental plan's result mapping.
+    /// The GraphQL operation associated with this incremental plan.
     /// </param>
     /// <param name="rootNodes">
     /// The root execution nodes that serve as entry points for this
@@ -28,15 +23,12 @@ public sealed class IncrementalPlan : IOperationPlan
     /// All execution nodes belonging to this incremental plan.
     /// </param>
     /// <param name="deliveryGroups">
-    /// The <see cref="DeliveryGroup"/> set that keys this incremental plan,
-    /// sorted ascending by <see cref="DeliveryGroup.Id"/>. One or more delivery
-    /// groups can share this plan and receive its data on the wire when it
-    /// completes.
+    /// The delivery group set associated with this incremental plan, sorted
+    /// ascending by <see cref="DeliveryGroup.Id"/>.
     /// </param>
     /// <param name="requirements">
-    /// The plan-scope requirements that must be supplied from the parent plan
-    /// before this incremental plan can execute. Each requirement maps a
-    /// variable name to a selection in the parent plan's result tree.
+    /// The requirements that this plan resolves from its enclosing plan scope
+    /// before it executes.
     /// </param>
     public IncrementalPlan(
         Operation operation,
@@ -54,15 +46,12 @@ public sealed class IncrementalPlan : IOperationPlan
     }
 
     /// <summary>
-    /// Gets the unique identifier for this incremental plan. Assigned by the
-    /// planner relative to the parent plan's id.
+    /// Gets the unique identifier for this incremental plan.
     /// </summary>
     public string Id { get; internal set; } = string.Empty;
 
     /// <summary>
-    /// Gets the compiled operation for this incremental plan.
-    /// This is a standalone operation compiled from the rewritten AST for this
-    /// incremental plan, used for result mapping during execution.
+    /// Gets the GraphQL operation associated with this incremental plan.
     /// </summary>
     public Operation Operation { get; }
 
@@ -78,58 +67,47 @@ public sealed class IncrementalPlan : IOperationPlan
     public ImmutableArray<ExecutionNode> AllNodes { get; }
 
     /// <summary>
-    /// Gets the <see cref="DeliveryGroup"/> set that keys this incremental plan,
-    /// sorted ascending by <see cref="DeliveryGroup.Id"/>. When this incremental
-    /// plan completes, every <see cref="DeliveryGroup"/> in this set receives
-    /// the incremental plan's data as an incremental payload on the wire. One
-    /// plan can deliver to multiple delivery groups.
+    /// Gets the delivery group set associated with this incremental plan,
+    /// sorted ascending by <see cref="DeliveryGroup.Id"/>.
     /// </summary>
     public ImmutableArray<DeliveryGroup> DeliveryGroups { get; }
 
     /// <summary>
-    /// Gets the plan-scope requirements that the parent plan must supply
-    /// before this incremental plan can execute. Each requirement wires a
-    /// variable used inside this incremental plan to a selection in the parent
-    /// plan's result tree.
+    /// Gets the requirements that this plan resolves from its enclosing plan
+    /// scope before it executes. Each requirement maps a variable used by this
+    /// plan to a selection in the enclosing scope's result.
     /// </summary>
     public ImmutableArray<OperationRequirement> Requirements { get; }
 
     /// <summary>
-    /// Gets the <see cref="ExecutionNode.Id"/> in the owning plan (the main plan
-    /// for top-level incremental plans, the parent incremental plan for nested
-    /// delivery groups) whose fetch resolves the selection set where this
-    /// incremental plan was anchored.
-    /// Always populated for a sealed plan; query plan visualizers can use this
-    /// to attach the incremental plan to the node that produces its enclosing
-    /// data.
-    /// Set during plan construction.
+    /// Gets the <see cref="ExecutionNode.Id"/> of the node that produces the
+    /// result object where this incremental plan is anchored. The identifier is
+    /// scoped to the root <see cref="OperationPlan"/> for top-level plans, or
+    /// to the enclosing <see cref="IncrementalPlan"/> for nested plans.
     /// </summary>
     public int ParentNodeId { get; internal set; }
 
     /// <summary>
-    /// Gets the maximum <see cref="ExecutionNode.Id"/> across all nodes in this
-    /// incremental plan. Used by the executor's context pooling to size
-    /// per-invocation node arrays without reallocation.
+    /// Gets the highest plan node identifier that can be resolved by this plan.
     /// </summary>
     public int MaxNodeId => _nodesById.Length > 0 ? _nodesById.Length - 1 : 0;
 
     /// <summary>
-    /// Gets the child incremental execution plans for this plan. Incremental
-    /// plans do not nest at the plan level; nesting is modeled via
-    /// <see cref="DeliveryGroup.Parent"/> on delivery groups. This property is
-    /// always empty on an incremental plan and exists to satisfy the
-    /// <see cref="IOperationPlan"/> contract.
+    /// Gets the child incremental plans for this plan. Incremental plans do not
+    /// contain child plan objects; the root <see cref="OperationPlan"/> exposes
+    /// the flat collection, and deferred fragment nesting is represented by
+    /// <see cref="DeliveryGroup.Parent"/>.
     /// </summary>
     public ImmutableArray<IncrementalPlan> IncrementalPlans => [];
 
     /// <summary>
-    /// Retrieves an execution node by its unique identifier.
+    /// Retrieves the execution node associated with a plan node identifier.
     /// </summary>
     /// <param name="id">
-    /// The unique identifier of the execution node is unique within this
-    /// incremental plan.
+    /// The identifier of an execution node, or of an operation definition inside
+    /// a batch.
     /// </param>
-    /// <returns>The execution node with the specified identifier.</returns>
+    /// <returns>The execution node associated with the specified identifier.</returns>
     /// <exception cref="KeyNotFoundException">Thrown when no node with the specified ID exists.</exception>
     public ExecutionNode GetNodeById(int id)
     {
@@ -143,8 +121,10 @@ public sealed class IncrementalPlan : IOperationPlan
     }
 
     /// <summary>
-    /// Returns the <see cref="ExecutionNode"/> that is responsible for executing
-    /// the given plan node.
+    /// Returns the <see cref="ExecutionNode"/> responsible for executing the
+    /// given plan node. If the plan node is already an execution node it is
+    /// returned directly; if it is an operation definition inside a batch, the
+    /// containing batch node is returned.
     /// </summary>
     public ExecutionNode GetExecutionNode(IOperationPlanNode planNode)
     {

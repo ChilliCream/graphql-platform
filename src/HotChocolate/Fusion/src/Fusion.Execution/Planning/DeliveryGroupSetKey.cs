@@ -4,9 +4,8 @@ using HotChocolate.Fusion.Execution.Nodes;
 namespace HotChocolate.Fusion.Planning;
 
 /// <summary>
-/// A canonical key for a <see cref="DeliveryGroup"/> set. The wrapped array is
-/// sorted ascending by <see cref="DeliveryGroup.Id"/> so sequence equality
-/// doubles as set equality.
+/// A key for a <see cref="DeliveryGroup"/> set, sorted ascending by
+/// <see cref="DeliveryGroup.Id"/>. The set can be empty.
 /// </summary>
 internal readonly record struct DeliveryGroupSetKey(ImmutableArray<DeliveryGroup> Items)
     : IEquatable<DeliveryGroupSetKey>

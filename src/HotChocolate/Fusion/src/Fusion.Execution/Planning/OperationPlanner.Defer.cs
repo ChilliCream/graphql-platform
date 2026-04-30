@@ -11,16 +11,8 @@ namespace HotChocolate.Fusion.Planning;
 public sealed partial class OperationPlanner
 {
     /// <summary>
-    /// Plans each <see cref="IncrementalPlanDescriptor"/> and routes each
-    /// sub-plan's self-fetch requirements into its enclosing scope's
-    /// variable-flow graph. Each iteration may mutate the enclosing scope's
-    /// step list (via the context graph), so subsequent siblings and nested
-    /// descriptors observe the cumulative parent-scope state. Must run
-    /// BEFORE the root operation is compiled so the root internal operation
-    /// reflects every field absorbed for defer sub-plans by the time compile
-    /// consumes it. Execution-node construction for each sub-plan happens in
-    /// a separate post-compile pass via
-    /// <see cref="BuildIncrementalPlans"/>.
+    /// Plans each <see cref="IncrementalPlanDescriptor"/> and records any
+    /// parent-scope requirements needed by its incremental plan.
     /// </summary>
     private ImmutableArray<DeferRoutingState> RouteIncrementalPlans(
         string id,
@@ -29,38 +21,38 @@ public sealed partial class OperationPlanner
         bool emitPlannerEvents,
         CancellationToken cancellationToken)
     {
-        if (splitResult.SubPlanDescriptors.IsEmpty)
+        if (splitResult.IncrementalPlanDescriptors.IsEmpty)
         {
             return [];
         }
 
         var routingStates = ImmutableArray.CreateBuilder<DeferRoutingState>(
-            splitResult.SubPlanDescriptors.Length);
+            splitResult.IncrementalPlanDescriptors.Length);
 
-        for (var i = 0; i < splitResult.SubPlanDescriptors.Length; i++)
+        for (var i = 0; i < splitResult.IncrementalPlanDescriptors.Length; i++)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var descriptor = splitResult.SubPlanDescriptors[i];
+            var descriptor = splitResult.IncrementalPlanDescriptors[i];
 
             var parentContext = contextGraph.GetParentContext(descriptor);
-            var subPlanResult = PlanIncrementalPlan(
+            var incrementalPlanResult = PlanIncrementalPlan(
                 id,
                 descriptor,
                 i,
                 emitPlannerEvents,
                 cancellationToken);
 
-            var rewrittenSubPlan = ApplyDeferRequirementsToParent(
+            var rewrittenIncrementalPlan = ApplyDeferRequirementsToParent(
                 descriptor,
-                subPlanResult.Steps,
+                incrementalPlanResult.Steps,
                 parentContext,
                 contextGraph);
 
-            var registeredInternalOp = subPlanResult.InternalOperationDefinition ?? descriptor.Operation;
+            var registeredInternalOp = incrementalPlanResult.InternalOperationDefinition ?? descriptor.Operation;
             contextGraph.RegisterDeferContext(
                 descriptor,
-                rewrittenSubPlan,
+                rewrittenIncrementalPlan,
                 SelectionSetIndexer.Create(registeredInternalOp),
                 registeredInternalOp);
 
@@ -71,11 +63,7 @@ public sealed partial class OperationPlanner
     }
 
     /// <summary>
-    /// Compiles each routed sub-plan and builds its execution-node graph.
-    /// Must run AFTER the root operation is compiled; the root's compiled
-    /// operation already carries every field the sub-plans need because the
-    /// routing pass inlined those fields into the root internal operation
-    /// before compile.
+    /// Builds the incremental plans for the routed descriptors.
     /// </summary>
     private ImmutableArray<IncrementalPlan> BuildIncrementalPlans(
         string id,
@@ -89,7 +77,7 @@ public sealed partial class OperationPlanner
             return [];
         }
 
-        var subPlans = ImmutableArray.CreateBuilder<IncrementalPlan>(routingStates.Length);
+        var incrementalPlansBuilder = ImmutableArray.CreateBuilder<IncrementalPlan>(routingStates.Length);
 
         foreach (var routingState in routingStates)
         {
@@ -97,10 +85,8 @@ public sealed partial class OperationPlanner
 
             var descriptor = routingState.Descriptor;
 
-            // Read the final step list AND internal operation from the context
-            // graph: both may have grown between the routing pass above and
-            // this pass when a nested inner defer inlined a field or promoted
-            // a step into the outer's scope.
+            // Use the registered scope state because nested descriptors may
+            // have added parent-scope requirements.
             var finalSteps = contextGraph.GetRegisteredSteps(descriptor);
             var registeredInternalOp = contextGraph.GetRegisteredInternalOperation(descriptor);
 
@@ -120,38 +106,33 @@ public sealed partial class OperationPlanner
                 ? ImmutableArray<OperationRequirement>.Empty
                 : [.. descriptor.Requirements.Values];
 
-            var subPlan = new IncrementalPlan(
+            var incrementalPlan = new IncrementalPlan(
                 deferredOperation,
                 rootNodes,
                 allNodes,
                 descriptor.DeliveryGroupSet,
                 planScopeRequirements);
 
-            subPlans.Add(subPlan);
+            incrementalPlansBuilder.Add(incrementalPlan);
         }
 
-        return subPlans.ToImmutable();
+        return incrementalPlansBuilder.ToImmutable();
     }
 
     /// <summary>
-    /// Captures the state produced by <see cref="RouteIncrementalPlans"/>
-    /// that <see cref="BuildIncrementalPlans"/> needs to emit each sub-plan's
-    /// compiled operation and execution-node graph.
+    /// Captures the routed descriptor order used when building incremental plans.
     /// </summary>
     private readonly record struct DeferRoutingState(
         IncrementalPlanDescriptor Descriptor,
         int Index);
 
     /// <summary>
-    /// Plans a single subplan using the A* planner. The sub-plan's self-fetch
-    /// (if any) is kept intact here; requirement routing through the parent
-    /// scope happens after planning via
-    /// <see cref="ApplyDeferRequirementsToParent"/>.
+    /// Plans a single incremental plan descriptor.
     /// </summary>
-    private DeferSubPlanResult PlanIncrementalPlan(
+    private DeferIncrementalPlanResult PlanIncrementalPlan(
         string operationId,
         IncrementalPlanDescriptor descriptor,
-        int subPlanId,
+        int incrementalPlanId,
         bool emitPlannerEvents,
         CancellationToken cancellationToken)
     {
@@ -163,7 +144,7 @@ public sealed partial class OperationPlanner
 
         if (node.Backlog.IsEmpty)
         {
-            return new DeferSubPlanResult([], null);
+            return new DeferIncrementalPlanResult([], null);
         }
 
         var possiblePlans = new PlanQueue(_schema);
@@ -183,56 +164,47 @@ public sealed partial class OperationPlanner
             possiblePlans.Enqueue(node);
         }
 
-        var plan = Plan(operationId + "#defer_" + subPlanId, possiblePlans, emitPlannerEvents, cancellationToken);
+        var plan = Plan(operationId + "#defer_" + incrementalPlanId, possiblePlans, emitPlannerEvents, cancellationToken);
 
         if (!plan.HasValue)
         {
-            return new DeferSubPlanResult([], null);
+            return new DeferIncrementalPlanResult([], null);
         }
 
-        return new DeferSubPlanResult(
+        return new DeferIncrementalPlanResult(
             plan.Value.Steps,
             plan.Value.InternalOperationDefinition);
     }
 
     /// <summary>
-    /// Applies a deferred sub-plan's self-fetch requirements to the enclosing
-    /// scope's variable-flow graph. The self-fetch is the sub-plan's first
-    /// step when its sole purpose is to reproduce a parent selection so that
-    /// later sub-plan steps can pull entity-key values from it. Under the
-    /// variable-wiring model, the parent plan produces those values natively
-    /// and the sub-plan drops the self-fetch; downstream sub-plan steps
-    /// source the values via <see cref="OperationPlanStep.ParentDependencies"/>.
+    /// Moves requirements that can be satisfied by the enclosing plan scope out
+    /// of the incremental plan and records them as parent-scope dependencies.
     /// </summary>
     /// <returns>
-    /// The sub-plan step list with the self-fetch and any promoted steps
-    /// removed, and downstream step ids renumbered to stay contiguous.
-    /// Unchanged when the sub-plan has no self-fetch to absorb.
+    /// The updated incremental plan step list, or the original list when no
+    /// parent-scope requirements can be moved.
     /// </returns>
     private ImmutableList<PlanStep> ApplyDeferRequirementsToParent(
         IncrementalPlanDescriptor descriptor,
-        ImmutableList<PlanStep> subPlanSteps,
+        ImmutableList<PlanStep> incrementalPlanSteps,
         ParentPlanContext parentContext,
         PlanContextGraph contextGraph)
     {
-        // We can only route a sub-plan's self-fetch into the parent when the
-        // self-fetch exists AND at least one downstream step reads from it.
-        // Anything smaller has no routing opportunity.
-        if (subPlanSteps.Count < 2
-            || subPlanSteps[0] is not OperationPlanStep selfFetch
+        // Parent-scope requirements can only be moved when an initial step has
+        // dependent steps.
+        if (incrementalPlanSteps.Count < 2
+            || incrementalPlanSteps[0] is not OperationPlanStep selfFetch
             || selfFetch.SchemaName is null
             || selfFetch.Dependents.IsEmpty)
         {
-            return subPlanSteps;
+            return incrementalPlanSteps;
         }
 
-        // Collect the downstream steps in the defer sub-plan that depend on
-        // the self-fetch directly. Each such step's Requirements dict tells
-        // us what variables the sub-plan expects the parent to produce.
+        // Collect steps that depend directly on the initial requirement step.
         var downstreamByStepId = new Dictionary<int, OperationPlanStep>();
         foreach (var dependentStepId in selfFetch.Dependents)
         {
-            if (subPlanSteps.ById(dependentStepId) is OperationPlanStep dependentStep)
+            if (incrementalPlanSteps.ById(dependentStepId) is OperationPlanStep dependentStep)
             {
                 downstreamByStepId[dependentStepId] = dependentStep;
             }
@@ -240,7 +212,7 @@ public sealed partial class OperationPlanner
 
         if (downstreamByStepId.Count == 0)
         {
-            return subPlanSteps;
+            return incrementalPlanSteps;
         }
 
         // Route each requirement through a scope-walker: at each scope, try
@@ -254,7 +226,7 @@ public sealed partial class OperationPlanner
         ScopeState? rootScopeState = null;
         var enclosingScopeStates = new Dictionary<IncrementalPlanDescriptor, ScopeState>();
         var lifted = new List<LiftedDeferRequirement>();
-        var promotedSubPlanStepIds = new HashSet<int>();
+        var promotedIncrementalPlanStepIds = new HashSet<int>();
 
         ScopeState ScopeStateFor(ParentPlanContext scope)
         {
@@ -313,16 +285,13 @@ public sealed partial class OperationPlanner
                         break;
                     }
 
-                    // Cross-subgraph attempt: promote the sub-plan step that
-                    // produces the requirement value into the enclosing scope
-                    // as a dedicated op. Works for both root and enclosing
-                    // defer scopes; the promoted op's output naturally merges
-                    // into the scope's composite result document at runtime.
-                    var (stepsAfterPromotion, newStepId, promotedSubPlanStepId) =
+                    // When no existing parent-scope step can supply the
+                    // requirement, add a dedicated step to the enclosing scope.
+                    var (stepsAfterPromotion, newStepId, promotedIncrementalPlanStepId) =
                         PlanCrossSubgraphDeferRequirement(
                             requirement,
                             downstreamStep,
-                            subPlanSteps,
+                            incrementalPlanSteps,
                             scopeState.Steps);
 
                     if (newStepId is { } resolvedStepId)
@@ -330,9 +299,9 @@ public sealed partial class OperationPlanner
                         scopeState.Steps = stepsAfterPromotion;
                         lifted.Add(new LiftedDeferRequirement(requirement, downstreamStepId, resolvedStepId));
 
-                        if (promotedSubPlanStepId is { } pid)
+                        if (promotedIncrementalPlanStepId is { } pid)
                         {
-                            promotedSubPlanStepIds.Add(pid);
+                            promotedIncrementalPlanStepIds.Add(pid);
                         }
 
                         resolved = true;
@@ -357,22 +326,19 @@ public sealed partial class OperationPlanner
 
         if (lifted.Count == 0)
         {
-            return subPlanSteps;
+            return incrementalPlanSteps;
         }
 
-        // Rewrite the sub-plan: drop the self-fetch and any promoted steps,
-        // renumber the survivors to keep ids contiguous, and attach
-        // ParentDependencies wiring so downstream steps source the value from
-        // the parent scope.
-        var rewrittenSubPlan = RewriteSubPlanAfterDeferRequirementRouting(
-            subPlanSteps,
+        // Remove moved steps from the incremental plan and record parent-scope
+        // dependencies on the remaining steps.
+        var rewrittenIncrementalPlan = RewriteIncrementalPlanAfterDeferRequirementRouting(
+            incrementalPlanSteps,
             selfFetch,
             lifted,
-            promotedSubPlanStepIds);
+            promotedIncrementalPlanStepIds);
 
-        // Collect plan-scope requirements onto the descriptor so the runtime
-        // can fetch variables from the parent result tree.
-        foreach (var step in rewrittenSubPlan)
+        // Record the parent-scope requirements on the descriptor.
+        foreach (var step in rewrittenIncrementalPlan)
         {
             if (step is not OperationPlanStep operationStep)
             {
@@ -385,11 +351,7 @@ public sealed partial class OperationPlanner
             }
         }
 
-        // Push accumulated per-scope mutations back to the graph so that
-        // subsequent siblings and nested descriptors observe them. The
-        // internal operation update ensures the root operation's compile
-        // (which runs after all sub-plans have routed) carries every field
-        // absorbed for defer sub-plans.
+        // Publish scope updates before processing additional descriptors.
         if (rootScopeState is not null)
         {
             contextGraph.UpdateRootSteps(rootScopeState.Steps);
@@ -400,7 +362,7 @@ public sealed partial class OperationPlanner
             contextGraph.UpdateDeferContext(ownerDescriptor, state.Steps, state.InternalOperation);
         }
 
-        return rewrittenSubPlan;
+        return rewrittenIncrementalPlan;
     }
 
     /// <summary>
@@ -513,11 +475,8 @@ public sealed partial class OperationPlanner
     }
 
     /// <summary>
-    /// Mutable per-scope state accumulated while routing a sub-plan's defer
-    /// requirements. Each scope on the walker's path keeps its own step list
-    /// and internal operation snapshot so that multiple requirements resolved
-    /// at the same scope share their mutations and a single commit goes back
-    /// to the context graph at the end of routing.
+    /// Mutable planning state for an enclosing scope while parent-scope
+    /// requirements are resolved.
     /// </summary>
     private sealed class ScopeState(
         ImmutableList<PlanStep> steps,
@@ -594,22 +553,17 @@ public sealed partial class OperationPlanner
     }
 
     /// <summary>
-    /// Handles a defer requirement that could not be inlined into any existing
-    /// parent-scope step by promoting the sub-plan step that provides the
-    /// required value into a dedicated parent-scope op. The promoted step
-    /// keeps its original schema, lookup arguments and selection shape. Only
-    /// its id gets renumbered into the parent scope and its sub-plan
-    /// Dependents get cleared so downstream sub-plan steps source the value
-    /// from <see cref="OperationPlanStep.ParentDependencies"/>.
+    /// Creates a parent-scope step for a requirement that cannot be satisfied
+    /// by an existing parent-scope step.
     /// </summary>
-    private (ImmutableList<PlanStep> UpdatedParentSteps, int? NewStepId, int? PromotedSubPlanStepId)
+    private (ImmutableList<PlanStep> UpdatedParentSteps, int? NewStepId, int? PromotedIncrementalPlanStepId)
         PlanCrossSubgraphDeferRequirement(
             OperationRequirement requirement,
             OperationPlanStep consumingStep,
-            ImmutableList<PlanStep> subPlanSteps,
+            ImmutableList<PlanStep> incrementalPlanSteps,
             ImmutableList<PlanStep> parentSteps)
     {
-        if (TryFindDeferRequirementProvider(subPlanSteps, consumingStep, requirement) is not { } providerStep)
+        if (TryFindDeferRequirementProvider(incrementalPlanSteps, consumingStep, requirement) is not { } providerStep)
         {
             return (parentSteps, null, null);
         }
@@ -634,7 +588,7 @@ public sealed partial class OperationPlanner
     }
 
     /// <summary>
-    /// Locates the sub-plan step that produces <paramref name="requirement"/>'s
+    /// Locates the incremental plan step that produces <paramref name="requirement"/>'s
     /// value for <paramref name="consumingStep"/>. The provider is a step the
     /// consuming step depends on whose target is a parent-of-or-same ancestor
     /// of the requirement path (so the provider's tree reaches the required
@@ -642,7 +596,7 @@ public sealed partial class OperationPlanner
     /// field.
     /// </summary>
     private static OperationPlanStep? TryFindDeferRequirementProvider(
-        ImmutableList<PlanStep> subPlanSteps,
+        ImmutableList<PlanStep> incrementalPlanSteps,
         OperationPlanStep consumingStep,
         OperationRequirement requirement)
     {
@@ -653,7 +607,7 @@ public sealed partial class OperationPlanner
             return null;
         }
 
-        foreach (var step in subPlanSteps)
+        foreach (var step in incrementalPlanSteps)
         {
             if (step is not OperationPlanStep candidate
                 || candidate.Id == consumingStep.Id
@@ -677,15 +631,14 @@ public sealed partial class OperationPlanner
     }
 
     /// <summary>
-    /// Drops the self-fetch and any promoted sub-plan steps, wires downstream
-    /// dependencies onto their parent-scope providers, and renumbers surviving
-    /// ids to stay contiguous.
+    /// Removes steps that moved to the parent scope and records parent
+    /// dependencies on the remaining steps.
     /// </summary>
-    private static ImmutableList<PlanStep> RewriteSubPlanAfterDeferRequirementRouting(
-        ImmutableList<PlanStep> subPlanSteps,
+    private static ImmutableList<PlanStep> RewriteIncrementalPlanAfterDeferRequirementRouting(
+        ImmutableList<PlanStep> incrementalPlanSteps,
         OperationPlanStep selfFetch,
         List<LiftedDeferRequirement> lifted,
-        HashSet<int> promotedSubPlanStepIds)
+        HashSet<int> promotedIncrementalPlanStepIds)
     {
         var parentRefsByStepId = new Dictionary<int, ImmutableHashSet<ParentStepRef>.Builder>();
         foreach (var entry in lifted)
@@ -699,11 +652,11 @@ public sealed partial class OperationPlanner
             builder.Add(new ParentStepRef(entry.ParentStepId));
         }
 
-        var droppedStepIds = new HashSet<int>(promotedSubPlanStepIds) { selfFetch.Id };
-        var survivors = new List<PlanStep>(subPlanSteps.Count - droppedStepIds.Count);
-        var oldToNewId = new Dictionary<int, int>(subPlanSteps.Count - droppedStepIds.Count);
+        var droppedStepIds = new HashSet<int>(promotedIncrementalPlanStepIds) { selfFetch.Id };
+        var survivors = new List<PlanStep>(incrementalPlanSteps.Count - droppedStepIds.Count);
+        var oldToNewId = new Dictionary<int, int>(incrementalPlanSteps.Count - droppedStepIds.Count);
 
-        foreach (var step in subPlanSteps)
+        foreach (var step in incrementalPlanSteps)
         {
             if (droppedStepIds.Contains(step.Id))
             {
@@ -955,7 +908,7 @@ public sealed partial class OperationPlanner
         OperationRequirement requirement,
         string reason)
         => new(
-            $"The deferred sub-plan's requirement '{requirement.Key}' at path "
+            $"The deferred incremental plan's requirement '{requirement.Key}' at path "
             + $"'{requirement.Path}' could not be resolved from the parent plan. "
             + $"Defer anchor: '{selfFetch.Target}'. "
             + $"Target schema: '{selfFetch.SchemaName}'. "
@@ -967,7 +920,7 @@ public sealed partial class OperationPlanner
         int ParentStepId);
 
     /// <summary>
-    /// Builds execution nodes for a subplan's plan steps.
+    /// Builds execution nodes for an incremental plan's plan steps.
     /// </summary>
     private (ImmutableArray<ExecutionNode> RootNodes, ImmutableArray<ExecutionNode> AllNodes) BuildDeferredExecutionNodes(
         OperationDefinitionNode deferredOperation,

@@ -235,9 +235,9 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WritePropertyName("incrementalPlans");
         jsonWriter.WriteStartArray();
 
-        foreach (var subPlan in incrementalPlans)
+        foreach (var incrementalPlan in incrementalPlans)
         {
-            WriteIncrementalPlan(jsonWriter, subPlan);
+            WriteIncrementalPlan(jsonWriter, incrementalPlan);
         }
 
         jsonWriter.WriteEndArray();
@@ -245,14 +245,14 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
     private static void WriteIncrementalPlan(
         JsonWriter jsonWriter,
-        IncrementalPlan subPlan)
+        IncrementalPlan incrementalPlan)
     {
         jsonWriter.WriteStartObject();
 
         jsonWriter.WritePropertyName("deliveryGroupIds");
         jsonWriter.WriteStartArray();
 
-        foreach (var deliveryGroup in subPlan.DeliveryGroups)
+        foreach (var deliveryGroup in incrementalPlan.DeliveryGroups)
         {
             jsonWriter.WriteNumberValue(deliveryGroup.Id);
         }
@@ -260,14 +260,14 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WriteEndArray();
 
         jsonWriter.WritePropertyName("parentNodeId");
-        jsonWriter.WriteNumberValue(subPlan.ParentNodeId);
+        jsonWriter.WriteNumberValue(incrementalPlan.ParentNodeId);
 
-        if (!subPlan.Requirements.IsDefaultOrEmpty)
+        if (!incrementalPlan.Requirements.IsDefaultOrEmpty)
         {
             jsonWriter.WritePropertyName("requirements");
             jsonWriter.WriteStartArray();
 
-            foreach (var requirement in subPlan.Requirements)
+            foreach (var requirement in incrementalPlan.Requirements)
             {
                 WriteRequirement(jsonWriter, requirement);
             }
@@ -276,12 +276,12 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         }
 
         jsonWriter.WritePropertyName("operation");
-        WriteOperation(jsonWriter, subPlan.Operation);
+        WriteOperation(jsonWriter, incrementalPlan.Operation);
 
-        if (!subPlan.AllNodes.IsDefaultOrEmpty)
+        if (!incrementalPlan.AllNodes.IsDefaultOrEmpty)
         {
             jsonWriter.WritePropertyName("nodes");
-            WriteNodes(jsonWriter, subPlan.Operation, subPlan.AllNodes, null);
+            WriteNodes(jsonWriter, incrementalPlan.Operation, incrementalPlan.AllNodes, null);
         }
 
         jsonWriter.WriteEndObject();

@@ -91,13 +91,8 @@ public sealed partial class OperationPlanner
 
         try
         {
-            // Check for @defer directives before planning. If present, we split the
-            // operation into a main (non-deferred) part and per-DeliveryGroupSet subplans.
-            // The main operation is planned without the deferred selections, and each
-            // subplan is planned independently.
-            //
-            // PERF: For non-deferred operations (the common case), the only overhead is
-            // the HasDeferDirective check which does a fast AST walk looking for @defer.
+            // Split deferred selections into a main operation and incremental
+            // plan descriptors before planning.
             ImmutableArray<DeliveryGroup> deliveryGroups = [];
             ImmutableArray<IncrementalPlan> incrementalPlans = [];
             DeferSplitResult? deferSplit = null;
@@ -117,7 +112,7 @@ public sealed partial class OperationPlanner
                 var rewriter = new DeferOperationRewriter(_options.InlineUnlabeledDeferFragments);
                 var splitResult = rewriter.Split(operationDefinition, partitioning);
 
-                if (!splitResult.SubPlanDescriptors.IsEmpty)
+                if (!splitResult.IncrementalPlanDescriptors.IsEmpty)
                 {
                     deferSplit = splitResult;
                     mainOperationDefinition = splitResult.MainOperation;
@@ -186,16 +181,8 @@ public sealed partial class OperationPlanner
                         _schema.GetOperationType(mainOperationDefinition.Operation));
             }
 
-            // Route deferred sub-plans BEFORE compiling the root operation.
-            // Routing plans each sub-plan (so we learn its self-fetch
-            // requirements) and inlines those requirements into the root
-            // scope's step list + internal operation definition via the
-            // variable-flow walker. Because compile runs after routing, the
-            // compiled root operation carries every field absorbed for
-            // defer sub-plans; that's load-bearing at runtime because the
-            // composite result document's shape derives from the compiled
-            // operation and a defer's plan-scope variable extraction walks
-            // it to read the parent's produced key.
+            // Prepare incremental plans before the root operation is compiled
+            // so parent-scope requirements are represented in the root plan.
             PlanContextGraph? deferContextGraph = null;
             ImmutableArray<DeferRoutingState> deferRoutingStates = [];
 
@@ -223,9 +210,7 @@ public sealed partial class OperationPlanner
                 internalOperationDefinition = deferContextGraph.RootInternalOperation;
             }
 
-            // Always compile from the planner's internal definition. For
-            // defer, this is the stripped main operation plus every field
-            // the routing pass absorbed from a sub-plan's self-fetch.
+            // Use the latest root operation definition after deferred planning.
             var operation = _operationCompiler.Compile(id, hash, internalOperationDefinition);
 
             if (deferContextGraph is not null)
@@ -1050,9 +1035,8 @@ public sealed partial class OperationPlanner
         PlanQueue possiblePlans,
         Backlog backlog)
     {
-        // Today every in-planner field requirement originates from a concrete plan step.
-        // Deferred sub-plan requirements route through a separate post-planning pass
-        // rather than the main backlog, so the dispatch here remains step-only.
+        // The main planning backlog handles step-owned requirements. Incremental
+        // plan requirements are handled by defer planning.
         if (workItem.Consumer is not StepConsumer stepConsumer)
         {
             return;
@@ -1175,9 +1159,8 @@ public sealed partial class OperationPlanner
         PlanQueue possiblePlans,
         Backlog backlog)
     {
-        // Today every in-planner field requirement originates from a concrete plan step.
-        // Deferred sub-plan requirements route through a separate post-planning pass
-        // rather than the main backlog, so the dispatch here remains step-only.
+        // The main planning backlog handles step-owned requirements. Incremental
+        // plan requirements are handled by defer planning.
         if (workItem.Consumer is not StepConsumer stepConsumer)
         {
             return;

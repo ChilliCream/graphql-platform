@@ -3,19 +3,16 @@ using HotChocolate.Execution;
 namespace HotChocolate.Fusion.Execution.Nodes;
 
 /// <summary>
-/// Represents a usage of the <c>@defer</c> directive. This is the plan-level identity
-/// of a single deferred fragment (what the GraphQL Incremental Delivery spec calls a
-/// "delivery group"). One instance per <c>@defer</c> occurrence in an operation;
-/// instances form a parent chain to model nested defer scopes and are referenced
-/// by identity from <see cref="Selection"/>'s active defer-usage set.
+/// Represents one delivery group introduced by a <c>@defer</c> directive.
+/// Delivery groups form a parent chain for nested deferred fragments and are
+/// referenced by selections when computing active delivery group sets.
 /// </summary>
 /// <param name="Label">
-/// The optional label from <c>@defer(label: "...")</c>, used to identify the deferred
-/// payload in the incremental delivery response.
+/// The optional label from <c>@defer(label: "...")</c>.
 /// </param>
 /// <param name="Parent">
-/// The parent defer usage when this <c>@defer</c> is nested inside another deferred fragment,
-/// or <c>null</c> if this is a top-level defer.
+/// The enclosing delivery group when this <c>@defer</c> is nested inside
+/// another deferred fragment, or <c>null</c> for a top-level defer.
 /// </param>
 /// <param name="DeferConditionIndex">
 /// The index into the <see cref="DeferConditionCollection"/> for the <c>if</c> condition
@@ -28,17 +25,13 @@ public sealed record DeliveryGroup(
     byte DeferConditionIndex)
 {
     /// <summary>
-    /// A plan-stable numeric identifier for this defer usage, assigned when the
-    /// <see cref="OperationPlan"/> is built. Serialized as the delivery group's
-    /// identity and used as the <c>id</c> in <c>pending</c>, <c>incremental</c>,
-    /// and <c>completed</c> entries of the incremental delivery response.
+    /// A plan-stable numeric identifier for this delivery group.
     /// </summary>
     public int Id { get; init; } = -1;
 
     /// <summary>
-    /// The selection path to the object in the response tree whose selection set
-    /// contains this <c>@defer</c>. Used as the <c>path</c> of the corresponding
-    /// <c>pending</c> entry on the wire.
+    /// The selection path to the object whose selection set contains this
+    /// <c>@defer</c>.
     /// </summary>
     public SelectionPath? Path { get; init; }
 

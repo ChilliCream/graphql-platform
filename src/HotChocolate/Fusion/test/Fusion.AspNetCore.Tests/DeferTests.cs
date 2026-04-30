@@ -464,7 +464,7 @@ public class DeferTests : FusionTestBase
 
         // assert
         // The stable-stream snapshot lays out the per-frame timeline (pending /
-        // incremental / completed) so the shared subplan emitting once under the
+        // incremental / completed) so the shared incremental plan emitting once under the
         // best delivery-group id while still completing both groups is visible
         // as a single block.
         await MatchSnapshotAsync(gateway, request, result, stableStream: true);
@@ -883,7 +883,7 @@ public class DeferTests : FusionTestBase
     public async Task Defer_With_Forwarded_Variable_Over_List_Anchor()
     {
         // arrange
-        // Root list anchor so the deferred sub-plan expands across multiple imported
+        // Root list anchor so the deferred incremental plan expands across multiple imported
         // entries. Each expanded entry must carry the forwarded $limit variable.
         using var server1 = CreateSourceSchema(
             "A",

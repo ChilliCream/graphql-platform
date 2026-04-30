@@ -50,8 +50,7 @@ internal abstract class OperationDefinition : IOperationPlanNode
     public OperationSourceText Operation { get; }
 
     /// <summary>
-    /// Gets the xxhash64 of the operation source text. Precomputed during
-    /// construction for use as a cache key by connectors.
+    /// Gets the xxhash64 of the operation source text.
     /// </summary>
     public ulong OperationHash => _operationHash;
 
@@ -97,10 +96,8 @@ internal abstract class OperationDefinition : IOperationPlanNode
     public bool RequiresFileUpload { get; }
 
     /// <summary>
-    /// Gets the identifiers of steps in the enclosing parent plan scope that
-    /// this operation definition depends on. Used by deferred sub-plan nodes
-    /// to reference steps that live in the parent plan rather than the
-    /// sub-plan itself.
+    /// Gets the identifiers of steps in the parent plan scope that must
+    /// complete before this operation definition can run.
     /// </summary>
     public ReadOnlySpan<int> ParentDependencies => _parentDependencies.AsSpan(0, _parentDependencyCount);
 

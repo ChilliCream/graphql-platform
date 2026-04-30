@@ -6,11 +6,9 @@ using HotChocolate.Language;
 namespace HotChocolate.Fusion.Planning;
 
 /// <summary>
-/// Describes a single incremental plan: the compiled operation for a unique
-/// <see cref="DeliveryGroup"/> set together with the set itself (sorted by
-/// <see cref="DeliveryGroup.Id"/> for stability). Fields whose active delivery
-/// group set equals <see cref="DeliveryGroupSet"/> are fetched by this plan and
-/// delivered to every delivery group in the set.
+/// Describes an incremental plan operation and the delivery group set that keys
+/// it. Fields whose effective delivery group set equals
+/// <see cref="DeliveryGroupSet"/> belong to this plan.
 /// </summary>
 internal sealed class IncrementalPlanDescriptor(
     ImmutableArray<DeliveryGroup> deliveryGroupSet,
@@ -25,32 +23,25 @@ internal sealed class IncrementalPlanDescriptor(
     public ImmutableArray<DeliveryGroup> DeliveryGroupSet { get; } = deliveryGroupSet;
 
     /// <summary>
-    /// The compiled operation for this incremental plan.
+    /// The operation definition for this incremental plan.
     /// </summary>
     public OperationDefinitionNode Operation { get; internal set; } = operation;
 
     /// <summary>
-    /// The path where the incremental plan's data is inserted in the response tree.
-    /// Derived from the deepest <see cref="DeliveryGroup.Path"/> in the set.
+    /// The anchor path for this incremental plan.
     /// </summary>
     public SelectionPath Path { get; } = path;
 
     /// <summary>
     /// The parent incremental plan for nested <c>@defer</c>, or <c>null</c>
-    /// for a top-level incremental plan. Determined by walking each set
-    /// member's <see cref="DeliveryGroup.Parent"/> chain and finding the first
-    /// already-emitted plan whose set contains a matching ancestor.
+    /// for a top-level incremental plan.
     /// </summary>
     public IncrementalPlanDescriptor? Parent { get; } = parent;
 
     /// <summary>
-    /// Plan-scope requirements this incremental plan sources from the parent
-    /// plan's variable flow. Populated by the parent plan's requirement system
-    /// during parent planning so that the parent plan produces every value
-    /// the incremental plan needs before it executes. A resolved entry maps
-    /// a variable name used inside the incremental plan to a selection in the
-    /// parent plan's result tree. Keyed by requirement name to dedup across groups
-    /// that share the same requirement.
+    /// Requirements this incremental plan resolves from its enclosing plan
+    /// scope. Each entry maps a variable used by this plan to a selection in
+    /// the enclosing scope's result. Entries are keyed by requirement name.
     /// </summary>
     public SortedDictionary<string, OperationRequirement> Requirements { get; } =
         new(StringComparer.Ordinal);

@@ -360,7 +360,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
         }
 
         return new InvalidOperationException(
-            "A deferred sub-plan fetch references a mix of imported parent-sourced and local "
+            "A deferred incremental plan fetch references a mix of imported parent-sourced and local "
             + "requirement keys. The planner is expected to keep these scopes separate so that "
             + "each fetch sources its requirements from a single scope. Imported parent keys: ["
             + string.Join(", ", imported)
@@ -390,15 +390,9 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     }
 
     /// <summary>
-    /// Installs a pre-resolved plan-scope variable snapshot on this context.
-    /// Called exclusively by the executor when launching a deferred sub-plan,
-    /// after the executor has resolved the sub-plan's parent-sourced
-    /// requirements against the enclosing plan's result store. The raw values
-    /// are imported into this context's own store, so after the call this
-    /// context holds no reference to the parent store: the parent plan is
-    /// free to complete and dispose independently. A non-defer context never
-    /// has this called, so the snapshot remains empty and all requirement
-    /// resolution routes through the own store.
+    /// Sets parent-scope requirement values for this context. Values are copied
+    /// into this context and can be resolved without accessing the enclosing
+    /// plan scope.
     /// </summary>
     internal void SetRequirements(
         ImmutableArray<VariableValues> parentValues,
@@ -416,22 +410,14 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     }
 
     /// <summary>
-    /// Returns this context's result store so the executor can read pending
-    /// plan-scope requirement values from it when launching a deferred
-    /// sub-plan. Only the executor calls this, and only on contexts playing
-    /// the parent role (the root plan's context for a top-level defer, or an
-    /// enclosing sub-plan's context for a nested defer). The child sub-plan's
-    /// own code never invokes this and has no pathway back to a parent store
-    /// once <see cref="SetRequirements"/> has copied the values in.
+    /// Gets the result store used to resolve requirements for child
+    /// incremental plans.
     /// </summary>
     internal FetchResultStore GetResultStoreForChildDefer() => _resultStore;
 
     /// <summary>
-    /// Transfers ownership of the result store's retained memory owners to
-    /// the supplied <see cref="OperationResult"/>. Used when a defer-capable
-    /// plan ends up with no active deferred sub-plans: in that case the
-    /// retained backing memory must ride on the returned result's cleanup
-    /// chain so it survives beyond the context's return to the pool.
+    /// Transfers retained result resources to the supplied
+    /// <see cref="OperationResult"/>.
     /// </summary>
     internal void TransferRetainedMemoryTo(OperationResult operationResult)
     {
@@ -594,14 +580,9 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
 
         var resultDocument = _resultStore.Result;
 
-        // When this completion drives a deferred stream, deferred sub-plans
-        // read the composite result document well after the initial payload
-        // has been written and disposed by the transport layer. Omitting the
-        // memory holder keeps ownership of the backing document on the store
-        // so it survives until the context itself is returned to the pool
-        // at stream close. Retained memory is transferred to the returned
-        // result later via TransferRetainedMemoryTo when no defers end up
-        // being active.
+        // Deferred responses keep result resources available for incremental
+        // plans. If no delivery groups remain active, ownership is transferred
+        // to the completed result.
         var operationResult = new OperationResult(
             new OperationResultData(
                 resultDocument,

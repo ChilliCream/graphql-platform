@@ -718,7 +718,7 @@ AddErrors_Next:
             if (!importedKeys.Contains(requirement.Key))
             {
                 throw new InvalidOperationException(
-                    "A deferred sub-plan fetch references a requirement that was not imported.");
+                    "A deferred incremental plan fetch references a requirement that was not imported.");
             }
         }
 
@@ -794,14 +794,14 @@ AddErrors_Next:
 
             if (currentCount == 0)
             {
-                // Store potentially grown arrays back.
+                // Update collection state.
                 _collectTargetA = current;
                 _collectTargetB = next;
                 return [];
             }
         }
 
-        // Store potentially grown arrays back.
+        // Update collection state.
         _collectTargetA = current;
         _collectTargetB = next;
         return current.AsSpan(0, currentCount);
@@ -1578,12 +1578,7 @@ AddErrors_Next:
     }
 
     /// <summary>
-    /// Copies variable value sets produced by another <see cref="FetchResultStore"/>
-    /// into this store's writer and path pool, then initializes the child-store
-    /// containers needed to reach imported list-anchor paths. Used by deferred
-    /// sub-plans: plan-scope requirement values are resolved once against the
-    /// parent store at sub-plan creation time, materialized here, and consumed
-    /// without any dependency on the parent store's lifetime.
+    /// Imports variable value sets into this store for a child incremental plan.
     /// </summary>
     internal ImmutableArray<VariableValues> ImportVariableValues(
         ImmutableArray<VariableValues> source)
@@ -1915,10 +1910,7 @@ AddErrors_Next:
 
         lock (_lock)
         {
-            // Collect the maximum array index required for each distinct list container
-            // slot. Key = cursor index of the container element (unique in the meta-db).
-            // In practice there is at most one distinct list container per sub-plan
-            // because all requirements must originate from a single anchor.
+            // Track list containers that need imported elements.
             Dictionary<int, (CompositeResultElement Container, int MaxIndex)>? containers = null;
 
             foreach (var entry in importedValues)

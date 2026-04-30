@@ -6,9 +6,9 @@ namespace HotChocolate.Fusion.Planning;
 
 /// <summary>
 /// The result of splitting an operation at @defer boundaries: a stripped
-/// main operation plus one subplan descriptor per unique
+/// main operation plus one incremental plan descriptor per unique
 /// <see cref="DeliveryGroup"/> set.
 /// </summary>
 internal readonly record struct DeferSplitResult(
     OperationDefinitionNode MainOperation,
-    ImmutableArray<IncrementalPlanDescriptor> SubPlanDescriptors);
+    ImmutableArray<IncrementalPlanDescriptor> IncrementalPlanDescriptors);

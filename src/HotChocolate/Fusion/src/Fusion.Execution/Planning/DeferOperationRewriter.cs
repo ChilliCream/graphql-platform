@@ -7,14 +7,10 @@ using HotChocolate.Types;
 namespace HotChocolate.Fusion.Planning;
 
 /// <summary>
-/// Splits an operation with <c>@defer</c> directives into a main operation
-/// (non-deferred fields only) and one incremental plan operation per unique
-/// <see cref="DeliveryGroup"/> set. The set keying follows the GraphQL
-/// incremental-delivery spec: each field's active defer usage set is the
-/// union of its per-occurrence enclosing <c>@defer</c> leaves (with
-/// parent-child pruning). Two sibling <c>... @defer</c> fragments that share
-/// a field therefore produce one incremental plan keyed by both usages for
-/// the shared field, rather than two independent plans that both fetch it.
+/// Splits an operation with <c>@defer</c> directives into a main operation and
+/// incremental plan operations keyed by effective delivery group sets.
+/// Fields shared by sibling deferred fragments belong to one incremental plan
+/// keyed by the delivery groups that apply to that field.
 /// </summary>
 internal sealed class DeferOperationRewriter
 {
@@ -26,8 +22,7 @@ internal sealed class DeferOperationRewriter
     }
 
     /// <summary>
-    /// Fast check whether the operation contains any <c>@defer</c> directives.
-    /// Used to avoid the full split for non-deferred operations (the common case).
+    /// Determines whether the operation contains any <c>@defer</c> directives.
     /// </summary>
     public static bool HasDeferDirective(OperationDefinitionNode operation)
     {
@@ -89,11 +84,10 @@ internal sealed class DeferOperationRewriter
     /// <summary>
     /// Splits the given operation at <c>@defer</c> boundaries using the
     /// <see cref="DeliveryGroup"/> topology produced by
-    /// <see cref="DeferPartitioner"/>. The output contains the stripped main
-    /// operation (fields whose active <c>DeliveryGroupSet</c> is empty) plus
-    /// one incremental plan per unique non-empty active set. Sibling
-    /// <c>@defer</c> fragments that share a field collapse into a single
-    /// incremental plan keyed by the union of both usages.
+    /// <see cref="DeferPartitioner"/>. The output contains the main operation
+    /// plus incremental plan operations for deferred delivery group sets.
+    /// Sibling <c>@defer</c> fragments that share a field collapse into a
+    /// single incremental plan keyed by the groups that apply to that field.
     /// </summary>
     /// <param name="operation">The operation definition that may contain @defer directives.</param>
     /// <param name="partitioning">The <see cref="DeferPartitioner"/> output for <paramref name="operation"/>.</param>
@@ -118,21 +112,19 @@ internal sealed class DeferOperationRewriter
             return new DeferSplitResult(mainOperation, []);
         }
 
-        var subPlanDescriptors = BuildSubPlanOps(operation, occurrences, effectiveSetByLocation);
+        var incrementalPlanDescriptors = BuildIncrementalPlanOperations(operation, occurrences, effectiveSetByLocation);
 
-        return new DeferSplitResult(mainOperation, subPlanDescriptors);
+        return new DeferSplitResult(mainOperation, incrementalPlanDescriptors);
     }
 
-    private static ImmutableArray<IncrementalPlanDescriptor> BuildSubPlanOps(
+    private static ImmutableArray<IncrementalPlanDescriptor> BuildIncrementalPlanOperations(
         OperationDefinitionNode operation,
         List<FieldOccurrence> occurrences,
         Dictionary<FieldLocation, DeliveryGroupSetKey> effectiveSetByLocation)
     {
-        // Bucket occurrences by effective set. We use a canonical
-        // ImmutableArray<DeliveryGroup> (sorted by Id) as the set key so the
-        // resulting buckets are stable across runs and trivially comparable
-        // by sequence equality.
-        var buckets = new Dictionary<DeliveryGroupSetKey, SubPlanBucket>();
+        // Bucket occurrences by effective delivery group set. The key is sorted
+        // by DeliveryGroup Id so the order is stable.
+        var buckets = new Dictionary<DeliveryGroupSetKey, IncrementalPlanBucket>();
 
         foreach (var occurrence in occurrences)
         {
@@ -145,7 +137,7 @@ internal sealed class DeferOperationRewriter
 
             if (!buckets.TryGetValue(key, out var bucket))
             {
-                bucket = new SubPlanBucket(key);
+                bucket = new IncrementalPlanBucket(key);
                 buckets[key] = bucket;
             }
 
@@ -160,30 +152,30 @@ internal sealed class DeferOperationRewriter
         // Synthesize one OperationDefinitionNode per bucket. The output is a
         // query operation rooted at Query, with the wrapping path fields
         // looked up in the original AST so arguments, aliases and directives
-        // are preserved. Buckets are ordered by the smallest DeliveryGroup Id in
-        // the key so subsequent sort-by-Id consumers see a deterministic order.
+        // are preserved. Buckets are ordered by DeliveryGroup Id for stable
+        // output.
         var ordered = buckets.Values.ToList();
         ordered.Sort(static (a, b) => a.Key.CompareTo(b.Key));
 
-        var subPlanDescriptors = ImmutableArray.CreateBuilder<IncrementalPlanDescriptor>(ordered.Count);
+        var incrementalPlanDescriptors = ImmutableArray.CreateBuilder<IncrementalPlanDescriptor>(ordered.Count);
         var descriptorByKey = new Dictionary<DeliveryGroupSetKey, IncrementalPlanDescriptor>(ordered.Count);
 
         foreach (var bucket in ordered)
         {
-            var subPlanOp = BuildSubPlanOperation(operation, bucket);
+            var incrementalPlanOperation = BuildIncrementalPlanOperation(operation, bucket);
             var path = DeterminePath(bucket.Key);
             var parent = ResolveParentDescriptor(bucket.Key, descriptorByKey);
             var descriptor = new IncrementalPlanDescriptor(
                 deliveryGroupSet: bucket.Key.Items,
-                operation: subPlanOp,
+                operation: incrementalPlanOperation,
                 path: path,
                 parent: parent);
 
             descriptorByKey[bucket.Key] = descriptor;
-            subPlanDescriptors.Add(descriptor);
+            incrementalPlanDescriptors.Add(descriptor);
         }
 
-        return subPlanDescriptors.ToImmutable();
+        return incrementalPlanDescriptors.ToImmutable();
     }
 
     private OperationDefinitionNode BuildMainOperation(
@@ -284,9 +276,9 @@ internal sealed class DeferOperationRewriter
         return new SelectionSetNode(selections);
     }
 
-    private static OperationDefinitionNode BuildSubPlanOperation(
+    private static OperationDefinitionNode BuildIncrementalPlanOperation(
         OperationDefinitionNode rootOperation,
-        SubPlanBucket bucket)
+        IncrementalPlanBucket bucket)
     {
         // Build a tree of PathNodes keyed by FieldPathSegment. Each leaf
         // carries the FieldNodes (per optional type condition) contributed
@@ -545,7 +537,7 @@ internal sealed class DeferOperationRewriter
         return false;
     }
 
-    private sealed class SubPlanBucket(DeliveryGroupSetKey key)
+    private sealed class IncrementalPlanBucket(DeliveryGroupSetKey key)
     {
         public DeliveryGroupSetKey Key { get; } = key;
         public List<FieldOccurrence> Occurrences { get; } = [];

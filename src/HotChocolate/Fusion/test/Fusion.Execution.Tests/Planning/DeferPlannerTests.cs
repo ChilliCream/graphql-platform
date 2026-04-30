@@ -49,8 +49,8 @@ public class DeferPlannerTests : FusionTestBase
         // assert
         Assert.Single(plan.IncrementalPlans);
 
-        var subPlan = plan.IncrementalPlans[0];
-        var group = subPlan.DeliveryGroups[0];
+        var incrementalPlan = plan.IncrementalPlans[0];
+        var group = incrementalPlan.DeliveryGroups[0];
         Assert.Equal(0, group.Id);
         Assert.Null(group.Label);
         Assert.Equal("$.user", group.Path!.ToString());
@@ -111,12 +111,12 @@ public class DeferPlannerTests : FusionTestBase
         // assert
         Assert.Equal(2, plan.IncrementalPlans.Length);
 
-        var emailSubPlan = plan.IncrementalPlans.First(s => s.DeliveryGroups[0].Label == "emailDefer");
-        var bioSubPlan = plan.IncrementalPlans.First(s => s.DeliveryGroups[0].Label == "bioDefer");
+        var emailIncrementalPlan = plan.IncrementalPlans.First(s => s.DeliveryGroups[0].Label == "emailDefer");
+        var bioIncrementalPlan = plan.IncrementalPlans.First(s => s.DeliveryGroups[0].Label == "bioDefer");
 
-        Assert.NotNull(emailSubPlan);
-        Assert.NotNull(bioSubPlan);
-        Assert.NotEqual(emailSubPlan.DeliveryGroups[0].Id, bioSubPlan.DeliveryGroups[0].Id);
+        Assert.NotNull(emailIncrementalPlan);
+        Assert.NotNull(bioIncrementalPlan);
+        Assert.NotEqual(emailIncrementalPlan.DeliveryGroups[0].Id, bioIncrementalPlan.DeliveryGroups[0].Id);
     }
 
     [Fact]
@@ -350,11 +350,11 @@ public class DeferPlannerTests : FusionTestBase
         Assert.NotEmpty(plan.RootNodes);
         Assert.NotEmpty(plan.AllNodes);
 
-        // The deferred subplan should also have its own execution nodes
-        var subPlan = plan.IncrementalPlans[0];
-        Assert.False(subPlan.RootNodes.IsEmpty);
-        Assert.False(subPlan.AllNodes.IsEmpty);
-        Assert.Null(subPlan.DeliveryGroups[0].Parent);
+        // The deferred incremental plan should also have its own execution nodes
+        var incrementalPlan = plan.IncrementalPlans[0];
+        Assert.False(incrementalPlan.RootNodes.IsEmpty);
+        Assert.False(incrementalPlan.AllNodes.IsEmpty);
+        Assert.Null(incrementalPlan.DeliveryGroups[0].Parent);
     }
 
     [Fact]
@@ -604,16 +604,16 @@ public class DeferPlannerTests : FusionTestBase
             """);
 
         Assert.Equal(2, planBothActive.IncrementalPlans.Length);
-        var outerSubPlan = planBothActive.IncrementalPlans
+        var outerIncrementalPlan = planBothActive.IncrementalPlans
             .First(s => s.DeliveryGroups.Any(g => g.Label == "outer"));
-        var innerSubPlan = planBothActive.IncrementalPlans
+        var innerIncrementalPlan = planBothActive.IncrementalPlans
             .First(s => s.DeliveryGroups.Any(g => g.Label == "inner"));
-        Assert.Single(outerSubPlan.DeliveryGroups, g => g.Label == "outer");
-        Assert.Single(innerSubPlan.DeliveryGroups, g => g.Label == "inner");
-        Assert.Null(outerSubPlan.DeliveryGroups[0].Parent);
-        var innerParent = innerSubPlan.DeliveryGroups[0].Parent;
+        Assert.Single(outerIncrementalPlan.DeliveryGroups, g => g.Label == "outer");
+        Assert.Single(innerIncrementalPlan.DeliveryGroups, g => g.Label == "inner");
+        Assert.Null(outerIncrementalPlan.DeliveryGroups[0].Parent);
+        var innerParent = innerIncrementalPlan.DeliveryGroups[0].Parent;
         Assert.NotNull(innerParent);
-        Assert.Equal(outerSubPlan.DeliveryGroups[0].Id, innerParent.Id);
+        Assert.Equal(outerIncrementalPlan.DeliveryGroups[0].Id, innerParent.Id);
 
         // act + assert: a=true, b=false (inner inactive, its address collapses into outer)
         var planInnerInactive = PlanOperation(
@@ -660,7 +660,7 @@ public class DeferPlannerTests : FusionTestBase
         Assert.Equal("inner", innerOnly.DeliveryGroups[0].Label);
         Assert.Null(innerOnly.DeliveryGroups[0].Parent);
 
-        // act + assert: a=false, b=false (both inactive, no subplans)
+        // act + assert: a=false, b=false (both inactive, no incremental plans)
         var planBothInactive = PlanOperation(
             schema,
             """
@@ -729,9 +729,9 @@ public class DeferPlannerTests : FusionTestBase
         // assert
         Assert.Single(plan.IncrementalPlans);
 
-        var subPlan = plan.IncrementalPlans[0];
-        Assert.False(subPlan.RootNodes.IsEmpty);
-        Assert.False(subPlan.AllNodes.IsEmpty);
+        var incrementalPlan = plan.IncrementalPlans[0];
+        Assert.False(incrementalPlan.RootNodes.IsEmpty);
+        Assert.False(incrementalPlan.AllNodes.IsEmpty);
     }
 
     [Fact]
@@ -836,7 +836,7 @@ public class DeferPlannerTests : FusionTestBase
         // arrange
         // Parent plan only hits schema `a` for `product.name`. The defer
         // group wants `reviews` on schema `c`, which requires `productSku`.
-        // `productSku` is only exposed by schema `b`, so the defer's sub-plan
+        // `productSku` is only exposed by schema `b`, so the defer's incremental plan
         // would otherwise self-fetch twice: once for `id` on `a`, once for
         // `productSku` on `b`. Because schema `b` is reachable from the
         // parent scope only through a cross-subgraph hop, the hoist must
@@ -915,9 +915,9 @@ public class DeferPlannerTests : FusionTestBase
         // also requiring `id`. The inner requirement is reachable from the
         // outer defer's result tree (both select the same `User` at `$.user`).
         // The current hoist only persists parent-step mutations when the
-        // enclosing scope is the root plan, so the outer sub-plan hoists `id`
+        // enclosing scope is the root plan, so the outer incremental plan hoists `id`
         // into the root op (one self-fetch eliminated) while the inner
-        // sub-plan falls back to its own local self-fetch. The runtime's
+        // incremental plan falls back to its own local self-fetch. The runtime's
         // try-parent-fall-back-to-own variable resolution (Step 8) consumes
         // that local fetch. This snapshot locks in the current planner
         // behavior and serves as the regression fixture for any future
@@ -1230,7 +1230,7 @@ public class DeferPlannerTests : FusionTestBase
     }
 
     [Fact(Skip = "Natural schemas do not reach the unsatisfiable-requirement throw. "
-        + "If the defer's sub-plan planner produced a self-fetch, that self-fetch is "
+        + "If the defer's incremental plan planner produced a self-fetch, that self-fetch is "
         + "an existence proof that the required value is reachable from some subgraph, "
         + "and the parent's planning machinery (same-subgraph injection or cross-subgraph "
         + "promote) can route to the same subgraph. Every attempt to construct an "
@@ -1244,7 +1244,7 @@ public class DeferPlannerTests : FusionTestBase
         // arrange
         // No schema construction produced the throw. The plan's Phase 1
         // invariant is that the throw is logically unreachable for any
-        // schema whose defer sub-plan succeeds at plan time.
+        // schema whose deferred incremental plan succeeds at plan time.
         Assert.True(true);
     }
 
@@ -1291,8 +1291,8 @@ public class DeferPlannerTests : FusionTestBase
             """);
 
         // assert
-        var subPlan = plan.IncrementalPlans[0];
-        Assert.Equal(subPlan.AllNodes.Max(n => n.Id), subPlan.MaxNodeId);
+        var incrementalPlan = plan.IncrementalPlans[0];
+        Assert.Equal(incrementalPlan.AllNodes.Max(n => n.Id), incrementalPlan.MaxNodeId);
     }
 
     [Fact]
@@ -1351,7 +1351,7 @@ public class DeferPlannerTests : FusionTestBase
     public void Defer_SingleAnchor_Should_Keep_NodeRequirements_AllImported_Or_AllLocal()
     {
         // arrange
-        // Single defer over a key handoff: the sub-plan's downstream node depends on
+        // Single defer over a key handoff: the incremental plan's downstream node depends on
         // a parent-scope step for the user id and has no plan-internal predecessors.
         var schema = ComposeSchema(
             """
@@ -1400,9 +1400,9 @@ public class DeferPlannerTests : FusionTestBase
     {
         // arrange
         // Nested defer with a cross-subgraph requirement that the planner promotes
-        // into the outer defer scope. Each inner sub-plan node either lifts its
+        // into the outer defer scope. Each inner incremental plan node either lifts its
         // requirements through ParentDependencies or resolves them through a
-        // sibling step in the same sub-plan, never both at once.
+        // sibling step in the same incremental plan, never both at once.
         var schema = ComposeSchema(
             """
             # name: a
@@ -1476,9 +1476,9 @@ public class DeferPlannerTests : FusionTestBase
     public void Defer_StepInternalPredecessor_Should_Keep_NodeRequirements_AllImported_Or_AllLocal()
     {
         // arrange
-        // The sub-plan needs an extra hop on schema c to fetch a value that another
-        // sub-plan node consumes via @require. The chained downstream node has only
-        // sub-plan-internal predecessors and so must route through the local store
+        // The incremental plan needs an extra hop on schema c to fetch a value that another
+        // incremental plan node consumes via @require. The chained downstream node has only
+        // incremental plan-internal predecessors and so must route through the local store
         // path, not the imported snapshot path.
         var schema = ComposeSchema(
             """
@@ -1557,22 +1557,22 @@ public class DeferPlannerTests : FusionTestBase
     /// </summary>
     private static void AssertNoMixedRequirementScope(OperationPlan plan)
     {
-        foreach (var subPlan in plan.IncrementalPlans)
+        foreach (var incrementalPlan in plan.IncrementalPlans)
         {
-            var importedKeys = ComputeImportedKeys(subPlan);
+            var importedKeys = ComputeImportedKeys(incrementalPlan);
 
-            foreach (var node in subPlan.AllNodes)
+            foreach (var node in incrementalPlan.AllNodes)
             {
                 switch (node)
                 {
                     case OperationExecutionNode operationNode:
-                        AssertScopeIsUniform(operationNode.Requirements, importedKeys, subPlan, operationNode.Id);
+                        AssertScopeIsUniform(operationNode.Requirements, importedKeys, incrementalPlan, operationNode.Id);
                         break;
 
                     case OperationBatchExecutionNode batchNode:
                         foreach (var op in batchNode.Operations)
                         {
-                            AssertScopeIsUniform(op.Requirements, importedKeys, subPlan, op.Id);
+                            AssertScopeIsUniform(op.Requirements, importedKeys, incrementalPlan, op.Id);
                         }
                         break;
                 }
@@ -1580,11 +1580,11 @@ public class DeferPlannerTests : FusionTestBase
         }
     }
 
-    private static HashSet<string> ComputeImportedKeys(IncrementalPlan subPlan)
+    private static HashSet<string> ComputeImportedKeys(IncrementalPlan incrementalPlan)
     {
         var keys = new HashSet<string>(StringComparer.Ordinal);
 
-        foreach (var node in subPlan.AllNodes)
+        foreach (var node in incrementalPlan.AllNodes)
         {
             switch (node)
             {
@@ -1620,7 +1620,7 @@ public class DeferPlannerTests : FusionTestBase
     private static void AssertScopeIsUniform(
         ReadOnlySpan<OperationRequirement> requirements,
         HashSet<string> importedKeys,
-        IncrementalPlan subPlan,
+        IncrementalPlan incrementalPlan,
         int nodeId)
     {
         if (requirements.Length == 0)
@@ -1656,7 +1656,7 @@ public class DeferPlannerTests : FusionTestBase
             }
 
             Assert.Fail(
-                $"Sub-plan '{subPlan.Id}' node {nodeId} has a requirement span that mixes "
+                $"Incremental plan '{incrementalPlan.Id}' node {nodeId} has a requirement span that mixes "
                 + $"imported parent-sourced keys [{string.Join(", ", imported)}] with local keys "
                 + $"[{string.Join(", ", local)}]. The runtime variable routing layer assumes "
                 + "every node's requirements are either all imported or all local.");

@@ -3,31 +3,22 @@ using System.Collections.Immutable;
 namespace HotChocolate.Fusion.Execution.Nodes;
 
 /// <summary>
-/// Represents the shared executor contract exposed by both root operation plans
-/// and incremental execution subplans. Consumers in the executor pipeline (context
-/// pooling, plan iteration, incremental delivery) depend only on this surface;
-/// plan-specific metrics and subplan-specific state remain on the concrete types.
+/// Represents the common contract for operation plans.
 /// </summary>
 public interface IOperationPlan
 {
     /// <summary>
-    /// Gets the unique identifier for this plan. The root plan's id is assigned by
-    /// the planner (for example, <c>"main"</c> or a content-addressed hash), while
-    /// a subplan's id is derived from its parent plan's id.
+    /// Gets the unique identifier for this plan.
     /// </summary>
     string Id { get; }
 
     /// <summary>
-    /// Gets the GraphQL operation associated with this plan. For the root plan this
-    /// is the incoming operation; for a subplan this is the compiled operation used
-    /// for the subplan's result mapping.
+    /// Gets the GraphQL operation associated with this plan.
     /// </summary>
     Operation Operation { get; }
 
     /// <summary>
-    /// Gets the root execution nodes that serve as entry points for this plan. On
-    /// the root plan these are the entry nodes of the full operation; on a subplan
-    /// these are the subplan's own entry nodes.
+    /// Gets the root execution nodes that serve as entry points for this plan.
     /// </summary>
     ImmutableArray<ExecutionNode> RootNodes { get; }
 
@@ -45,24 +36,23 @@ public interface IOperationPlan
     ImmutableArray<DeliveryGroup> DeliveryGroups { get; }
 
     /// <summary>
-    /// Gets the incremental execution subplans emitted for this plan. Populated on the
-    /// root plan, empty on a subplan (subplans do not nest at the plan level; nesting
-    /// is modeled via <see cref="DeliveryGroup.Parent"/> on delivery groups).
+    /// Gets the incremental plans associated with this plan.
     /// </summary>
     ImmutableArray<IncrementalPlan> IncrementalPlans { get; }
 
     /// <summary>
-    /// Gets the maximum <see cref="ExecutionNode.Id"/> across all nodes in this
-    /// plan. Used by the executor's context pooling to size per-invocation node
-    /// arrays without reallocation.
+    /// Gets the highest plan node identifier that can be resolved by this plan.
     /// </summary>
     int MaxNodeId { get; }
 
     /// <summary>
-    /// Retrieves an execution node by its unique identifier within this plan.
+    /// Retrieves the execution node associated with a plan node identifier.
     /// </summary>
-    /// <param name="id">The unique identifier of the execution node.</param>
-    /// <returns>The execution node with the specified identifier.</returns>
+    /// <param name="id">
+    /// The identifier of an execution node, or of an operation definition inside
+    /// a batch.
+    /// </param>
+    /// <returns>The execution node associated with the specified identifier.</returns>
     ExecutionNode GetNodeById(int id);
 
     /// <summary>

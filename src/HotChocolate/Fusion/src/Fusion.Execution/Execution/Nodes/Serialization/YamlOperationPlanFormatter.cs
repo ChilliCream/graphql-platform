@@ -49,9 +49,9 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.WriteLine("incrementalPlans:");
             writer.Indent();
 
-            foreach (var subPlan in plan.IncrementalPlans)
+            foreach (var incrementalPlan in plan.IncrementalPlans)
             {
-                WriteIncrementalPlan(subPlan, writer);
+                WriteIncrementalPlan(incrementalPlan, writer);
             }
 
             writer.Unindent();
@@ -107,32 +107,32 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         writer.Unindent();
     }
 
-    private static void WriteIncrementalPlan(IncrementalPlan subPlan, CodeWriter writer)
+    private static void WriteIncrementalPlan(IncrementalPlan incrementalPlan, CodeWriter writer)
     {
         writer.WriteLine("- deliveryGroupIds:");
         writer.Indent();
         writer.Indent();
 
-        foreach (var deliveryGroup in subPlan.DeliveryGroups)
+        foreach (var deliveryGroup in incrementalPlan.DeliveryGroups)
         {
             writer.WriteLine("- {0}", deliveryGroup.Id);
         }
 
         writer.Unindent();
 
-        writer.WriteLine("parentNodeId: {0}", subPlan.ParentNodeId);
+        writer.WriteLine("parentNodeId: {0}", incrementalPlan.ParentNodeId);
 
-        if (!subPlan.Requirements.IsDefaultOrEmpty)
+        if (!incrementalPlan.Requirements.IsDefaultOrEmpty)
         {
-            WriteRequirements(subPlan.Requirements.AsSpan(), writer);
+            WriteRequirements(incrementalPlan.Requirements.AsSpan(), writer);
         }
 
-        if (!subPlan.AllNodes.IsDefaultOrEmpty)
+        if (!incrementalPlan.AllNodes.IsDefaultOrEmpty)
         {
             writer.WriteLine("nodes:");
             writer.Indent();
 
-            foreach (var node in subPlan.AllNodes)
+            foreach (var node in incrementalPlan.AllNodes)
             {
                 WriteNode(node, nodeTrace: null, writer);
             }

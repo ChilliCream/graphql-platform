@@ -56,7 +56,7 @@ public class VariableMergingBenchmark
 
         // The "source" store mints VariableValues entries that the snapshot
         // merge consumes as imported parent rows. A separate store mirrors how
-        // a deferred sub-plan imports values from its parent before resolving.
+        // a deferred incremental plan imports values from its parent before resolving.
         var source = new FetchResultStore();
 
         _singleEntrySnapshot =

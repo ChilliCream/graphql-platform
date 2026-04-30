@@ -28,7 +28,7 @@ public sealed class Selection : ISelection
         ulong[] includeFlags,
         bool isInternal,
         ulong deferMask = 0,
-        DeliveryGroup[]? deferUsages = null)
+        DeliveryGroup[]? deliveryGroups = null)
     {
         ArgumentNullException.ThrowIfNull(field);
 
@@ -45,7 +45,7 @@ public sealed class Selection : ISelection
         _syntaxNodes = syntaxNodes;
         _includeFlags = includeFlags;
         _deferMask = deferMask;
-        _deliveryGroups = deferUsages ?? s_emptyDeliveryGroups;
+        _deliveryGroups = deliveryGroups ?? s_emptyDeliveryGroups;
         _flags = isInternal ? Flags.Internal : Flags.None;
 
         if (field.Type.NamedType().IsLeafType())
@@ -195,11 +195,10 @@ public sealed class Selection : ISelection
     public bool IsDeferred(ulong deferFlags) => (_deferMask & deferFlags) != 0;
 
     /// <summary>
-    /// Returns the active defer usages for this selection given the runtime
-    /// <paramref name="deferFlags"/>, after resolving inactive defers to their
-    /// nearest active ancestor and applying parent-child pruning (ancestors win).
-    /// Returns <c>null</c> when any occurrence of the field falls outside an
-    /// active defer chain (meaning the field belongs in the initial response).
+    /// Returns the active delivery groups for this selection after resolving
+    /// each occurrence to its nearest active ancestor and pruning child groups
+    /// whose parent is also active. Returns <c>null</c> when the selection
+    /// belongs to the initial result.
     /// </summary>
     public DeliveryGroup[]? GetActiveDeliveryGroups(ulong deferFlags)
     {
@@ -290,10 +289,10 @@ nextItem:
     }
 
     /// <summary>
-    /// Determines whether <paramref name="target"/> is among this selection's
-    /// active defer usages under the runtime <paramref name="deferFlags"/>
-    /// (using the same parent-chain walk and parent-child pruning as
-    /// <see cref="GetActiveDeliveryGroups(ulong)"/>).
+    /// Determines whether <paramref name="target"/> is the nearest active
+    /// delivery group for any occurrence of this selection under the specified
+    /// <paramref name="deferFlags"/>. Returns <c>false</c> if any occurrence
+    /// belongs to the initial result.
     /// </summary>
     public bool HasActiveDeliveryGroup(ulong deferFlags, DeliveryGroup target)
     {
@@ -323,24 +322,21 @@ nextItem:
         return found;
     }
 
-    // Walks up the @defer parent chain and returns the first one that is
-    // actually turned on for this request (its bit in deferFlags is set).
-    // A nested @defer whose own `if:` is false falls back to its enclosing
-    // @defer. If none on the chain are active, returns null, meaning the
-    // field is not deferred at this occurrence.
+    // Returns the nearest active delivery group in the @defer parent chain.
+    // If none are active, the field occurrence belongs to the initial result.
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static DeliveryGroup? ResolveActiveAncestor(DeliveryGroup start, ulong deferFlags)
     {
-        var usage = start;
+        var deliveryGroup = start;
 
-        while (usage is not null)
+        while (deliveryGroup is not null)
         {
-            if ((deferFlags & (1UL << usage.DeferConditionIndex)) != 0)
+            if ((deferFlags & (1UL << deliveryGroup.DeferConditionIndex)) != 0)
             {
-                return usage;
+                return deliveryGroup;
             }
 
-            usage = usage.Parent;
+            deliveryGroup = deliveryGroup.Parent;
         }
 
         return null;

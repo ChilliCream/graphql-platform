@@ -1,10 +1,7 @@
 namespace HotChocolate.Fusion.Planning;
 
 /// <summary>
-/// Identifies a dependency on a step that lives in an enclosing plan scope,
-/// for example a deferred sub-plan step that depends on a step in its parent
-/// plan. The referenced step is not part of the same plan scope as the step
-/// declaring the dependency.
+/// Identifies a dependency on a step in an enclosing plan scope.
 /// </summary>
 /// <param name="StepId">
 /// The identifier of the step in the parent plan scope that must complete

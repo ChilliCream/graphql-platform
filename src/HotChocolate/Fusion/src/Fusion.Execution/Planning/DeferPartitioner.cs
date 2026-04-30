@@ -41,10 +41,8 @@ internal static class DeferPartitioner
             byFragment,
             ordered);
 
-        // Assign plan-stable Ids in declaration order. Re-create the records
-        // via `with { Id = i }` so downstream stages can key off Id for
-        // serialization and sorted DeliveryGroupSet emission. The re-creation
-        // also updates parent references to point to the Id-assigned parents.
+        // Assign plan-stable Ids in declaration order and update parent
+        // references to point to the Id-assigned records.
         var reassigned = AssignIds(ordered, byFragment);
 
         return new DeferPartitioningResult(reassigned, byFragment);

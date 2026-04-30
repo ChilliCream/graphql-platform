@@ -57,11 +57,13 @@ public abstract class ExecutionNode : IOperationPlanNode, IEquatable<ExecutionNo
     public ReadOnlySpan<IOperationPlanNode> OptionalDependencies => _optionalDependencies;
 
     /// <summary>
-    /// Gets the identifiers of steps in the enclosing parent plan scope that
-    /// this node depends on. Used by deferred sub-plan nodes to reference
-    /// steps that live in the parent plan rather than the sub-plan itself.
+    /// Gets the identifiers of steps in the enclosing plan scope that must
+    /// complete before this node can run.
     /// </summary>
     public ReadOnlySpan<int> ParentDependencies => _parentDependencies;
+
+    internal ReadOnlySpan<int> BufferedParentDependencies
+        => _parentDependencies.AsSpan(0, _parentDependencyCount);
 
 #pragma warning disable CA2012
     public void BeginExecute(
