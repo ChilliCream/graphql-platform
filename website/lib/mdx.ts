@@ -257,6 +257,8 @@ const DOTTED_COMPONENT_MAP: Record<string, string> = {
   "InputChoiceTabs.VisualStudio": "InputChoiceTabs-VisualStudio",
   "ApiChoiceTabs.MinimalApis": "ApiChoiceTabs-MinimalApis",
   "ApiChoiceTabs.Regular": "ApiChoiceTabs-Regular",
+  "PipelineChoiceTabs.GitHubAction": "PipelineChoiceTabs-GitHubAction",
+  "PipelineChoiceTabs.CLI": "PipelineChoiceTabs-CLI",
 };
 
 // Convert self-closing custom component tags to explicit open+close pairs.
