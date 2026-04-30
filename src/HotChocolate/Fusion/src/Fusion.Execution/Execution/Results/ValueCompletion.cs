@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using HotChocolate.Execution;
@@ -71,6 +72,11 @@ internal sealed class ValueCompletion
             return ApplyPocketedErrors(target);
         }
 
+        if (target.ValueKind is JsonValueKind.Undefined)
+        {
+            InitializeTargetObject(source, target);
+        }
+
         foreach (var property in source.EnumerateObject())
         {
             if (!target.TryGetProperty(property.NameSpan, out var resultField))
@@ -121,6 +127,23 @@ internal sealed class ValueCompletion
         }
 
         return ApplyPocketedErrors(target);
+    }
+
+    private void InitializeTargetObject(
+        SourceResultElement source,
+        CompositeResultElement target)
+    {
+        if (!TryGetSelectionContext(target, out var selection, out var type)
+            || !type.IsCompositeType())
+        {
+            throw new InvalidOperationException(
+                "Cannot initialize a result object without selection metadata.");
+        }
+
+        var objectType = GetType(type, source);
+        var objectSelectionSet = selection.GetSelectionSet(objectType)!;
+
+        target.SetObjectValue(objectSelectionSet);
     }
 
     /// <summary>
@@ -260,7 +283,95 @@ internal sealed class ValueCompletion
                 .SetMessage("Unexpected Execution Error")
                 .Build();
 
+        if (target.ValueKind is JsonValueKind.Undefined
+            && !TryInitializeTargetObject(target))
+        {
+            return BuildErrorResultForUndefinedTarget(
+                target,
+                resultSelectionSet,
+                fallbackError,
+                target.CompactPath);
+        }
+
         return BuildErrorResult(target, resultSelectionSet, fallbackError, target.CompactPath);
+    }
+
+    private static bool TryInitializeTargetObject(CompositeResultElement target)
+    {
+        if (!TryGetSelectionContext(target, out var selection, out var type)
+            || type.NamedType() is not IObjectTypeDefinition objectType)
+        {
+            return false;
+        }
+
+        if (selection.IsLeaf)
+        {
+            return false;
+        }
+
+        target.SetObjectValue(selection.GetSelectionSet(objectType)!);
+        return true;
+    }
+
+    private static bool TryGetSelectionContext(
+        CompositeResultElement target,
+        [NotNullWhen(true)] out Selection? selection,
+        [NotNullWhen(true)] out IType? type)
+    {
+        type = target.Type;
+
+        if (type is null)
+        {
+            selection = null;
+            return false;
+        }
+
+        var current = target;
+        while ((selection = current.Selection) is null)
+        {
+            var parent = current.Parent;
+            if (parent.IsNullOrInvalidated)
+            {
+                type = null;
+                return false;
+            }
+
+            current = parent;
+        }
+
+        return true;
+    }
+
+    private bool BuildErrorResultForUndefinedTarget(
+        CompositeResultElement target,
+        ResultSelectionSet resultSelectionSet,
+        IError error,
+        CompactPath path)
+    {
+        var operation = target.Operation;
+        var errorPath = path.ToPath(operation);
+        var hasResponseNames = false;
+
+        foreach (var responseName in resultSelectionSet.ResponseNames)
+        {
+            hasResponseNames = true;
+            var errorWithPath = ErrorBuilder.FromError(error)
+                .SetPath(errorPath.Append(responseName))
+                .Build();
+
+            _store.AddError(_errorHandler.Handle(errorWithPath));
+        }
+
+        if (!hasResponseNames)
+        {
+            var errorWithPath = ErrorBuilder.FromError(error)
+                .SetPath(errorPath)
+                .Build();
+
+            _store.AddError(_errorHandler.Handle(errorWithPath));
+        }
+
+        return true;
     }
 
     private bool ApplyPocketedErrors(CompositeResultElement target)
@@ -643,8 +754,9 @@ TryCompleteList_MoveNext:
         // with the current selection set.
         if (target.ValueKind is JsonValueKind.Undefined)
         {
-            var operation = parentSelection.DeclaringSelectionSet.DeclaringOperation;
-            var objectSelectionSet = operation.GetSelectionSet(parentSelection, objectType);
+            var objectSelectionSet = parentSelection.GetSelectionSet(objectType)
+                ?? throw new InvalidOperationException(
+                    "Cannot initialize a result object without a selection set.");
             target.SetObjectValue(objectSelectionSet);
         }
 

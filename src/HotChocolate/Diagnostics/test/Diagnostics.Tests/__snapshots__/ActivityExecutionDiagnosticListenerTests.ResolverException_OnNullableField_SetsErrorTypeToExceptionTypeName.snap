@@ -1,0 +1,188 @@
+{
+  "activities": [
+    {
+      "OperationName": "GraphQL Operation",
+      "DisplayName": "query",
+      "Kind": "Internal",
+      "Status": "Error",
+      "tags": [
+        {
+          "Key": "graphql.processing.type",
+          "Value": "request"
+        },
+        {
+          "Key": "graphql.operation.type",
+          "Value": "query"
+        },
+        {
+          "Key": "graphql.document.hash",
+          "Value": "md5:8e782a6a10f01f9f72ecb3f1ae638606"
+        },
+        {
+          "Key": "graphql.error.count",
+          "Value": 1
+        },
+        {
+          "Key": "error.type",
+          "Value": "System.InvalidOperationException"
+        }
+      ],
+      "event": [
+        {
+          "Name": "AddedOperationToCache",
+          "Tags": []
+        },
+        {
+          "Name": "AddedDocumentToCache",
+          "Tags": []
+        },
+        {
+          "Name": "graphql.error",
+          "Tags": [
+            {
+              "Key": "graphql.error.message",
+              "Value": "Unexpected Execution Error"
+            },
+            {
+              "Key": "graphql.field.path",
+              "Value": "throwInvalidOperation"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "exception.type",
+              "Value": "System.InvalidOperationException"
+            },
+            {
+              "Key": "exception.message",
+              "Value": "custom resolver failure"
+            },
+            {
+              "Key": "exception.stacktrace",
+              "Value": "System.InvalidOperationException: custom resolver failure\n   at HotChocolate.Diagnostics.ActivityExecutionDiagnosticListenerTests.SimpleQuery.ThrowInvalidOperation() in ActivityExecutionDiagnosticListenerTests.cs\n   at lambda_method(Closure, IResolverContext)\n   at HotChocolate.Types.Helpers.FieldMiddlewareCompiler.<>c__DisplayClass9_0.<<CreateResolverMiddleware>b__0>d.MoveNext() in FieldMiddlewareCompiler.cs\n--- End of stack trace from previous location ---\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.ExecuteResolverPipelineAsync(CancellationToken cancellationToken) in ResolverTask.Execute.cs\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.TryExecuteAsync(CancellationToken cancellationToken) in ResolverTask.Execute.cs"
+            }
+          ]
+        }
+      ],
+      "activities": [
+        {
+          "OperationName": "GraphQL Document Parsing",
+          "DisplayName": "GraphQL Document Parsing",
+          "Kind": "Internal",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:8e782a6a10f01f9f72ecb3f1ae638606"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Document Validation",
+          "DisplayName": "GraphQL Document Validation",
+          "Kind": "Internal",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "validate"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:8e782a6a10f01f9f72ecb3f1ae638606"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Operation Planning",
+          "DisplayName": "GraphQL Operation Planning",
+          "Kind": "Internal",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "plan"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:8e782a6a10f01f9f72ecb3f1ae638606"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Operation Execution",
+          "DisplayName": "GraphQL Operation Execution",
+          "Kind": "Internal",
+          "Status": "Error",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "execute"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:8e782a6a10f01f9f72ecb3f1ae638606"
+            },
+            {
+              "Key": "error.type",
+              "Value": "System.InvalidOperationException"
+            }
+          ],
+          "event": [],
+          "activities": [
+            {
+              "OperationName": "SimpleQuery.throwInvalidOperation",
+              "DisplayName": "SimpleQuery.throwInvalidOperation",
+              "Kind": "Internal",
+              "Status": "Error",
+              "tags": [
+                {
+                  "Key": "graphql.processing.type",
+                  "Value": "resolve"
+                },
+                {
+                  "Key": "graphql.field.alias",
+                  "Value": "throwInvalidOperation"
+                },
+                {
+                  "Key": "graphql.field.path",
+                  "Value": "throwInvalidOperation"
+                },
+                {
+                  "Key": "graphql.field.name",
+                  "Value": "throwInvalidOperation"
+                },
+                {
+                  "Key": "graphql.field.coordinate",
+                  "Value": "SimpleQuery.throwInvalidOperation"
+                },
+                {
+                  "Key": "graphql.field.parent_type",
+                  "Value": "SimpleQuery"
+                },
+                {
+                  "Key": "error.type",
+                  "Value": "System.InvalidOperationException"
+                }
+              ],
+              "event": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

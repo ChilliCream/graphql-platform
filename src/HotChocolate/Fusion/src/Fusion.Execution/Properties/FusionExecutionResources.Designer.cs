@@ -159,9 +159,9 @@ namespace HotChocolate.Fusion.Properties {
             }
         }
 
-        internal static string OperationPlan_DeferredSubPlanParentNotFound {
+        internal static string OperationPlan_IncrementalPlanParentNotFound {
             get {
-                return ResourceManager.GetString("OperationPlan_DeferredSubPlanParentNotFound", resourceCulture);
+                return ResourceManager.GetString("OperationPlan_IncrementalPlanParentNotFound", resourceCulture);
             }
         }
 

@@ -44,14 +44,14 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.Unindent();
         }
 
-        if (!plan.DeferredSubPlans.IsDefaultOrEmpty)
+        if (!plan.IncrementalPlans.IsDefaultOrEmpty)
         {
-            writer.WriteLine("deferredSubPlans:");
+            writer.WriteLine("incrementalPlans:");
             writer.Indent();
 
-            foreach (var subPlan in plan.DeferredSubPlans)
+            foreach (var incrementalPlan in plan.IncrementalPlans)
             {
-                WriteDeferredSubPlan(subPlan, writer);
+                WriteIncrementalPlan(incrementalPlan, writer);
             }
 
             writer.Unindent();
@@ -82,7 +82,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         }
     }
 
-    private static void WriteDeliveryGroup(DeferUsage deliveryGroup, CodeWriter writer)
+    private static void WriteDeliveryGroup(DeliveryGroup deliveryGroup, CodeWriter writer)
     {
         writer.WriteLine("- id: {0}", deliveryGroup.Id);
         writer.Indent();
@@ -107,27 +107,32 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         writer.Unindent();
     }
 
-    private static void WriteDeferredSubPlan(ExecutionSubPlan subPlan, CodeWriter writer)
+    private static void WriteIncrementalPlan(IncrementalPlan incrementalPlan, CodeWriter writer)
     {
         writer.WriteLine("- deliveryGroupIds:");
         writer.Indent();
         writer.Indent();
 
-        foreach (var deliveryGroup in subPlan.DeliveryGroups)
+        foreach (var deliveryGroup in incrementalPlan.DeliveryGroups)
         {
             writer.WriteLine("- {0}", deliveryGroup.Id);
         }
 
         writer.Unindent();
 
-        writer.WriteLine("parentNodeId: {0}", subPlan.ParentNodeId);
+        writer.WriteLine("parentNodeId: {0}", incrementalPlan.ParentNodeId);
 
-        if (!subPlan.AllNodes.IsDefaultOrEmpty)
+        if (!incrementalPlan.Requirements.IsDefaultOrEmpty)
+        {
+            WriteRequirements(incrementalPlan.Requirements.AsSpan(), writer);
+        }
+
+        if (!incrementalPlan.AllNodes.IsDefaultOrEmpty)
         {
             writer.WriteLine("nodes:");
             writer.Indent();
 
-            foreach (var node in subPlan.AllNodes)
+            foreach (var node in incrementalPlan.AllNodes)
             {
                 WriteNode(node, nodeTrace: null, writer);
             }
@@ -269,13 +274,18 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.WriteLine("requiresFileUpload: true");
         }
 
-        if (node.Dependencies.Length > 0)
+        if (node.Dependencies.Length > 0 || node.ParentDependencies.Length > 0)
         {
             writer.WriteLine("dependencies:");
             writer.Indent();
             foreach (var dependency in node.Dependencies)
             {
                 writer.WriteLine("- id: {0}", dependency.Id);
+            }
+
+            foreach (var parentStepId in node.ParentDependencies)
+            {
+                writer.WriteLine("- parentNodeId: {0}", parentStepId);
             }
 
             writer.Unindent();
@@ -351,7 +361,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.WriteLine("requiresFileUpload: true");
         }
 
-        WriteDependencies(opDef.Dependencies, writer);
+        WriteDependencies(opDef.Dependencies, opDef.ParentDependencies, writer);
         TryWriteNodeTrace(writer, trace);
 
         writer.Unindent();
@@ -411,7 +421,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.WriteLine("requiresFileUpload: true");
         }
 
-        WriteDependencies(opDef.Dependencies, writer);
+        WriteDependencies(opDef.Dependencies, opDef.ParentDependencies, writer);
         TryWriteNodeTrace(writer, trace);
 
         writer.Unindent();
@@ -480,20 +490,30 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         }
     }
 
-    private static void WriteDependencies(ReadOnlySpan<IOperationPlanNode> dependencies, CodeWriter writer)
+    private static void WriteDependencies(
+        ReadOnlySpan<IOperationPlanNode> dependencies,
+        ReadOnlySpan<int> parentDependencies,
+        CodeWriter writer)
     {
-        if (dependencies.Length > 0)
+        if (dependencies.Length == 0 && parentDependencies.Length == 0)
         {
-            writer.WriteLine("dependencies:");
-            writer.Indent();
-
-            foreach (var dependency in dependencies)
-            {
-                writer.WriteLine("- id: {0}", dependency.Id);
-            }
-
-            writer.Unindent();
+            return;
         }
+
+        writer.WriteLine("dependencies:");
+        writer.Indent();
+
+        foreach (var dependency in dependencies)
+        {
+            writer.WriteLine("- id: {0}", dependency.Id);
+        }
+
+        foreach (var parentStepId in parentDependencies)
+        {
+            writer.WriteLine("- parentNodeId: {0}", parentStepId);
+        }
+
+        writer.Unindent();
     }
 
     private static void WriteIntrospectionNode(IntrospectionExecutionNode node, ExecutionNodeTrace? trace, CodeWriter writer)

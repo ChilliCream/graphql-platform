@@ -13,6 +13,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="System.Reactive" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Adapters.OpenApi.Abstractions\HotChocolate.Adapters.OpenApi.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore.Pipeline\HotChocolate.AspNetCore.Pipeline.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Execution.Abstractions\HotChocolate.Execution.Abstractions.csproj" />

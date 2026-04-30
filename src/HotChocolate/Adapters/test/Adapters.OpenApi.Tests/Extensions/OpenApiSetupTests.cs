@@ -1,4 +1,5 @@
 using HotChocolate.Adapters.OpenApi.Configuration;
+using HotChocolate.Adapters.OpenApi.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -43,12 +44,20 @@ public sealed class OpenApiSetupTests
 
     private sealed class StubOpenApiDefinitionStorage : IOpenApiDefinitionStorage
     {
-#pragma warning disable CS0067
-        public event EventHandler? Changed;
-#pragma warning restore CS0067
-
         public ValueTask<IEnumerable<IOpenApiDefinition>> GetDefinitionsAsync(
             CancellationToken cancellationToken = default)
             => ValueTask.FromResult<IEnumerable<IOpenApiDefinition>>([]);
+
+        public IDisposable Subscribe(IObserver<OpenApiDefinitionStorageEventArgs> observer)
+            => EmptyDisposable.Instance;
+
+        private sealed class EmptyDisposable : IDisposable
+        {
+            public static readonly EmptyDisposable Instance = new();
+
+            public void Dispose()
+            {
+            }
+        }
     }
 }

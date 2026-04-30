@@ -113,6 +113,7 @@ sourceSchemas:
                 ... @skip(if: $shouldDefer) {
                   id
                 }
+                id
               }
             }
           variables: |
@@ -125,24 +126,7 @@ sourceSchemas:
               {
                 "data": {
                   "user": {
-                    "name": "User: VXNlcjox"
-                  }
-                }
-              }
-      - request:
-          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
-          document: |
-            query GetUser_defer_1 {
-              user(id: "1") {
-                id
-              }
-            }
-        response:
-          results:
-            - |
-              {
-                "data": {
-                  "user": {
+                    "name": "User: VXNlcjox",
                     "id": "VXNlcjox"
                   }
                 }
@@ -211,12 +195,10 @@ operationPlan:
         query GetUser($shouldDefer: Boolean!) {
           user(id: "1") {
             name
-            ... @skip(if: $shouldDefer) {
-              reviews {
-                title
-                body
-              }
-              id @fusion__requirement
+            id @fusion__requirement
+            reviews @skip(if: $shouldDefer) {
+              title
+              body
             }
           }
         }
@@ -235,6 +217,7 @@ operationPlan:
             ... @skip(if: $shouldDefer) {
               id
             }
+            id
           }
         }
       forwardedVariables:
@@ -267,21 +250,16 @@ operationPlan:
       path: $.user
       label: reviews
       ifVariable: $shouldDefer
-  deferredSubPlans:
+  incrementalPlans:
     - deliveryGroupIds:
         - 0
       parentNodeId: 2
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
       nodes:
         - id: 1
-          type: Operation
-          schema: A
-          operation: |
-            query GetUser_defer_1 {
-              user(id: "1") {
-                id
-              }
-            }
-        - id: 2
           type: Operation
           schema: B
           operation: |
@@ -300,4 +278,4 @@ operationPlan:
               selectionMap: >-
                 id
           dependencies:
-            - id: 1
+            - parentNodeId: 1
