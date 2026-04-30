@@ -99,7 +99,7 @@ public sealed partial class OperationPlanner
             // PERF: For non-deferred operations (the common case), the only overhead is
             // the HasDeferDirective check which does a fast AST walk looking for @defer.
             ImmutableArray<DeliveryGroup> deliveryGroups = [];
-            ImmutableArray<IncrementalPlan> deferredSubPlans = [];
+            ImmutableArray<IncrementalPlan> incrementalPlans = [];
             DeferSplitResult? deferSplit = null;
             DeferPartitioningResult? partitioning = null;
             var mainOperationDefinition = operationDefinition;
@@ -230,7 +230,7 @@ public sealed partial class OperationPlanner
 
             if (deferContextGraph is not null)
             {
-                deferredSubPlans = BuildIncrementalPlans(
+                incrementalPlans = BuildIncrementalPlans(
                     id,
                     hash,
                     deferRoutingStates,
@@ -243,7 +243,7 @@ public sealed partial class OperationPlanner
                 mainOperationDefinition,
                 planSteps,
                 deliveryGroups,
-                deferredSubPlans,
+                incrementalPlans,
                 searchSpace,
                 expandedNodes,
                 cancellationToken);

@@ -5,9 +5,10 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 /// <summary>
 /// Represents a plan for executing the fields that belong to a specific
 /// <c>DeliveryGroupSet</c>. One <see cref="IncrementalPlan"/> is emitted per
-/// unique non-empty active delivery group set in the operation. Its data is
-/// delivered to every <see cref="DeliveryGroup"/> in <see cref="DeliveryGroups"/>
-/// when the incremental plan completes.
+/// unique non-empty active delivery group set in the operation. The set can
+/// contain multiple <see cref="DeliveryGroup"/> instances, and the plan's data
+/// is delivered to every group in <see cref="DeliveryGroups"/> when the
+/// incremental plan completes.
 /// </summary>
 public sealed class IncrementalPlan : IOperationPlan
 {
@@ -20,16 +21,17 @@ public sealed class IncrementalPlan : IOperationPlan
     /// The compiled operation for this incremental plan's result mapping.
     /// </param>
     /// <param name="rootNodes">
-    /// The root execution nodes that serve as entry points for this incremental plan.
+    /// The root execution nodes that serve as entry points for this
+    /// incremental plan.
     /// </param>
     /// <param name="allNodes">
     /// All execution nodes belonging to this incremental plan.
     /// </param>
     /// <param name="deliveryGroups">
     /// The <see cref="DeliveryGroup"/> set that keys this incremental plan,
-    /// sorted ascending by <see cref="DeliveryGroup.Id"/>. Every element is a
-    /// delivery group that receives this incremental plan's data on the wire
-    /// when the incremental plan completes.
+    /// sorted ascending by <see cref="DeliveryGroup.Id"/>. One or more delivery
+    /// groups can share this plan and receive its data on the wire when it
+    /// completes.
     /// </param>
     /// <param name="requirements">
     /// The plan-scope requirements that must be supplied from the parent plan
@@ -79,7 +81,8 @@ public sealed class IncrementalPlan : IOperationPlan
     /// Gets the <see cref="DeliveryGroup"/> set that keys this incremental plan,
     /// sorted ascending by <see cref="DeliveryGroup.Id"/>. When this incremental
     /// plan completes, every <see cref="DeliveryGroup"/> in this set receives
-    /// the incremental plan's data as an incremental payload on the wire.
+    /// the incremental plan's data as an incremental payload on the wire. One
+    /// plan can deliver to multiple delivery groups.
     /// </summary>
     public ImmutableArray<DeliveryGroup> DeliveryGroups { get; }
 

@@ -8,13 +8,13 @@ namespace HotChocolate.Fusion.Planning;
 
 /// <summary>
 /// Splits an operation with <c>@defer</c> directives into a main operation
-/// (non-deferred fields only) and one subplan operation per unique
+/// (non-deferred fields only) and one incremental plan operation per unique
 /// <see cref="DeliveryGroup"/> set. The set keying follows the GraphQL
 /// incremental-delivery spec: each field's active defer usage set is the
 /// union of its per-occurrence enclosing <c>@defer</c> leaves (with
 /// parent-child pruning). Two sibling <c>... @defer</c> fragments that share
-/// a field therefore produce one subplan keyed by both usages for the shared
-/// field, rather than two independent subplans that both fetch it.
+/// a field therefore produce one incremental plan keyed by both usages for
+/// the shared field, rather than two independent plans that both fetch it.
 /// </summary>
 internal sealed class DeferOperationRewriter
 {
@@ -90,10 +90,10 @@ internal sealed class DeferOperationRewriter
     /// Splits the given operation at <c>@defer</c> boundaries using the
     /// <see cref="DeliveryGroup"/> topology produced by
     /// <see cref="DeferPartitioner"/>. The output contains the stripped main
-    /// operation (fields whose active <c>DeliveryGroupSet</c> is empty) plus one
-    /// subplan per unique non-empty active set. Sibling <c>@defer</c>
-    /// fragments that share a field collapse into a single subplan keyed by
-    /// the union of both usages.
+    /// operation (fields whose active <c>DeliveryGroupSet</c> is empty) plus
+    /// one incremental plan per unique non-empty active set. Sibling
+    /// <c>@defer</c> fragments that share a field collapse into a single
+    /// incremental plan keyed by the union of both usages.
     /// </summary>
     /// <param name="operation">The operation definition that may contain @defer directives.</param>
     /// <param name="partitioning">The <see cref="DeferPartitioner"/> output for <paramref name="operation"/>.</param>
@@ -209,7 +209,7 @@ internal sealed class DeferOperationRewriter
                 && byFragment.TryGetValue(inlineFragment, out var usage))
             {
                 // The main operation never keeps @defer fragments: all
-                // deferred fields go through their subplan. For a conditional
+                // deferred fields go through their incremental plan. For a conditional
                 // @defer(if: $variable) we still keep a @skip(if: $variable)
                 // guarded inline copy so the variable-off runtime path
                 // fetches the fields eagerly.
@@ -377,7 +377,7 @@ internal sealed class DeferOperationRewriter
         }
 
         // Child path nodes: wrap in the original field node (preserving
-        // name/alias/arguments/directives) so the subplan operation is a
+        // name/alias/arguments/directives) so the incremental plan operation is a
         // syntactically valid query against the root schema.
         foreach (var (segment, childNode) in node.Children)
         {
@@ -460,7 +460,7 @@ internal sealed class DeferOperationRewriter
 
     private static SelectionPath DeterminePath(DeliveryGroupSetKey key)
     {
-        // The subplan roots at the longest shared ancestor of all usages in
+        // The incremental plan roots at the longest shared ancestor of all usages in
         // its set. For siblings (same parent), every usage has the same
         // anchor path; for the general case we pick the deepest path because
         // after parent pruning no two usages in the same set sit on the same
@@ -487,7 +487,7 @@ internal sealed class DeferOperationRewriter
         DeliveryGroupSetKey key,
         Dictionary<DeliveryGroupSetKey, IncrementalPlanDescriptor> descriptorByKey)
     {
-        // A subplan's "parent" is the subplan whose key contains the parent
+        // An incremental plan's "parent" is the plan whose key contains the parent
         // DeliveryGroup of any usage in this set. We pick the first usage's
         // parent chain; all other usages in the set share an equivalent
         // ancestry after parent pruning.

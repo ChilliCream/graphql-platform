@@ -190,14 +190,14 @@ internal static class OperationPlanExecutor
         // Yield the initial result first.
         yield return initialResult;
 
-        var deferredSubPlans = operationPlan.IncrementalPlans;
+        var incrementalPlans = operationPlan.IncrementalPlans;
 
         // Per-delivery-group completion tracking. A delivery group is considered
         // complete when every subplan whose DeliveryGroups contains it has
         // finished. We also track which subplans are "active" so an inactive
         // @defer(if: false) group does not block completion accounting.
         var pendingCountByDeliveryGroup = new Dictionary<int, int>();
-        foreach (var subPlan in deferredSubPlans)
+        foreach (var subPlan in incrementalPlans)
         {
             if (!IsSubPlanActive(subPlan, activeDeliveryGroupIds))
             {
@@ -236,7 +236,7 @@ internal static class OperationPlanExecutor
 
         try
         {
-            foreach (var subPlan in deferredSubPlans)
+            foreach (var subPlan in incrementalPlans)
             {
                 if (!IsSubPlanActive(subPlan, activeDeliveryGroupIds))
                 {
@@ -289,7 +289,7 @@ internal static class OperationPlanExecutor
                 // just-completed subplan, then announce their delivery groups as
                 // pending. We collect announcements for the outgoing payload.
                 var childPending = ImmutableList.CreateBuilder<PendingResult>();
-                foreach (var candidate in deferredSubPlans)
+                foreach (var candidate in incrementalPlans)
                 {
                     if (!IsSubPlanActive(candidate, activeDeliveryGroupIds))
                     {

@@ -25,7 +25,7 @@ public sealed partial class OperationPlanner
         OperationDefinitionNode operationDefinition,
         ImmutableList<PlanStep> planSteps,
         ImmutableArray<DeliveryGroup> deliveryGroups,
-        ImmutableArray<IncrementalPlan> deferredSubPlans,
+        ImmutableArray<IncrementalPlan> incrementalPlans,
         int searchSpace,
         int expandedNodes,
         CancellationToken cancellationToken)
@@ -82,7 +82,7 @@ public sealed partial class OperationPlanner
             rootNodes,
             allNodes,
             deliveryGroups,
-            deferredSubPlans,
+            incrementalPlans,
             searchSpace,
             expandedNodes);
 
@@ -93,18 +93,18 @@ public sealed partial class OperationPlanner
         // against the enclosing subplan's AllNodes, where the enclosing
         // subplan is the one whose DeliveryGroups contain the parent
         // DeliveryGroup of any usage in the nested subplan's key set.
-        if (!deferredSubPlans.IsDefaultOrEmpty)
+        if (!incrementalPlans.IsDefaultOrEmpty)
         {
             // Plan-time id: the parent id is known here because the root plan
             // was just created above, and OperationPlan.Create's content hash
             // does not include subplan ids.
-            for (var i = 0; i < deferredSubPlans.Length; i++)
+            for (var i = 0; i < incrementalPlans.Length; i++)
             {
-                var subPlan = deferredSubPlans[i];
+                var subPlan = incrementalPlans[i];
                 subPlan.Id = $"{operationPlan.Id}#{i}";
 
                 var path = ResolveSubPlanPath(subPlan);
-                var parent = ResolveSubPlanParent(subPlan, deferredSubPlans);
+                var parent = ResolveSubPlanParent(subPlan, incrementalPlans);
                 var owningNodes = parent is null ? allNodes : parent.AllNodes;
                 subPlan.ParentNodeId = ResolveDeferParentNodeId(owningNodes, path)
                     ?? throw ThrowHelper.IncrementalPlanParentNotFound(path);

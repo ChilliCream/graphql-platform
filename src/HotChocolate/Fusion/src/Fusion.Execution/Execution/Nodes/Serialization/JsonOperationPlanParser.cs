@@ -53,7 +53,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         var nodes = ParseNodes(rootElement.GetProperty("nodes"), operation);
 
         var deliveryGroups = ImmutableArray<DeliveryGroup>.Empty;
-        var deferredSubPlans = ImmutableArray<IncrementalPlan>.Empty;
+        var incrementalPlans = ImmutableArray<IncrementalPlan>.Empty;
         var deliveryGroupMap = new Dictionary<int, DeliveryGroup>();
 
         if (rootElement.TryGetProperty("deliveryGroups", out var deliveryGroupsElement))
@@ -61,9 +61,9 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             deliveryGroups = ParseDeliveryGroups(deliveryGroupsElement, deliveryGroupMap);
         }
 
-        if (rootElement.TryGetProperty("deferredSubPlans", out var deferredSubPlansElement))
+        if (rootElement.TryGetProperty("deferredSubPlans", out var incrementalPlansElement))
         {
-            deferredSubPlans = ParseIncrementalPlans(deferredSubPlansElement, deliveryGroupMap);
+            incrementalPlans = ParseIncrementalPlans(incrementalPlansElement, deliveryGroupMap);
         }
 
         // Root nodes are the entry points of the execution plan. A node is a
@@ -75,7 +75,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             [.. nodes.Where(n => n.Dependencies.Length == 0 && n.OptionalDependencies.Length == 0)],
             nodes,
             deliveryGroups,
-            deferredSubPlans,
+            incrementalPlans,
             searchSpace,
             expandedNodes);
     }
@@ -145,12 +145,12 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
     }
 
     private ImmutableArray<IncrementalPlan> ParseIncrementalPlans(
-        JsonElement deferredSubPlansElement,
+        JsonElement incrementalPlansElement,
         Dictionary<int, DeliveryGroup> deliveryGroupMap)
     {
         var builder = ImmutableArray.CreateBuilder<IncrementalPlan>();
 
-        foreach (var subPlanElement in deferredSubPlansElement.EnumerateArray())
+        foreach (var subPlanElement in incrementalPlansElement.EnumerateArray())
         {
             var deliveryGroupIdsElement = subPlanElement.GetProperty("deliveryGroupIds");
             var subPlanDeliveryGroupsBuilder = ImmutableArray.CreateBuilder<DeliveryGroup>();

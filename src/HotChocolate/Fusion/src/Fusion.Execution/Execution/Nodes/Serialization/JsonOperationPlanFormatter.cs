@@ -225,9 +225,9 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
     private static void WriteIncrementalPlans(
         JsonWriter jsonWriter,
-        ImmutableArray<IncrementalPlan> deferredSubPlans)
+        ImmutableArray<IncrementalPlan> incrementalPlans)
     {
-        if (deferredSubPlans.IsDefaultOrEmpty)
+        if (incrementalPlans.IsDefaultOrEmpty)
         {
             return;
         }
@@ -235,7 +235,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WritePropertyName("deferredSubPlans");
         jsonWriter.WriteStartArray();
 
-        foreach (var subPlan in deferredSubPlans)
+        foreach (var subPlan in incrementalPlans)
         {
             WriteIncrementalPlan(jsonWriter, subPlan);
         }

@@ -21,7 +21,7 @@ public sealed record OperationPlan : IOperationPlan
         ImmutableArray<ExecutionNode> rootNodes,
         ImmutableArray<ExecutionNode> allNodes,
         ImmutableArray<DeliveryGroup> deliveryGroups,
-        ImmutableArray<IncrementalPlan> deferredSubPlans,
+        ImmutableArray<IncrementalPlan> incrementalPlans,
         int searchSpace,
         int expandedNodes)
     {
@@ -32,7 +32,7 @@ public sealed record OperationPlan : IOperationPlan
         SearchSpace = searchSpace;
         ExpandedNodes = expandedNodes;
         DeliveryGroups = deliveryGroups;
-        IncrementalPlans = deferredSubPlans;
+        IncrementalPlans = incrementalPlans;
         _nodesById = CreateNodeLookup(allNodes);
         MaxNodeId = _nodesById.Length > 0 ? _nodesById.Length - 1 : 0;
     }
@@ -87,10 +87,10 @@ public sealed record OperationPlan : IOperationPlan
     public ImmutableArray<DeliveryGroup> DeliveryGroups { get; }
 
     /// <summary>
-    /// Gets the incremental execution subplans for this plan. Each subplan is
-    /// keyed by a unique <c>DeliveryGroupSet</c> and fetches the fields whose
-    /// active delivery group set matches that key. The subplan's data is
-    /// delivered to every <see cref="DeliveryGroup"/> in its
+    /// Gets the incremental execution plans for this plan. Each incremental
+    /// plan is keyed by a distinct non-empty set of active delivery groups.
+    /// The set may contain one or more <see cref="DeliveryGroup"/> instances,
+    /// and the incremental plan's data is delivered to every group in its
     /// <see cref="IncrementalPlan.DeliveryGroups"/> when it completes.
     /// Empty if the operation has no <c>@defer</c> directives.
     /// </summary>
@@ -157,9 +157,10 @@ public sealed record OperationPlan : IOperationPlan
     /// Every <see cref="DeliveryGroup"/> (delivery group) this plan uses, in ascending
     /// <see cref="DeliveryGroup.Id"/> order.
     /// </param>
-    /// <param name="deferredSubPlans">
-    /// The incremental execution subplans for <c>@defer</c> support, one per unique
-    /// <c>DeliveryGroupSet</c>.
+    /// <param name="incrementalPlans">
+    /// The incremental execution plans for <c>@defer</c> support. Each plan is
+    /// keyed by a distinct non-empty set of active delivery groups, and that
+    /// set may contain multiple delivery groups.
     /// </param>
     /// <param name="searchSpace">A number specifying how many possible plans were considered during planning.</param>
     /// <param name="expandedNodes">The number of expanded nodes during planner search.</param>
@@ -173,7 +174,7 @@ public sealed record OperationPlan : IOperationPlan
         ImmutableArray<ExecutionNode> rootNodes,
         ImmutableArray<ExecutionNode> allNodes,
         ImmutableArray<DeliveryGroup> deliveryGroups,
-        ImmutableArray<IncrementalPlan> deferredSubPlans,
+        ImmutableArray<IncrementalPlan> incrementalPlans,
         int searchSpace,
         int expandedNodes)
     {
@@ -183,7 +184,7 @@ public sealed record OperationPlan : IOperationPlan
         ArgumentOutOfRangeException.ThrowIfLessThan(allNodes.Length, 0);
 
         return new OperationPlan(
-            id, operation, rootNodes, allNodes, deliveryGroups, deferredSubPlans, searchSpace, expandedNodes);
+            id, operation, rootNodes, allNodes, deliveryGroups, incrementalPlans, searchSpace, expandedNodes);
     }
 
     /// <summary>
@@ -197,9 +198,10 @@ public sealed record OperationPlan : IOperationPlan
     /// Every <see cref="DeliveryGroup"/> (delivery group) this plan uses, in ascending
     /// <see cref="DeliveryGroup.Id"/> order.
     /// </param>
-    /// <param name="deferredSubPlans">
-    /// The incremental execution subplans for <c>@defer</c> support, one per unique
-    /// <c>DeliveryGroupSet</c>.
+    /// <param name="incrementalPlans">
+    /// The incremental execution plans for <c>@defer</c> support. Each plan is
+    /// keyed by a distinct non-empty set of active delivery groups, and that
+    /// set may contain multiple delivery groups.
     /// </param>
     /// <param name="searchSpace">A number specifying how many possible plans were considered during planning.</param>
     /// <param name="expandedNodes">The number of expanded nodes during planner search.</param>
@@ -211,7 +213,7 @@ public sealed record OperationPlan : IOperationPlan
         ImmutableArray<ExecutionNode> rootNodes,
         ImmutableArray<ExecutionNode> allNodes,
         ImmutableArray<DeliveryGroup> deliveryGroups,
-        ImmutableArray<IncrementalPlan> deferredSubPlans,
+        ImmutableArray<IncrementalPlan> incrementalPlans,
         int searchSpace,
         int expandedNodes)
     {
@@ -236,7 +238,14 @@ public sealed record OperationPlan : IOperationPlan
 #endif
 
         return new OperationPlan(
-            id, operation, rootNodes, allNodes, deliveryGroups, deferredSubPlans, searchSpace, expandedNodes);
+            id,
+            operation,
+            rootNodes,
+            allNodes,
+            deliveryGroups,
+            incrementalPlans,
+            searchSpace,
+            expandedNodes);
     }
 
     private static ExecutionNode?[] CreateNodeLookup(ImmutableArray<ExecutionNode> allNodes)
