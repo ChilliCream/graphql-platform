@@ -292,7 +292,7 @@ jobs:
         uses: ChilliCream/nitro-client-validate@v16.0.0-rc.1.43
         with:
           client-id: ${{ secrets.NITRO_API_CLIENT_ID }}
-          operations-file: src/Nitro/CommandLine/src/ChilliCream.Nitro.Client/persisted/operations.json
+          operations-file: src/Nitro/Common/src/ChilliCream.Nitro.Client/persisted/operations.json
           stage: Dev
           api-key: ${{ secrets.NITRO_API_KEY }}
           comment-mode: "review"

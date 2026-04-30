@@ -185,19 +185,14 @@
   <Folder Name="/HotChocolate/Adapters/src/">
     <Project Path="HotChocolate/Adapters/src/Adapters.Mcp/HotChocolate.Adapters.Mcp.csproj" />
     <Project Path="HotChocolate/Adapters/src/Adapters.Mcp.Core/HotChocolate.Adapters.Mcp.Core.csproj" />
-    <Project Path="HotChocolate/Adapters/src/Adapters.Mcp.Packaging/HotChocolate.Adapters.Mcp.Packaging.csproj" />
     <Project Path="HotChocolate/Adapters/src/Adapters.OpenApi/HotChocolate.Adapters.OpenApi.csproj" />
     <Project Path="HotChocolate/Adapters/src/Adapters.OpenApi.AspNetCore/HotChocolate.Adapters.OpenApi.AspNetCore.csproj" />
     <Project Path="HotChocolate/Adapters/src/Adapters.OpenApi.Core/HotChocolate.Adapters.OpenApi.Core.csproj" />
-    <Project Path="HotChocolate/Adapters/src/Adapters.OpenApi.Packaging/HotChocolate.Adapters.OpenApi.Packaging.csproj" />
     <Project Path="HotChocolate/Adapters/src/Fusion.Adapters.Mcp/HotChocolate.Fusion.Adapters.Mcp.csproj" />
     <Project Path="HotChocolate/Adapters/src/Fusion.Adapters.OpenApi/HotChocolate.Fusion.Adapters.OpenApi.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/Adapters/test/">
-    <Project Path="HotChocolate/Adapters/test/Adapters.Mcp.Core.Tests/HotChocolate.Adapters.Mcp.Core.Tests.csproj" />
-    <Project Path="HotChocolate/Adapters/test/Adapters.Mcp.Packaging.Tests/HotChocolate.Adapters.Mcp.Packaging.Tests.csproj" />
     <Project Path="HotChocolate/Adapters/test/Adapters.Mcp.Tests/HotChocolate.Adapters.Mcp.Tests.csproj" />
-    <Project Path="HotChocolate/Adapters/test/Adapters.OpenApi.Packaging.Tests/HotChocolate.Adapters.OpenApi.Packaging.Tests.csproj" />
     <Project Path="HotChocolate/Adapters/test/Adapters.OpenApi.Tests/HotChocolate.Adapters.OpenApi.Tests.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/Fusion/" />
@@ -387,11 +382,24 @@
   <Folder Name="/Nitro/CommandLine/" />
   <Folder Name="/Nitro/CommandLine/src/">
     <Project Path="Nitro/CommandLine/src/CommandLine/Nitro.CommandLine.csproj" />
-    <Project Path="Nitro/CommandLine/src/ChilliCream.Nitro.Client/ChilliCream.Nitro.Client.csproj" />
     <Project Path="Nitro/CommandLine/src/CommandLine.FusionCompatibility/Nitro.CommandLine.FusionCompatibility.csproj" />
   </Folder>
   <Folder Name="/Nitro/CommandLine/test/">
     <Project Path="Nitro/CommandLine/test/CommandLine.Tests/Nitro.CommandLine.Tests.csproj" />
+  </Folder>
+  <Folder Name="/Nitro/Common/" />
+  <Folder Name="/Nitro/Common/src/">
+    <Project Path="Nitro/Common/src/ChilliCream.Nitro.Adapters.Mcp.Packaging/ChilliCream.Nitro.Adapters.Mcp.Packaging.csproj" />
+    <Project Path="Nitro/Common/src/ChilliCream.Nitro.Adapters.Mcp/ChilliCream.Nitro.Adapters.Mcp.csproj" />
+    <Project Path="Nitro/Common/src/ChilliCream.Nitro.Adapters.OpenApi.Packaging/ChilliCream.Nitro.Adapters.OpenApi.Packaging.csproj" />
+    <Project Path="Nitro/Common/src/ChilliCream.Nitro.Adapters.OpenApi/ChilliCream.Nitro.Adapters.OpenApi.csproj" />
+    <Project Path="Nitro/Common/src/ChilliCream.Nitro.Client/ChilliCream.Nitro.Client.csproj" />
+  </Folder>
+  <Folder Name="/Nitro/Common/test/">
+    <Project Path="Nitro/Common/test/ChilliCream.Nitro.Adapters.Mcp.Packaging.Tests/ChilliCream.Nitro.Adapters.Mcp.Packaging.Tests.csproj" />
+    <Project Path="Nitro/Common/test/ChilliCream.Nitro.Adapters.Mcp.Tests/ChilliCream.Nitro.Adapters.Mcp.Tests.csproj" />
+    <Project Path="Nitro/Common/test/ChilliCream.Nitro.Adapters.OpenApi.Packaging.Tests/ChilliCream.Nitro.Adapters.OpenApi.Packaging.Tests.csproj" />
+    <Project Path="Nitro/Common/test/ChilliCream.Nitro.Adapters.OpenApi.Tests/ChilliCream.Nitro.Adapters.OpenApi.Tests.csproj" />
   </Folder>
   <Folder Name="/StrawberryShake/" />
   <Folder Name="/StrawberryShake/Client/" />
@@ -405,6 +413,8 @@
     <Project Path="StrawberryShake/Client/src/Transport.InMemory/StrawberryShake.Transport.InMemory.csproj" />
     <Project Path="StrawberryShake/Client/src/Transport.WebSockets/StrawberryShake.Transport.WebSockets.csproj" />
   </Folder>
+  <Folder Name="/StrawberryShake/Client/src/Core/" />
+  <Folder Name="/StrawberryShake/Client/src/Transport.Http/" />
   <Folder Name="/StrawberryShake/Client/test/">
     <Project Path="StrawberryShake/Client/test/Core.Tests/StrawberryShake.Core.Tests.csproj" />
     <Project Path="StrawberryShake/Client/test/Persistence.SQLite.Tests/StrawberryShake.Persistence.SQLite.Tests.csproj" />

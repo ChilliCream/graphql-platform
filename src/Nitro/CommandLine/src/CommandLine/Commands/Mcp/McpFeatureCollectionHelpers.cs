@@ -1,6 +1,6 @@
 using System.Text.Json;
+using ChilliCream.Nitro.Adapters.Mcp.Packaging;
 using ChilliCream.Nitro.CommandLine.Services;
-using HotChocolate.Adapters.Mcp.Packaging;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Mcp;
 
