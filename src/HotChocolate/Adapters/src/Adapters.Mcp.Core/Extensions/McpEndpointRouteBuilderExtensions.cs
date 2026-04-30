@@ -8,7 +8,7 @@ using ModelContextProtocol.Protocol;
 
 namespace Microsoft.AspNetCore.Builder;
 
-public static class EndpointRouteBuilderExtensions
+public static class McpEndpointRouteBuilderExtensions
 {
     public static IEndpointConventionBuilder MapGraphQLMcp(
         this IEndpointRouteBuilder endpoints,

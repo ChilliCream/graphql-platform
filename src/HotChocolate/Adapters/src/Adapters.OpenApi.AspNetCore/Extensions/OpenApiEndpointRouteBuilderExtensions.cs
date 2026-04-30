@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.AspNetCore.Builder;
 
-public static class EndpointRouteBuilderExtensions
+public static class OpenApiEndpointRouteBuilderExtensions
 {
     public static IEndpointRouteBuilder MapOpenApiEndpoints(
         this IEndpointRouteBuilder endpoints,
