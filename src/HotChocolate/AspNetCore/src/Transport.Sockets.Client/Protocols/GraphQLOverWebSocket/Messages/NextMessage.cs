@@ -36,24 +36,8 @@ internal sealed class NextMessage : IDataMessage
         var id = root.GetProperty(Utf8MessageProperties.IdProp).GetString()!;
         var payload = root.GetProperty(Utf8MessageProperties.PayloadProp);
 
-        var result = new OperationResult(
-            documentOwner,
-            TryGetProperty(payload, Utf8MessageProperties.DataProp),
-            TryGetProperty(payload, Utf8MessageProperties.ErrorsProp),
-            TryGetProperty(payload, Utf8MessageProperties.ExtensionsProp),
-            TryGetInt32Property(payload, Utf8MessageProperties.RequestIndexProp),
-            TryGetInt32Property(payload, Utf8MessageProperties.VariableIndexProp));
+        var result = OperationResult.Parse(payload, documentOwner);
 
         return new NextMessage(id, result);
     }
-
-    private static JsonElement TryGetProperty(JsonElement element, ReadOnlySpan<byte> name)
-        => element.TryGetProperty(name, out var property)
-            ? property
-            : default;
-
-    private static int? TryGetInt32Property(JsonElement element, ReadOnlySpan<byte> name)
-        => element.TryGetProperty(name, out var property) && property.ValueKind == JsonValueKind.Number
-            ? property.GetInt32()
-            : null;
 }
