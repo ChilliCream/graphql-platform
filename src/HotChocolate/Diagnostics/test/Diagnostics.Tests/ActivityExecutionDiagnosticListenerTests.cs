@@ -383,6 +383,23 @@ public partial class ActivityExecutionDiagnosticListenerTests
     }
 
     [Fact]
+    public async Task ResolverException_OnNullableField_SetsErrorTypeToExceptionTypeName()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange & act
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddInstrumentation(o => o.Scopes = ActivityScopes.All)
+                .AddQueryType<SimpleQuery>()
+                .ExecuteRequestAsync("{ throwInvalidOperation }");
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
     public async Task ComplexityAnalysis_Enabled_RecordsCostInSpan()
     {
         using (CaptureActivities(out var activities))
@@ -605,6 +622,9 @@ public partial class ActivityExecutionDiagnosticListenerTests
                     .SetCode("INVALID_INPUT")
                     .SetPath(context.Path)
                     .Build());
+
+        public string? ThrowInvalidOperation()
+            => throw new InvalidOperationException("custom resolver failure");
 
         public IEnumerable<FailingItem> FailingItems(int count)
         {

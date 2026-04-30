@@ -52,20 +52,38 @@ internal static class ActivityExtensions
 
         /// <summary>
         /// Sets the <c>error.type</c> tag for a GraphQL error on the activity.
-        /// Prefers <see cref="IError.Code"/> (sourced from <c>extensions.code</c>),
-        /// then the underlying exception type name, and finally falls back to the
-        /// supplied <paramref name="fallback"/>.
+        /// By default prefers <see cref="IError.Code"/> (sourced from
+        /// <c>extensions.code</c>), then the underlying exception type name, and
+        /// finally falls back to the supplied <paramref name="fallback"/>.
+        /// When <paramref name="preferException"/> is <see langword="true"/>, the
+        /// exception type name is preferred over the error code, matching the
+        /// guidance for the field execution span.
         /// </summary>
-        public void SetGraphQLErrorType(IError error, string fallback = DefaultErrorType)
+        public void SetGraphQLErrorType(
+            IError error,
+            string fallback = DefaultErrorType,
+            bool preferException = false)
         {
             if (activity.GetTagItem(SemanticConventions.ErrorType) is not null)
             {
                 return;
             }
 
-            var errorType = !string.IsNullOrEmpty(error.Code)
-                ? error.Code
-                : error.Exception?.GetType().FullName ?? fallback;
+            var exceptionType = error.Exception?.GetType().FullName;
+
+            string? errorType;
+            if (preferException)
+            {
+                errorType = exceptionType
+                    ?? (!string.IsNullOrEmpty(error.Code) ? error.Code : fallback);
+            }
+            else
+            {
+                errorType = !string.IsNullOrEmpty(error.Code)
+                    ? error.Code
+                    : exceptionType ?? fallback;
+            }
+
             activity.SetTag(SemanticConventions.ErrorType, errorType);
         }
 

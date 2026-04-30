@@ -235,7 +235,10 @@ internal sealed class ActivityExecutionDiagnosticListener(
             && value is ResolveFieldSpan span)
         {
             span.Activity.SetStatus(ActivityStatusCode.Error);
-            span.Activity.SetGraphQLErrorType(error, ActivityExtensions.ExecutionErrorType);
+            span.Activity.SetGraphQLErrorType(
+                error,
+                ActivityExtensions.ExecutionErrorType,
+                preferException: true);
 
             enricher.EnrichResolverError(context, error, span.Activity);
         }

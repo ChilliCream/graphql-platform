@@ -36,6 +36,10 @@
           "Value": "md5:f7e9989fbb67af7fa747a9983313c9e5"
         },
         {
+          "Key": "graphql.document.id",
+          "Value": "sayHelloOp"
+        },
+        {
           "Key": "graphql.operation.type",
           "Value": "query"
         }
