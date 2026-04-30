@@ -29,7 +29,8 @@ internal sealed class ParseHttpRequestSpan(
 
         foreach (var error in errors)
         {
-            Activity.AddGraphQLError(error);
+            Activity.AddGraphQLErrorEvent(error);
+            Activity.SetGraphQLErrorType(error, ActivityExtensions.ParseErrorType);
         }
 
         enricher.EnrichParserErrors(httpContext, errors, Activity);

@@ -7,6 +7,10 @@
       "Status": "Error",
       "tags": [
         {
+          "Key": "graphql.processing.type",
+          "Value": "request"
+        },
+        {
           "Key": "graphql.document.hash",
           "Value": "md5:bb1d246465341a97bdc727d6cd8ead5c"
         },
@@ -23,7 +27,38 @@
           "Value": "EXECUTION_ERROR"
         }
       ],
-      "event": [],
+      "event": [
+        {
+          "Name": "graphql.error",
+          "Tags": [
+            {
+              "Key": "graphql.error.message",
+              "Value": "The field `sayHello_` does not exist on the type `SimpleQuery`."
+            },
+            {
+              "Key": "graphql.document.locations",
+              "Value": [
+                {
+                  "line": 1,
+                  "column": 27
+                }
+              ]
+            },
+            {
+              "Key": "exception.type",
+              "Value": "GRAPHQL_ERROR"
+            },
+            {
+              "Key": "exception.message",
+              "Value": "The field `sayHello_` does not exist on the type `SimpleQuery`."
+            },
+            {
+              "Key": "exception.stacktrace",
+              "Value": ""
+            }
+          ]
+        }
+      ],
       "activities": [
         {
           "OperationName": "GraphQL Document Parsing",
@@ -54,29 +89,10 @@
             },
             {
               "Key": "error.type",
-              "Value": "GRAPHQL_ERROR"
+              "Value": "GRAPHQL_VALIDATION_FAILED"
             }
           ],
-          "event": [
-            {
-              "Name": "graphql.error",
-              "Tags": [
-                {
-                  "Key": "graphql.error.message",
-                  "Value": "The field `sayHello_` does not exist on the type `SimpleQuery`."
-                },
-                {
-                  "Key": "graphql.error.locations",
-                  "Value": [
-                    {
-                      "line": 1,
-                      "column": 27
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+          "event": []
         }
       ]
     }

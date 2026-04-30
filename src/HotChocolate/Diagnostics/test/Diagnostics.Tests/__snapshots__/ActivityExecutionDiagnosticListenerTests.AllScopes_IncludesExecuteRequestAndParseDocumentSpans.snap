@@ -7,6 +7,10 @@
       "Status": "Ok",
       "tags": [
         {
+          "Key": "graphql.processing.type",
+          "Value": "request"
+        },
+        {
           "Key": "graphql.operation.type",
           "Value": "query"
         },
@@ -113,23 +117,23 @@
                   "Value": "resolve"
                 },
                 {
-                  "Key": "graphql.selection.name",
+                  "Key": "graphql.field.alias",
                   "Value": "sayHello"
                 },
                 {
-                  "Key": "graphql.selection.path",
+                  "Key": "graphql.field.path",
                   "Value": "sayHello"
                 },
                 {
-                  "Key": "graphql.selection.field.name",
+                  "Key": "graphql.field.name",
                   "Value": "sayHello"
                 },
                 {
-                  "Key": "graphql.selection.field.coordinate",
+                  "Key": "graphql.field.coordinate",
                   "Value": "SimpleQuery.sayHello"
                 },
                 {
-                  "Key": "graphql.selection.field.parent_type",
+                  "Key": "graphql.field.parent_type",
                   "Value": "SimpleQuery"
                 }
               ],

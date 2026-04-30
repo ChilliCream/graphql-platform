@@ -40,7 +40,14 @@ internal sealed class ExecuteOperationSpan(
 
             if (Activity.GetTagItem(SemanticConventions.ErrorType) is null)
             {
-                Activity.SetTag(SemanticConventions.ErrorType, "EXECUTION_ERROR");
+                if (context.Result is OperationResult { Errors: [var firstError, ..] })
+                {
+                    Activity.SetGraphQLErrorType(firstError, ActivityExtensions.ExecutionErrorType);
+                }
+                else
+                {
+                    Activity.SetTag(SemanticConventions.ErrorType, ActivityExtensions.ExecutionErrorType);
+                }
             }
         }
         else

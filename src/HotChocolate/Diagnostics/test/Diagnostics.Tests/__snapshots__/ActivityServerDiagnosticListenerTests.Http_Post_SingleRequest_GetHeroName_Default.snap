@@ -27,6 +27,10 @@
           "Value": "a570a6bff748b5916eadf153261d9c6d"
         },
         {
+          "Key": "graphql.processing.type",
+          "Value": "request"
+        },
+        {
           "Key": "graphql.operation.type",
           "Value": "query"
         },
@@ -107,23 +111,23 @@
               "Value": "resolve"
             },
             {
-              "Key": "graphql.selection.name",
+              "Key": "graphql.field.alias",
               "Value": "hero"
             },
             {
-              "Key": "graphql.selection.path",
+              "Key": "graphql.field.path",
               "Value": "hero"
             },
             {
-              "Key": "graphql.selection.field.name",
+              "Key": "graphql.field.name",
               "Value": "hero"
             },
             {
-              "Key": "graphql.selection.field.coordinate",
+              "Key": "graphql.field.coordinate",
               "Value": "Query.hero"
             },
             {
-              "Key": "graphql.selection.field.parent_type",
+              "Key": "graphql.field.parent_type",
               "Value": "Query"
             }
           ],

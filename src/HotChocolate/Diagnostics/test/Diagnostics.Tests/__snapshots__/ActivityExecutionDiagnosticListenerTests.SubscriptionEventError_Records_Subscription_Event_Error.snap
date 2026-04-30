@@ -7,6 +7,10 @@
       "Status": "Ok",
       "tags": [
         {
+          "Key": "graphql.processing.type",
+          "Value": "request"
+        },
+        {
           "Key": "graphql.operation.type",
           "Value": "subscription"
         },
@@ -150,23 +154,23 @@
                       "Value": "resolve"
                     },
                     {
-                      "Key": "graphql.selection.name",
+                      "Key": "graphql.field.alias",
                       "Value": "onFailingMessage"
                     },
                     {
-                      "Key": "graphql.selection.path",
+                      "Key": "graphql.field.path",
                       "Value": "onFailingMessage"
                     },
                     {
-                      "Key": "graphql.selection.field.name",
+                      "Key": "graphql.field.name",
                       "Value": "onFailingMessage"
                     },
                     {
-                      "Key": "graphql.selection.field.coordinate",
+                      "Key": "graphql.field.coordinate",
                       "Value": "SimpleSubscription.onFailingMessage"
                     },
                     {
-                      "Key": "graphql.selection.field.parent_type",
+                      "Key": "graphql.field.parent_type",
                       "Value": "SimpleSubscription"
                     },
                     {
@@ -174,41 +178,7 @@
                       "Value": "System.InvalidOperationException"
                     }
                   ],
-                  "event": [
-                    {
-                      "Name": "graphql.error",
-                      "Tags": [
-                        {
-                          "Key": "graphql.error.message",
-                          "Value": "Unexpected Execution Error"
-                        },
-                        {
-                          "Key": "exception.message",
-                          "Value": "Subscription event failed."
-                        },
-                        {
-                          "Key": "exception.stacktrace",
-                          "Value": "System.InvalidOperationException: Subscription event failed.\n   at HotChocolate.Diagnostics.ActivityExecutionDiagnosticListenerTests.SimpleSubscription.OnFailingMessage(String message) in ActivityExecutionDiagnosticListenerTests.cs\n   at lambda_method(Closure, IResolverContext)\n   at HotChocolate.Types.Helpers.FieldMiddlewareCompiler.<>c__DisplayClass9_0.<<CreateResolverMiddleware>b__0>d.MoveNext() in FieldMiddlewareCompiler.cs\n--- End of stack trace from previous location ---\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.ExecuteResolverPipelineAsync(CancellationToken cancellationToken) in ResolverTask.Execute.cs\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.TryExecuteAsync(CancellationToken cancellationToken) in ResolverTask.Execute.cs"
-                        },
-                        {
-                          "Key": "exception.type",
-                          "Value": "System.InvalidOperationException"
-                        },
-                        {
-                          "Key": "graphql.error.path",
-                          "Value": "onFailingMessage"
-                        },
-                        {
-                          "Key": "graphql.operation.type",
-                          "Value": "subscription"
-                        },
-                        {
-                          "Key": "graphql.operation.name",
-                          "Value": "OnFailingMessageSubscription"
-                        }
-                      ]
-                    }
-                  ]
+                  "event": []
                 }
               ]
             }

@@ -17,7 +17,11 @@ internal abstract class ExecuteRequestSpanBase(
 
     protected static Activity? StartActivity(ActivitySource source)
     {
-        return source.StartActivity("GraphQL Operation");
+        var activity = source.StartActivity("GraphQL Operation");
+
+        activity?.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Request);
+
+        return activity;
     }
 
     protected abstract bool TryGetOperationInfo(
@@ -26,9 +30,18 @@ internal abstract class ExecuteRequestSpanBase(
 
     protected override void OnComplete()
     {
-        if (TryGetOperationInfo(out var operationType, out var operationName))
+        // Ensures the root request span carries `graphql.processing.type=request`
+        // even when an existing HTTP transport activity was reused as the root.
+        if (Activity.GetTagItem(GraphQL.Processing.Type) is null)
         {
-            var operationTypeValue = GraphQL.Operation.TypeValues[operationType];
+            Activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Request);
+        }
+
+        string? operationTypeValue = null;
+        string? operationName = null;
+        if (TryGetOperationInfo(out var operationType, out operationName))
+        {
+            operationTypeValue = GraphQL.Operation.TypeValues[operationType];
             Activity.DisplayName = operationTypeValue;
             Activity.EnrichOperation(operationType, operationName);
         }
@@ -46,6 +59,8 @@ internal abstract class ExecuteRequestSpanBase(
         {
             // This was previously also always set to 0, so I just kept that behavior.
             Activity.SetTag(GraphQL.Error.Count, result.Errors.Count);
+
+            EmitErrorEvents(result.Errors, operationTypeValue, operationName);
         }
 
         if (Context.Result is null or OperationResult { Errors: [_, ..] })
@@ -54,7 +69,14 @@ internal abstract class ExecuteRequestSpanBase(
 
             if (Activity.GetTagItem(SemanticConventions.ErrorType) is null)
             {
-                Activity.SetTag(SemanticConventions.ErrorType, "EXECUTION_ERROR");
+                if (Context.Result is OperationResult { Errors: [var firstError, ..] })
+                {
+                    Activity.SetGraphQLErrorType(firstError, ActivityExtensions.ExecutionErrorType);
+                }
+                else
+                {
+                    Activity.SetTag(SemanticConventions.ErrorType, ActivityExtensions.ExecutionErrorType);
+                }
             }
         }
         else if (Activity.Status != ActivityStatusCode.Error)
@@ -63,5 +85,23 @@ internal abstract class ExecuteRequestSpanBase(
         }
 
         enricher.EnrichExecuteRequest(Context, Activity);
+    }
+
+    private void EmitErrorEvents(
+        IReadOnlyList<IError> errors,
+        string? operationType,
+        string? operationName)
+    {
+        var maxEvents = options.MaxErrorEvents;
+        if (maxEvents <= 0 || errors.Count == 0)
+        {
+            return;
+        }
+
+        var limit = errors.Count < maxEvents ? errors.Count : maxEvents;
+        for (var i = 0; i < limit; i++)
+        {
+            Activity.AddGraphQLErrorEvent(errors[i], operationType, operationName);
+        }
     }
 }

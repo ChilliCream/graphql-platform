@@ -7,6 +7,10 @@
       "Status": "Error",
       "tags": [
         {
+          "Key": "graphql.processing.type",
+          "Value": "request"
+        },
+        {
           "Key": "graphql.operation.type",
           "Value": "query"
         },
@@ -35,6 +39,35 @@
         {
           "Name": "AddedDocumentToCache",
           "Tags": []
+        },
+        {
+          "Name": "graphql.error",
+          "Tags": [
+            {
+              "Key": "graphql.error.message",
+              "Value": "fail"
+            },
+            {
+              "Key": "graphql.field.path",
+              "Value": "causeFatalError"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "exception.type",
+              "Value": "GRAPHQL_ERROR"
+            },
+            {
+              "Key": "exception.message",
+              "Value": "fail"
+            },
+            {
+              "Key": "exception.stacktrace",
+              "Value": ""
+            }
+          ]
         }
       ],
       "activities": [
@@ -125,49 +158,31 @@
                   "Value": "resolve"
                 },
                 {
-                  "Key": "graphql.selection.name",
+                  "Key": "graphql.field.alias",
                   "Value": "causeFatalError"
                 },
                 {
-                  "Key": "graphql.selection.path",
+                  "Key": "graphql.field.path",
                   "Value": "causeFatalError"
                 },
                 {
-                  "Key": "graphql.selection.field.name",
+                  "Key": "graphql.field.name",
                   "Value": "causeFatalError"
                 },
                 {
-                  "Key": "graphql.selection.field.coordinate",
+                  "Key": "graphql.field.coordinate",
                   "Value": "SimpleQuery.causeFatalError"
                 },
                 {
-                  "Key": "graphql.selection.field.parent_type",
+                  "Key": "graphql.field.parent_type",
                   "Value": "SimpleQuery"
                 },
                 {
                   "Key": "error.type",
-                  "Value": "GRAPHQL_ERROR"
+                  "Value": "EXECUTION_ERROR"
                 }
               ],
-              "event": [
-                {
-                  "Name": "graphql.error",
-                  "Tags": [
-                    {
-                      "Key": "graphql.error.message",
-                      "Value": "fail"
-                    },
-                    {
-                      "Key": "graphql.error.path",
-                      "Value": "causeFatalError"
-                    },
-                    {
-                      "Key": "graphql.operation.type",
-                      "Value": "query"
-                    }
-                  ]
-                }
-              ]
+              "event": []
             }
           ]
         }

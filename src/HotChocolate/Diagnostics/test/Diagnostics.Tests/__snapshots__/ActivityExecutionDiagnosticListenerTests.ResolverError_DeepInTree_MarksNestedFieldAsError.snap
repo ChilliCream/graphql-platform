@@ -7,6 +7,10 @@
       "Status": "Error",
       "tags": [
         {
+          "Key": "graphql.processing.type",
+          "Value": "request"
+        },
+        {
           "Key": "graphql.document.hash",
           "Value": "md5:2bf0466e723c1bad3a65089b6fb0dbfc"
         },
@@ -23,7 +27,38 @@
           "Value": "EXECUTION_ERROR"
         }
       ],
-      "event": [],
+      "event": [
+        {
+          "Name": "graphql.error",
+          "Tags": [
+            {
+              "Key": "graphql.error.message",
+              "Value": "The field `causeFatalError` does not exist on the type `Deeper`."
+            },
+            {
+              "Key": "graphql.document.locations",
+              "Value": [
+                {
+                  "line": 6,
+                  "column": 21
+                }
+              ]
+            },
+            {
+              "Key": "exception.type",
+              "Value": "GRAPHQL_ERROR"
+            },
+            {
+              "Key": "exception.message",
+              "Value": "The field `causeFatalError` does not exist on the type `Deeper`."
+            },
+            {
+              "Key": "exception.stacktrace",
+              "Value": ""
+            }
+          ]
+        }
+      ],
       "activities": [
         {
           "OperationName": "GraphQL Document Parsing",
@@ -54,29 +89,10 @@
             },
             {
               "Key": "error.type",
-              "Value": "GRAPHQL_ERROR"
+              "Value": "GRAPHQL_VALIDATION_FAILED"
             }
           ],
-          "event": [
-            {
-              "Name": "graphql.error",
-              "Tags": [
-                {
-                  "Key": "graphql.error.message",
-                  "Value": "The field `causeFatalError` does not exist on the type `Deeper`."
-                },
-                {
-                  "Key": "graphql.error.locations",
-                  "Value": [
-                    {
-                      "line": 6,
-                      "column": 21
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+          "event": []
         }
       ]
     }
