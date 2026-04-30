@@ -947,7 +947,6 @@ Besides the attribute renames, the most notable changes are:
 | Attribute                         | Where                                                     |
 | --------------------------------- | --------------------------------------------------------- |
 | `graphql.processing.type=request` | Root `GraphQL Operation` span (now required by spec).     |
-| `graphql.processing.type=parse`   | `GraphQL Document Parsing` span (now required by spec).   |
 | `graphql.field.schema_coordinate` | `graphql.error` event (when present in error extensions). |
 
 ### Changed attribute values
