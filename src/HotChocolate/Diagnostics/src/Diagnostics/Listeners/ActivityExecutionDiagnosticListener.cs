@@ -14,6 +14,9 @@ internal sealed class ActivityExecutionDiagnosticListener(
 {
     private const string ResolveFieldSpanKey = "HotChocolate.Diagnostics.ResolveFieldSpan";
 
+    private static readonly AsyncLocal<SubscriptionEventSpan?> s_currentSubscriptionEventSpan =
+        new();
+
     public override bool EnableResolveFieldValue => true;
 
     public override IDisposable ExecuteRequest(RequestContext context)
@@ -242,6 +245,22 @@ internal sealed class ActivityExecutionDiagnosticListener(
 
             enricher.EnrichResolverError(context, error, span.Activity);
         }
+
+        // For subscription operations, the per-event errors are not visible to
+        // ExecuteRequestSpanBase.OnComplete (each event is its own result). Emit
+        // the graphql.error event on the subscription event span (the effective
+        // root for the event) so the error surfaces there too.
+        if (s_currentSubscriptionEventSpan.Value is { } eventSpan)
+        {
+            var eventActivity = eventSpan.Activity;
+            eventActivity.SetStatus(ActivityStatusCode.Error);
+            eventActivity.SetGraphQLErrorType(error, ActivityExtensions.ExecutionErrorType);
+            eventActivity.AddGraphQLErrorEvent(
+                error,
+                operationType: SemanticConventions.GraphQL.Operation.TypeValues[
+                    context.Operation.Definition.Operation],
+                operationName: context.Operation.Name);
+        }
     }
 
     public override IDisposable ExecuteSubscription(
@@ -285,6 +304,8 @@ internal sealed class ActivityExecutionDiagnosticListener(
         }
 
         enricher.EnrichOnSubscriptionEvent(context, subscriptionId, span.Activity);
+
+        s_currentSubscriptionEventSpan.Value = span;
 
         return span;
     }

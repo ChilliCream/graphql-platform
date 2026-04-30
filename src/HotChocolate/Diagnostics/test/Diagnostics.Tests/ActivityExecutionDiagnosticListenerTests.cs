@@ -678,11 +678,7 @@ public partial class ActivityExecutionDiagnosticListenerTests
 
         [Subscribe]
         public string OnFailingMessage([EventMessage] string message)
-            => throw new GraphQLException(
-                ErrorBuilder.New()
-                    .SetMessage("Subscription event failed.")
-                    .SetCode("CUSTOM_ERROR_CODE")
-                    .Build());
+            => throw new InvalidOperationException("Subscription event failed.");
     }
 
     private sealed class NoopOperationDocumentStorage : IOperationDocumentStorage
