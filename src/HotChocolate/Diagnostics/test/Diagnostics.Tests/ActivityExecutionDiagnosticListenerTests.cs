@@ -372,7 +372,7 @@ public partial class ActivityExecutionDiagnosticListenerTests
                 .AddInstrumentation(o =>
                     o.Scopes = ActivityScopes.ExecuteRequest | ActivityScopes.ResolveFieldValue)
                 .AddQueryType<SimpleQuery>()
-                .ExecuteRequestAsync("{ causeFatalError }");
+                .ExecuteRequestAsync("{ causeUncodedError }");
 
             // assert
             activities.MatchSnapshot();
@@ -580,7 +580,14 @@ public partial class ActivityExecutionDiagnosticListenerTests
 
         public string Greeting(string name) => $"Hello, {name}!";
 
-        public string CauseFatalError() => throw new GraphQLException("fail");
+        public string CauseFatalError()
+            => throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage("fail")
+                    .SetCode("CUSTOM_ERROR_CODE")
+                    .Build());
+
+        public string CauseUncodedError() => throw new GraphQLException("fail");
 
         public string CauseCodedError()
             => throw new GraphQLException(
@@ -607,14 +614,24 @@ public partial class ActivityExecutionDiagnosticListenerTests
     {
         public int Index { get; } = index;
 
-        public string? Fail() => throw new GraphQLException($"fail-{Index}");
+        public string? Fail()
+            => throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage($"fail-{Index}")
+                    .SetCode("CUSTOM_ERROR_CODE")
+                    .Build());
     }
 
     public class Deep
     {
         public Deeper Deeper() => new();
 
-        public string CauseFatalError() => throw new GraphQLException("fail");
+        public string CauseFatalError()
+            => throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage("fail")
+                    .SetCode("CUSTOM_ERROR_CODE")
+                    .Build());
     }
 
     public class Deeper
@@ -629,7 +646,11 @@ public partial class ActivityExecutionDiagnosticListenerTests
 
         [Subscribe]
         public string OnFailingMessage([EventMessage] string message)
-            => throw new InvalidOperationException("Subscription event failed.");
+            => throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage("Subscription event failed.")
+                    .SetCode("CUSTOM_ERROR_CODE")
+                    .Build());
     }
 
     private sealed class NoopOperationDocumentStorage : IOperationDocumentStorage

@@ -175,7 +175,7 @@
                     },
                     {
                       "Key": "error.type",
-                      "Value": "System.InvalidOperationException"
+                      "Value": "CUSTOM_ERROR_CODE"
                     }
                   ],
                   "event": []

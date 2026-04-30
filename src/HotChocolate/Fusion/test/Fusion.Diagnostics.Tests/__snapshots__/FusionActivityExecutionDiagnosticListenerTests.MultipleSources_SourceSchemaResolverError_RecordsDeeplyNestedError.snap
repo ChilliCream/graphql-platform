@@ -28,7 +28,7 @@
         },
         {
           "Key": "error.type",
-          "Value": "EXECUTION_ERROR"
+          "Value": "CUSTOM_ERROR_CODE"
         }
       ],
       "event": [
@@ -46,6 +46,10 @@
             {
               "Key": "graphql.error.message",
               "Value": "deep fail"
+            },
+            {
+              "Key": "graphql.error.code",
+              "Value": "CUSTOM_ERROR_CODE"
             },
             {
               "Key": "graphql.operation.type",
@@ -171,7 +175,7 @@
             },
             {
               "Key": "error.type",
-              "Value": "EXECUTION_ERROR"
+              "Value": "CUSTOM_ERROR_CODE"
             }
           ],
           "event": [],

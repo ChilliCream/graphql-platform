@@ -16,7 +16,7 @@
         },
         {
           "Key": "graphql.document.hash",
-          "Value": "md5:ae3f9af1d2570e25f30a1ad002172b82"
+          "Value": "md5:eb7651f0968bfe850896354cd6bcbd0d"
         },
         {
           "Key": "graphql.error.count",
@@ -45,7 +45,7 @@
             },
             {
               "Key": "graphql.field.path",
-              "Value": "causeFatalError"
+              "Value": "causeUncodedError"
             },
             {
               "Key": "graphql.operation.type",
@@ -68,8 +68,8 @@
       ],
       "activities": [
         {
-          "OperationName": "SimpleQuery.causeFatalError",
-          "DisplayName": "SimpleQuery.causeFatalError",
+          "OperationName": "SimpleQuery.causeUncodedError",
+          "DisplayName": "SimpleQuery.causeUncodedError",
           "Kind": "Internal",
           "Status": "Error",
           "tags": [
@@ -79,19 +79,19 @@
             },
             {
               "Key": "graphql.field.alias",
-              "Value": "causeFatalError"
+              "Value": "causeUncodedError"
             },
             {
               "Key": "graphql.field.path",
-              "Value": "causeFatalError"
+              "Value": "causeUncodedError"
             },
             {
               "Key": "graphql.field.name",
-              "Value": "causeFatalError"
+              "Value": "causeUncodedError"
             },
             {
               "Key": "graphql.field.coordinate",
-              "Value": "SimpleQuery.causeFatalError"
+              "Value": "SimpleQuery.causeUncodedError"
             },
             {
               "Key": "graphql.field.parent_type",
