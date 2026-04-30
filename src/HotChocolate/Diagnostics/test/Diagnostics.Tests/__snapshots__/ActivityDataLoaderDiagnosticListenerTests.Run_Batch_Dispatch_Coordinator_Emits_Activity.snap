@@ -3,6 +3,7 @@
     {
       "OperationName": "GraphQL DataLoader Dispatch",
       "DisplayName": "GraphQL DataLoader Dispatch",
+      "Kind": "Internal",
       "Status": "Ok",
       "tags": [
         {
