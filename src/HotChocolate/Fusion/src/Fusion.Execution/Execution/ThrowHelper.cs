@@ -15,9 +15,9 @@ internal static class ThrowHelper
             FusionExecutionResources.OperationPlan_NodeNotFound,
             id));
 
-    public static InvalidOperationException DeferredSubPlanParentNotFound(SelectionPath path)
+    public static InvalidOperationException IncrementalPlanParentNotFound(SelectionPath path)
         => new(string.Format(
-            FusionExecutionResources.OperationPlan_DeferredSubPlanParentNotFound,
+            FusionExecutionResources.OperationPlan_IncrementalPlanParentNotFound,
             path));
 
     public static InvalidOperationException MissingBatchResult(int operationId)
