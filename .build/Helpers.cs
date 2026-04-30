@@ -82,7 +82,7 @@ static class Helpers
 
         var projectsArg = string.Join(" ", projects.Select(t => $"\"{t}\""));
 
-        list.AddRange(DotNetTasks.DotNet($"sln \"{solutionFile}\" add {projectsArg}", workingDirectory));
+        list.AddRange(DotNetTasks.DotNet($"sln \"{solutionFile}\" add {projectsArg} --include-references false", workingDirectory));
 
         return list;
     }

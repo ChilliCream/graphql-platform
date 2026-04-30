@@ -3,14 +3,14 @@
 ## SQL 0
 
 ```sql
--- @__value_0='Brand:11'
--- @__value_1='12'
--- @__p_2='3'
+-- @value='Brand:11'
+-- @value2='12'
+-- @p='3'
 SELECT b."Id", b."AlwaysNull", b."DisplayName", b."Name", b."BrandDetails_Country_Name"
 FROM "Brands" AS b
-WHERE COALESCE(b."DisplayName", b."Name") > @__value_0 OR (COALESCE(b."DisplayName", b."Name") = @__value_0 AND b."Id" > @__value_1)
+WHERE COALESCE(b."DisplayName", b."Name") > @value OR (COALESCE(b."DisplayName", b."Name") = @value AND b."Id" > @value2)
 ORDER BY COALESCE(b."DisplayName", b."Name"), b."Id"
-LIMIT @__p_2
+LIMIT @p
 ```
 
 ## Expression 0

@@ -14,11 +14,11 @@ Sam_Sampleman Result:
 
 Sam_Sampleman SQL:
 ---------------
-.param set @__p_0 'Sam Sampleman'
+.param set @p 'Sam Sampleman'
 
 SELECT "d"."Id", "d"."LastName", "d"."Name"
 FROM "Data" AS "d"
-WHERE COALESCE("d"."Name", '') || ' ' || COALESCE("d"."LastName", '') = @__p_0
+WHERE COALESCE("d"."Name", '') || ' ' || COALESCE("d"."LastName", '') = @p
 ---------------
 
 NoMatch Result:
@@ -32,11 +32,11 @@ NoMatch Result:
 
 NoMatch SQL:
 ---------------
-.param set @__p_0 'NoMatch'
+.param set @p 'NoMatch'
 
 SELECT "d"."Id", "d"."LastName", "d"."Name"
 FROM "Data" AS "d"
-WHERE COALESCE("d"."Name", '') || ' ' || COALESCE("d"."LastName", '') = @__p_0
+WHERE COALESCE("d"."Name", '') || ' ' || COALESCE("d"."LastName", '') = @p
 ---------------
 
 null Result:

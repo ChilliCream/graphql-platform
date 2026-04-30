@@ -4,6 +4,7 @@ using HotChocolate.Language;
 using HotChocolate.PersistedOperations;
 using HotChocolate.Subscriptions;
 using HotChocolate.Types;
+using static CookieCrumble.TestEnvironment;
 using static HotChocolate.Diagnostics.ActivityTestHelper;
 
 namespace HotChocolate.Diagnostics;
@@ -514,7 +515,7 @@ public partial class ActivityExecutionDiagnosticListenerTests
             }
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 

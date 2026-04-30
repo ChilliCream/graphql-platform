@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
+using static CookieCrumble.TestEnvironment;
 
 namespace HotChocolate.Data.Filters;
 
@@ -54,10 +55,7 @@ public class QueryableFilterVisitorInterfacesTests : IClassFixture<SchemaCache>
 
         // assert
         await Snapshot
-            .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
-                    : null)
+            .Create(Postfix([NET8_0, NET9_0]))
             .AddResult(res1, "a")
             .AddResult(res2, "ba")
             .AddResult(res3, "null")

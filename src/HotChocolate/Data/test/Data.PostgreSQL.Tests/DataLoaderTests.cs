@@ -7,6 +7,7 @@ using HotChocolate.Data.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Squadron;
+using static CookieCrumble.TestEnvironment;
 
 namespace HotChocolate.Data;
 
@@ -36,7 +37,7 @@ public class DataLoaderTests(PostgreSqlResource resource)
 
         // assert
         Assert.Equal(10, products.Count);
-        interceptor.MatchSnapshot();
+        interceptor.MatchSnapshot(Postfix([NET8_0, NET9_0]));
     }
 
     [Fact]
@@ -62,7 +63,7 @@ public class DataLoaderTests(PostgreSqlResource resource)
 
         // assert
         Assert.Equal(10, products.Length);
-        interceptor.MatchSnapshot();
+        interceptor.MatchSnapshot(Postfix([NET8_0, NET9_0]));
     }
 
     [Fact]
@@ -89,7 +90,7 @@ public class DataLoaderTests(PostgreSqlResource resource)
 
         // assert
         Assert.Equal(5, products.Count);
-        interceptor.MatchSnapshot();
+        interceptor.MatchSnapshot(Postfix([NET8_0], [NET9_0]));
     }
 
     private ServiceProvider CreateServer()
@@ -125,9 +126,10 @@ public class DataLoaderTests(PostgreSqlResource resource)
 file static class Extensions
 {
     public static void MatchSnapshot(
-        this TestQueryInterceptor queryInterceptor)
+        this TestQueryInterceptor queryInterceptor,
+        string? postfix)
     {
-        var snapshot = Snapshot.Create(postFix: TestEnvironment.TargetFramework);
+        var snapshot = Snapshot.Create(postfix);
 
         for (var i = 0; i < queryInterceptor.Queries.Count; i++)
         {

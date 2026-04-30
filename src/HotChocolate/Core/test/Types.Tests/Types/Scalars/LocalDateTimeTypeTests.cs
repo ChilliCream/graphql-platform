@@ -394,8 +394,8 @@ public class LocalDateTimeTypeTests
             { DateTimeOptions.DefaultInputPrecision, "2023-12-24T15:30:00+05:30" },
             // Invalid separator (space instead of T or t).
             { DateTimeOptions.DefaultInputPrecision, "2023-12-24 15:30:00" },
-            // Invalid hour (25).
-            { DateTimeOptions.DefaultInputPrecision, "2023-12-24T25:00:00" },
+            // Invalid hour (24).
+            { DateTimeOptions.DefaultInputPrecision, "2023-12-24T24:00:00" },
             // Invalid minute (60).
             { DateTimeOptions.DefaultInputPrecision, "2023-12-24T15:60:00" },
             // ReSharper disable once GrammarMistakeInComment

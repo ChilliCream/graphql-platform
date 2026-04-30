@@ -1,4 +1,5 @@
 using HotChocolate.Execution;
+using static CookieCrumble.TestEnvironment;
 
 namespace HotChocolate.Data.Filters;
 
@@ -47,10 +48,7 @@ public class QueryableFilterVisitorEnumTests
 
         // assert
         await Snapshot
-            .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
-                    : null)
+            .Create(Postfix([NET8_0, NET9_0]))
             .AddResult(res1, "BAR")
             .AddResult(res2, "FOO")
             .AddResult(res3, "null")
@@ -81,10 +79,7 @@ public class QueryableFilterVisitorEnumTests
 
         // assert
         await Snapshot
-            .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
-                    : null)
+            .Create(Postfix([NET8_0, NET9_0]))
             .AddResult(res1, "BAR")
             .AddResult(res2, "FOO")
             .AddResult(res3, "null")
@@ -115,10 +110,7 @@ public class QueryableFilterVisitorEnumTests
 
         // assert
         await Snapshot
-            .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
-                    : null)
+            .Create(Postfix([NET8_0, NET9_0]))
             .AddResult(res1, "BarAndFoo")
             .AddResult(res2, "FOO")
             .AddResult(res3, "nullAndFoo")
@@ -149,10 +141,7 @@ public class QueryableFilterVisitorEnumTests
 
         // assert
         await Snapshot
-            .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
-                    : null)
+            .Create(Postfix([NET8_0, NET9_0]))
             .AddResult(res1, "BarAndFoo")
             .AddResult(res2, "FOO")
             .AddResult(res3, "nullAndFoo")
@@ -184,10 +173,7 @@ public class QueryableFilterVisitorEnumTests
 
         // assert
         await Snapshot
-            .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
-                    : null)
+            .Create(Postfix([NET8_0, NET9_0]))
             .AddResult(res1, "BAR")
             .AddResult(res2, "FOO")
             .AddResult(res3, "null")
@@ -218,10 +204,7 @@ public class QueryableFilterVisitorEnumTests
 
         // assert
         await Snapshot
-            .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
-                    : null)
+            .Create(Postfix([NET8_0, NET9_0]))
             .AddResult(res1, "BAR")
             .AddResult(res2, "FOO")
             .AddResult(res3, "null")
@@ -252,7 +235,7 @@ public class QueryableFilterVisitorEnumTests
 
         // assert
         await Snapshot
-            .Create(postFix: TestEnvironment.TargetFramework)
+            .Create(Postfix([NET8_0, NET9_0]))
             .AddResult(res1, "BarAndFoo")
             .AddResult(res2, "FOO")
             .AddResult(res3, "nullAndFoo")
@@ -283,7 +266,7 @@ public class QueryableFilterVisitorEnumTests
 
         // assert
         await Snapshot
-            .Create(postFix: TestEnvironment.TargetFramework)
+            .Create(Postfix([NET8_0, NET9_0]))
             .AddResult(res1, "BarAndFoo")
             .AddResult(res2, "FOO")
             .AddResult(res3, "nullAndFoo")

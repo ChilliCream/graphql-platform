@@ -11,6 +11,7 @@ using HotChocolate.Types.Pagination;
 using HotChocolate.Types.Pagination.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Squadron;
+using static CookieCrumble.TestEnvironment;
 
 namespace HotChocolate.Data;
 
@@ -50,10 +51,7 @@ public class IntegrationTests(PostgreSqlResource resource)
                 """)
             .SetGlobalState("printSQL", true));
 
-        result.MatchMarkdownSnapshot(
-            postFix: TestEnvironment.TargetFramework == "NET10_0"
-                ? TestEnvironment.TargetFramework
-                : null);
+        result.MatchMarkdownSnapshot(Postfix([NET8_0, NET9_0], [NET10_0]));
     }
 
     [Fact]
@@ -86,10 +84,7 @@ public class IntegrationTests(PostgreSqlResource resource)
                 """)
             .SetGlobalState("printSQL", true));
 
-        result.MatchMarkdownSnapshot(
-            postFix: TestEnvironment.TargetFramework == "NET10_0"
-                ? TestEnvironment.TargetFramework
-                : null);
+        result.MatchMarkdownSnapshot(Postfix([NET8_0, NET9_0], [NET10_0]));
     }
 
     [Fact]
@@ -123,10 +118,7 @@ public class IntegrationTests(PostgreSqlResource resource)
                 """)
             .SetGlobalState("printSQL", true));
 
-        result.MatchMarkdownSnapshot(
-            postFix: TestEnvironment.TargetFramework == "NET10_0"
-                ? TestEnvironment.TargetFramework
-                : null);
+        result.MatchMarkdownSnapshot(Postfix([NET8_0, NET9_0], [NET10_0]));
     }
 
     [Fact]
@@ -183,10 +175,7 @@ public class IntegrationTests(PostgreSqlResource resource)
                 """)
             .SetGlobalState("printSQL", true));
 
-        result.MatchMarkdownSnapshot(
-            postFix: TestEnvironment.TargetFramework == "NET10_0"
-                ? TestEnvironment.TargetFramework
-                : null);
+        result.MatchMarkdownSnapshot(Postfix([NET8_0, NET9_0], [NET10_0]));
     }
 
     [Fact]
@@ -219,10 +208,7 @@ public class IntegrationTests(PostgreSqlResource resource)
                 """)
             .SetGlobalState("printSQL", true));
 
-        result.MatchMarkdownSnapshot(
-            postFix: TestEnvironment.TargetFramework == "NET10_0"
-                ? TestEnvironment.TargetFramework
-                : null);
+        result.MatchMarkdownSnapshot(Postfix([NET8_0, NET9_0], [NET10_0]));
     }
 
     [Fact]
@@ -255,10 +241,7 @@ public class IntegrationTests(PostgreSqlResource resource)
                 """)
             .SetGlobalState("printSQL", true));
 
-        result.MatchMarkdownSnapshot(
-            postFix: TestEnvironment.TargetFramework == "NET10_0"
-                ? TestEnvironment.TargetFramework
-                : null);
+        result.MatchMarkdownSnapshot(Postfix([NET8_0, NET9_0], [NET10_0]));
     }
 
     [Fact]
@@ -293,10 +276,7 @@ public class IntegrationTests(PostgreSqlResource resource)
                 """)
             .SetGlobalState("printSQL", true));
 
-        result.MatchMarkdownSnapshot(
-            postFix: TestEnvironment.TargetFramework == "NET10_0"
-                ? TestEnvironment.TargetFramework
-                : null);
+        result.MatchMarkdownSnapshot(Postfix([NET8_0, NET9_0], [NET10_0]));
     }
 
     [Fact]
@@ -331,10 +311,7 @@ public class IntegrationTests(PostgreSqlResource resource)
                 """)
             .SetGlobalState("printSQL", true));
 
-        result.MatchMarkdownSnapshot(
-            postFix: TestEnvironment.TargetFramework == "NET10_0"
-                ? TestEnvironment.TargetFramework
-                : null);
+        result.MatchMarkdownSnapshot(Postfix([NET8_0, NET9_0], [NET10_0]));
     }
 
     [Fact]
@@ -370,10 +347,7 @@ public class IntegrationTests(PostgreSqlResource resource)
                 """)
             .SetGlobalState("printSQL", true));
 
-        result.MatchMarkdownSnapshot(
-            postFix: TestEnvironment.TargetFramework == "NET10_0"
-                ? TestEnvironment.TargetFramework
-                : null);
+        result.MatchMarkdownSnapshot(Postfix([NET8_0, NET9_0], [NET10_0]));
     }
 
     [Fact]
@@ -409,10 +383,7 @@ public class IntegrationTests(PostgreSqlResource resource)
                 """)
             .SetGlobalState("printSQL", true));
 
-        result.MatchMarkdownSnapshot(
-            postFix: TestEnvironment.TargetFramework == "NET10_0"
-                ? TestEnvironment.TargetFramework
-                : null);
+        result.MatchMarkdownSnapshot(Postfix([NET8_0, NET9_0], [NET10_0]));
     }
 
     [Fact]

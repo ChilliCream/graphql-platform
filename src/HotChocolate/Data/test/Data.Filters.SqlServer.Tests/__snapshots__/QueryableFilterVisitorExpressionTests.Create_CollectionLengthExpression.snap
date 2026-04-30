@@ -14,14 +14,14 @@
 
 1 SQL:
 ---------------
-.param set @__p_0 1
+.param set @p 1
 
 SELECT "d"."Id", "d"."LastName", "d"."Name"
 FROM "Data" AS "d"
 WHERE (
     SELECT COUNT(*)
     FROM "Bar" AS "b"
-    WHERE "d"."Id" = "b"."FooId") = @__p_0
+    WHERE "d"."Id" = "b"."FooId") = @p
 ---------------
 
 0 Result:
@@ -40,14 +40,14 @@ WHERE (
 
 0 SQL:
 ---------------
-.param set @__p_0 0
+.param set @p 0
 
 SELECT "d"."Id", "d"."LastName", "d"."Name"
 FROM "Data" AS "d"
 WHERE (
     SELECT COUNT(*)
     FROM "Bar" AS "b"
-    WHERE "d"."Id" = "b"."FooId") = @__p_0
+    WHERE "d"."Id" = "b"."FooId") = @p
 ---------------
 
 null

@@ -1,4 +1,5 @@
 using HotChocolate.Execution;
+using static CookieCrumble.TestEnvironment;
 
 namespace HotChocolate.Data.Filters;
 
@@ -90,10 +91,7 @@ public class QueryableFilterVisitorListTests
 
         // assert
         await Snapshot
-            .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
-                    : null)
+            .Create(Postfix([NET8_0, NET9_0]))
             .AddResult(res1, "a")
             .AddResult(res2, "d")
             .AddResult(res3, "null")
@@ -127,10 +125,7 @@ public class QueryableFilterVisitorListTests
 
         // assert
         await Snapshot
-            .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
-                    : null)
+            .Create(Postfix([NET8_0, NET9_0]))
             .AddResult(res1, "a")
             .AddResult(res2, "d")
             .AddResult(res3, "null")
@@ -164,10 +159,7 @@ public class QueryableFilterVisitorListTests
 
         // assert
         await Snapshot
-            .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
-                    : null)
+            .Create(Postfix([NET8_0, NET9_0]))
             .AddResult(res1, "a")
             .AddResult(res2, "d")
             .AddResult(res3, "null")

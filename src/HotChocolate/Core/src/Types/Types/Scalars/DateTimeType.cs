@@ -143,10 +143,16 @@ public partial class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
     private bool TryParseStringValue(string serialized, out DateTimeOffset value)
     {
         // Check format.
-        if (_options.ValidateInputFormat && !_dateTimeRegex.IsMatch(serialized))
+        if (_options.ValidateInputFormat)
         {
-            value = default;
-            return false;
+            var match = _dateTimeRegex.Match(serialized);
+
+            // RFC 3339 does not support specifying the hour as 24.
+            if (!match.Success || match.Groups["hour"].Value == "24")
+            {
+                value = default;
+                return false;
+            }
         }
 
         if (DateTimeOffset.TryParse(
@@ -202,52 +208,52 @@ public partial class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
         };
 
     [GeneratedRegex(
-        @"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(Z|[+-][0-9]{2}:[0-9]{2})\z",
+        @"^[0-9]{4}-[0-9]{2}-[0-9]{2}T(?<hour>[0-9]{2}):[0-9]{2}:[0-9]{2}(Z|[+-][0-9]{2}:[0-9]{2})\z",
         RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
     private static partial Regex DateTimeRegex0();
 
     [GeneratedRegex(
-        @"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9])?(Z|[+-][0-9]{2}:[0-9]{2})\z",
+        @"^[0-9]{4}-[0-9]{2}-[0-9]{2}T(?<hour>[0-9]{2}):[0-9]{2}:[0-9]{2}(\.[0-9])?(Z|[+-][0-9]{2}:[0-9]{2})\z",
         RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
     private static partial Regex DateTimeRegex1();
 
     [GeneratedRegex(
-        @"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,2})?(Z|[+-][0-9]{2}:[0-9]{2})\z",
+        @"^[0-9]{4}-[0-9]{2}-[0-9]{2}T(?<hour>[0-9]{2}):[0-9]{2}:[0-9]{2}(\.[0-9]{1,2})?(Z|[+-][0-9]{2}:[0-9]{2})\z",
         RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
     private static partial Regex DateTimeRegex2();
 
     [GeneratedRegex(
-        @"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,3})?(Z|[+-][0-9]{2}:[0-9]{2})\z",
+        @"^[0-9]{4}-[0-9]{2}-[0-9]{2}T(?<hour>[0-9]{2}):[0-9]{2}:[0-9]{2}(\.[0-9]{1,3})?(Z|[+-][0-9]{2}:[0-9]{2})\z",
         RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
     private static partial Regex DateTimeRegex3();
 
     [GeneratedRegex(
-        @"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,4})?(Z|[+-][0-9]{2}:[0-9]{2})\z",
+        @"^[0-9]{4}-[0-9]{2}-[0-9]{2}T(?<hour>[0-9]{2}):[0-9]{2}:[0-9]{2}(\.[0-9]{1,4})?(Z|[+-][0-9]{2}:[0-9]{2})\z",
         RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
     private static partial Regex DateTimeRegex4();
 
     [GeneratedRegex(
-        @"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,5})?(Z|[+-][0-9]{2}:[0-9]{2})\z",
+        @"^[0-9]{4}-[0-9]{2}-[0-9]{2}T(?<hour>[0-9]{2}):[0-9]{2}:[0-9]{2}(\.[0-9]{1,5})?(Z|[+-][0-9]{2}:[0-9]{2})\z",
         RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
     private static partial Regex DateTimeRegex5();
 
     [GeneratedRegex(
-        @"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,6})?(Z|[+-][0-9]{2}:[0-9]{2})\z",
+        @"^[0-9]{4}-[0-9]{2}-[0-9]{2}T(?<hour>[0-9]{2}):[0-9]{2}:[0-9]{2}(\.[0-9]{1,6})?(Z|[+-][0-9]{2}:[0-9]{2})\z",
         RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
     private static partial Regex DateTimeRegex6();
 
     [GeneratedRegex(
-        @"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,7})?(Z|[+-][0-9]{2}:[0-9]{2})\z",
+        @"^[0-9]{4}-[0-9]{2}-[0-9]{2}T(?<hour>[0-9]{2}):[0-9]{2}:[0-9]{2}(\.[0-9]{1,7})?(Z|[+-][0-9]{2}:[0-9]{2})\z",
         RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
     private static partial Regex DateTimeRegex7();
 
     [GeneratedRegex(
-        @"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,8})?(Z|[+-][0-9]{2}:[0-9]{2})\z",
+        @"^[0-9]{4}-[0-9]{2}-[0-9]{2}T(?<hour>[0-9]{2}):[0-9]{2}:[0-9]{2}(\.[0-9]{1,8})?(Z|[+-][0-9]{2}:[0-9]{2})\z",
         RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
     private static partial Regex DateTimeRegex8();
 
     [GeneratedRegex(
-        @"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,9})?(Z|[+-][0-9]{2}:[0-9]{2})\z",
+        @"^[0-9]{4}-[0-9]{2}-[0-9]{2}T(?<hour>[0-9]{2}):[0-9]{2}:[0-9]{2}(\.[0-9]{1,9})?(Z|[+-][0-9]{2}:[0-9]{2})\z",
         RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
     private static partial Regex DateTimeRegex9();
 }

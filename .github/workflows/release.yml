@@ -125,6 +125,7 @@ jobs:
             8.x
             9.x
             10.x
+            11.x
 
       - name: 📦 Build NuGet Packages
         run: |
@@ -219,7 +220,7 @@ jobs:
       - name: 🛠 Install .NET
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: 10.x
+          dotnet-version: 11.x
 
       - name: 📦 Publish binary (Windows)
         if: runner.os == 'Windows'
