@@ -418,7 +418,12 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
 
         public string Greeting(string name) => $"Hello, {name}!";
 
-        public string CauseFatalError() => throw new GraphQLException("fail");
+        public string CauseFatalError()
+            => throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage("fail")
+                    .SetCode("CUSTOM_ERROR_CODE")
+                    .Build());
 
         public Deep Deep() => new();
     }

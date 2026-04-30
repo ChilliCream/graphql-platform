@@ -235,7 +235,8 @@ internal sealed class ExecuteHttpRequestSpan(
     public void RecordError(IError error)
     {
         Activity.SetStatus(ActivityStatusCode.Error);
-        Activity.AddGraphQLError(error);
+        Activity.AddGraphQLErrorEvent(error);
+        Activity.SetGraphQLErrorType(error, ActivityExtensions.ExecutionErrorType);
 
         enricher.EnrichHttpRequestError(httpContext, error, Activity);
     }
@@ -244,6 +245,7 @@ internal sealed class ExecuteHttpRequestSpan(
     {
         Activity.SetStatus(ActivityStatusCode.Error);
         Activity.AddException(exception);
+        Activity.SetErrorType(exception);
 
         enricher.EnrichHttpRequestError(httpContext, exception, Activity);
     }

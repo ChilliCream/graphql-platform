@@ -7,6 +7,30 @@ namespace HotChocolate.Diagnostics;
 
 internal static class ActivityExtensions
 {
+    /// <summary>
+    /// The default <c>error.type</c> value used when a GraphQL error has no
+    /// <c>extensions.code</c> and is not associated with an exception.
+    /// </summary>
+    public const string DefaultErrorType = "GRAPHQL_ERROR";
+
+    /// <summary>
+    /// The <c>error.type</c> value used as a fallback when an error occurs during
+    /// the GraphQL operation execution phase.
+    /// </summary>
+    public const string ExecutionErrorType = "EXECUTION_ERROR";
+
+    /// <summary>
+    /// The <c>error.type</c> value used as a fallback when an error occurs during
+    /// the GraphQL document validation phase.
+    /// </summary>
+    public const string ValidationErrorType = "GRAPHQL_VALIDATION_FAILED";
+
+    /// <summary>
+    /// The <c>error.type</c> value used as a fallback when an error occurs during
+    /// the GraphQL document parsing phase.
+    /// </summary>
+    public const string ParseErrorType = "GRAPHQL_PARSE_FAILED";
+
     extension(Activity activity)
     {
 #if !NET9_0_OR_GREATER
@@ -21,26 +45,52 @@ internal static class ActivityExtensions
                         { "exception.stacktrace", exception.ToString() },
                         { "exception.type", exception.GetType().ToString() }
                     }));
+
+            activity.SetErrorType(exception);
         }
 #endif
 
-        public void AddGraphQLError(IError error)
+        /// <summary>
+        /// Sets the <c>error.type</c> tag for a GraphQL error on the activity.
+        /// Prefers <see cref="IError.Code"/> (sourced from <c>extensions.code</c>),
+        /// then the underlying exception type name, and finally falls back to the
+        /// supplied <paramref name="fallback"/>.
+        /// </summary>
+        public void SetGraphQLErrorType(IError error, string fallback = DefaultErrorType)
+        {
+            if (activity.GetTagItem(SemanticConventions.ErrorType) is not null)
+            {
+                return;
+            }
+
+            var errorType = !string.IsNullOrEmpty(error.Code)
+                ? error.Code
+                : error.Exception?.GetType().FullName ?? fallback;
+            activity.SetTag(SemanticConventions.ErrorType, errorType);
+        }
+
+        /// <summary>
+        /// Adds a <c>graphql.error</c> event to the activity following the
+        /// OpenTelemetry GraphQL semantic conventions. When the GraphQL error
+        /// carries an underlying exception, <c>exception.type</c>,
+        /// <c>exception.message</c>, and <c>exception.stacktrace</c> are added
+        /// to the event. When no exception is present, those attributes are
+        /// omitted (the GraphQL error message is available via
+        /// <c>graphql.error.message</c>).
+        /// </summary>
+        public void AddGraphQLErrorEvent(
+            IError error,
+            string? operationType = null,
+            string? operationName = null)
         {
             var tags = new ActivityTagsCollection
             {
                 [SemanticConventions.GraphQL.Error.Message] = error.Message
             };
 
-            if (error.Exception is { } exception)
-            {
-                tags["exception.message"] = exception.Message;
-                tags["exception.stacktrace"] = exception.ToString();
-                tags["exception.type"] = exception.GetType().ToString();
-            }
-
             if (error.Path is not null)
             {
-                tags[SemanticConventions.GraphQL.Error.Path] = error.Path.Print();
+                tags[SemanticConventions.GraphQL.Field.Path] = error.Path.Print();
             }
 
             if (!string.IsNullOrEmpty(error.Code))
@@ -56,15 +106,48 @@ internal static class ActivityExtensions
                     var location = error.Locations[i];
                     locations[i] = new Dictionary<string, int>
                     {
-                        [SemanticConventions.GraphQL.Error.Location.Line] = location.Line,
-                        [SemanticConventions.GraphQL.Error.Location.Column] = location.Column
+                        [SemanticConventions.GraphQL.Document.Location.Line] = location.Line,
+                        [SemanticConventions.GraphQL.Document.Location.Column] = location.Column
                     };
                 }
 
-                tags[SemanticConventions.GraphQL.Error.Locations] = locations;
+                tags[SemanticConventions.GraphQL.Document.Locations] = locations;
             }
 
-            activity.AddEvent(new ActivityEvent("exception", default, tags));
+            if (error.Extensions is not null
+                && error.Extensions.TryGetValue("schemaCoordinate", out var schemaCoordinate)
+                && schemaCoordinate is string schemaCoordinateString
+                && !string.IsNullOrEmpty(schemaCoordinateString))
+            {
+                tags[SemanticConventions.GraphQL.Field.SchemaCoordinate] = schemaCoordinateString;
+            }
+
+            if (operationType is not null)
+            {
+                tags[SemanticConventions.GraphQL.Operation.Type] = operationType;
+            }
+
+            if (!string.IsNullOrEmpty(operationName))
+            {
+                tags[SemanticConventions.GraphQL.Operation.Name] = operationName;
+            }
+
+            if (error.Exception is { } exception)
+            {
+                tags["exception.type"] = exception.GetType().FullName;
+                tags["exception.message"] = exception.Message;
+                tags["exception.stacktrace"] = exception.ToString();
+            }
+
+            activity.AddEvent(new ActivityEvent("graphql.error", default, tags));
+        }
+
+        public void SetErrorType(Exception exception)
+        {
+            if (activity.GetTagItem(SemanticConventions.ErrorType) is null)
+            {
+                activity.SetTag(SemanticConventions.ErrorType, exception.GetType().FullName);
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -3,17 +3,39 @@
     {
       "OperationName": "GraphQL Operation",
       "DisplayName": "GraphQL Operation",
+      "Kind": "Internal",
       "Status": "Error",
       "tags": [
         {
-          "Key": "graphql.errors.count",
+          "Key": "graphql.processing.type",
+          "Value": "request"
+        },
+        {
+          "Key": "graphql.error.count",
           "Value": 1
+        },
+        {
+          "Key": "error.type",
+          "Value": "HC0067"
         }
       ],
       "event": [
         {
           "Name": "UntrustedDocumentRejected",
           "Tags": []
+        },
+        {
+          "Name": "graphql.error",
+          "Tags": [
+            {
+              "Key": "graphql.error.message",
+              "Value": "Only persisted operations are allowed."
+            },
+            {
+              "Key": "graphql.error.code",
+              "Value": "HC0067"
+            }
+          ]
         }
       ]
     }

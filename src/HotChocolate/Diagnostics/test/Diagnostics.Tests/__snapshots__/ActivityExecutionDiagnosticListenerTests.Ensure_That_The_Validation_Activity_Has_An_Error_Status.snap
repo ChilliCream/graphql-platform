@@ -3,8 +3,13 @@
     {
       "OperationName": "GraphQL Operation",
       "DisplayName": "GraphQL Operation",
+      "Kind": "Internal",
       "Status": "Error",
       "tags": [
+        {
+          "Key": "graphql.processing.type",
+          "Value": "request"
+        },
         {
           "Key": "graphql.document.hash",
           "Value": "md5:bb1d246465341a97bdc727d6cd8ead5c"
@@ -14,15 +19,39 @@
           "Value": "query SayHelloOperation {\n  sayHello_\n}"
         },
         {
-          "Key": "graphql.errors.count",
+          "Key": "graphql.error.count",
           "Value": 1
+        },
+        {
+          "Key": "error.type",
+          "Value": "EXECUTION_ERROR"
         }
       ],
-      "event": [],
+      "event": [
+        {
+          "Name": "graphql.error",
+          "Tags": [
+            {
+              "Key": "graphql.error.message",
+              "Value": "The field `sayHello_` does not exist on the type `SimpleQuery`."
+            },
+            {
+              "Key": "graphql.document.locations",
+              "Value": [
+                {
+                  "line": 1,
+                  "column": 27
+                }
+              ]
+            }
+          ]
+        }
+      ],
       "activities": [
         {
           "OperationName": "GraphQL Document Parsing",
           "DisplayName": "GraphQL Document Parsing",
+          "Kind": "Internal",
           "Status": "Ok",
           "tags": [
             {
@@ -35,6 +64,7 @@
         {
           "OperationName": "GraphQL Document Validation",
           "DisplayName": "GraphQL Document Validation",
+          "Kind": "Internal",
           "Status": "Error",
           "tags": [
             {
@@ -44,28 +74,13 @@
             {
               "Key": "graphql.document.hash",
               "Value": "md5:bb1d246465341a97bdc727d6cd8ead5c"
+            },
+            {
+              "Key": "error.type",
+              "Value": "GRAPHQL_VALIDATION_FAILED"
             }
           ],
-          "event": [
-            {
-              "Name": "exception",
-              "Tags": [
-                {
-                  "Key": "graphql.error.message",
-                  "Value": "The field `sayHello_` does not exist on the type `SimpleQuery`."
-                },
-                {
-                  "Key": "graphql.error.locations",
-                  "Value": [
-                    {
-                      "line": 1,
-                      "column": 27
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+          "event": []
         }
       ]
     }

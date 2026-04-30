@@ -37,6 +37,18 @@ internal sealed class ExecuteOperationSpan(
         if (context.Result is null or OperationResult { Errors: [_, ..] })
         {
             Activity.SetStatus(ActivityStatusCode.Error);
+
+            if (Activity.GetTagItem(SemanticConventions.ErrorType) is null)
+            {
+                if (context.Result is OperationResult { Errors: [var firstError, ..] })
+                {
+                    Activity.SetGraphQLErrorType(firstError, ActivityExtensions.ExecutionErrorType);
+                }
+                else
+                {
+                    Activity.SetTag(SemanticConventions.ErrorType, ActivityExtensions.ExecutionErrorType);
+                }
+            }
         }
         else
         {

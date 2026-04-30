@@ -56,6 +56,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
 
             activity.SetStatus(ActivityStatusCode.Error);
             activity.AddException(error);
+            activity.SetErrorType(error);
 
             enricher.EnrichRequestError(context, error, activity);
         }
@@ -68,7 +69,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
             var activity = span.Activity;
 
             activity.SetStatus(ActivityStatusCode.Error);
-            activity.AddGraphQLError(error);
+            activity.SetGraphQLErrorType(error, ActivityExtensions.ExecutionErrorType);
 
             enricher.EnrichRequestError(context, error, activity);
         }
@@ -118,7 +119,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
 
         foreach (var error in errors)
         {
-            activity.AddGraphQLError(error);
+            activity.SetGraphQLErrorType(error, ActivityExtensions.ValidationErrorType);
         }
 
         enricher.EnrichValidationErrors(context, errors, activity);
@@ -234,7 +235,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
             && value is ResolveFieldSpan span)
         {
             span.Activity.SetStatus(ActivityStatusCode.Error);
-            span.Activity.AddGraphQLError(error);
+            span.Activity.SetGraphQLErrorType(error, ActivityExtensions.ExecutionErrorType);
 
             enricher.EnrichResolverError(context, error, span.Activity);
         }
@@ -294,6 +295,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
         {
             activity.SetStatus(ActivityStatusCode.Error);
             activity.AddException(exception);
+            activity.SetErrorType(exception);
         }
     }
 

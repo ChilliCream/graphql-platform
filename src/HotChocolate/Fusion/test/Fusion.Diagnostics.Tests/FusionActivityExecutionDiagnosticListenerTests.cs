@@ -731,7 +731,12 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
     {
         public string SayHello() => "hello";
 
-        public string CauseFatalError() => throw new GraphQLException("fail");
+        public string CauseFatalError()
+            => throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage("fail")
+                    .SetCode("CUSTOM_ERROR_CODE")
+                    .Build());
 
         public Deep Deep() => new();
     }
@@ -763,14 +768,24 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
 
     public class DeeperB
     {
-        public string CauseFatalError() => throw new GraphQLException("deep fail");
+        public string CauseFatalError()
+            => throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage("deep fail")
+                    .SetCode("CUSTOM_ERROR_CODE")
+                    .Build());
     }
 
     public class Deep
     {
         public Deeper Deeper() => new();
 
-        public string CauseFatalError() => throw new GraphQLException("fail");
+        public string CauseFatalError()
+            => throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage("fail")
+                    .SetCode("CUSTOM_ERROR_CODE")
+                    .Build());
     }
 
     public class Deeper
@@ -797,7 +812,11 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
 
         [Subscribe(With = nameof(OnFailingMessageStream))]
         public string OnFailingMessage([EventMessage] string message)
-            => throw new InvalidOperationException("Subscription event failed.");
+            => throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage("Subscription event failed.")
+                    .SetCode("CUSTOM_ERROR_CODE")
+                    .Build());
     }
 
     private sealed class NoopOperationDocumentStorage : IOperationDocumentStorage

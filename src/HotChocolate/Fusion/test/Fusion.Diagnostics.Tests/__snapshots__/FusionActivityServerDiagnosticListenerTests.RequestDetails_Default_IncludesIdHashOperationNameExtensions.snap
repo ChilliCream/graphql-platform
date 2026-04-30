@@ -3,6 +3,7 @@
     {
       "OperationName": "ExecuteHttpRequest",
       "DisplayName": "GraphQL HTTP POST",
+      "Kind": "Internal",
       "Status": "Ok",
       "tags": [
         {
@@ -35,6 +36,7 @@
         {
           "OperationName": "Parse HTTP Request",
           "DisplayName": "Parse HTTP Request",
+          "Kind": "Internal",
           "Status": "Ok",
           "tags": [],
           "event": []
@@ -42,8 +44,13 @@
         {
           "OperationName": "GraphQL Operation",
           "DisplayName": "query",
+          "Kind": "Internal",
           "Status": "Ok",
           "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "request"
+            },
             {
               "Key": "graphql.operation.type",
               "Value": "query"
@@ -57,7 +64,7 @@
               "Value": "md5:cf203f646caf64f424638bd2f09e490a"
             },
             {
-              "Key": "graphql.errors.count",
+              "Key": "graphql.error.count",
               "Value": 0
             }
           ],
@@ -75,6 +82,7 @@
             {
               "OperationName": "GraphQL Document Validation",
               "DisplayName": "GraphQL Document Validation",
+              "Kind": "Internal",
               "Status": "Ok",
               "tags": [
                 {
@@ -91,6 +99,7 @@
             {
               "OperationName": "GraphQL Operation Planning",
               "DisplayName": "GraphQL Operation Planning",
+              "Kind": "Internal",
               "Status": "Ok",
               "tags": [
                 {
@@ -115,6 +124,7 @@
             {
               "OperationName": "GraphQL Operation Execution",
               "DisplayName": "GraphQL Operation Execution",
+              "Kind": "Internal",
               "Status": "Ok",
               "tags": [
                 {
@@ -139,6 +149,7 @@
                 {
                   "OperationName": "GraphQL Step Execution",
                   "DisplayName": "GraphQL Step Execution",
+                  "Kind": "Internal",
                   "Status": "Ok",
                   "tags": [
                     {
@@ -170,23 +181,46 @@
                       "Value": "38b496e1881ca158155c453e43c3fff8115ca61f1aaed0c170ef0ae5a5539379"
                     },
                     {
-                      "Key": "graphql.source.name",
+                      "Key": "graphql.source_schema.name",
                       "Value": "a"
                     },
                     {
-                      "Key": "graphql.source.operation.name",
+                      "Key": "graphql.source_schema.operation.name",
                       "Value": "GetGreeting_cf203f64_1"
                     },
                     {
-                      "Key": "graphql.source.operation.kind",
-                      "Value": "query"
-                    },
-                    {
-                      "Key": "graphql.source.operation.hash",
+                      "Key": "graphql.source_schema.operation.hash",
                       "Value": "sha256:579285518f37f039b04a0268fd6058a3903e369efccd77c48e7c045c35f25428"
                     }
                   ],
-                  "event": []
+                  "event": [],
+                  "activities": [
+                    {
+                      "OperationName": "query",
+                      "DisplayName": "query",
+                      "Kind": "Client",
+                      "Status": "Ok",
+                      "tags": [
+                        {
+                          "Key": "graphql.operation.type",
+                          "Value": "query"
+                        },
+                        {
+                          "Key": "graphql.operation.name",
+                          "Value": "GetGreeting_cf203f64_1"
+                        },
+                        {
+                          "Key": "graphql.document.hash",
+                          "Value": "sha256:579285518f37f039b04a0268fd6058a3903e369efccd77c48e7c045c35f25428"
+                        },
+                        {
+                          "Key": "graphql.source_schema.name",
+                          "Value": "a"
+                        }
+                      ],
+                      "event": []
+                    }
+                  ]
                 }
               ]
             }
@@ -195,6 +229,7 @@
         {
           "OperationName": "Format HTTP Response",
           "DisplayName": "Format HTTP Response",
+          "Kind": "Internal",
           "Status": "Ok",
           "tags": [],
           "event": []

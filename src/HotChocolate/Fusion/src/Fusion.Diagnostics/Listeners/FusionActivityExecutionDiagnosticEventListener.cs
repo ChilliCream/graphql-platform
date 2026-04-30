@@ -54,6 +54,7 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
 
             activity.SetStatus(ActivityStatusCode.Error);
             activity.AddException(error);
+            activity.SetErrorType(error);
 
             enricher.EnrichRequestError(context, error, activity);
         }
@@ -66,7 +67,7 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
             var activity = span.Activity;
 
             activity.SetStatus(ActivityStatusCode.Error);
-            activity.AddGraphQLError(error);
+            activity.SetGraphQLErrorType(error, ActivityExtensions.ExecutionErrorType);
 
             enricher.EnrichRequestError(context, error, activity);
         }
@@ -116,7 +117,7 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
 
         foreach (var error in errors)
         {
-            activity.AddGraphQLError(error);
+            activity.SetGraphQLErrorType(error, ActivityExtensions.ValidationErrorType);
         }
 
         enricher.EnrichValidationErrors(context, errors, activity);
@@ -184,6 +185,23 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         string schemaName)
         => ExecuteNode(context, node, schemaName);
 
+    public override IDisposable ExecuteSourceSchemaRequest(
+        OperationPlanContext context,
+        OperationExecutionNode node,
+        string schemaName)
+    {
+        var span = ExecuteSourceSchemaRequestSpan.Start(Source, context, node, schemaName, enricher);
+
+        if (span is null)
+        {
+            return EmptyScope;
+        }
+
+        enricher.EnrichSourceSchemaRequest(context, node, schemaName, span.Activity);
+
+        return span;
+    }
+
     public override IDisposable ExecuteOperationBatchNode(
         OperationPlanContext context,
         OperationBatchExecutionNode node,
@@ -225,6 +243,7 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         {
             activity.SetStatus(ActivityStatusCode.Error);
             activity.AddException(error);
+            activity.SetErrorType(error);
 
             enricher.EnrichExecutionNodeError(context, node, error, activity);
         }
@@ -240,6 +259,7 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         {
             activity.SetStatus(ActivityStatusCode.Error);
             activity.AddException(error);
+            activity.SetErrorType(error);
 
             enricher.EnrichSourceSchemaTransportError(context, node, schemaName, error, activity);
         }
@@ -255,6 +275,7 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         {
             activity.SetStatus(ActivityStatusCode.Error);
             activity.AddException(error);
+            activity.SetErrorType(error);
 
             enricher.EnrichSourceSchemaStoreError(context, node, schemaName, error, activity);
         }
@@ -302,6 +323,7 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         {
             activity.SetStatus(ActivityStatusCode.Error);
             activity.AddException(exception);
+            activity.SetErrorType(exception);
 
             enricher.EnrichSubscriptionEventError(
                 context,

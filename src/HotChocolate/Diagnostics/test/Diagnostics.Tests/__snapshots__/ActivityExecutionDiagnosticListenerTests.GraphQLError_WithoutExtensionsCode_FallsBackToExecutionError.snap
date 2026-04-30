@@ -1,0 +1,98 @@
+{
+  "activities": [
+    {
+      "OperationName": "GraphQL Operation",
+      "DisplayName": "query",
+      "Kind": "Internal",
+      "Status": "Error",
+      "tags": [
+        {
+          "Key": "graphql.processing.type",
+          "Value": "request"
+        },
+        {
+          "Key": "graphql.operation.type",
+          "Value": "query"
+        },
+        {
+          "Key": "graphql.document.hash",
+          "Value": "md5:eb7651f0968bfe850896354cd6bcbd0d"
+        },
+        {
+          "Key": "graphql.error.count",
+          "Value": 1
+        },
+        {
+          "Key": "error.type",
+          "Value": "EXECUTION_ERROR"
+        }
+      ],
+      "event": [
+        {
+          "Name": "AddedOperationToCache",
+          "Tags": []
+        },
+        {
+          "Name": "AddedDocumentToCache",
+          "Tags": []
+        },
+        {
+          "Name": "graphql.error",
+          "Tags": [
+            {
+              "Key": "graphql.error.message",
+              "Value": "fail"
+            },
+            {
+              "Key": "graphql.field.path",
+              "Value": "causeUncodedError"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            }
+          ]
+        }
+      ],
+      "activities": [
+        {
+          "OperationName": "SimpleQuery.causeUncodedError",
+          "DisplayName": "SimpleQuery.causeUncodedError",
+          "Kind": "Internal",
+          "Status": "Error",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "resolve"
+            },
+            {
+              "Key": "graphql.field.alias",
+              "Value": "causeUncodedError"
+            },
+            {
+              "Key": "graphql.field.path",
+              "Value": "causeUncodedError"
+            },
+            {
+              "Key": "graphql.field.name",
+              "Value": "causeUncodedError"
+            },
+            {
+              "Key": "graphql.field.coordinate",
+              "Value": "SimpleQuery.causeUncodedError"
+            },
+            {
+              "Key": "graphql.field.parent_type",
+              "Value": "SimpleQuery"
+            },
+            {
+              "Key": "error.type",
+              "Value": "EXECUTION_ERROR"
+            }
+          ],
+          "event": []
+        }
+      ]
+    }
+  ]
+}

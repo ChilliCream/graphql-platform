@@ -3,6 +3,7 @@
     {
       "OperationName": "ExecuteHttpRequest",
       "DisplayName": "GraphQL HTTP POST",
+      "Kind": "Internal",
       "Status": "Ok",
       "tags": [
         {
@@ -19,11 +20,17 @@
         {
           "OperationName": "Parse HTTP Request",
           "DisplayName": "Parse HTTP Request",
+          "Kind": "Internal",
           "Status": "Error",
-          "tags": [],
+          "tags": [
+            {
+              "Key": "error.type",
+              "Value": "HC0011"
+            }
+          ],
           "event": [
             {
-              "Name": "exception",
+              "Name": "graphql.error",
               "Tags": [
                 {
                   "Key": "graphql.error.message",
@@ -34,13 +41,25 @@
                   "Value": "HC0011"
                 },
                 {
-                  "Key": "graphql.error.locations",
+                  "Key": "graphql.document.locations",
                   "Value": [
                     {
                       "line": 10,
                       "column": 37
                     }
                   ]
+                },
+                {
+                  "Key": "exception.type",
+                  "Value": "GRAPHQL_ERROR"
+                },
+                {
+                  "Key": "exception.message",
+                  "Value": "Found a NameStart character `n` (110) following a number, which is disallowed."
+                },
+                {
+                  "Key": "exception.stacktrace",
+                  "Value": ""
                 }
               ]
             }
@@ -49,6 +68,7 @@
         {
           "OperationName": "Format HTTP Response",
           "DisplayName": "Format HTTP Response",
+          "Kind": "Internal",
           "Status": "Ok",
           "tags": [],
           "event": []

@@ -70,11 +70,10 @@ internal sealed class ExecutePlanNodeSpan(
     {
         if (!string.IsNullOrWhiteSpace(schemaName))
         {
-            activity.SetTag(GraphQL.Source.Name, schemaName);
+            activity.SetTag(GraphQL.SourceSchema.Name, schemaName);
         }
 
-        activity.SetTag(GraphQL.Source.Operation.Name, operation.Name);
-        activity.SetTag(GraphQL.Source.Operation.Kind, GraphQL.Operation.TypeValues[operation.Type]);
-        activity.SetTag(GraphQL.Source.Operation.Hash, $"sha256:{operation.Hash}");
+        activity.SetTag(GraphQL.SourceSchema.Operation.Name, operation.Name);
+        activity.SetTag(GraphQL.SourceSchema.Operation.Hash, $"sha256:{operation.Hash}");
     }
 }

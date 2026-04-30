@@ -898,33 +898,56 @@ If you prefer, you can still register the remaining scalar types individually in
 - `RequestDetails.Operation` was renamed to `RequestDetails.OperationName`.
 - `RequestDetails.Query` was renamed to `RequestDetails.Document`.
 
-## OpenTelemetry span and status changes
+## OpenTelemetry GraphQL semantic conventions alignment
 
-The OpenTelemetry spans and attributes emitted by `AddInstrumentation()` have been updated to align with the [proposed OpenTelemetry semantic conventions for GraphQL](https://github.com/graphql/otel-wg/blob/main/spec).
+The OpenTelemetry spans, events, and attributes emitted by `AddInstrumentation()` (and the Fusion equivalent) have been aligned with the [proposed OpenTelemetry GraphQL semantic conventions](https://github.com/open-telemetry/semantic-conventions/pull/3515).
 
-If you have dashboards or alerts that filter on the old attribute names or values, update them accordingly.
+If you have dashboards, alerts, or span processors that filter on `graphql.*` attribute names, you will need to update them.
 
-Besides changes to the attributes, the most notable change is that the name of the root GraphQL span has been changed to just include the operation type (`query`, `mutation` or `subscription`), and no longer the operation name, to keep the cardinality low. The operation name can still be retrieved from the `graphql.operation.name` span attribute.
+Besides the attribute renames, the most notable changes are:
+
+- The root GraphQL span's display name now contains only the operation type (`query`, `mutation`, `subscription`), keeping cardinality low. The operation name remains available on the `graphql.operation.name` span attribute.
+- The `graphql.error` event is now emitted on the root `GraphQL Operation` span only, with combined GraphQL error and exception attributes.
+- A new `MaxErrorEvents` option (default `10`) caps the number of error events per request.
 
 ### Removed attributes
 
-| Attribute                     |
-| ----------------------------- |
-| `graphql.operation.id`        |
-| `graphql.selection.type`      |
-| `graphql.selection.hierarchy` |
+| Attribute                                  | Reason                                                      |
+| ------------------------------------------ | ----------------------------------------------------------- |
+| `graphql.operation.id`                     | Not part of the OpenTelemetry GraphQL semantic conventions. |
+| `graphql.selection.type`                   | Not part of the OpenTelemetry GraphQL semantic conventions. |
+| `graphql.selection.hierarchy`              | Not part of the OpenTelemetry GraphQL semantic conventions. |
+| `graphql.source.id` _(Fusion)_             | Replaced by `graphql.source_schema.name`.                   |
+| `graphql.source.operation.type` _(Fusion)_ | Duplicated `graphql.operation.type`.                        |
 
 ### Renamed attributes
 
-| Old Attribute                           | New Attribute                         |
-| --------------------------------------- | ------------------------------------- |
-| `graphql.operation.kind`                | `graphql.operation.type`              |
-| `graphql.selection.field.declaringType` | `graphql.selection.field.parent_type` |
-| `graphql.dataLoader.keys.count`         | `graphql.dataloader.batch.size`       |
-| `graphql.dataLoader.keys`               | `graphql.dataloader.batch.keys`       |
-| `graphql.fusion.node.schema`            | `graphql.source.name`                 |
-| `graphql.fusion.node.type`              | `graphql.operation.step.kind`         |
-| `graphql.error.location.line/column`    | `graphql.error.locations`             |
+| Old Attribute                              | New Attribute                          |
+| ------------------------------------------ | -------------------------------------- |
+| `graphql.operation.kind`                   | `graphql.operation.type`               |
+| `graphql.selection.name`                   | `graphql.field.alias`                  |
+| `graphql.selection.path`                   | `graphql.field.path`                   |
+| `graphql.selection.field.name`             | `graphql.field.name`                   |
+| `graphql.selection.field.parent_type`      | `graphql.field.parent_type`            |
+| `graphql.selection.field.coordinate`       | `graphql.field.coordinate`             |
+| `graphql.selection.field.declaringType`    | `graphql.field.parent_type`            |
+| `graphql.dataLoader.keys.count`            | `graphql.dataloader.batch.size`        |
+| `graphql.dataLoader.keys`                  | `graphql.dataloader.batch.keys`        |
+| `graphql.error.path`                       | `graphql.field.path` _(reused)_        |
+| `graphql.error.locations`                  | `graphql.document.locations`           |
+| `graphql.error.location.line/column`       | `graphql.document.locations`           |
+| `graphql.fusion.node.schema`               | `graphql.source_schema.name`           |
+| `graphql.fusion.node.type`                 | `graphql.operation.step.kind`          |
+| `graphql.source.name` _(Fusion)_           | `graphql.source_schema.name`           |
+| `graphql.source.operation.name` _(Fusion)_ | `graphql.source_schema.operation.name` |
+| `graphql.source.operation.hash` _(Fusion)_ | `graphql.source_schema.operation.hash` |
+
+### Added attributes
+
+| Attribute                         | Where                                                     |
+| --------------------------------- | --------------------------------------------------------- |
+| `graphql.processing.type=request` | Root `GraphQL Operation` span (now required by spec).     |
+| `graphql.field.schema_coordinate` | `graphql.error` event (when present in error extensions). |
 
 ### Changed attribute values
 
@@ -934,6 +957,23 @@ Besides changes to the attributes, the most notable change is that the name of t
 | `graphql.http.kind`      | `operation-batch`                     | `operation_batch`                                   |
 | `graphql.document.hash`  | `<hash>`                              | `<hash-algorithm>:<hash>` , e.g. `md5:<hash>`       |
 | `graphql.document.id`    | -                                     | Value is only set if document is a trusted document |
+
+### `graphql.error` event moved to the root span
+
+Previously the `graphql.error` event was attached to the resolver, validation, or parsing span where the error originated. The event is now emitted on the root `GraphQL Operation` span, with the field path preserved as the `graphql.field.path` attribute on the event. This aligns with the spec, supports long-lived subscription operations, and lets you aggregate errors per request.
+
+When the GraphQL error has an underlying exception, the event carries `exception.type`, `exception.message`, and `exception.stacktrace` derived from that exception. When no exception is attached, these attributes are omitted (the error message remains available via `graphql.error.message`).
+
+The number of `graphql.error` events per request is capped via the new `MaxErrorEvents` option (default `10`). The total error count remains available on the root span as `graphql.error.count`, independent of the cap.
+
+```csharp
+builder.AddGraphQL()
+    .AddInstrumentation(o => o.MaxErrorEvents = 25);
+```
+
+### `error.type` value policy
+
+`error.type` now reflects the GraphQL error's `extensions.code` when present, falling back to the underlying exception type or to a phase-appropriate identifier (`EXECUTION_ERROR`, `GRAPHQL_VALIDATION_FAILED`, `GRAPHQL_PARSE_FAILED`).
 
 ### Custom enricher changes
 
@@ -979,38 +1019,6 @@ We removed the following methods from the `IExecutionDiagnosticEventListener` si
 - `SubscriptionEventResult`
 
 Some other methods also had a change in their signature - simply override them again to fix any compilation issues.
-
-<!--
-TODO: This should probably go on in the Fusion specific guide.
-
-### Fusion diagnostic listener API redesign
-
-Fusion diagnostics were redesigned in v16.
-
-- v15 interface: `HotChocolate.Fusion.Execution.Diagnostic.IFusionDiagnosticEvents` / `IFusionDiagnosticEventListener`
-- v16 interface: `HotChocolate.Fusion.Diagnostics.IFusionExecutionDiagnosticEvents` / `IFusionExecutionDiagnosticEventListener`
-
-This is not a signature-only change. The old high-level hooks were removed:
-
-- `ExecuteFederatedQuery(IRequestContext)`
-- `QueryPlanExecutionError(Exception)`
-- `ResolveError(Exception)`
-- `ResolveByKeyBatchError(Exception)`
-- `SubgraphRequestError(string, Exception)`
-
-The new API is execution-stage specific and provides request/plan/node/subscription hooks, for example:
-
-- `PlanOperation(...)`, `PlanOperationError(...)`
-- `ExecuteOperationNode(...)`, `ExecuteOperationBatchNode(...)`, `ExecuteSubscriptionNode(...)`, `ExecuteNodeFieldNode(...)`, `ExecuteIntrospectionNode(...)`
-- `ExecutionNodeError(...)`, `SourceSchemaTransportError(...)`, `SourceSchemaStoreError(...)`
-- `OnSubscriptionEvent(...)`, `SubscriptionEventError(...)`
-
-There is no 1:1 mapping for all old methods. In most cases:
-
-- `SubgraphRequestError(...)` maps to `SourceSchemaTransportError(...)`
-- `ResolveError(...)` / `ResolveByKeyBatchError(...)` map to `ExecutionNodeError(...)` and source-schema error hooks depending on error kind
-
-Also note that `SubscriptionTransportError(...)` is no longer exposed separately in the fusion diagnostics API; use `SourceSchemaTransportError(...)`. -->
 
 ## Experimental @semanticNonNull support removed
 
