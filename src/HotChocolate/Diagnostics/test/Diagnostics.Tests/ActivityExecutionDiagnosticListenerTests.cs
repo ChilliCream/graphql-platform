@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.PersistedOperations;
+using HotChocolate.Resolvers;
 using HotChocolate.Subscriptions;
 using HotChocolate.Types;
 using static HotChocolate.Diagnostics.ActivityTestHelper;
@@ -310,7 +311,9 @@ public partial class ActivityExecutionDiagnosticListenerTests
                             deeper {
                                 deeps {
                                     deeper {
-                                        causeFatalError
+                                        deeps {
+                                            causeFatalError
+                                        }
                                     }
                                 }
                             }
@@ -580,20 +583,27 @@ public partial class ActivityExecutionDiagnosticListenerTests
 
         public string Greeting(string name) => $"Hello, {name}!";
 
-        public string CauseFatalError()
+        public string CauseFatalError(IResolverContext context)
             => throw new GraphQLException(
                 ErrorBuilder.New()
                     .SetMessage("fail")
                     .SetCode("CUSTOM_ERROR_CODE")
+                    .SetPath(context.Path)
                     .Build());
 
-        public string CauseUncodedError() => throw new GraphQLException("fail");
+        public string CauseUncodedError(IResolverContext context)
+            => throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage("fail")
+                    .SetPath(context.Path)
+                    .Build());
 
-        public string CauseCodedError()
+        public string CauseCodedError(IResolverContext context)
             => throw new GraphQLException(
                 ErrorBuilder.New()
                     .SetMessage("invalid input")
                     .SetCode("INVALID_INPUT")
+                    .SetPath(context.Path)
                     .Build());
 
         public IEnumerable<FailingItem> FailingItems(int count)
@@ -614,11 +624,12 @@ public partial class ActivityExecutionDiagnosticListenerTests
     {
         public int Index { get; } = index;
 
-        public string? Fail()
+        public string? Fail(IResolverContext context)
             => throw new GraphQLException(
                 ErrorBuilder.New()
                     .SetMessage($"fail-{Index}")
                     .SetCode("CUSTOM_ERROR_CODE")
+                    .SetPath(context.Path)
                     .Build());
     }
 
@@ -626,11 +637,12 @@ public partial class ActivityExecutionDiagnosticListenerTests
     {
         public Deeper Deeper() => new();
 
-        public string CauseFatalError()
+        public string CauseFatalError(IResolverContext context)
             => throw new GraphQLException(
                 ErrorBuilder.New()
                     .SetMessage("fail")
                     .SetCode("CUSTOM_ERROR_CODE")
+                    .SetPath(context.Path)
                     .Build());
     }
 

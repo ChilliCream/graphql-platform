@@ -44,6 +44,10 @@
               "Value": "fail-0"
             },
             {
+              "Key": "graphql.field.path",
+              "Value": "failingItems[0].fail"
+            },
+            {
               "Key": "graphql.error.code",
               "Value": "CUSTOM_ERROR_CODE"
             },
@@ -59,6 +63,10 @@
             {
               "Key": "graphql.error.message",
               "Value": "fail-1"
+            },
+            {
+              "Key": "graphql.field.path",
+              "Value": "failingItems[1].fail"
             },
             {
               "Key": "graphql.error.code",

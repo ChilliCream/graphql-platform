@@ -1,6 +1,7 @@
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.PersistedOperations;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Fusion.Diagnostics.ActivityTestHelper;
@@ -731,11 +732,12 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
     {
         public string SayHello() => "hello";
 
-        public string CauseFatalError()
+        public string CauseFatalError(IResolverContext context)
             => throw new GraphQLException(
                 ErrorBuilder.New()
                     .SetMessage("fail")
                     .SetCode("CUSTOM_ERROR_CODE")
+                    .SetPath(context.Path)
                     .Build());
 
         public Deep Deep() => new();
@@ -768,11 +770,12 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
 
     public class DeeperB
     {
-        public string CauseFatalError()
+        public string CauseFatalError(IResolverContext context)
             => throw new GraphQLException(
                 ErrorBuilder.New()
                     .SetMessage("deep fail")
                     .SetCode("CUSTOM_ERROR_CODE")
+                    .SetPath(context.Path)
                     .Build());
     }
 
@@ -780,11 +783,12 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
     {
         public Deeper Deeper() => new();
 
-        public string CauseFatalError()
+        public string CauseFatalError(IResolverContext context)
             => throw new GraphQLException(
                 ErrorBuilder.New()
                     .SetMessage("fail")
                     .SetCode("CUSTOM_ERROR_CODE")
+                    .SetPath(context.Path)
                     .Build());
     }
 
@@ -811,11 +815,12 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
         }
 
         [Subscribe(With = nameof(OnFailingMessageStream))]
-        public string OnFailingMessage([EventMessage] string message)
+        public string OnFailingMessage([EventMessage] string message, IResolverContext context)
             => throw new GraphQLException(
                 ErrorBuilder.New()
                     .SetMessage("Subscription event failed.")
                     .SetCode("CUSTOM_ERROR_CODE")
+                    .SetPath(context.Path)
                     .Build());
     }
 
