@@ -27,18 +27,6 @@
   <data name="GetPromptHandler_PromptNotFound" xml:space="preserve">
     <value>Prompt not found.</value>
   </data>
-  <data name="IconDefinition_InvalidIconMimeType" xml:space="preserve">
-    <value>The MIME type must be a valid type/subtype string.</value>
-  </data>
-  <data name="IconDefinition_InvalidIconSize" xml:space="preserve">
-    <value>Each size must have the format {WIDTH}x{HEIGHT} (e.g., 48x48) or be 'any'.</value>
-  </data>
-  <data name="IconDefinition_InvalidIconSourceScheme" xml:space="preserve">
-    <value>The icon source URI must use the HTTP, HTTPS, or data scheme.</value>
-  </data>
-  <data name="IconDefinition_InvalidIconTheme" xml:space="preserve">
-    <value>The icon theme must be 'light' or 'dark'.</value>
-  </data>
   <data name="OperationToolDefinition_DocumentMustContainSingleOperation" xml:space="preserve">
     <value>An operation tool document must have exactly one operation definition.</value>
   </data>
