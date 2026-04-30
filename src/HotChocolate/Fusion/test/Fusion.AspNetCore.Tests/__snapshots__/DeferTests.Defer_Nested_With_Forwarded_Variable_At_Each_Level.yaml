@@ -256,12 +256,12 @@ sourceSchemas:
         query: Query
       }
 
-      type Post @key(fields: "id") {
-        id: ID!
-      }
-
       type Query {
         userById(id: ID!): User @lookup
+      }
+
+      type Post @key(fields: "id") {
+        id: ID!
       }
 
       type User @key(fields: "id") {
@@ -345,6 +345,10 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        postById(id: ID!): Post @lookup
+      }
+
       type Comment {
         id: ID!
       }
@@ -352,10 +356,6 @@ sourceSchemas:
       type Post @key(fields: "id") {
         id: ID!
         comments(first: Int!): [Comment!]!
-      }
-
-      type Query {
-        postById(id: ID!): Post @lookup
       }
     interactions:
       - request:

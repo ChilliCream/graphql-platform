@@ -119,12 +119,12 @@ sourceSchemas:
         query: Query
       }
 
-      type Post {
-        id: ID!
-      }
-
       type Query {
         userById(id: ID!): User @lookup
+      }
+
+      type Post {
+        id: ID!
       }
 
       type User @key(fields: "id") {
