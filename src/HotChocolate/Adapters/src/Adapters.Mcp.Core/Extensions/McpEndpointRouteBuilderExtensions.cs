@@ -1,4 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate;
+using HotChocolate.Adapters.Mcp;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Metadata;

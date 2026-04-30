@@ -31,8 +31,8 @@ public sealed class OpenApiSetupTests
     {
         // arrange
         var services = new ServiceCollection();
-        services.AddGraphQL("alpha").AddOpenApiDefinitionStorage(new StubOpenApiDefinitionStorage());
-        services.AddGraphQL("beta").AddOpenApiDefinitionStorage(new StubOpenApiDefinitionStorage());
+        services.AddGraphQL("alpha").AddOpenApi().AddOpenApiDefinitionStorage(new StubOpenApiDefinitionStorage());
+        services.AddGraphQL("beta").AddOpenApi().AddOpenApiDefinitionStorage(new StubOpenApiDefinitionStorage());
 
         // act
         var manager = services.BuildServiceProvider().GetRequiredService<OpenApiManager>();

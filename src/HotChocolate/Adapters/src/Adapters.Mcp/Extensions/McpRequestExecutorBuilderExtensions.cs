@@ -5,7 +5,8 @@ using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using ModelContextProtocol.Server;
 
-namespace HotChocolate.Adapters.Mcp.Extensions;
+// ReSharper disable once CheckNamespace
+namespace Microsoft.Extensions.DependencyInjection;
 
 #if !NET9_0_OR_GREATER
 [RequiresDynamicCode(
@@ -13,7 +14,7 @@ namespace HotChocolate.Adapters.Mcp.Extensions;
 [RequiresUnreferencedCode(
     "JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
 #endif
-public static class RequestExecutorBuilderExtensions
+public static class McpRequestExecutorBuilderExtensions
 {
     public static IRequestExecutorBuilder AddMcp(
         this IRequestExecutorBuilder builder,

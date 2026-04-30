@@ -19,21 +19,17 @@ namespace HotChocolate.Adapters.OpenApi;
 internal sealed class OpenApiManager : IDisposable
 {
     private readonly IOptionsMonitor<OpenApiSetup> _setupMonitor;
-    private readonly IOptionsMonitor<OpenApiTransportSetup> _transportSetupMonitor;
     private readonly IServiceProvider _applicationServices;
     private readonly ConcurrentDictionary<string, Lazy<OpenApiRegistration>> _registrations = new();
     private bool _disposed;
 
     public OpenApiManager(
         IOptionsMonitor<OpenApiSetup> setupMonitor,
-        IOptionsMonitor<OpenApiTransportSetup> transportSetupMonitor,
         IServiceProvider applicationServices)
     {
         ArgumentNullException.ThrowIfNull(setupMonitor);
-        ArgumentNullException.ThrowIfNull(transportSetupMonitor);
         ArgumentNullException.ThrowIfNull(applicationServices);
         _setupMonitor = setupMonitor;
-        _transportSetupMonitor = transportSetupMonitor;
         _applicationServices = applicationServices;
     }
 
@@ -69,7 +65,6 @@ internal sealed class OpenApiManager : IDisposable
     private OpenApiRegistration CreateRegistration(string name)
     {
         var setup = _setupMonitor.Get(name);
-        var transportSetup = _transportSetupMonitor.Get(name);
 
         var storageFactory =
             setup.StorageFactory
@@ -77,21 +72,9 @@ internal sealed class OpenApiManager : IDisposable
                 $"No OpenAPI definition storage is registered for schema '{name}'. "
                     + "Call AddOpenApiDefinitionStorage(...) when configuring the GraphQL server.");
 
-        var endpointDataSourceFactory =
-            transportSetup.EndpointDataSourceFactory
-            ?? throw new InvalidOperationException(
-                $"No OpenAPI endpoint data source factory is registered for schema '{name}'. "
-                    + "Call AddOpenApiAspNetCoreServices() when configuring the GraphQL server.");
-
-        var documentTransformerFactory =
-            transportSetup.DocumentTransformerFactory
-            ?? throw new InvalidOperationException(
-                $"No OpenAPI document transformer factory is registered for schema '{name}'. "
-                    + "Call AddOpenApiAspNetCoreServices() when configuring the GraphQL server.");
-
         var storage = storageFactory(_applicationServices);
-        var endpointDataSource = endpointDataSourceFactory();
-        var documentTransformer = documentTransformerFactory();
+        var endpointDataSource = _applicationServices.GetRequiredService<IDynamicEndpointDataSource>();
+        var documentTransformer = _applicationServices.GetRequiredService<IDynamicOpenApiDocumentTransformer>();
         var registry = new OpenApiDefinitionRegistry(storage, documentTransformer, endpointDataSource);
         var executorProxy = HttpRequestExecutorProxy.Create(_applicationServices, name);
 

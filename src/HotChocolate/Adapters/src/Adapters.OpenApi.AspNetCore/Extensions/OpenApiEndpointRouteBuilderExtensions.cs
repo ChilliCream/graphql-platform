@@ -1,3 +1,5 @@
+using HotChocolate;
+using HotChocolate.Adapters.OpenApi;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 
