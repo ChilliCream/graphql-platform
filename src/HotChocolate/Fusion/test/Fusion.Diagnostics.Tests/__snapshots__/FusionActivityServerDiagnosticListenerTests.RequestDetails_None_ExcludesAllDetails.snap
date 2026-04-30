@@ -202,34 +202,7 @@
                       "Value": "sha256:107e4091ec962487f26df0844464aa76452bc9039d604d80523fc66325c088bc"
                     }
                   ],
-                  "event": [],
-                  "activities": [
-                    {
-                      "OperationName": "query",
-                      "DisplayName": "query",
-                      "Kind": "Client",
-                      "Status": "Ok",
-                      "tags": [
-                        {
-                          "Key": "graphql.operation.type",
-                          "Value": "query"
-                        },
-                        {
-                          "Key": "graphql.operation.name",
-                          "Value": "GetGreeting_111e40f9_1"
-                        },
-                        {
-                          "Key": "graphql.document.hash",
-                          "Value": "sha256:107e4091ec962487f26df0844464aa76452bc9039d604d80523fc66325c088bc"
-                        },
-                        {
-                          "Key": "graphql.source_schema.name",
-                          "Value": "a"
-                        }
-                      ],
-                      "event": []
-                    }
-                  ]
+                  "event": []
                 }
               ]
             }

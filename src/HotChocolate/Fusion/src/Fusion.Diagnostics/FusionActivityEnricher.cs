@@ -31,14 +31,6 @@ public class FusionActivityEnricher(InstrumentationOptions options) : ActivityEn
     {
     }
 
-    public virtual void EnrichSourceSchemaRequest(
-        OperationPlanContext context,
-        OperationExecutionNode node,
-        string schemaName,
-        Activity activity)
-    {
-    }
-
     public virtual void EnrichExecutionNodeError(
         OperationPlanContext context,
         ExecutionNode node,

@@ -69,8 +69,12 @@
           "OperationName": "GraphQL Document Parsing",
           "DisplayName": "GraphQL Document Parsing",
           "Kind": "Internal",
-          "Status": "Unset",
+          "Status": "Error",
           "tags": [
+            {
+              "Key": "error.type",
+              "Value": "HC0014"
+            },
             {
               "Key": "graphql.document.hash",
               "Value": "md5:bb507ba78696fc3c6ff3a17fb06784d5"

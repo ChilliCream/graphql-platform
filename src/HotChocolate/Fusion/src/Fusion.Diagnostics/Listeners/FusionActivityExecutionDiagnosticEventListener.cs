@@ -185,23 +185,6 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         string schemaName)
         => ExecuteNode(context, node, schemaName);
 
-    public override IDisposable ExecuteSourceSchemaRequest(
-        OperationPlanContext context,
-        OperationExecutionNode node,
-        string schemaName)
-    {
-        var span = ExecuteSourceSchemaRequestSpan.Start(Source, context, node, schemaName, enricher);
-
-        if (span is null)
-        {
-            return EmptyScope;
-        }
-
-        enricher.EnrichSourceSchemaRequest(context, node, schemaName, span.Activity);
-
-        return span;
-    }
-
     public override IDisposable ExecuteOperationBatchNode(
         OperationPlanContext context,
         OperationBatchExecutionNode node,

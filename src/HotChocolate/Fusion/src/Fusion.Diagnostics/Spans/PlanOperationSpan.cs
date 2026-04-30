@@ -26,7 +26,14 @@ internal sealed class PlanOperationSpan(
 
         activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Plan);
 
-        activity.EnrichDocumentInfo(context.OperationDocumentInfo);
+        // Only the document hash is set here. The document.id already lives on the
+        // parent request span via EnrichDocumentInfo and would be redundant on the
+        // planning span.
+        var hash = context.OperationDocumentInfo.Hash;
+        if (!hash.IsEmpty)
+        {
+            activity.SetTag(GraphQL.Document.Hash, $"{hash.AlgorithmName}:{hash.Value}");
+        }
 
         return new PlanOperationSpan(activity, context, enricher, operationPlanId);
     }

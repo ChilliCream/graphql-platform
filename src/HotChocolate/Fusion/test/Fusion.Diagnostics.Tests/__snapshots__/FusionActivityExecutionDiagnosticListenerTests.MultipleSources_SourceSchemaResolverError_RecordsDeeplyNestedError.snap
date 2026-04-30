@@ -199,34 +199,7 @@
                   "Value": "sha256:7dfcb1cc48aa6c4d4750dc471f2f71b0c1acf70356383ea909d2c5994dc65d6f"
                 }
               ],
-              "event": [],
-              "activities": [
-                {
-                  "OperationName": "query",
-                  "DisplayName": "query",
-                  "Kind": "Client",
-                  "Status": "Ok",
-                  "tags": [
-                    {
-                      "Key": "graphql.operation.type",
-                      "Value": "query"
-                    },
-                    {
-                      "Key": "graphql.operation.name",
-                      "Value": "Op_241c617b_1"
-                    },
-                    {
-                      "Key": "graphql.document.hash",
-                      "Value": "sha256:7dfcb1cc48aa6c4d4750dc471f2f71b0c1acf70356383ea909d2c5994dc65d6f"
-                    },
-                    {
-                      "Key": "graphql.source_schema.name",
-                      "Value": "b"
-                    }
-                  ],
-                  "event": []
-                }
-              ]
+              "event": []
             },
             {
               "OperationName": "GraphQL Step Execution",
@@ -271,34 +244,7 @@
                   "Value": "sha256:23e6ec3292fdaf4949c838051e42d74bee6c27bed8b0720637c4b77d961f3ef3"
                 }
               ],
-              "event": [],
-              "activities": [
-                {
-                  "OperationName": "query",
-                  "DisplayName": "query",
-                  "Kind": "Client",
-                  "Status": "Ok",
-                  "tags": [
-                    {
-                      "Key": "graphql.operation.type",
-                      "Value": "query"
-                    },
-                    {
-                      "Key": "graphql.operation.name",
-                      "Value": "Op_241c617b_2"
-                    },
-                    {
-                      "Key": "graphql.document.hash",
-                      "Value": "sha256:23e6ec3292fdaf4949c838051e42d74bee6c27bed8b0720637c4b77d961f3ef3"
-                    },
-                    {
-                      "Key": "graphql.source_schema.name",
-                      "Value": "a"
-                    }
-                  ],
-                  "event": []
-                }
-              ]
+              "event": []
             }
           ]
         }
