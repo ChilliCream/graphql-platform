@@ -71,10 +71,12 @@ internal static class ActivityExtensions
 
         /// <summary>
         /// Adds a <c>graphql.error</c> event to the activity following the
-        /// OpenTelemetry GraphQL semantic conventions. The event always carries
-        /// <c>exception.type</c>, <c>exception.message</c>, and
-        /// <c>exception.stacktrace</c> derived from the underlying exception when
-        /// available, or from the GraphQL error itself otherwise.
+        /// OpenTelemetry GraphQL semantic conventions. When the GraphQL error
+        /// carries an underlying exception, <c>exception.type</c>,
+        /// <c>exception.message</c>, and <c>exception.stacktrace</c> are added
+        /// to the event. When no exception is present, those attributes are
+        /// omitted (the GraphQL error message is available via
+        /// <c>graphql.error.message</c>).
         /// </summary>
         public void AddGraphQLErrorEvent(
             IError error,
@@ -130,9 +132,12 @@ internal static class ActivityExtensions
                 tags[SemanticConventions.GraphQL.Operation.Name] = operationName;
             }
 
-            tags["exception.type"] = error.Exception?.GetType().FullName ?? DefaultErrorType;
-            tags["exception.message"] = error.Exception?.Message ?? error.Message;
-            tags["exception.stacktrace"] = error.Exception?.ToString() ?? string.Empty;
+            if (error.Exception is { } exception)
+            {
+                tags["exception.type"] = exception.GetType().FullName;
+                tags["exception.message"] = exception.Message;
+                tags["exception.stacktrace"] = exception.ToString();
+            }
 
             activity.AddEvent(new ActivityEvent("graphql.error", default, tags));
         }

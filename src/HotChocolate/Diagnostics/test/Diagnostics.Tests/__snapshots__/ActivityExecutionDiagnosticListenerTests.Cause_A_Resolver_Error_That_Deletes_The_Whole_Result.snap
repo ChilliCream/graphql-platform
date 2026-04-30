@@ -66,18 +66,6 @@
             {
               "Key": "graphql.operation.name",
               "Value": "SayHelloOperation"
-            },
-            {
-              "Key": "exception.type",
-              "Value": "GRAPHQL_ERROR"
-            },
-            {
-              "Key": "exception.message",
-              "Value": "fail"
-            },
-            {
-              "Key": "exception.stacktrace",
-              "Value": ""
             }
           ]
         }

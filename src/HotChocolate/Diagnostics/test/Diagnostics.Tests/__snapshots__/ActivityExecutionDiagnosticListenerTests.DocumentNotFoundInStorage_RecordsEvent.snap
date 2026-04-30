@@ -34,18 +34,6 @@
             {
               "Key": "graphql.error.code",
               "Value": "HC0020"
-            },
-            {
-              "Key": "exception.type",
-              "Value": "GRAPHQL_ERROR"
-            },
-            {
-              "Key": "exception.message",
-              "Value": "The specified persisted operation key is invalid."
-            },
-            {
-              "Key": "exception.stacktrace",
-              "Value": ""
             }
           ]
         }

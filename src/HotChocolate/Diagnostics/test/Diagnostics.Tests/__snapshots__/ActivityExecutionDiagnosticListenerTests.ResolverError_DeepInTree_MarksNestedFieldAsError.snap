@@ -43,18 +43,6 @@
                   "column": 21
                 }
               ]
-            },
-            {
-              "Key": "exception.type",
-              "Value": "GRAPHQL_ERROR"
-            },
-            {
-              "Key": "exception.message",
-              "Value": "The field `causeFatalError` does not exist on the type `Deeper`."
-            },
-            {
-              "Key": "exception.stacktrace",
-              "Value": ""
             }
           ]
         }

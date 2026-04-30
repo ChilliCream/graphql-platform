@@ -60,18 +60,6 @@
                   "column": 11
                 }
               ]
-            },
-            {
-              "Key": "exception.type",
-              "Value": "GRAPHQL_ERROR"
-            },
-            {
-              "Key": "exception.message",
-              "Value": "Expected a `RightBrace`-token, but found a `EndOfFile`-token."
-            },
-            {
-              "Key": "exception.stacktrace",
-              "Value": ""
             }
           ]
         }

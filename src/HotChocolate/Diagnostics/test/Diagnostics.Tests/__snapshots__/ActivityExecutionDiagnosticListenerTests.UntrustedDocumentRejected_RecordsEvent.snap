@@ -34,18 +34,6 @@
             {
               "Key": "graphql.error.code",
               "Value": "HC0067"
-            },
-            {
-              "Key": "exception.type",
-              "Value": "GRAPHQL_ERROR"
-            },
-            {
-              "Key": "exception.message",
-              "Value": "Only persisted operations are allowed."
-            },
-            {
-              "Key": "exception.stacktrace",
-              "Value": ""
             }
           ]
         }

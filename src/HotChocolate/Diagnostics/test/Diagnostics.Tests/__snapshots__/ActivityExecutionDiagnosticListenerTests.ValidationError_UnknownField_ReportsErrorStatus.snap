@@ -39,18 +39,6 @@
                   "column": 3
                 }
               ]
-            },
-            {
-              "Key": "exception.type",
-              "Value": "GRAPHQL_ERROR"
-            },
-            {
-              "Key": "exception.message",
-              "Value": "The field `unknownField123` does not exist on the type `SimpleQuery`."
-            },
-            {
-              "Key": "exception.stacktrace",
-              "Value": ""
             }
           ]
         }

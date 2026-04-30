@@ -962,7 +962,7 @@ Besides the attribute renames, the most notable changes are:
 
 Previously the `graphql.error` event was attached to the resolver, validation, or parsing span where the error originated. The event is now emitted on the root `GraphQL Operation` span, with the field path preserved as the `graphql.field.path` attribute on the event. This aligns with the spec, supports long-lived subscription operations, and lets you aggregate errors per request.
 
-The event always carries `exception.type`, `exception.message`, and `exception.stacktrace` derived from the underlying exception (or the GraphQL error itself, if no exception is attached).
+When the GraphQL error has an underlying exception, the event carries `exception.type`, `exception.message`, and `exception.stacktrace` derived from that exception. When no exception is attached, these attributes are omitted (the error message remains available via `graphql.error.message`).
 
 The number of `graphql.error` events per request is capped via the new `MaxErrorEvents` option (default `10`). The total error count remains available on the root span as `graphql.error.count`, independent of the cap.
 
