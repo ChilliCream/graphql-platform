@@ -1,6 +1,7 @@
 #if !NET9_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 #endif
+using System.Reactive.Linq;
 using HotChocolate.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,9 +21,10 @@ internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
     private readonly IDynamicEndpointDataSource _dynamicEndpointDataSource;
     private readonly SemaphoreSlim _updateSemaphore = new(1, 1);
     private readonly CancellationTokenSource _cancellationTokenSource = new();
+    private readonly IDisposable _subscription;
 
     private ISchemaDefinition? _schema;
-    private bool _disposed;
+    private int _disposed;
 
     public OpenApiDefinitionRegistry(
         IOpenApiDefinitionStorage storage,
@@ -33,7 +35,10 @@ internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
         _transformer = transformer;
         _dynamicEndpointDataSource = dynamicEndpointDataSource;
 
-        _storage.Changed += OnStorageChanged;
+        _subscription = _storage
+            .Buffer(TimeSpan.FromMilliseconds(500), 10)
+            .Where(batch => batch.Count > 0)
+            .Subscribe(_ => HandleStorageChangedAsync().FireAndForget());
     }
 
     public async ValueTask UpdateSchemaAsync(
@@ -59,42 +64,58 @@ internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
-        if (!_disposed)
-        {
-            _disposed = true;
-
-            _storage.Changed -= OnStorageChanged;
-            _updateSemaphore.Dispose();
-
-            await _cancellationTokenSource.CancelAsync().ConfigureAwait(false);
-            _cancellationTokenSource.Dispose();
-        }
-    }
-
-    private void OnStorageChanged(object? sender, EventArgs e)
-    {
-        if (_schema is null)
+        // Atomic guard so concurrent DisposeAsync callers don't both proceed
+        // to dispose CTS / semaphore (the second would throw ObjectDisposedException).
+        if (Interlocked.Exchange(ref _disposed, 1) != 0)
         {
             return;
         }
 
-        HandleStorageChangedAsync().FireAndForget();
+        _subscription.Dispose();
+
+        // Cancel before disposing the semaphore so any in-flight refresh observes
+        // cancellation at WaitAsync(token) instead of racing the semaphore disposal.
+        await _cancellationTokenSource.CancelAsync().ConfigureAwait(false);
+
+        // Drain any refresh that already passed the cancellation check by acquiring
+        // the semaphore one last time before disposing it.
+        try
+        {
+            await _updateSemaphore.WaitAsync().ConfigureAwait(false);
+        }
+        catch (ObjectDisposedException)
+        {
+        }
+
+        _updateSemaphore.Dispose();
+        _cancellationTokenSource.Dispose();
     }
 
     private async Task HandleStorageChangedAsync()
     {
-        if (_schema is null)
+        if (_disposed != 0 || _schema is null)
         {
             return;
         }
 
         var cancellationToken = _cancellationTokenSource.Token;
 
-        await _updateSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await _updateSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+        catch (ObjectDisposedException)
+        {
+            return;
+        }
 
         try
         {
-            if (_schema is null)
+            if (_disposed != 0 || _schema is null)
             {
                 return;
             }
@@ -110,7 +131,13 @@ internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
         }
         finally
         {
-            _updateSemaphore.Release();
+            try
+            {
+                _updateSemaphore.Release();
+            }
+            catch (ObjectDisposedException)
+            {
+            }
         }
     }
 
