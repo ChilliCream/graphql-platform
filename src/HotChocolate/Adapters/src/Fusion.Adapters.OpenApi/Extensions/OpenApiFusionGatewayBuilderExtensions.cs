@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Adapters.OpenApi;
+using HotChocolate.Adapters.OpenApi.Configuration;
 using HotChocolate.Fusion.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -44,7 +45,9 @@ public static class OpenApiFusionGatewayBuilderExtensions
 
         builder.AddOpenApiDefinitionStorageCore(skipIf);
 
-        builder.Services.AddKeyedSingleton(builder.Name, storage);
+        builder.Services.Configure<OpenApiSetup>(
+            builder.Name,
+            setup => setup.StorageFactory = _ => storage);
 
         return builder;
     }
@@ -84,7 +87,9 @@ public static class OpenApiFusionGatewayBuilderExtensions
 
         builder.AddOpenApiDefinitionStorageCore(skipIf);
 
-        builder.Services.AddKeyedSingleton<IOpenApiDefinitionStorage, T>(builder.Name);
+        builder.Services.Configure<OpenApiSetup>(
+            builder.Name,
+            setup => setup.StorageFactory = ActivatorUtilities.GetServiceOrCreateInstance<T>);
 
         return builder;
     }
@@ -133,9 +138,9 @@ public static class OpenApiFusionGatewayBuilderExtensions
 
         builder.AddOpenApiDefinitionStorageCore(skipIf);
 
-        builder.Services.AddKeyedSingleton<IOpenApiDefinitionStorage, T>(
+        builder.Services.Configure<OpenApiSetup>(
             builder.Name,
-            (sp, _) => factory(sp));
+            setup => setup.StorageFactory = factory);
 
         return builder;
     }
@@ -144,10 +149,8 @@ public static class OpenApiFusionGatewayBuilderExtensions
         this IFusionGatewayBuilder builder,
         Func<IServiceProvider, bool>? skipIf)
     {
-        var schemaName = builder.Name;
-
-        builder.Services.AddOpenApiServices(schemaName);
-        builder.Services.AddOpenApiAspNetCoreServices(schemaName);
+        builder.Services.TryAddOpenApiServices();
+        builder.Services.AddOpenApiAspNetCoreServices();
 
         builder.ConfigureSchemaServices((_, schemaServices) =>
         {
@@ -155,11 +158,15 @@ public static class OpenApiFusionGatewayBuilderExtensions
             schemaServices.AddOpenApiSchemaServices();
         });
 
+        var schemaName = builder.Name;
+
         builder.AddWarmupTask(
             factory: schemaServices =>
             {
                 var registry = schemaServices.GetRootServiceProvider()
-                    .GetRequiredKeyedService<OpenApiDefinitionRegistry>(schemaName);
+                    .GetRequiredService<OpenApiManager>()
+                    .Get(schemaName)
+                    .Registry;
 
                 return new OpenApiWarmupTask(registry);
             },

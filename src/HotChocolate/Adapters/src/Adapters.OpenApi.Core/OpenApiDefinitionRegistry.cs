@@ -11,7 +11,7 @@ namespace HotChocolate.Adapters.OpenApi;
 [RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
 [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
 #endif
-internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
+internal sealed class OpenApiDefinitionRegistry : IDisposable
 {
     private static readonly OpenApiDefinitionValidator s_validator = new();
 
@@ -57,7 +57,7 @@ internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
         }
     }
 
-    public async ValueTask DisposeAsync()
+    public void Dispose()
     {
         if (!_disposed)
         {
@@ -66,7 +66,7 @@ internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
             _storage.Changed -= OnStorageChanged;
             _updateSemaphore.Dispose();
 
-            await _cancellationTokenSource.CancelAsync().ConfigureAwait(false);
+            _cancellationTokenSource.Cancel();
             _cancellationTokenSource.Dispose();
         }
     }

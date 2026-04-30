@@ -7,8 +7,10 @@ using ModelContextProtocol.Server;
 namespace HotChocolate.Adapters.Mcp.Extensions;
 
 #if !NET9_0_OR_GREATER
-[RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
-[RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
+[RequiresDynamicCode(
+    "JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+[RequiresUnreferencedCode(
+    "JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
 #endif
 public static class FusionGatewayBuilderExtensions
 {
@@ -19,10 +21,12 @@ public static class FusionGatewayBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        builder.Services.AddMcpServices(builder.Name);
+        builder.Services.TryAddMcpServices();
+        builder.Services.ConfigureMcpSetup(builder.Name, configureServerOptions, configureServer);
 
         builder.ConfigureSchemaServices(
-            (_, services) => services.AddMcpSchemaServices(configureServerOptions, configureServer));
+            (applicationServices, schemaServices) =>
+                schemaServices.AddMcpSchemaServices(applicationServices, builder.Name));
 
         return builder;
     }
@@ -42,9 +46,7 @@ public static class FusionGatewayBuilderExtensions
         return builder.AddMcpStorageWarmupTask(skipIf);
     }
 
-    public static IFusionGatewayBuilder AddMcpStorage(
-        this IFusionGatewayBuilder builder,
-        IMcpStorage storage)
+    public static IFusionGatewayBuilder AddMcpStorage(this IFusionGatewayBuilder builder, IMcpStorage storage)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(storage);
@@ -58,12 +60,9 @@ public static class FusionGatewayBuilderExtensions
         this IFusionGatewayBuilder builder,
         Func<IServiceProvider, bool>? skipIf = null)
     {
-        builder.AddWarmupTask(async (executor, cancellationToken) =>
-        {
-            var schema = executor.Schema;
-            var storageObserver = schema.Services.GetRequiredService<McpStorageObserver>();
-            await storageObserver.StartAsync(cancellationToken);
-        }, skipIf);
+        builder.AddWarmupTask(
+            schemaServices => new McpStorageWarmupTask(schemaServices.GetRequiredService<McpStorageObserver>()),
+            skipIf);
 
         return builder;
     }

@@ -1,6 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using HotChocolate.Adapters.Mcp.Proxies;
-using HotChocolate.Execution;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Metadata;
@@ -8,23 +6,24 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using ModelContextProtocol.Protocol;
 
-namespace HotChocolate.Adapters.Mcp.Extensions;
+namespace Microsoft.AspNetCore.Builder;
 
-public static class EndpointRouteBuilderExtensions
+public static class McpEndpointRouteBuilderExtensions
 {
     public static IEndpointConventionBuilder MapGraphQLMcp(
         this IEndpointRouteBuilder endpoints,
         [StringSyntax("Route")] string pattern = "/graphql/mcp",
         string? schemaName = null)
     {
-        TryResolveSchemaName(endpoints.ServiceProvider, ref schemaName);
-        schemaName ??= ISchemaDefinition.DefaultName;
-
-        var streamableHttpHandler =
-            endpoints.ServiceProvider.GetKeyedService<StreamableHttpHandlerProxy>(schemaName)
+        var manager = endpoints.ServiceProvider.GetService<McpManager>()
             ?? throw new InvalidOperationException(
                 "You must call AddMcp(). Unable to find required services. Call "
                 + "builder.Services.AddGraphQL().AddMcp() in application startup code.");
+
+        TryResolveSchemaName(manager, ref schemaName);
+        schemaName ??= ISchemaDefinition.DefaultName;
+
+        var streamableHttpHandler = manager.Get(schemaName).HandlerProxy;
 
         var mcpGroup = endpoints.MapGroup(pattern);
 
@@ -67,13 +66,11 @@ public static class EndpointRouteBuilderExtensions
         return mcpGroup;
     }
 
-    private static void TryResolveSchemaName(IServiceProvider services, ref string? schemaName)
+    private static void TryResolveSchemaName(McpManager manager, ref string? schemaName)
     {
-        if (schemaName is null
-            && services.GetService<IRequestExecutorProvider>() is { } provider
-            && provider.SchemaNames.Length == 1)
+        if (schemaName is null && manager.Names.Length == 1)
         {
-            schemaName = provider.SchemaNames[0];
+            schemaName = manager.Names[0];
         }
     }
 }
