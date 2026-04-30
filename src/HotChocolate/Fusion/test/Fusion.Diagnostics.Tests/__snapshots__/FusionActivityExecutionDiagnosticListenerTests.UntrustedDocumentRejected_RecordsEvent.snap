@@ -16,7 +16,7 @@
         },
         {
           "Key": "error.type",
-          "Value": "HC0067"
+          "Value": "EXECUTION_ERROR"
         }
       ],
       "event": [

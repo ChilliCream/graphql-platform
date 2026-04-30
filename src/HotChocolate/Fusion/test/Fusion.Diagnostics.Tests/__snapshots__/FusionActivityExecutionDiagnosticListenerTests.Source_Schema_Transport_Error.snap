@@ -28,7 +28,7 @@
         },
         {
           "Key": "error.type",
-          "Value": "System.Net.Http.HttpRequestException"
+          "Value": "EXECUTION_ERROR"
         }
       ],
       "event": [
@@ -77,10 +77,6 @@
           "Kind": "Internal",
           "Status": "Ok",
           "tags": [
-            {
-              "Key": "graphql.processing.type",
-              "Value": "parse"
-            },
             {
               "Key": "graphql.document.hash",
               "Value": "md5:f7e9989fbb67af7fa747a9983313c9e5"
@@ -146,7 +142,7 @@
             },
             {
               "Key": "error.type",
-              "Value": "System.Net.Http.HttpRequestException"
+              "Value": "EXECUTION_ERROR"
             }
           ],
           "event": [],

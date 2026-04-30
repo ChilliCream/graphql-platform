@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using HotChocolate.Execution;
-using static HotChocolate.Diagnostics.SemanticConventions;
 
 namespace HotChocolate.Diagnostics;
 
@@ -21,7 +20,11 @@ internal sealed class ParsingSpan(
             return null;
         }
 
-        activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Parse);
+        // We do not set this here, as parsing can happen in the HTTP middleware
+        // or the HotChocolate pipeline.
+        // For the moment we just track both as regular spans.
+        // Maybe in the future we can reconcile this.
+        // activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Parse);
 
         return new ParsingSpan(activity, context, enricher);
     }
