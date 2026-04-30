@@ -43,6 +43,7 @@ internal static class AuditAssertions
             {
                 var actualDataText = actualData?.ToJsonString(s_indented) ?? "null";
                 var expectedDataText = expectedData?.ToJsonString(s_indented) ?? "null";
+                var errorsText = actual["errors"]?.ToJsonString(s_indented) ?? "<none>";
 
                 Xunit.Assert.Fail(
                     $"""
@@ -53,6 +54,9 @@ internal static class AuditAssertions
 
                      Actual:
                      {actualDataText}
+
+                     Errors:
+                     {errorsText}
                      """);
             }
         }

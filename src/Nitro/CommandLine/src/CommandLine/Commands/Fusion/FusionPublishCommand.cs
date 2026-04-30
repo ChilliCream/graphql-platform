@@ -38,6 +38,7 @@ internal sealed class FusionPublishCommand : Command
         Options.Add(Opt<OptionalSourceSchemaIdentifierListOption>.Instance);
         Options.Add(Opt<OptionalSourceSchemaFileListOption>.Instance);
         Options.Add(Opt<OptionalFusionArchiveFileOption>.Instance);
+        Options.Add(Opt<OptionalLegacyFusionArchiveFileOption>.Instance);
         Options.Add(Opt<OptionalForceOption>.Instance);
         Options.Add(Opt<OptionalWaitForApprovalOption>.Instance);
         Options.Add(Opt<WorkingDirectoryOption>.Instance);
@@ -90,6 +91,8 @@ internal sealed class FusionPublishCommand : Command
             parseResult.GetValue(Opt<OptionalSourceSchemaIdentifierListOption>.Instance) ?? [];
         var archiveFile =
             parseResult.GetValue(Opt<OptionalFusionArchiveFileOption>.Instance);
+        var legacyArchiveFile =
+            parseResult.GetValue(Opt<OptionalLegacyFusionArchiveFileOption>.Instance);
         var force = parseResult.GetValue(Opt<OptionalForceOption>.Instance);
         var waitForApproval = parseResult.GetValue(Opt<OptionalWaitForApprovalOption>.Instance);
         var stageName = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
@@ -121,9 +124,29 @@ internal sealed class FusionPublishCommand : Command
 
         if (archiveFile is not null)
         {
+            if (legacyArchiveFile is not null)
+            {
+                throw new ExitException(
+                    $"The options '{FusionArchiveFileOption.OptionName}' and '{OptionalLegacyFusionArchiveFileOption.OptionName}' are mutually exclusive.");
+            }
+
             return await PublishFusionConfigurationWithArchiveAsync();
         }
-        else if (sourceSchemaFiles.Count > 0)
+
+        if (legacyArchiveFile is not null)
+        {
+            if (!Path.IsPathRooted(legacyArchiveFile))
+            {
+                legacyArchiveFile = Path.Combine(workingDirectory, legacyArchiveFile);
+            }
+
+            if (!fileSystem.FileExists(legacyArchiveFile))
+            {
+                throw new ExitException(Messages.LegacyArchiveFileDoesNotExist(legacyArchiveFile));
+            }
+        }
+
+        if (sourceSchemaFiles.Count > 0)
         {
             return await PublishFusionConfigurationWithSourceSchemaFilesAsync();
         }
@@ -155,32 +178,27 @@ internal sealed class FusionPublishCommand : Command
 
         async Task<int> PublishFusionConfigurationWithSourceSchemaFilesAsync()
         {
-            for (var i = 0; i < sourceSchemaFiles.Count; i++)
-            {
-                var sourceSchemaFile = sourceSchemaFiles[i];
-
-                if (!Path.IsPathRooted(sourceSchemaFile))
-                {
-                    sourceSchemaFiles[i] = sourceSchemaFile = Path.Combine(workingDirectory, sourceSchemaFile);
-                }
-
-                if (!fileSystem.FileExists(sourceSchemaFile))
-                {
-                    throw new ExitException(Messages.SchemaFileDoesNotExist(sourceSchemaFile));
-                }
-            }
-
-            await using var activity = StartPublishActivity(console, stageName, apiId, tag, force);
-
-            var newSourceSchemas = await FusionComposeCommand.ReadSourceSchemasAsync(
+            var newSourceSchemas = await FusionCompositionHelpers.ReadSourceSchemasAsync(
                 fileSystem,
+                workingDirectory,
                 sourceSchemaFiles,
                 cancellationToken);
+
+            await using var activity = StartPublishActivity(console, stageName, apiId, tag, force);
 
             return await ExecutePublishAsync(
                 activity,
                 sourceSchemaVersions: null,
-                prepareArchive: () => ComposeAsync(activity, newSourceSchemas));
+                prepareArchive: () => FusionPublishHelpers.PrepareComposedArchiveAsync(
+                    activity,
+                    apiId,
+                    stageName,
+                    legacyArchiveFile,
+                    newSourceSchemas,
+                    client,
+                    fileSystem,
+                    console,
+                    cancellationToken));
         }
 
         async Task<int> PublishFusionConfigurationWithSourceSchemasAsync()
@@ -245,56 +263,16 @@ internal sealed class FusionPublishCommand : Command
             return await ExecutePublishAsync(
                 activity,
                 sourceSchemaVersions,
-                prepareArchive: () => ComposeAsync(activity, newSourceSchemas));
-        }
-
-        async Task<Stream> ComposeAsync(
-            INitroConsoleActivity activity,
-            Dictionary<string, (SourceSchemaText, JsonDocument)> newSourceSchemas)
-        {
-            // download
-            var existingArchiveStream = await DownloadExistingFusionConfigurationAsync(activity);
-
-            // compose
-            await using var composeActivity = activity.StartChildActivity(
-                "Composing new configuration",
-                "Failed to compose new configuration.");
-
-            var archiveStream = new MemoryStream();
-            var (result, compositionLog) = await FusionPublishHelpers.ComposeAsync(
-                archiveStream,
-                existingArchiveStream,
-                stageName,
-                newSourceSchemas,
-                null,
-                cancellationToken);
-
-            if (result.IsSuccess)
-            {
-                composeActivity.Success("Composed new configuration.");
-            }
-            else
-            {
-                await composeActivity.FailAllAsync(message: "Fusion configuration could not be composed.");
-
-                console.WriteLine();
-                console.WriteLine("## Composition log");
-                console.WriteLine();
-
-                FusionComposeCommand.WriteCompositionLog(
-                    compositionLog,
-                    console.Out,
-                    false);
-
-                foreach (var error in result.Errors)
-                {
-                    console.Error.WriteErrorLine(error.Message);
-                }
-
-                throw new ExitException();
-            }
-
-            return archiveStream;
+                prepareArchive: () => FusionPublishHelpers.PrepareComposedArchiveAsync(
+                    activity,
+                    apiId,
+                    stageName,
+                    legacyArchiveFile,
+                    newSourceSchemas,
+                    client,
+                    fileSystem,
+                    console,
+                    cancellationToken));
         }
 
         async Task<int> ExecutePublishAsync(
@@ -303,42 +281,57 @@ internal sealed class FusionPublishCommand : Command
             Func<Task<Stream>> prepareArchive)
         {
             string? requestId = null;
+            if (legacyArchiveFile is not null)
+            {
+                requestId = await FusionConfigurationPublishingState.GetRequestId(fileSystem, cancellationToken);
+            }
 
             try
             {
-                await using (var requestDeploymentSlotActivity = activity.StartChildActivity(
-                                 "Requesting deployment slot",
-                                 "Failed to request a deployment slot."))
+                if (!string.IsNullOrWhiteSpace(requestId))
                 {
-                    requestId = await FusionPublishHelpers.RequestDeploymentSlotAsync(
-                        apiId,
-                        stageName,
-                        tag,
-                        subgraphId: null,
-                        subgraphName: null,
-                        sourceSchemaVersions,
-                        waitForApproval,
-                        source,
-                        requestDeploymentSlotActivity,
-                        console,
-                        client,
-                        cancellationToken);
-
-                    requestDeploymentSlotActivity.Success("Deployment slot ready.");
+                    // The deployment slot was already requested and claimed by prior
+                    // `fusion publish begin` and `fusion publish start` invocations,
+                    // so we resume from the existing request ID.
+                    activity.Update(
+                        $"Reusing existing publication request. {$"(ID: {requestId.EscapeMarkup()})".Dim()}");
                 }
-
-                await using (var claimDeploymentSlotActivity = activity.StartChildActivity(
-                                 "Claiming deployment slot",
-                                 "Failed to claim the deployment slot."))
+                else
                 {
-                    await FusionPublishHelpers.ClaimDeploymentSlotAsync(
-                        requestId,
-                        claimDeploymentSlotActivity,
-                        console,
-                        client,
-                        cancellationToken);
+                    await using (var requestDeploymentSlotActivity = activity.StartChildActivity(
+                                     "Requesting deployment slot",
+                                     "Failed to request a deployment slot."))
+                    {
+                        requestId = await FusionPublishHelpers.RequestDeploymentSlotAsync(
+                            apiId,
+                            stageName,
+                            tag,
+                            subgraphId: null,
+                            subgraphName: null,
+                            sourceSchemaVersions,
+                            waitForApproval,
+                            source,
+                            requestDeploymentSlotActivity,
+                            console,
+                            client,
+                            cancellationToken);
 
-                    claimDeploymentSlotActivity.Success("Claimed deployment slot.");
+                        requestDeploymentSlotActivity.Success("Deployment slot ready.");
+                    }
+
+                    await using (var claimDeploymentSlotActivity = activity.StartChildActivity(
+                                     "Claiming deployment slot",
+                                     "Failed to claim the deployment slot."))
+                    {
+                        await FusionPublishHelpers.ClaimDeploymentSlotAsync(
+                            requestId,
+                            claimDeploymentSlotActivity,
+                            console,
+                            client,
+                            cancellationToken);
+
+                        claimDeploymentSlotActivity.Success("Claimed deployment slot.");
+                    }
                 }
 
                 await using var archiveStream = await prepareArchive();
@@ -449,31 +442,6 @@ internal sealed class FusionPublishCommand : Command
 
                 throw;
             }
-        }
-
-        async Task<Stream?> DownloadExistingFusionConfigurationAsync(INitroConsoleActivity activity)
-        {
-            await using var downloadActivity = activity.StartChildActivity(
-                $"Downloading existing configuration from '{stageName}'",
-                "Failed to download the existing Fusion configuration.");
-
-            var existingArchiveStream = await client.DownloadLatestFusionArchiveAsync(
-                apiId,
-                stageName,
-                WellKnownVersions.LatestGatewayFormatVersion.ToString(),
-                ArchiveFormats.Far,
-                cancellationToken);
-
-            if (existingArchiveStream is null)
-            {
-                downloadActivity.Warning($"There is no existing configuration on '{stageName}'.");
-            }
-            else
-            {
-                downloadActivity.Success($"Downloaded existing configuration from '{stageName}'.");
-            }
-
-            return existingArchiveStream;
         }
     }
 

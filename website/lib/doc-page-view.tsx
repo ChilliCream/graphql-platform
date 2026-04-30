@@ -47,12 +47,16 @@ export function DocPageView({
 
   const product = useMemo(() => {
     const selectedProduct = docsConfig.find((p) => p.path === productPath);
+    const activeVersion = selectedProduct?.versions?.find(
+      (v) => v.path === versionPath
+    );
     return {
       path: productPath,
       name: selectedProduct?.title ?? "",
       version: versionPath,
       stableVersion: selectedProduct?.latestStableVersion ?? "",
       description: selectedProduct?.metaDescription || null,
+      isPreview: !!activeVersion?.preview,
     };
   }, [docsConfig, productPath, versionPath]);
 
@@ -101,6 +105,7 @@ interface ProductInformation {
   readonly version: string;
   readonly stableVersion: string;
   readonly description: string | null;
+  readonly isPreview: boolean;
 }
 
 const DocumentationVersionWarning = styled.div`
@@ -186,6 +191,15 @@ function DocumentationNotes({ product, slug }: DocumentationNotesProps) {
         </DocumentationVersionWarning>
       );
     }
+  }
+
+  if (product.isPreview) {
+    return (
+      <DocumentationVersionWarning>
+        This is documentation for <strong>{product.version}</strong>, which is
+        currently in preview.
+      </DocumentationVersionWarning>
+    );
   }
 
   return null;

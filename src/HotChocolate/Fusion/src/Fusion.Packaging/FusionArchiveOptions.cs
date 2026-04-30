@@ -14,4 +14,9 @@ public struct FusionArchiveOptions
     /// Gets or sets the maximum allowed size of the settings in the archive.
     /// </summary>
     public int? MaxAllowedSettingsSize { get; set; }
+
+    /// <summary>
+    /// Gets or sets the maximum allowed size of the legacy archive in the archive.
+    /// </summary>
+    public int? MaxAllowedLegacyArchiveSize { get; set; }
 }

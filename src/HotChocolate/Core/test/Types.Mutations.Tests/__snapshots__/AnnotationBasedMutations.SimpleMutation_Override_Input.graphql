@@ -2,12 +2,12 @@ schema {
   mutation: SimpleMutationInputOverride
 }
 
-type DoSomethingPayload {
-  string: String
-}
-
 type SimpleMutationInputOverride {
   doSomething(something: DoSomethingInput!): DoSomethingPayload!
+}
+
+type DoSomethingPayload {
+  string: String
 }
 
 input DoSomethingInput {

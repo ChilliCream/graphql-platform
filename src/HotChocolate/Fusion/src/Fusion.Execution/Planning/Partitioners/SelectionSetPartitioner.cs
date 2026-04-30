@@ -239,12 +239,78 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         }
 
         static SelectionSetNode? GetProvidedSelectionSet(
-            ITypeDefinition _1,
-            FusionSchemaDefinition _2,
+            ITypeDefinition type,
+            FusionSchemaDefinition schema,
             SelectionSetNode? providedSelectionSetNode)
         {
-            // todo match correct inline fragment
-            return providedSelectionSetNode;
+            if (providedSelectionSetNode is null)
+            {
+                return null;
+            }
+
+            List<ISelectionNode>? flattened = null;
+            var hasFragment = false;
+
+            for (var i = 0; i < providedSelectionSetNode.Selections.Count; i++)
+            {
+                var selection = providedSelectionSetNode.Selections[i];
+
+                if (selection is InlineFragmentNode fragment)
+                {
+                    hasFragment = true;
+
+                    if (fragment.TypeCondition is null)
+                    {
+                        flattened ??= CopyUpTo(providedSelectionSetNode.Selections, i);
+                        flattened.AddRange(fragment.SelectionSet.Selections);
+                        continue;
+                    }
+
+                    if (!schema.Types.TryGetType(fragment.TypeCondition.Name.Value, out var fragmentType))
+                    {
+                        flattened ??= CopyUpTo(providedSelectionSetNode.Selections, i);
+                        continue;
+                    }
+
+                    if (fragmentType.IsAssignableFrom(type))
+                    {
+                        flattened ??= CopyUpTo(providedSelectionSetNode.Selections, i);
+                        flattened.AddRange(fragment.SelectionSet.Selections);
+                    }
+                    else if (type.IsAssignableFrom(fragmentType))
+                    {
+                        flattened ??= CopyUpTo(providedSelectionSetNode.Selections, i);
+                        flattened.Add(fragment);
+                    }
+                    else
+                    {
+                        flattened ??= CopyUpTo(providedSelectionSetNode.Selections, i);
+                    }
+                }
+                else
+                {
+                    flattened?.Add(selection);
+                }
+            }
+
+            if (!hasFragment)
+            {
+                return providedSelectionSetNode;
+            }
+
+            return flattened is null
+                ? providedSelectionSetNode
+                : new SelectionSetNode(flattened);
+        }
+
+        static List<ISelectionNode> CopyUpTo(IReadOnlyList<ISelectionNode> selections, int exclusiveEnd)
+        {
+            var copy = new List<ISelectionNode>(selections.Count);
+            for (var j = 0; j < exclusiveEnd; j++)
+            {
+                copy.Add(selections[j]);
+            }
+            return copy;
         }
 
         static bool IsTypeNameSelection(ISelectionNode selection)
@@ -385,29 +451,29 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         FieldNode? providedFieldNode)
     {
         var field = complexType.Fields.GetField(fieldNode.Name.Value, allowInaccessibleFields: true);
+        field.Sources.TryGetMember(context.SchemaName, out var source);
 
-        if (providedFieldNode is null)
+        // The field is resolvable from the current schema when either the parent's provides
+        // scope covers it, or the schema declares a non-external source for it.
+        var isResolvable = providedFieldNode is not null || source is { IsExternal: false };
+
+        if (!isResolvable)
         {
-            // if the field is not available in the current schema we return null
-            // which will remove the field from the rewritten selection set.
-            if (!field.Sources.TryGetMember(context.SchemaName, out var source))
-            {
-                return (null, fieldNode);
-            }
+            return (null, fieldNode);
+        }
 
-            if (source.Requirements is not null)
-            {
-                context.FieldsWithRequirements =
-                    context.FieldsWithRequirements.Push(
-                        new ConditionedFieldSelection(
-                            new FieldSelection(
-                                context.GetId((SelectionSetNode)context.Nodes.Peek()),
-                                fieldNode,
-                                field,
-                                context.BuildPath()),
-                            context.SnapshotConditions()));
-                return (null, null);
-            }
+        if (providedFieldNode is null && source?.Requirements is not null)
+        {
+            context.FieldsWithRequirements =
+                context.FieldsWithRequirements.Push(
+                    new ConditionedFieldSelection(
+                        new FieldSelection(
+                            context.GetId((SelectionSetNode)context.Nodes.Peek()),
+                            fieldNode,
+                            field,
+                            context.BuildPath()),
+                        context.SnapshotConditions()));
+            return (null, null);
         }
 
         var selectionSet = fieldNode.SelectionSet;
@@ -420,7 +486,7 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                 context,
                 field.Type.AsTypeDefinition(),
                 selectionSet,
-                providedFieldNode?.SelectionSet);
+                MergeProvidedSelectionSets(providedFieldNode?.SelectionSet, source?.Provides));
 
             context.Nodes.Pop();
 
@@ -435,6 +501,26 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         }
 
         return (fieldNode, null);
+    }
+
+    private static SelectionSetNode? MergeProvidedSelectionSets(
+        SelectionSetNode? inherited,
+        SelectionSetNode? fromSource)
+    {
+        if (inherited is null)
+        {
+            return fromSource;
+        }
+
+        if (fromSource is null)
+        {
+            return inherited;
+        }
+
+        var merged = new List<ISelectionNode>(inherited.Selections.Count + fromSource.Selections.Count);
+        merged.AddRange(inherited.Selections);
+        merged.AddRange(fromSource.Selections);
+        return new SelectionSetNode(merged);
     }
 
     private (InlineFragmentNode?, InlineFragmentNode?) RewriteFragmentNode(

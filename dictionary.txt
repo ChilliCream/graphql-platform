@@ -22,6 +22,7 @@ bananacakepop
 basicsaga
 bbox
 BCPROCKS
+Bedok
 bfnrt
 birthdates
 blazor
@@ -176,6 +177,7 @@ Rewriters
 Rgba
 Rhai
 Roslynator
+roundtrips
 RRGGBB
 runbooks
 Satisfiability

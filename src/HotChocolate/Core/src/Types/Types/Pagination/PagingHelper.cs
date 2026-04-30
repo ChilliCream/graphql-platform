@@ -57,7 +57,9 @@ public static class PagingHelper
         options = context.GetPagingOptions(options);
         entityType ??= context.GetType<IOutputType>(definition.Type!).ToRuntimeType();
 
+#pragma warning disable IL3050
         var source = GetSourceType(context.TypeInspector, definition, entityType);
+#pragma warning restore IL3050
         var pagingProvider = resolvePagingProvider(context.Services, source, name);
         var pagingHandler = pagingProvider.CreateHandler(source, options);
         var middleware = CreateMiddleware(pagingHandler);
@@ -67,6 +69,7 @@ public static class PagingHelper
         definition.Features.Set(options);
     }
 
+    [RequiresDynamicCode("Uses MakeGenericType to create generic types at runtime.")]
     private static IExtendedType GetSourceType(
         ITypeInspector typeInspector,
         ObjectFieldConfiguration definition,
@@ -112,6 +115,7 @@ public static class PagingHelper
             return context => middleware.InvokeAsync(context);
         };
 
+    [RequiresDynamicCode("Uses MakeGenericType to create generic schema types at runtime.")]
     internal static IExtendedType GetSchemaType(
         IDescriptorContext context,
         MemberInfo? member,

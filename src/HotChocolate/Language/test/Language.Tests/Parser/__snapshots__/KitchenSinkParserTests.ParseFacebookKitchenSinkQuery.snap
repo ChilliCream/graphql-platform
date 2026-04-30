@@ -9,7 +9,7 @@ query queryName($foo: ComplexType, $site: Site = MOBILE) {
         id
         alias: field1(first: 10, after: $foo) @include(if: $foo) {
           id
-          ... frag
+          ...frag
         }
       }
     }
@@ -47,9 +47,16 @@ subscription StoryLikeSubscription($input: StoryLikeSubscribeInput) {
 
 "Fragment description"
 fragment frag on Friend {
-  foo(size: $size, bar: $b, obj: { key: "value", block: """
+  foo(
+    size: $size
+    bar: $b
+    obj: {
+      key: "value"
+      block: """
       block string uses \"""
-  """ })
+      """
+    }
+  )
 }
 
 {

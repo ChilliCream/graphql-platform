@@ -128,6 +128,7 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                         var builder = endpoints.MapGraphQL(pattern);
 
                         configureConventions?.Invoke(builder);
+                        endpoints.MapGraphQLSemanticNonNullSchema();
                         endpoints.MapGraphQL("/notnull", "notnull");
                         endpoints.MapGraphQL("/evict", "evict");
                         endpoints.MapGraphQL("/arguments", "arguments");

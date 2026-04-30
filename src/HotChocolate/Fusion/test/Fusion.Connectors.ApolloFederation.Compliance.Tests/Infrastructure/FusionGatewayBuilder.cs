@@ -82,6 +82,7 @@ internal static class FusionGatewayBuilder
             gatewayServices
                 .AddGraphQLGateway()
                 .AddApolloFederationSupport()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                 .AddInMemoryConfiguration(schemaDocument, settings);
 
             var services = gatewayServices.BuildServiceProvider();
@@ -120,11 +121,13 @@ internal static class FusionGatewayBuilder
 
         var compositeSdl = transformResult.Value;
         var lookups = ExtractLookups(compositeSdl);
+        var entityRequires = ExtractEntityRequires(compositeSdl, lookups);
 
         return new SubgraphInfo(
             host.Name,
             compositeSdl,
             lookups,
+            entityRequires,
             new Uri(DefaultBaseAddress));
     }
 
@@ -276,6 +279,37 @@ internal static class FusionGatewayBuilder
                 }
 
                 writer.WriteEndObject();
+
+                if (subgraph.EntityRequires.Count > 0)
+                {
+                    writer.WriteStartObject("entityTypes");
+
+                    foreach (var (entityTypeName, fields) in subgraph.EntityRequires)
+                    {
+                        writer.WriteStartObject(entityTypeName);
+                        writer.WriteStartObject("fields");
+
+                        foreach (var (fieldName, requires) in fields)
+                        {
+                            writer.WriteStartObject(fieldName);
+                            writer.WriteStartObject("requires");
+
+                            foreach (var (argumentName, requireField) in requires)
+                            {
+                                writer.WriteString(argumentName, requireField);
+                            }
+
+                            writer.WriteEndObject();
+                            writer.WriteEndObject();
+                        }
+
+                        writer.WriteEndObject();
+                        writer.WriteEndObject();
+                    }
+
+                    writer.WriteEndObject();
+                }
+
                 writer.WriteEndObject();
                 writer.WriteEndObject();
 
@@ -333,6 +367,109 @@ internal static class FusionGatewayBuilder
         }
 
         return lookups;
+    }
+
+    /// <summary>
+    /// <para>
+    /// Walks every entity type (any object type that is the declared target
+    /// of a <c>@lookup</c> field) and extracts its per-field <c>@require</c>
+    /// argument metadata.
+    /// </para>
+    /// <para>
+    /// For each field that carries one or more <c>@require(field: ...)</c>
+    /// arguments, returns a mapping of field name to a dictionary of
+    /// argument name to representation field path. The connector rewriter
+    /// uses this map to strip the synthetic require arguments from outgoing
+    /// queries and inject the bound variable values onto the
+    /// <c>_entities</c> representation body.
+    /// </para>
+    /// </summary>
+    private static IReadOnlyDictionary<string, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>>
+        ExtractEntityRequires(
+            string compositeSdl,
+            IReadOnlyDictionary<string, LookupFieldSettings> lookups)
+    {
+        var entityTypeNames = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var (_, settings) in lookups)
+        {
+            entityTypeNames.Add(settings.EntityTypeName);
+        }
+
+        if (entityTypeNames.Count == 0)
+        {
+            return new Dictionary<string, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>>(
+                StringComparer.Ordinal);
+        }
+
+        var document = Utf8GraphQLParser.Parse(compositeSdl);
+
+        var entityRequires =
+            new Dictionary<string, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>>(
+                StringComparer.Ordinal);
+
+        foreach (var definition in document.Definitions)
+        {
+            if (definition is not ObjectTypeDefinitionNode objectType
+                || !entityTypeNames.Contains(objectType.Name.Value))
+            {
+                continue;
+            }
+
+            var fieldMap = new Dictionary<string, IReadOnlyDictionary<string, string>>(
+                StringComparer.Ordinal);
+
+            foreach (var field in objectType.Fields)
+            {
+                var requires = new Dictionary<string, string>(StringComparer.Ordinal);
+
+                foreach (var argument in field.Arguments)
+                {
+                    var requireFieldPath = GetRequireFieldPath(argument.Directives);
+
+                    if (requireFieldPath is null)
+                    {
+                        continue;
+                    }
+
+                    requires[argument.Name.Value] = requireFieldPath;
+                }
+
+                if (requires.Count > 0)
+                {
+                    fieldMap[field.Name.Value] = requires;
+                }
+            }
+
+            if (fieldMap.Count > 0)
+            {
+                entityRequires[objectType.Name.Value] = fieldMap;
+            }
+        }
+
+        return entityRequires;
+    }
+
+    private static string? GetRequireFieldPath(IReadOnlyList<DirectiveNode> directives)
+    {
+        foreach (var directive in directives)
+        {
+            if (!string.Equals(directive.Name.Value, "require", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            foreach (var argument in directive.Arguments)
+            {
+                if (string.Equals(argument.Name.Value, "field", StringComparison.Ordinal)
+                    && argument.Value is StringValueNode stringValue)
+                {
+                    return stringValue.Value;
+                }
+            }
+        }
+
+        return null;
     }
 
     private static string? FindRootQueryName(DocumentNode document)
@@ -457,6 +594,7 @@ internal static class FusionGatewayBuilder
         string Name,
         string CompositeSdl,
         IReadOnlyDictionary<string, LookupFieldSettings> Lookups,
+        IReadOnlyDictionary<string, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>> EntityRequires,
         Uri BaseAddress);
 
     private sealed class TestSubgraphHttpClientFactory : IHttpClientFactory

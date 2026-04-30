@@ -44,8 +44,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Votable {
-        viewerCanVote: Boolean!
+      type Query {
+        wrappers: [Wrapper]
       }
 
       type Comment implements Votable {
@@ -59,12 +59,12 @@ sourceSchemas:
         title: String!
       }
 
-      type Query {
-        wrappers: [Wrapper]
-      }
-
       type Wrapper {
         votable: Votable
+      }
+
+      interface Votable {
+        viewerCanVote: Boolean!
       }
     interactions:
       - request:

@@ -347,6 +347,8 @@ public abstract partial class FusionTestBase
                                 writer.Unindent();
                             }
 
+                            TryWriteOnError(writer, item);
+
                             writer.Unindent();
                         }
 
@@ -354,6 +356,8 @@ public abstract partial class FusionTestBase
                     }
                     else
                     {
+                        TryWriteOnError(writer, jsonBody.RootElement);
+
                         writer.WriteLine("document: |");
                         writer.Indent();
 
@@ -521,6 +525,22 @@ public abstract partial class FusionTestBase
 
             writer.Unindent();
         }
+    }
+
+    private static void TryWriteOnError(CodeWriter writer, JsonElement requestElement)
+    {
+        if (requestElement.ValueKind is not JsonValueKind.Object
+            || !requestElement.TryGetProperty("onError", out var onErrorProperty)
+            || onErrorProperty.ValueKind is not JsonValueKind.String
+            || !Enum.TryParse<ErrorHandlingMode>(
+                onErrorProperty.GetString(),
+                ignoreCase: true,
+                out var onError))
+        {
+            return;
+        }
+
+        writer.WriteLine("onError: {0}", onError);
     }
 
     private static void WriteFormattedJson(CodeWriter writer, JsonElement json)

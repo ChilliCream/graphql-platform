@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using HotChocolate.Fusion.Comparers;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
+using HotChocolate.Serialization;
 using HotChocolate.Types.Mutable;
 using HotChocolate.Types.Mutable.Serialization;
 using static HotChocolate.Fusion.CompositionTestHelper;

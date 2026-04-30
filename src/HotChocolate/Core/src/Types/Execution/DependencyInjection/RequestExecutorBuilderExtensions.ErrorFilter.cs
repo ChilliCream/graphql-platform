@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
@@ -85,7 +86,8 @@ public static partial class RequestExecutorBuilderExtensions
     /// If your <typeparamref name="T"/> needs to access application services you need to
     /// make the services available in the schema services via <see cref="AddApplicationService"/>.
     /// </remarks>
-    public static IRequestExecutorBuilder AddErrorFilter<T>(
+    public static IRequestExecutorBuilder AddErrorFilter<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IRequestExecutorBuilder builder)
         where T : class, IErrorFilter
     {
@@ -117,7 +119,8 @@ public static partial class RequestExecutorBuilderExtensions
         return services.AddSingleton(factory);
     }
 
-    public static IServiceCollection AddErrorFilter<T>(
+    public static IServiceCollection AddErrorFilter<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IServiceCollection services)
         where T : class, IErrorFilter
     {

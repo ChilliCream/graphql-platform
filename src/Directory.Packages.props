@@ -45,16 +45,16 @@
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageVersion Include="NodaTime" Version="3.2.2" />
     <PackageVersion Include="Npgsql" Version="8.0.7" />
-    <PackageVersion Include="OpenTelemetry" Version="1.14.0" />
-    <PackageVersion Include="OpenTelemetry.Api" Version="1.3.1" />
+    <PackageVersion Include="OpenTelemetry" Version="1.15.3" />
+    <PackageVersion Include="OpenTelemetry.Api" Version="1.15.3" />
     <PackageVersion Include="Polly" Version="8.6.5" />
     <PackageVersion Include="ProjNET" Version="2.0.0" />
     <PackageVersion Include="RabbitMQ.Client" Version="7.0.0" />
     <PackageVersion Include="RavenDB.Client" Version="7.0.0" />
     <PackageVersion Include="Snapshooter.Xunit" Version="0.5.4" />
-    <PackageVersion Include="Spectre.Console.Json" Version="0.52.0" />
-    <PackageVersion Include="Spectre.Console" Version="0.52.0" />
-    <PackageVersion Include="Spectre.Console.Testing" Version="0.52.0" />
+    <PackageVersion Include="Spectre.Console.Json" Version="0.55.2" />
+    <PackageVersion Include="Spectre.Console" Version="0.55.2" />
+    <PackageVersion Include="Spectre.Console.Testing" Version="0.55.2" />
     <PackageVersion Include="sqlite-net-pcl" Version="1.9.172" />
     <PackageVersion Include="SQLitePCLRaw.bundle_green" Version="2.1.11" />
     <PackageVersion Include="Squadron.AzureStorage" Version="1.0.1" />
@@ -103,6 +103,7 @@
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.0" />
     <PackageVersion Include="Microsoft.Extensions.ObjectPool" Version="10.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Primitives" Version="10.0.0" />
     <PackageVersion Include="Microsoft.Net.Http.Headers" Version="10.0.0" />
     <PackageVersion Include="Microsoft.AspNetCore.HeaderPropagation" Version="10.0.0" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
@@ -133,6 +134,7 @@
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="9.0.2" />
     <PackageVersion Include="Microsoft.Extensions.ObjectPool" Version="9.0.2" />
     <PackageVersion Include="Microsoft.Extensions.Options" Version="9.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.Primitives" Version="9.0.2" />
     <PackageVersion Include="Microsoft.AspNetCore.HeaderPropagation" Version="9.0.4" />
     <PackageVersion Include="Microsoft.Net.Http.Headers" Version="9.0.2" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.3" />
@@ -162,6 +164,7 @@
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.ObjectPool" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Options" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Primitives" Version="8.0.0" />
     <PackageVersion Include="Microsoft.AspNetCore.HeaderPropagation" Version="8.0.19" />
     <PackageVersion Include="Microsoft.Net.Http.Headers" Version="8.0.4" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.10" />

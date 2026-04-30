@@ -8,7 +8,7 @@ namespace HotChocolate.Fusion.ApolloFederation;
 /// </summary>
 internal static class RemoveFederationInfrastructure
 {
-    private static readonly HashSet<string> _federationDirectiveNames = new(StringComparer.Ordinal)
+    private static readonly HashSet<string> s_federationDirectiveNames = new(StringComparer.Ordinal)
     {
         FederationDirectiveNames.Key,
         FederationDirectiveNames.Requires,
@@ -26,7 +26,7 @@ internal static class RemoveFederationInfrastructure
         FederationDirectiveNames.Policy
     };
 
-    private static readonly HashSet<string> _federationScalarNames = new(StringComparer.Ordinal)
+    private static readonly HashSet<string> s_federationScalarNames = new(StringComparer.Ordinal)
     {
         FederationTypeNames.Any,
         FederationTypeNames.FieldSet,
@@ -42,13 +42,13 @@ internal static class RemoveFederationInfrastructure
     public static void Apply(MutableSchemaDefinition schema)
     {
         // Remove federation directive definitions.
-        foreach (var name in _federationDirectiveNames)
+        foreach (var name in s_federationDirectiveNames)
         {
             schema.DirectiveDefinitions.Remove(name);
         }
 
         // Remove federation scalar types.
-        foreach (var name in _federationScalarNames)
+        foreach (var name in s_federationScalarNames)
         {
             schema.Types.Remove(name);
         }

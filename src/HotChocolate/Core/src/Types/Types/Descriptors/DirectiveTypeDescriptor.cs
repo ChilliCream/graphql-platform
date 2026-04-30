@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -125,13 +126,13 @@ public class DirectiveTypeDescriptor
         return this;
     }
 
-    public IDirectiveTypeDescriptor Use<TMiddleware>()
+    public IDirectiveTypeDescriptor Use<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)] TMiddleware>()
         where TMiddleware : class
     {
         return Use(DirectiveClassMiddlewareFactory.Create<TMiddleware>());
     }
 
-    public IDirectiveTypeDescriptor Use<TMiddleware>(
+    public IDirectiveTypeDescriptor Use<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)] TMiddleware>(
         Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
         where TMiddleware : class
     {

@@ -1,9 +1,9 @@
-﻿schema {
+schema {
   query: Query
 }
 
-interface Interface {
-  single: FlagsEnumFlags!
+type Query {
+  asd: Interface
 }
 
 type FlagsEnumFlags {
@@ -16,6 +16,6 @@ type Impl implements Interface {
   single: FlagsEnumFlags!
 }
 
-type Query {
-  asd: Interface
+interface Interface {
+  single: FlagsEnumFlags!
 }

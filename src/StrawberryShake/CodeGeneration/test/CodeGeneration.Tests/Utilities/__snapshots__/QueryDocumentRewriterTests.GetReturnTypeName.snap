@@ -1,7 +1,7 @@
 ﻿query GetHero {
   hero(episode: NEW_HOPE) {
     __typename
-    ... Characters
+    ...Characters
     ... on Droid {
       id
     }
@@ -12,8 +12,8 @@
 }
 
 fragment Characters on Character {
-  ... Human
-  ... Droid
+  ...Human
+  ...Droid
 }
 
 fragment Hero on Character {
@@ -21,11 +21,11 @@ fragment Hero on Character {
 }
 
 fragment Human on Human {
-  ... Hero
+  ...Hero
   homePlanet
 }
 
 fragment Droid on Droid {
-  ... Hero
+  ...Hero
   primaryFunction
 }

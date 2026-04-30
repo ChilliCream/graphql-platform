@@ -27,6 +27,10 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        post: Post
+      }
+
       type Discussion {
         id: ID!
         subgraph1: String
@@ -34,10 +38,6 @@ sourceSchemas:
 
       type Photo @key(fields: "id") {
         id: ID!
-      }
-
-      type Query {
-        post: Post
       }
 
       union Post = Photo | Discussion
@@ -73,13 +73,13 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        photoById(id: ID!): Photo @lookup
+      }
+
       type Photo {
         id: ID!
         subgraph2: String!
-      }
-
-      type Query {
-        photoById(id: ID!): Photo @lookup
       }
     interactions:
       - request:
