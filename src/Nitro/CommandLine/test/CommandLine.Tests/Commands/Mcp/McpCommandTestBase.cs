@@ -1,5 +1,5 @@
+using ChilliCream.Nitro.Adapters.Mcp.Packaging;
 using ChilliCream.Nitro.Client;
-using HotChocolate.Adapters.Mcp.Packaging;
 using Moq;
 using Moq.Language;
 

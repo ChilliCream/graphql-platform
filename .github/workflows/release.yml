@@ -138,7 +138,7 @@ jobs:
         uses: ChilliCream/nitro-client-upload@v16.0.0-rc.1.43
         with:
           tag: ${{ env.GIT_TAG }}
-          operations-file: src/Nitro/CommandLine/src/ChilliCream.Nitro.Client/persisted/operations.json
+          operations-file: src/Nitro/Common/src/ChilliCream.Nitro.Client/persisted/operations.json
           client-id: ${{ secrets.NITRO_API_CLIENT_ID }}
           api-key: ${{ secrets.NITRO_API_KEY }}
 
