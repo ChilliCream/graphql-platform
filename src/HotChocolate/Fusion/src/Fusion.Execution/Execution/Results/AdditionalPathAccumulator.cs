@@ -34,6 +34,14 @@ internal ref struct AdditionalPathAccumulator
         _count++;
     }
 
+    public void AddRange(int slotIndex, ReadOnlySpan<CompactPath> paths)
+    {
+        foreach (var path in paths)
+        {
+            Add(slotIndex, path);
+        }
+    }
+
     public void ApplyTo(VariableValues[] variableValueSets, int slotCount)
     {
         if (_count == 0)

@@ -1,0 +1,366 @@
+title: Defer_With_Forwarded_Variable_Over_List_Anchor
+request:
+  document: |
+    query GetUsersPosts($limit: Int!) {
+      users {
+        id
+        ... @defer(label: "posts") {
+          posts(first: $limit) {
+            id
+          }
+        }
+      }
+    }
+  variables: |
+    {
+      "limit": 5
+    }
+stableResponseStream: |
+  {
+    "kind": "stable-stream",
+    "payloadCount": 2,
+    "initial": {
+      "data": {
+        "users": [
+          {
+            "id": "VXNlcjox"
+          },
+          {
+            "id": "VXNlcjoy"
+          },
+          {
+            "id": "VXNlcjoz"
+          }
+        ]
+      }
+    },
+    "pending": [
+      {
+        "id": "0",
+        "path": [
+          "users"
+        ],
+        "label": "posts"
+      }
+    ],
+    "incremental": [
+      {
+        "id": "0",
+        "path": [
+          "users"
+        ],
+        "subPath": [
+          0
+        ],
+        "data": {
+          "posts": [
+            {
+              "id": "UG9zdDox"
+            },
+            {
+              "id": "UG9zdDoy"
+            },
+            {
+              "id": "UG9zdDoz"
+            }
+          ]
+        }
+      },
+      {
+        "id": "0",
+        "path": [
+          "users"
+        ],
+        "subPath": [
+          1
+        ],
+        "data": {
+          "posts": [
+            {
+              "id": "UG9zdDo0"
+            },
+            {
+              "id": "UG9zdDo1"
+            },
+            {
+              "id": "UG9zdDo2"
+            }
+          ]
+        }
+      },
+      {
+        "id": "0",
+        "path": [
+          "users"
+        ],
+        "subPath": [
+          2
+        ],
+        "data": {
+          "posts": [
+            {
+              "id": "UG9zdDo3"
+            },
+            {
+              "id": "UG9zdDo4"
+            },
+            {
+              "id": "UG9zdDo5"
+            }
+          ]
+        }
+      }
+    ],
+    "completed": [
+      {
+        "id": "0"
+      }
+    ],
+    "final": {
+      "data": {
+        "users": [
+          {
+            "id": "VXNlcjox",
+            "posts": [
+              {
+                "id": "UG9zdDox"
+              },
+              {
+                "id": "UG9zdDoy"
+              },
+              {
+                "id": "UG9zdDoz"
+              }
+            ]
+          },
+          {
+            "id": "VXNlcjoy",
+            "posts": [
+              {
+                "id": "UG9zdDo0"
+              },
+              {
+                "id": "UG9zdDo1"
+              },
+              {
+                "id": "UG9zdDo2"
+              }
+            ]
+          },
+          {
+            "id": "VXNlcjoz",
+            "posts": [
+              {
+                "id": "UG9zdDo3"
+              },
+              {
+                "id": "UG9zdDo4"
+              },
+              {
+                "id": "UG9zdDo5"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        users: [User!]!
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query GetUsersPosts_711d06f0_1 {
+              users {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "users": [
+                    {
+                      "id": "VXNlcjox"
+                    },
+                    {
+                      "id": "VXNlcjoy"
+                    },
+                    {
+                      "id": "VXNlcjoz"
+                    }
+                  ]
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Post {
+        id: ID!
+      }
+
+      type Query {
+        userById(id: ID!): User @lookup
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+        posts(first: Int!): [Post!]!
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query GetUsersPosts_defer_2($limit: Int!, $__fusion_1_id: ID!) {
+              userById(id: $__fusion_1_id) {
+                posts(first: $limit) {
+                  id
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "limit": 5,
+                "__fusion_1_id": "VXNlcjox"
+              },
+              {
+                "limit": 5,
+                "__fusion_1_id": "VXNlcjoy"
+              },
+              {
+                "limit": 5,
+                "__fusion_1_id": "VXNlcjoz"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "posts": [
+                      {
+                        "id": "UG9zdDox"
+                      },
+                      {
+                        "id": "UG9zdDoy"
+                      },
+                      {
+                        "id": "UG9zdDoz"
+                      }
+                    ]
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "posts": [
+                      {
+                        "id": "UG9zdDo0"
+                      },
+                      {
+                        "id": "UG9zdDo1"
+                      },
+                      {
+                        "id": "UG9zdDo2"
+                      }
+                    ]
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "posts": [
+                      {
+                        "id": "UG9zdDo3"
+                      },
+                      {
+                        "id": "UG9zdDo4"
+                      },
+                      {
+                        "id": "UG9zdDo5"
+                      }
+                    ]
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query GetUsersPosts($limit: Int!) {
+          users {
+            id
+            id @fusion__requirement
+          }
+        }
+      name: GetUsersPosts
+      hash: 711d06f0c0ec248b4b3b51d0eac9311e
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query GetUsersPosts_711d06f0_1 {
+          users {
+            id
+          }
+        }
+  deliveryGroups:
+    - id: 0
+      path: $.users
+      label: posts
+  incrementalPlans:
+    - deliveryGroupIds:
+        - 0
+      parentNodeId: 1
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      nodes:
+        - id: 1
+          type: Operation
+          schema: B
+          operation: |
+            query GetUsersPosts_defer_2($limit: Int!, $__fusion_1_id: ID!) {
+              userById(id: $__fusion_1_id) {
+                posts(first: $limit) {
+                  id
+                }
+              }
+            }
+          source: $.userById
+          target: $.users
+          requirements:
+            - name: __fusion_1_id
+              selectionMap: >-
+                id
+          forwardedVariables:
+            - limit
+          dependencies:
+            - parentNodeId: 1

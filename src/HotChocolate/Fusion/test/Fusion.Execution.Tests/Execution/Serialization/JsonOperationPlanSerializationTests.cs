@@ -168,11 +168,11 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
     }
 
     [Fact]
-    public void Parse_Plan_Preserves_DeliveryGroup_Identity_Across_Plan_And_SubPlans()
+    public void Parse_Plan_Preserves_DeliveryGroup_Identity_Across_Plan_And_IncrementalPlans()
     {
         // arrange
         // Two sibling @defer fragments share a field (email) plus a nested @defer
-        // adds a parent chain. Round-trip must restore canonical DeferUsage instances.
+        // adds a parent chain. Round-trip must restore canonical DeliveryGroup instances.
         var schema = ComposeSchema(
             """
             # name: a
@@ -237,13 +237,94 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         // assert
         Encoding.UTF8.GetString(buffer.WrittenSpan).MatchSnapshot();
         Assert.All(
-            parsedPlan.DeferredSubPlans,
+            parsedPlan.IncrementalPlans,
             p => Assert.All(
                 p.DeliveryGroups,
                 g => Assert.Same(parsedPlan.DeliveryGroups.Single(d => d.Id == g.Id), g)));
         Assert.All(
             parsedPlan.DeliveryGroups.Where(g => g.Parent is not null),
             g => Assert.Same(parsedPlan.DeliveryGroups.Single(d => d.Id == g.Parent!.Id), g.Parent));
+    }
+
+    [Fact]
+    public void Parse_Plan_Preserves_ParentDependencies_On_Deferred_IncrementalPlan_Nodes()
+    {
+        // arrange
+        // Same-subgraph hoist injects the key into the parent op so the
+        // deferred incremental plan node carries a ParentStepRef on its plan step
+        // and a {"parentNodeId": N} entry in its serialized dependencies.
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+            }
+            """);
+
+        var originalPlan = PlanOperation(
+            schema,
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "contact") {
+                        email
+                    }
+                }
+            }
+            """);
+
+        using var buffer = new PooledArrayWriter();
+        var formatter = new JsonOperationPlanFormatter(
+            new JsonWriterOptions
+            {
+                Indented = true,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            });
+        formatter.Format(buffer, originalPlan);
+
+        var compiler = new OperationCompiler(
+            schema,
+            new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
+                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+        var parser = new JsonOperationPlanParser(compiler);
+
+        // act
+        var parsedPlan = parser.Parse(buffer.WrittenMemory);
+
+        // assert
+        var originalIncrementalPlanNode = originalPlan.IncrementalPlans
+            .Single()
+            .AllNodes
+            .OfType<OperationExecutionNode>()
+            .Single(n => n.ParentDependencies.Length > 0);
+        var parsedIncrementalPlanNode = parsedPlan.IncrementalPlans
+            .Single()
+            .AllNodes
+            .OfType<OperationExecutionNode>()
+            .Single(n => n.Id == originalIncrementalPlanNode.Id);
+        Assert.Equal(
+            originalIncrementalPlanNode.ParentDependencies.ToArray(),
+            parsedIncrementalPlanNode.ParentDependencies.ToArray());
+        Assert.Equal(
+            originalIncrementalPlanNode.Dependencies.Length,
+            parsedIncrementalPlanNode.Dependencies.Length);
     }
 
     [Fact]

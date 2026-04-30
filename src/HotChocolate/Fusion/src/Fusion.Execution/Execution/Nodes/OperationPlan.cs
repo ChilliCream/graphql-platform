@@ -10,7 +10,7 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 /// Represents a GraphQL operation execution plan in Hot Chocolate Fusion, containing
 /// the structured nodes and metadata required for distributed query execution.
 /// </summary>
-public sealed record OperationPlan
+public sealed record OperationPlan : IOperationPlan
 {
     private static readonly JsonOperationPlanFormatter s_formatter = new();
     private readonly ExecutionNode?[] _nodesById = [];
@@ -20,8 +20,8 @@ public sealed record OperationPlan
         Operation operation,
         ImmutableArray<ExecutionNode> rootNodes,
         ImmutableArray<ExecutionNode> allNodes,
-        ImmutableArray<DeferUsage> deliveryGroups,
-        ImmutableArray<ExecutionSubPlan> deferredSubPlans,
+        ImmutableArray<DeliveryGroup> deliveryGroups,
+        ImmutableArray<IncrementalPlan> incrementalPlans,
         int searchSpace,
         int expandedNodes)
     {
@@ -32,7 +32,7 @@ public sealed record OperationPlan
         SearchSpace = searchSpace;
         ExpandedNodes = expandedNodes;
         DeliveryGroups = deliveryGroups;
-        DeferredSubPlans = deferredSubPlans;
+        IncrementalPlans = incrementalPlans;
         _nodesById = CreateNodeLookup(allNodes);
         MaxNodeId = _nodesById.Length > 0 ? _nodesById.Length - 1 : 0;
     }
@@ -79,33 +79,35 @@ public sealed record OperationPlan
     public int ExpandedNodes { get; }
 
     /// <summary>
-    /// Gets every <see cref="DeferUsage"/> (delivery group) this plan uses, in
-    /// ascending <see cref="DeferUsage.Id"/> order. One element per <c>@defer</c>
+    /// Gets every <see cref="DeliveryGroup"/> (delivery group) this plan uses, in
+    /// ascending <see cref="DeliveryGroup.Id"/> order. One element per <c>@defer</c>
     /// occurrence in the operation. Empty if the operation has no <c>@defer</c>
     /// directives.
     /// </summary>
-    public ImmutableArray<DeferUsage> DeliveryGroups { get; }
+    public ImmutableArray<DeliveryGroup> DeliveryGroups { get; }
 
     /// <summary>
-    /// Gets the deferred execution subplans for this plan. Each subplan is
-    /// keyed by a unique <c>DeferUsageSet</c> and fetches the fields whose
-    /// active defer usage set matches that key. The subplan's data is
-    /// delivered to every <see cref="DeferUsage"/> in its
-    /// <see cref="ExecutionSubPlan.DeliveryGroups"/> when it completes.
+    /// Gets the incremental plans for this plan. This is a flat collection;
+    /// deferred fragment nesting is represented by <see cref="DeliveryGroup.Parent"/>.
+    /// Each plan carries its delivery group set on
+    /// <see cref="IncrementalPlan.DeliveryGroups"/>.
     /// Empty if the operation has no <c>@defer</c> directives.
     /// </summary>
-    public ImmutableArray<ExecutionSubPlan> DeferredSubPlans { get; }
+    public ImmutableArray<IncrementalPlan> IncrementalPlans { get; }
 
     /// <summary>
-    /// Gets the maximum node identifier across all nodes in this plan.
+    /// Gets the highest plan node identifier that can be resolved by this plan.
     /// </summary>
     public int MaxNodeId { get; }
 
     /// <summary>
-    /// Retrieves an execution node by its unique identifier.
+    /// Retrieves the execution node associated with a plan node identifier.
     /// </summary>
-    /// <param name="id">The unique identifier of the execution node is unique within this plan.</param>
-    /// <returns>The execution node with the specified identifier.</returns>
+    /// <param name="id">
+    /// The identifier of an execution node, or of an operation definition inside
+    /// a batch.
+    /// </param>
+    /// <returns>The execution node associated with the specified identifier.</returns>
     /// <exception cref="KeyNotFoundException">Thrown when no node with the specified ID exists.</exception>
     public ExecutionNode GetNodeById(int id)
     {
@@ -119,16 +121,10 @@ public sealed record OperationPlan
     }
 
     /// <summary>
-    /// <para>
-    /// Returns the <see cref="ExecutionNode"/> that is responsible for executing
-    /// the given plan node.
-    /// </para>
-    /// <para>
-    /// If the plan node is already an execution node it is returned directly.
-    /// If it is a child operation plan node (such as an <see cref="OperationDefinition"/>
-    /// inside a batch) this method returns the parent execution node that is
-    /// responsible for its execution.
-    /// </para>
+    /// Returns the <see cref="ExecutionNode"/> responsible for executing the
+    /// given plan node. If the plan node is already an execution node it is
+    /// returned directly; if it is an operation definition inside a batch, the
+    /// containing batch node is returned.
     /// </summary>
     public ExecutionNode GetExecutionNode(IOperationPlanNode planNode)
     {
@@ -154,26 +150,28 @@ public sealed record OperationPlan
     /// <param name="rootNodes">The root execution nodes.</param>
     /// <param name="allNodes">All execution nodes in the plan.</param>
     /// <param name="deliveryGroups">
-    /// Every <see cref="DeferUsage"/> (delivery group) this plan uses, in ascending
-    /// <see cref="DeferUsage.Id"/> order.
+    /// Every <see cref="DeliveryGroup"/> (delivery group) this plan uses, in ascending
+    /// <see cref="DeliveryGroup.Id"/> order.
     /// </param>
-    /// <param name="deferredSubPlans">
-    /// The deferred execution subplans for <c>@defer</c> support, one per unique
-    /// <c>DeferUsageSet</c>.
+    /// <param name="incrementalPlans">
+    /// The incremental plans for <c>@defer</c> support. The collection is flat;
+    /// deferred fragment nesting is represented by <see cref="DeliveryGroup.Parent"/>.
+    /// Each plan carries its delivery group set on
+    /// <see cref="IncrementalPlan.DeliveryGroups"/>.
     /// </param>
     /// <param name="searchSpace">A number specifying how many possible plans were considered during planning.</param>
     /// <param name="expandedNodes">The number of expanded nodes during planner search.</param>
     /// <returns>A new <see cref="OperationPlan"/> instance.</returns>
     /// <exception cref="ArgumentException">Thrown when <paramref name="id"/> is null or empty.</exception>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="operation"/> is null.</exception>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown when node arrays have negative length.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when node collections are invalid.</exception>
     public static OperationPlan Create(
         string id,
         Operation operation,
         ImmutableArray<ExecutionNode> rootNodes,
         ImmutableArray<ExecutionNode> allNodes,
-        ImmutableArray<DeferUsage> deliveryGroups,
-        ImmutableArray<ExecutionSubPlan> deferredSubPlans,
+        ImmutableArray<DeliveryGroup> deliveryGroups,
+        ImmutableArray<IncrementalPlan> incrementalPlans,
         int searchSpace,
         int expandedNodes)
     {
@@ -183,35 +181,36 @@ public sealed record OperationPlan
         ArgumentOutOfRangeException.ThrowIfLessThan(allNodes.Length, 0);
 
         return new OperationPlan(
-            id, operation, rootNodes, allNodes, deliveryGroups, deferredSubPlans, searchSpace, expandedNodes);
+            id, operation, rootNodes, allNodes, deliveryGroups, incrementalPlans, searchSpace, expandedNodes);
     }
 
     /// <summary>
-    /// Creates a new operation plan with an auto-generated identifier based on the operation's content.
-    /// The identifier is generated by computing a SHA256 hash of the serialized operation plan.
+    /// Creates a new operation plan with an identifier derived from the plan content.
     /// </summary>
     /// <param name="operation">The GraphQL operation.</param>
     /// <param name="rootNodes">The root execution nodes.</param>
     /// <param name="allNodes">All execution nodes in the plan.</param>
     /// <param name="deliveryGroups">
-    /// Every <see cref="DeferUsage"/> (delivery group) this plan uses, in ascending
-    /// <see cref="DeferUsage.Id"/> order.
+    /// Every <see cref="DeliveryGroup"/> (delivery group) this plan uses, in ascending
+    /// <see cref="DeliveryGroup.Id"/> order.
     /// </param>
-    /// <param name="deferredSubPlans">
-    /// The deferred execution subplans for <c>@defer</c> support, one per unique
-    /// <c>DeferUsageSet</c>.
+    /// <param name="incrementalPlans">
+    /// The incremental plans for <c>@defer</c> support. The collection is flat;
+    /// deferred fragment nesting is represented by <see cref="DeliveryGroup.Parent"/>.
+    /// Each plan carries its delivery group set on
+    /// <see cref="IncrementalPlan.DeliveryGroups"/>.
     /// </param>
     /// <param name="searchSpace">A number specifying how many possible plans were considered during planning.</param>
     /// <param name="expandedNodes">The number of expanded nodes during planner search.</param>
     /// <returns>A new <see cref="OperationPlan"/> instance with a content-based identifier.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="operation"/> is null.</exception>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown when node arrays have negative length.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when node collections are invalid.</exception>
     public static OperationPlan Create(
         Operation operation,
         ImmutableArray<ExecutionNode> rootNodes,
         ImmutableArray<ExecutionNode> allNodes,
-        ImmutableArray<DeferUsage> deliveryGroups,
-        ImmutableArray<ExecutionSubPlan> deferredSubPlans,
+        ImmutableArray<DeliveryGroup> deliveryGroups,
+        ImmutableArray<IncrementalPlan> incrementalPlans,
         int searchSpace,
         int expandedNodes)
     {
@@ -236,7 +235,14 @@ public sealed record OperationPlan
 #endif
 
         return new OperationPlan(
-            id, operation, rootNodes, allNodes, deliveryGroups, deferredSubPlans, searchSpace, expandedNodes);
+            id,
+            operation,
+            rootNodes,
+            allNodes,
+            deliveryGroups,
+            incrementalPlans,
+            searchSpace,
+            expandedNodes);
     }
 
     private static ExecutionNode?[] CreateNodeLookup(ImmutableArray<ExecutionNode> allNodes)

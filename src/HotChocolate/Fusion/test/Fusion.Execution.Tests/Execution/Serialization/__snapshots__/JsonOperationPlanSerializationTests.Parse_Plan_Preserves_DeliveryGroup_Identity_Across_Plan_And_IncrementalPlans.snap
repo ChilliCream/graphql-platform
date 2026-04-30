@@ -1,8 +1,8 @@
 {
-  "id": "68c2a64a8c04735ef1b991eeca37e895e81946d427b3c305d68fd2a19d988d51",
+  "id": "fb018f87cefd8af095abf721279688c3f6b2829b1f43a4e7ee46424bffc7c43b",
   "operation": {
     "kind": "Query",
-    "document": "{\n  user(id: \"1\") {\n    name\n  }\n}",
+    "document": "{\n  user(id: \"1\") {\n    name\n    id @fusion__requirement\n  }\n}",
     "id": "123456789101112",
     "hash": "123456789101112",
     "shortHash": "12345678"
@@ -17,9 +17,9 @@
       "operation": {
         "name": "Op_123456789101112_1",
         "kind": "Query",
-        "document": "query Op_123456789101112_1 {\n  user(id: \"1\") {\n    name\n  }\n}",
-        "hash": "167b5bb497f34e9c7516ec2d4598ae6d7f0fd73a9a9a329156910e99e5db4ec3",
-        "shortHash": "167b5bb4"
+        "document": "query Op_123456789101112_1 {\n  user(id: \"1\") {\n    name\n    id\n  }\n}",
+        "hash": "0c7c2bd3f37f66343f01b669dfab23ff06380e580c789ec14a0c77068974ac15",
+        "shortHash": "0c7c2bd3"
       },
       "resultSelectionSet": "{ user }"
     }
@@ -42,13 +42,21 @@
       "label": "location"
     }
   ],
-  "deferredSubPlans": [
+  "incrementalPlans": [
     {
       "deliveryGroupIds": [
         0,
         2
       ],
       "parentNodeId": 1,
+      "requirements": [
+        {
+          "name": "__fusion_1_id",
+          "type": "ID!",
+          "path": "$.user",
+          "selectionMap": "id"
+        }
+      ],
       "operation": {
         "kind": "Query",
         "document": "{\n  user(id: \"1\") {\n    email\n    id @fusion__requirement\n  }\n}",
@@ -59,19 +67,6 @@
       "nodes": [
         {
           "id": 1,
-          "type": "Operation",
-          "schema": "a",
-          "operation": {
-            "name": "Op_defer_1",
-            "kind": "Query",
-            "document": "query Op_defer_1 {\n  user(id: \"1\") {\n    id\n  }\n}",
-            "hash": "93841f3bbdb1c1bf3a949d7089b6713b11e6d33666aae10bdc8a885607465ca5",
-            "shortHash": "93841f3b"
-          },
-          "resultSelectionSet": "{ user }"
-        },
-        {
-          "id": 2,
           "type": "Operation",
           "schema": "b",
           "operation": {
@@ -93,26 +88,13 @@
             }
           ],
           "dependencies": [
-            1
+            {
+              "parentNodeId": 1
+            }
           ]
-        }
-      ]
-    },
-    {
-      "deliveryGroupIds": [
-        1
-      ],
-      "parentNodeId": 2,
-      "operation": {
-        "kind": "Query",
-        "document": "{\n  user(id: \"1\") {\n    address\n    id @fusion__requirement\n  }\n}",
-        "id": "123456789101112#defer_1",
-        "hash": "123456789101112#defer_1",
-        "shortHash": "12345678"
-      },
-      "nodes": [
+        },
         {
-          "id": 1,
+          "id": 2,
           "type": "Operation",
           "schema": "a",
           "operation": {
@@ -123,9 +105,32 @@
             "shortHash": "93841f3b"
           },
           "resultSelectionSet": "{ user }"
-        },
+        }
+      ]
+    },
+    {
+      "deliveryGroupIds": [
+        1
+      ],
+      "parentNodeId": 1,
+      "requirements": [
         {
-          "id": 2,
+          "name": "__fusion_1_id",
+          "type": "ID!",
+          "path": "$.user",
+          "selectionMap": "id"
+        }
+      ],
+      "operation": {
+        "kind": "Query",
+        "document": "{\n  user(id: \"1\") {\n    address\n    id @fusion__requirement\n  }\n}",
+        "id": "123456789101112#defer_1",
+        "hash": "123456789101112#defer_1",
+        "shortHash": "12345678"
+      },
+      "nodes": [
+        {
+          "id": 1,
           "type": "Operation",
           "schema": "b",
           "operation": {
@@ -147,7 +152,9 @@
             }
           ],
           "dependencies": [
-            1
+            {
+              "parentNodeId": 2
+            }
           ]
         }
       ]

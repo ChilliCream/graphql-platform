@@ -91,15 +91,10 @@ public sealed partial class OperationPlanner
 
         try
         {
-            // Check for @defer directives before planning. If present, we split the
-            // operation into a main (non-deferred) part and per-DeferUsageSet subplans.
-            // The main operation is planned without the deferred selections, and each
-            // subplan is planned independently.
-            //
-            // PERF: For non-deferred operations (the common case), the only overhead is
-            // the HasDeferDirective check which does a fast AST walk looking for @defer.
-            ImmutableArray<DeferUsage> deliveryGroups = [];
-            ImmutableArray<ExecutionSubPlan> deferredSubPlans = [];
+            // Split deferred selections into a main operation and incremental
+            // plan descriptors before planning.
+            ImmutableArray<DeliveryGroup> deliveryGroups = [];
+            ImmutableArray<IncrementalPlan> incrementalPlans = [];
             DeferSplitResult? deferSplit = null;
             DeferPartitioningResult? partitioning = null;
             var mainOperationDefinition = operationDefinition;
@@ -107,17 +102,17 @@ public sealed partial class OperationPlanner
             if (_options.EnableDefer && DeferOperationRewriter.HasDeferDirective(operationDefinition))
             {
                 // The partitioner walks the original AST once and hands every
-                // @defer fragment a canonical DeferUsage instance (with Id,
+                // @defer fragment a canonical DeliveryGroup instance (with Id,
                 // Path and IfVariable populated). The rewriter consumes the
                 // same instances so its per-set grouping and the compiler's
-                // later Selection._deferUsages entries share object identity.
+                // later Selection._deliveryGroups entries share object identity.
                 var deferConditions = new DeferConditionCollection();
                 partitioning = DeferPartitioner.Partition(operationDefinition, deferConditions);
 
                 var rewriter = new DeferOperationRewriter(_options.InlineUnlabeledDeferFragments);
                 var splitResult = rewriter.Split(operationDefinition, partitioning);
 
-                if (!splitResult.SubPlanDescriptors.IsEmpty)
+                if (!splitResult.IncrementalPlanDescriptors.IsEmpty)
                 {
                     deferSplit = splitResult;
                     mainOperationDefinition = splitResult.MainOperation;
@@ -186,23 +181,45 @@ public sealed partial class OperationPlanner
                         _schema.GetOperationType(mainOperationDefinition.Operation));
             }
 
-            // Always compile from the planner's internal definition. For defer,
-            // this is the stripped main operation (without deferred fragments),
-            // which ensures the result mapper only includes non-deferred fields.
-            var operation = _operationCompiler.Compile(id, hash, internalOperationDefinition);
+            // Prepare incremental plans before the root operation is compiled
+            // so parent-scope requirements are represented in the root plan.
+            PlanContextGraph? deferContextGraph = null;
+            ImmutableArray<DeferRoutingState> deferRoutingStates = [];
 
-            // Plan deferred subplans if @defer was detected. Each unique
-            // DeferUsageSet becomes one ExecutionSubPlan; the set of all
-            // DeferUsage instances (one per @defer occurrence) is kept on the
-            // plan for wire-level delivery-group identity.
             if (deferSplit.HasValue && partitioning is not null)
             {
-                deliveryGroups = partitioning.AllDeferUsages;
-                deferredSubPlans = PlanDeferredSubPlans(
+                deliveryGroups = partitioning.AllDeliveryGroups;
+
+                deferContextGraph = PlanContextGraph.Create(
+                    planSteps,
+                    index,
+                    internalOperationDefinition);
+
+                deferRoutingStates = RouteIncrementalPlans(
+                    id,
+                    deferSplit.Value,
+                    deferContextGraph,
+                    eventSourceEnabled,
+                    cancellationToken);
+
+                // Any parent-scope transformations applied while routing
+                // defer requirements flow back into the root step list and
+                // the root internal operation definition that compile and
+                // the execution tree builder consume below.
+                planSteps = deferContextGraph.RootSteps;
+                internalOperationDefinition = deferContextGraph.RootInternalOperation;
+            }
+
+            // Use the latest root operation definition after deferred planning.
+            var operation = _operationCompiler.Compile(id, hash, internalOperationDefinition);
+
+            if (deferContextGraph is not null)
+            {
+                incrementalPlans = BuildIncrementalPlans(
                     id,
                     hash,
-                    deferSplit.Value,
-                    eventSourceEnabled,
+                    deferRoutingStates,
+                    deferContextGraph,
                     cancellationToken);
             }
 
@@ -211,7 +228,7 @@ public sealed partial class OperationPlanner
                 mainOperationDefinition,
                 planSteps,
                 deliveryGroups,
-                deferredSubPlans,
+                incrementalPlans,
                 searchSpace,
                 expandedNodes,
                 cancellationToken);
@@ -725,7 +742,7 @@ public sealed partial class OperationPlanner
         }
 
         backlog = backlog.PushUnresolvable(unresolvable, current.SchemaName, stepDepth);
-        backlog = backlog.PushRequirements(fieldsWithRequirements, stepId, stepDepth);
+        backlog = backlog.PushRequirements(fieldsWithRequirements, new StepConsumer(stepId), stepDepth);
 
         // Lookups are always queries. Root work items can also be rewritten to the query root
         // when walking shared paths (for example the viewer convention in mutations).
@@ -1018,9 +1035,16 @@ public sealed partial class OperationPlanner
         PlanQueue possiblePlans,
         Backlog backlog)
     {
+        // The main planning backlog handles step-owned requirements. Incremental
+        // plan requirements are handled by defer planning.
+        if (workItem.Consumer is not StepConsumer stepConsumer)
+        {
+            return;
+        }
+
         // we first resolve the original intended plan step, so we can inline the field
         // into it.
-        if (current.Steps.ById(workItem.StepId) is not OperationPlanStep currentStep)
+        if (current.Steps.ById(stepConsumer.StepId) is not OperationPlanStep currentStep)
         {
             return;
         }
@@ -1034,6 +1058,7 @@ public sealed partial class OperationPlanner
         var success =
             TryInlineFieldRequirements(
                     workItem,
+                    stepConsumer.StepId,
                     ref current,
                     currentStep,
                     index,
@@ -1097,7 +1122,7 @@ public sealed partial class OperationPlanner
 
         var updatedStep = currentStep with { Definition = operation, Requirements = requirements };
 
-        steps = steps.SetItem(workItem.StepIndex, updatedStep);
+        steps = steps.SetItem(stepConsumer.StepId - 1, updatedStep);
         var remainingCost =
             PlannerCostEstimator.EstimateRemainingCost(
                 current.Options,
@@ -1134,6 +1159,13 @@ public sealed partial class OperationPlanner
         PlanQueue possiblePlans,
         Backlog backlog)
     {
+        // The main planning backlog handles step-owned requirements. Incremental
+        // plan requirements are handled by defer planning.
+        if (workItem.Consumer is not StepConsumer stepConsumer)
+        {
+            return;
+        }
+
         var selectionSetStub = new SelectionSet(
             workItem.Selection.SelectionSetId,
             new SelectionSetNode([workItem.Selection.Node]),
@@ -1148,7 +1180,7 @@ public sealed partial class OperationPlanner
             workItem.Conditions);
         backlog = current.Backlog;
 
-        if (current.Steps.ById(workItem.StepId) is not OperationPlanStep currentStep)
+        if (current.Steps.ById(stepConsumer.StepId) is not OperationPlanStep currentStep)
         {
             return;
         }
@@ -1164,6 +1196,7 @@ public sealed partial class OperationPlanner
         var leftoverRequirements =
             TryInlineFieldRequirements(
                 workItem,
+                stepConsumer.StepId,
                 ref current,
                 currentStep,
                 indexBuilder,
@@ -1352,7 +1385,7 @@ public sealed partial class OperationPlanner
         }
 
         backlog = backlog.PushUnresolvable(unresolvable, current.SchemaName, stepDepth);
-        backlog = backlog.PushRequirements(fieldsWithRequirements, stepId, stepDepth);
+        backlog = backlog.PushRequirements(fieldsWithRequirements, new StepConsumer(stepId), stepDepth);
 
         var resolvableSelections = resolvable.Selections;
         if (!resolvableSelections.Any(IsTypeNameSelection))
@@ -1681,12 +1714,13 @@ public sealed partial class OperationPlanner
 
         var (resolvable, unresolvable, fieldsWithRequirements, _) = _partitioner.Partition(input);
         backlog = backlog.PushUnresolvable(unresolvable, current.SchemaName, stepDepth);
-        backlog = backlog.PushRequirements(fieldsWithRequirements, stepId, stepDepth);
+        backlog = backlog.PushRequirements(fieldsWithRequirements, new StepConsumer(stepId), stepDepth);
         return resolvable;
     }
 
     private SelectionSetNode? TryInlineFieldRequirements(
         FieldRequirementWorkItem workItem,
+        int dependentStepId,
         ref PlanNode current,
         OperationPlanStep currentStep,
         SelectionSetIndexBuilder index,
@@ -1732,7 +1766,7 @@ public sealed partial class OperationPlanner
                 requirements);
         current = current with { InternalOperationDefinition = internalOperation };
 
-        foreach (var (step, stepIndex, schemaName) in current.GetCandidateSteps(workItem.Selection.SelectionSetId))
+        foreach (var (step, stepIndex, _) in current.GetCandidateSteps(workItem.Selection.SelectionSetId))
         {
             if (currentStep.Id == step.Id)
             {
@@ -1748,52 +1782,21 @@ public sealed partial class OperationPlanner
                 continue;
             }
 
-            index.Register(workItem.Selection.SelectionSetId, requirements);
-
-            var input = new SelectionSetPartitionerInput
-            {
-                SchemaName = schemaName,
-                SelectionSet = new SelectionSet(
-                    workItem.Selection.SelectionSetId,
-                    requirements,
-                    workItem.Selection.Field.DeclaringType,
-                    workItem.Selection.Path),
-                SelectionSetIndex = index
-            };
-
-            var (resolvable, unresolvable, _, _) = _partitioner.Partition(input);
-
-            if (resolvable is not { Selections.Count: > 0 })
+            if (!TryInlineSelectionSetIntoStep(
+                step,
+                workItem.Selection.SelectionSetId,
+                workItem.Selection.Field.DeclaringType,
+                workItem.Selection.Path,
+                requirements,
+                dependentStepId,
+                index,
+                out var updatedStep,
+                out var unresolvable))
             {
                 // if we cannot resolve any selection with the current source we cannot inline the
                 // field requirements into this step.
                 continue;
             }
-
-            // the resolvable part of the requirement could be different from the requirement
-            // if we are unable to inline the complete requirement into a single plan step.
-            // in this case we will register the resolvable part as part of the requirements selection set
-            // so that they logically belong together.
-            if (resolvable != requirements)
-            {
-                index.Register(workItem.Selection.SelectionSetId, resolvable);
-            }
-
-            var operation =
-                InlineSelections(
-                    step.Definition,
-                    index,
-                    workItem.Selection.Field.DeclaringType,
-                    workItem.Selection.SelectionSetId,
-                    resolvable);
-
-            var updatedStep = step with
-            {
-                Definition = operation,
-
-                // the step containing the field requirements is now dependent on this step.
-                Dependents = step.Dependents.Add(workItem.StepId)
-            };
 
             steps = steps.SetItem(stepIndex, updatedStep);
             requirements = null;
@@ -1847,7 +1850,7 @@ public sealed partial class OperationPlanner
         {
             if (TryInlineIntoAncestorStep(
                 ancestorMatch, requirements, workItem.Selection.Path,
-                workItem.StepId, index, ref steps, out var unresolvable,
+                dependentStepId, index, ref steps, out var unresolvable,
                 resolvableRegistrationId: workItem.Selection.SelectionSetId))
             {
                 requirements = null;
@@ -1878,6 +1881,68 @@ public sealed partial class OperationPlanner
         }
 
         return requirements;
+    }
+
+    private bool TryInlineSelectionSetIntoStep(
+        OperationPlanStep step,
+        uint targetSelectionSetId,
+        ITypeDefinition selectionSetType,
+        SelectionPath path,
+        SelectionSetNode requirementSelections,
+        int dependentStepId,
+        SelectionSetIndexBuilder index,
+        out OperationPlanStep updatedStep,
+        out ImmutableStack<ConditionedSelectionSet> unresolvable)
+    {
+        index.Register(targetSelectionSetId, requirementSelections);
+
+        var input = new SelectionSetPartitionerInput
+        {
+            SchemaName = step.SchemaName!,
+            SelectionSet = new SelectionSet(
+                targetSelectionSetId,
+                requirementSelections,
+                selectionSetType,
+                path),
+            SelectionSetIndex = index
+        };
+
+        var (resolvable, partitionUnresolvable, _, _) = _partitioner.Partition(input);
+
+        if (resolvable is not { Selections.Count: > 0 })
+        {
+            updatedStep = step;
+            unresolvable = [];
+            return false;
+        }
+
+        // the resolvable part of the requirement could be different from the requirement
+        // if we are unable to inline the complete requirement into a single plan step.
+        // in this case we will register the resolvable part as part of the requirements selection set
+        // so that they logically belong together.
+        if (resolvable != requirementSelections)
+        {
+            index.Register(targetSelectionSetId, resolvable);
+        }
+
+        var operation =
+            InlineSelections(
+                step.Definition,
+                index,
+                selectionSetType,
+                targetSelectionSetId,
+                resolvable);
+
+        updatedStep = step with
+        {
+            Definition = operation,
+
+            // the step containing the field requirements is now dependent on this step.
+            Dependents = step.Dependents.Add(dependentStepId)
+        };
+
+        unresolvable = partitionUnresolvable;
+        return true;
     }
 
     private OperationDefinitionNode InlineSelectionsIntoOverallOperation(

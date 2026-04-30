@@ -586,7 +586,9 @@ AddErrors_Next:
             return false;
         }
 
-        var element = path.IsRoot ? resultData : GetStartObjectResult(path);
+        var element = path.IsRoot ? resultData : GetStartResult(path);
+        Debug.Assert(element.ValueKind is JsonValueKind.Object or JsonValueKind.Null or JsonValueKind.Undefined);
+
         if (element.IsNullOrInvalidated)
         {
             return true;
@@ -689,6 +691,43 @@ AddErrors_Next:
         }
     }
 
+    internal ImmutableArray<VariableValues> CreateVariableValueSetsFromSnapshot(
+        ImmutableArray<VariableValues> importedEntries,
+        HashSet<string> importedKeys,
+        IReadOnlyList<ObjectFieldNode> requestVariables,
+        ReadOnlySpan<OperationRequirement> requiredData)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(importedKeys);
+        ArgumentNullException.ThrowIfNull(requestVariables);
+
+        if (requiredData.Length == 0)
+        {
+            throw new ArgumentException(
+                "The required data span must contain at least one requirement.",
+                nameof(requiredData));
+        }
+
+        if (importedEntries.IsDefaultOrEmpty)
+        {
+            return [];
+        }
+
+        foreach (var requirement in requiredData)
+        {
+            if (!importedKeys.Contains(requirement.Key))
+            {
+                throw new InvalidOperationException(
+                    "A deferred incremental plan fetch references a requirement that was not imported.");
+            }
+        }
+
+        lock (_lock)
+        {
+            return BuildVariableValueSetsFromSnapshot(importedEntries, requestVariables, requiredData);
+        }
+    }
+
     // Caller must hold _lock for reading.
     private ReadOnlySpan<CompositeResultElement> CollectTargetElements(SelectionPath selectionSet)
     {
@@ -755,17 +794,77 @@ AddErrors_Next:
 
             if (currentCount == 0)
             {
-                // Store potentially grown arrays back.
+                // Update collection state.
                 _collectTargetA = current;
                 _collectTargetB = next;
                 return [];
             }
         }
 
-        // Store potentially grown arrays back.
+        // Update collection state.
         _collectTargetA = current;
         _collectTargetB = next;
         return current.AsSpan(0, currentCount);
+    }
+
+    private ImmutableArray<VariableValues> BuildVariableValueSetsFromSnapshot(
+        ImmutableArray<VariableValues> importedEntries,
+        IReadOnlyList<ObjectFieldNode> requestVariables,
+        ReadOnlySpan<OperationRequirement> requiredData)
+    {
+        _variableDedupTable.Initialize(importedEntries.Length);
+
+        VariableValues[]? variableValueSets = null;
+        var additionalPaths = new AdditionalPathAccumulator();
+        var nextIndex = 0;
+
+        foreach (var importedEntry in importedEntries)
+        {
+            if (importedEntry.IsEmpty)
+            {
+                continue;
+            }
+
+            _jsonWriter.Reset(_variableWriter);
+            var startPosition = _variableWriter.Position;
+            _jsonWriter.WriteStartObject();
+
+            for (var i = 0; i < requestVariables.Count; i++)
+            {
+                var field = requestVariables[i];
+                _jsonWriter.WritePropertyName(field.Name.Value);
+                WriteValueNode(field.Value);
+            }
+
+            if (!TryWriteRequestedRequirementValues(importedEntry.Values, requiredData))
+            {
+                _variableWriter.ResetTo(startPosition);
+                continue;
+            }
+
+            _jsonWriter.WriteEndObject();
+
+            var entry = TryCreateVariableValues(
+                importedEntry.Path,
+                startPosition,
+                ref additionalPaths,
+                nextIndex,
+                out var dedupIndex);
+
+            if (entry is null)
+            {
+                additionalPaths.AddRange(dedupIndex, importedEntry.AdditionalPaths.AsSpan());
+                continue;
+            }
+
+            variableValueSets ??= s_variableValuePool.Rent(importedEntries.Length);
+            variableValueSets[nextIndex] = entry.Value;
+            additionalPaths.AddRange(nextIndex, importedEntry.AdditionalPaths.AsSpan());
+            nextIndex++;
+        }
+
+        _variableDedupTable.Clear();
+        return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSets(
@@ -1290,6 +1389,14 @@ AddErrors_Next:
         int startPosition,
         ref AdditionalPathAccumulator additionalPaths,
         int nextIndex)
+        => TryCreateVariableValues(path, startPosition, ref additionalPaths, nextIndex, out _);
+
+    private VariableValues? TryCreateVariableValues(
+        CompactPath path,
+        int startPosition,
+        ref AdditionalPathAccumulator additionalPaths,
+        int nextIndex,
+        out int dedupIndex)
     {
         var length = _variableWriter.Position - startPosition;
         var hash = _variableWriter.GetHashCode(startPosition, length);
@@ -1300,13 +1407,91 @@ AddErrors_Next:
         // this allows us to fetch once and then insert the data at different locations.
         if (_variableDedupTable.TryGet(hash, startPosition, length, out var existingIndex))
         {
+            dedupIndex = existingIndex;
             additionalPaths.Add(existingIndex, path);
             _variableWriter.ResetTo(startPosition);
             return null;
         }
 
+        dedupIndex = nextIndex;
         _variableDedupTable.Add(hash, nextIndex, startPosition, length);
         return new VariableValues(path, JsonSegment.Create(_variableWriter, startPosition, length));
+    }
+
+    private bool TryWriteRequestedRequirementValues(
+        JsonSegment values,
+        ReadOnlySpan<OperationRequirement> requiredData)
+    {
+        if (values.IsEmpty)
+        {
+            return false;
+        }
+
+        var sequence = values.AsSequence();
+
+        foreach (var requirement in requiredData)
+        {
+            if (!TryWriteRequirementValue(sequence, requirement.Key))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private bool TryWriteRequirementValue(ReadOnlySequence<byte> values, string key)
+    {
+        var reader = new Utf8JsonReader(values);
+
+        if (!reader.Read() || reader.TokenType is not JsonTokenType.StartObject)
+        {
+            return false;
+        }
+
+        while (reader.Read())
+        {
+            if (reader.TokenType is JsonTokenType.EndObject)
+            {
+                return false;
+            }
+
+            if (reader.TokenType is not JsonTokenType.PropertyName)
+            {
+                return false;
+            }
+
+            var matches = reader.ValueTextEquals(key);
+
+            if (!reader.Read())
+            {
+                return false;
+            }
+
+            var start = reader.TokenStartIndex;
+            reader.Skip();
+            var length = reader.BytesConsumed - start;
+
+            if (matches)
+            {
+                _jsonWriter.WritePropertyName(key);
+                WriteRawJsonValue(values.Slice(start, length));
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void WriteRawJsonValue(ReadOnlySequence<byte> value)
+    {
+        if (value.IsSingleSegment)
+        {
+            _jsonWriter.WriteRawValue(value.FirstSpan);
+            return;
+        }
+
+        _jsonWriter.WriteRawValue(value.ToArray());
     }
 
     private void WriteValueNode(IValueNode value)
@@ -1390,6 +1575,100 @@ AddErrors_Next:
         _jsonWriter.WriteEndObject();
         var length = _variableWriter.Position - startPosition;
         return new VariableValues(path, JsonSegment.Create(_variableWriter, startPosition, length));
+    }
+
+    /// <summary>
+    /// Imports variable value sets into this store for a child incremental plan.
+    /// </summary>
+    internal ImmutableArray<VariableValues> ImportVariableValues(
+        ImmutableArray<VariableValues> source)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        if (source.IsDefaultOrEmpty)
+        {
+            return [];
+        }
+
+        var builder = ImmutableArray.CreateBuilder<VariableValues>(source.Length);
+
+        ImmutableArray<VariableValues> imported;
+
+        lock (_lock)
+        {
+            foreach (var entry in source)
+            {
+                builder.Add(ImportVariableValuesEntry(entry));
+            }
+
+            imported = builder.MoveToImmutable();
+        }
+
+        InitializeTargetPaths(imported);
+
+        return imported;
+    }
+
+    private VariableValues ImportVariableValuesEntry(VariableValues source)
+    {
+        var path = ImportPath(source.Path);
+        var values = ImportJsonSegment(source.Values);
+        var additionalPaths = ImportAdditionalPaths(source.AdditionalPaths);
+
+        return new VariableValues(path, values)
+        {
+            AdditionalPaths = additionalPaths
+        };
+    }
+
+    private JsonSegment ImportJsonSegment(JsonSegment source)
+    {
+        if (source.IsEmpty)
+        {
+            return JsonSegment.Empty;
+        }
+
+        var startPosition = _variableWriter.Position;
+        foreach (var memory in source.AsSequence())
+        {
+            var span = _variableWriter.GetSpan(memory.Length);
+            memory.Span.CopyTo(span);
+            _variableWriter.Advance(memory.Length);
+        }
+
+        var length = _variableWriter.Position - startPosition;
+        return JsonSegment.Create(_variableWriter, startPosition, length);
+    }
+
+    private static CompactPath ImportPath(CompactPath source)
+    {
+        if (source.IsRoot)
+        {
+            return CompactPath.Root;
+        }
+
+        var segments = source.Segments;
+        var copy = new int[segments.Length + 1];
+        copy[0] = segments.Length;
+        segments.CopyTo(copy.AsSpan(1));
+        return new CompactPath(copy);
+    }
+
+    private static CompactPathSegment ImportAdditionalPaths(CompactPathSegment source)
+    {
+        if (source.IsDefaultOrEmpty)
+        {
+            return default;
+        }
+
+        var paths = source.AsSpan();
+        var copy = new CompactPath[paths.Length];
+        for (var i = 0; i < paths.Length; i++)
+        {
+            copy[i] = ImportPath(paths[i]);
+        }
+
+        return new CompactPathSegment(copy, 0, copy.Length);
     }
 
     private static void AppendUnrolledLists(
@@ -1604,23 +1883,176 @@ AddErrors_Next:
 
             if (segment >= 0)
             {
+                if (element.ValueKind is not JsonValueKind.Object)
+                {
+                    throw new InvalidOperationException(
+                        $"The path segment '{segment}' does not exist in the data.");
+                }
+
                 element = element.GetPropertyBySelectionId(segment);
             }
             else
             {
                 var index = ~segment;
-
-                if (element.GetArrayLength() <= index)
-                {
-                    throw new InvalidOperationException(
-                        $"The path segment '[{index}]' does not exist in the data.");
-                }
-
                 element = element[index];
             }
         }
 
         return element;
+    }
+
+    private void InitializeTargetPaths(ImmutableArray<VariableValues> importedValues)
+    {
+        if (importedValues.IsDefaultOrEmpty)
+        {
+            return;
+        }
+
+        lock (_lock)
+        {
+            // Track list containers that need imported elements.
+            Dictionary<int, (CompositeResultElement Container, int MaxIndex)>? containers = null;
+
+            foreach (var entry in importedValues)
+            {
+                TrackListContainer(entry.Path, ref containers);
+                foreach (var additional in entry.AdditionalPaths.AsSpan())
+                {
+                    TrackListContainer(additional, ref containers);
+                }
+            }
+
+            if (containers is null)
+            {
+                return;
+            }
+
+            foreach (var (_, (container, maxIndex)) in containers)
+            {
+                if (container.ValueKind is JsonValueKind.Undefined)
+                {
+                    container.SetArrayValue(maxIndex + 1);
+                }
+                else if (container.ValueKind is JsonValueKind.Array)
+                {
+                    if (container.GetArrayLength() <= maxIndex)
+                    {
+                        throw new InvalidOperationException(
+                            $"The target path list container is shorter than required for index {maxIndex}.");
+                    }
+                }
+                else if (container.ValueKind is not JsonValueKind.Null)
+                {
+                    throw new InvalidOperationException(
+                        "The target path list container does not exist in the data.");
+                }
+            }
+        }
+    }
+
+    private void TrackListContainer(
+        CompactPath path,
+        ref Dictionary<int, (CompositeResultElement Container, int MaxIndex)>? containers)
+    {
+        if (path.IsRoot)
+        {
+            return;
+        }
+
+        var element = _result.Data;
+        var segments = path.Segments;
+
+        for (var i = 0; i < segments.Length; i++)
+        {
+            var seg = segments[i];
+
+            if (element.ValueKind is JsonValueKind.Null)
+            {
+                return;
+            }
+
+            if (seg >= 0)
+            {
+                var hasListAnchor = HasListAnchor(segments, i + 1);
+
+                if (element.ValueKind is JsonValueKind.Undefined)
+                {
+                    if (!hasListAnchor)
+                    {
+                        return;
+                    }
+
+                    InitializeIntermediateObject(element);
+                }
+
+                if (element.ValueKind is not JsonValueKind.Object)
+                {
+                    if (!hasListAnchor)
+                    {
+                        return;
+                    }
+
+                    throw new InvalidOperationException(
+                        $"The path segment '{seg}' does not exist in the data.");
+                }
+
+                element = element.GetPropertyBySelectionId(seg);
+            }
+            else
+            {
+                // Negative segment encodes a list index as ~index.
+                var index = ~seg;
+                var cursorKey = element.Cursor.Index;
+
+                containers ??= new Dictionary<int, (CompositeResultElement, int)>();
+
+                if (containers.TryGetValue(cursorKey, out var existing))
+                {
+                    if (index > existing.MaxIndex)
+                    {
+                        containers[cursorKey] = (existing.Container, index);
+                    }
+                }
+                else
+                {
+                    containers[cursorKey] = (element, index);
+                }
+
+                // Only process the outermost list anchor; stop here.
+                return;
+            }
+        }
+    }
+
+    private static bool HasListAnchor(ReadOnlySpan<int> segments, int start)
+    {
+        for (var i = start; i < segments.Length; i++)
+        {
+            if (segments[i] < 0)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void InitializeIntermediateObject(CompositeResultElement element)
+    {
+        var selection = element.Selection
+            ?? throw new InvalidOperationException(
+                "Cannot initialize an intermediate target object without selection metadata.");
+
+        if (selection.Type.NamedType() is not IObjectTypeDefinition objectType)
+        {
+            throw new InvalidOperationException(
+                "Cannot initialize an intermediate target object for an abstract selection.");
+        }
+
+        var selectionSet = selection.DeclaringSelectionSet.DeclaringOperation
+            .GetSelectionSet(selection, objectType);
+
+        element.SetObjectValue(selectionSet);
     }
 
     public void Dispose()
