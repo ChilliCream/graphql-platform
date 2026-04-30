@@ -88,6 +88,13 @@ internal static class ActivityExtensions
                 [SemanticConventions.GraphQL.Error.Message] = error.Message
             };
 
+            // TODO: Fusion's source-schema error remapping currently loses the
+            // field path on errors that originate from nested source-schema
+            // resolvers. The IError reaches us without `.Path` set, so the
+            // emitted `graphql.error` event omits `graphql.field.path` even
+            // though the spec marks it as conditionally required when the
+            // error is associated with a field. Tracking issue:
+            // https://github.com/ChilliCream/graphql-platform/issues/9624
             if (error.Path is not null)
             {
                 tags[SemanticConventions.GraphQL.Field.Path] = error.Path.Print();
