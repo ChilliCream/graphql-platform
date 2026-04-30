@@ -1,0 +1,192 @@
+{
+  "activities": [
+    {
+      "OperationName": "GraphQL Operation",
+      "DisplayName": "query",
+      "Kind": "Internal",
+      "Status": "Error",
+      "tags": [
+        {
+          "Key": "graphql.processing.type",
+          "Value": "request"
+        },
+        {
+          "Key": "graphql.operation.type",
+          "Value": "query"
+        },
+        {
+          "Key": "graphql.document.hash",
+          "Value": "md5:b8c29c6e4a2bbe7edee752c4f7cb0f7a"
+        },
+        {
+          "Key": "graphql.error.count",
+          "Value": 1
+        },
+        {
+          "Key": "error.type",
+          "Value": "INVALID_INPUT"
+        }
+      ],
+      "event": [
+        {
+          "Name": "AddedOperationToCache",
+          "Tags": []
+        },
+        {
+          "Name": "AddedDocumentToCache",
+          "Tags": []
+        },
+        {
+          "Name": "graphql.error",
+          "Tags": [
+            {
+              "Key": "graphql.error.message",
+              "Value": "invalid input"
+            },
+            {
+              "Key": "graphql.field.path",
+              "Value": "causeCodedError"
+            },
+            {
+              "Key": "graphql.error.code",
+              "Value": "INVALID_INPUT"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "exception.type",
+              "Value": "GRAPHQL_ERROR"
+            },
+            {
+              "Key": "exception.message",
+              "Value": "invalid input"
+            },
+            {
+              "Key": "exception.stacktrace",
+              "Value": ""
+            }
+          ]
+        }
+      ],
+      "activities": [
+        {
+          "OperationName": "GraphQL Document Parsing",
+          "DisplayName": "GraphQL Document Parsing",
+          "Kind": "Internal",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:b8c29c6e4a2bbe7edee752c4f7cb0f7a"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Document Validation",
+          "DisplayName": "GraphQL Document Validation",
+          "Kind": "Internal",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "validate"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:b8c29c6e4a2bbe7edee752c4f7cb0f7a"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Operation Planning",
+          "DisplayName": "GraphQL Operation Planning",
+          "Kind": "Internal",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "plan"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:b8c29c6e4a2bbe7edee752c4f7cb0f7a"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Operation Execution",
+          "DisplayName": "GraphQL Operation Execution",
+          "Kind": "Internal",
+          "Status": "Error",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "execute"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:b8c29c6e4a2bbe7edee752c4f7cb0f7a"
+            },
+            {
+              "Key": "error.type",
+              "Value": "INVALID_INPUT"
+            }
+          ],
+          "event": [],
+          "activities": [
+            {
+              "OperationName": "SimpleQuery.causeCodedError",
+              "DisplayName": "SimpleQuery.causeCodedError",
+              "Kind": "Internal",
+              "Status": "Error",
+              "tags": [
+                {
+                  "Key": "graphql.processing.type",
+                  "Value": "resolve"
+                },
+                {
+                  "Key": "graphql.field.alias",
+                  "Value": "causeCodedError"
+                },
+                {
+                  "Key": "graphql.field.path",
+                  "Value": "causeCodedError"
+                },
+                {
+                  "Key": "graphql.field.name",
+                  "Value": "causeCodedError"
+                },
+                {
+                  "Key": "graphql.field.coordinate",
+                  "Value": "SimpleQuery.causeCodedError"
+                },
+                {
+                  "Key": "graphql.field.parent_type",
+                  "Value": "SimpleQuery"
+                },
+                {
+                  "Key": "error.type",
+                  "Value": "INVALID_INPUT"
+                }
+              ],
+              "event": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,110 @@
+{
+  "activities": [
+    {
+      "OperationName": "GraphQL Operation",
+      "DisplayName": "query",
+      "Kind": "Internal",
+      "Status": "Error",
+      "tags": [
+        {
+          "Key": "graphql.processing.type",
+          "Value": "request"
+        },
+        {
+          "Key": "graphql.operation.type",
+          "Value": "query"
+        },
+        {
+          "Key": "graphql.document.hash",
+          "Value": "md5:ae3f9af1d2570e25f30a1ad002172b82"
+        },
+        {
+          "Key": "graphql.error.count",
+          "Value": 1
+        },
+        {
+          "Key": "error.type",
+          "Value": "EXECUTION_ERROR"
+        }
+      ],
+      "event": [
+        {
+          "Name": "AddedOperationToCache",
+          "Tags": []
+        },
+        {
+          "Name": "AddedDocumentToCache",
+          "Tags": []
+        },
+        {
+          "Name": "graphql.error",
+          "Tags": [
+            {
+              "Key": "graphql.error.message",
+              "Value": "fail"
+            },
+            {
+              "Key": "graphql.field.path",
+              "Value": "causeFatalError"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "exception.type",
+              "Value": "GRAPHQL_ERROR"
+            },
+            {
+              "Key": "exception.message",
+              "Value": "fail"
+            },
+            {
+              "Key": "exception.stacktrace",
+              "Value": ""
+            }
+          ]
+        }
+      ],
+      "activities": [
+        {
+          "OperationName": "SimpleQuery.causeFatalError",
+          "DisplayName": "SimpleQuery.causeFatalError",
+          "Kind": "Internal",
+          "Status": "Error",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "resolve"
+            },
+            {
+              "Key": "graphql.field.alias",
+              "Value": "causeFatalError"
+            },
+            {
+              "Key": "graphql.field.path",
+              "Value": "causeFatalError"
+            },
+            {
+              "Key": "graphql.field.name",
+              "Value": "causeFatalError"
+            },
+            {
+              "Key": "graphql.field.coordinate",
+              "Value": "SimpleQuery.causeFatalError"
+            },
+            {
+              "Key": "graphql.field.parent_type",
+              "Value": "SimpleQuery"
+            },
+            {
+              "Key": "error.type",
+              "Value": "EXECUTION_ERROR"
+            }
+          ],
+          "event": []
+        }
+      ]
+    }
+  ]
+}
