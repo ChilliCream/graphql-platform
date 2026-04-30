@@ -54,18 +54,6 @@
             {
               "Key": "graphql.operation.type",
               "Value": "query"
-            },
-            {
-              "Key": "exception.type",
-              "Value": "GRAPHQL_ERROR"
-            },
-            {
-              "Key": "exception.message",
-              "Value": "deep fail"
-            },
-            {
-              "Key": "exception.stacktrace",
-              "Value": ""
             }
           ]
         },
@@ -87,18 +75,6 @@
             {
               "Key": "graphql.operation.type",
               "Value": "query"
-            },
-            {
-              "Key": "exception.type",
-              "Value": "GRAPHQL_ERROR"
-            },
-            {
-              "Key": "exception.message",
-              "Value": "Cannot return null for non-nullable field."
-            },
-            {
-              "Key": "exception.stacktrace",
-              "Value": ""
             }
           ]
         }

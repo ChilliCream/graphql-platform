@@ -28,7 +28,7 @@
         },
         {
           "Key": "error.type",
-          "Value": "EXECUTION_ERROR"
+          "Value": "System.Net.Http.HttpRequestException"
         }
       ],
       "event": [
@@ -142,7 +142,7 @@
             },
             {
               "Key": "error.type",
-              "Value": "EXECUTION_ERROR"
+              "Value": "System.Net.Http.HttpRequestException"
             }
           ],
           "event": [],
