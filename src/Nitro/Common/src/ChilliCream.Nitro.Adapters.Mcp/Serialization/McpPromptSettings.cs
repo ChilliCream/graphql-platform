@@ -1,47 +1,48 @@
+using System.Collections.Immutable;
 using System.Text.Json.Serialization;
 
 namespace ChilliCream.Nitro.Adapters.Mcp.Serialization;
 
 public sealed record McpPromptSettings
 {
-    public string? Title { get; set; }
+    public string? Title { get; init; }
 
-    public string? Description { get; set; }
+    public string? Description { get; init; }
 
-    public List<McpPromptSettingsArgument>? Arguments { get; set; }
+    public ImmutableArray<McpPromptSettingsArgument>? Arguments { get; init; }
 
-    public List<McpPromptSettingsIcon>? Icons { get; set; }
+    public ImmutableArray<McpPromptSettingsIcon>? Icons { get; init; }
 
-    public required List<McpPromptSettingsMessage> Messages { get; set; }
+    public required ImmutableArray<McpPromptSettingsMessage> Messages { get; init; }
 }
 
 public sealed record McpPromptSettingsArgument
 {
-    public required string Name { get; set; }
+    public required string Name { get; init; }
 
-    public string? Title { get; set; }
+    public string? Title { get; init; }
 
-    public string? Description { get; set; }
+    public string? Description { get; init; }
 
-    public bool Required { get; set; }
+    public bool Required { get; init; }
 }
 
 public sealed record McpPromptSettingsIcon
 {
-    public required Uri Source { get; set; }
+    public required Uri Source { get; init; }
 
-    public string? MimeType { get; set; }
+    public string? MimeType { get; init; }
 
-    public List<string>? Sizes { get; set; }
+    public ImmutableArray<string>? Sizes { get; init; }
 
-    public string? Theme { get; set; }
+    public string? Theme { get; init; }
 }
 
 public sealed record McpPromptSettingsMessage
 {
-    public required string Role { get; set; }
+    public required string Role { get; init; }
 
-    public required McpPromptSettingsMessageContent Content { get; set; }
+    public required McpPromptSettingsMessageContent Content { get; init; }
 }
 
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
@@ -50,5 +51,5 @@ public abstract record McpPromptSettingsMessageContent;
 
 public sealed record McpPromptSettingsTextContent : McpPromptSettingsMessageContent
 {
-    public required string Text { get; set; }
+    public required string Text { get; init; }
 }

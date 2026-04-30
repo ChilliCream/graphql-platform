@@ -1,69 +1,70 @@
+using System.Collections.Immutable;
 using HotChocolate.Adapters.Mcp.Storage;
 
 namespace ChilliCream.Nitro.Adapters.Mcp.Serialization;
 
 public sealed record McpToolSettings
 {
-    public string? Title { get; set; }
+    public string? Title { get; init; }
 
-    public List<McpToolSettingsIcon>? Icons { get; set; }
+    public ImmutableArray<McpToolSettingsIcon>? Icons { get; init; }
 
-    public McpToolSettingsAnnotations? Annotations { get; set; }
+    public McpToolSettingsAnnotations? Annotations { get; init; }
 
-    public McpToolSettingsMcpAppView? View { get; set; }
+    public McpToolSettingsMcpAppView? View { get; init; }
 
-    public List<McpAppViewVisibility>? Visibility { get; set; }
+    public ImmutableArray<McpAppViewVisibility>? Visibility { get; init; }
 }
 
 public sealed record McpToolSettingsIcon
 {
-    public required Uri Source { get; set; }
+    public required Uri Source { get; init; }
 
-    public string? MimeType { get; set; }
+    public string? MimeType { get; init; }
 
-    public List<string>? Sizes { get; set; }
+    public ImmutableArray<string>? Sizes { get; init; }
 
-    public string? Theme { get; set; }
+    public string? Theme { get; init; }
 }
 
 public sealed record McpToolSettingsAnnotations
 {
-    public bool? DestructiveHint { get; set; }
+    public bool? DestructiveHint { get; init; }
 
-    public bool? IdempotentHint { get; set; }
+    public bool? IdempotentHint { get; init; }
 
-    public bool? OpenWorldHint { get; set; }
+    public bool? OpenWorldHint { get; init; }
 }
 
 public sealed record McpToolSettingsMcpAppView
 {
-    public McpToolSettingsCsp? Csp { get; set; }
+    public McpToolSettingsCsp? Csp { get; init; }
 
-    public string? Domain { get; set; }
+    public string? Domain { get; init; }
 
-    public McpToolSettingsPermissions? Permissions { get; set; }
+    public McpToolSettingsPermissions? Permissions { get; init; }
 
-    public bool? PrefersBorder { get; set; }
+    public bool? PrefersBorder { get; init; }
 }
 
 public class McpToolSettingsPermissions
 {
-    public bool? Camera { get; set; }
+    public bool? Camera { get; init; }
 
-    public bool? ClipboardWrite { get; set; }
+    public bool? ClipboardWrite { get; init; }
 
-    public bool? Geolocation { get; set; }
+    public bool? Geolocation { get; init; }
 
-    public bool? Microphone { get; set; }
+    public bool? Microphone { get; init; }
 }
 
 public sealed record McpToolSettingsCsp
 {
-    public List<string>? BaseUriDomains { get; set; }
+    public ImmutableArray<string>? BaseUriDomains { get; init; }
 
-    public List<string>? ConnectDomains { get; set; }
+    public ImmutableArray<string>? ConnectDomains { get; init; }
 
-    public List<string>? FrameDomains { get; set; }
+    public ImmutableArray<string>? FrameDomains { get; init; }
 
-    public List<string>? ResourceDomains { get; set; }
+    public ImmutableArray<string>? ResourceDomains { get; init; }
 }
