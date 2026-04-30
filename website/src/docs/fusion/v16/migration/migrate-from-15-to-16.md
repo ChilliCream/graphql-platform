@@ -299,38 +299,6 @@ The `watchFileForUpdates` parameter is gone — file watching is the default beh
 
 ## Diagnostic listener API redesigned
 
-<!--
-TODO: This should probably go on in the Fusion specific guide.
-
-### Fusion diagnostic listener API redesign
-
-Fusion diagnostics were redesigned in v16.
-
-- v15 interface: `HotChocolate.Fusion.Execution.Diagnostic.IFusionDiagnosticEvents` / `IFusionDiagnosticEventListener`
-- v16 interface: `HotChocolate.Fusion.Diagnostics.IFusionExecutionDiagnosticEvents` / `IFusionExecutionDiagnosticEventListener`
-
-This is not a signature-only change. The old high-level hooks were removed:
-
-- `ExecuteFederatedQuery(IRequestContext)`
-- `QueryPlanExecutionError(Exception)`
-- `ResolveError(Exception)`
-- `ResolveByKeyBatchError(Exception)`
-- `SubgraphRequestError(string, Exception)`
-
-The new API is execution-stage specific and provides request/plan/node/subscription hooks, for example:
-
-- `PlanOperation(...)`, `PlanOperationError(...)`
-- `ExecuteOperationNode(...)`, `ExecuteOperationBatchNode(...)`, `ExecuteSubscriptionNode(...)`, `ExecuteNodeFieldNode(...)`, `ExecuteIntrospectionNode(...)`
-- `ExecutionNodeError(...)`, `SourceSchemaTransportError(...)`, `SourceSchemaStoreError(...)`
-- `OnSubscriptionEvent(...)`, `SubscriptionEventError(...)`
-
-There is no 1:1 mapping for all old methods. In most cases:
-
-- `SubgraphRequestError(...)` maps to `SourceSchemaTransportError(...)`
-- `ResolveError(...)` / `ResolveByKeyBatchError(...)` map to `ExecutionNodeError(...)` and source-schema error hooks depending on error kind
-
-Also note that `SubscriptionTransportError(...)` is no longer exposed separately in the fusion diagnostics API; use `SourceSchemaTransportError(...)`. -->
-
 Fusion diagnostics were redesigned in v16. The high-level `ExecuteFederatedQuery`, `ResolveError`, `ResolveByKeyBatchError`, `QueryPlanExecutionError`, and `SubgraphRequestError` hooks are gone. The new API is execution-stage specific.
 
 | Before                                                                    | After                                                                                           |
@@ -368,7 +336,32 @@ Fusion diagnostics were redesigned in v16. The high-level `ExecuteFederatedQuery
  }
 ```
 
-The new interface also exposes additional execution-stage hooks (`PlanOperation`, `AddedOperationPlanToCache`, `ExecuteOperationNode`, `ExecuteOperationBatchNode`, `ExecuteSubscriptionNode`, `ExecuteNodeFieldNode`, `ExecuteIntrospectionNode`, `OnSubscriptionEvent`, `SourceSchemaStoreError`, `SubscriptionEventError`).
+The new interface also exposes additional execution-stage hooks (`AddedOperationPlanToCache`, `SourceSchemaStoreError`, `SubscriptionEventError`).
+
+### Scoped duration and error hooks
+
+In v15, the only scoped (`IDisposable`-returning) hook on `IFusionDiagnosticEventListener` was `ExecuteFederatedQuery`, which wrapped the entire federated request. v16 broadens the scope significantly: each major execution stage and each individual execution node has its own `IDisposable`-returning hook on `IFusionExecutionDiagnosticEventListener`, so you can measure the duration of, for example, planning an operation or a single subgraph fetch in isolation. The error hooks have likewise been redesigned around the new node-based execution model.
+
+| v15                                                    | v16                                                                                                     |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
+| `ExecuteFederatedQuery(IRequestContext)`               | `ExecuteRequest(RequestContext)`                                                                        |
+| —                                                      | `PlanOperation(RequestContext, string operationPlanId)`                                                 |
+| —                                                      | `ExecuteOperation(RequestContext)`                                                                      |
+| —                                                      | `ExecuteOperationNode(OperationPlanContext, OperationExecutionNode, string schemaName)`                 |
+| —                                                      | `ExecuteOperationBatchNode(OperationPlanContext, OperationBatchExecutionNode, string schemaName)`       |
+| —                                                      | `ExecuteNodeFieldNode(OperationPlanContext, NodeFieldExecutionNode)`                                    |
+| —                                                      | `ExecuteIntrospectionNode(OperationPlanContext, IntrospectionExecutionNode)`                            |
+| —                                                      | `ExecuteSubscription(RequestContext, ulong subscriptionId)`                                             |
+| —                                                      | `ExecuteSubscriptionNode(OperationPlanContext, ExecutionNode, string schemaName, ulong subscriptionId)` |
+| —                                                      | `OnSubscriptionEvent(OperationPlanContext, ExecutionNode, string schemaName, ulong subscriptionId)`     |
+| `QueryPlanExecutionError(Exception)`                   | `PlanOperationError(RequestContext, string operationId, Exception)`                                     |
+| `ResolveError(Exception)`                              | `ExecutionNodeError(OperationPlanContext, ExecutionNode, Exception)`                                    |
+| `ResolveByKeyBatchError(Exception)`                    | `ExecutionNodeError(OperationPlanContext, ExecutionNode, Exception)`                                    |
+| `SubgraphRequestError(string subgraphName, Exception)` | `SourceSchemaTransportError(OperationPlanContext, ExecutionNode, string schemaName, Exception)`         |
+
+To time individual stages of the request pipeline (parsing, validation, variable coercion) you previously had to implement Hot Chocolate's core `IExecutionDiagnosticEventListener` separately and register it alongside the Fusion-specific listener. In v16 these stages have been folded into `IFusionExecutionDiagnosticEventListener` itself, so you can remove your `IExecutionDiagnosticEventListener` implementations and move the overrides (for example `ParseDocument`, `ValidateDocument`, `CoerceVariables`) onto your `FusionExecutionDiagnosticEventListener` subclass instead.
+
+The dedicated `SubscriptionTransportError(...)` hook from the v15 Fusion diagnostics API is also no longer exposed separately. Subscription transport failures now flow through `SourceSchemaTransportError(...)` like any other source-schema transport error.
 
 ## IRequestContext
 
