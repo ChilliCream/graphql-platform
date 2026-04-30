@@ -70,11 +70,19 @@ internal static class FusionCompositionHelpers
             schemaFilePath =
                 fileSystem
                     .GetFiles(sourceSchemaPath, "*.graphql*", SearchOption.AllDirectories)
-                    .FirstOrDefault(f => IsSchemaFile(Path.GetFileName(f))
-                        && !IsExtensionsFile(Path.GetFileName(f)));
+                    .FirstOrDefault(f =>
+                    {
+                        var name = Path.GetFileName(f);
+                        return IsSchemaFile(name) && !IsExtensionsFile(name);
+                    });
         }
         else if (fileSystem.FileExists(sourceSchemaPath))
         {
+            if (IsExtensionsFile(Path.GetFileName(sourceSchemaPath)))
+            {
+                throw new ExitException(Messages.SchemaExtensionsFileCannotBeUsedAsSchemaFile(sourceSchemaPath));
+            }
+
             schemaFilePath = sourceSchemaPath;
         }
 

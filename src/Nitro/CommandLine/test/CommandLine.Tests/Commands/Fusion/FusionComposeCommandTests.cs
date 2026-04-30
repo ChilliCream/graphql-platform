@@ -20,6 +20,9 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
     private static readonly string s_validExcludeByTagCompositeSchema =
         File.ReadAllText("__resources__/valid-exclude-by-tag-result/composite-schema.graphqls");
 
+    private static readonly string s_validExtensionsCompositeSchema =
+        File.ReadAllText("__resources__/valid-extensions-result/composite-schema.graphqls");
+
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
@@ -490,8 +493,7 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
         var sourceText = await ReadSchemaAsync(config);
         sourceText
             .ReplaceLineEndings("\n")
-            .MatchInlineSnapshot(
-                await File.ReadAllTextAsync("__resources__/valid-extensions-result/composite-schema.graphqls"));
+            .MatchInlineSnapshot(s_validExtensionsCompositeSchema);
     }
 
     [Fact]
@@ -533,8 +535,32 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
         var sourceText = await ReadSchemaAsync(config);
         sourceText
             .ReplaceLineEndings("\n")
-            .MatchInlineSnapshot(
-                await File.ReadAllTextAsync("__resources__/valid-extensions-result/composite-schema.graphqls"));
+            .MatchInlineSnapshot(s_validExtensionsCompositeSchema);
+    }
+
+    [Fact]
+    public async Task Compose_Valid_Extensions_PointingToSidecar_ReturnsError()
+    {
+        // arrange
+        var archiveFileName = CreateTempFile();
+        var sidecarPath = Path.Combine(
+            s_resourcesDir, "valid-extensions", "source-schema-1-extensions.graphqls");
+
+        SetupFile(sidecarPath, new MemoryStream(await File.ReadAllBytesAsync(sidecarPath)));
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--source-schema-file",
+            sidecarPath,
+            "--archive",
+            archiveFileName);
+
+        // assert
+        result.AssertError(
+            $"Schema extensions file '{sidecarPath}' cannot be used as a source schema file. "
+            + "Provide the base schema file instead.");
     }
 
     [Fact]
