@@ -16,7 +16,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CaseConverter" />
     <PackageReference Include="ChilliCream.ModelContextProtocol.AspNetCore" />
   </ItemGroup>
 
