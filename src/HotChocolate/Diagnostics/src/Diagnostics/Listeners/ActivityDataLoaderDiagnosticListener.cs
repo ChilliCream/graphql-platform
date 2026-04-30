@@ -59,7 +59,7 @@ internal sealed class ActivityDataLoaderDiagnosticListener(
             "BatchEvaluated",
             tags: new ActivityTagsCollection
             {
-                { "openBatches", openBatches }
+                { "graphql.dataloader.batches.open", openBatches }
             }));
     }
 
@@ -69,7 +69,7 @@ internal sealed class ActivityDataLoaderDiagnosticListener(
             "BatchDispatched",
             tags: new ActivityTagsCollection
             {
-                { "dispatchedBatches", dispatchedBatches }
+                { "graphql.dataloader.batches.dispatched", dispatchedBatches }
             }));
     }
 }

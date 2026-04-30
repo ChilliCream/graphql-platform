@@ -922,25 +922,27 @@ Besides the attribute renames, the most notable changes are:
 
 ### Renamed attributes
 
-| Old Attribute                              | New Attribute                          |
-| ------------------------------------------ | -------------------------------------- |
-| `graphql.operation.kind`                   | `graphql.operation.type`               |
-| `graphql.selection.name`                   | `graphql.field.alias`                  |
-| `graphql.selection.path`                   | `graphql.field.path`                   |
-| `graphql.selection.field.name`             | `graphql.field.name`                   |
-| `graphql.selection.field.parent_type`      | `graphql.field.parent_type`            |
-| `graphql.selection.field.coordinate`       | `graphql.field.coordinate`             |
-| `graphql.selection.field.declaringType`    | `graphql.field.parent_type`            |
-| `graphql.dataLoader.keys.count`            | `graphql.dataloader.batch.size`        |
-| `graphql.dataLoader.keys`                  | `graphql.dataloader.batch.keys`        |
-| `graphql.error.path`                       | `graphql.field.path` _(reused)_        |
-| `graphql.error.locations`                  | `graphql.document.locations`           |
-| `graphql.error.location.line/column`       | `graphql.document.locations`           |
-| `graphql.fusion.node.schema`               | `graphql.source_schema.name`           |
-| `graphql.fusion.node.type`                 | `graphql.operation.step.kind`          |
-| `graphql.source.name` _(Fusion)_           | `graphql.source_schema.name`           |
-| `graphql.source.operation.name` _(Fusion)_ | `graphql.source_schema.operation.name` |
-| `graphql.source.operation.hash` _(Fusion)_ | `graphql.source_schema.operation.hash` |
+| Old Attribute                                 | New Attribute                           |
+| --------------------------------------------- | --------------------------------------- |
+| `graphql.operation.kind`                      | `graphql.operation.type`                |
+| `graphql.selection.name`                      | `graphql.field.alias`                   |
+| `graphql.selection.path`                      | `graphql.field.path`                    |
+| `graphql.selection.field.name`                | `graphql.field.name`                    |
+| `graphql.selection.field.parent_type`         | `graphql.field.parent_type`             |
+| `graphql.selection.field.coordinate`          | `graphql.field.coordinate`              |
+| `graphql.selection.field.declaringType`       | `graphql.field.parent_type`             |
+| `graphql.dataLoader.keys.count`               | `graphql.dataloader.batch.size`         |
+| `graphql.dataLoader.keys`                     | `graphql.dataloader.batch.keys`         |
+| `openBatches` _(BatchEvaluated event)_        | `graphql.dataloader.batches.open`       |
+| `dispatchedBatches` _(BatchDispatched event)_ | `graphql.dataloader.batches.dispatched` |
+| `graphql.error.path`                          | `graphql.field.path` _(reused)_         |
+| `graphql.error.locations`                     | `graphql.document.locations`            |
+| `graphql.error.location.line/column`          | `graphql.document.locations`            |
+| `graphql.fusion.node.schema`                  | `graphql.source_schema.name`            |
+| `graphql.fusion.node.type`                    | `graphql.operation.step.kind`           |
+| `graphql.source.name` _(Fusion)_              | `graphql.source_schema.name`            |
+| `graphql.source.operation.name` _(Fusion)_    | `graphql.source_schema.operation.name`  |
+| `graphql.source.operation.hash` _(Fusion)_    | `graphql.source_schema.operation.hash`  |
 
 ### Added attributes
 

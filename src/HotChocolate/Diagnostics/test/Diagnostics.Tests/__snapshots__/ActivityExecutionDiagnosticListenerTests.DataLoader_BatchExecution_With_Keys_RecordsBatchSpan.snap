@@ -155,7 +155,7 @@
                   "Name": "BatchEvaluated",
                   "Tags": [
                     {
-                      "Key": "openBatches",
+                      "Key": "graphql.dataloader.batches.open",
                       "Value": 1
                     }
                   ]
@@ -164,7 +164,7 @@
                   "Name": "BatchDispatched",
                   "Tags": [
                     {
-                      "Key": "dispatchedBatches",
+                      "Key": "graphql.dataloader.batches.dispatched",
                       "Value": 1
                     }
                   ]
