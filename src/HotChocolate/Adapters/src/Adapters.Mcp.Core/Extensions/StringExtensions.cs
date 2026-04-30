@@ -1,6 +1,3 @@
-// Adapted from https://github.com/markcastle/CaseConverter (MIT License).
-// See the upstream repository's LICENSE file for the original copyright notice.
-
 using System.Globalization;
 using System.Text;
 
