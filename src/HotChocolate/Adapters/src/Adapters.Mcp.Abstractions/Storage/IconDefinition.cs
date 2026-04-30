@@ -1,5 +1,4 @@
 using System.Text.RegularExpressions;
-using static HotChocolate.Adapters.Mcp.Properties.McpAdapterResources;
 
 namespace HotChocolate.Adapters.Mcp.Storage;
 
@@ -34,7 +33,7 @@ public sealed partial class IconDefinition
                 && value.Scheme != "data")
             {
                 throw new ArgumentException(
-                    IconDefinition_InvalidIconSourceScheme,
+                    "The icon source URI must use the HTTP, HTTPS, or data scheme.",
                     nameof(Source));
             }
 
@@ -55,7 +54,7 @@ public sealed partial class IconDefinition
             if (value?.Contains('/') == false)
             {
                 throw new ArgumentException(
-                    IconDefinition_InvalidIconMimeType,
+                    "The MIME type must be a valid type/subtype string.",
                     nameof(MimeType));
             }
 
@@ -75,7 +74,7 @@ public sealed partial class IconDefinition
             if (value?.Any(size => !IconSizeRegex().IsMatch(size)) == true)
             {
                 throw new ArgumentException(
-                    IconDefinition_InvalidIconSize,
+                    "Each size must have the format {WIDTH}x{HEIGHT} (e.g., 48x48) or be 'any'.",
                     nameof(Sizes));
             }
 
@@ -95,7 +94,7 @@ public sealed partial class IconDefinition
             if (value is not null and not "light" and not "dark")
             {
                 throw new ArgumentException(
-                    IconDefinition_InvalidIconTheme,
+                    "The icon theme must be 'light' or 'dark'.",
                     nameof(Theme));
             }
 
