@@ -44,52 +44,6 @@ internal static class ActivityExtensions
         }
 #endif
 
-        /// <summary>
-        /// Sets the <c>error.type</c> tag for a GraphQL error on the activity.
-        /// By default prefers <see cref="IError.Code"/> (sourced from
-        /// <c>extensions.code</c>), then the underlying exception type name, and
-        /// finally falls back to the supplied <paramref name="fallback"/>.
-        /// When <paramref name="preferException"/> is <see langword="true"/>, the
-        /// exception type name is preferred over the error code, matching the
-        /// guidance for the field execution span.
-        /// </summary>
-        public void SetGraphQLErrorType(
-            IError error,
-            string fallback,
-            bool preferException = false)
-        {
-            if (activity.GetTagItem(SemanticConventions.ErrorType) is not null)
-            {
-                return;
-            }
-
-            var exceptionType = error.Exception?.GetType().FullName;
-
-            string? errorType;
-            if (preferException)
-            {
-                errorType = exceptionType
-                    ?? (!string.IsNullOrEmpty(error.Code) ? error.Code : fallback);
-            }
-            else
-            {
-                errorType = !string.IsNullOrEmpty(error.Code)
-                    ? error.Code
-                    : exceptionType ?? fallback;
-            }
-
-            activity.SetTag(SemanticConventions.ErrorType, errorType);
-        }
-
-        /// <summary>
-        /// Adds a <c>graphql.error</c> event to the activity following the
-        /// OpenTelemetry GraphQL semantic conventions. When the GraphQL error
-        /// carries an underlying exception, <c>exception.type</c>,
-        /// <c>exception.message</c>, and <c>exception.stacktrace</c> are added
-        /// to the event. When no exception is present, those attributes are
-        /// omitted (the GraphQL error message is available via
-        /// <c>graphql.error.message</c>).
-        /// </summary>
         public void AddGraphQLErrorEvent(
             IError error,
             string? operationType = null,
@@ -100,13 +54,6 @@ internal static class ActivityExtensions
                 [SemanticConventions.GraphQL.Error.Message] = error.Message
             };
 
-            // TODO: Fusion's source-schema error remapping currently loses the
-            // field path on errors that originate from nested source-schema
-            // resolvers. The IError reaches us without `.Path` set, so the
-            // emitted `graphql.error` event omits `graphql.field.path` even
-            // though the spec marks it as conditionally required when the
-            // error is associated with a field. Tracking issue:
-            // https://github.com/ChilliCream/graphql-platform/issues/9624
             if (error.Path is not null)
             {
                 tags[SemanticConventions.GraphQL.Field.Path] = error.Path.Print();
@@ -160,6 +107,44 @@ internal static class ActivityExtensions
             {
                 activity.SetTag(SemanticConventions.ErrorType, exception.GetType().FullName);
             }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetErrorType(string errorType)
+        {
+            if (activity.GetTagItem(SemanticConventions.ErrorType) is null)
+            {
+                activity.SetTag(SemanticConventions.ErrorType, errorType);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetErrorType(
+            IError error,
+            string fallback,
+            bool preferException = false)
+        {
+            if (activity.GetTagItem(SemanticConventions.ErrorType) is not null)
+            {
+                return;
+            }
+
+            var exceptionType = error.Exception?.GetType().FullName;
+
+            string? errorType;
+            if (preferException)
+            {
+                errorType = exceptionType
+                    ?? (!string.IsNullOrEmpty(error.Code) ? error.Code : fallback);
+            }
+            else
+            {
+                errorType = !string.IsNullOrEmpty(error.Code)
+                    ? error.Code
+                    : exceptionType ?? fallback;
+            }
+
+            activity.SetTag(SemanticConventions.ErrorType, errorType);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

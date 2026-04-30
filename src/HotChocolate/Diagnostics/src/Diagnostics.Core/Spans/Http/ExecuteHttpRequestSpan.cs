@@ -236,7 +236,7 @@ internal sealed class ExecuteHttpRequestSpan(
     {
         Activity.SetStatus(ActivityStatusCode.Error);
         Activity.AddGraphQLErrorEvent(error);
-        Activity.SetGraphQLErrorType(error, ActivityExtensions.ExecutionErrorType);
+        Activity.SetErrorType(error, ActivityExtensions.ExecutionErrorType);
 
         enricher.EnrichHttpRequestError(httpContext, error, Activity);
     }

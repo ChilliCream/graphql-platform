@@ -67,7 +67,7 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
             var activity = span.Activity;
 
             activity.SetStatus(ActivityStatusCode.Error);
-            activity.SetGraphQLErrorType(error, ActivityExtensions.ExecutionErrorType);
+            activity.SetErrorType(error, ActivityExtensions.ExecutionErrorType);
 
             enricher.EnrichRequestError(context, error, activity);
         }
@@ -117,7 +117,7 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
 
         foreach (var error in errors)
         {
-            activity.SetGraphQLErrorType(error, ActivityExtensions.ValidationErrorType);
+            activity.SetErrorType(error, ActivityExtensions.ValidationErrorType);
         }
 
         enricher.EnrichValidationErrors(context, errors, activity);

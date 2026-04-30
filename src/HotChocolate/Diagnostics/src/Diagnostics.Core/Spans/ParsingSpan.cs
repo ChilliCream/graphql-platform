@@ -41,7 +41,7 @@ internal sealed class ParsingSpan(
 
             if (Activity.GetTagItem(SemanticConventions.ErrorType) is null)
             {
-                Activity.SetGraphQLErrorType(firstError, ActivityExtensions.ParseErrorType);
+                Activity.SetErrorType(firstError, ActivityExtensions.ParseErrorType);
             }
         }
 

@@ -72,7 +72,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
             var activity = span.Activity;
 
             activity.SetStatus(ActivityStatusCode.Error);
-            activity.SetGraphQLErrorType(error, ActivityExtensions.ExecutionErrorType);
+            activity.SetErrorType(error, ActivityExtensions.ExecutionErrorType);
 
             enricher.EnrichRequestError(context, error, activity);
         }
@@ -122,14 +122,14 @@ internal sealed class ActivityExecutionDiagnosticListener(
 
         if (errors is [var firstError, ..])
         {
-            activity.SetGraphQLErrorType(firstError, ActivityExtensions.ValidationErrorType);
+            activity.SetErrorType(firstError, ActivityExtensions.ValidationErrorType);
 
             // Propagate the phase-specific error.type to the root request span so
             // it does not fall back to EXECUTION_ERROR when validation produced
-            // the failure. SetGraphQLErrorType is a no-op if the tag is already set.
+            // the failure. SetErrorType is a no-op if the tag is already set.
             if (context.Features.TryGet<ExecuteRequestSpan>(out var rootSpan))
             {
-                rootSpan.Activity.SetGraphQLErrorType(firstError, ActivityExtensions.ValidationErrorType);
+                rootSpan.Activity.SetErrorType(firstError, ActivityExtensions.ValidationErrorType);
             }
         }
 
@@ -246,7 +246,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
             && value is ResolveFieldSpan span)
         {
             span.Activity.SetStatus(ActivityStatusCode.Error);
-            span.Activity.SetGraphQLErrorType(
+            span.Activity.SetErrorType(
                 error,
                 ActivityExtensions.ExecutionErrorType,
                 preferException: true);
@@ -262,7 +262,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
         {
             var eventActivity = eventSpan.Activity;
             eventActivity.SetStatus(ActivityStatusCode.Error);
-            eventActivity.SetGraphQLErrorType(error, ActivityExtensions.ExecutionErrorType);
+            eventActivity.SetErrorType(error, ActivityExtensions.ExecutionErrorType);
             eventActivity.AddGraphQLErrorEvent(
                 error,
                 operationType: SemanticConventions.GraphQL.Operation.TypeValues[

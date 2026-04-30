@@ -67,16 +67,13 @@ internal abstract class ExecuteRequestSpanBase(
         {
             Activity.SetStatus(ActivityStatusCode.Error);
 
-            if (Activity.GetTagItem(SemanticConventions.ErrorType) is null)
+            if (Context.Result is OperationResult { Errors: [var firstError, ..] })
             {
-                if (Context.Result is OperationResult { Errors: [var firstError, ..] })
-                {
-                    Activity.SetGraphQLErrorType(firstError, ActivityExtensions.ExecutionErrorType);
-                }
-                else
-                {
-                    Activity.SetTag(SemanticConventions.ErrorType, ActivityExtensions.ExecutionErrorType);
-                }
+                Activity.SetErrorType(firstError, ActivityExtensions.ExecutionErrorType);
+            }
+            else
+            {
+                Activity.SetErrorType(ActivityExtensions.ExecutionErrorType);
             }
         }
         else if (Activity.Status != ActivityStatusCode.Error)
