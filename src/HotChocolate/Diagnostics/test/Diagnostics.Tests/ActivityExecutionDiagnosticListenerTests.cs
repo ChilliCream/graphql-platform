@@ -99,7 +99,7 @@ public partial class ActivityExecutionDiagnosticListenerTests
         {
             // arrange
             var storage = new InMemoryOperationDocumentStorage();
-            storage.Add("sayHelloOp", "{ sayHello }");
+            storage.Add("say-hello-persisted-id", "{ sayHello }");
 
             var services = new ServiceCollection()
                 .AddGraphQL()
@@ -114,7 +114,7 @@ public partial class ActivityExecutionDiagnosticListenerTests
             var executor = await services.GetRequestExecutorAsync();
 
             // act
-            await executor.ExecuteAsync(OperationRequest.FromId("sayHelloOp"));
+            await executor.ExecuteAsync(OperationRequest.FromId("say-hello-persisted-id"));
 
             // assert
             activities.MatchSnapshot();

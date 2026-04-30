@@ -222,7 +222,7 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
         {
             // arrange
             var storage = new InMemoryOperationDocumentStorage();
-            storage.Add("sayHelloOp", "{ sayHello }");
+            storage.Add("say-hello-persisted-id", "{ sayHello }");
 
             using var server1 = CreateSourceSchema(
                 "a",
@@ -241,7 +241,7 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             var executor = await gateway.Services.GetRequestExecutorAsync();
 
             // act
-            await executor.ExecuteAsync(OperationRequest.FromId("sayHelloOp"));
+            await executor.ExecuteAsync(OperationRequest.FromId("say-hello-persisted-id"));
 
             // assert
             activities.MatchSnapshot();
