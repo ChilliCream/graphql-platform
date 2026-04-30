@@ -35,6 +35,22 @@ internal sealed class ParsingSpan(
         {
             Activity.SetStatus(ActivityStatusCode.Ok);
         }
+        else
+        {
+            Activity.SetStatus(ActivityStatusCode.Error);
+
+            if (Activity.GetTagItem(SemanticConventions.ErrorType) is null)
+            {
+                if (context.Result is OperationResult { Errors: [var firstError, ..] })
+                {
+                    Activity.SetGraphQLErrorType(firstError, ActivityExtensions.ParseErrorType);
+                }
+                else
+                {
+                    Activity.SetTag(SemanticConventions.ErrorType, ActivityExtensions.ParseErrorType);
+                }
+            }
+        }
 
         Activity.EnrichDocumentInfo(context.OperationDocumentInfo);
 

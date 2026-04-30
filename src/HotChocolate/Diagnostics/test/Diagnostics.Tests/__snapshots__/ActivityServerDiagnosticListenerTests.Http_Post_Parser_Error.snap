@@ -48,18 +48,6 @@
                       "column": 37
                     }
                   ]
-                },
-                {
-                  "Key": "exception.type",
-                  "Value": "GRAPHQL_ERROR"
-                },
-                {
-                  "Key": "exception.message",
-                  "Value": "Found a NameStart character `n` (110) following a number, which is disallowed."
-                },
-                {
-                  "Key": "exception.stacktrace",
-                  "Value": ""
                 }
               ]
             }
