@@ -1,6 +1,3 @@
-#if !NET9_0_OR_GREATER
-using System.Diagnostics.CodeAnalysis;
-#endif
 using System.Reactive.Linq;
 using HotChocolate.Utilities;
 using Microsoft.AspNetCore.Http;
@@ -9,8 +6,10 @@ using Microsoft.Extensions.DependencyInjection;
 namespace HotChocolate.Adapters.OpenApi;
 
 #if !NET9_0_OR_GREATER
-[RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
-[RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
+[RequiresDynamicCode(
+    "JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+[RequiresUnreferencedCode(
+    "JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
 #endif
 internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
 {
@@ -24,7 +23,7 @@ internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
     private readonly IDisposable _subscription;
 
     private ISchemaDefinition? _schema;
-    private int _disposed;
+    private bool _disposed;
 
     public OpenApiDefinitionRegistry(
         IOpenApiDefinitionStorage storage,
@@ -64,36 +63,25 @@ internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
-        // Atomic guard so concurrent DisposeAsync callers don't both proceed
-        // to dispose CTS / semaphore (the second would throw ObjectDisposedException).
-        if (Interlocked.Exchange(ref _disposed, 1) != 0)
+        if (!_disposed)
         {
-            return;
+            _disposed = true;
+
+            _subscription.Dispose();
+
+            // Cancel before disposing the semaphore so any in-flight WaitAsync(token)
+            // observes the cancellation and exits, instead of being orphaned forever
+            // in the semaphore's waiter list (Dispose does not complete pending waits).
+            await _cancellationTokenSource.CancelAsync().ConfigureAwait(false);
+
+            _updateSemaphore.Dispose();
+            _cancellationTokenSource.Dispose();
         }
-
-        _subscription.Dispose();
-
-        // Cancel before disposing the semaphore so any in-flight refresh observes
-        // cancellation at WaitAsync(token) instead of racing the semaphore disposal.
-        await _cancellationTokenSource.CancelAsync().ConfigureAwait(false);
-
-        // Drain any refresh that already passed the cancellation check by acquiring
-        // the semaphore one last time before disposing it.
-        try
-        {
-            await _updateSemaphore.WaitAsync().ConfigureAwait(false);
-        }
-        catch (ObjectDisposedException)
-        {
-        }
-
-        _updateSemaphore.Dispose();
-        _cancellationTokenSource.Dispose();
     }
 
     private async Task HandleStorageChangedAsync()
     {
-        if (_disposed != 0 || _schema is null)
+        if (_disposed || _schema is null)
         {
             return;
         }
@@ -115,7 +103,7 @@ internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
 
         try
         {
-            if (_disposed != 0 || _schema is null)
+            if (_disposed || _schema is null)
             {
                 return;
             }
