@@ -41,6 +41,10 @@
           "Status": "Ok",
           "tags": [
             {
+              "Key": "graphql.processing.type",
+              "Value": "parse"
+            },
+            {
               "Key": "graphql.document.hash",
               "Value": "md5:9b20745108c8de5afccc35cd56ead9fc"
             }
