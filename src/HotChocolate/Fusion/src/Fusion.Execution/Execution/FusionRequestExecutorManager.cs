@@ -427,7 +427,7 @@ internal sealed class FusionRequestExecutorManager
         services.AddTransient<CompositeTypeInterceptor>(static _ => new IntrospectionFieldInterceptor());
         services.AddTransient<CompositeTypeInterceptor>(
             sp => new SchemaConfigurationInterceptor(
-                sp.GetRequiredService<RootServiceProviderAccessor>().ServiceProvider,
+                sp.GetRequiredService<IRootServiceProviderAccessor>().ServiceProvider,
                 setup,
                 settings));
     }
@@ -643,7 +643,6 @@ internal sealed class FusionRequestExecutorManager
             {
                 if (_cancellationToken.IsCancellationRequested)
                 {
-                    configuration.Dispose();
                     break;
                 }
 
@@ -652,7 +651,6 @@ internal sealed class FusionRequestExecutorManager
 
                 if (documentHash == _documentHash && settingsHash == _settingsHash)
                 {
-                    configuration.Dispose();
                     continue;
                 }
 
@@ -844,7 +842,7 @@ internal sealed class FusionRequestExecutorManager
         : CompositeTypeInterceptor
     {
         private readonly ImmutableArray<ISourceSchemaClientConfigurationParser> _builtInParsers =
-            [new HttpSourceSchemaClientConfigurationParser()];
+            [new DefaultGraphQLClientConfigurationParser()];
 
         public override void OnAfterCompleteSchema(
             ICompositeSchemaBuilderContext context,
