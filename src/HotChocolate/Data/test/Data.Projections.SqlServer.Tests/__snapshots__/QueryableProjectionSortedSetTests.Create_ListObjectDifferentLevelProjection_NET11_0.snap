@@ -5,7 +5,8 @@ Result:
     "root": [
       {
         "foo": {
-          "objectArray": [
+          "barString": "testatest",
+          "objectSet": [
             {
               "foo": {
                 "barString": "a",
@@ -17,7 +18,15 @@ Result:
       },
       {
         "foo": {
-          "objectArray": []
+          "barString": "testbtest",
+          "objectSet": [
+            {
+              "foo": {
+                "barString": "d",
+                "barShort": 14
+              }
+            }
+          ]
         }
       }
     ]
@@ -27,16 +36,13 @@ Result:
 
 SQL:
 ---------------
-.param set @p 'a'
-
-SELECT "d"."Id", "s"."BarString", "s"."BarShort", "s"."Id"
+SELECT "f"."BarString", "d"."Id", "s"."BarString", "s"."BarShort", "s"."Id"
 FROM "Data" AS "d"
 INNER JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
 LEFT JOIN (
     SELECT "f0"."BarString", "f0"."BarShort", "b"."Id", "b"."FooId"
     FROM "BarDeep" AS "b"
     INNER JOIN "FooDeep" AS "f0" ON "b"."FooId1" = "f0"."Id"
-    WHERE "f0"."BarString" = @p
 ) AS "s" ON "f"."Id" = "s"."FooId"
 ORDER BY "d"."Id"
 ---------------

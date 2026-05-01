@@ -138,7 +138,7 @@ public class QueryableProjectionFilterTests
 
         // assert
         await Snapshot
-            .Create(Postfix([NET8_0], [NET9_0]))
+            .Create(Postfix([NET8_0], [NET9_0], [NET10_0]))
             .AddResult(res1)
             .MatchAsync();
     }
@@ -180,7 +180,7 @@ public class QueryableProjectionFilterTests
 
         // assert
         await Snapshot
-            .Create(Postfix([NET8_0], [NET9_0]))
+            .Create(Postfix([NET8_0], [NET9_0], [NET10_0]))
             .AddResult(res1)
             .MatchAsync();
     }
@@ -221,7 +221,7 @@ public class QueryableProjectionFilterTests
 
         // assert
         await Snapshot
-            .Create(Postfix([NET8_0], [NET9_0]))
+            .Create(Postfix([NET8_0], [NET9_0], [NET10_0]))
             .AddResult(res1)
             .MatchAsync();
     }
@@ -263,7 +263,7 @@ public class QueryableProjectionFilterTests
 
         // assert
         await Snapshot
-            .Create(Postfix([NET8_0], [NET9_0]))
+            .Create(Postfix([NET8_0], [NET9_0], [NET10_0]))
             .AddResult(res1)
             .MatchAsync();
     }

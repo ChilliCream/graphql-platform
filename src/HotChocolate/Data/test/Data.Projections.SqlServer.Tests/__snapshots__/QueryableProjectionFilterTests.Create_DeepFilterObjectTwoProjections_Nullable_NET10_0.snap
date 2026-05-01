@@ -5,25 +5,21 @@ Result:
     "root": [
       {
         "foo": {
-          "barString": "testatest",
           "objectArray": []
         }
       },
       {
         "foo": {
-          "barString": "testbtest",
           "objectArray": []
         }
       },
       {
         "foo": {
-          "barString": "testctest",
           "objectArray": []
         }
       },
       {
         "foo": {
-          "barString": "testdtest",
           "objectArray": []
         }
       }
@@ -36,14 +32,14 @@ SQL:
 ---------------
 .param set @p 'a'
 
-SELECT "f"."Id" IS NOT NULL, "f"."BarString", "d"."Id", "s"."c", "s"."BarString", "s"."BarShort", "s"."Id"
+SELECT "f"."Id" IS NOT NULL, "d"."Id", "f"."Id", "s"."c", "s"."BarString", "s"."BarShort", "s"."Id", "s"."Id0"
 FROM "Data" AS "d"
 LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
 LEFT JOIN (
-    SELECT "f0"."Id" IS NOT NULL AS "c", "f0"."BarString", "f0"."BarShort", "b"."Id", "b"."FooNullableId"
+    SELECT "f0"."Id" IS NOT NULL AS "c", "f0"."BarString", "f0"."BarShort", "b"."Id", "f0"."Id" AS "Id0", "b"."FooNullableId"
     FROM "BarNullableDeep" AS "b"
     LEFT JOIN "FooDeep" AS "f0" ON "b"."FooId" = "f0"."Id"
     WHERE "f0"."BarString" = @p
 ) AS "s" ON "f"."Id" = "s"."FooNullableId"
-ORDER BY "d"."Id"
+ORDER BY "d"."Id", "f"."Id", "s"."Id"
 ---------------
