@@ -4487,9 +4487,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
 
             directive @cacheControl(inheritMaxAge: Boolean maxAge: Int scope: CacheControlScope sharedMaxAge: Int vary: [String]) on OBJECT | FIELD_DEFINITION | INTERFACE | UNION
 
-            "The @fusion__connector directive declares which connector kind handles a source schema."
-            directive @fusion__connector("The kind of connector that handles the source schema represented by this enum value." kind: String!) on ENUM_VALUE
-
             "The @fusion__cost directive specifies cost metadata for each source schema."
             directive @fusion__cost("The name of the source schema that defined the cost metadata." schema: fusion__Schema! "The weight defined in the source schema." weight: String!) repeatable on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM | INPUT_FIELD_DEFINITION
 
