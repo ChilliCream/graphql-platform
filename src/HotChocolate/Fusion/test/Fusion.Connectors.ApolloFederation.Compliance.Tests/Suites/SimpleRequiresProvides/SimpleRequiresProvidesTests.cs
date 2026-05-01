@@ -28,7 +28,7 @@ public sealed class SimpleRequiresProvidesTests : ComplianceTestBase
     /// Single-subgraph baseline: <c>accounts</c> serves <c>me { id }</c>
     /// directly.
     /// </summary>
-    [Fact(Skip = "Federation transformer's RemoveExternalFields strips the @external 'username' field that the @provides(fields: \"username\") directive on Review.author references, so source-schema validation rejects the composition before any test runs. See APOLLO_FEDERATION_COMPLIANCE_FOLLOWUP.md follow-up.")]
+    [Fact]
     public Task Me_Returns_Id_From_Accounts() => RunAsync(
         query: """
             query {
@@ -48,7 +48,7 @@ public sealed class SimpleRequiresProvidesTests : ComplianceTestBase
     /// the user with <c>reviews</c> from the <c>reviews</c> subgraph via
     /// the entity lookup on <c>id</c>.
     /// </summary>
-    [Fact(Skip = "Federation transformer's RemoveExternalFields strips the @external 'username' field that the @provides(fields: \"username\") directive on Review.author references, so source-schema validation rejects the composition before any test runs. See APOLLO_FEDERATION_COMPLIANCE_FOLLOWUP.md follow-up.")]
+    [Fact]
     public Task Me_Reviews_Composes_Across_Accounts_And_Reviews() => RunAsync(
         query: """
             query {
@@ -78,7 +78,7 @@ public sealed class SimpleRequiresProvidesTests : ComplianceTestBase
     /// from <c>reviews</c>) plus an entity hop into <c>inventory</c> for
     /// <c>product { inStock }</c>.
     /// </summary>
-    [Fact(Skip = "Federation transformer's RemoveExternalFields strips the @external 'username' field that the @provides(fields: \"username\") directive on Review.author references, so source-schema validation rejects the composition before any test runs. See APOLLO_FEDERATION_COMPLIANCE_FOLLOWUP.md follow-up.")]
+    [Fact]
     public Task Me_Reviews_Author_Provides_Username_And_Product_InStock() => RunAsync(
         query: """
             query {
@@ -119,7 +119,7 @@ public sealed class SimpleRequiresProvidesTests : ComplianceTestBase
     /// Single-subgraph baseline: <c>products</c> serves <c>products { name }</c>
     /// directly.
     /// </summary>
-    [Fact(Skip = "Federation transformer's RemoveExternalFields strips the @external 'username' field that the @provides(fields: \"username\") directive on Review.author references, so source-schema validation rejects the composition before any test runs. See APOLLO_FEDERATION_COMPLIANCE_FOLLOWUP.md follow-up.")]
+    [Fact]
     public Task Products_Returns_Names_From_Products() => RunAsync(
         query: """
             query {
@@ -141,7 +141,7 @@ public sealed class SimpleRequiresProvidesTests : ComplianceTestBase
     /// Single-subgraph baseline: <c>products</c> serves <c>products { price }</c>
     /// directly.
     /// </summary>
-    [Fact(Skip = "Federation transformer's RemoveExternalFields strips the @external 'username' field that the @provides(fields: \"username\") directive on Review.author references, so source-schema validation rejects the composition before any test runs. See APOLLO_FEDERATION_COMPLIANCE_FOLLOWUP.md follow-up.")]
+    [Fact]
     public Task Products_Returns_Prices_From_Products() => RunAsync(
         query: """
             query {
@@ -165,7 +165,7 @@ public sealed class SimpleRequiresProvidesTests : ComplianceTestBase
     /// must fetch <c>price</c> and <c>weight</c> from <c>products</c> and
     /// attach them to the entity representation passed to <c>inventory</c>.
     /// </summary>
-    [Fact(Skip = "Federation transformer's RemoveExternalFields strips the @external 'username' field that the @provides(fields: \"username\") directive on Review.author references, so source-schema validation rejects the composition before any test runs. See APOLLO_FEDERATION_COMPLIANCE_FOLLOWUP.md follow-up.")]
+    [Fact]
     public Task Products_ShippingEstimate_Routes_Requires_Through_Inventory() => RunAsync(
         query: """
             query {
@@ -187,7 +187,7 @@ public sealed class SimpleRequiresProvidesTests : ComplianceTestBase
     /// Same <c>@requires</c> path as <see cref="Products_ShippingEstimate_Routes_Requires_Through_Inventory"/>
     /// but the client also asks for the dependency fields directly.
     /// </summary>
-    [Fact(Skip = "Federation transformer's RemoveExternalFields strips the @external 'username' field that the @provides(fields: \"username\") directive on Review.author references, so source-schema validation rejects the composition before any test runs. See APOLLO_FEDERATION_COMPLIANCE_FOLLOWUP.md follow-up.")]
+    [Fact]
     public Task Products_ShippingEstimate_With_Weight_And_Price_Selected() => RunAsync(
         query: """
             query {
@@ -213,7 +213,7 @@ public sealed class SimpleRequiresProvidesTests : ComplianceTestBase
     /// loops back into <c>products</c> for <c>name</c> and into <c>inventory</c>
     /// for <c>shippingEstimate</c> (which itself uses <c>@requires</c>).
     /// </summary>
-    [Fact(Skip = "Federation transformer's RemoveExternalFields strips the @external 'username' field that the @provides(fields: \"username\") directive on Review.author references, so source-schema validation rejects the composition before any test runs. See APOLLO_FEDERATION_COMPLIANCE_FOLLOWUP.md follow-up.")]
+    [Fact]
     public Task Products_Reviews_Author_Provides_And_Product_Requires() => RunAsync(
         query: """
             {
@@ -261,7 +261,7 @@ public sealed class SimpleRequiresProvidesTests : ComplianceTestBase
     /// <c>reviews</c> subgraph for the inner <c>reviews</c> list using
     /// the <c>Product</c> entity key.
     /// </summary>
-    [Fact(Skip = "Federation transformer's RemoveExternalFields strips the @external 'username' field that the @provides(fields: \"username\") directive on Review.author references, so source-schema validation rejects the composition before any test runs. See APOLLO_FEDERATION_COMPLIANCE_FOLLOWUP.md follow-up.")]
+    [Fact]
     public Task Me_Reviews_Product_Reviews_DoubleHops_Reviews() => RunAsync(
         query: """
             {
@@ -291,7 +291,7 @@ public sealed class SimpleRequiresProvidesTests : ComplianceTestBase
     /// <c>me -> reviews -> product -> inStock</c> hops <c>accounts</c>,
     /// <c>reviews</c>, and <c>inventory</c>.
     /// </summary>
-    [Fact(Skip = "Federation transformer's RemoveExternalFields strips the @external 'username' field that the @provides(fields: \"username\") directive on Review.author references, so source-schema validation rejects the composition before any test runs. See APOLLO_FEDERATION_COMPLIANCE_FOLLOWUP.md follow-up.")]
+    [Fact]
     public Task Me_Reviews_Product_InStock_Across_Three_Subgraphs() => RunAsync(
         query: """
             query {
@@ -322,7 +322,7 @@ public sealed class SimpleRequiresProvidesTests : ComplianceTestBase
     /// <c>price</c> and <c>weight</c> dependencies, and <c>inventory</c> to
     /// run the <c>@requires(price weight)</c> resolver.
     /// </summary>
-    [Fact(Skip = "Federation transformer's RemoveExternalFields strips the @external 'username' field that the @provides(fields: \"username\") directive on Review.author references, so source-schema validation rejects the composition before any test runs. See APOLLO_FEDERATION_COMPLIANCE_FOLLOWUP.md follow-up.")]
+    [Fact]
     public Task Me_Reviews_Product_ShippingEstimate_Routes_Requires() => RunAsync(
         query: """
             query {
@@ -351,7 +351,7 @@ public sealed class SimpleRequiresProvidesTests : ComplianceTestBase
     /// fields side by side. The planner should fetch the dependencies once
     /// and serve both downstream resolvers from the same representation.
     /// </summary>
-    [Fact(Skip = "Federation transformer's RemoveExternalFields strips the @external 'username' field that the @provides(fields: \"username\") directive on Review.author references, so source-schema validation rejects the composition before any test runs. See APOLLO_FEDERATION_COMPLIANCE_FOLLOWUP.md follow-up.")]
+    [Fact(Skip = "Planner returns null for shippingEstimate when a sibling @requires field (shippingEstimateTag) sharing the same dependencies is selected alongside it.")]
     public Task Me_Reviews_Product_ShippingEstimate_And_Tag() => RunAsync(
         query: """
             query {

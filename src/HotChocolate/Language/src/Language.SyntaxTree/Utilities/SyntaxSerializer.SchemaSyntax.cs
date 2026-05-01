@@ -370,7 +370,7 @@ public sealed partial class SyntaxSerializer
                     writer.Write(", ");
                 }
 
-                VisitArgumentValueDefinition(arguments[i], writer);
+                WriteInputValueDefinition(arguments[i], writer);
             }
 
             writer.Write(")");
@@ -384,14 +384,6 @@ public sealed partial class SyntaxSerializer
             {
                 writer.WriteLine();
                 writer.WriteIndent();
-
-                if (argument.Description is { })
-                {
-                    writer.WriteStringValue(argument.Description);
-                    writer.WriteLine();
-                    writer.WriteIndent();
-                }
-
                 WriteInputValueDefinition(argument, writer);
             }
 
@@ -612,12 +604,6 @@ public sealed partial class SyntaxSerializer
         InputValueDefinitionNode node,
         ISyntaxWriter writer)
     {
-        if (node.Description is { })
-        {
-            writer.WriteStringValue(node.Description);
-            writer.WriteSpace();
-        }
-
         writer.WriteName(node.Name);
         writer.Write(": ");
         writer.WriteType(node.Type);

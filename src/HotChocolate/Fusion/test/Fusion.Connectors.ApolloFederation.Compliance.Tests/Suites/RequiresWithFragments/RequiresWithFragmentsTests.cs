@@ -15,7 +15,7 @@ namespace HotChocolate.Fusion.Suites;
 public sealed class RequiresWithFragmentsTests : ComplianceTestBase
 {
     private const string SkipReason =
-        "Composition rejects nested @requires with inline fragments as invalid syntax.";
+        "Composition rejects interface field implementations as inaccessible in the composed schema.";
 
     protected override Task<FusionGateway> BuildGatewayAsync()
         => FusionGatewayBuilder.ComposeAsync(

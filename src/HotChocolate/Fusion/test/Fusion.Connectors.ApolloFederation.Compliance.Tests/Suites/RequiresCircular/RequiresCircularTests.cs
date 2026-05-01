@@ -24,7 +24,7 @@ public sealed class RequiresCircularTests : ComplianceTestBase
     /// <c>b.byNovice</c> requires <c>author { yearsOfExperience }</c>
     /// from subgraph <c>a</c>. John (5 years) is a novice, Jane (20 years) is not.
     /// </summary>
-    [Fact(Skip = "Composition rejects nested @requires(fields: \"author { yearsOfExperience }\") with invalid syntax error.")]
+    [Fact(Skip = "Satisfiability validator cannot resolve circular @requires chains across subgraphs.")]
     public Task Feed_ByNovice_Requires_Author_YearsOfExperience() => RunAsync(
         query: """
             {
@@ -46,7 +46,7 @@ public sealed class RequiresCircularTests : ComplianceTestBase
     /// Circular requires: <c>a.byExpert</c> requires <c>b.byNovice</c>,
     /// which itself requires <c>a.author { yearsOfExperience }</c>.
     /// </summary>
-    [Fact(Skip = "Composition rejects nested @requires(fields: \"author { yearsOfExperience }\") with invalid syntax error.")]
+    [Fact(Skip = "Satisfiability validator cannot resolve circular @requires chains across subgraphs.")]
     public Task Feed_ByExpert_Chains_Through_ByNovice_And_Author() => RunAsync(
         query: """
             {

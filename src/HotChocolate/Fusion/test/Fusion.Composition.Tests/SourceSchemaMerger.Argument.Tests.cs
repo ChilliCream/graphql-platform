@@ -41,7 +41,6 @@ public sealed class SourceSchemaMergerArgumentTests : SourceSchemaMergerTestBase
 
             type Query @fusion__type(schema: A) @fusion__type(schema: B) {
               searchProducts(
-                "Filter to apply to the search"
                 filter: ProductFilter! @fusion__inputField(schema: A) @fusion__inputField(schema: B, sourceType: "ProductFilter")
               ): [Product] @fusion__field(schema: A) @fusion__field(schema: B)
             }
@@ -116,7 +115,6 @@ public sealed class SourceSchemaMergerArgumentTests : SourceSchemaMergerTestBase
 
             type Query @fusion__type(schema: A) @fusion__type(schema: B) {
               field(
-                "Number of items to fetch"
                 limit: Int! = 10 @fusion__inputField(schema: A, sourceType: "Int") @fusion__inputField(schema: B)
               ): Int @fusion__field(schema: A) @fusion__field(schema: B)
             }

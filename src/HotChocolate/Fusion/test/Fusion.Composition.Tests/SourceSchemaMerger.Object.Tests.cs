@@ -785,7 +785,7 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
 
             type Query @fusion__type(schema: A) {
               "Fetches a product"
-              productById("The product id" id: ID! @fusion__inputField(schema: A)): Product
+              productById(id: ID! @fusion__inputField(schema: A)): Product
                 @fusion__field(schema: A)
             }
 
