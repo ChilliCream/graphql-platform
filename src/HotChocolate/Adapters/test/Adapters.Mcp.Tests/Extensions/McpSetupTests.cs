@@ -62,4 +62,23 @@ public sealed class McpSetupTests
         // assert
         Assert.Equal(["alpha", "beta"], manager.Names.Order());
     }
+
+    [Fact]
+    public void Get_Should_Throw_When_AddMcpCalledWithoutStorage()
+    {
+        // arrange
+        var services = new ServiceCollection();
+        services.AddGraphQL().AddMcp();
+        var manager = services.BuildServiceProvider().GetRequiredService<McpManager>();
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => manager.Get(ISchemaDefinition.DefaultName));
+
+        // assert
+        Assert.Equal(
+            $"No IMcpStorage is registered for schema '{ISchemaDefinition.DefaultName}'. "
+            + "Call `AddMcpStorage(...)` when configuring the GraphQL server.",
+            exception.Message);
+    }
 }

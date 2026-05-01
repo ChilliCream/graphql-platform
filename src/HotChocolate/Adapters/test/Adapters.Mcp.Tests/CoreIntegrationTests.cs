@@ -57,6 +57,30 @@ public sealed class CoreIntegrationTests : IntegrationTestBase
     }
 
     [Fact]
+    public void MapGraphQLMcp_Should_Throw_When_AddMcpNotCalled()
+    {
+        // arrange
+        var builder = new WebHostBuilder()
+            .ConfigureServices(
+                services => services
+                    .AddRouting()
+                    .AddGraphQL()
+                    .AddQueryType<TestSchema.Query>())
+            .Configure(
+                app => app
+                    .UseRouting()
+                    .UseEndpoints(endpoints => endpoints.MapGraphQLMcp()));
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(() => new TestServer(builder));
+
+        // assert
+        Assert.Equal(
+            "Call `AddMcp()` when configuring the GraphQL server.",
+            exception.Message);
+    }
+
+    [Fact]
     public async Task ListTools_AfterSchemaUpdate_ReturnsUpdatedTools()
     {
         // arrange

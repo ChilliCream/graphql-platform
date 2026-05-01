@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using HotChocolate.Adapters.Mcp.Configuration;
 using HotChocolate.Adapters.Mcp.Proxies;
+using HotChocolate.Adapters.Mcp.Storage;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -54,6 +55,15 @@ internal sealed class McpManager : IDisposable
 
     private McpRegistration CreateRegistration(string name)
     {
+        var setup = _optionsMonitor.Get(name);
+
+        var storageFactory = setup.StorageFactory
+            ?? throw new InvalidOperationException(
+                $"No {nameof(IMcpStorage)} is registered for schema '{name}'. "
+                + "Call `AddMcpStorage(...)` when configuring the GraphQL server.");
+
+        var storage = storageFactory(_applicationServices);
+
         var executorProxy = new McpRequestExecutorProxy(
             _applicationServices.GetRequiredService<IRequestExecutorProvider>(),
             _applicationServices.GetRequiredService<IRequestExecutorEvents>(),
@@ -61,7 +71,7 @@ internal sealed class McpManager : IDisposable
 
         var handlerProxy = new StreamableHttpHandlerProxy(executorProxy);
 
-        return new McpRegistration(executorProxy, handlerProxy);
+        return new McpRegistration(storage, executorProxy, handlerProxy);
     }
 
     public void Dispose()
@@ -80,7 +90,14 @@ internal sealed class McpManager : IDisposable
                 continue;
             }
 
-            lazy.Value.ExecutorProxy.Dispose();
+            var registration = lazy.Value;
+
+            if (registration.Storage is IDisposable disposableStorage)
+            {
+                disposableStorage.Dispose();
+            }
+
+            registration.ExecutorProxy.Dispose();
         }
 
         _registrations.Clear();

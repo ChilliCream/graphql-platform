@@ -28,6 +28,25 @@ public sealed class OpenApiSetupTests
     }
 
     [Fact]
+    public void Get_Should_Throw_When_AddOpenApiCalledWithoutStorage()
+    {
+        // arrange
+        var services = new ServiceCollection();
+        services.AddGraphQLServer().AddOpenApi();
+        var manager = services.BuildServiceProvider().GetRequiredService<OpenApiManager>();
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => manager.Get(ISchemaDefinition.DefaultName));
+
+        // assert
+        Assert.Equal(
+            $"No IOpenApiDefinitionStorage is registered for schema '{ISchemaDefinition.DefaultName}'. "
+            + "Call `AddOpenApiDefinitionStorage(...)` when configuring the GraphQL server.",
+            exception.Message);
+    }
+
+    [Fact]
     public void Names_Should_ReturnRegisteredNames_When_MultipleSchemasRegistered()
     {
         // arrange

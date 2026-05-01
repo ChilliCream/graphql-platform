@@ -56,9 +56,8 @@ internal static class ServiceCollectionExtensions
         IServiceProvider applicationServices,
         string schemaName)
     {
-        var setup = applicationServices
-            .GetRequiredService<McpManager>()
-            .GetSetup(schemaName);
+        var mcpManager = applicationServices.GetRequiredService<McpManager>();
+        var setup = mcpManager.GetSetup(schemaName);
 
         services
             .AddLogging()
@@ -78,12 +77,12 @@ internal static class ServiceCollectionExtensions
 
         services
             .TryAddSingleton(
-                static sp => new McpStorageObserver(
+                sp => new McpStorageObserver(
                     sp.GetRequiredService<ISchemaDefinition>(),
                     sp.GetRequiredService<McpFeatureRegistry>(),
                     sp.GetRequiredService<OperationToolFactory>(),
                     sp.GetRequiredService<ConcurrentDictionary<string, McpServer>>(),
-                    sp.GetRequiredService<IMcpStorage>(),
+                    mcpManager.Get(schemaName).Storage,
                     sp.GetRequiredService<IMcpDiagnosticEvents>()));
 
         services
