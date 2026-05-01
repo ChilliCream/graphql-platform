@@ -2,7 +2,9 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.AspNetCore;
+using HotChocolate.Execution;
 using HotChocolate.Transport.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
@@ -78,14 +80,10 @@ public class DefaultSecurityTests : FusionTestBase
         // arrange
         using var server1 = CreateSourceSchema("A", SimpleSchema);
 
-        // FusionTestBase already defaults to Development, so no configureServices needed.
+        // FusionTestBase already defaults to Development.
         using var gateway = await CreateCompositeSchemaAsync(
             [("A", server1)],
-            configureGatewayBuilder: b => b.ConfigureSchemaServices((_, s) =>
-            {
-                s.RemoveAll<IHttpRequestInterceptor>();
-                s.AddSingleton<IHttpRequestInterceptor, DefaultHttpRequestInterceptor>();
-            }));
+            configureGatewayBuilder: b => b.AddHttpRequestInterceptor<DefaultHttpRequestInterceptor>());
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -116,16 +114,9 @@ public class DefaultSecurityTests : FusionTestBase
 
         using var gateway = await CreateCompositeSchemaAsync(
             [("A", server1)],
-            configureGatewayBuilder: b =>
-            {
-                b.DisableIntrospection(disable: false);
-                b.ConfigureSchemaServices((_, s) =>
-                {
-                    s.RemoveAll<IHttpRequestInterceptor>();
-                    s.AddSingleton<IHttpRequestInterceptor, DefaultHttpRequestInterceptor>();
-                });
-            },
-            environmentName: Environments.Production);
+            configureGatewayBuilder: b => b.AddHttpRequestInterceptor<DefaultHttpRequestInterceptor>(),
+            environmentName: Environments.Production,
+            disableDefaultSecurity: true);
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -148,15 +139,18 @@ public class DefaultSecurityTests : FusionTestBase
             """);
     }
 
-    [Fact]
-    public async Task DefaultSecurity_InProduction_FieldCycleDepthIsEnforced()
+    [Theory]
+    [InlineData("Development")]
+    [InlineData("Production")]
+    public async Task DefaultSecurity_FieldCycleDepthIsEnforced(string environment)
     {
         // arrange - 4 levels of `relatives` exceeds the default limit of 3
         using var server1 = CreateSourceSchema("A", CyclicSchema);
 
         using var gateway = await CreateCompositeSchemaAsync(
             [("A", server1)],
-            environmentName: Environments.Production);
+            configureGatewayBuilder: b => b.AddHttpRequestInterceptor<DefaultHttpRequestInterceptor>(),
+            environmentName: environment);
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -209,65 +203,15 @@ public class DefaultSecurityTests : FusionTestBase
     }
 
     [Fact]
-    public async Task DefaultSecurity_InDevelopment_FieldCycleDepthIsNotEnforced()
-    {
-        // arrange - 4 levels of `relatives` exceeds the limit but the rule is inactive in Development
-        // FusionTestBase already defaults to Development, so no configureServices needed.
-        using var server1 = CreateSourceSchema("A", CyclicSchema);
-
-        using var gateway = await CreateCompositeSchemaAsync(
-            [("A", server1)],
-            configureGatewayBuilder: b => b.ConfigureSchemaServices((_, s) =>
-            {
-                s.RemoveAll<IHttpRequestInterceptor>();
-                s.AddSingleton<IHttpRequestInterceptor, DefaultHttpRequestInterceptor>();
-            }));
-
-        // act
-        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-
-        using var result = await client.PostAsync(
-            """
-            {
-              human {
-                relatives {
-                  relatives {
-                    relatives {
-                      relatives {
-                        name
-                      }
-                    }
-                  }
-                }
-              }
-            }
-            """,
-            new Uri("http://localhost:5000/graphql"));
-
-        // assert - query passes validation and executes (no HC0087 error)
-        using var response = await result.ReadAsResultAsync();
-        Assert.Equal(JsonValueKind.Undefined, response.Errors.ValueKind);
-        Assert.Equal(JsonValueKind.Object, response.Data.ValueKind);
-    }
-
-    [Fact]
-    public async Task DefaultSecurity_Disabled_InProduction_FieldCycleDepthIsNotEnforced()
+    public async Task DefaultSecurity_Disabled_FieldCycleDepthIsNotEnforced()
     {
         // arrange
         using var server1 = CreateSourceSchema("A", CyclicSchema);
 
         using var gateway = await CreateCompositeSchemaAsync(
             [("A", server1)],
-            configureGatewayBuilder: b =>
-            {
-                b.RemoveMaxAllowedFieldCycleDepthRule();
-                b.ConfigureSchemaServices((_, s) =>
-                {
-                    s.RemoveAll<IHttpRequestInterceptor>();
-                    s.AddSingleton<IHttpRequestInterceptor, DefaultHttpRequestInterceptor>();
-                });
-            },
-            environmentName: Environments.Production);
+            configureGatewayBuilder: b => b.AddHttpRequestInterceptor<DefaultHttpRequestInterceptor>(),
+            disableDefaultSecurity: true);
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -297,7 +241,7 @@ public class DefaultSecurityTests : FusionTestBase
     }
 
     [Fact]
-    public async Task OperationPlanHeader_When_Allowed_Should_Include_OperationPlan()
+    public async Task AllowOperationPlanRequests_True_With_OperationPlanHeader_Should_Include_OperationPlan()
     {
         // arrange
         using var server1 = CreateSourceSchema("A", SimpleSchema);
@@ -322,7 +266,7 @@ public class DefaultSecurityTests : FusionTestBase
     }
 
     [Fact]
-    public async Task OperationPlanHeader_When_Not_Allowed_Should_Omit_OperationPlan()
+    public async Task AllowOperationPlanRequests_False_With_OperationPlanHeader_Should_Omit_OperationPlan()
     {
         // arrange
         using var server1 = CreateSourceSchema("A", SimpleSchema);
@@ -347,7 +291,7 @@ public class DefaultSecurityTests : FusionTestBase
     }
 
     [Fact]
-    public async Task NoOperationPlanHeader_When_Allowed_Should_Omit_OperationPlan()
+    public async Task AllowOperationPlanRequests_True_Without_OperationPlanHeader_Should_Omit_OperationPlan()
     {
         // arrange
         using var server1 = CreateSourceSchema("A", SimpleSchema);
@@ -362,6 +306,56 @@ public class DefaultSecurityTests : FusionTestBase
                     s.AddSingleton<IHttpRequestInterceptor, DefaultHttpRequestInterceptor>();
                 });
                 b.ModifyRequestOptions(o => o.AllowOperationPlanRequests = true);
+            });
+
+        // act
+        using var response = await SendQueryAsync(gateway, includeOperationPlanHeader: false);
+
+        // assert
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task AllowOperationPlanRequests_False_With_PerRequestOverride_And_OperationPlanHeader_Should_Include_OperationPlan()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema("A", SimpleSchema);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server1)],
+            configureGatewayBuilder: b =>
+            {
+                b.ConfigureSchemaServices((_, s) =>
+                {
+                    s.RemoveAll<IHttpRequestInterceptor>();
+                    s.AddSingleton<IHttpRequestInterceptor, AllowOperationPlanRequestInterceptor>();
+                });
+                b.ModifyRequestOptions(o => o.AllowOperationPlanRequests = false);
+            });
+
+        // act
+        using var response = await SendQueryAsync(gateway, includeOperationPlanHeader: true);
+
+        // assert
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task AllowOperationPlanRequests_False_With_PerRequestOverride_Without_OperationPlanHeader_Should_Omit_OperationPlan()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema("A", SimpleSchema);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server1)],
+            configureGatewayBuilder: b =>
+            {
+                b.ConfigureSchemaServices((_, s) =>
+                {
+                    s.RemoveAll<IHttpRequestInterceptor>();
+                    s.AddSingleton<IHttpRequestInterceptor, AllowOperationPlanRequestInterceptor>();
+                });
+                b.ModifyRequestOptions(o => o.AllowOperationPlanRequests = false);
             });
 
         // act
@@ -387,5 +381,19 @@ public class DefaultSecurityTests : FusionTestBase
         }
 
         return httpClient.SendAsync(request);
+    }
+
+    private sealed class AllowOperationPlanRequestInterceptor : DefaultHttpRequestInterceptor
+    {
+        public override ValueTask OnCreateAsync(
+            HttpContext context,
+            IRequestExecutor requestExecutor,
+            OperationRequestBuilder requestBuilder,
+            CancellationToken cancellationToken)
+        {
+            requestBuilder.AllowOperationPlanRequest();
+
+            return base.OnCreateAsync(context, requestExecutor, requestBuilder, cancellationToken);
+        }
     }
 }

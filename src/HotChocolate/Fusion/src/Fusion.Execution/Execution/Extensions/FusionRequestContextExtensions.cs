@@ -129,6 +129,12 @@ public static class FusionRequestContextExtensions
         this RequestContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
+
+        if (context.Features.Get<OperationPlanRequestOverrides>()?.IsAllowed == true)
+        {
+            return true;
+        }
+
         return context.Schema.GetRequestOptions().AllowOperationPlanRequests;
     }
 
