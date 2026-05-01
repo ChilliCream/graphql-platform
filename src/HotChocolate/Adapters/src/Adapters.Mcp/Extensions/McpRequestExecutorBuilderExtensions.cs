@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Adapters.Mcp;
+using HotChocolate.Adapters.Mcp.Configuration;
 using HotChocolate.Adapters.Mcp.Directives;
 using HotChocolate.Adapters.Mcp.Extensions;
 using HotChocolate.Adapters.Mcp.Storage;
@@ -20,7 +21,8 @@ public static class McpRequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder AddMcp(
         this IRequestExecutorBuilder builder,
         Action<McpServerOptions>? configureServerOptions = null,
-        Action<IMcpServerBuilder>? configureServer = null)
+        Action<IMcpServerBuilder>? configureServer = null,
+        Func<IServiceProvider, bool>? skipIf = null)
     {
         ArgumentNullException.ThrowIfNull(builder);
 
@@ -33,41 +35,109 @@ public static class McpRequestExecutorBuilderExtensions
 
         builder.AddDirectiveType<McpToolAnnotationsDirectiveType>();
 
+        builder.AddWarmupTask(
+            schemaServices => new McpStorageWarmupTask(schemaServices.GetRequiredService<McpStorageObserver>()),
+            skipIf);
+
         return builder;
     }
 
-    public static IRequestExecutorBuilder AddMcpStorage<
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
+    /// <summary>
+    /// Adds an MCP storage to the schema.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
+    /// </param>
+    /// <param name="storage">
+    /// The MCP storage instance.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="builder"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="storage"/> is <c>null</c>.
+    /// </exception>
+    public static IRequestExecutorBuilder AddMcpStorage(
         this IRequestExecutorBuilder builder,
-        Func<IServiceProvider, T> factory,
-        Func<IServiceProvider, bool>? skipIf = null)
-        where T : class, IMcpStorage
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-        ArgumentNullException.ThrowIfNull(factory);
-
-        builder.ConfigureSchemaServices(s => s.AddSingleton<IMcpStorage, T>(factory));
-
-        return builder.AddMcpStorageWarmupTask(skipIf);
-    }
-
-    public static IRequestExecutorBuilder AddMcpStorage(this IRequestExecutorBuilder builder, IMcpStorage storage)
+        IMcpStorage storage)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(storage);
 
-        builder.ConfigureSchemaServices(s => s.AddSingleton(storage));
+        builder.Services.Configure<McpSetup>(
+            builder.Name,
+            setup => setup.StorageFactory = _ => storage);
 
-        return builder.AddMcpStorageWarmupTask();
+        return builder;
     }
 
-    private static IRequestExecutorBuilder AddMcpStorageWarmupTask(
-        this IRequestExecutorBuilder builder,
-        Func<IServiceProvider, bool>? skipIf = null)
+    /// <summary>
+    /// Adds an MCP storage to the schema.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
+    /// </param>
+    /// <typeparam name="T">
+    /// The type of the MCP storage.
+    /// </typeparam>
+    /// <returns>
+    /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="builder"/> is <c>null</c>.
+    /// </exception>
+    /// <remarks>
+    /// The <typeparamref name="T"/> will be activated with the <see cref="IServiceProvider"/> of the application services.
+    /// </remarks>
+    public static IRequestExecutorBuilder AddMcpStorage<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
+        this IRequestExecutorBuilder builder)
+        where T : class, IMcpStorage
     {
-        builder.AddWarmupTask(
-            schemaServices => new McpStorageWarmupTask(schemaServices.GetRequiredService<McpStorageObserver>()),
-            skipIf);
+        ArgumentNullException.ThrowIfNull(builder);
+
+        builder.Services.Configure<McpSetup>(
+            builder.Name,
+            setup => setup.StorageFactory = ActivatorUtilities.GetServiceOrCreateInstance<T>);
+
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds an MCP storage to the schema.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
+    /// </param>
+    /// <param name="factory">
+    /// The factory to create the MCP storage.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="builder"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="factory"/> is <c>null</c>.
+    /// </exception>
+    /// <remarks>
+    /// The <see cref="IServiceProvider"/> passed to the <paramref name="factory"/>
+    /// is for the application services.
+    /// </remarks>
+    public static IRequestExecutorBuilder AddMcpStorage(
+        this IRequestExecutorBuilder builder,
+        Func<IServiceProvider, IMcpStorage> factory)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(factory);
+
+        builder.Services.Configure<McpSetup>(
+            builder.Name,
+            setup => setup.StorageFactory = factory);
 
         return builder;
     }

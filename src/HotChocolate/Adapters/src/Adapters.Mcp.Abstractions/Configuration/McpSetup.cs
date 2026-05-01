@@ -1,3 +1,4 @@
+using HotChocolate.Adapters.Mcp.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using ModelContextProtocol.Server;
 
@@ -20,4 +21,11 @@ public sealed class McpSetup
     /// Modifiers are applied in registration order.
     /// </summary>
     public List<Action<IMcpServerBuilder>> ServerModifiers { get; } = [];
+
+    /// <summary>
+    /// Gets or sets the factory that produces the <see cref="IMcpStorage"/> instance backing
+    /// this schema. The storage is the source of truth for the MCP feature definitions
+    /// (tools, prompts) exposed by the MCP server.
+    /// </summary>
+    public Func<IServiceProvider, IMcpStorage>? StorageFactory { get; set; }
 }

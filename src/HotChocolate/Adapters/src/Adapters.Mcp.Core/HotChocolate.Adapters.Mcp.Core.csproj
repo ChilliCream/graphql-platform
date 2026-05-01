@@ -26,19 +26,4 @@
     <ProjectReference Include="..\..\..\Language\src\Language\HotChocolate.Language.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Update="Properties\McpAdapterResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>McpAdapterResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="Properties\McpAdapterResources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>McpAdapterResources.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
 </Project>

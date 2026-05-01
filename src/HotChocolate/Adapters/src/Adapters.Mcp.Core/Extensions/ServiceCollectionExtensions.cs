@@ -60,6 +60,16 @@ internal static class ServiceCollectionExtensions
             .GetRequiredService<McpManager>()
             .GetSetup(schemaName);
 
+        services.AddSingleton<IMcpStorage>(_ =>
+        {
+            var storageFactory = setup.StorageFactory
+                ?? throw new InvalidOperationException(
+                    $"No MCP storage is registered for schema '{schemaName}'. "
+                    + "Call AddMcpStorage(...) when configuring the GraphQL server.");
+
+            return storageFactory(applicationServices);
+        });
+
         services
             .AddLogging()
             .TryAddSingleton(
