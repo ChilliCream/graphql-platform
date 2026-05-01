@@ -13,7 +13,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Fusion.Composition.ApolloFederation\HotChocolate.Fusion.Composition.ApolloFederation.csproj" />
     <ProjectReference Include="..\Fusion.Composition\HotChocolate.Fusion.Composition.csproj" />
     <ProjectReference Include="..\Fusion.Execution\HotChocolate.Fusion.Execution.csproj" />
     <ProjectReference Include="..\..\..\AspNetCore\src\Transport.Http\HotChocolate.Transport.Http.csproj" />

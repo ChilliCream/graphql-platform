@@ -1,4 +1,5 @@
-using HotChocolate.Fusion.Errors;
+using HotChocolate.Fusion.Logging;
+using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Language;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.ApolloFederation.Properties.FederationResources;
@@ -11,7 +12,7 @@ namespace HotChocolate.Fusion.ApolloFederation;
 /// </summary>
 internal static class FederationSchemaAnalyzer
 {
-    private const string FederationUrlPrefix = "specs.apollo.dev/federation";
+    internal const string FederationUrlPrefix = "specs.apollo.dev/federation";
 
     private static readonly HashSet<string> s_unsupportedDirectives =
     [
@@ -23,33 +24,45 @@ internal static class FederationSchemaAnalyzer
     ];
 
     /// <summary>
-    /// Validates the given federation schema and returns any composition errors.
+    /// Validates the given federation schema and writes any composition errors to the
+    /// provided <paramref name="log"/>.
     /// </summary>
     /// <param name="schema">
     /// The mutable schema definition to validate.
     /// </param>
+    /// <param name="log">
+    /// The composition log that receives validation errors.
+    /// </param>
     /// <returns>
-    /// A list of <see cref="CompositionError"/> instances. An empty list indicates success.
+    /// <c>true</c> when validation passed (no errors were written); otherwise, <c>false</c>.
     /// </returns>
-    public static List<CompositionError> Validate(MutableSchemaDefinition schema)
+    public static bool Validate(MutableSchemaDefinition schema, ICompositionLog log)
     {
-        var errors = new List<CompositionError>();
+        var entryCountBefore = log.Count();
 
-        ValidateFederationVersion(schema, errors);
-        ValidateUnsupportedDirectives(schema, errors);
+        ValidateFederationVersion(schema, log);
+        ValidateUnsupportedDirectives(schema, log);
 
-        return errors;
+        // Pre-existing entries on the log are not ours to report on; this run reports
+        // failure only when it wrote new entries (all of which are errors) of its own.
+        return log.Count() == entryCountBefore;
     }
 
     private static void ValidateFederationVersion(
         MutableSchemaDefinition schema,
-        List<CompositionError> errors)
+        ICompositionLog log)
     {
         var federationVersion = FindFederationVersion(schema);
 
         if (federationVersion is null)
         {
-            errors.Add(new CompositionError(FederationSchemaAnalyzer_FederationV1NotSupported));
+            log.Write(
+                LogEntryBuilder.New()
+                    .SetMessage(FederationSchemaAnalyzer_FederationV1NotSupported)
+                    .SetCode(LogEntryCodes.FederationV1NotSupported)
+                    .SetSeverity(LogSeverity.Error)
+                    .SetSchema(schema)
+                    .Build());
         }
     }
 
@@ -90,15 +103,21 @@ internal static class FederationSchemaAnalyzer
 
     private static void ValidateUnsupportedDirectives(
         MutableSchemaDefinition schema,
-        List<CompositionError> errors)
+        ICompositionLog log)
     {
         foreach (var name in s_unsupportedDirectives)
         {
             if (schema.DirectiveDefinitions.ContainsName(name))
             {
-                errors.Add(new CompositionError(string.Format(
-                    FederationSchemaAnalyzer_DirectiveNotSupported,
-                    name)));
+                log.Write(
+                    LogEntryBuilder.New()
+                        .SetMessage(
+                            FederationSchemaAnalyzer_DirectiveNotSupported,
+                            name)
+                        .SetCode(LogEntryCodes.FederationDirectiveNotSupported)
+                        .SetSeverity(LogSeverity.Error)
+                        .SetSchema(schema)
+                        .Build());
             }
         }
     }

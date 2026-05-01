@@ -39,6 +39,12 @@ response:
               "name": "__DirectiveLocation"
             },
             {
+              "name": "__SearchResult"
+            },
+            {
+              "name": "__SchemaDefinition"
+            },
+            {
               "name": "Query"
             },
             {
@@ -67,6 +73,9 @@ response:
             },
             {
               "name": "Boolean"
+            },
+            {
+              "name": "Float"
             },
             {
               "name": "Int"

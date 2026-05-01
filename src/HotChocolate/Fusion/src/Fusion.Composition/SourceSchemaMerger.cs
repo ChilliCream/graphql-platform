@@ -114,6 +114,7 @@ internal sealed class SourceSchemaMerger
         if (_options.AddFusionDefinitions)
         {
             AddFusionDefinitions(mergedSchema);
+            LiftConnectorKindOntoEnumValues(mergedSchema);
         }
 
         return mergedSchema;
@@ -1530,6 +1531,10 @@ internal sealed class SourceSchemaMerger
         return new Dictionary<string, MutableDirectiveDefinition>
         {
             {
+                DirectiveNames.FusionConnector,
+                new FusionConnectorMutableDirectiveDefinition(stringType)
+            },
+            {
                 DirectiveNames.FusionCost,
                 new FusionCostMutableDirectiveDefinition(schemaEnumType, stringType)
             },
@@ -1608,6 +1613,37 @@ internal sealed class SourceSchemaMerger
         foreach (var (_, definition) in _fusionDirectiveDefinitions)
         {
             mergedSchema.DirectiveDefinitions.Add(definition);
+        }
+    }
+
+    private void LiftConnectorKindOntoEnumValues(MutableSchemaDefinition mergedSchema)
+    {
+        if (!mergedSchema.Types.TryGetType<MutableEnumTypeDefinition>(
+            TypeNames.FusionSchema,
+            out var schemaEnum))
+        {
+            return;
+        }
+
+        var connectorDirective = _fusionDirectiveDefinitions[DirectiveNames.FusionConnector];
+
+        foreach (var schema in _schemas)
+        {
+            if (schema.Directives.FirstOrDefault(DirectiveNames.FusionConnector) is not { } connector
+                || !connector.Arguments.TryGetValue(ArgumentNames.Kind, out var kindValue)
+                || kindValue is not StringValueNode kindString
+                || kindString.Value == "GraphQL")
+            {
+                continue;
+            }
+
+            if (schemaEnum.Values.TryGetValue(_schemaConstantNames[schema.Name], out var enumValue))
+            {
+                enumValue.Directives.Add(
+                    new Directive(
+                        connectorDirective,
+                        new ArgumentAssignment(ArgumentNames.Kind, kindString.Value)));
+            }
         }
     }
 

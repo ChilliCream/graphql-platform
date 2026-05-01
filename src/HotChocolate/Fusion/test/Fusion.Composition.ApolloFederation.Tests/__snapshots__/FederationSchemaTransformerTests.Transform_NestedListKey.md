@@ -35,7 +35,7 @@ directive @link(url: String! import: [String!]) repeatable on SCHEMA
 ## Transformed SDL
 
 ```graphql
-schema {
+schema @fusion__connector(kind: "Apollo") {
   query: Query
 }
 
@@ -62,4 +62,10 @@ input ProductListByProductsAndIdInput {
 input ProductListByProductsAndIdInput_Products {
   id: ID!
 }
+
+"The @fusion__connector directive declares which connector kind handles this source schema."
+directive @fusion__connector(
+  "The kind of connector that backs this source schema."
+  kind: String!
+) on SCHEMA
 ```

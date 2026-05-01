@@ -1,4 +1,4 @@
-schema {
+schema @fusion__connector(kind: "Apollo") {
   query: Query
 }
 
@@ -19,3 +19,9 @@ type User @key(fields: "email") {
   email: String!
   name: String!
 }
+
+"The @fusion__connector directive declares which connector kind handles this source schema."
+directive @fusion__connector(
+  "The kind of connector that backs this source schema."
+  kind: String!
+) on SCHEMA

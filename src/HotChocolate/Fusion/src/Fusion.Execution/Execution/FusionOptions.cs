@@ -197,7 +197,7 @@ public sealed class FusionOptions : IFusionSchemaOptions, ICloneable
 
             field = value;
         }
-    }
+    } = true;
 
     /// <summary>
     /// Clones the options into a new mutable instance.

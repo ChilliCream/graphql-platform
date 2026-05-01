@@ -5,17 +5,19 @@ using HotChocolate.Features;
 using HotChocolate.Fusion.Configuration.Parsers;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Configuration;
 
-public class HttpSourceSchemaClientConfigurationParserTests : FusionTestBase
+public class DefaultGraphQLClientConfigurationParserTests : FusionTestBase
 {
     [Fact]
-    public void HttpSourceSchemaClientConfigurationParser_Should_Return_False_When_Http_Transport_Missing()
+    public void DefaultGraphQLClientConfigurationParser_Should_Return_False_When_Http_Transport_Missing()
     {
         // arrange
+        var schema = CreateCompositeSchema();
         var sourceSchema = GetSourceSchemaProperty(
             """
             {
@@ -29,21 +31,21 @@ public class HttpSourceSchemaClientConfigurationParserTests : FusionTestBase
             }
             """,
             "a");
-        var transport = GetTransportProperty(sourceSchema, "websockets");
-        var parser = new HttpSourceSchemaClientConfigurationParser();
+        var parser = new DefaultGraphQLClientConfigurationParser();
 
         // act
-        var claimed = parser.TryParse(sourceSchema, transport, out var configuration);
+        var claimed = parser.TryParse(schema, sourceSchema, out var configurations);
 
         // assert
         Assert.False(claimed);
-        Assert.Null(configuration);
+        Assert.Null(configurations);
     }
 
     [Fact]
-    public void HttpSourceSchemaClientConfigurationParser_Should_Produce_Configuration_When_Http_Transport_Present()
+    public void DefaultGraphQLClientConfigurationParser_Should_Produce_Configuration_When_Http_Transport_Present()
     {
         // arrange
+        var schema = CreateCompositeSchema();
         var sourceSchema = GetSourceSchemaProperty(
             """
             {
@@ -60,15 +62,14 @@ public class HttpSourceSchemaClientConfigurationParserTests : FusionTestBase
             }
             """,
             "products");
-        var transport = GetTransportProperty(sourceSchema, "http");
-        var parser = new HttpSourceSchemaClientConfigurationParser();
+        var parser = new DefaultGraphQLClientConfigurationParser();
 
         // act
-        var claimed = parser.TryParse(sourceSchema, transport, out var configuration);
+        var claimed = parser.TryParse(schema, sourceSchema, out var configurations);
 
         // assert
         Assert.True(claimed);
-        var http = Assert.IsType<HttpSourceSchemaClientConfiguration>(configuration);
+        var http = Assert.IsType<HttpSourceSchemaClientConfiguration>(Assert.Single(configurations!));
         Summarize(http).MatchInlineSnapshot(
             """
             Name: products
@@ -81,9 +82,10 @@ public class HttpSourceSchemaClientConfigurationParserTests : FusionTestBase
     }
 
     [Fact]
-    public void HttpSourceSchemaClientConfigurationParser_Should_Disable_VariableBatching_Capability_When_Configured()
+    public void DefaultGraphQLClientConfigurationParser_Should_Disable_VariableBatching_Capability_When_Configured()
     {
         // arrange
+        var schema = CreateCompositeSchema();
         var sourceSchema = GetSourceSchemaProperty(
             """
             {
@@ -104,22 +106,22 @@ public class HttpSourceSchemaClientConfigurationParserTests : FusionTestBase
             }
             """,
             "products");
-        var transport = GetTransportProperty(sourceSchema, "http");
-        var parser = new HttpSourceSchemaClientConfigurationParser();
+        var parser = new DefaultGraphQLClientConfigurationParser();
 
         // act
-        var claimed = parser.TryParse(sourceSchema, transport, out var configuration);
+        var claimed = parser.TryParse(schema, sourceSchema, out var configurations);
 
         // assert
         Assert.True(claimed);
-        var http = Assert.IsType<HttpSourceSchemaClientConfiguration>(configuration);
+        var http = Assert.IsType<HttpSourceSchemaClientConfiguration>(Assert.Single(configurations!));
         Assert.Equal(SourceSchemaClientCapabilities.RequestBatching, http.Capabilities);
     }
 
     [Fact]
-    public void HttpSourceSchemaClientConfigurationParser_Should_Disable_Subscription_Operations_When_Configured()
+    public void DefaultGraphQLClientConfigurationParser_Should_Disable_Subscription_Operations_When_Configured()
     {
         // arrange
+        var schema = CreateCompositeSchema();
         var sourceSchema = GetSourceSchemaProperty(
             """
             {
@@ -140,24 +142,24 @@ public class HttpSourceSchemaClientConfigurationParserTests : FusionTestBase
             }
             """,
             "products");
-        var transport = GetTransportProperty(sourceSchema, "http");
-        var parser = new HttpSourceSchemaClientConfigurationParser();
+        var parser = new DefaultGraphQLClientConfigurationParser();
 
         // act
-        var claimed = parser.TryParse(sourceSchema, transport, out var configuration);
+        var claimed = parser.TryParse(schema, sourceSchema, out var configurations);
 
         // assert
         Assert.True(claimed);
-        var http = Assert.IsType<HttpSourceSchemaClientConfiguration>(configuration);
+        var http = Assert.IsType<HttpSourceSchemaClientConfiguration>(Assert.Single(configurations!));
         Assert.Equal(
             SupportedOperationType.Query | SupportedOperationType.Mutation,
             http.SupportedOperations);
     }
 
     [Fact]
-    public void HttpSourceSchemaClientConfigurationParser_Should_Set_OnError_To_Null_Mode_When_Configured_As_NULL()
+    public void DefaultGraphQLClientConfigurationParser_Should_Set_OnError_To_Null_Mode_When_Configured_As_NULL()
     {
         // arrange
+        var schema = CreateCompositeSchema();
         var sourceSchema = GetSourceSchemaProperty(
             """
             {
@@ -176,22 +178,22 @@ public class HttpSourceSchemaClientConfigurationParserTests : FusionTestBase
             }
             """,
             "products");
-        var transport = GetTransportProperty(sourceSchema, "http");
-        var parser = new HttpSourceSchemaClientConfigurationParser();
+        var parser = new DefaultGraphQLClientConfigurationParser();
 
         // act
-        var claimed = parser.TryParse(sourceSchema, transport, out var configuration);
+        var claimed = parser.TryParse(schema, sourceSchema, out var configurations);
 
         // assert
         Assert.True(claimed);
-        var http = Assert.IsType<HttpSourceSchemaClientConfiguration>(configuration);
+        var http = Assert.IsType<HttpSourceSchemaClientConfiguration>(Assert.Single(configurations!));
         Assert.Equal(ErrorHandlingMode.Null, http.OnError);
     }
 
     [Fact]
-    public void HttpSourceSchemaClientConfigurationParser_Should_Set_OnError_To_Propagate_When_Configured_As_PROPAGATE()
+    public void DefaultGraphQLClientConfigurationParser_Should_Set_OnError_To_Propagate_When_Configured_As_PROPAGATE()
     {
         // arrange
+        var schema = CreateCompositeSchema();
         var sourceSchema = GetSourceSchemaProperty(
             """
             {
@@ -210,22 +212,22 @@ public class HttpSourceSchemaClientConfigurationParserTests : FusionTestBase
             }
             """,
             "products");
-        var transport = GetTransportProperty(sourceSchema, "http");
-        var parser = new HttpSourceSchemaClientConfigurationParser();
+        var parser = new DefaultGraphQLClientConfigurationParser();
 
         // act
-        var claimed = parser.TryParse(sourceSchema, transport, out var configuration);
+        var claimed = parser.TryParse(schema, sourceSchema, out var configurations);
 
         // assert
         Assert.True(claimed);
-        var http = Assert.IsType<HttpSourceSchemaClientConfiguration>(configuration);
+        var http = Assert.IsType<HttpSourceSchemaClientConfiguration>(Assert.Single(configurations!));
         Assert.Equal(ErrorHandlingMode.Propagate, http.OnError);
     }
 
     [Fact]
-    public void HttpSourceSchemaClientConfigurationParser_Should_Leave_OnError_Null_When_Property_Missing()
+    public void DefaultGraphQLClientConfigurationParser_Should_Leave_OnError_Null_When_Property_Missing()
     {
         // arrange
+        var schema = CreateCompositeSchema();
         var sourceSchema = GetSourceSchemaProperty(
             """
             {
@@ -242,22 +244,22 @@ public class HttpSourceSchemaClientConfigurationParserTests : FusionTestBase
             }
             """,
             "products");
-        var transport = GetTransportProperty(sourceSchema, "http");
-        var parser = new HttpSourceSchemaClientConfigurationParser();
+        var parser = new DefaultGraphQLClientConfigurationParser();
 
         // act
-        var claimed = parser.TryParse(sourceSchema, transport, out var configuration);
+        var claimed = parser.TryParse(schema, sourceSchema, out var configurations);
 
         // assert
         Assert.True(claimed);
-        var http = Assert.IsType<HttpSourceSchemaClientConfiguration>(configuration);
+        var http = Assert.IsType<HttpSourceSchemaClientConfiguration>(Assert.Single(configurations!));
         Assert.Null(http.OnError);
     }
 
     [Fact]
-    public void HttpSourceSchemaClientConfigurationParser_Should_Leave_OnError_Null_When_Value_Is_Json_Null()
+    public void DefaultGraphQLClientConfigurationParser_Should_Leave_OnError_Null_When_Value_Is_Json_Null()
     {
         // arrange
+        var schema = CreateCompositeSchema();
         var sourceSchema = GetSourceSchemaProperty(
             """
             {
@@ -276,22 +278,22 @@ public class HttpSourceSchemaClientConfigurationParserTests : FusionTestBase
             }
             """,
             "products");
-        var transport = GetTransportProperty(sourceSchema, "http");
-        var parser = new HttpSourceSchemaClientConfigurationParser();
+        var parser = new DefaultGraphQLClientConfigurationParser();
 
         // act
-        var claimed = parser.TryParse(sourceSchema, transport, out var configuration);
+        var claimed = parser.TryParse(schema, sourceSchema, out var configurations);
 
         // assert
         Assert.True(claimed);
-        var http = Assert.IsType<HttpSourceSchemaClientConfiguration>(configuration);
+        var http = Assert.IsType<HttpSourceSchemaClientConfiguration>(Assert.Single(configurations!));
         Assert.Null(http.OnError);
     }
 
     [Fact]
-    public void HttpSourceSchemaClientConfigurationParser_Should_Leave_OnError_Null_When_Value_Is_Unknown_String()
+    public void DefaultGraphQLClientConfigurationParser_Should_Leave_OnError_Null_When_Value_Is_Unknown_String()
     {
         // arrange
+        var schema = CreateCompositeSchema();
         var sourceSchema = GetSourceSchemaProperty(
             """
             {
@@ -310,22 +312,22 @@ public class HttpSourceSchemaClientConfigurationParserTests : FusionTestBase
             }
             """,
             "products");
-        var transport = GetTransportProperty(sourceSchema, "http");
-        var parser = new HttpSourceSchemaClientConfigurationParser();
+        var parser = new DefaultGraphQLClientConfigurationParser();
 
         // act
-        var claimed = parser.TryParse(sourceSchema, transport, out var configuration);
+        var claimed = parser.TryParse(schema, sourceSchema, out var configurations);
 
         // assert
         Assert.True(claimed);
-        var http = Assert.IsType<HttpSourceSchemaClientConfiguration>(configuration);
+        var http = Assert.IsType<HttpSourceSchemaClientConfiguration>(Assert.Single(configurations!));
         Assert.Null(http.OnError);
     }
 
     [Fact]
-    public void HttpSourceSchemaClientConfigurationParser_Should_Default_ClientName_When_Not_Provided()
+    public void DefaultGraphQLClientConfigurationParser_Should_Default_ClientName_When_Not_Provided()
     {
         // arrange
+        var schema = CreateCompositeSchema();
         var sourceSchema = GetSourceSchemaProperty(
             """
             {
@@ -341,15 +343,14 @@ public class HttpSourceSchemaClientConfigurationParserTests : FusionTestBase
             }
             """,
             "products");
-        var transport = GetTransportProperty(sourceSchema, "http");
-        var parser = new HttpSourceSchemaClientConfigurationParser();
+        var parser = new DefaultGraphQLClientConfigurationParser();
 
         // act
-        var claimed = parser.TryParse(sourceSchema, transport, out var configuration);
+        var claimed = parser.TryParse(schema, sourceSchema, out var configurations);
 
         // assert
         Assert.True(claimed);
-        var http = Assert.IsType<HttpSourceSchemaClientConfiguration>(configuration);
+        var http = Assert.IsType<HttpSourceSchemaClientConfiguration>(Assert.Single(configurations!));
         Assert.Equal(HttpSourceSchemaClientConfiguration.DefaultClientName, http.HttpClientName);
     }
 
@@ -386,7 +387,7 @@ public class HttpSourceSchemaClientConfigurationParserTests : FusionTestBase
 
         // assert
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(Act);
-        Assert.Equal("No parser claimed any transport for source schema 'a'.", exception.Message);
+        Assert.Equal("No parser claimed source schema 'a'.", exception.Message);
     }
 
     [Fact]
@@ -449,21 +450,6 @@ public class HttpSourceSchemaClientConfigurationParserTests : FusionTestBase
         throw new InvalidOperationException($"Source schema '{schemaName}' not found.");
     }
 
-    private static JsonProperty GetTransportProperty(JsonProperty sourceSchema, string transportName)
-    {
-        var transports = sourceSchema.Value.GetProperty("transports");
-
-        foreach (var candidate in transports.EnumerateObject())
-        {
-            if (candidate.Name == transportName)
-            {
-                return candidate;
-            }
-        }
-
-        throw new InvalidOperationException($"Transport '{transportName}' not found.");
-    }
-
     private static string Summarize(HttpSourceSchemaClientConfiguration configuration)
     {
         return $"""
@@ -489,11 +475,11 @@ public class HttpSourceSchemaClientConfigurationParserTests : FusionTestBase
     private sealed class AlwaysClaimParser : ISourceSchemaClientConfigurationParser
     {
         public bool TryParse(
+            FusionSchemaDefinition schema,
             JsonProperty sourceSchema,
-            JsonProperty transport,
-            [NotNullWhen(true)] out ISourceSchemaClientConfiguration? configuration)
+            [NotNullWhen(true)] out ISourceSchemaClientConfiguration[]? configurations)
         {
-            configuration = new StubClientConfiguration(sourceSchema.Name);
+            configurations = [new StubClientConfiguration(sourceSchema.Name)];
             return true;
         }
     }

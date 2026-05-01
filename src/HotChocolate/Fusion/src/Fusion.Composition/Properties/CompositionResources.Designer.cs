@@ -103,7 +103,25 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("CompositionLogExtensions_EntryMessageWithSchemaName", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to The kind of connector that backs this source schema..
+        /// </summary>
+        internal static string ConnectorMutableDirectiveDefinition_Argument_Kind_Description {
+            get {
+                return ResourceManager.GetString("ConnectorMutableDirectiveDefinition_Argument_Kind_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The @fusion__connector directive declares which connector kind handles this source schema..
+        /// </summary>
+        internal static string ConnectorMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("ConnectorMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to The @cost directive must have a &apos;weight&apos; argument of type String..
         /// </summary>
@@ -176,6 +194,24 @@ namespace HotChocolate.Fusion.Properties {
             }
         }
         
+        /// <summary>
+        ///   Looks up a localized string similar to The kind of connector that handles the source schema represented by this enum value..
+        /// </summary>
+        internal static string FusionConnectorMutableDirectiveDefinition_Argument_Kind_Description {
+            get {
+                return ResourceManager.GetString("FusionConnectorMutableDirectiveDefinition_Argument_Kind_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The @fusion__connector directive declares which connector kind handles a source schema..
+        /// </summary>
+        internal static string FusionConnectorMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("FusionConnectorMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to The name of the source schema that defined the cost metadata..
         /// </summary>

@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Errors;
+using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Results;
 using HotChocolate.Language;
 using HotChocolate.Serialization;
@@ -15,6 +16,47 @@ namespace HotChocolate.Fusion.ApolloFederation;
 /// </summary>
 public static class FederationSchemaTransformer
 {
+    /// <summary>
+    /// Determines whether the given schema is an Apollo Federation v2 subgraph
+    /// based on the presence of an <c>@link</c> directive that imports the
+    /// Apollo Federation specification.
+    /// </summary>
+    /// <param name="schema">
+    /// The mutable schema definition to inspect.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> when the schema declares an <c>@link</c> directive whose
+    /// <c>url</c> argument references the Apollo Federation specification;
+    /// otherwise, <c>false</c>.
+    /// </returns>
+    public static bool IsFederationSchema(MutableSchemaDefinition schema)
+    {
+        ArgumentNullException.ThrowIfNull(schema);
+
+        foreach (var directive in schema.Directives)
+        {
+            if (!directive.Name.Equals(FederationDirectiveNames.Link, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            if (!directive.Arguments.TryGetValue("url", out var urlValue)
+                || urlValue is not StringValueNode urlString)
+            {
+                continue;
+            }
+
+            if (urlString.Value.Contains(
+                FederationSchemaAnalyzer.FederationUrlPrefix,
+                StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /// <summary>
     /// Transforms the given Apollo Federation v2 subgraph SDL.
     /// </summary>
@@ -41,11 +83,13 @@ public static class FederationSchemaTransformer
                 string.Format(FederationSchemaTransformer_ParseFailed, ex.Message));
         }
 
-        var errors = FederationSchemaAnalyzer.Validate(schema);
+        var log = new CompositionLog();
 
-        if (errors.Count > 0)
+        if (!FederationSchemaAnalyzer.Validate(schema, log))
         {
-            return errors.ToImmutableArray();
+            return log
+                .Select(entry => new CompositionError(entry.Message))
+                .ToImmutableArray();
         }
 
         RemoveFederationInfrastructure.Apply(schema);
@@ -53,6 +97,7 @@ public static class FederationSchemaTransformer
         RewriteKeyDirectives.Apply(schema);
         TransformRequiresToRequire.Apply(schema);
         RemoveExternalFields.Apply(schema);
+        StampConnectorKind.Apply(schema);
 
         return SchemaFormatter.FormatAsString(schema);
     }

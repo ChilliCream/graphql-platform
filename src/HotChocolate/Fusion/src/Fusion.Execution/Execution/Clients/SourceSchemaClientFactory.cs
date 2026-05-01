@@ -1,3 +1,5 @@
+using HotChocolate.Fusion.Types;
+
 namespace HotChocolate.Fusion.Execution.Clients;
 
 /// <summary>
@@ -17,20 +19,25 @@ public abstract class SourceSchemaClientFactory<TConfiguration> : ISourceSchemaC
         => configuration is TConfiguration;
 
     /// <inheritdoc />
-    public ISourceSchemaClient CreateClient(ISourceSchemaClientConfiguration configuration)
+    public ISourceSchemaClient CreateClient(
+        FusionSchemaDefinition schema,
+        ISourceSchemaClientConfiguration configuration)
     {
         if (configuration is not TConfiguration casted)
         {
             throw ThrowHelper.InvalidClientConfiguration(typeof(TConfiguration), configuration.GetType());
         }
 
-        return CreateClient(casted);
+        return CreateClient(schema, casted);
     }
 
     /// <summary>
     /// Creates a new <see cref="ISourceSchemaClient"/> for the given typed configuration.
     /// </summary>
+    /// <param name="schema">The composed Fusion gateway schema.</param>
     /// <param name="configuration">The typed client configuration.</param>
     /// <returns>A new source schema client instance.</returns>
-    protected abstract ISourceSchemaClient CreateClient(TConfiguration configuration);
+    protected abstract ISourceSchemaClient CreateClient(
+        FusionSchemaDefinition schema,
+        TConfiguration configuration);
 }
