@@ -440,9 +440,9 @@ jobs:
           # Pick the band this release publishes under, based on release context.
           if [[ "$IS_HIGHEST_STABLE_MAJOR" == "true" ]]; then
             PRIMARY_BAND="latest"
-            SECONDARY_BAND="${MAJOR}"
+            SECONDARY_BAND="latest-${MAJOR}"
           elif [[ "$IS_STABLE" == "true" ]]; then
-            PRIMARY_BAND="${MAJOR}"
+            PRIMARY_BAND="latest-${MAJOR}"
             SECONDARY_BAND=""
           elif [[ "$GIT_TAG" =~ -rc\. ]]; then
             PRIMARY_BAND="rc"
@@ -545,9 +545,9 @@ jobs:
           # Pick the band this release publishes under, based on release context.
           if [[ "$IS_HIGHEST_STABLE_MAJOR" == "true" ]]; then
             PRIMARY_BAND="latest"
-            SECONDARY_BAND="${MAJOR}"
+            SECONDARY_BAND="latest-${MAJOR}"
           elif [[ "$IS_STABLE" == "true" ]]; then
-            PRIMARY_BAND="${MAJOR}"
+            PRIMARY_BAND="latest-${MAJOR}"
             SECONDARY_BAND=""
           elif [[ "$GIT_TAG" =~ -rc\. ]]; then
             PRIMARY_BAND="rc"
