@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate;
 using HotChocolate.Adapters.Mcp;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Metadata;
 using Microsoft.AspNetCore.Routing;
@@ -18,9 +17,7 @@ public static class McpEndpointRouteBuilderExtensions
         string? schemaName = null)
     {
         var manager = endpoints.ServiceProvider.GetService<McpManager>()
-            ?? throw new InvalidOperationException(
-                "You must call AddMcp(). Unable to find required services. Call "
-                + "builder.Services.AddGraphQL().AddMcp() in application startup code.");
+            ?? throw new InvalidOperationException("Call `AddMcp()` when configuring the GraphQL server.");
 
         TryResolveSchemaName(manager, ref schemaName);
         schemaName ??= ISchemaDefinition.DefaultName;

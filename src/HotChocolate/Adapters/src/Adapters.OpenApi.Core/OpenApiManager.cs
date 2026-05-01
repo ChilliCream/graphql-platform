@@ -69,8 +69,8 @@ internal sealed class OpenApiManager : IDisposable
         var storageFactory =
             setup.StorageFactory
             ?? throw new InvalidOperationException(
-                $"No OpenAPI definition storage is registered for schema '{name}'. "
-                    + "Call AddOpenApiDefinitionStorage(...) when configuring the GraphQL server.");
+                $"No {nameof(IOpenApiDefinitionStorage)} is registered for schema '{name}'. "
+                    + "Call `AddOpenApiDefinitionStorage(...)` when configuring the GraphQL server.");
 
         var storage = storageFactory(_applicationServices);
         var endpointDataSource = _applicationServices.GetRequiredService<IDynamicEndpointDataSource>();

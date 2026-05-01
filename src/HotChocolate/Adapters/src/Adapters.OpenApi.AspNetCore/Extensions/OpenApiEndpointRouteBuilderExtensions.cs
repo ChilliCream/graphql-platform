@@ -11,7 +11,9 @@ public static class OpenApiEndpointRouteBuilderExtensions
         this IEndpointRouteBuilder endpoints,
         string? schemaName = null)
     {
-        var manager = endpoints.ServiceProvider.GetRequiredService<OpenApiManager>();
+        var manager = endpoints.ServiceProvider.GetService<OpenApiManager>()
+            ?? throw new InvalidOperationException(
+                "Call `AddOpenApi()` when configuring the GraphQL server.");
 
         TryResolveSchemaName(manager, ref schemaName);
         schemaName ??= ISchemaDefinition.DefaultName;

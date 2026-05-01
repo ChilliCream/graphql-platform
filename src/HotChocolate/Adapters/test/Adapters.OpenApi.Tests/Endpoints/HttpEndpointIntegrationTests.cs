@@ -62,6 +62,31 @@ public class HttpEndpointIntegrationTests : HttpEndpointIntegrationTestBase
     }
 
     [Fact]
+    public void MapOpenApiEndpoints_Should_Throw_When_AddOpenApiNotCalled()
+    {
+        // arrange
+        var builder = new WebHostBuilder()
+            .ConfigureServices(services =>
+            {
+                services.AddRouting();
+                services.AddGraphQLServer();
+            })
+            .Configure(app =>
+            {
+                app.UseRouting();
+                app.UseEndpoints(endpoints => endpoints.MapOpenApiEndpoints());
+            });
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(() => new TestServer(builder));
+
+        // assert
+        Assert.Equal(
+            "Call `AddOpenApi()` when configuring the GraphQL server.",
+            exception.Message);
+    }
+
+    [Fact]
     public async Task Http_Post_Body_Field_Has_Wrong_Type()
     {
         // arrange

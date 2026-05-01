@@ -59,8 +59,8 @@ internal sealed class McpManager : IDisposable
 
         var storageFactory = setup.StorageFactory
             ?? throw new InvalidOperationException(
-                $"No MCP storage is registered for schema '{name}'. "
-                + "Call AddMcpStorage(...) when configuring the GraphQL server.");
+                $"No {nameof(IMcpStorage)} is registered for schema '{name}'. "
+                + "Call `AddMcpStorage(...)` when configuring the GraphQL server.");
 
         var storage = storageFactory(_applicationServices);
 
