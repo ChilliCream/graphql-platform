@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Fusion.Execution" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Connectors.ApolloFederation" />
     <InternalsVisibleTo Include="ChilliCream.Nitro.Fusion" />
   </ItemGroup>
 

@@ -1,332 +1,264 @@
 using System.Text.Json;
 using HotChocolate.Fusion.Connectors.ApolloFederation;
 using HotChocolate.Fusion.Execution.Clients;
+using HotChocolate.Fusion.Logging;
+using HotChocolate.Fusion.Options;
+using HotChocolate.Fusion.Types;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Configuration;
 
 public sealed class ParsersTests
 {
     [Fact]
-    public void TryParse_Should_Produce_Configuration_For_FlatScalarLookup()
+    public void TryParse_Should_Claim_When_ConnectorKindIsApollo()
     {
         // arrange
-        const string settingsJson =
+        var schema = ComposeSchema(
+            "products",
+            """
+            schema @fusion__connector(kind: "Apollo") {
+              query: Query
+            }
+
+            type Query {
+              productById(id: ID! @is(field: "id")): Product @lookup
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+            }
+            """);
+
+        var sourceSchema = ReadSourceSchema(
             """
             {
               "products": {
-                "transports": { "http": { "url": "http://products/graphql" } },
-                "extensions": {
-                  "apolloFederation": {
-                    "lookups": {
-                      "productById": {
-                        "entityType": "Product",
-                        "arguments": { "id": "id" }
-                      }
-                    }
-                  }
-                }
+                "transports": { "http": { "url": "http://products/graphql" } }
               }
             }
-            """;
-
-        var (sourceSchema, transport) = ReadSettings(settingsJson);
+            """);
         var parser = new ApolloFederationClientConfigurationParser();
 
         // act
-        var matched = parser.TryParse(sourceSchema, transport, out var configuration);
+        var matched = parser.TryParse(schema, sourceSchema, out var configurations);
 
         // assert
         Assert.True(matched);
-        var federationConfig = Assert.IsType<ApolloFederationSourceSchemaClientConfiguration>(configuration);
+        var federationConfig = Assert.IsType<ApolloFederationSourceSchemaClientConfiguration>(
+            Assert.Single(configurations!));
         Assert.Equal("products", federationConfig.Name);
         Assert.Equal("http://products/graphql", federationConfig.BaseAddress.ToString());
-        Assert.True(federationConfig.Lookups.TryGetValue("productById", out var lookup));
-        Assert.Equal("Product", lookup.EntityTypeName);
-        Assert.Equal("id", Assert.Single(lookup.ArgumentToKeyFieldMap).Value);
     }
 
     [Fact]
-    public void TryParse_Should_Accept_FlatCompositeKey_StringMap()
+    public void TryParse_Should_NotClaim_When_ConnectorKindIsAbsent()
     {
         // arrange
-        const string settingsJson =
+        var schema = ComposeSchema(
+            "catalog",
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              ping: String
+            }
+            """);
+
+        var sourceSchema = ReadSourceSchema(
+            """
+            {
+              "catalog": {
+                "transports": { "http": { "url": "http://catalog/graphql" } }
+              }
+            }
+            """);
+        var parser = new ApolloFederationClientConfigurationParser();
+
+        // act
+        var matched = parser.TryParse(schema, sourceSchema, out var configurations);
+
+        // assert
+        Assert.False(matched);
+        Assert.Null(configurations);
+    }
+
+    [Fact]
+    public void TryParse_Should_NotClaim_When_ConnectorKindIsGraphQL()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            "catalog",
+            """
+            schema @fusion__connector(kind: "GraphQL") {
+              query: Query
+            }
+
+            type Query {
+              ping: String
+            }
+            """);
+
+        var sourceSchema = ReadSourceSchema(
+            """
+            {
+              "catalog": {
+                "transports": { "http": { "url": "http://catalog/graphql" } }
+              }
+            }
+            """);
+        var parser = new ApolloFederationClientConfigurationParser();
+
+        // act
+        var matched = parser.TryParse(schema, sourceSchema, out var configurations);
+
+        // assert
+        Assert.False(matched);
+        Assert.Null(configurations);
+    }
+
+    [Fact]
+    public void TryParse_Should_Throw_When_HttpUrlIsMissing()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            "products",
+            """
+            schema @fusion__connector(kind: "Apollo") {
+              query: Query
+            }
+
+            type Query {
+              productById(id: ID! @is(field: "id")): Product @lookup
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+            }
+            """);
+
+        var sourceSchema = ReadSourceSchema(
             """
             {
               "products": {
-                "transports": { "http": { "url": "http://products/graphql" } },
-                "extensions": {
-                  "apolloFederation": {
-                    "lookups": {
-                      "productBySkuAndPackage": {
-                        "entityType": "Product",
-                        "arguments": {
-                          "sku": "sku",
-                          "package": "package"
-                        }
-                      }
-                    }
-                  }
-                }
+                "transports": { "http": { } }
               }
             }
-            """;
-
-        var (sourceSchema, transport) = ReadSettings(settingsJson);
+            """);
         var parser = new ApolloFederationClientConfigurationParser();
 
         // act
-        var matched = parser.TryParse(sourceSchema, transport, out var configuration);
+        void Act() => parser.TryParse(schema, sourceSchema, out _);
 
         // assert
-        Assert.True(matched);
-        var federationConfig = Assert.IsType<ApolloFederationSourceSchemaClientConfiguration>(configuration);
-        var lookup = federationConfig.Lookups["productBySkuAndPackage"];
-        Assert.Equal("sku", lookup.ArgumentToKeyFieldMap["sku"]);
-        Assert.Equal("package", lookup.ArgumentToKeyFieldMap["package"]);
+        var exception = Assert.Throws<InvalidOperationException>(Act);
+        Assert.Contains("transports.http.url", exception.Message);
+        Assert.Contains("products", exception.Message);
     }
 
     [Fact]
-    public void TryParse_Should_Accept_NestedKey_EmptyStringSplatMarker()
-    {
-        // arrange: an empty string for the argument's path signals the
-        // connector to splat the variable's object fields into the
-        // '_entities' representation root (used for wrapper-shape arguments
-        // on nested/list '@key' lookups).
-        const string settingsJson =
-            """
-            {
-              "list": {
-                "transports": { "http": { "url": "http://list/graphql" } },
-                "extensions": {
-                  "apolloFederation": {
-                    "lookups": {
-                      "productListByProductsAndIdAndPid": {
-                        "entityType": "ProductList",
-                        "arguments": { "key": "" }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-            """;
-
-        var (sourceSchema, transport) = ReadSettings(settingsJson);
-        var parser = new ApolloFederationClientConfigurationParser();
-
-        // act
-        var matched = parser.TryParse(sourceSchema, transport, out var configuration);
-
-        // assert
-        Assert.True(matched);
-        var federationConfig = Assert.IsType<ApolloFederationSourceSchemaClientConfiguration>(configuration);
-        var lookup = federationConfig.Lookups["productListByProductsAndIdAndPid"];
-        Assert.Equal("ProductList", lookup.EntityTypeName);
-        Assert.Equal(string.Empty, lookup.ArgumentToKeyFieldMap["key"]);
-    }
-
-    [Fact]
-    public void TryParse_Should_Accept_NestedKey_ObjectFormWithPathProperty()
-    {
-        // arrange: an object argument entry with a 'path' string property is
-        // the richer shorthand for expressing the same mapping. Additional
-        // metadata properties may be layered on later without breaking the
-        // string form.
-        const string settingsJson =
-            """
-            {
-              "price": {
-                "transports": { "http": { "url": "http://price/graphql" } },
-                "extensions": {
-                  "apolloFederation": {
-                    "lookups": {
-                      "productListByKey": {
-                        "entityType": "ProductList",
-                        "arguments": {
-                          "key": { "path": "" }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-            """;
-
-        var (sourceSchema, transport) = ReadSettings(settingsJson);
-        var parser = new ApolloFederationClientConfigurationParser();
-
-        // act
-        var matched = parser.TryParse(sourceSchema, transport, out var configuration);
-
-        // assert
-        Assert.True(matched);
-        var federationConfig = Assert.IsType<ApolloFederationSourceSchemaClientConfiguration>(configuration);
-        var lookup = federationConfig.Lookups["productListByKey"];
-        Assert.Equal(string.Empty, lookup.ArgumentToKeyFieldMap["key"]);
-    }
-
-    [Fact]
-    public void TryParse_Should_Reject_InvalidArgumentShape()
+    public void TryParse_Should_NotClaim_When_HttpTransportBlockIsMissing()
     {
         // arrange
-        const string settingsJson =
+        var schema = ComposeSchema(
+            "products",
+            """
+            schema @fusion__connector(kind: "Apollo") {
+              query: Query
+            }
+
+            type Query {
+              productById(id: ID! @is(field: "id")): Product @lookup
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+            }
+            """);
+
+        var sourceSchema = ReadSourceSchema(
             """
             {
               "products": {
-                "transports": { "http": { "url": "http://products/graphql" } },
-                "extensions": {
-                  "apolloFederation": {
-                    "lookups": {
-                      "productById": {
-                        "entityType": "Product",
-                        "arguments": { "id": 42 }
-                      }
-                    }
-                  }
-                }
+                "transports": { }
               }
             }
-            """;
-
-        var (sourceSchema, transport) = ReadSettings(settingsJson);
-        var parser = new ApolloFederationClientConfigurationParser();
-
-        // act & assert
-        Assert.Throws<InvalidOperationException>(
-            () => parser.TryParse(sourceSchema, transport, out _));
-    }
-
-    [Fact]
-    public void TryParse_Should_Accept_ObjectForm_WithPathSegment()
-    {
-        // arrange
-        const string settingsJson =
-            """
-            {
-              "email": {
-                "transports": { "http": { "url": "http://email/graphql" } },
-                "extensions": {
-                  "apolloFederation": {
-                    "lookups": {
-                      "userById": {
-                        "entityType": "User",
-                        "arguments": {
-                          "id": { "path": "id" }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-            """;
-
-        var (sourceSchema, transport) = ReadSettings(settingsJson);
+            """);
         var parser = new ApolloFederationClientConfigurationParser();
 
         // act
-        var matched = parser.TryParse(sourceSchema, transport, out var configuration);
+        var matched = parser.TryParse(schema, sourceSchema, out var configurations);
 
         // assert
-        Assert.True(matched);
-        var federationConfig = Assert.IsType<ApolloFederationSourceSchemaClientConfiguration>(configuration);
-        var lookup = federationConfig.Lookups["userById"];
-        Assert.Equal("id", lookup.ArgumentToKeyFieldMap["id"]);
+        Assert.False(matched);
+        Assert.Null(configurations);
     }
 
     [Fact]
-    public void TryParse_Should_Accept_EntityRequires_Block()
-    {
-        // arrange: the composer emits per-entity-type field require metadata
-        // under 'extensions.apolloFederation.entityTypes'. For each field
-        // with synthetic '@require' arguments, the block carries the
-        // argument name to representation field path mapping that the
-        // rewriter uses to strip the argument and project the variable
-        // value onto the '_entities' representation.
-        const string settingsJson =
-            """
-            {
-              "inventory": {
-                "transports": { "http": { "url": "http://inventory/graphql" } },
-                "extensions": {
-                  "apolloFederation": {
-                    "lookups": {
-                      "productById": {
-                        "entityType": "Product",
-                        "arguments": { "id": "id" }
-                      }
-                    },
-                    "entityTypes": {
-                      "Product": {
-                        "fields": {
-                          "shippingEstimate": {
-                            "requires": { "price": "price", "weight": "weight" }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-            """;
-
-        var (sourceSchema, transport) = ReadSettings(settingsJson);
-        var parser = new ApolloFederationClientConfigurationParser();
-
-        // act
-        var matched = parser.TryParse(sourceSchema, transport, out var configuration);
-
-        // assert
-        Assert.True(matched);
-        var federationConfig = Assert.IsType<ApolloFederationSourceSchemaClientConfiguration>(configuration);
-        Assert.True(federationConfig.EntityRequires.TryGetValue("Product", out var productRequires));
-        Assert.True(productRequires.Fields.TryGetValue("shippingEstimate", out var shippingArgs));
-        Assert.Equal("price", shippingArgs["price"]);
-        Assert.Equal("weight", shippingArgs["weight"]);
-    }
-
-    [Fact]
-    public void TryParse_Should_Treat_Missing_EntityRequires_As_Empty()
+    public void TryParse_Should_HonorCustomClientName()
     {
         // arrange
-        const string settingsJson =
+        var schema = ComposeSchema(
+            "products",
+            """
+            schema @fusion__connector(kind: "Apollo") {
+              query: Query
+            }
+
+            type Query {
+              productById(id: ID! @is(field: "id")): Product @lookup
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+            }
+            """);
+
+        var sourceSchema = ReadSourceSchema(
             """
             {
               "products": {
-                "transports": { "http": { "url": "http://products/graphql" } },
-                "extensions": {
-                  "apolloFederation": {
-                    "lookups": {
-                      "productById": {
-                        "entityType": "Product",
-                        "arguments": { "id": "id" }
-                      }
-                    }
+                "transports": {
+                  "http": {
+                    "url": "http://products/graphql",
+                    "clientName": "products-client"
                   }
                 }
               }
             }
-            """;
-
-        var (sourceSchema, transport) = ReadSettings(settingsJson);
+            """);
         var parser = new ApolloFederationClientConfigurationParser();
 
         // act
-        var matched = parser.TryParse(sourceSchema, transport, out var configuration);
+        parser.TryParse(schema, sourceSchema, out var configurations);
 
         // assert
-        Assert.True(matched);
-        var federationConfig = Assert.IsType<ApolloFederationSourceSchemaClientConfiguration>(configuration);
-        Assert.Empty(federationConfig.EntityRequires);
+        var federationConfig = Assert.IsType<ApolloFederationSourceSchemaClientConfiguration>(
+            Assert.Single(configurations!));
+        Assert.Equal("products-client", federationConfig.HttpClientName);
     }
 
-    private static (JsonProperty SourceSchema, JsonProperty Transport) ReadSettings(string settingsJson)
+    private static FusionSchemaDefinition ComposeSchema(string name, string sourceSdl)
+    {
+        var sources = new[] { new SourceSchemaText(name, sourceSdl) };
+        var compositionLog = new CompositionLog();
+        var composerOptions = new SchemaComposerOptions();
+        var composer = new SchemaComposer(sources, composerOptions, compositionLog);
+
+        var result = composer.Compose();
+        if (!result.IsSuccess)
+        {
+            throw new InvalidOperationException(result.Errors[0].Message);
+        }
+
+        return FusionSchemaDefinition.Create(result.Value.ToSyntaxNode());
+    }
+
+    private static JsonProperty ReadSourceSchema(string settingsJson)
     {
         var document = JsonDocument.Parse(settingsJson);
-        var sourceSchema = document.RootElement.EnumerateObject().First();
-        var transport = sourceSchema.Value.GetProperty("transports").EnumerateObject().First();
-        return (sourceSchema, transport);
+        return document.RootElement.EnumerateObject().First();
     }
 }

@@ -2,9 +2,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Features;
-using HotChocolate.Fusion.Configuration.Parsers;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -12,73 +12,6 @@ namespace HotChocolate.Fusion.Configuration;
 
 public class ParsersTests : FusionTestBase
 {
-    [Fact]
-    public void HttpSourceSchemaClientConfigurationParser_Should_Return_False_When_Http_Transport_Missing()
-    {
-        // arrange
-        var sourceSchema = GetSourceSchemaProperty(
-            """
-            {
-                "sourceSchemas": {
-                    "a": {
-                        "transports": {
-                            "websockets": { "url": "ws://localhost:5000/graphql" }
-                        }
-                    }
-                }
-            }
-            """,
-            "a");
-        var transport = GetTransportProperty(sourceSchema, "websockets");
-        var parser = new HttpSourceSchemaClientConfigurationParser();
-
-        // act
-        var claimed = parser.TryParse(sourceSchema, transport, out var configuration);
-
-        // assert
-        Assert.False(claimed);
-        Assert.Null(configuration);
-    }
-
-    [Fact]
-    public void HttpSourceSchemaClientConfigurationParser_Should_Produce_Configuration_When_Http_Transport_Present()
-    {
-        // arrange
-        var sourceSchema = GetSourceSchemaProperty(
-            """
-            {
-                "sourceSchemas": {
-                    "products": {
-                        "transports": {
-                            "http": {
-                                "url": "http://localhost:5000/graphql",
-                                "clientName": "products-client"
-                            }
-                        }
-                    }
-                }
-            }
-            """,
-            "products");
-        var transport = GetTransportProperty(sourceSchema, "http");
-        var parser = new HttpSourceSchemaClientConfigurationParser();
-
-        // act
-        var claimed = parser.TryParse(sourceSchema, transport, out var configuration);
-
-        // assert
-        Assert.True(claimed);
-        var http = Assert.IsType<SourceSchemaHttpClientConfiguration>(configuration);
-        Summarize(http).MatchInlineSnapshot(
-            """
-            Name: products
-            HttpClientName: products-client
-            BaseAddress: http://localhost:5000/graphql
-            SupportedOperations: All
-            Capabilities: All
-            """);
-    }
-
     [Fact]
     public async Task CreateClientConfigurations_Should_Throw_When_No_Parser_Claims_Schema()
     {
@@ -112,7 +45,7 @@ public class ParsersTests : FusionTestBase
 
         // assert
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(Act);
-        Assert.Equal("No parser claimed any transport for source schema 'a'.", exception.Message);
+        Assert.Equal("No parser claimed source schema 'a'.", exception.Message);
     }
 
     [Fact]
@@ -159,46 +92,52 @@ public class ParsersTests : FusionTestBase
         Assert.IsType<StubClientConfiguration>(queryConfig);
     }
 
-    private static JsonProperty GetSourceSchemaProperty(string settingsJson, string schemaName)
+    [Fact]
+    public async Task DefaultParser_Should_Throw_When_LegacyApolloFederationBlockIsPresent()
     {
-        var document = JsonDocument.Parse(settingsJson);
-        var sourceSchemas = document.RootElement.GetProperty("sourceSchemas");
-
-        foreach (var candidate in sourceSchemas.EnumerateObject())
-        {
-            if (candidate.Name == schemaName)
+        // arrange
+        // The settings JSON carries the legacy v15 'extensions.apolloFederation'
+        // block, but the schema does not declare '@fusion__connector(kind: "Apollo")'.
+        // The default parser must fail loudly at executor build time so users
+        // discover the v16 migration mismatch instead of silently dropping
+        // federation metadata.
+        var config = CreateConfigurationWithSettings(
+            """
             {
-                return candidate;
+                "sourceSchemas": {
+                    "a": {
+                        "transports": {
+                            "http": { "url": "http://localhost:5000/graphql" }
+                        },
+                        "extensions": {
+                            "apolloFederation": {
+                                "lookups": { "ping": { "entityType": "Foo" } }
+                            }
+                        }
+                    }
+                }
             }
-        }
+            """);
 
-        throw new InvalidOperationException($"Source schema '{schemaName}' not found.");
-    }
+        var configProvider = new TestFusionConfigurationProvider(config);
 
-    private static JsonProperty GetTransportProperty(JsonProperty sourceSchema, string transportName)
-    {
-        var transports = sourceSchema.Value.GetProperty("transports");
+        var services =
+            new ServiceCollection()
+                .AddGraphQLGateway()
+                .AddConfigurationProvider(_ => configProvider)
+                .Services
+                .BuildServiceProvider();
 
-        foreach (var candidate in transports.EnumerateObject())
-        {
-            if (candidate.Name == transportName)
-            {
-                return candidate;
-            }
-        }
+        var manager = services.GetRequiredService<FusionRequestExecutorManager>();
 
-        throw new InvalidOperationException($"Transport '{transportName}' not found.");
-    }
+        // act
+        async Task Act() => await manager.GetExecutorAsync();
 
-    private static string Summarize(SourceSchemaHttpClientConfiguration configuration)
-    {
-        return $"""
-            Name: {configuration.Name}
-            HttpClientName: {configuration.HttpClientName}
-            BaseAddress: {configuration.BaseAddress}
-            SupportedOperations: {configuration.SupportedOperations}
-            Capabilities: {configuration.Capabilities}
-            """;
+        // assert
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(Act);
+        Assert.Contains("legacy 'extensions.apolloFederation'", exception.Message);
+        Assert.Contains("'a'", exception.Message);
+        Assert.Contains("FederationSchemaTransformer", exception.Message);
     }
 
     private static FusionConfiguration CreateConfigurationWithSettings(string settingsJson)
@@ -214,11 +153,11 @@ public class ParsersTests : FusionTestBase
     private sealed class AlwaysClaimParser : ISourceSchemaClientConfigurationParser
     {
         public bool TryParse(
+            FusionSchemaDefinition schema,
             JsonProperty sourceSchema,
-            JsonProperty transport,
-            [NotNullWhen(true)] out ISourceSchemaClientConfiguration? configuration)
+            [NotNullWhen(true)] out ISourceSchemaClientConfiguration[]? configurations)
         {
-            configuration = new StubClientConfiguration(sourceSchema.Name);
+            configurations = [new StubClientConfiguration(sourceSchema.Name)];
             return true;
         }
     }

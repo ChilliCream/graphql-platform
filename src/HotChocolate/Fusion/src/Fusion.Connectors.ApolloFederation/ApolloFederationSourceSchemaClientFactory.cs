@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using HotChocolate.Fusion.Transport.Http;
 using HotChocolate.Fusion.Types;
 
@@ -12,7 +11,6 @@ public sealed class ApolloFederationSourceSchemaClientFactory
     : SourceSchemaClientFactory<ApolloFederationSourceSchemaClientConfiguration>
 {
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly ConcurrentDictionary<string, FederationQueryRewriter> _rewritersBySchema = new();
 
     /// <summary>
     /// Initializes a new instance of <see cref="ApolloFederationSourceSchemaClientFactory"/>.
@@ -33,12 +31,7 @@ public sealed class ApolloFederationSourceSchemaClientFactory
         var httpClient = _httpClientFactory.CreateClient(configuration.HttpClientName);
         httpClient.BaseAddress = configuration.BaseAddress;
 
-        var queryRewriter = _rewritersBySchema.GetOrAdd(
-            configuration.Name,
-            static (_, config) => new FederationQueryRewriter(config.Lookups, config.EntityRequires),
-            configuration);
-
         var graphQLClient = GraphQLHttpClient.Create(httpClient, disposeHttpClient: true);
-        return new ApolloFederationSourceSchemaClient(graphQLClient, queryRewriter);
+        return new ApolloFederationSourceSchemaClient(graphQLClient, configuration.QueryRewriter);
     }
 }

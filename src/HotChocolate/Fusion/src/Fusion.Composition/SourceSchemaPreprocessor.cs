@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Text.RegularExpressions;
+using HotChocolate.Fusion.ApolloFederation;
 using HotChocolate.Fusion.Errors;
 using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Language;
@@ -30,6 +31,17 @@ internal sealed partial class SourceSchemaPreprocessor(
     public CompositionResult Preprocess()
     {
         var fusionV1CompatibilityMode = sourceSchemaVersion?.Major == 1;
+
+        if (FederationSchemaTransformer.IsFederationSchema(schema)
+            && FederationSchemaAnalyzer.Validate(schema, log))
+        {
+            RemoveFederationInfrastructure.Apply(schema);
+            GenerateLookupFields.Apply(schema);
+            RewriteKeyDirectives.Apply(schema);
+            TransformRequiresToRequire.Apply(schema);
+            RemoveExternalFields.Apply(schema);
+            StampConnectorKind.Apply(schema);
+        }
 
         if (_options.ExcludeByTag is { } excludeByTag)
         {

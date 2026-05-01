@@ -3,28 +3,33 @@ using System.Diagnostics.CodeAnalysis;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using HotChocolate.Fusion.Execution.Clients;
+using HotChocolate.Fusion.Types;
 
 namespace HotChocolate.Fusion.Configuration.Parsers;
 
 /// <summary>
-/// Built-in parser that claims the <c>http</c> transport and produces a
-/// <see cref="SourceSchemaHttpClientConfiguration"/>.
+/// Built-in fallback parser that produces a default
+/// <see cref="SourceSchemaHttpClientConfiguration"/> from a source schema's
+/// <c>transports.http</c> block.
 /// </summary>
-internal sealed class HttpSourceSchemaClientConfigurationParser : ISourceSchemaClientConfigurationParser
+internal sealed class DefaultGraphQLClientConfigurationParser : ISourceSchemaClientConfigurationParser
 {
     public bool TryParse(
+        FusionSchemaDefinition schema,
         JsonProperty sourceSchema,
-        JsonProperty transport,
-        [NotNullWhen(true)] out ISourceSchemaClientConfiguration? configuration)
+        [NotNullWhen(true)] out ISourceSchemaClientConfiguration[]? configurations)
     {
-        if (transport.Name.Equals("http", StringComparison.OrdinalIgnoreCase))
+        if (!sourceSchema.Value.TryGetProperty("transports", out var transports)
+            || transports.ValueKind != JsonValueKind.Object
+            || !transports.TryGetProperty("http", out var http)
+            || http.ValueKind != JsonValueKind.Object)
         {
-            configuration = CreateHttpClientConfiguration(sourceSchema.Name, transport.Value);
-            return true;
+            configurations = null;
+            return false;
         }
 
-        configuration = null;
-        return false;
+        configurations = [CreateHttpClientConfiguration(sourceSchema.Name, http)];
+        return true;
     }
 
     private static SourceSchemaHttpClientConfiguration CreateHttpClientConfiguration(
