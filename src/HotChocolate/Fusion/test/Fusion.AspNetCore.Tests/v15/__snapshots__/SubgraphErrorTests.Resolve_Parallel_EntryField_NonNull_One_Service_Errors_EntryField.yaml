@@ -51,12 +51,12 @@ sourceSchemas:
         query: Query
       }
 
-      type Other {
-        userId: ID!
-      }
-
       type Query {
         other: Other! @error
+      }
+
+      type Other {
+        userId: ID!
       }
     interactions:
       - request:

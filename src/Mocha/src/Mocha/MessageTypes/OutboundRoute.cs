@@ -76,8 +76,13 @@ public sealed class OutboundRoute
         AssertInitialized();
         AssertNotCompleted();
 
+        if (ReferenceEquals(Endpoint, endpoint))
+        {
+            return;
+        }
+
         Endpoint = endpoint;
-        Destination = Endpoint.Address;
+        Destination ??= Endpoint.Address;
         context.Router.AddOrUpdate(this);
     }
 
@@ -95,6 +100,7 @@ public sealed class OutboundRoute
             throw ThrowHelper.RouteEndpointNotConnected();
         }
 
+        Destination ??= Endpoint.Address;
         context.Router.AddOrUpdate(this);
 
         MarkCompleted();

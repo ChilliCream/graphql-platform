@@ -1,11 +1,11 @@
-﻿schema {
+schema {
   query: Query
-}
-
-type Foo {
-  bar: String @deprecated
 }
 
 type Query {
   foo: String
+}
+
+type Foo {
+  bar: String @deprecated(reason: "No longer supported.")
 }

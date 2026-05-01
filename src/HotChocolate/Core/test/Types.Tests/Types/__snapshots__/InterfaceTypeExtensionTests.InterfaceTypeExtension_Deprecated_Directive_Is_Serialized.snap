@@ -1,12 +1,12 @@
-﻿schema {
+schema {
   query: DummyQuery
-}
-
-interface Foo {
-  description: String! @deprecated
-  name(a: String!): String!
 }
 
 type DummyQuery {
   foo: String!
+}
+
+interface Foo {
+  description: String! @deprecated(reason: "No longer supported.")
+  name(a: String!): String!
 }

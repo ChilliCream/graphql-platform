@@ -15,6 +15,7 @@ using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
+using HotChocolate.Language;
 using HotChocolate.Transport.Http;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -37,11 +38,13 @@ public abstract partial class FusionTestBase : IDisposable
         Action<IApplicationBuilder>? configureApplication = null,
         Action<IFusionGatewayBuilder>? configureGatewayBuilder = null,
         [StringSyntax("json")] string? gatewaySettings = null,
-        string? environmentName = "Development")
+        string? environmentName = "Development",
+        bool disableDefaultSecurity = false)
     {
         var sourceSchemas = new List<SourceSchemaText>();
         var gatewayServices = new ServiceCollection();
-        var gatewayBuilder = gatewayServices.AddGraphQLGatewayServer();
+        var gatewayBuilder = gatewayServices.AddGraphQLGatewayServer(
+            disableDefaultSecurity: disableDefaultSecurity);
         var interactions = new ConcurrentDictionary<string, ConcurrentDictionary<int, SourceSchemaInteraction>>();
         // Interactions are keyed by an atomically-incremented int, but looked up
         // by (OperationPlanId, NodeId) so that parallel mini-plans (e.g. deferred
@@ -69,6 +72,7 @@ public abstract partial class FusionTestBase : IDisposable
                     name,
                     new Uri("http://localhost:5000/graphql"),
                     capabilities: sourceSchemaOptions.Capabilities,
+                    onError: sourceSchemaOptions.OnError,
                     defaultAcceptHeaderValues: sourceSchemaOptions.DefaultAcceptHeaderValues,
                     batchingAcceptHeaderValues: sourceSchemaOptions.BatchingAcceptHeaderValues,
                     subscriptionAcceptHeaderValues: sourceSchemaOptions.SubscriptionAcceptHeaderValues,
@@ -165,6 +169,7 @@ public abstract partial class FusionTestBase : IDisposable
         {
             o.CollectOperationPlanTelemetry = false;
             o.AllowErrorHandlingModeOverride = true;
+            o.AllowOperationPlanRequests = true;
         });
         configureGatewayBuilder?.Invoke(gatewayBuilder);
 
@@ -336,6 +341,8 @@ public abstract partial class FusionTestBase : IDisposable
         public ImmutableArray<MediaTypeWithQualityHeaderValue>? BatchingAcceptHeaderValues { get; set; }
 
         public ImmutableArray<MediaTypeWithQualityHeaderValue>? SubscriptionAcceptHeaderValues { get; set; }
+
+        public ErrorHandlingMode? OnError { get; set; }
     }
 
     private sealed class OperationPlanHttpRequestInterceptor : DefaultHttpRequestInterceptor

@@ -1,6 +1,7 @@
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.PersistedOperations;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Fusion.Diagnostics.ActivityTestHelper;
@@ -221,7 +222,7 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
         {
             // arrange
             var storage = new InMemoryOperationDocumentStorage();
-            storage.Add("sayHelloOp", "{ sayHello }");
+            storage.Add("say-hello-persisted-id", "{ sayHello }");
 
             using var server1 = CreateSourceSchema(
                 "a",
@@ -240,7 +241,7 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             var executor = await gateway.Services.GetRequestExecutorAsync();
 
             // act
-            await executor.ExecuteAsync(OperationRequest.FromId("sayHelloOp"));
+            await executor.ExecuteAsync(OperationRequest.FromId("say-hello-persisted-id"));
 
             // assert
             activities.MatchSnapshot();
@@ -731,7 +732,13 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
     {
         public string SayHello() => "hello";
 
-        public string CauseFatalError() => throw new GraphQLException("fail");
+        public string CauseFatalError(IResolverContext context)
+            => throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage("fail")
+                    .SetCode("CUSTOM_ERROR_CODE")
+                    .SetPath(context.Path)
+                    .Build());
 
         public Deep Deep() => new();
     }
@@ -763,14 +770,26 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
 
     public class DeeperB
     {
-        public string CauseFatalError() => throw new GraphQLException("deep fail");
+        public string CauseFatalError(IResolverContext context)
+            => throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage("deep fail")
+                    .SetCode("CUSTOM_ERROR_CODE")
+                    .SetPath(context.Path)
+                    .Build());
     }
 
     public class Deep
     {
         public Deeper Deeper() => new();
 
-        public string CauseFatalError() => throw new GraphQLException("fail");
+        public string CauseFatalError(IResolverContext context)
+            => throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage("fail")
+                    .SetCode("CUSTOM_ERROR_CODE")
+                    .SetPath(context.Path)
+                    .Build());
     }
 
     public class Deeper
@@ -796,8 +815,13 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
         }
 
         [Subscribe(With = nameof(OnFailingMessageStream))]
-        public string OnFailingMessage([EventMessage] string message)
-            => throw new InvalidOperationException("Subscription event failed.");
+        public string OnFailingMessage([EventMessage] string message, IResolverContext context)
+            => throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage("Subscription event failed.")
+                    .SetCode("CUSTOM_ERROR_CODE")
+                    .SetPath(context.Path)
+                    .Build());
     }
 
     private sealed class NoopOperationDocumentStorage : IOperationDocumentStorage

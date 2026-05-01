@@ -264,10 +264,20 @@ public sealed class PostgresMessagingTransport : MessagingTransport
     /// <inheritdoc />
     public override bool TryGetDispatchEndpoint(Uri address, [NotNullWhen(true)] out DispatchEndpoint? endpoint)
     {
+        if (TryGetReplyDispatchEndpoint(address, out endpoint))
+        {
+            return true;
+        }
+
         if (address.Scheme == Schema)
         {
             foreach (var candidate in DispatchEndpoints)
             {
+                if (!candidate.IsCompleted)
+                {
+                    continue;
+                }
+
                 if (candidate.Address == address)
                 {
                     endpoint = candidate;
@@ -280,6 +290,11 @@ public sealed class PostgresMessagingTransport : MessagingTransport
         {
             foreach (var candidate in DispatchEndpoints)
             {
+                if (!candidate.IsCompleted)
+                {
+                    continue;
+                }
+
                 if (candidate.Destination.Address == address)
                 {
                     endpoint = candidate;
@@ -288,10 +303,15 @@ public sealed class PostgresMessagingTransport : MessagingTransport
             }
         }
 
-        if (address is { Scheme: "queue", Host: { Length: > 0 } queueName })
+        if (TryGetResourceName(address, "queue", out var queueName))
         {
             foreach (var candidate in DispatchEndpoints)
             {
+                if (!candidate.IsCompleted)
+                {
+                    continue;
+                }
+
                 if (candidate.Destination is PostgresQueue queue && queue.Name == queueName)
                 {
                     endpoint = candidate;
@@ -300,10 +320,15 @@ public sealed class PostgresMessagingTransport : MessagingTransport
             }
         }
 
-        if (address is { Scheme: "topic", Host: { Length: > 0 } topicName })
+        if (TryGetResourceName(address, "topic", out var topicName))
         {
             foreach (var candidate in DispatchEndpoints)
             {
+                if (!candidate.IsCompleted)
+                {
+                    continue;
+                }
+
                 if (candidate.Destination is PostgresTopic topic && topic.Name == topicName)
                 {
                     endpoint = candidate;

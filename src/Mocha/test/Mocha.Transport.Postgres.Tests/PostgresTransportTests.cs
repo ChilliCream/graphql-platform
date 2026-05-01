@@ -105,6 +105,21 @@ public class PostgresTransportTests
     }
 
     [Fact]
+    public void TryGetDispatchEndpoint_Should_ReturnReplyDispatchEndpoint_When_ReplyAliasUsed()
+    {
+        // arrange
+        var runtime = CreateRuntimeWithHandlers(b => b.AddEventHandler<OrderCreatedHandler>());
+        var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
+
+        // act
+        var found = transport.TryGetDispatchEndpoint(new Uri("postgres:replies"), out var endpoint);
+
+        // assert
+        Assert.True(found);
+        Assert.Same(transport.ReplyDispatchEndpoint, endpoint);
+    }
+
+    [Fact]
     public void TryGetDispatchEndpoint_Should_Resolve_When_TopologyBaseAddressUsed()
     {
         // arrange
@@ -490,7 +505,7 @@ public class PostgresTransportTests
     }
 
     [Fact]
-    public void CreateEndpointConfiguration_Should_CreateReplyConfig_When_PostgresRepliesPath()
+    public void CreateEndpointConfiguration_Should_CreateReplyConfig_When_InternalPostgresReplyAddressUsed()
     {
         // arrange
         var runtime = CreateRuntimeWithHandlers(b => b.AddEventHandler<OrderCreatedHandler>());
@@ -498,7 +513,7 @@ public class PostgresTransportTests
         var context = (IMessagingConfigurationContext)runtime;
 
         // act
-        var config = transport.CreateEndpointConfiguration(context, new Uri("postgres:///replies"));
+        var config = transport.CreateEndpointConfiguration(context, new Uri("postgres:replies"));
 
         // assert
         Assert.NotNull(config);

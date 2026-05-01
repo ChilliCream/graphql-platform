@@ -66,12 +66,12 @@ sourceSchemas:
         query: Query
       }
 
-      type Other {
-        userId: ID! @error
-      }
-
       type Query {
         other: Other
+      }
+
+      type Other {
+        userId: ID! @error
       }
     interactions:
       - request:

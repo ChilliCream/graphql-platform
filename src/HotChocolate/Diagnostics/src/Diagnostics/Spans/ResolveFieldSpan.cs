@@ -26,11 +26,11 @@ internal sealed class ResolveFieldSpan(
 
         activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Resolve);
 
-        activity.SetTag(GraphQL.Selection.Name, selection.ResponseName);
-        activity.SetTag(GraphQL.Selection.Path, context.Path.Print());
-        activity.SetTag(GraphQL.Selection.Field.Name, coordinate.MemberName);
-        activity.SetTag(GraphQL.Selection.Field.Coordinate, activity.DisplayName);
-        activity.SetTag(GraphQL.Selection.Field.ParentType, coordinate.Name);
+        activity.SetTag(GraphQL.Field.Alias, selection.ResponseName);
+        activity.SetTag(GraphQL.Field.Path, context.Path.Print());
+        activity.SetTag(GraphQL.Field.Name, coordinate.MemberName);
+        activity.SetTag(GraphQL.Field.Coordinate, activity.DisplayName);
+        activity.SetTag(GraphQL.Field.ParentType, coordinate.Name);
 
         return new ResolveFieldSpan(activity, context, enricher);
     }

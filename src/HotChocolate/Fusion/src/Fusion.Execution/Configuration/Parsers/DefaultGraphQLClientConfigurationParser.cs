@@ -4,12 +4,13 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Types;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Configuration.Parsers;
 
 /// <summary>
 /// Built-in fallback parser that produces a default
-/// <see cref="SourceSchemaHttpClientConfiguration"/> from a source schema's
+/// <see cref="HttpSourceSchemaClientConfiguration"/> from a source schema's
 /// <c>transports.http</c> block.
 /// </summary>
 internal sealed class DefaultGraphQLClientConfigurationParser : ISourceSchemaClientConfigurationParser
@@ -32,16 +33,17 @@ internal sealed class DefaultGraphQLClientConfigurationParser : ISourceSchemaCli
         return true;
     }
 
-    private static SourceSchemaHttpClientConfiguration CreateHttpClientConfiguration(
+    private static HttpSourceSchemaClientConfiguration CreateHttpClientConfiguration(
         string schemaName,
         JsonElement http)
     {
-        var clientName = SourceSchemaHttpClientConfiguration.DefaultClientName;
+        var clientName = HttpSourceSchemaClientConfiguration.DefaultClientName;
         var capabilities = SourceSchemaClientCapabilities.All;
         var supportedOperations = SupportedOperationType.All;
         ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null;
         ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null;
         ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null;
+        ErrorHandlingMode? onError = null;
 
         if (http.TryGetProperty("clientName", out var clientNameProperty)
             && clientNameProperty.ValueKind is JsonValueKind.String
@@ -95,6 +97,14 @@ internal sealed class DefaultGraphQLClientConfigurationParser : ISourceSchemaCli
                 }
             }
 
+            if (capabilitiesElement.TryGetProperty("onError", out var onErrorElement)
+                && onErrorElement.ValueKind is JsonValueKind.String
+                && onErrorElement.GetString() is { } onErrorValue
+                && Enum.TryParse<ErrorHandlingMode>(onErrorValue, ignoreCase: true, out var parsedOnError))
+            {
+                onError = parsedOnError;
+            }
+
             if (capabilitiesElement.TryGetProperty("subscriptions", out var subscriptionsElement))
             {
                 if (subscriptionsElement.TryGetProperty("supported", out var supported)
@@ -117,12 +127,13 @@ internal sealed class DefaultGraphQLClientConfigurationParser : ISourceSchemaCli
             }
         }
 
-        return new SourceSchemaHttpClientConfiguration(
+        return new HttpSourceSchemaClientConfiguration(
             name: schemaName,
             httpClientName: clientName,
             baseAddress: new Uri(http.GetProperty("url").GetString()!),
             supportedOperations: supportedOperations,
             capabilities: capabilities,
+            onError: onError,
             defaultAcceptHeaderValues: defaultAcceptHeaderValues,
             batchingAcceptHeaderValues: batchingAcceptHeaderValues,
             subscriptionAcceptHeaderValues: subscriptionAcceptHeaderValues);

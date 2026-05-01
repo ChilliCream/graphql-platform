@@ -1,4 +1,5 @@
 using HotChocolate.Diagnostics;
+using HotChocolate.Resolvers;
 using HotChocolate.Transport.Http;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Fusion.Diagnostics.ActivityTestHelper;
@@ -418,7 +419,13 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
 
         public string Greeting(string name) => $"Hello, {name}!";
 
-        public string CauseFatalError() => throw new GraphQLException("fail");
+        public string CauseFatalError(IResolverContext context)
+            => throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage("fail")
+                    .SetCode("CUSTOM_ERROR_CODE")
+                    .SetPath(context.Path)
+                    .Build());
 
         public Deep Deep() => new();
     }

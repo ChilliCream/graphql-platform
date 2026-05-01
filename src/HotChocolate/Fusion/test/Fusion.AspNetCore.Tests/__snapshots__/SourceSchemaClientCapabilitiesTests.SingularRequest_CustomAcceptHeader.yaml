@@ -27,6 +27,12 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        books: [Book!]!
+        bookById(id: ID!): Book @lookup @internal
+        authorById(id: ID!): Author @lookup @internal
+      }
+
       type Author {
         id: ID!
       }
@@ -35,12 +41,6 @@ sourceSchemas:
         author: Author
         id: ID!
         title: String!
-      }
-
-      type Query {
-        books: [Book!]!
-        bookById(id: ID!): Book @lookup @internal
-        authorById(id: ID!): Author @lookup @internal
       }
     interactions:
       - request:

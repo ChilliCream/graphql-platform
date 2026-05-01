@@ -37,8 +37,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
       }
 
       type Discussion implements Node {
@@ -50,8 +50,8 @@ sourceSchemas:
         id: ID!
       }
 
-      type Query {
-        node(id: ID!): Node @lookup @shareable
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:
@@ -91,21 +91,21 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
       }
 
       type Product @key(fields: "id") {
         id: ID!
       }
 
-      type Query {
-        node(id: ID!): Node @lookup @shareable
-      }
-
       type Review implements Node {
         id: ID!
         product: Product
+      }
+
+      interface Node {
+        id: ID!
       }
   - name: C
     schema: |
@@ -113,8 +113,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
       }
 
       type Product implements Node {
@@ -122,8 +122,8 @@ sourceSchemas:
         name: String
       }
 
-      type Query {
-        node(id: ID!): Node @lookup @shareable
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:

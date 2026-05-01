@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace Mocha.Transport.InMemory.Tests.Helpers;
 
-public static partial class TopologySnapshotHelper
+internal static partial class TopologySnapshotHelper
 {
     private static readonly JsonSerializerOptions s_jsonOptions = new()
     {

@@ -53,6 +53,7 @@ dotnet test src/HotChocolate/Fusion
 - No vacuous assertions (`Assert.NotNull` alone is not a test)
 - If you need 8 stubs + reflection, you're at the wrong test tier
 - Do not use em dash style sentences in docs, comments, or XML documentation. Use commas, periods, parentheses, or colons instead.
+- XML docs should describe the contract and concepts, not internals like pooling, iteration mechanics or leak other implementation detail.
 
 ### Testing
 

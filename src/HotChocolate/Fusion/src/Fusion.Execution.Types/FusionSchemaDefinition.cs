@@ -530,7 +530,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
         => SchemaFormatter.FormatAsDocument(this);
 
     ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode()
-        => SchemaFormatter.FormatAsDocument(this);
+        => ToSyntaxNode();
 
     public async ValueTask DisposeAsync()
     {

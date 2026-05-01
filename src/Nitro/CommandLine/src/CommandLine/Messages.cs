@@ -28,6 +28,11 @@ internal static class Messages
     public static string FailedToOpenLegacyArchive(string filePath, string detail)
         => $"Failed to open legacy v1 archive '{filePath}': {detail}";
 
+    public static string LegacyArchiveRequiredForFgpStage(string stageName)
+        => $"Stage '{stageName.EscapeMarkup()}' currently has a Fusion v1 archive but no '{OptionalLegacyFusionArchiveFileOption.OptionName}' was provided. "
+            + "The server-stored Fusion v1 archive may be outdated and cannot be used as the composition base. "
+            + $"Please provide a local Fusion v1 archive via '{OptionalLegacyFusionArchiveFileOption.OptionName}'.";
+
     public static string LegacyArchiveCorrupt(string filePath, string detail)
         => $"Legacy v1 archive '{filePath}' is corrupt or malformed: {detail}";
 

@@ -135,6 +135,7 @@ public sealed class OperationExecutionNode : ExecutionNode
         {
             // we execute the GraphQL request against a source schema
             var client = context.GetClient(schemaName, _operation.Type);
+            using var clientScope = diagnosticEvents.ExecuteSourceSchemaRequest(context, this, schemaName);
             var response = await client.ExecuteAsync(context, request, cancellationToken).ConfigureAwait(false);
             context.TrackSourceSchemaClientResponse(this, response);
 

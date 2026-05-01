@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>ChilliCream.Nitro.Adapters.OpenApi.Packaging</RootNamespace>
+    <PackageId>ChilliCream.Nitro.Adapters.OpenApi.Packaging</PackageId>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+    <PackageReference Include="System.IO.Pipelines" />
+  </ItemGroup>
+
+</Project>

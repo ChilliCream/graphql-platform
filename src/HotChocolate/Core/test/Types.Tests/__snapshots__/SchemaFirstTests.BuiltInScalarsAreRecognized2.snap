@@ -1,5 +1,9 @@
-﻿schema {
+schema {
   query: Query
+}
+
+type Query {
+  foo: Foo
 }
 
 type Foo {
@@ -11,8 +15,4 @@ type Foo {
   float_non_null_field: Float!
   bool_field: Boolean
   bool_non_null_field: Boolean!
-}
-
-type Query {
-  foo: Foo
 }

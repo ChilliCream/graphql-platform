@@ -28,13 +28,13 @@ public class SchemaTests
               query: Query
             }
 
+            type Query {
+              book: Book! @cacheControl(maxAge: 0)
+            }
+
             type Book {
               title: String! @cacheControl(maxAge: 5000)
               description: String!
-            }
-
-            type Query {
-              book: Book! @cacheControl(maxAge: 0)
             }
 
             "The scope of a cache hint."
@@ -59,9 +59,6 @@ public class SchemaTests
               vary: [String]
             ) on OBJECT | FIELD_DEFINITION | INTERFACE | UNION
 
-            "The `@oneOf` directive is used within the type system definition language to indicate that an Input Object is a OneOf Input Object."
-            directive @oneOf on INPUT_OBJECT
-
             """
             The @tag directive is used to apply arbitrary string
             metadata to a schema location. Custom tooling can use
@@ -74,7 +71,18 @@ public class SchemaTests
               author: String!
             }
             """
-            directive @tag("The name of the tag." name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
+            directive @tag("The name of the tag." name: String!) repeatable on
+              | SCHEMA
+              | SCALAR
+              | OBJECT
+              | FIELD_DEFINITION
+              | ARGUMENT_DEFINITION
+              | INTERFACE
+              | UNION
+              | ENUM
+              | ENUM_VALUE
+              | INPUT_OBJECT
+              | INPUT_FIELD_DEFINITION
             """");
     }
 

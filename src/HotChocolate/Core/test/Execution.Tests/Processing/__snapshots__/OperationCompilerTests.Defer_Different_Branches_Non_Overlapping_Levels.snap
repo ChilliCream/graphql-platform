@@ -39,10 +39,20 @@
               }
             }
             e
-              @__execute(id: 8, kind: DEFAULT, type: COMPOSITE, isDeferred: true) {
+              @__execute(
+                id: 8
+                kind: DEFAULT
+                type: COMPOSITE
+                isDeferred: true
+              ) {
               ... on E {
                 f
-                  @__execute(id: 12, kind: DEFAULT, type: LEAF, isDeferred: true)
+                  @__execute(
+                    id: 12
+                    kind: DEFAULT
+                    type: LEAF
+                    isDeferred: true
+                  )
               }
             }
           }

@@ -14,18 +14,16 @@ type Foo implements Bar & Baz {
   """
   This is a description of the `two` field.
   """
-  two("""
-  This is a description of the `argument` argument.
-  """ argument: InputType!): Type
+  two(
+    """
+    This is a description of the `argument` argument.
+    """
+    argument: InputType!
+  ): Type
   three(argument: InputType, other: String): Int
   four(argument: String = "string"): String
-  five(argument: [String] = [
-    "string",
-    "string"
-  ]): String
-  six(argument: InputType = {
-    key: "value"
-  }): Type
+  five(argument: [String] = ["string", "string"]): String
+  six(argument: InputType = { key: "value" }): Type
   seven(argument: Int): Type
 }
 
@@ -72,11 +70,11 @@ union AnnotatedUnion @onUnion = A | B
 
 union AnnotatedUnionTwo @onUnion = A | B
 
-union UndefinedUnion = 
+union UndefinedUnion =
 
 extend union Feed = Photo | Video
 
-extend union Feed @onUnion = 
+extend union Feed @onUnion =
 
 scalar CustomScalar
 
@@ -129,7 +127,10 @@ extend input InputType @onInputObject {
 
 directive @skip(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
 
-directive @skip2(if: Boolean!) repeatable on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+directive @skip2(if: Boolean!) repeatable on
+  | FIELD
+  | FRAGMENT_SPREAD
+  | INLINE_FRAGMENT
 
 directive @include(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
 

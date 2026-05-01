@@ -57,6 +57,7 @@ public class FusionOpenApiIntegrationTests : OpenApiIntegrationTestBase
     {
         services.AddGraphQLGatewayServer()
             .AddInMemoryConfiguration(_compositeSchema)
+            .AddOpenApi()
             .AddOpenApiDefinitionStorage(storage);
     }
 }

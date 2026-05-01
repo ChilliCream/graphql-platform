@@ -23,7 +23,7 @@ public sealed partial class OperationPlanContext
     internal void Initialize(
         RequestContext requestContext,
         IVariableValueCollection variables,
-        OperationPlan operationPlan,
+        IOperationPlan operationPlan,
         CancellationTokenSource cancellationTokenSource)
     {
         ArgumentNullException.ThrowIfNull(requestContext);
@@ -79,6 +79,8 @@ public sealed partial class OperationPlanContext
         OperationPlan = default!;
         DeferFlags = 0;
         _clientScope = default!;
+        _requirementValues = default;
+        _requirementKeys = null;
         Traces =
 #if NET10_0_OR_GREATER
             [];

@@ -27,12 +27,12 @@ sourceSchemas:
         query: Query
       }
 
-      type Product {
-        id: ID! @shareable
-      }
-
       type Query {
         productBySlug(slug: String!): Product
+      }
+
+      type Product {
+        id: ID! @shareable
       }
     interactions:
       - request:
@@ -59,13 +59,13 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        productById(id: ID!): Product @lookup @shareable
+      }
+
       type Product {
         id: ID!
         size: Int!
-      }
-
-      type Query {
-        productById(id: ID!): Product @lookup @shareable
       }
   - name: C
     schema: |
@@ -73,14 +73,14 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        productById(id: ID!): Product @lookup @shareable
+      }
+
       type Product {
         id: ID!
         dimension(size: Int! @require(field: "size")): String
         price: Int!
-      }
-
-      type Query {
-        productById(id: ID!): Product @lookup @shareable
       }
     interactions:
       - request:

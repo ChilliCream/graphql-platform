@@ -6,7 +6,6 @@
 using Mocha;
 using Mocha.Middlewares;
 using Mocha.Transport.InMemory;
-using Mocha.Hosting;
 
 // To collect Mocha spans and metrics with the .NET OpenTelemetry SDK, add
 // the packages below and configure tracing/metrics as shown in the comments.
@@ -61,11 +60,6 @@ app.MapGet("/orders", async (IMessageBus bus) =>
 
     return Results.Ok(new { OrderId = orderId, Status = "Published" });
 });
-
-if (app.Environment.IsDevelopment())
-{
-    app.MapMessageBusDeveloperTopology();
-}
 
 app.Run();
 

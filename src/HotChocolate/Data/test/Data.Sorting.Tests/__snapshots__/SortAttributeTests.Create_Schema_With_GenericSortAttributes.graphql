@@ -2,14 +2,14 @@ schema {
   query: Query5
 }
 
+type Query5 {
+  foos(order: [FooSortInput!]): [Foo!]!
+}
+
 type Foo {
   bar: String!
   baz: Int!
   qux: Int
-}
-
-type Query5 {
-  foos(order: [FooSortInput!]): [Foo!]!
 }
 
 input FooSortInput {

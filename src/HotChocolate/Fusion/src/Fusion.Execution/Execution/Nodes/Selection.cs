@@ -11,13 +11,13 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 /// </summary>
 public sealed class Selection : ISelection
 {
-    private static readonly DeferUsage[] s_emptyDeferUsages = [];
+    private static readonly DeliveryGroup[] s_emptyDeliveryGroups = [];
 
     private readonly FieldSelectionNode[] _syntaxNodes;
     private readonly ulong[] _includeFlags;
     private readonly byte[] _utf8ResponseName;
     private readonly ulong _deferMask;
-    private readonly DeferUsage[] _deferUsages;
+    private readonly DeliveryGroup[] _deliveryGroups;
     private Flags _flags;
 
     public Selection(
@@ -28,7 +28,7 @@ public sealed class Selection : ISelection
         ulong[] includeFlags,
         bool isInternal,
         ulong deferMask = 0,
-        DeferUsage[]? deferUsages = null)
+        DeliveryGroup[]? deliveryGroups = null)
     {
         ArgumentNullException.ThrowIfNull(field);
 
@@ -45,7 +45,7 @@ public sealed class Selection : ISelection
         _syntaxNodes = syntaxNodes;
         _includeFlags = includeFlags;
         _deferMask = deferMask;
-        _deferUsages = deferUsages ?? s_emptyDeferUsages;
+        _deliveryGroups = deliveryGroups ?? s_emptyDeliveryGroups;
         _flags = isInternal ? Flags.Internal : Flags.None;
 
         if (field.Type.NamedType().IsLeafType())
@@ -86,6 +86,27 @@ public sealed class Selection : ISelection
 
     /// <inheritdoc />
     ISelectionSet ISelection.DeclaringSelectionSet => DeclaringSelectionSet;
+
+    /// <summary>
+    /// Gets the child selection set for this selection's named return type.
+    /// </summary>
+    /// <returns>
+    /// The child selection set, or <c>null</c> when this selection has no child
+    /// selection set.
+    /// </returns>
+    public SelectionSet? GetSelectionSet()
+        => IsLeaf ? null : DeclaringSelectionSet.DeclaringOperation.GetSelectionSet(this);
+
+    /// <summary>
+    /// Gets the child selection set for this selection and the specified
+    /// <paramref name="typeContext"/>.
+    /// </summary>
+    /// <returns>
+    /// The child selection set, or <c>null</c> when this selection has no child
+    /// selection set.
+    /// </returns>
+    public SelectionSet? GetSelectionSet(IObjectTypeDefinition typeContext)
+        => IsLeaf ? null : DeclaringSelectionSet.DeclaringOperation.GetSelectionSet(this, typeContext);
 
     /// <summary>
     /// Gets the syntax nodes that contributed to this selection.
@@ -174,31 +195,30 @@ public sealed class Selection : ISelection
     public bool IsDeferred(ulong deferFlags) => (_deferMask & deferFlags) != 0;
 
     /// <summary>
-    /// Returns the active defer usages for this selection given the runtime
-    /// <paramref name="deferFlags"/>, after resolving inactive defers to their
-    /// nearest active ancestor and applying parent-child pruning (ancestors win).
-    /// Returns <c>null</c> when any occurrence of the field falls outside an
-    /// active defer chain (meaning the field belongs in the initial response).
+    /// Returns the active delivery groups for this selection after resolving
+    /// each occurrence to its nearest active ancestor and pruning child groups
+    /// whose parent is also active. Returns <c>null</c> when the selection
+    /// belongs to the initial result.
     /// </summary>
-    public DeferUsage[]? GetActiveDeferUsages(ulong deferFlags)
+    public DeliveryGroup[]? GetActiveDeliveryGroups(ulong deferFlags)
     {
-        if (_deferUsages.Length == 0)
+        if (_deliveryGroups.Length == 0)
         {
             return null;
         }
 
-        if (_deferUsages.Length == 1)
+        if (_deliveryGroups.Length == 1)
         {
-            var active = ResolveActiveAncestor(_deferUsages[0], deferFlags);
+            var active = ResolveActiveAncestor(_deliveryGroups[0], deferFlags);
             return active is null ? null : [active];
         }
 
-        DeferUsage[]? result = null;
+        DeliveryGroup[]? result = null;
         var count = 0;
 
-        for (var i = 0; i < _deferUsages.Length; i++)
+        for (var i = 0; i < _deliveryGroups.Length; i++)
         {
-            var effective = ResolveActiveAncestor(_deferUsages[i], deferFlags);
+            var effective = ResolveActiveAncestor(_deliveryGroups[i], deferFlags);
 
             if (effective is null)
             {
@@ -221,7 +241,7 @@ public sealed class Selection : ISelection
 
             if (!duplicate)
             {
-                result ??= new DeferUsage[_deferUsages.Length];
+                result ??= new DeliveryGroup[_deliveryGroups.Length];
                 result[count++] = effective;
             }
         }
@@ -269,23 +289,23 @@ nextItem:
     }
 
     /// <summary>
-    /// Determines whether <paramref name="target"/> is among this selection's
-    /// active defer usages under the runtime <paramref name="deferFlags"/>
-    /// (using the same parent-chain walk and parent-child pruning as
-    /// <see cref="GetActiveDeferUsages(ulong)"/>).
+    /// Determines whether <paramref name="target"/> is the nearest active
+    /// delivery group for any occurrence of this selection under the specified
+    /// <paramref name="deferFlags"/>. Returns <c>false</c> if any occurrence
+    /// belongs to the initial result.
     /// </summary>
-    public bool HasActiveDeferUsage(ulong deferFlags, DeferUsage target)
+    public bool HasActiveDeliveryGroup(ulong deferFlags, DeliveryGroup target)
     {
-        if (_deferUsages.Length == 0)
+        if (_deliveryGroups.Length == 0)
         {
             return false;
         }
 
         var found = false;
 
-        for (var i = 0; i < _deferUsages.Length; i++)
+        for (var i = 0; i < _deliveryGroups.Length; i++)
         {
-            var effective = ResolveActiveAncestor(_deferUsages[i], deferFlags);
+            var effective = ResolveActiveAncestor(_deliveryGroups[i], deferFlags);
 
             if (effective is null)
             {
@@ -302,24 +322,21 @@ nextItem:
         return found;
     }
 
-    // Walks up the @defer parent chain and returns the first one that is
-    // actually turned on for this request (its bit in deferFlags is set).
-    // A nested @defer whose own `if:` is false falls back to its enclosing
-    // @defer. If none on the chain are active, returns null, meaning the
-    // field is not deferred at this occurrence.
+    // Returns the nearest active delivery group in the @defer parent chain.
+    // If none are active, the field occurrence belongs to the initial result.
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static DeferUsage? ResolveActiveAncestor(DeferUsage start, ulong deferFlags)
+    private static DeliveryGroup? ResolveActiveAncestor(DeliveryGroup start, ulong deferFlags)
     {
-        var usage = start;
+        var deliveryGroup = start;
 
-        while (usage is not null)
+        while (deliveryGroup is not null)
         {
-            if ((deferFlags & (1UL << usage.DeferConditionIndex)) != 0)
+            if ((deferFlags & (1UL << deliveryGroup.DeferConditionIndex)) != 0)
             {
-                return usage;
+                return deliveryGroup;
             }
 
-            usage = usage.Parent;
+            deliveryGroup = deliveryGroup.Parent;
         }
 
         return null;

@@ -28,16 +28,6 @@ sourceSchemas:
         query: Query
       }
 
-      interface IInterface @key(fields: "id") {
-        id: Int!
-      }
-
-      type Product implements IInterface {
-        id: Int!
-        schema1: String!
-        shared: SharedProduct @shareable
-      }
-
       type Query {
         productById(id: Int!): Product @lookup
         viewer: Viewer! @shareable
@@ -46,6 +36,12 @@ sourceSchemas:
         unsharedInterface: IInterface!
         union: IUnion! @shareable
         topReview: Review! @shareable
+      }
+
+      type Product implements IInterface {
+        id: Int!
+        schema1: String!
+        shared: SharedProduct @shareable
       }
 
       type Review implements IInterface {
@@ -69,6 +65,10 @@ sourceSchemas:
 
       type ViewerSettings {
         schema1: String!
+      }
+
+      interface IInterface @key(fields: "id") {
+        id: Int!
       }
 
       union IUnion = Product | Review
@@ -103,16 +103,6 @@ sourceSchemas:
         query: Query
       }
 
-      interface IInterface @key(fields: "id") {
-        id: Int!
-      }
-
-      type Product implements IInterface {
-        id: Int!
-        schema2: String!
-        shared: SharedProduct @shareable
-      }
-
       type Query {
         product(id: Int!): Product @lookup
         viewer: Viewer! @shareable
@@ -120,6 +110,12 @@ sourceSchemas:
         interface: IInterface! @shareable
         union: IUnion! @shareable
         topReview: Review! @shareable
+      }
+
+      type Product implements IInterface {
+        id: Int!
+        schema2: String!
+        shared: SharedProduct @shareable
       }
 
       type Review implements IInterface {
@@ -143,6 +139,10 @@ sourceSchemas:
 
       type ViewerSettings {
         schema2: String!
+      }
+
+      interface IInterface @key(fields: "id") {
+        id: Int!
       }
 
       union IUnion = Product | Review

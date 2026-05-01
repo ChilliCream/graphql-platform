@@ -465,4 +465,324 @@ public class SchemaParserTests
             "A directive with the name '@foo' has already been defined.",
             Assert.Throws<SchemaInitializationException>(Action).Message);
     }
+
+    [Fact]
+    public void Parse_Should_AddDirectiveToExistingField_When_ExtensionRedeclaresField()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Query { id: String }
+
+            extend type Query {
+                id: String @deprecated(reason: "Use newId")
+            }
+            """;
+
+        // act
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        var queryType = Assert.IsType<MutableObjectTypeDefinition>(schema.Types["Query"]);
+        var field = Assert.Single(queryType.Fields.AsEnumerable());
+        Assert.Equal("id", field.Name);
+        Assert.True(field.IsDeprecated);
+        Assert.Equal("Use newId", field.DeprecationReason);
+        Assert.True(field.Directives.ContainsName("deprecated"));
+    }
+
+    [Fact]
+    public void Parse_Should_AddArgumentToExistingField_When_ExtensionAddsNewArgument()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Query {
+                user(id: String): String
+            }
+
+            extend type Query {
+                user(name: String): String
+            }
+            """;
+
+        // act
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        var queryType = Assert.IsType<MutableObjectTypeDefinition>(schema.Types["Query"]);
+        var field = Assert.Single(queryType.Fields.AsEnumerable());
+        Assert.Collection(
+            field.Arguments.AsEnumerable(),
+            arg => Assert.Equal("id", arg.Name),
+            arg => Assert.Equal("name", arg.Name));
+    }
+
+    [Fact]
+    public void Parse_Should_AddDirectiveToExistingArgument_When_ExtensionRedeclaresArgument()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Query {
+                user(id: String): String
+            }
+
+            extend type Query {
+                user(id: String @deprecated(reason: "Use newId")): String
+            }
+            """;
+
+        // act
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        var queryType = Assert.IsType<MutableObjectTypeDefinition>(schema.Types["Query"]);
+        var field = Assert.Single(queryType.Fields.AsEnumerable());
+        var argument = Assert.Single(field.Arguments.AsEnumerable());
+        Assert.Equal("id", argument.Name);
+        Assert.True(argument.IsDeprecated);
+        Assert.Equal("Use newId", argument.DeprecationReason);
+        Assert.True(argument.Directives.ContainsName("deprecated"));
+    }
+
+    [Fact]
+    public void Parse_Should_RetainOriginalDescription_When_ExtensionRedeclaresFieldWithoutDescription()
+    {
+        // arrange
+        const string sdl =
+            """"
+            type Query {
+                """desc"""
+                id: String
+            }
+
+            extend type Query {
+                id: String @deprecated
+            }
+            """";
+
+        // act
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        var queryType = Assert.IsType<MutableObjectTypeDefinition>(schema.Types["Query"]);
+        var field = Assert.Single(queryType.Fields.AsEnumerable());
+        Assert.Equal("desc", field.Description);
+        Assert.True(field.IsDeprecated);
+    }
+
+    [Fact]
+    public void Parse_Should_Throw_When_ExtensionRedeclaresFieldWithDifferentDescription()
+    {
+        // arrange
+        const string sdl =
+            """"
+            type Query {
+                """original"""
+                id: String
+            }
+
+            extend type Query {
+                """different"""
+                id: String
+            }
+            """";
+
+        // act
+        static void Action() => SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        Assert.Equal(
+            "The description on field 'id' of type 'Query' in the extension does not match the original definition.",
+            Assert.Throws<SchemaInitializationException>(Action).Message);
+    }
+
+    [Fact]
+    public void Parse_Should_Throw_When_ExtensionFieldTypeMismatches()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Query { id: String }
+
+            extend type Query {
+                id: Int
+            }
+            """;
+
+        // act
+        static void Action() => SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        Assert.Equal(
+            "The field 'id' on type 'Query' was extended with a different type than the original definition.",
+            Assert.Throws<SchemaInitializationException>(Action).Message);
+    }
+
+    [Fact]
+    public void Parse_Should_Throw_When_ExtensionArgumentDefaultValueMismatches()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Query {
+                user(id: String = "a"): String
+            }
+
+            extend type Query {
+                user(id: String = "b"): String
+            }
+            """;
+
+        // act
+        static void Action() => SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        Assert.Equal(
+            "The argument 'id' on field 'Query.user' was extended with a different default value than the original "
+            + "definition.",
+            Assert.Throws<SchemaInitializationException>(Action).Message);
+    }
+
+    [Fact]
+    public void Parse_Should_Throw_When_ExtensionAppliesNonRepeatableDirectiveAlreadyApplied()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Query {
+                id: String @deprecated(reason: "first")
+            }
+
+            extend type Query {
+                id: String @deprecated(reason: "second")
+            }
+            """;
+
+        // act
+        static void Action() => SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        Assert.Equal(
+            "The non-repeatable directive '@deprecated' was already applied to 'Query.id' "
+            + "and cannot be applied again by an extension.",
+            Assert.Throws<SchemaInitializationException>(Action).Message);
+    }
+
+    [Fact]
+    public void Parse_Should_AppendBothDirectives_When_ExtensionAppliesRepeatableDirectiveAlreadyApplied()
+    {
+        // arrange
+        const string sdl =
+            """
+            directive @tag(name: String!) repeatable on FIELD_DEFINITION
+
+            type Query {
+                id: String @tag(name: "a")
+            }
+
+            extend type Query {
+                id: String @tag(name: "b")
+            }
+            """;
+
+        // act
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        var queryType = Assert.IsType<MutableObjectTypeDefinition>(schema.Types["Query"]);
+        var field = Assert.Single(queryType.Fields.AsEnumerable());
+        Assert.Equal(2, field.Directives["tag"].Count());
+    }
+
+    [Fact]
+    public void Parse_Should_Throw_When_ExtensionContainsDuplicateFieldNamesWithinItself()
+    {
+        // arrange
+        const string sdl =
+            """
+            extend type Query {
+                id: String
+                id: String
+            }
+            """;
+
+        // act
+        static void Action() => SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        Assert.Equal(
+            "A field with the name 'id' has already been defined on the type 'Query'.",
+            Assert.Throws<SchemaInitializationException>(Action).Message);
+    }
+
+    [Fact]
+    public void Parse_Should_Throw_When_ExtensionFieldDeclaresDuplicateArgumentName()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Query { user: String }
+
+            extend type Query {
+                user(id: String, id: String): String
+            }
+            """;
+
+        // act
+        static void Action() => SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        Assert.Equal(
+            "An argument with the name 'id' has already been defined on the field 'Query.user'.",
+            Assert.Throws<SchemaInitializationException>(Action).Message);
+    }
+
+    [Fact]
+    public void Parse_Should_Throw_When_ExtensionRedeclaresArgumentTwiceWithinSameFieldExtension()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Query { user(id: String): String }
+
+            extend type Query {
+                user(id: String, id: String): String
+            }
+            """;
+
+        // act
+        static void Action() => SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        Assert.Equal(
+            "An argument with the name 'id' has already been defined on the field 'Query.user'.",
+            Assert.Throws<SchemaInitializationException>(Action).Message);
+    }
+
+    [Fact]
+    public void Parse_Should_AddDirectiveToExistingField_When_InterfaceExtensionRedeclaresField()
+    {
+        // arrange
+        const string sdl =
+            """
+            interface Node { id: ID }
+
+            extend interface Node {
+                id: ID @deprecated(reason: "Use newId")
+            }
+            """;
+
+        // act
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        var nodeType = Assert.IsType<MutableInterfaceTypeDefinition>(schema.Types["Node"]);
+        var field = Assert.Single(nodeType.Fields.AsEnumerable());
+        Assert.Equal("id", field.Name);
+        Assert.True(field.IsDeprecated);
+        Assert.Equal("Use newId", field.DeprecationReason);
+        Assert.True(field.Directives.ContainsName("deprecated"));
+    }
 }

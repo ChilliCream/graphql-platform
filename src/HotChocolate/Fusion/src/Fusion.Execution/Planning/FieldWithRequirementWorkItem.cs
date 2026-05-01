@@ -5,13 +5,11 @@ namespace HotChocolate.Fusion.Planning;
 
 internal sealed record FieldRequirementWorkItem(
     FieldSelection Selection,
-    int StepId,
+    RequirementConsumer Consumer,
     Lookup? Lookup = null)
     : WorkItem
 {
     public ExecutionNodeCondition[] Conditions { get; init; } = [];
-
-    public int StepIndex => StepId - 1;
 
     public override double Cost => Lookup is null ? 1 : 2;
 }

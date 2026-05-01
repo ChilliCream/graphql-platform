@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.Extensions.Primitives;
 
 namespace Mocha;
 
@@ -8,6 +9,11 @@ namespace Mocha;
 /// </summary>
 public interface IEndpointRouter
 {
+    /// <summary>
+    /// Gets a change token that fires when the endpoint topology may have changed.
+    /// </summary>
+    IChangeToken GetChangeToken();
+
     /// <summary>
     /// Gets all registered dispatch endpoints.
     /// </summary>

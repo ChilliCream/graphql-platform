@@ -8,6 +8,6 @@ type Query {
 
 directive @deprecated2(
   obsoleteWithReason: Int @deprecated(reason: "reason")
-  obsolete: Int @deprecated
+  obsolete: Int @deprecated(reason: "No longer supported.")
   deprecated: Int @deprecated(reason: "reason")
 ) on FIELD_DEFINITION

@@ -22,11 +22,6 @@ internal static class BuiltInDirectiveTypeReferences
             EnqueueTypeRef(backlog, typeInspector.GetTypeRef(typeof(StreamDirectiveType)), nextIndex++);
         }
 
-        if (context.Options.EnableSemanticNonNull)
-        {
-            EnqueueTypeRef(backlog, typeInspector.GetTypeRef(typeof(SemanticNonNullDirective)), nextIndex++);
-        }
-
         if (context.Options.EnableTag)
         {
             EnqueueTypeRef(backlog, typeInspector.GetTypeRef(typeof(Tag)), nextIndex++);

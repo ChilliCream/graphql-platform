@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using HotChocolate.AspNetCore.Utilities;
+using HotChocolate.Serialization;
 using HotChocolate.Transport.Formatters;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Net.Http.Headers;
@@ -24,6 +25,7 @@ namespace HotChocolate.AspNetCore.Formatters;
 public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 {
     private readonly ConcurrentDictionary<string, CachedSchemaOutput> _schemaCache = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, CachedSemanticNonNullSchemaOutput> _semanticNonNullSchemaCache = new(StringComparer.Ordinal);
     private readonly ITimeProvider _timeProvider;
     private readonly FormatInfo _defaultFormat;
     private readonly FormatInfo _graphqlResponseFormat;
@@ -341,6 +343,40 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         return;
 
         CachedSchemaOutput Update(string _)
+            => new(schema, version, _timeProvider.UtcNow);
+    }
+
+    public async ValueTask FormatSemanticNonNullSchemaAsync(
+        HttpResponse response,
+        ISchemaDefinition schema,
+        ulong version,
+        CancellationToken cancellationToken)
+    {
+        var output = _semanticNonNullSchemaCache.GetOrAdd(schema.Name, Update);
+
+        if (output.Version < version)
+        {
+            lock (_semanticNonNullSchemaCache)
+            {
+                if (!_semanticNonNullSchemaCache.TryGetValue(schema.Name, out output)
+                    || output.Version < version)
+                {
+                    _semanticNonNullSchemaCache[schema.Name] = output = Update(schema.Name);
+                }
+            }
+        }
+
+        var memory = output.AsMemory();
+        response.ContentType = ContentType.GraphQL;
+        response.Headers.SetContentDisposition(output.FileName);
+        response.Headers.ETag = output.ETag;
+        response.Headers.LastModified = output.LastModified;
+        response.Headers.CacheControl = "public, max-age=3600, must-revalidate";
+        response.Headers.ContentLength = memory.Length;
+        await response.Body.WriteAsync(memory, cancellationToken);
+        return;
+
+        CachedSemanticNonNullSchemaOutput Update(string _)
             => new(schema, version, _timeProvider.UtcNow);
     }
 
@@ -835,7 +871,57 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
         public CachedSchemaOutput(ISchemaDefinition schema, ulong version, DateTimeOffset lastModifiedTime)
         {
-            _schema = Encoding.UTF8.GetBytes(schema.ToString());
+            _schema = Encoding.UTF8.GetBytes(
+                SchemaFormatter.FormatAsString(
+                    schema,
+                    new SchemaFormatterOptions
+                    {
+                        IncludeInternalDirectives = false
+                    }));
+            FileName = GetSchemaFileName(schema);
+            ETag = CreateETag(_schema, version);
+            LastModified = lastModifiedTime.ToString("R");
+            Version = version;
+        }
+
+        public string FileName { get; }
+
+        public string ETag { get; }
+
+        public ulong Version { get; }
+
+        public string LastModified { get; }
+
+        public ReadOnlyMemory<byte> AsMemory() => _schema;
+
+        private static string CreateETag(byte[] schema, ulong version)
+        {
+            Span<byte> hashBytes = stackalloc byte[32];
+            SHA256.HashData(schema, hashBytes);
+            var hash = Convert.ToBase64String(hashBytes);
+            return $"\"{version}-{hash}\"";
+        }
+
+        private static string GetSchemaFileName(ISchemaDefinition schema)
+            => schema.Name.Equals(ISchemaDefinition.DefaultName, StringComparison.OrdinalIgnoreCase)
+                ? "schema.graphql"
+                : schema.Name + ".schema.graphql";
+    }
+
+    private sealed class CachedSemanticNonNullSchemaOutput
+    {
+        private readonly byte[] _schema;
+
+        public CachedSemanticNonNullSchemaOutput(ISchemaDefinition schema, ulong version, DateTimeOffset lastModifiedTime)
+        {
+            _schema = Encoding.UTF8.GetBytes(
+                SchemaFormatter.FormatAsString(
+                    schema,
+                    new SchemaFormatterOptions
+                    {
+                        IncludeInternalDirectives = false,
+                        RewriteToSemanticNonNull = true
+                    }));
             FileName = GetSchemaFileName(schema);
             ETag = CreateETag(_schema, version);
             LastModified = lastModifiedTime.ToString("R");

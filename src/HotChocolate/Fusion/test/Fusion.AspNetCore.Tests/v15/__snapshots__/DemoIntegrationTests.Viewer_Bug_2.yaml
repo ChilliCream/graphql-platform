@@ -32,13 +32,13 @@ sourceSchemas:
         query: Query
       }
 
-      type ExclusiveSubgraphA {
-        id: ID!
-      }
-
       type Query {
         exclusiveSubgraphA: ExclusiveSubgraphA
         viewer: Viewer @shareable
+      }
+
+      type ExclusiveSubgraphA {
+        id: ID!
       }
 
       type SubType {

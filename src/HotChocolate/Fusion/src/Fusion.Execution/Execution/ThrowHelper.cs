@@ -15,9 +15,9 @@ internal static class ThrowHelper
             FusionExecutionResources.OperationPlan_NodeNotFound,
             id));
 
-    public static InvalidOperationException DeferredSubPlanParentNotFound(SelectionPath path)
+    public static InvalidOperationException IncrementalPlanParentNotFound(SelectionPath path)
         => new(string.Format(
-            FusionExecutionResources.OperationPlan_DeferredSubPlanParentNotFound,
+            FusionExecutionResources.OperationPlan_IncrementalPlanParentNotFound,
             path));
 
     public static InvalidOperationException MissingBatchResult(int operationId)
@@ -30,12 +30,12 @@ internal static class ThrowHelper
 
     public static InvalidOperationException RequestIndexOutOfRange(int requestIndex)
         => new(string.Format(
-            FusionExecutionResources.SourceSchemaHttpClient_InvalidRequestIndex,
+            FusionExecutionResources.HttpSourceSchemaClient_InvalidRequestIndex,
             requestIndex));
 
     public static InvalidOperationException VariableIndexOutOfRange(int variableIndex)
         => new(string.Format(
-            FusionExecutionResources.SourceSchemaHttpClient_VariableIndexOutOfRange,
+            FusionExecutionResources.HttpSourceSchemaClient_VariableIndexOutOfRange,
             variableIndex));
 
     public static ArgumentException InvalidClientConfiguration(Type expected, Type actual)

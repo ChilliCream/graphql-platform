@@ -43,6 +43,10 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        postEdges: [PostEdge]
+      }
+
       type Discussion {
         id: ID!
         subgraph1: String
@@ -54,10 +58,6 @@ sourceSchemas:
 
       type PostEdge {
         node: Post
-      }
-
-      type Query {
-        postEdges: [PostEdge]
       }
 
       union Post = Photo | Discussion
@@ -111,13 +111,13 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        photoById(id: ID!): Photo @lookup
+      }
+
       type Photo {
         id: ID!
         subgraph2: String!
-      }
-
-      type Query {
-        photoById(id: ID!): Photo @lookup
       }
     interactions:
       - request:

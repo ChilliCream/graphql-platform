@@ -32,12 +32,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
-      }
-
-      interface Votable {
-        viewerCanVote: Boolean!
+      type Query {
+        node(id: ID!): Node @lookup
       }
 
       type Comment implements Node & Votable {
@@ -51,8 +47,12 @@ sourceSchemas:
         viewerRating: Float!
       }
 
-      type Query {
-        node(id: ID!): Node @lookup
+      interface Node {
+        id: ID!
+      }
+
+      interface Votable {
+        viewerCanVote: Boolean!
       }
     interactions:
       - request:

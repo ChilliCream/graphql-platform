@@ -3,6 +3,7 @@ using HotChocolate.Fusion.Errors;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Results;
 using HotChocolate.Language;
+using HotChocolate.Serialization;
 using HotChocolate.Types.Mutable;
 using HotChocolate.Types.Mutable.Serialization;
 using static HotChocolate.Fusion.ApolloFederation.Properties.FederationResources;
