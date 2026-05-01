@@ -87,13 +87,14 @@ If you were chaining a long sequence of `CoreBuilder.*` calls, simply drop `Core
 +        o.ExecutionTimeout = TimeSpan.FromSeconds(30);
 +        o.PersistedOperations.OnlyAllowPersistedDocuments = false;
 +        o.IncludeExceptionDetails = true;
-+        o.CollectOperationPlanTelemetry = true;
++        o.AllowOperationPlanRequests = true;
 +    });
 ```
 
 A few specific options have moved or been renamed:
 
-- `FusionOptions.AllowQueryPlan` and `FusionOptions.IncludeDebugInfo` have been replaced by the per-request `FusionRequestOptions.CollectOperationPlanTelemetry`. Operation plan telemetry now flows through the diagnostic event listener API rather than through inline response extensions.
+- `FusionOptions.AllowQueryPlan` has been replaced by the per-request `FusionRequestOptions.AllowOperationPlanRequests`. When enabled, clients can request the operation plan to be inlined into the response via the `Fusion-Operation-Plan` header. The option defaults to `false` so the plan is not exposed unless explicitly opted in.
+- `FusionOptions.IncludeDebugInfo` has been replaced by the per-request `FusionRequestOptions.CollectOperationPlanTelemetry`. Operation plan telemetry now flows through the diagnostic event listener API rather than through inline response extensions.
 - `RequestExecutorOptions.EnableSchemaFileSupport` no longer exists. Schema file endpoints (`/graphql/schema`) are now wired up via `MapGraphQLSchema()` on the endpoint builder.
 
 ## Cache configuration
@@ -489,11 +490,19 @@ gatewayBuilder.ModifyOptions(o =>
 
 You can also wire up `CacheDiagnostics` for the plan cache via `OperationExecutionPlanCacheDiagnostics` to get hit/miss/eviction telemetry.
 
-## Operation plan telemetry replaces AllowQueryPlan / IncludeDebugInfo
+## Operation plan requests replace AllowQueryPlan
 
-The v15 `FusionOptions.AllowQueryPlan` and `IncludeDebugInfo` options, which inlined query plan and debug data into the GraphQL response, no longer exist.
+The v15 `FusionOptions.AllowQueryPlan` option, which controlled whether clients could request the query plan to be inlined into the GraphQL response, has been replaced by the per-request `FusionRequestOptions.AllowOperationPlanRequests`.
 
-In v16, the equivalent information flows through the diagnostic event listener API. Enable it via:
+```csharp
+gatewayBuilder.ModifyRequestOptions(o => o.AllowOperationPlanRequests = true);
+```
+
+When the option is `true` and the client sends the `Fusion-Operation-Plan: 1` header, the operation plan is included under `extensions.fusion.operationPlan` in the response. The option defaults to `false`, so the plan is never exposed unless explicitly opted in.
+
+## Operation plan telemetry replaces IncludeDebugInfo
+
+The v15 `FusionOptions.IncludeDebugInfo` option, which inlined debug data into the GraphQL response, no longer exists. In v16, the equivalent information flows through the diagnostic event listener API. Enable it via:
 
 ```csharp
 gatewayBuilder.ModifyRequestOptions(o => o.CollectOperationPlanTelemetry = true);
@@ -619,7 +628,7 @@ The following v15 APIs were used in the gateway but do not have a direct one-to-
 
 - **`AddServiceDiscoveryRewriter()`** — removed entirely. There is no Fusion-side equivalent. If your gateway relied on it, you'll need to wire ASP.NET Core service discovery into your subgraph HTTP clients another way (for example, by registering named `HttpClient` instances with `Microsoft.Extensions.ServiceDiscovery` and pointing the subgraph configuration at those names).
 - **`IConfigurationRewriter` / `ConfigurationRewriter`** — removed. The closest equivalent is wrapping or implementing a custom `IFusionConfigurationProvider` and rewriting the `DocumentNode` and `JsonDocumentOwner` it emits before forwarding to subscribers.
-- **`FusionOptions.AllowQueryPlan`** — replaced by `FusionRequestOptions.CollectOperationPlanTelemetry`, but the way you consume the resulting data has changed: telemetry is no longer inlined into the response, it flows through `IFusionExecutionDiagnosticEventListener`. Verify whether your clients/tools rely on the old `extensions.queryPlan` payload.
+- **`FusionOptions.AllowQueryPlan`** — replaced by `FusionRequestOptions.AllowOperationPlanRequests`. The header that opts a request into the inlined plan changed from `GraphQL-Query-Plan` to `Fusion-Operation-Plan`, and the response payload now lives under `extensions.fusion.operationPlan` rather than `extensions.queryPlan`. Verify whether your clients/tools rely on the old header or payload shape.
 - **`FusionOptions.IncludeDebugInfo`** — no direct replacement. Debug payloads are no longer attached to the response. Use the new diagnostic listener hooks for the equivalent visibility.
 - **`RequestExecutorOptions.EnableSchemaFileSupport`** — gone. Schema endpoints are now opt-in via `app.MapGraphQLSchema()` (and `app.MapGraphQLSemanticNonNullSchema()` if you need the `@semanticNonNull`-annotated variant).
 - **Nitro `EnablePersistedQueries`, `DefaultQueryCacheExpiration`, `NotFoundQueryCacheExpiration`, `EnableOperationReporting`** — these flat flags on the v15 cloud options are no longer present on `NitroFusionOptions`. The corresponding capabilities are now configured through `NitroFusionOptions.PersistedOperations` and `NitroFusionOptions.OperationReporting`, but those nested option types are not publicly exposed in the current preview, so the exact knobs (cache expirations, enabled flags) need to be confirmed against the next Nitro Fusion preview drop before mapping them.
