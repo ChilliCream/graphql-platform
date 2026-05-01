@@ -1,11 +1,5 @@
-﻿schema {
+schema {
   query: OutputQuery
-}
-
-type FlagsEnumFlags {
-  isFoo: Boolean!
-  isBar: Boolean!
-  isBaz: Boolean!
 }
 
 type OutputQuery {
@@ -15,4 +9,10 @@ type OutputQuery {
   nullableSingle: FlagsEnumFlags
   nullableList: [FlagsEnumFlags]
   nullableNestedList: [[FlagsEnumFlags]]
+}
+
+type FlagsEnumFlags {
+  isFoo: Boolean!
+  isBar: Boolean!
+  isBaz: Boolean!
 }

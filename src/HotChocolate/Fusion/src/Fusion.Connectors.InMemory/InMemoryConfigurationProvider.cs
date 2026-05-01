@@ -134,7 +134,7 @@ public sealed class InMemoryConfigurationProvider : IFusionConfigurationProvider
                 for (var i = 0; i < _proxies.Length; i++)
                 {
                     var executor = await _proxies[i].GetExecutorAsync(ct).ConfigureAwait(false);
-                    var sdl = SchemaPrinter.Print((Schema)executor.Schema);
+                    var sdl = executor.Schema.ToString();
                     sourceSchemas[i] = new SourceSchemaText(_schemaNames[i], sdl);
                 }
 

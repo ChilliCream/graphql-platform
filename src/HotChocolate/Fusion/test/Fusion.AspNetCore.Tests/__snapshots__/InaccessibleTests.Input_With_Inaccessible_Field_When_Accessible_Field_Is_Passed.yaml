@@ -18,6 +18,12 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        bookById(id: Int!): Book @lookup
+        inaccessibleText(text: String! = "This is the default!" @inaccessible): String!
+        books: [Book!]!
+      }
+
       type Author @key(fields: "id") {
         id: Int! @inaccessible
       }
@@ -27,27 +33,21 @@ sourceSchemas:
         title: String!
         author: Author!
       }
-
-      type Query {
-        bookById(id: Int!): Book @lookup
-        inaccessibleText(text: String! = "This is the default!" @inaccessible): String!
-        books: [Book!]!
-      }
   - name: b
     schema: |
       schema {
         query: Query
       }
 
-      type Author {
-        id: Int!
-        name: String!
-      }
-
       type Query {
         authorById(id: Int!): Author @internal @lookup
         enumField(value: SomeEnum!): SomeEnum!
         shareable(input: SomeInput!): String!
+      }
+
+      type Author {
+        id: Int!
+        name: String!
       }
 
       input SomeInput {

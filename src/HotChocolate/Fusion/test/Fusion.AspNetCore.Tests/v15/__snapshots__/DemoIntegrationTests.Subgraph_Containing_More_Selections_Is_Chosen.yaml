@@ -28,12 +28,12 @@ sourceSchemas:
         query: Query
       }
 
-      type Product @key(fields: "id") {
-        id: ID!
-      }
-
       type Query {
         productBySlug: Product
+      }
+
+      type Product @key(fields: "id") {
+        id: ID!
       }
     interactions:
       - request:
@@ -60,6 +60,10 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        productById(id: ID!): Product @lookup @shareable
+      }
+
       type Author {
         name: String! @shareable
       }
@@ -68,14 +72,14 @@ sourceSchemas:
         id: ID!
         author: Author @shareable
       }
-
-      type Query {
-        productById(id: ID!): Product @lookup @shareable
-      }
   - name: C
     schema: |
       schema {
         query: Query
+      }
+
+      type Query {
+        productById(id: ID!): Product @lookup @shareable
       }
 
       type Author {
@@ -86,10 +90,6 @@ sourceSchemas:
       type Product {
         id: ID!
         author: Author @shareable
-      }
-
-      type Query {
-        productById(id: ID!): Product @lookup @shareable
       }
     interactions:
       - request:

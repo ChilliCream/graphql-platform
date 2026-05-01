@@ -34,6 +34,10 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        root: Root
+      }
+
       type Level1 @key(fields: "id") {
         id: ID!
         level2: Level2 @external
@@ -47,10 +51,6 @@ sourceSchemas:
       type Level3 @key(fields: "id") {
         id: ID!
         value: String @external
-      }
-
-      type Query {
-        root: Root
       }
 
       type Root {
@@ -93,6 +93,12 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        level1ById(id: ID! @is(field: "id")): Level1 @lookup @internal
+        level2ById(id: ID! @is(field: "id")): Level2 @lookup @internal
+        level3ById(id: ID! @is(field: "id")): Level3 @lookup @internal
+      }
+
       type Level1 @key(fields: "id") {
         id: ID!
         level2: Level2
@@ -106,12 +112,6 @@ sourceSchemas:
       type Level3 @key(fields: "id") {
         id: ID!
         value: String
-      }
-
-      type Query {
-        level1ById(id: ID! @is(field: "id")): Level1 @lookup @internal
-        level2ById(id: ID! @is(field: "id")): Level2 @lookup @internal
-        level3ById(id: ID! @is(field: "id")): Level3 @lookup @internal
       }
 operationPlan:
   operation:

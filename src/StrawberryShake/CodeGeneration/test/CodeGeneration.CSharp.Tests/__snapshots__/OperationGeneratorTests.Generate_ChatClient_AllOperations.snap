@@ -2569,7 +2569,7 @@ namespace Foo.Bar
     ///     __typename
     ///     nodes {
     ///       __typename
-    ///       ... Person
+    ///       ...Person
     ///       ... on Person {
     ///         id
     ///       }
@@ -2578,7 +2578,7 @@ namespace Foo.Bar
     /// }
     /// 
     /// fragment Person on Person {
-    ///   ... Participant
+    ///   ...Participant
     ///   imageUri
     ///   lastSeen
     /// }
@@ -2599,8 +2599,8 @@ namespace Foo.Bar
 
         public static GetPeopleQueryDocument Instance { get; } = new GetPeopleQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => "query GetPeople { people(order_by: { name: ASC }) { __typename nodes { __typename ... Person ... on Person { id } } } } fragment Person on Person { ... Participant imageUri lastSeen } fragment Participant on Person { name email isOnline }"u8;
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "91253402b90b965c3f43c2d774692ae8366270c6");
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "query GetPeople { people(order_by: { name: ASC }) { __typename nodes { __typename ...Person ... on Person { id } } } } fragment Person on Person { ...Participant imageUri lastSeen } fragment Participant on Person { name email isOnline }"u8;
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "3bad79e1a211abc597d2ac8e7e0d8cf81bdc42e2");
 
         public override global::System.String ToString()
         {
@@ -2621,7 +2621,7 @@ namespace Foo.Bar
     ///     __typename
     ///     nodes {
     ///       __typename
-    ///       ... Person
+    ///       ...Person
     ///       ... on Person {
     ///         id
     ///       }
@@ -2630,7 +2630,7 @@ namespace Foo.Bar
     /// }
     /// 
     /// fragment Person on Person {
-    ///   ... Participant
+    ///   ...Participant
     ///   imageUri
     ///   lastSeen
     /// }
@@ -2717,7 +2717,7 @@ namespace Foo.Bar
     ///     __typename
     ///     nodes {
     ///       __typename
-    ///       ... Person
+    ///       ...Person
     ///       ... on Person {
     ///         id
     ///       }
@@ -2726,7 +2726,7 @@ namespace Foo.Bar
     /// }
     /// 
     /// fragment Person on Person {
-    ///   ... Participant
+    ///   ...Participant
     ///   imageUri
     ///   lastSeen
     /// }
@@ -2759,7 +2759,7 @@ namespace Foo.Bar
     ///       __typename
     ///       nodes {
     ///         __typename
-    ///         ... Message
+    ///         ...Message
     ///         ... on Message {
     ///           id
     ///         }
@@ -2777,14 +2777,14 @@ namespace Foo.Bar
     ///   direction
     ///   recipient {
     ///     __typename
-    ///     ... Participant
+    ///     ...Participant
     ///     ... on Person {
     ///       id
     ///     }
     ///   }
     ///   sender {
     ///     __typename
-    ///     ... Participant
+    ///     ...Participant
     ///     ... on Person {
     ///       id
     ///     }
@@ -2808,8 +2808,8 @@ namespace Foo.Bar
 
         public static GetMessagesQueryDocument Instance { get; } = new GetMessagesQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => "query GetMessages($email: String!) { personByEmail(email: $email) { __typename messages(order_by: { sent: ASC }) { __typename nodes { __typename ... Message ... on Message { id } } } ... on Person { id } } } fragment Message on Message { id text direction recipient { __typename ... Participant ... on Person { id } } sender { __typename ... Participant ... on Person { id } } sent } fragment Participant on Person { name email isOnline }"u8;
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "c9975fca1ca78b7c96f298130fccfc181f3d5309");
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "query GetMessages($email: String!) { personByEmail(email: $email) { __typename messages(order_by: { sent: ASC }) { __typename nodes { __typename ...Message ... on Message { id } } } ... on Person { id } } } fragment Message on Message { id text direction recipient { __typename ...Participant ... on Person { id } } sender { __typename ...Participant ... on Person { id } } sent } fragment Participant on Person { name email isOnline }"u8;
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "1cfb356f2eeca5411ee3291e8c5ccb2ad1f0cfc5");
 
         public override global::System.String ToString()
         {
@@ -2832,7 +2832,7 @@ namespace Foo.Bar
     ///       __typename
     ///       nodes {
     ///         __typename
-    ///         ... Message
+    ///         ...Message
     ///         ... on Message {
     ///           id
     ///         }
@@ -2850,14 +2850,14 @@ namespace Foo.Bar
     ///   direction
     ///   recipient {
     ///     __typename
-    ///     ... Participant
+    ///     ...Participant
     ///     ... on Person {
     ///       id
     ///     }
     ///   }
     ///   sender {
     ///     __typename
-    ///     ... Participant
+    ///     ...Participant
     ///     ... on Person {
     ///       id
     ///     }
@@ -2964,7 +2964,7 @@ namespace Foo.Bar
     ///       __typename
     ///       nodes {
     ///         __typename
-    ///         ... Message
+    ///         ...Message
     ///         ... on Message {
     ///           id
     ///         }
@@ -2982,14 +2982,14 @@ namespace Foo.Bar
     ///   direction
     ///   recipient {
     ///     __typename
-    ///     ... Participant
+    ///     ...Participant
     ///     ... on Person {
     ///       id
     ///     }
     ///   }
     ///   sender {
     ///     __typename
-    ///     ... Participant
+    ///     ...Participant
     ///     ... on Person {
     ///       id
     ///     }
@@ -3023,7 +3023,7 @@ namespace Foo.Bar
     ///     __typename
     ///     message {
     ///       __typename
-    ///       ... Message
+    ///       ...Message
     ///       ... on Message {
     ///         id
     ///       }
@@ -3037,14 +3037,14 @@ namespace Foo.Bar
     ///   direction
     ///   recipient {
     ///     __typename
-    ///     ... Participant
+    ///     ...Participant
     ///     ... on Person {
     ///       id
     ///     }
     ///   }
     ///   sender {
     ///     __typename
-    ///     ... Participant
+    ///     ...Participant
     ///     ... on Person {
     ///       id
     ///     }
@@ -3068,8 +3068,8 @@ namespace Foo.Bar
 
         public static SendMessageInputMutationDocument Instance { get; } = new SendMessageInputMutationDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Mutation;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => "mutation SendMessageInput($input: SendMessageInput!) { sendMessage(input: $input) { __typename message { __typename ... Message ... on Message { id } } } } fragment Message on Message { id text direction recipient { __typename ... Participant ... on Person { id } } sender { __typename ... Participant ... on Person { id } } sent } fragment Participant on Person { name email isOnline }"u8;
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "abbee600b2246c20ab39b641561c4a0312560356");
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "mutation SendMessageInput($input: SendMessageInput!) { sendMessage(input: $input) { __typename message { __typename ...Message ... on Message { id } } } } fragment Message on Message { id text direction recipient { __typename ...Participant ... on Person { id } } sender { __typename ...Participant ... on Person { id } } sent } fragment Participant on Person { name email isOnline }"u8;
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "8764f55f59c4c3fcf0b5a5be6466f71da35d13e2");
 
         public override global::System.String ToString()
         {
@@ -3090,7 +3090,7 @@ namespace Foo.Bar
     ///     __typename
     ///     message {
     ///       __typename
-    ///       ... Message
+    ///       ...Message
     ///       ... on Message {
     ///         id
     ///       }
@@ -3104,14 +3104,14 @@ namespace Foo.Bar
     ///   direction
     ///   recipient {
     ///     __typename
-    ///     ... Participant
+    ///     ...Participant
     ///     ... on Person {
     ///       id
     ///     }
     ///   }
     ///   sender {
     ///     __typename
-    ///     ... Participant
+    ///     ...Participant
     ///     ... on Person {
     ///       id
     ///     }
@@ -3216,7 +3216,7 @@ namespace Foo.Bar
     ///     __typename
     ///     message {
     ///       __typename
-    ///       ... Message
+    ///       ...Message
     ///       ... on Message {
     ///         id
     ///       }
@@ -3230,14 +3230,14 @@ namespace Foo.Bar
     ///   direction
     ///   recipient {
     ///     __typename
-    ///     ... Participant
+    ///     ...Participant
     ///     ... on Person {
     ///       id
     ///     }
     ///   }
     ///   sender {
     ///     __typename
-    ///     ... Participant
+    ///     ...Participant
     ///     ... on Person {
     ///       id
     ///     }
@@ -3271,7 +3271,7 @@ namespace Foo.Bar
     ///     __typename
     ///     message {
     ///       __typename
-    ///       ... Message
+    ///       ...Message
     ///       ... on Message {
     ///         id
     ///       }
@@ -3285,14 +3285,14 @@ namespace Foo.Bar
     ///   direction
     ///   recipient {
     ///     __typename
-    ///     ... Participant
+    ///     ...Participant
     ///     ... on Person {
     ///       id
     ///     }
     ///   }
     ///   sender {
     ///     __typename
-    ///     ... Participant
+    ///     ...Participant
     ///     ... on Person {
     ///       id
     ///     }
@@ -3316,8 +3316,8 @@ namespace Foo.Bar
 
         public static SendMessageMutMutationDocument Instance { get; } = new SendMessageMutMutationDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Mutation;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => "mutation SendMessageMut($email: String!, $text: String!) { sendMessage(input: { recipientEmail: $email, text: $text }) { __typename message { __typename ... Message ... on Message { id } } } } fragment Message on Message { id text direction recipient { __typename ... Participant ... on Person { id } } sender { __typename ... Participant ... on Person { id } } sent } fragment Participant on Person { name email isOnline }"u8;
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "0a0b8bf5246ce3dca815397d3d9be98e9a35a867");
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "mutation SendMessageMut($email: String!, $text: String!) { sendMessage(input: { recipientEmail: $email, text: $text }) { __typename message { __typename ...Message ... on Message { id } } } } fragment Message on Message { id text direction recipient { __typename ...Participant ... on Person { id } } sender { __typename ...Participant ... on Person { id } } sent } fragment Participant on Person { name email isOnline }"u8;
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "4f3ec3f8deee8ab823582aa52ab85318345413b3");
 
         public override global::System.String ToString()
         {
@@ -3338,7 +3338,7 @@ namespace Foo.Bar
     ///     __typename
     ///     message {
     ///       __typename
-    ///       ... Message
+    ///       ...Message
     ///       ... on Message {
     ///         id
     ///       }
@@ -3352,14 +3352,14 @@ namespace Foo.Bar
     ///   direction
     ///   recipient {
     ///     __typename
-    ///     ... Participant
+    ///     ...Participant
     ///     ... on Person {
     ///       id
     ///     }
     ///   }
     ///   sender {
     ///     __typename
-    ///     ... Participant
+    ///     ...Participant
     ///     ... on Person {
     ///       id
     ///     }
@@ -3475,7 +3475,7 @@ namespace Foo.Bar
     ///     __typename
     ///     message {
     ///       __typename
-    ///       ... Message
+    ///       ...Message
     ///       ... on Message {
     ///         id
     ///       }
@@ -3489,14 +3489,14 @@ namespace Foo.Bar
     ///   direction
     ///   recipient {
     ///     __typename
-    ///     ... Participant
+    ///     ...Participant
     ///     ... on Person {
     ///       id
     ///     }
     ///   }
     ///   sender {
     ///     __typename
-    ///     ... Participant
+    ///     ...Participant
     ///     ... on Person {
     ///       id
     ///     }
@@ -3528,7 +3528,7 @@ namespace Foo.Bar
     /// subscription ReadMessages {
     ///   message: onMessageReceived {
     ///     __typename
-    ///     ... Message
+    ///     ...Message
     ///     ... on Message {
     ///       id
     ///     }
@@ -3541,14 +3541,14 @@ namespace Foo.Bar
     ///   direction
     ///   recipient {
     ///     __typename
-    ///     ... Participant
+    ///     ...Participant
     ///     ... on Person {
     ///       id
     ///     }
     ///   }
     ///   sender {
     ///     __typename
-    ///     ... Participant
+    ///     ...Participant
     ///     ... on Person {
     ///       id
     ///     }
@@ -3572,8 +3572,8 @@ namespace Foo.Bar
 
         public static ReadMessagesSubscriptionDocument Instance { get; } = new ReadMessagesSubscriptionDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Subscription;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => "subscription ReadMessages { message: onMessageReceived { __typename ... Message ... on Message { id } } } fragment Message on Message { id text direction recipient { __typename ... Participant ... on Person { id } } sender { __typename ... Participant ... on Person { id } } sent } fragment Participant on Person { name email isOnline }"u8;
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "d814e26af4f48099826de75f91993d52b3568a02");
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "subscription ReadMessages { message: onMessageReceived { __typename ...Message ... on Message { id } } } fragment Message on Message { id text direction recipient { __typename ...Participant ... on Person { id } } sender { __typename ...Participant ... on Person { id } } sent } fragment Participant on Person { name email isOnline }"u8;
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "2b78c70ce389f13826963fe418a9ea6fe73820a1");
 
         public override global::System.String ToString()
         {
@@ -3592,7 +3592,7 @@ namespace Foo.Bar
     /// subscription ReadMessages {
     ///   message: onMessageReceived {
     ///     __typename
-    ///     ... Message
+    ///     ...Message
     ///     ... on Message {
     ///       id
     ///     }
@@ -3605,14 +3605,14 @@ namespace Foo.Bar
     ///   direction
     ///   recipient {
     ///     __typename
-    ///     ... Participant
+    ///     ...Participant
     ///     ... on Person {
     ///       id
     ///     }
     ///   }
     ///   sender {
     ///     __typename
-    ///     ... Participant
+    ///     ...Participant
     ///     ... on Person {
     ///       id
     ///     }
@@ -3667,7 +3667,7 @@ namespace Foo.Bar
     /// subscription ReadMessages {
     ///   message: onMessageReceived {
     ///     __typename
-    ///     ... Message
+    ///     ...Message
     ///     ... on Message {
     ///       id
     ///     }
@@ -3680,14 +3680,14 @@ namespace Foo.Bar
     ///   direction
     ///   recipient {
     ///     __typename
-    ///     ... Participant
+    ///     ...Participant
     ///     ... on Person {
     ///       id
     ///     }
     ///   }
     ///   sender {
     ///     __typename
-    ///     ... Participant
+    ///     ...Participant
     ///     ... on Person {
     ///       id
     ///     }

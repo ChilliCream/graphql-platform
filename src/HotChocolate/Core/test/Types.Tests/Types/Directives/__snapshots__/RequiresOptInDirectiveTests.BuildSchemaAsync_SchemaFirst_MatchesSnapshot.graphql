@@ -24,4 +24,8 @@ enum Enum {
 directive @requiresOptIn(
   "The name of the feature that requires opt in."
   feature: String!
-) repeatable on FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM_VALUE | INPUT_FIELD_DEFINITION
+) repeatable on
+  | FIELD_DEFINITION
+  | ARGUMENT_DEFINITION
+  | ENUM_VALUE
+  | INPUT_FIELD_DEFINITION

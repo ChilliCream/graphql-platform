@@ -3,8 +3,13 @@
     {
       "OperationName": "GraphQL Operation",
       "DisplayName": "query",
+      "Kind": "Internal",
       "Status": "Error",
       "tags": [
+        {
+          "Key": "graphql.processing.type",
+          "Value": "request"
+        },
         {
           "Key": "graphql.operation.type",
           "Value": "query"
@@ -18,8 +23,12 @@
           "Value": "{\n  causeFatalError\n}"
         },
         {
-          "Key": "graphql.errors.count",
+          "Key": "graphql.error.count",
           "Value": 1
+        },
+        {
+          "Key": "error.type",
+          "Value": "CUSTOM_ERROR_CODE"
         }
       ],
       "event": [
@@ -30,12 +39,34 @@
         {
           "Name": "AddedDocumentToCache",
           "Tags": []
+        },
+        {
+          "Name": "graphql.error",
+          "Tags": [
+            {
+              "Key": "graphql.error.message",
+              "Value": "fail"
+            },
+            {
+              "Key": "graphql.field.path",
+              "Value": "causeFatalError"
+            },
+            {
+              "Key": "graphql.error.code",
+              "Value": "CUSTOM_ERROR_CODE"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            }
+          ]
         }
       ],
       "activities": [
         {
           "OperationName": "GraphQL Document Parsing",
           "DisplayName": "GraphQL Document Parsing",
+          "Kind": "Internal",
           "Status": "Ok",
           "tags": [
             {
@@ -48,6 +79,7 @@
         {
           "OperationName": "GraphQL Document Validation",
           "DisplayName": "GraphQL Document Validation",
+          "Kind": "Internal",
           "Status": "Ok",
           "tags": [
             {
@@ -64,6 +96,7 @@
         {
           "OperationName": "GraphQL Operation Planning",
           "DisplayName": "GraphQL Operation Planning",
+          "Kind": "Internal",
           "Status": "Ok",
           "tags": [
             {
@@ -84,6 +117,7 @@
         {
           "OperationName": "GraphQL Operation Execution",
           "DisplayName": "GraphQL Operation Execution",
+          "Kind": "Internal",
           "Status": "Error",
           "tags": [
             {
@@ -97,6 +131,10 @@
             {
               "Key": "graphql.document.hash",
               "Value": "md5:ae3f9af1d2570e25f30a1ad002172b82"
+            },
+            {
+              "Key": "error.type",
+              "Value": "CUSTOM_ERROR_CODE"
             }
           ],
           "event": [],
@@ -104,6 +142,7 @@
             {
               "OperationName": "SimpleQuery.causeFatalError",
               "DisplayName": "SimpleQuery.causeFatalError",
+              "Kind": "Internal",
               "Status": "Error",
               "tags": [
                 {
@@ -111,41 +150,31 @@
                   "Value": "resolve"
                 },
                 {
-                  "Key": "graphql.selection.name",
+                  "Key": "graphql.field.alias",
                   "Value": "causeFatalError"
                 },
                 {
-                  "Key": "graphql.selection.path",
+                  "Key": "graphql.field.path",
                   "Value": "causeFatalError"
                 },
                 {
-                  "Key": "graphql.selection.field.name",
+                  "Key": "graphql.field.name",
                   "Value": "causeFatalError"
                 },
                 {
-                  "Key": "graphql.selection.field.coordinate",
+                  "Key": "graphql.field.coordinate",
                   "Value": "SimpleQuery.causeFatalError"
                 },
                 {
-                  "Key": "graphql.selection.field.parent_type",
+                  "Key": "graphql.field.parent_type",
                   "Value": "SimpleQuery"
+                },
+                {
+                  "Key": "error.type",
+                  "Value": "CUSTOM_ERROR_CODE"
                 }
               ],
-              "event": [
-                {
-                  "Name": "exception",
-                  "Tags": [
-                    {
-                      "Key": "graphql.error.message",
-                      "Value": "fail"
-                    },
-                    {
-                      "Key": "graphql.error.path",
-                      "Value": "causeFatalError"
-                    }
-                  ]
-                }
-              ]
+              "event": []
             }
           ]
         }

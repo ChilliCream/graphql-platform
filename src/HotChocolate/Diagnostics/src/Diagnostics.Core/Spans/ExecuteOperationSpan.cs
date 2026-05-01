@@ -37,6 +37,15 @@ internal sealed class ExecuteOperationSpan(
         if (context.Result is null or OperationResult { Errors: [_, ..] })
         {
             Activity.SetStatus(ActivityStatusCode.Error);
+
+            if (context.Result is OperationResult { Errors: [var firstError, ..] })
+            {
+                Activity.SetErrorType(firstError, ActivityExtensions.ExecutionErrorType);
+            }
+            else
+            {
+                Activity.SetErrorType(ActivityExtensions.ExecutionErrorType);
+            }
         }
         else
         {

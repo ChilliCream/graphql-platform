@@ -69,6 +69,21 @@ public class RabbitMQTransportTests
     }
 
     [Fact]
+    public void TryGetDispatchEndpoint_Should_ReturnReplyDispatchEndpoint_When_ReplyAliasUsed()
+    {
+        // arrange
+        var runtime = CreateRuntime(b => b.AddRequestHandler<ProcessPaymentHandler>());
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+
+        // act
+        var found = transport.TryGetDispatchEndpoint(new Uri("rabbitmq:replies"), out var endpoint);
+
+        // assert
+        Assert.True(found);
+        Assert.Same(transport.ReplyDispatchEndpoint, endpoint);
+    }
+
+    [Fact]
     public void TryGetDispatchEndpoint_Should_Resolve_When_TopologyBaseAddressUsed()
     {
         // arrange
@@ -350,7 +365,7 @@ public class RabbitMQTransportTests
     }
 
     [Fact]
-    public void CreateEndpointConfiguration_Should_CreateReplyConfig_When_RabbitMQRepliesPath()
+    public void CreateEndpointConfiguration_Should_CreateReplyConfig_When_InternalRabbitMQReplyAddressUsed()
     {
         // arrange
         var runtime = CreateRuntime(b => b.AddRequestHandler<ProcessPaymentHandler>());
@@ -358,7 +373,7 @@ public class RabbitMQTransportTests
         var context = (IMessagingConfigurationContext)runtime;
 
         // act
-        var config = transport.CreateEndpointConfiguration(context, new Uri("rabbitmq:///replies"));
+        var config = transport.CreateEndpointConfiguration(context, new Uri("rabbitmq:replies"));
 
         // assert
         Assert.NotNull(config);

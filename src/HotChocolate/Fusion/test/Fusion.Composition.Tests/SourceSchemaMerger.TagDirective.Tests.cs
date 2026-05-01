@@ -100,7 +100,7 @@ public sealed class SourceSchemaMergerTagDirectiveTests : SourceSchemaMergerTest
                 directive @tag("Some description" name: String!) repeatable on {{s_tagLocations}}
                 """
             ],
-            $$"""
+            """
             schema @tag(name: "a") @tag(name: "b") {
               query: Query
             }
@@ -171,7 +171,18 @@ public sealed class SourceSchemaMergerTagDirectiveTests : SourceSchemaMergerTest
               @fusion__type(schema: A)
               @fusion__type(schema: B)
 
-            directive @tag(name: String!) repeatable on {{s_tagLocations}}
+            directive @tag(name: String!) repeatable on
+              | SCHEMA
+              | SCALAR
+              | OBJECT
+              | FIELD_DEFINITION
+              | ARGUMENT_DEFINITION
+              | INTERFACE
+              | UNION
+              | ENUM
+              | ENUM_VALUE
+              | INPUT_OBJECT
+              | INPUT_FIELD_DEFINITION
             """,
             options => options.TagMergeBehavior = DirectiveMergeBehavior.Include);
     }
@@ -220,14 +231,25 @@ public sealed class SourceSchemaMergerTagDirectiveTests : SourceSchemaMergerTest
                 directive @tag(name: String!) repeatable on {s_tagLocations}
                 """
             ],
-            $"""
+            """
             scalar Foo
-                @fusion__tag(name: "a")
-                @fusion__tag(name: "b")
-                @fusion__type(schema: A)
-                @fusion__type(schema: B)
+              @fusion__tag(name: "a")
+              @fusion__tag(name: "b")
+              @fusion__type(schema: A)
+              @fusion__type(schema: B)
 
-            directive @fusion__tag(name: String!) repeatable on {s_tagLocations}
+            directive @fusion__tag(name: String!) repeatable on
+              | SCHEMA
+              | SCALAR
+              | OBJECT
+              | FIELD_DEFINITION
+              | ARGUMENT_DEFINITION
+              | INTERFACE
+              | UNION
+              | ENUM
+              | ENUM_VALUE
+              | INPUT_OBJECT
+              | INPUT_FIELD_DEFINITION
             """,
             options => options.TagMergeBehavior = DirectiveMergeBehavior.IncludePrivate);
     }
@@ -251,10 +273,21 @@ public sealed class SourceSchemaMergerTagDirectiveTests : SourceSchemaMergerTest
                 directive @tag(name: String!) repeatable on {s_tagLocations}
                 """
             ],
-            $"""
+            """
             scalar Foo @tag(name: "same") @fusion__type(schema: A) @fusion__type(schema: B)
 
-            directive @tag(name: String!) repeatable on {s_tagLocations}
+            directive @tag(name: String!) repeatable on
+              | SCHEMA
+              | SCALAR
+              | OBJECT
+              | FIELD_DEFINITION
+              | ARGUMENT_DEFINITION
+              | INTERFACE
+              | UNION
+              | ENUM
+              | ENUM_VALUE
+              | INPUT_OBJECT
+              | INPUT_FIELD_DEFINITION
             """,
             options => options.TagMergeBehavior = DirectiveMergeBehavior.Include);
     }

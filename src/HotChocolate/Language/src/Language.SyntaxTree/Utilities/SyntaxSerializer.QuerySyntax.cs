@@ -51,7 +51,8 @@ public sealed partial class SyntaxSerializer
 
         var flatWidth = MeasureFlatVariableDefinitions(variableDefinitions);
 
-        if (writer.Column + flatWidth <= _printWidth)
+        if (!VariableDefinitionsContainBlockString(variableDefinitions)
+            && writer.Column + flatWidth <= _printWidth)
         {
             writer.Write('(');
 
@@ -149,7 +150,7 @@ public sealed partial class SyntaxSerializer
         if (node.DefaultValue is not null)
         {
             writer.Write(" = ");
-            writer.WriteValue(node.DefaultValue, _indented);
+            WriteValue(node.DefaultValue, writer);
         }
 
         WriteDirectives(node.Directives, writer);
@@ -272,7 +273,8 @@ public sealed partial class SyntaxSerializer
 
         var flatWidth = MeasureFlatArguments(arguments);
 
-        if (writer.Column + flatWidth <= _printWidth)
+        if (!ArgumentsContainBlockString(arguments)
+            && writer.Column + flatWidth <= _printWidth)
         {
             writer.Write('(');
             writer.WriteMany(arguments, (n, w) => w.WriteArgument(n));
@@ -287,7 +289,7 @@ public sealed partial class SyntaxSerializer
             {
                 writer.WriteLine();
                 writer.WriteIndent();
-                writer.WriteArgument(argument);
+                WriteArgument(argument, writer);
             }
 
             writer.WriteLine();
@@ -316,7 +318,7 @@ public sealed partial class SyntaxSerializer
 
     private void VisitFragmentSpread(FragmentSpreadNode node, ISyntaxWriter writer)
     {
-        writer.Write("... ");
+        writer.Write("...");
         writer.WriteName(node.Name);
 
         WriteDirectives(node.Directives, writer);

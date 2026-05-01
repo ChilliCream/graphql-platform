@@ -606,7 +606,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
     ///   hero(episode: NEW_HOPE) {
     ///     __typename
     ///     name
-    ///     ... FriendsList @defer(label: "FriendsListLabel")
+    ///     ...FriendsList @defer(label: "FriendsListLabel")
     ///     ... on Droid {
     ///       id
     ///     }
@@ -643,8 +643,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
 
         public static GetHeroQueryDocument Instance { get; } = new GetHeroQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => "query GetHero { hero(episode: NEW_HOPE) { __typename name ... FriendsList @defer(label: \"FriendsListLabel\") ... on Droid { id } ... on Human { id } } } fragment FriendsList on Character { _isFriendsListFulfilled: __typename friends { __typename nodes { __typename name ... on Droid { id } ... on Human { id } } } }"u8;
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "14694ab081258c7d8f3467f90c31653193237401");
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "query GetHero { hero(episode: NEW_HOPE) { __typename name ...FriendsList @defer(label: \"FriendsListLabel\") ... on Droid { id } ... on Human { id } } } fragment FriendsList on Character { _isFriendsListFulfilled: __typename friends { __typename nodes { __typename name ... on Droid { id } ... on Human { id } } } }"u8;
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "db5e1e606145b94143ec39702d2a9f103b2798b7");
 
         public override global::System.String ToString()
         {
@@ -664,7 +664,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
     ///   hero(episode: NEW_HOPE) {
     ///     __typename
     ///     name
-    ///     ... FriendsList @defer(label: "FriendsListLabel")
+    ///     ...FriendsList @defer(label: "FriendsListLabel")
     ///     ... on Droid {
     ///       id
     ///     }
@@ -766,7 +766,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
     ///   hero(episode: NEW_HOPE) {
     ///     __typename
     ///     name
-    ///     ... FriendsList @defer(label: "FriendsListLabel")
+    ///     ...FriendsList @defer(label: "FriendsListLabel")
     ///     ... on Droid {
     ///       id
     ///     }

@@ -41,8 +41,6 @@ internal sealed class FusionRequestExecutorManager
     private readonly IOptionsMonitor<FusionGatewaySetup> _optionsMonitor;
     private readonly EventObservable _events = new();
     private readonly IServiceProvider _applicationServices;
-    private readonly ImmutableArray<ISourceSchemaClientConfigurationParser> _builtInParsers =
-        [new HttpSourceSchemaClientConfigurationParser()];
 
     private bool _disposed;
     private ulong _version;
@@ -151,7 +149,10 @@ internal sealed class FusionRequestExecutorManager
         var setup = _optionsMonitor.Get(schemaName);
 
         var (configuration, documentProvider) =
-            await GetSchemaDocumentAsync(setup.DocumentProvider, cancellationToken).ConfigureAwait(false);
+            await GetSchemaDocumentAsync(
+                setup.DocumentProvider,
+                cancellationToken)
+                .ConfigureAwait(false);
 
         var executor = CreateRequestExecutor(schemaName, configuration);
 
@@ -182,14 +183,12 @@ internal sealed class FusionRequestExecutorManager
         var requestOptions = CreateRequestOptions(setup);
         var plannerOptions = CreatePlannerOptions(setup, options);
         var parserOptions = CreateParserOptions(setup);
-        var clientConfigurations = CreateClientConfigurations(setup, configuration.Settings.Document);
         var features = CreateSchemaFeatures(
             setup,
             options,
             requestOptions,
-            parserOptions,
-            clientConfigurations);
-        var schemaServices = CreateSchemaServices(setup, options, requestOptions, plannerOptions);
+            parserOptions);
+        var schemaServices = CreateSchemaServices(configuration, setup, options, requestOptions, plannerOptions);
 
         var schema = CreateSchema(schemaName, configuration.Schema, schemaServices, features);
         var pipeline = CreatePipeline(setup, schema, schemaServices, requestOptions);
@@ -202,7 +201,7 @@ internal sealed class FusionRequestExecutorManager
         return executor;
     }
 
-    private async Task WarmupExecutorAsync(
+    private static async Task WarmupExecutorAsync(
         IRequestExecutor executor,
         bool isInitialCreation,
         CancellationToken cancellationToken)
@@ -303,80 +302,11 @@ internal sealed class FusionRequestExecutorManager
             maxAllowedRecursionDepth: options.MaxAllowedRecursionDepth);
     }
 
-    private SourceSchemaClientConfigurations CreateClientConfigurations(
-        FusionGatewaySetup setup,
-        JsonDocument settings)
-    {
-        var configurations = new List<ISourceSchemaClientConfiguration>();
-
-        if (settings.RootElement.TryGetProperty("sourceSchemas", out var sourceSchemas))
-        {
-            foreach (var sourceSchema in sourceSchemas.EnumerateObject())
-            {
-                if (!sourceSchema.Value.TryGetProperty("transports", out var transports))
-                {
-                    throw new InvalidOperationException(
-                        $"Source schema '{sourceSchema.Name}' has no 'transports' section.");
-                }
-
-                var anyConfig = false;
-                foreach (var transport in transports.EnumerateObject())
-                {
-                    if (TryParseTransport(sourceSchema, transport, setup, out var config))
-                    {
-                        configurations.Add(config);
-                        anyConfig = true;
-                    }
-                }
-
-                if (!anyConfig)
-                {
-                    throw new InvalidOperationException(
-                        $"No parser claimed any transport for source schema '{sourceSchema.Name}'.");
-                }
-            }
-        }
-
-        foreach (var configure in setup.ClientConfigurationModifiers)
-        {
-            configurations.Add(configure.Invoke(_applicationServices));
-        }
-
-        return new SourceSchemaClientConfigurations(configurations);
-    }
-
-    private bool TryParseTransport(
-        JsonProperty sourceSchema,
-        JsonProperty transport,
-        FusionGatewaySetup setup,
-        [NotNullWhen(true)] out ISourceSchemaClientConfiguration? configuration)
-    {
-        foreach (var parser in setup.SourceSchemaClientConfigurationParsers)
-        {
-            if (parser.TryParse(sourceSchema, transport, out configuration))
-            {
-                return true;
-            }
-        }
-
-        foreach (var parser in _builtInParsers)
-        {
-            if (parser.TryParse(sourceSchema, transport, out configuration))
-            {
-                return true;
-            }
-        }
-
-        configuration = null;
-        return false;
-    }
-
     private FeatureCollection CreateSchemaFeatures(
         FusionGatewaySetup setup,
         FusionOptions options,
         FusionRequestOptions requestOptions,
-        ParserOptions parserOptions,
-        SourceSchemaClientConfigurations clientConfigurations)
+        ParserOptions parserOptions)
     {
         var features = new FeatureCollection();
 
@@ -385,7 +315,6 @@ internal sealed class FusionRequestExecutorManager
         features.Set(requestOptions);
         features.Set(requestOptions.PersistedOperations);
         features.Set(parserOptions);
-        features.Set(clientConfigurations);
         features.Set(CreateTypeResolverInterceptors(options));
         features.Set(new SchemaCancellationFeature());
 
@@ -420,6 +349,7 @@ internal sealed class FusionRequestExecutorManager
     }
 
     private ServiceProvider CreateSchemaServices(
+        FusionConfiguration configuration,
         FusionGatewaySetup setup,
         FusionOptions options,
         FusionRequestOptions requestOptions,
@@ -427,7 +357,12 @@ internal sealed class FusionRequestExecutorManager
     {
         var schemaServices = new ServiceCollection();
 
-        AddCoreServices(schemaServices, options, requestOptions);
+        AddCoreServices(
+            configuration.Settings.Document.RootElement.Clone(),
+            setup,
+            schemaServices,
+            options,
+            requestOptions);
         AddOperationPlanner(schemaServices, plannerOptions);
         AddParserServices(schemaServices);
         AddDocumentValidator(setup, schemaServices);
@@ -442,6 +377,8 @@ internal sealed class FusionRequestExecutorManager
     }
 
     private void AddCoreServices(
+        JsonElement settings,
+        FusionGatewaySetup setup,
         IServiceCollection services,
         FusionOptions options,
         FusionRequestOptions requestOptions)
@@ -488,6 +425,11 @@ internal sealed class FusionRequestExecutorManager
             static sp => sp.GetRequiredService<ObjectPoolProvider>().CreateStringBuilderPool());
 
         services.AddTransient<CompositeTypeInterceptor>(static _ => new IntrospectionFieldInterceptor());
+        services.AddTransient<CompositeTypeInterceptor>(
+            sp => new SchemaConfigurationInterceptor(
+                sp.GetRequiredService<IRootServiceProviderAccessor>().ServiceProvider,
+                setup,
+                settings));
     }
 
     private static void AddOperationPlanner(
@@ -659,6 +601,7 @@ internal sealed class FusionRequestExecutorManager
         private readonly FusionRequestExecutorManager _manager;
         private readonly IDisposable _documentProviderSubscription;
 
+        private FusionConfiguration _currentConfiguration;
         private ulong _documentHash;
         private ulong _settingsHash;
         private bool _disposed;
@@ -672,6 +615,7 @@ internal sealed class FusionRequestExecutorManager
         {
             _manager = manager;
             _cancellationToken = _cancellationTokenSource.Token;
+            _currentConfiguration = configuration;
             _documentHash = XxHash64.HashToUInt64(Encoding.UTF8.GetBytes(configuration.Schema.ToString()));
             _settingsHash = XxHash64.HashToUInt64(GetRawUtf8Value(configuration.Settings.Document.RootElement));
 
@@ -714,11 +658,13 @@ internal sealed class FusionRequestExecutorManager
                 _settingsHash = settingsHash;
 
                 var previousExecutor = Executor;
+                var previousConfiguration = _currentConfiguration;
                 var nextExecutor = _manager.CreateRequestExecutor(Executor.Schema.Name, configuration);
 
-                await _manager.WarmupExecutorAsync(nextExecutor, false, _cancellationToken).ConfigureAwait(false);
+                await WarmupExecutorAsync(nextExecutor, false, _cancellationToken).ConfigureAwait(false);
 
                 Executor = nextExecutor;
+                _currentConfiguration = configuration;
 
                 DiagnosticEvents.ExecutorCreated(nextExecutor.Schema.Name, nextExecutor);
 
@@ -726,7 +672,7 @@ internal sealed class FusionRequestExecutorManager
 
                 _manager.EvictExecutor(previousExecutor, DiagnosticEvents);
 
-                configuration.Dispose();
+                previousConfiguration.Dispose();
             }
         }
 
@@ -753,6 +699,8 @@ internal sealed class FusionRequestExecutorManager
             {
                 configuration.Dispose();
             }
+
+            _currentConfiguration.Dispose();
 
             await Executor.DisposeAsync();
         }
@@ -884,6 +832,96 @@ internal sealed class FusionRequestExecutorManager
                     .Add(MessageProperty, exception.Message)
                     .Add(StackTraceProperty, exception.StackTrace);
             }
+        }
+    }
+
+    private sealed class SchemaConfigurationInterceptor(
+        IServiceProvider applicationServices,
+        FusionGatewaySetup setup,
+        JsonElement settings)
+        : CompositeTypeInterceptor
+    {
+        private readonly ImmutableArray<ISourceSchemaClientConfigurationParser> _builtInParsers =
+            [new DefaultGraphQLClientConfigurationParser()];
+
+        public override void OnAfterCompleteSchema(
+            ICompositeSchemaBuilderContext context,
+            FusionSchemaDefinition schema)
+        {
+            var clientConfigurations = CreateClientConfigurations(
+                (CompositeSchemaBuilderContext)context,
+                schema,
+                setup,
+                settings);
+            schema.Features.Set(clientConfigurations);
+        }
+
+        private SourceSchemaClientConfigurations CreateClientConfigurations(
+            CompositeSchemaBuilderContext context,
+            FusionSchemaDefinition schema,
+            FusionGatewaySetup setup,
+            JsonElement settings)
+        {
+            var configurations = new List<ISourceSchemaClientConfiguration>();
+
+            if (settings.TryGetProperty("sourceSchemas", out var sourceSchemas))
+            {
+                foreach (var sourceSchema in sourceSchemas.EnumerateObject())
+                {
+                    if (!TryClaimSourceSchema(schema, sourceSchema, setup, out var sourceConfigurations))
+                    {
+                        throw new InvalidOperationException(
+                            $"No parser claimed source schema '{sourceSchema.Name}'.");
+                    }
+
+                    configurations.AddRange(sourceConfigurations);
+                }
+            }
+
+            foreach (var configure in setup.ClientConfigurationModifiers)
+            {
+                configurations.Add(configure.Invoke(applicationServices));
+            }
+
+            // Register configurations that need post-Seal projection. The
+            // per-type completions (Lookup.FieldType, FieldRequirements.Requirements)
+            // were registered earlier during type completion; appending here
+            // ensures connector-level projection runs after them.
+            foreach (var configuration in configurations)
+            {
+                if (configuration is INeedsCompletion needsCompletion)
+                {
+                    context.RegisterForCompletion(needsCompletion);
+                }
+            }
+
+            return new SourceSchemaClientConfigurations(configurations);
+        }
+
+        private bool TryClaimSourceSchema(
+            FusionSchemaDefinition schema,
+            JsonProperty sourceSchema,
+            FusionGatewaySetup setup,
+            [NotNullWhen(true)] out ISourceSchemaClientConfiguration[]? configurations)
+        {
+            foreach (var parser in setup.SourceSchemaClientConfigurationParsers)
+            {
+                if (parser.TryParse(schema, sourceSchema, out configurations))
+                {
+                    return true;
+                }
+            }
+
+            foreach (var parser in _builtInParsers)
+            {
+                if (parser.TryParse(schema, sourceSchema, out configurations))
+                {
+                    return true;
+                }
+            }
+
+            configurations = null;
+            return false;
         }
     }
 }

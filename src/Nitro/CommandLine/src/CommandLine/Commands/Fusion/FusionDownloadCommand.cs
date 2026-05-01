@@ -82,18 +82,17 @@ internal sealed class FusionDownloadCommand : Command
                 $"Specify the '.fgp' extension through the '{OutputFileOption.OptionName}' option, if you want to download a legacy Fusion archive.");
         }
 
-        var isFgp = version.Major == 1;
-
         await using var stream = await fusionConfigurationClient.DownloadLatestFusionArchiveAsync(
             apiId,
             stageName,
-            isFgp ? legacyArchiveVersion : version.ToString(),
+            version.ToString(),
             archiveFormat,
             cancellationToken);
 
         if (stream is null)
         {
-            throw new ExitException("The API with the given ID does not exist or does not have a download URL.");
+            throw new ExitException(
+                $"The API with the given ID does not exist or there is no Fusion configuration that supports version '{version}'.");
         }
 
         if (fileSystem.FileExists(outputFile))

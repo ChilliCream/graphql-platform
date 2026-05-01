@@ -22,13 +22,13 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        productById(id: ID!): Product @lookup @internal
+      }
+
       type Product {
         id: ID!
         nullableObject: Wrapper
-      }
-
-      type Query {
-        productById(id: ID!): Product @lookup @internal
       }
 
       type Wrapper {
@@ -88,15 +88,15 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        productById(id: ID!): Product @lookup
+      }
+
       type Product {
         fieldWithNullableRequirement(
           nullableArgument: String @require(field: "nullableObject.field")
         ): String!
         id: ID!
-      }
-
-      type Query {
-        productById(id: ID!): Product @lookup
       }
     interactions:
       - request:

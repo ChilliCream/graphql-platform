@@ -29,6 +29,10 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        product: Product!
+      }
+
       type Brand @key(fields: "id") {
         id: ID!
       }
@@ -36,10 +40,6 @@ sourceSchemas:
       type Product {
         id: ID!
         brand: Brand!
-      }
-
-      type Query {
-        product: Product!
       }
     interactions:
       - request:
@@ -61,13 +61,13 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        brandById(id: ID!): Brand @lookup
+      }
+
       type Brand {
         id: ID!
         name: String!
-      }
-
-      type Query {
-        brandById(id: ID!): Brand @lookup
       }
 operationPlan:
   operation:

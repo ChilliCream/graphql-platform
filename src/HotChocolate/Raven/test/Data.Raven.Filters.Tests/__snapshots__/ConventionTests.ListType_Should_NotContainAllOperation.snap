@@ -2,16 +2,16 @@ schema {
   query: Query
 }
 
-type ListItem {
-  id: String
-  foo: String
-}
-
 type Query {
   root(where: TypeWithListFilterInput @cost(weight: "10")): [TypeWithList]
     @cost(weight: "10")
   rootExecutable(where: TypeWithListFilterInput @cost(weight: "10")): [TypeWithList]
     @cost(weight: "10")
+}
+
+type ListItem {
+  id: String
+  foo: String
 }
 
 type TypeWithList {
@@ -58,4 +58,10 @@ input TypeWithListFilterInput {
 directive @cost(
   "The `weight` argument defines what value to add to the overall cost for every appearance, or possible appearance, of a type, field, argument, etc."
   weight: String!
-) on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM | INPUT_FIELD_DEFINITION
+) on
+  | SCALAR
+  | OBJECT
+  | FIELD_DEFINITION
+  | ARGUMENT_DEFINITION
+  | ENUM
+  | INPUT_FIELD_DEFINITION

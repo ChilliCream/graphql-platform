@@ -1,4 +1,4 @@
-﻿input InputWithDeprecatedFieldInput {
-  a: String @deprecated
+input InputWithDeprecatedFieldInput {
+  a: String @deprecated(reason: "No longer supported.")
   b: String @deprecated(reason: "Foo Bar")
 }

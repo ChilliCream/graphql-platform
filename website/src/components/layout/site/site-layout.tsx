@@ -29,27 +29,36 @@ function Stars(): ReactElement {
       return;
     }
 
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
+    const glCanvas = canvasRef.current;
+    const gl = glCanvas.getContext("webgl", {
+      alpha: true,
+      premultipliedAlpha: false,
+    });
+
+    if (!gl) {
+      return;
+    }
+
+    const starCanvas = document.createElement("canvas");
+    const ctx = starCanvas.getContext("2d");
+
+    if (!ctx) {
+      return;
+    }
+
     const numStars = 800;
     const speed = 0.25;
     let stars: Star[] = [];
-    let pointerX = 0;
-    let pointerY = 0;
-    let pointerTargetX = 0;
-    let pointerTargetY = 0;
-    let scrollTiltY = 0;
-    let scrollTargetY = 0;
-    let scrollAccum = 0;
-    let lastScrollTop = 0;
-    let scrollIdleTimer: number | null = null;
-    const pointerMax = 15;
-    const scrollMax = 60;
-    const scrollRampDistance = 400;
 
     function setCanvasSize() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+
+      glCanvas.width = w;
+      glCanvas.height = h;
+      starCanvas.width = w;
+      starCanvas.height = h;
+      gl!.viewport(0, 0, w, h);
     }
 
     class Star {
@@ -68,26 +77,22 @@ function Stars(): ReactElement {
       }
 
       reset() {
-        this.z = canvas.width;
-        this.x = Math.random() * (canvas.width * 2) - canvas.width;
-        this.y = Math.random() * (canvas.height * 2) - canvas.height;
+        this.z = starCanvas.width;
+        this.x = Math.random() * (starCanvas.width * 2) - starCanvas.width;
+        this.y = Math.random() * (starCanvas.height * 2) - starCanvas.height;
         this.size = Math.random() * 2 + 1;
       }
 
       draw() {
         const x =
-          (((this.x + pointerX) / this.z) * canvas.width) / 2 +
-          canvas.width / 2;
+          ((this.x / this.z) * starCanvas.width) / 2 + starCanvas.width / 2;
         const y =
-          (((this.y + pointerY + scrollTiltY) / this.z) * canvas.height) / 2 +
-          canvas.height / 2;
-        const radius = (1 - this.z / canvas.width) * this.size;
+          ((this.y / this.z) * starCanvas.height) / 2 + starCanvas.height / 2;
+        const radius = (1 - this.z / starCanvas.width) * this.size;
 
-        if (ctx) {
-          ctx.beginPath();
-          ctx.arc(x, y, radius, 0, Math.PI * 2);
-          ctx.fill();
-        }
+        ctx!.beginPath();
+        ctx!.arc(x, y, radius, 0, Math.PI * 2);
+        ctx!.fill();
       }
     }
 
@@ -96,81 +101,195 @@ function Stars(): ReactElement {
         { length: numStars },
         () =>
           new Star(
-            Math.random() * (canvas.width * 2) - canvas.width,
-            Math.random() * (canvas.height * 2) - canvas.height,
-            Math.random() * canvas.width,
+            Math.random() * (starCanvas.width * 2) - starCanvas.width,
+            Math.random() * (starCanvas.height * 2) - starCanvas.height,
+            Math.random() * starCanvas.width,
             Math.random() * 2 + 1
           )
       );
     }
 
-    function updateStars() {
-      stars.forEach((star) => star.update());
-      pointerX += (pointerTargetX - pointerX) * 0.08;
-      pointerY += (pointerTargetY - pointerY) * 0.08;
-      const scrollEase = scrollTargetY === 0 ? 0.009 : 0.08;
-      scrollTiltY += (scrollTargetY - scrollTiltY) * scrollEase;
-    }
-
-    function handlePointerMove(e: PointerEvent) {
-      const nx = (e.clientX / window.innerWidth) * 2 - 1;
-      const ny = (e.clientY / window.innerHeight) * 2 - 1;
-      pointerTargetX = nx * pointerMax;
-      pointerTargetY = ny * pointerMax;
-    }
-
-    function handleScroll(e: Event) {
-      const target = e.target;
-      const scrollTop =
-        target instanceof HTMLElement ? target.scrollTop : window.scrollY;
-      const delta = scrollTop - lastScrollTop;
-      lastScrollTop = scrollTop;
-
-      if (delta !== 0 && Math.sign(delta) !== Math.sign(scrollAccum)) {
-        scrollAccum = 0;
+    const vertSrc = `
+      attribute vec2 aPos;
+      varying vec2 vUv;
+      void main() {
+        vUv = (aPos + 1.0) * 0.5;
+        gl_Position = vec4(aPos, 0.0, 1.0);
       }
-      scrollAccum = Math.max(
-        -scrollRampDistance,
-        Math.min(scrollRampDistance, scrollAccum + delta)
-      );
-      const t = Math.abs(scrollAccum) / scrollRampDistance;
-      const eased = t * t * (3 - 2 * t);
-      scrollTargetY = Math.sign(scrollAccum) * eased * scrollMax;
+    `;
 
-      if (scrollIdleTimer) {
-        window.clearTimeout(scrollIdleTimer);
+    const noiseHelpers = `
+      float hash(vec2 p) {
+        return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
       }
 
-      scrollIdleTimer = window.setTimeout(() => {
-        scrollTargetY = 0;
-        scrollAccum = 0;
-      }, 150);
+      float noise(vec2 p) {
+        vec2 i = floor(p);
+        vec2 f = fract(p);
+        vec2 u = f * f * (3.0 - 2.0 * f);
+        return mix(
+          mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x),
+          mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x),
+          u.y
+        );
+      }
+
+      float fbm(vec2 p) {
+        float v = 0.0;
+        float a = 0.5;
+        for (int i = 0; i < 5; i++) {
+          v += a * noise(p);
+          p *= 2.0;
+          a *= 0.5;
+        }
+        return v;
+      }
+
+      float fbm3(vec2 p) {
+        float v = 0.0;
+        float a = 0.5;
+        for (int i = 0; i < 3; i++) {
+          v += a * noise(p);
+          p *= 2.0;
+          a *= 0.5;
+        }
+        return v;
+      }
+    `;
+
+    const fragSrc = `
+      precision mediump float;
+      uniform vec2 u_resolution;
+      uniform sampler2D u_texture;
+      uniform float u_time;
+      varying vec2 vUv;
+
+      ${noiseHelpers}
+
+      void main() {
+        vec2 st = vUv;
+        float aspect = u_resolution.x / u_resolution.y;
+
+        vec4 stars = texture2D(u_texture, st);
+
+        vec2 nebUv = st * vec2(aspect, 1.0);
+        float t = u_time;
+        float n1 = fbm(nebUv * 2.2 + vec2(t * 0.012, t * 0.008));
+        float n2 = fbm3(nebUv * 5.5 + vec2(31.7 - t * 0.018, 11.3 + t * 0.010));
+        float n3 = fbm3(nebUv * 3.8 + vec2(-7.9 + t * 0.014, 22.5 - t * 0.009));
+        float n4 = fbm3(nebUv * 4.3 + vec2(54.1 + t * 0.007, -18.7 + t * 0.016));
+        float n5 = fbm3(nebUv * 6.1 + vec2(-23.9 - t * 0.013, 47.2 - t * 0.006));
+        float n6 = fbm3(nebUv * 2.8 + vec2(67.4 + t * 0.005, 3.6 + t * 0.011));
+        float n7 = fbm3(nebUv * 4.8 + vec2(-41.2 + t * 0.009, -62.5 - t * 0.013));
+        float n8 = fbm3(nebUv * 5.0 + vec2(88.6 - t * 0.011, 29.4 + t * 0.015));
+
+        vec3 deep = vec3(0.10, 0.07, 0.22);
+        vec3 violet = vec3(0.35, 0.22, 0.60);
+        vec3 blueGrey = vec3(0.30, 0.45, 0.80);
+        vec3 coral = vec3(0.95, 0.65, 0.55);
+        vec3 magenta = vec3(0.85, 0.32, 0.65);
+        vec3 teal = vec3(0.15, 0.68, 0.78);
+        vec3 amber = vec3(0.95, 0.75, 0.35);
+        vec3 red = vec3(0.92, 0.26, 0.30);
+        vec3 yellow = vec3(0.98, 0.88, 0.35);
+
+        vec3 nebulaColor = deep;
+        nebulaColor = mix(nebulaColor, violet, smoothstep(0.30, 0.80, n1));
+        nebulaColor = mix(nebulaColor, blueGrey, smoothstep(0.55, 0.90, n2) * 0.65);
+        nebulaColor = mix(nebulaColor, teal, smoothstep(0.62, 0.92, n5) * 0.55);
+        nebulaColor = mix(nebulaColor, magenta, smoothstep(0.68, 0.92, n4) * 0.45);
+        nebulaColor = mix(nebulaColor, coral, smoothstep(0.72, 0.95, n3) * 0.40);
+        nebulaColor = mix(nebulaColor, red, smoothstep(0.78, 0.95, n7) * 0.40);
+        nebulaColor = mix(nebulaColor, amber, smoothstep(0.78, 0.96, n6) * 0.30);
+        nebulaColor = mix(nebulaColor, yellow, smoothstep(0.82, 0.97, n8) * 0.35);
+
+        float nebulaAlpha = 0.20 + n1 * 0.38;
+
+        float starsA = smoothstep(0.02, 0.5, stars.a);
+        vec3 preRgb =
+          stars.rgb * starsA +
+          nebulaColor * nebulaAlpha * (1.0 - starsA);
+        float outAlpha = starsA + nebulaAlpha * (1.0 - starsA);
+        gl_FragColor = vec4(preRgb, outAlpha);
+      }
+    `;
+
+    function compile(type: number, src: string): WebGLShader {
+      const sh = gl!.createShader(type)!;
+      gl!.shaderSource(sh, src);
+      gl!.compileShader(sh);
+      return sh;
     }
 
-    function drawStars() {
-      if (ctx) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "#f4ebcb";
-        stars.forEach((star) => star.draw());
-      }
-    }
+    const vs = compile(gl.VERTEX_SHADER, vertSrc);
+    const fs = compile(gl.FRAGMENT_SHADER, fragSrc);
+    const program = gl.createProgram()!;
+
+    gl.attachShader(program, vs);
+    gl.attachShader(program, fs);
+    gl.linkProgram(program);
+    gl.useProgram(program);
+
+    const vbo = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
+      gl.STATIC_DRAW
+    );
+
+    const aPosLoc = gl.getAttribLocation(program, "aPos");
+
+    gl.enableVertexAttribArray(aPosLoc);
+    gl.vertexAttribPointer(aPosLoc, 2, gl.FLOAT, false, 0, 0);
+
+    const uResLoc = gl.getUniformLocation(program, "u_resolution");
+    const uTexLoc = gl.getUniformLocation(program, "u_texture");
+    const uTimeLoc = gl.getUniformLocation(program, "u_time");
+    const startTime = performance.now();
+    const tex = gl.createTexture();
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+    gl.uniform1i(uTexLoc, 0);
+
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    gl.clearColor(0, 0, 0, 0);
 
     function animate() {
-      updateStars();
-      drawStars();
+      ctx!.clearRect(0, 0, starCanvas.width, starCanvas.height);
+      ctx!.fillStyle = "#f4ebcb";
+      stars.forEach((s) => s.update());
+      stars.forEach((s) => s.draw());
+
+      gl!.bindTexture(gl!.TEXTURE_2D, tex);
+      gl!.texImage2D(
+        gl!.TEXTURE_2D,
+        0,
+        gl!.RGBA,
+        gl!.RGBA,
+        gl!.UNSIGNED_BYTE,
+        starCanvas
+      );
+
+      gl!.clear(gl!.COLOR_BUFFER_BIT);
+      gl!.uniform2f(uResLoc, glCanvas.width, glCanvas.height);
+      gl!.uniform1f(uTimeLoc, (performance.now() - startTime) / 1000);
+      gl!.drawArrays(gl!.TRIANGLES, 0, 6);
+
       requestAnimationFrame(animate);
     }
 
     window.addEventListener("resize", () => {
       setCanvasSize();
       initStars();
-    });
-    window.addEventListener("pointermove", handlePointerMove, {
-      passive: true,
-    });
-    window.addEventListener("scroll", handleScroll, {
-      capture: true,
-      passive: true,
     });
 
     setCanvasSize();

@@ -1,5 +1,7 @@
+using System.Collections.Immutable;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using HotChocolate.Adapters.OpenApi.Storage;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.OpenApi;
@@ -313,7 +315,7 @@ public abstract class OpenApiTestBase : IAsyncLifetime
         }
     }
 
-    protected sealed class TestOpenApiDefinitionStorage : IOpenApiDefinitionStorage
+    protected sealed class TestOpenApiDefinitionStorage : IOpenApiDefinitionStorage, IDisposable
     {
 #if NET9_0_OR_GREATER
         private readonly Lock _lock = new();
@@ -321,8 +323,8 @@ public abstract class OpenApiTestBase : IAsyncLifetime
         private readonly object _lock = new();
 #endif
         private readonly Dictionary<string, IOpenApiDefinition> _definitionsById = [];
-
-        public event EventHandler? Changed;
+        private ImmutableList<ObserverSession> _sessions = [];
+        private bool _disposed;
 
         public TestOpenApiDefinitionStorage(params IEnumerable<string>? documents)
         {
@@ -361,26 +363,112 @@ public abstract class OpenApiTestBase : IAsyncLifetime
             lock (_lock)
             {
                 _definitionsById[id] = definition;
-                OnChanged();
             }
+
+            Notify(id, definition, OpenApiDefinitionStorageEventType.Updated);
         }
 
         public void RemoveDocument(string id)
         {
+            bool removed;
+
             lock (_lock)
             {
-                var removed = _definitionsById.Remove(id);
+                removed = _definitionsById.Remove(id);
+            }
 
-                if (removed)
-                {
-                    OnChanged();
-                }
+            if (removed)
+            {
+                Notify(id, definition: null, OpenApiDefinitionStorageEventType.Removed);
             }
         }
 
-        private void OnChanged()
+        public IDisposable Subscribe(IObserver<OpenApiDefinitionStorageEventArgs> observer)
         {
-            Changed?.Invoke(this, EventArgs.Empty);
+            return new ObserverSession(this, observer);
+        }
+
+        private void Notify(string name, IOpenApiDefinition? definition, OpenApiDefinitionStorageEventType type)
+        {
+            if (type is OpenApiDefinitionStorageEventType.Updated)
+            {
+                ArgumentNullException.ThrowIfNull(definition);
+            }
+
+            if (_disposed)
+            {
+                return;
+            }
+
+            var sessions = _sessions;
+            var eventArgs = new OpenApiDefinitionStorageEventArgs(name, type, definition);
+
+            foreach (var session in sessions)
+            {
+                session.Notify(eventArgs);
+            }
+        }
+
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            lock (_lock)
+            {
+                foreach (var session in _sessions)
+                {
+                    session.Dispose();
+                }
+
+                _sessions = [];
+                _disposed = true;
+            }
+        }
+
+        private sealed class ObserverSession : IDisposable
+        {
+            private readonly TestOpenApiDefinitionStorage _storage;
+            private readonly IObserver<OpenApiDefinitionStorageEventArgs> _observer;
+            private bool _disposed;
+
+            public ObserverSession(
+                TestOpenApiDefinitionStorage storage,
+                IObserver<OpenApiDefinitionStorageEventArgs> observer)
+            {
+                _storage = storage;
+                _observer = observer;
+
+                lock (storage._lock)
+                {
+                    _storage._sessions = _storage._sessions.Add(this);
+                }
+            }
+
+            public void Notify(OpenApiDefinitionStorageEventArgs eventArgs)
+            {
+                if (!_disposed && !_storage._disposed)
+                {
+                    _observer.OnNext(eventArgs);
+                }
+            }
+
+            public void Dispose()
+            {
+                if (_disposed)
+                {
+                    return;
+                }
+
+                lock (_storage._lock)
+                {
+                    _storage._sessions = _storage._sessions.Remove(this);
+                }
+
+                _disposed = true;
+            }
         }
     }
 }

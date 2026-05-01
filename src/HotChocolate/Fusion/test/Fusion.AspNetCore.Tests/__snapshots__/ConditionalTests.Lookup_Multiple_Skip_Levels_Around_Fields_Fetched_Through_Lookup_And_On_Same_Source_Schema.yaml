@@ -37,15 +37,15 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        productBySlug(slug: String!): Product
+        reviewById(id: ID!): Review @lookup @shareable
+      }
+
       type Product {
         id: ID!
         name: String!
         review: Review
-      }
-
-      type Query {
-        productBySlug(slug: String!): Product
-        reviewById(id: ID!): Review @lookup @shareable
       }
 
       type Review {

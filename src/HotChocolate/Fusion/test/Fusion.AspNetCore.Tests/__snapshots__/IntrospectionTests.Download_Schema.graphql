@@ -86,4 +86,6 @@ type PageInfo {
   startCursor: String
 }
 
-directive @defer(if: Boolean = true, label: String) on FRAGMENT_SPREAD | INLINE_FRAGMENT
+directive @defer(if: Boolean = true, label: String) on
+  | FRAGMENT_SPREAD
+  | INLINE_FRAGMENT

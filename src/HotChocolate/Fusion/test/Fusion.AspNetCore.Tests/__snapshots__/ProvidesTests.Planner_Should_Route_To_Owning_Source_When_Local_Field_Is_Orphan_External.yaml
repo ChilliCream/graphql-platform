@@ -38,14 +38,14 @@ sourceSchemas:
         query: Query
       }
 
-      type Product @key(fields: "id") {
-        id: ID!
-        name: String @external
-      }
-
       type Query {
         reviews: [Review]
         productByName(name: String!): Product @provides(fields: "name")
+      }
+
+      type Product @key(fields: "id") {
+        id: ID!
+        name: String @external
       }
 
       type Review @key(fields: "id") {
@@ -94,13 +94,13 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        productById(id: ID! @is(field: "id")): Product @lookup @internal
+      }
+
       type Product @key(fields: "id") {
         id: ID!
         name: String
-      }
-
-      type Query {
-        productById(id: ID! @is(field: "id")): Product @lookup @internal
       }
     interactions:
       - request:

@@ -199,6 +199,21 @@ internal sealed class AggregateFusionExecutionDiagnosticEvents(
         return new AggregateActivityScope(scopes);
     }
 
+    public IDisposable ExecuteSourceSchemaRequest(
+        OperationPlanContext context,
+        OperationExecutionNode node,
+        string schemaName)
+    {
+        var scopes = new IDisposable[listeners.Length];
+
+        for (var i = 0; i < listeners.Length; i++)
+        {
+            scopes[i] = listeners[i].ExecuteSourceSchemaRequest(context, node, schemaName);
+        }
+
+        return new AggregateActivityScope(scopes);
+    }
+
     public void SourceSchemaTransportError(
         OperationPlanContext context,
         ExecutionNode node,

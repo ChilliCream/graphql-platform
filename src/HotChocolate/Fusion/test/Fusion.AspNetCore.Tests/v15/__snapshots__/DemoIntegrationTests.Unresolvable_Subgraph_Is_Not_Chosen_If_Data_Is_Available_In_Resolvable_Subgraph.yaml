@@ -28,20 +28,20 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node @key(fields: "id") {
-        id: ID!
+      type Query {
+        viewer: Viewer
       }
 
       type Product implements Node {
         id: ID!
       }
 
-      type Query {
-        viewer: Viewer
-      }
-
       type Viewer {
         product: Product!
+      }
+
+      interface Node @key(fields: "id") {
+        id: ID!
       }
     interactions:
       - request:
@@ -72,13 +72,13 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        test: Test!
+      }
+
       type Product @key(fields: "id") {
         id: ID!
         name: String! @shareable
-      }
-
-      type Query {
-        test: Test!
       }
 
       type Test {
@@ -90,8 +90,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup
       }
 
       type Product implements Node {
@@ -99,8 +99,8 @@ sourceSchemas:
         name: String! @shareable
       }
 
-      type Query {
-        node(id: ID!): Node @lookup
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:

@@ -126,7 +126,7 @@ public partial class DirectiveType
     /// <summary>
     /// Defines if instances of this directive type are publicly visible through introspection.
     /// </summary>
-    internal bool IsPublic { get; private set; }
+    public bool IsPublic { get; private set; }
 
     private Type? TypeIdentity { get; set; }
 

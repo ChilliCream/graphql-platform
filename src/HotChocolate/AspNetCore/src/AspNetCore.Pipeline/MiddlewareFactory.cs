@@ -86,4 +86,15 @@ internal static class MiddlewareFactory
             return context => middleware.InvokeAsync(context);
         };
     }
+
+    internal static Func<RequestDelegate, RequestDelegate> CreateHttpGetSemanticNonNullSchemaMiddleware(
+        HttpRequestExecutorProxy executor,
+        GraphQLServerOptions serverOptions)
+    {
+        return next =>
+        {
+            var middleware = new HttpGetSemanticNonNullSchemaMiddleware(next, executor, serverOptions);
+            return context => middleware.InvokeAsync(context);
+        };
+    }
 }

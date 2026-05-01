@@ -12,9 +12,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 public static class ApolloFederationFusionGatewayBuilderExtensions
 {
     /// <summary>
-    /// Adds Apollo Federation support to the Fusion gateway. Source schemas whose
-    /// settings carry an <c>extensions.apolloFederation</c> block will be served by
-    /// the Apollo Federation <c>_entities</c> connector.
+    /// Adds Apollo Federation support to the Fusion gateway.
     /// </summary>
     /// <param name="builder">The Fusion gateway builder.</param>
     /// <returns>The Fusion gateway builder for chaining.</returns>

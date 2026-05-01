@@ -170,6 +170,8 @@ internal static class CompositeSchemaBuilder
 
         features ??= new FeatureCollection();
 
+        var sourceSchemaLookup = CreateSourceSchemaLookup(schemaDocument);
+
         return new CompositeSchemaBuilderContext(
             schemaDocument,
             name,
@@ -183,7 +185,7 @@ internal static class CompositeSchemaBuilder
             typeDefinitions.ToImmutable(),
             directiveTypes.ToImmutable(),
             directiveDefinitions.ToImmutable(),
-            CreateSourceSchemaLookup(schemaDocument),
+            sourceSchemaLookup,
             features,
             typeInterceptor);
     }
@@ -605,7 +607,8 @@ internal static class CompositeSchemaBuilder
             directives,
             new FusionTypeDefinitionCollection(AsArray(context.TypeDefinitions)!),
             new FusionDirectiveDefinitionCollection(AsArray(context.DirectiveDefinitions)!),
-            features);
+            features,
+            context.SourceSchemaLookup);
 
         context.Interceptor.OnAfterCompleteSchema(context, schema);
         schema.Seal();
@@ -1057,9 +1060,18 @@ internal static class CompositeSchemaBuilder
                 $"An executable schema must specify the `{FusionBuiltIns.Schema}` type.");
         }
 
-        return sourceSchemaDefinition.Values
-            .Select(sourceSchema => new SourceSchemaInfo(sourceSchema.Name.Value, GetSchemaName(sourceSchema)))
-            .ToImmutableDictionary(sourceSchemaInfo => sourceSchemaInfo.Key);
+        var sourceSchemaBuilder = ImmutableDictionary.CreateBuilder<string, SourceSchemaInfo>();
+
+        foreach (var sourceSchema in sourceSchemaDefinition.Values)
+        {
+            var schemaName = GetSchemaName(sourceSchema);
+            var connectorKind = GetConnectorKind(sourceSchema);
+            sourceSchemaBuilder.Add(
+                sourceSchema.Name.Value,
+                new SourceSchemaInfo(sourceSchema.Name.Value, schemaName, connectorKind));
+        }
+
+        return sourceSchemaBuilder.ToImmutable();
 
         static string GetSchemaName(EnumValueDefinitionNode sourceSchema)
         {
@@ -1067,6 +1079,14 @@ internal static class CompositeSchemaBuilder
                 t.Name.Value.Equals(FusionBuiltIns.SchemaMetadata, StringComparison.Ordinal));
             var nameArg = directive?.Arguments.FirstOrDefault(t => t.Name.Value.Equals("name"));
             return nameArg?.Value is StringValueNode nameValue ? nameValue.Value : sourceSchema.Name.Value;
+        }
+
+        static string? GetConnectorKind(EnumValueDefinitionNode sourceSchema)
+        {
+            var directive = sourceSchema.Directives.FirstOrDefault(t =>
+                t.Name.Value.Equals(FusionBuiltIns.Connector, StringComparison.Ordinal));
+            var kindArg = directive?.Arguments.FirstOrDefault(t => t.Name.Value.Equals("kind"));
+            return kindArg?.Value is StringValueNode kindValue ? kindValue.Value : null;
         }
     }
 

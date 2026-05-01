@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Xunit2.Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
+
+  <PropertyGroup>
+    <AssemblyName>ChilliCream.Nitro.Adapters.OpenApi.Tests</AssemblyName>
+    <RootNamespace>ChilliCream.Nitro.Adapters.OpenApi</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\ChilliCream.Nitro.Adapters.OpenApi\ChilliCream.Nitro.Adapters.OpenApi.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -31,8 +31,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Animal {
-        id: ID!
+      type Query {
+        book: Book
       }
 
       type Book @key(fields: "id") {
@@ -50,8 +50,8 @@ sourceSchemas:
         tricks: [String] @external
       }
 
-      type Query {
-        book: Book
+      interface Animal {
+        id: ID!
       }
     interactions:
       - request:
@@ -89,8 +89,9 @@ sourceSchemas:
         query: Query
       }
 
-      interface Animal {
-        id: ID!
+      type Query {
+        catById(id: ID! @is(field: "id")): Cat @lookup @internal
+        dogById(id: ID! @is(field: "id")): Dog @lookup @internal
       }
 
       type Cat implements Animal @key(fields: "id") {
@@ -103,9 +104,8 @@ sourceSchemas:
         tricks: [String]
       }
 
-      type Query {
-        catById(id: ID! @is(field: "id")): Cat @lookup @internal
-        dogById(id: ID! @is(field: "id")): Dog @lookup @internal
+      interface Animal {
+        id: ID!
       }
 operationPlan:
   operation:

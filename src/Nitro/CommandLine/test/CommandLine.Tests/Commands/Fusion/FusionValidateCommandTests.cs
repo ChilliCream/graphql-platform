@@ -524,14 +524,12 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     }
 
     [Fact]
-    public async Task WithSourceSchemaFile_FgpInRegistry_NewSourceSchema_ReturnsSuccess()
+    public async Task WithSourceSchemaFile_FgpInRegistry_NoLocalLegacyArchive_ReturnsError()
     {
         // arrange
         SetupSourceSchemaFile();
         SetupMissingFusionConfigurationDownload();
         SetupLegacyFusionConfigurationDownload();
-        var capturedStream = SetupSchemaValidationMutation();
-        SetupSchemaValidationSubscription();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -545,55 +543,18 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             SourceSchemaFile);
 
         // assert
-        result.AssertSuccess(
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Stage 'dev' currently has a Fusion v1 archive but no '--legacy-v1-archive' was provided. The server-stored Fusion v1 archive may be outdated and cannot be used as the composition base. Please provide a local Fusion v1 archive via '--legacy-v1-archive'.
+            """);
+        result.StdOut.MatchInlineSnapshot(
             """
             Validating Fusion configuration of API 'api-1' against stage 'dev'
             ├── Downloading existing configuration from 'dev'
-            │   └── ✓ Downloaded existing legacy v1 configuration from 'dev'.
-            ├── Composing new configuration
-            │   └── ✓ Composed new configuration.
-            ├── Validation request created. (ID: request-id)
-            └── ✓ Fusion configuration passed validation.
+            │   └── ✕ Failed to download the existing Fusion configuration.
+            └── ✕ Failed to validate the Fusion configuration.
             """);
-        AssertSchemaUploadAfterCompose(capturedStream);
-    }
-
-    [Fact]
-    public async Task WithSourceSchemaFile_FgpInRegistry_OverridingSourceSchema_ReturnsSuccess()
-    {
-        // arrange
-        SetupSourceSchemaFile(
-            SourceSchemaReviewsFile,
-            SourceSchemaReviewsSettingsFile,
-            SourceSchemaReviews);
-        SetupMissingFusionConfigurationDownload();
-        SetupLegacyFusionConfigurationDownload();
-        var capturedStream = SetupSchemaValidationMutation();
-        SetupSchemaValidationSubscription();
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "fusion",
-            "validate",
-            "--api-id",
-            ApiId,
-            "--stage",
-            Stage,
-            "--source-schema-file",
-            SourceSchemaReviewsFile);
-
-        // assert
-        result.AssertSuccess(
-            """
-            Validating Fusion configuration of API 'api-1' against stage 'dev'
-            ├── Downloading existing configuration from 'dev'
-            │   └── ✓ Downloaded existing legacy v1 configuration from 'dev'.
-            ├── Composing new configuration
-            │   └── ✓ Composed new configuration.
-            ├── Validation request created. (ID: request-id)
-            └── ✓ Fusion configuration passed validation.
-            """);
-        AssertOverriddenSchemaUpload(capturedStream);
+        Assert.Equal(1, result.ExitCode);
     }
 
     [Fact]
@@ -625,7 +586,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             """
             Validating Fusion configuration of API 'api-1' against stage 'dev'
             ├── Downloading existing configuration from 'dev'
-            │   └── ✓ Downloaded existing legacy v1 configuration from 'dev'.
+            │   └── ! There is no existing configuration on 'dev', using --legacy-v1-archive instead.
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validation request created. (ID: request-id)
@@ -666,7 +627,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             """
             Validating Fusion configuration of API 'api-1' against stage 'dev'
             ├── Downloading existing configuration from 'dev'
-            │   └── ✓ Downloaded existing legacy v1 configuration from 'dev'.
+            │   └── ! There is no existing configuration on 'dev', using --legacy-v1-archive instead.
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validation request created. (ID: request-id)
@@ -704,7 +665,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             """
             Validating Fusion configuration of API 'api-1' against stage 'dev'
             ├── Downloading existing configuration from 'dev'
-            │   └── ! There is no existing configuration on 'dev'.
+            │   └── ! There is no existing configuration on 'dev', using --legacy-v1-archive instead.
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validation request created. (ID: request-id)
@@ -745,7 +706,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             """
             Validating Fusion configuration of API 'api-1' against stage 'dev'
             ├── Downloading existing configuration from 'dev'
-            │   └── ! There is no existing configuration on 'dev'.
+            │   └── ! There is no existing configuration on 'dev', using --legacy-v1-archive instead.
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validation request created. (ID: request-id)
@@ -1119,13 +1080,25 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             "The fusion__FieldSelectionSet scalar is used to represent a GraphQL selection set. To simplify the syntax, the outermost selection set is not wrapped in curly braces."
             scalar fusion__FieldSelectionSet
 
+            "The @fusion__connector directive declares which connector kind handles a source schema."
+            directive @fusion__connector(
+              "The kind of connector that handles the source schema represented by this enum value."
+              kind: String!
+            ) on ENUM_VALUE
+
             "The @fusion__cost directive specifies cost metadata for each source schema."
             directive @fusion__cost(
               "The name of the source schema that defined the cost metadata."
               schema: fusion__Schema!
               "The weight defined in the source schema."
               weight: String!
-            ) repeatable on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM | INPUT_FIELD_DEFINITION
+            ) repeatable on
+              | SCALAR
+              | OBJECT
+              | FIELD_DEFINITION
+              | ARGUMENT_DEFINITION
+              | ENUM
+              | INPUT_FIELD_DEFINITION
 
             "The @fusion__enumValue directive specifies which source schema provides an enum value."
             directive @fusion__enumValue(
@@ -1154,7 +1127,17 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             ) repeatable on OBJECT | INTERFACE
 
             "The @fusion__inaccessible directive is used to prevent specific type system members from being accessible through the client-facing composite schema, even if they are accessible in the underlying source schemas."
-            directive @fusion__inaccessible on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
+            directive @fusion__inaccessible on
+              | SCALAR
+              | OBJECT
+              | FIELD_DEFINITION
+              | ARGUMENT_DEFINITION
+              | INTERFACE
+              | UNION
+              | ENUM
+              | ENUM_VALUE
+              | INPUT_OBJECT
+              | INPUT_FIELD_DEFINITION
 
             "The @fusion__inputField directive specifies which source schema provides an input field in a composite input type."
             directive @fusion__inputField(
@@ -1282,13 +1265,25 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               vary: [String]
             ) on OBJECT | FIELD_DEFINITION | INTERFACE | UNION
 
+            "The @fusion__connector directive declares which connector kind handles a source schema."
+            directive @fusion__connector(
+              "The kind of connector that handles the source schema represented by this enum value."
+              kind: String!
+            ) on ENUM_VALUE
+
             "The @fusion__cost directive specifies cost metadata for each source schema."
             directive @fusion__cost(
               "The name of the source schema that defined the cost metadata."
               schema: fusion__Schema!
               "The weight defined in the source schema."
               weight: String!
-            ) repeatable on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM | INPUT_FIELD_DEFINITION
+            ) repeatable on
+              | SCALAR
+              | OBJECT
+              | FIELD_DEFINITION
+              | ARGUMENT_DEFINITION
+              | ENUM
+              | INPUT_FIELD_DEFINITION
 
             "The @fusion__enumValue directive specifies which source schema provides an enum value."
             directive @fusion__enumValue(
@@ -1317,7 +1312,17 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             ) repeatable on OBJECT | INTERFACE
 
             "The @fusion__inaccessible directive is used to prevent specific type system members from being accessible through the client-facing composite schema, even if they are accessible in the underlying source schemas."
-            directive @fusion__inaccessible on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
+            directive @fusion__inaccessible on
+              | SCALAR
+              | OBJECT
+              | FIELD_DEFINITION
+              | ARGUMENT_DEFINITION
+              | INTERFACE
+              | UNION
+              | ENUM
+              | ENUM_VALUE
+              | INPUT_OBJECT
+              | INPUT_FIELD_DEFINITION
 
             "The @fusion__inputField directive specifies which source schema provides an input field in a composite input type."
             directive @fusion__inputField(

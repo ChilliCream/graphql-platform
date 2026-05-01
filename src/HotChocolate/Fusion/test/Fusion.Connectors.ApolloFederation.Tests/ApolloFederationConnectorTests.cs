@@ -17,22 +17,18 @@ public class ApolloFederationConnectorTests
     {
         // arrange
         var baseAddress = new Uri("http://localhost:5000/graphql");
-        var lookups = new Dictionary<string, LookupFieldInfo>();
 
         // act
         var config = new ApolloFederationSourceSchemaClientConfiguration(
             "products",
             "products-http",
             baseAddress,
-            lookups,
-            new Dictionary<string, EntityRequiresInfo>(),
             supportedOperations: SupportedOperationType.Query);
 
         // assert
         Assert.Equal("products", config.Name);
         Assert.Equal("products-http", config.HttpClientName);
         Assert.Same(baseAddress, config.BaseAddress);
-        Assert.Same(lookups, config.Lookups);
         Assert.Equal(SupportedOperationType.Query, config.SupportedOperations);
     }
 
@@ -43,9 +39,7 @@ public class ApolloFederationConnectorTests
         var config = new ApolloFederationSourceSchemaClientConfiguration(
             "products",
             "products-http",
-            new Uri("http://localhost:5000/graphql"),
-            new Dictionary<string, LookupFieldInfo>(),
-            new Dictionary<string, EntityRequiresInfo>());
+            new Uri("http://localhost:5000/graphql"));
 
         // assert
         Assert.Equal(

@@ -310,6 +310,34 @@ response:
                 },
                 {
                   "__typename": "__Field"
+                },
+                {
+                  "__typename": "__Field"
+                }
+              ],
+              "enumValues": null,
+              "inputFields": null
+            },
+            {
+              "__typename": "__Type",
+              "fields": null,
+              "enumValues": null,
+              "inputFields": null
+            },
+            {
+              "__typename": "__Type",
+              "fields": [
+                {
+                  "__typename": "__Field"
+                },
+                {
+                  "__typename": "__Field"
+                },
+                {
+                  "__typename": "__Field"
+                },
+                {
+                  "__typename": "__Field"
                 }
               ],
               "enumValues": null,
@@ -447,6 +475,12 @@ response:
               "fields": null,
               "enumValues": null,
               "inputFields": null
+            },
+            {
+              "__typename": "__Type",
+              "fields": null,
+              "enumValues": null,
+              "inputFields": null
             }
           ]
         }
@@ -460,26 +494,6 @@ sourceSchemas:
         query: Query
         mutation: Mutation
         subscription: Subscription
-      }
-
-      interface Node @test(arg: "value") {
-        id: ID!
-      }
-
-      "Interface description"
-      interface Votable implements Node {
-        "Interface field description"
-        id: ID!
-      }
-
-      type Mutation @test(arg: "value") {
-        postReview(input: PostReviewInput): Review @test(arg: "value")
-      }
-
-      type Post implements Votable & Node @key(fields: "id") {
-        id: ID!
-        postKind: PostKind @shareable
-        location: String @inaccessible
       }
 
       "Object type description"
@@ -497,12 +511,32 @@ sourceSchemas:
         node(id: ID!): Node @lookup
       }
 
-      type Review implements Votable & Node @test(arg: "value") {
-        id: ID!
+      type Mutation @test(arg: "value") {
+        postReview(input: PostReviewInput): Review @test(arg: "value")
       }
 
       type Subscription @test(arg: "value") {
         onNewReview: Review
+      }
+
+      type Post implements Votable & Node @key(fields: "id") {
+        id: ID!
+        postKind: PostKind @shareable
+        location: String @inaccessible
+      }
+
+      type Review implements Votable & Node @test(arg: "value") {
+        id: ID!
+      }
+
+      interface Node @test(arg: "value") {
+        id: ID!
+      }
+
+      "Interface description"
+      interface Votable implements Node {
+        "Interface field description"
+        id: ID!
       }
 
       "Union description"
@@ -530,11 +564,27 @@ sourceSchemas:
         PHOTO @deprecated(reason: "No longer supported")
       }
 
-      "The `@oneOf` directive is used within the type system definition language to indicate that an Input Object is a OneOf Input Object."
-      directive @oneOf on INPUT_OBJECT
-
       "Directive description"
-      directive @test("Directive argument description" arg: String! = "default") repeatable on QUERY | MUTATION | SUBSCRIPTION | FIELD | FRAGMENT_DEFINITION | FRAGMENT_SPREAD | INLINE_FRAGMENT | VARIABLE_DEFINITION | SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
+      directive @test("Directive argument description" arg: String! = "default") repeatable on
+        | QUERY
+        | MUTATION
+        | SUBSCRIPTION
+        | FIELD
+        | FRAGMENT_DEFINITION
+        | FRAGMENT_SPREAD
+        | INLINE_FRAGMENT
+        | VARIABLE_DEFINITION
+        | SCHEMA
+        | SCALAR
+        | OBJECT
+        | FIELD_DEFINITION
+        | ARGUMENT_DEFINITION
+        | INTERFACE
+        | UNION
+        | ENUM
+        | ENUM_VALUE
+        | INPUT_OBJECT
+        | INPUT_FIELD_DEFINITION
 operationPlan:
   operation:
     - document: |

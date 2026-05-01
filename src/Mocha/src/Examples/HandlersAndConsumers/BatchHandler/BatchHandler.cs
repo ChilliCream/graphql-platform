@@ -5,7 +5,6 @@
 
 using Mocha;
 using Mocha.Transport.InMemory;
-using Mocha.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,11 +34,6 @@ app.MapGet("/orders/{count:int}", async (int count, IMessageBus bus) =>
 });
 
 Console.WriteLine("POST to http://localhost:5000/orders/{count} to publish a batch");
-
-if (app.Environment.IsDevelopment())
-{
-    app.MapMessageBusDeveloperTopology();
-}
 
 app.Run();
 

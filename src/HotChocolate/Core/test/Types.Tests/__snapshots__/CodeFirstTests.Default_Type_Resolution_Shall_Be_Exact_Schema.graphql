@@ -2,8 +2,9 @@ schema {
   query: Query
 }
 
-interface IPet {
-  name: String
+type Query {
+  shouldBeCat: IPet
+  shouldBeDog: IPet
 }
 
 type Cat implements IPet {
@@ -14,7 +15,6 @@ type Dog implements IPet {
   name: String
 }
 
-type Query {
-  shouldBeCat: IPet
-  shouldBeDog: IPet
+interface IPet {
+  name: String
 }

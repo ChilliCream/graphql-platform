@@ -980,37 +980,71 @@ We removed the following methods from the `IExecutionDiagnosticEventListener` si
 
 Some other methods also had a change in their signature - simply override them again to fix any compilation issues.
 
-<!--
-TODO: This should probably go on in the Fusion specific guide.
+## Experimental @semanticNonNull support removed
 
-### Fusion diagnostic listener API redesign
+Hot Chocolate v15 included experimental support for the `@semanticNonNull` directive, which let you mark fields as semantically non-null while still returning `null` (rather than propagating to the parent) when a resolver errored. We've removed this feature in v16 in favor of the [`onError` proposal](https://github.com/graphql/graphql-spec/pull/1163).
 
-Fusion diagnostics were redesigned in v16.
+If you previously opted in to this feature, remove the option:
 
-- v15 interface: `HotChocolate.Fusion.Execution.Diagnostic.IFusionDiagnosticEvents` / `IFusionDiagnosticEventListener`
-- v16 interface: `HotChocolate.Fusion.Diagnostics.IFusionExecutionDiagnosticEvents` / `IFusionExecutionDiagnosticEventListener`
+```diff
+builder.AddGraphQL()
+    .ModifyOptions(o =>
+    {
+-       o.EnableSemanticNonNull = true;
+    });
+```
 
-This is not a signature-only change. The old high-level hooks were removed:
+If you still need to keep the behavior of not propagating nulls for errors on non-null fields, set the `DefaultErrorHandlingMode` to `ErrorHandlingMode.Null`:
 
-- `ExecuteFederatedQuery(IRequestContext)`
-- `QueryPlanExecutionError(Exception)`
-- `ResolveError(Exception)`
-- `ResolveByKeyBatchError(Exception)`
-- `SubgraphRequestError(string, Exception)`
+```csharp
+builder
+    .AddGraphQL()
+    .ModifyOptions(o => o.DefaultErrorHandlingMode = ErrorHandlingMode.Null);
+```
 
-The new API is execution-stage specific and provides request/plan/node/subscription hooks, for example:
+### Clients that still need a schema with @semanticNonNull annotations
 
-- `PlanOperation(...)`, `PlanOperationError(...)`
-- `ExecuteOperationNode(...)`, `ExecuteOperationBatchNode(...)`, `ExecuteSubscriptionNode(...)`, `ExecuteNodeFieldNode(...)`, `ExecuteIntrospectionNode(...)`
-- `ExecutionNodeError(...)`, `SourceSchemaTransportError(...)`, `SourceSchemaStoreError(...)`
-- `OnSubscriptionEvent(...)`, `SubscriptionEventError(...)`
+If you have a client that still relies on the schema being annotated with `@semanticNonNull`, you have a few options to obtain such a schema.
 
-There is no 1:1 mapping for all old methods. In most cases:
+**Schema snapshot tests**
 
-- `SubgraphRequestError(...)` maps to `SourceSchemaTransportError(...)`
-- `ResolveError(...)` / `ResolveByKeyBatchError(...)` map to `ExecutionNodeError(...)` and source-schema error hooks depending on error kind
+If you're producing a schema string for snapshot tests like this:
 
-Also note that `SubscriptionTransportError(...)` is no longer exposed separately in the fusion diagnostics API; use `SourceSchemaTransportError(...)`. -->
+```csharp
+ISchemaDefinition schema = await new ServiceCollection()
+    .AddGraphQL()
+    // ...
+    .BuildSchemaAsync();
+
+string schemaStr = schema.ToString();
+
+// assert schemaStr ...
+```
+
+Switch to `SchemaFormatter` with `RewriteToSemanticNonNull` enabled:
+
+```csharp
+string schemaStr = SchemaFormatter.FormatAsString(
+    schema,
+    new SchemaFormatterOptions { RewriteToSemanticNonNull = true });
+```
+
+**Downloading the schema from the server**
+
+If you're using `MapGraphQLSchema()` to expose the schema at `/graphql/schema`, you can additionally call `MapGraphQLSemanticNonNullSchema()` to expose a variant annotated with `@semanticNonNull` at `/graphql/semantic-non-null-schema.graphql`:
+
+```csharp
+app.MapGraphQLSchema();
+app.MapGraphQLSemanticNonNullSchema();
+```
+
+**Exporting the schema via the CLI**
+
+If you're using the schema export command, add the `--semantic-non-null` flag to emit the schema with `@semanticNonNull` annotations:
+
+```bash
+dotnet run -- schema export --output schema.graphql --semantic-non-null
+```
 
 # Deprecations
 

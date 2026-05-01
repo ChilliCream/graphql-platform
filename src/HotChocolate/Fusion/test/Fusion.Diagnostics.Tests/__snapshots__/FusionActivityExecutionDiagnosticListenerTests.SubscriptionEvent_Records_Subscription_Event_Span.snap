@@ -3,8 +3,13 @@
     {
       "OperationName": "GraphQL Operation",
       "DisplayName": "subscription",
+      "Kind": "Internal",
       "Status": "Ok",
       "tags": [
+        {
+          "Key": "graphql.processing.type",
+          "Value": "request"
+        },
         {
           "Key": "graphql.operation.type",
           "Value": "subscription"
@@ -32,6 +37,7 @@
         {
           "OperationName": "GraphQL Document Parsing",
           "DisplayName": "GraphQL Document Parsing",
+          "Kind": "Internal",
           "Status": "Ok",
           "tags": [
             {
@@ -44,6 +50,7 @@
         {
           "OperationName": "GraphQL Document Validation",
           "DisplayName": "GraphQL Document Validation",
+          "Kind": "Internal",
           "Status": "Ok",
           "tags": [
             {
@@ -60,6 +67,7 @@
         {
           "OperationName": "GraphQL Operation Planning",
           "DisplayName": "GraphQL Operation Planning",
+          "Kind": "Internal",
           "Status": "Ok",
           "tags": [
             {
@@ -84,6 +92,7 @@
         {
           "OperationName": "GraphQL Operation Execution",
           "DisplayName": "GraphQL Operation Execution",
+          "Kind": "Internal",
           "Status": "Ok",
           "tags": [
             {
@@ -110,6 +119,7 @@
     {
       "OperationName": "GraphQL Step Execution",
       "DisplayName": "GraphQL Step Execution",
+      "Kind": "Internal",
       "Status": "Ok",
       "tags": [
         {
@@ -141,19 +151,15 @@
           "Value": "99ac66222461a285be3d03f60e60dd5cb63990ed42e28cc8e7f1dacc35ed429a"
         },
         {
-          "Key": "graphql.source.name",
+          "Key": "graphql.source_schema.name",
           "Value": "a"
         },
         {
-          "Key": "graphql.source.operation.name",
+          "Key": "graphql.source_schema.operation.name",
           "Value": "OnMessageSubscription_ef859b98_1"
         },
         {
-          "Key": "graphql.source.operation.kind",
-          "Value": "subscription"
-        },
-        {
-          "Key": "graphql.source.operation.hash",
+          "Key": "graphql.source_schema.operation.hash",
           "Value": "sha256:f9abddbb651ad8e118793eb7c4a7c8db7fe43cae95faba710a0ff35b26b17136"
         }
       ],
@@ -162,6 +168,7 @@
         {
           "OperationName": "GraphQL Subscription Event",
           "DisplayName": "GraphQL Subscription Event",
+          "Kind": "Internal",
           "Status": "Ok",
           "tags": [
             {

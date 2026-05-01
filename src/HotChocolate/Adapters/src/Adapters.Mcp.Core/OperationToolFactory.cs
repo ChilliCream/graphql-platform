@@ -1,7 +1,6 @@
 using System.Collections.Frozen;
 using System.Text;
 using System.Text.Json.Nodes;
-using CaseConverter;
 using HotChocolate.Adapters.Mcp.Extensions;
 using HotChocolate.Adapters.Mcp.Storage;
 using HotChocolate.Language;

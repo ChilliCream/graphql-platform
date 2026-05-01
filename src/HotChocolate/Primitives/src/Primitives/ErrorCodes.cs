@@ -49,7 +49,6 @@ public static class ErrorCodes
         public const string OneSlicingArgumentRequired = "HC0082";
 
         public const string NonNullViolation = "HC0018";
-        public const string SemanticNonNullViolation = "HC0088";
         public const string MustBeInputType = "HC0017";
         public const string InvalidType = "HC0016";
         public const string OperationDocumentNotFound = "HC0015";

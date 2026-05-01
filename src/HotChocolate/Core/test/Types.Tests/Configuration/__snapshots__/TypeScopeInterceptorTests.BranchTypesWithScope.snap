@@ -2,6 +2,11 @@ schema {
   query: Foo
 }
 
+type Foo {
+  bar1: A_Bar!
+  bar2: B_Bar!
+}
+
 type A_Bar {
   baz: C_Baz!
   someString: String!
@@ -14,9 +19,4 @@ type B_Bar {
 
 type C_Baz {
   someString: String!
-}
-
-type Foo {
-  bar1: A_Bar!
-  bar2: B_Bar!
 }

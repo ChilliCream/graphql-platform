@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.PersistedOperations;
+using HotChocolate.Resolvers;
 using HotChocolate.Subscriptions;
 using HotChocolate.Types;
 using static HotChocolate.Diagnostics.ActivityTestHelper;
@@ -98,7 +99,7 @@ public partial class ActivityExecutionDiagnosticListenerTests
         {
             // arrange
             var storage = new InMemoryOperationDocumentStorage();
-            storage.Add("sayHelloOp", "{ sayHello }");
+            storage.Add("say-hello-persisted-id", "{ sayHello }");
 
             var services = new ServiceCollection()
                 .AddGraphQL()
@@ -113,7 +114,7 @@ public partial class ActivityExecutionDiagnosticListenerTests
             var executor = await services.GetRequestExecutorAsync();
 
             // act
-            await executor.ExecuteAsync(OperationRequest.FromId("sayHelloOp"));
+            await executor.ExecuteAsync(OperationRequest.FromId("say-hello-persisted-id"));
 
             // assert
             activities.MatchSnapshot();
@@ -310,13 +311,88 @@ public partial class ActivityExecutionDiagnosticListenerTests
                             deeper {
                                 deeps {
                                     deeper {
-                                        causeFatalError
+                                        deeps {
+                                            causeFatalError
+                                        }
                                     }
                                 }
                             }
                         }
                     }
                     """);
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
+    public async Task MaxErrorEvents_CapsErrorEventsOnRootSpan()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange & act
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddInstrumentation(o =>
+                {
+                    o.Scopes = ActivityScopes.ExecuteRequest | ActivityScopes.ExecuteOperation;
+                    o.MaxErrorEvents = 2;
+                })
+                .AddQueryType<SimpleQuery>()
+                .ExecuteRequestAsync("{ failingItems(count: 5) { fail } }");
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
+    public async Task GraphQLError_WithExtensionsCode_SetsErrorTypeFromCode()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange & act
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddInstrumentation(o => o.Scopes = ActivityScopes.All)
+                .AddQueryType<SimpleQuery>()
+                .ExecuteRequestAsync("{ causeCodedError }");
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
+    public async Task GraphQLError_WithoutExtensionsCode_FallsBackToExecutionError()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange & act
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddInstrumentation(o =>
+                    o.Scopes = ActivityScopes.ExecuteRequest | ActivityScopes.ResolveFieldValue)
+                .AddQueryType<SimpleQuery>()
+                .ExecuteRequestAsync("{ causeUncodedError }");
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
+    public async Task ResolverException_OnNullableField_SetsErrorTypeToExceptionTypeName()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange & act
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddInstrumentation(o => o.Scopes = ActivityScopes.All)
+                .AddQueryType<SimpleQuery>()
+                .ExecuteRequestAsync("{ throwInvalidOperation }");
 
             // assert
             activities.MatchSnapshot();
@@ -524,7 +600,39 @@ public partial class ActivityExecutionDiagnosticListenerTests
 
         public string Greeting(string name) => $"Hello, {name}!";
 
-        public string CauseFatalError() => throw new GraphQLException("fail");
+        public string CauseFatalError(IResolverContext context)
+            => throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage("fail")
+                    .SetCode("CUSTOM_ERROR_CODE")
+                    .SetPath(context.Path)
+                    .Build());
+
+        public string CauseUncodedError(IResolverContext context)
+            => throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage("fail")
+                    .SetPath(context.Path)
+                    .Build());
+
+        public string CauseCodedError(IResolverContext context)
+            => throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage("invalid input")
+                    .SetCode("INVALID_INPUT")
+                    .SetPath(context.Path)
+                    .Build());
+
+        public string? ThrowInvalidOperation()
+            => throw new InvalidOperationException("custom resolver failure");
+
+        public IEnumerable<FailingItem> FailingItems(int count)
+        {
+            for (var i = 0; i < count; i++)
+            {
+                yield return new FailingItem(i);
+            }
+        }
 
         public Deep Deep() => new();
 
@@ -532,11 +640,30 @@ public partial class ActivityExecutionDiagnosticListenerTests
             => dataLoader.LoadAsync(key);
     }
 
+    public class FailingItem(int index)
+    {
+        public int Index { get; } = index;
+
+        public string? Fail(IResolverContext context)
+            => throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage($"fail-{Index}")
+                    .SetCode("CUSTOM_ERROR_CODE")
+                    .SetPath(context.Path)
+                    .Build());
+    }
+
     public class Deep
     {
         public Deeper Deeper() => new();
 
-        public string CauseFatalError() => throw new GraphQLException("fail");
+        public string CauseFatalError(IResolverContext context)
+            => throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage("fail")
+                    .SetCode("CUSTOM_ERROR_CODE")
+                    .SetPath(context.Path)
+                    .Build());
     }
 
     public class Deeper
