@@ -58,6 +58,23 @@ public sealed class FusionRequestOptions : ICloneable
     }
 
     /// <summary>
+    /// Gets or sets whether clients are allowed to request the operation plan
+    /// to be included in the GraphQL response by sending the
+    /// <c>Fusion-Operation-Plan</c> header.
+    /// <c>false</c> by default.
+    /// </summary>
+    public bool AllowOperationPlanRequests
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            field = value;
+        }
+    }
+
+    /// <summary>
     /// Gets or sets the persisted operation options.
     /// </summary>
     public PersistedOperationOptions PersistedOperations
@@ -108,6 +125,7 @@ public sealed class FusionRequestOptions : ICloneable
             ExecutionTimeout = ExecutionTimeout,
             CollectOperationPlanTelemetry = CollectOperationPlanTelemetry,
             AllowErrorHandlingModeOverride = AllowErrorHandlingModeOverride,
+            AllowOperationPlanRequests = AllowOperationPlanRequests,
             PersistedOperations = PersistedOperations,
             IncludeExceptionDetails = IncludeExceptionDetails
         };
