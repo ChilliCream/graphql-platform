@@ -608,7 +608,8 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
         operationResult.Features.Set(OperationPlan);
 
         if (OperationPlan is OperationPlan rootPlan
-            && RequestContext.ContextData.ContainsKey(ExecutionContextData.IncludeOperationPlan))
+            && RequestContext.ContextData.ContainsKey(ExecutionContextData.IncludeOperationPlan)
+            && RequestContext.AllowOperationPlanRequests())
         {
             var writer = new PooledArrayWriter();
             s_planFormatter.Format(writer, rootPlan, trace);

@@ -167,6 +167,7 @@ public abstract partial class FusionTestBase : IDisposable
         {
             o.CollectOperationPlanTelemetry = false;
             o.AllowErrorHandlingModeOverride = true;
+            o.AllowOperationPlanRequests = true;
         });
         configureGatewayBuilder?.Invoke(gatewayBuilder);
 

@@ -1,3 +1,5 @@
+using System.Net.Http.Headers;
+using System.Text;
 using System.Text.Json;
 using HotChocolate.AspNetCore;
 using HotChocolate.Transport.Http;
@@ -292,5 +294,98 @@ public class DefaultSecurityTests : FusionTestBase
         using var response = await result.ReadAsResultAsync();
         Assert.Equal(JsonValueKind.Undefined, response.Errors.ValueKind);
         Assert.Equal(JsonValueKind.Object, response.Data.ValueKind);
+    }
+
+    [Fact]
+    public async Task OperationPlanHeader_When_Allowed_Should_Include_OperationPlan()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema("A", SimpleSchema);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server1)],
+            configureGatewayBuilder: b =>
+            {
+                b.ConfigureSchemaServices((_, s) =>
+                {
+                    s.RemoveAll<IHttpRequestInterceptor>();
+                    s.AddSingleton<IHttpRequestInterceptor, DefaultHttpRequestInterceptor>();
+                });
+                b.ModifyRequestOptions(o => o.AllowOperationPlanRequests = true);
+            });
+
+        // act
+        using var response = await SendQueryAsync(gateway, includeOperationPlanHeader: true);
+
+        // assert
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task OperationPlanHeader_When_Not_Allowed_Should_Omit_OperationPlan()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema("A", SimpleSchema);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server1)],
+            configureGatewayBuilder: b =>
+            {
+                b.ConfigureSchemaServices((_, s) =>
+                {
+                    s.RemoveAll<IHttpRequestInterceptor>();
+                    s.AddSingleton<IHttpRequestInterceptor, DefaultHttpRequestInterceptor>();
+                });
+                b.ModifyRequestOptions(o => o.AllowOperationPlanRequests = false);
+            });
+
+        // act
+        using var response = await SendQueryAsync(gateway, includeOperationPlanHeader: true);
+
+        // assert
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task NoOperationPlanHeader_When_Allowed_Should_Omit_OperationPlan()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema("A", SimpleSchema);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server1)],
+            configureGatewayBuilder: b =>
+            {
+                b.ConfigureSchemaServices((_, s) =>
+                {
+                    s.RemoveAll<IHttpRequestInterceptor>();
+                    s.AddSingleton<IHttpRequestInterceptor, DefaultHttpRequestInterceptor>();
+                });
+                b.ModifyRequestOptions(o => o.AllowOperationPlanRequests = true);
+            });
+
+        // act
+        using var response = await SendQueryAsync(gateway, includeOperationPlanHeader: false);
+
+        // assert
+        response.MatchSnapshot();
+    }
+
+    private static Task<HttpResponseMessage> SendQueryAsync(Gateway gateway, bool includeOperationPlanHeader)
+    {
+        var httpClient = gateway.CreateClient();
+        var request = new HttpRequestMessage(HttpMethod.Post, "http://localhost:5000/graphql");
+        request.Content = new StringContent(
+            """{"query":"{ field }"}""",
+            Encoding.UTF8,
+            "application/json");
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/graphql-response+json"));
+
+        if (includeOperationPlanHeader)
+        {
+            request.Headers.Add("Fusion-Operation-Plan", "1");
+        }
+
+        return httpClient.SendAsync(request);
     }
 }
