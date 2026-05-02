@@ -285,12 +285,12 @@ public class NullErrorPropagationTests
     }
 
     [Fact]
-    public async Task PerRequestOverride_OverridesSchemaDefault()
+    public async Task PerRequestOverride_OverridesDefaultErrorHandlingMode()
     {
         // arrange
         using var snapshot = SnapshotHelpers.StartResultSnapshot();
 
-        // Server configured with Propagate (default), but request specifies Null
+        // Request executor options use Propagate (default), but the request specifies Null.
         var executor = await CreateExecutorAsync();
 
         var request =
@@ -313,8 +313,8 @@ public class NullErrorPropagationTests
         // arrange
         using var snapshot = SnapshotHelpers.StartResultSnapshot();
 
-        // Server configured with Propagate (default) and override disabled (default).
-        // Even though the request asks for Null, the schema default Propagate must win.
+        // Request executor options use Propagate (default) and override disabled (default).
+        // Even though the request asks for Null, the configured DefaultErrorHandlingMode must win.
         var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddDocumentFromString(SchemaText)
