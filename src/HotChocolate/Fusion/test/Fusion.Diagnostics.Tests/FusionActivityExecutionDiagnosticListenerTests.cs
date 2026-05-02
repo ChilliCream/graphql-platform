@@ -168,7 +168,7 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             var executor = await gateway.Services.GetRequestExecutorAsync();
 
             var request = OperationRequestBuilder.New()
-                .SetDocument("{ sayHello }")
+                .SetDocument("query SayHelloQuery { sayHello }")
                 .Build();
 
             // act

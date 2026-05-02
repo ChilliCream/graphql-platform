@@ -170,7 +170,7 @@
                       "Value": "hero"
                     },
                     {
-                      "Key": "graphql.field.coordinate",
+                      "Key": "graphql.field.schema_coordinate",
                       "Value": "Query.hero"
                     },
                     {
@@ -203,7 +203,7 @@
                       "Value": "id"
                     },
                     {
-                      "Key": "graphql.field.coordinate",
+                      "Key": "graphql.field.schema_coordinate",
                       "Value": "Droid.id"
                     },
                     {

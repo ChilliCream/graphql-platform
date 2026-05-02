@@ -29,7 +29,7 @@ internal sealed class ResolveFieldSpan(
         activity.SetTag(GraphQL.Field.Alias, selection.ResponseName);
         activity.SetTag(GraphQL.Field.Path, context.Path.Print());
         activity.SetTag(GraphQL.Field.Name, coordinate.MemberName);
-        activity.SetTag(GraphQL.Field.Coordinate, activity.DisplayName);
+        activity.SetTag(GraphQL.Field.SchemaCoordinate, activity.DisplayName);
         activity.SetTag(GraphQL.Field.ParentType, coordinate.Name);
 
         return new ResolveFieldSpan(activity, context, enricher);

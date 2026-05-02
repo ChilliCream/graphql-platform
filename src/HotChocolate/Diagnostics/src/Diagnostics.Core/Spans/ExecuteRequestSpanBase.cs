@@ -57,8 +57,10 @@ internal abstract class ExecuteRequestSpanBase(
 
         if (Context.Result is OperationResult result)
         {
-            // This was previously also always set to 0, so I just kept that behavior.
-            Activity.SetTag(GraphQL.Error.Count, result.Errors.Count);
+            if (result.Errors.Count > 0)
+            {
+                Activity.SetTag(GraphQL.Error.Count, result.Errors.Count);
+            }
 
             EmitErrorEvents(result.Errors, operationTypeValue, operationName);
         }
