@@ -158,6 +158,10 @@
                       "Value": "onFailingMessage"
                     },
                     {
+                      "Key": "graphql.field.schema_coordinate",
+                      "Value": "SimpleSubscription.onFailingMessage"
+                    },
+                    {
                       "Key": "graphql.operation.type",
                       "Value": "subscription"
                     },
@@ -204,7 +208,7 @@
                       "Value": "onFailingMessage"
                     },
                     {
-                      "Key": "graphql.field.coordinate",
+                      "Key": "graphql.field.schema_coordinate",
                       "Value": "SimpleSubscription.onFailingMessage"
                     },
                     {

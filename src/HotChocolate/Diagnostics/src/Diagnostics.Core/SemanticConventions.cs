@@ -90,7 +90,6 @@ internal static class SemanticConventions
             public const string Path = "graphql.field.path";
             public const string Name = "graphql.field.name";
             public const string ParentType = "graphql.field.parent_type";
-            public const string Coordinate = "graphql.field.coordinate";
             public const string SchemaCoordinate = "graphql.field.schema_coordinate";
         }
 

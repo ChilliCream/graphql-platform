@@ -162,7 +162,7 @@
                   "Value": "deep"
                 },
                 {
-                  "Key": "graphql.field.coordinate",
+                  "Key": "graphql.field.schema_coordinate",
                   "Value": "SimpleQuery.deep"
                 },
                 {
@@ -195,7 +195,7 @@
                   "Value": "causeFatalError"
                 },
                 {
-                  "Key": "graphql.field.coordinate",
+                  "Key": "graphql.field.schema_coordinate",
                   "Value": "Deep.causeFatalError"
                 },
                 {

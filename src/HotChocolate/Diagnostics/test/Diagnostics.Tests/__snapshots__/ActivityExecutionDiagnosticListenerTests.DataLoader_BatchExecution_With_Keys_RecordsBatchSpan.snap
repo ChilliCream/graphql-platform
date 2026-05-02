@@ -17,10 +17,6 @@
         {
           "Key": "graphql.document.hash",
           "Value": "md5:9b20745108c8de5afccc35cd56ead9fc"
-        },
-        {
-          "Key": "graphql.error.count",
-          "Value": 0
         }
       ],
       "event": [
@@ -129,7 +125,7 @@
                   "Value": "dataLoader"
                 },
                 {
-                  "Key": "graphql.field.coordinate",
+                  "Key": "graphql.field.schema_coordinate",
                   "Value": "SimpleQuery.dataLoader"
                 },
                 {

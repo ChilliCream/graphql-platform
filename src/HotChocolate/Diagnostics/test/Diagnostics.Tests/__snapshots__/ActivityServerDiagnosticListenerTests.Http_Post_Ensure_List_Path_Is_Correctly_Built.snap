@@ -54,10 +54,6 @@
             {
               "Key": "graphql.document.hash",
               "Value": "md5:668e9631148921208d08dbb69513fa8e"
-            },
-            {
-              "Key": "graphql.error.count",
-              "Value": 0
             }
           ],
           "event": [
@@ -174,7 +170,7 @@
                       "Value": "hero"
                     },
                     {
-                      "Key": "graphql.field.coordinate",
+                      "Key": "graphql.field.schema_coordinate",
                       "Value": "Query.hero"
                     },
                     {
@@ -207,7 +203,7 @@
                       "Value": "friends"
                     },
                     {
-                      "Key": "graphql.field.coordinate",
+                      "Key": "graphql.field.schema_coordinate",
                       "Value": "Droid.friends"
                     },
                     {
@@ -240,7 +236,7 @@
                       "Value": "friends"
                     },
                     {
-                      "Key": "graphql.field.coordinate",
+                      "Key": "graphql.field.schema_coordinate",
                       "Value": "Human.friends"
                     },
                     {
@@ -273,7 +269,7 @@
                       "Value": "friends"
                     },
                     {
-                      "Key": "graphql.field.coordinate",
+                      "Key": "graphql.field.schema_coordinate",
                       "Value": "Human.friends"
                     },
                     {
@@ -306,7 +302,7 @@
                       "Value": "friends"
                     },
                     {
-                      "Key": "graphql.field.coordinate",
+                      "Key": "graphql.field.schema_coordinate",
                       "Value": "Human.friends"
                     },
                     {

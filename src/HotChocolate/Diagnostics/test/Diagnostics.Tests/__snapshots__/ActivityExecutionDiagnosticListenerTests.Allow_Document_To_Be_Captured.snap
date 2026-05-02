@@ -25,10 +25,6 @@
         {
           "Key": "graphql.document.body",
           "Value": "query SayHelloOperation {\n  sayHello\n}"
-        },
-        {
-          "Key": "graphql.error.count",
-          "Value": 0
         }
       ],
       "event": [
@@ -145,7 +141,7 @@
                   "Value": "sayHello"
                 },
                 {
-                  "Key": "graphql.field.coordinate",
+                  "Key": "graphql.field.schema_coordinate",
                   "Value": "SimpleQuery.sayHello"
                 },
                 {

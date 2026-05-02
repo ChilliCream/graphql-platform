@@ -47,7 +47,8 @@ internal static class ActivityExtensions
         public void AddGraphQLErrorEvent(
             IError error,
             string? operationType = null,
-            string? operationName = null)
+            string? operationName = null,
+            string? schemaCoordinate = null)
         {
             var tags = new ActivityTagsCollection
             {
@@ -57,6 +58,11 @@ internal static class ActivityExtensions
             if (error.Path is not null)
             {
                 tags[SemanticConventions.GraphQL.Field.Path] = error.Path.Print();
+            }
+
+            if (!string.IsNullOrEmpty(schemaCoordinate))
+            {
+                tags[SemanticConventions.GraphQL.Field.SchemaCoordinate] = schemaCoordinate;
             }
 
             if (!string.IsNullOrEmpty(error.Code))
@@ -95,6 +101,38 @@ internal static class ActivityExtensions
                 tags["exception.type"] = exception.GetType().FullName;
                 tags["exception.message"] = exception.Message;
                 tags["exception.stacktrace"] = exception.ToString();
+            }
+
+            activity.AddEvent(new ActivityEvent("graphql.error", default, tags));
+        }
+
+        public void AddGraphQLErrorEvent(
+            Exception exception,
+            string? schemaCoordinate = null,
+            string? operationType = null,
+            string? operationName = null)
+        {
+            var tags = new ActivityTagsCollection
+            {
+                [SemanticConventions.GraphQL.Error.Message] = exception.Message,
+                ["exception.type"] = exception.GetType().FullName,
+                ["exception.message"] = exception.Message,
+                ["exception.stacktrace"] = exception.ToString()
+            };
+
+            if (!string.IsNullOrEmpty(schemaCoordinate))
+            {
+                tags[SemanticConventions.GraphQL.Field.SchemaCoordinate] = schemaCoordinate;
+            }
+
+            if (!string.IsNullOrEmpty(operationType))
+            {
+                tags[SemanticConventions.GraphQL.Operation.Type] = operationType;
+            }
+
+            if (!string.IsNullOrEmpty(operationName))
+            {
+                tags[SemanticConventions.GraphQL.Operation.Name] = operationName;
             }
 
             activity.AddEvent(new ActivityEvent("graphql.error", default, tags));

@@ -166,7 +166,7 @@
                   "Value": "throwInvalidOperation"
                 },
                 {
-                  "Key": "graphql.field.coordinate",
+                  "Key": "graphql.field.schema_coordinate",
                   "Value": "SimpleQuery.throwInvalidOperation"
                 },
                 {

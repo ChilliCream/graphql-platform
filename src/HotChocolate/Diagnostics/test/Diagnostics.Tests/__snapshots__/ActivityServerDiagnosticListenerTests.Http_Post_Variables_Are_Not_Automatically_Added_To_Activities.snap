@@ -54,10 +54,6 @@
             {
               "Key": "graphql.document.hash",
               "Value": "md5:cc68dfd8c0c54a586a03c35296c5d1f9"
-            },
-            {
-              "Key": "graphql.error.count",
-              "Value": 0
             }
           ],
           "event": [
@@ -195,7 +191,7 @@
                       "Value": "hero"
                     },
                     {
-                      "Key": "graphql.field.coordinate",
+                      "Key": "graphql.field.schema_coordinate",
                       "Value": "Query.hero"
                     },
                     {

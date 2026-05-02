@@ -267,7 +267,8 @@ internal sealed class ActivityExecutionDiagnosticListener(
                 error,
                 operationType: SemanticConventions.GraphQL.Operation.TypeValues[
                     context.Operation.Definition.Operation],
-                operationName: context.Operation.Name);
+                operationName: context.Operation.Name,
+                schemaCoordinate: context.Selection.Field.Coordinate.ToString());
         }
     }
 

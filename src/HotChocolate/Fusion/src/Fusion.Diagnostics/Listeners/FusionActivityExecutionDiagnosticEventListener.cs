@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using HotChocolate.Diagnostics;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution;
@@ -176,7 +177,14 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
             plan.OperationName,
             enricher);
 
-        return span ?? EmptyScope;
+        if (span is null)
+        {
+            return EmptyScope;
+        }
+
+        context.Features.Set(span);
+
+        return span;
     }
 
     public override IDisposable ExecuteOperationNode(
@@ -198,10 +206,15 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         ulong subscriptionId)
     {
         var nodeScope = ExecuteNode(context, node, schemaName);
+
+        var subscriptionContext = context.RequestContext.Features.TryGet<ExecuteRequestSpan>(out var requestSpan)
+            ? requestSpan.Activity.Context
+            : Activity.Current?.Context;
+
         context.RequestContext.Features.Set(
             new SubscriptionContextFeature
             {
-                SubscriptionContext = Activity.Current?.Context
+                SubscriptionContext = subscriptionContext
             });
 
         return nodeScope;
@@ -225,7 +238,10 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         if (Activity.Current is { } activity)
         {
             activity.SetStatus(ActivityStatusCode.Error);
-            activity.AddException(error);
+            activity.AddGraphQLErrorEvent(
+                error,
+                operationType: GetOperationType(context),
+                operationName: context.OperationPlan.Operation.Name);
             activity.SetErrorType(error);
 
             enricher.EnrichExecutionNodeError(context, node, error, activity);
@@ -241,7 +257,10 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         if (Activity.Current is { } activity)
         {
             activity.SetStatus(ActivityStatusCode.Error);
-            activity.AddException(error);
+            activity.AddGraphQLErrorEvent(
+                error,
+                operationType: GetOperationType(context),
+                operationName: context.OperationPlan.Operation.Name);
             activity.SetErrorType(error);
 
             enricher.EnrichSourceSchemaTransportError(context, node, schemaName, error, activity);
@@ -257,7 +276,10 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         if (Activity.Current is { } activity)
         {
             activity.SetStatus(ActivityStatusCode.Error);
-            activity.AddException(error);
+            activity.AddGraphQLErrorEvent(
+                error,
+                operationType: GetOperationType(context),
+                operationName: context.OperationPlan.Operation.Name);
             activity.SetErrorType(error);
 
             enricher.EnrichSourceSchemaStoreError(context, node, schemaName, error, activity);
@@ -305,7 +327,10 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         if (Activity.Current is { } activity)
         {
             activity.SetStatus(ActivityStatusCode.Error);
-            activity.AddException(exception);
+            activity.AddGraphQLErrorEvent(
+                exception,
+                operationType: GetOperationType(context),
+                operationName: context.OperationPlan.Operation.Name);
             activity.SetErrorType(exception);
 
             enricher.EnrichSubscriptionEventError(
@@ -386,4 +411,9 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
 
         return span ?? EmptyScope;
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static string GetOperationType(OperationPlanContext context)
+        => SemanticConventions.GraphQL.Operation.TypeValues[
+            context.OperationPlan.Operation.Definition.Operation];
 }

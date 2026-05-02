@@ -15,12 +15,16 @@
           "Value": "query"
         },
         {
+          "Key": "graphql.operation.name",
+          "Value": "SayHelloQuery"
+        },
+        {
           "Key": "graphql.document.hash",
-          "Value": "md5:f7e9989fbb67af7fa747a9983313c9e5"
+          "Value": "md5:b3cf9afa2200bfa14e2a67e36d17e933"
         },
         {
           "Key": "graphql.document.body",
-          "Value": "{\n  sayHello\n}"
+          "Value": "query SayHelloQuery {\n  sayHello\n}"
         },
         {
           "Key": "graphql.error.count",
@@ -56,6 +60,10 @@
               "Value": "query"
             },
             {
+              "Key": "graphql.operation.name",
+              "Value": "SayHelloQuery"
+            },
+            {
               "Key": "exception.type",
               "Value": "System.Net.Http.HttpRequestException"
             },
@@ -79,7 +87,7 @@
           "tags": [
             {
               "Key": "graphql.document.hash",
-              "Value": "md5:f7e9989fbb67af7fa747a9983313c9e5"
+              "Value": "md5:b3cf9afa2200bfa14e2a67e36d17e933"
             }
           ],
           "event": []
@@ -96,7 +104,7 @@
             },
             {
               "Key": "graphql.document.hash",
-              "Value": "md5:f7e9989fbb67af7fa747a9983313c9e5"
+              "Value": "md5:b3cf9afa2200bfa14e2a67e36d17e933"
             }
           ],
           "event": []
@@ -113,11 +121,15 @@
             },
             {
               "Key": "graphql.document.hash",
-              "Value": "md5:f7e9989fbb67af7fa747a9983313c9e5"
+              "Value": "md5:b3cf9afa2200bfa14e2a67e36d17e933"
             },
             {
               "Key": "graphql.operation.type",
               "Value": "query"
+            },
+            {
+              "Key": "graphql.operation.name",
+              "Value": "SayHelloQuery"
             }
           ],
           "event": []
@@ -137,8 +149,12 @@
               "Value": "query"
             },
             {
+              "Key": "graphql.operation.name",
+              "Value": "SayHelloQuery"
+            },
+            {
               "Key": "graphql.document.hash",
-              "Value": "md5:f7e9989fbb67af7fa747a9983313c9e5"
+              "Value": "md5:b3cf9afa2200bfa14e2a67e36d17e933"
             },
             {
               "Key": "error.type",
@@ -162,8 +178,12 @@
                   "Value": "query"
                 },
                 {
+                  "Key": "graphql.operation.name",
+                  "Value": "SayHelloQuery"
+                },
+                {
                   "Key": "graphql.document.hash",
-                  "Value": "md5:f7e9989fbb67af7fa747a9983313c9e5"
+                  "Value": "md5:b3cf9afa2200bfa14e2a67e36d17e933"
                 },
                 {
                   "Key": "graphql.operation.step.id",
@@ -175,7 +195,7 @@
                 },
                 {
                   "Key": "graphql.operation.step.plan.id",
-                  "Value": "f6d09983b9640d3dc20ac4774cc4e3cc75407a02d5135467b9ba3ec3d0fa7fbb"
+                  "Value": "28c3e8f816706daf288091936d3937e2b3e7e7eb19b3cb8dc3b506c202b5aa67"
                 },
                 {
                   "Key": "graphql.source_schema.name",
@@ -183,11 +203,11 @@
                 },
                 {
                   "Key": "graphql.source_schema.operation.name",
-                  "Value": "Op_f7e9989f_1"
+                  "Value": "SayHelloQuery_b3cf9afa_1"
                 },
                 {
                   "Key": "graphql.source_schema.operation.hash",
-                  "Value": "sha256:35c1feb1208268226c7d5d5d0ae122e4d38cb79621e862b1e252d37fc83c530a"
+                  "Value": "sha256:4ccd60434973fb8605a668347b5f8707d89fd9caeb1ff20d8f3e4f21476e8d81"
                 },
                 {
                   "Key": "error.type",
@@ -196,8 +216,16 @@
               ],
               "event": [
                 {
-                  "Name": "exception",
+                  "Name": "graphql.error",
                   "Tags": [
+                    {
+                      "Key": "graphql.error.message",
+                      "Value": "Response status code does not indicate success: 500 (Internal Server Error)."
+                    },
+                    {
+                      "Key": "exception.type",
+                      "Value": "System.Net.Http.HttpRequestException"
+                    },
                     {
                       "Key": "exception.message",
                       "Value": "Response status code does not indicate success: 500 (Internal Server Error)."
@@ -207,8 +235,12 @@
                       "Value": "System.Net.Http.HttpRequestException: Response status code does not indicate success: 500 (Internal Server Error).\n   at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()\n   at HotChocolate.Fusion.Transport.Http.GraphQLHttpResponse.ReadAsResultAsync(CancellationToken cancellationToken) in GraphQLHttpResponse.cs\n   at HotChocolate.Fusion.Execution.Clients.HttpSourceSchemaClient.Response.ReadAsResultStreamCoreAsync(CancellationToken cancellationToken)+MoveNext() in HttpSourceSchemaClient.cs\n   at HotChocolate.Fusion.Execution.Clients.HttpSourceSchemaClient.Response.ReadAsResultStreamCoreAsync(CancellationToken cancellationToken)+System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.GetResult()\n   at HotChocolate.Fusion.Execution.Clients.HttpSourceSchemaClient.Response.WithResultCallback(IAsyncEnumerable`1 results, OperationPlanContext context, ExecutionNode node, Action`3 onSourceSchemaResult, CancellationToken cancellationToken)+MoveNext() in HttpSourceSchemaClient.cs\n   at HotChocolate.Fusion.Execution.Clients.HttpSourceSchemaClient.Response.WithResultCallback(IAsyncEnumerable`1 results, OperationPlanContext context, ExecutionNode node, Action`3 onSourceSchemaResult, CancellationToken cancellationToken)+MoveNext() in HttpSourceSchemaClient.cs\n   at HotChocolate.Fusion.Execution.Clients.HttpSourceSchemaClient.Response.WithResultCallback(IAsyncEnumerable`1 results, OperationPlanContext context, ExecutionNode node, Action`3 onSourceSchemaResult, CancellationToken cancellationToken)+System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.GetResult()\n   at HotChocolate.Fusion.Execution.Nodes.OperationExecutionNode.OnExecuteAsync(OperationPlanContext context, CancellationToken cancellationToken) in OperationExecutionNode.cs\n   at HotChocolate.Fusion.Execution.Nodes.OperationExecutionNode.OnExecuteAsync(OperationPlanContext context, CancellationToken cancellationToken) in OperationExecutionNode.cs"
                     },
                     {
-                      "Key": "exception.type",
-                      "Value": "System.Net.Http.HttpRequestException"
+                      "Key": "graphql.operation.type",
+                      "Value": "query"
+                    },
+                    {
+                      "Key": "graphql.operation.name",
+                      "Value": "SayHelloQuery"
                     }
                   ]
                 }
