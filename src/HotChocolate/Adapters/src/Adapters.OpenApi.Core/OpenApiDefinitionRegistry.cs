@@ -1,8 +1,9 @@
 #if !NET9_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 #endif
+using System.Collections.Immutable;
 using System.Reactive.Linq;
-using HotChocolate.Utilities;
+using HotChocolate.Adapters.OpenApi.Storage;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -26,6 +27,9 @@ internal sealed class OpenApiDefinitionRegistry : IDisposable
     private readonly IDisposable _subscription;
 
     private ISchemaDefinition? _schema;
+    private ImmutableSortedDictionary<string, IOpenApiDefinition> _definitionsByName
+        = ImmutableSortedDictionary<string, IOpenApiDefinition>.Empty;
+    private bool _initialized;
     private bool _disposed;
 
     public OpenApiDefinitionRegistry(
@@ -40,7 +44,7 @@ internal sealed class OpenApiDefinitionRegistry : IDisposable
         _subscription = _storage
             .Buffer(TimeSpan.FromMilliseconds(500), 10)
             .Where(batch => batch.Count > 0)
-            .Subscribe(_ => HandleStorageChangedAsync().FireAndForget());
+            .Subscribe(ProcessBatch);
     }
 
     public async ValueTask UpdateSchemaAsync(
@@ -53,10 +57,23 @@ internal sealed class OpenApiDefinitionRegistry : IDisposable
         {
             _schema = schema;
 
-            var events = schema.Services.GetRequiredService<IOpenApiDiagnosticEvents>();
-            var definitions = await _storage.GetDefinitionsAsync(cancellationToken).ConfigureAwait(false);
+            if (!_initialized)
+            {
+                var definitions = await _storage.GetDefinitionsAsync(cancellationToken).ConfigureAwait(false);
+                var builder = ImmutableSortedDictionary.CreateBuilder<string, IOpenApiDefinition>();
 
-            UpdateAllDefinitions(definitions.ToList(), schema, events);
+                foreach (var definition in definitions)
+                {
+                    // First wins on duplicate canonical keys, mirroring the de-duping
+                    // behavior the registry has always had at the endpoint and model lookup layer.
+                    builder.TryAdd(GetDefinitionKey(definition), definition);
+                }
+
+                _definitionsByName = builder.ToImmutable();
+                _initialized = true;
+            }
+
+            Rebuild(schema);
         }
         finally
         {
@@ -66,34 +83,34 @@ internal sealed class OpenApiDefinitionRegistry : IDisposable
 
     public void Dispose()
     {
-        if (!_disposed)
-        {
-            _disposed = true;
-
-            _subscription.Dispose();
-
-            // Cancel before disposing the semaphore so any in-flight WaitAsync(token)
-            // observes the cancellation and exits, instead of being orphaned forever
-            // in the semaphore's waiter list (Dispose does not complete pending waits).
-            _cancellationTokenSource.Cancel();
-
-            _updateSemaphore.Dispose();
-            _cancellationTokenSource.Dispose();
-        }
-    }
-
-    private async Task HandleStorageChangedAsync()
-    {
-        if (_disposed || _schema is null)
+        if (_disposed)
         {
             return;
         }
 
-        var cancellationToken = _cancellationTokenSource.Token;
+        _disposed = true;
+
+        _subscription.Dispose();
+
+        // Cancel before disposing the semaphore so any in-flight WaitAsync(token)
+        // observes the cancellation and exits, instead of being orphaned forever
+        // in the semaphore's waiter list (Dispose does not complete pending waits).
+        _cancellationTokenSource.Cancel();
+
+        _updateSemaphore.Dispose();
+        _cancellationTokenSource.Dispose();
+    }
+
+    private void ProcessBatch(IList<OpenApiDefinitionStorageEventArgs> batch)
+    {
+        if (_disposed)
+        {
+            return;
+        }
 
         try
         {
-            await _updateSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+            _updateSemaphore.Wait(_cancellationTokenSource.Token);
         }
         catch (OperationCanceledException)
         {
@@ -111,10 +128,26 @@ internal sealed class OpenApiDefinitionRegistry : IDisposable
                 return;
             }
 
-            var events = _schema.Services.GetRequiredService<IOpenApiDiagnosticEvents>();
-            var definitions = await _storage.GetDefinitionsAsync(cancellationToken).ConfigureAwait(false);
+            foreach (var eventArg in batch)
+            {
+                switch (eventArg.Type)
+                {
+                    case OpenApiDefinitionStorageEventType.Updated:
+                        _definitionsByName = _definitionsByName.SetItem(
+                            eventArg.Name,
+                            eventArg.Definition!);
+                        break;
 
-            UpdateAllDefinitions(definitions.ToList(), _schema, events);
+                    case OpenApiDefinitionStorageEventType.Removed:
+                        _definitionsByName = _definitionsByName.Remove(eventArg.Name);
+                        break;
+
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+
+            Rebuild(_schema);
         }
         catch
         {
@@ -132,15 +165,14 @@ internal sealed class OpenApiDefinitionRegistry : IDisposable
         }
     }
 
-    private void UpdateAllDefinitions(
-        List<IOpenApiDefinition> definitions,
-        ISchemaDefinition schema,
-        IOpenApiDiagnosticEvents events)
+    private void Rebuild(ISchemaDefinition schema)
     {
-        var validDefinitions = new List<IOpenApiDefinition>();
+        var events = schema.Services.GetRequiredService<IOpenApiDiagnosticEvents>();
         var validationContext = new OpenApiDefinitionValidationContext(schema);
 
-        foreach (var definition in definitions)
+        var validDefinitions = new List<IOpenApiDefinition>(_definitionsByName.Count);
+
+        foreach (var definition in _definitionsByName.Values)
         {
             var validationResult = s_validator.Validate(definition, validationContext);
 
@@ -173,7 +205,6 @@ internal sealed class OpenApiDefinitionRegistry : IDisposable
 
         _transformer.AddDefinitions(endpoints, models, modelsByName, schema);
 
-        // Update endpoints
         var httpEndpoints = new List<Endpoint>();
         var processedEndpoints = new HashSet<(string, string)>();
 
@@ -212,4 +243,14 @@ internal sealed class OpenApiDefinitionRegistry : IDisposable
 
         return lookup;
     }
+
+    // The canonical name a storage must use as <see cref="OpenApiDefinitionStorageEventArgs.Name"/>
+    // so that Updated/Removed events line up with the registry's local index.
+    internal static string GetDefinitionKey(IOpenApiDefinition definition) => definition switch
+    {
+        OpenApiEndpointDefinition endpoint => $"{endpoint.HttpMethod} {endpoint.Route}",
+        OpenApiModelDefinition model => model.Name,
+        _ => throw new InvalidOperationException(
+            $"Unknown OpenAPI definition type: {definition.GetType()}.")
+    };
 }

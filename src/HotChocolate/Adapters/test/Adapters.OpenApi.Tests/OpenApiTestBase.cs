@@ -360,27 +360,47 @@ public abstract class OpenApiTestBase : IAsyncLifetime
 
         public void AddOrUpdateDefinition(string id, IOpenApiDefinition definition)
         {
+            IOpenApiDefinition? oldDefinition;
+
             lock (_lock)
             {
+                _definitionsById.TryGetValue(id, out oldDefinition);
                 _definitionsById[id] = definition;
             }
 
-            Notify(id, definition, OpenApiDefinitionStorageEventType.Updated);
+            var newKey = OpenApiDefinitionRegistry.GetDefinitionKey(definition);
+
+            if (oldDefinition is not null)
+            {
+                var oldKey = OpenApiDefinitionRegistry.GetDefinitionKey(oldDefinition);
+
+                if (oldKey != newKey)
+                {
+                    Notify(oldKey, definition: null, OpenApiDefinitionStorageEventType.Removed);
+                }
+            }
+
+            Notify(newKey, definition, OpenApiDefinitionStorageEventType.Updated);
         }
 
         public void RemoveDocument(string id)
         {
-            bool removed;
+            IOpenApiDefinition? removed;
 
             lock (_lock)
             {
-                removed = _definitionsById.Remove(id);
+                if (!_definitionsById.TryGetValue(id, out removed))
+                {
+                    return;
+                }
+
+                _definitionsById.Remove(id);
             }
 
-            if (removed)
-            {
-                Notify(id, definition: null, OpenApiDefinitionStorageEventType.Removed);
-            }
+            Notify(
+                OpenApiDefinitionRegistry.GetDefinitionKey(removed),
+                definition: null,
+                OpenApiDefinitionStorageEventType.Removed);
         }
 
         public IDisposable Subscribe(IObserver<OpenApiDefinitionStorageEventArgs> observer)
