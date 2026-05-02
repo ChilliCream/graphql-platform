@@ -61,7 +61,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             ("A", server1)
         ],
         configureGatewayBuilder: builder =>
-            builder.ModifyOptions(o => o.DefaultErrorHandlingMode = ErrorHandlingMode.Null));
+            builder.ModifyRequestOptions(o => o.DefaultErrorHandlingMode = ErrorHandlingMode.Null));
 
         // act — no per-request onError override
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
