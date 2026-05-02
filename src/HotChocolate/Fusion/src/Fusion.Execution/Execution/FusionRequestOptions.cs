@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using HotChocolate.Language;
 using HotChocolate.PersistedOperations;
 
 namespace HotChocolate.Fusion.Execution;
@@ -42,7 +43,22 @@ public sealed class FusionRequestOptions : ICloneable
     }
 
     /// <summary>
-    /// Gets or sets whether the <see cref="FusionOptions.DefaultErrorHandlingMode"/> can be overriden
+    /// Gets or sets the default error handling mode.
+    /// <see cref="ErrorHandlingMode.Propagate"/> by default.
+    /// </summary>
+    public ErrorHandlingMode DefaultErrorHandlingMode
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            field = value;
+        }
+    } = ErrorHandlingMode.Propagate;
+
+    /// <summary>
+    /// Gets or sets whether the <see cref="DefaultErrorHandlingMode"/> can be overridden
     /// on a per-request basis.
     /// <c>false</c> by default.
     /// </summary>
@@ -124,6 +140,7 @@ public sealed class FusionRequestOptions : ICloneable
         {
             ExecutionTimeout = ExecutionTimeout,
             CollectOperationPlanTelemetry = CollectOperationPlanTelemetry,
+            DefaultErrorHandlingMode = DefaultErrorHandlingMode,
             AllowErrorHandlingModeOverride = AllowErrorHandlingModeOverride,
             AllowOperationPlanRequests = AllowOperationPlanRequests,
             PersistedOperations = PersistedOperations,

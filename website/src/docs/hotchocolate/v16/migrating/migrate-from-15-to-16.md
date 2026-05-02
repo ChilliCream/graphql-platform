@@ -999,7 +999,7 @@ If you still need to keep the behavior of not propagating nulls for errors on no
 ```csharp
 builder
     .AddGraphQL()
-    .ModifyOptions(o => o.DefaultErrorHandlingMode = ErrorHandlingMode.Null);
+    .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = ErrorHandlingMode.Null);
 ```
 
 ### Clients that still need a schema with @semanticNonNull annotations
