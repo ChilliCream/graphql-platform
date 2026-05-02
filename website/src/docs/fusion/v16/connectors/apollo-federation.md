@@ -81,7 +81,7 @@ nitro fusion compose \
   --archive gateway.far
 ```
 
-Composition detects the Apollo `@link`, runs the Apollo connector pipeline (see [What composition does](#what-composition-does) below), and folds the result into the archive. You can mix Apollo Federation subgraphs and native Fusion subgraphs in the same composition. Each is processed by the right pipeline based on what its SDL declares.
+Composition detects the Apollo `@link`, runs the Apollo connector pipeline, and folds the result into the archive. You can mix Apollo Federation subgraphs and native Fusion subgraphs in the same composition. Each is processed by the right pipeline based on what its SDL declares.
 
 ### 3. Add the connector to your gateway
 
