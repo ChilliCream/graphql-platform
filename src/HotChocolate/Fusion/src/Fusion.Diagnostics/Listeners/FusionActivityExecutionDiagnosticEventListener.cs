@@ -204,21 +204,7 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         ExecutionNode node,
         string schemaName,
         ulong subscriptionId)
-    {
-        var nodeScope = ExecuteNode(context, node, schemaName);
-
-        var subscriptionContext = context.RequestContext.Features.TryGet<ExecuteRequestSpan>(out var requestSpan)
-            ? requestSpan.Activity.Context
-            : Activity.Current?.Context;
-
-        context.RequestContext.Features.Set(
-            new SubscriptionContextFeature
-            {
-                SubscriptionContext = subscriptionContext
-            });
-
-        return nodeScope;
-    }
+        => ExecuteNode(context, node, schemaName);
 
     public override IDisposable ExecuteNodeFieldNode(
         OperationPlanContext context,
@@ -292,13 +278,9 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         string schemaName,
         ulong subscriptionId)
     {
-        ActivityContext? subscriptionContext = null;
-
-        if (context.RequestContext.Features.TryGet<SubscriptionContextFeature>(out var feature)
-            && feature.SubscriptionContext is { } storedSubscriptionContext)
-        {
-            subscriptionContext = storedSubscriptionContext;
-        }
+        var subscriptionContext = context.RequestContext.Features.TryGet<ExecuteRequestSpan>(out var requestSpan)
+            ? requestSpan.Activity.Context
+            : (ActivityContext?)null;
 
         var span = SubscriptionEventSpan.Start(
             Source,
@@ -393,11 +375,6 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
             span.Activity.AddEvent(new(nameof(AddedOperationPlanToCache)));
             enricher.EnrichAddedOperationPlanToCache(context, operationPlanId, span.Activity);
         }
-    }
-
-    private sealed class SubscriptionContextFeature
-    {
-        public ActivityContext? SubscriptionContext { get; set; }
     }
 
     private IDisposable ExecuteNode(OperationPlanContext context, ExecutionNode node, string? schemaName)
