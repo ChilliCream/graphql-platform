@@ -2,6 +2,11 @@
 title: Migrate Hot Chocolate Fusion from 15 to 16
 ---
 
+<!--
+TODO:
+- Default security
+-->
+
 > Note: While directives and behavior largly mirror v15, v16 is a complete re-implementation of Fusion that not only affects the gateway itself, but also the archive format and composition process. Therefore, you can't simply bump the package versions in the gateway and be done with the update. You'll need a coordinated strategy to incrementally adopt Fusion v2 in Subgraphs and their deployment process, before you can switch the gateway to v16.
 
 This guide walks you through the manual migration steps to update your Hot Chocolate Fusion gateway to version 16.
@@ -448,7 +453,7 @@ gatewayBuilder
 If you still need to keep the behavior of not propagating nulls for errors on non-null fields, set the `DefaultErrorHandlingMode` to `ErrorHandlingMode.Null`:
 
 ```csharp
-gatewayBuilder.ModifyOptions(o => o.DefaultErrorHandlingMode = ErrorHandlingMode.Null);
+gatewayBuilder.ModifyRequestOptions(o => o.DefaultErrorHandlingMode = ErrorHandlingMode.Null);
 ```
 
 ### Clients that still need a schema with @semanticNonNull annotations
@@ -618,18 +623,3 @@ public struct GraphQLCompositionSettings
     public string? EnvironmentName { get; set; }
 }
 ```
-
-<!--
-If you previously relied on `.Compose()` running an external `fusion compose` command with options encoded in environment variables or JSON, move those options into `GraphQLCompositionSettings`. `EnvironmentName` controls which subgraph environment is selected during composition (e.g. `aspire`).
-
-# APIs without a direct replacement
-
-The following v15 APIs were used in the gateway but do not have a direct one-to-one replacement in v16. Review each one before merging the migration.
-
-- **`AddServiceDiscoveryRewriter()`** — removed entirely. There is no Fusion-side equivalent. If your gateway relied on it, you'll need to wire ASP.NET Core service discovery into your subgraph HTTP clients another way (for example, by registering named `HttpClient` instances with `Microsoft.Extensions.ServiceDiscovery` and pointing the subgraph configuration at those names).
-- **`IConfigurationRewriter` / `ConfigurationRewriter`** — removed. The closest equivalent is wrapping or implementing a custom `IFusionConfigurationProvider` and rewriting the `DocumentNode` and `JsonDocumentOwner` it emits before forwarding to subscribers.
-- **`FusionOptions.AllowQueryPlan`** — replaced by `FusionRequestOptions.AllowOperationPlanRequests`. The header that opts a request into the inlined plan changed from `GraphQL-Query-Plan` to `Fusion-Operation-Plan`, and the response payload now lives under `extensions.fusion.operationPlan` rather than `extensions.queryPlan`. Verify whether your clients/tools rely on the old header or payload shape.
-- **`FusionOptions.IncludeDebugInfo`** — no direct replacement. Debug payloads are no longer attached to the response. Use the new diagnostic listener hooks for the equivalent visibility.
-- **`RequestExecutorOptions.EnableSchemaFileSupport`** — gone. Schema endpoints are now opt-in via `app.MapGraphQLSchema()` (and `app.MapGraphQLSemanticNonNullSchema()` if you need the `@semanticNonNull`-annotated variant).
-- **Nitro `EnablePersistedQueries`, `DefaultQueryCacheExpiration`, `NotFoundQueryCacheExpiration`, `EnableOperationReporting`** — these flat flags on the v15 cloud options are no longer present on `NitroFusionOptions`. The corresponding capabilities are now configured through `NitroFusionOptions.PersistedOperations` and `NitroFusionOptions.OperationReporting`, but those nested option types are not publicly exposed in the current preview, so the exact knobs (cache expirations, enabled flags) need to be confirmed against the next Nitro Fusion preview drop before mapping them.
-- **`FusionGatewayBuilder.CoreBuilder`** — removed. Most callers can simply drop `.CoreBuilder` from the chain, but if you reached into the underlying `IRequestExecutorBuilder` for an API that does not have a Fusion-specific equivalent (for example, a custom Hot Chocolate type system extension), you'll need to either move the configuration onto `IFusionGatewayBuilder.ConfigureSchemaServices` / `ConfigureSchemaFeatures` or accept that the API is no longer reachable from the gateway builder. -->
