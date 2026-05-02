@@ -108,9 +108,9 @@ internal static class ActivityExtensions
 
         public void AddGraphQLErrorEvent(
             Exception exception,
-            string? schemaCoordinate = null,
             string? operationType = null,
-            string? operationName = null)
+            string? operationName = null,
+            string? schemaCoordinate = null)
         {
             var tags = new ActivityTagsCollection
             {
