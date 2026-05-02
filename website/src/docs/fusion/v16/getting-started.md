@@ -1080,4 +1080,4 @@ You now have a working Fusion setup: two subgraphs contributing to one composed 
 - **I need cross-subgraph field dependencies (`[Require]`)**: [Entities and Lookups](/docs/fusion/v16/entities-and-lookups)
 - **I need to deploy this**: [Deployment & CI/CD](/docs/fusion/v16/deployment-and-ci-cd)
 - **I need to secure this**: [Authentication and Authorization](/docs/fusion/v16/authentication-and-authorization)
-- **I'm coming from Apollo**: [Coming from Apollo Federation](/docs/fusion/v16/migration/coming-from-apollo-federation)
+- **I'm coming from Apollo**: [Apollo Federation Connector](/docs/fusion/v16/connectors/apollo-federation)

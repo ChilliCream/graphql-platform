@@ -103,7 +103,7 @@ Where you go from here depends on what you need:
 
 - **"I want to add another service to an existing project."** Go to [Adding a Subgraph](/docs/fusion/v16/adding-a-subgraph). It covers creating a new service (subgraph) that extends existing entity types.
 
-- **"I'm migrating from another distributed GraphQL framework."** Read [Coming from Apollo Federation](/docs/fusion/v16/migration/coming-from-apollo-federation) or [Migrating from Schema Stitching](/docs/fusion/v16/migration/migrating-from-schema-stitching). These guides map familiar concepts to Fusion equivalents and walk through a migration.
+- **"I have an Apollo Federation graph already."** Read [Apollo Federation Connector](/docs/fusion/v16/connectors/apollo-federation). Fusion composes over Apollo Federation subgraphs as a source system, no migration required to start.
 
 - **"I need to deploy this."** See [Deployment & CI/CD](/docs/fusion/v16/deployment-and-ci-cd) for pipeline setup, schema management, and gateway configuration.
 

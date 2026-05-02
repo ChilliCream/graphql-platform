@@ -252,16 +252,12 @@
             "title": "Directive Reference"
           },
           {
-            "path": "migration",
-            "title": "Migration",
+            "path": "connectors",
+            "title": "Connectors",
             "items": [
               {
-                "path": "coming-from-apollo-federation",
-                "title": "Coming from Apollo Federation"
-              },
-              {
-                "path": "migrating-from-schema-stitching",
-                "title": "Migrating from Schema Stitching"
+                "path": "apollo-federation",
+                "title": "Apollo Federation"
               }
             ]
           }
