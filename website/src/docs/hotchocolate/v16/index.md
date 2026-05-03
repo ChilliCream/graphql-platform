@@ -14,7 +14,7 @@ Hot Chocolate implements the [GraphQL 2025 specification](https://spec.graphql.o
 
 Hot Chocolate supports two approaches to building a GraphQL schema. Both produce the same result: a fully typed, spec-compliant GraphQL schema. They differ in how you express it in C#.
 
-## Implementation-first (recommended)
+## Implementation-first
 
 You write standard C# classes and decorate them with attributes like `[QueryType]`. A source generator inspects your code at build time and produces the GraphQL schema automatically. This is the recommended approach and the one used throughout this documentation.
 
@@ -33,7 +33,7 @@ public static partial class ProductQueries
 
 The source generator creates a `book` field on the Query type, infers argument types from the method parameters, and registers everything with the schema. You do not write GraphQL SDL or configure type descriptors.
 
-This approach matches how Meta originally built GraphQL and how many large-scale GraphQL servers are built today. It keeps your schema definition close to your domain code and lets the tooling handle the translation.
+This approach matches how Meta originally built their GraphQL server and how many large-scale GraphQL servers are built today. It keeps your schema definition close to your domain code and lets the tooling handle the translation.
 
 ## Code-first
 
@@ -60,13 +60,22 @@ Code-first is useful when you need to decouple the GraphQL schema shape from you
 
 Both approaches can be mixed in the same project. You can use implementation-first for most types and drop into code-first for specific cases that need more control.
 
-# Public and Private GraphQL
+# First-Party API vs Third-Party API
 
 Most GraphQL APIs fall into one of two categories, and the choice shapes how you configure Hot Chocolate.
 
-## Public GraphQL
+## First-Party API
 
-A public API is consumed by third-party developers or external clients. GitHub's GraphQL API is the canonical example. You publish a schema, and external teams build applications against it. Because you do not control the clients, they can send any operation they want.
+A first-party API is consumed by your own applications. This is how Meta, Netflix or X built and operate their GraphQL APIs internally. You control both the server and every client. This means that you know every operation at deployment time.
+
+Hot Chocolate provides **trusted documents** for this scenario. You extract all operations from your client applications during their build process, register them with the server, and the server only accepts pre-registered operations.
+
+- [Trusted documents](/docs/hotchocolate/v16/performance/trusted-documents) covers the full workflow: extraction, registration, and enforcement.
+- [Strawberry Shake](/docs/strawberryshake/v16) and [Relay](https://relay.dev/docs/guides/persisted-queries/) both support build-time operation extraction.
+
+## Third-Party API
+
+A Third-Party API is consumed by third-party developers or external clients. GitHub's GraphQL API is a great example for a third-party GraphQL API. You publish a schema, and external teams build applications against it. Because you do not control the clients, they can send any operation they want.
 
 Hot Chocolate provides **cost analysis** for this scenario. You assign weights to fields and connections, and the server rejects operations that exceed the budget before execution begins.
 
@@ -74,16 +83,7 @@ Hot Chocolate provides **cost analysis** for this scenario. You assign weights t
 - [Authorization](/docs/hotchocolate/v16/securing-your-api/authorization) limits access to types and fields based on roles or policies.
 - [Controlling introspection](/docs/hotchocolate/v16/securing-your-api/introspection) lets you restrict schema visibility in production.
 
-## Private GraphQL
-
-A private API is consumed by your own applications. This is how Meta built and operates GraphQL internally. You control both the server and every client. You know every operation at build time.
-
-Hot Chocolate provides **trusted documents** for this scenario. You extract all operations from your client applications during their build process, register them with the server, and the server only accepts pre-registered operations.
-
-- [Trusted documents](/docs/hotchocolate/v16/performance/trusted-documents) covers the full workflow: extraction, registration, and enforcement.
-- [Strawberry Shake](/docs/strawberryshake/v16) and [Relay](https://relay.dev/docs/guides/persisted-queries/) both support build-time operation extraction.
-
-These two approaches complement each other. A common setup is trusted documents for your own frontend applications and cost analysis for partner integrations.
+These two approaches can complement each other. A common setup is to expose a smaller schema with cost control for partner integrations and the larger schema for your internal applications in combination with trusted documents.
 
 # Key Terminology
 
@@ -96,7 +96,7 @@ These two approaches complement each other. A common setup is trusted documents 
 | **Resolver**          | A function that fetches data for a single field. In implementation-first, each public method on a `[QueryType]` class is a resolver.                                                                                               |
 | **DataLoader**        | A batching and caching layer that groups multiple individual data requests into a single batch call, eliminating the N+1 problem.                                                                                                  |
 | **Source generator**  | A Roslyn source generator that inspects your C# code at build time and generates the schema registration, resolver pipelines, and DataLoader infrastructure.                                                                       |
-| **Cost analysis**     | A static analysis pass that calculates the cost of a query before execution and rejects queries that exceed configured limits. Based on the [IBM Cost Analysis specification](https://ibm.github.io/graphql-specs/cost-spec.html). |
+| **Cost Control**      | A static analysis pass that calculates the cost of a query before execution and rejects queries that exceed configured limits. Based on the [IBM Cost Analysis specification](https://ibm.github.io/graphql-specs/cost-spec.html). |
 | **Trusted documents** | Pre-registered operations that the server accepts by hash. Operations not in the store are rejected. Also known as persisted operations.                                                                                           |
 
 # Scaling Beyond a Single Server

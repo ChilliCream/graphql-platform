@@ -387,28 +387,9 @@ builder
 
 All error types must declare the fields required by the interface. They do not need to implement the C# interface, but they must have matching properties.
 
-# Transactions
-
-When a request contains multiple mutations, Hot Chocolate can wrap them in a transaction. The default implementation uses `System.Transactions.TransactionScope`, which works with ADO.NET providers and Entity Framework.
-
-```csharp
-// Program.cs
-builder
-    .AddGraphQL()
-    .AddDefaultTransactionScopeHandler();
-```
-
-To customize the transaction behavior, implement `ITransactionScopeHandler` and register it:
-
-```csharp
-builder
-    .AddGraphQL()
-    .AddTransactionScopeHandler<CustomTransactionScopeHandler>();
-```
-
 # Next Steps
 
-- **Need to read data?** See [Queries](/docs/hotchocolate/v16/defining-a-schema/queries).
-- **Need real-time updates?** See [Subscriptions](/docs/hotchocolate/v16/defining-a-schema/subscriptions).
-- **Need to understand input types?** See [Input Object Types](/docs/hotchocolate/v16/defining-a-schema/input-object-types).
+- **Need to read data?** See [Queries](/docs/hotchocolate/v16/building-a-schema/queries).
+- **Need real-time updates?** See [Subscriptions](/docs/hotchocolate/v16/building-a-schema/subscriptions).
+- **Need to understand input types?** See [Input Object Types](/docs/hotchocolate/v16/building-a-schema/input-object-types).
 - **Need to fetch data efficiently?** See [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader).
