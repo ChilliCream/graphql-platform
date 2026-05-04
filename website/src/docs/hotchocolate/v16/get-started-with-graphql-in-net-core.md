@@ -79,19 +79,19 @@ The method `GetBook` becomes a field named `book` in the schema. Hot Chocolate s
 The generated `Program.cs` sets up the server.
 
 ```csharp
-builder.AddGraphQL()
+builder.AddGraphQL().AddTypes();
 ```
 
-`AddGraphQL` returns an `IRequestExecutorBuilder` for configuring the GraphQL server. The template also calls a source-generated `AddTypes` method that registers all types decorated with attributes like `[QueryType]` in the current assembly.
+`AddGraphQL` returns an `IRequestExecutorBuilder` for configuring the GraphQL server. The source-generated `AddTypes` method registers all types decorated with attributes like `[QueryType]` in the current assembly.
 
 ```csharp
-app.MapGraphQL()
+app.MapGraphQL();
 ```
 
 `MapGraphQL` exposes the GraphQL endpoint at `/graphql`. This is where clients send queries and where Nitro (the built-in GraphQL IDE) is served.
 
 ```csharp
-app.RunWithGraphQLCommands(args)
+app.RunWithGraphQLCommands(args);
 ```
 
 `RunWithGraphQLCommands` works like `Run()` but adds developer commands. For example, you can export the schema as SDL.
@@ -100,7 +100,7 @@ app.RunWithGraphQLCommands(args)
 dotnet run -- schema export
 ```
 
-This writes a `schema.graphqls` file to your project directory.
+This writes `schema.graphqls` and `schema-settings.json` to your project directory.
 
 # Run the Server
 

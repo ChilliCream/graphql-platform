@@ -190,12 +190,12 @@
             "title": "Guides",
             "items": [
               {
-                "path": "third-party-api",
-                "title": "Third-Party API"
-              },
-              {
                 "path": "first-party-api",
                 "title": "First-Party API"
+              },
+              {
+                "path": "third-party-api",
+                "title": "Third-Party API"
               }
             ]
           },
@@ -413,8 +413,8 @@
             "path": "guides",
             "title": "Guides",
             "items": [
-              { "path": "public-api", "title": "Building a Public API" },
               { "path": "private-api", "title": "Building a Private API" },
+              { "path": "public-api", "title": "Building a Public API" },
               { "path": "error-handling", "title": "Error Handling" },
               { "path": "schema-evolution", "title": "Schema Evolution" },
               { "path": "testing", "title": "Testing" },
