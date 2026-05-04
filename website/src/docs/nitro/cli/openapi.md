@@ -22,10 +22,10 @@ nitro openapi create \
 
 ## Options
 
-| Option              | Env                             | Description                                                                                |
-| ------------------- | ------------------------------- | ------------------------------------------------------------------------------------------ |
-| `--name <name>`     | `NITRO_OPENAPI_COLLECTION_NAME` | Display name of the OpenAPI collection.                                                    |
-| `--api-id <api-id>` | `NITRO_API_ID`                  | ID of the API the collection belongs to. Get the ID from `nitro api list` or the Nitro UI. |
+| Option              | Env                             | Description                                                                                                                                  |
+| ------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--name <name>`     | `NITRO_OPENAPI_COLLECTION_NAME` | Display name of the OpenAPI collection. Required.                                                                                            |
+| `--api-id <api-id>` | `NITRO_API_ID`                  | ID of the API the collection belongs to. Required when no workspace is set in the session. Get the ID from `nitro api list` or the Nitro UI. |
 
 ## Examples
 
@@ -39,70 +39,6 @@ Create a collection non-interactively:
 
 ```shell
 nitro openapi create --name "<name>" --api-id "<api-id>"
-```
-
-# `nitro openapi list`
-
-List all OpenAPI collections of an API. Results are paginated, use the returned cursor to fetch the next page.
-
-```shell
-nitro openapi list --api-id "<api-id>"
-```
-
-## Options
-
-| Option              | Env            | Description                                                          |
-| ------------------- | -------------- | -------------------------------------------------------------------- |
-| `--api-id <api-id>` | `NITRO_API_ID` | ID of the API. Falls back to interactive selection when omitted.     |
-| `--cursor <cursor>` | `NITRO_CURSOR` | Pagination cursor to resume from. Useful for non-interactive paging. |
-
-## Examples
-
-List collections for an API:
-
-```shell
-nitro openapi list --api-id "<api-id>"
-```
-
-Page through collections in JSON mode:
-
-```shell
-nitro openapi list --api-id "<api-id>" --output json
-nitro openapi list --api-id "<api-id>" --output json --cursor "<cursor-from-previous-page>"
-```
-
-# `nitro openapi delete`
-
-Delete an OpenAPI collection by its ID. Once deleted, the collection and all its versions are no longer accessible.
-
-```shell
-nitro openapi delete "<openapi-collection-id>"
-```
-
-## Arguments
-
-| Argument | Description                             |
-| -------- | --------------------------------------- |
-| `<id>`   | ID of the OpenAPI collection to delete. |
-
-## Options
-
-| Option    | Description                                                                                                                 |
-| --------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `--force` | Skip the confirmation prompt. Required when running non-interactively (for example in CI) or together with `--output json`. |
-
-## Examples
-
-Delete with confirmation:
-
-```shell
-nitro openapi delete "<openapi-collection-id>"
-```
-
-Delete in a script (no prompt):
-
-```shell
-nitro openapi delete "<openapi-collection-id>" --force
 ```
 
 # `nitro openapi upload`
@@ -132,37 +68,7 @@ Upload all OpenAPI documents matching a pattern:
 nitro openapi upload \
   --openapi-collection-id "<collection-id>" \
   --tag "v1" \
-  --pattern "./**/*.yaml"
-```
-
-# `nitro openapi validate`
-
-Validate a new OpenAPI collection version against a stage without publishing it. Use this in CI to catch breaking changes before a deploy job runs.
-
-```shell
-nitro openapi validate \
-  --openapi-collection-id "<collection-id>" \
-  --stage "<stage>" \
-  --pattern "<pattern>"
-```
-
-## Options
-
-| Option                                            | Env                           | Description                                                               |
-| ------------------------------------------------- | ----------------------------- | ------------------------------------------------------------------------- |
-| `--openapi-collection-id <openapi-collection-id>` | `NITRO_OPENAPI_COLLECTION_ID` | ID of the OpenAPI collection. Required.                                   |
-| `--stage <stage>`                                 | `NITRO_STAGE`                 | Name of the stage to validate against. Required.                          |
-| `-p, --pattern <pattern>`                         |                               | One or more glob patterns selecting the OpenAPI document files. Required. |
-
-## Examples
-
-Validate against the `dev` stage:
-
-```shell
-nitro openapi validate \
-  --openapi-collection-id "<collection-id>" \
-  --stage "dev" \
-  --pattern "./**/*.yaml"
+  --pattern "./**/*.graphql"
 ```
 
 # `nitro openapi publish`
@@ -205,4 +111,98 @@ nitro openapi publish \
   --stage "production" \
   --tag "v1" \
   --wait-for-approval
+```
+
+# `nitro openapi validate`
+
+Validate a new OpenAPI collection version against a stage without publishing it. Use this in CI to catch breaking changes before a deploy job runs.
+
+```shell
+nitro openapi validate \
+  --openapi-collection-id "<collection-id>" \
+  --stage "<stage>" \
+  --pattern "<pattern>"
+```
+
+## Options
+
+| Option                                            | Env                           | Description                                                               |
+| ------------------------------------------------- | ----------------------------- | ------------------------------------------------------------------------- |
+| `--openapi-collection-id <openapi-collection-id>` | `NITRO_OPENAPI_COLLECTION_ID` | ID of the OpenAPI collection. Required.                                   |
+| `--stage <stage>`                                 | `NITRO_STAGE`                 | Name of the stage to validate against. Required.                          |
+| `-p, --pattern <pattern>`                         |                               | One or more glob patterns selecting the OpenAPI document files. Required. |
+
+## Examples
+
+Validate against the `dev` stage:
+
+```shell
+nitro openapi validate \
+  --openapi-collection-id "<collection-id>" \
+  --stage "dev" \
+  --pattern "./**/*.graphql"
+```
+
+# `nitro openapi list`
+
+List all OpenAPI collections of an API. Results are paginated, use the returned cursor to fetch the next page.
+
+```shell
+nitro openapi list --api-id "<api-id>"
+```
+
+## Options
+
+| Option              | Env            | Description                                                          |
+| ------------------- | -------------- | -------------------------------------------------------------------- |
+| `--api-id <api-id>` | `NITRO_API_ID` | ID of the API. Falls back to interactive selection when omitted.     |
+| `--cursor <cursor>` | `NITRO_CURSOR` | Pagination cursor to resume from. Useful for non-interactive paging. |
+
+## Examples
+
+List collections for an API:
+
+```shell
+nitro openapi list --api-id "<api-id>"
+```
+
+Page through collections in JSON mode:
+
+```shell
+nitro openapi list --api-id "<api-id>" --output json
+nitro openapi list --api-id "<api-id>" --output json --cursor "<cursor-from-previous-page>"
+```
+
+# `nitro openapi delete`
+
+Delete an OpenAPI collection by its ID. Once deleted, the collection and all its versions are no longer accessible.
+
+```shell
+nitro openapi delete "<openapi-collection-id>"
+```
+
+## Arguments
+
+| Argument | Description                                       |
+| -------- | ------------------------------------------------- |
+| `<id>`   | ID of the OpenAPI collection to delete. Required. |
+
+## Options
+
+| Option    | Description                                                                                                                 |
+| --------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `--force` | Skip the confirmation prompt. Required when running non-interactively (for example in CI) or together with `--output json`. |
+
+## Examples
+
+Delete with confirmation:
+
+```shell
+nitro openapi delete "<openapi-collection-id>"
+```
+
+Delete in a script (no prompt):
+
+```shell
+nitro openapi delete "<openapi-collection-id>" --force
 ```

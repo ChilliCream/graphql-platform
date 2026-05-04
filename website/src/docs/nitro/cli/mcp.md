@@ -22,10 +22,10 @@ nitro mcp create \
 
 ## Options
 
-| Option              | Env                                 | Description                                                                                |
-| ------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------ |
-| `--name <name>`     | `NITRO_MCP_FEATURE_COLLECTION_NAME` | Display name of the MCP feature collection.                                                |
-| `--api-id <api-id>` | `NITRO_API_ID`                      | ID of the API the collection belongs to. Get the ID from `nitro api list` or the Nitro UI. |
+| Option              | Env                                 | Description                                                                                                                                  |
+| ------------------- | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--name <name>`     | `NITRO_MCP_FEATURE_COLLECTION_NAME` | Display name of the MCP feature collection. Required.                                                                                        |
+| `--api-id <api-id>` | `NITRO_API_ID`                      | ID of the API the collection belongs to. Required when no workspace is set in the session. Get the ID from `nitro api list` or the Nitro UI. |
 
 ## Examples
 
@@ -39,70 +39,6 @@ Create a collection non-interactively:
 
 ```shell
 nitro mcp create --name "<name>" --api-id "<api-id>"
-```
-
-# `nitro mcp list`
-
-List all MCP feature collections of an API. Results are paginated, use the returned cursor to fetch the next page.
-
-```shell
-nitro mcp list --api-id "<api-id>"
-```
-
-## Options
-
-| Option              | Env            | Description                                                          |
-| ------------------- | -------------- | -------------------------------------------------------------------- |
-| `--api-id <api-id>` | `NITRO_API_ID` | ID of the API. Falls back to interactive selection when omitted.     |
-| `--cursor <cursor>` | `NITRO_CURSOR` | Pagination cursor to resume from. Useful for non-interactive paging. |
-
-## Examples
-
-List collections for an API:
-
-```shell
-nitro mcp list --api-id "<api-id>"
-```
-
-Page through collections in JSON mode:
-
-```shell
-nitro mcp list --api-id "<api-id>" --output json
-nitro mcp list --api-id "<api-id>" --output json --cursor "<cursor-from-previous-page>"
-```
-
-# `nitro mcp delete`
-
-Delete an MCP feature collection by its ID. Once deleted, the collection and all its versions are no longer accessible to MCP clients.
-
-```shell
-nitro mcp delete "<mcp-feature-collection-id>"
-```
-
-## Arguments
-
-| Argument | Description                                 |
-| -------- | ------------------------------------------- |
-| `<id>`   | ID of the MCP feature collection to delete. |
-
-## Options
-
-| Option    | Description                                                                                                                 |
-| --------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `--force` | Skip the confirmation prompt. Required when running non-interactively (for example in CI) or together with `--output json`. |
-
-## Examples
-
-Delete with confirmation:
-
-```shell
-nitro mcp delete "<mcp-feature-collection-id>"
-```
-
-Delete in a script (no prompt):
-
-```shell
-nitro mcp delete "<mcp-feature-collection-id>" --force
 ```
 
 # `nitro mcp upload`
@@ -134,39 +70,6 @@ Upload prompts and tools from the default folders:
 nitro mcp upload \
   --mcp-feature-collection-id "<collection-id>" \
   --tag "v1" \
-  --prompt-pattern "./prompts/**/*.json" \
-  --tool-pattern "./tools/**/*.graphql"
-```
-
-# `nitro mcp validate`
-
-Validate a new MCP feature collection version against a stage without publishing it. Use this in CI to catch breaking changes before a deploy job runs.
-
-```shell
-nitro mcp validate \
-  --mcp-feature-collection-id "<collection-id>" \
-  --stage "<stage>" \
-  --prompt-pattern "<prompt-pattern>" \
-  --tool-pattern "<tool-pattern>"
-```
-
-## Options
-
-| Option                                                    | Env                               | Description                                                                     |
-| --------------------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------- |
-| `--mcp-feature-collection-id <mcp-feature-collection-id>` | `NITRO_MCP_FEATURE_COLLECTION_ID` | ID of the MCP feature collection. Required.                                     |
-| `--stage <stage>`                                         | `NITRO_STAGE`                     | Name of the stage to validate against. Required.                                |
-| `-p, --prompt-pattern <prompt-pattern>`                   |                                   | One or more glob patterns for locating MCP prompt definition files (`*.json`).  |
-| `-t, --tool-pattern <tool-pattern>`                       |                                   | One or more glob patterns for locating MCP tool definition files (`*.graphql`). |
-
-## Examples
-
-Validate against the `dev` stage:
-
-```shell
-nitro mcp validate \
-  --mcp-feature-collection-id "<collection-id>" \
-  --stage "dev" \
   --prompt-pattern "./prompts/**/*.json" \
   --tool-pattern "./tools/**/*.graphql"
 ```
@@ -211,4 +114,101 @@ nitro mcp publish \
   --stage "production" \
   --tag "v1" \
   --wait-for-approval
+```
+
+# `nitro mcp validate`
+
+Validate a new MCP feature collection version against a stage without publishing it. Use this in CI to catch breaking changes before a deploy job runs.
+
+```shell
+nitro mcp validate \
+  --mcp-feature-collection-id "<collection-id>" \
+  --stage "<stage>" \
+  --prompt-pattern "<prompt-pattern>" \
+  --tool-pattern "<tool-pattern>"
+```
+
+## Options
+
+| Option                                                    | Env                               | Description                                                                     |
+| --------------------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------- |
+| `--mcp-feature-collection-id <mcp-feature-collection-id>` | `NITRO_MCP_FEATURE_COLLECTION_ID` | ID of the MCP feature collection. Required.                                     |
+| `--stage <stage>`                                         | `NITRO_STAGE`                     | Name of the stage to validate against. Required.                                |
+| `-p, --prompt-pattern <prompt-pattern>`                   |                                   | One or more glob patterns for locating MCP prompt definition files (`*.json`).  |
+| `-t, --tool-pattern <tool-pattern>`                       |                                   | One or more glob patterns for locating MCP tool definition files (`*.graphql`). |
+
+## Examples
+
+Validate against the `dev` stage:
+
+```shell
+nitro mcp validate \
+  --mcp-feature-collection-id "<collection-id>" \
+  --stage "dev" \
+  --prompt-pattern "./prompts/**/*.json" \
+  --tool-pattern "./tools/**/*.graphql"
+```
+
+# `nitro mcp list`
+
+List all MCP feature collections of an API. Results are paginated, use the returned cursor to fetch the next page.
+
+```shell
+nitro mcp list --api-id "<api-id>"
+```
+
+## Options
+
+| Option              | Env            | Description                                                          |
+| ------------------- | -------------- | -------------------------------------------------------------------- |
+| `--api-id <api-id>` | `NITRO_API_ID` | ID of the API. Falls back to interactive selection when omitted.     |
+| `--cursor <cursor>` | `NITRO_CURSOR` | Pagination cursor to resume from. Useful for non-interactive paging. |
+
+## Examples
+
+List collections for an API:
+
+```shell
+nitro mcp list --api-id "<api-id>"
+```
+
+Page through collections in JSON mode:
+
+```shell
+nitro mcp list --api-id "<api-id>" --output json
+nitro mcp list --api-id "<api-id>" --output json --cursor "<cursor-from-previous-page>"
+```
+
+# `nitro mcp delete`
+
+Delete an MCP feature collection by its ID. Once deleted, the collection and all its versions are no longer accessible to MCP clients.
+
+```shell
+nitro mcp delete "<mcp-feature-collection-id>"
+```
+
+## Arguments
+
+| Argument | Description                                           |
+| -------- | ----------------------------------------------------- |
+| `<id>`   | ID of the MCP feature collection to delete. Required. |
+
+## Options
+
+| Option    | Description                                                                                                                 |
+| --------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `--force` | Skip the confirmation prompt. Required when running non-interactively (for example in CI) or together with `--output json`. |
+
+## Examples
+
+Delete with confirmation:
+
+```shell
+nitro mcp delete "<mcp-feature-collection-id>"
+```
+
+Delete in a script (no prompt):
+
+```shell
+nitro mcp delete "<mcp-feature-collection-id>" --force
 ```

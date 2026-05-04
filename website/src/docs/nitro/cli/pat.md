@@ -17,7 +17,7 @@ Create a new personal access token. The secret is returned only once at creation
 ```shell
 nitro pat create \
   --description "<description>" \
-  --expires "30"
+  --expires "<days>"
 ```
 
 ## Options

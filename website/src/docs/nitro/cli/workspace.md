@@ -23,6 +23,8 @@ nitro workspace create --name "<name>"
 | `--name <name>` |     | Display name of the workspace. Required.                                                                        |
 | `--default`     |     | Set the created workspace as the default for the current session. Pass `--default false` to opt out explicitly. |
 
+When run interactively without `--name`, the CLI prompts for it.
+
 ## Examples
 
 Create a workspace and set it as the default:

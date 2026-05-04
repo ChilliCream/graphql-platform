@@ -79,7 +79,7 @@ nitro stage list --api-id "<api-id>" --output json | jq -r '.values[].name'
 
 # `nitro stage delete`
 
-Delete a single stage by name. Deleting a stage that has published schemas, clients, or fusion configurations will fail, remove or migrate the dependencies first.
+Delete a single stage by name. Removing a stage that other parts of your workflow depend on may fail, resolve those dependencies first.
 
 ```shell
 nitro stage delete \
@@ -91,7 +91,7 @@ nitro stage delete \
 
 | Option              | Env            | Description                                                                                                                 |
 | ------------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `--api-id <api-id>` | `NITRO_API_ID` | ID of the API the stage belongs to.                                                                                         |
+| `--api-id <api-id>` | `NITRO_API_ID` | ID of the API the stage belongs to. Required.                                                                               |
 | `--stage <stage>`   | `NITRO_STAGE`  | Name of the stage to delete. Required.                                                                                      |
 | `--force`           |                | Skip the confirmation prompt. Required when running non-interactively (for example in CI) or together with `--output json`. |
 

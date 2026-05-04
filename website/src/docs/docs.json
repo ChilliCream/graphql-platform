@@ -147,20 +147,12 @@
                 "title": "Installation"
               },
               {
-                "path": "login",
-                "title": "login"
+                "path": "global-options",
+                "title": "Global Options"
               },
               {
-                "path": "logout",
-                "title": "logout"
-              },
-              {
-                "path": "status",
-                "title": "status"
-              },
-              {
-                "path": "launch",
-                "title": "launch"
+                "path": "session",
+                "title": "session"
               },
               {
                 "path": "api",

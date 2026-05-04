@@ -26,10 +26,10 @@ nitro mock create \
 | Option                    | Env                           | Description                                                                        |
 | ------------------------- | ----------------------------- | ---------------------------------------------------------------------------------- |
 | `--api-id <api-id>`       | `NITRO_API_ID`                | ID of the API to attach the mock schema to.                                        |
-| `--name <name>`           | `NITRO_MOCK_SCHEMA_NAME`      | Display name of the mock schema. Required.                                         |
-| `--schema <schema>`       | `NITRO_SCHEMA_FILE`           | Path to the GraphQL file with the base schema. Required.                           |
 | `--extension <extension>` | `NITRO_SCHEMA_EXTENSION_FILE` | Path to the GraphQL file with the schema extension. Required.                      |
+| `--schema <schema>`       | `NITRO_SCHEMA_FILE`           | Path to the GraphQL file with the base schema. Required.                           |
 | `--url <url>`             | `NITRO_DOWNSTREAM_URL`        | URL of the downstream GraphQL service that real fields are forwarded to. Required. |
+| `--name <name>`           | `NITRO_MOCK_SCHEMA_NAME`      | Display name of the mock schema. Required.                                         |
 
 ## Examples
 
@@ -94,10 +94,10 @@ nitro mock update "<mock-schema-id>" \
 
 | Option                    | Env                           | Description                                             |
 | ------------------------- | ----------------------------- | ------------------------------------------------------- |
-| `--name <name>`           | `NITRO_MOCK_SCHEMA_NAME`      | New display name of the mock schema.                    |
-| `--schema <schema>`       | `NITRO_SCHEMA_FILE`           | Path to the GraphQL file with the new base schema.      |
 | `--extension <extension>` | `NITRO_SCHEMA_EXTENSION_FILE` | Path to the GraphQL file with the new schema extension. |
+| `--schema <schema>`       | `NITRO_SCHEMA_FILE`           | Path to the GraphQL file with the new base schema.      |
 | `--url <url>`             | `NITRO_DOWNSTREAM_URL`        | New URL of the downstream GraphQL service.              |
+| `--name <name>`           | `NITRO_MOCK_SCHEMA_NAME`      | New display name of the mock schema.                    |
 
 ## Examples
 

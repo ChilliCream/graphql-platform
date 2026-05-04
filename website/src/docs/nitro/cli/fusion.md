@@ -6,7 +6,38 @@ The `nitro fusion` commands manage [Fusion](/docs/fusion), ChilliCream's federat
 
 The most common workflow is `compose` locally, then `publish` to a stage. `nitro fusion publish` runs the full publishing flow (validate, start, commit) in a single command and is the right choice for almost every pipeline.
 
-> Local commands like `compose`, `migrate`, `run`, and `settings set` operate on archive files on disk and do not require authentication. Every other `fusion` command requires authentication, run `nitro login` first or pass `--api-key` (see [Global Options](/docs/nitro/cli/global-options)).
+> Local commands like `compose`, `run`, and `settings set` operate on archive files on disk and do not require authentication. Every other `fusion` command requires authentication, run `nitro login` first or pass `--api-key` (see [Global Options](/docs/nitro/cli/global-options)).
+
+# `nitro fusion upload`
+
+Upload a source schema for a later composition. The schema is stored on the Nitro backend under the given API and tag and can be referenced by name from a subsequent `nitro fusion publish` call (via `--source-schema`).
+
+```shell
+nitro fusion upload \
+  --api-id "<api-id>" \
+  --tag "<tag>" \
+  --source-schema-file "<source-schema-file>"
+```
+
+## Options
+
+| Option                                          | Env            | Description                                                                                       |
+| ----------------------------------------------- | -------------- | ------------------------------------------------------------------------------------------------- |
+| `--api-id <api-id>`                             | `NITRO_API_ID` | ID of the API. Required.                                                                          |
+| `--tag <tag>`                                   | `NITRO_TAG`    | Tag of the schema version being uploaded (for example a Git commit SHA or release tag). Required. |
+| `-f, --source-schema-file <source-schema-file>` |                | Path to a source schema file (`.graphqls`) or to a directory that contains one. Required.         |
+| `-w, --working-directory <working-directory>`   |                | Working directory for the command. Used for relative paths.                                       |
+
+## Examples
+
+Upload a single source schema:
+
+```shell
+nitro fusion upload \
+  --api-id "<api-id>" \
+  --tag "v1" \
+  --source-schema-file ./products/schema.graphqls
+```
 
 # `nitro fusion publish`
 
@@ -147,6 +178,79 @@ nitro fusion publish cancel --request-id "<request-id>"
 | --------------------------- | ------------------ | ----------------------------------------------------------------------------------------------------- |
 | `--request-id <request-id>` | `NITRO_REQUEST_ID` | Request ID returned by `begin`. Falls back to the cached ID from the previous step in the same shell. |
 
+# `nitro fusion validate`
+
+Validate a Fusion configuration against a stage. Composes the supplied source schemas (or uses a pre-composed archive) and runs the same checks as `publish` without requesting a deployment slot.
+
+```shell
+nitro fusion validate \
+  --api-id "<api-id>" \
+  --stage "<stage>" \
+  --archive "<archive-file>"
+```
+
+## Options
+
+| Option                                          | Env                        | Description                                                                                                |
+| ----------------------------------------------- | -------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `--api-id <api-id>`                             | `NITRO_API_ID`             | ID of the API. Required.                                                                                   |
+| `--stage <stage>`                               | `NITRO_STAGE`              | Name of the stage to validate against. Required.                                                           |
+| `-a, --archive <archive>`                       | `NITRO_FUSION_CONFIG_FILE` | Path to a pre-composed Fusion archive file. The `--configuration` alias is deprecated.                     |
+| `--legacy-v1-archive <legacy-v1-archive>`       |                            | Path to a Fusion v1 archive file. Only intended for use during the migration from Fusion v1 to Fusion v2+. |
+| `-f, --source-schema-file <source-schema-file>` |                            | One or more paths to a source schema file (`.graphqls`) or to a directory that contains one.               |
+
+## Examples
+
+Validate a pre-composed archive:
+
+```shell
+nitro fusion validate \
+  --api-id "<api-id>" \
+  --stage "dev" \
+  --archive ./gateway.far
+```
+
+Validate by composing source schemas on the fly:
+
+```shell
+nitro fusion validate \
+  --api-id "<api-id>" \
+  --stage "dev" \
+  --source-schema-file ./products/schema.graphqls \
+  --source-schema-file ./reviews/schema.graphqls
+```
+
+# `nitro fusion download`
+
+Download the most recent gateway configuration of a stage to a local archive file.
+
+```shell
+nitro fusion download \
+  --api-id "<api-id>" \
+  --stage "<stage>" \
+  --output-file "<output-file>"
+```
+
+## Options
+
+| Option                        | Env                 | Description                                                                         |
+| ----------------------------- | ------------------- | ----------------------------------------------------------------------------------- |
+| `--api-id <api-id>`           | `NITRO_API_ID`      | ID of the API. Required.                                                            |
+| `--stage <stage>`             | `NITRO_STAGE`       | Name of the stage to download from. Required.                                       |
+| `--version <version>`         |                     | Version of the archive format to request. Defaults to `2.0.0`.                      |
+| `--output-file <output-file>` | `NITRO_OUTPUT_FILE` | File path to write the archive to. When omitted, the archive is streamed to stdout. |
+
+## Examples
+
+Download the live `dev` configuration:
+
+```shell
+nitro fusion download \
+  --api-id "<api-id>" \
+  --stage "dev" \
+  --output-file ./gateway.far
+```
+
 # `nitro fusion compose`
 
 Compose multiple source schemas into a single composite schema and write the result to a Fusion archive. This is the local equivalent of the composition step that `publish` performs, and is useful for inspecting the composed schema or staging an archive before publishing.
@@ -199,172 +303,6 @@ nitro fusion compose \
   --watch
 ```
 
-# `nitro fusion download`
-
-Download the most recent gateway configuration of a stage to a local archive file.
-
-```shell
-nitro fusion download \
-  --api-id "<api-id>" \
-  --stage "<stage>" \
-  --output-file "<output-file>"
-```
-
-## Options
-
-| Option                        | Env                 | Description                                                                         |
-| ----------------------------- | ------------------- | ----------------------------------------------------------------------------------- |
-| `--api-id <api-id>`           | `NITRO_API_ID`      | ID of the API. Required.                                                            |
-| `--stage <stage>`             | `NITRO_STAGE`       | Name of the stage to download from. Required.                                       |
-| `--version <version>`         |                     | Version of the archive format to request. Defaults to `2.0.0`.                      |
-| `--output-file <output-file>` | `NITRO_OUTPUT_FILE` | File path to write the archive to. When omitted, the archive is streamed to stdout. |
-
-## Examples
-
-Download the live `dev` configuration:
-
-```shell
-nitro fusion download \
-  --api-id "<api-id>" \
-  --stage "dev" \
-  --output-file ./gateway.far
-```
-
-# `nitro fusion migrate`
-
-Migrate Fusion configuration files from a legacy format to the current format. Use this once when upgrading an existing Fusion v1 setup.
-
-```shell
-nitro fusion migrate <target>
-```
-
-## Arguments
-
-| Argument            | Description                                                                |
-| ------------------- | -------------------------------------------------------------------------- |
-| `<subgraph-config>` | Migration target. Currently the only supported value is `subgraph-config`. |
-
-## Options
-
-| Option                                        | Description                                                                                     |
-| --------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `-w, --working-directory <working-directory>` | Working directory the command searches for files to migrate. Defaults to the current directory. |
-
-## Examples
-
-Migrate `subgraph-config.json` files in the current directory:
-
-```shell
-nitro fusion migrate subgraph-config
-```
-
-Migrate files in a specific directory:
-
-```shell
-nitro fusion migrate subgraph-config --working-directory ./gateway
-```
-
-# `nitro fusion run`
-
-Start a Fusion gateway locally with the specified archive. Useful for smoke-testing a composed archive before publishing. Only supports Fusion v2.
-
-```shell
-nitro fusion run "<archive-file>"
-```
-
-## Arguments
-
-| Argument         | Description                                       |
-| ---------------- | ------------------------------------------------- |
-| `<ARCHIVE_FILE>` | Path to the Fusion archive file to run. Required. |
-
-## Options
-
-| Option              | Description                                                              |
-| ------------------- | ------------------------------------------------------------------------ |
-| `-p, --port <port>` | Port the gateway will listen on. When omitted, the default port is used. |
-
-## Examples
-
-Run a gateway on port 5000:
-
-```shell
-nitro fusion run ./gateway.far --port 5000
-```
-
-# `nitro fusion upload`
-
-Upload a source schema for a later composition. The schema is stored on the Nitro backend under the given API and tag and can be referenced by name from a subsequent `nitro fusion publish` call (via `--source-schema`).
-
-```shell
-nitro fusion upload \
-  --api-id "<api-id>" \
-  --tag "<tag>" \
-  --source-schema-file "<source-schema-file>"
-```
-
-## Options
-
-| Option                                          | Env            | Description                                                                                       |
-| ----------------------------------------------- | -------------- | ------------------------------------------------------------------------------------------------- |
-| `--api-id <api-id>`                             | `NITRO_API_ID` | ID of the API. Required.                                                                          |
-| `--tag <tag>`                                   | `NITRO_TAG`    | Tag of the schema version being uploaded (for example a Git commit SHA or release tag). Required. |
-| `-f, --source-schema-file <source-schema-file>` |                | Path to a source schema file (`.graphqls`) or to a directory that contains one. Required.         |
-| `-w, --working-directory <working-directory>`   |                | Working directory for the command. Used for relative paths.                                       |
-
-## Examples
-
-Upload a single source schema:
-
-```shell
-nitro fusion upload \
-  --api-id "<api-id>" \
-  --tag "v1" \
-  --source-schema-file ./products/schema.graphqls
-```
-
-# `nitro fusion validate`
-
-Validate a Fusion configuration against a stage. Composes the supplied source schemas (or uses a pre-composed archive) and runs the same checks as `publish` without requesting a deployment slot.
-
-```shell
-nitro fusion validate \
-  --api-id "<api-id>" \
-  --stage "<stage>" \
-  --archive "<archive-file>"
-```
-
-## Options
-
-| Option                                          | Env                        | Description                                                                                                |
-| ----------------------------------------------- | -------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `--api-id <api-id>`                             | `NITRO_API_ID`             | ID of the API. Required.                                                                                   |
-| `--stage <stage>`                               | `NITRO_STAGE`              | Name of the stage to validate against. Required.                                                           |
-| `-a, --archive <archive>`                       | `NITRO_FUSION_CONFIG_FILE` | Path to a pre-composed Fusion archive file. The `--configuration` alias is deprecated.                     |
-| `--legacy-v1-archive <legacy-v1-archive>`       |                            | Path to a Fusion v1 archive file. Only intended for use during the migration from Fusion v1 to Fusion v2+. |
-| `-f, --source-schema-file <source-schema-file>` |                            | One or more paths to a source schema file (`.graphqls`) or to a directory that contains one.               |
-
-## Examples
-
-Validate a pre-composed archive:
-
-```shell
-nitro fusion validate \
-  --api-id "<api-id>" \
-  --stage "dev" \
-  --archive ./gateway.far
-```
-
-Validate by composing source schemas on the fly:
-
-```shell
-nitro fusion validate \
-  --api-id "<api-id>" \
-  --stage "dev" \
-  --source-schema-file ./products/schema.graphqls \
-  --source-schema-file ./reviews/schema.graphqls
-```
-
 # `nitro fusion settings set`
 
 Set a Fusion composition setting on a Fusion archive. Use this to flip composition-level toggles after a composition has been produced, without recomposing from sources.
@@ -396,4 +334,32 @@ Enable global object identification on an archive:
 nitro fusion settings set global-object-identification "true" \
   --archive ./gateway.far \
   --env "dev"
+```
+
+# `nitro fusion run`
+
+Start a Fusion gateway locally with the specified archive. Useful for smoke-testing a composed archive before publishing. Only supports Fusion v2.
+
+```shell
+nitro fusion run "<archive-file>"
+```
+
+## Arguments
+
+| Argument         | Description                                       |
+| ---------------- | ------------------------------------------------- |
+| `<ARCHIVE_FILE>` | Path to the Fusion archive file to run. Required. |
+
+## Options
+
+| Option              | Description                          |
+| ------------------- | ------------------------------------ |
+| `-p, --port <port>` | The port the gateway will listen on. |
+
+## Examples
+
+Run a gateway on port 5000:
+
+```shell
+nitro fusion run ./gateway.far --port 5000
 ```

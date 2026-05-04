@@ -47,36 +47,6 @@ export NITRO_SCHEMA_FILE="./schema.graphqls"
 nitro schema upload
 ```
 
-# `nitro schema validate`
-
-Validate a schema file against a stage without publishing it. The server returns the list of breaking, dangerous, and safe changes, plus any operations from registered clients that would break.
-
-```shell
-nitro schema validate \
-  --api-id "<api-id>" \
-  --stage "<stage>" \
-  --schema-file <file-path>
-```
-
-## Options
-
-| Option                        | Env                 | Description                                                    |
-| ----------------------------- | ------------------- | -------------------------------------------------------------- |
-| `--api-id <api-id>`           | `NITRO_API_ID`      | ID of the API. Required.                                       |
-| `--stage <stage>`             | `NITRO_STAGE`       | Name of the stage to validate against. Required.               |
-| `--schema-file <schema-file>` | `NITRO_SCHEMA_FILE` | Path to the GraphQL file with the schema definition. Required. |
-
-## Examples
-
-Validate against a `dev` stage in a pull request check:
-
-```shell
-nitro schema validate \
-  --api-id "<api-id>" \
-  --stage "dev" \
-  --schema-file ./schema.graphqls
-```
-
 # `nitro schema publish`
 
 Publish a previously uploaded schema version to a stage. By default the publish fails if the version introduces breaking changes. Use `--force` to override, or `--wait-for-approval` to pause until a reviewer approves the change in the Nitro UI.
@@ -129,6 +99,36 @@ nitro schema publish \
   --tag "<tag>" \
   --stage "dev" \
   --force
+```
+
+# `nitro schema validate`
+
+Validate a schema file against a stage without publishing it. The server returns the list of breaking, dangerous, and safe changes, plus any operations from registered clients that would break.
+
+```shell
+nitro schema validate \
+  --api-id "<api-id>" \
+  --stage "<stage>" \
+  --schema-file <file-path>
+```
+
+## Options
+
+| Option                        | Env                 | Description                                                    |
+| ----------------------------- | ------------------- | -------------------------------------------------------------- |
+| `--api-id <api-id>`           | `NITRO_API_ID`      | ID of the API. Required.                                       |
+| `--stage <stage>`             | `NITRO_STAGE`       | Name of the stage to validate against. Required.               |
+| `--schema-file <schema-file>` | `NITRO_SCHEMA_FILE` | Path to the GraphQL file with the schema definition. Required. |
+
+## Examples
+
+Validate against a `dev` stage in a pull request check:
+
+```shell
+nitro schema validate \
+  --api-id "<api-id>" \
+  --stage "dev" \
+  --schema-file ./schema.graphqls
 ```
 
 # `nitro schema download`
