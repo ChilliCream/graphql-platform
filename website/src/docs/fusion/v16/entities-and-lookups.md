@@ -157,8 +157,12 @@ public static partial class Query
 public partial class InternalLookups
 {
     [Lookup]
-    public Product? GetProductByTenantAndSku(int tenantId, string sku)
-        => ProductRepository.GetByTenantAndSku(tenantId, sku);
+    public Task<Product?> GetProductByTenantAndSkuAsync(
+        int tenantId,
+        string sku,
+        IProductRepository repository,
+        CancellationToken cancellationToken)
+        => repository.GetByTenantAndSkuAsync(tenantId, sku, cancellationToken);
 }
 ```
 
@@ -234,6 +238,29 @@ input UserByInput @oneOf {
 
 In this case we use the `@is` directive with the choice operator `|` to signal to Fusion that it can use this lookup either with the `id` or the `username` as a key.
 
+**C# resolver**
+
+```csharp
+[OneOf]
+public sealed record UserByInput(int? Id, string? Username);
+
+[QueryType]
+public static partial class UserQueries
+{
+    [Lookup]
+    public static async Task<User?> GetUser(
+        [Is("{ id } | { username }")] UserByInput by,
+        IUserByIdDataLoader userById,
+        IUserByNameDataLoader userByName,
+        CancellationToken cancellationToken)
+        => by.Id is { } id
+            ? await userById.LoadAsync(id, cancellationToken)
+            : await userByName.LoadAsync(by.Username!, cancellationToken);
+}
+```
+
+The `[OneOf]` attribute on the input class emits the `@oneOf` directive in the schema. The `[Is(...)]` attribute on the parameter carries the FieldSelectionMap that tells Fusion this lookup accepts either `id` or `username` as the key.
+
 ### Composite Keys
 
 Some entities are identified by a combination of fields instead of a single field. In that case, the lookup arguments together form the key.
@@ -260,10 +287,12 @@ type Query {
 public static partial class ProductQueries
 {
     [Lookup]
-    public static Product? GetProductByTenantAndSku(
+    public static Task<Product?> GetProductByTenantAndSkuAsync(
         int tenantId,
-        string sku)
-        => ProductRepository.GetByTenantAndSku(tenantId, sku);
+        string sku,
+        IProductRepository repository,
+        CancellationToken cancellationToken)
+        => repository.GetByTenantAndSkuAsync(tenantId, sku, cancellationToken);
 }
 ```
 
@@ -292,6 +321,22 @@ type Query {
 }
 ```
 
+**C# resolver**
+
+```csharp
+[QueryType]
+public static partial class ProductQueries
+{
+    [Lookup]
+    public static Task<Product?> GetProductAsync(
+        [Is("tenant.id")] int tenantId,
+        [Is("sku")] string sku,
+        IProductRepository repository,
+        CancellationToken cancellationToken)
+        => repository.GetByTenantAndSkuAsync(tenantId, sku, cancellationToken);
+}
+```
+
 **GraphQL schema with input-object mapping**
 
 ```graphql
@@ -314,6 +359,23 @@ type Query {
   product(
     key: ProductKeyInput! @is(field: "{ tenantId: tenant.id, sku }")
   ): Product @lookup
+}
+```
+
+**C# resolver**
+
+```csharp
+public sealed record ProductKeyInput(int TenantId, string Sku);
+
+[QueryType]
+public static partial class ProductQueries
+{
+    [Lookup]
+    public static Task<Product?> GetProductAsync(
+        [Is("{ tenantId: tenant.id, sku }")] ProductKeyInput key,
+        IProductRepository repository,
+        CancellationToken cancellationToken)
+        => repository.GetByTenantAndSkuAsync(key.TenantId, key.Sku, cancellationToken);
 }
 ```
 
@@ -363,6 +425,17 @@ type Product @key(fields: "id") @key(fields: "sku category") {
 }
 ```
 
+**C# type declaration**
+
+```csharp
+[EntityKey("id")]
+[EntityKey("sku category")]
+public sealed record Product(
+    [property: ID<Product>] int Id,
+    string? Sku,
+    string? Category);
+```
+
 **GraphQL schema with nested composite key**
 
 ```graphql
@@ -376,6 +449,21 @@ type Tenant {
   id: ID!
 }
 ```
+
+**C# type declaration**
+
+```csharp
+[EntityKey("id")]
+[EntityKey("sku tenant { id }")]
+public sealed record Product(
+    [property: ID<Product>] int Id,
+    string? Sku,
+    Tenant? Tenant);
+
+public sealed record Tenant([property: ID<Tenant>] int Id);
+```
+
+The `[EntityKey]` attribute uses GraphQL field names. Stack multiple attributes on the type to declare multiple keys, and use the same nested-selection syntax (`tenant { id }`) you would write in SDL.
 
 ## GraphQL Global Object Identification
 
