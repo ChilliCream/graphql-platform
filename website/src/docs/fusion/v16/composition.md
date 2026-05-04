@@ -180,7 +180,7 @@ The placeholders `{0}`, `{1}`, etc. in the message column are replaced with the 
 | [ROOT_QUERY_USED](https://graphql.github.io/composite-schemas-spec/draft/#sec-Root-Query-Used)                                                   | The root query type in schema '{0}' must be named 'Query'.                                                                                                            | Fusion requires the root query type to use the canonical name `Query`. Rename the type in the named source schema. A type named `Query` must not exist unless it is the root query type. See [Getting Started](/docs/fusion/v16/getting-started) for the expected schema layout.                                                                            |
 | [ROOT_SUBSCRIPTION_USED](https://graphql.github.io/composite-schemas-spec/draft/#sec-Root-Subscription-Used)                                     | The root subscription type in schema '{0}' must be named 'Subscription'.                                                                                              | Fusion requires the root subscription type to use the canonical name `Subscription`. Rename the type in the named source schema. A type named `Subscription` must not exist unless it is the root subscription type.                                                                                                                                        |
 | [TYPE_KIND_MISMATCH](https://graphql.github.io/composite-schemas-spec/draft/#sec-Type-Kind-Mismatch)                                             | The type '{0}' has a different kind in schema '{1}' ({2}) than it does in schema '{3}' ({4}).                                                                         | The same type name was used for different kinds (for example, an object in one source schema and an interface in another). Decide which kind is correct and update the other source schema, or rename one of the types so they no longer collide.                                                                                                           |
-| `UNSATISFIABLE`                                                                                                                                  | (Message varies. Includes the unreachable field, the path the validator tried, and the lookups it considered.)                                                        | Some reachable field cannot be resolved through the available `@lookup` and `@key` paths. Add a lookup that the gateway can use to reach the entity, or relax accessibility on the missing path. See [Entities and Lookups](/docs/fusion/v16/entities-and-lookups).                                                                                         |
+| `UNSATISFIABLE`                                                                                                                                  | (Message varies. Includes the unreachable field, the path the validator tried, and the lookups it considered.)                                                        | Some reachable field cannot be resolved through the available `@lookup` and `@key` paths. See [Diagnosing UNSATISFIABLE Errors](#diagnosing-unsatisfiable-errors) for how to read the message and fix the underlying gap.                                                                                                                                   |
 
 ### Warnings
 
@@ -188,3 +188,78 @@ The placeholders `{0}`, `{1}`, etc. in the message column are replaced with the 
 | -------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | [LOOKUP_RETURNS_NON_NULLABLE_TYPE](https://graphql.github.io/composite-schemas-spec/draft/#sec-Lookup-Returns-Non-Nullable-Type) | The lookup field '{0}' in schema '{1}' should return a nullable type.                                            | Lookups should return nullable entities so the gateway can represent missing keys without throwing. Change the return type of the lookup field to nullable. See [Entities and Lookups](/docs/fusion/v16/entities-and-lookups). |
 | [SPECIFIED_BY_URL_MISMATCH](https://graphql.github.io/composite-schemas-spec/draft/#sec-SpecifiedBy-URL-Mismatch)                | The scalar type '{0}' has a different specified-by URL in schema '{1}' ({2}) than it does in schema '{3}' ({4}). | The same scalar declares conflicting `@specifiedBy(url: ...)` URLs in different source schemas. Align the URL across all source schemas that define the scalar so the composed schema points to a single specification.        |
+
+### Diagnosing UNSATISFIABLE Errors
+
+Most composition errors point at a single source schema or definition. `UNSATISFIABLE` is different. It is raised by the satisfiability validator (phase 8) and tells you that the merged schema as a whole has at least one reachable field that no source schema can serve through the available `@lookup` and `@key` paths.
+
+Because the validator weighs every option for reaching a field across every source schema, the diagnostic carries a tree of nested errors that explain why each candidate option failed. Reading that tree from the bottom up is the fastest way to find the gap.
+
+#### Anatomy of the message
+
+The top-level message names the unreachable field:
+
+```
+Unable to access the field 'Order.shippingAddress'.
+```
+
+Underneath it, indented with two spaces per level, are the nested errors that the validator collected for each option it tried. Common nested messages and what they signal:
+
+| Nested message shape                                                                                                                         | What it means                                                                                                                                                                                |
+| -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Unable to transition between schemas '<from>' and '<to>' for access to field '<coordinate>'.`                                               | The validator wanted to hop from one source schema to another to fetch the field, but transitioning failed. The reason for the failure appears as a further nested child under this message. |
+| `No lookups found for type '<type>' in schema '<schema>'.`                                                                                   | A specific reason a transition failed: the target source schema has no `@lookup` for the entity at all.                                                                                      |
+| `Unable to satisfy the requirement '<selection>' for lookup '<lookup>' in schema '<schema>'.`                                                | A `@lookup` on the target source schema needs key fields that the parent type does not expose along this path.                                                                               |
+| `Unable to satisfy the requirement '<selection>' on field '<coordinate>'.`                                                                   | A field's `@require` argument depends on fields the parent type does not expose along this path.                                                                                             |
+| `Type '<type>' implements the 'Node' interface, but no source schema provides a non-internal 'Query.node<Node>' lookup field for this type.` | A type implements `Node` but no source schema exposes a `node(id: ID!)` lookup that returns it.                                                                                              |
+
+Indentation is meaningful: a nested message is the reason its parent option failed. Start at the leaves and work up.
+
+#### Showing the path the validator took
+
+By default, the top-level message names the failed field but not the path the validator walked to reach it. Enable `IncludeSatisfiabilityPaths` to extend the message with the path:
+
+```
+Unable to access the field 'Order.shippingAddress' on path 'accounts:Query.viewer<User> -> accounts:User.orders<Order>'.
+```
+
+Each path segment has the shape `<schemaName>:<TypeName>.<fieldName><<FieldTypeName>>`, and segments are joined with `->`. The form is verbose, but unambiguous: it tells you which source schema served each hop and which field type the validator ended up holding.
+
+Set the option via the CLI flag during composition:
+
+```shell
+nitro fusion compose --include-satisfiability-paths
+```
+
+Paths add noise to short outputs and pay off on any non-trivial graph. Turn them on whenever an `UNSATISFIABLE` error is hard to triage.
+
+#### Common causes and fixes
+
+- **Missing `@lookup` for an entity in the target source schema.** A field on schema A returns an entity that is also defined in schema B, but B has no lookup that takes the entity's key. Add a lookup on B (typically `<entity>(id: ID!): <Entity>`) annotated with `@lookup`. See [Entities and Lookups](/docs/fusion/v16/entities-and-lookups).
+- **Mismatched `@key` selections across source schemas.** The shared entity has different `@key` selection sets in different source schemas, so the validator cannot find a key both sides recognize. Align the key selection sets, or add additional `@key` directives so every key the producer uses is also a key the consumer recognizes.
+- **`@require` reaches for a field that is not on the path.** A `@require(field: "...")` references parent fields that the validator cannot resolve given the path it took. Either expose the required field on the parent type along that path, or rewrite the requirement.
+- **`Node` interface without a node lookup.** A type implements `Node` but no source schema exposes a `node(id: ID!): Node` lookup that returns it. Add one in any source schema that owns the entity.
+
+When you fix the root cause, both the top-level `UNSATISFIABLE` error and its nested children disappear together.
+
+#### Temporarily ignoring a non-accessible field
+
+When a field is intentionally non-accessible at the moment, for example during an incremental rollout, you can ask the validator to skip it instead of failing composition. Add the qualified field name and the path to skip under the source schema's `satisfiability.ignoredNonAccessibleFields` in its `<schema>-settings.json` file:
+
+```json
+{
+  "satisfiability": {
+    "ignoredNonAccessibleFields": {
+      "Order.shippingAddress": [
+        "accounts:Query.viewer<User> -> accounts:User.orders<Order>"
+      ]
+    }
+  }
+}
+```
+
+The key is `<TypeName>.<fieldName>`. Each value is a list of paths (matching exactly what `IncludeSatisfiabilityPaths` would print for that field) where the validator should skip the check. The field name and at least one of its paths must match for the error to be silenced.
+
+This setting lives in the per-source-schema settings file (e.g. `accounts-settings.json`), not in the archive-level composition settings.
+
+Use this sparingly. It silences a real diagnostic without fixing the underlying gap, so leaving entries in place lets unsatisfiable shapes ship.
