@@ -199,7 +199,7 @@ Because the validator weighs every option for reaching a field across every sour
 
 The top-level message names the unreachable field:
 
-```
+```text
 Unable to access the field 'Order.shippingAddress'.
 ```
 
@@ -219,7 +219,7 @@ Indentation is meaningful: a nested message is the reason its parent option fail
 
 By default, the top-level message names the failed field but not the path the validator walked to reach it. Enable `IncludeSatisfiabilityPaths` to extend the message with the path:
 
-```
+```text
 Unable to access the field 'Order.shippingAddress' on path 'accounts:Query.viewer<User> -> accounts:User.orders<Order>'.
 ```
 
