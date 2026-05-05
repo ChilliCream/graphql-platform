@@ -66,10 +66,21 @@ public sealed class ExtendObjectTypeCodeFixProvider : CodeFixProvider
 
         if (attribute.Name is GenericNameSyntax genericName)
         {
-            // Preserve the generic type argument
+            // Preserve the generic type argument: [ExtendObjectType<T>] -> [ObjectType<T>]
             var newGenericName = genericName.WithIdentifier(
                 SyntaxFactory.Identifier("ObjectType"));
             newAttribute = attribute.WithName(newGenericName);
+        }
+        else if (attribute.ArgumentList?.Arguments.Count == 1
+            && attribute.ArgumentList.Arguments[0].Expression is TypeOfExpressionSyntax typeofExpression)
+        {
+            // Convert typeof() argument to generic: [ExtendObjectType(typeof(T))] -> [ObjectType<T>]
+            var newGenericName = SyntaxFactory.GenericName(
+                SyntaxFactory.Identifier("ObjectType"),
+                SyntaxFactory.TypeArgumentList(
+                    SyntaxFactory.SingletonSeparatedList(typeofExpression.Type)));
+
+            newAttribute = SyntaxFactory.Attribute(newGenericName);
         }
         else
         {

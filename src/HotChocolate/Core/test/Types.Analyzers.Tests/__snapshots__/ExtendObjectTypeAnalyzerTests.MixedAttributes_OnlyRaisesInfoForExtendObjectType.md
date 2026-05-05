@@ -153,8 +153,8 @@ namespace TestNamespace
     "Severity": "Info",
     "WarningLevel": 1,
     "Location": ": (11,1)-(11,24)",
-    "MessageFormat": "Consider upgrading [ExtendObjectType<{0}>] to [ObjectType<{0}>]",
-    "Message": "Consider upgrading [ExtendObjectType<Brand>] to [ObjectType<Brand>]",
+    "MessageFormat": "Consider upgrading to [ObjectType<{0}>]",
+    "Message": "Consider upgrading to [ObjectType<Brand>]",
     "Category": "TypeSystem",
     "CustomTags": []
   }
