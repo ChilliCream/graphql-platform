@@ -68,6 +68,7 @@ internal sealed class CreateMcpFeatureCollectionCommand : Command
                     {
                         IApiNotFoundError err => err.Message,
                         IUnauthorizedOperation err => err.Message,
+                        IDuplicateNameError => Messages.DuplicateName(name, "MCP Feature Collection"),
                         IError err => Messages.UnexpectedMutationError(err),
                         _ => Messages.UnexpectedMutationError()
                     };

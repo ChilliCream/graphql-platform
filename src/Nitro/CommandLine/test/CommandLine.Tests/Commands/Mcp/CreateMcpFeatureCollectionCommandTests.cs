@@ -258,6 +258,11 @@ public sealed class CreateMcpFeatureCollectionCommandTests(NitroCommandFixture f
             new CreateMcpFeatureCollectionCommandMutation_CreateMcpFeatureCollection_Errors_UnauthorizedOperation(
                 "Not authorized", "UnauthorizedOperation"),
             "Not authorized"
+        },
+        {
+            new CreateMcpFeatureCollectionCommandMutation_CreateMcpFeatureCollection_Errors_DuplicateNameError(
+                "Name already in use", "DuplicateNameError"),
+            "The name 'my-mcp' is already in use by another MCP Feature Collection."
         }
     };
 }
