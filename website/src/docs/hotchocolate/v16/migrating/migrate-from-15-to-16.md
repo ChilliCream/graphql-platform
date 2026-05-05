@@ -66,7 +66,6 @@ If you're using any of the following configuration APIs, ensure that the applica
 - `AddErrorFilter`
 - `AddDiagnosticEventListener`
 - `AddOperationCompilerOptimizer`
-- `AddTransactionScopeHandler`
 - `AddRedisOperationDocumentStorage`
 - `AddAzureBlobStorageOperationDocumentStorage`
 - `AddInstrumentation` with a custom `ActivityEnricher`
@@ -77,6 +76,19 @@ If you need to access the application service provider from within the schema se
 
 ```csharp
 IServiceProvider applicationServices = schemaServices.GetRootServiceProvider();
+```
+
+## Schema endpoint disabled outside of development
+
+In v15, introspection was already disabled outside of development by default, but the `/graphql/schema.graphql` endpoint kept serving the schema unless you explicitly set `EnableSchemaRequests` to `false`.
+
+Starting with v16, the `/graphql/schema.graphql` endpoint is only enabled when the host environment is `Development` (i.e. `IHostEnvironment.IsDevelopment()` returns `true`, typically driven by `ASPNETCORE_ENVIRONMENT=Development`).
+
+To re-enable the endpoint in other environments, override the default through `ModifyServerOptions`:
+
+```diff
+builder.AddGraphQL()
++    .ModifyServerOptions(o => o.EnableSchemaRequests = true);
 ```
 
 ## Cache size configuration
