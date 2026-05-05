@@ -1,10 +1,14 @@
+using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.AspNetCore;
+using HotChocolate.AspNetCore.Extensions;
 using HotChocolate.Execution;
 using HotChocolate.Transport.Http;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
@@ -238,6 +242,107 @@ public class DefaultSecurityTests : FusionTestBase
         using var response = await result.ReadAsResultAsync();
         Assert.Equal(JsonValueKind.Undefined, response.Errors.ValueKind);
         Assert.Equal(JsonValueKind.Object, response.Data.ValueKind);
+    }
+
+    [Fact]
+    public async Task DefaultSecurity_InDevelopment_SchemaRequestsAreAllowed()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema("A", SimpleSchema);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server1)]);
+
+        // act
+        using var response = await gateway.CreateClient().GetAsync(
+            "http://localhost:5000/graphql/schema.graphql");
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task DefaultSecurity_InProduction_SchemaRequestsAreDisabled()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema("A", SimpleSchema);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server1)],
+            environmentName: Environments.Production);
+
+        // act
+        using var response = await gateway.CreateClient().GetAsync(
+            "http://localhost:5000/graphql/schema.graphql");
+
+        // assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task DefaultSecurity_Disabled_InProduction_SchemaRequestsAreAllowed()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema("A", SimpleSchema);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server1)],
+            environmentName: Environments.Production,
+            disableDefaultSecurity: true);
+
+        // act
+        using var response = await gateway.CreateClient().GetAsync(
+            "http://localhost:5000/graphql/schema.graphql");
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task DefaultSecurity_InProduction_SchemaRequestsCanBeReEnabledPerEndpoint()
+    {
+        // arrange - default security disables schema requests in production,
+        // but the per-endpoint WithOptions override should win.
+        using var server1 = CreateSourceSchema("A", SimpleSchema);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server1)],
+            configureApplication: app => app
+                .UseRouting()
+                .UseEndpoints(endpoints => endpoints
+                    .MapGraphQL()
+                    .WithOptions(o => o.EnableSchemaRequests = true)),
+            environmentName: Environments.Production);
+
+        // act
+        using var response = await gateway.CreateClient().GetAsync(
+            "http://localhost:5000/graphql/schema.graphql");
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task DefaultSecurity_InDevelopment_SchemaRequestsCanBeDisabledPerEndpoint()
+    {
+        // arrange - default security allows schema requests in development,
+        // but the per-endpoint WithOptions override should win.
+        using var server1 = CreateSourceSchema("A", SimpleSchema);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server1)],
+            configureApplication: app => app
+                .UseRouting()
+                .UseEndpoints(endpoints => endpoints
+                    .MapGraphQL()
+                    .WithOptions(o => o.EnableSchemaRequests = false)));
+
+        // act
+        using var response = await gateway.CreateClient().GetAsync(
+            "http://localhost:5000/graphql/schema.graphql");
+
+        // assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
     [Fact]

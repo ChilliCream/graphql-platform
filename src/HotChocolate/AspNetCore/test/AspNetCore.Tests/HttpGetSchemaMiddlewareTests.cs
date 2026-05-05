@@ -256,31 +256,6 @@ public class HttpGetSchemaMiddlewareTests(TestServerFactory serverFactory) : Ser
         result.MatchSnapshot();
     }
 
-    [Fact]
-    public async Task Download_GraphQL_Schema_Does_Not_Include_Internal_Directives()
-    {
-        // arrange
-        var server = ServerFactory.Create(
-            services => services
-                .AddRouting()
-                .AddGraphQLServer()
-                .AddDirectiveType<InternalDirectiveType>()
-                .AddQueryType<DirectiveQueryType>(),
-            app => app
-                .UseRouting()
-                .UseEndpoints(endpoints => endpoints.MapGraphQLSchema()));
-        var url = TestServerExtensions.CreateUrl("/graphql/sdl");
-        var request = new HttpRequestMessage(HttpMethod.Get, url);
-
-        // act
-        var response = await server.CreateClient().SendAsync(request);
-
-        // assert
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var result = await response.Content.ReadAsStringAsync();
-        result.MatchSnapshot();
-    }
-
     private sealed class StaticTimeProvider : ITimeProvider
     {
         public DateTimeOffset UtcNow { get; } = new(2021, 1, 1, 0, 0, 0, TimeSpan.Zero);

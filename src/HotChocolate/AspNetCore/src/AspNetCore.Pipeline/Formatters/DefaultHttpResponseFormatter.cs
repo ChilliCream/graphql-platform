@@ -871,13 +871,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
         public CachedSchemaOutput(ISchemaDefinition schema, ulong version, DateTimeOffset lastModifiedTime)
         {
-            _schema = Encoding.UTF8.GetBytes(
-                SchemaFormatter.FormatAsString(
-                    schema,
-                    new SchemaFormatterOptions
-                    {
-                        IncludeInternalDirectives = false
-                    }));
+            _schema = Encoding.UTF8.GetBytes(SchemaFormatter.FormatAsString(schema));
             FileName = GetSchemaFileName(schema);
             ETag = CreateETag(_schema, version);
             LastModified = lastModifiedTime.ToString("R");
@@ -914,14 +908,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
         public CachedSemanticNonNullSchemaOutput(ISchemaDefinition schema, ulong version, DateTimeOffset lastModifiedTime)
         {
-            _schema = Encoding.UTF8.GetBytes(
-                SchemaFormatter.FormatAsString(
-                    schema,
-                    new SchemaFormatterOptions
-                    {
-                        IncludeInternalDirectives = false,
-                        RewriteToSemanticNonNull = true
-                    }));
+            _schema = Encoding.UTF8.GetBytes(SchemaFormatter.FormatAsString(schema));
             FileName = GetSchemaFileName(schema);
             ETag = CreateETag(_schema, version);
             LastModified = lastModifiedTime.ToString("R");

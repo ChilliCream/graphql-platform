@@ -254,4 +254,30 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
         builder.Services.Configure(builder.Name, configure);
         return builder;
     }
+
+    /// <summary>
+    /// Adds a delegate that will be used to modify the <see cref="GraphQLServerOptions"/>.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
+    /// </param>
+    /// <param name="configure">
+    /// A delegate that is used to modify the <see cref="GraphQLServerOptions"/>,
+    /// with access to the application <see cref="IServiceProvider"/>.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
+    /// </returns>
+    public static IRequestExecutorBuilder ModifyServerOptions(
+        this IRequestExecutorBuilder builder,
+        Action<IServiceProvider, GraphQLServerOptions> configure)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
+
+        builder.Services
+            .AddOptions<GraphQLServerOptions>(builder.Name)
+            .Configure<IServiceProvider>((options, sp) => configure(sp, options));
+        return builder;
+    }
 }

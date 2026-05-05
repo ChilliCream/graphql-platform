@@ -141,8 +141,12 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
     protected virtual TestServer CreateServer(
         Action<IEndpointRouteBuilder>? configureConventions = null)
     {
+        var mockHostEnvironment = new Mock<IHostEnvironment>();
+        mockHostEnvironment.Setup(env => env.EnvironmentName).Returns(Environments.Development);
+
         return ServerFactory.Create(
             services => services
+                .AddSingleton(mockHostEnvironment.Object)
                 .AddRouting()
                 .AddGraphQLServer()
                 .AddHttpResponseFormatter()

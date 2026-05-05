@@ -1,4 +1,6 @@
+using System.Net;
 using System.Text.Json;
+using HotChocolate.AspNetCore.Extensions;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Transport.Http;
 using Microsoft.AspNetCore.Builder;
@@ -189,9 +191,88 @@ public class DefaultSecurityTests(TestServerFactory serverFactory) : ServerTestB
         Assert.Equal(JsonValueKind.Undefined, response.Errors.ValueKind);
     }
 
+    [Fact]
+    public async Task DefaultSecurity_InDevelopment_SchemaRequestsAreAllowed()
+    {
+        // arrange
+        using var server = CreateServer(environment: Environments.Development);
+
+        // act
+        using var response = await server.CreateClient().GetAsync(
+            "http://localhost:5000/graphql/schema.graphql");
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task DefaultSecurity_InProduction_SchemaRequestsAreDisabled()
+    {
+        // arrange
+        using var server = CreateServer(environment: Environments.Production);
+
+        // act
+        using var response = await server.CreateClient().GetAsync(
+            "http://localhost:5000/graphql/schema.graphql");
+
+        // assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task DefaultSecurity_Disabled_InProduction_SchemaRequestsAreAllowed()
+    {
+        // arrange
+        using var server = CreateServer(
+            environment: Environments.Production,
+            disableDefaultSecurity: true);
+
+        // act
+        using var response = await server.CreateClient().GetAsync(
+            "http://localhost:5000/graphql/schema.graphql");
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task DefaultSecurity_InProduction_SchemaRequestsCanBeReEnabledPerEndpoint()
+    {
+        // arrange - default security disables schema requests in production,
+        // but the per-endpoint WithOptions override should win.
+        using var server = CreateServer(
+            environment: Environments.Production,
+            configureEndpoint: builder => builder.WithOptions(o => o.EnableSchemaRequests = true));
+
+        // act
+        using var response = await server.CreateClient().GetAsync(
+            "http://localhost:5000/graphql/schema.graphql");
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task DefaultSecurity_InDevelopment_SchemaRequestsCanBeDisabledPerEndpoint()
+    {
+        // arrange - default security allows schema requests in development,
+        // but the per-endpoint WithOptions override should win.
+        using var server = CreateServer(
+            environment: Environments.Development,
+            configureEndpoint: builder => builder.WithOptions(o => o.EnableSchemaRequests = false));
+
+        // act
+        using var response = await server.CreateClient().GetAsync(
+            "http://localhost:5000/graphql/schema.graphql");
+
+        // assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
     private TestServer CreateServer(
         string environment = "Development",
-        bool disableDefaultSecurity = false)
+        bool disableDefaultSecurity = false,
+        Action<GraphQLEndpointConventionBuilder>? configureEndpoint = null)
     {
         var mockHostEnvironment = new Mock<IHostEnvironment>();
         mockHostEnvironment.Setup(env => env.EnvironmentName).Returns(environment);
@@ -207,7 +288,11 @@ public class DefaultSecurityTests(TestServerFactory serverFactory) : ServerTestB
             },
             app => app
                 .UseRouting()
-                .UseEndpoints(endpoints => endpoints.MapGraphQL()));
+                .UseEndpoints(endpoints =>
+                {
+                    var builder = endpoints.MapGraphQL();
+                    configureEndpoint?.Invoke(builder);
+                }));
     }
 
     public class Query
