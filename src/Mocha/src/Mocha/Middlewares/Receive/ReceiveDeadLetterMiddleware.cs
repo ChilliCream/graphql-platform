@@ -6,7 +6,7 @@ namespace Mocha.Middlewares;
 
 /// <summary>
 /// Final receive-pipeline safety net that guarantees unconsumed messages are forwarded to the
-/// endpoint-specific error endpoint.
+/// endpoint-specific skipped endpoint.
 /// </summary>
 /// <remarks>
 /// Exceptions from downstream middleware are swallowed after logging because dead-lettering is the
@@ -15,7 +15,7 @@ namespace Mocha.Middlewares;
 /// repeatedly retried, wasting throughput and making the failure harder to diagnose and recover.
 /// </remarks>
 internal sealed class ReceiveDeadLetterMiddleware(
-    DispatchEndpoint errorEndpoint,
+    DispatchEndpoint skippedEndpoint,
     IMessagingPools pools,
     ILogger<ReceiveDeadLetterMiddleware> logger)
 {
@@ -40,14 +40,14 @@ internal sealed class ReceiveDeadLetterMiddleware(
             {
                 dispatchContext.Initialize(
                     context.Services,
-                    errorEndpoint,
+                    skippedEndpoint,
                     context.Runtime,
                     context.MessageType,
                     context.CancellationToken);
 
                 dispatchContext.Envelope = context.Envelope;
 
-                await errorEndpoint.ExecuteAsync(dispatchContext);
+                await skippedEndpoint.ExecuteAsync(dispatchContext);
             }
             finally
             {
@@ -63,15 +63,15 @@ internal sealed class ReceiveDeadLetterMiddleware(
         => new(
             static (context, next) =>
             {
-                var errorEndpoint = context.Endpoint.ErrorEndpoint;
-                if (errorEndpoint is null)
+                var skippedEndpoint = context.Endpoint.SkippedEndpoint;
+                if (skippedEndpoint is null)
                 {
                     return next;
                 }
 
                 var pools = context.Services.GetRequiredService<IMessagingPools>();
                 var logger = context.Services.GetRequiredService<ILogger<ReceiveDeadLetterMiddleware>>();
-                var middleware = new ReceiveDeadLetterMiddleware(errorEndpoint, pools, logger);
+                var middleware = new ReceiveDeadLetterMiddleware(skippedEndpoint, pools, logger);
                 return ctx => middleware.InvokeAsync(ctx, next);
             },
             "DeadLetter");

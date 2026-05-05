@@ -131,7 +131,12 @@ if (result.IsCancellable)
 | `ScheduledTime` | `DateTimeOffset` | The time at which the message is scheduled for delivery.                                  |
 | `IsCancellable` | `bool`           | `true` when the scheduling infrastructure supports cancellation and a token was assigned. |
 
-`IsCancellable` is `true` when a store-based scheduling provider (like Postgres) is registered. If no store is registered, the message is still scheduled (through the transport's native scheduling), but cancellation is not available.
+`IsCancellable` is `true` in either of two cases:
+
+- A store-based scheduling provider such as `UsePostgresScheduling()` is registered. The store assigns a token at persistence time, and the background worker honors the token on cancel.
+- The transport supports native cancellation. The Azure Service Bus transport falls into this category - it returns a token derived from the broker's scheduled-message sequence number and cancels through `ServiceBusSender.CancelScheduledMessageAsync`. No store registration is required.
+
+If neither applies, the message is still scheduled (through the transport's native scheduling), but cancellation is not available.
 
 ## Real-world example: cancellable reminder
 
@@ -175,7 +180,7 @@ public class OrderService(IMessageBus bus, IOrderRepository orders)
 
 # Set up store-based scheduling for RabbitMQ
 
-The InMemory and PostgreSQL transports handle scheduling natively with no extra setup. RabbitMQ does not support native scheduling, so you need to configure a Postgres-backed message store that persists scheduled messages and dispatches them through a background worker.
+The InMemory, PostgreSQL, and Azure Service Bus transports handle scheduling natively with no extra setup. RabbitMQ does not support native scheduling, so you need to configure a Postgres-backed message store that persists scheduled messages and dispatches them through a background worker.
 
 **1. Add the NuGet packages.**
 
@@ -230,17 +235,20 @@ dotnet ef database update
 
 Each transport handles scheduling differently. Mocha adapts automatically based on what the transport supports.
 
-| Transport  | Scheduling type                       | Durability                   | Cancellation support                 | Setup required                            |
-| ---------- | ------------------------------------- | ---------------------------- | ------------------------------------ | ----------------------------------------- |
-| InMemory   | Native (in-process scheduler)         | Non-durable, lost on restart | No                                   | None                                      |
-| PostgreSQL | Native (scheduled_time column)        | Durable, survives restarts   | No                                   | None                                      |
-| RabbitMQ   | Store-based (via Postgres middleware) | Durable with Postgres store  | Yes (with `UsePostgresScheduling()`) | `UsePostgresScheduling()` + EF Core model |
+| Transport         | Scheduling type                       | Durability                   | Cancellation support                 | Setup required                            |
+| ----------------- | ------------------------------------- | ---------------------------- | ------------------------------------ | ----------------------------------------- |
+| InMemory          | Native (in-process scheduler)         | Non-durable, lost on restart | No                                   | None                                      |
+| PostgreSQL        | Native (scheduled_time column)        | Durable, survives restarts   | No                                   | None                                      |
+| RabbitMQ          | Store-based (via Postgres middleware) | Durable with Postgres store  | Yes (with `UsePostgresScheduling()`) | `UsePostgresScheduling()` + EF Core model |
+| Azure Service Bus | Native (`ScheduleMessageAsync`)       | Durable, broker-managed      | Yes (native)                         | None                                      |
 
 **InMemory:** The transport schedules messages natively using an internal scheduler. Messages scheduled for a time in the past are delivered immediately. Scheduled messages are lost if the process restarts. Cancellation is not supported.
 
 **PostgreSQL:** The transport handles scheduling natively. When you set `ScheduledTime`, the transport writes a `scheduled_time` column alongside the message. Messages are only delivered to consumers after the scheduled time has passed. No additional setup is required beyond the standard [PostgreSQL transport configuration](/docs/mocha/v16/transports/postgres). Cancellation is not supported with native scheduling.
 
 **RabbitMQ:** RabbitMQ does not support native message scheduling. To enable scheduling, register `UsePostgresScheduling()` with an EF Core DbContext. Scheduled messages are intercepted before they reach the RabbitMQ transport and persisted to a Postgres `scheduled_messages` table. A background worker dispatches them at the scheduled time, routing through the RabbitMQ transport. Cancellation is fully supported - the `SchedulingResult` contains a token you can use with `CancelScheduledMessageAsync`.
+
+**Azure Service Bus:** Azure Service Bus is the first transport to support both **native scheduling and native cancellation** with no additional infrastructure. When you call `SchedulePublishAsync` or `ScheduleSendAsync`, the dispatch endpoint uses `ServiceBusSender.ScheduleMessageAsync` and the broker holds the message until the scheduled time. The returned `SchedulingResult.Token` encodes the entity path and the broker-assigned sequence number, so `CancelScheduledMessageAsync` can revoke the message via `ServiceBusSender.CancelScheduledMessageAsync` without a Postgres store, EF Core model, or background worker. `IsCancellable` is `true` for every scheduled ASB message. See the [Azure Service Bus transport](/docs/mocha/v16/transports/azure-service-bus) page for the full setup.
 
 ## Retry behavior
 
@@ -324,10 +332,10 @@ WHERE times_sent >= max_attempts;
 This does not happen. The dispatcher uses row-level locking to ensure each message is processed by exactly one instance.
 
 **Cancellation returns false even though I have a valid token.**
-The message was already dispatched before the cancellation request reached the store. Once the background worker picks up a message and delivers it, the row is deleted and cancellation is no longer possible. If you need a wider cancellation window, schedule messages further in the future or check `SchedulingResult.IsCancellable` to confirm the infrastructure supports cancellation.
+The message was already dispatched before the cancellation request reached the store. Once the background worker picks up a message and delivers it, the row is deleted and cancellation is no longer possible. With the Azure Service Bus transport, the broker returns `MessageNotFound` once the scheduled message has been enqueued for delivery, which surfaces here as `false`. If you need a wider cancellation window, schedule messages further in the future or check `SchedulingResult.IsCancellable` to confirm the infrastructure supports cancellation.
 
 **`SchedulingResult.IsCancellable` is false.**
-No store-based scheduling provider is registered. Cancellation requires a provider like `UsePostgresScheduling()` that persists messages to a store. Transports with native scheduling (InMemory, PostgreSQL) do not support cancellation. If you need cancellation support, configure `UsePostgresScheduling()` with an EF Core DbContext.
+The active transport does not support native cancellation, and no store-based scheduling provider is registered. Cancellation is available in two cases: register `UsePostgresScheduling()` with an EF Core DbContext, or use the [Azure Service Bus transport](/docs/mocha/v16/transports/azure-service-bus), which supports cancellation natively through the broker. The InMemory and PostgreSQL transports do not support cancellation with native scheduling.
 
 # Next steps
 
