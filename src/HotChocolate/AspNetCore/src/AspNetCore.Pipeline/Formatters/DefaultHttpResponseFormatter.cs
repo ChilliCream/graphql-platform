@@ -908,7 +908,13 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
         public CachedSemanticNonNullSchemaOutput(ISchemaDefinition schema, ulong version, DateTimeOffset lastModifiedTime)
         {
-            _schema = Encoding.UTF8.GetBytes(SchemaFormatter.FormatAsString(schema));
+            _schema = Encoding.UTF8.GetBytes(
+                SchemaFormatter.FormatAsString(
+                    schema,
+                    new SchemaFormatterOptions
+                    {
+                        RewriteToSemanticNonNull = true
+                    }));
             FileName = GetSchemaFileName(schema);
             ETag = CreateETag(_schema, version);
             LastModified = lastModifiedTime.ToString("R");
