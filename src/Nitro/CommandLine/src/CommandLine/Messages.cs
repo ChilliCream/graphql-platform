@@ -18,7 +18,7 @@ internal static class Messages
         => $"Unexpected mutation error: {error.Message}";
 
     public static string DuplicateName(string name, string entity)
-        => $"The name '{name}' is already in use by another {entity}.";
+        => $"The name '{name.EscapeMarkup()}' is already in use by another {entity}.";
 
     public static string SchemaFileDoesNotExist(string path) => $"Schema file '{path}' does not exist.";
 
