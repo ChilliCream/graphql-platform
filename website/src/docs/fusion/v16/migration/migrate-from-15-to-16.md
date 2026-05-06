@@ -2,14 +2,17 @@
 title: Migrate Hot Chocolate Fusion from 15 to 16
 ---
 
+> This guide is still a work in progress with more updates to follow.
+
 <!--
 TODO:
 - Default security
+- Nitro integration
 -->
 
 > Note: While directives and behavior largly mirror v15, v16 is a complete re-implementation of Fusion that not only affects the gateway itself, but also the archive format and composition process. Therefore, you can't simply bump the package versions in the gateway and be done with the update. You'll need a coordinated strategy to incrementally adopt Fusion v2 in Subgraphs and their deployment process, before you can switch the gateway to v16.
 
-This guide walks you through the manual migration steps to update your Hot Chocolate Fusion gateway to version 16.
+<!-- TODO: High level overview over migration steps -->
 
 Start by installing the latest `16.x.x` version of **all** of the `HotChocolate.Fusion.*` packages referenced by your project. The gateway runtime now ships in a single ASP.NET Core meta-package, `HotChocolate.Fusion.AspNetCore`, which includes the execution engine, the type system, and the ASP.NET Core integration. This means you can replace your existing references to `HotChocolate.AspNetCore` and `HotChocolate.Fusion` with a single reference to `HotChocolate.Fusion.AspNetCore`:
 
@@ -18,10 +21,6 @@ Start by installing the latest `16.x.x` version of **all** of the `HotChocolate.
 -<PackageReference Include="HotChocolate.Fusion" Version="15.x.x" />
 +<PackageReference Include="HotChocolate.Fusion.AspNetCore" Version="16.x.x" />
 ```
-
-If you also use `ChilliCream.Nitro.Fusion`, update it to the matching `16.x.x` preview. The Nitro Fusion package now depends on `HotChocolate.Fusion.AspNetCore` directly, so you don't need to reference it separately.
-
-> This guide is still a work in progress with more updates to follow.
 
 # Breaking changes
 
@@ -38,24 +37,16 @@ The entry point that adds a Fusion gateway to the service collection has been re
 
 The builder type returned by `AddGraphQLGatewayServer` is now `IFusionGatewayBuilder` instead of the concrete `FusionGatewayBuilder`. All of the configuration extension methods now hang off this interface.
 
-If you used the alternative `AddGraphQLGateway()` extension method (without "Server"), it now lives on `IHostApplicationBuilder` and forwards to `AddGraphQLGatewayServer()`:
-
-```csharp
-builder.AddGraphQLGateway();
-```
-
 ## CoreBuilder is gone — methods now hang off IFusionGatewayBuilder directly
 
 In v15, the Fusion gateway builder exposed a `CoreBuilder` property of type `IRequestExecutorBuilder` that you used to reach Hot Chocolate's core configuration APIs (validation rules, error filters, etc.).
 
-In v16 there is no separate underlying request executor builder. The Fusion gateway is configured exclusively via `IFusionGatewayBuilder`, and all relevant Hot Chocolate APIs (such as `DisableIntrospection`, `AddErrorFilter`, `AddSha256DocumentHashProvider`, `AddWarmupTask`) are exposed directly on `IFusionGatewayBuilder` as Fusion-specific extension methods.
+In v16 there is no separate underlying request executor builder. The Fusion gateway is configured exclusively via `IFusionGatewayBuilder`, and all relevant Hot Chocolate APIs (such as `DisableIntrospection`, `AddErrorFilter`, `AddSha256DocumentHashProvider`, etc.) are exposed directly on `IFusionGatewayBuilder` as Fusion-specific extension methods.
 
 ```diff
 -gatewayBuilder.CoreBuilder.DisableIntrospection();
 +gatewayBuilder.DisableIntrospection();
 ```
-
-If you were chaining a long sequence of `CoreBuilder.*` calls, simply drop `CoreBuilder` from the chain.
 
 ## ModifyFusionOptions split into ModifyOptions, ModifyRequestOptions and ModifyPlannerOptions
 
@@ -98,13 +89,28 @@ If you were chaining a long sequence of `CoreBuilder.*` calls, simply drop `Core
 
 A few specific options have moved or been renamed:
 
-- `FusionOptions.AllowQueryPlan` has been replaced by the per-request `FusionRequestOptions.AllowOperationPlanRequests`. When enabled, clients can request the operation plan to be inlined into the response via the `Fusion-Operation-Plan` header. The option defaults to `false` so the plan is not exposed unless explicitly opted in.
-- `FusionOptions.IncludeDebugInfo` has been replaced by the per-request `FusionRequestOptions.CollectOperationPlanTelemetry`. Operation plan telemetry now flows through the diagnostic event listener API rather than through inline response extensions.
+- `FusionOptions.AllowQueryPlan` has been replaced by the per-request `FusionRequestOptions.AllowOperationPlanRequests`. When enabled, clients can request the operation plan to be inlined into the response by sending the `Fusion-Operation-Plan: 1` header. The option defaults to `false` so the plan is not exposed unless explicitly opted in.
+- `FusionOptions.IncludeDebugInfo` has been replaced by the per-request `FusionRequestOptions.CollectOperationPlanTelemetry`.
 - `RequestExecutorOptions.EnableSchemaFileSupport` no longer exists. Schema file endpoints (`/graphql/schema`) are now wired up via `MapGraphQLSchema()` on the endpoint builder.
+
+## Internal directives hidden from schema endpoint
+
+Previously, the `/graphql/schema.graphql` endpoint was returning the schema containing internal directives like `@authorize`. Starting with v16 the endpoint no longer includes internal directives by default.
+
+If you need to retain the previous behavior, set `DisableInternalDirectives` to `true` through `ModifyOptions`. This treats every directive as public, even directives that explicitly call `Internal()` and regardless of `DefaultDirectiveVisibility`:
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .ModifyOptions(o => o.DisableInternalDirectives = true);
+```
+
+Be aware that internal directives may carry sensitive information (for example, authorization policies attached via `@authorize`). Only enable this if you understand and accept that risk.
 
 ## Cache configuration
 
-In v15, the operation cache acted as both the cache for parsed operations _and_ the cache for compiled operation execution plans. v16 separates the two so that you can size them independently. Both caches are now configured on the gateway builder via `ModifyOptions` instead of as global services on the `IServiceCollection`:
+In v15, the operation cache acted as the cache for operation plans. v16 introduces a dedicated operation plan cache.
+Both document and operation plan cache are now configured on the gateway builder via `ModifyOptions` instead of as global services on the `IServiceCollection`:
 
 ```diff
 -builder.Services.AddDocumentCache(capacity: 200);
@@ -118,11 +124,6 @@ builder.Services
 +        o.OperationExecutionPlanCacheSize = 100;
 +    });
 ```
-
-| v15                                       | v16                                                         |
-| ----------------------------------------- | ----------------------------------------------------------- |
-| `IServiceCollection.AddDocumentCache(N)`  | `ModifyOptions(o => o.OperationDocumentCacheSize = N)`      |
-| `IServiceCollection.AddOperationCache(N)` | `ModifyOptions(o => o.OperationExecutionPlanCacheSize = N)` |
 
 If your application contains multiple Fusion gateways, the cache configuration has to be repeated for each one as the configuration is now scoped to a particular gateway.
 
@@ -426,7 +427,7 @@ If you need to access the application service provider from within the schema se
 IServiceProvider applicationServices = schemaServices.GetRootServiceProvider();
 ```
 
-## AddServiceDiscoveryRewriter is gone
+<!-- ## AddServiceDiscoveryRewriter is gone
 
 The `AddServiceDiscoveryRewriter` extension has been removed. It rewrote the gateway configuration to make HTTP clients use ASP.NET Core service discovery. There is currently no direct replacement on `IFusionGatewayBuilder`; configure your `HttpClient` registrations to use service discovery directly via `Microsoft.Extensions.ServiceDiscovery` instead, and reference the resulting client by name from your subgraph configuration.
 
@@ -434,7 +435,7 @@ The `AddServiceDiscoveryRewriter` extension has been removed. It rewrote the gat
 
 The `IConfigurationRewriter` interface and the `ConfigurationRewriter` base class (from `HotChocolate.Fusion.Metadata`) have been removed. These types let you rewrite the Fusion gateway document and HTTP/WebSocket subgraph client configuration just before it was applied.
 
-In v16, configuration is delivered through `IFusionConfigurationProvider`, which already gives you full access to the underlying `DocumentNode` and `JsonDocumentOwner`. If you previously used a configuration rewriter, wrap an `IFusionConfigurationProvider` (or implement one yourself) and rewrite the document there before forwarding it to subscribers.
+In v16, configuration is delivered through `IFusionConfigurationProvider`, which already gives you full access to the underlying `DocumentNode` and `JsonDocumentOwner`. If you previously used a configuration rewriter, wrap an `IFusionConfigurationProvider` (or implement one yourself) and rewrite the document there before forwarding it to subscribers. -->
 
 ## Experimental @semanticNonNull support removed
 
@@ -480,40 +481,6 @@ app.MapGraphQLSemanticNonNullSchema();
 ```
 
 # Noteworthy changes
-
-## Dedicated operation plan cache
-
-Previously, the operation cache configured via `AddOperationCache` doubled as the cache for compiled operation execution plans. In v16 there is a dedicated option, `OperationExecutionPlanCacheSize`, on `FusionOptions` for the operation plan cache. The default size is **256** with a minimum of **16**.
-
-```csharp
-gatewayBuilder.ModifyOptions(o =>
-{
-    o.OperationDocumentCacheSize = 256;
-    o.OperationExecutionPlanCacheSize = 256;
-});
-```
-
-You can also wire up `CacheDiagnostics` for the plan cache via `OperationExecutionPlanCacheDiagnostics` to get hit/miss/eviction telemetry.
-
-## Operation plan requests replace AllowQueryPlan
-
-The v15 `FusionOptions.AllowQueryPlan` option, which controlled whether clients could request the query plan to be inlined into the GraphQL response, has been replaced by the per-request `FusionRequestOptions.AllowOperationPlanRequests`.
-
-```csharp
-gatewayBuilder.ModifyRequestOptions(o => o.AllowOperationPlanRequests = true);
-```
-
-When the option is `true` and the client sends the `Fusion-Operation-Plan: 1` header, the operation plan is included under `extensions.fusion.operationPlan` in the response. The option defaults to `false`, so the plan is never exposed unless explicitly opted in.
-
-## Operation plan telemetry replaces IncludeDebugInfo
-
-The v15 `FusionOptions.IncludeDebugInfo` option, which inlined debug data into the GraphQL response, no longer exists. In v16, the equivalent information flows through the diagnostic event listener API. Enable it via:
-
-```csharp
-gatewayBuilder.ModifyRequestOptions(o => o.CollectOperationPlanTelemetry = true);
-```
-
-When enabled, every execution node records status and duration, and these values are surfaced through `IFusionExecutionDiagnosticEventListener` (`PlanOperation`, `ExecuteOperationNode`, `ExecuteOperationBatchNode`, etc.).
 
 ## Concurrent execution gate
 
