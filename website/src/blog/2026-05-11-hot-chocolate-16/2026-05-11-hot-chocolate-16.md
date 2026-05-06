@@ -10,9 +10,9 @@ authorUrl: https://github.com/michaelstaib
 authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
 
-Ages have passed since we last shipped a new major version of our platform, and after 1.2 years we have finally arrived with a new generation. There is so much to talk about across version 16 that we did not want to end up with a Stephen-Toub-sized blog post. So today we will focus on Hot Chocolate.
+Hot Chocolate 16 is our first new major release of the platform in more than a year, and it is a big one. There is a lot to talk about across version 16, so this post focuses on the Hot Chocolate server.
 
-Some releases are incremental, some are mostly technical. Hot Chocolate 13, 14, and 15 each pushed things forward in places, but the platform itself stayed roughly where it was. Hot Chocolate 16 is different. This is the release where we dared to rearchitect the type system, and almost everything else in this post follows from that.
+Some releases are incremental, some are mostly technical. Hot Chocolate 16 is different. We rearchitected the type system, tightened scalar contracts, improved batching, adopted new GraphQL proposals, and made the defaults safer. Most of that starts with the new type system.
 
 ## The new type system
 
@@ -74,13 +74,15 @@ Date and time handling was one of the places where older Hot Chocolate versions 
 
 That was the wrong contract. Your schema should describe the meaning of the data, not which date and time library your server happens to use internally. In v16 we tightened things around a small set of well-specified scalars: `DateTime` for timestamps, `LocalDate` for calendar dates, `LocalTime` for clock times, `LocalDateTime` for local timestamps, and `Duration` for durations. These now follow the published scalar specifications and their ISO 8601 based formats, so the contract is precise and portable.
 
-That also changes what `HotChocolate.Types.NodaTime` does. It no longer introduces a parallel, NodaTime-specific schema vocabulary. Instead, it plugs NodaTime in as an alternative runtime representation of those same GraphQL scalars, with the extra precision and correctness NodaTime is known for. You can move between the built-in .NET types and NodaTime without changing the schema your clients see. One `AddNodaTime()` call and you are set up:
+That also changes what `HotChocolate.Types.NodaTime` does. It no longer introduces a parallel, NodaTime-specific schema vocabulary. Instead, it plugs NodaTime in as an alternative runtime representation of those same GraphQL scalars, with the extra precision and correctness NodaTime is known for. For the common date and time mappings, you can move between the built-in .NET types and NodaTime without changing the schema your clients see. One `AddNodaTime()` call and you are set up:
 
 ```csharp
 builder
     .AddGraphQL()
     .AddNodaTime();
 ```
+
+If you need to bind `System.TimeSpan` to `Duration`, or if you want custom precision settings, register the specific scalar explicitly. The important change is that NodaTime no longer forces a different public schema vocabulary.
 
 We are already looking at a few more date and time mappings for the v16.x line. We have not made up our minds yet, so if there is a type you care about, please tell us.
 
@@ -174,9 +176,9 @@ I am not going to cover all of our AI-focused work in this post, because several
 
 Classic GraphQL introspection is great when a client wants to inspect the whole schema. For agents, that is often too blunt. They usually do not want the whole schema, they want the right part of the schema for the task in front of them. Dumping thousands of fields into the model costs tokens, pollutes context, and still leaves the model to figure out what matters. On top of that, many enterprise GraphQL schemas are simply too large to fit comfortably, even in a 1M-token context window.
 
-Semantic Introspection turns schema discovery into a search problem. With `__search`, an agent can ask for the capabilities that are relevant to a user task and get back the best matching types and fields, together with the paths that lead to them. With `__definitions`, it can then fetch just the precise schema details it needs to build the next query. That is what makes it cool: GraphQL keeps its precision, while discovery becomes a constant-shape two-step process that works the same whether your schema has 10 types or 1000. In Pascal's measurements, that also made it markedly more cost-efficient than the other discovery approaches he compared.
+Semantic Introspection turns schema discovery into a search problem. With `__search`, an agent can ask for the capabilities that are relevant to a user task and get back the best matching types and fields, together with the paths that lead to them. With `__definitions`, it can then fetch just the precise schema details it needs to build the next query. That is what makes it cool: GraphQL keeps its precision, while discovery becomes a constant-shape two-step process that works the same whether your schema has 10 types or 1000. In the dedicated post, a discovery-cost comparison also shows it to be markedly more cost-efficient than the other approaches that were measured.
 
-You can enable it explicitly like this:
+Semantic Introspection is enabled by default in development mode just like introspection itself.
 
 ```csharp
 builder
@@ -184,7 +186,7 @@ builder
     .ModifyOptions(o => o.EnableSemanticIntrospection = true);
 ```
 
-By default, Hot Chocolate indexes the schema with BM25, so there is nothing else to wire up. If you want the full story, including how `__search` and `__definitions` work in practice, Pascal goes much deeper in [Semantic Introspection](/blog/2026/04/22/semantic-introspection). And if you want to see the agent side of it, including the skill prompt that teaches an agent how to use semantic introspection effectively, take a look at the [GraphQL skill prompt](https://github.com/PascalSenn/apidays-singapore/blob/main/case-study/prompt-graphql-skill.md).
+By default, Hot Chocolate indexes the schema with BM25, so there is nothing else to wire up. If you want the full story, including how `__search` and `__definitions` work in practice, the [Semantic Introspection](/blog/2026/04/22/semantic-introspection) post goes much deeper. And if you want to see the agent side of it, including the skill prompt that teaches an agent how to use semantic introspection effectively, take a look at the [GraphQL skill prompt](https://github.com/PascalSenn/apidays-singapore/blob/main/case-study/prompt-graphql-skill.md).
 
 ## A new error mode for GraphQL
 
