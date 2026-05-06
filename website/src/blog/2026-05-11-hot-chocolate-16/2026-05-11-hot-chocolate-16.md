@@ -293,8 +293,8 @@ Both will get their own posts in the next few weeks. If you do not want to wait,
 
 ## Wrapping up
 
-This is only the beginning. We will follow up with more posts and YouTube episodes that dive deeper into new features across Hot Chocolate, Fusion, and Mocha.
+If you are upgrading, start with our [migration guide](/docs/hotchocolate/v16/migrating/migrate-from-15-to-16). It has the full list of breaking changes, defaults, and migration notes.
 
-If you are upgrading, start with our [migration guide](/docs/hotchocolate/v16/migrating/migrate-from-15-to-16).
+This is only the beginning. We will follow up with more posts and YouTube episodes that dive deeper into new features across Hot Chocolate, Fusion, and Mocha.
 
 We also have a large community on [Slack](https://slack.chillicream.com), so come join us there. And if you like what we are building, help us out by starring the [project on GitHub](https://github.com/ChilliCream/graphql-platform).
