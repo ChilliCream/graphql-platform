@@ -44,13 +44,18 @@ public sealed class MessagingDependencyInjectionGenerator : ISyntaxGenerator
 
         // Find the module info to check for JsonContext.
         string? jsonContextTypeName = null;
+        var isAotPublish = false;
 
         foreach (var info in syntaxInfos)
         {
-            if (info is MessagingModuleInfo moduleInfo)
+            if (jsonContextTypeName is null && info is MessagingModuleInfo moduleInfo)
             {
                 jsonContextTypeName = moduleInfo.JsonContextTypeName;
-                break;
+            }
+
+            if (info is AotPublishInfo aotPublishInfo)
+            {
+                isAotPublish = aotPublishInfo.IsAotPublish;
             }
         }
 
@@ -153,7 +158,11 @@ public sealed class MessagingDependencyInjectionGenerator : ISyntaxGenerator
         if (jsonContextTypeName is not null)
         {
             builder.WriteSectionComment("AOT Configuration");
-            builder.WriteStrictModeConfiguration();
+            if (isAotPublish)
+            {
+                builder.WriteStrictModeConfiguration();
+            }
+
             builder.WriteJsonTypeInfoResolverRegistration(jsonContextTypeName);
 
             // Framework base types are emitted as typeof(...) so MessageType.Complete

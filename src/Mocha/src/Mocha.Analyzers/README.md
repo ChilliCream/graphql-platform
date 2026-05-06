@@ -191,20 +191,20 @@ This ensures importing modules know exactly which types have serializer registra
 
 AOT mode has two independent aspects controlled by different settings:
 
-- **`JsonContext` on `[MessagingModule]`** - controls **code generation**: serializer registrations, strict mode, and resolver registration are only emitted when a `JsonContext` is specified.
-- **`PublishAot` MSBuild property** - controls **validation strictness**: when `true`, diagnostics MO0015/MO0016/MO0018 fire even without a local `JsonContext`.
+- **`JsonContext` on `[MessagingModule]`** - controls **code generation**: serializer registrations and resolver registration are emitted when a `JsonContext` is specified.
+- **`PublishAot` MSBuild property** - controls **strict mode and validation strictness**: when `true`, the generated module enables AOT-compatible runtime mode and diagnostics MO0015/MO0016/MO0018 fire.
 
-Validation diagnostics fire when **either** condition is true. Serializer code generation requires `JsonContext`.
+Validation diagnostics fire when **`PublishAot` is true**. Serializer code generation requires `JsonContext`.
 
 ### What changes when JsonContext is specified
 
 1. **Serializer registrations are emitted** - `AddMessageConfiguration` with pre-built `JsonMessageSerializer` for each message type in the local JsonContext.
 
-2. **Strict mode is enabled** - `IsAotCompatible = true` on builder options.
+2. **JsonTypeInfoResolver is registered** - the specified `JsonSerializerContext` is added as a resolver.
 
-3. **JsonTypeInfoResolver is registered** - the specified `JsonSerializerContext` is added as a resolver.
+3. **AOT strict mode is not enabled by JsonContext alone** - `IsAotCompatible = true` is emitted only when `PublishAot` is true.
 
-4. **Validation diagnostics fire** - MO0015, MO0016, MO0018 are checked.
+4. **Validation diagnostics do not fire by JsonContext alone** - MO0015, MO0016, and MO0018 are checked only when `PublishAot` is true.
 
 ### Which types get serializer registrations
 
@@ -277,9 +277,9 @@ For each message type registration, the generator computes an "enclosed types" a
 | MO0012 | Always (not AOT-gated) |
 | MO0013 | Always (not AOT-gated) |
 | MO0014 | Always (not AOT-gated) |
-| MO0015 | `PublishAot == true` OR `JsonContext` is specified |
-| MO0016 | `PublishAot == true` OR `JsonContext` is specified |
-| MO0018 | `PublishAot == true` OR `JsonContext` is specified |
+| MO0015 | `PublishAot == true` |
+| MO0016 | `PublishAot == true` |
+| MO0018 | `PublishAot == true` |
 
 Handlers or sagas that carry a diagnostic (e.g., MO0012, MO0013, MO0014) are **excluded from code generation** - no `AddHandlerConfiguration` or `AddSagaConfiguration` is emitted for them. Only entries with zero diagnostics flow to the generator.
 

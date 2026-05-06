@@ -196,16 +196,17 @@ public class HeadersJsonConverterTests
     }
 
     [Fact]
-    public void Write_Should_Throw_When_HeaderIsCustomType()
+    public void Write_Should_SerializeCustomType_When_HeaderIsCustomType()
     {
         // arrange
         var headers = new Headers();
         headers.Set("custom", new CustomHeaderDto { Name = "test" });
 
-        // act & assert
-        var ex = Assert.Throws<InvalidOperationException>(
-            () => JsonSerializer.Serialize<IHeaders>(headers, HeadersJsonConverter.Options));
-        Assert.Contains(nameof(CustomHeaderDto), ex.Message);
+        // act
+        var json = JsonSerializer.Serialize<IHeaders>(headers, HeadersJsonConverter.Options);
+
+        // assert
+        Assert.Equal("""{"custom":{"Name":"test"}}""", json);
     }
 
     private enum TestPriority

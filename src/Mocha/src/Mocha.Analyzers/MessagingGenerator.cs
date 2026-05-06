@@ -234,6 +234,7 @@ public sealed class MessagingGenerator : IIncrementalGenerator
 
             // Extract context-only message types from JsonSerializerContext (types without handlers).
             var augmentedInfos = ExtractContextOnlyTypes(syntaxInfos, moduleInfo, jsonContextInfo);
+            augmentedInfos = augmentedInfos.Add(new AotPublishInfo(isAotPublish));
 
             // Pass the full set of JsonContext-serializable type names so the DI generator
             // can restrict serializer registrations to types that are actually in the context.
@@ -435,7 +436,7 @@ public sealed class MessagingGenerator : IIncrementalGenerator
         bool isAotPublish,
         JsonContextInfo jsonContextInfo)
     {
-        if (!isAotPublish && jsonContextInfo.JsonContextTypeName is null)
+        if (!isAotPublish)
         {
             return;
         }

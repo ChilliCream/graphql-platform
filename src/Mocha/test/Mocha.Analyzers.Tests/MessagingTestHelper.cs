@@ -7,6 +7,7 @@ using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using CookieCrumble;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Mocha.Analyzers.Tests;
@@ -18,7 +19,59 @@ internal static class MessagingTestHelper
 
     public static Snapshot GetGeneratedSourceSnapshot(
         string[] sourceTexts,
-        string? assemblyName = "Tests")
+        string? assemblyName = "Tests",
+        bool publishAot = false)
+    {
+        var driver = RunGenerator(sourceTexts, assemblyName, publishAot);
+        var snapshot = new Snapshot();
+
+        foreach (var result in driver.GetRunResult().Results)
+        {
+            var sources = result.GeneratedSources.OrderBy(s => s.HintName);
+            foreach (var source in sources)
+            {
+                snapshot.Add(source.SourceText.ToString(), source.HintName, MarkdownLanguages.CSharp);
+            }
+
+            if (result.Diagnostics.Any())
+            {
+                AddDiagnosticsToSnapshot(snapshot, result.Diagnostics, "Generator Diagnostics");
+            }
+        }
+
+        return snapshot;
+    }
+
+    public static ImmutableArray<Diagnostic> GetGeneratorDiagnostics(
+        string[] sourceTexts,
+        string? assemblyName = "Tests",
+        bool publishAot = false)
+    {
+        var driver = RunGenerator(sourceTexts, assemblyName, publishAot);
+
+        return driver.GetRunResult().Results
+            .SelectMany(static r => r.Diagnostics)
+            .ToImmutableArray();
+    }
+
+    public static ImmutableArray<string> GetGeneratedSourceTexts(
+        string[] sourceTexts,
+        string? assemblyName = "Tests",
+        bool publishAot = false)
+    {
+        var driver = RunGenerator(sourceTexts, assemblyName, publishAot);
+
+        return driver.GetRunResult().Results
+            .SelectMany(static r => r.GeneratedSources)
+            .OrderBy(static s => s.HintName)
+            .Select(static s => s.SourceText.ToString())
+            .ToImmutableArray();
+    }
+
+    private static GeneratorDriver RunGenerator(
+        string[] sourceTexts,
+        string? assemblyName,
+        bool publishAot)
     {
         IEnumerable<PortableExecutableReference> references =
         [
@@ -56,26 +109,10 @@ internal static class MessagingTestHelper
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
         var generator = new MessagingGenerator();
-        GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
-        driver = driver.RunGenerators(compilation);
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(generator)
+            .WithUpdatedAnalyzerConfigOptions(new TestAnalyzerConfigOptionsProvider(publishAot));
 
-        var snapshot = new Snapshot();
-
-        foreach (var result in driver.GetRunResult().Results)
-        {
-            var sources = result.GeneratedSources.OrderBy(s => s.HintName);
-            foreach (var source in sources)
-            {
-                snapshot.Add(source.SourceText.ToString(), source.HintName, MarkdownLanguages.CSharp);
-            }
-
-            if (result.Diagnostics.Any())
-            {
-                AddDiagnosticsToSnapshot(snapshot, result.Diagnostics, "Generator Diagnostics");
-            }
-        }
-
-        return snapshot;
+        return driver.RunGenerators(compilation);
     }
 
     private static void AddDiagnosticsToSnapshot(
@@ -159,6 +196,44 @@ internal static class MessagingTestHelper
         if (hasDiagnostics)
         {
             snapshot.Add(Encoding.UTF8.GetString(stream.ToArray()), title, MarkdownLanguages.Json);
+        }
+    }
+
+    private sealed class TestAnalyzerConfigOptionsProvider(bool publishAot)
+        : AnalyzerConfigOptionsProvider
+    {
+        private readonly AnalyzerConfigOptions _globalOptions =
+            new TestAnalyzerConfigOptions(
+                new Dictionary<string, string>
+                {
+                    ["build_property.PublishAot"] = publishAot ? "true" : "false"
+                });
+
+        public override AnalyzerConfigOptions GlobalOptions => _globalOptions;
+
+        public override AnalyzerConfigOptions GetOptions(SyntaxTree tree)
+            => TestAnalyzerConfigOptions.Empty;
+
+        public override AnalyzerConfigOptions GetOptions(AdditionalText textFile)
+            => TestAnalyzerConfigOptions.Empty;
+    }
+
+    private sealed class TestAnalyzerConfigOptions(IReadOnlyDictionary<string, string> options)
+        : AnalyzerConfigOptions
+    {
+        public static readonly AnalyzerConfigOptions Empty =
+            new TestAnalyzerConfigOptions(new Dictionary<string, string>());
+
+        public override bool TryGetValue(string key, out string value)
+        {
+            if (options.TryGetValue(key, out var result))
+            {
+                value = result;
+                return true;
+            }
+
+            value = "";
+            return false;
         }
     }
 }

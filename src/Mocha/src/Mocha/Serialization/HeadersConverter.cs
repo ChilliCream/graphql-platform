@@ -292,12 +292,8 @@ public class HeadersJsonConverter : JsonConverter<IHeaders>
                 break;
 
             default:
-                throw new InvalidOperationException(
-                    $"Header value type '{value.GetType().Name}' is not supported for serialization. "
-                    + "Supported: string, bool, numeric primitives, char, DateTime, DateTimeOffset, "
-                    + "DateOnly, TimeOnly, TimeSpan, Guid, Uri, Enum, JsonElement, JsonDocument, "
-                    + "IDictionary<string, object?>, IEnumerable<object?>, IReadOnlyHeaders. "
-                    + "Custom types must be stringified by the caller before assignment.");
+                JsonSerializer.Serialize(writer, value, options.GetTypeInfo(value.GetType()));
+                break;
         }
     }
 }

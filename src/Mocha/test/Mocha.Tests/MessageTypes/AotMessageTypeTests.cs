@@ -93,6 +93,23 @@ public class AotMessageTypeTests
         }
     }
 
+    [Fact]
+    public void Complete_Should_RegisterInternalAcknowledgementEvents_When_AotMode()
+    {
+        // arrange
+        var runtime = CreateAotRuntime(static _ => { });
+
+        // act
+        var acknowledged = runtime.Messages.GetMessageType(typeof(AcknowledgedEvent))!;
+        var notAcknowledged = runtime.Messages.GetMessageType(typeof(NotAcknowledgedEvent))!;
+
+        // assert
+        Assert.True(acknowledged.IsCompleted);
+        Assert.Contains(acknowledged.Identity, acknowledged.EnclosedMessageIdentities);
+        Assert.True(notAcknowledged.IsCompleted);
+        Assert.Contains(notAcknowledged.Identity, notAcknowledged.EnclosedMessageIdentities);
+    }
+
     public sealed class GetOrderStatus : IEventRequest<OrderStatusResponse>
     {
         public string OrderId { get; init; } = "";
@@ -150,25 +167,10 @@ public class AotMessageTypeTests
         var builder = services.AddMessageBus();
         builder.ModifyOptions(static o => o.IsAotCompatible = true);
 
-        // AddMessageBus auto-registers the internal acknowledgement events via AddDefaults;
-        // in AOT mode they also need enclosed-types configuration to pass the Complete guard.
-        RegisterInternalEvents(builder);
-
         configure(builder);
         builder.AddInMemory();
 
         var provider = services.BuildServiceProvider();
         return (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
-    }
-
-    private static void RegisterInternalEvents(IMessageBusHostBuilder builder)
-    {
-        builder.ConfigureMessageBus(bus =>
-        {
-            bus.AddMessage<NotAcknowledgedEvent>(
-                d => d.Extend().Configuration.EnclosedTypes = [typeof(NotAcknowledgedEvent)]);
-            bus.AddMessage<AcknowledgedEvent>(
-                d => d.Extend().Configuration.EnclosedTypes = [typeof(AcknowledgedEvent)]);
-        });
     }
 }

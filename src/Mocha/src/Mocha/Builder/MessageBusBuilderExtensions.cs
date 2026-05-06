@@ -50,12 +50,14 @@ public static class MessageBusBuilderExtensions
         builder.AddMessage<NotAcknowledgedEvent>(x =>
         {
             x.AddSerializer(new JsonMessageSerializer(AcknowledgementJsonContext.Default.NotAcknowledgedEvent));
+            x.Extend().Configuration.EnclosedTypes = [typeof(NotAcknowledgedEvent)];
             x.Extend().Configuration.IsInternal = true;
         });
 
         builder.AddMessage<AcknowledgedEvent>(x =>
         {
             x.AddSerializer(new JsonMessageSerializer(AcknowledgementJsonContext.Default.AcknowledgedEvent));
+            x.Extend().Configuration.EnclosedTypes = [typeof(AcknowledgedEvent)];
             x.Extend().Configuration.IsInternal = true;
         });
     }
