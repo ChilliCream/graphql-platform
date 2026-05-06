@@ -56,8 +56,6 @@ nitro status
 
 The `nitro launch` command opens the Nitro web UI in your default browser.
 
-When you're signed in to the default Nitro Cloud (or not signed in at all), it opens [https://nitro.chillicream.com](https://nitro.chillicream.com). When you're signed in to a self-hosted or dedicated deployment, it opens `<base-url>/ui` derived from the API URL of your active session.
-
 ```shell
 nitro launch
 ```
