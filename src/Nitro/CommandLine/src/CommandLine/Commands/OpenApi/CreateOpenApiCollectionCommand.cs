@@ -68,6 +68,7 @@ internal sealed class CreateOpenApiCollectionCommand : Command
                     {
                         IApiNotFoundError err => err.Message,
                         IUnauthorizedOperation err => err.Message,
+                        IDuplicateNameError => Messages.DuplicateName(name, "OpenAPI Collection"),
                         IError err => Messages.UnexpectedMutationError(err),
                         _ => Messages.UnexpectedMutationError()
                     };

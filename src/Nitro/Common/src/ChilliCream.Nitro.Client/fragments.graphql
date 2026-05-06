@@ -56,6 +56,12 @@ fragment DuplicatedTagError on DuplicatedTagError {
   ...Error
 }
 
+fragment DuplicateNameError on DuplicateNameError {
+  __typename
+  message
+  ...Error
+}
+
 fragment UnexpectedProcessingError on UnexpectedProcessingError {
   __typename
   message
