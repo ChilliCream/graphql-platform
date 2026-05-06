@@ -27,7 +27,7 @@ dotnet tool install -g ChilliCream.Nitro.CommandLine
 
 # npm
 
-The CLI is published to npm as [`@chillicream/nitro`](https://www.npmjs.com/package/@chillicream/nitro). For one-off invocations run it with `npx`. Pin the version with `@latest` so each run pulls the newest release:
+The CLI is published to npm as [`@chillicream/nitro`](https://www.npmjs.com/package/@chillicream/nitro). For one-off invocations run it with `npx`. The `@latest` tag opts out of npm's local cache so each run pulls the newest release:
 
 ```shell
 npx @chillicream/nitro@latest --version

@@ -34,7 +34,7 @@ internal sealed class LaunchCommand : Command
         var url = ResolveUrl(sessionService.Session);
 
         browser.Open(url);
-        console.OkLine($"[link={url}]Nitro[/] is launched!");
+        console.OkLine($"[link={url.EscapeMarkup()}]Nitro[/] is launched!");
 
         return Task.FromResult(ExitCodes.Success);
     }

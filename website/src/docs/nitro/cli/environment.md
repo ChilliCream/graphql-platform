@@ -2,9 +2,7 @@
 title: environment
 ---
 
-<!-- TODO: Rewrite this -->
-
-The `nitro environment` commands manage environments. An environment is a workspace-level grouping that holds named [stages](/docs/nitro/cli/stage) (for example `dev`, `staging`, `production`) and is shared across the APIs in the workspace.
+The `nitro environment` commands manage environments. An environment is a workspace-level grouping that holds a list of variables that can be reused across documents in the Nitro UI.
 
 All `environment` commands require authentication. Run `nitro login` first or pass `--api-key` (see [Global Options](/docs/nitro/cli/global-options)).
 

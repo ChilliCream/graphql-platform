@@ -39,16 +39,14 @@ nitro fusion upload \
 
 # `nitro fusion publish`
 
-<!-- TODO -->
-
-Publish a Fusion configuration to a stage. This is the one-shot command that runs validation, requests a deployment slot, and commits the new configuration in sequence.
+Publish a Fusion configuration to a stage.
 
 ```shell
 nitro fusion publish \
   --api-id "<api-id>" \
   --stage "<stage>" \
   --tag "<tag>" \
-  --archive "<archive-file>"
+  --source-schema products
 ```
 
 ## Options

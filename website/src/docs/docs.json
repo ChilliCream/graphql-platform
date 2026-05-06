@@ -187,70 +187,12 @@
                 "title": "openapi"
               },
               {
-                "path": "mock",
-                "title": "mock"
-              },
-              {
                 "path": "environment",
                 "title": "environment"
               },
               {
                 "path": "stage",
                 "title": "stage"
-              },
-              {
-                "path": "workspace",
-                "title": "workspace"
-              }
-            ]
-          },
-          {
-            "path": "cli-commands",
-            "title": "CLI Commands",
-            "items": [
-              {
-                "path": "api-key",
-                "title": "api-key"
-              },
-              {
-                "path": "api",
-                "title": "api"
-              },
-              {
-                "path": "client",
-                "title": "client"
-              },
-              {
-                "path": "environment",
-                "title": "environment"
-              },
-              {
-                "path": "launch",
-                "title": "launch"
-              },
-              {
-                "path": "login",
-                "title": "login"
-              },
-              {
-                "path": "logout",
-                "title": "logout"
-              },
-              {
-                "path": "pat",
-                "title": "pat"
-              },
-              {
-                "path": "schema",
-                "title": "schema"
-              },
-              {
-                "path": "stage",
-                "title": "stage"
-              },
-              {
-                "path": "fusion-configuration",
-                "title": "fusion-configuration"
               },
               {
                 "path": "workspace",

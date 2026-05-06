@@ -43,7 +43,7 @@ nitro openapi create --name "<name>" --api-id "<api-id>"
 
 # `nitro openapi upload`
 
-Upload a new version of an OpenAPI collection. OpenAPI documents are picked up via glob patterns.
+Upload a new version of an OpenAPI collection.
 
 ```shell
 nitro openapi upload \
@@ -54,11 +54,11 @@ nitro openapi upload \
 
 ## Options
 
-| Option                                            | Env                           | Description                                                                                |
-| ------------------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------ |
-| `--openapi-collection-id <openapi-collection-id>` | `NITRO_OPENAPI_COLLECTION_ID` | ID of the OpenAPI collection. Required.                                                    |
-| `--tag <tag>`                                     | `NITRO_TAG`                   | Tag of the version being uploaded (for example a Git commit SHA or release tag). Required. |
-| `-p, --pattern <pattern>`                         |                               | One or more glob patterns selecting the OpenAPI document files. Required.                  |
+| Option                                            | Env                           | Description                                                                                                   |
+| ------------------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `--openapi-collection-id <openapi-collection-id>` | `NITRO_OPENAPI_COLLECTION_ID` | ID of the OpenAPI collection. Required.                                                                       |
+| `--tag <tag>`                                     | `NITRO_TAG`                   | Tag of the version being uploaded (for example a Git commit SHA or release tag). Required.                    |
+| `-p, --pattern <pattern>`                         |                               | One or more glob patterns selecting `*.graphql` files defining HTTP endpoints / models definitions. Required. |
 
 ## Examples
 
@@ -126,11 +126,11 @@ nitro openapi validate \
 
 ## Options
 
-| Option                                            | Env                           | Description                                                               |
-| ------------------------------------------------- | ----------------------------- | ------------------------------------------------------------------------- |
-| `--openapi-collection-id <openapi-collection-id>` | `NITRO_OPENAPI_COLLECTION_ID` | ID of the OpenAPI collection. Required.                                   |
-| `--stage <stage>`                                 | `NITRO_STAGE`                 | Name of the stage to validate against. Required.                          |
-| `-p, --pattern <pattern>`                         |                               | One or more glob patterns selecting the OpenAPI document files. Required. |
+| Option                                            | Env                           | Description                                                                                                   |
+| ------------------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `--openapi-collection-id <openapi-collection-id>` | `NITRO_OPENAPI_COLLECTION_ID` | ID of the OpenAPI collection. Required.                                                                       |
+| `--stage <stage>`                                 | `NITRO_STAGE`                 | Name of the stage to validate against. Required.                                                              |
+| `-p, --pattern <pattern>`                         |                               | One or more glob patterns selecting `*.graphql` files defining HTTP endpoints / models definitions. Required. |
 
 ## Examples
 
