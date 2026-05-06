@@ -81,6 +81,9 @@ public class SchemaOptions : IReadOnlySchemaOptions
     public DirectiveVisibility DefaultDirectiveVisibility { get; set; } =
         DirectiveVisibility.Public;
 
+    /// <inheritdoc cref="IReadOnlySchemaOptions.DisableInternalDirectives"/>
+    public bool DisableInternalDirectives { get; set; }
+
     /// <inheritdoc cref="IReadOnlySchemaOptions.DefaultResolverStrategy"/>
     public ExecutionStrategy DefaultResolverStrategy { get; set; } =
         ExecutionStrategy.Parallel;
@@ -207,6 +210,7 @@ public class SchemaOptions : IReadOnlySchemaOptions
             DefaultBindingBehavior = options.DefaultBindingBehavior,
             EnableDirectiveIntrospection = options.EnableDirectiveIntrospection,
             DefaultDirectiveVisibility = options.DefaultDirectiveVisibility,
+            DisableInternalDirectives = options.DisableInternalDirectives,
             DefaultResolverStrategy = options.DefaultResolverStrategy,
             ValidatePipelineOrder = options.ValidatePipelineOrder,
             StrictRuntimeTypeValidation = options.StrictRuntimeTypeValidation,
