@@ -2,15 +2,9 @@
 title: Global Options
 ---
 
-Every `nitro` command supports these options. They control where the CLI talks to, how it authenticates, and how output is formatted. Per-command docs don't repeat them, refer back here.
+# `-?, -h, --help`
 
-> The `--api-key` flag accepts both API keys (created via `nitro api-key create`) and Personal Access Tokens (created via `nitro pat create`). For interactive use, prefer `nitro login` instead.
-
-# `--cloud-url <cloud-url>`
-
-URL of the Nitro backend the CLI talks to. Only needed for self-hosted or dedicated deployments, the public ChilliCream Cloud is the default.
-
-Set via the `NITRO_CLOUD_URL` environment variable. Defaults to `api.chillicream.com`.
+Show help and usage information for the command. Use this on any subcommand to see its options, environment variables, and an example invocation.
 
 # `--api-key <api-key>`
 
@@ -26,6 +20,8 @@ Setting `--output json` also enables non-interactive mode: prompts are disabled 
 
 Set via the `NITRO_OUTPUT_FORMAT` environment variable.
 
-# `-?, -h, --help`
+# `--cloud-url <cloud-url>`
 
-Show help and usage information for the command. Use this on any subcommand to see its options, environment variables, and an example invocation.
+URL of the Nitro backend the CLI talks to. Only needed for self-hosted or dedicated deployments, the public ChilliCream Cloud is the default.
+
+Set via the `NITRO_CLOUD_URL` environment variable. Defaults to `api.chillicream.com`.

@@ -2,7 +2,7 @@
 title: workspace
 ---
 
-The `nitro workspace` commands manage workspaces. A workspace is the top-level container in Nitro, every API, environment, member, and API key belongs to exactly one workspace.
+The `nitro workspace` commands manage workspaces. A workspace is the top-level container in Nitro, every API, environment, and API key belongs to exactly one workspace.
 
 The CLI tracks a default workspace per session so most other commands can omit `--workspace-id`. Use `nitro workspace set-default` to change it and `nitro workspace current` to see what is selected.
 
@@ -10,7 +10,7 @@ All `workspace` commands require authentication. Run `nitro login` first or pass
 
 # `nitro workspace create`
 
-Create a new workspace. In interactive mode the CLI also asks whether to make the new workspace your default.
+Create a new workspace.
 
 ```shell
 nitro workspace create --name "<name>"
@@ -18,26 +18,12 @@ nitro workspace create --name "<name>"
 
 ## Options
 
-| Option          | Env | Description                                                                                                     |
-| --------------- | --- | --------------------------------------------------------------------------------------------------------------- |
-| `--name <name>` |     | Display name of the workspace. Required.                                                                        |
-| `--default`     |     | Set the created workspace as the default for the current session. Pass `--default false` to opt out explicitly. |
+| Option          | Description                                                                                                     |
+| --------------- | --------------------------------------------------------------------------------------------------------------- |
+| `--name <name>` | Display name of the workspace. Required.                                                                        |
+| `--default`     | Set the created workspace as the default for the current session. Pass `--default false` to opt out explicitly. |
 
 When run interactively without `--name`, the CLI prompts for it.
-
-## Examples
-
-Create a workspace and set it as the default:
-
-```shell
-nitro workspace create --name "<name>" --default
-```
-
-Create a workspace without changing the default:
-
-```shell
-nitro workspace create --name "<name>" --default false
-```
 
 # `nitro workspace list`
 
@@ -53,21 +39,6 @@ nitro workspace list
 | ------------------- | -------------- | -------------------------------------------------------------------- |
 | `--cursor <cursor>` | `NITRO_CURSOR` | Pagination cursor to resume from. Useful for non-interactive paging. |
 
-## Examples
-
-List workspaces:
-
-```shell
-nitro workspace list
-```
-
-Page through workspaces in JSON mode:
-
-```shell
-nitro workspace list --output json
-nitro workspace list --output json --cursor "<cursor-from-previous-page>"
-```
-
 # `nitro workspace show`
 
 Show the details of a workspace by its ID.
@@ -82,31 +53,9 @@ nitro workspace show "<workspace-id>"
 | -------- | -------------------------------------- |
 | `<id>`   | ID of the workspace to show. Required. |
 
-## Examples
-
-Show a workspace:
-
-```shell
-nitro workspace show "<workspace-id>"
-```
-
-Read just the name in a script:
-
-```shell
-nitro workspace show "<workspace-id>" --output json | jq -r '.name'
-```
-
 # `nitro workspace current`
 
-Show the name of the currently selected workspace. Exits with an error if no workspace is selected.
-
-```shell
-nitro workspace current
-```
-
-## Examples
-
-Print the current workspace:
+Show the name of the currently selected workspace.
 
 ```shell
 nitro workspace current
@@ -125,17 +74,3 @@ nitro workspace set-default
 | Option                          | Env                  | Description                                                                  |
 | ------------------------------- | -------------------- | ---------------------------------------------------------------------------- |
 | `--workspace-id <workspace-id>` | `NITRO_WORKSPACE_ID` | ID of the workspace to set as the default. Required in non-interactive mode. |
-
-## Examples
-
-Pick a workspace interactively:
-
-```shell
-nitro workspace set-default
-```
-
-Set a specific workspace as the default:
-
-```shell
-nitro workspace set-default --workspace-id "<workspace-id>"
-```

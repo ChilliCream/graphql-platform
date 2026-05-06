@@ -2,7 +2,7 @@
 title: api
 ---
 
-The `nitro api` commands manage APIs in a workspace. An API represents a single GraphQL endpoint that you publish schemas and clients to. APIs live under a workspace and are addressed by a path (for example `/products/catalog`).
+The `nitro api` commands manage APIs in a workspace.
 
 Each API has a kind that determines how it behaves: `service` for a single GraphQL service, `gateway` for a federated gateway, or `collection` for grouping related APIs together.
 
@@ -68,27 +68,6 @@ nitro api list
 | `--workspace-id <workspace-id>` | `NITRO_WORKSPACE_ID` | ID of the workspace. Falls back to the workspace from the current session. |
 | `--cursor <cursor>`             | `NITRO_CURSOR`       | Pagination cursor to resume from. Useful for non-interactive paging.       |
 
-## Examples
-
-List APIs in the current workspace:
-
-```shell
-nitro api list
-```
-
-List APIs in an explicit workspace:
-
-```shell
-nitro api list --workspace-id "<workspace-id>"
-```
-
-Page through all APIs in JSON mode:
-
-```shell
-nitro api list --output json
-nitro api list --output json --cursor "<cursor-from-previous-page>"
-```
-
 # `nitro api show`
 
 Show the details of a single API by its ID.
@@ -102,20 +81,6 @@ nitro api show "<api-id>"
 | Argument | Description                      |
 | -------- | -------------------------------- |
 | `<id>`   | ID of the API to show. Required. |
-
-## Examples
-
-Show an API:
-
-```shell
-nitro api show "<api-id>"
-```
-
-Capture the API details in a script:
-
-```shell
-nitro api show "<api-id>" --output json
-```
 
 # `nitro api set-settings`
 
@@ -179,17 +144,3 @@ nitro api delete "<api-id>"
 | Option    | Description                                                                                                                 |
 | --------- | --------------------------------------------------------------------------------------------------------------------------- |
 | `--force` | Skip the confirmation prompt. Required when running non-interactively (for example in CI) or together with `--output json`. |
-
-## Examples
-
-Delete with confirmation:
-
-```shell
-nitro api delete "<api-id>"
-```
-
-Delete in a script (no prompt):
-
-```shell
-nitro api delete "<api-id>" --force
-```

@@ -2,9 +2,11 @@
 title: schema
 ---
 
-The `nitro schema` commands manage the GraphQL schema (SDL) of an API. A schema version is uploaded with a `--tag` (for example `v1` or a Git commit SHA) and can then be validated against, or published to, a stage (for example `dev`, `staging`, `production`).
+The `nitro schema` commands manage the GraphQL schema (SDL) of an API.
 
 The typical flow is: `upload` a new version, `validate` it against the target stage to detect breaking changes, then `publish` it once the changes are safe. `download` retrieves the schema currently published to a stage, which is useful for code generation and local tooling.
+
+> For HotChocolate Fusion gateways, use the [`nitro fusion`](/docs/nitro/cli/fusion) commands instead.
 
 All `schema` commands require authentication. Run `nitro login` first or pass `--api-key` (see [Global Options](/docs/nitro/cli/global-options)).
 
@@ -29,27 +31,18 @@ nitro schema upload \
 
 ## Examples
 
-Upload a schema version tagged with a Git commit:
+Upload a schema version:
 
 ```shell
 nitro schema upload \
   --api-id "<api-id>" \
-  --tag "$(git rev-parse HEAD)" \
+  --tag "v1" \
   --schema-file ./schema.graphqls
-```
-
-Upload using environment variables (useful in CI):
-
-```shell
-export NITRO_API_ID="<api-id>"
-export NITRO_TAG="v1"
-export NITRO_SCHEMA_FILE="./schema.graphqls"
-nitro schema upload
 ```
 
 # `nitro schema publish`
 
-Publish a previously uploaded schema version to a stage. By default the publish fails if the version introduces breaking changes. Use `--force` to override, or `--wait-for-approval` to pause until a reviewer approves the change in the Nitro UI.
+Publish a previously uploaded schema version to a stage. The version is identified by its tag.
 
 ```shell
 nitro schema publish \
@@ -60,50 +53,38 @@ nitro schema publish \
 
 ## Options
 
-| Option                | Env                       | Description                                                                            |
-| --------------------- | ------------------------- | -------------------------------------------------------------------------------------- |
-| `--api-id <api-id>`   | `NITRO_API_ID`            | ID of the API. Required.                                                               |
-| `--tag <tag>`         | `NITRO_TAG`               | Tag of the schema version to deploy. Required.                                         |
-| `--stage <stage>`     | `NITRO_STAGE`             | Name of the stage to publish to. Required.                                             |
-| `--force`             |                           | Skip confirmation prompts and publish even when the version contains breaking changes. |
-| `--wait-for-approval` | `NITRO_WAIT_FOR_APPROVAL` | Wait for a reviewer to approve the deployment in Nitro before completing.              |
-
-`--force` and `--wait-for-approval` are mutually exclusive.
+| Option                | Env                       | Description                                                                                                                               |
+| --------------------- | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `--api-id <api-id>`   | `NITRO_API_ID`            | ID of the API. Required.                                                                                                                  |
+| `--tag <tag>`         | `NITRO_TAG`               | Tag of the schema version to publish. Required.                                                                                           |
+| `--stage <stage>`     | `NITRO_STAGE`             | Name of the stage to publish to. Required.                                                                                                |
+| `--force`             |                           | Skip confirmation prompts and publish even when the version contains breaking changes. Mutually exclusive with `--wait-for-approval`.     |
+| `--wait-for-approval` | `NITRO_WAIT_FOR_APPROVAL` | Block the command until a reviewer approves the deployment. Mutually exclusive with `--force`. Required when the stage gates deployments. |
 
 ## Examples
 
-Publish a previously uploaded version to `dev`:
+Publish to `dev`:
 
 ```shell
 nitro schema publish \
   --api-id "<api-id>" \
-  --tag "<tag>" \
+  --tag "v1" \
   --stage "dev"
 ```
 
-Publish to `production` and wait for manual approval:
+Publish to a gated stage and wait for approval:
 
 ```shell
 nitro schema publish \
   --api-id "<api-id>" \
-  --tag "<tag>" \
+  --tag "v1" \
   --stage "production" \
   --wait-for-approval
 ```
 
-Force-publish a version with known breaking changes:
-
-```shell
-nitro schema publish \
-  --api-id "<api-id>" \
-  --tag "<tag>" \
-  --stage "dev" \
-  --force
-```
-
 # `nitro schema validate`
 
-Validate a schema file against a stage without publishing it. The server returns the list of breaking, dangerous, and safe changes, plus any operations from registered clients that would break.
+Validate a new schema version against a stage without publishing it. Run this in your pull request validation workflow to catch breaking changes before they are merged.
 
 ```shell
 nitro schema validate \
@@ -122,7 +103,7 @@ nitro schema validate \
 
 ## Examples
 
-Validate against a `dev` stage in a pull request check:
+Validate against the `dev` stage:
 
 ```shell
 nitro schema validate \

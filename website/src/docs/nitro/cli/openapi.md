@@ -2,9 +2,9 @@
 title: openapi
 ---
 
-The `nitro openapi` commands manage OpenAPI collections. An OpenAPI collection registers one or more OpenAPI documents with Nitro and tracks their versions across stages, so consumers always pick up the spec that matches the stage they target.
+The `nitro openapi` commands manage OpenAPI collections. An OpenAPI collection bundles a versioned set of HTTP endpoint definitions and/or models that HotChocolate (Fusion) uses to expose HTTP endpoints as a GraphQL schema on a given stage.
 
-A typical workflow is: `create` a collection on an API, `upload` a new version of its OpenAPI documents, optionally `validate` that version against a stage, then `publish` it.
+A typical workflow is: `create` a collection on an API, `upload` a new version of its HTTP endpoint definitions and/or models, optionally `validate` that version against a stage, then `publish` it.
 
 > Validation runs automatically as part of `nitro openapi publish`. Use `nitro openapi validate` only when you need to gate a deploy step in a separate pipeline job.
 
@@ -115,7 +115,7 @@ nitro openapi publish \
 
 # `nitro openapi validate`
 
-Validate a new OpenAPI collection version against a stage without publishing it. Use this in CI to catch breaking changes before a deploy job runs.
+Validate a new OpenAPI collection version against a stage without publishing it. Run this in your pull request validation workflow to catch breaking changes before they are merged.
 
 ```shell
 nitro openapi validate \
@@ -158,21 +158,6 @@ nitro openapi list --api-id "<api-id>"
 | `--api-id <api-id>` | `NITRO_API_ID` | ID of the API. Falls back to interactive selection when omitted.     |
 | `--cursor <cursor>` | `NITRO_CURSOR` | Pagination cursor to resume from. Useful for non-interactive paging. |
 
-## Examples
-
-List collections for an API:
-
-```shell
-nitro openapi list --api-id "<api-id>"
-```
-
-Page through collections in JSON mode:
-
-```shell
-nitro openapi list --api-id "<api-id>" --output json
-nitro openapi list --api-id "<api-id>" --output json --cursor "<cursor-from-previous-page>"
-```
-
 # `nitro openapi delete`
 
 Delete an OpenAPI collection by its ID. Once deleted, the collection and all its versions are no longer accessible.
@@ -192,17 +177,3 @@ nitro openapi delete "<openapi-collection-id>"
 | Option    | Description                                                                                                                 |
 | --------- | --------------------------------------------------------------------------------------------------------------------------- |
 | `--force` | Skip the confirmation prompt. Required when running non-interactively (for example in CI) or together with `--output json`. |
-
-## Examples
-
-Delete with confirmation:
-
-```shell
-nitro openapi delete "<openapi-collection-id>"
-```
-
-Delete in a script (no prompt):
-
-```shell
-nitro openapi delete "<openapi-collection-id>" --force
-```

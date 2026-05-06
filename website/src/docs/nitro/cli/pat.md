@@ -4,6 +4,8 @@ title: pat
 
 The `nitro pat` commands manage Personal Access Tokens (PATs). A PAT is bound to your user account and acts on your behalf, so it inherits your access across every workspace and API you are a member of. PATs are intended for personal automation, scripts on your machine, and bootstrapping operations that need broader permissions than an [API key](/docs/nitro/cli/api-key) provides (for example creating workspaces or managing members).
 
+For narrower, non-user-bound automation (CI/CD, deploy pipelines, telemetry from your GraphQL server), prefer an [API key](/docs/nitro/cli/api-key) scoped to a single API or workspace.
+
 To use a PAT for non-interactive CLI calls, pass it via `--api-key` (or `NITRO_API_KEY`). The Nitro server accepts both PATs and API keys through the same option.
 
 > Treat a PAT like a password. It can do anything you can do, store the secret in a secret manager and revoke it as soon as you no longer need it.
@@ -69,21 +71,6 @@ nitro pat list
 | ------------------- | -------------- | -------------------------------------------------------------------- |
 | `--cursor <cursor>` | `NITRO_CURSOR` | Pagination cursor to resume from. Useful for non-interactive paging. |
 
-## Examples
-
-List your tokens:
-
-```shell
-nitro pat list
-```
-
-Page through tokens in JSON mode:
-
-```shell
-nitro pat list --output json
-nitro pat list --output json --cursor "<cursor-from-previous-page>"
-```
-
 # `nitro pat revoke`
 
 Revoke a personal access token by its ID. Once revoked, any client using the token loses access immediately.
@@ -103,19 +90,3 @@ nitro pat revoke "<pat-id>"
 | Option    | Description                                                                                                                 |
 | --------- | --------------------------------------------------------------------------------------------------------------------------- |
 | `--force` | Skip the confirmation prompt. Required when running non-interactively (for example in CI) or together with `--output json`. |
-
-## Examples
-
-Revoke with confirmation:
-
-```shell
-nitro pat revoke "<pat-id>"
-```
-
-Revoke in a script (no prompt):
-
-```shell
-nitro pat revoke "<pat-id>" --force
-```
-
-For narrower, non-user-bound automation (CI/CD, deploy pipelines, telemetry from your GraphQL server), prefer an [API key](/docs/nitro/cli/api-key) scoped to a single API or workspace.

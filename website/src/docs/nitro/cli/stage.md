@@ -2,9 +2,9 @@
 title: stage
 ---
 
-The `nitro stage` commands manage the stages of an API. Stages live inside an [environment](/docs/nitro/cli/environment) and represent deployment targets (for example `dev`, `staging`, `production`) that schemas, clients, and fusion configurations are published to.
+The `nitro stage` commands manage the stages of an API. Stages represent deployment targets (for example dev, staging, production) that artifacts like schemas, clients, and fusion configurations are published to.
 
-Stages are not created with a dedicated `create` command. Instead, the full set of stages for an API is declared together with `nitro stage edit`, either interactively or by passing a JSON `--configuration`. Conditions on a stage (such as `afterStage`) define the promotion order between stages.
+Stages are not created with a dedicated `create` command. Instead, the full set of stages for an API is declared together with `nitro stage edit`, either interactively or by passing a JSON `--configuration`. Conditions on a stage (such as `afterStage`) do not have any effect besides how the UI for the stages is being rendered.
 
 All `stage` commands require authentication. Run `nitro login` first or pass `--api-key` (see [Global Options](/docs/nitro/cli/global-options)).
 
@@ -63,20 +63,6 @@ nitro stage list --api-id "<api-id>"
 | ------------------- | -------------- | ------------------------ |
 | `--api-id <api-id>` | `NITRO_API_ID` | ID of the API. Required. |
 
-## Examples
-
-List stages for an API:
-
-```shell
-nitro stage list --api-id "<api-id>"
-```
-
-Get just the stage names in a script:
-
-```shell
-nitro stage list --api-id "<api-id>" --output json | jq -r '.values[].name'
-```
-
 # `nitro stage delete`
 
 Delete a single stage by name. Removing a stage that other parts of your workflow depend on may fail, resolve those dependencies first.
@@ -94,20 +80,3 @@ nitro stage delete \
 | `--api-id <api-id>` | `NITRO_API_ID` | ID of the API the stage belongs to. Required.                                                                               |
 | `--stage <stage>`   | `NITRO_STAGE`  | Name of the stage to delete. Required.                                                                                      |
 | `--force`           |                | Skip the confirmation prompt. Required when running non-interactively (for example in CI) or together with `--output json`. |
-
-## Examples
-
-Delete a stage with confirmation:
-
-```shell
-nitro stage delete --stage "<stage-name>" --api-id "<api-id>"
-```
-
-Delete a stage in a script (no prompt):
-
-```shell
-nitro stage delete \
-  --stage "<stage-name>" \
-  --api-id "<api-id>" \
-  --force
-```

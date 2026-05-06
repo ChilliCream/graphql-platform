@@ -2,7 +2,7 @@
 title: mcp
 ---
 
-The `nitro mcp` commands manage MCP feature collections. The Model Context Protocol (MCP) lets AI assistants and other clients discover and invoke capabilities exposed by your API. An MCP feature collection bundles a versioned set of prompt and tool definitions that Nitro serves to MCP clients on a given stage.
+The `nitro mcp` commands manage MCP feature collections. An MCP feature collection bundles a versioned set of prompt and tool definitions that HotChocolate (Fusion) serves to MCP clients on a given stage.
 
 A typical workflow is: `create` a collection on an API, `upload` a new version of its prompts and tools, optionally `validate` that version against a stage, then `publish` it.
 
@@ -118,7 +118,7 @@ nitro mcp publish \
 
 # `nitro mcp validate`
 
-Validate a new MCP feature collection version against a stage without publishing it. Use this in CI to catch breaking changes before a deploy job runs.
+Validate a new MCP feature collection version against a stage without publishing it. Run this in your pull request validation workflow to catch breaking changes before they are merged.
 
 ```shell
 nitro mcp validate \
@@ -164,21 +164,6 @@ nitro mcp list --api-id "<api-id>"
 | `--api-id <api-id>` | `NITRO_API_ID` | ID of the API. Falls back to interactive selection when omitted.     |
 | `--cursor <cursor>` | `NITRO_CURSOR` | Pagination cursor to resume from. Useful for non-interactive paging. |
 
-## Examples
-
-List collections for an API:
-
-```shell
-nitro mcp list --api-id "<api-id>"
-```
-
-Page through collections in JSON mode:
-
-```shell
-nitro mcp list --api-id "<api-id>" --output json
-nitro mcp list --api-id "<api-id>" --output json --cursor "<cursor-from-previous-page>"
-```
-
 # `nitro mcp delete`
 
 Delete an MCP feature collection by its ID. Once deleted, the collection and all its versions are no longer accessible to MCP clients.
@@ -198,17 +183,3 @@ nitro mcp delete "<mcp-feature-collection-id>"
 | Option    | Description                                                                                                                 |
 | --------- | --------------------------------------------------------------------------------------------------------------------------- |
 | `--force` | Skip the confirmation prompt. Required when running non-interactively (for example in CI) or together with `--output json`. |
-
-## Examples
-
-Delete with confirmation:
-
-```shell
-nitro mcp delete "<mcp-feature-collection-id>"
-```
-
-Delete in a script (no prompt):
-
-```shell
-nitro mcp delete "<mcp-feature-collection-id>" --force
-```

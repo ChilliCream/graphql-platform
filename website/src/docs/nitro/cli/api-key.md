@@ -6,7 +6,7 @@ The `nitro api-key` commands manage API keys. API keys authenticate non-interact
 
 A key is scoped either to a single API (via `--api-id`) or to an entire workspace (via `--workspace-id`). API-scoped keys can only operate on the API they were created for, workspace-scoped keys can operate on every API in the workspace.
 
-Optionally, an API key can additionally be restricted to a single stage with the `--stage-condition` option (Preview). This lets you issue, for example, a `production`-only key that cannot publish to `dev`.
+Optionally, an API key can additionally be restricted to a single stage with the `--stage-condition` option. This lets you issue, for example, a `dev`-only key that cannot publish to `prod`.
 
 > If you need broader, user-level access (for example to automate workspace administration), use a [Personal Access Token](/docs/nitro/cli/pat) instead.
 
@@ -39,12 +39,6 @@ Create an API-scoped key:
 
 ```shell
 nitro api-key create --name "<name>" --api-id "<api-id>"
-```
-
-Create a workspace-scoped key (uses the workspace from your session):
-
-```shell
-nitro api-key create --name "<name>"
 ```
 
 Create a workspace-scoped key with an explicit workspace:
@@ -86,21 +80,6 @@ nitro api-key list
 | `--workspace-id <workspace-id>` | `NITRO_WORKSPACE_ID` | ID of the workspace. Falls back to the workspace from the current session. |
 | `--cursor <cursor>`             | `NITRO_CURSOR`       | Pagination cursor to resume from. Useful for non-interactive paging.       |
 
-## Examples
-
-List keys in the current workspace:
-
-```shell
-nitro api-key list
-```
-
-Page through all keys in JSON mode:
-
-```shell
-nitro api-key list --output json
-nitro api-key list --output json --cursor "<cursor-from-previous-page>"
-```
-
 # `nitro api-key delete`
 
 Delete an API key by its ID. Once deleted, any client using the key loses access immediately.
@@ -120,17 +99,3 @@ nitro api-key delete "<api-key-id>"
 | Option    | Description                                                                                                                 |
 | --------- | --------------------------------------------------------------------------------------------------------------------------- |
 | `--force` | Skip the confirmation prompt. Required when running non-interactively (for example in CI) or together with `--output json`. |
-
-## Examples
-
-Delete with confirmation:
-
-```shell
-nitro api-key delete "<api-key-id>"
-```
-
-Delete in a script (no prompt):
-
-```shell
-nitro api-key delete "<api-key-id>" --force
-```
