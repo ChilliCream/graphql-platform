@@ -133,6 +133,32 @@ public class HttpGetSemanticNonNullSchemaMiddlewareTests(TestServerFactory serve
         result.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task Download_GraphQL_SemanticNonNull_Schema_Includes_Internal_Directives_When_DisableInternalDirectives_Is_True()
+    {
+        // arrange
+        var server = ServerFactory.Create(
+            services => services
+                .AddRouting()
+                .AddGraphQLServer()
+                .ModifyOptions(o => o.DisableInternalDirectives = true)
+                .AddDirectiveType<InternalDirectiveType>()
+                .AddQueryType<DirectiveQueryType>(),
+            app => app
+                .UseRouting()
+                .UseEndpoints(endpoints => endpoints.MapGraphQLSemanticNonNullSchema()));
+        var url = TestServerExtensions.CreateUrl("/graphql/semantic-non-null-schema.graphql");
+        var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+        // act
+        var response = await server.CreateClient().SendAsync(request);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var result = await response.Content.ReadAsStringAsync();
+        result.MatchSnapshot();
+    }
+
     private sealed class StaticTimeProvider : ITimeProvider
     {
         public DateTimeOffset UtcNow { get; } = new(2021, 1, 1, 0, 0, 0, TimeSpan.Zero);
