@@ -117,18 +117,12 @@ internal static class FusionCompositionHelpers
             + "-extensions"
             + Path.GetExtension(schemaFilePath));
 
+        string? extensionsSourceText = null;
         if (fileSystem.FileExists(extensionsFilePath))
         {
-            var extensionsText = await fileSystem.ReadAllTextAsync(extensionsFilePath, cancellationToken);
-
-            if (sourceText.Length > 0 && !sourceText.EndsWith('\n'))
-            {
-                sourceText += "\n";
-            }
-
-            sourceText += extensionsText;
+            extensionsSourceText = await fileSystem.ReadAllTextAsync(extensionsFilePath, cancellationToken);
         }
 
-        return (schemaName, new SourceSchemaText(schemaName, sourceText), settings);
+        return (schemaName, new SourceSchemaText(schemaName, sourceText, extensionsSourceText), settings);
     }
 }

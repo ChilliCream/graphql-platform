@@ -280,7 +280,7 @@ internal sealed class SchemaComposition(
         }
 
         var schemaFromFile = await ReadSchemaFromProjectDirectoryAsync(resource, schemaPath, cancellationToken);
-        if (schemaFromFile == null)
+        if (schemaFromFile is not { } schemaFiles)
         {
             return null;
         }
@@ -300,7 +300,7 @@ internal sealed class SchemaComposition(
             Name = sourceSchemaName,
             ResourceName = resource.Name,
             HttpEndpointUrl = null, // No HTTP endpoint for file-based schemas
-            Schema = new SourceSchemaText(sourceSchemaName, schemaFromFile),
+            Schema = new SourceSchemaText(sourceSchemaName, schemaFiles.Schema, schemaFiles.Extensions),
             SchemaSettings = schemaSettings
         };
     }
@@ -368,7 +368,7 @@ internal sealed class SchemaComposition(
         }
     }
 
-    private async Task<string?> ReadSchemaFromProjectDirectoryAsync(
+    private async Task<(string Schema, string? Extensions)?> ReadSchemaFromProjectDirectoryAsync(
         IResourceWithEndpoints resource,
         string? fileName,
         CancellationToken cancellationToken)
@@ -400,19 +400,13 @@ internal sealed class SchemaComposition(
                 + "-extensions"
                 + IOPath.GetExtension(schemaFile));
 
+            string? extensionsText = null;
             if (File.Exists(extensionsFile))
             {
-                var extensionsText = await File.ReadAllTextAsync(extensionsFile, cancellationToken);
-
-                if (schemaText.Length > 0 && !schemaText.EndsWith('\n'))
-                {
-                    schemaText += "\n";
-                }
-
-                schemaText += extensionsText;
+                extensionsText = await File.ReadAllTextAsync(extensionsFile, cancellationToken);
             }
 
-            return schemaText;
+            return (schemaText, extensionsText);
         }
         catch (Exception ex)
         {

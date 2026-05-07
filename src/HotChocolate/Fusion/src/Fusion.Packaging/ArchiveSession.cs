@@ -119,6 +119,50 @@ internal sealed class ArchiveSession : IDisposable
         return stream;
     }
 
+    public void Delete(string path)
+    {
+        if (_mode is FusionArchiveMode.Read)
+        {
+            throw new InvalidOperationException("Cannot delete from a read-only archive.");
+        }
+
+        if (_files.TryGetValue(path, out var file))
+        {
+            if (file.State is FileState.Deleted)
+            {
+                return;
+            }
+
+            if (file.State is FileState.Created)
+            {
+                // File was added in this uncommitted session and never existed
+                // in the original archive: drop it entirely.
+                if (File.Exists(file.TempPath))
+                {
+                    try
+                    {
+                        File.Delete(file.TempPath);
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
+                }
+
+                _files.Remove(path);
+                return;
+            }
+
+            file.MarkDeleted();
+            return;
+        }
+
+        if (_mode is not FusionArchiveMode.Create && _archive.GetEntry(path) is not null)
+        {
+            _files.Add(path, FileEntry.Deleted(path));
+        }
+    }
+
     public void SetMode(FusionArchiveMode mode)
     {
         _mode = mode;
@@ -262,6 +306,11 @@ internal sealed class ArchiveSession : IDisposable
             }
         }
 
+        public void MarkDeleted()
+        {
+            State = FileState.Deleted;
+        }
+
         public void MarkRead()
         {
             State = FileState.Read;
@@ -272,6 +321,9 @@ internal sealed class ArchiveSession : IDisposable
 
         public static FileEntry Read(string path)
             => new(path, GetRandomTempFileName(), FileState.Read);
+
+        public static FileEntry Deleted(string path)
+            => new(path, GetRandomTempFileName(), FileState.Deleted);
 
         private static string GetRandomTempFileName()
         {

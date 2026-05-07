@@ -327,6 +327,9 @@
   <data name="LogEntryHelper_InvalidGraphQL" xml:space="preserve">
     <value>Invalid GraphQL in source schema. Exception message: {0}.</value>
   </data>
+  <data name="LogEntryHelper_InvalidGraphQLInExtensions" xml:space="preserve">
+    <value>Invalid GraphQL in source schema extensions. Exception message: {0}.</value>
+  </data>
   <data name="LogEntryHelper_InvalidShareableUsage" xml:space="preserve">
     <value>The field '{0}' in schema '{1}' must not be marked as shareable.</value>
   </data>

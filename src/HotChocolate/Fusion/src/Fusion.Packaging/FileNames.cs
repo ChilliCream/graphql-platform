@@ -5,6 +5,7 @@ internal static class FileNames
     private const string GatewaySchemaFormat = "gateway/{0}/gateway.graphqls";
     private const string GatewaySettingsFormat = "gateway/{0}/gateway-settings.json";
     private const string SourceSchemaFormat = "source-schemas/{0}/schema.graphqls";
+    private const string SourceSchemaExtensionsFormat = "source-schemas/{0}/schema-extensions.graphqls";
     private const string SourceSchemaSettingsFormat = "source-schemas/{0}/schema-settings.json";
 
     public const string ArchiveMetadata = "archive-metadata.json";
@@ -22,6 +23,9 @@ internal static class FileNames
     public static string GetSourceSchemaPath(string schemaName)
         => string.Format(SourceSchemaFormat, schemaName);
 
+    public static string GetSourceSchemaExtensionsPath(string schemaName)
+        => string.Format(SourceSchemaExtensionsFormat, schemaName);
+
     public static string GetSourceSchemaSettingsPath(string schemaName)
         => string.Format(SourceSchemaSettingsFormat, schemaName);
 
@@ -31,6 +35,7 @@ internal static class FileNames
         {
             case "gateway.graphqls":
             case "schema.graphqls":
+            case "schema-extensions.graphqls":
                 return FileKind.Schema;
 
             case "schema-settings.json":
