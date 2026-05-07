@@ -245,6 +245,65 @@ public sealed class FusionSourceSchemaArchive : IDisposable
     }
 
     /// <summary>
+    /// Sets the GraphQL schema extensions of the source schema.
+    /// </summary>
+    /// <param name="schemaExtensions">The GraphQL schema extensions to store.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when the GraphQL schema extensions are empty.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when the archive is read-only.</exception>
+    public async Task SetSchemaExtensionsAsync(
+        ReadOnlyMemory<byte> schemaExtensions,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(schemaExtensions.Length, 0);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        EnsureMutable();
+
+        await using (var stream = _session.OpenWrite(FileNames.GraphQLSchemaExtensions))
+        {
+            await stream.WriteAsync(schemaExtensions, cancellationToken);
+        }
+    }
+
+    /// <summary>
+    /// Tries to get the GraphQL schema extensions of the source schema.
+    /// </summary>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>The GraphQL schema extensions of the source schema if found, or null if not found.</returns>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    public async Task<ReadOnlyMemory<byte>?> TryGetSchemaExtensionsAsync(
+        CancellationToken cancellationToken = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        const string extensionsPath = FileNames.GraphQLSchemaExtensions;
+
+        if (!_session.Exists(extensionsPath))
+        {
+            return null;
+        }
+
+        var buffer = TryRentBuffer();
+
+        try
+        {
+            await using var extensionsStream = await _session.OpenReadAsync(
+                extensionsPath,
+                FileKind.GraphQLSchema,
+                cancellationToken);
+            await extensionsStream.CopyToAsync(buffer, cancellationToken);
+
+            return buffer.WrittenMemory.ToArray();
+        }
+        finally
+        {
+            TryReturnBuffer(buffer);
+        }
+    }
+
+    /// <summary>
     /// Sets the settings of the source schema.
     /// </summary>
     /// <param name="settings">The source schema settings to store.</param>
