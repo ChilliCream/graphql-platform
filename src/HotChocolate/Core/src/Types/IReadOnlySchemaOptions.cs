@@ -1,7 +1,6 @@
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
-using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate;
@@ -85,6 +84,13 @@ public interface IReadOnlySchemaOptions
     /// The default directive visibility when directive introspection is enabled.
     /// </summary>
     DirectiveVisibility DefaultDirectiveVisibility { get; }
+
+    /// <summary>
+    /// Disables the concept of internal directives so that all directives are treated as public.
+    /// When set to <c>true</c>, this overrides any explicit <c>Internal()</c> calls on
+    /// directive types and the <see cref="DefaultDirectiveVisibility"/> setting.
+    /// </summary>
+    bool DisableInternalDirectives { get; }
 
     /// <summary>
     /// Defines that the default resolver execution strategy.
@@ -232,9 +238,4 @@ public interface IReadOnlySchemaOptions
     /// Applies the @serializeAs directive to scalar types that specify a serialization format.
     /// </summary>
     bool ApplySerializeAsToScalars { get; }
-
-    /// <summary>
-    /// Gets the default error handling mode for null propagation.
-    /// </summary>
-    ErrorHandlingMode DefaultErrorHandlingMode { get; }
 }

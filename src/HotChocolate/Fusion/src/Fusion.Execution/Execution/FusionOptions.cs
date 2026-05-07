@@ -1,7 +1,6 @@
 using HotChocolate.Caching.Memory;
 using HotChocolate.Execution.Relay;
 using HotChocolate.Fusion.Types;
-using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -102,21 +101,6 @@ public sealed class FusionOptions : IFusionSchemaOptions, ICloneable
     } = 64;
 
     /// <summary>
-    /// Gets or sets the default error handling mode.
-    /// <see cref="ErrorHandlingMode.Propagate"/> by default.
-    /// </summary>
-    public ErrorHandlingMode DefaultErrorHandlingMode
-    {
-        get;
-        set
-        {
-            ExpectMutableOptions();
-
-            field = value;
-        }
-    } = ErrorHandlingMode.Propagate;
-
-    /// <summary>
     /// Gets or sets whether the request executor should be initialized lazily.
     /// <c>false</c> by default.
     /// </summary>
@@ -197,7 +181,7 @@ public sealed class FusionOptions : IFusionSchemaOptions, ICloneable
 
             field = value;
         }
-    }
+    } = true;
 
     /// <summary>
     /// Clones the options into a new mutable instance.
@@ -214,7 +198,6 @@ public sealed class FusionOptions : IFusionSchemaOptions, ICloneable
             OperationExecutionPlanCacheDiagnostics = OperationExecutionPlanCacheDiagnostics,
             OperationDocumentCacheSize = OperationDocumentCacheSize,
             PathSegmentLocalPoolCapacity = PathSegmentLocalPoolCapacity,
-            DefaultErrorHandlingMode = DefaultErrorHandlingMode,
             LazyInitialization = LazyInitialization,
             NodeIdSerializerFormat = NodeIdSerializerFormat,
             ApplySerializeAsToScalars = ApplySerializeAsToScalars,

@@ -1,16 +1,28 @@
 {
+  "source": {
+    "name": "HotChocolate.Diagnostics"
+  },
   "activities": [
     {
       "OperationName": "GraphQL Operation",
       "DisplayName": "GraphQL Operation",
+      "Kind": "Internal",
       "Status": "Error",
       "tags": [
+        {
+          "Key": "graphql.processing.type",
+          "Value": "request"
+        },
+        {
+          "Key": "error.type",
+          "Value": "HotChocolate.Language.SyntaxException"
+        },
         {
           "Key": "graphql.document.hash",
           "Value": "md5:bb507ba78696fc3c6ff3a17fb06784d5"
         },
         {
-          "Key": "graphql.errors.count",
+          "Key": "graphql.error.count",
           "Value": 1
         }
       ],
@@ -31,14 +43,41 @@
               "Value": "HotChocolate.Language.SyntaxException"
             }
           ]
+        },
+        {
+          "Name": "graphql.error",
+          "Tags": [
+            {
+              "Key": "graphql.error.message",
+              "Value": "Expected a `RightBrace`-token, but found a `EndOfFile`-token."
+            },
+            {
+              "Key": "graphql.error.code",
+              "Value": "HC0014"
+            },
+            {
+              "Key": "graphql.document.locations",
+              "Value": [
+                {
+                  "line": 1,
+                  "column": 11
+                }
+              ]
+            }
+          ]
         }
       ],
       "activities": [
         {
           "OperationName": "GraphQL Document Parsing",
           "DisplayName": "GraphQL Document Parsing",
-          "Status": "Unset",
+          "Kind": "Internal",
+          "Status": "Error",
           "tags": [
+            {
+              "Key": "error.type",
+              "Value": "HC0014"
+            },
             {
               "Key": "graphql.document.hash",
               "Value": "md5:bb507ba78696fc3c6ff3a17fb06784d5"

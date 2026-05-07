@@ -6,7 +6,7 @@ internal class BaseSchemaFileOption : Option<string>
     {
         Description = "The path to the graphql file with the schema";
         Required = true;
-        this.DefaultFileFromEnvironmentValue("SCHEMA_FILE");
+        this.DefaultFileFromEnvironmentValue(EnvironmentVariables.SchemaFile);
         this.LegalFilePathsOnly();
     }
 }

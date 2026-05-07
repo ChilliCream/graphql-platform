@@ -1,8 +1,12 @@
 {
+  "source": {
+    "name": "HotChocolate.Diagnostics"
+  },
   "activities": [
     {
       "OperationName": "ExecuteHttpRequest",
       "DisplayName": "GraphQL HTTP GET SDL",
+      "Kind": "Internal",
       "Status": "Ok",
       "tags": [
         {

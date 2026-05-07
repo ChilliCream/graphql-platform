@@ -31,6 +31,7 @@ static class Helpers
         Path.Combine("HotChocolate", "Fusion"),
         Path.Combine("HotChocolate", "Spatial"),
         Path.Combine("Nitro", "CommandLine"),
+        Path.Combine("Nitro", "Common"),
         Path.Combine("StrawberryShake", "Client"),
         Path.Combine("StrawberryShake", "CodeGeneration"),
         Path.Combine("StrawberryShake", "MetaPackages"),

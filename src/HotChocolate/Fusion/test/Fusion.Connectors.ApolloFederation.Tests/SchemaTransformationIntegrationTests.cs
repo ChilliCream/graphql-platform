@@ -13,7 +13,7 @@ public class SchemaTransformationIntegrationTests
         = new Dictionary<string, EntityRequiresInfo>(StringComparer.Ordinal);
 
     [Fact]
-    public async Task Transform_FederationSubgraph_Should_ProduceValidCompositeSchema()
+    public async Task Transform_FederationSubgraph_Should_ProduceValidSourceSchema()
     {
         // arrange: build an Apollo Federation subgraph and get its SDL
         var schema = await new ServiceCollection()
@@ -34,23 +34,23 @@ public class SchemaTransformationIntegrationTests
             result.IsSuccess,
             $"Transform failed: {string.Join(", ", result.Errors.Select(e => e.Message))}");
 
-        var compositeSdl = result.Value;
+        var sourceSchemaSdl = result.Value;
 
         // Should have @key directives
-        Assert.Contains("@key", compositeSdl);
+        Assert.Contains("@key", sourceSchemaSdl);
 
         // Should have @lookup fields
-        Assert.Contains("@lookup", compositeSdl);
+        Assert.Contains("@lookup", sourceSchemaSdl);
 
         // Should NOT have federation infrastructure
-        Assert.DoesNotContain("_entities", compositeSdl);
-        Assert.DoesNotContain("_service", compositeSdl);
-        Assert.DoesNotContain("_Service", compositeSdl);
-        Assert.DoesNotContain("_Entity", compositeSdl);
-        Assert.DoesNotContain("_Any", compositeSdl);
+        Assert.DoesNotContain("_entities", sourceSchemaSdl);
+        Assert.DoesNotContain("_service", sourceSchemaSdl);
+        Assert.DoesNotContain("_Service", sourceSchemaSdl);
+        Assert.DoesNotContain("_Entity", sourceSchemaSdl);
+        Assert.DoesNotContain("_Any", sourceSchemaSdl);
 
         // Snapshot the output
-        compositeSdl.MatchSnapshot(extension: ".graphql");
+        sourceSchemaSdl.MatchSnapshot(extension: ".graphql");
     }
 
     [Fact]
@@ -71,7 +71,7 @@ public class SchemaTransformationIntegrationTests
             result.IsSuccess,
             $"Transform failed: {string.Join(", ", result.Errors.Select(e => e.Message))}");
 
-        // Parse the composite SDL to find @lookup fields
+        // Parse the source schema SDL to find @lookup fields
         // (In a real scenario, the connector would do this from the MutableSchemaDefinition)
         var lookupFields = new Dictionary<string, LookupFieldInfo>
         {

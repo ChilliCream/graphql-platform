@@ -93,7 +93,8 @@ public sealed partial class CompositeResultDocument : IDisposable
 
         if ((uint)arrayIndex >= (uint)row.NumberOfRows)
         {
-            throw new IndexOutOfRangeException();
+            throw new IndexOutOfRangeException(
+                $"Array index {arrayIndex} is out of range for an array of length {row.NumberOfRows}.");
         }
 
         // first element is at +1 after StartArray

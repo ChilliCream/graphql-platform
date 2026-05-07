@@ -4558,6 +4558,12 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             "The fusion__FieldSelectionSet scalar is used to represent a GraphQL selection set. To simplify the syntax, the outermost selection set is not wrapped in curly braces."
             scalar fusion__FieldSelectionSet
 
+            "The @fusion__connector directive declares which connector kind handles a source schema."
+            directive @fusion__connector(
+              "The kind of connector that handles the source schema represented by this enum value."
+              kind: String!
+            ) on ENUM_VALUE
+
             "The @fusion__cost directive specifies cost metadata for each source schema."
             directive @fusion__cost(
               "The name of the source schema that defined the cost metadata."
@@ -4805,6 +4811,12 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               sharedMaxAge: Int
               vary: [String]
             ) on OBJECT | FIELD_DEFINITION | INTERFACE | UNION
+
+            "The @fusion__connector directive declares which connector kind handles a source schema."
+            directive @fusion__connector(
+              "The kind of connector that handles the source schema represented by this enum value."
+              kind: String!
+            ) on ENUM_VALUE
 
             "The @fusion__cost directive specifies cost metadata for each source schema."
             directive @fusion__cost(

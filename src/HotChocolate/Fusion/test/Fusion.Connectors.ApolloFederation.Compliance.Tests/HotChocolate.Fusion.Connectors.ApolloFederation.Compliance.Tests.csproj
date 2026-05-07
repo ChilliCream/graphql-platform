@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Fusion.Connectors.ApolloFederation\HotChocolate.Fusion.Connectors.ApolloFederation.csproj" />
-    <ProjectReference Include="..\..\src\Fusion.Composition.ApolloFederation\HotChocolate.Fusion.Composition.ApolloFederation.csproj" />
     <ProjectReference Include="..\..\src\Fusion.Composition\HotChocolate.Fusion.Composition.csproj" />
     <ProjectReference Include="..\..\src\Fusion.AspNetCore\HotChocolate.Fusion.AspNetCore.csproj" />
     <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />

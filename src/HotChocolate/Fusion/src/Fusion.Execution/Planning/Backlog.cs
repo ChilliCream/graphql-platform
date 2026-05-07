@@ -89,7 +89,7 @@ internal readonly struct Backlog(ImmutableStack<WorkItem> items, BacklogCost cos
     /// </summary>
     public Backlog PushRequirements(
         ImmutableStack<ConditionedFieldSelection> fieldsWithRequirements,
-        int stepId,
+        RequirementConsumer consumer,
         int parentDepth)
     {
         if (fieldsWithRequirements.IsEmpty)
@@ -101,7 +101,7 @@ internal readonly struct Backlog(ImmutableStack<WorkItem> items, BacklogCost cos
 
         foreach (var entry in fieldsWithRequirements.Reverse())
         {
-            var workItem = new FieldRequirementWorkItem(entry.FieldSelection, stepId)
+            var workItem = new FieldRequirementWorkItem(entry.FieldSelection, consumer)
             {
                 ParentDepth = parentDepth,
                 Conditions = entry.Conditions

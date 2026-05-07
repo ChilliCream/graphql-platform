@@ -1,5 +1,8 @@
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using Newtonsoft.Json;
+using OpenTelemetry;
+using OpenTelemetry.Trace;
 
 namespace HotChocolate.Fusion.Diagnostics;
 
@@ -7,97 +10,50 @@ public static partial class ActivityTestHelper
 {
     [GeneratedRegex(@" in (?<path>.+?):line (?<line>\d+)", RegexOptions.CultureInvariant)]
     private static partial Regex StackTracePathRegex();
+    [GeneratedRegex(@"lambda_method\d+", RegexOptions.CultureInvariant)]
+    private static partial Regex LambdaMethodRegex();
 
     public static IDisposable CaptureActivities(out object activities)
     {
-        var sync = new object();
-        var listener = new ActivityListener();
-        var root = new OrderedDictionary<string, object?>();
-        var lookup = new Dictionary<Activity, OrderedDictionary<string, object?>>();
-        var spanLookup = new Dictionary<ActivitySpanId, OrderedDictionary<string, object?>>();
-        Activity rootActivity = null!;
+        var exported = new List<Activity>();
 
-        listener.ShouldListenTo = source =>
-            string.Equals(source.Name, "HotChocolate.Fusion.Diagnostics", StringComparison.Ordinal);
-        listener.ActivityStarted = a =>
-        {
-            lock (sync)
-            {
-                if (a.Parent is null
-                    && string.Equals(a.OperationName, "ExecuteHttpRequest", StringComparison.Ordinal)
-                    && lookup.TryGetValue(rootActivity, out var parentData))
-                {
-                    RegisterActivity(a, parentData);
-                    lookup[a] = (OrderedDictionary<string, object?>)a.GetCustomProperty("test.data")!;
-                }
+        var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddHotChocolateFusionInstrumentation()
+            .SetSampler(new AlwaysOnSampler())
+            .AddInMemoryExporter(exported)
+            .Build()!;
 
-                if (a.Parent is not null
-                    && lookup.TryGetValue(a.Parent, out parentData))
-                {
-                    RegisterActivity(a, parentData);
-                    lookup[a] = (OrderedDictionary<string, object?>)a.GetCustomProperty("test.data")!;
-                    spanLookup[a.SpanId] = (OrderedDictionary<string, object?>)a.GetCustomProperty("test.data")!;
-                    return;
-                }
-
-                if (a.Parent is null
-                    && a.ParentSpanId != default
-                    && spanLookup.TryGetValue(a.ParentSpanId, out parentData))
-                {
-                    RegisterActivity(a, parentData);
-                    lookup[a] = (OrderedDictionary<string, object?>)a.GetCustomProperty("test.data")!;
-                    spanLookup[a.SpanId] = (OrderedDictionary<string, object?>)a.GetCustomProperty("test.data")!;
-                }
-            }
-        };
-        listener.ActivityStopped = SerializeActivity;
-        listener.Sample = (ref ActivityCreationOptions<ActivityContext> _) =>
-            ActivitySamplingResult.AllData;
-        ActivitySource.AddActivityListener(listener);
-
-        rootActivity = HotChocolateFusionActivitySource.Source.StartActivity()!;
-        rootActivity.SetCustomProperty("test.data", root);
-        lookup[rootActivity] = root;
-        spanLookup[rootActivity.SpanId] = root;
-
-        activities = root;
-        return new Session(rootActivity, listener);
+        var capture = new Capture(tracerProvider, exported);
+        activities = capture;
+        return capture;
     }
 
-    private static void RegisterActivity(
+    private static OrderedDictionary<string, object?> SerializeActivity(
         Activity activity,
-        OrderedDictionary<string, object?> parent)
+        IReadOnlyDictionary<ActivitySpanId, List<Activity>> byParent)
     {
-        if (!(parent.TryGetValue("activities", out var value) && value is List<object> children))
+        var data = new OrderedDictionary<string, object?>
         {
-            children = [];
-            parent["activities"] = children;
+            ["OperationName"] = activity.OperationName,
+            ["DisplayName"] = activity.DisplayName,
+            ["Kind"] = activity.Kind,
+            ["Status"] = activity.Status,
+            ["tags"] = activity.TagObjects,
+            ["event"] = activity.Events.Select(e => new
+            {
+                e.Name,
+                Tags = ScrubEventTags(e.Tags)
+            })
+        };
+
+        if (byParent.TryGetValue(activity.SpanId, out var children) && children.Count > 0)
+        {
+            data["activities"] = children
+                .Select(c => SerializeActivity(c, byParent))
+                .ToList();
         }
 
-        var data = new OrderedDictionary<string, object?>();
-        activity.SetCustomProperty("test.data", data);
-        SerializeActivity(activity);
-        children.Add(data);
-    }
-
-    private static void SerializeActivity(Activity activity)
-    {
-        var data = (OrderedDictionary<string, object?>?)activity.GetCustomProperty("test.data");
-
-        if (data is null)
-        {
-            return;
-        }
-
-        data["OperationName"] = activity.OperationName;
-        data["DisplayName"] = activity.DisplayName;
-        data["Status"] = activity.Status;
-        data["tags"] = activity.TagObjects;
-        data["event"] = activity.Events.Select(t => new
-        {
-            t.Name,
-            Tags = ScrubEventTags(t.Tags)
-        });
+        return data;
     }
 
     private static IEnumerable<KeyValuePair<string, object?>> ScrubEventTags(
@@ -114,13 +70,15 @@ public static partial class ActivityTestHelper
                 && (tag.Key.Equals("exception.stacktrace", StringComparison.Ordinal)
                     || tag.Key.EndsWith(".stacktrace", StringComparison.Ordinal)))
             {
+                var scrubbedStackTrace = StackTracePathRegex().Replace(stackTrace, match =>
+                {
+                    var fileName = System.IO.Path.GetFileName(match.Groups["path"].Value);
+                    return $" in {fileName}";
+                });
+
                 yield return new KeyValuePair<string, object?>(
                     tag.Key,
-                    StackTracePathRegex().Replace(stackTrace, match =>
-                    {
-                        var fileName = System.IO.Path.GetFileName(match.Groups["path"].Value);
-                        return $" in {fileName}";
-                    }));
+                    LambdaMethodRegex().Replace(scrubbedStackTrace, "lambda_method"));
             }
             else
             {
@@ -129,21 +87,42 @@ public static partial class ActivityTestHelper
         }
     }
 
-    private sealed class Session : IDisposable
+    private sealed class Capture : IDisposable
     {
-        private readonly Activity _activity;
-        private readonly ActivityListener _listener;
+        private readonly TracerProvider _tracerProvider;
+        private readonly List<Activity> _exported;
 
-        public Session(Activity activity, ActivityListener listener)
+        public Capture(TracerProvider tracerProvider, List<Activity> exported)
         {
-            _activity = activity;
-            _listener = listener;
+            _tracerProvider = tracerProvider;
+            _exported = exported;
         }
 
-        public void Dispose()
+        [JsonProperty("source", Order = 0)]
+        public OrderedDictionary<string, object?> Source
+            => new()
+            {
+                ["name"] = _exported.FirstOrDefault()?.Source.Name
+            };
+
+        [JsonProperty("activities", Order = 1)]
+        public IReadOnlyList<OrderedDictionary<string, object?>> Activities
         {
-            _activity.Dispose();
-            _listener.Dispose();
+            get
+            {
+                var spanIds = new HashSet<ActivitySpanId>(_exported.Select(a => a.SpanId));
+                var byParent = _exported
+                    .GroupBy(a => a.ParentSpanId)
+                    .ToDictionary(g => g.Key, g => g.OrderBy(a => a.StartTimeUtc).ToList());
+
+                return _exported
+                    .Where(a => a.ParentSpanId == default || !spanIds.Contains(a.ParentSpanId))
+                    .OrderBy(a => a.StartTimeUtc)
+                    .Select(root => SerializeActivity(root, byParent))
+                    .ToList();
+            }
         }
+
+        public void Dispose() => _tracerProvider.Dispose();
     }
 }

@@ -1,33 +1,80 @@
 {
+  "source": {
+    "name": "HotChocolate.Diagnostics"
+  },
   "activities": [
     {
       "OperationName": "GraphQL Operation",
-      "DisplayName": "GraphQL Operation",
+      "DisplayName": "query",
+      "Kind": "Internal",
       "Status": "Error",
       "tags": [
         {
+          "Key": "graphql.processing.type",
+          "Value": "request"
+        },
+        {
+          "Key": "graphql.operation.type",
+          "Value": "query"
+        },
+        {
           "Key": "graphql.document.hash",
-          "Value": "md5:2bf0466e723c1bad3a65089b6fb0dbfc"
+          "Value": "md5:6a77818c7c3e27e4476f1b3cbd2b5475"
         },
         {
           "Key": "graphql.document.body",
-          "Value": "{\n  deep {\n    deeper {\n      deeps {\n        deeper {\n          causeFatalError\n        }\n      }\n    }\n  }\n}"
+          "Value": "{\n  deep {\n    deeper {\n      deeps {\n        deeper {\n          deeps {\n            causeFatalError\n          }\n        }\n      }\n    }\n  }\n}"
         },
         {
-          "Key": "graphql.errors.count",
+          "Key": "graphql.error.count",
           "Value": 1
+        },
+        {
+          "Key": "error.type",
+          "Value": "CUSTOM_ERROR_CODE"
         }
       ],
-      "event": [],
+      "event": [
+        {
+          "Name": "AddedOperationToCache",
+          "Tags": []
+        },
+        {
+          "Name": "AddedDocumentToCache",
+          "Tags": []
+        },
+        {
+          "Name": "graphql.error",
+          "Tags": [
+            {
+              "Key": "graphql.error.message",
+              "Value": "fail"
+            },
+            {
+              "Key": "graphql.field.path",
+              "Value": "deep.deeper.deeps[0].deeper.deeps[0].causeFatalError"
+            },
+            {
+              "Key": "graphql.error.code",
+              "Value": "CUSTOM_ERROR_CODE"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            }
+          ]
+        }
+      ],
       "activities": [
         {
           "OperationName": "GraphQL Document Parsing",
           "DisplayName": "GraphQL Document Parsing",
+          "Kind": "Internal",
           "Status": "Ok",
           "tags": [
             {
               "Key": "graphql.document.hash",
-              "Value": "md5:2bf0466e723c1bad3a65089b6fb0dbfc"
+              "Value": "md5:6a77818c7c3e27e4476f1b3cbd2b5475"
             }
           ],
           "event": []
@@ -35,7 +82,8 @@
         {
           "OperationName": "GraphQL Document Validation",
           "DisplayName": "GraphQL Document Validation",
-          "Status": "Error",
+          "Kind": "Internal",
+          "Status": "Ok",
           "tags": [
             {
               "Key": "graphql.processing.type",
@@ -43,27 +91,126 @@
             },
             {
               "Key": "graphql.document.hash",
-              "Value": "md5:2bf0466e723c1bad3a65089b6fb0dbfc"
+              "Value": "md5:6a77818c7c3e27e4476f1b3cbd2b5475"
             }
           ],
-          "event": [
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Operation Planning",
+          "DisplayName": "GraphQL Operation Planning",
+          "Kind": "Internal",
+          "Status": "Ok",
+          "tags": [
             {
-              "Name": "exception",
-              "Tags": [
+              "Key": "graphql.processing.type",
+              "Value": "plan"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:6a77818c7c3e27e4476f1b3cbd2b5475"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Operation Execution",
+          "DisplayName": "GraphQL Operation Execution",
+          "Kind": "Internal",
+          "Status": "Error",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "execute"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:6a77818c7c3e27e4476f1b3cbd2b5475"
+            },
+            {
+              "Key": "error.type",
+              "Value": "CUSTOM_ERROR_CODE"
+            }
+          ],
+          "event": [],
+          "activities": [
+            {
+              "OperationName": "SimpleQuery.deep",
+              "DisplayName": "SimpleQuery.deep",
+              "Kind": "Internal",
+              "Status": "Ok",
+              "tags": [
                 {
-                  "Key": "graphql.error.message",
-                  "Value": "The field `causeFatalError` does not exist on the type `Deeper`."
+                  "Key": "graphql.processing.type",
+                  "Value": "resolve"
                 },
                 {
-                  "Key": "graphql.error.locations",
-                  "Value": [
-                    {
-                      "line": 6,
-                      "column": 21
-                    }
-                  ]
+                  "Key": "graphql.field.alias",
+                  "Value": "deep"
+                },
+                {
+                  "Key": "graphql.field.path",
+                  "Value": "deep"
+                },
+                {
+                  "Key": "graphql.field.name",
+                  "Value": "deep"
+                },
+                {
+                  "Key": "graphql.field.schema_coordinate",
+                  "Value": "SimpleQuery.deep"
+                },
+                {
+                  "Key": "graphql.field.parent_type",
+                  "Value": "SimpleQuery"
                 }
-              ]
+              ],
+              "event": []
+            },
+            {
+              "OperationName": "Deep.causeFatalError",
+              "DisplayName": "Deep.causeFatalError",
+              "Kind": "Internal",
+              "Status": "Error",
+              "tags": [
+                {
+                  "Key": "graphql.processing.type",
+                  "Value": "resolve"
+                },
+                {
+                  "Key": "graphql.field.alias",
+                  "Value": "causeFatalError"
+                },
+                {
+                  "Key": "graphql.field.path",
+                  "Value": "deep.deeper.deeps[0].deeper.deeps[0].causeFatalError"
+                },
+                {
+                  "Key": "graphql.field.name",
+                  "Value": "causeFatalError"
+                },
+                {
+                  "Key": "graphql.field.schema_coordinate",
+                  "Value": "Deep.causeFatalError"
+                },
+                {
+                  "Key": "graphql.field.parent_type",
+                  "Value": "Deep"
+                },
+                {
+                  "Key": "error.type",
+                  "Value": "CUSTOM_ERROR_CODE"
+                }
+              ],
+              "event": []
             }
           ]
         }

@@ -1,0 +1,6 @@
+Headers:
+Content-Type: application/graphql-response+json; charset=utf-8
+-------------------------->
+Status Code: OK
+-------------------------->
+{"data":{"field":"Query"},"extensions":{"fusion":{"operationPlan":{"id":"83e3f6ccc9691c16992aba024cc36790692a435fd43d0d47dfca18eeb1c43a20","operation":{"kind":"Query","document":"{\n  field\n}","id":"388c5f9c43fb589b1c5d1e144121613b","hash":"388c5f9c43fb589b1c5d1e144121613b","shortHash":"388c5f9c"},"searchSpace":1,"expandedNodes":1,"nodes":[{"id":1,"type":"Operation","schema":"A","operation":{"name":"Op_388c5f9c_1","kind":"Query","document":"query Op_388c5f9c_1 {\n  field\n}","hash":"d243d6aa03056cfbc2ae6272df4c2dbbafb78f04901fe6faa816dcd979e1d239","shortHash":"d243d6aa"},"resultSelectionSet":"{ field }"}]}}}}

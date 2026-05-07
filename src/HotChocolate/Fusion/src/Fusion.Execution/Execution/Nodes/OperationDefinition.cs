@@ -8,8 +8,10 @@ internal abstract class OperationDefinition : IOperationPlanNode
     private readonly string[] _forwardedVariables;
     private readonly ExecutionNodeCondition[] _conditions;
     private readonly ulong _operationHash;
+    private int[] _parentDependencies = [];
     private IOperationPlanNode[] _dependents = [];
     private IOperationPlanNode[] _dependencies = [];
+    private int _parentDependencyCount;
     private int _dependentCount;
     private int _dependencyCount;
 
@@ -48,8 +50,7 @@ internal abstract class OperationDefinition : IOperationPlanNode
     public OperationSourceText Operation { get; }
 
     /// <summary>
-    /// Gets the xxhash64 of the operation source text. Precomputed during
-    /// construction for use as a cache key by connectors.
+    /// Gets the xxhash64 of the operation source text.
     /// </summary>
     public ulong OperationHash => _operationHash;
 
@@ -95,6 +96,12 @@ internal abstract class OperationDefinition : IOperationPlanNode
     public bool RequiresFileUpload { get; }
 
     /// <summary>
+    /// Gets the identifiers of steps in the parent plan scope that must
+    /// complete before this operation definition can run.
+    /// </summary>
+    public ReadOnlySpan<int> ParentDependencies => _parentDependencies.AsSpan(0, _parentDependencyCount);
+
+    /// <summary>
     /// Gets the nodes that cannot start until this operation definition has
     /// completed.
     /// </summary>
@@ -128,6 +135,21 @@ internal abstract class OperationDefinition : IOperationPlanNode
         _dependencies[_dependencyCount++] = node;
     }
 
+    internal void AddParentDependency(int parentNodeId)
+    {
+        if (_parentDependencies.Length == 0)
+        {
+            _parentDependencies = new int[4];
+        }
+
+        if (_parentDependencyCount == _parentDependencies.Length)
+        {
+            Array.Resize(ref _parentDependencies, _parentDependencyCount * 2);
+        }
+
+        _parentDependencies[_parentDependencyCount++] = parentNodeId;
+    }
+
     internal void AddDependent(IOperationPlanNode node)
     {
         if (_dependents.Length == 0)
@@ -155,7 +177,13 @@ internal abstract class OperationDefinition : IOperationPlanNode
             Array.Resize(ref _dependents, _dependentCount);
         }
 
+        if (_parentDependencies.Length > _parentDependencyCount)
+        {
+            Array.Resize(ref _parentDependencies, _parentDependencyCount);
+        }
+
         Array.Sort(_dependencies, static (a, b) => a.Id.CompareTo(b.Id));
         Array.Sort(_dependents, static (a, b) => a.Id.CompareTo(b.Id));
+        Array.Sort(_parentDependencies, static (a, b) => a.CompareTo(b));
     }
 }

@@ -14,6 +14,7 @@ internal static class WellKnownArgumentNames
     public const string Interface = "interface";
     public const string Internal = "internal";
     public const string Key = "key";
+    public const string Kind = "kind";
     public const string Map = "map";
     public const string MaxAge = "maxAge";
     public const string Member = "member";

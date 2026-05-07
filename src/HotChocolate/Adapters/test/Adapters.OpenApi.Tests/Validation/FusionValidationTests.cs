@@ -55,6 +55,7 @@ public class FusionValidationTests : ValidationTestBase
     {
         var builder = services.AddGraphQLGatewayServer()
             .AddInMemoryConfiguration(_compositeSchema)
+            .AddOpenApi()
             .AddOpenApiDefinitionStorage(storage);
 
         if (eventListener is not null)

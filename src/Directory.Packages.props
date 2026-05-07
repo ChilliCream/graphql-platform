@@ -11,7 +11,6 @@
     <PackageVersion Include="Basic.Reference.Assemblies.Net80" Version="1.8.3" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net90" Version="1.8.3" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.4" />
-    <PackageVersion Include="CaseConverter" Version="2.0.1" />
     <PackageVersion Include="ChilliCream.ModelContextProtocol.AspNetCore" Version="1.2.0" />
     <PackageVersion Include="ChilliCream.Nitro.App" Version="$(NitroVersion)" />
     <PackageVersion Include="ChilliCream.Testing.Utilities" Version="0.2.0" />
@@ -47,6 +46,7 @@
     <PackageVersion Include="Npgsql" Version="8.0.7" />
     <PackageVersion Include="OpenTelemetry" Version="1.15.3" />
     <PackageVersion Include="OpenTelemetry.Api" Version="1.15.3" />
+    <PackageVersion Include="OpenTelemetry.Exporter.InMemory" Version="1.15.3" />
     <PackageVersion Include="Polly" Version="8.6.5" />
     <PackageVersion Include="ProjNET" Version="2.0.0" />
     <PackageVersion Include="RabbitMQ.Client" Version="7.0.0" />
