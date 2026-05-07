@@ -20,24 +20,25 @@ public sealed class SchemaComposerTests
                         lookups: InternalLookups!
                     }
 
+                    type Product {
+                        id: ID!
+                        hidden: Int
+                    }
+
+                    type InternalLookups {
+                        productBySku(sku: ID!): Product
+                    }
+                    """,
+                    """
                     extend type Query {
                         productById1(id: ID!): Product @lookup
                         productById2(id: ID!): Product @internal
                         lookups: InternalLookups! @internal
                     }
 
-                    type Product {
-                        id: ID!
-                        hidden: Int
-                    }
-
                     extend type Product {
                         sku: String!
                         hidden: Int @inaccessible
-                    }
-
-                    type InternalLookups {
-                        productBySku(sku: ID!): Product
                     }
 
                     extend type InternalLookups @internal {
