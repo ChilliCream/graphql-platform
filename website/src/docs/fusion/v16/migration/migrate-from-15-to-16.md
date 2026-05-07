@@ -582,9 +582,11 @@ gatewayBuilder
 +return await app.RunWithGraphQLCommandsAsync(args);
 ```
 
-# Aspire AppHost migration
+# Aspire
 
-The `HotChocolate.Fusion.Aspire` integration was rewritten in v16. The package now sits on top of the standard Aspire 13 hosting model and uses the resource annotation pattern instead of a dedicated `AddFusionGateway` resource type. As a side-effect, the AppHost SDK has to be bumped from 9.x to 13.x.
+The Aspire integration changed in v16. There is no separate `AddFusionGateway` resource anymore. The gateway and subgraphs are now regular Aspire projects.
+
+First, update the AppHost SDK and Aspire hosting package to 13.x:
 
 ```diff
 -  <Sdk Name="Aspire.AppHost.Sdk" Version="9.2.0"/>
@@ -596,11 +598,9 @@ The `HotChocolate.Fusion.Aspire` integration was rewritten in v16. The package n
    </ItemGroup>
 ```
 
-`Aspire.Hosting.AppHost` should be moved to a matching `13.x.x` version.
+`Aspire.Hosting.AppHost` should use a matching `13.x.x` version.
 
-## AddFusionGateway / WithSubgraph removed
-
-The v15 `AddFusionGateway<TProject>(name).WithSubgraph(...)` chain has been removed. In v16 you register the gateway as a regular `AddProject<TProject>` resource and use the new GraphQL annotations and the standard Aspire `.WithReference(...)` to wire subgraphs to the gateway:
+Then update the AppHost setup. Add the GraphQL orchestrator, tell Aspire where to get each subgraph schema, and reference those subgraphs from the gateway:
 
 ```diff
 -var products = builder.AddProject<Projects.Products>("products");
@@ -627,12 +627,7 @@ The v15 `AddFusionGateway<TProject>(name).WithSubgraph(...)` chain has been remo
 +
 +builder
 +    .AddProject<Projects.Gateway>("gateway")
-+    .WithGraphQLSchemaComposition(
-+        settings: new GraphQLCompositionSettings
-+        {
-+            EnableGlobalObjectIdentification = true,
-+            EnvironmentName = "aspire"
-+        })
++    .WithGraphQLSchemaComposition()
 +    .WithReference(products)
 +    .WithReference(reviews)
 +    .WithReference(accounts);
@@ -640,21 +635,52 @@ The v15 `AddFusionGateway<TProject>(name).WithSubgraph(...)` chain has been remo
 +builder.Build().Run();
 ```
 
-The migration breaks down into four mechanical steps:
+`builder.AddGraphQLOrchestrator()` installs the startup hook that runs schema discovery and composition. You no longer call `.Compose()`. `builder.Build().Run()` is enough.
 
-1. **Add `builder.AddGraphQLOrchestrator()` once at the top of `Program.cs`.** This registers the lifecycle hook that drives schema discovery and composition during AppHost startup.
-2. **Annotate every subgraph project with `.WithGraphQLSchemaEndpoint()`.** This marks the resource as having a GraphQL schema endpoint that the orchestrator can fetch. The default path is `/graphql/schema.graphql` on the `http` endpoint; override via `path:` / `endpointName:` / `sourceSchemaName:` if your subgraph serves the schema elsewhere. There is also `.WithGraphQLSchemaFile("schema.graphqls")` if the schema lives next to the project on disk.
-3. **Replace `AddFusionGateway<T>(name).WithSubgraph(s)` with `AddProject<T>(name).WithGraphQLSchemaComposition(...).WithReference(s)`.** `WithGraphQLSchemaComposition` opts the gateway resource into composition; the standard Aspire `WithReference` then declares the dependency on each subgraph and exposes the connection info to the gateway.
-4. **Drop `.Compose()` — `builder.Build().Run()` is now sufficient.** Composition runs as part of the orchestrator's lifecycle hook.
-
-## GraphQLCompositionSettings
-
-`WithGraphQLSchemaComposition` accepts an optional `outputFileName` (default `gateway.far`) and a `GraphQLCompositionSettings` value:
+`WithGraphQLSchemaEndpoint()` downloads the subgraph schema from `/graphql/schema.graphql` at startup. If your schema endpoint uses a different path, pass it explicitly:
 
 ```csharp
-public struct GraphQLCompositionSettings
+builder
+    .AddProject<Projects.Products>("products")
+    .WithGraphQLSchemaEndpoint(path: "/schema.graphql");
+```
+
+If you keep schema files on disk, use `WithGraphQLSchemaFile()` instead. It looks for `schema.graphqls` in the subgraph project directory by default:
+
+```csharp
+builder
+    .AddProject<Projects.Products>("products")
+    .WithGraphQLSchemaFile(fileName: "./dir/schema.graphqls");
+```
+
+To create that file automatically when a subgraph starts, call `ExportSchemaOnStartup()` on the subgraph's `IRequestExecutorBuilder`.
+
+Pass composition options to `WithGraphQLSchemaComposition`:
+
+```csharp
+builder
+    .AddProject<Projects.Gateway>("gateway")
+    .WithGraphQLSchemaComposition(
+        settings: new GraphQLCompositionSettings
+        {
+            EnableGlobalObjectIdentification = true
+        });
+```
+
+Each subgraph also needs an `Aspire` environment in `schema-settings.json`. This is the local GraphQL endpoint the composed gateway configuration uses when it runs under Aspire:
+
+```diff
 {
-    public bool? EnableGlobalObjectIdentification { get; set; }
-    public string? EnvironmentName { get; set; }
+  "name": "my-subgraph",
++  "transports": {
++    "http": {
++      "url": "{{API_URL}}"
++    }
++  },
++  "environments": {
++    "Aspire": {
++      "API_URL": "http://localhost:5000/graphql"
++    }
++  }
 }
 ```
