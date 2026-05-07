@@ -4,6 +4,8 @@ title: fusion
 
 The `nitro fusion` commands manage [Fusion](/docs/fusion) configurations. A Fusion configuration is the composed gateway artifact built from one or more source schemas. Once published to a stage, the gateway loads it and starts serving the federated graph.
 
+> Note: For using these commands in CI/CD pipelines (uploading source schemas, publishing configurations, validating pull requests), see [Deployment and CI/CD](/docs/fusion/v16/deployment-and-ci-cd).
+
 # `nitro fusion upload`
 
 Upload a source schema for a later composition. The schema is stored on the Nitro backend under the given API and tag and can be referenced by name from a subsequent `nitro fusion publish` call (via `--source-schema`).
