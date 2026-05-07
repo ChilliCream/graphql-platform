@@ -4,12 +4,6 @@ title: Migrate Hot Chocolate Fusion from 15 to 16
 
 > This guide is still a work in progress with more updates to follow.
 
-<!--
-TODO:
-- Default security
-- Nitro integration
--->
-
 > Note: While directives and behavior largly mirror v15, v16 is a complete re-implementation of Fusion that not only affects the gateway itself, but also the archive format and composition process. Therefore, you can't simply bump the package versions in the gateway and be done with the update. You'll need a coordinated strategy to incrementally adopt Fusion v2 in Subgraphs and their deployment process, before you can switch the gateway to v16.
 
 <!-- TODO: High level overview over migration steps -->
@@ -67,7 +61,6 @@ In v16 there is no separate underlying request executor builder. The Fusion gate
 -    })
 -    .ModifyRequestOptions(o =>
 -    {
--        o.EnableSchemaFileSupport = true;
 -        o.ExecutionTimeout = TimeSpan.FromSeconds(30);
 -        o.PersistedOperations.OnlyAllowPersistedDocuments = false;
 -        o.IncludeExceptionDetails = true;
@@ -86,12 +79,6 @@ In v16 there is no separate underlying request executor builder. The Fusion gate
 +        o.AllowOperationPlanRequests = true;
 +    });
 ```
-
-A few specific options have moved or been renamed:
-
-- `FusionOptions.AllowQueryPlan` has been replaced by the per-request `FusionRequestOptions.AllowOperationPlanRequests`. When enabled, clients can request the operation plan to be inlined into the response by sending the `Fusion-Operation-Plan: 1` header. The option defaults to `false` so the plan is not exposed unless explicitly opted in.
-- `FusionOptions.IncludeDebugInfo` has been replaced by the per-request `FusionRequestOptions.CollectOperationPlanTelemetry`.
-- `RequestExecutorOptions.EnableSchemaFileSupport` no longer exists. Schema file endpoints (`/graphql/schema`) are now wired up via `MapGraphQLSchema()` on the endpoint builder.
 
 ## Internal directives hidden from schema endpoint
 
@@ -251,58 +238,139 @@ The `watchFileForUpdates` parameter is gone — file watching is the default beh
 
 `AddInMemoryConfiguration` also accepts an optional `JsonDocumentOwner` for the schema settings.
 
-## ConfigureFromCloud replaced by AddNitro().AddFusion() + ModifyNitroOptions
+## Nitro integration
 
-`ConfigureFromCloud` no longer exists. In v16 the Nitro integration is registered through `INitroBuilder`, and per-gateway options are configured via `ModifyNitroOptions` on `IFusionGatewayBuilder`. The flat option surface from v15 has been split into nested option groups (`Service`, `Metrics`, `OperationReporting`, `PersistedOperations`, `OpenApi`, `Mcp`).
+Update all `ChilliCream.Nitro.*` packages to the same version as the `HotChocolate.Fusion.AspNetCore` package. If you're referencing any packages besides `ChilliCream.Nitro.Fusion` change the package references as shown below:
 
-```diff
--gatewayBuilder.ConfigureFromCloud(x =>
--{
--    x.ApiId = "...";
--    x.ApiKey = "...";
--    x.Stage = "dev";
--
--    x.EnablePersistedQueries = true;
--    x.DefaultQueryCacheExpiration = TimeSpan.FromSeconds(30);
--    x.NotFoundQueryCacheExpiration = TimeSpan.FromSeconds(10);
--
--    x.LocalFusionConfigurationFile = "gateway.fgp";
--
--    x.Metrics.Enabled = true;
--    x.Metrics.ExportIntervalMilliseconds = 1000;
--    x.Metrics.ExportTimeoutMilliseconds = 400;
--
--    x.EnableOperationReporting = true;
--
--    x.ServerUrl = "";
--    x.TelemetryUrl = "";
--});
-+builder.Services.AddNitro().AddFusion();
-+
-+gatewayBuilder.ModifyNitroOptions(x =>
-+{
-+    x.Service.ApiId = "...";
-+    x.Service.ApiKey = "...";
-+    x.Service.Stage = "dev";
-+    x.Service.ServerUrl = "";
-+    x.Service.TelemetryUrl = "";
-+
-+    x.Metrics.Enabled = true;
-+    x.Metrics.ExportIntervalMilliseconds = 1000;
-+    x.Metrics.ExportTimeoutMilliseconds = 400;
-+
-+    x.LocalFusionConfigurationFile = "gateway.fgp";
-+});
+| Old                            | New                                        |
+| ------------------------------ | ------------------------------------------ |
+| `ChilliCream.Nitro.Core`       | `ChilliCream.Nitro.GraphQL`                |
+| `ChilliCream.Nitro`            | `ChilliCream.Nitro.HotChocolate`           |
+| `ChilliCream.Nitro.Telemetry`  | `ChilliCream.Nitro.OpenTelemetry`          |
+| `ChilliCream.Nitro.Azure.Core` | `ChilliCream.Nitro.Azure`                  |
+| `ChilliCream.Nitro.*.Azure`    | `ChilliCream.Nitro.Azure` (single package) |
+
+> Note: If you are self-hosting the Nitro backend, make sure to update it to the latest version as well. `10.1.0` is the minimum version required to work with the `ChilliCream.Nitro.*` packages.
+
+v16 changes how Nitro is configured instead of the per gateway configuration `ConfigureFromCloud` call, you configure Nitro once on the service collection and then apply optional per gateway setting overrides.
+
+**Before**
+
+```csharp
+builder.Services
+    .AddFusionGatewayServer()
+    .ConfigureFromCloud(o =>
+    {
+        o.ApiId = "...";
+        o.ApiKey = "...";
+        o.Stage = "...";
+    });
 ```
 
-`AddNitro().AddFusion()` registers Nitro and the Fusion-specific Nitro features on the application services. `ModifyNitroOptions` then configures the gateway-scoped `NitroFusionOptions`. The `NitroFusionOptions` instance exposes nested option groups for each capability:
+**After**
 
-| v15 (flat)                       | v16 (nested)                                 |
-| -------------------------------- | -------------------------------------------- |
-| `x.ApiId` / `ApiKey` / `Stage`   | `x.Service.ApiId` / `ApiKey` / `Stage`       |
-| `x.ServerUrl` / `TelemetryUrl`   | `x.Service.ServerUrl` / `TelemetryUrl`       |
-| `x.Metrics.Enabled`              | `x.Metrics.Enabled` (unchanged)              |
-| `x.LocalFusionConfigurationFile` | `x.LocalFusionConfigurationFile` (unchanged) |
+```csharp
+builder.Services
+    .AddNitro(o =>
+    {
+        o.ApiId = "...";
+        o.ApiKey = "...";
+        o.Stage = "...";
+    })
+    .AddFusion();
+
+builder.Services.AddGraphQLGatewayServer();
+```
+
+Per gateway settings can be overridden via the `ModifyNitroOptions` API. There have also been some changes to the structure of options.
+
+**Before**
+
+```csharp
+builder.Services
+    .AddFusionGatewayServer()
+    .ConfigureFromCloud(o =>
+    {
+        o.EnablePersistedQueries = true;
+        o.DefaultQueryCacheExpiration = TimeSpan.FromSeconds(30);
+        o.NotFoundQueryCacheExpiration = TimeSpan.FromSeconds(10);
+
+        o.LocalFusionConfigurationFile = "gateway.fgp";
+
+        o.Metrics.Enabled = true;
+        o.Metrics.ExportIntervalMilliseconds = 1000;
+        o.Metrics.ExportTimeoutMilliseconds = 400;
+
+        o.EnableOperationReporting = true;
+    });
+```
+
+**After**
+
+```csharp
+builder.Services
+    .AddGraphQLGatewayServer()
+    .ModifyNitroOptions(o =>
+    {
+        o.PersistedOperations.Enabled = true;
+        o.PersistedOperations.DefaultQueryCacheExpiration = TimeSpan.FromSeconds(30);
+        o.PersistedOperations.NotFoundQueryCacheExpiration = TimeSpan.FromSeconds(10);
+
+        o.LocalFusionConfigurationFile = "gateway.fgp";
+
+        o.Metrics.Enabled = true;
+        o.Metrics.ExportIntervalMilliseconds = 1000;
+        o.Metrics.ExportTimeoutMilliseconds = 400;
+
+        o.OperationReporting.Enabled = true;
+    });
+```
+
+If you were previously registering an asset cache you now do that on the `INitroBuilder` returned from `AddNitro()`:
+
+**Before**
+
+```csharp
+builder.Services
+    .AddFusionGatewayServer()
+    .AddFileSystemAssetCache()
+    // or
+    .AddBlobStorageAssetCache()
+    // or
+    .AddAssetCache<CustomAssetCache>()
+```
+
+**After**
+
+```csharp
+builder.Services
+    .AddNitro()
+    .AddFusion()
+    .AddFileSystemAssetCache()
+    // or
+    .AddBlobStorageAssetCache()
+    // or
+    .AddAssetCache<CustomAssetCache>()
+```
+
+If you were previously hand-rolling the `ConfigureOpenTelemetry*Provider(...)` configuration with `AddNitroExporter()`, you can also switch to a new `AddOpenTelemetry()` API on the `INitroBuilder` that handles the registration for you.
+
+**Before**
+
+```csharp
+services.ConfigureOpenTelemetryMeterProvider(x => x.AddNitroExporter());
+services.ConfigureOpenTelemetryTracerProvider(x => x.AddNitroExporter());
+services.ConfigureOpenTelemetryLoggerProvider(x => x.AddNitroExporter());
+```
+
+**After**
+
+```csharp
+services
+    .AddNitro()
+    // ...
+    .AddOpenTelemetry();
+```
 
 ## Diagnostic listener API redesigned
 
