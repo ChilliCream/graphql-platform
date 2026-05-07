@@ -36,6 +36,14 @@ internal sealed class ArchiveSession : IDisposable
 
         foreach (var entry in _archive.Entries)
         {
+            // Skip entries that are explicitly marked Deleted in this session;
+            // they are still in the underlying ZipArchive but logically gone.
+            if (_files.TryGetValue(entry.FullName, out var tracked)
+                && tracked.State is FileState.Deleted)
+            {
+                continue;
+            }
+
             files.Add(entry.FullName);
         }
 
@@ -137,22 +145,14 @@ internal sealed class ArchiveSession : IDisposable
             {
                 // File was added in this uncommitted session and never existed
                 // in the original archive: drop it entirely.
-                if (File.Exists(file.TempPath))
-                {
-                    try
-                    {
-                        File.Delete(file.TempPath);
-                    }
-                    catch
-                    {
-                        // ignore
-                    }
-                }
-
+                TryDeleteTempFile(file);
                 _files.Remove(path);
                 return;
             }
 
+            // File was previously read or replaced (extracted to a temp file).
+            // Clean up the temp file now since Dispose skips Deleted entries.
+            TryDeleteTempFile(file);
             file.MarkDeleted();
             return;
         }
@@ -160,6 +160,21 @@ internal sealed class ArchiveSession : IDisposable
         if (_mode is not FusionArchiveMode.Create && _archive.GetEntry(path) is not null)
         {
             _files.Add(path, FileEntry.Deleted(path));
+        }
+    }
+
+    private static void TryDeleteTempFile(FileEntry file)
+    {
+        if (File.Exists(file.TempPath))
+        {
+            try
+            {
+                File.Delete(file.TempPath);
+            }
+            catch
+            {
+                // ignore
+            }
         }
     }
 

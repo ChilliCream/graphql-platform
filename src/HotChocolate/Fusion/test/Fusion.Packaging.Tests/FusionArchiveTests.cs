@@ -512,6 +512,48 @@ public class FusionArchiveTests : IDisposable
     }
 
     [Fact]
+    public async Task SignArchive_AfterRemovingSchemaExtensions_ProducesValidSignature()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+        using var cert = CreateTestCertificate();
+#if NET9_0_OR_GREATER
+        using var publicOnlyCert = X509CertificateLoader.LoadCertificate(cert.Export(X509ContentType.Cert));
+#else
+        using var publicOnlyCert = new X509Certificate2(cert.Export(X509ContentType.Cert));
+#endif
+
+        var schemaContent = "type User { id: ID! }"u8.ToArray();
+        var extensionsContent = "extend type User { name: String! }"u8.ToArray();
+        var settings = CreateSettingsJson();
+        const string schemaName = "user-service";
+        var metadata = CreateTestMetadata();
+
+        // Act - initial archive with extensions
+        using (var archive = FusionArchive.Create(stream, leaveOpen: true))
+        {
+            await archive.SetArchiveMetadataAsync(metadata);
+            await archive.SetSourceSchemaConfigurationAsync(schemaName, schemaContent, settings, extensionsContent);
+            await archive.CommitAsync();
+        }
+
+        // Act - re-open in update mode, drop extensions, then sign
+        stream.Position = 0;
+        using (var updateArchive = FusionArchive.Open(stream, FusionArchiveMode.Update, leaveOpen: true))
+        {
+            await updateArchive.SetSourceSchemaConfigurationAsync(schemaName, schemaContent, settings);
+            await updateArchive.SignArchiveAsync(cert);
+            await updateArchive.CommitAsync();
+        }
+
+        // Assert - signature is valid against the post-deletion file set
+        stream.Position = 0;
+        using var readArchive = FusionArchive.Open(stream, leaveOpen: true);
+        var result = await readArchive.VerifySignatureAsync(publicOnlyCert);
+        Assert.Equal(SignatureVerificationResult.Valid, result);
+    }
+
+    [Fact]
     public async Task VerifySignature_WithUnsignedArchive_ReturnsNotSigned()
     {
         // Arrange
