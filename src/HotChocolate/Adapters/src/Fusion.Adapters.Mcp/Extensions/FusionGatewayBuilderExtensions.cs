@@ -1,9 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Adapters.Mcp;
 using HotChocolate.Adapters.Mcp.Configuration;
 using HotChocolate.Adapters.Mcp.Extensions;
 using HotChocolate.Adapters.Mcp.Storage;
 using HotChocolate.Fusion.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using ModelContextProtocol.Server;
 
 // ReSharper disable once CheckNamespace
