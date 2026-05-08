@@ -1,5 +1,7 @@
+using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.PersistedOperations;
 using HotChocolate.Resolvers;
@@ -457,6 +459,29 @@ public partial class ActivityExecutionDiagnosticListenerTests
     }
 
     [Fact]
+    public async Task VariableCoercion_FailingScalar_RecordsErrorOnCoercionSpan()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange & act
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddInstrumentation(o => o.Scopes = ActivityScopes.All)
+                .AddQueryType<MoodQuery>()
+                .AddType<MoodScalarType>()
+                .ExecuteRequestAsync(
+                    OperationRequestBuilder.New()
+                        .SetDocument("query($mood: Mood!) { greetMood(mood: $mood) }")
+                        .SetVariableValues(
+                            new Dictionary<string, object?> { { "mood", "happy" } })
+                        .Build());
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
     public async Task VariableCoercion_WithAllScopes_RecordsCoercionSpan()
     {
         using (CaptureActivities(out var activities))
@@ -638,6 +663,28 @@ public partial class ActivityExecutionDiagnosticListenerTests
 
         public Task<string?> DataLoader(CustomDataLoader dataLoader, string key)
             => dataLoader.LoadAsync(key);
+    }
+
+    public sealed class MoodScalarType : StringType
+    {
+        public MoodScalarType()
+            : base("Mood")
+        {
+        }
+
+        protected override string OnCoerceInputLiteral(StringValueNode valueLiteral)
+            => throw new FormatException(
+                $"'{valueLiteral.Value}' is not a recognized mood.");
+
+        protected override string OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+            => throw new FormatException(
+                $"'{inputValue.GetString()}' is not a recognized mood.");
+    }
+
+    public class MoodQuery
+    {
+        public string GreetMood([GraphQLType<MoodScalarType>] string mood)
+            => $"Greetings, {mood}!";
     }
 
     public class FailingItem(int index)

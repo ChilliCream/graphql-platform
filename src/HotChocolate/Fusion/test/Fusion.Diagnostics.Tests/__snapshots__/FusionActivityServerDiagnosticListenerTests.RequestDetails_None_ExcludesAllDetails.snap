@@ -39,6 +39,14 @@
               "Value": "request"
             },
             {
+              "Key": "server.address",
+              "Value": "localhost"
+            },
+            {
+              "Key": "server.port",
+              "Value": 5000
+            },
+            {
               "Key": "graphql.operation.type",
               "Value": "query"
             },

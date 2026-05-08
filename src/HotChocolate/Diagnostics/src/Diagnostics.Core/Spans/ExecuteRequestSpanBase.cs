@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Microsoft.AspNetCore.Http;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
@@ -36,6 +37,8 @@ internal abstract class ExecuteRequestSpanBase(
         {
             Activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Request);
         }
+
+        EnrichServerAttributes();
 
         string? operationTypeValue = null;
         string? operationName = null;
@@ -84,6 +87,36 @@ internal abstract class ExecuteRequestSpanBase(
         }
 
         enricher.EnrichExecuteRequest(Context, Activity);
+    }
+
+    private void EnrichServerAttributes()
+    {
+        if (!Context.Features.TryGet<HttpContext>(out var httpContext))
+        {
+            return;
+        }
+
+        var request = httpContext.Request;
+        if (!request.Host.HasValue)
+        {
+            return;
+        }
+
+        if (!string.IsNullOrEmpty(request.Host.Host)
+            && Activity.GetTagItem(SemanticConventions.Server.Address) is null)
+        {
+            Activity.SetTag(SemanticConventions.Server.Address, request.Host.Host);
+        }
+
+        if (request.Host.Port is { } port
+            && Activity.GetTagItem(SemanticConventions.Server.Port) is null)
+        {
+            var defaultPort = request.IsHttps ? 443 : 80;
+            if (port != defaultPort)
+            {
+                Activity.SetTag(SemanticConventions.Server.Port, port);
+            }
+        }
     }
 
     private void EmitErrorEvents(
