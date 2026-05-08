@@ -1,13 +1,13 @@
 using HotChocolate.Adapters.Mcp.Directives;
-using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Configurations;
 
-namespace HotChocolate.Adapters.Mcp.Extensions;
+// ReSharper disable once CheckNamespace
+namespace HotChocolate.Types;
 
 /// <summary>
 /// Provides extension methods to <see cref="IObjectFieldDescriptor"/>.
 /// </summary>
-public static class ObjectFieldDescriptorExtensions
+public static class McpObjectFieldDescriptorExtensions
 {
     /// <summary>
     /// Additional properties describing a Tool to clients.
