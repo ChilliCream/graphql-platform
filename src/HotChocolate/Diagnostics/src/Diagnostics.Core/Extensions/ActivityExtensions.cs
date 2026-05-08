@@ -48,7 +48,8 @@ internal static class ActivityExtensions
             IError error,
             string? operationType = null,
             string? operationName = null,
-            string? schemaCoordinate = null)
+            string? schemaCoordinate = null,
+            OperationDocumentInfo? documentInfo = null)
         {
             var tags = new ActivityTagsCollection
             {
@@ -86,15 +87,8 @@ internal static class ActivityExtensions
                 tags[SemanticConventions.GraphQL.Document.Locations] = locations;
             }
 
-            if (operationType is not null)
-            {
-                tags[SemanticConventions.GraphQL.Operation.Type] = operationType;
-            }
-
-            if (!string.IsNullOrEmpty(operationName))
-            {
-                tags[SemanticConventions.GraphQL.Operation.Name] = operationName;
-            }
+            EnrichOperation(tags, operationType, operationName);
+            EnrichDocumentInfo(tags, documentInfo);
 
             if (error.Exception is { } exception)
             {
@@ -108,9 +102,10 @@ internal static class ActivityExtensions
 
         public void AddGraphQLErrorEvent(
             Exception exception,
-            string? operationType = null,
+            string operationType,
             string? operationName = null,
-            string? schemaCoordinate = null)
+            string? schemaCoordinate = null,
+            OperationDocumentInfo? documentInfo = null)
         {
             var tags = new ActivityTagsCollection
             {
@@ -125,15 +120,8 @@ internal static class ActivityExtensions
                 tags[SemanticConventions.GraphQL.Field.SchemaCoordinate] = schemaCoordinate;
             }
 
-            if (!string.IsNullOrEmpty(operationType))
-            {
-                tags[SemanticConventions.GraphQL.Operation.Type] = operationType;
-            }
-
-            if (!string.IsNullOrEmpty(operationName))
-            {
-                tags[SemanticConventions.GraphQL.Operation.Name] = operationName;
-            }
+            EnrichOperation(tags, operationType, operationName);
+            EnrichDocumentInfo(tags, documentInfo);
 
             activity.AddEvent(new ActivityEvent("graphql.error", default, tags));
         }
@@ -218,6 +206,46 @@ internal static class ActivityExtensions
                     SemanticConventions.GraphQL.Operation.Name,
                     operationName);
             }
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void EnrichOperation(
+        ActivityTagsCollection tags,
+        string? operationType,
+        string? operationName)
+    {
+        if (!string.IsNullOrEmpty(operationType))
+        {
+            tags[SemanticConventions.GraphQL.Operation.Type] = operationType;
+        }
+
+        if (!string.IsNullOrEmpty(operationName))
+        {
+            tags[SemanticConventions.GraphQL.Operation.Name] = operationName;
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void EnrichDocumentInfo(
+        ActivityTagsCollection tags,
+        OperationDocumentInfo? documentInfo)
+    {
+        if (documentInfo is null)
+        {
+            return;
+        }
+
+        var hash = documentInfo.Hash;
+
+        if (!hash.IsEmpty)
+        {
+            tags[SemanticConventions.GraphQL.Document.Hash] = $"{hash.AlgorithmName}:{hash.Value}";
+        }
+
+        if (documentInfo is { IsPersisted: true, Id.HasValue: true })
+        {
+            tags[SemanticConventions.GraphQL.Document.Id] = documentInfo.Id.Value;
         }
     }
 }

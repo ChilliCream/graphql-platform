@@ -65,7 +65,7 @@ internal abstract class ExecuteRequestSpanBase(
                 Activity.SetTag(GraphQL.Error.Count, result.Errors.Count);
             }
 
-            EmitErrorEvents(result.Errors, operationTypeValue, operationName);
+            EmitErrorEvents(result.Errors, operationTypeValue, operationName, documentInfo);
         }
 
         if (Context.Result is null or OperationResult { Errors: [_, ..] })
@@ -122,7 +122,8 @@ internal abstract class ExecuteRequestSpanBase(
     private void EmitErrorEvents(
         IReadOnlyList<IError> errors,
         string? operationType,
-        string? operationName)
+        string? operationName,
+        OperationDocumentInfo documentInfo)
     {
         var maxEvents = options.MaxErrorEvents;
         if (maxEvents <= 0 || errors.Count == 0)
@@ -133,7 +134,11 @@ internal abstract class ExecuteRequestSpanBase(
         var limit = errors.Count < maxEvents ? errors.Count : maxEvents;
         for (var i = 0; i < limit; i++)
         {
-            Activity.AddGraphQLErrorEvent(errors[i], operationType, operationName);
+            Activity.AddGraphQLErrorEvent(
+                errors[i],
+                operationType,
+                operationName,
+                documentInfo: documentInfo);
         }
     }
 }

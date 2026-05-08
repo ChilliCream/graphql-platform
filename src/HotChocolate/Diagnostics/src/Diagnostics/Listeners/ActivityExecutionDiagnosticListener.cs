@@ -268,7 +268,8 @@ internal sealed class ActivityExecutionDiagnosticListener(
                 operationType: SemanticConventions.GraphQL.Operation.TypeValues[
                     context.Operation.Definition.Operation],
                 operationName: context.Operation.Name,
-                schemaCoordinate: context.Selection.Field.Coordinate.ToString());
+                schemaCoordinate: context.Selection.Field.Coordinate.ToString(),
+                documentInfo: context.Features.Get<OperationDocumentInfo>());
         }
     }
 

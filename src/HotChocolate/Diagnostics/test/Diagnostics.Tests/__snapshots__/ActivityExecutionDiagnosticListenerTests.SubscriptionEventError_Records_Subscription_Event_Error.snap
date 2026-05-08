@@ -173,6 +173,10 @@
                       "Value": "OnFailingMessageSubscription"
                     },
                     {
+                      "Key": "graphql.document.hash",
+                      "Value": "md5:1f38a1bfe720ad0cb6083bf8b309d3aa"
+                    },
+                    {
                       "Key": "exception.type",
                       "Value": "System.InvalidOperationException"
                     },

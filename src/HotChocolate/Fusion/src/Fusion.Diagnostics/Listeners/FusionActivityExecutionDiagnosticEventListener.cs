@@ -227,7 +227,8 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
             activity.AddGraphQLErrorEvent(
                 error,
                 operationType: GetOperationType(context),
-                operationName: context.OperationPlan.Operation.Name);
+                operationName: context.OperationPlan.Operation.Name,
+                documentInfo: context.RequestContext.OperationDocumentInfo);
             activity.SetErrorType(error);
 
             enricher.EnrichExecutionNodeError(context, node, error, activity);
@@ -246,7 +247,8 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
             activity.AddGraphQLErrorEvent(
                 error,
                 operationType: GetOperationType(context),
-                operationName: context.OperationPlan.Operation.Name);
+                operationName: context.OperationPlan.Operation.Name,
+                documentInfo: context.RequestContext.OperationDocumentInfo);
             activity.SetErrorType(error);
 
             enricher.EnrichSourceSchemaTransportError(context, node, schemaName, error, activity);
@@ -265,7 +267,8 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
             activity.AddGraphQLErrorEvent(
                 error,
                 operationType: GetOperationType(context),
-                operationName: context.OperationPlan.Operation.Name);
+                operationName: context.OperationPlan.Operation.Name,
+                documentInfo: context.RequestContext.OperationDocumentInfo);
             activity.SetErrorType(error);
 
             enricher.EnrichSourceSchemaStoreError(context, node, schemaName, error, activity);
@@ -312,7 +315,8 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
             activity.AddGraphQLErrorEvent(
                 exception,
                 operationType: GetOperationType(context),
-                operationName: context.OperationPlan.Operation.Name);
+                operationName: context.OperationPlan.Operation.Name,
+                documentInfo: context.RequestContext.OperationDocumentInfo);
             activity.SetErrorType(exception);
 
             enricher.EnrichSubscriptionEventError(
