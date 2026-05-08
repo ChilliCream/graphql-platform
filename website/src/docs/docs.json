@@ -341,6 +341,16 @@
             "title": "Directive Reference"
           },
           {
+            "path": "adapters",
+            "title": "Adapters",
+            "items": [
+              {
+                "path": "mcp",
+                "title": "MCP"
+              }
+            ]
+          },
+          {
             "path": "migration",
             "title": "Migration",
             "items": [
