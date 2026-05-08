@@ -219,6 +219,16 @@
             ]
           },
           {
+            "path": "adapters",
+            "title": "Adapters",
+            "items": [
+              {
+                "path": "mcp",
+                "title": "MCP"
+              }
+            ]
+          },
+          {
             "path": "settings",
             "title": "Settings",
             "items": [

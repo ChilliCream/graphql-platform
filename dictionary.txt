@@ -74,6 +74,7 @@ fricking
 frontends
 Fzzz
 GEOGCS
+geolocation
 Giroux
 GraphiQL
 graphqlconfig
@@ -180,6 +181,7 @@ Roslynator
 roundtrips
 RRGGBB
 runbooks
+sandboxed
 Satisfiability
 Senn
 shoooe
