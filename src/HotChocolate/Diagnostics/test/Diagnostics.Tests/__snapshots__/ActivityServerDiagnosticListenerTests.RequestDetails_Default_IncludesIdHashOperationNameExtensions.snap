@@ -4,152 +4,96 @@
   },
   "activities": [
     {
-      "OperationName": "ExecuteHttpRequest",
-      "DisplayName": "GraphQL HTTP POST",
-      "Kind": "Internal",
-      "Status": "Ok",
+      "OperationName": "Microsoft.AspNetCore.Hosting.HttpRequestIn",
+      "DisplayName": "POST /graphql/{**slug}",
+      "Kind": "Server",
+      "Status": "Unset",
       "tags": [
         {
-          "Key": "graphql.http.kind",
-          "Value": "HttpPost"
+          "Key": "server.address",
+          "Value": "localhost"
         },
         {
-          "Key": "graphql.schema.name",
-          "Value": "_Default"
+          "Key": "server.port",
+          "Value": 5000
         },
         {
-          "Key": "graphql.http.request.type",
-          "Value": "single"
+          "Key": "http.request.method",
+          "Value": "POST"
         },
         {
-          "Key": "graphql.http.request.query.id",
-          "Value": "029e67e1b2d8493b3dd23fdaf6545b03"
+          "Key": "url.scheme",
+          "Value": "http"
         },
         {
-          "Key": "graphql.http.request.query.hash",
-          "Value": "029e67e1b2d8493b3dd23fdaf6545b03"
+          "Key": "url.path",
+          "Value": "/graphql"
         },
         {
-          "Key": "graphql.http.request.extensions",
-          "Value": "{\"test\":\"abc\"}"
+          "Key": "network.protocol.version",
+          "Value": "1.1"
+        },
+        {
+          "Key": "http.route",
+          "Value": "/graphql/{**slug}"
+        },
+        {
+          "Key": "http.response.status_code",
+          "Value": 200
         }
       ],
       "event": [],
       "activities": [
         {
-          "OperationName": "Parse HTTP Request",
-          "DisplayName": "Parse HTTP Request",
-          "Kind": "Internal",
-          "Status": "Ok",
-          "tags": [],
-          "event": []
-        },
-        {
-          "OperationName": "GraphQL Operation",
-          "DisplayName": "query",
+          "OperationName": "ExecuteHttpRequest",
+          "DisplayName": "GraphQL HTTP POST",
           "Kind": "Internal",
           "Status": "Ok",
           "tags": [
             {
-              "Key": "graphql.processing.type",
-              "Value": "request"
+              "Key": "graphql.http.kind",
+              "Value": "HttpPost"
             },
             {
-              "Key": "graphql.operation.type",
-              "Value": "query"
+              "Key": "graphql.schema.name",
+              "Value": "_Default"
             },
             {
-              "Key": "graphql.operation.name",
-              "Value": "GetHero"
+              "Key": "graphql.http.request.type",
+              "Value": "single"
             },
             {
-              "Key": "graphql.document.hash",
-              "Value": "md5:06731ff10fea3ec8e9b2aabceee6ddd9"
+              "Key": "graphql.http.request.query.id",
+              "Value": "029e67e1b2d8493b3dd23fdaf6545b03"
+            },
+            {
+              "Key": "graphql.http.request.query.hash",
+              "Value": "029e67e1b2d8493b3dd23fdaf6545b03"
+            },
+            {
+              "Key": "graphql.http.request.extensions",
+              "Value": "{\"test\":\"abc\"}"
             }
           ],
-          "event": [
-            {
-              "Name": "AddedOperationToCache",
-              "Tags": []
-            },
-            {
-              "Name": "AddedDocumentToCache",
-              "Tags": []
-            }
-          ],
+          "event": [],
           "activities": [
             {
-              "OperationName": "GraphQL Document Validation",
-              "DisplayName": "GraphQL Document Validation",
+              "OperationName": "Parse HTTP Request",
+              "DisplayName": "Parse HTTP Request",
+              "Kind": "Internal",
+              "Status": "Ok",
+              "tags": [],
+              "event": []
+            },
+            {
+              "OperationName": "GraphQL Operation",
+              "DisplayName": "query",
               "Kind": "Internal",
               "Status": "Ok",
               "tags": [
                 {
                   "Key": "graphql.processing.type",
-                  "Value": "validate"
-                },
-                {
-                  "Key": "graphql.document.hash",
-                  "Value": "md5:06731ff10fea3ec8e9b2aabceee6ddd9"
-                }
-              ],
-              "event": []
-            },
-            {
-              "OperationName": "GraphQL Complexity Analysis",
-              "DisplayName": "GraphQL Complexity Analysis",
-              "Kind": "Internal",
-              "Status": "Ok",
-              "tags": [
-                {
-                  "Key": "graphql.document.hash",
-                  "Value": "md5:06731ff10fea3ec8e9b2aabceee6ddd9"
-                },
-                {
-                  "Key": "graphql.operation.fieldCost",
-                  "Value": 1.0
-                },
-                {
-                  "Key": "graphql.operation.typeCost",
-                  "Value": 2.0
-                }
-              ],
-              "event": []
-            },
-            {
-              "OperationName": "GraphQL Operation Planning",
-              "DisplayName": "GraphQL Operation Planning",
-              "Kind": "Internal",
-              "Status": "Ok",
-              "tags": [
-                {
-                  "Key": "graphql.processing.type",
-                  "Value": "plan"
-                },
-                {
-                  "Key": "graphql.document.hash",
-                  "Value": "md5:06731ff10fea3ec8e9b2aabceee6ddd9"
-                },
-                {
-                  "Key": "graphql.operation.type",
-                  "Value": "query"
-                },
-                {
-                  "Key": "graphql.operation.name",
-                  "Value": "GetHero"
-                }
-              ],
-              "event": []
-            },
-            {
-              "OperationName": "GraphQL Operation Execution",
-              "DisplayName": "GraphQL Operation Execution",
-              "Kind": "Internal",
-              "Status": "Ok",
-              "tags": [
-                {
-                  "Key": "graphql.processing.type",
-                  "Value": "execute"
+                  "Value": "request"
                 },
                 {
                   "Key": "graphql.operation.type",
@@ -164,52 +108,151 @@
                   "Value": "md5:06731ff10fea3ec8e9b2aabceee6ddd9"
                 }
               ],
-              "event": [],
+              "event": [
+                {
+                  "Name": "AddedOperationToCache",
+                  "Tags": []
+                },
+                {
+                  "Name": "AddedDocumentToCache",
+                  "Tags": []
+                }
+              ],
               "activities": [
                 {
-                  "OperationName": "Query.hero",
-                  "DisplayName": "Query.hero",
+                  "OperationName": "GraphQL Document Validation",
+                  "DisplayName": "GraphQL Document Validation",
                   "Kind": "Internal",
                   "Status": "Ok",
                   "tags": [
                     {
                       "Key": "graphql.processing.type",
-                      "Value": "resolve"
+                      "Value": "validate"
                     },
                     {
-                      "Key": "graphql.field.alias",
-                      "Value": "hero"
-                    },
-                    {
-                      "Key": "graphql.field.path",
-                      "Value": "hero"
-                    },
-                    {
-                      "Key": "graphql.field.name",
-                      "Value": "hero"
-                    },
-                    {
-                      "Key": "graphql.field.schema_coordinate",
-                      "Value": "Query.hero"
-                    },
-                    {
-                      "Key": "graphql.field.parent_type",
-                      "Value": "Query"
+                      "Key": "graphql.document.hash",
+                      "Value": "md5:06731ff10fea3ec8e9b2aabceee6ddd9"
                     }
                   ],
                   "event": []
+                },
+                {
+                  "OperationName": "GraphQL Complexity Analysis",
+                  "DisplayName": "GraphQL Complexity Analysis",
+                  "Kind": "Internal",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.document.hash",
+                      "Value": "md5:06731ff10fea3ec8e9b2aabceee6ddd9"
+                    },
+                    {
+                      "Key": "graphql.operation.fieldCost",
+                      "Value": 1.0
+                    },
+                    {
+                      "Key": "graphql.operation.typeCost",
+                      "Value": 2.0
+                    }
+                  ],
+                  "event": []
+                },
+                {
+                  "OperationName": "GraphQL Operation Planning",
+                  "DisplayName": "GraphQL Operation Planning",
+                  "Kind": "Internal",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.processing.type",
+                      "Value": "plan"
+                    },
+                    {
+                      "Key": "graphql.document.hash",
+                      "Value": "md5:06731ff10fea3ec8e9b2aabceee6ddd9"
+                    },
+                    {
+                      "Key": "graphql.operation.type",
+                      "Value": "query"
+                    },
+                    {
+                      "Key": "graphql.operation.name",
+                      "Value": "GetHero"
+                    }
+                  ],
+                  "event": []
+                },
+                {
+                  "OperationName": "GraphQL Operation Execution",
+                  "DisplayName": "GraphQL Operation Execution",
+                  "Kind": "Internal",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.processing.type",
+                      "Value": "execute"
+                    },
+                    {
+                      "Key": "graphql.operation.type",
+                      "Value": "query"
+                    },
+                    {
+                      "Key": "graphql.operation.name",
+                      "Value": "GetHero"
+                    },
+                    {
+                      "Key": "graphql.document.hash",
+                      "Value": "md5:06731ff10fea3ec8e9b2aabceee6ddd9"
+                    }
+                  ],
+                  "event": [],
+                  "activities": [
+                    {
+                      "OperationName": "Query.hero",
+                      "DisplayName": "Query.hero",
+                      "Kind": "Internal",
+                      "Status": "Ok",
+                      "tags": [
+                        {
+                          "Key": "graphql.processing.type",
+                          "Value": "resolve"
+                        },
+                        {
+                          "Key": "graphql.field.alias",
+                          "Value": "hero"
+                        },
+                        {
+                          "Key": "graphql.field.path",
+                          "Value": "hero"
+                        },
+                        {
+                          "Key": "graphql.field.name",
+                          "Value": "hero"
+                        },
+                        {
+                          "Key": "graphql.field.schema_coordinate",
+                          "Value": "Query.hero"
+                        },
+                        {
+                          "Key": "graphql.field.parent_type",
+                          "Value": "Query"
+                        }
+                      ],
+                      "event": []
+                    }
+                  ]
                 }
               ]
+            },
+            {
+              "OperationName": "Format HTTP Response",
+              "DisplayName": "Format HTTP Response",
+              "Kind": "Internal",
+              "Status": "Ok",
+              "tags": [],
+              "event": []
             }
           ]
-        },
-        {
-          "OperationName": "Format HTTP Response",
-          "DisplayName": "Format HTTP Response",
-          "Kind": "Internal",
-          "Status": "Ok",
-          "tags": [],
-          "event": []
         }
       ]
     }

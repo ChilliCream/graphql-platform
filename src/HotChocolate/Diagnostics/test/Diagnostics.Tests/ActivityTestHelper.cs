@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using OpenTelemetry;
+using OpenTelemetry.Instrumentation.AspNetCore;
 using OpenTelemetry.Trace;
 
 namespace HotChocolate.Diagnostics;
@@ -19,6 +20,8 @@ public static partial class ActivityTestHelper
 
         var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddHotChocolateInstrumentation()
+            .AddAspNetCoreInstrumentation()
+            .AddSource("Experimental.ModelContextProtocol")
             .SetSampler(new AlwaysOnSampler())
             .AddInMemoryExporter(exported)
             .Build()!;
@@ -38,7 +41,7 @@ public static partial class ActivityTestHelper
             ["DisplayName"] = activity.DisplayName,
             ["Kind"] = activity.Kind,
             ["Status"] = activity.Status,
-            ["tags"] = activity.TagObjects,
+            ["tags"] = ScrubActivityTags(activity.TagObjects),
             ["event"] = activity.Events.Select(e => new
             {
                 e.Name,
@@ -54,6 +57,23 @@ public static partial class ActivityTestHelper
         }
 
         return data;
+    }
+
+    private static IEnumerable<KeyValuePair<string, object?>> ScrubActivityTags(
+        IEnumerable<KeyValuePair<string, object?>> tags)
+    {
+        foreach (var tag in tags)
+        {
+            if (tag.Key.Equals("mcp.session.id", StringComparison.Ordinal)
+                || tag.Key.Equals("jsonrpc.request.id", StringComparison.Ordinal))
+            {
+                yield return new KeyValuePair<string, object?>(tag.Key, "<scrubbed>");
+            }
+            else
+            {
+                yield return tag;
+            }
+        }
     }
 
     private static IEnumerable<KeyValuePair<string, object?>> ScrubEventTags(
