@@ -162,8 +162,6 @@ You can also apply annotations using the fluent descriptor API:
 
 ```csharp
 // Types/MutationType.cs
-using HotChocolate.Adapters.Mcp.Extensions;
-
 public class MutationType : ObjectType<Mutation>
 {
     protected override void Configure(
