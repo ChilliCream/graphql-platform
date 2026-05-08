@@ -193,6 +193,69 @@ public static class LookupTests
     }
 
     [Fact]
+    public static async Task Lookup_With_BatchResolver()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<Query6>()
+                .BuildSchemaAsync();
+
+        schema.MatchInlineSnapshot(
+            """"
+            schema {
+              query: Query6
+            }
+
+            type Query6 {
+              bookById(id: Int!): Book6 @lookup
+            }
+
+            type Book6 {
+              id: Int!
+              title: String!
+            }
+
+            """
+            The @lookup directive is used within a source schema to specify output fields
+            that can be used by the distributed GraphQL executor to resolve an entity by
+            a stable key.
+            """
+            directive @lookup on FIELD_DEFINITION
+            """");
+    }
+
+    [Fact]
+    public static async Task Lookup_With_BatchResolver_Executes()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<Query6>()
+                .ExecuteRequestAsync(
+                    """
+                    {
+                        bookById(id: 2) {
+                            id
+                            title
+                        }
+                    }
+                    """);
+
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "bookById": {
+                  "id": 2,
+                  "title": "Book 2"
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public static async Task Require_With_Explicit_Field()
     {
         var schema =
@@ -283,4 +346,23 @@ public static class LookupTests
         public string SomeField([Require("author")] string author)
             => author;
     }
+
+    public class Query6
+    {
+        [Lookup]
+        [BatchResolver]
+        public List<Book6> GetBookById(List<int> id)
+        {
+            var result = new List<Book6>();
+
+            foreach (var value in id)
+            {
+                result.Add(new Book6(value, $"Book {value}"));
+            }
+
+            return result;
+        }
+    }
+
+    public record Book6(int Id, string Title);
 }

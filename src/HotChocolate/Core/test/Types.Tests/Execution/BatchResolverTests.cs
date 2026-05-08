@@ -78,6 +78,46 @@ public class BatchResolverTests
     }
 
     [Fact]
+    public async Task BatchResolver_Should_Batch_Aliased_Field_Arguments()
+    {
+        // arrange
+        ProductByIdQuery.BatchCallCount = 0;
+
+        // act
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<ProductByIdQuery>()
+                .ExecuteRequestAsync(
+                    """
+                    {
+                        a: productById(id: 1) {
+                            name
+                        }
+                        b: productById(id: 2) {
+                            name
+                        }
+                    }
+                    """);
+
+        // assert
+        Assert.Equal(1, ProductByIdQuery.BatchCallCount);
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "a": {
+                  "name": "Product 1"
+                },
+                "b": {
+                  "name": "Product 2"
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task ResolveBatchWith_Expression_Should_Resolve()
     {
         var result =
@@ -1068,6 +1108,26 @@ public class BatchResolverTests
     }
 
     public record User(int Id, string Name) : IUser;
+
+    public record Product(int Id, string Name);
+
+    public class ProductByIdQuery
+    {
+        private static readonly Dictionary<int, Product> s_products = new()
+        {
+            { 1, new Product(1, "Product 1") },
+            { 2, new Product(2, "Product 2") }
+        };
+
+        public static int BatchCallCount { get; set; }
+
+        [BatchResolver]
+        public List<Product?> GetProductById(List<int> id)
+        {
+            BatchCallCount++;
+            return id.Select(t => s_products.GetValueOrDefault(t)).ToList();
+        }
+    }
 
     public class AnnotatedQuery
     {

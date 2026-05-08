@@ -191,7 +191,7 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
             {
                 var field = QueryType.Fields[fieldName];
                 var feature = type.Features.GetOrSet<NodeTypeFeature>();
-                feature.NodeResolver = new NodeResolverInfo(field, field.Middleware);
+                feature.NodeResolver = new NodeResolverInfo(field, field.Middleware, field.BatchResolver);
             }
         }
     }

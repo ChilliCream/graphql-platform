@@ -132,6 +132,11 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
                 new FieldMiddlewareConfiguration(
                     CreatePagingValidationMiddleware(),
                     key: Paging));
+            definition.BatchMiddlewareConfigurations.Add(
+                new BatchFieldMiddlewareConfiguration(
+                    CreateBatchPagingValidationMiddleware(),
+                    key: Paging));
+            definition.BatchPartitionKeyResolver = PagingHelper.GetPagingBatchPartitionKey;
             definition.Tasks.Add(
                 new OnCreateTypeSystemConfigurationTask(
                     (_, d) => d.Features.Set(options), definition));
@@ -176,6 +181,19 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
             ValidateContext(context, options);
             PublishPagingArguments(context, options);
             return next(context);
+        };
+
+    private static BatchFieldMiddleware CreateBatchPagingValidationMiddleware()
+        => next => async contexts =>
+        {
+            foreach (var context in contexts)
+            {
+                var options = PagingHelper.GetPagingOptions(context.Schema, context.Selection.Field);
+                ValidateContext(context, options);
+                PublishPagingArguments(context, options);
+            }
+
+            await next(contexts).ConfigureAwait(false);
         };
 
     private static void ValidateContext(

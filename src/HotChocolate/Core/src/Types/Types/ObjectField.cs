@@ -41,6 +41,8 @@ public sealed class ObjectField : OutputField
         SubscribeResolver = original.SubscribeResolver;
         ResultPostProcessor = original.ResultPostProcessor;
         PureResolver = original.PureResolver;
+        BatchResolver = original.BatchResolver;
+        BatchPartitionKeyResolver = original.BatchPartitionKeyResolver;
         DependencyInjectionScope = original.DependencyInjectionScope;
         Middleware = original.Middleware;
         Flags = original.Flags;
@@ -102,6 +104,8 @@ public sealed class ObjectField : OutputField
     /// Gets the batch resolver.
     /// </summary>
     public BatchFieldDelegate? BatchResolver { get; private set; }
+
+    internal BatchPartitionKeyResolver? BatchPartitionKeyResolver { get; private set; }
 
     /// <summary>
     /// Gets the result post-processor.
@@ -229,6 +233,7 @@ public sealed class ObjectField : OutputField
         // Compile the batch resolver pipeline if a batch resolver is configured.
         if (definition.BatchResolver is not null)
         {
+            BatchPartitionKeyResolver = definition.BatchPartitionKeyResolver;
             BatchResolver = CompileBatchPipeline(
                 definition.GetBatchMiddlewareDefinitions(),
                 definition.BatchResolver);

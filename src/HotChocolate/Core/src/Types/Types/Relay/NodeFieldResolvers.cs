@@ -33,8 +33,7 @@ internal static class NodeFieldResolvers
             var typeConverter = context.Service<ITypeConverter>();
             SetLocalContext(context, nodeId, deserializedId, type);
             TryReplaceArguments(context, feature.NodeResolver, Id, nodeId);
-            await feature.NodeResolver.Pipeline.Invoke(context);
-            context.Result = CoerceResult(context.Result, type, typeConverter);
+            context.Result = await ExecutePipelineAsync(context, type, feature.NodeResolver, typeConverter);
         }
         else
         {
@@ -178,17 +177,24 @@ internal static class NodeFieldResolvers
 
             context.Result = results;
         }
-        return;
+    }
 
-        static async Task<object?> ExecutePipelineAsync(
-            IMiddlewareContext nodeResolverContext,
-            ObjectType type,
-            NodeResolverInfo nodeResolverInfo,
-            ITypeConverter typeConverter)
+    private static async Task<object?> ExecutePipelineAsync(
+        IMiddlewareContext nodeResolverContext,
+        ObjectType type,
+        NodeResolverInfo nodeResolverInfo,
+        ITypeConverter typeConverter)
+    {
+        if (nodeResolverInfo.BatchPipeline is { } batchPipeline)
+        {
+            await batchPipeline([nodeResolverContext]).ConfigureAwait(false);
+        }
+        else
         {
             await nodeResolverInfo.Pipeline.Invoke(nodeResolverContext).ConfigureAwait(false);
-            return CoerceResult(nodeResolverContext.Result, type, typeConverter);
         }
+
+        return CoerceResult(nodeResolverContext.Result, type, typeConverter);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

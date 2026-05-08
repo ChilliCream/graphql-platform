@@ -10,9 +10,18 @@ internal sealed partial class WorkScheduler : IObserver<BatchDispatchEventArgs>
     /// <summary>
     /// Execute the work.
     /// </summary>
-    public async Task ExecuteAsync1()
+    public async Task ExecuteAsync()
     {
         AssertNotPooled();
+
+        // Flush any batch entries that were registered while the root selection set
+        // was being enqueued. Root batches have no ancestor task whose completion
+        // would trigger DecrementPathCountUnsafe, so the engine self-kicks here
+        // before entering the work loop.
+        lock (_sync)
+        {
+            TryDispatchPendingBatchesUnsafe();
+        }
 
         try
         {

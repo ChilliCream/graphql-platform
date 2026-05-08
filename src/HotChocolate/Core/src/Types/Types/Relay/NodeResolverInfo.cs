@@ -9,7 +9,8 @@ namespace HotChocolate.Types.Relay;
 /// </summary>
 internal sealed class NodeResolverInfo(
     ObjectField? resolverField,
-    FieldDelegate pipeline)
+    FieldDelegate pipeline,
+    BatchFieldDelegate? batchPipeline = null)
 {
     /// <summary>
     /// Gets the ID argument for a query field that doubles as node resolver.
@@ -21,6 +22,11 @@ internal sealed class NodeResolverInfo(
     /// Gets the node resolver pipeline.
     /// </summary>
     public FieldDelegate Pipeline { get; } = pipeline;
+
+    /// <summary>
+    /// Gets the node resolver batch pipeline.
+    /// </summary>
+    public BatchFieldDelegate? BatchPipeline { get; } = batchPipeline;
 
     /// <summary>
     /// Gets the query field from which we inferred the node resolver.

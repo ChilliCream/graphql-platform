@@ -1,6 +1,9 @@
+using System.Buffers;
+using System.Buffers.Binary;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using System.Text;
 using HotChocolate.Configuration;
 using HotChocolate.Features;
 using HotChocolate.Internal;
@@ -17,6 +20,14 @@ namespace HotChocolate.Types.Pagination;
 /// </summary>
 public static class PagingHelper
 {
+    private const int MaxStackallocPartitionKeySize = 256;
+    private const ulong Fnv64OffsetBasis = 14695981039346656037;
+    private const ulong Fnv64Prime = 1099511628211;
+    private const string FirstArgumentName = "first";
+    private const string AfterArgumentName = "after";
+    private const string LastArgumentName = "last";
+    private const string BeforeArgumentName = "before";
+
     internal static IObjectFieldDescriptor UsePaging(
         IObjectFieldDescriptor descriptor,
         Type? entityType,
@@ -26,9 +37,11 @@ public static class PagingHelper
         ArgumentNullException.ThrowIfNull(descriptor);
 
         FieldMiddlewareConfiguration placeholder = new(_ => _ => default, key: Paging);
+        BatchFieldMiddlewareConfiguration batchPlaceholder = new(_ => _ => default, key: Paging);
 
         var definition = descriptor.Extend().Configuration;
         definition.MiddlewareConfigurations.Add(placeholder);
+        definition.BatchMiddlewareConfigurations.Add(batchPlaceholder);
         definition.Tasks.Add(
             new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
                 (c, d) => ApplyConfiguration(
@@ -38,7 +51,8 @@ public static class PagingHelper
                     options?.ProviderName,
                     resolvePagingProvider,
                     options,
-                    placeholder),
+                    placeholder,
+                    batchPlaceholder),
                 definition,
                 ApplyConfigurationOn.BeforeCompletion));
 
@@ -52,7 +66,8 @@ public static class PagingHelper
         string? name,
         GetPagingProvider resolvePagingProvider,
         PagingOptions? options,
-        FieldMiddlewareConfiguration placeholder)
+        FieldMiddlewareConfiguration placeholder,
+        BatchFieldMiddlewareConfiguration batchPlaceholder)
     {
         options = context.GetPagingOptions(options);
         entityType ??= context.GetType<IOutputType>(definition.Type!).ToRuntimeType();
@@ -63,9 +78,14 @@ public static class PagingHelper
         var pagingProvider = resolvePagingProvider(context.Services, source, name);
         var pagingHandler = pagingProvider.CreateHandler(source, options);
         var middleware = CreateMiddleware(pagingHandler);
+        var batchMiddleware = CreateBatchMiddleware(pagingHandler);
 
         var index = definition.MiddlewareConfigurations.IndexOf(placeholder);
         definition.MiddlewareConfigurations[index] = new(middleware, key: Paging);
+
+        var batchIndex = definition.BatchMiddlewareConfigurations.IndexOf(batchPlaceholder);
+        definition.BatchMiddlewareConfigurations[batchIndex] = new(batchMiddleware, key: Paging);
+        definition.BatchPartitionKeyResolver = GetPagingBatchPartitionKey;
         definition.Features.Set(options);
     }
 
@@ -114,6 +134,167 @@ public static class PagingHelper
             var middleware = new PagingMiddleware(next, handler);
             return context => middleware.InvokeAsync(context);
         };
+
+    private static BatchFieldMiddleware CreateBatchMiddleware(IPagingHandler handler)
+        => next => async contexts =>
+        {
+            foreach (var context in contexts)
+            {
+                handler.ValidateContext(context);
+                handler.PublishPagingArguments(context);
+            }
+
+            await next(contexts).ConfigureAwait(false);
+
+            foreach (var context in contexts)
+            {
+                if (context.Result is IFieldResult { IsError: true })
+                {
+                    continue;
+                }
+
+                if (context.Result is IFieldResult fieldResult)
+                {
+                    context.Result = fieldResult.Value;
+                }
+
+                if (context.Result is not null and not IPage)
+                {
+                    context.Result = await handler
+                        .SliceAsync(context, context.Result)
+                        .ConfigureAwait(false);
+                }
+            }
+        };
+
+    internal static ulong GetPagingBatchPartitionKey(IMiddlewareContext context)
+    {
+        var options = GetPagingOptions(context.Schema, context.Selection.Field);
+        var first = context.ArgumentValue<int?>(FirstArgumentName);
+        var after = context.ArgumentValue<string?>(AfterArgumentName);
+        int? last = null;
+        string? before = null;
+
+        if (options.AllowBackwardPagination ?? PagingDefaults.AllowBackwardPagination)
+        {
+            last = context.ArgumentValue<int?>(LastArgumentName);
+            before = context.ArgumentValue<string?>(BeforeArgumentName);
+        }
+
+        var flags = ConnectionFlagsHelper.GetConnectionFlags(context);
+
+        if (first is null
+            && after is null
+            && last is null
+            && before is null
+            && flags is ConnectionFlags.None)
+        {
+            return 0;
+        }
+
+        var length =
+            GetIntPartitionKeySize(first)
+            + GetStringPartitionKeySize(after)
+            + GetIntPartitionKeySize(last)
+            + GetStringPartitionKeySize(before)
+            + GetFlagsPartitionKeySize(flags);
+        byte[]? rented = null;
+        Span<byte> buffer = length <= MaxStackallocPartitionKeySize
+            ? stackalloc byte[length]
+            : rented = ArrayPool<byte>.Shared.Rent(length);
+
+        try
+        {
+            var written = 0;
+            written = WriteIntPartitionKey(buffer, written, (byte)'f', first);
+            written = WriteStringPartitionKey(buffer, written, (byte)'a', after);
+            written = WriteIntPartitionKey(buffer, written, (byte)'l', last);
+            written = WriteStringPartitionKey(buffer, written, (byte)'b', before);
+            written = WriteFlagsPartitionKey(buffer, written, flags);
+
+            var hash = ComputePartitionKeyHash(buffer[..written]);
+            // 0 is the sentinel for the default partition.
+            return hash == 0 ? 1 : hash;
+        }
+        finally
+        {
+            if (rented is not null)
+            {
+                ArrayPool<byte>.Shared.Return(rented);
+            }
+        }
+    }
+
+    private static int GetIntPartitionKeySize(int? value)
+        => value.HasValue ? 5 : 0;
+
+    private static int GetStringPartitionKeySize(string? value)
+        => value is null ? 0 : 5 + Encoding.UTF8.GetByteCount(value);
+
+    private static int GetFlagsPartitionKeySize(ConnectionFlags flags)
+        => flags is ConnectionFlags.None ? 0 : 5;
+
+    private static int WriteIntPartitionKey(
+        Span<byte> buffer,
+        int offset,
+        byte tag,
+        int? value)
+    {
+        if (!value.HasValue)
+        {
+            return offset;
+        }
+
+        buffer[offset++] = tag;
+        BinaryPrimitives.WriteInt32LittleEndian(buffer[offset..], value.GetValueOrDefault());
+        return offset + 4;
+    }
+
+    private static int WriteStringPartitionKey(
+        Span<byte> buffer,
+        int offset,
+        byte tag,
+        string? value)
+    {
+        if (value is null)
+        {
+            return offset;
+        }
+
+        buffer[offset++] = tag;
+        var length = Encoding.UTF8.GetByteCount(value);
+        BinaryPrimitives.WriteInt32LittleEndian(buffer[offset..], length);
+        offset += 4;
+        return offset + Encoding.UTF8.GetBytes(value, buffer[offset..]);
+    }
+
+    private static int WriteFlagsPartitionKey(
+        Span<byte> buffer,
+        int offset,
+        ConnectionFlags flags)
+    {
+        if (flags is ConnectionFlags.None)
+        {
+            return offset;
+        }
+
+        buffer[offset++] = (byte)'c';
+        BinaryPrimitives.WriteInt32LittleEndian(buffer[offset..], (int)flags);
+        return offset + 4;
+    }
+
+    private static ulong ComputePartitionKeyHash(ReadOnlySpan<byte> buffer)
+    {
+        var hash = Fnv64OffsetBasis;
+
+        foreach (var value in buffer)
+        {
+            hash ^= value;
+            hash *= Fnv64Prime;
+        }
+
+        return hash;
+    }
 
     [RequiresDynamicCode("Uses MakeGenericType to create generic schema types at runtime.")]
     internal static IExtendedType GetSchemaType(

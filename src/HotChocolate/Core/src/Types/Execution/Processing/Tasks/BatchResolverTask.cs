@@ -289,6 +289,77 @@ internal sealed class BatchResolverTask : IResolverTask
             }
         }
 
+        if (_field.BatchPartitionKeyResolver is { } partitioner && contexts.Length > 1)
+        {
+            await ExecutePartitionedBatchPipelineAsync(contexts, partitioner, cancellationToken)
+                .ConfigureAwait(false);
+        }
+        else
+        {
+            await ExecuteSingleBatchPipelineAsync(contexts, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    private async ValueTask ExecutePartitionedBatchPipelineAsync(
+        ImmutableArray<IMiddlewareContext> contexts,
+        BatchPartitionKeyResolver partitioner,
+        CancellationToken cancellationToken)
+    {
+        var firstKey = partitioner(contexts[0]);
+        Dictionary<ulong, ImmutableArray<IMiddlewareContext>.Builder>? partitions = null;
+
+        for (var i = 1; i < contexts.Length; i++)
+        {
+            var key = partitioner(contexts[i]);
+
+            if (partitions is null)
+            {
+                if (key == firstKey)
+                {
+                    continue;
+                }
+
+                partitions = [];
+                var firstPartition = ImmutableArray.CreateBuilder<IMiddlewareContext>(i);
+
+                for (var j = 0; j < i; j++)
+                {
+                    firstPartition.Add(contexts[j]);
+                }
+
+                partitions.Add(firstKey, firstPartition);
+            }
+
+            ref var partition = ref CollectionsMarshal.GetValueRefOrAddDefault(
+                partitions,
+                key,
+                out var exists);
+
+            if (!exists)
+            {
+                partition = ImmutableArray.CreateBuilder<IMiddlewareContext>();
+            }
+
+            partition!.Add(contexts[i]);
+        }
+
+        if (partitions is null)
+        {
+            await ExecuteSingleBatchPipelineAsync(contexts, cancellationToken).ConfigureAwait(false);
+            return;
+        }
+
+        foreach (var partition in partitions.Values)
+        {
+            await ExecuteSingleBatchPipelineAsync(partition.ToImmutable(), cancellationToken)
+                .ConfigureAwait(false);
+        }
+    }
+
+    private async ValueTask ExecuteSingleBatchPipelineAsync(
+        ImmutableArray<IMiddlewareContext> contexts,
+        CancellationToken cancellationToken)
+    {
         await _field.BatchResolver!(contexts).ConfigureAwait(false);
 
         // Post-process results for each context.

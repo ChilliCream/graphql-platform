@@ -480,6 +480,54 @@ public class PagingTests
     }
 
     [Fact]
+    public async Task GenerateSource_BatchResolver_PageConnection_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using GreenDonut.Data;
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Pagination;
+
+            namespace TestNamespace;
+
+            public sealed class Brand
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            public sealed class Product
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+                public int? BrandId { get; set; }
+            }
+
+            public sealed class ProductContext
+            {
+                public IQueryable<Product> Products => default!;
+            }
+
+            [ObjectType<Brand>]
+            public static partial class BrandNode
+            {
+                [BatchResolver]
+                public static Task<List<PageConnection<Product>>> GetProductsAsync(
+                    [Parent] List<Brand> brands,
+                    PagingArguments arguments,
+                    ProductContext context,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
     public async Task GenerateSource_Inherit_From_ConnectionBase_Reuse_PageEdge()
     {
         await TestHelper.GetGeneratedSourceSnapshot(

@@ -4,6 +4,7 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Tests;
+using HotChocolate.Types.Composite;
 using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -254,6 +255,40 @@ public class NodeResolverTests
     }
 
     [Fact]
+    public async Task NodeResolver_On_Query_Field_With_BatchResolver_Schema()
+    {
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWithBatchNodeResolver>()
+            .AddType<BatchEntity>()
+            .AddGlobalObjectIdentification()
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task NodeResolver_On_Query_Field_With_BatchResolver_Fetch_Through_Node_Field()
+    {
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWithBatchNodeResolver>()
+            .AddType<BatchEntity>()
+            .AddGlobalObjectIdentification()
+            .ExecuteRequestAsync(
+                """
+                {
+                    node(id: "QmF0Y2hFbnRpdHk6YWJj") {
+                        ... on BatchEntity {
+                            id
+                            name
+                        }
+                    }
+                }
+                """)
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
     public async Task NodeAttribute_On_Extension_Fetch_Through_Node_Field_With_NonId_Argument_Name()
     {
         var result = await new ServiceCollection()
@@ -337,6 +372,35 @@ public class NodeResolverTests
         public Entity GetEntity(string name) => new Entity { Name = name };
 
         public Entity2 GetEntity2(string name) => new Entity2 { Name = name };
+    }
+
+    public class QueryWithBatchNodeResolver
+    {
+        [Lookup]
+        [NodeResolver]
+        [BatchResolver]
+        public List<BatchEntity> GetBatchEntity(List<string> id)
+        {
+            var result = new List<BatchEntity>();
+
+            foreach (var value in id)
+            {
+                result.Add(new BatchEntity { Name = value });
+            }
+
+            return result;
+        }
+    }
+
+    public class BatchEntity
+    {
+        public string Id
+        {
+            get => Name;
+            set => Name = value;
+        }
+
+        public required string Name { get; set; }
     }
 
     public class EntityType : ObjectType<Entity>

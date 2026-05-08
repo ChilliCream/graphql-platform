@@ -18,7 +18,8 @@ public sealed class Resolver
         ImmutableArray<MemberBinding> bindings,
         SchemaTypeReference schemaTypeRef,
         ResolverKind kind = ResolverKind.Default,
-        FieldFlags flags = FieldFlags.None)
+        FieldFlags flags = FieldFlags.None,
+        bool isConnectionResolver = false)
     {
         TypeName = typeName;
         Member = member;
@@ -31,6 +32,7 @@ public sealed class Resolver
         Bindings = bindings;
         Kind = kind;
         Flags = flags;
+        IsConnectionResolver = isConnectionResolver;
 
         if (description is MethodDescription m && parameters.Length == m.ParameterDescriptions.Length)
         {
@@ -79,6 +81,8 @@ public sealed class Resolver
 
     public ResolverKind Kind { get; }
 
+    public bool IsConnectionResolver { get; }
+
     public FieldFlags Flags { get; }
 
     public ResolverResultKind ResultKind { get; }
@@ -108,5 +112,6 @@ public sealed class Resolver
             Bindings,
             schemaTypeRef,
             Kind,
-            Flags);
+            Flags,
+            IsConnectionResolver);
 }
