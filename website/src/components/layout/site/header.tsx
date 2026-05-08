@@ -182,11 +182,14 @@ const Container = styled.header`
   display: flex;
   justify-content: center;
   box-sizing: border-box;
-  border-bottom: 1px solid ${THEME_COLORS.boxBorder};
+  border-bottom: 1px solid var(--cc-ink-faint, ${THEME_COLORS.boxBorder});
   width: 100%;
   height: 72px;
 
-  ${ApplyBackdropBlur(48, `background-color: ${THEME_COLORS.backgroundMenu};`)}
+  ${ApplyBackdropBlur(
+    18,
+    `background-color: var(--cc-header-bg, rgba(11, 15, 26, 0.7));`
+  )}
 `;
 
 const ContainerWrapper = styled.div`
@@ -1472,22 +1475,22 @@ const LaunchLink = styled(Link)`
   display: flex;
   flex: 0 0 auto;
   align-items: center;
+  justify-content: center;
   box-sizing: border-box;
-  border-radius: var(--button-border-radius);
+  border: none;
+  border-radius: 999px;
   height: 38px;
-  padding: 0 30px;
-  border: 2px solid ${THEME_COLORS.primaryButtonBorder};
+  padding: 0 22px;
   color: ${THEME_COLORS.primaryButtonText};
   background-color: ${THEME_COLORS.primaryButton};
   font-family: ${FONT_FAMILY_HEADING};
   font-size: 0.875rem;
   text-decoration: none;
   font-weight: 500;
-  transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out,
-    color 0.2s ease-in-out;
+  transition: transform 0.12s ease, background-color 0.12s ease;
 
   :hover {
-    border-color: ${THEME_COLORS.primaryButtonBorder};
+    transform: translateY(-1px);
     color: ${THEME_COLORS.primaryButtonHoverText};
     background-color: ${THEME_COLORS.primaryButtonHover};
   }

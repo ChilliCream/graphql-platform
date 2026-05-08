@@ -1,0 +1,572 @@
+- generic [active] [ref=e1]:
+  - link "Skip to content":
+    - /url: "#geist-skip-nav"
+  - alert [ref=e2]
+  - generic [ref=e3]:
+    - banner [ref=e5]:
+      - generic [ref=e6]:
+        - link [ref=e8] [cursor=pointer]:
+          - /url: /home
+          - img [ref=e9]
+        - navigation "Main" [ref=e14]:
+          - list [ref=e16]:
+            - listitem [ref=e17]:
+              - button "Products" [ref=e18] [cursor=pointer]:
+                - text: Products
+                - generic:
+                  - img
+              - generic:
+                - list:
+                  - listitem:
+                    - heading [level=5]:
+                      - link:
+                        - /url: /ai
+                        - text: AI Cloud
+                    - list:
+                      - listitem:
+                        - link:
+                          - /url: /ai-gateway
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: AI Gateway
+                            - paragraph: One endpoint, all your models
+                      - listitem:
+                        - link:
+                          - /url: /sandbox
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Sandbox
+                            - paragraph: Isolated, safe code execution
+                      - listitem:
+                        - link:
+                          - /url: /agent
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Vercel Agent
+                            - paragraph: An agent that knows your stack
+                      - listitem:
+                        - link:
+                          - /url: https://sdk.vercel.ai/
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: AI SDK
+                            - paragraph: The AI Toolkit for TypeScript
+                      - listitem:
+                        - link:
+                          - /url: https://v0.app
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: v0
+                            - paragraph: Build applications with AI
+                  - listitem:
+                    - heading [level=5]: Core Platform
+                    - list:
+                      - listitem:
+                        - link:
+                          - /url: /products/previews
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: CI/CD
+                            - paragraph: Helping teams ship 6× faster
+                      - listitem:
+                        - link:
+                          - /url: /cdn
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Content Delivery
+                            - paragraph: Fast, scalable, and reliable
+                      - listitem:
+                        - link:
+                          - /url: /fluid
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Fluid Compute
+                            - paragraph: Servers, in serverless form
+                      - listitem:
+                        - link:
+                          - /url: /workflows
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Workflow
+                            - paragraph: Long-running workflows at scale
+                      - listitem:
+                        - link:
+                          - /url: /products/observability
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Observability
+                            - paragraph: Trace every step
+                  - listitem:
+                    - heading [level=5]:
+                      - link:
+                        - /url: /security
+                        - text: Security
+                    - list:
+                      - listitem:
+                        - link:
+                          - /url: /security/bot-management
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Bot Management
+                            - paragraph: Scalable bot protection
+                      - listitem:
+                        - link:
+                          - /url: /botid
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: BotID
+                            - paragraph: Invisible CAPTCHA
+                      - listitem:
+                        - link:
+                          - /url: /security
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Platform Security
+                            - paragraph: DDoS Protection, Firewall
+                      - listitem:
+                        - link:
+                          - /url: /security/web-application-firewall
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Web Application Firewall
+                            - paragraph: Granular, custom protection
+            - listitem [ref=e19]:
+              - button "Resources" [ref=e20] [cursor=pointer]:
+                - text: Resources
+                - generic:
+                  - img
+              - generic:
+                - list:
+                  - listitem:
+                    - heading [level=5]: Company
+                    - list:
+                      - listitem:
+                        - link:
+                          - /url: /customers
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Customers
+                            - paragraph: Trusted by the best teams
+                      - listitem:
+                        - link:
+                          - /url: /blog
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Blog
+                            - paragraph: The latest posts and changes
+                      - listitem:
+                        - link:
+                          - /url: /changelog
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Changelog
+                            - paragraph: See what shipped
+                      - listitem:
+                        - link:
+                          - /url: /press
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Press
+                            - paragraph: Read the latest news
+                      - listitem:
+                        - link:
+                          - /url: /events
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Events
+                            - paragraph: Join us at an event
+                  - listitem:
+                    - heading [level=5]: Learn
+                    - list:
+                      - listitem:
+                        - link:
+                          - /url: /docs
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Docs
+                            - paragraph: Vercel documentation
+                      - listitem:
+                        - link:
+                          - /url: /academy
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Academy
+                            - paragraph: Linear courses to level up
+                      - listitem:
+                        - link:
+                          - /url: /kb
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Knowledge Base
+                            - paragraph: Find help quickly
+                      - listitem:
+                        - link:
+                          - /url: https://community.vercel.com/
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Community
+                            - paragraph: Join the conversation
+                  - listitem:
+                    - heading [level=5]: Open Source
+                    - list:
+                      - listitem:
+                        - link:
+                          - /url: /frameworks/nextjs
+                          - generic:
+                            - generic:
+                              - img
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Next.js
+                            - paragraph: The native Next.js platform
+                      - listitem:
+                        - link:
+                          - /url: https://nuxt.com/
+                          - generic:
+                            - generic:
+                              - img
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Nuxt
+                            - paragraph: The progressive web framework
+                      - listitem:
+                        - link:
+                          - /url: https://svelte.dev/
+                          - generic:
+                            - generic:
+                              - img
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Svelte
+                            - paragraph: The web’s efficient UI framework
+                      - listitem:
+                        - link:
+                          - /url: /solutions/turborepo
+                          - generic:
+                            - generic:
+                              - img
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Turborepo
+                            - paragraph: Speed with Enterprise scale
+            - listitem [ref=e21]:
+              - button "Solutions" [ref=e22] [cursor=pointer]:
+                - text: Solutions
+                - generic:
+                  - img
+              - generic:
+                - list:
+                  - listitem:
+                    - heading [level=5]: Use Cases
+                    - list:
+                      - listitem:
+                        - link:
+                          - /url: /ai
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: AI Apps
+                            - paragraph: Deploy at the speed of AI
+                      - listitem:
+                        - link:
+                          - /url: /solutions/composable-commerce
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Composable Commerce
+                            - paragraph: Power storefronts that convert
+                      - listitem:
+                        - link:
+                          - /url: /solutions/marketing-sites
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Marketing Sites
+                            - paragraph: Launch campaigns fast
+                      - listitem:
+                        - link:
+                          - /url: /solutions/multi-tenant-saas
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Multi-tenant Platforms
+                            - paragraph: Scale apps with one codebase
+                      - listitem:
+                        - link:
+                          - /url: /solutions/web-apps
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Web Apps
+                            - paragraph: Ship features, not infrastructure
+                  - listitem:
+                    - heading [level=5]: Tools
+                    - list:
+                      - listitem:
+                        - link:
+                          - /url: /marketplace
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Marketplace
+                            - paragraph: Extend and automate workflows
+                      - listitem:
+                        - link:
+                          - /url: /templates
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Templates
+                            - paragraph: Jumpstart app development
+                      - listitem:
+                        - link:
+                          - /url: /partners/solution-partners
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Partner Finder
+                            - paragraph: Get help from solution partners
+                  - listitem:
+                    - heading [level=5]: Users
+                    - list:
+                      - listitem:
+                        - link:
+                          - /url: /solutions/platform-engineering
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Platform Engineers
+                            - paragraph: Automate away repetition
+                      - listitem:
+                        - link:
+                          - /url: /solutions/design-engineering
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Design Engineers
+                            - paragraph: Deploy for every idea
+            - listitem [ref=e23]:
+              - link "Enterprise" [ref=e24] [cursor=pointer]:
+                - /url: /enterprise
+            - listitem [ref=e25]:
+              - link "Pricing" [ref=e26] [cursor=pointer]:
+                - /url: /pricing
+      - generic [ref=e30]:
+        - generic [ref=e31]:
+          - link "Log In" [ref=e32] [cursor=pointer]:
+            - /url: /login
+          - link "Contact" [ref=e33] [cursor=pointer]:
+            - /url: /contact/sales
+            - generic [ref=e34]: Contact
+        - link "Sign Up" [ref=e35] [cursor=pointer]:
+          - /url: /signup
+          - generic [ref=e36]: Sign Up
+    - main [ref=e38]:
+      - generic [ref=e39]:
+        - generic [ref=e44]:
+          - link "Back to Marketplace" [ref=e46] [cursor=pointer]:
+            - /url: /marketplace
+            - img [ref=e47]
+            - generic [ref=e49]: Back to Marketplace
+          - generic [ref=e50]:
+            - generic [ref=e52]:
+              - img [ref=e54]
+              - heading "Datadog" [level=1] [ref=e55]
+            - generic [ref=e56]:
+              - button "Connect Account" [disabled] [ref=e58]:
+                - generic [ref=e59]: Connect Account
+              - link "Datadog Support" [ref=e60] [cursor=pointer]:
+                - /url: mailto:support@vercel.com
+                - generic [ref=e61]: Datadog Support
+                - img [ref=e63]
+              - button "Copy integration link" [ref=e66] [cursor=pointer]:
+                - img [ref=e68]
+        - generic [ref=e72]:
+          - generic [ref=e73]:
+            - generic [ref=e74]:
+              - heading "Installs" [level=4] [ref=e75]
+              - generic [ref=e76]:
+                - img [ref=e77]
+                - generic [ref=e79]: 1000+ installs
+            - generic [ref=e80]:
+              - heading "Categories" [level=4] [ref=e81]
+              - link "Observability" [ref=e83] [cursor=pointer]:
+                - /url: /marketplace/category/observability
+                - img [ref=e84]
+                - generic [ref=e86]: Observability
+            - generic [ref=e87]:
+              - heading "Type" [level=4] [ref=e88]
+              - generic [ref=e89]:
+                - generic [ref=e90]:
+                  - img [ref=e91]
+                  - generic [ref=e93]: Third Party
+                - generic [ref=e97]: Pro / Enterprise
+            - generic [ref=e98]:
+              - heading "Resources" [level=4] [ref=e99]
+              - generic [ref=e100]:
+                - link "Documentation" [ref=e101] [cursor=pointer]:
+                  - /url: https://docs.datadoghq.com/integrations/vercel/
+                  - img [ref=e102]
+                  - text: Documentation
+                - link "Terms" [ref=e104] [cursor=pointer]:
+                  - /url: https://www.datadoghq.com/legal/eula/
+                  - img [ref=e105]
+                  - text: Terms
+                - link "Privacy Policy" [ref=e107] [cursor=pointer]:
+                  - /url: https://www.datadoghq.com/legal/privacy/
+                  - img [ref=e108]
+                  - text: Privacy Policy
+                - link "Website" [ref=e111] [cursor=pointer]:
+                  - /url: https://www.datadoghq.com/product/
+                  - img [ref=e112]
+                  - text: Website
+          - generic [ref=e114]:
+            - generic [ref=e115]:
+              - generic [ref=e116]: Preview
+              - generic [ref=e121]:
+                - button [ref=e122] [cursor=pointer]
+                - button [ref=e123] [cursor=pointer]
+                - button [ref=e124] [cursor=pointer]
+                - button [ref=e125] [cursor=pointer]
+                - button [ref=e126] [cursor=pointer]
+            - generic [ref=e127]:
+              - generic [ref=e128]: Overview
+              - paragraph [ref=e130]:
+                - text: Datadog’s Vercel integration enables you to ingest your functions’
+                - link "logs" [ref=e131] [cursor=pointer]:
+                  - /url: https://www.datadoghq.com/product/log-management/
+                - text: for analysis and storage. Datadog also provides
+                - link "Real User Monitoring" [ref=e132] [cursor=pointer]:
+                  - /url: https://www.datadoghq.com/product/real-user-monitoring/
+                - text: to monitor performance and understand user behavior, which can be integrated into and
+                - link "Synthetic Monitoring" [ref=e133] [cursor=pointer]:
+                  - /url: https://www.datadoghq.com/product/synthetic-monitoring/
+                - text: which can be integrated directly with your applications.
+            - generic [ref=e134]:
+              - generic [ref=e135]: Instructions
+              - generic [ref=e136]:
+                - paragraph [ref=e137]: Once you set up the integration, logs from your Vercel functions will begin to stream your logs into Datadog. Our Vercel dashboard provides summary metrics, and an access point to drill down into your logs.
+                - paragraph [ref=e138]: You will be able to manage, analyze and archive your Vercel logs alongside logs from across your infrastructure. Datadog's logs overview visualizes key log data including total requests over time — a useful heuristic for traffic volume within your Vercel Functions–powered backend — along with 4xx and 5xx error log counts. This provides a high-level overview of the performance of your functions. You can also define additional custom metrics based on your logs for easier monitoring and alerting, and longer retention.
+                - paragraph [ref=e139]: Datadog APM enables you to visualize and understand the performance of your Vercel functions in depth. Get code-level insights and conduct targeted root cause analysis to understand how your functions are interacting with downstream services.
+            - generic [ref=e140]:
+              - generic [ref=e142]: Pro / Enterprise
+              - paragraph [ref=e143]: This integration offers additional features for Pro and Enterprise plans.
+    - contentinfo [ref=e144]:
+      - navigation "Vercel Directory" [ref=e145]:
+        - generic [ref=e146]:
+          - link "Vercel logo" [ref=e147] [cursor=pointer]:
+            - /url: /home
+            - img "Vercel logo" [ref=e148]
+          - list [ref=e150]:
+            - listitem [ref=e151]:
+              - link "Home" [ref=e152] [cursor=pointer]:
+                - /url: /home
+            - listitem [ref=e153]:
+              - link "Docs" [ref=e154] [cursor=pointer]:
+                - /url: /docs
+            - listitem [ref=e155]:
+              - link "Knowledge Base" [ref=e156] [cursor=pointer]:
+                - /url: /kb
+            - listitem [ref=e157]:
+              - link "Academy" [ref=e158] [cursor=pointer]:
+                - /url: /academy
+            - listitem [ref=e159]:
+              - button "SDKs" [ref=e160] [cursor=pointer]:
+                - generic [ref=e162]:
+                  - text: SDKs
+                  - img [ref=e163]
+            - listitem [ref=e165]:
+              - link "Help" [ref=e166] [cursor=pointer]:
+                - /url: /help
+            - listitem [ref=e167]:
+              - link "Contact" [ref=e168] [cursor=pointer]:
+                - /url: /contact
+            - listitem [ref=e169]:
+              - link "Legal" [ref=e170] [cursor=pointer]:
+                - /url: /legal
+        - generic [ref=e171]:
+          - link "Loading status…" [ref=e172] [cursor=pointer]:
+            - /url: https://vercel-status.com
+            - paragraph [ref=e175]: Loading status…
+          - group "Select a display theme:" [ref=e176]:
+            - generic [ref=e177]: "Select a display theme:"
+            - generic [ref=e178]:
+              - radio "system" [checked]
+              - generic [ref=e179] [cursor=pointer]:
+                - generic [ref=e180]: system
+                - img [ref=e181]
+            - generic [ref=e183]:
+              - radio "light"
+              - generic [ref=e184] [cursor=pointer]:
+                - generic [ref=e185]: light
+                - img [ref=e186]
+            - generic [ref=e188]:
+              - radio "dark"
+              - generic [ref=e189] [cursor=pointer]:
+                - generic [ref=e190]: dark
+                - img [ref=e191]
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - img

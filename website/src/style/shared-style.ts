@@ -204,39 +204,42 @@ export const THEME_COLORS: ThemeColors = {
 };
 
 export const DEFAULT_THEME_COLORS = css`
-  --cc-backdrop-color: #0a0721db;
-  --cc-background-color: #0a0721;
-  --cc-background-alt-color: #270d4899;
-  --cc-background-menu-color: #0a072199;
-  --cc-background-submenu-color: #09061d;
-  --cc-shadow-color: #0f1725;
-  --cc-primary-color: #3b4f74; //before: f40010;
-  --cc-menu-link-color: #ccc9e4;
-  --cc-menu-link-hover-color: #fff;
-  --cc-primary-button-color: #1b7da6;
-  --cc-primary-button-border-color: #123151;
-  --cc-primary-button-text-color: #ffffff;
-  --cc-primary-button-hover-color: #2493c2;
-  --cc-primary-button-hover-border-color: #123151;
-  --cc-primary-button-hover-text-color: #ffffff;
-  --cc-primary-text-button-color: #e29f83;
-  --cc-primary-text-button-hover-color: #ffd5c3;
-  --cc-secondary-color: #516083;
-  --cc-tertiary-color: #7989ab;
-  --cc-quaternary-color: #bfcef1;
-  --cc-link-color: #e29f83;
-  --cc-link-hover-color: #ffd5c3;
-  --cc-text-color: #ccc9e4;
-  --cc-text-alt-color: #b1a6b1;
-  --cc-heading-text-color: #e9e7f4;
-  --cc-footer-text-color: #ccc9e4;
-  --cc-footer-link-color: #ccc9e4;
-  --cc-footer-link-hover-color: #ffffff;
-  --cc-text-contrast-color: #ccc9e4;
-  --cc-box-highlight-color: var(--cc-background-alt-color);
-  --cc-box-border-color: #ccc9e422;
+  /* Site-wide palette aligned with the landing page (DesktopLandingRoot):
+     deep navy background, warm off-white ink, faint cream borders. The
+     primary button is a cream pill with dark text (matches .cc-btn-primary). */
+  --cc-backdrop-color: rgba(12, 19, 34, 0.86);
+  --cc-background-color: #0c1322;
+  --cc-background-alt-color: rgba(255, 255, 255, 0.04);
+  --cc-background-menu-color: rgba(12, 19, 34, 0.7);
+  --cc-background-submenu-color: #09101c;
+  --cc-shadow-color: rgba(0, 0, 0, 0.6);
+  --cc-primary-color: #f5f1ea;
+  --cc-menu-link-color: rgba(245, 241, 234, 0.62);
+  --cc-menu-link-hover-color: #f5f1ea;
+  --cc-primary-button-color: #f5f1ea;
+  --cc-primary-button-border-color: transparent;
+  --cc-primary-button-text-color: #0c1322;
+  --cc-primary-button-hover-color: #ffffff;
+  --cc-primary-button-hover-border-color: transparent;
+  --cc-primary-button-hover-text-color: #0c1322;
+  --cc-primary-text-button-color: rgba(245, 241, 234, 0.62);
+  --cc-primary-text-button-hover-color: #f5f1ea;
+  --cc-secondary-color: rgba(245, 241, 234, 0.62);
+  --cc-tertiary-color: rgba(245, 241, 234, 0.4);
+  --cc-quaternary-color: rgba(245, 241, 234, 0.16);
+  --cc-link-color: #f5f1ea;
+  --cc-link-hover-color: #ffffff;
+  --cc-text-color: rgba(245, 241, 234, 0.78);
+  --cc-text-alt-color: rgba(245, 241, 234, 0.5);
+  --cc-heading-text-color: #f5f1ea;
+  --cc-footer-text-color: rgba(245, 241, 234, 0.62);
+  --cc-footer-link-color: rgba(245, 241, 234, 0.62);
+  --cc-footer-link-hover-color: #f5f1ea;
+  --cc-text-contrast-color: #f5f1ea;
+  --cc-box-highlight-color: rgba(255, 255, 255, 0.04);
+  --cc-box-border-color: rgba(245, 241, 234, 0.16);
   --cc-warning-color: #ffba0066;
-  --cc-spinner-color: #3b4f74;
+  --cc-spinner-color: #f5f1ea;
 `;
 
 export const FONT_FAMILY =

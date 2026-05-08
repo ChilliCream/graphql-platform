@@ -171,15 +171,16 @@ const Container = styled.footer.attrs({
   gap: 48px;
   box-sizing: border-box;
   margin-top: 40px;
-  border-top: 1px solid ${THEME_COLORS.boxBorder};
+  border-top: 1px solid var(--cc-ink-faint, ${THEME_COLORS.boxBorder});
   padding-top: 54px;
   padding-right: 16px;
   padding-bottom: 54px;
   padding-left: 16px;
   width: 100%;
   font-size: 0.875rem !important;
-  backdrop-filter: blur(4px);
-  background-color: ${THEME_COLORS.backgroundMenu};
+  backdrop-filter: blur(8px);
+  background-color: var(--cc-footer-bg, ${THEME_COLORS.backgroundMenu});
+  color: var(--cc-ink, ${THEME_COLORS.text});
 
   @media only screen and (min-width: 992px) {
     gap: 32px;

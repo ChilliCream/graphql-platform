@@ -12,10 +12,21 @@ export const GlobalStyle = createGlobalStyle`
     ${DEFAULT_THEME_COLORS}
 
     --border-radius: 4px;
-    --box-border-radius: 12px;
-    --button-border-radius: 6px;
+    /* Card/box corners match the landing page panels (14px). */
+    --box-border-radius: 14px;
+    /* Buttons are full pills site-wide so the Launch button and the
+       landing CTAs share the same shape. */
+    --button-border-radius: 999px;
     // TODO: Get rid of --font-size
     --font-size: .875rem;
+
+    /* Cream/landing tokens — shared with DesktopLandingRoot so the site
+       header and footer can adopt the dark/cream theme on every page. */
+    --cc-ink: #f5f1ea;
+    --cc-ink-dim: rgba(245, 241, 234, 0.62);
+    --cc-ink-faint: rgba(245, 241, 234, 0.16);
+    --cc-header-bg: rgba(12, 19, 34, 0.7);
+    --cc-footer-bg: rgba(12, 19, 34, 0.55);
   }
 
   html {
@@ -33,7 +44,15 @@ export const GlobalStyle = createGlobalStyle`
     letter-spacing: 0.025rem;
     line-height: 1.6em;
     color: ${THEME_COLORS.text};
-    background-image: radial-gradient(ellipse at bottom, #151135 0%, ${THEME_COLORS.background} 40%);
+    background-image:
+      radial-gradient(80% 50% at 70% 0%, rgba(80, 60, 200, 0.10), transparent 60%),
+      linear-gradient(180deg,
+        #0c1322 0%,
+        #0c1322 22%,
+        #0b1220 38%,
+        #0a111e 58%,
+        #09101c 78%,
+        #08101a 100%);
     background-color: ${THEME_COLORS.background};
     background-size: auto;
     -webkit-font-smoothing: antialiased;

@@ -1,0 +1,635 @@
+- generic [active] [ref=e1]:
+  - link "Skip to content":
+    - /url: "#geist-skip-nav"
+  - alert [ref=e2]
+  - generic [ref=e3]:
+    - banner [ref=e5]:
+      - generic [ref=e6]:
+        - link [ref=e8] [cursor=pointer]:
+          - /url: /home
+          - img [ref=e9]
+        - navigation "Main" [ref=e14]:
+          - list [ref=e16]:
+            - listitem [ref=e17]:
+              - button "Products" [ref=e18] [cursor=pointer]:
+                - text: Products
+                - generic:
+                  - img
+              - generic:
+                - list:
+                  - listitem:
+                    - heading [level=5]:
+                      - link:
+                        - /url: /ai
+                        - text: AI Cloud
+                    - list:
+                      - listitem:
+                        - link:
+                          - /url: /ai-gateway
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: AI Gateway
+                            - paragraph: One endpoint, all your models
+                      - listitem:
+                        - link:
+                          - /url: /sandbox
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Sandbox
+                            - paragraph: Isolated, safe code execution
+                      - listitem:
+                        - link:
+                          - /url: /agent
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Vercel Agent
+                            - paragraph: An agent that knows your stack
+                      - listitem:
+                        - link:
+                          - /url: https://sdk.vercel.ai/
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: AI SDK
+                            - paragraph: The AI Toolkit for TypeScript
+                      - listitem:
+                        - link:
+                          - /url: https://v0.app
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: v0
+                            - paragraph: Build applications with AI
+                  - listitem:
+                    - heading [level=5]: Core Platform
+                    - list:
+                      - listitem:
+                        - link:
+                          - /url: /products/previews
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: CI/CD
+                            - paragraph: Helping teams ship 6× faster
+                      - listitem:
+                        - link:
+                          - /url: /cdn
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Content Delivery
+                            - paragraph: Fast, scalable, and reliable
+                      - listitem:
+                        - link:
+                          - /url: /fluid
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Fluid Compute
+                            - paragraph: Servers, in serverless form
+                      - listitem:
+                        - link:
+                          - /url: /workflows
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Workflow
+                            - paragraph: Long-running workflows at scale
+                      - listitem:
+                        - link:
+                          - /url: /products/observability
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Observability
+                            - paragraph: Trace every step
+                  - listitem:
+                    - heading [level=5]:
+                      - link:
+                        - /url: /security
+                        - text: Security
+                    - list:
+                      - listitem:
+                        - link:
+                          - /url: /security/bot-management
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Bot Management
+                            - paragraph: Scalable bot protection
+                      - listitem:
+                        - link:
+                          - /url: /botid
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: BotID
+                            - paragraph: Invisible CAPTCHA
+                      - listitem:
+                        - link:
+                          - /url: /security
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Platform Security
+                            - paragraph: DDoS Protection, Firewall
+                      - listitem:
+                        - link:
+                          - /url: /security/web-application-firewall
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Web Application Firewall
+                            - paragraph: Granular, custom protection
+            - listitem [ref=e19]:
+              - button "Resources" [ref=e20] [cursor=pointer]:
+                - text: Resources
+                - generic:
+                  - img
+              - generic:
+                - list:
+                  - listitem:
+                    - heading [level=5]: Company
+                    - list:
+                      - listitem:
+                        - link:
+                          - /url: /customers
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Customers
+                            - paragraph: Trusted by the best teams
+                      - listitem:
+                        - link:
+                          - /url: /blog
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Blog
+                            - paragraph: The latest posts and changes
+                      - listitem:
+                        - link:
+                          - /url: /changelog
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Changelog
+                            - paragraph: See what shipped
+                      - listitem:
+                        - link:
+                          - /url: /press
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Press
+                            - paragraph: Read the latest news
+                      - listitem:
+                        - link:
+                          - /url: /events
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Events
+                            - paragraph: Join us at an event
+                  - listitem:
+                    - heading [level=5]: Learn
+                    - list:
+                      - listitem:
+                        - link:
+                          - /url: /docs
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Docs
+                            - paragraph: Vercel documentation
+                      - listitem:
+                        - link:
+                          - /url: /academy
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Academy
+                            - paragraph: Linear courses to level up
+                      - listitem:
+                        - link:
+                          - /url: /kb
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Knowledge Base
+                            - paragraph: Find help quickly
+                      - listitem:
+                        - link:
+                          - /url: https://community.vercel.com/
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Community
+                            - paragraph: Join the conversation
+                  - listitem:
+                    - heading [level=5]: Open Source
+                    - list:
+                      - listitem:
+                        - link:
+                          - /url: /frameworks/nextjs
+                          - generic:
+                            - generic:
+                              - img
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Next.js
+                            - paragraph: The native Next.js platform
+                      - listitem:
+                        - link:
+                          - /url: https://nuxt.com/
+                          - generic:
+                            - generic:
+                              - img
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Nuxt
+                            - paragraph: The progressive web framework
+                      - listitem:
+                        - link:
+                          - /url: https://svelte.dev/
+                          - generic:
+                            - generic:
+                              - img
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Svelte
+                            - paragraph: The web’s efficient UI framework
+                      - listitem:
+                        - link:
+                          - /url: /solutions/turborepo
+                          - generic:
+                            - generic:
+                              - img
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Turborepo
+                            - paragraph: Speed with Enterprise scale
+            - listitem [ref=e21]:
+              - button "Solutions" [ref=e22] [cursor=pointer]:
+                - text: Solutions
+                - generic:
+                  - img
+              - generic:
+                - list:
+                  - listitem:
+                    - heading [level=5]: Use Cases
+                    - list:
+                      - listitem:
+                        - link:
+                          - /url: /ai
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: AI Apps
+                            - paragraph: Deploy at the speed of AI
+                      - listitem:
+                        - link:
+                          - /url: /solutions/composable-commerce
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Composable Commerce
+                            - paragraph: Power storefronts that convert
+                      - listitem:
+                        - link:
+                          - /url: /solutions/marketing-sites
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Marketing Sites
+                            - paragraph: Launch campaigns fast
+                      - listitem:
+                        - link:
+                          - /url: /solutions/multi-tenant-saas
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Multi-tenant Platforms
+                            - paragraph: Scale apps with one codebase
+                      - listitem:
+                        - link:
+                          - /url: /solutions/web-apps
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Web Apps
+                            - paragraph: Ship features, not infrastructure
+                  - listitem:
+                    - heading [level=5]: Tools
+                    - list:
+                      - listitem:
+                        - link:
+                          - /url: /marketplace
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Marketplace
+                            - paragraph: Extend and automate workflows
+                      - listitem:
+                        - link:
+                          - /url: /templates
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Templates
+                            - paragraph: Jumpstart app development
+                      - listitem:
+                        - link:
+                          - /url: /partners/solution-partners
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Partner Finder
+                            - paragraph: Get help from solution partners
+                  - listitem:
+                    - heading [level=5]: Users
+                    - list:
+                      - listitem:
+                        - link:
+                          - /url: /solutions/platform-engineering
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Platform Engineers
+                            - paragraph: Automate away repetition
+                      - listitem:
+                        - link:
+                          - /url: /solutions/design-engineering
+                          - generic:
+                            - generic:
+                              - img
+                          - generic:
+                            - generic: Design Engineers
+                            - paragraph: Deploy for every idea
+            - listitem [ref=e23]:
+              - link "Enterprise" [ref=e24] [cursor=pointer]:
+                - /url: /enterprise
+            - listitem [ref=e25]:
+              - link "Pricing" [ref=e26] [cursor=pointer]:
+                - /url: /pricing
+      - generic [ref=e30]:
+        - generic [ref=e31]:
+          - link "Log In" [ref=e32] [cursor=pointer]:
+            - /url: /login
+          - link "Contact" [ref=e33] [cursor=pointer]:
+            - /url: /contact/sales
+            - generic [ref=e34]: Contact
+        - link "Sign Up" [ref=e35] [cursor=pointer]:
+          - /url: /signup
+          - generic [ref=e36]: Sign Up
+    - main [ref=e38]:
+      - generic [ref=e39]:
+        - generic [ref=e44]:
+          - link "Back to Marketplace" [ref=e46] [cursor=pointer]:
+            - /url: /marketplace
+            - img [ref=e47]
+            - generic [ref=e49]: Back to Marketplace
+          - generic [ref=e50]:
+            - generic [ref=e52]:
+              - img [ref=e54]
+              - heading "Neon" [level=1] [ref=e55]
+            - generic [ref=e56]:
+              - link "Install" [ref=e57] [cursor=pointer]:
+                - /url: /login?next=/marketplace/neon
+                - generic [ref=e58]: Install
+              - link "Build in" [ref=e59] [cursor=pointer]:
+                - /url: https://v0.dev/chat?pi=neon
+                - generic [ref=e60]: Build in
+                - img [ref=e62]
+              - link "Neon Support" [ref=e63] [cursor=pointer]:
+                - /url: https://neon.tech/docs/introduction/support
+                - generic [ref=e64]: Neon Support
+                - img [ref=e66]
+              - button "Copy integration link" [ref=e69] [cursor=pointer]:
+                - img [ref=e71]
+              - button "More" [ref=e73] [cursor=pointer]:
+                - img [ref=e75]
+        - generic [ref=e79]:
+          - generic [ref=e80]:
+            - generic [ref=e81]:
+              - heading "Installs" [level=4] [ref=e82]
+              - generic [ref=e83]:
+                - img [ref=e84]
+                - generic [ref=e86]: 1000+ installs
+            - generic [ref=e87]:
+              - heading "Categories" [level=4] [ref=e88]
+              - generic [ref=e89]:
+                - link "Storage" [ref=e90] [cursor=pointer]:
+                  - /url: /marketplace/category/storage
+                  - img [ref=e91]
+                  - generic [ref=e93]: Storage
+                - link "Authentication" [ref=e94] [cursor=pointer]:
+                  - /url: /marketplace/category/authentication
+                  - img [ref=e95]
+                  - generic [ref=e97]: Authentication
+            - generic [ref=e98]:
+              - heading "Type" [level=4] [ref=e99]
+              - generic [ref=e101]:
+                - img [ref=e102]
+                - generic [ref=e104]: Vercel Native
+            - generic [ref=e105]:
+              - heading "Resources" [level=4] [ref=e106]
+              - generic [ref=e107]:
+                - link "Support" [ref=e108] [cursor=pointer]:
+                  - /url: https://neon.tech/docs/introduction/support
+                  - img [ref=e109]
+                  - text: Support
+                - link "Documentation" [ref=e111] [cursor=pointer]:
+                  - /url: https://neon.tech/docs/introduction
+                  - img [ref=e112]
+                  - text: Documentation
+                - link "Terms" [ref=e114] [cursor=pointer]:
+                  - /url: https://neon.tech/terms-of-service
+                  - img [ref=e115]
+                  - text: Terms
+                - link "Privacy Policy" [ref=e117] [cursor=pointer]:
+                  - /url: https://neon.tech/privacy-policy
+                  - img [ref=e118]
+                  - text: Privacy Policy
+                - link "Website" [ref=e121] [cursor=pointer]:
+                  - /url: https://neon.tech/home
+                  - img [ref=e122]
+                  - text: Website
+          - generic [ref=e124]:
+            - generic [ref=e125]:
+              - generic [ref=e126]: Preview
+              - generic [ref=e131]:
+                - button [ref=e132] [cursor=pointer]
+                - button [ref=e133] [cursor=pointer]
+                - button [ref=e134] [cursor=pointer]
+                - button [ref=e135] [cursor=pointer]
+            - generic [ref=e136]:
+              - generic [ref=e137]: Overview
+              - generic [ref=e138]:
+                - heading "Ship Faster with Serverless Postgres" [level=4] [ref=e139]
+                - paragraph [ref=e140]: Neon takes everything developers love about Postgres — reliability, performance, extensibility — and delivers it as a serverless product that helps you ship reliable, scalable applications faster than ever.
+                - paragraph [ref=e141]:
+                  - text: By integrating Neon with Vercel,
+                  - strong [ref=e142]: you can deploy a fully managed Postgres database in seconds
+                  - text: with features like database branching, autoscaling, scale-to-zero, read replicas, authorization, a Drizzle Studio-powered table editor, an AI-enabled SQL client, instant point-in-time recovery, time travel queries, a low-latency serverless driver, and more. Neon offers a generous
+                  - strong [ref=e143]: Free Plan
+                  - text: and paid plans that grow with you from prototype to enterprise.
+            - generic [ref=e144]:
+              - generic [ref=e145]: Products
+              - generic [ref=e147]:
+                - generic [ref=e148]:
+                  - img [ref=e149]
+                  - button "Add Product" [ref=e151] [cursor=pointer]:
+                    - generic [ref=e152]: Install
+                - generic [ref=e153]:
+                  - generic [ref=e154]: Neon
+                  - generic [ref=e155]: Serverless Postgres
+                - generic [ref=e157]: Plans starting at $0
+            - generic [ref=e158]:
+              - generic [ref=e159]: Instructions
+              - generic [ref=e160]:
+                - heading "Selecting the right integration mode" [level=4] [ref=e161]
+                - paragraph [ref=e162]: "There are two integration modes to select from:"
+                - list [ref=e163]:
+                  - listitem [ref=e164]:
+                    - paragraph [ref=e165]:
+                      - strong [ref=e166]: Create New Neon Account
+                      - text: ": Installs the Neon Postgres native integration and creates a Neon account for you if you do not have one already. You get access to Neon features and plans. Billing is managed through Vercel. See the"
+                      - link "Install the Neon Native Integration" [ref=e167] [cursor=pointer]:
+                        - /url: https://neon.tech/docs/guides/vercel-native-integration
+                      - text: for more information.
+                  - listitem [ref=e168]:
+                    - paragraph [ref=e169]:
+                      - strong [ref=e170]: Link Existing Neon Account
+                      - text: ": Installs the Neon Postgres Previews Integration. Connects your Vercel project to your Neon database to create a database branch for each preview deployment. See the"
+                      - link "Install the Neon Previews Integration" [ref=e171] [cursor=pointer]:
+                        - /url: https://neon.tech/docs/guides/vercel-previews-integration
+                      - text: for more information.
+                - paragraph [ref=e172]: "Explore Neon with these resources:"
+                - list [ref=e173]:
+                  - listitem [ref=e174]:
+                    - link "Neon Pricing" [ref=e175] [cursor=pointer]:
+                      - /url: https://neon.tech/pricing
+                  - listitem [ref=e176]:
+                    - link "Neon Documentation" [ref=e177] [cursor=pointer]:
+                      - /url: https://neon.tech/docs/introduction
+            - generic [ref=e179]:
+              - generic [ref=e180]:
+                - paragraph [ref=e181]: Starter Templates
+                - link "View all templates" [ref=e182] [cursor=pointer]:
+                  - /url: /templates?database=neon
+              - tablist [ref=e186]:
+                - tab "Vercel with Neon Postgres" [selected] [ref=e187] [cursor=pointer]
+                - tab "Chatbot" [ref=e188] [cursor=pointer]
+                - tab "Full stack FastAPI template with Next.js" [ref=e189] [cursor=pointer]
+              - generic [ref=e190]:
+                - generic [ref=e191]:
+                  - generic [ref=e192]:
+                    - generic [ref=e193]: Get started with Vercel and Neon today.
+                    - generic [ref=e194]: A minimal template for building full-stack React applications using Next.js, Vercel, and Neon.
+                  - generic [ref=e195]:
+                    - link "Deploy an Example" [ref=e196] [cursor=pointer]:
+                      - /url: /new/clone?demo-description=A%20minimal%20template%20for%20building%20full-stack%20React%20applications%20using%20Next.js%2C%20Vercel%2C%20and%20Neon.&demo-image=%2F%2Fimages.ctfassets.net%2Fe5382hct74si%2F1C5qjoXApiKj8hFdKy55bp%2Fbcf64203cf35dccf71e0a59f7535876d%2Fhome.png&demo-title=Vercel%20with%20Neon%20Postgres&demo-url=https%3A%2F%2Fvercel-marketplace-neon.vercel.app%2F&from=templates&products=%255B%257B%2522type%2522%253A%2522integration%2522%252C%2522protocol%2522%253A%2522storage%2522%252C%2522productSlug%2522%253A%2522neon%2522%252C%2522integrationSlug%2522%253A%2522neon%2522%257D%255D&project-name=Vercel%20with%20Neon%20Postgres&repository-name=vercel-with-neon-postgres&repository-url=https%3A%2F%2Fgithub.com%2Fneondatabase-labs%2Fvercel-marketplace-neon&skippable-integrations=1
+                      - generic [ref=e197]: Deploy an Example
+                    - link "View Demo" [ref=e198] [cursor=pointer]:
+                      - /url: https://vercel-marketplace-neon.vercel.app/
+                      - generic [ref=e199]: View Demo
+                - img "Vercel with Neon Postgres" [ref=e200] [cursor=pointer]
+    - contentinfo [ref=e201]:
+      - navigation "Vercel Directory" [ref=e202]:
+        - generic [ref=e203]:
+          - link "Vercel logo" [ref=e204] [cursor=pointer]:
+            - /url: /home
+            - img "Vercel logo" [ref=e205]
+          - list [ref=e207]:
+            - listitem [ref=e208]:
+              - link "Home" [ref=e209] [cursor=pointer]:
+                - /url: /home
+            - listitem [ref=e210]:
+              - link "Docs" [ref=e211] [cursor=pointer]:
+                - /url: /docs
+            - listitem [ref=e212]:
+              - link "Knowledge Base" [ref=e213] [cursor=pointer]:
+                - /url: /kb
+            - listitem [ref=e214]:
+              - link "Academy" [ref=e215] [cursor=pointer]:
+                - /url: /academy
+            - listitem [ref=e216]:
+              - button "SDKs" [ref=e217] [cursor=pointer]:
+                - generic [ref=e219]:
+                  - text: SDKs
+                  - img [ref=e220]
+            - listitem [ref=e222]:
+              - link "Help" [ref=e223] [cursor=pointer]:
+                - /url: /help
+            - listitem [ref=e224]:
+              - link "Contact" [ref=e225] [cursor=pointer]:
+                - /url: /contact
+            - listitem [ref=e226]:
+              - link "Legal" [ref=e227] [cursor=pointer]:
+                - /url: /legal
+        - generic [ref=e228]:
+          - link "Loading status…" [ref=e229] [cursor=pointer]:
+            - /url: https://vercel-status.com
+            - paragraph [ref=e232]: Loading status…
+          - group "Select a display theme:" [ref=e233]:
+            - generic [ref=e234]: "Select a display theme:"
+            - generic [ref=e235]:
+              - radio "system" [checked]
+              - generic [ref=e236] [cursor=pointer]:
+                - generic [ref=e237]: system
+                - img [ref=e238]
+            - generic [ref=e240]:
+              - radio "light"
+              - generic [ref=e241] [cursor=pointer]:
+                - generic [ref=e242]: light
+                - img [ref=e243]
+            - generic [ref=e245]:
+              - radio "dark"
+              - generic [ref=e246] [cursor=pointer]:
+                - generic [ref=e247]: dark
+                - img [ref=e248]
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - img
