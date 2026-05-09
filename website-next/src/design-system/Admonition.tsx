@@ -128,8 +128,8 @@ const config: Record<
   },
   experimental: {
     label: "Experimental",
-    containerClass: "bg-fuchsia-50 ring-1 ring-fuchsia-200 text-fuchsia-950",
-    labelClass: "text-fuchsia-700",
+    containerClass: "bg-violet-50 ring-1 ring-violet-200 text-violet-950",
+    labelClass: "text-violet-700",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"

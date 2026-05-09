@@ -6,7 +6,7 @@ export function Quote({
 }: ComponentPropsWithoutRef<"blockquote">) {
   return (
     <blockquote
-      className={`my-6 border-l-4 border-cyan-500 bg-cyan-50 px-4 py-2 italic text-cyan-900 ${className}`.trim()}
+      className={`my-6 border-l-4 border-slate-300 px-4 py-1 italic text-slate-700 ${className}`.trim()}
       {...props}
     />
   );

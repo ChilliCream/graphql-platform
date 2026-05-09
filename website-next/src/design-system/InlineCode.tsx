@@ -10,7 +10,7 @@ export function InlineCode({
   }
   return (
     <code
-      className={`rounded bg-rose-50 px-1.5 py-0.5 font-mono text-sm text-rose-700 ring-1 ring-rose-200 ${className}`.trim()}
+      className={`rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[0.875em] text-slate-800 ring-1 ring-slate-200 ${className}`.trim()}
       {...props}
     />
   );

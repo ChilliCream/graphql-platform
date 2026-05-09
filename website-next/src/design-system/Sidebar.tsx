@@ -47,8 +47,8 @@ function NodeView({
             aria-current={isActive ? "page" : undefined}
             className={`block flex-1 rounded px-3 py-1.5 transition-colors ${
               isActive
-                ? "bg-stone-100 text-stone-900"
-                : "text-stone-700 hover:bg-stone-100 hover:text-stone-900"
+                ? "bg-emerald-50 font-medium text-emerald-700"
+                : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
             }`}
             style={{ paddingLeft: padLeft }}
           >
@@ -58,7 +58,7 @@ function NodeView({
           <button
             type="button"
             onClick={() => setExpanded((v) => !v)}
-            className="block flex-1 rounded px-3 py-1.5 text-left text-stone-700 transition-colors hover:bg-stone-100 hover:text-stone-900"
+            className="block flex-1 rounded px-3 py-1.5 text-left text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900"
             style={{ paddingLeft: padLeft }}
           >
             {node.title}
@@ -70,7 +70,7 @@ function NodeView({
             aria-label={expanded ? "Collapse section" : "Expand section"}
             aria-expanded={expanded}
             onClick={() => setExpanded((v) => !v)}
-            className="inline-flex w-7 items-center justify-center rounded text-stone-500 hover:bg-stone-100 hover:text-stone-900"
+            className="inline-flex w-7 items-center justify-center rounded text-slate-500 hover:bg-slate-100 hover:text-slate-900"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

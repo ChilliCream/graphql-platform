@@ -6,7 +6,7 @@ export function Divider({
 }: ComponentPropsWithoutRef<"hr">) {
   return (
     <hr
-      className={`my-8 h-1 border-0 bg-gradient-to-r from-fuchsia-500 via-amber-400 to-emerald-500 ${className}`.trim()}
+      className={`my-10 border-0 border-t border-slate-200 ${className}`.trim()}
       {...props}
     />
   );

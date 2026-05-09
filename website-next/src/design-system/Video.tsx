@@ -15,7 +15,7 @@ export function Video({ src, playlabel }: VideoProps) {
   }
 
   return (
-    <div className="my-6 overflow-hidden rounded-lg ring-2 ring-amber-300">
+    <div className="my-6 overflow-hidden rounded-md ring-1 ring-slate-200">
       <YouTubeEmbed
         videoid={id}
         playlabel={playlabel}

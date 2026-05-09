@@ -10,7 +10,7 @@ html:has(:target) {
 
 .heading-anchor {
   margin-left: 0.4rem;
-  color: rgb(120 113 108);
+  color: rgb(100 116 139);
   opacity: 0;
   text-decoration: none;
   transition: opacity 0.15s ease;
@@ -22,9 +22,9 @@ html:has(:target) {
 }
 
 [data-toc-link][data-active="true"] {
-  color: rgb(67 56 202);
+  color: rgb(4 120 87);
   font-weight: 600;
-  border-left-color: rgb(67 56 202);
+  border-left-color: rgb(4 120 87);
 }
 
 /* Shiki output styling — neutralize default <pre> background so the figure
@@ -51,7 +51,7 @@ html:has(:target) {
 
 .shiki-wrapper .line.line-highlighted {
   background: rgba(255, 255, 255, 0.08);
-  box-shadow: inset 3px 0 0 #6366f1;
+  box-shadow: inset 3px 0 0 #10b981;
 }
 
 /* Hovering a CodeStep in prose dims only the code block that contains

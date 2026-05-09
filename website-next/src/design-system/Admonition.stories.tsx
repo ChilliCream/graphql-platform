@@ -68,7 +68,7 @@ export const Experimental: Story = {
 export const AllKinds: Story = {
   args: { kind: "note", children: "" },
   render: () => (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-2 [&>*]:!my-0">
       <Admonition kind="note">Useful information.</Admonition>
       <Admonition kind="tip">A helpful suggestion.</Admonition>
       <Admonition kind="important">Important information.</Admonition>

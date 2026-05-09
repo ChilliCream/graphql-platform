@@ -5,7 +5,7 @@ export function Table({
   ...props
 }: ComponentPropsWithoutRef<"table">) {
   return (
-    <div className="my-6 overflow-x-auto rounded-lg ring-1 ring-violet-200">
+    <div className="my-6 overflow-x-auto rounded-md ring-1 ring-slate-200">
       <table
         className={`w-full border-collapse text-left text-sm ${className}`.trim()}
         {...props}
@@ -20,7 +20,7 @@ export function TableHead({
 }: ComponentPropsWithoutRef<"thead">) {
   return (
     <thead
-      className={`bg-violet-600 text-white ${className}`.trim()}
+      className={`bg-slate-50 text-slate-900 ${className}`.trim()}
       {...props}
     />
   );
@@ -32,7 +32,7 @@ export function TableBody({
 }: ComponentPropsWithoutRef<"tbody">) {
   return (
     <tbody
-      className={`divide-y divide-violet-100 [&>tr:nth-child(even)]:bg-violet-50 ${className}`.trim()}
+      className={`divide-y divide-slate-200 ${className}`.trim()}
       {...props}
     />
   );
@@ -48,7 +48,7 @@ export function TableHeaderCell({
 }: ComponentPropsWithoutRef<"th">) {
   return (
     <th
-      className={`px-4 py-2 font-semibold uppercase tracking-wide ${className}`.trim()}
+      className={`px-4 py-2 font-semibold ${className}`.trim()}
       {...props}
     />
   );
@@ -59,6 +59,6 @@ export function TableCell({
   ...props
 }: ComponentPropsWithoutRef<"td">) {
   return (
-    <td className={`px-4 py-2 text-stone-800 ${className}`.trim()} {...props} />
+    <td className={`px-4 py-2 text-slate-700 ${className}`.trim()} {...props} />
   );
 }

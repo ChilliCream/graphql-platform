@@ -9,7 +9,7 @@ export function Image({
     // eslint-disable-next-line @next/next/no-img-element
     <img
       alt={alt ?? ""}
-      className={`my-6 max-w-full rounded-lg ring-2 ring-amber-300 ${className}`.trim()}
+      className={`my-6 max-w-full rounded-md ring-1 ring-slate-200 ${className}`.trim()}
       {...props}
     />
   );
