@@ -4,6 +4,7 @@ import path from "node:path";
 const CONTENT_ROOTS = ["docs", "blogs"];
 const RULE_ID = "remark-rewrite-md-links";
 const PAGE_FILE_RE = /^page\.(tsx?|jsx?|mdx?)$/;
+const BLOG_STEM_RE = /^(\d{4})-(\d{2})-(\d{2})-(.+)$/;
 
 export default function remarkRewriteMdLinks() {
   return (tree, file) => {
@@ -31,21 +32,32 @@ export default function remarkRewriteMdLinks() {
       if (node.url.startsWith("/")) {
         const pathPart = node.url.split(/[#?]/, 1)[0];
         const segments = pathPart.split("/").filter(Boolean);
-        const contentRoot = CONTENT_ROOTS.find((r) => segments[0] === r);
 
-        if (contentRoot) {
+        if (segments[0] === "docs") {
           const subSegments = segments.slice(1);
           if (subSegments.length === 0) {
             file.fail(
-              `Broken root-absolute link "${node.url}" — content root "/${contentRoot}" has no index page`,
+              `Broken root-absolute link "${node.url}" — /docs has no index page`,
               node,
               RULE_ID
             );
             return;
           }
-          if (!contentFileExists(cwd, contentRoot, subSegments)) {
+          if (!docsFileExists(cwd, subSegments)) {
             file.fail(
-              `Broken root-absolute link "${node.url}" — no matching file found under ${contentRoot}/`,
+              `Broken root-absolute link "${node.url}" — no matching file found under docs/`,
+              node,
+              RULE_ID
+            );
+          }
+          return;
+        }
+
+        if (segments[0] === "blogs") {
+          if (!blogsRouteExists(cwd, segments.slice(1))) {
+            file.fail(
+              `Broken root-absolute link "${node.url}" — no matching post found under blogs/ ` +
+                `(expected /blogs/YYYY/MM/DD/slug)`,
               node,
               RULE_ID
             );
@@ -92,9 +104,45 @@ export default function remarkRewriteMdLinks() {
       }
 
       const cleanRel = rel.replace(/\.mdx?$/i, "").replace(/\/index$/, "");
+
+      if (root === "blogs") {
+        const blogUrl = blogUrlFromCleanRel(cleanRel);
+        if (blogUrl === null) {
+          file.fail(
+            `Markdown link "${node.url}" resolves to a blog file with an invalid name "${cleanRel}". ` +
+              `Expected blogs/YYYY-MM-DD-slug.md or blogs/YYYY-MM-DD-slug/YYYY-MM-DD-slug.md`,
+            node,
+            RULE_ID
+          );
+          return;
+        }
+        node.url = `${blogUrl}${hashPart}`;
+        return;
+      }
+
       node.url = `/${cleanRel}${hashPart}`;
     });
   };
+}
+
+/** Convert a path relative to cwd (without extension) under blogs/ into the
+ *  canonical /blogs/YYYY/MM/DD/slug URL, or null if it doesn't match. */
+function blogUrlFromCleanRel(cleanRel) {
+  // cleanRel looks like "blogs/2019-06-05-foo" or "blogs/2019-06-05-foo/2019-06-05-foo"
+  const segments = cleanRel.split("/");
+  if (segments[0] !== "blogs") {
+    return null;
+  }
+  const stem = segments[1];
+  if (!stem) {
+    return null;
+  }
+  const m = BLOG_STEM_RE.exec(stem);
+  if (!m) {
+    return null;
+  }
+  const [, yyyy, mm, dd, slug] = m;
+  return `/blogs/${yyyy}/${mm}/${dd}/${slug}`;
 }
 
 function appRouteExists(appDir, segments) {
@@ -154,7 +202,7 @@ function resolveSegments(dir, segments) {
   return false;
 }
 
-function contentFileExists(cwd, contentRoot, subSegments) {
+function docsFileExists(cwd, subSegments) {
   const joined = subSegments.join("/");
   const candidates = [
     `${joined}.md`,
@@ -163,7 +211,32 @@ function contentFileExists(cwd, contentRoot, subSegments) {
     `${joined}/index.mdx`,
   ];
   return candidates.some((c) =>
-    fs.existsSync(path.join(cwd, contentRoot, c))
+    fs.existsSync(path.join(cwd, "docs", c))
+  );
+}
+
+/** Verify that /blogs/YYYY/MM/DD/slug maps to an actual blog file on disk. */
+function blogsRouteExists(cwd, subSegments) {
+  if (subSegments.length < 4) {
+    return false;
+  }
+  const [yyyy, mm, dd, ...rest] = subSegments;
+  if (!/^\d{4}$/.test(yyyy) || !/^\d{2}$/.test(mm) || !/^\d{2}$/.test(dd)) {
+    return false;
+  }
+  const slug = rest.join("/");
+  if (!slug) {
+    return false;
+  }
+  const stem = `${yyyy}-${mm}-${dd}-${slug}`;
+  const candidates = [
+    `${stem}.md`,
+    `${stem}.mdx`,
+    `${stem}/${stem}.md`,
+    `${stem}/${stem}.mdx`,
+  ];
+  return candidates.some((c) =>
+    fs.existsSync(path.join(cwd, "blogs", c))
   );
 }
 

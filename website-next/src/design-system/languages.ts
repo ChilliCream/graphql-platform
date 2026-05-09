@@ -6,10 +6,16 @@ export type LanguageDescriptor = {
 
 export const LANGUAGES: Record<string, LanguageDescriptor> = {
   ts: { label: "TypeScript", color: "#3178c6", shiki: "typescript" },
+  typescript: { label: "TypeScript", color: "#3178c6", shiki: "typescript" },
   tsx: { label: "TypeScript", color: "#3178c6", shiki: "tsx" },
+  js: { label: "JavaScript", color: "#f7df1e", shiki: "javascript" },
+  javascript: { label: "JavaScript", color: "#f7df1e", shiki: "javascript" },
+  jsx: { label: "JavaScript", color: "#f7df1e", shiki: "jsx" },
   csharp: { label: "C#", color: "#ffe261", shiki: "csharp" },
   bash: { label: "Bash", color: "#74dfc4", shiki: "bash" },
+  css: { label: "CSS", color: "#5095d3", shiki: "css" },
   graphql: { label: "GraphQL", color: "#eb64b9", shiki: "graphql" },
+  html: { label: "HTML", color: "#e34c26", shiki: "html" },
   sdl: { label: "SDL", color: "#eb64b9", shiki: "graphql" },
   http: { label: "HTTP", color: "#b381c5", shiki: "http" },
   json: { label: "JSON", color: "#40b4c4", shiki: "json" },

@@ -279,6 +279,8 @@ flowchart LR
 
 ![Alt text](https://chillicream.com/img/projects/greendonut-banner.svg "Title text")
 
+![Nitro banner](./nitro-banner.png "Nitro")
+
 ## Videos
 
 A paragraph that contains only a YouTube link is rendered as an embedded player. In raw markdown viewers it stays a clickable link.

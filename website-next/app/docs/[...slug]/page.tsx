@@ -56,7 +56,7 @@ export default async function DocPage({
   }
 
   const { title } = readFrontmatter(path.join(CONTENT_ROOT, rel));
-  const mod = await import(`@/docs/${rel}`);
+  const mod = await import(`@/docs/${rel.slice(0, -3)}.md`);
   const Doc = mod.default;
   const toc: HeadingItem[] = Array.isArray(mod.toc) ? mod.toc : [];
   const tree = buildContentTree(CONTENT_ROOT, "/docs");

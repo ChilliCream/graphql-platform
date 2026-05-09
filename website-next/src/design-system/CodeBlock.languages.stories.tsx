@@ -35,6 +35,17 @@ export function Counter() {
   );
 }`;
 
+const jsxSample = `import { useState } from "react";
+
+export function Counter() {
+  const [count, setCount] = useState(0);
+  return (
+    <button onClick={() => setCount(count + 1)}>
+      Clicked {count} times
+    </button>
+  );
+}`;
+
 const csharpSample = `public sealed class Query
 {
     public Book GetBook() =>
@@ -93,6 +104,44 @@ WHERE b.published_at >= '2020-01-01'
 ORDER BY b.published_at DESC
 LIMIT 10;`;
 
+const htmlSample = `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Books</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="library">
+      <h1>Library</h1>
+      <article id="book-42" class="book">
+        <h2>C# in Depth</h2>
+        <p>By <a href="/authors/jon-skeet">Jon Skeet</a></p>
+      </article>
+    </main>
+  </body>
+</html>`;
+
+const cssSample = `:root {
+  --color-bg: #0d1117;
+  --color-fg: #c9d1d9;
+  --radius: 0.5rem;
+}
+
+.library {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: 1rem;
+  padding: 2rem;
+  background: var(--color-bg);
+  color: var(--color-fg);
+}
+
+.book:hover {
+  transform: translateY(-2px);
+  border-radius: var(--radius);
+}`;
+
 const xmlSample = `<?xml version="1.0" encoding="UTF-8"?>
 <library>
   <book id="42">
@@ -120,6 +169,13 @@ export const TypeScript: Story = languageStory(
   tsxSample,
   'filename="Counter.tsx"',
   { name: "TypeScript" }
+);
+
+export const JavaScript: Story = languageStory(
+  "jsx",
+  jsxSample,
+  'filename="Counter.jsx"',
+  { name: "JavaScript" }
 );
 
 export const CSharp: Story = languageStory(
@@ -159,6 +215,20 @@ export const JSON: Story = languageStory(
 export const SQL: Story = languageStory("sql", sqlSample, undefined, {
   name: "SQL",
 });
+
+export const Html: Story = languageStory(
+  "html",
+  htmlSample,
+  'filename="index.html"',
+  { name: "HTML" }
+);
+
+export const Css: Story = languageStory(
+  "css",
+  cssSample,
+  'filename="styles.css"',
+  { name: "CSS" }
+);
 
 export const XML: Story = languageStory(
   "xml",
