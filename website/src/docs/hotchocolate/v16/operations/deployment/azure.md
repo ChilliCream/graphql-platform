@@ -230,6 +230,7 @@ builder
     .AddGraphQL()
     .AddQueryType<Query>()
     .UsePersistedOperationPipeline()
+    .AddApplicationService<BlobContainerClient>()
     .AddAzureBlobStorageOperationDocumentStorage(sp =>
         sp.GetRequiredService<BlobContainerClient>());
 ```

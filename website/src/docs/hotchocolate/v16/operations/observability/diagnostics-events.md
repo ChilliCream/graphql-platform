@@ -2,7 +2,11 @@
 title: Diagnostic events and listeners
 ---
 
-Hot Chocolate diagnostic event listeners let you observe the GraphQL server from inside the request pipeline. Use them when you need a Hot Chocolate-specific hook for production troubleshooting, custom metrics, audit-safe logs, or tests that prove a request passed through a specific execution stage.
+# Observing Hot Chocolate with Diagnostic Event Listeners
+
+Hot Chocolate diagnostic event listeners allow you to monitor the GraphQL server from within the request pipeline. Use them when you need a Hot Chocolate-specific hook for production troubleshooting, custom metrics, audit-safe logs, or to verify that a request passed through a particular execution stage.
+
+## Example: Logging Request Duration
 
 ```csharp
 using System.Diagnostics;
@@ -27,7 +31,6 @@ public sealed class RequestTimingListener(
         public void Dispose()
         {
             var elapsed = Stopwatch.GetElapsedTime(started);
-
             logger.LogInformation(
                 "GraphQL request completed in {ElapsedMilliseconds} ms",
                 elapsed.TotalMilliseconds);
@@ -36,7 +39,7 @@ public sealed class RequestTimingListener(
 }
 ```
 
-Register the listener on the GraphQL builder that serves your endpoint:
+Register the listener on the GraphQL builder for your endpoint:
 
 ```csharp
 builder
@@ -52,11 +55,13 @@ info: RequestTimingListener[0]
       GraphQL request completed in 18.4 ms
 ```
 
-Diagnostic listeners observe Hot Chocolate events synchronously. They do not replace OpenTelemetry, ASP.NET Core logging, interceptors, or error filters. They are the right tool when you need direct access to Hot Chocolate execution, transport, or GreenDonut DataLoader events that another extension point does not model.
+Diagnostic listeners observe Hot Chocolate events synchronously. They do not replace OpenTelemetry, ASP.NET Core logging, interceptors, or error filters. Use them when you need direct access to Hot Chocolate execution, transport, or GreenDonut DataLoader events that are not exposed by other extension points.
 
-# Before you start
+---
 
-You need a Hot Chocolate v16 ASP.NET Core server:
+# Prerequisites
+
+You need a Hot Chocolate v16 ASP.NET Core server. For example:
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
@@ -66,21 +71,16 @@ builder
     .AddQueryType<Query>();
 
 var app = builder.Build();
-
 app.MapGraphQL();
-
 app.Run();
 
 public sealed class Query
 {
-    public string GetStatus()
-    {
-        return "ok";
-    }
+    public string GetStatus() => "ok";
 }
 ```
 
-Verify the baseline before you add listener code:
+Before adding a listener, verify the baseline:
 
 ```graphql
 {
@@ -98,7 +98,7 @@ Expected result:
 }
 ```
 
-Use these namespaces in listener examples:
+Listener examples use these namespaces:
 
 | Listener type                    | Namespaces                                                             |
 | -------------------------------- | ---------------------------------------------------------------------- |
@@ -108,26 +108,30 @@ Use these namespaces in listener examples:
 | Logging examples                 | `Microsoft.Extensions.Logging`                                         |
 | Metrics examples                 | `System.Diagnostics.Metrics`                                           |
 
-This page covers Hot Chocolate server diagnostics only. Fusion gateway diagnostics use separate APIs and are documented with Fusion.
+This page covers Hot Chocolate server diagnostics. For Fusion gateway diagnostics, see the Fusion documentation.
 
-# Choose the right extension point
+---
 
-Start with the outcome you want, then choose the narrowest extension point.
+# Selecting the Right Extension Point
+
+Decide what you want to achieve, then choose the narrowest extension point that fits your goal.
 
 | Goal                                                                                              | Use                                                            | Why                                                                                                                                                                         |
 | ------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Export standard spans to Jaeger, OTLP, Azure Monitor, or another backend                          | `AddInstrumentation()` and `.AddHotChocolateInstrumentation()` | Hot Chocolate creates `Activity` spans that OpenTelemetry exporters understand. See [OpenTelemetry tracing](/docs/hotchocolate/v16/operations/observability/opentelemetry). |
-| Add or remove tags on built-in Hot Chocolate spans                                                | `ActivityEnricher`                                             | You change exported activity metadata without writing a separate listener.                                                                                                  |
-| Record a custom metric or audit-safe log from a Hot Chocolate lifecycle event                     | Diagnostic event listener                                      | You get an in-process hook with access to Hot Chocolate context objects.                                                                                                    |
-| Change request data, global state, authentication-derived state, or WebSocket connection behavior | Request interceptors or ASP.NET Core middleware                | Those APIs are behavior-changing extension points. See [interceptors](/docs/hotchocolate/v16/server/interceptors).                                                          |
+| Add or remove tags on built-in Hot Chocolate spans                                                | `ActivityEnricher`                                             | Change exported activity metadata without writing a separate listener.                                                                                                      |
+| Record a custom metric or audit-safe log from a Hot Chocolate lifecycle event                     | Diagnostic event listener                                      | Get an in-process hook with access to Hot Chocolate context objects.                                                                                                        |
+| Change request data, global state, authentication-derived state, or WebSocket connection behavior | Request interceptors or ASP.NET Core middleware                | These APIs change behavior. See [interceptors](/docs/hotchocolate/v16/server/interceptors).                                                                                 |
 | Shape GraphQL errors returned to clients                                                          | Error filters                                                  | Listeners observe errors. Error filters rewrite error responses. See [error handling](/docs/hotchocolate/v16/guides/error-handling).                                        |
 | Write resolver business logs                                                                      | `ILogger` in resolver or application code                      | Domain logs belong where the business action happens.                                                                                                                       |
 
-Do not mutate requests, results, context state, or errors from a diagnostic listener. If you need to change behavior, use an interceptor, middleware, resolver code, or an error filter.
+**Note:** Do not mutate requests, results, context state, or errors from a diagnostic listener. If you need to change behavior, use an interceptor, middleware, resolver code, or an error filter.
 
-# Register a listener
+---
 
-Register listeners on the same `IRequestExecutorBuilder` that builds the schema used by `app.MapGraphQL()`.
+# Registering Diagnostic Listeners
+
+Register listeners on the same `IRequestExecutorBuilder` that builds the schema used by `app.MapGraphQL()`:
 
 ```csharp
 builder
@@ -136,9 +140,9 @@ builder
     .AddDiagnosticEventListener<MyExecutionListener>();
 ```
 
-You can register multiple listeners. Hot Chocolate invokes all registered listeners, but you should not depend on listener ordering for correctness.
+You can register multiple listeners. Hot Chocolate invokes all registered listeners, but do not depend on their order for correctness.
 
-## Register a test instance or factory-created listener
+## Registering a Test Instance or Factory-Created Listener
 
 Use the factory overload when a test needs to inspect the exact listener instance:
 
@@ -153,11 +157,11 @@ var services = new ServiceCollection()
     .BuildServiceProvider();
 ```
 
-The factory receives the schema service provider for execution listeners. If you need the application service provider from that factory, use `GetRootServiceProvider()` from the schema service provider.
+The factory receives the schema service provider for execution listeners. If you need the application service provider, use `GetRootServiceProvider()` from the schema service provider.
 
-## Use constructor injection
+## Using Constructor Injection
 
-Execution listeners are created from schema services in v16. If a listener constructor needs an application service, register the service in the application container and expose it to schema services with `AddApplicationService<T>()`.
+Execution listeners are created from schema services in v16. If a listener constructor needs an application service, register the service in the application container and expose it to schema services with `AddApplicationService<T>()`:
 
 ```csharp
 builder.Services.AddSingleton<RequestTimingSink>();
@@ -179,11 +183,14 @@ public sealed class RequestTimingListener(RequestTimingSink sink)
 }
 ```
 
-DataLoader listeners are registered in the application service collection. Server listeners, such as `ServerDiagnosticEventListener`, are attribute-based and are also registered through `AddDiagnosticEventListener<T>()`.
+- DataLoader listeners are registered in the application service collection.
+- Server listeners, such as `ServerDiagnosticEventListener`, are also registered through `AddDiagnosticEventListener<T>()`.
 
 Listener instances are long-lived. Keep mutable per-request state out of listener fields. Store per-request data in the scope object you return, local variables, thread-safe services, or metric instruments.
 
-# Measure a request with an execution scope
+---
+
+# Measuring Request Duration with Execution Scopes
 
 Scope-returning methods start an operation and return an `IDisposable`. Hot Chocolate disposes that scope when the operation completes or fails.
 
@@ -211,7 +218,6 @@ public sealed class RequestTimingListener(
         public void Dispose()
         {
             var elapsed = Stopwatch.GetElapsedTime(started);
-
             logger.LogInformation(
                 "graphql.request.duration {ElapsedMilliseconds}ms",
                 elapsed.TotalMilliseconds);
@@ -220,7 +226,7 @@ public sealed class RequestTimingListener(
 }
 ```
 
-If you want to observe the beginning of an event but do not need completion logic, return `EmptyScope`:
+If you only need to observe the start of an event, return `EmptyScope`:
 
 ```csharp
 public override IDisposable ExecuteRequest(RequestContext context)
@@ -230,11 +236,13 @@ public override IDisposable ExecuteRequest(RequestContext context)
 }
 ```
 
-Keep scopes small. Every handler runs on the request path and adds latency. Prefer low-cardinality, privacy-safe labels such as schema name, operation type, trusted document ID, or document hash. Avoid raw documents, variables, extension values, user IDs, tenant IDs, request IDs, and arbitrary field paths.
+Keep scopes focused and efficient. Every handler runs on the request path and adds latency. Use low-cardinality, privacy-safe labels such as schema name, operation type, trusted document ID, or document hash. Avoid raw documents, variables, extension values, user IDs, tenant IDs, request IDs, and arbitrary field paths.
 
-# Record validation, request, and resolver errors
+---
 
-Different error classes surface on different listener methods. Use the narrowest event so your counters and logs point to the right part of the pipeline.
+# Recording Validation, Request, and Resolver Errors
+
+Different error types surface on different listener methods. Use the most specific event so your counters and logs point to the correct pipeline stage.
 
 ```csharp
 using System.Diagnostics.Metrics;
@@ -248,7 +256,6 @@ public sealed class ErrorDiagnosticsListener(
     : ExecutionDiagnosticEventListener
 {
     private static readonly Meter s_meter = new("Demo.GraphQL");
-
     private static readonly Counter<long> s_validationErrors =
         s_meter.CreateCounter<long>("graphql.validation.errors");
 
@@ -288,7 +295,9 @@ Expected signal for an invalid query:
 graphql.validation.errors{code="HC0011"} 1
 ```
 
-Validation errors come from document validation. Request errors indicate request-pipeline termination or unhandled exceptions observed near request completion. Resolver errors are reported through `ResolverError(IMiddlewareContext, IError)` or `ResolverError(RequestContext, ISelection, IError)`, depending on the execution path.
+- Validation errors come from document validation.
+- Request errors indicate request-pipeline termination or unhandled exceptions near request completion.
+- Resolver errors are reported through `ResolverError(IMiddlewareContext, IError)` or `ResolverError(RequestContext, ISelection, IError)` depending on the execution path.
 
 ```csharp
 using HotChocolate;
@@ -305,7 +314,6 @@ public sealed class ResolverErrorListener(
     {
         var field = context.Selection.Field;
         var coordinate = $"{field.DeclaringType.Name}.{field.Name}";
-
         logger.LogWarning(
             "Resolver {Coordinate} produced error code {Code}.",
             coordinate,
@@ -319,7 +327,6 @@ public sealed class ResolverErrorListener(
     {
         var field = selection.Field;
         var coordinate = $"{field.DeclaringType.Name}.{field.Name}";
-
         logger.LogWarning(
             "Resolver {Coordinate} produced error code {Code}.",
             coordinate,
@@ -328,13 +335,15 @@ public sealed class ResolverErrorListener(
 }
 ```
 
-HTTP parsing and malformed transport errors can happen before an execution `RequestContext` exists. Use server events such as `ParserErrors(HttpContext, IReadOnlyList<IError>)` and `HttpRequestError` for those cases.
+HTTP parsing and malformed transport errors can occur before an execution `RequestContext` exists. Use server events such as `ParserErrors(HttpContext, IReadOnlyList<IError>)` and `HttpRequestError` for those cases.
 
-Never log variables, full documents, resolver results, authorization headers, or exception messages without an approved redaction policy.
+**Important:** Never log variables, full documents, resolver results, authorization headers, or exception messages without an approved redaction policy.
 
-# Observe individual field resolvers only when needed
+---
 
-Field-level diagnostics are high volume. Enable them for targeted investigations, sampling, local debugging, or a temporary production diagnostic.
+# Observing Field Resolvers (When Needed)
+
+Field-level diagnostics generate high volumes of data. Enable them for targeted investigations, sampling, local debugging, or temporary production diagnostics.
 
 ```csharp
 using System.Diagnostics;
@@ -352,7 +361,6 @@ public sealed class ResolverTimingListener(
     {
         var field = context.Selection.Field;
         var coordinate = $"{field.DeclaringType.Name}.{field.Name}";
-
         return new ResolverScope(logger, coordinate, Stopwatch.GetTimestamp());
     }
 
@@ -365,7 +373,6 @@ public sealed class ResolverTimingListener(
         public void Dispose()
         {
             var elapsed = Stopwatch.GetElapsedTime(started);
-
             logger.LogInformation(
                 "Resolver {Coordinate} completed in {ElapsedMilliseconds} ms.",
                 coordinate,
@@ -382,13 +389,17 @@ info: ResolverTimingListener[0]
       Resolver Query.status completed in 0.3 ms.
 ```
 
-`ResolveFieldValue` and `RunTask` require `EnableResolveFieldValue` to be `true` for the listener to receive those events. Use labels such as parent type, field name, schema coordinate, and operation type. Do not label metrics with argument values, resolver results, user identifiers, or response paths that include list indexes.
+- `ResolveFieldValue` and `RunTask` require `EnableResolveFieldValue` to be `true` for the listener to receive those events.
+- Use labels such as parent type, field name, schema coordinate, and operation type.
+- Do not label metrics with argument values, resolver results, user identifiers, or response paths that include list indexes.
 
-If you need standard trace visualization for resolver timing, prefer [OpenTelemetry tracing](/docs/hotchocolate/v16/operations/observability/opentelemetry) and tune `ActivityScopes` there.
+For standard trace visualization of resolver timing, prefer [OpenTelemetry tracing](/docs/hotchocolate/v16/operations/observability/opentelemetry) and adjust `ActivityScopes` as needed.
 
-# Observe DataLoader batching
+---
 
-Use DataLoader events when the request actually executes GreenDonut DataLoaders. They help you detect N+1 behavior, poor batch sizes, cache misses, and batch failures.
+# Monitoring DataLoader Batching
+
+Use DataLoader events when requests execute GreenDonut DataLoaders. These events help you detect N+1 behavior, poor batch sizes, cache misses, and batch failures.
 
 ```csharp
 using System.Diagnostics.Metrics;
@@ -397,13 +408,10 @@ using GreenDonut;
 public sealed class DataLoaderMetricsListener : DataLoaderDiagnosticEventListener
 {
     private static readonly Meter s_meter = new("Demo.GraphQL");
-
     private static readonly Histogram<int> s_batchSize =
         s_meter.CreateHistogram<int>("graphql.dataloader.batch.size");
-
     private static readonly Counter<long> s_cacheHits =
         s_meter.CreateCounter<long>("graphql.dataloader.cache.hits");
-
     private static readonly Counter<long> s_batchErrors =
         s_meter.CreateCounter<long>("graphql.dataloader.batch.errors");
 
@@ -432,7 +440,7 @@ public sealed class DataLoaderMetricsListener : DataLoaderDiagnosticEventListene
 }
 ```
 
-Register it like any other listener:
+Register the listener as usual:
 
 ```csharp
 builder
@@ -449,15 +457,16 @@ graphql.dataloader.cache.hits 5
 graphql.dataloader.batch.errors 0
 ```
 
-Do not record raw DataLoader keys by default. Keys can contain tenant IDs, user IDs, emails, or other high-cardinality values. Batch size histograms and cache or error counters are safer than key-level logs.
-
-For deeper dispatcher investigations, `RunBatchDispatchCoordinator()`, `BatchDispatchError(Exception)`, `BatchEvaluated(int openBatches)`, and `BatchDispatched(int dispatchedBatches)` describe the batch dispatcher lifecycle. Treat these as high-volume events.
+- Do not record raw DataLoader keys by default. Keys can contain tenant IDs, user IDs, emails, or other high-cardinality values. Batch size histograms and cache or error counters are safer than key-level logs.
+- For deeper dispatcher investigations, use events like `RunBatchDispatchCoordinator()`, `BatchDispatchError(Exception)`, `BatchEvaluated(int openBatches)`, and `BatchDispatched(int dispatchedBatches)`. These are high-volume events.
 
 See [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader) for batching semantics and cache behavior.
 
-# Observe HTTP and WebSocket transport events
+---
 
-Server events cover GraphQL-over-HTTP parsing, request kind, batching, operation batching, response formatting, and WebSocket session lifetime. They are useful when a request fails before execution starts.
+# Observing HTTP and WebSocket Transport Events
+
+Server events cover GraphQL-over-HTTP parsing, request kind, batching, operation batching, response formatting, and WebSocket session lifetime. These are useful when a request fails before execution starts.
 
 ```csharp
 using HotChocolate;
@@ -478,7 +487,6 @@ public sealed class TransportDiagnosticsListener(
             context.Request.Method,
             context.Request.Path,
             kind);
-
         return EmptyScope;
     }
 
@@ -517,13 +525,15 @@ public sealed class TransportDiagnosticsListener(
 }
 ```
 
-Other transport events include `StartSingleRequest`, `StartBatchRequest`, `StartOperationBatchRequest`, `ParseHttpRequest`, `FormatHttpResponse`, and `WebSocketSession`. `FormatHttpResponse(HttpContext, OperationResult)` can time response formatting, but do not inspect large result payloads in production.
+Other transport events include `StartSingleRequest`, `StartBatchRequest`, `StartOperationBatchRequest`, `ParseHttpRequest`, `FormatHttpResponse`, and `WebSocketSession`. You can time response formatting with `FormatHttpResponse(HttpContext, OperationResult)`, but avoid inspecting large result payloads in production.
 
 See [HTTP transport](/docs/hotchocolate/v16/server/http-transport) for request formats, batching, streaming responses, and status code behavior.
 
-# Keep diagnostics safe and fast
+---
 
-Every diagnostic handler runs on the request path. Review listener code like production middleware.
+# Keeping Diagnostics Safe and Fast
+
+Every diagnostic handler runs on the request path. Review listener code as you would production middleware.
 
 | Avoid                                                                                                                        | Use instead                                                                                                    |
 | ---------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
@@ -533,11 +543,13 @@ Every diagnostic handler runs on the request path. Review listener code like pro
 | Metric labels with user ID, tenant ID, raw operation text, request ID, path indexes, raw error message, or DataLoader key    | Labels such as schema, operation type, stable error code, field coordinate, HTTP request kind, status category |
 | Field-level events on all traffic without sampling or a clear retention plan                                                 | Request-level events, OpenTelemetry sampling, or temporary field diagnostics                                   |
 
-For OpenTelemetry, start with production-safe defaults. `RequestDetails.Default` avoids the most sensitive request details. `RequestDetails.All`, `ActivityScopes.All`, and `IncludeDataLoaderKeys` require an explicit privacy and performance decision.
+For OpenTelemetry, start with production-safe defaults. `RequestDetails.Default` avoids the most sensitive request details. `RequestDetails.All`, `ActivityScopes.All`, and `IncludeDataLoaderKeys` require explicit privacy and performance review.
 
-# Test a diagnostic listener
+---
 
-Test listeners with representative requests before you deploy them. The factory overload lets the test assert on the listener instance.
+# Testing Diagnostic Listeners
+
+Test listeners with representative requests before deploying them. The factory overload lets tests assert on the listener instance.
 
 ```csharp
 using System.Collections.Concurrent;
@@ -590,17 +602,13 @@ public sealed class DiagnosticListenerTests
     private sealed class CountingListener : ExecutionDiagnosticEventListener
     {
         public int RequestCount { get; private set; }
-
         public ConcurrentBag<string> Fields { get; } = [];
-
         public override bool EnableResolveFieldValue => true;
-
         public override IDisposable ExecuteRequest(RequestContext context)
         {
             RequestCount++;
             return EmptyScope;
         }
-
         public override IDisposable ResolveFieldValue(IMiddlewareContext context)
         {
             var field = context.Selection.Field;
@@ -611,17 +619,17 @@ public sealed class DiagnosticListenerTests
 
     public sealed class Query
     {
-        public string GetStatus()
-        {
-            return "ok";
-        }
+        public string GetStatus() => "ok";
     }
 }
 ```
 
-For constructor injection tests, register the dependency in `ServiceCollection` and add `.AddApplicationService<T>()` before `.AddDiagnosticEventListener<TListener>()`. For error tests, execute an invalid query or a resolver that throws, then assert the exact event count or captured field coordinate. Do not assert wall-clock durations except that a metric or log was recorded.
+- For constructor injection tests, register the dependency in `ServiceCollection` and add `.AddApplicationService<T>()` before `.AddDiagnosticEventListener<TListener>()`.
+- For error tests, execute an invalid query or a resolver that throws, then assert the event count or captured field coordinate. Do not assert wall-clock durations except to confirm a metric or log was recorded.
 
-# Event reference
+---
+
+# Event Reference
 
 This reference maps production tasks to the main listener APIs. Methods that return `IDisposable` are scopes. Disposal marks the end of that phase.
 
@@ -656,6 +664,8 @@ This reference maps production tasks to the main listener APIs. Methods that ret
 | Batch failures       | `BatchError<TKey>(IReadOnlyList<TKey>, Exception)`, `BatchItemError<TKey>(TKey, Exception)`                                                                   | No                            | Count errors by DataLoader name or stable category, not by key or message. |
 | Dispatcher lifecycle | `RunBatchDispatchCoordinator()`, `BatchDispatchError(Exception)`, `BatchEvaluated(int openBatches)`, `BatchDispatched(int dispatchedBatches)`                 | `RunBatchDispatchCoordinator` | High-volume internals for focused investigations.                          |
 
+---
+
 # Troubleshooting
 
 | Symptom                                                       | Likely cause                                                                                                                                | Fix                                                                                                                                                                               |
@@ -670,7 +680,9 @@ This reference maps production tasks to the main listener APIs. Methods that ret
 | Requests slow down after deployment                           | The handler performs heavy synchronous work, or field-level events run for all traffic                                                      | Sample, disable field events, reduce allocations, or move expensive work to a background queue.                                                                                   |
 | Counts are duplicated                                         | Multiple schemas, multiple listeners, batching, retries, or both custom metrics and span-derived metrics count the same event               | Document counting boundaries and label schema or source.                                                                                                                          |
 
-# Next steps
+---
+
+# Next Steps
 
 - Use [OpenTelemetry tracing](/docs/hotchocolate/v16/operations/observability/opentelemetry) for standard spans, exporters, `AddInstrumentation`, `ActivityScopes`, `RequestDetails`, and `ActivityEnricher`.
 - Use [metrics](/docs/hotchocolate/v16/operations/observability/metrics) for metric naming, histograms, counters, and cardinality guidance.

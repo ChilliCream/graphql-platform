@@ -83,7 +83,7 @@ HTTP POST /graphql
    └─ Format HTTP Response
 ```
 
-GraphQL spans include attributes such as `graphql.operation.type`, `graphql.operation.name`, `graphql.document.hash`, and `graphql.document.id` when available. Avoid enabling document or variable capture globally in production, as these can contain sensitive data and create high-cardinality telemetry.
+GraphQL spans include attributes such as `graphql.operation.type`, `graphql.operation.name`, `graphql.document.hash`, and `graphql.document.id` when available. Avoid enabling document or variable capture globally in production, as these can contain sensitive data and create high-cardinality telemetry. Review request extensions with the same care because `RequestDetails.Default` can include them.
 
 # Confirm the slow operation before tuning
 
@@ -261,7 +261,7 @@ Once you have a trace, compare the duration of each major span:
 - Database, outbound HTTP, and custom business spans
 - Client, proxy, CDN, and load balancer timings (when the server trace is shorter than the client duration)
 
-Build dashboards using attributes, not just span display names. For example:
+Build dashboards using attributes instead of relying on span display names. For example:
 
 | Panel                       | Group by                                                                |
 | --------------------------- | ----------------------------------------------------------------------- |
@@ -579,8 +579,8 @@ For MongoDB, return `IExecutable<T>` using `AsExecutable()` so the provider can 
 ```csharp
 [UsePaging]
 [UseProjection]
-[UseSorting]
 [UseFiltering]
+[UseSorting]
 public IExecutable<Person> GetPersons(IMongoCollection<Person> persons)
 {
     return persons.AsExecutable();
