@@ -28,6 +28,12 @@ import ChevronDownIconSvg from "@/images/icons/chevron-down.svg";
 import ChevronUpIconSvg from "@/images/icons/chevron-up.svg";
 import Grid2IconSvg from "@/images/icons/grid-2.svg";
 
+interface DocArticleNavigationItem {
+  path?: string | null;
+  title?: string | null;
+  items?: Array<DocArticleNavigationItem | null> | null;
+}
+
 interface DocArticleNavigationProduct {
   path?: string | null;
   title?: string | null;
@@ -36,14 +42,7 @@ interface DocArticleNavigationProduct {
   versions?: Array<{
     path?: string | null;
     title?: string | null;
-    items?: Array<{
-      path?: string | null;
-      title?: string | null;
-      items?: Array<{
-        path?: string | null;
-        title?: string | null;
-      } | null> | null;
-    } | null> | null;
+    items?: Array<DocArticleNavigationItem | null> | null;
   } | null> | null;
 }
 
@@ -110,21 +109,7 @@ export const DocArticleNavigation: FC<DocArticleNavigationProps> = ({
   const hasVersions =
     !activeProduct?.versions || activeProduct.versions.length > 1;
 
-  const subItems: Item[] =
-    activeVersion?.items
-      ?.filter((item) => !!item)
-      .map<Item>((item) => ({
-        path: item!.path!,
-        title: item!.title!,
-        items: item!.items
-          ? item?.items
-              .filter((item) => !!item)
-              .map<Item>((item) => ({
-                path: item!.path!,
-                title: item!.title!,
-              }))
-          : undefined,
-      })) ?? [];
+  const subItems: Item[] = mapNavigationItems(activeVersion?.items);
 
   const basePath = `/docs/${activeProduct!.path!}${
     !!activeVersion?.path?.length ? "/" + activeVersion.path : ""
@@ -300,6 +285,20 @@ const NavigationContainer: FC<NavigationContainerProps> = ({
     </NavigationList>
   );
 };
+
+function mapNavigationItems(
+  items?: Array<DocArticleNavigationItem | null> | null
+): Item[] {
+  return (
+    items
+      ?.filter((item): item is DocArticleNavigationItem => !!item)
+      .map<Item>((item) => ({
+        path: item.path!,
+        title: item.title!,
+        items: item.items ? mapNavigationItems(item.items) : undefined,
+      })) ?? []
+  );
+}
 
 function isActiveItem(selectedPath: string, itemPath: string) {
   return selectedPath === itemPath;
