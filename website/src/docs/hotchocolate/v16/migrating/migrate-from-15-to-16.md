@@ -6,8 +6,6 @@ This guide will walk you through the manual migration steps to update your Hot C
 
 Start by installing the latest `16.x.x` version of **all** of the `HotChocolate.*` packages referenced by your project.
 
-> This guide is still a work in progress with more updates to follow.
-
 # Breaking changes
 
 Things that have been removed or had a change in behavior that may cause your code not to compile or lead to unexpected behavior at runtime if not addressed.

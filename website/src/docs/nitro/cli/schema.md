@@ -1,5 +1,5 @@
 ---
-title: schema
+title: schema Command
 ---
 
 The `nitro schema` commands manage the GraphQL schema (SDL) of an API.

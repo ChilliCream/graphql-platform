@@ -151,8 +151,20 @@
                 "title": "Global Options"
               },
               {
-                "path": "session",
-                "title": "session"
+                "path": "login",
+                "title": "login"
+              },
+              {
+                "path": "logout",
+                "title": "logout"
+              },
+              {
+                "path": "status",
+                "title": "status"
+              },
+              {
+                "path": "launch",
+                "title": "launch"
               },
               {
                 "path": "api",

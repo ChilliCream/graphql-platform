@@ -1,5 +1,5 @@
 ---
-title: fusion
+title: fusion Command
 ---
 
 The `nitro fusion` commands manage [Fusion](/docs/fusion) configurations. A Fusion configuration is the composed gateway artifact built from one or more source schemas. Once published to a stage, the gateway loads it and starts serving the federated graph.

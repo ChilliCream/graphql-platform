@@ -1,5 +1,5 @@
 ---
-title: openapi
+title: openapi Command
 ---
 
 The `nitro openapi` commands manage OpenAPI collections. An OpenAPI collection bundles a versioned set of HTTP endpoint definitions and/or models that HotChocolate (Fusion) uses to expose HTTP endpoints as a GraphQL schema on a given stage.
