@@ -22,14 +22,14 @@ import { TrustStrip } from "@/components/observability/TrustStrip";
 import { Band } from "@/components/redesign-system/Band";
 import { PILLARS } from "@/data/observability/pillars";
 
-import { OscilloscopeBackground } from "./OscilloscopeBackground";
+import { TraceTopology } from "./TraceTopology";
 
 // Cinematic variant of /products/nitro/observability. Renders the same
 // section tree as the default page (hero + 8 feature panels + final CTA);
 // the cinematic-only treatment is a single distinctive idea, an ambient
-// oscilloscope/ECG-style waveform background painted behind the entire
-// page. The bands themselves and the dataviz mocks are unchanged so the
-// narrative, copy, and rhythm stay 1:1 with the default variant.
+// distributed-trace topology painted behind the entire page. The bands
+// themselves and the dataviz mocks are unchanged so the narrative, copy,
+// and rhythm stay 1:1 with the default variant.
 
 export const ObservabilityCinematicRoot: FC = () => {
   // Pull pillar copy from the shared data module so the section text and the
@@ -42,9 +42,9 @@ export const ObservabilityCinematicRoot: FC = () => {
 
   return (
     <ObservabilityRoot>
-      {/* Ambient oscilloscope waveforms behind the entire page. Sits at
-          z-index 0 with pointer-events: none; bands paint on top. */}
-      <OscilloscopeBackground />
+      {/* Ambient distributed-trace topology behind the entire page. Sits
+          at z-index 0 with pointer-events: none; bands paint on top. */}
+      <TraceTopology />
 
       {/* 01 Hero — glow band casting cyan ambient light from the right
           corner. The Hemisphere lives inside the hero shell, the layered

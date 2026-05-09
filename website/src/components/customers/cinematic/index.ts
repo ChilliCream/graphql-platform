@@ -1,3 +1,3 @@
 export { CinematicCustomersPage } from "./CinematicCustomersPage";
 export { CinematicCustomersRoot } from "./CinematicCustomersRoot";
-export { StampArchive } from "./StampArchive";
+export { MonogramWatermark } from "./MonogramWatermark";

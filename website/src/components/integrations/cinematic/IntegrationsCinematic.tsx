@@ -16,13 +16,14 @@ import { SEO } from "@/components/misc";
 import { AccentThread } from "@/components/redesign-system/AccentThread";
 import { VariantSwitcher } from "@/components/redesign-system/cinematic";
 
-import { CircuitTraces } from "./CircuitTraces";
 import { IntegrationsCinematicRoot } from "./IntegrationsCinematicRoot";
+import { PortSilhouettes } from "./PortSilhouettes";
 
 // Cinematic variant of /integrations. Renders the default component tree
 // under an `<IntegrationsCinematicRoot>` shell that lays a single
-// distinctive flourish behind the bands: a `<CircuitTraces>` PCB-trace
-// background. The bands themselves are unchanged from the default
+// distinctive flourish behind the bands: a `<PortSilhouettes>` pair of
+// faint corner-anchored port outlines (RJ45 top-right, USB-A
+// bottom-left). The bands themselves are unchanged from the default
 // variant, so the catalog, hero, spotlight, and CTA chrome stay 1:1.
 const VARIANT_OPTIONS = [
   { id: "default", label: "Default", href: "/integrations/" },
@@ -50,7 +51,7 @@ export const IntegrationsCinematic: FC = () => {
       <LandingGlobalStyle />
       <AccentThread page="integrations">
         <IntegrationsCinematicRoot>
-          <CircuitTraces />
+          <PortSilhouettes />
           <Suspense fallback={null}>
             <IntegrationsHero />
           </Suspense>

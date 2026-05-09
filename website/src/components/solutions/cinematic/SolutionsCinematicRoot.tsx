@@ -4,7 +4,7 @@ import React, { FC, ReactNode } from "react";
 import styled from "styled-components";
 
 import { SolutionsRoot } from "../SolutionsRoot";
-import { StarChart } from "./StarChart";
+import { SolutionThemes, SolutionSlug } from "./SolutionThemes";
 
 interface SolutionsCinematicRootProps {
   readonly slug: string;
@@ -13,10 +13,11 @@ interface SolutionsCinematicRootProps {
 }
 
 // SolutionsCinematicRoot wraps the standard SolutionsRoot and paints a
-// per-slug astronomical star chart behind the section stack. The chart is
-// the cinematic variant's signature: each solution slug renders a different
-// constellation (Lyra, Hydra, Cygnus, etc.) so the page identity is
-// telegraphed by the geometry of the lit stars on top of a shared field.
+// per-slug ambient background behind the section stack. Each of the seven
+// solution slugs renders its own concept (typography mosaic, single planet,
+// honeycomb mesh, triangular lattice, event pulse-stream, guilloche rosette,
+// heraldic seal) so the cinematic pages read as distinct siblings rather than
+// recolours of the same chart.
 //
 // Tonal palette, typography, button system, and section CSS stay 1:1 with
 // the default variant by inheriting from `SolutionsRoot`; the cinematic
@@ -27,15 +28,16 @@ export const SolutionsCinematicRoot: FC<SolutionsCinematicRootProps> = ({
   className,
 }) => (
   <Outer className={className}>
-    <StarChart slug={slug} />
+    <SolutionThemes slug={slug as SolutionSlug} />
     <Inner>{children}</Inner>
   </Outer>
 );
 
 const Outer = styled(SolutionsRoot)`
-  /* StarChart is rendered as a sibling of the section content with absolute
-     inset:0 / z-index:0 so it tiles behind every band. Section content sits
-     in <Inner> at z-index:1 so it stays interactive and on top. */
+  /* SolutionThemes is rendered as a sibling of the section content with
+     absolute inset:0 / z-index:0 so it sits behind every band. Section
+     content lives in <Inner> at z-index:1 so it stays interactive and on
+     top. */
   position: relative;
   isolation: isolate;
 `;

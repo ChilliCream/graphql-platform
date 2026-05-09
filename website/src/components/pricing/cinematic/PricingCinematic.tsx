@@ -16,14 +16,15 @@ import { AccentThread } from "@/components/redesign-system/AccentThread";
 import { Band } from "@/components/redesign-system/Band";
 import { VariantSwitcher } from "@/components/redesign-system/cinematic";
 
-import { LedgerPaper } from "./LedgerPaper";
+import { PriceTiers } from "./PriceTiers";
 import { PricingCinematicRoot } from "./PricingCinematicRoot";
 
 // Cinematic variant of /pricing. Renders the same component tree as the
 // default variant (PricingHero, OssStrip, NitroTierCards, ComparisonTable,
 // EnterpriseBanner, PricingFaq, PricingFooterCta) with a single distinctive
-// design idea layered behind everything: a faint ledger-paper background
-// (horizontal rules, red margin rule, line numbers, warm-cream overlay).
+// design idea layered behind everything: a sparse price-tier ladder of
+// hairlines paired with an oversized outlined "$" glyph bleeding off the
+// right edge.
 //
 // VariantSwitcher is mounted at the bottom of the tree so cinematic readers
 // can hop back to the default variant.
@@ -39,7 +40,7 @@ export const PricingCinematic: FC = () => {
       <LandingGlobalStyle />
       <AccentThread page="pricing">
         <PricingCinematicRoot>
-          <LedgerPaper />
+          <PriceTiers />
           <Band variant="default" className="cc-band cc-band-hero">
             <PricingHero />
           </Band>

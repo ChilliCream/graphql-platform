@@ -15,18 +15,17 @@ import { WorksWhereYouWork } from "../WorksWhereYouWork";
 import { Band } from "@/components/redesign-system/Band";
 import { DEMOS } from "@/data/agents/demos";
 
+import { ActivationLattice } from "./ActivationLattice";
 import { AgentsCinematicRoot } from "./AgentsCinematicRoot";
-import { PunchCardBackground } from "./PunchCardBackground";
 
 // Cinematic variant of /products/nitro/agents. Renders the same component
 // tree as the default variant (AgentsHero, AgentReframe, AgentsLoopDiagram,
 // WhatAgentSees, two AgentDemos, ProductSurfaceTiles, GuardrailsSection,
 // WorksWhereYouWork, AgentsPricingTeaser, AgentsFinalCta) with a single
-// distinctive design idea layered behind everything: a faint mainframe
-// punch-card geometric pattern (hollow Hollerith slots, a sparse pattern of
-// amber-punched holes spelling "AGENT" / "MCP", column numbers along the
-// top, row labels down the left, the 9-row dashed separator and a
-// chamfered orientation notch in the top-left corner).
+// distinctive design idea layered behind everything: a quiet sparse
+// activation lattice (80px dot grid with a handful of amber-lit nodes
+// scattered down the page, one per major section, signalling where the
+// agent is currently active).
 //
 // VariantSwitcher is owned by the page-component dispatcher
 // (`/page-components/nitro-agents.tsx`) so cinematic readers can hop back
@@ -34,7 +33,7 @@ import { PunchCardBackground } from "./PunchCardBackground";
 export const NitroAgentsCinematic: FC = () => {
   return (
     <AgentsCinematicRoot>
-      <PunchCardBackground />
+      <ActivationLattice />
       <AgentsHero />
       <AgentReframe />
       <AgentsLoopDiagram />

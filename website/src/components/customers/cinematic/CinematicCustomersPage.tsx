@@ -11,17 +11,18 @@ import { IndustryTrustWall } from "@/components/customers/IndustryTrustWall";
 import { RelatedLinks } from "@/components/customers/RelatedLinks";
 
 import { CinematicCustomersRoot } from "./CinematicCustomersRoot";
-import { StampArchive } from "./StampArchive";
+import { MonogramWatermark } from "./MonogramWatermark";
 
 // Cinematic variant of the /customers index. Renders the default
 // component tree under a `<CinematicCustomersRoot>` shell that lays a
-// single archival flourish behind the bands: a hand-placed scatter of
-// postage stamps with verified-reference postmarks, date strips, and
-// wax-seal overstamps. The bands themselves are unchanged.
+// single quiet flourish behind the bands: an oversized outlined "CC"
+// monogram watermark anchored at the right edge of the page, paired
+// with a thin letterhead rule across the very top. The bands
+// themselves are unchanged.
 export const CinematicCustomersPage: FC = () => {
   return (
     <CinematicCustomersRoot>
-      <StampArchive />
+      <MonogramWatermark />
       <CustomersHero />
       <ByTheNumbersBand />
       <FeaturedRail />
