@@ -46,9 +46,11 @@ export const DesktopLandingRoot = styled.div`
     padding-left: var(--cc-pad-x);
     padding-right: var(--cc-pad-x);
     overflow: hidden;
-    /* Sections sit above the ConnectorLayer (zIndex:0) so text, circles,
-       and the FUSION COMPOSITION glow render in front of the lines. */
-    z-index: 1;
+    /* Sections sit above the ConnectorLayer (z-index:0) AND above the
+       FusionLensEffect (z-index:1) so text, circles, panels, and the
+       FUSION COMPOSITION glow render in front of both. The lens only
+       lights up the transparent gaps between section content. */
+    z-index: 2;
   }
   section.cc-act.cc-act-spills {
     overflow: visible;
@@ -267,7 +269,12 @@ export const DesktopLandingRoot = styled.div`
     display: flex;
     gap: 4px;
     padding: 4px;
-    background: rgba(255, 255, 255, 0.04);
+    /* Frosted-glass plate so the FusionLensEffect doesn't shine through
+       the tab bar — it blocks the bright glare while still feeling
+       lighter than the surrounding navy. */
+    background: rgba(12, 19, 34, 0.7);
+    backdrop-filter: blur(10px) saturate(110%);
+    -webkit-backdrop-filter: blur(10px) saturate(110%);
     border: 1px solid var(--cc-ink-faint);
     border-radius: 14px;
     margin-bottom: 18px;
@@ -298,7 +305,11 @@ export const DesktopLandingRoot = styled.div`
   }
 
   .cc-tab-panel-d {
-    background: rgba(255, 255, 255, 0.025);
+    /* Same frosted-glass treatment as the tab bar — the panel is large and
+       sits right where the lens glare would otherwise wash through. */
+    background: rgba(12, 19, 34, 0.7);
+    backdrop-filter: blur(10px) saturate(110%);
+    -webkit-backdrop-filter: blur(10px) saturate(110%);
     border: 1px solid var(--cc-ink-faint);
     border-radius: 14px;
     padding: 32px 36px;

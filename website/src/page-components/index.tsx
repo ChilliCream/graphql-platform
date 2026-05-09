@@ -15,6 +15,7 @@ import { Blog, FinalCta } from "@/components/landing/desktop/Outro";
 import { DesktopLandingRoot } from "@/components/landing/desktop/DesktopLandingRoot";
 import { AnchorProvider } from "@/components/landing/desktop/AnchorContext";
 import { ConnectorLayer } from "@/components/landing/desktop/ConnectorLayer";
+import { FusionLensEffect } from "@/components/landing/desktop/FusionLensEffect";
 import { RecentBlogPost } from "@/components/widgets/most-recent-blog-posts-section";
 
 interface IndexPageProps {
@@ -38,6 +39,7 @@ const IndexPage: FC<IndexPageProps> = () => {
       <SEO title="Home" />
       <LandingGlobalStyle />
       <AnchorProvider>
+        <FusionLensEffect />
         <DesktopLandingRoot ref={rootRef} data-cc-landing-root>
           <ConnectorLayer rootRef={rootRef} />
           <Act1 />

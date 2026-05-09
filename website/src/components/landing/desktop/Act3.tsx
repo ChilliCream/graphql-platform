@@ -261,8 +261,9 @@ export const Act3: React.FC<Act3Props> = ({ activeTab, setActiveTab }) => {
               />
             ))}
 
-            {/* Pinch halo + dot + FUSION COMPOSITION callout (label sits to the
-              RIGHT — inside the visual area, not the empty margin to the left) */}
+            {/* Pinch halo + dot + FUSION COMPOSITION callout. The label sits
+              ABOVE-RIGHT of the pinch with a diagonal leader line so the
+              text isn't sitting in the bright glare band of the lens effect. */}
             <circle
               cx={PINCH_X}
               cy={PINCH_Y}
@@ -271,10 +272,10 @@ export const Act3: React.FC<Act3Props> = ({ activeTab, setActiveTab }) => {
             />
             <circle cx={PINCH_X} cy={PINCH_Y} r="3.5" fill="white" />
             <line
-              x1={PINCH_X + 16}
-              y1={PINCH_Y}
-              x2={PINCH_X + 50}
-              y2={PINCH_Y}
+              x1={PINCH_X + 14}
+              y1={PINCH_Y - 10}
+              x2={PINCH_X + 60}
+              y2={PINCH_Y - 60}
               stroke="var(--cc-ink)"
               strokeWidth="1.2"
               strokeDasharray="2 5"
@@ -283,8 +284,8 @@ export const Act3: React.FC<Act3Props> = ({ activeTab, setActiveTab }) => {
             />
 
             <text
-              x={PINCH_X + 56}
-              y={PINCH_Y - 4}
+              x={PINCH_X + 70}
+              y={PINCH_Y - 70}
               textAnchor="start"
               fontFamily="var(--cc-font-mono), monospace"
               fontSize="13"
@@ -293,10 +294,10 @@ export const Act3: React.FC<Act3Props> = ({ activeTab, setActiveTab }) => {
               fill="var(--cc-ink)"
               style={{ textTransform: "uppercase" }}
             >
-              <tspan x={PINCH_X + 56} dy="0">
+              <tspan x={PINCH_X + 70} dy="0">
                 FUSION
               </tspan>
-              <tspan x={PINCH_X + 56} dy="16">
+              <tspan x={PINCH_X + 70} dy="16">
                 COMPOSITION
               </tspan>
             </text>
