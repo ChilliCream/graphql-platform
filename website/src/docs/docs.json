@@ -725,6 +725,162 @@
             ]
           },
           {
+            "path": "operations",
+            "title": "Operations",
+            "items": [
+              {
+                "path": "production-checklist",
+                "title": "Production Checklist"
+              },
+              {
+                "path": "deployment",
+                "title": "Deployment",
+                "items": [
+                  {
+                    "path": "aspnetcore-hosting",
+                    "title": "ASP.NET Core Hosting"
+                  },
+                  {
+                    "path": "docker",
+                    "title": "Docker"
+                  },
+                  {
+                    "path": "kubernetes",
+                    "title": "Kubernetes"
+                  },
+                  {
+                    "path": "azure",
+                    "title": "Azure"
+                  },
+                  {
+                    "path": "aws",
+                    "title": "AWS"
+                  },
+                  {
+                    "path": "serverless",
+                    "title": "Serverless"
+                  }
+                ]
+              },
+              {
+                "path": "security-hardening",
+                "title": "Security Hardening",
+                "items": [
+                  {
+                    "path": "endpoint-exposure",
+                    "title": "Endpoint Exposure"
+                  },
+                  {
+                    "path": "trusted-documents",
+                    "title": "Trusted Documents"
+                  },
+                  {
+                    "path": "query-limits",
+                    "title": "Query Limits"
+                  },
+                  {
+                    "path": "upload-limits",
+                    "title": "Upload Limits"
+                  },
+                  {
+                    "path": "error-exposure",
+                    "title": "Error Exposure"
+                  },
+                  {
+                    "path": "introspection-and-schema-download",
+                    "title": "Introspection and Schema Download"
+                  }
+                ]
+              },
+              {
+                "path": "observability",
+                "title": "Observability",
+                "items": [
+                  {
+                    "path": "opentelemetry",
+                    "title": "OpenTelemetry"
+                  },
+                  {
+                    "path": "metrics",
+                    "title": "Metrics"
+                  },
+                  {
+                    "path": "logging",
+                    "title": "Logging"
+                  },
+                  {
+                    "path": "health-checks",
+                    "title": "Health Checks"
+                  },
+                  {
+                    "path": "diagnostics-events",
+                    "title": "Diagnostics Events"
+                  },
+                  {
+                    "path": "troubleshoot-slow-requests",
+                    "title": "Troubleshoot Slow Requests"
+                  }
+                ]
+              },
+              {
+                "path": "performance",
+                "title": "Performance",
+                "items": [
+                  {
+                    "path": "warmup",
+                    "title": "Warmup"
+                  },
+                  {
+                    "path": "dataloader",
+                    "title": "DataLoader"
+                  },
+                  {
+                    "path": "persisted-operations",
+                    "title": "Persisted Operations"
+                  },
+                  {
+                    "path": "caching",
+                    "title": "Caching"
+                  },
+                  {
+                    "path": "streaming",
+                    "title": "Streaming"
+                  },
+                  {
+                    "path": "resolver-performance",
+                    "title": "Resolver Performance"
+                  }
+                ]
+              },
+              {
+                "path": "schema-governance",
+                "title": "Schema Governance",
+                "items": [
+                  {
+                    "path": "export-schema",
+                    "title": "Export Schema"
+                  },
+                  {
+                    "path": "schema-registry",
+                    "title": "Schema Registry"
+                  },
+                  {
+                    "path": "breaking-change-checks",
+                    "title": "Breaking Change Checks"
+                  },
+                  {
+                    "path": "ci-cd",
+                    "title": "CI/CD"
+                  },
+                  {
+                    "path": "client-contracts",
+                    "title": "Client Contracts"
+                  }
+                ]
+              }
+            ]
+          },
+          {
             "path": "performance",
             "title": "Performance",
             "items": [
