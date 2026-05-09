@@ -1,9 +1,6 @@
 {
   "Schema": "schema.graphql",
-  "Documents": [
-    "**/*.graphql",
-    "**/*.graphqls"
-  ],
+  "Documents": "**/*.graphql",
   "Location": null,
   "Extensions": {
     "StrawberryShake": {
@@ -11,6 +8,7 @@
       "Namespace": null,
       "Url": null,
       "AccessModifier": "public",
+      "DependencyInjection": true,
       "StrictSchemaValidation": true,
       "HashAlgorithm": "md5",
       "UseSingleFile": true,
@@ -18,10 +16,10 @@
       "OutputDirectoryName": "Generated",
       "NoStore": false,
       "RazorComponents": null,
-      "GenerateWithHttpStatusCodeCaptureMethod": null,
+      "GenerateWithHttpStatusCodeCaptureMethod": true,
       "Records": {
-        "Inputs": true,
-        "Entities": true
+        "Inputs": false,
+        "Entities": false
       },
       "TransportProfiles": [
         {

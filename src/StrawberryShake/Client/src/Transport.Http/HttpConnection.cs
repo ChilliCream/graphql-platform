@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Transport;
@@ -11,6 +12,7 @@ public class HttpConnection : IHttpConnection
 {
     public const string RequestUri = "StrawberryShake.Transport.Http.HttpConnection.RequestUri";
     public const string HttpClient = "StrawberryShake.Transport.Http.HttpConnection.HttpClient";
+    public const string HttpStatusCodeCaptureKey = "StrawberryShake.Transport.Http.HttpConnection.HttpStatusCodeCaptureKey";
 
     private readonly Func<OperationRequest, object?, HttpClient> _createClient;
     private readonly object? _clientFactoryState;
@@ -38,7 +40,7 @@ public class HttpConnection : IHttpConnection
         return Create(
             CreateClient(request),
             CreateHttpRequest(request),
-            CreateResponse);
+            context => CreateResponse(context, request));
     }
 
     protected virtual HttpClient CreateClient(OperationRequest request)
@@ -104,6 +106,34 @@ public class HttpConnection : IHttpConnection
         }
 
         return new GraphQLHttpRequest(operation) { EnableFileUploads = hasFiles };
+    }
+
+    private Response<JsonDocument> CreateResponse(
+        HttpResponseContext responseContext,
+        OperationRequest operationRequest)
+    {
+        // Capture the status code of the response if requested
+        if (operationRequest.ContextData.TryGetValue(HttpStatusCodeCaptureKey, out var key)
+            && key is string stringKey
+            && !string.IsNullOrEmpty(stringKey))
+        {
+            var responseContextData = responseContext.ContextData;
+            var mutableResponseContextData =
+                responseContextData as IImmutableDictionary<string, object?> ??
+                responseContextData?.ToImmutableDictionary() ??
+                ImmutableDictionary<string, object?>.Empty;
+
+            responseContext = new HttpResponseContext(
+                responseContext.Response,
+                responseContext.Body,
+                responseContext.Exception,
+                responseContext.IsPatch,
+                responseContext.HasNext,
+                responseContext.Extensions,
+                mutableResponseContextData.Add(stringKey, responseContext.Response.StatusCode));
+        }
+
+        return CreateResponse(responseContext);
     }
 
     protected virtual Response<JsonDocument> CreateResponse(
