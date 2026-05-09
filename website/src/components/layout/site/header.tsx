@@ -34,14 +34,20 @@ import AngleLeftIconSvg from "@/images/icons/angle-left.svg";
 import AngleRightIconSvg from "@/images/icons/angle-right.svg";
 import BarsIconSvg from "@/images/icons/bars.svg";
 import BlogIconSvg from "@/images/icons/blog.svg";
+import BuildingIconSvg from "@/images/icons/building.svg";
 import ChevronDownIconSvg from "@/images/icons/chevron-down.svg";
 import CircleInfoIconSvg from "@/images/icons/circle-info.svg";
+import CloudIconSvg from "@/images/icons/cloud.svg";
 import GaugeCirclePlusIconSvg from "@/images/icons/gauge-circle-plus.svg";
 import GithubIconSvg from "@/images/icons/github.svg";
+import Grid2IconSvg from "@/images/icons/grid-2.svg";
 import HandshakeAngleIconSvg from "@/images/icons/handshake-angle.svg";
 import LinkedInIconSvg from "@/images/icons/linkedin.svg";
 import LollipopIconSvg from "@/images/icons/lollipop.svg";
+import NewspaperIconSvg from "@/images/icons/newspaper.svg";
 import PlanetRingedIconSvg from "@/images/icons/planet-ringed.svg";
+import RectangleListIconSvg from "@/images/icons/rectangle-list.svg";
+import ServerIconSvg from "@/images/icons/server.svg";
 import SearchIconSvg from "@/images/icons/search.svg";
 import SlackIconSvg from "@/images/icons/slack.svg";
 import SparklesIconSvg from "@/images/icons/sparkles.svg";
@@ -123,7 +129,7 @@ export const Header: FC = () => {
               onTopNavClose={handleTopNavClose}
               onSearchOpen={handleSearchOpen}
             />
-            <ServicesNavItem
+            <SolutionsNavItem
               tools={tools}
               onTopNavClose={handleTopNavClose}
               onSearchOpen={handleSearchOpen}
@@ -134,13 +140,18 @@ export const Header: FC = () => {
               onTopNavClose={handleTopNavClose}
               onSearchOpen={handleSearchOpen}
             />
-            <CompanyNavItem
+            <ServicesNavItem
               tools={tools}
               onTopNavClose={handleTopNavClose}
               onSearchOpen={handleSearchOpen}
             />
             <PricingNavItem />
-            <HelpNavItem />
+            <EnterpriseNavItem />
+            <MobileOnlyNavItems
+              tools={tools}
+              onTopNavClose={handleTopNavClose}
+              onSearchOpen={handleSearchOpen}
+            />
             <NavItemContainer className="mobile-only double-height">
               <DemoAndLaunch tools={tools} />
             </NavItemContainer>
@@ -475,6 +486,34 @@ const PlatformNavItem: FC<PlatformNavItemProps> = ({
                   Pop)
                 </div>
                 <div className="desc">GraphQL IDE / API Cockpit</div>
+              </SubNavLinkTextGroup>
+            </SubNavLinkWithDescription>
+            <SubNavLinkWithDescription
+              to="/products/nitro/observability"
+              onClick={hideTopAndSubNav}
+            >
+              <IconContainer $size={24}>
+                <Icon {...WavePulseIconSvg} />
+              </IconContainer>
+              <SubNavLinkTextGroup>
+                <div className="title">Nitro · Observability</div>
+                <div className="desc">
+                  Federation-aware tracing and dashboards.
+                </div>
+              </SubNavLinkTextGroup>
+            </SubNavLinkWithDescription>
+            <SubNavLinkWithDescription
+              to="/products/nitro/agents"
+              onClick={hideTopAndSubNav}
+            >
+              <IconContainer $size={24}>
+                <Icon {...SparklesIconSvg} />
+              </IconContainer>
+              <SubNavLinkTextGroup>
+                <div className="title">Nitro · Agents</div>
+                <div className="desc">
+                  Your platform, legible to any LLM via MCP.
+                </div>
               </SubNavLinkTextGroup>
             </SubNavLinkWithDescription>
           </SubNavGroup>
@@ -900,6 +939,211 @@ const CompanyNavItem: FC<CompanyNavItemProps> = ({
   );
 };
 
+interface SolutionsNavItemProps {
+  readonly tools: Pick<Tools, "nitro">;
+  readonly onTopNavClose: () => void;
+  readonly onSearchOpen: () => void;
+}
+
+const SolutionsNavItem: FC<SolutionsNavItemProps> = ({
+  tools,
+  onTopNavClose,
+  onSearchOpen,
+}) => {
+  const [subNav, navHandlers, linkHandlers] = useSubNav(
+    (hideTopAndSubNav, hideSubNav) => (
+      <>
+        <SubNavMain>
+          <BackButton onClick={hideSubNav}>
+            <IconContainer $size={16}>
+              <Icon {...AngleLeftIconSvg} />
+            </IconContainer>
+            Back
+          </BackButton>
+          <SubNavGroup>
+            <SubNavTitle>Use Cases</SubNavTitle>
+            <SubNavLinkWithDescription
+              to="/solutions/polyglot-federation"
+              onClick={hideTopAndSubNav}
+            >
+              <IconContainer $size={24}>
+                <Icon {...PlanetRingedIconSvg} />
+              </IconContainer>
+              <SubNavLinkTextGroup>
+                <div className="title">Polyglot Federation</div>
+                <div className="desc">
+                  One graph. Every language. No .NET tax.
+                </div>
+              </SubNavLinkTextGroup>
+            </SubNavLinkWithDescription>
+            <SubNavLinkWithDescription
+              to="/solutions/federation"
+              onClick={hideTopAndSubNav}
+            >
+              <IconContainer $size={24}>
+                <Icon {...Grid2IconSvg} />
+              </IconContainer>
+              <SubNavLinkTextGroup>
+                <div className="title">Federation</div>
+                <div className="desc">Many teams. One graph.</div>
+              </SubNavLinkTextGroup>
+            </SubNavLinkWithDescription>
+            <SubNavLinkWithDescription
+              to="/solutions/single-graph"
+              onClick={hideTopAndSubNav}
+            >
+              <IconContainer $size={24}>
+                <Icon {...LollipopIconSvg} />
+              </IconContainer>
+              <SubNavLinkTextGroup>
+                <div className="title">Single Graph</div>
+                <div className="desc">Just a great GraphQL server.</div>
+              </SubNavLinkTextGroup>
+            </SubNavLinkWithDescription>
+            <SubNavLinkWithDescription
+              to="/solutions/agents"
+              onClick={hideTopAndSubNav}
+            >
+              <IconContainer $size={24}>
+                <Icon {...SparklesIconSvg} />
+              </IconContainer>
+              <SubNavLinkTextGroup>
+                <div className="title">Agents</div>
+                <div className="desc">The platform agents can operate.</div>
+              </SubNavLinkTextGroup>
+            </SubNavLinkWithDescription>
+            <SubNavLinkWithDescription
+              to="/solutions/event-driven"
+              onClick={hideTopAndSubNav}
+            >
+              <IconContainer $size={24}>
+                <Icon {...WavePulseIconSvg} />
+              </IconContainer>
+              <SubNavLinkTextGroup>
+                <div className="title">Event-Driven</div>
+                <div className="desc">Push, don't poll.</div>
+              </SubNavLinkTextGroup>
+            </SubNavLinkWithDescription>
+          </SubNavGroup>
+          <SubNavSeparator />
+          <SubNavGroup>
+            <SubNavTitle>Industries</SubNavTitle>
+            <SubNavLinkWithDescription
+              to="/solutions/banking"
+              onClick={hideTopAndSubNav}
+            >
+              <IconContainer $size={24}>
+                <Icon {...BuildingIconSvg} />
+              </IconContainer>
+              <SubNavLinkTextGroup>
+                <div className="title">Banking & Financial Services</div>
+                <div className="desc">Banking-grade GraphQL.</div>
+              </SubNavLinkTextGroup>
+            </SubNavLinkWithDescription>
+            <SubNavLinkWithDescription
+              to="/solutions/regulated"
+              onClick={hideTopAndSubNav}
+            >
+              <IconContainer $size={24}>
+                <Icon {...HandshakeAngleIconSvg} />
+              </IconContainer>
+              <SubNavLinkTextGroup>
+                <div className="title">Regulated Industries</div>
+                <div className="desc">Federations that pass audit.</div>
+              </SubNavLinkTextGroup>
+            </SubNavLinkWithDescription>
+          </SubNavGroup>
+          <SubNavSeparator />
+          <SubNavGroup>
+            <SubNavTitle>Build with us</SubNavTitle>
+            <SubNavLinkWithDescription
+              to="/customers"
+              onClick={hideTopAndSubNav}
+            >
+              <IconContainer $size={24}>
+                <Icon {...NewspaperIconSvg} />
+              </IconContainer>
+              <SubNavLinkTextGroup>
+                <div className="title">Customer Stories</div>
+                <div className="desc">
+                  Real numbers from production platform teams.
+                </div>
+              </SubNavLinkTextGroup>
+            </SubNavLinkWithDescription>
+            <SubNavLinkWithDescription
+              to="/templates"
+              onClick={hideTopAndSubNav}
+            >
+              <IconContainer $size={24}>
+                <Icon {...RectangleListIconSvg} />
+              </IconContainer>
+              <SubNavLinkTextGroup>
+                <div className="title">Templates</div>
+                <div className="desc">
+                  Production-ready starters. Clone, ship.
+                </div>
+              </SubNavLinkTextGroup>
+            </SubNavLinkWithDescription>
+            <SubNavLinkWithDescription
+              to="/integrations"
+              onClick={hideTopAndSubNav}
+            >
+              <IconContainer $size={24}>
+                <Icon {...ServerIconSvg} />
+              </IconContainer>
+              <SubNavLinkTextGroup>
+                <div className="title">Integrations</div>
+                <div className="desc">Plug into the rest of your stack.</div>
+              </SubNavLinkTextGroup>
+            </SubNavLinkWithDescription>
+          </SubNavGroup>
+          <SubNavTools>
+            <DemoAndLaunch tools={tools} />
+          </SubNavTools>
+        </SubNavMain>
+        <SubNavAdditionalInfo>
+          <SubNavTitle>For platform teams</SubNavTitle>
+          <TeaserLink to="/enterprise">
+            <TeaserHero>
+              The GraphQL platform
+              <br />
+              for enterprise platform teams.
+            </TeaserHero>
+            <TeaserDescription>
+              Hot Chocolate, Fusion, and Nitro on infrastructure you control.
+              Self-hosted, air-gapped, agent-ready.
+            </TeaserDescription>
+          </TeaserLink>
+        </SubNavAdditionalInfo>
+      </>
+    ),
+    onTopNavClose,
+    onSearchOpen
+  );
+
+  return (
+    <NavItemContainer {...navHandlers}>
+      <NavLink
+        to="/solutions/polyglot-federation"
+        prefetch={false}
+        {...linkHandlers}
+      >
+        Solutions
+        <SubNavIndicatorIcon />
+      </NavLink>
+      {subNav}
+    </NavItemContainer>
+  );
+};
+
+const EnterpriseNavItem: FC = () => {
+  return (
+    <NavItemContainer>
+      <NavLink to={"/enterprise"}>Enterprise</NavLink>
+    </NavItemContainer>
+  );
+};
+
 const PricingNavItem: FC = () => {
   return (
     <NavItemContainer>
@@ -915,6 +1159,40 @@ const HelpNavItem: FC = () => {
     </NavItemContainer>
   );
 };
+
+interface MobileOnlyNavItemsProps {
+  readonly tools: Tools;
+  readonly onTopNavClose: () => void;
+  readonly onSearchOpen: () => void;
+}
+
+// Surfaces Company + Help only inside the mobile drawer; the desktop
+// top-bar drops them to keep the bar from overflowing into the right
+// rail (Star button + Demo + Launch + search).
+const MobileOnlyNavItems: FC<MobileOnlyNavItemsProps> = ({
+  tools,
+  onTopNavClose,
+  onSearchOpen,
+}) => {
+  return (
+    <MobileOnlyWrapper>
+      <CompanyNavItem
+        tools={tools}
+        onTopNavClose={onTopNavClose}
+        onSearchOpen={onSearchOpen}
+      />
+      <HelpNavItem />
+    </MobileOnlyWrapper>
+  );
+};
+
+const MobileOnlyWrapper = styled.div`
+  display: contents;
+
+  @media only screen and (min-width: 992px) {
+    display: none;
+  }
+`;
 
 interface DemoAndLaunchProps {
   readonly tools: Pick<Tools, "nitro">;

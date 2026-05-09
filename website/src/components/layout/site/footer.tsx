@@ -53,6 +53,11 @@ export const Footer: FC = () => {
           <Links>
             <Title>Platform</Title>
             <Navigation>
+              <NavLink to="/products/nitro">Nitro</NavLink>
+              <NavLink to="/products/nitro/observability">
+                Nitro · Observability
+              </NavLink>
+              <NavLink to="/products/nitro/agents">Nitro · Agents</NavLink>
               <NavLink to="/platform/analytics">Analytics</NavLink>
               <NavLink to="/platform/continuous-integration">
                 Continuous Integration
@@ -61,12 +66,30 @@ export const Footer: FC = () => {
                 <NavLink to="/platform/collaboration">Collaboration</NavLink>
               )}
               <NavLink to="/platform/ecosystem">Ecosystem</NavLink>
-              <NavLink to="/products/nitro">Nitro</NavLink>
+              <NavLink to="/pricing">Pricing</NavLink>
+              <NavLink to="/enterprise">Enterprise</NavLink>
             </Navigation>
           </Links>
           <Links>
-            <Title>Services</Title>
+            <Title>Solutions</Title>
             <Navigation>
+              <NavLink to="/solutions/polyglot-federation">
+                Polyglot Federation
+              </NavLink>
+              <NavLink to="/solutions/federation">Federation</NavLink>
+              <NavLink to="/solutions/single-graph">Single Graph</NavLink>
+              <NavLink to="/solutions/agents">Agents</NavLink>
+              <NavLink to="/solutions/event-driven">Event-Driven</NavLink>
+              <NavLink to="/solutions/banking">Banking</NavLink>
+              <NavLink to="/solutions/regulated">Regulated</NavLink>
+            </Navigation>
+          </Links>
+          <Links>
+            <Title>Resources</Title>
+            <Navigation>
+              <NavLink to="/customers">Customers</NavLink>
+              <NavLink to="/templates">Templates</NavLink>
+              <NavLink to="/integrations">Integrations</NavLink>
               <NavLink to="/services/advisory">Advisory</NavLink>
               <NavLink to="/services/support">Support</NavLink>
               <NavLink to="/services/training">Training</NavLink>
