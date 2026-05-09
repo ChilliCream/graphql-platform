@@ -2,13 +2,15 @@
 title: "Metrics"
 ---
 
-Hot Chocolate v16 helps you measure production behavior by emitting OpenTelemetry spans from the `HotChocolate.Diagnostics` activity source. It does not ship native Hot Chocolate `Meter` instruments for GraphQL request latency, resolver latency, or DataLoader batch metrics. In production, you usually combine standard .NET metrics, span-derived metrics from your collector or backend, and a small number of custom metrics when you need a signal that traces do not provide.
+# Observability and Metrics in Hot Chocolate v16
 
-Fusion gateway diagnostics are separate from this page. This page covers a Hot Chocolate v16 server.
+Hot Chocolate v16 enables you to monitor your GraphQL server by emitting OpenTelemetry spans from the `HotChocolate.Diagnostics` activity source. While it does not provide built-in `Meter` instruments for GraphQL request latency, resolver latency, or DataLoader batch metrics, you can combine standard .NET metrics, span-derived metrics from your observability backend, and custom metrics to get the signals you need.
 
-# Measure GraphQL health without leaking data
+This page focuses on Hot Chocolate v16 server metrics. Fusion gateway diagnostics are covered elsewhere.
 
-Start with the questions you need to answer during an incident. Then choose the lowest-cardinality signal that answers each question.
+## Choosing the Right Signals for GraphQL Health
+
+When monitoring your GraphQL server, start by identifying the questions you need to answer during incidents. For each question, select the lowest-cardinality signal that provides the answer without leaking sensitive data.
 
 | Question                                   | Signal                                     | Source                                               | Safe dimensions                                                             | Next page                                                                    |
 | ------------------------------------------ | ------------------------------------------ | ---------------------------------------------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
@@ -21,17 +23,17 @@ Start with the questions you need to answer during an incident. Then choose the 
 | Are persisted operations working?          | Storage hits, misses, untrusted rejections | Span events or custom listener metrics               | `graphql.document.id`, `graphql.document.hash`                              | [Persisted operations](/docs/hotchocolate/v16/performance/trusted-documents) |
 | Is the host saturated?                     | CPU, GC, thread pool, dependency latency   | Runtime, HTTP client, database instrumentation       | service, environment, dependency name                                       | [Performance tuning](/docs/hotchocolate/v16/guides/performance)              |
 
-Use traces for detail and metrics for trends. A trace tells you why one request was slow. A metric tells you whether slow requests are common enough to page someone.
+Use traces to investigate individual requests and metrics to spot trends. Traces explain why a request was slow; metrics show if slow requests are frequent enough to require action.
 
 # Prerequisites
 
-You need a Hot Chocolate v16 server and the diagnostics package:
+To get started, set up a Hot Chocolate v16 server and add the diagnostics package:
 
 ```bash
 dotnet add package HotChocolate.Diagnostics
 ```
 
-For OpenTelemetry with OTLP export, add the hosting, tracing, metrics, and exporter packages used by the examples on this page:
+For OpenTelemetry with OTLP export, add these packages:
 
 ```bash
 dotnet add package OpenTelemetry.Extensions.Hosting
@@ -41,11 +43,11 @@ dotnet add package OpenTelemetry.Instrumentation.Runtime
 dotnet add package OpenTelemetry.Exporter.OpenTelemetryProtocol
 ```
 
-Your telemetry backend must accept traces to show Hot Chocolate spans. Span-derived metrics, such as operation p95 latency grouped by `graphql.operation.name`, require support in your collector or backend. Prometheus can be part of this setup, but it exports .NET or custom metrics unless you add span-to-metric processing yourself.
+Your telemetry backend must support traces to display Hot Chocolate spans. If you want span-derived metrics (such as operation p95 latency grouped by `graphql.operation.name`), your collector or backend must support this. Prometheus can be used, but it only exports .NET or custom metrics unless you add span-to-metric processing.
 
-# Enable Hot Chocolate traces and .NET metrics
+# Enabling Traces and Metrics
 
-Configure GraphQL instrumentation and OpenTelemetry together. Keep tracing and metrics separate so you know which pipeline produces each signal.
+Configure GraphQL instrumentation and OpenTelemetry together. Keep tracing and metrics pipelines separate so you can track which system produces each signal.
 
 ```csharp
 using OpenTelemetry.Metrics;
@@ -84,13 +86,13 @@ app.MapGraphQL();
 app.Run();
 ```
 
-Expected result:
+After setup:
 
-- Your trace backend shows spans from the `HotChocolate.Diagnostics` activity source.
+- Your trace backend displays spans from `HotChocolate.Diagnostics`.
 - Your metrics backend shows ASP.NET Core, HTTP client, and runtime metrics.
-- GraphQL-specific metric names appear only if your backend derives metrics from spans or you add custom `Meter` instruments.
+- GraphQL-specific metrics appear only if your backend derives them from spans or you add custom `Meter` instruments.
 
-If you use service defaults, you can also export OTLP only when `OTEL_EXPORTER_OTLP_ENDPOINT` is configured:
+If you use service defaults, you can export OTLP only when `OTEL_EXPORTER_OTLP_ENDPOINT` is set:
 
 ```csharp
 if (!string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]))
@@ -99,16 +101,16 @@ if (!string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOIN
 }
 ```
 
-# Choose activity scopes for production
+# Choosing Activity Scopes
 
-`AddInstrumentation()` creates spans for selected Hot Chocolate diagnostic scopes. More scopes give you more detail, but they also create more spans and increase storage cost.
+`AddInstrumentation()` creates spans for selected Hot Chocolate diagnostic scopes. More scopes provide more detail but also increase span volume and storage cost.
 
-| Scope set                | Includes                                                                                                                                             | When to use                                                                              |
-| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `ActivityScopes.Default` | HTTP request execution, HTTP request parsing, validation, operation compilation, resolver field values, HTTP response formatting, DataLoader batches | Start here for production visibility.                                                    |
-| `ActivityScopes.All`     | Everything in `Default`, plus execute request, parse document, operation cost analysis, variable coercion, and execute operation                     | Use during an investigation or when your backend cost model can handle the extra volume. |
+| Scope set                | Includes                                                                                                                                             | When to use                                                          |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `ActivityScopes.Default` | HTTP request execution, HTTP request parsing, validation, operation compilation, resolver field values, HTTP response formatting, DataLoader batches | Use for production visibility.                                       |
+| `ActivityScopes.All`     | Everything in `Default`, plus execute request, parse document, operation cost analysis, variable coercion, and execute operation                     | Use for investigations or when your backend can handle extra volume. |
 
-Make the default explicit when you want configuration to document the production choice:
+To make your production choice explicit:
 
 ```csharp
 builder
@@ -120,7 +122,7 @@ builder
     });
 ```
 
-Temporarily broaden scopes when you need cost tags or deeper execution timing:
+Broaden scopes temporarily when you need more detail:
 
 ```csharp
 builder
@@ -132,11 +134,11 @@ builder
     });
 ```
 
-Resolver and DataLoader scopes can create many spans for large operations. If telemetry overhead becomes visible, reduce scopes, sample traces, or move high-volume signals to custom metrics with bounded labels.
+Resolver and DataLoader scopes can generate many spans for large operations. If you notice telemetry overhead, reduce scopes, sample traces, or move high-volume signals to custom metrics with bounded labels.
 
-# Measure request latency and throughput
+# Measuring Request Latency and Throughput
 
-Build your first health panels from ASP.NET Core metrics, then add Hot Chocolate span-derived metrics for GraphQL-specific breakdowns.
+Start with ASP.NET Core metrics for basic health panels, then add Hot Chocolate span-derived metrics for GraphQL-specific insights.
 
 | Panel                           | Source               | Dimensions                                                                  | What it answers                           |
 | ------------------------------- | -------------------- | --------------------------------------------------------------------------- | ----------------------------------------- |
@@ -146,13 +148,13 @@ Build your first health panels from ASP.NET Core metrics, then add Hot Chocolate
 | Operation duration              | Span-derived metrics | `graphql.operation.type`, `graphql.operation.name`, `graphql.document.hash` | Is one operation class slow?              |
 | Slowest named operations        | Span-derived metrics | operation name, document hash                                               | Which client workflow should you inspect? |
 
-Hot Chocolate keeps root span names low-cardinality. In v16, the root GraphQL span name includes the operation type, such as `query`, `mutation`, or `subscription`; the operation name is an attribute named `graphql.operation.name`. For anonymous operations, group by `graphql.operation.type` and `graphql.document.hash` instead of the raw document body.
+Hot Chocolate keeps root span names low-cardinality. In v16, the root GraphQL span name includes the operation type (such as `query`, `mutation`, or `subscription`). The operation name is stored in the `graphql.operation.name` attribute. For anonymous operations, group by `graphql.operation.type` and `graphql.document.hash` instead of the raw document body.
 
-Subscriptions need a separate view. A WebSocket connection can stay open for a long time, while each subscription event has its own execution behavior. Track connection health with transport metrics and event execution with Hot Chocolate spans.
+Subscriptions require a separate view. WebSocket connections can stay open for a long time, and each subscription event has its own execution. Track connection health with transport metrics and event execution with Hot Chocolate spans.
 
-# Count errors and validation failures
+# Counting Errors and Validation Failures
 
-Do not treat all GraphQL errors as the same operational problem.
+Not all GraphQL errors indicate the same operational problem. Use the right signals to distinguish between them:
 
 | Error signal                                | Source                         | Typical next action                                                |
 | ------------------------------------------- | ------------------------------ | ------------------------------------------------------------------ |
@@ -161,9 +163,9 @@ Do not treat all GraphQL errors as the same operational problem.
 | Resolver span status is `Error`             | Resolver spans                 | Inspect resolver code, dependencies, DataLoaders, and data shape.  |
 | Root request span has `graphql.error.count` | Root Hot Chocolate span        | Split by operation and error type, then inspect traces or logs.    |
 
-Root request spans can include `graphql.error` events. `MaxErrorEvents` defaults to `10`, and `0` suppresses those events. The total error count remains available as the `graphql.error.count` tag.
+Root request spans can include `graphql.error` events. By default, `MaxErrorEvents` is `10`. Setting it to `0` suppresses these events, but the total error count is always available as the `graphql.error.count` tag.
 
-Use safe labels for error metrics:
+Use only safe labels for error metrics:
 
 | Use as a label           | Avoid as a label                  |
 | ------------------------ | --------------------------------- |
@@ -173,19 +175,19 @@ Use safe labels for error metrics:
 | status code              | Raw document body                 |
 | service and environment  | User IDs, tenant IDs, request IDs |
 
-Error messages and exception text belong in traces or structured logs. Link metrics to traces or logs when your backend supports exemplars or correlation IDs. See [logging](/docs/hotchocolate/v16/operations/observability/logging) for log-specific guidance.
+Error messages and exception text belong in traces or structured logs, not in metric labels. Link metrics to traces or logs using exemplars or correlation IDs if your backend supports them. For more on logging, see the [logging guide](/docs/hotchocolate/v16/operations/observability/logging).
 
-# Find slow resolvers without exploding cardinality
+# Finding Slow Resolvers Without High Cardinality
 
-Resolver spans use `graphql.processing.type=resolve` and include field attributes:
+Resolver spans use `graphql.processing.type=resolve` and include several field attributes:
 
-| Attribute                         | Production use                                                            |
-| --------------------------------- | ------------------------------------------------------------------------- |
-| `graphql.field.schema_coordinate` | Best dimension for resolver metrics, for example `Product.name`.          |
-| `graphql.field.name`              | Useful when combined with parent type.                                    |
-| `graphql.field.parent_type`       | Useful when your backend cannot use schema coordinate.                    |
-| `graphql.field.path`              | Avoid as a metric label because list indexes can create high cardinality. |
-| `graphql.field.alias`             | Avoid as a metric label because clients control aliases.                  |
+| Attribute                         | Production use                                                   |
+| --------------------------------- | ---------------------------------------------------------------- |
+| `graphql.field.schema_coordinate` | Best dimension for resolver metrics, for example `Product.name`. |
+| `graphql.field.name`              | Useful when combined with parent type.                           |
+| `graphql.field.parent_type`       | Useful when your backend cannot use schema coordinate.           |
+| `graphql.field.path`              | Avoid as a metric label; list indexes create high cardinality.   |
+| `graphql.field.alias`             | Avoid as a metric label; clients control aliases.                |
 
 Build panels that aggregate by `graphql.field.schema_coordinate`:
 
@@ -195,9 +197,9 @@ Build panels that aggregate by `graphql.field.schema_coordinate`:
 | Resolver error count         | Inspect failing fields and their dependencies.                |
 | Resolver duration heatmap    | Look for tail latency and outliers.                           |
 
-If one field is slow because it loads related data repeatedly, move the investigation to [DataLoader batching](/docs/hotchocolate/v16/resolvers-and-data/dataloader). If the field over-fetches from a database, review [projections](/docs/hotchocolate/v16/resolvers-and-data/projections).
+If a field is slow due to repeated data loading, investigate [DataLoader batching](/docs/hotchocolate/v16/resolvers-and-data/dataloader). If it over-fetches from a database, review [projections](/docs/hotchocolate/v16/resolvers-and-data/projections).
 
-# Monitor DataLoader batching
+# Monitoring DataLoader Batching
 
 DataLoader spans are enabled by `ActivityScopes.Default`. Batch spans include the DataLoader name and batch size:
 
@@ -221,7 +223,7 @@ builder
     });
 ```
 
-Useful panels:
+Useful panels for DataLoader health:
 
 | Panel                                               | What it tells you                                                       |
 | --------------------------------------------------- | ----------------------------------------------------------------------- |
@@ -230,11 +232,11 @@ Useful panels:
 | Failed batches by DataLoader name                   | Batch functions are throwing or dependencies are failing.               |
 | Open vs dispatched batch counts                     | Dispatch behavior changed, if your backend exposes span events.         |
 
-# Track operation cost, depth, and rejected requests
+# Tracking Operation Cost, Depth, and Rejections
 
-Cost analysis protects the server before execution. When you enable cost analysis instrumentation, spans can carry `graphql.operation.fieldCost` and `graphql.operation.typeCost`.
+Cost analysis protects your server before execution. When you enable cost analysis instrumentation, spans can include `graphql.operation.fieldCost` and `graphql.operation.typeCost`.
 
-Cost spans are not part of the default activity scopes. Enable them with `ActivityScopes.AnalyzeComplexity` or `ActivityScopes.All` when you need cost visibility:
+Cost spans are not included in the default activity scopes. Enable them with `ActivityScopes.AnalyzeComplexity` or `ActivityScopes.All` when you need cost visibility:
 
 ```csharp
 builder
@@ -246,7 +248,7 @@ builder
     });
 ```
 
-Track these panels when you tune limits:
+Track these panels when tuning limits:
 
 | Panel                   | Source                                    | Action                                                                                                        |
 | ----------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
@@ -255,11 +257,11 @@ Track these panels when you tune limits:
 | Cost-limit rejections   | Request errors or custom listener metrics | Review [cost analysis](/docs/hotchocolate/v16/securing-your-api/cost-analysis) and expected client workloads. |
 | Latency vs cost         | Backend-specific trace links or exemplars | Decide whether high cost predicts high latency in your schema.                                                |
 
-If you use depth limits or custom validation rules, measure their failures as validation failures or add custom diagnostic listener metrics. Do not assume a built-in depth metric exists.
+If you use depth limits or custom validation rules, measure their failures as validation failures or add custom diagnostic listener metrics. There is no built-in depth metric.
 
-# Measure persisted operation hits, misses, and cache behavior
+# Measuring Persisted Operation Hits, Misses, and Cache Behavior
 
-Persisted operations reduce request size and let known operations avoid dynamic parsing work. Hot Chocolate v16 emits span events on the request span for persisted-operation and cache behavior, including:
+Persisted operations reduce request size and let known operations skip dynamic parsing. Hot Chocolate v16 emits span events on the request span for persisted-operation and cache behavior, including:
 
 - `RetrievedDocumentFromCache`
 - `RetrievedDocumentFromStorage`
@@ -268,7 +270,7 @@ Persisted operations reduce request size and let known operations avoid dynamic 
 - `AddedDocumentToCache`
 - `AddedOperationToCache`
 
-These are span events, not built-in metric instruments. Some backends let you derive metrics from span events. Others require a custom `ExecutionDiagnosticEventListener`.
+These are span events, not built-in metric instruments. Some backends can derive metrics from span events; others require a custom `ExecutionDiagnosticEventListener`.
 
 Use document identifiers as dimensions:
 
@@ -278,9 +280,9 @@ Use document identifiers as dimensions:
 | `graphql.document.hash` | variables               |
 | operation name          | request extensions      |
 
-Useful panels include persisted document storage hits, document-not-found misses, untrusted document rejections, cache-add rate, and latency split by persisted versus dynamic requests when your backend exposes the needed span data. See [persisted operations](/docs/hotchocolate/v16/performance/trusted-documents) and [automatic persisted operations](/docs/hotchocolate/v16/performance/automatic-persisted-operations) for setup details.
+Panels to consider: persisted document storage hits, document-not-found misses, untrusted document rejections, cache-add rate, and latency split by persisted versus dynamic requests. See [persisted operations](/docs/hotchocolate/v16/performance/trusted-documents) and [automatic persisted operations](/docs/hotchocolate/v16/performance/automatic-persisted-operations) for setup details.
 
-# Design labels that stay safe and affordable
+# Designing Safe and Affordable Metric Labels
 
 Metric labels must be bounded, stable, and safe to share with your observability backend.
 
@@ -306,9 +308,9 @@ Metric labels must be bounded, stable, and safe to share with your observability
 | raw user ID or tenant ID          | High-cardinality and often sensitive.                  |
 | request ID                        | One time series per request.                           |
 
-`RequestDetails.Document`, `RequestDetails.Variables`, `IncludeDocument`, and `IncludeDataLoaderKeys` are privacy-sensitive. Keep them disabled for production metrics unless you have a documented retention, access, and redaction policy.
+Options like `RequestDetails.Document`, `RequestDetails.Variables`, `IncludeDocument`, and `IncludeDataLoaderKeys` are privacy-sensitive. Leave them disabled for production metrics unless you have a documented retention, access, and redaction policy.
 
-This custom metric uses bounded labels only:
+Example of a custom metric with bounded labels:
 
 ```csharp
 s_batchSize.Record(
@@ -316,11 +318,11 @@ s_batchSize.Record(
     new KeyValuePair<string, object?>("graphql.dataloader.name", dataLoader.GetType().Name));
 ```
 
-For multi-tenant systems, prefer a bounded tenant tier, plan, region, or shard label over a raw tenant ID.
+For multi-tenant systems, use a bounded tenant tier, plan, region, or shard label instead of a raw tenant ID.
 
-# Build a dashboard that leads to action
+# Building Actionable Dashboards
 
-A useful dashboard tells the on-call engineer what to inspect next.
+A good dashboard guides the on-call engineer to the next step. Organize panels by investigation flow:
 
 | Row                | Panels                                                                        | Follow-up                                                            |
 | ------------------ | ----------------------------------------------------------------------------- | -------------------------------------------------------------------- |
@@ -331,13 +333,13 @@ A useful dashboard tells the on-call engineer what to inspect next.
 | DataLoader health  | Batch size, batch duration, batch failures, dispatch counts                   | Fix tiny batches, oversized batches, or failing batch functions.     |
 | Dependencies       | Database latency, HTTP client latency, runtime saturation                     | Escalate to the dependency owner or tune host capacity.              |
 
-Prefer panel descriptions and dimensions over copied query syntax. Metric names differ across OpenTelemetry SDK versions, exporters, collectors, and backends. If you use PromQL, verify the exported metric names in your Prometheus target before committing dashboards.
+Prefer panel descriptions and dimensions over copied query syntax. Metric names can differ across OpenTelemetry SDK versions, exporters, collectors, and backends. If you use PromQL, verify metric names in your Prometheus target before finalizing dashboards.
 
-# Set SLOs and alerts
+# Setting SLOs and Alerts
 
-Start with API-level SLOs. Resolver and DataLoader metrics are excellent investigation signals, but they usually should not page by themselves unless they affect request success or latency.
+Start with API-level SLOs. Resolver and DataLoader metrics are valuable for investigations, but usually should not trigger pages unless they affect request success or latency.
 
-Example alert descriptions:
+Example alert types:
 
 | Alert                          | Trigger shape                                                                        | Route to                         |
 | ------------------------------ | ------------------------------------------------------------------------------------ | -------------------------------- |
@@ -351,11 +353,11 @@ Example alert descriptions:
 
 Alert on burn rate or sustained symptoms. A single slow resolver span should lead to an investigation dashboard, not a page.
 
-# Add custom metrics from diagnostic events
+# Adding Custom Metrics from Diagnostic Events
 
-Use custom metrics when your backend cannot derive the metric you need from spans or span events. Diagnostic event listeners run synchronously during GraphQL execution, so keep them lightweight.
+If your backend cannot derive a needed metric from spans or span events, use custom metrics. Diagnostic event listeners run synchronously during GraphQL execution, so keep them lightweight.
 
-The following listener records DataLoader batch metrics with a custom .NET `Meter`:
+Here is a listener that records DataLoader batch metrics with a custom .NET `Meter`:
 
 ```csharp
 using System.Diagnostics.Metrics;
@@ -400,7 +402,7 @@ public sealed class GraphQLDataLoaderMetrics : DataLoaderDiagnosticEventListener
 }
 ```
 
-Register the listener with Hot Chocolate and register the meter with OpenTelemetry metrics:
+Register the listener with Hot Chocolate and the meter with OpenTelemetry metrics:
 
 ```csharp
 builder
@@ -419,11 +421,11 @@ builder.Services
     });
 ```
 
-Expected result: your metrics backend receives `graphql.dataloader.batches.executed`, `graphql.dataloader.batches.failed`, and `graphql.dataloader.batch.size` from the `Demo.GraphQL` meter.
+Your metrics backend will now receive `graphql.dataloader.batches.executed`, `graphql.dataloader.batches.failed`, and `graphql.dataloader.batch.size` from the `Demo.GraphQL` meter.
 
-When a custom listener needs application services, register those services with the schema service provider as described in the [v15 to v16 migration guide](/docs/hotchocolate/v16/migrating/migrate-from-15-to-16#clearer-separation-between-schema-and-application-services).
+If your custom listener needs application services, register them with the schema service provider as described in the [v15 to v16 migration guide](/docs/hotchocolate/v16/migrating/migrate-from-15-to-16#clearer-separation-between-schema-and-application-services).
 
-# Troubleshoot missing or noisy metrics
+# Troubleshooting Missing or Noisy Metrics
 
 | Symptom                                             | Check                                                                                                                                                                                       |
 | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -436,7 +438,7 @@ When a custom listener needs application services, register those services with 
 | Cardinality explodes                                | Remove document body, variables, extensions, DataLoader keys, field path, aliases, error messages, raw user IDs, raw tenant IDs, and request IDs from labels.                               |
 | Telemetry adds latency or cost                      | Reduce scopes, sample traces, lower `MaxErrorEvents`, avoid synchronous exporter work, and keep custom listener work minimal.                                                               |
 
-Use safe instrumentation options for production:
+For production, use safe instrumentation options:
 
 ```csharp
 builder
@@ -451,7 +453,7 @@ builder
     });
 ```
 
-During a short investigation, you can temporarily increase scope detail:
+During investigations, you can temporarily increase scope detail:
 
 ```csharp
 builder
@@ -463,17 +465,17 @@ builder
     });
 ```
 
-Return to the smaller scope after the investigation to control overhead and storage cost.
+After the investigation, return to a smaller scope to control overhead and storage cost.
 
-# Next steps
+# Next Steps
 
-- [Tracing](/docs/hotchocolate/v16/operations/observability/tracing): inspect spans, enrich activities, and connect traces to metrics.
-- [Logging](/docs/hotchocolate/v16/operations/observability/logging): record structured errors, correlation IDs, and request context that should not become metric labels.
-- [Instrumentation](/docs/hotchocolate/v16/server/instrumentation): review diagnostic event listeners and OpenTelemetry APIs.
-- [Performance tuning](/docs/hotchocolate/v16/guides/performance): respond to latency, cache, DataLoader, cost, and runtime bottlenecks.
-- [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader): fix batching and N+1 issues.
-- [Cost analysis](/docs/hotchocolate/v16/securing-your-api/cost-analysis): configure cost limits and report mode.
-- [Persisted operations](/docs/hotchocolate/v16/performance/trusted-documents): configure trusted documents and persisted-operation storage.
-- [Automatic persisted operations](/docs/hotchocolate/v16/performance/automatic-persisted-operations): understand runtime persisted-operation negotiation.
-- [HTTP transport](/docs/hotchocolate/v16/server/http-transport): understand transport, batching, status codes, and streaming.
-- [Migrate from v15 to v16](/docs/hotchocolate/v16/migrating/migrate-from-15-to-16): update instrumentation options and span attributes.
+- [Tracing](/docs/hotchocolate/v16/operations/observability/tracing): Inspect spans, enrich activities, and connect traces to metrics.
+- [Logging](/docs/hotchocolate/v16/operations/observability/logging): Record structured errors, correlation IDs, and request context that should not become metric labels.
+- [Instrumentation](/docs/hotchocolate/v16/server/instrumentation): Review diagnostic event listeners and OpenTelemetry APIs.
+- [Performance tuning](/docs/hotchocolate/v16/guides/performance): Respond to latency, cache, DataLoader, cost, and runtime bottlenecks.
+- [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader): Fix batching and N+1 issues.
+- [Cost analysis](/docs/hotchocolate/v16/securing-your-api/cost-analysis): Configure cost limits and report mode.
+- [Persisted operations](/docs/hotchocolate/v16/performance/trusted-documents): Configure trusted documents and persisted-operation storage.
+- [Automatic persisted operations](/docs/hotchocolate/v16/performance/automatic-persisted-operations): Understand runtime persisted-operation negotiation.
+- [HTTP transport](/docs/hotchocolate/v16/server/http-transport): Understand transport, batching, status codes, and streaming.
+- [Migrate from v15 to v16](/docs/hotchocolate/v16/migrating/migrate-from-15-to-16): Update instrumentation options and span attributes.

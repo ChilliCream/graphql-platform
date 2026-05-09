@@ -2,21 +2,21 @@
 title: "Control introspection and schema download"
 ---
 
-This page helps you control schema discovery in a Hot Chocolate v16 ASP.NET Core server. You will choose a production policy for GraphQL introspection, SDL download routes, and hosted Nitro tooling, then verify that public traffic sees only the surfaces you intend to expose.
+This page guides you through controlling schema discovery in a Hot Chocolate v16 ASP.NET Core server. You'll learn how to set a production policy for GraphQL introspection, SDL download routes, and hosted Nitro tooling, and how to verify that only the intended surfaces are exposed to public traffic.
 
-Use this page for Hot Chocolate source-schema services. Fusion gateway behavior is separate and is not covered here.
+This guidance applies to Hot Chocolate source-schema services. Fusion gateway behavior is separate and not covered here.
 
 # Prerequisites
 
-You need:
+Before you begin, ensure you have:
 
-- A Hot Chocolate v16 ASP.NET Core server configured with `builder.AddGraphQL()` or `builder.Services.AddGraphQLServer()`.
-- A mapped GraphQL endpoint, often `app.MapGraphQL()` during development or split endpoints such as `app.MapGraphQLHttp()` in production.
-- ASP.NET Core authentication and authorization if you want to protect developer-only schema access.
-- A reliable environment check through `builder.Environment` or `app.Environment`.
-- A way to test from the same network path that production users use, not only from `localhost`.
+- A Hot Chocolate v16 ASP.NET Core server set up with `builder.AddGraphQL()` or `builder.Services.AddGraphQLServer()`.
+- A mapped GraphQL endpoint, such as `app.MapGraphQL()` for development or split endpoints like `app.MapGraphQLHttp()` in production.
+- ASP.NET Core authentication and authorization if you want to restrict schema access to developers.
+- A reliable way to check the environment using `builder.Environment` or `app.Environment`.
+- The ability to test from the same network path as production users, not just from `localhost`.
 
-A minimal server looks like this:
+A minimal server setup looks like this:
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
@@ -32,11 +32,11 @@ app.MapGraphQL();
 app.Run();
 ```
 
-Server-level options belong on the GraphQL builder. Endpoint-level options belong on the mapped endpoint with `WithOptions`. Per-request exceptions belong in an HTTP request interceptor.
+Apply server-level options on the GraphQL builder. Use endpoint-level options with the mapped endpoint via `WithOptions`. For per-request exceptions, use an HTTP request interceptor.
 
-# Choose a production schema visibility policy
+# Set a production schema visibility policy
 
-Start with an explicit policy, then adjust it for your product and developer workflow.
+Start with a clear policy, then adapt it to your product and developer workflow.
 
 | Traffic                   | Introspection                 | SDL/schema download            | Nitro                       | Recommended access pattern                              |
 | ------------------------- | ----------------------------- | ------------------------------ | --------------------------- | ------------------------------------------------------- |
@@ -45,7 +45,7 @@ Start with an explicit policy, then adjust it for your product and developer wor
 | Internal developers       | Allowed by policy             | Protected route or CI artifact | Protected or separate route | Authenticated users, roles, claims, or internal ingress |
 | CI/CD and registries      | Not needed against production | Export from build output       | Not needed                  | `schema export` command or protected artifact           |
 
-The following baseline keeps schema discovery open in development and closes it for production public traffic:
+A typical baseline keeps schema discovery open in development and closes it for public production traffic:
 
 ```csharp
 var isDevelopment = builder.Environment.IsDevelopment();
@@ -62,32 +62,32 @@ builder
     });
 ```
 
-Expected production behavior:
+In production, you should see:
 
-- `/graphql` still executes allowed operations.
+- `/graphql` continues to execute allowed operations.
 - Introspection queries return HTTP 400 with GraphQL error code `HC0046`.
 - Integrated SDL routes return `404 Not Found`.
 - Browser requests to the public GraphQL endpoint do not load Nitro.
 
-`AddGraphQLServer(..., disableDefaultSecurity: false)` already adds the default security policy, which disables executable introspection outside development, adds cost analysis, and validates maximum field-cycle depth. Keep your policy explicit when you use `AddGraphQL()`, when you pass `disableDefaultSecurity: true`, or when you want reviewers to see the production decision in one place.
+`AddGraphQLServer(..., disableDefaultSecurity: false)` applies the default security policy, which disables executable introspection outside development, adds cost analysis, and enforces maximum field-cycle depth. Always keep your policy explicit if you use `AddGraphQL()`, set `disableDefaultSecurity: true`, or want reviewers to see the production decision in one place.
 
-# Know which surface you are controlling
+# Understand the schema discovery surfaces
 
-Disabling introspection does not close every way to discover a schema. Treat these surfaces as separate controls.
+Disabling introspection does not close every path to schema discovery. Treat each surface as a separate control.
 
-| Surface                 | What it is                                                | Common route or query                                                                | Control                                                                            | Production recommendation                                  |
-| ----------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| GraphQL introspection   | Executable GraphQL fields such as `__schema` and `__type` | `{ __schema { types { name } } }`                                                    | `.DisableIntrospection(...)` and per-request `requestBuilder.AllowIntrospection()` | Disable for public production traffic.                     |
-| Runtime `__typename`    | A meta field clients often use for unions and interfaces  | `{ node { __typename } }`                                                            | Normal GraphQL execution and authorization                                         | Usually keep available. It is not the main discovery risk. |
-| Integrated SDL download | Schema file support on `MapGraphQL()`                     | `GET /graphql?sdl`, `/graphql/schema`, `/graphql/schema/`, `/graphql/schema.graphql` | `EnableSchemaRequests` and `EnableSchemaFileSupport`                               | Disable publicly or protect through endpoint design.       |
-| Explicit SDL endpoint   | A separate endpoint mapped by your app                    | `app.MapGraphQLSchema()` defaults to `/graphql/sdl`                                  | Map or remove the endpoint, plus `.RequireAuthorization(...)`                      | Do not map publicly, or require developer authorization.   |
-| Hosted Nitro            | Browser IDE and operation tooling                         | Browser `GET /graphql` or `MapNitroApp("/graphql/ui")`                               | `Tool.Enable` or Nitro endpoint options                                            | Disable publicly, or host on a protected developer route.  |
+| Surface                 | What it is                                                | Common route or query                                                                | Control                                                                            | Production recommendation                                 |
+| ----------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| GraphQL introspection   | Executable GraphQL fields such as `__schema` and `__type` | `{ __schema { types { name } } }`                                                    | `.DisableIntrospection(...)` and per-request `requestBuilder.AllowIntrospection()` | Disable for public production traffic.                    |
+| Runtime `__typename`    | Meta field for unions and interfaces                      | `{ node { __typename } }`                                                            | Normal GraphQL execution and authorization                                         | Usually keep available; not a main discovery risk.        |
+| Integrated SDL download | Schema file support on `MapGraphQL()`                     | `GET /graphql?sdl`, `/graphql/schema`, `/graphql/schema/`, `/graphql/schema.graphql` | `EnableSchemaRequests` and `EnableSchemaFileSupport`                               | Disable publicly or protect via endpoint design.          |
+| Explicit SDL endpoint   | Separate endpoint mapped by your app                      | `app.MapGraphQLSchema()` defaults to `/graphql/sdl`                                  | Map or remove the endpoint, plus `.RequireAuthorization(...)`                      | Do not map publicly, or require developer authorization.  |
+| Hosted Nitro            | Browser IDE and operation tooling                         | Browser `GET /graphql` or `MapNitroApp("/graphql/ui")`                               | `Tool.Enable` or Nitro endpoint options                                            | Disable publicly, or host on a protected developer route. |
 
-This distinction matters during security reviews. A finding for `/graphql?sdl` is not fixed by changing introspection validation. A Nitro route can load even when introspection is disabled, but it may not be able to show a schema.
+This distinction is important for security reviews. For example, disabling introspection does not fix a finding for `/graphql?sdl`. Nitro can load even if introspection is disabled, but may not display a schema.
 
-# Disable public introspection and allow developers by policy
+# Disable public introspection and allow developer access by policy
 
-Use `DisableIntrospection()` to block executable introspection. Add a narrow interceptor when authenticated developers need temporary access.
+Use `DisableIntrospection()` to block executable introspection. If authenticated developers need temporary access, add a targeted interceptor.
 
 ```csharp
 using HotChocolate.AspNetCore;
@@ -139,14 +139,14 @@ builder
     .AddHttpRequestInterceptor<DeveloperIntrospectionInterceptor>();
 ```
 
-Expected result:
+With this setup:
 
 - Anonymous public introspection receives `HC0046`.
-- Requests from users who satisfy `GraphQLDevelopers` can introspect.
+- Users who meet the `GraphQLDevelopers` policy can introspect.
 
-Avoid bare shared headers as a production bypass. A header can be useful in a local test, but production exceptions should come from authentication, authorization policies, claims, roles, mTLS, an API key validator, or a protected internal network path.
+Do not use shared headers as a production bypass. In production, exceptions should rely on authentication, authorization policies, claims, roles, mTLS, API key validation, or a protected internal network path.
 
-You can customize the denial message in the same interceptor:
+To customize the denial message, update the interceptor:
 
 ```csharp
 if (!result.Succeeded)
@@ -156,7 +156,7 @@ if (!result.Succeeded)
 }
 ```
 
-A denied request returns a GraphQL error similar to this:
+A denied request returns a GraphQL error like this:
 
 ```json
 {
@@ -174,7 +174,7 @@ A denied request returns a GraphQL error similar to this:
 
 # Disable SDL and schema download routes
 
-SDL download is independent from introspection validation. Configure schema file options directly.
+SDL download is independent of introspection. Configure schema file options directly.
 
 ```csharp
 builder
@@ -187,7 +187,7 @@ builder
     });
 ```
 
-When you configure a specific endpoint, check endpoint overrides too:
+If you configure a specific endpoint, check endpoint overrides as well:
 
 ```csharp
 app.MapGraphQL().WithOptions(options =>
@@ -197,9 +197,9 @@ app.MapGraphQL().WithOptions(options =>
 });
 ```
 
-`EnableSchemaRequests = false` prevents the schema middleware from handling schema download candidates. `EnableSchemaFileSupport = false` returns `404 Not Found` when a candidate reaches the middleware. Set both in production so the policy remains clear even if routing changes later.
+Setting `EnableSchemaRequests = false` prevents the schema middleware from handling schema download candidates. Setting `EnableSchemaFileSupport = false` returns `404 Not Found` for those requests. Set both options in production to keep your policy clear, even if routing changes later.
 
-Integrated schema candidates include:
+Integrated schema download candidates include:
 
 ```text
 GET /graphql?sdl
@@ -209,7 +209,7 @@ GET /graphql/schema.graphql
 GET /graphql?sdl&types=Query
 ```
 
-The `types=` query can export selected types, so block the whole schema download surface instead of blocking only the full schema file.
+Because the `types=` query can export selected types, block the entire schema download surface, not just the full schema file.
 
 If your team needs an SDL endpoint, map it explicitly and protect it:
 
@@ -218,7 +218,7 @@ app.MapGraphQLSchema("/internal/graphql/sdl")
     .RequireAuthorization("GraphQLDevelopers");
 ```
 
-Expected result:
+With this configuration:
 
 - `GET /graphql?sdl`, `/graphql/schema`, `/graphql/schema/`, and `/graphql/schema.graphql` return `404 Not Found` when integrated schema download is disabled.
 - `/graphql/sdl` exists only if you mapped `MapGraphQLSchema()`.
@@ -226,9 +226,9 @@ Expected result:
 
 # Expose or disable Nitro intentionally
 
-Nitro is developer tooling. It can be served by the integrated `MapGraphQL()` endpoint for browser requests, or from a separate `MapNitroApp()` route. Nitro is not an authorization boundary and does not replace endpoint or field authorization.
+Nitro is developer tooling. You can serve it from the integrated `MapGraphQL()` endpoint for browser requests or from a separate `MapNitroApp()` route. Nitro is not an authorization boundary and does not replace endpoint or field authorization.
 
-Disable hosted Nitro on the integrated endpoint in production:
+To disable hosted Nitro on the integrated endpoint in production:
 
 ```csharp
 app.MapGraphQL().WithOptions(options =>
@@ -237,7 +237,7 @@ app.MapGraphQL().WithOptions(options =>
 });
 ```
 
-For production systems where developers need a browser IDE, split execution and tooling routes:
+If developers need a browser IDE in production, split execution and tooling routes:
 
 ```csharp
 app.MapGraphQLHttp("/graphql")
@@ -247,13 +247,13 @@ app.MapNitroApp("/graphql/ui", "../graphql")
     .RequireAuthorization("GraphQLDevelopers");
 ```
 
-Nitro may load but fail to show a schema when introspection or SDL downloads are disabled, or when the user lacks authorization. That is expected when schema discovery is closed. Use authenticated developer access, a local environment, an exported SDL file, or a registry workflow instead of opening public discovery for the UI.
+Nitro may load but fail to show a schema if introspection or SDL downloads are disabled, or if the user lacks authorization. This is expected when schema discovery is closed. Use authenticated developer access, a local environment, an exported SDL file, or a registry workflow instead of opening public discovery for the UI.
 
 # Replace production discovery with schema export and registry workflows
 
-Production clients and tools do not need to introspect the live public endpoint. Export the schema during CI and publish the artifact where your tooling can read it.
+Production clients and tools should not introspect the live public endpoint. Instead, export the schema during CI and publish the artifact for your tooling.
 
-Install `HotChocolate.AspNetCore.CommandLine`, then return the command exit code from `Program.cs`:
+First, install `HotChocolate.AspNetCore.CommandLine`, then return the command exit code from `Program.cs`:
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
@@ -269,21 +269,21 @@ app.MapGraphQL();
 return await app.RunWithGraphQLCommandsAsync(args);
 ```
 
-Export the schema in CI:
+Export the schema in CI with:
 
 ```bash
 dotnet run -- schema export --output schema.graphql
 ```
 
-Expected output:
+You should see:
 
 ```text
 schema.graphql
 ```
 
-The command fails with a non-zero exit code if schema construction or export fails, which lets CI stop the deployment. Use the exported SDL for client code generation, schema review, and publishing to the [Nitro schema registry](/docs/nitro/apis/schema-registry).
+If schema construction or export fails, the command returns a non-zero exit code, allowing CI to stop deployment. Use the exported SDL for client code generation, schema review, and publishing to the [Nitro schema registry](/docs/nitro/apis/schema-registry).
 
-You can also export during startup when the deployment environment can write and protect the file:
+You can also export during startup if the deployment environment can write and protect the file:
 
 ```csharp
 builder
@@ -292,11 +292,11 @@ builder
     .ExportSchemaOnStartup("./schema.graphql");
 ```
 
-Do not write exported SDL into a public web root. Treat schema artifacts for private APIs as internal documentation.
+Never write exported SDL into a public web root. Treat schema artifacts for private APIs as internal documentation.
 
 # Pair closed discovery with trusted documents
 
-Closed schema discovery reduces what public callers can learn at runtime. It does not stop arbitrary executable operations by itself. For first-party clients, pair it with trusted documents so production clients send operation IDs instead of ad hoc query text.
+Closing schema discovery limits what public callers can learn at runtime, but does not prevent arbitrary executable operations. For first-party clients, use trusted documents so production clients send operation IDs instead of ad hoc query text.
 
 ```csharp
 builder
@@ -310,13 +310,13 @@ builder
     });
 ```
 
-`OnlyAllowPersistedDocuments = true` rejects operations that are not in persisted operation storage. `AllowDocumentBody = false` enables strict transport behavior for clients that no longer send operation text. If developer tooling needs an exception, use an authenticated interceptor and `requestBuilder.AllowNonPersistedOperation()` for that narrow path.
+With `OnlyAllowPersistedDocuments = true`, the server rejects operations not in persisted storage. Setting `AllowDocumentBody = false` enforces strict transport for clients that no longer send operation text. If developer tooling needs an exception, use an authenticated interceptor and `requestBuilder.AllowNonPersistedOperation()` for that specific path.
 
 For the full allowlist workflow, see [Trusted documents](/docs/hotchocolate/v16/operations/security-hardening/trusted-documents) and the [Nitro client registry](/docs/nitro/apis/client-registry).
 
-# Verify the controls before deployment
+# Verify your controls before deployment
 
-Run these checks against the real host, scheme, route, and authentication state that public users have. Replace `https://api.example.com/graphql` with your production route.
+Test these controls against the actual host, scheme, route, and authentication state that public users will see. Replace `https://api.example.com/graphql` with your production route.
 
 ## Verify introspection
 
@@ -357,9 +357,9 @@ curl -i https://api.example.com/graphql/ui
 
 Expected public production result: Nitro is not served publicly, or the internal Nitro route returns HTTP 401/403.
 
-Add integration tests around the same routes if your application has test infrastructure. Assert the public contract you intend to support: `HC0046` for denied introspection and 404, 401, or 403 for SDL and Nitro routes based on your policy.
+If your application has test infrastructure, add integration tests for these routes. Assert the public contract you intend to support: `HC0046` for denied introspection, and 404, 401, or 403 for SDL and Nitro routes based on your policy.
 
-# Troubleshoot schema discovery and tooling failures
+# Troubleshooting schema discovery and tooling
 
 | Symptom                                                                       | Check                                                                                                                                             | Fix                                                                                                 |
 | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |

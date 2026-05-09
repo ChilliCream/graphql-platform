@@ -2,26 +2,26 @@
 title: Harden endpoint exposure
 ---
 
-This page helps you decide which Hot Chocolate v16 routes are reachable in production, who can use them, and which ASP.NET Core or edge controls enforce that decision. It covers Hot Chocolate source-schema services. Fusion gateway deployment has separate guidance.
+This page guides you through securing Hot Chocolate v16 endpoints in production. You will learn how to control which routes are accessible, who can use them, and how to enforce these decisions using ASP.NET Core and edge controls. This guidance applies to Hot Chocolate source-schema services. For Fusion gateway deployments, refer to the separate documentation.
 
-After you finish, you should be able to answer four questions for every route:
+By the end, you should be able to answer these questions for every route:
 
-- Who can reach it?
-- Which HTTP method or streaming transport can they use?
-- Which schema discovery features are available?
-- Which app, proxy, firewall, or CDN rule enforces the policy?
+- Who can access it?
+- Which HTTP methods or streaming transports are allowed?
+- What schema discovery features are exposed?
+- Which app, proxy, firewall, or CDN rules enforce the policy?
 
-# Prerequisites: know your deployment surfaces
+# Prerequisites: Understand your deployment surfaces
 
-You need:
+Before you begin, ensure you have:
 
-- A working ASP.NET Core app that hosts Hot Chocolate v16.
-- A decision about the API audience: public, first-party, partner, admin, internal, or developer-only.
-- A list of clients that need ad-hoc operations, persisted operations, HTTP GET, multipart uploads, WebSocket subscriptions, SSE streaming, Nitro, schema files, or introspection.
-- ASP.NET Core authentication and authorization configured before you protect private routes.
-- A way to test from outside the trusted network, not only from `localhost`.
+- An ASP.NET Core app hosting Hot Chocolate v16.
+- A clear decision about your API audience: public, first-party, partner, admin, internal, or developer-only.
+- A list of clients that require features like ad-hoc operations, persisted operations, HTTP GET, multipart uploads, WebSocket subscriptions, SSE streaming, Nitro, schema files, or introspection.
+- ASP.NET Core authentication and authorization set up before protecting private routes.
+- The ability to test from outside your trusted network, not just from `localhost`.
 
-Start with an endpoint inventory. Fill this in before you copy configuration from this page.
+Start by creating an endpoint inventory. Complete this before applying configuration from this page.
 
 | Route                      | Audience                       | Auth policy           | Methods and transports       | CORS origins              | Proxy visibility                              | Schema discovery                |
 | -------------------------- | ------------------------------ | --------------------- | ---------------------------- | ------------------------- | --------------------------------------------- | ------------------------------- |
@@ -32,11 +32,11 @@ Start with an endpoint inventory. Fill this in before you copy configuration fro
 | `/graphql/persisted`       | First-party clients            | `GraphQLAccess`       | GET and POST                 | `https://app.example.com` | Public ingress                                | No ad-hoc documents             |
 | `/health/live`             | Platform probe                 | None or platform auth | GET                          | None                      | Probe network                                 | None                            |
 
-Expected result: every surface is classified as public, authenticated, internal-only, development-only, or disabled.
+Your goal: classify every surface as public, authenticated, internal-only, development-only, or disabled.
 
-# Start with a hardened production baseline
+# Start with a secure production baseline
 
-Use split routes when execution, tooling, schema files, and subscriptions need different policies. The following `Program.cs` starts with authenticated HTTP execution, narrow CORS, disabled GET, disabled multipart uploads, disabled batching, development-only Nitro, and separate health checks.
+When execution, tooling, schema files, and subscriptions require different policies, use split routes. The following `Program.cs` example configures authenticated HTTP execution, strict CORS, disables GET and multipart uploads, disables batching, enables Nitro only for development, and separates health checks.
 
 ```csharp
 using HotChocolate.AspNetCore;

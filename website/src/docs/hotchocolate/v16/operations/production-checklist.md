@@ -2,43 +2,43 @@
 title: Production checklist
 ---
 
-This checklist helps you prepare a Hot Chocolate v16 source-schema service for production. It does not cover Fusion gateway operations.
+This checklist guides you through preparing a Hot Chocolate v16 source-schema service for production. It does not cover Fusion gateway operations.
 
-Use it as a launch review, a baseline configuration, and a runbook seed. Each section points to the deeper page that owns the detailed API reference.
+Use this as your launch review, baseline configuration, and runbook starting point. Each section references the page with detailed API documentation.
 
-# Confirm production readiness at a glance
+# Production Readiness Overview
 
-Complete this table for each Hot Chocolate service before you route production traffic to it.
+Before routing production traffic to a Hot Chocolate service, complete the following checklist for each service:
 
-| Area               | Ready when                                                                                                                       | Verify                                                                                         | Go deeper                                                                                                                                                                         |
-| ------------------ | -------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Scope              | The service is a Hot Chocolate source service. Fusion gateway operations are tracked separately.                                 | The runbook names the service role and owner.                                                  | This page                                                                                                                                                                         |
-| Endpoint surface   | Only required HTTP, GET, multipart, WebSocket, SDL, Nitro, batching, and persisted-operation endpoints are exposed.              | Run endpoint smoke tests from outside and inside the production network.                       | [Endpoints](/docs/hotchocolate/v16/server/endpoints)                                                                                                                              |
-| Identity           | Authentication middleware runs before authorization, and endpoint, field, and type authorization are tested.                     | Test anonymous, authenticated, role-missing, and role-present requests.                        | [Authentication](/docs/hotchocolate/v16/securing-your-api/authentication), [Authorization](/docs/hotchocolate/v16/securing-your-api/authorization)                                |
-| Discovery          | Introspection, `?sdl`, and Nitro follow an environment-specific policy.                                                          | Run an introspection query, request `?sdl`, and open the Nitro path.                           | [Introspection](/docs/hotchocolate/v16/securing-your-api/introspection)                                                                                                           |
-| Query limits       | Parser, validation, timeout, field-cycle, cost, page size, node batch, request batch, and concurrency limits match real traffic. | Send representative operations with `GraphQL-Cost: report` and rejected-operation tests.       | [Request limits](/docs/hotchocolate/v16/securing-your-api/request-limits), [Cost analysis](/docs/hotchocolate/v16/securing-your-api/cost-analysis)                                |
-| Trusted operations | You have chosen dynamic operations, trusted documents, APQ, or registry-backed persisted operations.                             | Client build and server deploy agree on operation IDs and storage.                             | [Persisted operations](/docs/hotchocolate/v16/performance/trusted-documents), [Automatic persisted operations](/docs/hotchocolate/v16/performance/automatic-persisted-operations) |
-| Uploads            | Multipart is disabled unless the schema uses `Upload`, and every size, content, and storage limit is aligned.                    | Test valid, missing-preflight, too-large, wrong-type, and dangerous-name uploads.              | [Files](/docs/hotchocolate/v16/server/files)                                                                                                                                      |
-| Errors             | Unhandled exceptions are masked for clients while logs and traces keep root-cause details.                                       | Trigger a controlled exception in staging and inspect the response and logs.                   | [Error handling](/docs/hotchocolate/v16/guides/error-handling), [Errors](/docs/hotchocolate/v16/api-reference/errors)                                                             |
-| Observability      | Traces, logs, metrics, dashboards, alerts, operation names or IDs, and correlation fields exist.                                 | Find one GraphQL request in the tracing backend from HTTP span to resolver or DataLoader span. | [Instrumentation](/docs/hotchocolate/v16/server/instrumentation)                                                                                                                  |
-| Readiness          | The schema builds eagerly, warmup completes, required dependencies are checked, and load balancers wait.                         | Restart a staging instance and confirm it becomes ready only after warmup.                     | [Warmup](/docs/hotchocolate/v16/server/warmup)                                                                                                                                    |
-| Data access        | DataLoader coverage, projections, top-operation latency, and backend query counts are reviewed.                                  | Compare top operations against latency and backend query budgets.                              | [Performance tuning](/docs/hotchocolate/v16/guides/performance), [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader)                                               |
-| Governance         | Schema export, snapshot tests, registry publish, client compatibility checks, and deprecation policy run in CI.                  | A pull request with a breaking schema change fails before deploy.                              | [Schema evolution](/docs/hotchocolate/v16/guides/schema-evolution), [Testing](/docs/hotchocolate/v16/guides/testing)                                                              |
-| Deployment         | Proxy limits, CORS, HTTPS, WebSockets, durable persisted-operation storage, secrets, canary, and rollback are configured.        | Compare platform settings with Hot Chocolate server options.                                   | [Options](/docs/hotchocolate/v16/api-reference/options)                                                                                                                           |
-| Runbook            | On-call knows owners, toggles, dashboards, storage, registry stage, and first checks.                                            | Walk through one production incident scenario before launch.                                   | [Keep a GraphQL runbook](#keep-a-graphql-runbook)                                                                                                                                 |
+| Area               | Ready When                                                                                                                       | How to Verify                                                                                | More Details                                                                                                                                                                      |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Scope              | The service is a Hot Chocolate source service. Fusion gateway operations are tracked separately.                                 | The runbook names the service role and owner.                                                | This page                                                                                                                                                                         |
+| Endpoint surface   | Only required HTTP, GET, multipart, WebSocket, SDL, Nitro, batching, and persisted-operation endpoints are exposed.              | Run endpoint smoke tests from both inside and outside the production network.                | [Endpoints](/docs/hotchocolate/v16/server/endpoints)                                                                                                                              |
+| Identity           | Authentication middleware runs before authorization. Endpoint, field, and type authorization are tested.                         | Test anonymous, authenticated, missing-role, and role-present requests.                      | [Authentication](/docs/hotchocolate/v16/securing-your-api/authentication), [Authorization](/docs/hotchocolate/v16/securing-your-api/authorization)                                |
+| Discovery          | Introspection, `?sdl`, and Nitro follow an environment-specific policy.                                                          | Run an introspection query, request `?sdl`, and open the Nitro path.                         | [Introspection](/docs/hotchocolate/v16/securing-your-api/introspection)                                                                                                           |
+| Query limits       | Parser, validation, timeout, field-cycle, cost, page size, node batch, request batch, and concurrency limits match real traffic. | Send representative operations with `GraphQL-Cost: report` and test rejected operations.     | [Request limits](/docs/hotchocolate/v16/securing-your-api/request-limits), [Cost analysis](/docs/hotchocolate/v16/securing-your-api/cost-analysis)                                |
+| Trusted operations | You have chosen dynamic operations, trusted documents, APQ, or registry-backed persisted operations.                             | Client build and server deploy agree on operation IDs and storage.                           | [Persisted operations](/docs/hotchocolate/v16/performance/trusted-documents), [Automatic persisted operations](/docs/hotchocolate/v16/performance/automatic-persisted-operations) |
+| Uploads            | Multipart is disabled unless the schema uses `Upload`. All size, content, and storage limits are aligned.                        | Test valid, missing-preflight, too-large, wrong-type, and dangerous-name uploads.            | [Files](/docs/hotchocolate/v16/server/files)                                                                                                                                      |
+| Errors             | Unhandled exceptions are masked for clients. Logs and traces retain root-cause details.                                          | Trigger a controlled exception in staging and inspect the response and logs.                 | [Error handling](/docs/hotchocolate/v16/guides/error-handling), [Errors](/docs/hotchocolate/v16/api-reference/errors)                                                             |
+| Observability      | Traces, logs, metrics, dashboards, alerts, operation names or IDs, and correlation fields are present.                           | Find a GraphQL request in the tracing backend from HTTP span to resolver or DataLoader span. | [Instrumentation](/docs/hotchocolate/v16/server/instrumentation)                                                                                                                  |
+| Readiness          | The schema builds eagerly, warmup completes, required dependencies are checked, and load balancers wait.                         | Restart a staging instance and confirm it becomes ready only after warmup.                   | [Warmup](/docs/hotchocolate/v16/server/warmup)                                                                                                                                    |
+| Data access        | DataLoader coverage, projections, top-operation latency, and backend query counts are reviewed.                                  | Compare top operations against latency and backend query budgets.                            | [Performance tuning](/docs/hotchocolate/v16/guides/performance), [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader)                                               |
+| Governance         | Schema export, snapshot tests, registry publish, client compatibility checks, and deprecation policy run in CI.                  | A pull request with a breaking schema change fails before deploy.                            | [Schema evolution](/docs/hotchocolate/v16/guides/schema-evolution), [Testing](/docs/hotchocolate/v16/guides/testing)                                                              |
+| Deployment         | Proxy limits, CORS, HTTPS, WebSockets, durable persisted-operation storage, secrets, canary, and rollback are configured.        | Compare platform settings with Hot Chocolate server options.                                 | [Options](/docs/hotchocolate/v16/api-reference/options)                                                                                                                           |
+| Runbook            | On-call knows owners, toggles, dashboards, storage, registry stage, and first checks.                                            | Walk through a production incident scenario before launch.                                   | [Keep a GraphQL runbook](#keep-a-graphql-runbook)                                                                                                                                 |
 
-Expected output: a completed launch checklist for one service, with owners and verification evidence attached to your release.
+Your expected output is a completed launch checklist for each service, with owners and verification evidence attached to your release.
 
-# Start from a minimum production baseline
+# Minimum Production Baseline
 
-Prerequisites:
+Before you begin, ensure:
 
-- You already have a working Hot Chocolate v16 ASP.NET Core server.
-- You know whether clients need GET, multipart uploads, WebSockets, Nitro, SDL download, dynamic operations, and schema or client registry integration.
-- You have an ASP.NET Core authentication scheme when any data is protected.
-- You have selected an OpenTelemetry exporter, logging destination, or hosting platform telemetry backend.
+- You have a working Hot Chocolate v16 ASP.NET Core server.
+- You know if clients require GET, multipart uploads, WebSockets, Nitro, SDL download, dynamic operations, or registry integration.
+- You have an ASP.NET Core authentication scheme if any data is protected.
+- You have selected an OpenTelemetry exporter, logging destination, or platform telemetry backend.
 
-Start with a conservative `Program.cs`, then relax the settings that your clients require.
+Start with a conservative `Program.cs` and relax settings only as your clients require.
 
 ```csharp
 using HotChocolate.AspNetCore;
@@ -85,24 +85,24 @@ app.MapHealthChecks("/health/live");
 app.Run();
 ```
 
-Expected behavior:
+With this setup:
 
 - Nitro and SDL downloads are available only in development.
-- Exception details are available only in development.
-- Multipart upload requests are rejected until you enable them deliberately.
+- Exception details are shown only in development.
+- Multipart upload requests are rejected until you enable them.
 - HTTP GET accepts queries only.
 - Authentication runs before authorization and before the GraphQL endpoint executes.
 - Health endpoints are separate from GraphQL so your platform can probe the process.
 
-If your project uses `builder.Services.AddGraphQLServer(...)`, keep using it. The hosting-builder `builder.AddGraphQL(...)` API is a concise v16 style that delegates to the server builder and keeps default security enabled unless you pass `disableDefaultSecurity: true`.
+If your project uses `builder.Services.AddGraphQLServer(...)`, continue using it. The hosting-builder `builder.AddGraphQL(...)` API is a concise v16 style that delegates to the server builder and keeps default security enabled unless you pass `disableDefaultSecurity: true`.
 
-Default security should stay enabled unless you intentionally replace production introspection policy, cost analysis, and the max field-cycle validation rule. This baseline is intentionally conservative. The remaining sections explain when to tighten or relax it.
+Keep default security enabled unless you intentionally replace production introspection policy, cost analysis, or the max field-cycle validation rule. This baseline is intentionally conservative. The following sections explain when to tighten or relax these settings.
 
-# Minimize endpoint exposure
+# Minimize Endpoint Exposure
 
-Use this matrix to inventory what `MapGraphQL()` exposes at your chosen path.
+Review what `MapGraphQL()` exposes at your chosen path:
 
-| Surface                              | Default                                               | Production decision                                                                     | Risk if wrong                                                      | Option or API                                         | Deeper link                                                                                    |
+| Surface                              | Default                                               | Production Decision                                                                     | Risk if Wrong                                                      | Option or API                                         | More Details                                                                                   |
 | ------------------------------------ | ----------------------------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
 | `/graphql` POST                      | Enabled                                               | Keep enabled for normal GraphQL over HTTP.                                              | Clients cannot execute operations if disabled.                     | `MapGraphQL()` or `MapGraphQLHttp()`                  | [Endpoints](/docs/hotchocolate/v16/server/endpoints)                                           |
 | `/graphql` GET                       | Enabled, queries only                                 | Keep for cacheable queries, or disable when unused.                                     | GET can expand cache and CSRF exposure if policy is unclear.       | `EnableGetRequests`, `AllowedGetOperations`           | [Endpoints](/docs/hotchocolate/v16/server/endpoints#enablegetrequests)                         |
@@ -113,7 +113,7 @@ Use this matrix to inventory what `MapGraphQL()` exposes at your chosen path.
 | Batching                             | Disabled                                              | Enable only for clients that need it. Set a batch size.                                 | A single HTTP request can fan out into many executions.            | `Batching`, `MaxBatchSize`, `MaxConcurrentExecutions` | [Options](/docs/hotchocolate/v16/api-reference/options#server-options-modifyserveroptions)     |
 | Persisted operation publish/download | Not part of the combined endpoint unless mapped       | Expose only where your registry or deployment workflow requires it.                     | Operation storage can be poisoned or leaked if public.             | `MapGraphQLPersistedOperations()`                     | [Persisted operations](/docs/hotchocolate/v16/performance/trusted-documents)                   |
 
-Smoke-test from a network location that matches production clients:
+Test endpoints from a network location that matches your production clients:
 
 ```bash
 curl -i http://localhost:5000/graphql \
@@ -121,7 +121,7 @@ curl -i http://localhost:5000/graphql \
     --data '{"query":"{ __typename }"}'
 ```
 
-Expected result: `HTTP/1.1 200 OK` and a GraphQL response similar to:
+Expected: `HTTP/1.1 200 OK` and a GraphQL response like:
 
 ```json
 { "data": { "__typename": "Query" } }
@@ -131,13 +131,13 @@ Expected result: `HTTP/1.1 200 OK` and a GraphQL response similar to:
 curl -i 'http://localhost:5000/graphql?query={__typename}'
 ```
 
-Expected result: `200 OK` when GET is enabled for queries, or `405 Method Not Allowed` when GET is disabled.
+Expected: `200 OK` when GET is enabled for queries, or `405 Method Not Allowed` when GET is disabled.
 
 ```bash
 curl -i 'http://localhost:5000/graphql?sdl'
 ```
 
-Expected result: schema SDL in allowed environments, or a blocked response such as `404 Not Found` in production.
+Expected: schema SDL in allowed environments, or a blocked response such as `404 Not Found` in production.
 
 ```bash
 curl -i http://localhost:5000/graphql \
@@ -147,13 +147,13 @@ curl -i http://localhost:5000/graphql \
     -F 0=@file.txt
 ```
 
-Expected result: a GraphQL upload response only when multipart is enabled and the schema registers `Upload`. Otherwise the request should be rejected.
+Expected: a GraphQL upload response only when multipart is enabled and the schema registers `Upload`. Otherwise, the request should be rejected.
 
-# Lock down identity and field access
+# Secure Identity and Field Access
 
-Run four requests against at least one public field and one protected field.
+Test at least one public and one protected field with these requests:
 
-| Request                                               | Expected result                                                        |
+| Request                                               | Expected Result                                                        |
 | ----------------------------------------------------- | ---------------------------------------------------------------------- |
 | Anonymous request to protected field                  | GraphQL authorization error, protected data is `null` or absent.       |
 | Authenticated request without required role or policy | Authorization error, protected data is not returned.                   |
@@ -179,17 +179,17 @@ app.UseAuthorization();
 app.MapGraphQL();
 ```
 
-Use `HotChocolate.Authorization.AuthorizeAttribute` on GraphQL fields and types. Do not use `Microsoft.AspNetCore.Authorization.AuthorizeAttribute` for GraphQL schema members, because it does not run through the Hot Chocolate authorization pipeline.
+Use `HotChocolate.Authorization.AuthorizeAttribute` on GraphQL fields and types. Do not use `Microsoft.AspNetCore.Authorization.AuthorizeAttribute` for GraphQL schema members, as it does not run through the Hot Chocolate authorization pipeline.
 
-Endpoint authorization and field authorization solve different problems:
+Endpoint authorization and field authorization serve different purposes:
 
 ```csharp
 app.MapGraphQL().RequireAuthorization();
 ```
 
-`RequireAuthorization()` protects transport access to the endpoint. Field and type authorization still matters when a schema mixes public and private fields, and when internal callers use the same endpoint.
+`RequireAuthorization()` protects transport access to the endpoint. Field and type authorization are still important when a schema mixes public and private fields, or when internal callers use the same endpoint.
 
-Expected unauthorized response shape:
+Expected unauthorized response:
 
 ```json
 {
@@ -203,11 +203,11 @@ Expected unauthorized response shape:
 }
 ```
 
-# Decide what schema discovery and tools expose
+# Control Schema Discovery and Tools
 
-Set policy per environment. Introspection, SDL download, and Nitro are related, but separate controls.
+Set policy per environment. Introspection, SDL download, and Nitro are related but controlled separately.
 
-| Environment       | Introspection                                     | `?sdl` schema download                           | Nitro                              | Recommended verification                                                            |
+| Environment       | Introspection                                     | `?sdl` schema download                           | Nitro                              | Recommended Verification                                                            |
 | ----------------- | ------------------------------------------------- | ------------------------------------------------ | ---------------------------------- | ----------------------------------------------------------------------------------- |
 | Local             | On                                                | On                                               | On                                 | Developers can use tooling without credentials unless the app itself requires auth. |
 | CI                | Prefer schema export command or startup export    | On only for controlled export jobs               | Off                                | CI stores or publishes the expected schema artifact.                                |
@@ -215,7 +215,7 @@ Set policy per environment. Introspection, SDL download, and Nitro are related, 
 | Production        | Off unless your public API policy requires it     | Off unless your policy requires downloadable SDL | Off, or internal and authenticated | Public clients cannot discover tools accidentally.                                  |
 | Break-glass/admin | Per-request allowlist with owner and expiry       | Temporary path or protected job                  | Temporary internal access          | Runbook records who enabled access and when it expires.                             |
 
-`AllowIntrospection(false)` controls introspection queries. It does not disable `?sdl`. Use endpoint options for SDL downloads and Nitro:
+`AllowIntrospection(false)` controls introspection queries, but does not disable `?sdl`. Use endpoint options for SDL downloads and Nitro:
 
 ```csharp
 builder
@@ -229,7 +229,7 @@ app.MapGraphQL().WithOptions(options =>
 });
 ```
 
-Smoke tests:
+Test with:
 
 ```bash
 curl -i http://localhost:5000/graphql \
@@ -237,19 +237,19 @@ curl -i http://localhost:5000/graphql \
     --data '{"query":"{ __schema { queryType { name } } }"}'
 ```
 
-Expected production result: a GraphQL error such as `Introspection is not allowed for the current request.`
+Expected in production: a GraphQL error such as `Introspection is not allowed for the current request.`
 
 ```bash
 curl -i 'http://localhost:5000/graphql?sdl'
 ```
 
-Expected production result: blocked response when `EnableSchemaRequests` is `false`.
+Expected in production: blocked response when `EnableSchemaRequests` is `false`.
 
-Open `http://localhost:5000/graphql` in a browser. Expected production result: no Nitro UI unless your policy explicitly enables it.
+Open `http://localhost:5000/graphql` in a browser. In production, Nitro UI should not appear unless your policy explicitly enables it.
 
-# Bound request cost and resource usage
+# Bound Request Cost and Resource Usage
 
-Tune limits from observed operations, not guesses.
+Tune limits based on observed operations, not guesses.
 
 | Operation name or ID | Max page size | Field cost | Type cost  | Runtime p95  | Backend query count | Accepted or rejected     | Selected limit                                     |
 | -------------------- | ------------- | ---------- | ---------- | ------------ | ------------------- | ------------------------ | -------------------------------------------------- |

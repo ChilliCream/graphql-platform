@@ -2,25 +2,25 @@
 title: Health checks
 ---
 
-A Hot Chocolate server can accept HTTP requests only after ASP.NET Core finishes starting the application. In Hot Chocolate v16, schema and request executor initialization happen during startup by default, so readiness probes work well when you keep them separate from GraphQL traffic.
+Hot Chocolate v16 servers accept HTTP requests only after ASP.NET Core completes application startup. By default, schema and request executor initialization occur during startup, making readiness probes reliable when you separate them from GraphQL traffic.
 
-Use ASP.NET Core health checks for platform probes. Do not send Kubernetes, load balancer, or container platform probes to `/graphql`.
+Always use ASP.NET Core health checks for platform probes. Do not direct Kubernetes, load balancer, or container platform probes to `/graphql`.
 
-This page covers standard Hot Chocolate v16 servers hosted on ASP.NET Core. Fusion gateway health checks have separate gateway concerns and are outside the scope of this page.
+This page focuses on Hot Chocolate v16 servers hosted with ASP.NET Core. Health checks for Fusion gateways involve different concerns and are not covered here.
 
 # Prerequisites
 
-You need:
+Before you begin, ensure you have:
 
-- A Hot Chocolate v16 server configured with `builder.AddGraphQL()` or `builder.Services.AddGraphQLServer()`.
-- GraphQL mapped with `app.MapGraphQL()`, usually at `/graphql`.
-- An ASP.NET Core application where you can register `AddHealthChecks()` and map `MapHealthChecks()` endpoints.
-- A list of dependencies that must work before normal GraphQL requests can succeed, such as SQL databases, Redis, message brokers, downstream HTTP services, or persisted-operation storage.
-- For Kubernetes, access to the Deployment probe configuration.
+- A Hot Chocolate v16 server set up with `builder.AddGraphQL()` or `builder.Services.AddGraphQLServer()`
+- GraphQL mapped using `app.MapGraphQL()`, typically at `/graphql`
+- An ASP.NET Core app where you can register `AddHealthChecks()` and map `MapHealthChecks()` endpoints
+- A list of critical dependencies required for GraphQL requests, such as SQL databases, Redis, message brokers, downstream HTTP services, or persisted-operation storage
+- For Kubernetes, access to your Deployment probe configuration
 
-# Configure health endpoints for a Hot Chocolate service
+# Set up health endpoints for your Hot Chocolate service
 
-Start with separate endpoints for GraphQL, liveness, and readiness.
+Define separate endpoints for GraphQL, liveness, and readiness. Here’s a typical setup:
 
 ```csharp
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -56,7 +56,7 @@ app.MapHealthChecks("/healthz/ready", new HealthCheckOptions
 app.Run();
 ```
 
-Expected result with the default ASP.NET Core response writer:
+When you call the liveness endpoint with the default ASP.NET Core response writer, you should see:
 
 ```bash
 curl -i http://localhost:5000/healthz/live
@@ -68,11 +68,11 @@ HTTP/1.1 200 OK
 Healthy
 ```
 
-`/healthz/live` answers whether the ASP.NET Core process can respond. `/healthz/ready` answers whether the instance should receive user traffic. The readiness endpoint returns HTTP `200` when all selected `ready` checks pass and HTTP `503` when any selected `ready` check is unhealthy.
+The `/healthz/live` endpoint checks if the ASP.NET Core process is responsive. The `/healthz/ready` endpoint determines if the instance is ready to receive user traffic. When all `ready` checks pass, the readiness endpoint returns HTTP `200`. If any `ready` check fails, it returns HTTP `503`.
 
-If no checks match the `ready` predicate, ASP.NET Core can report the readiness endpoint as healthy. Add at least one real readiness check for production, usually a required database, cache, message broker, downstream service, or storage component.
+If no checks are tagged as `ready`, ASP.NET Core may report the readiness endpoint as healthy. For production, always add at least one real readiness check for a required dependency, such as a database, cache, message broker, downstream service, or storage.
 
-If your organization already uses `/health` and `/alive`, keep those paths and apply the same semantics:
+If your organization uses `/health` and `/alive` endpoints, you can keep those paths and apply the same logic:
 
 ```csharp
 app.MapHealthChecks("/alive", new HealthCheckOptions
@@ -88,7 +88,7 @@ app.MapHealthChecks("/health", new HealthCheckOptions
 
 # Understand liveness, readiness, and startup
 
-Use each probe for one decision.
+Each probe serves a distinct purpose:
 
 | Probe     | Question                                                             | Endpoint                               | Includes                                                        | Excludes                                                      | Failure action                                                |
 | --------- | -------------------------------------------------------------------- | -------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------- |
@@ -96,23 +96,21 @@ Use each probe for one decision.
 | Readiness | Should the platform send user traffic to this instance?              | `/healthz/ready`                       | Critical dependencies required by normal GraphQL requests.      | Optional dependencies and expensive business work.            | Remove the instance from traffic until healthy.               |
 | Startup   | Should the platform keep waiting before liveness enforcement starts? | `/healthz/ready` or `/healthz/startup` | The same condition that must become true before traffic starts. | Long-running business jobs that do not block serving traffic. | Keep waiting, then fail startup if the threshold is exceeded. |
 
-Liveness protects the process. Keep it independent of external services so a database outage does not cause every pod to restart at once.
+- **Liveness** checks if the process is running. It should not depend on external services, so a database outage does not cause all pods to restart.
+- **Readiness** checks if the instance is ready for user traffic. It should be stricter than liveness, as it controls whether new GraphQL requests reach the instance.
+- **Startup** probes help when initialization is slow. Use them if schema creation, schema export, dependency startup, cold caches, or warmup tasks need more time than your liveness settings allow.
 
-Readiness protects users. Make it stricter than liveness, because it decides whether new GraphQL requests should reach this instance.
+# How readiness relates to Hot Chocolate v16 startup
 
-Startup probes protect slow initialization. Use them when large schemas, schema export, dependency startup, cold caches, or warmup tasks need more time than your regular liveness settings allow.
+By default, Hot Chocolate v16 builds the schema and request executor during application startup. The ASP.NET Core warmup hosted service calls `IRequestExecutorProvider` to create the executor for each non-lazy schema before startup completes.
 
-# Connect readiness to Hot Chocolate v16 startup
+This behavior affects readiness in several ways:
 
-Hot Chocolate v16 constructs the schema and request executor during application startup by default. The ASP.NET Core warmup hosted service asks `IRequestExecutorProvider` to create the executor for each non-lazy schema before startup completes.
+- Schema configuration errors surface at startup, not on the first GraphQL request.
+- Kestrel does not accept HTTP requests until hosted-service startup is finished.
+- A standard HTTP readiness probe cannot succeed until the request executor is ready.
 
-That matters for readiness:
-
-- Schema configuration errors fail at startup instead of on the first GraphQL request.
-- Kestrel does not begin accepting HTTP requests until hosted-service startup completes.
-- A normal HTTP readiness probe cannot succeed before the eager request executor is available.
-
-This guarantee ends if you opt into lazy initialization:
+If you enable lazy initialization:
 
 ```csharp
 builder
@@ -120,13 +118,13 @@ builder
     .ModifyOptions(options => options.LazyInitialization = true);
 ```
 
-With lazy initialization, Hot Chocolate builds the schema when the schema is first needed. A readiness endpoint that only checks HTTP responsiveness no longer proves that GraphQL is warmed. Use eager initialization for production services that depend on readiness probes unless you have a specific startup tradeoff and have tested the first request path.
+Hot Chocolate delays schema creation until the schema is first needed. In this mode, a readiness endpoint that only checks HTTP responsiveness does not guarantee that GraphQL is ready. For production, use eager initialization if you rely on readiness probes, unless you have a specific reason and have tested the first-request path.
 
-Readiness also ends at the checks you register. If `/healthz/ready` only checks `self`, it proves that the process can answer HTTP, not that resolvers can reach their required dependencies.
+Also, readiness is only as strong as the checks you register. If `/healthz/ready` checks only `self`, it confirms HTTP responsiveness but not that resolvers can reach their required dependencies.
 
-# Warm the request executor before readiness succeeds
+# Warm the request executor before readiness
 
-Add warmup tasks when you want Hot Chocolate to parse, validate, and prepare representative operations before the instance receives traffic.
+To ensure Hot Chocolate parses, validates, and prepares representative operations before the instance receives traffic, add warmup tasks.
 
 ```csharp
 using HotChocolate.Execution;
@@ -146,16 +144,16 @@ builder
     });
 ```
 
-`MarkAsWarmupRequest()` tells Hot Chocolate to skip execution while still warming request preparation caches. Use it when your goal is to warm parser, document, validation, and operation preparation paths without invoking resolvers or causing side effects.
+`MarkAsWarmupRequest()` tells Hot Chocolate to skip execution but still warm up the request preparation caches. Use this to warm the parser, document, validation, and operation preparation paths without invoking resolvers or causing side effects.
 
-Important details:
+Keep in mind:
 
-- Warmup is blocking during initial startup. Keep each task bounded and honor the cancellation token.
-- Include the operation name when clients send one. The operation name participates in the operation cache key.
-- Requests marked as warmup requests bypass security measures and skip execution. Do not use them to prove authorization, persisted-operation storage, database connectivity, or resolver behavior.
-- Warmup tasks run at startup and when Hot Chocolate rebuilds a request executor at runtime. During a runtime rebuild, the old executor keeps serving traffic until the new executor is warmed.
+- Warmup tasks block during initial startup. Keep them fast and always honor the cancellation token.
+- Always include the operation name if clients use one, as it affects the operation cache key.
+- Warmup requests bypass security and skip execution. Do not use them to test authorization, persisted-operation storage, database connectivity, or resolver logic.
+- Warmup tasks run at startup and whenever Hot Chocolate rebuilds a request executor at runtime. During a runtime rebuild, the old executor continues serving traffic until the new one is warmed.
 
-Use `IRequestExecutorWarmupTask` when warmup needs structure or a startup-only decision:
+If you need more structure or want a startup-only warmup, implement `IRequestExecutorWarmupTask`:
 
 ```csharp
 using HotChocolate.Execution;
@@ -179,7 +177,7 @@ public sealed class ProductCardWarmupTask : IRequestExecutorWarmupTask
 }
 ```
 
-Register it with the GraphQL builder:
+Register the warmup task with the GraphQL builder:
 
 ```csharp
 builder
@@ -188,13 +186,13 @@ builder
     .AddWarmupTask<ProductCardWarmupTask>();
 ```
 
-Generic warmup tasks are activated from Hot Chocolate schema services. If the task needs application services, cross-register those services with `.AddApplicationService<T>()`, use a factory overload, or access the root service provider where appropriate. See [the v15 to v16 migration guide](/docs/hotchocolate/v16/migrating/migrate-from-15-to-16#clearer-separation-between-schema-and-application-services) for the service-provider model.
+Generic warmup tasks are activated from Hot Chocolate schema services. If your task needs application services, cross-register them with `.AddApplicationService<T>()`, use a factory overload, or access the root service provider as needed. For more on the service-provider model, see the v15 to v16 migration guide.
 
 # Add dependency checks to readiness
 
-Readiness should include dependencies that must work for normal GraphQL requests to succeed. Liveness should not.
+Readiness checks should cover all dependencies required for normal GraphQL requests. Liveness checks should not include these dependencies.
 
-If your application already uses Entity Framework Core health checks, tag the database check as `ready`:
+If you use Entity Framework Core health checks, tag your database check as `ready`:
 
 ```csharp
 builder.Services
@@ -202,7 +200,7 @@ builder.Services
     .AddDbContextCheck<AppDbContext>(tags: ["ready"]);
 ```
 
-If your application uses a Redis health-check package, such as `AspNetCore.HealthChecks.Redis`, tag that check as `ready` too:
+For Redis, if you use a package like `AspNetCore.HealthChecks.Redis`, tag the check as `ready` as well:
 
 ```csharp
 var redisConnectionString = builder.Configuration.GetConnectionString("Redis");
@@ -215,9 +213,9 @@ builder.Services
         tags: ["ready"]);
 ```
 
-Package names and method overloads depend on the health-check integration you choose. Hot Chocolate does not own database, Redis, or message-broker health-check packages.
+The exact package and method overloads depend on your health-check integration. Hot Chocolate does not provide or own these health-check packages.
 
-For a required service without a built-in integration, implement `IHealthCheck`:
+If you need to check a required service without a built-in integration, implement `IHealthCheck`:
 
 ```csharp
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -242,7 +240,7 @@ public sealed class CatalogHealthCheck(IHttpClientFactory httpClientFactory) : I
 }
 ```
 
-Register it as readiness:
+Register your custom check as a readiness check:
 
 ```csharp
 builder.Services.AddHttpClient("catalog", client =>
@@ -255,25 +253,25 @@ builder.Services
     .AddCheck<CatalogHealthCheck>("catalog", tags: ["ready"]);
 ```
 
-Expected behavior:
+You should see the following behavior:
 
-- `/healthz/live` stays HTTP `200` when the process is responsive.
-- `/healthz/ready` returns HTTP `503` when a critical dependency check is unhealthy.
-- Logs and health-check results identify the failing check name, such as `catalog` or `redis`.
+- `/healthz/live` returns HTTP `200` as long as the process is responsive
+- `/healthz/ready` returns HTTP `503` if a critical dependency check fails
+- Logs and health-check results identify the failing check by name, such as `catalog` or `redis`
 
-Keep dependency checks cheap, bounded, and deterministic. Prefer lightweight connection checks, pings, or small health endpoints over business queries. Do not run database migrations, large queries, cache fills, schema export, or resolver execution inside health checks.
+Keep dependency checks lightweight, fast, and predictable. Use simple connection checks, pings, or small health endpoints. Avoid running database migrations, large queries, cache fills, schema exports, or resolver execution in health checks.
 
-If a dependency is optional, do not add it to readiness unless the instance should stop receiving all GraphQL traffic when that dependency is down.
+If a dependency is optional, do not include it in readiness unless the instance should stop receiving all GraphQL traffic when that dependency is unavailable.
 
 # Configure Kubernetes probes
 
-Map Kubernetes probes to the endpoint semantics.
+Map your Kubernetes probes to the correct health endpoints:
 
 ```yaml
 startupProbe:
   httpGet:
     path: /healthz/ready
-    port: 8080 # Match the container HTTP port.
+    port: 8080 # Match your container's HTTP port
   failureThreshold: 30
   periodSeconds: 2
 readinessProbe:
@@ -290,23 +288,23 @@ livenessProbe:
   timeoutSeconds: 2
 ```
 
-Expected result: new pods do not receive traffic until readiness passes, and slow startup does not cause liveness restart loops.
+With this setup, new pods do not receive traffic until readiness passes, and slow startup does not trigger liveness restarts.
 
-Tune the values for your schema size and dependencies:
+Adjust probe values for your schema size and dependencies:
 
-- Point `livenessProbe` to `/healthz/live`.
-- Point `readinessProbe` to `/healthz/ready`.
-- Use `startupProbe` when schema creation, warmup tasks, schema export, dependency startup, or cold caches need a longer window.
-- Set `failureThreshold`, `periodSeconds`, and `timeoutSeconds` so startup has enough time before liveness can restart the pod.
-- Keep readiness stricter than liveness.
+- Set `livenessProbe` to `/healthz/live`
+- Set `readinessProbe` to `/healthz/ready`
+- Use `startupProbe` if schema creation, warmup, schema export, dependency startup, or cold caches need extra time
+- Tune `failureThreshold`, `periodSeconds`, and `timeoutSeconds` so startup has enough time before liveness can restart the pod
+- Always keep readiness stricter than liveness
 
-The same model applies to Azure Container Apps health probes, load balancer health probes, App Service health checks, Aspire service defaults, and other hosting platforms. Configure the platform path, port, timeout, and exposure rules to match your deployment.
+This approach also applies to Azure Container Apps, load balancers, App Service health checks, Aspire service defaults, and other platforms. Configure the path, port, timeout, and exposure rules to fit your deployment.
 
 # Do not use GraphQL operations as health probes
 
-Do not configure platform probes to send GraphQL operations to `/graphql`.
+Do not configure your platform to send GraphQL operations to `/graphql` for health checks.
 
-Bad examples:
+**Bad examples:**
 
 ```yaml
 readinessProbe:
@@ -324,26 +322,26 @@ query HealthProbe {
 }
 ```
 
-GraphQL probes can parse, validate, authorize, execute resolvers, hit databases, allocate memory, and appear in GraphQL metrics. A resolver-heavy health query can become a denial-of-service multiplier when every pod, node, and load balancer runs it on a short interval.
+GraphQL probes can trigger parsing, validation, authorization, resolver execution, database calls, memory allocation, and will show up in GraphQL metrics. If every pod, node, and load balancer runs a resolver-heavy health query frequently, it can create a denial-of-service risk.
 
-`{ __typename }` is cheap, but it still enters the GraphQL pipeline and does not prove dependency readiness. Introspection, schema downloads, Nitro, and broad queries are not health endpoints and may be disabled or restricted in production.
+Even `{ __typename }` enters the GraphQL pipeline and does not guarantee dependency readiness. Introspection, schema downloads, Nitro, and broad queries are not health endpoints and may be disabled or restricted in production.
 
-Use platform probes for process and traffic decisions:
+Always use platform probes for process and traffic decisions:
 
 ```text
 GET /healthz/live
 GET /healthz/ready
 ```
 
-If you need a business-level synthetic transaction, run it from external monitoring at a lower cadence with clear SLO ownership. Do not use it as liveness or readiness.
+If you need a business-level synthetic transaction, run it from external monitoring at a lower frequency and with clear SLO ownership. Do not use it for liveness or readiness.
 
 # Secure and expose health endpoints deliberately
 
-Health endpoints can disclose dependency names, topology, and failure states if you include detailed responses. Keep detailed diagnostics in logs and telemetry, not public health responses.
+Health endpoints can reveal dependency names, topology, and failure states if you include detailed responses. Keep detailed diagnostics in logs and telemetry, not in public health responses.
 
-Expose probe endpoints only to the orchestrator, load balancer, private network, or trusted ingress where possible. Decide whether authentication is required based on the hosting platform. Kubernetes HTTP probes usually need unauthenticated access inside the cluster, while an external health page may need a different policy.
+Expose probe endpoints only to the orchestrator, load balancer, private network, or trusted ingress whenever possible. Decide on authentication based on your hosting platform. Kubernetes HTTP probes typically require unauthenticated access within the cluster, but an external health page may need a different policy.
 
-If the orchestrator cannot send credentials and network policy limits access, make that endpoint anonymous explicitly:
+If the orchestrator cannot send credentials and network policy restricts access, explicitly allow anonymous access:
 
 ```csharp
 app.MapHealthChecks("/healthz/live", new HealthCheckOptions
@@ -359,13 +357,13 @@ app.MapHealthChecks("/healthz/ready", new HealthCheckOptions
 .AllowAnonymous();
 ```
 
-Review this choice before exposing the endpoints through a public ingress. You can use separate internal and external endpoints when a public load balancer needs a limited probe but operators need detailed internal diagnostics.
+Review this decision before exposing endpoints through a public ingress. You can use separate internal and external endpoints if a public load balancer needs a limited probe but operators require detailed internal diagnostics.
 
-If you customize `HealthCheckOptions.ResponseWriter`, keep the public response minimal. Dependency names, exception messages, connection strings, host names, and shard names belong in logs or telemetry, not in unauthenticated public responses.
+If you customize `HealthCheckOptions.ResponseWriter`, keep public responses minimal. Do not include dependency names, exception messages, connection strings, host names, or shard names in unauthenticated public responses. Log these details instead.
 
 # Troubleshoot failing or flapping probes
 
-Start with the symptom, then verify the endpoint, selected checks, startup logs, and platform configuration.
+When probes fail or behave unexpectedly, start by checking the endpoint, selected health checks, startup logs, and platform configuration.
 
 ```bash
 curl -i http://localhost:5000/healthz/live
@@ -374,11 +372,11 @@ kubectl describe pod <pod-name>
 kubectl logs <pod-name>
 ```
 
-Expected checks:
+You should see:
 
-- Healthy liveness returns HTTP `200`.
-- Unhealthy readiness returns HTTP `503`.
-- Application logs identify the failing health-check name or startup exception.
+- Healthy liveness returns HTTP `200`
+- Unhealthy readiness returns HTTP `503`
+- Application logs identify the failing health-check name or startup exception
 
 | Symptom                                     | Likely causes                                                                                                                                                                                                                  | What to check                                                                                      | Fix                                                                                                                                        |
 | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -403,9 +401,9 @@ Use [OpenTelemetry tracing](/docs/hotchocolate/v16/operations/observability/open
 
 # Next steps
 
-- Use [Warmup](/docs/hotchocolate/v16/server/warmup) to tune executor cache warming, startup warmup, schema export, and lazy initialization.
-- Use [Endpoints](/docs/hotchocolate/v16/server/endpoints) to customize GraphQL transport, Nitro, schema downloads, and endpoint paths.
-- Use [OpenTelemetry tracing](/docs/hotchocolate/v16/operations/observability/opentelemetry), [Metrics](/docs/hotchocolate/v16/operations/observability/metrics), and [Instrumentation](/docs/hotchocolate/v16/server/instrumentation) to observe startup, warmup, execution, and dependency failures.
-- Use [Performance tuning](/docs/hotchocolate/v16/guides/performance) to reduce request overhead and cold paths.
-- Use [trusted documents](/docs/hotchocolate/v16/performance/trusted-documents) and [automatic persisted operations](/docs/hotchocolate/v16/performance/automatic-persisted-operations) to control production GraphQL request cost. Do not use them as probe substitutes.
-- Review your hosting platform documentation for probe intervals, startup windows, timeout behavior, and network exposure.
+- Use [Warmup](/docs/hotchocolate/v16/server/warmup) to tune executor cache warming, startup warmup, schema export, and lazy initialization
+- Use [Endpoints](/docs/hotchocolate/v16/server/endpoints) to customize GraphQL transport, Nitro, schema downloads, and endpoint paths
+- Use [OpenTelemetry tracing](/docs/hotchocolate/v16/operations/observability/opentelemetry), [Metrics](/docs/hotchocolate/v16/operations/observability/metrics), and [Instrumentation](/docs/hotchocolate/v16/server/instrumentation) to observe startup, warmup, execution, and dependency failures
+- Use [Performance tuning](/docs/hotchocolate/v16/guides/performance) to reduce request overhead and cold paths
+- Use [trusted documents](/docs/hotchocolate/v16/performance/trusted-documents) and [automatic persisted operations](/docs/hotchocolate/v16/performance/automatic-persisted-operations) to control production GraphQL request cost. Do not use them as probe substitutes
+- Review your hosting platform documentation for probe intervals, startup windows, timeout behavior, and network exposure

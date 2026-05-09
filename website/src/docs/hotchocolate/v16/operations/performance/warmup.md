@@ -2,38 +2,40 @@
 title: Warmup
 ---
 
-Production warmup makes a new Hot Chocolate server useful before traffic reaches it. In v16 the schema and request executor are created during application startup by default. You can add operation warmup tasks when you also want common operations parsed, validated, and compiled before the first user request.
+# Hot Chocolate v16: Warming Up Your Server
 
-This page covers Hot Chocolate server warmup for ASP.NET Core. Fusion gateway warmup uses separate gateway APIs and is outside the scope of this page.
+In production, you want your Hot Chocolate server to be ready before it starts handling real traffic. In v16, the schema and request executor are created during application startup by default. You can also warm up specific operations—parsing, validating, and compiling them ahead of time—so the first user request avoids cold paths.
 
-# Warm instances before traffic
+This guide focuses on Hot Chocolate server warmup for ASP.NET Core. Fusion gateway warmup uses different APIs and is not covered here.
 
-A healthy production rollout should follow this lifecycle:
+## Why Warm Up?
+
+A smooth production rollout typically follows this sequence:
 
 1. The container or process starts.
 2. Hot Chocolate builds the schema and creates the request executor.
 3. Optional warmup tasks compile and cache selected operations.
 4. Readiness turns green.
-5. The first user request avoids schema, executor, parse, validate, and compile cold paths for warmed operations.
+5. The first user request skips schema, executor, parse, validate, and compile cold paths for warmed operations.
 
-Warmup shifts work from the first user request to startup. It does not remove the work, so keep your warmup list aligned with your startup budget and service-level objectives.
+Warmup moves work from the first user request to startup. It does not eliminate the work, so keep your warmup list in line with your startup budget and service-level objectives.
 
-Use operation warmup for a small set of high-value requests, such as homepage queries, common persisted operations, and representative expensive query shapes. Do not use this page as a replacement for general performance tuning, DataLoader design, database connection management, or observability.
+Use operation warmup for a small set of high-value requests—such as homepage queries, common persisted operations, or expensive query shapes. Warmup is not a substitute for general performance tuning, DataLoader design, database connection management, or observability.
 
-# Prerequisites
+## Prerequisites
 
-Before you configure operation warmup, you need:
+Before configuring operation warmup, ensure you have:
 
-- A Hot Chocolate v16 ASP.NET Core server configured with `AddGraphQLServer()` or an equivalent `AddGraphQL()` setup.
+- A Hot Chocolate v16 ASP.NET Core server set up with `AddGraphQLServer()` or equivalent.
 - A GraphQL endpoint mapped with `app.MapGraphQL()`.
 - A short list of representative production operations.
 - Operation names and document IDs or hashes for persisted operations.
 - Access to application logs, diagnostic events, or OpenTelemetry traces.
-- Readiness or startup probe control when you deploy behind Kubernetes, a load balancer, or an autoscaler.
+- Control over readiness or startup probes if deploying behind Kubernetes, a load balancer, or an autoscaler.
 
-# Rely on the v16 eager-start default first
+## Start with the v16 Eager Initialization Default
 
-Most production deployments should start with the v16 default:
+Most production deployments should use the v16 default setup:
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
@@ -48,19 +50,19 @@ app.MapGraphQL();
 app.Run();
 ```
 
-Expected result:
+With this configuration:
 
 - Hot Chocolate creates the schema and request executor during application startup.
-- Schema configuration errors fail startup and appear in startup logs.
-- No `.InitializeOnStartup()` call is needed in v16.
+- Schema configuration errors fail startup and appear in the logs.
+- You do not need to call `.InitializeOnStartup()` in v16.
 
-`LazyInitialization` defaults to `false`. The ASP.NET Core hosted warmup service asks Hot Chocolate to create each configured executor during startup. This removes the schema and executor cold start from the first GraphQL request.
+`LazyInitialization` is `false` by default. The ASP.NET Core warmup service ensures Hot Chocolate creates each configured executor at startup, removing schema and executor cold starts from the first GraphQL request.
 
-This default does not precompile every client operation. The first request for a particular operation can still pay parsing, validation, compilation, and cache population costs unless you warm that operation.
+However, this default does not precompile every client operation. The first request for a specific operation may still incur parsing, validation, compilation, and cache population costs unless you warm up that operation.
 
-# Warm common operations without executing resolvers
+# Warm Common Operations Without Executing Resolvers
 
-Use `AddWarmupTask` with a marked warmup request to populate execution caches without running field resolvers:
+To prepopulate execution caches without running field resolvers, use `AddWarmupTask` with a marked warmup request:
 
 ```csharp
 builder.Services
@@ -85,26 +87,26 @@ builder.Services
     });
 ```
 
-Expected result:
+What happens:
 
-- Startup waits until the warmup task finishes.
-- The marked request can populate the document cache and prepared operation cache.
-- Resolver side effects do not run because the request returns a warmup result before operation execution.
-- Later requests with the same document ID and operation name can hit the warmed caches.
+- Startup waits for the warmup task to finish.
+- The marked request fills the document and prepared operation caches.
+- Resolver side effects do not run; the request returns a warmup result before execution.
+- Later requests with the same document ID and operation name benefit from the warmed caches.
 
-`MarkAsWarmupRequest()` is the safety switch for operation warmup. It lets the request pipeline parse, validate, and compile the operation, then stops before resolver execution. Use queries, not mutations, for warmup examples and production warmup lists.
+`MarkAsWarmupRequest()` is essential for safe operation warmup. It allows the pipeline to parse, validate, and compile the operation, but stops before resolver execution. Always use queries (not mutations) for warmup.
 
-Match the future request shape as closely as the cache keys require:
+To maximize cache hits, match the request shape to what clients will send:
 
-- Include the same document ID or hash that clients send when you want document cache hits.
-- Include the same operation name that clients send because the prepared operation cache key includes the operation name.
+- Use the same document ID or hash as your clients.
+- Use the same operation name, since the prepared operation cache key includes it.
 - Pass the provided cancellation token so startup cancellation and shutdown do not hang behind your warmup code.
 
-Variables are not part of the prepared operation cache key, but variable coercion still happens per request. A warmed operation can still spend time coercing large or complex variable values.
+Variables are not part of the prepared operation cache key, but variable coercion still happens per request. Even a warmed operation can spend time coercing large or complex variable values.
 
-# Warm persisted operations by document ID
+# Warm Persisted Operations by Document ID
 
-Persisted operations and trusted documents benefit from targeted warmup when you already know the documents your clients will send:
+If you use persisted operations or trusted documents, you can warm up specific operations when you know in advance which documents your clients will send:
 
 ```csharp
 builder.Services
@@ -124,36 +126,36 @@ builder.Services
     });
 ```
 
-Expected result:
+With this approach:
 
-- Startup can warm the known operation even when your persisted-operation pipeline rejects non-persisted client requests.
-- The first client request using the same document ID or hash and operation name can use the warmed execution caches.
-- Warmup does not publish documents to an external registry or storage system.
+- Startup can warm the known operation, even if your persisted-operation pipeline would reject non-persisted client requests.
+- The first client request with the same document ID or hash and operation name uses the warmed execution caches.
+- Warmup does not publish documents to any external registry or storage system.
 
-A warmup request can bypass the persisted-document-only check because it is internal startup work. Do not expose any client feature that lets a remote caller mark a request as a warmup request.
+Warmup requests can bypass the persisted-document-only check because they are internal startup work. Never expose a client feature that allows remote callers to mark a request as a warmup request.
 
-For publishing and storage details, see [trusted documents](/docs/hotchocolate/v16/operations/security-hardening/trusted-documents) and [automatic persisted operations](/docs/hotchocolate/v16/performance/automatic-persisted-operations).
+For more on publishing and storage, see [trusted documents](/docs/hotchocolate/v16/operations/security-hardening/trusted-documents) and [automatic persisted operations](/docs/hotchocolate/v16/performance/automatic-persisted-operations).
 
-# Choose safe operations to warm
+# Choose Safe Operations to Warm
 
-Warm a small, deliberate set of operations. The best candidates have high traffic, stable documents, explicit operation names, and known document IDs when persisted operations are used.
+Select a small, intentional set of operations to warm. The best candidates are high-traffic, stable documents with explicit operation names and known document IDs (if using persisted operations).
 
-| Operation shape                | Warmup fit  | Guidance                                                                                           |
-| ------------------------------ | ----------- | -------------------------------------------------------------------------------------------------- |
-| Homepage query                 | High        | Warm it when it is common and read-only.                                                           |
-| Generated persisted operation  | High        | Warm it when the document ID or hash is stable and known at deployment time.                       |
-| Expensive representative query | Medium      | Warm one or two shapes that affect first-request SLOs.                                             |
-| Admin-only query               | Conditional | Warm it only when validation does not require per-user context, or model the context deliberately. |
-| Mutation                       | Low         | Avoid mutations. Use a read-only query that exercises similar schema paths.                        |
-| Subscription                   | Low         | Do not use startup warmup for subscription connection behavior.                                    |
+| Operation shape                | Warmup fit  | Guidance                                                                                      |
+| ------------------------------ | ----------- | --------------------------------------------------------------------------------------------- |
+| Homepage query                 | High        | Warm if it is common and read-only.                                                           |
+| Generated persisted operation  | High        | Warm if the document ID or hash is stable and known at deployment.                            |
+| Expensive representative query | Medium      | Warm one or two shapes that impact first-request SLOs.                                        |
+| Admin-only query               | Conditional | Warm only if validation does not require per-user context, or model the context deliberately. |
+| Mutation                       | Low         | Avoid mutations. Use a read-only query that covers similar schema paths.                      |
+| Subscription                   | Low         | Do not use startup warmup for subscription connection behavior.                               |
 
-Marked warmup requests do not execute resolvers. They do not warm databases, DataLoaders, HTTP clients, authentication providers, or downstream caches. If those systems need their own startup strategy, configure that separately and measure it separately.
+Marked warmup requests do not execute resolvers. They do not warm databases, DataLoaders, HTTP clients, authentication providers, or downstream caches. If those systems need their own startup strategy, configure and measure them separately.
 
-Revisit the warmup list after schema changes, client operation changes, cache-size changes, or traffic shifts. Over-warming slows rollout and scale-out.
+Review your warmup list after schema changes, client operation changes, cache-size adjustments, or traffic shifts. Warming too many operations can slow rollout and scale-out.
 
-# Register reusable warmup tasks
+# Register Reusable Warmup Tasks
 
-Move repeated warmup logic into an `IRequestExecutorWarmupTask` when you have more than one operation or need constructor injection:
+If you need to warm up multiple operations or require constructor injection, move your warmup logic into an `IRequestExecutorWarmupTask`:
 
 ```csharp
 builder.Services
@@ -181,15 +183,15 @@ public sealed class ProductOperationWarmupTask : IRequestExecutorWarmupTask
 }
 ```
 
-Expected result:
+What to expect:
 
 - The task runs before the initial executor is ready.
-- When the executor is rebuilt later, the old executor keeps serving requests until the replacement executor finishes warmup.
-- Because `ApplyOnlyOnStartup` is `false`, the task also runs for later executor creations.
+- If the executor is rebuilt later, the old executor keeps serving requests until the replacement finishes warmup.
+- With `ApplyOnlyOnStartup` set to `false`, the task also runs for later executor creations.
 
-Use `ApplyOnlyOnStartup => true` for work that should run only for the initial executor. Delegate warmup tasks registered with `AddWarmupTask((executor, ct) => ...)` run for each newly created executor.
+Set `ApplyOnlyOnStartup => true` if you want the task to run only for the initial executor. Delegate warmup tasks registered with `AddWarmupTask((executor, ct) => ...)` run for each new executor.
 
-Available registration forms include delegate, task instance, generic task type, factory, `bool skipIf`, and `Func<IServiceProvider, bool> skipIf`. The `skipIf` service provider is the application service provider, which makes it useful for environment or configuration checks:
+You can register warmup tasks as delegates, task instances, generic types, factories, or with a `skipIf` condition. The `skipIf` function receives the application service provider, so you can check environment or configuration:
 
 ```csharp
 builder.Services
@@ -199,13 +201,13 @@ builder.Services
         services => services.GetRequiredService<IHostEnvironment>().IsDevelopment());
 ```
 
-Expected result: `LargeWarmupTask` is not registered in development, but it can run in other environments.
+Here, `LargeWarmupTask` is not registered in development, but can run in other environments.
 
-Warmup tasks run sequentially for a single executor. Keep each task bounded, log useful progress, and avoid unbounded external calls.
+Warmup tasks run sequentially for a single executor. Keep each task bounded, log progress, and avoid unbounded external calls.
 
-# Access application services from warmup tasks
+# Access Application Services from Warmup Tasks
 
-Warmup tasks are activated from Hot Chocolate schema services. Hot Chocolate services such as `IDocumentCache` and `IPreparedOperationCache` live there. Application services need to be made available explicitly:
+Warmup tasks are activated from Hot Chocolate schema services. While Hot Chocolate services like `IDocumentCache` and `IPreparedOperationCache` are available by default, you must explicitly make your own application services available:
 
 ```csharp
 builder.Services.AddSingleton<WarmupOperationCatalog>();
@@ -242,16 +244,16 @@ public sealed class CatalogWarmupTask(
 }
 ```
 
-Expected result:
+With this setup:
 
-- The task can resolve schema services and the application `WarmupOperationCatalog`.
+- The task can resolve both schema services and the application `WarmupOperationCatalog`.
 - Startup does not fail with a missing-service activation error for `WarmupOperationCatalog`.
 
-`AddApplicationService<T>()` resolves the application service once during schema initialization and registers it in schema services. In factory scenarios, you can also use `GetRootServiceProvider()` from the schema service provider when you intentionally need access to application services.
+`AddApplicationService<T>()` resolves the application service once during schema initialization and registers it in schema services. In factory scenarios, you can also use `GetRootServiceProvider()` from the schema service provider if you need access to application services intentionally.
 
-# Coordinate warmup with readiness and startup probes
+# Coordinate Warmup with Readiness and Startup Probes
 
-Expose a readiness endpoint and give your platform enough time for startup warmup:
+Expose a readiness endpoint and ensure your platform allows enough time for startup warmup:
 
 ```csharp
 builder.Services.AddHealthChecks();
@@ -262,6 +264,8 @@ app.MapHealthChecks("/health/ready");
 app.MapGraphQL();
 app.Run();
 ```
+
+Example Kubernetes probes:
 
 ```yaml
 startupProbe:
@@ -277,17 +281,15 @@ readinessProbe:
   periodSeconds: 5
 ```
 
-Expected result: New pods receive traffic only after the ASP.NET Core app is running and the startup warmup path has completed.
+With this setup, new pods receive traffic only after the ASP.NET Core app is running and startup warmup has completed.
 
-Use a startup probe when schema build or operation warmup can exceed default probe grace periods. Set thresholds from measured worst-case startup time plus headroom. If startup fails because schema creation or a warmup task throws, readiness should never turn green for that instance.
+Use a startup probe if schema build or operation warmup might exceed default probe grace periods. Set thresholds based on your measured worst-case startup time plus some headroom. If startup fails due to schema creation or a warmup task error, readiness should never turn green for that instance.
 
-ASP.NET Core health checks do not automatically validate every future dynamic schema rebuild. If your application rebuilds schemas at runtime, add application-specific health logic only when you have a concrete readiness contract to enforce.
+ASP.NET Core health checks do not automatically validate every future dynamic schema rebuild. If your app rebuilds schemas at runtime, add custom health logic only if you have a concrete readiness contract to enforce.
 
-For endpoint hosting basics, see [ASP.NET Core hosting](/docs/hotchocolate/v16/operations/deployment/aspnetcore-hosting). For probe design, see [health checks](/docs/hotchocolate/v16/operations/observability/health-checks).
+# Tune Cold Starts for Your Hosting Model
 
-# Tune cold starts for your hosting model
-
-Different hosting models value startup time and first-request latency differently.
+Different hosting models have different priorities for startup time and first-request latency.
 
 | Hosting model                        | Recommended warmup strategy                                                                                      |
 | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
@@ -297,11 +299,11 @@ Different hosting models value startup time and first-request latency differentl
 | Serverless or strict startup budgets | Keep warmup small. Compare eager startup with provisioned or minimum instances before using lazy initialization. |
 | Local development                    | Use the default. Skip expensive tasks with `skipIf` when they slow feedback loops.                               |
 
-Eager initialization increases startup work and reduces first GraphQL request latency. Lazy initialization can make the process appear to start sooner, but it moves schema and executor creation to the first GraphQL request. Treat lazy initialization as an exception for constrained platforms, not the normal production setting.
+Eager initialization increases startup work but reduces first GraphQL request latency. Lazy initialization can make the process appear to start sooner, but it moves schema and executor creation to the first GraphQL request. Use lazy initialization only for constrained platforms, not as the default in production.
 
-# Opt into lazy initialization only for special cases
+# Use Lazy Initialization Only for Special Cases
 
-Use lazy initialization only when a platform startup budget matters more than first-request latency:
+Enable lazy initialization only if your platform's startup budget is more important than first-request latency:
 
 ```csharp
 builder.Services
@@ -312,17 +314,17 @@ builder.Services
     });
 ```
 
-Expected result:
+With this setting:
 
-- Process startup can complete with less GraphQL startup work.
+- Process startup can finish with less GraphQL startup work.
 - The first request or first executor access creates the schema and request executor.
-- Registered warmup tasks can run when that executor is created, so the first GraphQL request can pay the warmup cost.
+- Registered warmup tasks run when the executor is created, so the first GraphQL request pays the warmup cost.
 
-Do not use lazy initialization for normal production deployments behind load balancers. It can block initial requests and hide schema errors until runtime.
+Avoid lazy initialization for normal production behind load balancers. It can block initial requests and delay schema error detection until runtime.
 
-# Export the schema during startup
+# Export the Schema During Startup
 
-`ExportSchemaOnStartup()` is related startup work implemented as a warmup task:
+You can export the schema as part of startup using `ExportSchemaOnStartup()`, which is implemented as a warmup task:
 
 ```csharp
 builder.Services
@@ -331,21 +333,21 @@ builder.Services
     .ExportSchemaOnStartup("./schema.graphql");
 ```
 
-Expected result: Hot Chocolate writes the schema SDL to `./schema.graphql` during startup.
+This writes the schema SDL to `./schema.graphql` during startup.
 
-If you omit the path, Hot Chocolate writes `schema.graphqls` in the current directory. The task runs on startup and later schema changes unless you skip it. Use this for CI/CD or schema registry workflows, and account for file-system permissions and startup I/O.
+If you omit the path, Hot Chocolate writes `schema.graphqls` in the current directory. The export runs on startup and after later schema changes unless you skip it. Use this for CI/CD or schema registry workflows, and account for file-system permissions and startup I/O.
 
-# Measure cold-start and first-request latency
+# Measure Cold-Start and First-Request Latency
 
-Measure before and after you add operation warmup:
+Measure your application's performance before and after adding operation warmup:
 
-1. Record application startup duration from process start to readiness success.
-2. Record duration for each warmup task.
-3. Send the first real GraphQL request after readiness and record latency.
+1. Record application startup duration from process start to readiness.
+2. Record the duration of each warmup task.
+3. Send the first real GraphQL request after readiness and record its latency.
 4. Send the same request again and compare latency.
 5. Check diagnostic events for cache additions during warmup and cache retrievals during real requests.
 
-A small diagnostic listener can tag warmup requests and time GraphQL requests:
+You can use a diagnostic listener to tag and time warmup requests:
 
 ```csharp
 builder.Services
@@ -368,26 +370,24 @@ public sealed class WarmupTimingListener : ExecutionDiagnosticEventListener
         {
             stopwatch.Stop();
             var kind = context.IsWarmupRequest() ? "warmup" : "user";
-
-            Console.WriteLine(
-                $"GraphQL {kind} request completed in {stopwatch.ElapsedMilliseconds} ms");
+            Console.WriteLine($"GraphQL {kind} request completed in {stopwatch.ElapsedMilliseconds} ms");
         }
     }
 }
 ```
 
-Expected output:
+Example output:
 
 ```text
 GraphQL warmup request completed in 42 ms
 GraphQL user request completed in 8 ms
 ```
 
-Use diagnostic events such as `ParseDocument`, `ValidateDocument`, `CompileOperation`, `AddedDocumentToCache`, `RetrievedDocumentFromCache`, `AddedOperationToCache`, `RetrievedOperationFromCache`, and `ExecutorCreated` to confirm where time moves. Cache-add events should appear during warmup for matching operations. Later real requests should show retrieval events.
+Use diagnostic events like `ParseDocument`, `ValidateDocument`, `CompileOperation`, `AddedDocumentToCache`, `RetrievedDocumentFromCache`, `AddedOperationToCache`, `RetrievedOperationFromCache`, and `ExecutorCreated` to see where time is spent. Cache-add events should appear during warmup for matching operations; later real requests should show retrieval events.
 
-Diagnostic handlers run synchronously as part of request processing. Do not export telemetry or perform expensive work inline. For OpenTelemetry setup, see [OpenTelemetry](/docs/hotchocolate/v16/operations/observability/opentelemetry) and [diagnostic events](/docs/hotchocolate/v16/operations/observability/diagnostics-events).
+Diagnostic handlers run synchronously as part of request processing. Avoid exporting telemetry or doing expensive work inline. For OpenTelemetry setup, see [OpenTelemetry](/docs/hotchocolate/v16/operations/observability/opentelemetry) and [diagnostic events](/docs/hotchocolate/v16/operations/observability/diagnostics-events).
 
-A useful comparison table looks like this:
+Comparison table:
 
 | Measurement             | Before operation warmup                       | After operation warmup                |
 | ----------------------- | --------------------------------------------- | ------------------------------------- |
@@ -395,21 +395,21 @@ A useful comparison table looks like this:
 | First matching request  | Pays parse, validate, compile, and cache fill | Can hit document and operation caches |
 | Second matching request | Usually warm                                  | Usually warm                          |
 
-# Troubleshoot warmup problems
+# Troubleshooting Warmup Problems
 
 | Symptom                                  | Likely cause                                                                                                                                 | Fix                                                                                                                                                      |
 | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Startup fails with a schema error        | Eager initialization surfaced invalid schema or configuration.                                                                               | Fix the schema before rollout. This is the v16 default working as intended.                                                                              |
 | Startup exceeds probe timeout            | Schema build or operation warmup takes longer than the probe budget.                                                                         | Reduce the warmup list, increase startup probe thresholds, split expensive work, and inspect schema build time.                                          |
-| Warmup request executes side effects     | The request was not marked as a warmup request, or external warmup code ran outside the GraphQL resolver pipeline.                           | Add `.MarkAsWarmupRequest()`, prefer read-only queries, and keep side-effecting work out of operation warmup.                                            |
-| First request is still slow              | Document ID mismatch, operation name mismatch, operation not warmed, cache eviction, variable coercion cost, or downstream systems are cold. | Warm with matching document ID and operation name, increase cache sizes when needed, and warm downstream systems separately.                             |
+| Warmup request executes side effects     | The request was not marked as a warmup request, or external warmup code ran outside the GraphQL resolver pipeline.                           | Add `.MarkAsWarmupRequest()`, use read-only queries, and keep side-effecting work out of operation warmup.                                               |
+| First request is still slow              | Document ID mismatch, operation name mismatch, operation not warmed, cache eviction, variable coercion cost, or downstream systems are cold. | Warm with matching document ID and operation name, increase cache sizes if needed, and warm downstream systems separately.                               |
 | Persisted operation request misses cache | The warmup document ID or hash does not match the client path, or storage/hash configuration differs.                                        | Warm with the same document ID or hash and operation name that clients send. Verify the persisted operation pipeline.                                    |
 | Warmup task cannot resolve a service     | The task is activated from schema services, not the application service provider.                                                            | Add `.AddApplicationService<T>()`, inject schema services, or use a factory with `GetRootServiceProvider()` intentionally.                               |
 | Dynamic schema rebuild causes latency    | Rebuild warmup tasks were skipped or the replacement executor had no matching cache entries.                                                 | Use `ApplyOnlyOnStartup => false` for tasks needed after rebuild. The old executor serves requests until the warmed replacement is ready.                |
 | Startup hangs or cancels                 | Warmup code waits on unbounded external work or ignores cancellation.                                                                        | Pass cancellation tokens, add timeouts around external calls, and log around each task.                                                                  |
 | Cache fills or churns                    | Too many operations are warmed for the configured cache sizes.                                                                               | Warm fewer operations or increase `PreparedOperationCacheSize` and `OperationDocumentCacheSize`. The default for each is `256`, and the minimum is `16`. |
 
-Configure cache sizes through schema options:
+You can configure cache sizes through schema options:
 
 ```csharp
 builder.Services
@@ -421,11 +421,11 @@ builder.Services
     });
 ```
 
-For more option details, see the [options reference](/docs/hotchocolate/v16/api-reference/options).
+For more details, see the [options reference](/docs/hotchocolate/v16/api-reference/options).
 
-# Migrate v15 warmup code to v16
+# Migrate v15 Warmup Code to v16
 
-Remove `InitializeOnStartup()` when you migrate to v16. Eager schema and executor initialization is now the default.
+When migrating to v16, remove `InitializeOnStartup()`. Eager schema and executor initialization is now the default.
 
 ```diff
 builder.Services.AddGraphQLServer()
@@ -435,11 +435,11 @@ builder.Services.AddGraphQLServer()
 
 If your v15 warmup callback should also run after later executor rebuilds, use a delegate warmup task or a custom task with `ApplyOnlyOnStartup => false`. If it should run only for the initial executor, implement `IRequestExecutorWarmupTask` and return `true` from `ApplyOnlyOnStartup`.
 
-Application services needed by warmup tasks may require `.AddApplicationService<T>()` because v16 separates schema services from application services.
+Warmup tasks that need application services may require `.AddApplicationService<T>()` because v16 separates schema services from application services.
 
-For the complete migration context, see [migrate from v15 to v16](/docs/hotchocolate/v16/migrating/migrate-from-15-to-16#eager-initialization-by-default).
+For full migration details, see [migrate from v15 to v16](/docs/hotchocolate/v16/migrating/migrate-from-15-to-16#eager-initialization-by-default).
 
-# Next steps
+# Next Steps
 
 - [ASP.NET Core hosting](/docs/hotchocolate/v16/operations/deployment/aspnetcore-hosting)
 - [Kubernetes deployment](/docs/hotchocolate/v16/operations/deployment/kubernetes)

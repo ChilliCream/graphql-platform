@@ -2,13 +2,13 @@
 title: Streaming and Incremental Delivery Performance
 ---
 
-Use Hot Chocolate v16 incremental delivery when a query has fast critical data and slower secondary data. The goal is not to make the operation do less work. The goal is to let the client render a useful state before every resolver completes.
+Use Hot Chocolate v16 incremental delivery when your query needs to deliver fast, critical data alongside slower, secondary data. The purpose is not to reduce the total work, but to let the client display useful information as soon as possible, even before all resolvers finish.
 
-This page covers operations performance for finite query responses that use `@defer` and `@stream`. It does not cover Fusion streaming behavior. For full directive syntax and build-focused setup, see [stream results with defer and stream](/docs/hotchocolate/v16/build/realtime/stream-results-with-defer-and-stream). For SSE setup, see [configure SSE](/docs/hotchocolate/v16/build/transport/configure-sse).
+This page explains how to optimize operations performance for finite query responses using `@defer` and `@stream`. It does not cover Fusion streaming. For full directive syntax and build instructions, see [stream results with defer and stream](/docs/hotchocolate/v16/build/realtime/stream-results-with-defer-and-stream). For SSE setup, see [configure SSE](/docs/hotchocolate/v16/build/transport/configure-sse).
 
-# Prove streaming changes the user-visible timeline
+# Demonstrate Streaming Changes in the User Timeline
 
-Start with a control request that prints chunks as they arrive. The example below enables the directives, sends a multipart request, and expects an initial payload followed by a later patch.
+To verify streaming works, start with a control request that prints each chunk as it arrives. The following example enables the necessary directives, sends a multipart request, and expects an initial payload followed by a later patch.
 
 ```csharp
 // Program.cs
@@ -29,7 +29,7 @@ app.MapGraphQL();
 app.Run();
 ```
 
-Use `@defer` on an inline fragment or fragment spread. Keep the fields needed for the first render outside the deferred fragment.
+Apply `@defer` to an inline fragment or fragment spread. Place the fields needed for the first render outside the deferred fragment.
 
 ```graphql
 query ProductPage($id: Int!) {
@@ -49,7 +49,7 @@ fragment ProductDetails on Product {
 }
 ```
 
-Send a request that asks for the v16 incremental delivery format. `curl -N` disables curl output buffering so you can see whether chunks arrive over time.
+Send a request for the v16 incremental delivery format. Use `curl -N` to disable output buffering so you can see chunks as they arrive:
 
 ```bash
 curl -N http://localhost:5000/graphql \
@@ -58,7 +58,7 @@ curl -N http://localhost:5000/graphql \
   --data '{"query":"query ProductPage($id: Int!){ product(id:$id){ id name ...ProductDetails @defer(label:\"details\") } } fragment ProductDetails on Product { description recommendations { id name } }","variables":{"id":1}}'
 ```
 
-A multipart response uses a boundary value chosen by the server. The exact boundary can differ, but the payload shape should look like this:
+The server chooses a boundary value for multipart responses, so the exact boundary may vary. However, the payload should look similar to this:
 
 ```text
 ---
@@ -72,51 +72,51 @@ Content-Type: application/json; charset=utf-8
 -----
 ```
 
-Track three moments:
+Focus on three key moments:
 
-1. Request start.
-2. First useful payload, the first chunk that can render the page shell.
-3. Complete payload, the final chunk where `hasNext` becomes `false`.
+1. When the request starts.
+2. When the first useful payload arrives (enough to render the page shell).
+3. When the complete payload arrives (the final chunk where `hasNext` is `false`).
 
-If those moments are indistinguishable, you do not yet have a streaming performance win. Continue with the operation, transport, and infrastructure checks below.
+If these moments are not distinct, streaming is not providing a performance benefit yet. In that case, review the operation, transport, and infrastructure as described below.
 
-# Decide whether incremental delivery is the right tool
+# Decide if Incremental Delivery Is the Right Fit
 
-`@defer` and `@stream` keep one GraphQL operation open and return a finite response stream. They help when your initial selection can finish without waiting for slower work.
+The `@defer` and `@stream` directives keep a single GraphQL operation open and return a finite stream of responses. They are most effective when the initial selection can complete without waiting for slower fields.
 
-They do not reduce database cost, resolver CPU, or response size by themselves. They can increase connection lifetime, concurrent open responses, client parser requirements, and proxy sensitivity.
+These directives do not reduce database load, resolver CPU usage, or response size on their own. They may increase connection lifetimes, the number of concurrent open responses, client parser complexity, and sensitivity to proxy behavior.
 
-| Problem                                                                | Prefer                         | Why                                                                                                 |
-| ---------------------------------------------------------------------- | ------------------------------ | --------------------------------------------------------------------------------------------------- |
-| Product header is fast, below-the-fold details are slow                | `@defer`                       | The page can render identity, title, and layout before optional panels complete.                    |
-| A bounded recommendations list is required, and early items are useful | `@stream`                      | The operation still needs the full logical list, but the client can render the first items earlier. |
-| New chat messages should arrive after the initial page load            | Subscription                   | Subscriptions model future server events.                                                           |
-| Catalog or activity feed may have thousands of items                   | Pagination                     | Users request the next slice when they need it.                                                     |
-| Several independent operations can run together                        | Batching or client concurrency | Incremental delivery is not a replacement for independent requests.                                 |
-| Route navigation waits for JavaScript before starting data fetches     | Route or intent preloading     | Start the request earlier to avoid fetch-on-render waterfalls.                                      |
+| Scenario                                                            | Use                            | Reason                                                                                       |
+| ------------------------------------------------------------------- | ------------------------------ | -------------------------------------------------------------------------------------------- |
+| Product header is fast, but details load slowly                     | `@defer`                       | The page can show identity, title, and layout before optional panels finish loading.         |
+| You need a bounded recommendations list, and early items are useful | `@stream`                      | The operation still fetches the full list, but the client can render the first items sooner. |
+| New chat messages should arrive after the initial page load         | Subscription                   | Subscriptions are designed for future server events.                                         |
+| Catalog or feed may have thousands of items                         | Pagination                     | Users fetch the next slice as needed.                                                        |
+| Several independent operations can run in parallel                  | Batching or client concurrency | Incremental delivery does not replace independent requests.                                  |
+| Route navigation waits for JavaScript before starting data fetches  | Route or intent preloading     | Start the request earlier to avoid fetch-on-render waterfalls.                               |
 
-# Check prerequisites before you depend on chunks
+# Prerequisites for Reliable Streaming
 
-Use this checklist before you tune an operation around incremental delivery:
+Before you optimize an operation for incremental delivery, make sure all of the following are true:
 
-- The ASP.NET Core GraphQL endpoint is mapped with `app.MapGraphQL()`.
-- `EnableDefer` is `true` before you use `@defer`.
-- `EnableStream` is `true` before you use `@stream`.
-- The client sends a streaming `Accept` header, not `Accept: application/json`.
-- The client parser can consume and merge multiple payloads in the v16 v0.2 format.
-- Proxies, CDNs, compression, and hosting layers pass flushed chunks through.
-- Critical fields stay outside deferred fragments or streamed list tails.
+- The ASP.NET Core GraphQL endpoint is mapped using `app.MapGraphQL()`.
+- `EnableDefer` is set to `true` before using `@defer`.
+- `EnableStream` is set to `true` before using `@stream`.
+- The client sends a streaming `Accept` header (not `Accept: application/json`).
+- The client parser can handle and merge multiple payloads in the v16 v0.2 format.
+- Proxies, CDNs, compression, and hosting layers do not buffer or block flushed chunks.
+- Critical fields are outside deferred fragments or streamed list tails.
 - Resolvers and downstream APIs accept and honor `CancellationToken`.
-- Cost limits, page sizes, and request timeouts match the worst operation you allow.
+- Cost limits, page sizes, and request timeouts are set for your slowest allowed operation.
 
-# Shape the operation so the first chunk is useful
+# Shape Your Operation for a Useful First Chunk
 
-Design the query around UI regions. Put the fields required for a stable initial render in the first payload, and defer optional regions.
+Design your query around UI regions. Place the fields needed for a stable initial render in the first payload, and defer optional regions for later patches.
 
 ```graphql
 query ProductPage($id: Int!, $deferPanels: Boolean! = true) {
   product(id: $id) {
-    # Render the header and stable layout from the first payload.
+    # The header and layout render from the first payload.
     id
     name
     availability
@@ -154,13 +154,13 @@ fragment ProductRecommendations on Product {
 }
 ```
 
-Use labels that map to UI regions, such as `details`, `reviews`, and `recommendations`. Avoid many tiny deferred fragments unless you have measured that the extra patches help. Each patch adds client merge work and increases the number of states your UI must handle.
+Choose labels that match UI regions, like `details`, `reviews`, and `recommendations`. Avoid splitting into many small deferred fragments unless you have measured a benefit. Each patch adds client merge work and increases the number of UI states to handle.
 
-Use the `if:` argument when you support clients that cannot consume patches. For those clients, send `false` and return a normal complete result.
+Use the `if:` argument to support clients that cannot process patches. For those clients, set it to `false` and return a standard complete result.
 
-# Use `@stream` only for bounded list streaming
+# Use `@stream` for Bounded List Streaming Only
 
-`@stream` belongs on list fields. It accepts `label`, `initialCount`, and `if`.
+Apply `@stream` to list fields. It accepts `label`, `initialCount`, and `if` arguments.
 
 ```graphql
 query ProductPage($id: Int!) {
@@ -174,39 +174,39 @@ query ProductPage($id: Int!) {
 }
 ```
 
-Use `@stream` when all of these are true:
+Use `@stream` only when all of the following are true:
 
 - The list is bounded.
 - The operation already needs the full logical list.
-- The first `initialCount` items are useful without the remaining items.
-- The client can merge list patches for the selected response format.
+- The first `initialCount` items are useful even before the rest arrive.
+- The client can merge list patches for the chosen response format.
 
-Do not use `@stream` for unbounded feeds, infinite scroll, or lists where a user may never need later items. Use [pagination](/docs/hotchocolate/v16/resolvers-and-data/pagination) for those cases.
+Do not use `@stream` for unbounded feeds, infinite scroll, or lists where users may never need later items. Use [pagination](/docs/hotchocolate/v16/resolvers-and-data/pagination) for those scenarios.
 
-Conceptually, the initial payload includes up to `initialCount` items. Later patches add remaining items. Test your exact schema and client before you depend on a specific list patch shape.
+The initial payload includes up to `initialCount` items. Later patches deliver the remaining items. Always test your schema and client to confirm the list patch shape works as expected.
 
-# Choose the response format your infrastructure can stream
+# Choose a Response Format Your Infrastructure Can Stream
 
-Hot Chocolate selects the response format from the HTTP `Accept` header.
+Hot Chocolate determines the response format based on the HTTP `Accept` header.
 
-| Request header                                    | Use when                                                                      | Check                                                          |
+| Request header                                    | When to use                                                                   | What to check for                                              |
 | ------------------------------------------------- | ----------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| `Accept: multipart/mixed; incrementalSpec=v0.2`   | You want a common format for incremental queries.                             | Response `Content-Type` starts with `multipart/mixed`.         |
-| `Accept: text/event-stream; incrementalSpec=v0.2` | You want Server-Sent Events frames for incremental delivery or subscriptions. | Response contains `event: next` and a final `event: complete`. |
-| `Accept: application/jsonl; incrementalSpec=v0.2` | Your client parses one JSON result per line.                                  | Response `Content-Type` is `application/jsonl`.                |
-| `Accept: application/json`                        | You must support a legacy client.                                             | Do not use this for incremental query streaming.               |
+| `Accept: multipart/mixed; incrementalSpec=v0.2`   | For a standard format for incremental queries                                 | Response `Content-Type` starts with `multipart/mixed`.         |
+| `Accept: text/event-stream; incrementalSpec=v0.2` | For Server-Sent Events (SSE) frames for incremental delivery or subscriptions | Response contains `event: next` and a final `event: complete`. |
+| `Accept: application/jsonl; incrementalSpec=v0.2` | If your client parses one JSON result per line                                | Response `Content-Type` is `application/jsonl`.                |
+| `Accept: application/json`                        | For legacy clients only                                                       | Do not use for incremental query streaming.                    |
 
-When the client sends no `Accept` header or sends `*/*`, single results use `application/graphql-response+json`. Streaming operations default to `multipart/mixed` unless the client explicitly asks for another streaming format.
+If the client sends no `Accept` header or uses `*/*`, single results use `application/graphql-response+json`. Streaming operations default to `multipart/mixed` unless the client requests another streaming format.
 
-In v16, v0.2 is the default incremental delivery wire format. It uses `pending`, `incremental`, and `completed`. Clients that still require the legacy shape can request `incrementalSpec=v0.1`, but new clients should use v0.2.
+In v16, v0.2 is the default incremental delivery wire format, using `pending`, `incremental`, and `completed`. Legacy clients can request `incrementalSpec=v0.1`, but new clients should use v0.2.
 
-If you need SSE for a test, request only `text/event-stream`. Mixed headers can negotiate a different supported format based on the server's content negotiation rules.
+To test SSE, request only `text/event-stream`. If you send mixed headers, the server negotiates the format based on its content negotiation rules.
 
-# Configure clients to consume patches without buffering
+# Configure Clients to Process Patches Without Buffering
 
-The client must process more than one payload for a single operation and merge patches according to the selected incremental delivery format. Support varies by client library version and transport, so verify the exact versions in your application.
+Clients must process multiple payloads for a single operation and merge patches according to the selected incremental delivery format. Support depends on the client library and transport, so always verify the versions in your application.
 
-A custom Relay network can parse multipart responses with `meros`. This sketch shows the important transport pieces and leaves production error handling in place as comments.
+For example, a custom Relay network can parse multipart responses using `meros`. The following sketch highlights the key transport logic:
 
 ```ts
 import { meros } from "meros/browser";
@@ -266,13 +266,13 @@ export const fetchGraphQL: FetchFunction = (operation, variables) => {
 };
 ```
 
-Production code should also handle non-2xx responses, parse failures, non-JSON parts, network errors, completion, retries, and aborts. Propagate route-change abort signals so abandoned UI work cancels the HTTP request.
+In production, also handle non-2xx responses, parse failures, non-JSON parts, network errors, completion, retries, and aborts. Make sure to propagate route-change abort signals so abandoned UI work cancels the HTTP request.
 
-For SSE with POST bodies or custom headers, use a GraphQL-over-SSE capable client. Browser `EventSource` is limited to GET-style usage and cannot send arbitrary request bodies or headers.
+For SSE with POST bodies or custom headers, use a GraphQL-over-SSE capable client. The browser `EventSource` API only supports GET requests and cannot send custom bodies or headers.
 
-# Write resolvers that allow early delivery
+# Write Resolvers That Enable Early Delivery
 
-Incremental delivery cannot help if the root resolver loads the entire object graph before child fields execute. Return the parent object as soon as the initial selection has enough data, then put slower optional work behind child resolvers selected by deferred fragments.
+Incremental delivery is only effective if the root resolver does not load the entire object graph before child fields execute. Return the parent object as soon as the initial selection is ready, and place slower, optional work behind child resolvers selected by deferred fragments.
 
 ```csharp
 public sealed class Query
@@ -295,19 +295,19 @@ public static partial class ProductNode
 }
 ```
 
-Follow these rules for streamed operations:
+For streamed operations, follow these guidelines:
 
-- Do not block on asynchronous work with `.Result`, `.Wait()`, or synchronous I/O.
-- Do not materialize giant lists on hot paths before the deferred boundary.
-- Use DataLoader in deferred branches so later patches do not create N+1 queries.
-- Pass `CancellationToken` into database, HTTP, and queue APIs.
-- Keep authorization decisions needed for the first render outside slow deferred work.
+- Avoid blocking on asynchronous work with `.Result`, `.Wait()`, or synchronous I/O.
+- Do not materialize large lists on hot paths before the deferred boundary.
+- Use DataLoader in deferred branches to prevent N+1 queries in later patches.
+- Pass `CancellationToken` into all database, HTTP, and queue APIs.
+- Keep authorization checks needed for the first render outside slow deferred work.
 
-# Protect resources during long-lived responses
+# Protect Resources During Long-Lived Responses
 
-Incremental responses keep HTTP requests open longer than ordinary JSON responses. Track them separately from normal query throughput.
+Incremental responses keep HTTP requests open longer than standard JSON responses. Track these separately from normal query throughput.
 
-Configure request timeouts around the longest streamed operation you intend to support:
+Set request timeouts based on the longest streamed operation you want to support:
 
 ```csharp
 // Program.cs
@@ -319,7 +319,7 @@ builder
     });
 ```
 
-Use cost and size controls with the same mindset. A streamed query can still be expensive even when the first chunk arrives quickly.
+Apply cost and size controls as you would for any expensive query. A streamed query can still be costly, even if the first chunk arrives quickly.
 
 ```csharp
 // Program.cs
@@ -335,36 +335,36 @@ builder
 
 Operational checklist:
 
-- Limit maximum concurrent streamed requests at the gateway or application layer.
-- Set request timeouts that protect the server without cutting off valid operations.
+- Limit the number of concurrent streamed requests at the gateway or application layer.
+- Set request timeouts that protect the server but do not cut off valid operations.
 - Use maximum page sizes and list-size policies for fields that can return many items.
-- Use cost analysis for complex operations.
-- Test direct cancellation by disconnecting a client during delayed resolver work.
-- Watch slow clients and buffering proxies, which can hold server resources after resolver work completes.
+- Apply cost analysis for complex operations.
+- Test cancellation by disconnecting a client during delayed resolver work.
+- Monitor slow clients and buffering proxies, which can hold server resources after resolver work completes.
 
-Subscription topic buffers are for realtime subscriptions, not finite incremental query responses. Tune subscription providers on the [subscriptions](/docs/hotchocolate/v16/building-a-schema/subscriptions) page instead.
+Subscription topic buffers are for real-time subscriptions, not for finite incremental query responses. Tune subscription providers as described on the [subscriptions](/docs/hotchocolate/v16/building-a-schema/subscriptions) page.
 
-# Measure first useful data, not only total duration
+# Measure First Useful Data, Not Just Total Duration
 
-A successful streaming change can leave total completion time unchanged. It can even add a small amount of overhead. Measure whether the first useful UI state arrives earlier.
+A successful streaming change may not reduce total completion time and can even add a small overhead. The key metric is whether the first useful UI state arrives sooner.
 
 | Metric                    | How to collect                                                                     | Success signal                                      | Failure signal                                               |
 | ------------------------- | ---------------------------------------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------------------ |
-| Time to first byte        | Browser network tooling, reverse proxy logs, or `curl -w`                          | Headers and first bytes arrive early.               | Headers wait for all resolver work.                          |
-| First useful payload time | Client logs with timestamps around each received patch                             | The shell can render before optional panels finish. | The first patch lacks enough data to render.                 |
+| Time to first byte        | Browser network tools, reverse proxy logs, or `curl -w`                            | Headers and first bytes arrive early.               | Headers wait for all resolver work.                          |
+| First useful payload time | Client logs with timestamps for each received patch                                | The shell can render before optional panels finish. | The first patch lacks enough data to render.                 |
 | Last payload time         | Client logs or server response completion logs                                     | Total time stays within your SLO.                   | Streaming hides a slow operation that still violates limits. |
 | Chunk gaps                | Timestamp each `next` payload in the client                                        | Gaps match slow optional work.                      | Chunks arrive together after buffering.                      |
-| Response bytes            | Browser tooling, proxy logs, or server metrics                                     | Bytes stay acceptable for the UI.                   | Patch overhead creates excessive traffic.                    |
+| Response bytes            | Browser tools, proxy logs, or server metrics                                       | Bytes stay acceptable for the UI.                   | Patch overhead creates excessive traffic.                    |
 | Resolver spans            | [Instrumentation](/docs/hotchocolate/v16/server/instrumentation) and OpenTelemetry | Slow fields align with deferred regions.            | Slow work happens before the deferred boundary.              |
 | Open stream count         | Application, gateway, or load balancer metrics                                     | Concurrency is stable under load.                   | Open streams grow without completing.                        |
 | Canceled stream count     | Server logs and client abort metrics                                               | Abandoned routes cancel downstream work.            | Canceled clients keep resolvers running.                     |
 | Error rate                | GraphQL errors, HTTP status, client parser errors                                  | Parser and merge failures stay near zero.           | Transport or v0.1/v0.2 mismatches appear.                    |
 
-`curl -N -w` can report overall transfer timings, but it does not timestamp each chunk for you. Add server logs or client-side timestamps when you need per-chunk timing.
+`curl -N -w` can report overall transfer timings, but does not timestamp each chunk. Add server logs or client-side timestamps if you need per-chunk timing.
 
-# Troubleshoot delayed or missing chunks
+# Troubleshoot Delayed or Missing Chunks
 
-Use a direct Kestrel control before changing application code:
+Before changing application code, test with a direct Kestrel request:
 
 ```bash
 curl -N http://localhost:5000/graphql \
@@ -373,7 +373,7 @@ curl -N http://localhost:5000/graphql \
   --data '{"query":"{ product { name ... @defer { description } } }"}'
 ```
 
-Then repeat the same request through your proxy or CDN and compare when each chunk appears.
+Then repeat the request through your proxy or CDN and compare when each chunk arrives.
 
 | Symptom                                     | Likely cause                                                                                       | Fix                                                                                                          |
 | ------------------------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
@@ -389,24 +389,24 @@ Then repeat the same request through your proxy or CDN and compare when each chu
 | Canceled clients keep work running          | Resolvers ignore `CancellationToken` or downstream APIs do not observe it.                         | Add token parameters and pass them through every I/O call.                                                   |
 | Duplicate list items after realtime updates | Mutation, pagination, and subscription cache updates all insert the same entity.                   | Pick one owner for each insert path and rely on stable IDs for record updates.                               |
 
-Inspect these headers during troubleshooting:
+When troubleshooting, inspect these headers:
 
-- Request `Accept`.
-- Response `Content-Type`.
-- `Cache-Control: no-cache` for SSE responses.
-- Response compression settings.
-- Proxy buffering headers or route settings.
+- Request `Accept`
+- Response `Content-Type`
+- `Cache-Control: no-cache` for SSE responses
+- Response compression settings
+- Proxy buffering headers or route settings
 
-# Continue to build and operations topics
+# Next Steps and Related Topics
 
-- [Stream results with defer and stream](/docs/hotchocolate/v16/build/realtime/stream-results-with-defer-and-stream) for full enablement, directive syntax, runnable examples, and payload details.
-- [Configure SSE](/docs/hotchocolate/v16/build/transport/configure-sse) for SSE setup, client notes, authentication, and proxy considerations.
-- [HTTP transport](/docs/hotchocolate/v16/server/http-transport) for content negotiation and streaming transport reference.
-- [Performance tuning](/docs/hotchocolate/v16/guides/performance) for general Hot Chocolate performance guidance.
-- [Options reference](/docs/hotchocolate/v16/api-reference/options) for `EnableDefer`, `EnableStream`, request timeout, socket, and subscription options.
-- [Subscriptions](/docs/hotchocolate/v16/building-a-schema/subscriptions) for realtime server events.
-- [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader) for batching deferred branch loads.
-- [Pagination](/docs/hotchocolate/v16/resolvers-and-data/pagination) for large, unbounded, or user-controlled lists.
-- [Instrumentation](/docs/hotchocolate/v16/server/instrumentation) for OpenTelemetry and diagnostics.
-- [Cost analysis](/docs/hotchocolate/v16/securing-your-api/cost-analysis) for bounding expensive operations.
-- [Trusted documents](/docs/hotchocolate/v16/performance/trusted-documents) for persisted operations and request-size reduction.
+- [Stream results with defer and stream](/docs/hotchocolate/v16/build/realtime/stream-results-with-defer-and-stream): Full enablement, directive syntax, runnable examples, and payload details
+- [Configure SSE](/docs/hotchocolate/v16/build/transport/configure-sse): SSE setup, client notes, authentication, and proxy considerations
+- [HTTP transport](/docs/hotchocolate/v16/server/http-transport): Content negotiation and streaming transport reference
+- [Performance tuning](/docs/hotchocolate/v16/guides/performance): General Hot Chocolate performance guidance
+- [Options reference](/docs/hotchocolate/v16/api-reference/options): `EnableDefer`, `EnableStream`, request timeout, socket, and subscription options
+- [Subscriptions](/docs/hotchocolate/v16/building-a-schema/subscriptions): Realtime server events
+- [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader): Batching deferred branch loads
+- [Pagination](/docs/hotchocolate/v16/resolvers-and-data/pagination): Large, unbounded, or user-controlled lists
+- [Instrumentation](/docs/hotchocolate/v16/server/instrumentation): OpenTelemetry and diagnostics
+- [Cost analysis](/docs/hotchocolate/v16/securing-your-api/cost-analysis): Bounding expensive operations
+- [Trusted documents](/docs/hotchocolate/v16/performance/trusted-documents): Persisted operations and request-size reduction

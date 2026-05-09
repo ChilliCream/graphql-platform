@@ -2,25 +2,25 @@
 title: "DataLoader Performance"
 ---
 
-This page helps you operate DataLoaders in Hot Chocolate v16 production systems. Use it when an operation still creates N+1 source calls, batches are too small, batches are too large, or request memory grows with high-cardinality queries.
+This page guides you through operating and tuning DataLoaders in Hot Chocolate v16 for production systems. Use it when you encounter N+1 source calls, batches that are too small or too large, or memory growth with high-cardinality queries.
 
-It assumes you already understand resolvers and the basic DataLoader pattern. If you need to create loaders first, start with [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader). Fusion composition and gateway behavior are out of scope for this page.
+You should already understand resolvers and the basic DataLoader pattern. If you need to create loaders, see [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader) first. This page does not cover Fusion composition or gateway behavior.
 
 # Prerequisites
 
-Before you tune DataLoader behavior, make sure you have:
+Before tuning DataLoader behavior, ensure you have:
 
 - A Hot Chocolate v16 server.
-- DataLoaders registered through the source generator or DI.
-- A representative GraphQL operation that shows the problem under production-like concurrency.
-- Access to source metrics for your database, REST service, MongoDB cluster, Marten store, or other upstream.
-- A safe telemetry environment. DataLoader keys can contain tenant IDs, user IDs, or other sensitive values.
+- DataLoaders registered via the source generator or dependency injection.
+- A representative GraphQL operation that reproduces the issue under production-like concurrency.
+- Access to source metrics for your database, REST service, MongoDB, Marten, or other upstream systems.
+- A safe telemetry environment, since DataLoader keys may contain sensitive data like tenant or user IDs.
 
-Prefer source-generated DataLoaders for most application code. Use manual DataLoader classes when you need custom constructor behavior, custom options, or a specialized implementation.
+Prefer source-generated DataLoaders for most scenarios. Use manual DataLoader classes only when you need custom constructors, options, or specialized logic.
 
-# Start by measuring a suspected N+1 operation
+# Measure N+1 and Batch Behavior
 
-Enable Hot Chocolate instrumentation and OpenTelemetry first. Then add a small DataLoader diagnostic listener for counters that you want to aggregate per operation or per loader.
+Start by enabling Hot Chocolate instrumentation and OpenTelemetry. Add a DataLoader diagnostic listener to collect counters you want to aggregate per operation or loader.
 
 ```csharp
 // Program.cs
@@ -53,16 +53,13 @@ builder.Services
     });
 ```
 
-Hot Chocolate creates DataLoader spans with the batch size. You can include keys while debugging, but only in a safe environment:
+Hot Chocolate creates DataLoader spans that include batch size. You can include keys for debugging, but only do this in a safe environment:
+.AddInstrumentation(o =>
+{
+o.IncludeDataLoaderKeys = true;
+});
 
-```csharp
-builder
-    .AddGraphQL()
-    .AddInstrumentation(o =>
-    {
-        o.IncludeDataLoaderKeys = true;
-    });
-```
+````
 
 `IncludeDataLoaderKeys` can leak sensitive data and create high-cardinality telemetry. Turn it off after you verify duplicate-key behavior.
 
@@ -138,7 +135,7 @@ public sealed class DataLoaderMetricsListener : DataLoaderDiagnosticEventListene
         }
     }
 }
-```
+````
 
 Use the metrics to answer these questions:
 
@@ -177,11 +174,11 @@ BrandByIdDataLoader keys/batch: 3
 Brand source calls/request: 1
 ```
 
-# Use the request-scoped cache mental model
+# Understand the Request-Scoped Cache Model
 
-A DataLoader is a request coordination mechanism. It is not a database abstraction and it is not a shared application cache.
+A DataLoader coordinates work within a single request. It is not a database abstraction or a shared application cache.
 
-During one GraphQL request, resolvers call `LoadAsync`. Each call queues a key and returns a task. Hot Chocolate dispatches the batch later, after the current resolver wave has queued its work. The DataLoader deduplicates keys, sends one source call for the unique keys in that batch, and shares the resulting task with every caller that requested the same key.
+Within a GraphQL request, each resolver calls `LoadAsync`, queuing a key and returning a task. Hot Chocolate dispatches the batch after the current resolver wave finishes queuing. The DataLoader deduplicates keys, issues one source call for the unique keys in the batch, and shares the result with all callers who requested the same key.
 
 ```text
 Wave 1: products(first: 5) returns products
@@ -190,11 +187,11 @@ Dispatch: BrandByIdDataLoader executes one batch for [1, 2, 3]
 Wave 3: brand resolvers receive cached tasks/results
 ```
 
-Each GraphQL request gets fresh DataLoader and cache state. Duplicate keys inside the same request share one task or result. A later request starts with an empty DataLoader cache unless you add a separate second-level cache.
+Each GraphQL request starts with a fresh DataLoader and cache. Duplicate keys within the same request share a single task or result. The cache is cleared for the next request unless you add a second-level cache.
 
-For one-to-one loaders, missing keys resolve as `null` unless the loader returns a per-key error. For one-to-many loaders, return an empty collection in the resolver or use `LoadOrEmptyAsync` when the generated loader supports it.
+For one-to-one loaders, missing keys resolve as `null` unless you return a per-key error. For one-to-many loaders, return an empty collection in the resolver or use `LoadOrEmptyAsync` if the generated loader supports it.
 
-# Design lookup shapes that batch well
+# Design Lookup Shapes for Effective Batching
 
 A lookup shape is the complete set of inputs that changes a result. Create one DataLoader per lookup shape and keep the keys stable and comparable.
 
@@ -279,19 +276,19 @@ Follow these design rules:
 - Keep data access out of field resolvers. Resolvers should translate GraphQL selection into application calls.
 - Use loaders for nested connections and aggregations, not only entity-by-ID fields.
 
-# Tune maximum batch size for the backend
+# Tune Maximum Batch Size for Your Backend
 
-`DataLoaderOptions.MaxBatchSize` defaults to `1024`. When more unique keys are queued, GreenDonut splits work into multiple batches. Setting `MaxBatchSize` to `0` disables DataLoader batch splitting, but use that only when the operation and backend are bounded.
+`DataLoaderOptions.MaxBatchSize` defaults to `1024`. If more unique keys are queued, GreenDonut splits them into multiple batches. Setting `MaxBatchSize` to `0` disables batch splitting, but only use this if your operation and backend are safely bounded.
 
-Lower the maximum when the source has tighter limits. Raise it only when metrics show excessive splitting and the backend handles larger batches efficiently.
+Lower the maximum batch size if your source has strict limits. Increase it only if metrics show excessive splitting and your backend efficiently handles larger batches.
 
-| Backend signal                                     | Starting decision                                                    |
-| -------------------------------------------------- | -------------------------------------------------------------------- |
-| SQL parameter limit or poor `IN` query plan        | Set the batch size below the parameter limit and inspect query plans |
-| REST batch endpoint returns `413` or `429`         | Set the batch size below payload and rate-limit thresholds           |
-| MongoDB or Marten slow query or document-size risk | Reduce batch size and inspect indexes/query shape                    |
-| High request memory with many unique keys          | Reduce batch size and add query limits                               |
-| Many small split batches with low source latency   | Consider raising the batch size after load testing                   |
+| Backend signal                                     | Starting decision                                                |
+| -------------------------------------------------- | ---------------------------------------------------------------- |
+| SQL parameter limit or poor `IN` query plan        | Set batch size below the parameter limit and inspect query plans |
+| REST batch endpoint returns `413` or `429`         | Set batch size below payload and rate-limit thresholds           |
+| MongoDB or Marten slow query or document-size risk | Reduce batch size and inspect indexes/query shape                |
+| High request memory with many unique keys          | Reduce batch size and add query limits                           |
+| Many small split batches with low source latency   | Consider raising batch size after load testing                   |
 
 For manual loaders, accept the non-null `DataLoaderOptions` from DI and pass it to the base class:
 
@@ -315,7 +312,6 @@ public sealed class ProductByIdDataLoader : BatchDataLoader<int, Product>
         CancellationToken ct)
     {
         await using var db = await _dbContextFactory.CreateDbContextAsync(ct);
-
         return await db.Products
             .AsNoTracking()
             .Where(p => keys.Contains(p.Id))
@@ -324,9 +320,9 @@ public sealed class ProductByIdDataLoader : BatchDataLoader<int, Product>
 }
 ```
 
-The source-generated `[DataLoader]` attribute does not expose `MaxBatchSize`. If you need per-loader batch-size control, use a manual loader or a verified DI customization that preserves the default cache and diagnostic events.
+The source-generated `[DataLoader]` attribute does not expose `MaxBatchSize`. If you need per-loader batch size control, use a manual loader or a DI customization that preserves the default cache and diagnostic events.
 
-# Understand dispatch timing before changing it
+# Understand Dispatch Timing Before Changing It
 
 Resolvers run in waves. Calls to `LoadAsync` queue keys until execution needs the queued DataLoader work. The batch dispatcher can also force age-based dispatch. The effective default `BatchDispatcherOptions.MaxBatchWaitTimeUs` is `50_000` microseconds.
 
@@ -360,11 +356,11 @@ resolver loops over products
 
 Longer waits can increase request latency. Shorter waits can reduce batch size. Change the dispatcher only after your metrics show that resolver shape and lookup design are correct.
 
-# Keep EF Core loaders safe under concurrency
+# Keep EF Core Loaders Safe Under Concurrency
 
-EF Core `DbContext` instances are not thread-safe. Hot Chocolate's default query and DataLoader service scope behavior gives each DataLoader execution separate scoped services, which protects scoped services that cannot be shared across concurrent resolver work.
+EF Core `DbContext` instances are not thread-safe. Hot Chocolate's default query and DataLoader service scope behavior ensures each DataLoader execution gets its own scoped services, protecting those that cannot be shared across concurrent resolver work.
 
-For source-generated loaders, use `AsNoTracking()` for read-heavy paths and request a DataLoader scope when you need a dedicated loader scope:
+For source-generated loaders, use `AsNoTracking()` for read-heavy paths. If you need a dedicated loader scope, request a DataLoader scope:
 
 ```csharp
 internal static class BrandDataLoaders
@@ -389,7 +385,6 @@ protected override async Task<IReadOnlyDictionary<int, Product>> LoadBatchAsync(
     CancellationToken ct)
 {
     await using var db = await _dbContextFactory.CreateDbContextAsync(ct);
-
     return await db.Products
         .AsNoTracking()
         .Where(p => keys.Contains(p.Id))
@@ -397,9 +392,9 @@ protected override async Task<IReadOnlyDictionary<int, Product>> LoadBatchAsync(
 }
 ```
 
-Expected result: no `A second operation started on this context before a previous operation completed` errors, fewer tracked entities, and lower per-request memory for read paths.
+This approach prevents `A second operation started on this context before a previous operation completed` errors, reduces tracked entities, and lowers per-request memory for read paths.
 
-# Apply the same batching rules to other upstreams
+# Apply the Same Batching Rules to Other Upstreams
 
 MongoDB, Marten, REST, and other sources still need stable DataLoader keys and bounded batch sizes. Use each integration page for query shaping, filtering, sorting, projections, paging, and executable behavior:
 
@@ -446,9 +441,9 @@ public sealed class ProductByIdDataLoader : BatchDataLoader<int, ProductDto>
 
 Cap batch size for backend query constraints, payload limits, document-size limits, or rate limits. Preserve the cancellation token. Decide whether partial upstream failures should become per-key errors or fail the whole batch.
 
-# Handle batch errors and cancellation deliberately
+# Handle Batch Errors and Cancellation Deliberately
 
-Failure behavior affects both client errors and operator dashboards.
+How you handle failures affects both client errors and operator dashboards.
 
 | Behavior                                      | Diagnostic event        | Effect                                                                                 |
 | --------------------------------------------- | ----------------------- | -------------------------------------------------------------------------------------- |
@@ -456,7 +451,7 @@ Failure behavior affects both client errors and operator dashboards.
 | One key returns a `Result<T>` error           | `BatchItemError`        | That key fails while other keys can succeed                                            |
 | Request cancellation occurs before completion | Pending promises cancel | Source calls should observe the same `CancellationToken`                               |
 
-Throw when the source cannot answer the batch, for example a database outage. Use per-key errors when individual keys are invalid and the rest of the batch can succeed.
+Throw when the source cannot answer the batch (for example, during a database outage). Use per-key errors when only some keys are invalid and the rest of the batch can succeed.
 
 ```csharp
 protected override async Task<IReadOnlyDictionary<int, Product>> LoadBatchAsync(
@@ -469,9 +464,9 @@ protected override async Task<IReadOnlyDictionary<int, Product>> LoadBatchAsync(
 }
 ```
 
-Pass `CancellationToken` through to EF Core, MongoDB, Marten, REST, and any other upstream. Do not convert cancellation into successful `null` values. Log the loader name, source, operation name, and whether the failure was a whole-batch error or a per-key error.
+Always pass the `CancellationToken` through to EF Core, MongoDB, Marten, REST, and any other upstream. Do not convert cancellation into successful `null` values. Log the loader name, source, operation name, and whether the failure was a whole-batch error or a per-key error.
 
-# Control memory and cache lifetime
+# Control Memory and Cache Lifetime
 
 The request cache retains tasks and results until the GraphQL request ends. Memory grows with the number of unique keys and the size of the loaded values. Large batches also allocate larger key and result buffers.
 
@@ -508,9 +503,9 @@ protected override async Task<IReadOnlyDictionary<int, Product>> LoadBatchAsync(
 
 Use a second-level cache only with explicit eviction, size, privacy, and consistency rules. For untrusted high-cardinality operations, combine DataLoader tuning with [cost analysis](/docs/hotchocolate/v16/securing-your-api/cost-analysis), pagination limits, and [trusted documents](/docs/hotchocolate/v16/performance/trusted-documents).
 
-# Load test DataLoader behavior before and after tuning
+# Load Test DataLoader Behavior Before and After Tuning
 
-Use representative GraphQL documents, not only synthetic single-field queries. Capture a baseline, change one variable, and compare the same signals again under production-like concurrency.
+Test with representative GraphQL documents, not just synthetic single-field queries. Capture a baseline, change one variable at a time, and compare the same signals under production-like concurrency.
 
 | Scenario            | Why it matters                                  | Expected DataLoader signal                              |
 | ------------------- | ----------------------------------------------- | ------------------------------------------------------- |
@@ -520,7 +515,7 @@ Use representative GraphQL documents, not only synthetic single-field queries. C
 | Nested aggregations | Exposes expensive fan-out under metadata fields | Aggregation loader batches by parent IDs                |
 | REST batch endpoint | Exposes payload and rate-limit boundaries       | No `413`, no `429`, p95 batch latency under SLO         |
 
-A useful acceptance target is specific:
+A useful acceptance target might look like this:
 
 ```text
 BrandByIdDataLoader p95 batch size: 20 to 500
@@ -529,9 +524,9 @@ GraphQL request p95: under 250 ms at target concurrency
 BatchError and BatchItemError: zero except expected bad-key tests
 ```
 
-Watch request p50/p95/p99 latency, batch duration p95, source calls per request, keys per batch distribution, cache hits, memory, backend CPU/IO, and error rate.
+Monitor request p50/p95/p99 latency, batch duration p95, source calls per request, keys per batch, cache hits, memory, backend CPU/IO, and error rate.
 
-# Troubleshoot missed batches and remaining N+1 behavior
+# Troubleshoot Missed Batches and Remaining N+1 Behavior
 
 Use this checklist when you still see N+1 source calls after adding DataLoaders.
 
@@ -567,9 +562,9 @@ public static async Task<Brand?> GetBrandAsync(
 
 Use `IncludeDataLoaderKeys` temporarily to verify duplicate keys. Disable it after the investigation.
 
-# Troubleshoot oversized batches and slow sources
+# Troubleshoot Oversized Batches and Slow Sources
 
-A DataLoader prevents N+1 source calls. It does not make expensive operations cheap. One oversized batch can be slower than several smaller batches.
+A DataLoader prevents N+1 source calls, but it does not make expensive operations cheap. An oversized batch can be slower than several smaller ones.
 
 | Symptom                              | Likely cause                           | Fix                                                                              |
 | ------------------------------------ | -------------------------------------- | -------------------------------------------------------------------------------- |
@@ -581,9 +576,9 @@ A DataLoader prevents N+1 source calls. It does not make expensive operations ch
 | Memory spikes                        | High unique key count and large values | Add query limits, reduce batch size, review trusted operations                   |
 | Low cache hit rate with huge batches | Mostly unique keys                     | Use cost analysis and paging to bound fan-out                                    |
 
-Validate fixes with the same load test that exposed the problem.
+Validate your fixes with the same load test that revealed the problem.
 
-# Verify the outcome
+# Verify the Outcome
 
 After each change, verify that:
 
@@ -596,11 +591,11 @@ After each change, verify that:
 - EF Core loaders do not produce concurrent `DbContext` operation errors.
 - Memory remains bounded for high-cardinality operations.
 
-# Decide what to read next
+# Next Steps
 
-- Create loaders: [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader)
+- Learn how to create loaders: [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader)
 - Diagnose N+1 before tuning: [Diagnose N+1](/docs/hotchocolate/v16/build/data/diagnose-n-plus-one)
-- Improve resolver work that is slow without fan-out: [Resolver Performance](/docs/hotchocolate/v16/operations/performance/resolver-performance)
+- Improve resolver performance: [Resolver Performance](/docs/hotchocolate/v16/operations/performance/resolver-performance)
 - Add tracing and diagnostic events: [OpenTelemetry](/docs/hotchocolate/v16/operations/observability/opentelemetry), [Metrics](/docs/hotchocolate/v16/operations/observability/metrics), and [Diagnostics Events](/docs/hotchocolate/v16/operations/observability/diagnostics-events)
 - Use EF Core safely: [Entity Framework Core](/docs/hotchocolate/v16/integrations/entity-framework)
 - Tune MongoDB query shaping: [MongoDB](/docs/hotchocolate/v16/integrations/mongodb)

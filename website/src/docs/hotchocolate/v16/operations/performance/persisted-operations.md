@@ -2,7 +2,7 @@
 title: "Persisted operations"
 ---
 
-Persisted operations reduce the work your Hot Chocolate server does for repeated GraphQL requests. Instead of sending the full operation document every time, the client sends a stable operation ID or hash.
+Persisted operations help your Hot Chocolate v16 server handle repeated GraphQL requests more efficiently. Instead of sending the full operation document with every request, clients send a stable operation ID or hash.
 
 **Regular request**
 
@@ -21,41 +21,41 @@ Persisted operations reduce the work your Hot Chocolate server does for repeated
 }
 ```
 
-Use this page to choose and configure persisted operations for a Hot Chocolate v16 server. Fusion gateway persisted operations are configured separately and are not covered here.
+This guide explains how to choose and configure persisted operations for a Hot Chocolate v16 server. Persisted operations for Fusion gateways are configured separately and are not covered here.
 
 # How persisted operations improve performance
 
-Persisted operations make operation identity stable. On a hit, Hot Chocolate can resolve a known operation document before the normal parser, validator, and operation planning stages do work for a client-supplied document.
+Persisted operations give each operation a stable identity. When a request matches a known operation, Hot Chocolate can skip parsing, validation, and operation planning for the client-supplied document. This reduces server work and improves response times.
 
-The exact savings depend on the mode and storage:
+The benefits depend on your chosen mode and storage:
 
-- Automatic persisted operations (APQ) reduce request bytes after the first request and improve document cache consistency.
-- Trusted documents let first-party clients send only an operation ID. In strict mode, `OnlyAllowPersistedDocuments = true` with `AllowDocumentBody = false` tells the HTTP parser not to read the incoming `query` body.
-- Stored documents can still be parsed when the storage returns text. The document cache and storage implementation determine whether Hot Chocolate can reuse a parsed `DocumentNode`.
-- Validation still runs unless the document is cached or you enable `SkipPersistedDocumentValidation` for prevalidated trusted documents.
-- Stable IDs make GET routes and CDN cache keys deterministic.
+- **Automatic persisted operations (APQ):** Reduce request size after the first request and improve cache consistency.
+- **Trusted documents:** Allow first-party clients to send only an operation ID. In strict mode, setting `OnlyAllowPersistedDocuments = true` and `AllowDocumentBody = false` prevents the HTTP parser from reading the incoming `query` body.
+- **Stored documents:** If storage returns text, the document may still be parsed. Whether Hot Chocolate can reuse a parsed `DocumentNode` depends on the document cache and storage implementation.
+- **Validation:** Still runs unless the document is cached or you enable `SkipPersistedDocumentValidation` for trusted, prevalidated documents.
+- **Stable IDs:** Make GET routes and CDN cache keys deterministic.
 
-# Choose APQ or trusted documents
+# Choosing between APQ and trusted documents
 
 | Mode                                 | Best for                                                                  | Registration time         | First request behavior                                                            | Parser and validation posture                                                                                  | Storage requirement                                  | CDN friendliness                                                                           | Security posture                      |
 | ------------------------------------ | ------------------------------------------------------------------------- | ------------------------- | --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------- |
 | Automatic persisted operations (APQ) | Public APIs, partner APIs, or clients where build-time publishing is hard | Runtime                   | Hash-only request misses, then the client retries with the full document and hash | The fallback document is parsed and validated before it is stored                                              | Shared storage is recommended for production         | Good with GET, but miss and fallback traffic still exists                                  | Performance feature, not an allowlist |
 | Trusted documents                    | First-party web, mobile, and internal clients you control                 | Build or release pipeline | ID executes only when storage already contains the document                       | Strict mode can avoid parsing incoming documents. Validation can be skipped only after publish-time validation | Storage must be populated before clients use new IDs | Excellent with persisted routes such as `/graphql/persisted/{operationId}/{operationName}` | Can reject ad-hoc operation shapes    |
 
-Choose APQ when clients need runtime registration. Choose trusted documents when production should execute only operations you published ahead of time.
+Use APQ when clients need runtime registration. Use trusted documents when you want production to execute only operations you have published ahead of time.
 
-# Check prerequisites before you start
+# Prerequisites
 
-Before you copy the code, decide these details:
+Before you start, make sure you:
 
-- You run a Hot Chocolate v16 server.
-- Your client can send Apollo-style APQ extensions or Hot Chocolate persisted operation `id` requests.
-- You chose one operation document storage provider.
-- The client, publish pipeline, storage keys, and server use the same hash algorithm and format.
-- Trusted documents have an extraction and publish workflow, for example Relay, Strawberry Shake, Nitro client registry, or CI artifacts that write `.graphql` files.
-- CDN caching has a cache-control policy and a strategy for authorization and `Vary` headers.
+- Run a Hot Chocolate v16 server.
+- Have clients that can send Apollo-style APQ extensions or Hot Chocolate persisted operation `id` requests.
+- Choose one operation document storage provider.
+- Ensure the client, publish pipeline, storage keys, and server all use the same hash algorithm and format.
+- Set up an extraction and publish workflow for trusted documents (for example, Relay, Strawberry Shake, Nitro client registry, or CI artifacts that write `.graphql` files).
+- Plan your CDN caching policy, including cache-control, authorization, and `Vary` headers.
 
-Install the package that matches your storage:
+Install the package that matches your storage provider:
 
 | Storage               | Package                                             |
 | --------------------- | --------------------------------------------------- |
@@ -65,11 +65,11 @@ Install the package that matches your storage:
 | Azure Blob Storage    | `HotChocolate.PersistedOperations.AzureBlobStorage` |
 | Nitro client registry | `ChilliCream.Nitro`                                 |
 
-# Enable APQ for runtime registration
+# Enabling APQ for runtime registration
 
-APQ lets a client optimistically send a hash. If the server does not know the hash, the client retries with the full operation document and the same hash.
+APQ allows a client to optimistically send a hash. If the server does not recognize the hash, the client retries with the full operation document and the same hash.
 
-Install the in-memory storage package for a local walkthrough:
+For a local walkthrough, install the in-memory storage package:
 
 <PackageInstallation packageName="HotChocolate.PersistedOperations.InMemory" />
 
@@ -98,7 +98,7 @@ public sealed class Query
 }
 ```
 
-Hot Chocolate v16 registers MD5 hex as the default server hash provider. Configure the provider explicitly when your client expects a different algorithm or format. Apollo APQ clients commonly use SHA-256 hex:
+By default, Hot Chocolate v16 uses MD5 hex as the server hash provider. If your client expects a different algorithm or format, configure the provider explicitly. Apollo APQ clients typically use SHA-256 hex:
 
 ```csharp
 builder.Services.AddMemoryCache();
@@ -111,13 +111,13 @@ builder
     .AddInMemoryOperationDocumentStorage();
 ```
 
-The explicit `AddMD5DocumentHashProvider()`, `AddSha1DocumentHashProvider()`, and `AddSha256DocumentHashProvider()` overloads default to Base64 when you omit `HashFormat`, so pass `HashFormat.Hex` when you want URL-friendly hex IDs.
+The `AddMD5DocumentHashProvider()`, `AddSha1DocumentHashProvider()`, and `AddSha256DocumentHashProvider()` overloads default to Base64 if you omit `HashFormat`. Use `HashFormat.Hex` for URL-friendly hex IDs.
 
-## Verify the APQ flow
+## Verifying the APQ flow
 
-The SHA-256 hex hash below belongs to the exact UTF-8 document `{ __typename }`.
+The following SHA-256 hex hash is for the exact UTF-8 document `{ __typename }`.
 
-1. Send a hash-only GET request.
+1. Send a hash-only GET request:
 
 ```bash
 curl -g 'http://localhost:5000/graphql?extensions={"persistedQuery":{"version":1,"sha256Hash":"7f56e67dd21ab3f30d1ff8b7bed08893f0a0db86449836189b361dd1e56ddb4b"}}'
@@ -138,7 +138,7 @@ Expected response:
 }
 ```
 
-2. Retry with the full document and the same hash.
+2. Retry with the full document and the same hash:
 
 ```bash
 curl -g 'http://localhost:5000/graphql?query={%20__typename%20}&extensions={"persistedQuery":{"version":1,"sha256Hash":"7f56e67dd21ab3f30d1ff8b7bed08893f0a0db86449836189b361dd1e56ddb4b"}}'
@@ -160,7 +160,7 @@ Expected response:
 }
 ```
 
-3. Send the hash-only request again.
+3. Send the hash-only request again:
 
 ```bash
 curl -g 'http://localhost:5000/graphql?extensions={"persistedQuery":{"version":1,"sha256Hash":"7f56e67dd21ab3f30d1ff8b7bed08893f0a0db86449836189b361dd1e56ddb4b"}}'
@@ -178,17 +178,17 @@ Expected response:
 
 APQ also works with POST requests. GET is useful when you want HTTP caches to see a deterministic URL.
 
-For production APQ, avoid per-process in-memory storage unless cold misses are acceptable. A server restart or load-balanced request to another instance causes a repeat miss. Use Redis or another shared store when hit rate matters across instances.
+For production APQ, do not use per-process in-memory storage unless you can tolerate cold misses. A server restart or a load-balanced request to another instance will cause a repeat miss. Use Redis or another shared store to maintain a high hit rate across instances.
 
-# Enable trusted documents for first-party clients
+# Enabling trusted documents for first-party clients
 
 Trusted documents are persisted operations you publish before clients send traffic. The server loads the operation by ID, and strict mode rejects ad-hoc documents.
 
-Install file-system storage for a self-contained example:
+For a self-contained example, install file-system storage:
 
 <PackageInstallation packageName="HotChocolate.PersistedOperations.FileSystem" />
 
-Create this file:
+Create a file named with the SHA-256 hex hash of the exact document text `query Viewer { viewer }`:
 
 ```text
 persisted_operations/0c4bd0ac822f9b98f47e85adaaa049fb68636497cfdee924311521f106051855.graphql
@@ -199,8 +199,6 @@ query Viewer {
   viewer
 }
 ```
-
-The file name uses the SHA-256 hex hash of the exact document text `query Viewer { viewer }`.
 
 Configure the server:
 
@@ -232,7 +230,7 @@ public sealed class Query
 }
 ```
 
-A standard persisted operation POST sends `id`, variables, and extensions. It does not send `query`:
+A standard persisted operation POST sends `id`, variables, and extensions, but does not send `query`:
 
 ```bash
 curl http://localhost:5000/graphql \
@@ -264,15 +262,15 @@ For POST route requests, send only `variables` and `extensions` in the body:
 }
 ```
 
-`MapGraphQLPersistedOperations()` maps `/graphql/persisted/{operationId}` and `/graphql/persisted/{operationId}/{operationName}`. Use `requireOperationName: true` when you want every route request to include the operation name:
+`MapGraphQLPersistedOperations()` maps `/graphql/persisted/{operationId}` and `/graphql/persisted/{operationId}/{operationName}`. To require every route request to include the operation name, use:
 
 ```csharp
 app.MapGraphQLPersistedOperations(requireOperationName: true);
 ```
 
-## Migrate clients safely
+## Migrating clients safely
 
-During migration, you can require that every operation matches storage while still accepting a full document body:
+During migration, you can require every operation to match storage while still accepting a full document body:
 
 ```csharp
 builder
@@ -288,13 +286,13 @@ builder
     });
 ```
 
-This compatibility mode is useful for legacy clients that still send `query`. It is not the final strict mode. Move to `AllowDocumentBody = false` after clients send IDs or persisted routes.
+This compatibility mode is useful for legacy clients that still send `query`. It is not the final strict mode. Move to `AllowDocumentBody = false` after all clients send IDs or use persisted routes.
 
 Use `AllowNonPersistedOperation()` from an authenticated [HTTP request interceptor](/docs/hotchocolate/v16/server/interceptors) only for trusted development or administrative scenarios.
 
-# Skip repeated validation only after publish-time validation
+# Skipping repeated validation after publish-time validation
 
-`SkipPersistedDocumentValidation` marks loaded persisted documents as already validated:
+Set `SkipPersistedDocumentValidation` to mark loaded persisted documents as already validated:
 
 ```csharp
 builder

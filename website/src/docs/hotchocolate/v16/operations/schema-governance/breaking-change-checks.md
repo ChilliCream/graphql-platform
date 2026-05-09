@@ -4,9 +4,11 @@ title: Breaking-change checks
 
 # Breaking-change checks
 
-Export or snapshot the Hot Chocolate schema before you merge, then check the candidate contract against the baseline your clients use. A good breaking-change workflow catches accidental removals, risky nullability changes, new required inputs, and client operation failures before they reach production.
+Before merging changes, always export or snapshot your Hot Chocolate schema and compare the candidate schema to the baseline your clients use. This process helps you catch accidental removals, risky nullability changes, new required inputs, and potential client operation failures before they reach production.
 
-This page covers one Hot Chocolate v16 server schema. Fusion gateway composition has a separate governance workflow and uses the [`nitro fusion`](/docs/nitro/cli/fusion) commands.
+This guide focuses on schema governance for a single Hot Chocolate v16 server. If you use Fusion gateway composition, follow its separate workflow and use the [`nitro fusion`](/docs/nitro/cli/fusion) commands.
+
+To export and validate your schema, use:
 
 ```bash
 mkdir -p artifacts
@@ -20,7 +22,7 @@ nitro schema validate \
   --schema-file artifacts/schema.graphqls
 ```
 
-Expected `schema export` output:
+When you run `schema export`, you should see output like:
 
 ```text
 Exported Files:
@@ -28,21 +30,21 @@ Exported Files:
 - /repo/artifacts/schema-settings.json
 ```
 
-`nitro schema validate` exits with `0` when the candidate schema is valid for the target stage. It exits with a non-zero code and prints validation errors when schema changes or published client operations would break.
+The `nitro schema validate` command exits with `0` if the candidate schema is valid for the target stage. If there are breaking changes or published client operations would fail, it exits with a non-zero code and prints validation errors.
 
 ## Prerequisites
 
-You need:
+To use breaking-change checks, ensure you have:
 
-- A Hot Chocolate v16 ASP.NET Core server project.
-- A reference to `HotChocolate.AspNetCore.CommandLine` in the server project.
-- A `Program.cs` that returns the command exit code.
-- The configuration needed to build the same schema that production serves.
-- A test project that can build an `IRequestExecutor`, when you use local snapshots.
-- Optional Nitro CLI authentication through `nitro login`, `--api-key`, or `NITRO_API_KEY`.
-- Optional Nitro API ID, stage name, and published client operations, when you use registry checks.
+- A Hot Chocolate v16 ASP.NET Core server project
+- A reference to `HotChocolate.AspNetCore.CommandLine` in your server project
+- A `Program.cs` that returns the command exit code
+- The configuration needed to build the same schema as production
+- A test project that can build an `IRequestExecutor` (for local snapshots)
+- (Optional) Nitro CLI authentication via `nitro login`, `--api-key`, or `NITRO_API_KEY`
+- (Optional) Nitro API ID, stage name, and published client operations (for registry checks)
 
-Wire the command-line package into the real application host:
+Integrate the command-line package into your application host as follows:
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
@@ -58,13 +60,13 @@ app.MapGraphQL();
 return await app.RunWithGraphQLCommandsAsync(args);
 ```
 
-Returning the `Task<int>` from `RunWithGraphQLCommandsAsync(args)` lets schema construction and command failures fail CI. See [Command Line](/docs/hotchocolate/v16/server/command-line) for setup details.
+Returning the `Task<int>` from `RunWithGraphQLCommandsAsync(args)` ensures that schema construction and command failures will fail your CI pipeline. For more setup details, see the [Command Line](/docs/hotchocolate/v16/server/command-line) documentation.
 
-## Run the local schema check first
+## Run a local schema check first
 
-Start every pull request with a local contract check. This is the fastest feedback loop because it does not require a registry account.
+Begin every pull request by running a local contract check. This gives you the fastest feedback and does not require a registry account.
 
-Use a schema snapshot when your test suite already builds the executable schema:
+If your test suite already builds the executable schema, use a schema snapshot:
 
 ```csharp
 using CookieCrumble.HotChocolate;
@@ -89,9 +91,9 @@ public class SchemaTests
 }
 ```
 
-When the snapshot fails, treat the mismatch as a contract review. Do not accept a new snapshot until you classify the change and decide whether clients need migration time.
+If the snapshot fails, treat it as a contract review. Do not accept a new snapshot until you classify the change and decide if clients need migration time.
 
-Use CLI export when reviewers, CI artifacts, code generation, or Nitro need a standalone SDL file:
+When you need a standalone SDL file for reviewers, CI artifacts, code generation, or Nitro, use the CLI export:
 
 ```bash
 mkdir -p artifacts
@@ -102,19 +104,19 @@ dotnet run --project src/Catalog.Api -- \
 git diff --exit-code -- artifacts/schema.graphqls
 ```
 
-Expected results:
+You should see:
 
-- `artifacts/schema.graphqls` contains the exported SDL.
-- `artifacts/schema-settings.json` contains schema metadata for tools.
-- `git diff --exit-code` fails when the exported baseline changed.
+- `artifacts/schema.graphqls` with the exported SDL
+- `artifacts/schema-settings.json` with schema metadata for tools
+- `git diff --exit-code` fails if the exported baseline changed
 
-Use `schema print` when a script needs SDL on stdout. `schema export` writes files.
+Use `schema print` if you need SDL on stdout. `schema export` always writes files.
 
 ## Read the diff as a contract change
 
-The GraphQL schema is the public type-level contract between your server and its clients. A schema diff is not a text formatting event. It tells you whether existing operations, generated client types, normalized caches, persisted operation manifests, and developer documentation still match the server.
+Your GraphQL schema is the public contract between your server and its clients. A schema diff is not just a formatting change—it tells you if existing operations, generated client types, normalized caches, persisted operation manifests, and developer documentation still match the server.
 
-Look first for changes to names and shapes:
+Focus first on changes to names and shapes:
 
 ```diff
  type Query {
@@ -123,7 +125,7 @@ Look first for changes to names and shapes:
  }
 ```
 
-This is a breaking change because an existing operation that selects `product` no longer validates:
+This is a breaking change because an existing operation that selects `product` will no longer validate:
 
 ```graphql
 query ProductName($id: ID!) {
@@ -133,21 +135,21 @@ query ProductName($id: ID!) {
 }
 ```
 
-During review, prioritize:
+During review, prioritize these changes:
 
-- Removed or renamed types, fields, arguments, input fields, enum values, directives, interfaces, and union members.
-- Field, argument, and input type changes.
-- Nullability changes.
-- New required arguments or required input fields.
-- Enum, interface, and union expansion.
-- Default value changes.
-- Deprecation and opt-in metadata changes.
-- Public type-system directives that client code generators or tooling consume.
-- Description changes, because descriptions are user-facing contract documentation even when they rarely break execution.
+- Removed or renamed types, fields, arguments, input fields, enum values, directives, interfaces, or union members
+- Field, argument, and input type changes
+- Nullability changes
+- New required arguments or required input fields
+- Enum, interface, and union expansion
+- Default value changes
+- Deprecation and opt-in metadata changes
+- Public type-system directives used by client code generators or tooling
+- Description changes, since descriptions are user-facing contract documentation even if they rarely break execution
 
 ## Classify schema changes
 
-Use the same labels across code review, CI, and release approval.
+Use consistent labels for code review, CI, and release approval:
 
 | Label           | Meaning                                                                                                                                  | Common examples                                                                                                                                                                                                                                                                                                                        | Review action                                                                                                  |
 | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
@@ -168,7 +170,7 @@ Examples:
 
 ## Review nullability changes carefully
 
-Nullability is part of the contract. It affects generated client types and runtime error propagation.
+Nullability is part of your contract. It affects generated client types and how errors propagate at runtime.
 
 | Change                                 | Example                                                                                            | Risk                                                                                             | Review action                                                           |
 | -------------------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------- |
@@ -179,7 +181,7 @@ Nullability is part of the contract. It affects generated client types and runti
 | Add optional input field               | `input ProductFilter { term: String }` to `input ProductFilter { term: String inStock: Boolean }`  | Existing input objects remain valid.                                                             | Usually safe.                                                           |
 | Add required input field               | `input ProductFilter { term: String }` to `input ProductFilter { term: String category: String! }` | Existing variables and literals fail validation.                                                 | Breaking.                                                               |
 
-A nullable-to-non-null output change is not automatically safe. The schema now promises that null never appears. If an old row, partial backend failure, authorization filter, or resolver path can still produce null, GraphQL error propagation can null the parent selection and change the response shape.
+A nullable-to-non-null output change is not automatically safe. When you make this change, the schema promises that null will never appear. If an old row, a backend failure, an authorization filter, or a resolver path can still produce null, GraphQL error propagation can null the parent selection and change the response shape.
 
 ## Validate the candidate schema against a Nitro stage
 
@@ -228,11 +230,11 @@ Use the service API `nitro schema` commands for this page. Fusion gateways use `
 
 Schema-only validation answers, "Could this kind of schema change break a client?" Client-aware validation answers, "Does this candidate schema break an operation that is active for this stage?"
 
-Nitro client versions contain persisted operations. When you publish a client version to a stage, Nitro can validate future schema candidates against those operations. This matters because different clients have different lifecycles:
+When you publish client versions to a stage, Nitro stores their persisted operations. Nitro can then validate future schema candidates against those operations. This is important because different clients have different lifecycles:
 
-- A web app may have one active version, plus an old version during rollout.
-- A mobile app may keep many active versions because users upgrade over time.
-- An internal service may pin one released operation set per deployment.
+- A web app may have one active version, plus an old version during rollout
+- A mobile app may have many active versions as users upgrade over time
+- An internal service may pin one released operation set per deployment
 
 A Relay-style operations file maps operation IDs to GraphQL documents:
 
@@ -242,7 +244,7 @@ A Relay-style operations file maps operation IDs to GraphQL documents:
 }
 ```
 
-Validate, upload, and publish client operations with Nitro:
+To validate, upload, and publish client operations with Nitro:
 
 ```bash
 nitro client validate \
@@ -261,13 +263,13 @@ nitro client publish \
   --stage "dev"
 ```
 
-After a client version is published to the stage, later schema validation can identify the client, version, operation, and GraphQL validation error that would break. See [Client Registry](/docs/nitro/apis/client-registry) and [`nitro client`](/docs/nitro/cli/client) for setup details.
+Once a client version is published to the stage, later schema validation can identify the client, version, operation, and GraphQL validation error that would break. See [Client Registry](/docs/nitro/apis/client-registry) and [`nitro client`](/docs/nitro/cli/client) for setup details.
 
 ## Configure registry strictness intentionally
 
-Nitro API settings are governance policy. Review them with API owners instead of treating them as per-change suppressions.
+Nitro API settings define your governance policy. Review these settings with API owners, not as one-off suppressions.
 
-Use a strict schema policy when schema-level breaking changes must always fail:
+Use a strict schema policy when you want all schema-level breaking changes to fail:
 
 ```bash
 nitro api set-settings "$NITRO_API_ID" \
@@ -275,7 +277,7 @@ nitro api set-settings "$NITRO_API_ID" \
   --allow-breaking-schema-changes false
 ```
 
-Use a client-aware policy when you allow schema-level breaking changes only if no published client operation breaks:
+Use a client-aware policy if you allow schema-level breaking changes only when no published client operation breaks:
 
 ```bash
 nitro api set-settings "$NITRO_API_ID" \
@@ -291,7 +293,7 @@ nitro api set-settings "$NITRO_API_ID" \
 
 ## Prefer deprecation over removal
 
-For planned replacements, add the new contract before you remove the old one.
+When you plan to replace part of your schema, always add the new contract before removing the old one.
 
 ```csharp
 namespace Catalog.Types;
@@ -308,7 +310,7 @@ public static partial class ProductQueries
 }
 ```
 
-Expected SDL:
+This produces SDL like:
 
 ```graphql
 type Query {
@@ -317,32 +319,32 @@ type Query {
 }
 ```
 
-Deprecation applies to output fields, input fields, arguments, and enum values. You can use `[GraphQLDeprecated("reason")]`, `[Obsolete("reason")]`, descriptor `.Deprecated("reason")`, or SDL `@deprecated` depending on how you build the schema.
+You can deprecate output fields, input fields, arguments, and enum values. Use `[GraphQLDeprecated("reason")]`, `[Obsolete("reason")]`, descriptor `.Deprecated("reason")`, or SDL `@deprecated` depending on your schema setup.
 
-Use this timeline:
+A safe deprecation timeline:
 
-1. Add the replacement field, argument, input field, or enum value.
-2. Deprecate the old member with an actionable reason that names the replacement.
-3. Publish the additive schema.
-4. Notify client owners and set a support window.
-5. Validate and publish migrated client operations.
-6. Unpublish retired client versions after traffic drains.
-7. Remove the deprecated member in a later approved release.
+1. Add the replacement field, argument, input field, or enum value
+2. Deprecate the old member with a clear reason that names the replacement
+3. Publish the additive schema
+4. Notify client owners and set a support window
+5. Validate and publish migrated client operations
+6. Unpublish retired client versions after traffic drains
+7. Remove the deprecated member in a later approved release
 
 You cannot deprecate a non-null argument or non-null input field that has no default value. Make it optional, add a default, or introduce a replacement field first. Use `@requiresOptIn` for unstable additions that require explicit consumer consent, not as a removal substitute.
 
 ## Handle intentional breaking changes with approvals
 
-Sometimes a break is intentional: a product is retired, a client reached end of life, or a security issue requires a contract change. Make the exception visible and reversible.
+Sometimes a breaking change is necessary: a product is retired, a client reaches end of life, or a security issue requires a contract change. Make these exceptions visible and reversible.
 
-Before publishing:
+Before publishing an intentional break:
 
-- Confirm the diff and classification.
-- Identify affected clients and operations.
-- Get approval from API and client owners.
-- Publish migration notes and a support window.
-- Prepare a rollback tag.
-- Record the approval decision.
+- Confirm the diff and its classification
+- Identify affected clients and operations
+- Get approval from API and client owners
+- Publish migration notes and a support window
+- Prepare a rollback tag
+- Record the approval decision
 
 Upload the schema with an immutable release tag, then publish to a gated stage:
 
@@ -359,7 +361,7 @@ nitro schema publish \
   --wait-for-approval
 ```
 
-If a client version has reached end of life, unpublish it from the stage rather than forcing the schema around it:
+If a client version has reached end of life, unpublish it from the stage instead of forcing the schema to support it:
 
 ```bash
 nitro client unpublish \
@@ -368,7 +370,7 @@ nitro client unpublish \
   --tag "v1.8.0"
 ```
 
-`--wait-for-approval` holds the deployment for review and times out if it is not approved. `--force` skips confirmation prompts and can publish even when breaking changes exist. Reserve `--force` for approved exceptional releases. Do not use `--force` in regular pull request validation. `--force` and `--wait-for-approval` are mutually exclusive.
+The `--wait-for-approval` flag holds deployment for review and times out if not approved. The `--force` flag skips confirmation prompts and can publish even when breaking changes exist. Use `--force` only for approved exceptional releases, never for regular pull request validation. You cannot use `--force` and `--wait-for-approval` together.
 
 ## Troubleshoot noisy or surprising diffs
 
@@ -398,18 +400,18 @@ nitro schema download \
 
 ## CI checklist
 
-Use this sequence for pull requests and releases:
+For pull requests and releases, follow this sequence:
 
-1. Build the server and run schema snapshot tests.
-2. Export SDL from the configured ASP.NET Core app.
-3. Review or diff the exported baseline.
-4. Run `nitro schema validate` for each target stage when you use Nitro.
-5. Validate changed client operations when clients publish operation manifests.
-6. Upload schema and client artifacts with immutable tags during release.
-7. Publish to stages using the configured approval policy.
-8. Keep rollback schema tags and old client versions until traffic drains.
+1. Build the server and run schema snapshot tests
+2. Export SDL from the configured ASP.NET Core app
+3. Review or diff the exported baseline
+4. Run `nitro schema validate` for each target stage if you use Nitro
+5. Validate changed client operations when clients publish operation manifests
+6. Upload schema and client artifacts with immutable tags during release
+7. Publish to stages using the configured approval policy
+8. Keep rollback schema tags and old client versions until traffic drains
 
-A compact pipeline shape:
+A compact pipeline might look like:
 
 ```yaml
 - run: dotnet test src/Catalog.Tests --filter Schema_Should_MatchSnapshot_When_Built
@@ -419,7 +421,7 @@ A compact pipeline shape:
 - run: nitro client validate --client-id "$NITRO_CLIENT_ID" --stage "$NITRO_STAGE" --operations-file ./operations.json
 ```
 
-A pull request should fail before merge when the schema contract or active client operations would break.
+A pull request should fail before merge if the schema contract or active client operations would break.
 
 ## Next steps
 

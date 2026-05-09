@@ -2,29 +2,29 @@
 title: Deploy with Docker
 ---
 
-This page shows you how to package and run a standalone Hot Chocolate v16 ASP.NET Core GraphQL server in Docker. Fusion gateway deployment is a separate topic and is not covered here.
+This guide walks you through packaging and running a standalone Hot Chocolate v16 ASP.NET Core GraphQL server in Docker. It does not cover Fusion gateway deployment.
 
-A typical containerized Hot Chocolate deployment looks like this:
+A typical Hot Chocolate deployment in containers involves:
 
-1. A reverse proxy or load balancer terminates TLS and forwards traffic.
-2. One or more ASP.NET Core containers host Hot Chocolate and expose `/graphql` or your chosen endpoint path.
-3. Optional backing services provide storage, Redis pub/sub, automatic persisted operations, trusted documents, and telemetry collection.
+- A reverse proxy or load balancer that terminates TLS and forwards traffic.
+- One or more ASP.NET Core containers running Hot Chocolate, exposing `/graphql` or your chosen endpoint.
+- Optional backing services for storage, Redis pub/sub, automatic persisted operations, trusted documents, and telemetry.
 
-The Docker image should contain the published application and its runtime dependencies. Connection strings, Redis endpoints, telemetry endpoints, credentials, and endpoint exposure policy belong in runtime configuration.
+Your Docker image should include the published application and all runtime dependencies. Place connection strings, Redis endpoints, telemetry endpoints, credentials, and endpoint exposure policies in runtime configuration, not in the image itself.
 
 # Prerequisites
 
-Before you build the image, identify these values for your app:
+Before building your image, gather these details:
 
-| Item             | What you need                                                                    |
-| ---------------- | -------------------------------------------------------------------------------- |
-| Project path     | The `.csproj` that builds your GraphQL server.                                   |
-| App DLL          | The published application DLL, for example `YourApp.dll`.                        |
-| Target framework | The .NET major version used by the app. Use matching SDK and runtime image tags. |
-| GraphQL path     | `/graphql` by default, unless you call `app.MapGraphQL("/some/path")`.           |
-| Backing services | Database, Redis, OpenTelemetry collector, or other services your app uses.       |
+| Item             | Description                                                                  |
+| ---------------- | ---------------------------------------------------------------------------- |
+| Project path     | Path to the `.csproj` for your GraphQL server.                               |
+| App DLL          | The published application DLL, such as `YourApp.dll`.                        |
+| Target framework | The .NET major version your app uses. Match SDK and runtime image tags.      |
+| GraphQL path     | `/graphql` by default, or your custom path if you use `app.MapGraphQL(...)`. |
+| Backing services | Any database, Redis, OpenTelemetry collector, or other services you require. |
 
-You also need Docker and Docker Compose:
+Ensure Docker and Docker Compose are installed:
 
 ```bash
 docker compose version

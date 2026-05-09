@@ -2,28 +2,28 @@
 title: Deploy Hot Chocolate on Azure
 ---
 
-You deploy Hot Chocolate to Azure as an ASP.NET Core app. Azure hosts the process; Hot Chocolate owns the GraphQL endpoint, HTTP and streaming transports, execution pipeline, operation document storage, and GraphQL-specific security choices.
+You deploy Hot Chocolate to Azure as an ASP.NET Core application. Azure provides the hosting environment, while Hot Chocolate manages the GraphQL endpoint, HTTP and streaming transports, execution pipeline, operation document storage, and GraphQL-specific security features.
 
-This page covers standalone Hot Chocolate v16 on ASP.NET Core. Fusion gateway deployment is out of scope. The guidance assumes that TLS terminates at Azure or an Azure ingress and that traffic reaches Kestrel or an ASP.NET Core container over a trusted path.
+This guide focuses on deploying standalone Hot Chocolate v16 on ASP.NET Core. It does not cover Fusion gateway deployment. The instructions assume TLS terminates at Azure or an Azure ingress, and that requests reach Kestrel or your ASP.NET Core container over a trusted network path.
 
-Use this page as an operational checklist after your GraphQL server runs locally. It does not replace Microsoft Learn for creating App Service, Container Apps, AKS, Azure Cache for Redis, Azure Blob Storage, identity, networking, or Azure Monitor resources.
+Use this page as a deployment and operations checklist after your GraphQL server works locally. For creating Azure resources like App Service, Container Apps, AKS, Redis, Blob Storage, identity, networking, or monitoring, refer to Microsoft Learn.
 
 # Prerequisites
 
-Before you change deployment settings, make sure you have:
+Before configuring deployment, ensure you have:
 
-- A .NET ASP.NET Core app using Hot Chocolate v16.
-- An Azure host selected: App Service, Container Apps, or AKS.
-- A public or private HTTPS endpoint and a known GraphQL path, usually `/graphql`.
-- An authentication provider and a CORS policy if browser clients call the API.
-- Azure Cache for Redis when subscriptions must work across replicas or when APQ documents must survive restarts and scale-out.
-- An Azure Blob Storage container when trusted operation documents are deployed to Blob Storage.
-- Application Insights or an Azure Monitor workspace when you export telemetry.
-- A place for secrets and per-environment settings: app settings, Key Vault references, Container Apps secrets, Kubernetes secrets, or managed identity-backed configuration.
+- A .NET ASP.NET Core app using Hot Chocolate v16
+- Chosen an Azure host: App Service, Container Apps, or AKS
+- A public or private HTTPS endpoint and a known GraphQL path (usually `/graphql`)
+- An authentication provider and a CORS policy if browser clients access the API
+- Azure Cache for Redis if you need subscriptions across replicas or APQ documents to persist through restarts and scale-out
+- An Azure Blob Storage container if you deploy trusted operation documents to Blob Storage
+- Application Insights or an Azure Monitor workspace if you export telemetry
+- A secure location for secrets and environment settings: app settings, Key Vault references, Container Apps secrets, Kubernetes secrets, or managed identity-backed configuration
 
 # Start with a production-safe GraphQL endpoint
 
-Start with one canonical GraphQL endpoint. Then make every production behavior explicit so the same artifact can run in development, staging, and production with different configuration.
+Begin with a single, canonical GraphQL endpoint. Make all production behaviors explicit so you can run the same deployment artifact in development, staging, and production by changing only configuration.
 
 ```csharp
 // Program.cs
@@ -69,7 +69,7 @@ app.UseCors("GraphQLClients");
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Add this only when WebSocket subscriptions are enabled.
+// Enable this only if you use WebSocket subscriptions.
 // app.UseWebSockets();
 
 app.MapGraphQL("/graphql");
@@ -77,17 +77,17 @@ app.MapGraphQL("/graphql");
 app.Run();
 ```
 
-`builder.AddGraphQL(...)` is the v16 ASP.NET Core hosting entry point. Keep `disableDefaultSecurity` at its default value of `false` unless you replace the default policy deliberately. The default policy adds cost analysis, disables introspection outside development, and adds the field-cycle validation rule. Replace `AddAuthentication()` with your ASP.NET Core authentication scheme, for example Microsoft Entra ID or JWT bearer.
+The `builder.AddGraphQL(...)` call is the entry point for ASP.NET Core hosting in v16. Leave `disableDefaultSecurity` as `false` unless you intentionally replace the default policy. The default policy enables cost analysis, disables introspection outside development, and adds field-cycle validation. Swap in your authentication scheme (such as Microsoft Entra ID or JWT bearer) in place of `AddAuthentication()` as needed.
 
-Put `UseCors`, `UseAuthentication`, and `UseAuthorization` before `MapGraphQL`. Browser clients need CORS before authentication, and Hot Chocolate authorization needs the ASP.NET Core user before the GraphQL request is created. Avoid wildcard origins when credentials are allowed.
+Always call `UseCors`, `UseAuthentication`, and `UseAuthorization` before `MapGraphQL`. CORS must run before authentication for browser clients, and Hot Chocolate authorization needs the ASP.NET Core user before the GraphQL request is created. Do not use wildcard origins when credentials are allowed.
 
-`MapGraphQL("/graphql")` handles HTTP POST, HTTP GET when enabled, schema download when enabled, Nitro when enabled, and WebSocket traffic when ASP.NET Core WebSocket middleware is registered. Disable Nitro in production with `Tool.Enable = false`. Disable schema SDL download in production with `EnableSchemaRequests = false` unless downloading `/graphql?sdl` is part of your production contract.
+`MapGraphQL("/graphql")` handles HTTP POST, HTTP GET (if enabled), schema download (if enabled), Nitro (if enabled), and WebSocket traffic (if WebSocket middleware is registered). In production, disable Nitro with `Tool.Enable = false`. Disable schema SDL download with `EnableSchemaRequests = false` unless you require `/graphql?sdl` in production.
 
-Keep GET enabled only for cacheable queries or persisted-operation flows. Keep `AllowedGetOperations = AllowedGetOperations.Query` for production. If browser clients use GET and you need CSRF protection, require the preflight header with `EnforceGetRequestsPreflightHeader = true` and configure clients to send it.
+Enable GET only for cacheable queries or persisted-operation flows. For production, set `AllowedGetOperations = AllowedGetOperations.Query`. If browser clients use GET and you need CSRF protection, require the preflight header with `EnforceGetRequestsPreflightHeader = true` and configure clients to send it.
 
-Keep multipart requests disabled unless your schema uses the `Upload` scalar. When you enable multipart uploads, keep `EnforceMultipartRequestsPreflightHeader = true` so clients must send `GraphQL-preflight`.
+Keep multipart requests disabled unless your schema uses the `Upload` scalar. If you enable multipart uploads, set `EnforceMultipartRequestsPreflightHeader = true` so clients must send `GraphQL-preflight`.
 
-Verify the endpoint after deployment:
+After deployment, verify the endpoint:
 
 ```bash
 curl -sS https://api.example.com/graphql \
@@ -101,31 +101,31 @@ Expected response:
 { "data": { "__typename": "Query" } }
 ```
 
-A browser request to `/graphql` in production should not show Nitro when the production environment setting disables it.
+A browser request to `/graphql` in production should not show Nitro if you have disabled it for the production environment.
 
-# Choose an Azure hosting model for GraphQL behavior
+# Choose an Azure hosting model for GraphQL
 
-Choose the Azure host based on the GraphQL behaviors you need to operate, not only on the deployment format.
+Select your Azure host based on the GraphQL behaviors you need, not just the deployment format.
 
-| Azure host      | Choose it when                                                                                                                              | Watch out for                                                                                                                                                                                                   | Hot Chocolate settings to revisit                                                                                            |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| App Service     | You want a managed ASP.NET Core host for a GraphQL API.                                                                                     | Enable WebSockets in App Service settings when WebSocket subscriptions are used. Know the front-end timeout for normal long HTTP requests. ARR affinity can reduce reconnect churn, but it is not shared state. | `UseWebSockets`, Redis subscriptions, shared persisted-operation storage, Nitro, introspection, request size, health checks. |
-| Container Apps  | You deploy containers, use revisions, and want KEDA-driven scaling.                                                                         | Keep `minReplicas` above zero when cold starts or active subscription traffic matter. Review ingress transport, sticky sessions if you still have replica-local state, and probes.                              | Redis subscriptions, shared persisted-operation storage, readiness probes, warmup tasks, streaming transport choice.         |
-| AKS             | Your team already operates Kubernetes or needs ingress, HPA, pod disruption budgets, network policy, sidecars, or detailed rollout control. | Ingress must support WebSocket upgrades and SSE streaming. Pods can terminate while clients hold subscriptions. Configure probes and graceful termination.                                                      | Redis subscriptions, shared persisted-operation storage, `GraphQLSocketOptions`, health checks, graceful rollout checks.     |
-| Azure Functions | You have a limited HTTP-triggered scenario and accept the platform trade-offs.                                                              | Cold starts, execution limits, and long-lived WebSocket subscription hosting make it a poor fit for this page.                                                                                                  | Prefer a long-running ASP.NET Core host for production GraphQL subscriptions.                                                |
-| Static Web Apps | You host a frontend only.                                                                                                                   | It is not a Hot Chocolate server host.                                                                                                                                                                          | Host the GraphQL API separately.                                                                                             |
+| Azure host      | Use when                                                                                           | Considerations                                                                                                                                                         | Hot Chocolate settings to review                                                                                            |
+| --------------- | -------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| App Service     | You want a managed ASP.NET Core host for your GraphQL API.                                         | Enable WebSockets in App Service settings for subscriptions. Know the front-end timeout for long HTTP requests. ARR affinity helps reconnects but is not shared state. | `UseWebSockets`, Redis subscriptions, shared persisted-operation storage, Nitro, introspection, request size, health checks |
+| Container Apps  | You deploy containers, use revisions, and want KEDA-driven scaling.                                | Keep `minReplicas` above zero if cold starts or active subscriptions matter. Review ingress, sticky sessions, and probes.                                              | Redis subscriptions, shared persisted-operation storage, readiness probes, warmup tasks, streaming transport                |
+| AKS             | You already operate Kubernetes or need advanced ingress, HPA, pod disruption budgets, or sidecars. | Ingress must support WebSocket upgrades and SSE. Pods may terminate while clients hold subscriptions. Configure probes and graceful termination.                       | Redis subscriptions, shared persisted-operation storage, `GraphQLSocketOptions`, health checks, graceful rollout            |
+| Azure Functions | You have a limited HTTP-triggered scenario and accept platform trade-offs.                         | Cold starts, execution limits, and long-lived WebSocket subscriptions make it a poor fit for production GraphQL subscriptions.                                         | Prefer a long-running ASP.NET Core host for production subscriptions                                                        |
+| Static Web Apps | You host a frontend only.                                                                          | Not a Hot Chocolate server host.                                                                                                                                       | Host the GraphQL API separately                                                                                             |
 
-For all hosts, avoid solving slow operations by raising platform request timeouts. Use cost analysis, validation limits, pagination limits, streaming transports, and resolver optimization.
+For all hosts, do not solve slow operations by increasing platform request timeouts. Instead, use cost analysis, validation and pagination limits, streaming transports, and resolver optimization.
 
 # Configure subscriptions for scale-out
 
-`AddInMemorySubscriptions()` works for local development and single-instance deployments. In Azure, events may be published on one replica while a subscriber is connected to another. Use Azure Cache for Redis as the subscription provider when you scale out.
+`AddInMemorySubscriptions()` is suitable for local development and single-instance deployments. In Azure, when you scale out, events may be published on one replica while a subscriber is connected to another. To support this, use Azure Cache for Redis as the subscription provider.
 
-Install the Redis provider:
+First, install the Redis provider:
 
 <PackageInstallation packageName="HotChocolate.Subscriptions.Redis" />
 
-Register the Redis connection as a singleton and use it for subscriptions:
+Register the Redis connection as a singleton and configure subscriptions:
 
 ```csharp
 // Program.cs
@@ -150,9 +150,9 @@ builder
         });
 ```
 
-`ITopicEventSender` and `ITopicEventReceiver` stay the same when you switch from in-memory subscriptions to Redis. Your resolvers publish through `ITopicEventSender`; the provider decides how messages move between replicas.
+You do not need to change your resolvers when switching from in-memory to Redis subscriptions. Continue to use `ITopicEventSender` and `ITopicEventReceiver`; the provider handles message delivery between replicas.
 
-Use a `TopicPrefix` when multiple services or environments share a Redis cache. This prevents a staging deployment and a production deployment from listening on the same topic names.
+Set a `TopicPrefix` if multiple services or environments share a Redis cache. This prevents staging and production deployments from listening on the same topics.
 
 Enable the transport your clients use:
 
@@ -163,17 +163,17 @@ app.UseWebSockets();
 app.MapGraphQL("/graphql");
 ```
 
-WebSocket clients need `UseWebSockets()` and Azure host support for WebSocket upgrades. SSE subscriptions do not need `UseWebSockets()`, but they still hold long-running HTTP responses and require proxy timeout and buffering review.
+WebSocket clients require both `UseWebSockets()` and Azure host support for WebSocket upgrades. SSE subscriptions do not require `UseWebSockets()`, but they do keep long-running HTTP responses open, so review proxy timeouts and buffering.
 
-Expected result: an event published on replica A reaches a subscriber connected to replica B. Azure SignalR Service is not a Hot Chocolate subscription backplane unless you have verified a current integration for your application.
+After setup, an event published on one replica should reach subscribers connected to any other replica. Azure SignalR Service is not a Hot Chocolate subscription backplane unless you have verified a working integration for your application.
 
-# Pick WebSocket or SSE for Azure networks
+# Choose WebSocket or SSE for Azure networks
 
-Hot Chocolate exposes subscriptions through the standard GraphQL endpoint. The transport choice affects proxies, clients, and reconnect behavior.
+Hot Chocolate exposes subscriptions through the standard GraphQL endpoint. Your choice of transport—WebSocket or SSE—affects proxy compatibility, client support, and reconnect behavior.
 
-WebSocket is full duplex and broadly supported by GraphQL subscription clients. Hot Chocolate supports `graphql-transport-ws` and `graphql-ws`; the client selects the protocol with `Sec-WebSocket-Protocol`. App Service requires the WebSockets setting for direct WebSocket traffic. Application Gateway and other proxies must preserve upgrade requests. After the upgrade, some WAF and header rewrite features no longer inspect or modify payloads.
+WebSocket is full duplex and widely supported by GraphQL subscription clients. Hot Chocolate supports both `graphql-transport-ws` and `graphql-ws` protocols; the client selects the protocol using the `Sec-WebSocket-Protocol` header. For App Service, enable WebSockets in the platform settings. Application Gateway and other proxies must preserve upgrade requests. After the upgrade, some WAF and header rewrite features may no longer inspect or modify payloads.
 
-SSE uses the GraphQL HTTP endpoint with content negotiation:
+SSE (Server-Sent Events) uses the GraphQL HTTP endpoint with content negotiation:
 
 ```http
 POST /graphql HTTP/1.1
@@ -184,9 +184,9 @@ Content-Type: application/json
 { "query": "subscription { onBookAdded { title } }" }
 ```
 
-SSE can pass through some networks more predictably because it is HTTP server-to-client streaming. It is not a bidirectional socket. Clients still need reconnect and resubscribe logic for deployments, scale events, and idle connection closure.
+SSE can traverse some networks more reliably because it is HTTP server-to-client streaming, not a bidirectional socket. However, clients still need logic to reconnect and resubscribe after deployments, scaling events, or idle connection closures.
 
-Tune WebSocket keep-alives below the idle timeout of the proxies in your path. The v16 default keep-alive interval is 5 seconds, and the default connection initialization timeout is 10 seconds.
+Set your WebSocket keep-alive interval below the idle timeout of any proxies in your path. In v16, the default keep-alive interval is 5 seconds, and the default connection initialization timeout is 10 seconds. You can adjust these:
 
 ```csharp
 builder
@@ -198,21 +198,21 @@ builder
     });
 ```
 
-Verify WebSocket with a GraphQL WebSocket client and check that the negotiated subprotocol matches your client library. Verify SSE by sending `Accept: text/event-stream` and checking that the response is a stream of GraphQL SSE events, for example `event: next` followed by `event: complete` for a finite streaming operation.
+To verify WebSocket, use a GraphQL WebSocket client and confirm the negotiated subprotocol matches your client library. To verify SSE, send `Accept: text/event-stream` and check that the response is a stream of GraphQL SSE events, such as `event: next` followed by `event: complete` for a finite stream.
 
 # Store persisted and trusted operations in Azure
 
-Use trusted documents when first-party clients have a known set of operations before deployment. Use APQ when clients register operation documents at runtime by first sending a hash and then sending the document on a cache miss.
+Use trusted documents when your first-party clients have a known set of operations before deployment. Use Automatic Persisted Queries (APQ) when clients register operation documents at runtime by first sending a hash, then sending the document if the hash is not found.
 
-Do not use in-memory operation storage for multi-replica Azure deployments. In-memory storage disappears on restart and is not shared across replicas.
+Do not use in-memory operation storage for multi-replica Azure deployments. In-memory storage is lost on restart and is not shared across replicas.
 
-## Use Azure Blob Storage for deployed trusted documents
+## Use Azure Blob Storage for trusted documents
 
 Install the Blob Storage provider:
 
 <PackageInstallation packageName="HotChocolate.PersistedOperations.AzureBlobStorage" />
 
-The container must already exist. Each blob name is the operation hash, and the blob content is the GraphQL document.
+The Blob container must exist before deployment. Each blob name is the operation hash, and the blob content is the GraphQL document.
 
 ```csharp
 // Program.cs
@@ -234,7 +234,7 @@ builder
         sp.GetRequiredService<BlobContainerClient>());
 ```
 
-Use managed identity for the `BlobContainerClient` when possible. Put exact identity assignment and role configuration in your Azure infrastructure, not in `Program.cs`. Use Blob lifecycle management if old operation documents need retention rules.
+Use managed identity for the `BlobContainerClient` when possible. Assign identity and roles in your Azure infrastructure, not in code. Use Blob lifecycle management if you need retention rules for old operation documents.
 
 ## Use Redis for APQ or low-latency shared storage
 
@@ -259,11 +259,11 @@ builder
     .AddRedisOperationDocumentStorage(queryExpiration: TimeSpan.FromHours(12));
 ```
 
-For trusted documents, use `.UsePersistedOperationPipeline()`. For APQ, use `.UseAutomaticPersistedOperationPipeline()`. Redis can serve either pattern. The `queryExpiration` value is useful for runtime APQ documents. Avoid an expiration for trusted documents unless your deployment process republishes them before clients need them.
+For trusted documents, use `.UsePersistedOperationPipeline()`. For APQ, use `.UseAutomaticPersistedOperationPipeline()`. Redis supports both patterns. Set `queryExpiration` for runtime APQ documents. For trusted documents, avoid expiration unless your deployment process republishes them before clients need them.
 
 ## Lock production to known documents
 
-For locked-down production APIs, allow only persisted documents:
+To restrict production APIs to only persisted documents:
 
 ```csharp
 builder
@@ -275,9 +275,9 @@ builder
     });
 ```
 
-If operators or internal tooling need dynamic operations, gate that exception with an HTTP request interceptor and an authorization policy. Do not leave dynamic operations open for every production caller.
+If operators or internal tools need dynamic operations, allow exceptions through an HTTP request interceptor and an authorization policy. Do not leave dynamic operations open for all production callers.
 
-Clients can execute a persisted document by sending the hash as `id`:
+Clients execute a persisted document by sending the hash as `id`:
 
 ```json
 {
@@ -286,7 +286,7 @@ Clients can execute a persisted document by sending the hash as `id`:
 }
 ```
 
-Expected result: the request resolves after an app restart and from every replica because the operation document storage is shared.
+After setup, requests resolve after app restarts and from any replica because operation document storage is shared.
 
 If you use deterministic persisted-operation routes, map them separately:
 
@@ -301,13 +301,13 @@ A route request uses the operation ID in the URL:
 GET /graphql/persisted/0c95d31ca29272475bf837f944f4e513/GetProducts?variables={"first":10}
 ```
 
-Align the hash provider and encoding with clients. Hot Chocolate defaults to MD5 with base64 for APQ and supports MD5, SHA-1, and SHA-256 with configurable encoding.
+Align the hash provider and encoding with your clients. Hot Chocolate defaults to MD5 with base64 for APQ and supports MD5, SHA-1, and SHA-256 with configurable encoding.
 
 # Connect Application Insights through OpenTelemetry
 
-Hot Chocolate emits OpenTelemetry spans when you add the diagnostics package and enable instrumentation. Application Insights receives those spans through Azure Monitor OpenTelemetry configuration.
+Hot Chocolate emits OpenTelemetry spans when you add the diagnostics package and enable instrumentation. Application Insights receives these spans through Azure Monitor's OpenTelemetry integration.
 
-Install the Hot Chocolate diagnostics package and the OpenTelemetry packages you use for Azure Monitor export. The Azure Monitor sample uses `Azure.Monitor.OpenTelemetry.AspNetCore` in addition to the OpenTelemetry ASP.NET Core, HTTP client, and Hot Chocolate instrumentation packages.
+Install the Hot Chocolate diagnostics package and the OpenTelemetry packages you need for Azure Monitor export. The following example uses `Azure.Monitor.OpenTelemetry.AspNetCore` along with the OpenTelemetry ASP.NET Core, HTTP client, and Hot Chocolate instrumentation packages.
 
 <PackageInstallation packageName="HotChocolate.Diagnostics" />
 
@@ -337,17 +337,17 @@ builder.Services
     .UseAzureMonitor();
 ```
 
-`AddInstrumentation()` enables Hot Chocolate instrumentation. `AddHotChocolateInstrumentation()` connects those events to OpenTelemetry. `UseAzureMonitor()` exports telemetry to Azure Monitor and Application Insights when the Azure Monitor OpenTelemetry package and configuration are present.
+`AddInstrumentation()` enables Hot Chocolate's OpenTelemetry support. `AddHotChocolateInstrumentation()` connects those events to OpenTelemetry. `UseAzureMonitor()` exports telemetry to Azure Monitor and Application Insights when the Azure Monitor OpenTelemetry package and configuration are present.
 
-Prefer low-cardinality root span names. Filter by attributes such as `graphql.operation.type`, `graphql.operation.name`, `graphql.document.hash`, and errors. Enable field-level scopes, resolver details, document text, variables, or `ActivityScopes.All` only after you review overhead and sensitive-data exposure.
+Prefer low-cardinality root span names. Filter by attributes such as `graphql.operation.type`, `graphql.operation.name`, `graphql.document.hash`, and errors. Enable field-level scopes, resolver details, document text, variables, or `ActivityScopes.All` only after you review the overhead and sensitive-data exposure.
 
 If Application Insights shows ASP.NET Core spans but no GraphQL spans, check that both `.AddInstrumentation()` and `.AddHotChocolateInstrumentation()` are registered. If no spans reach Azure, check the Azure Monitor exporter, connection string or identity, sampling, and network egress.
 
-Expected result: Application Insights transaction or trace views show GraphQL root spans correlated with ASP.NET Core requests and downstream HTTP calls.
+After setup, Application Insights transaction or trace views should show GraphQL root spans correlated with ASP.NET Core requests and downstream HTTP calls.
 
 # Expose health and readiness endpoints
 
-Hot Chocolate v16 constructs schemas eagerly by default. Schema construction failures fail startup, and the server is not ready until schema creation completes. Use ASP.NET Core health checks for liveness and readiness. Do not add a separate Hot Chocolate-specific health API.
+Hot Chocolate v16 builds schemas eagerly by default. If schema construction fails, startup fails and the server is not ready until schema creation completes. Use ASP.NET Core health checks for liveness and readiness. Do not add a separate Hot Chocolate-specific health API.
 
 ```csharp
 // Program.cs
@@ -374,9 +374,9 @@ app.MapHealthChecks("/readyz", new HealthCheckOptions
 app.MapGraphQL("/graphql");
 ```
 
-Put dependencies required for GraphQL execution in readiness: databases, Redis, storage, downstream services, or identity metadata when they are on the critical path. Keep liveness lightweight so Azure does not restart a healthy process because a dependency is temporarily unavailable. Do not expose detailed dependency errors publicly.
+Include all dependencies required for GraphQL execution in the readiness check: databases, Redis, storage, downstream services, or identity metadata if they are on the critical path. Keep liveness checks lightweight so Azure does not restart a healthy process due to a temporary dependency outage. Do not expose detailed dependency errors publicly.
 
-Avoid `LazyInitialization = true` in production unless you accept first-request schema initialization latency and readiness semantics that do not include schema construction.
+Avoid `LazyInitialization = true` in production unless you accept schema initialization latency on the first request and readiness checks that do not include schema construction.
 
 Use warmup tasks to pre-populate Hot Chocolate caches with important operations before the server receives traffic:
 
@@ -397,42 +397,42 @@ builder
     });
 ```
 
-A warmup request skips persisted-operation enforcement and does not execute resolver side effects. Use it for parser, validation, and operation cache warmup. Expected result: `/readyz` returns success only after startup and critical dependencies are ready.
+A warmup request skips persisted-operation enforcement and does not execute resolver side effects. Use it to warm up the parser, validation, and operation caches. After setup, `/readyz` returns success only after startup and all critical dependencies are ready.
 
 # Handle secrets and environment configuration
 
-Keep credentials out of source. Store Redis, storage, auth, CORS, Nitro, persisted-operation, and telemetry settings in Azure app settings, Key Vault references, Container Apps secrets, Kubernetes secrets, or managed identity-backed configuration.
+Never store credentials in source code. Store Redis, storage, authentication, CORS, Nitro, persisted-operation, and telemetry settings in Azure app settings, Key Vault references, Container Apps secrets, Kubernetes secrets, or managed identity-backed configuration.
 
-| Configuration key                                                          | Purpose                                                            |
-| -------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| `GraphQL:EndpointPath`                                                     | Canonical route, commonly `/graphql`.                              |
-| `GraphQL:EnableNitro`                                                      | Enables Nitro in development or controlled internal environments.  |
-| `GraphQL:EnableSchemaRequests`                                             | Controls SDL download through the GraphQL endpoint.                |
-| `GraphQL:EnableGetRequests`                                                | Enables cacheable GET or persisted-operation flows.                |
-| `GraphQL:OnlyAllowPersistedDocuments`                                      | Locks execution to known persisted documents.                      |
-| `GraphQL:MaxAllowedRequestSize`                                            | Limits GraphQL request body size inside Hot Chocolate.             |
-| `GraphQL:ExecutionTimeoutSeconds`                                          | Bounds execution time for normal requests.                         |
-| `GraphQL:MaxFieldCost` and `GraphQL:MaxTypeCost`                           | Tune cost-analysis limits per environment.                         |
-| `ConnectionStrings:Redis`                                                  | Azure Cache for Redis connection string or configuration endpoint. |
-| `Storage:PersistedOperationsContainerUri`                                  | Blob container URI for trusted operation documents.                |
-| `Cors:Origins`                                                             | Allowed browser origins.                                           |
-| `AzureMonitor:ConnectionString` or `APPLICATIONINSIGHTS_CONNECTION_STRING` | Azure Monitor export configuration.                                |
+| Configuration key                                                          | Purpose                                                           |
+| -------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `GraphQL:EndpointPath`                                                     | Canonical route, usually `/graphql`.                              |
+| `GraphQL:EnableNitro`                                                      | Enables Nitro in development or controlled internal environments. |
+| `GraphQL:EnableSchemaRequests`                                             | Controls SDL download through the GraphQL endpoint.               |
+| `GraphQL:EnableGetRequests`                                                | Enables cacheable GET or persisted-operation flows.               |
+| `GraphQL:OnlyAllowPersistedDocuments`                                      | Restricts execution to known persisted documents.                 |
+| `GraphQL:MaxAllowedRequestSize`                                            | Limits GraphQL request body size in Hot Chocolate.                |
+| `GraphQL:ExecutionTimeoutSeconds`                                          | Sets execution time limit for requests.                           |
+| `GraphQL:MaxFieldCost` and `GraphQL:MaxTypeCost`                           | Tune cost-analysis limits per environment.                        |
+| `ConnectionStrings:Redis`                                                  | Azure Cache for Redis connection string or endpoint.              |
+| `Storage:PersistedOperationsContainerUri`                                  | Blob container URI for trusted operation documents.               |
+| `Cors:Origins`                                                             | Allowed browser origins.                                          |
+| `AzureMonitor:ConnectionString` or `APPLICATIONINSIGHTS_CONNECTION_STRING` | Azure Monitor export configuration.                               |
 
-Use managed identity for Azure Blob Storage when possible. Never hardcode Redis connection strings, JWT signing keys, storage keys, or Application Insights connection strings in `Program.cs`.
+Use managed identity for Azure Blob Storage when possible. Never hardcode Redis connection strings, JWT signing keys, storage keys, or Application Insights connection strings in code.
 
-Before swapping App Service slots, shifting Container Apps traffic, or rolling AKS pods, verify that the target environment has compatible settings for Nitro, introspection, schema SDL download, GET requests, multipart upload, request size, cost limits, persisted-only enforcement, Redis, Blob Storage, auth, CORS, and telemetry.
+Before swapping App Service slots, shifting Container Apps traffic, or rolling AKS pods, verify that the target environment has compatible settings for Nitro, introspection, schema SDL download, GET requests, multipart upload, request size, cost limits, persisted-only enforcement, Redis, Blob Storage, authentication, CORS, and telemetry.
 
 # Tune request size, uploads, and execution limits
 
-Several layers can reject a request before Hot Chocolate sees it: Azure ingress, Application Gateway, IIS/App Service, Kestrel, ASP.NET Core form parsing, and Hot Chocolate request parsing. Identify the layer before changing limits.
+Requests can be rejected at several layers before reaching Hot Chocolate: Azure ingress, Application Gateway, IIS/App Service, Kestrel, ASP.NET Core form parsing, or Hot Chocolate request parsing. Identify which layer is responsible before changing limits.
 
-Limit GraphQL request bodies in Hot Chocolate:
+To limit GraphQL request bodies in Hot Chocolate:
 
 ```csharp
 builder.AddGraphQL(maxAllowedRequestSize: 1 * 1000 * 1000);
 ```
 
-Configure multipart limits when you accept file uploads:
+To configure multipart limits for file uploads:
 
 ```csharp
 using Microsoft.AspNetCore.Http.Features;
@@ -452,7 +452,7 @@ builder
     });
 ```
 
-Clients must include `GraphQL-preflight` for multipart uploads:
+Clients must include the `GraphQL-preflight` header for multipart uploads:
 
 ```bash
 curl https://api.example.com/graphql \
@@ -462,9 +462,9 @@ curl https://api.example.com/graphql \
   -F 0=@file.txt
 ```
 
-For large files, prefer presigned Azure Blob Storage upload URLs. Use GraphQL to authorize the upload and return metadata or a URL, then send the file directly to storage.
+For large files, use presigned Azure Blob Storage upload URLs. Authorize the upload with GraphQL, then upload the file directly to storage.
 
-Use execution and cost limits for expensive operations:
+Set execution and cost limits to prevent expensive operations from consuming resources:
 
 ```csharp
 builder
@@ -482,25 +482,25 @@ builder
 
 Expected results:
 
-- A too-large GraphQL JSON request fails at the Hot Chocolate request limit with a clear GraphQL or HTTP error.
-- A too-large multipart request may fail earlier with `413 Payload Too Large` from ASP.NET Core or Azure.
-- An expensive operation fails during validation or cost analysis before resolvers consume resources.
+- A GraphQL JSON request that is too large fails at the Hot Chocolate request limit with a clear error.
+- A multipart request that is too large may fail earlier with `413 Payload Too Large` from ASP.NET Core or Azure.
+- An expensive operation fails during validation or cost analysis before resolvers run.
 
 # Scale and deploy safely
 
-Use this checklist before you add replicas or shift production traffic:
+Before adding replicas or shifting production traffic, review this checklist:
 
-- Use Redis subscriptions when more than one replica can publish or receive subscription events.
-- Use shared operation document storage for APQ or trusted documents. Choose Redis or Azure Blob Storage based on the operation workflow.
-- Set minimum replicas or always-on settings when latency, cold starts, or subscriptions matter.
-- Publish trusted operation artifacts before, or with, the server version that requires them.
-- Keep schema changes compatible with deployed clients. Use a schema and client release workflow when multiple client versions are active.
-- Run warmup tasks or smoke tests for important operations before traffic shifts.
+- Use Redis subscriptions if more than one replica can publish or receive subscription events.
+- Use shared operation document storage for APQ or trusted documents. Choose Redis or Azure Blob Storage based on your workflow.
+- Set minimum replicas or always-on settings if latency, cold starts, or subscriptions are important.
+- Publish trusted operation artifacts before or with the server version that requires them.
+- Keep schema changes compatible with deployed clients. Use a schema and client release workflow if multiple client versions are active.
+- Run warmup tasks or smoke tests for important operations before shifting traffic.
 - Expect WebSocket and SSE clients to disconnect during slot swaps, revision changes, pod restarts, and node drains. Clients must reconnect and resubscribe.
-- For AKS, configure graceful termination and drain behavior long enough for normal in-flight requests. Do not expect subscriptions to survive pod termination.
-- For App Service slots and Container Apps revisions, verify production settings on the target before traffic moves.
+- For AKS, configure graceful termination and drain behavior long enough for in-flight requests. Do not expect subscriptions to survive pod termination.
+- For App Service slots and Container Apps revisions, verify production settings on the target before moving traffic.
 
-A deployment smoke test can reuse a small operation:
+You can use a small operation for a deployment smoke test:
 
 ```bash
 curl -f -sS https://api.example.com/readyz
@@ -525,7 +525,7 @@ Run the checks that match the features you enabled.
 curl -i https://api.example.com/readyz
 ```
 
-Expected result: `200 OK` only after the app and critical GraphQL dependencies are ready.
+Expected result: `200 OK` only after the app and all critical GraphQL dependencies are ready.
 
 ## Check POST execution
 
@@ -556,7 +556,7 @@ Expected response:
 { "data": { "__typename": "Query" } }
 ```
 
-Without the required preflight header, expect a client error. If GET is disabled, expect the endpoint to reject the request.
+If the preflight header is missing, expect a client error. If GET is disabled, the endpoint should reject the request.
 
 ## Check Nitro and schema policy
 
@@ -566,7 +566,7 @@ Request `/graphql` from a browser or send an HTML accept header:
 curl -i https://api.example.com/graphql -H 'Accept: text/html'
 ```
 
-Expected result in production: Nitro is not served when `Tool.Enable` is false.
+In production, Nitro should not be served when `Tool.Enable` is false.
 
 Check SDL download only if you intend to allow it:
 
@@ -603,37 +603,37 @@ curl -N https://api.example.com/graphql \
   --data '{ "query": "subscription { onBookAdded { title } }" }'
 ```
 
-Expected shape for emitted results:
+Expected result for emitted events:
 
 ```text
 event: next
 data: {"data":{"onBookAdded":{"title":"GraphQL in Action"}}}
 ```
 
-When Redis subscriptions are configured, publish an event on one replica and confirm a subscriber connected to another replica receives it.
+If Redis subscriptions are configured, publish an event on one replica and confirm a subscriber on another replica receives it.
 
 ## Check telemetry
 
-Send a successful request and a request that produces a GraphQL error. Application Insights should show correlated ASP.NET Core and GraphQL spans, including operation type, operation name when provided, document hash when available, and errors.
+Send a successful request and a request that produces a GraphQL error. Application Insights should show correlated ASP.NET Core and GraphQL spans, including operation type, operation name (if provided), document hash (if available), and errors.
 
 # Troubleshoot Azure deployment issues
 
-| Symptom                                                           | Likely cause                                                                                                                                               | Check                                                                                          | Fix                                                                                          |
-| ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| `404` on `/graphql`                                               | Route mismatch, base path or ingress rewrite, or GraphQL was not mapped.                                                                                   | Check `MapGraphQL` path and Azure route or ingress rules.                                      | Align the external route with `MapGraphQL("/graphql")` or update ingress rewrite rules.      |
-| Nitro appears in production                                       | `Tool.Enable` is not environment-gated, or the slot/revision has the wrong setting.                                                                        | Request `/graphql` with `Accept: text/html` and inspect environment settings.                  | Disable Nitro through `ModifyServerOptions` or configuration for production.                 |
-| Browser GET returns `400`                                         | GET preflight is enforced and the header is missing, or GET is disabled.                                                                                   | Check `EnableGetRequests` and `EnforceGetRequestsPreflightHeader`.                             | Add the `GraphQL-preflight` header or use POST.                                              |
-| Multipart upload returns `400`                                    | Missing `GraphQL-preflight`, multipart disabled, or malformed `operations` and `map` fields.                                                               | Compare the request with the multipart spec shape.                                             | Enable multipart only when needed and send the required preflight header.                    |
-| Upload returns `413`                                              | Hot Chocolate, ASP.NET Core form limits, Kestrel, IIS/App Service, Application Gateway, or ingress rejected the body.                                      | Identify which layer emitted the response.                                                     | Tune the correct layer or use presigned Blob Storage uploads for large files.                |
-| `401`, `403`, or missing user                                     | Middleware order, CORS credentials, JWT issuer or audience, or WebSocket auth handshake.                                                                   | Check `UseCors`, `UseAuthentication`, `UseAuthorization`, JWT settings, and interceptors.      | Put middleware before `MapGraphQL`, fix CORS origins, and handle socket authentication.      |
-| WebSocket handshake fails with `400`, `502`, or close code `1006` | Host WebSockets disabled, proxy does not preserve upgrade, subprotocol mismatch, idle timeout, TLS or proxy issue, or keep-alive too slow.                 | Check App Service WebSockets, ingress logs, `Sec-WebSocket-Protocol`, and keep-alive settings. | Enable WebSockets, preserve upgrade headers, use a supported protocol, and tune keep-alives. |
-| SSE starts then stops                                             | Proxy buffering or idle timeout, missing client reconnect, or ingress cuts long responses.                                                                 | Check proxy and ingress behavior for streaming responses.                                      | Disable buffering where applicable, tune timeouts, and add client reconnect logic.           |
-| Subscriptions work locally but not after scale-out                | In-memory subscriptions.                                                                                                                                   | Check whether `AddInMemorySubscriptions()` is used in production.                              | Use `HotChocolate.Subscriptions.Redis` and a topic prefix.                                   |
-| Persisted operation not found after restart or on another replica | In-memory operation storage.                                                                                                                               | Restart the app or send the request to another replica.                                        | Use Redis or Azure Blob Storage operation document storage and verify hash encoding.         |
-| Trusted operation works in staging but not production             | Missing container, wrong container or prefix, operation artifact not deployed, or identity lacks storage permission.                                       | Check Blob container, blob names, deployment artifacts, and identity role assignments.         | Create the container before startup, deploy operation blobs, and grant storage access.       |
-| Slow first request or failed startup                              | Schema initialization or warmup issue, dependency unavailable, or lazy initialization enabled.                                                             | Check startup logs and `/readyz`.                                                              | Keep eager initialization, fix dependencies, and use warmup tasks for important operations.  |
-| No GraphQL spans in Application Insights                          | Missing `.AddInstrumentation()`, missing `.AddHotChocolateInstrumentation()`, exporter not configured, sampling, or connection string or identity problem. | Compare local OpenTelemetry output with Azure export.                                          | Register both Hot Chocolate instrumentation calls and configure Azure Monitor export.        |
-| Introspection unexpectedly allowed or denied                      | Default security, explicit `.AllowIntrospection(...)`, environment name, or interceptor allowlist.                                                         | Send an introspection query and inspect environment/configuration.                             | Make the introspection policy explicit and test the production slot or revision.             |
+| Symptom                                                           | Likely cause                                                                                                                          | Check                                                                                          | Fix                                                                                          |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `404` on `/graphql`                                               | Route mismatch, base path or ingress rewrite, or GraphQL was not mapped.                                                              | Check `MapGraphQL` path and Azure route or ingress rules.                                      | Align the external route with `MapGraphQL("/graphql")` or update ingress rewrite rules.      |
+| Nitro appears in production                                       | `Tool.Enable` is not environment-gated, or the slot/revision has the wrong setting.                                                   | Request `/graphql` with `Accept: text/html` and inspect environment settings.                  | Disable Nitro through `ModifyServerOptions` or configuration for production.                 |
+| Browser GET returns `400`                                         | GET preflight is enforced and the header is missing, or GET is disabled.                                                              | Check `EnableGetRequests` and `EnforceGetRequestsPreflightHeader`.                             | Add the `GraphQL-preflight` header or use POST.                                              |
+| Multipart upload returns `400`                                    | Missing `GraphQL-preflight`, multipart disabled, or malformed `operations` and `map` fields.                                          | Compare the request with the multipart spec shape.                                             | Enable multipart only when needed and send the required preflight header.                    |
+| Upload returns `413`                                              | Hot Chocolate, ASP.NET Core form limits, Kestrel, IIS/App Service, Application Gateway, or ingress rejected the body.                 | Identify which layer emitted the response.                                                     | Tune the correct layer or use presigned Blob Storage uploads for large files.                |
+| `401`, `403`, or missing user                                     | Middleware order, CORS credentials, JWT issuer or audience, or WebSocket auth handshake.                                              | Check `UseCors`, `UseAuthentication`, `UseAuthorization`, JWT settings, and interceptors.      | Put middleware before `MapGraphQL`, fix CORS origins, and handle socket authentication.      |
+| WebSocket handshake fails with `400`, `502`, or close code `1006` | Host WebSockets disabled, proxy does not preserve upgrade, subprotocol mismatch, idle timeout, TLS or proxy issue, or keep-alive slow | Check App Service WebSockets, ingress logs, `Sec-WebSocket-Protocol`, and keep-alive settings. | Enable WebSockets, preserve upgrade headers, use a supported protocol, and tune keep-alives. |
+| SSE starts then stops                                             | Proxy buffering or idle timeout, missing client reconnect, or ingress cuts long responses.                                            | Check proxy and ingress behavior for streaming responses.                                      | Disable buffering where applicable, tune timeouts, and add client reconnect logic.           |
+| Subscriptions work locally but not after scale-out                | In-memory subscriptions.                                                                                                              | Check whether `AddInMemorySubscriptions()` is used in production.                              | Use `HotChocolate.Subscriptions.Redis` and a topic prefix.                                   |
+| Persisted operation not found after restart or on another replica | In-memory operation storage.                                                                                                          | Restart the app or send the request to another replica.                                        | Use Redis or Azure Blob Storage operation document storage and verify hash encoding.         |
+| Trusted operation works in staging but not production             | Missing container, wrong container or prefix, operation artifact not deployed, or identity lacks storage permission.                  | Check Blob container, blob names, deployment artifacts, and identity role assignments.         | Create the container before startup, deploy operation blobs, and grant storage access.       |
+| Slow first request or failed startup                              | Schema initialization or warmup issue, dependency unavailable, or lazy initialization enabled.                                        | Check startup logs and `/readyz`.                                                              | Keep eager initialization, fix dependencies, and use warmup tasks for important operations.  |
+| No GraphQL spans in Application Insights                          | Missing `.AddInstrumentation()`, missing `.AddHotChocolateInstrumentation()`, exporter not configured, sampling, or identity problem  | Compare local OpenTelemetry output with Azure export.                                          | Register both Hot Chocolate instrumentation calls and configure Azure Monitor export.        |
+| Introspection unexpectedly allowed or denied                      | Default security, explicit `.AllowIntrospection(...)`, environment name, or interceptor allowlist.                                    | Send an introspection query and inspect environment/configuration.                             | Make the introspection policy explicit and test the production slot or revision.             |
 
 # Next steps
 

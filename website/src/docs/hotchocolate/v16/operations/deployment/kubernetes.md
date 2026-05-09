@@ -2,27 +2,25 @@
 title: Deploy to Kubernetes
 ---
 
-This page shows you how to deploy and operate one Hot Chocolate v16 ASP.NET Core GraphQL server on Kubernetes. It focuses on the Kubernetes decisions that change GraphQL behavior: endpoint paths, startup readiness, request limits, scaling, subscriptions, persisted operations, streaming transports, graceful shutdown, secrets, and telemetry.
+This guide explains how to deploy and operate a Hot Chocolate v16 ASP.NET Core GraphQL server on Kubernetes. It covers the Kubernetes settings that affect GraphQL behavior, including endpoint paths, readiness and liveness, request and resource limits, scaling, subscriptions, persisted operations, streaming transports, graceful shutdown, secrets, and telemetry.
 
-Fusion gateway deployment, composition, and source schema routing are out of scope for this page. If you deploy Fusion, use the Fusion documentation for gateway-specific topology and composition guidance.
+Fusion gateway deployment, composition, and source schema routing are not covered here. If you use Fusion, refer to the Fusion documentation for gateway-specific guidance.
 
-# Check what you need before you deploy
+# Prerequisites: What to Prepare Before Deployment
 
-Start with an app and image that already work outside the cluster.
+Before deploying to Kubernetes, make sure your app and container image work outside the cluster. You should have:
 
-You need:
-
-| Item                | What to know                                                                         |
+| Item                | Details                                                                              |
 | ------------------- | ------------------------------------------------------------------------------------ |
-| Image               | The full image name and tag that the cluster can pull.                               |
-| Container port      | The port ASP.NET Core listens on, for example `8080`.                                |
-| GraphQL path        | `/graphql` by default, unless you call `app.MapGraphQL("/some/path")`.               |
-| Public route        | The external host and path, for example `https://api.example.com/graphql`.           |
+| Image               | The full image name and tag accessible to the cluster.                               |
+| Container port      | The port ASP.NET Core listens on (e.g., `8080`).                                     |
+| GraphQL path        | `/graphql` by default, unless you use `app.MapGraphQL("/some/path")`.                |
+| Public route        | The external host and path (e.g., `https://api.example.com/graphql`).                |
 | Enabled transports  | HTTP POST, optional GET, WebSocket subscriptions, SSE, multipart uploads, batching.  |
 | Shared dependencies | Redis, databases, OpenTelemetry collector, external secret provider, object storage. |
-| Replica plan        | Use one replica until subscription and persisted-operation state are shared.         |
+| Replica plan        | Start with one replica until you share subscription and persisted-operation state.   |
 
-Verify the app locally before Kubernetes is involved:
+Test your app locally before involving Kubernetes:
 
 ```bash
 curl http://localhost:8080/graphql \
@@ -36,9 +34,9 @@ Expected response:
 { "data": { "__typename": "Query" } }
 ```
 
-Your root query type name may differ if you renamed it.
+If you renamed your root query type, the name may differ.
 
-Smoke test the image with the same port the Deployment will use:
+Smoke test your image using the same port as your planned Deployment:
 
 ```bash
 docker run --rm -p 8080:8080 \
@@ -48,9 +46,9 @@ docker run --rm -p 8080:8080 \
 
 Then run the same `curl` command against `http://localhost:8080/graphql`.
 
-# Deploy a Hot Chocolate server to Kubernetes
+# Deploying Hot Chocolate to Kubernetes
 
-Apply a Deployment, Service, and Ingress that match your image, port, and GraphQL path. Start with one replica. Add replicas after you decide how to share subscription and persisted-operation state.
+Create a Deployment, Service, and Ingress that match your image, port, and GraphQL path. Start with a single replica. Add more replicas only after you configure shared state for subscriptions and persisted operations.
 
 ```yaml
 apiVersion: apps/v1
@@ -120,7 +118,7 @@ spec:
                   name: http
 ```
 
-Apply the manifest:
+Apply your manifest:
 
 ```bash
 kubectl apply -f catalog-api.yaml
@@ -142,9 +140,9 @@ Expected response:
 { "data": { "__typename": "Query" } }
 ```
 
-# Configure the GraphQL endpoint that Kubernetes exposes
+# Configuring the GraphQL Endpoint
 
-The manifests above assume that the app listens on port `8080` and maps GraphQL at `/graphql`.
+The above manifests assume your app listens on port `8080` and exposes GraphQL at `/graphql`.
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
@@ -168,11 +166,11 @@ app.MapGraphQL("/graphql");
 app.Run();
 ```
 
-`builder.AddGraphQL(...)` is the v16 ASP.NET Core hosting entry point. If your project already uses `builder.Services.AddGraphQLServer(...)`, keep that convention. The `maxAllowedRequestSize` argument limits the GraphQL HTTP request body before parsing.
+`builder.AddGraphQL(...)` is the v16 ASP.NET Core entry point. If you use `builder.Services.AddGraphQLServer(...)`, you can keep that style. The `maxAllowedRequestSize` parameter limits the GraphQL HTTP request body before parsing.
 
-Keep default Hot Chocolate security enabled unless you replace it deliberately. The default policy adds cost analysis, disables introspection outside development, and adds the field-cycle validation rule.
+Keep the default Hot Chocolate security settings unless you have a reason to change them. By default, cost analysis is enabled, introspection is disabled outside development, and field-cycle validation is active.
 
-Enable WebSockets only when clients use WebSocket subscriptions:
+Enable WebSockets only if your clients use WebSocket subscriptions:
 
 ```csharp
 builder
@@ -191,17 +189,15 @@ app.UseWebSockets();
 app.MapGraphQL("/graphql");
 ```
 
-`UseWebSockets()` must run before `MapGraphQL()`. Browser visits should not expose Nitro on a public production endpoint unless you intentionally enable it or mount Nitro on a protected route.
+Call `UseWebSockets()` before `MapGraphQL()`. Do not expose Nitro on a public production endpoint unless you intend to, or mount Nitro on a protected route.
 
-See [Endpoints](/docs/hotchocolate/v16/server/endpoints) for `MapGraphQL`, endpoint options, Nitro, schema downloads, and split endpoint mapping.
+# Aligning External and Internal Paths
 
-# Publish the correct external path and base URL
+Hot Chocolate maps the application path, while Ingress maps the external path to the Service. Make sure these paths match.
 
-Hot Chocolate maps an application path. Ingress maps an external path to the Service. Keep those two paths aligned.
+## Exposing `/graphql` Directly
 
-## Route `/graphql` without a rewrite
-
-Use this when the public path and application path are both `/graphql`.
+If both the public and application paths are `/graphql`, use this Ingress:
 
 ```yaml
 apiVersion: networking.k8s.io/v1
@@ -223,15 +219,15 @@ spec:
                   name: http
 ```
 
-The app maps the same path:
+Map the same path in your app:
 
 ```csharp
 app.MapGraphQL("/graphql");
 ```
 
-## Expose `/api/graphql` and rewrite to `/graphql`
+## Exposing `/api/graphql` and Rewriting to `/graphql`
 
-This NGINX Ingress example exposes `/api/graphql` externally and sends `/graphql` to the app.
+To expose `/api/graphql` externally and rewrite to `/graphql` in your app, use this NGINX Ingress example:
 
 ```yaml
 apiVersion: networking.k8s.io/v1
@@ -255,7 +251,7 @@ spec:
                   name: http
 ```
 
-The app still maps `/graphql`:
+Your app still maps `/graphql`:
 
 ```csharp
 app.MapGraphQL("/graphql");
@@ -269,11 +265,11 @@ curl https://api.example.com/api/graphql \
   --data '{ "query": "{ __typename }" }'
 ```
 
-WebSocket clients use the matching public path: `wss://api.example.com/api/graphql`.
+WebSocket clients use the same public path: `wss://api.example.com/api/graphql`.
 
-## Preserve a path base in the app
+## Preserving a Path Base in the App
 
-If the ingress preserves `/api`, configure ASP.NET Core path base and keep the Hot Chocolate endpoint relative to it.
+If the ingress keeps `/api` in the path, configure ASP.NET Core's path base and keep the Hot Chocolate endpoint relative to it:
 
 ```csharp
 var app = builder.Build();
@@ -282,11 +278,11 @@ app.UsePathBase("/api");
 app.MapGraphQL("/graphql");
 ```
 
-With this setup, the external path is `/api/graphql` and the endpoint path inside the app is `/graphql` after the path base is removed.
+With this setup, the external path is `/api/graphql`, and the endpoint path inside the app is `/graphql` after the path base is removed.
 
-## Forward the public scheme and host
+## Forwarding the Public Scheme and Host
 
-When TLS terminates at the ingress, Kestrel sees HTTP from the proxy unless you process forwarded headers. Configure this when auth callbacks, redirects, Nitro endpoint metadata, generated links, or logs need the public scheme and host.
+When TLS terminates at the ingress, Kestrel sees HTTP from the proxy unless you process forwarded headers. This is important for authentication callbacks, redirects, Nitro endpoint metadata, generated links, or logs that need the public scheme and host.
 
 ```csharp
 using Microsoft.AspNetCore.HttpOverrides;

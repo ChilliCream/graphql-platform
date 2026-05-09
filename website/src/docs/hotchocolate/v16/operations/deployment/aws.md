@@ -2,9 +2,9 @@
 title: Deploy Hot Chocolate on AWS
 ---
 
-You deploy Hot Chocolate to AWS as an ASP.NET Core service. AWS hosts, routes, secures, and observes the process; Hot Chocolate owns the GraphQL endpoint, transports, execution pipeline, subscriptions, persisted operations, and GraphQL-specific security behavior.
+You can deploy Hot Chocolate v16 as an ASP.NET Core service on AWS. AWS manages hosting, routing, security, and monitoring, while Hot Chocolate provides the GraphQL endpoint, transports, execution pipeline, subscriptions, persisted operations, and GraphQL-specific security features.
 
-A typical production path looks like this:
+A typical production deployment path is:
 
 ```text
 Client or CloudFront
@@ -14,38 +14,38 @@ Client or CloudFront
   -> databases, ElastiCache Redis, and downstream services
 ```
 
-This page covers standalone Hot Chocolate v16 server deployments. Fusion gateway and subgraph operations are out of scope. Use the AWS documentation for creating VPCs, clusters, target groups, certificates, IAM roles, CloudFront distributions, API Gateway stages, and Kubernetes objects.
+This guide focuses on standalone Hot Chocolate v16 server deployments. Fusion gateway and subgraph scenarios are not covered. For AWS infrastructure setup—such as VPCs, clusters, target groups, certificates, IAM roles, CloudFront distributions, API Gateway stages, and Kubernetes objects—refer to the AWS documentation.
 
 # Prerequisites
 
-Before you apply the AWS guidance, make sure you have:
+Before deploying, ensure you have:
 
-- A working Hot Chocolate v16 ASP.NET Core server.
-- A .NET runtime target or a container image for the service.
-- One public GraphQL endpoint path, usually `/graphql`.
-- A production authentication and authorization plan.
-- A decision on subscriptions, SSE, incremental delivery, uploads, batching, trusted documents, and APQ.
-- AWS DNS, TLS certificate, network, and deployment target decisions.
-- ElastiCache Redis connection details when subscriptions, trusted documents, or APQ must work across instances or survive restarts.
-- A telemetry route, for example OTLP to an AWS Distro for OpenTelemetry Collector.
-- Runtime configuration for secrets and environment-specific settings.
+- A working Hot Chocolate v16 ASP.NET Core server
+- A .NET runtime target or container image for your service
+- A public GraphQL endpoint path (usually `/graphql`)
+- A production authentication and authorization plan
+- Decisions on subscriptions, SSE, incremental delivery, uploads, batching, trusted documents, and APQ
+- AWS DNS, TLS certificate, network, and deployment target choices
+- ElastiCache Redis connection details if subscriptions, trusted documents, or APQ must work across instances or survive restarts
+- A telemetry route (for example, OTLP to an AWS Distro for OpenTelemetry Collector)
+- Runtime configuration for secrets and environment-specific settings
 
-# Choose an AWS host by GraphQL behavior
+# Choose an AWS Host Based on GraphQL Needs
 
-Choose the host by the transports your GraphQL clients need, not only by how you package the app.
+Select your AWS hosting model based on the transports your GraphQL clients require, not just how you package your app.
 
-| Hosting model                                      | Best fit                                                                                                                       | WebSocket and SSE fit                                                                                                                               | Scale-out notes                                                                                                              | Hot Chocolate caveats                                                                                                                               |
-| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ECS on Fargate                                     | Containerized ASP.NET Core services where your team wants managed compute without Kubernetes.                                  | Works well behind an ALB when the listener, target group, and security groups preserve WebSocket upgrades and long HTTP responses.                  | Scale tasks horizontally. Use health checks and deployment grace periods. Put Redis-backed features in ElastiCache.          | Recommended default for many AWS Hot Chocolate APIs. Keep Nitro, schema download, and upload limits explicit.                                       |
-| EKS                                                | Teams that already operate Kubernetes and need ingress controllers, HPA, network policy, sidecars, or daemonsets.              | Depends on your ingress. Test WebSocket upgrades, SSE, `multipart/mixed`, and JSON Lines through the full path.                                     | Map readiness and liveness probes to ASP.NET Core health endpoints. Use disruption budgets for subscription-heavy workloads. | Do not rely on pod-local memory for subscriptions, APQ, or trusted documents.                                                                       |
-| Elastic Beanstalk, App Runner, or VM-style hosting | Simpler ASP.NET Core deployments where the managed front end supports your required request sizes, idle timeouts, and headers. | Verify platform-specific WebSocket and streaming behavior before using subscriptions or incremental delivery.                                       | Scale instances behind a managed load balancer. Keep configuration in platform settings or secrets.                          | Good for HTTP query and mutation APIs. Re-test long-lived connections after platform changes.                                                       |
-| Lambda with API Gateway                            | Short-lived queries and mutations when you already adapt ASP.NET Core to Lambda.                                               | Not a default fit for Hot Chocolate subscriptions or long-lived SSE. API Gateway WebSocket APIs use a different connection-management architecture. | Cold starts, body limits, and integration timeouts matter.                                                                   | Do not choose Lambda to host normal Hot Chocolate subscription traffic unless an AWS-specific architecture owns connection state outside this page. |
+| Hosting Model                                      | Best Fit                                                                                                                       | WebSocket and SSE Support                                                                                                                           | Scale-Out Notes                                                                                                              | Hot Chocolate Considerations                                                                                                  |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| ECS on Fargate                                     | Containerized ASP.NET Core services where you want managed compute without Kubernetes.                                         | Works well behind an ALB if the listener, target group, and security groups preserve WebSocket upgrades and long HTTP responses.                    | Scale tasks horizontally. Use health checks and deployment grace periods. Use ElastiCache for Redis-backed features.         | Recommended default for many AWS Hot Chocolate APIs. Explicitly set Nitro, schema download, and upload limits.                |
+| EKS                                                | Teams already using Kubernetes and needing ingress controllers, HPA, network policy, sidecars, or daemonsets.                  | Depends on your ingress. Test WebSocket upgrades, SSE, `multipart/mixed`, and JSON Lines through the full path.                                     | Map readiness and liveness probes to ASP.NET Core health endpoints. Use disruption budgets for subscription-heavy workloads. | Do not rely on pod-local memory for subscriptions, APQ, or trusted documents.                                                 |
+| Elastic Beanstalk, App Runner, or VM-style hosting | Simpler ASP.NET Core deployments where the managed front end supports your required request sizes, idle timeouts, and headers. | Verify platform-specific WebSocket and streaming behavior before using subscriptions or incremental delivery.                                       | Scale instances behind a managed load balancer. Store configuration in platform settings or secrets.                         | Good for HTTP query and mutation APIs. Re-test long-lived connections after platform changes.                                 |
+| Lambda with API Gateway                            | Short-lived queries and mutations when you already adapt ASP.NET Core to Lambda.                                               | Not a default fit for Hot Chocolate subscriptions or long-lived SSE. API Gateway WebSocket APIs use a different connection-management architecture. | Cold starts, body limits, and integration timeouts matter.                                                                   | Do not use Lambda for normal Hot Chocolate subscription traffic unless an AWS-specific architecture manages connection state. |
 
-For internet-facing APIs, prefer a long-running ASP.NET Core host when clients use subscriptions, SSE, incremental delivery, file uploads, or operation warmup. Raising AWS timeouts is rarely the right first response to slow GraphQL operations. Start with request limits, cost analysis, pagination, DataLoader usage, and resolver optimization.
+For internet-facing APIs, use a long-running ASP.NET Core host if clients need subscriptions, SSE, incremental delivery, file uploads, or operation warmup. If GraphQL operations are slow, do not start by raising AWS timeouts. Instead, review request limits, cost analysis, pagination, DataLoader usage, and resolver performance.
 
-# Start from a production Hot Chocolate endpoint
+# Set Up a Production Hot Chocolate Endpoint
 
-Use one canonical endpoint and make production behavior explicit. This baseline keeps development tools private, requires deliberate GET and upload behavior, and keeps WebSocket settings close to the GraphQL server configuration.
+Expose a single canonical endpoint and make production behavior explicit. This approach keeps development tools private, requires deliberate GET and upload behavior, and keeps WebSocket settings close to the GraphQL server configuration.
 
 ```csharp
 // Program.cs
@@ -60,7 +60,6 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor
         | ForwardedHeaders.XForwardedHost
         | ForwardedHeaders.XForwardedProto;
-
     // In production, configure KnownProxies or KnownNetworks for your AWS edge.
 });
 
@@ -113,7 +112,7 @@ app.UseCors("GraphQLClients");
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Keep this only when WebSocket subscriptions are supported by the AWS path.
+// Only enable when WebSocket subscriptions are supported by your AWS path.
 app.UseWebSockets();
 
 app.MapHealthChecks("/health/live");
@@ -135,7 +134,7 @@ public sealed class Query
 }
 ```
 
-Verify the deployed endpoint:
+To verify your deployed endpoint:
 
 ```bash
 curl -sS https://api.example.com/graphql \
@@ -150,24 +149,24 @@ Expected response:
 { "data": { "status": "ok" } }
 ```
 
-`builder.AddGraphQL(...)` uses the v16 ASP.NET Core hosting style. Keep the default security policy enabled unless you replace it deliberately. The default policy includes production-oriented protections such as cost analysis, non-development introspection behavior, and field-cycle validation.
+The `builder.AddGraphQL(...)` call uses the v16 ASP.NET Core hosting style. Keep the default security policy unless you have a specific reason to change it. The default policy includes production protections such as cost analysis, restricted introspection, and field-cycle validation.
 
-Place `UseCors`, `UseAuthentication`, `UseAuthorization`, and `UseWebSockets` before `MapGraphQL`. Hot Chocolate authorization depends on the ASP.NET Core user, browser clients depend on CORS, and WebSocket subscriptions depend on ASP.NET Core WebSocket middleware.
+Place `UseCors`, `UseAuthentication`, `UseAuthorization`, and `UseWebSockets` before `MapGraphQL`. Hot Chocolate authorization depends on the ASP.NET Core user, browser clients require CORS, and WebSocket subscriptions depend on the ASP.NET Core WebSocket middleware.
 
-# Expose only the paths you intend to support
+# Expose Only the Intended Paths
 
-`MapGraphQL("/graphql")` maps a combined endpoint. Route that path through AWS intentionally.
+`MapGraphQL("/graphql")` creates a combined endpoint. Route this path through AWS intentionally.
 
-| Path                                      | What it does                                                                                                                                         | Production guidance                                                                    |
-| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| `/graphql`                                | HTTP POST, HTTP GET when enabled, multipart when enabled, WebSocket upgrades when `UseWebSockets()` is registered, Nitro browser entry when enabled. | Keep as the public client path. Disable Nitro in production.                           |
-| `/graphql?sdl` and schema file paths      | Schema SDL download controlled by `EnableSchemaRequests` and `EnableSchemaFileSupport`.                                                              | Disable publicly unless schema download is part of your contract.                      |
-| `/graphql/schema` or a custom schema path | SDL endpoint when you use `MapGraphQLSchema`.                                                                                                        | Put behind internal routing or authentication if you expose it.                        |
-| `/graphql/ws`                             | Optional split WebSocket endpoint with `MapGraphQLWebSocket`.                                                                                        | Use when AWS routes WebSocket traffic separately from HTTP traffic.                    |
-| `/graphql/persisted/{operationId}`        | Persisted-operation HTTP endpoint when you map it with `MapGraphQLPersistedOperations`.                                                              | Use when clients execute trusted documents by URL. Configure CDN cache keys carefully. |
-| `/health/live` and `/health/ready`        | ASP.NET Core health endpoints outside GraphQL.                                                                                                       | Use for ALB target groups, ECS health checks, and EKS probes. Do not probe `/graphql`. |
+| Path                                    | What It Does                                                                                                                                        | Production Guidance                                                                    |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `/graphql`                              | Handles HTTP POST, HTTP GET (if enabled), multipart (if enabled), WebSocket upgrades (if `UseWebSockets()` is registered), and Nitro browser entry. | Use as the public client path. Disable Nitro in production.                            |
+| `/graphql?sdl` and schema file paths    | Schema SDL download, controlled by `EnableSchemaRequests` and `EnableSchemaFileSupport`.                                                            | Disable publicly unless schema download is part of your contract.                      |
+| `/graphql/schema` or custom schema path | SDL endpoint when using `MapGraphQLSchema`.                                                                                                         | Restrict with internal routing or authentication if exposed.                           |
+| `/graphql/ws`                           | Optional split WebSocket endpoint with `MapGraphQLWebSocket`.                                                                                       | Use when AWS routes WebSocket traffic separately from HTTP.                            |
+| `/graphql/persisted/{operationId}`      | Persisted-operation HTTP endpoint when mapped with `MapGraphQLPersistedOperations`.                                                                 | Use for trusted document execution by URL. Configure CDN cache keys carefully.         |
+| `/health/live` and `/health/ready`      | ASP.NET Core health endpoints outside GraphQL.                                                                                                      | Use for ALB target groups, ECS health checks, and EKS probes. Do not probe `/graphql`. |
 
-Use split endpoints only when you need separate paths or policies:
+Use split endpoints only if you need separate paths or policies:
 
 ```csharp
 app.MapGraphQLHttp("/graphql");
@@ -183,28 +182,28 @@ app.MapNitroApp("/graphql/ui")
     });
 ```
 
-Keep health checks off the GraphQL endpoint. Probes should not execute GraphQL documents, require CORS headers, or depend on client authentication flows.
+Keep health checks off the GraphQL endpoint. Probes should not execute GraphQL documents, require CORS headers, or depend on client authentication.
 
-# Put ALB, API Gateway, or CloudFront in front of GraphQL
+# Place ALB, API Gateway, or CloudFront in Front of GraphQL
 
-Hot Chocolate chooses response formats and transports from HTTP methods and headers. Your AWS edge must preserve those methods and headers.
+Hot Chocolate determines response formats and transports based on HTTP methods and headers. Your AWS edge must preserve these methods and headers.
 
-| Client behavior                   | Required request shape                                                                               | AWS checks                                                                                                 |
+| Client Behavior                   | Required Request Shape                                                                               | AWS Checks                                                                                                 |
 | --------------------------------- | ---------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
 | Standard queries and mutations    | `POST`, `Content-Type: application/json`, `Accept: application/graphql-response+json`.               | Forward body and `Accept`. Do not cache personalized POST responses.                                       |
 | Cacheable queries or APQ          | `GET` with query string or `extensions`. Hot Chocolate should allow only configured operation types. | Forward query strings and headers that affect auth, tenant, locale, and content negotiation.               |
 | Multipart upload                  | `POST`, multipart form content type, `GraphQL-preflight: 1`.                                         | Preserve the preflight header and align request body limits at every layer.                                |
 | Incremental delivery and batching | `Accept: multipart/mixed`, `text/event-stream`, or `application/jsonl`.                              | Disable buffering where your proxy supports it and test streaming through the full path.                   |
 | WebSocket subscriptions           | `Upgrade: websocket`, `Connection: Upgrade`, and a GraphQL WebSocket subprotocol.                    | Route to an endpoint with `UseWebSockets()` and proxy upgrade support. Align idle timeout and keep-alives. |
-| Auth and CORS                     | `Authorization`, cookies when used, `Origin`, `Access-Control-Request-*`.                            | Forward headers that ASP.NET Core authentication and CORS require. Never cache across auth boundaries.     |
+| Auth and CORS                     | `Authorization`, cookies (if used), `Origin`, `Access-Control-Request-*`.                            | Forward headers required by ASP.NET Core authentication and CORS. Never cache across auth boundaries.      |
 
-ALB is a common fit for long-running ASP.NET Core services, WebSockets, and normal HTTP GraphQL. Set the ALB idle timeout above your expected quiet periods or keep Hot Chocolate keep-alive pings below that timeout. The default Hot Chocolate WebSocket keep-alive interval is 5 seconds. The sample uses 30 seconds as an example value you should align with your path.
+ALB is a common choice for long-running ASP.NET Core services, WebSockets, and standard HTTP GraphQL. Set the ALB idle timeout above your expected quiet periods, or keep Hot Chocolate keep-alive pings below that timeout. The default Hot Chocolate WebSocket keep-alive interval is 5 seconds; the sample uses 30 seconds as an example—adjust as needed.
 
-API Gateway can be valid for simple HTTP GraphQL, especially short queries and mutations. Before you choose it for subscriptions, SSE, incremental delivery, batching, or uploads, confirm the current body size limits, integration timeout, streaming support, and WebSocket API architecture in the AWS documentation.
+API Gateway works for simple HTTP GraphQL, especially short queries and mutations. Before using it for subscriptions, SSE, incremental delivery, batching, or uploads, check AWS documentation for current body size limits, integration timeout, streaming support, and WebSocket API architecture.
 
-CloudFront can front GraphQL, but caching GraphQL responses is safe only when the cache key includes every value that changes the response. For authenticated APIs, avoid caching personalized responses unless your cache policy varies by authorization context and you have tested tenant isolation. GET persisted queries are the most common cacheable shape.
+CloudFront can front GraphQL, but only cache GraphQL responses when the cache key includes every value that changes the response. For authenticated APIs, avoid caching personalized responses unless your cache policy varies by authorization context and you have tested tenant isolation. GET persisted queries are the most common cacheable shape.
 
-Verify transport preservation through AWS, not only against Kestrel:
+Verify that AWS preserves transports, not just Kestrel:
 
 ```bash
 curl -i https://api.example.com/graphql \
@@ -213,23 +212,23 @@ curl -i https://api.example.com/graphql \
   --data '{ "query": "{ __typename }" }'
 ```
 
-Expected headers include a GraphQL JSON content type, and the body should contain:
+Expected headers should include a GraphQL JSON content type, and the body should contain:
 
 ```json
 { "data": { "__typename": "Query" } }
 ```
 
-For streaming, send the same `Accept` header your client uses and confirm the response arrives incrementally. A response that appears only after the whole operation completes usually points to proxy buffering or an unsupported integration path.
+For streaming, use the same `Accept` header as your client and confirm the response arrives incrementally. If the response appears only after the operation completes, proxy buffering or an unsupported integration path is likely the cause.
 
-# Run subscriptions on AWS
+# Run Subscriptions on AWS
 
-In-memory subscriptions work for one instance and local development. On AWS, a subscriber may connect to one task while a mutation publishes on another. Use ElastiCache Redis when events must reach every instance.
+In-memory subscriptions work for a single instance or local development. On AWS, a subscriber may connect to one task while a mutation publishes on another. Use ElastiCache Redis to ensure events reach every instance.
 
 Install the Redis provider:
 
 <PackageInstallation packageName="HotChocolate.Subscriptions.Redis" />
 
-Register one shared `IConnectionMultiplexer` and use Redis subscriptions:
+Register a shared `IConnectionMultiplexer` and enable Redis subscriptions:
 
 ```csharp
 using HotChocolate.Subscriptions;
@@ -251,14 +250,14 @@ builder
         });
 ```
 
-Enable the WebSocket transport when clients use WebSocket subscriptions:
+Enable WebSocket transport if clients use WebSocket subscriptions:
 
 ```csharp
 app.UseWebSockets();
 app.MapGraphQL("/graphql");
 ```
 
-The publishing code does not change when you switch providers:
+Your publishing code does not change when you switch providers:
 
 ```csharp
 public sealed class Mutation
@@ -270,9 +269,7 @@ public sealed class Mutation
         CancellationToken cancellationToken)
     {
         var order = new Order(orderId, status);
-
         await sender.SendAsync("OrderStatusChanged", order, cancellationToken);
-
         return order;
     }
 }
@@ -280,11 +277,11 @@ public sealed class Mutation
 
 Expected behavior: a mutation handled by task A publishes to Redis, and a subscriber connected to task B receives the event.
 
-Use a `TopicPrefix` when multiple environments, services, preview stacks, or tests share one Redis deployment. Configure TLS, authentication, security groups, and Redis endpoints through AWS-managed configuration or secrets. SSE subscriptions do not require `UseWebSockets()`, but they still hold long-running HTTP responses and need timeout and buffering tests.
+Use a `TopicPrefix` if multiple environments, services, preview stacks, or tests share one Redis deployment. Configure TLS, authentication, security groups, and Redis endpoints using AWS-managed configuration or secrets. SSE subscriptions do not require `UseWebSockets()`, but they still use long-running HTTP responses and need timeout and buffering tests.
 
-# Store trusted documents and APQ in Redis when you scale out
+# Store Trusted Documents and APQ in Redis for Scale-Out
 
-Avoid in-memory operation document storage on multi-instance AWS deployments. Requests may route to any task or pod, and deployments restart instances. Redis gives every instance access to the same operation documents.
+Do not use in-memory operation document storage for multi-instance AWS deployments. Requests may route to any task or pod, and deployments restart instances. Redis ensures every instance can access the same operation documents.
 
 Install Redis persisted operation storage:
 
@@ -334,13 +331,13 @@ builder
         queryExpiration: TimeSpan.FromDays(7));
 ```
 
-APQ first asks by hash. If Redis does not contain the document, Hot Chocolate returns a persisted-query-not-found error and the client retries with the full document. After Redis stores it, any instance can execute the hash-only request.
+With APQ, the client first requests by hash. If Redis does not contain the document, Hot Chocolate returns a persisted-query-not-found error and the client retries with the full document. After Redis stores it, any instance can execute the hash-only request.
 
 Align the hash provider with your clients. Hot Chocolate uses MD5 by default for persisted operation document hashes unless you configure another provider, such as SHA-256.
 
-# Configure health checks and startup readiness
+# Configure Health Checks and Startup Readiness
 
-Hot Chocolate v16 builds the schema and request executor eagerly during startup by default. This works well with ALB target groups, ECS health checks, and EKS readiness probes because the app does not become ready until the executor is initialized.
+Hot Chocolate v16 eagerly builds the schema and request executor during startup. This works well with ALB target groups, ECS health checks, and EKS readiness probes because the app is not marked ready until the executor is initialized.
 
 Add health endpoints outside GraphQL:
 
@@ -353,7 +350,7 @@ app.MapHealthChecks("/health/live");
 app.MapHealthChecks("/health/ready");
 ```
 
-Warm frequently used operations before traffic reaches a new instance:
+Warm up frequently used operations before traffic reaches a new instance:
 
 ```csharp
 using HotChocolate.Execution;
@@ -367,20 +364,19 @@ builder
             .SetDocument("{ __typename }")
             .MarkAsWarmupRequest()
             .Build();
-
         await executor.ExecuteAsync(request, cancellationToken);
     });
 ```
 
 Warmup tasks block startup. Set ECS health check grace periods, ALB target group thresholds, EKS readiness initial delays, and rollout settings long enough for schema creation and warmup. Keep liveness separate from readiness. Do not make liveness depend on databases or Redis unless you want AWS to restart the process when that dependency fails.
 
-Avoid `LazyInitialization` in production unless you have chosen that cold-start trade-off. Lazy initialization moves schema construction to the first request and can make new targets look healthy before they can answer GraphQL quickly.
+Avoid `LazyInitialization` in production unless you accept the cold-start trade-off. Lazy initialization moves schema construction to the first request and can make new targets appear healthy before they can answer GraphQL quickly.
 
-# Send Hot Chocolate telemetry to AWS observability
+# Send Hot Chocolate Telemetry to AWS Observability
 
 Hot Chocolate emits OpenTelemetry spans through its diagnostics package. Export OTLP to an ADOT Collector running as an ECS sidecar, EKS daemonset, EKS sidecar, or managed collector, then route to CloudWatch, X-Ray-compatible backends, or another tracing system.
 
-Install the packages:
+Install the required packages:
 
 <PackageInstallation packageName="HotChocolate.Diagnostics" />
 
@@ -418,26 +414,26 @@ builder.Services
     });
 ```
 
-Set the OTLP endpoint with environment configuration, for example `OTEL_EXPORTER_OTLP_ENDPOINT=http://adot-collector:4317` in ECS or EKS. Expected result: GraphQL spans appear in your AWS telemetry pipeline with attributes such as operation type, operation name, document hash, and trusted document id when available.
+Set the OTLP endpoint using environment configuration, for example `OTEL_EXPORTER_OTLP_ENDPOINT=http://adot-collector:4317` in ECS or EKS. You should see GraphQL spans in your AWS telemetry pipeline with attributes such as operation type, operation name, document hash, and trusted document id when available.
 
-Keep span cardinality low. Enable document text, variables, detailed request data, or field-level spans only for targeted debugging because they add overhead and can expose sensitive data.
+Keep span cardinality low. Enable document text, variables, detailed request data, or field-level spans only for targeted debugging, as these add overhead and may expose sensitive data.
 
-# Size and scale the service safely
+# Size and Scale the Service Safely
 
-Use Hot Chocolate controls before you add more AWS capacity. These controls reduce per-instance risk and make scaling behavior more predictable.
+Use Hot Chocolate controls before increasing AWS capacity. These controls reduce per-instance risk and make scaling more predictable.
 
-| Control               | Example                                                             | Why it matters on AWS                                                                                      |
-| --------------------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| Execution concurrency | `options.MaxConcurrentExecutions = 64`                              | Caps concurrent GraphQL executions per instance. Avoid `null` or `0` unless you deliberately want no gate. |
-| Execution timeout     | `options.ExecutionTimeout = TimeSpan.FromSeconds(10)`               | Keeps resolver work below client, ALB, API Gateway, and downstream timeouts.                               |
-| Parser limits         | `ModifyParserOptions`                                               | Rejects abusive documents before validation and execution.                                                 |
-| Validation limits     | depth, fragment visits, field merge comparisons, field-cycle limits | Reduces CPU and memory pressure from adversarial queries.                                                  |
-| Cost analysis         | default security policy or explicit cost settings                   | Protects public endpoints from expensive but valid documents.                                              |
-| Pagination limits     | connection and collection settings                                  | Prevents large result sets from turning into memory and downstream pressure.                               |
-| Batching limits       | `Batching` and `MaxBatchSize`                                       | Keeps batch requests bounded and tests streaming response support.                                         |
-| Persisted operations  | trusted documents or APQ                                            | Reduces payload size and can limit public clients to known operations.                                     |
+| Control               | Example                                                             | Why It Matters on AWS                                                                         |
+| --------------------- | ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Execution concurrency | `options.MaxConcurrentExecutions = 64`                              | Caps concurrent GraphQL executions per instance. Avoid `null` or `0` unless you want no gate. |
+| Execution timeout     | `options.ExecutionTimeout = TimeSpan.FromSeconds(10)`               | Keeps resolver work below client, ALB, API Gateway, and downstream timeouts.                  |
+| Parser limits         | `ModifyParserOptions`                                               | Rejects abusive documents before validation and execution.                                    |
+| Validation limits     | depth, fragment visits, field merge comparisons, field-cycle limits | Reduces CPU and memory pressure from adversarial queries.                                     |
+| Cost analysis         | default security policy or explicit cost settings                   | Protects public endpoints from expensive but valid documents.                                 |
+| Pagination limits     | connection and collection settings                                  | Prevents large result sets from causing memory and downstream pressure.                       |
+| Batching limits       | `Batching` and `MaxBatchSize`                                       | Keeps batch requests bounded and tests streaming response support.                            |
+| Persisted operations  | trusted documents or APQ                                            | Reduces payload size and can limit public clients to known operations.                        |
 
-Example tuning fragment:
+Example tuning:
 
 ```csharp
 builder
@@ -461,9 +457,9 @@ builder
     });
 ```
 
-Scale on the signals that match your workload: CPU, memory, request latency, queued requests, downstream saturation, Redis pub/sub throughput, active subscription connection count, and error rate. For subscription-heavy services, connection count and reconnect storms during deployment can matter as much as CPU.
+Scale based on signals that match your workload: CPU, memory, request latency, queued requests, downstream saturation, Redis pub/sub throughput, active subscription connection count, and error rate. For subscription-heavy services, connection count and reconnect storms during deployment can be as important as CPU.
 
-# Manage auth, CORS, and secrets for AWS environments
+# Manage Auth, CORS, and Secrets in AWS Environments
 
 Use ASP.NET Core configuration so the same artifact runs in every environment with different AWS-provided settings.
 
@@ -503,20 +499,20 @@ builder.Services.AddCors(options =>
 });
 ```
 
-Store Redis, database, auth, signing, and API secrets in AWS Secrets Manager or Systems Manager Parameter Store, then inject them as environment variables or configuration providers. Do not hard-code Redis endpoints, signing keys, client secrets, or authority values in source code or images. Rotate secrets without rebuilding images where possible.
+Store Redis, database, auth, signing, and API secrets in AWS Secrets Manager or Systems Manager Parameter Store, then inject them as environment variables or configuration providers. Do not hard-code Redis endpoints, signing keys, client secrets, or authority values in source code or images. Rotate secrets without rebuilding images when possible.
 
-If you use cookies, review `SameSite`, `Secure`, forwarded headers, CloudFront header forwarding, and cache policies. Configure CORS for browser clients. Do not broaden production CORS rules because Nitro needs access. Keep Nitro disabled publicly or protect it with network and authorization controls.
+If you use cookies, review `SameSite`, `Secure`, forwarded headers, CloudFront header forwarding, and cache policies. Configure CORS for browser clients. Do not broaden production CORS rules for Nitro. Keep Nitro disabled publicly or protect it with network and authorization controls.
 
-# Handle uploads and body limits
+# Handle Uploads and Body Limits
 
-Prefer presigned S3 upload URLs for large files. Let GraphQL authorize and create upload metadata, then let the client upload bytes directly to S3.
+For large files, prefer presigned S3 upload URLs. Let GraphQL authorize and create upload metadata, then have the client upload bytes directly to S3.
 
-| Approach         | Choose it when                                                               | AWS and Hot Chocolate checks                                                                                                                  |
-| ---------------- | ---------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| Presigned S3 URL | Files are large, uploads are frequent, or clients can upload directly to S3. | GraphQL mutation returns URL and metadata. S3 receives file bytes. Hot Chocolate request size stays small.                                    |
-| `Upload` scalar  | Files are small and must flow through the GraphQL server.                    | Register `UploadType`, enable multipart, require `GraphQL-preflight: 1`, and align AWS, Kestrel, ASP.NET Core form, and Hot Chocolate limits. |
+| Approach         | Use When                                                               | AWS and Hot Chocolate Checks                                                                                                                  |
+| ---------------- | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Presigned S3 URL | Files are large, uploads are frequent, or clients can upload directly. | GraphQL mutation returns URL and metadata. S3 receives file bytes. Hot Chocolate request size stays small.                                    |
+| `Upload` scalar  | Files are small and must flow through the GraphQL server.              | Register `UploadType`, enable multipart, require `GraphQL-preflight: 1`, and align AWS, Kestrel, ASP.NET Core form, and Hot Chocolate limits. |
 
-Configure multipart only when your schema uses uploads:
+Enable multipart only when your schema supports uploads:
 
 ```csharp
 using Microsoft.AspNetCore.Http.Features;
@@ -554,13 +550,13 @@ Expected response for a sample boolean mutation:
 { "data": { "uploadFile": true } }
 ```
 
-A `413 Payload Too Large` can happen before Hot Chocolate sees the request. Align the AWS edge or proxy body limit, Kestrel request body size, `FormOptions.MultipartBodyLengthLimit`, `AddGraphQL(maxAllowedRequestSize)`, and application validation.
+A `413 Payload Too Large` error can occur before Hot Chocolate processes the request. Align the AWS edge or proxy body limit, Kestrel request body size, `FormOptions.MultipartBodyLengthLimit`, `AddGraphQL(maxAllowedRequestSize)`, and application validation.
 
-# Troubleshoot AWS deployment failures
+# Troubleshoot AWS Deployment Failures
 
-Use the symptom to inspect both the Hot Chocolate setting and the AWS layer.
+When you encounter issues, check both Hot Chocolate settings and the AWS layer.
 
-| Symptom                                            | Likely Hot Chocolate cause                                                                  | Likely AWS or proxy cause                                                                               | Next check                                                                                       |
+| Symptom                                            | Likely Hot Chocolate Cause                                                                  | Likely AWS or Proxy Cause                                                                               | Next Check                                                                                       |
 | -------------------------------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
 | `413 Payload Too Large`                            | `AddGraphQL(maxAllowedRequestSize)` or `FormOptions` is lower than the request.             | ALB, API Gateway, CloudFront, ingress, or Kestrel rejects the body first.                               | Align every body limit. Prefer presigned S3 URLs for large files.                                |
 | `400` on upload                                    | Missing `GraphQL-preflight: 1`, multipart disabled, or invalid multipart map.               | Header stripped or body rewritten.                                                                      | Send the documented `curl` request through the public AWS URL.                                   |
@@ -573,9 +569,9 @@ Use the symptom to inspect both the Hot Chocolate setting and the AWS layer.
 | Nitro or schema is visible publicly                | `Tool.Enable`, `EnableSchemaRequests`, or `EnableSchemaFileSupport` is enabled.             | Wrong environment variable, route, or CloudFront behavior exposes the path.                             | Verify production environment settings and endpoint options on the public URL.                   |
 | Auth works locally but fails behind AWS            | CORS order, missing forwarded headers, or auth scheme configuration.                        | `Authorization` stripped, cookies not forwarded, cache key omits auth, or `SameSite`/`Secure` mismatch. | Inspect request headers at the app and test preflight from the browser origin.                   |
 
-# Next steps
+# Next Steps
 
-Use these pages for the Hot Chocolate details behind each AWS decision:
+For more details on Hot Chocolate features and deployment options, see:
 
 - [ASP.NET Core hosting](/docs/hotchocolate/v16/operations/deployment/aspnetcore-hosting)
 - [Docker deployment](/docs/hotchocolate/v16/operations/deployment/docker)

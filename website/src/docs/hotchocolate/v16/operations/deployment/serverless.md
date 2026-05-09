@@ -2,22 +2,22 @@
 title: Serverless deployments
 ---
 
-Serverless and scale-to-zero platforms can run a Hot Chocolate v16 GraphQL server well when the endpoint is stateless, HTTP-based, and designed around provider limits. They are a poor fit for workloads that need long-lived connections, local durable files, large request bodies, or work that runs close to the platform timeout.
+Hot Chocolate v16 works well on serverless and scale-to-zero platforms when your GraphQL endpoint is stateless, HTTP-based, and designed with provider limits in mind. Serverless is not a good fit for workloads that require long-lived connections, local file storage, large request bodies, or operations that run near the platform timeout.
 
-This page focuses on Hot Chocolate server operations. Fusion gateways are out of scope.
+This page covers Hot Chocolate server deployments only. Fusion gateways are not included.
 
 # Prerequisites
 
-Before you deploy Hot Chocolate to a serverless platform, make these decisions explicit:
+Before deploying Hot Chocolate to a serverless platform, make these decisions clear:
 
 - You have a Hot Chocolate v16 server running on ASP.NET Core, or you use the Hot Chocolate Azure Functions integration.
-- You know your provider limits for request body size, request duration, idle streaming, WebSockets, file system persistence, and instance pre-warming.
-- You can store durable state outside the process, for example in Redis, Azure Blob Storage, object storage, a database, or another provider-managed service.
+- You understand your provider’s limits for request body size, request duration, idle streaming, WebSockets, file system persistence, and instance pre-warming.
+- You can store durable state outside the process, such as in Redis, Azure Blob Storage, object storage, a database, or another managed service.
 - You know whether the endpoint serves public clients, first-party clients, or trusted back-end clients. This affects persisted operations, GET requests, Nitro, CORS, authentication, and request limits.
 
-# Decide whether serverless fits your GraphQL workload
+# Is serverless right for your GraphQL workload?
 
-Use serverless for bounded HTTP query and mutation workloads. Split out workloads that need long-lived transport, large uploads, or background processing.
+Serverless is best for bounded HTTP query and mutation workloads. Move workloads that need long-lived transport, large uploads, or background processing to other services.
 
 | Workload                           | Serverless fit            | Hot Chocolate action                                                                            | Platform question                                           |
 | ---------------------------------- | ------------------------- | ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
@@ -28,11 +28,11 @@ Use serverless for bounded HTTP query and mutation workloads. Split out workload
 | Subscriptions, WebSockets, and SSE | Poor or platform-specific | Use an always-on service or a managed real-time gateway.                                        | What are the connection, idle, and maximum duration limits? |
 | Long-running and batch operations  | Poor                      | Queue a job and expose a status query.                                                          | What is the maximum invocation duration?                    |
 
-A serverless instance is disposable. It may start cold, handle one or more requests, scale out, and disappear without notice. Design the GraphQL endpoint so correctness does not depend on process memory, local disk, or post-response work.
+Serverless instances are disposable. They may start cold, handle one or more requests, scale out, and disappear at any time. Design your GraphQL endpoint so it does not depend on process memory, local disk, or post-response work.
 
-# Start from a minimal serverless-safe endpoint
+# Start with a minimal serverless-safe endpoint
 
-Most serverless ASP.NET Core adapters wrap the same application shape. Start with an HTTP-only endpoint when your platform does not support WebSockets, or when you do not want Nitro, schema SDL downloads, or WebSocket middleware on the public route.
+Most serverless ASP.NET Core adapters use the same application structure. Begin with an HTTP-only endpoint if your platform does not support WebSockets, or if you do not want Nitro, schema SDL downloads, or WebSocket middleware on the public route.
 
 ```csharp
 using HotChocolate.AspNetCore;
@@ -72,9 +72,9 @@ public sealed class Query
 }
 ```
 
-With this configuration, `/graphql` accepts GraphQL HTTP POST requests and GET queries. `MapGraphQLHttp()` maps only the HTTP transport, so it does not serve Nitro, SDL downloads, or WebSocket subscriptions.
+This configuration allows `/graphql` to accept GraphQL HTTP POST requests and GET queries. `MapGraphQLHttp()` maps only the HTTP transport, so it does not serve Nitro, SDL downloads, or WebSocket subscriptions.
 
-Verify the endpoint with a small POST request:
+Test the endpoint with a small POST request:
 
 ```bash
 curl http://localhost:5000/graphql \
@@ -92,7 +92,7 @@ Expected response:
 }
 ```
 
-Use `MapGraphQL()` only when you intentionally want the combined endpoint behavior. The combined endpoint handles HTTP, multipart, WebSockets when WebSocket middleware is enabled, Nitro in browsers, and schema SDL requests via `?sdl`. For production, make those choices explicit:
+Use `MapGraphQL()` only when you want the combined endpoint behavior. The combined endpoint handles HTTP, multipart, WebSockets (when WebSocket middleware is enabled), Nitro in browsers, and schema SDL requests via `?sdl`. For production, make these choices explicit:
 
 ```csharp
 app.MapGraphQL("/graphql")
@@ -104,11 +104,11 @@ app.MapGraphQL("/graphql")
     });
 ```
 
-`AddGraphQL(maxAllowedRequestSize: ...)` rejects request bodies that exceed the configured size before parsing. The ASP.NET Core default is `20 * 1000 * 1024` bytes. Lower it when your clients use small operations or persisted operations.
+`AddGraphQL(maxAllowedRequestSize: ...)` rejects request bodies that exceed the configured size before parsing. The ASP.NET Core default is `20 * 1000 * 1024` bytes. Lower this value if your clients use small or persisted operations.
 
-# Use Azure Functions integration when that is your host
+# Use Azure Functions integration when hosting on Azure
 
-Hot Chocolate includes Azure Functions integration packages. Use these APIs instead of mixing ASP.NET Core endpoint mapping into an Azure Functions app.
+Hot Chocolate provides Azure Functions integration packages. Use these APIs instead of mixing ASP.NET Core endpoint mapping into an Azure Functions app.
 
 For in-process Azure Functions, register GraphQL in the Functions host builder:
 
@@ -135,7 +135,7 @@ public sealed class Startup : FunctionsStartup
 }
 ```
 
-A function can execute the request through `IGraphQLRequestExecutor`:
+A function can execute requests through `IGraphQLRequestExecutor`:
 
 ```csharp
 using HotChocolate.AzureFunctions;
@@ -189,11 +189,11 @@ public sealed class GraphQLFunction(IGraphQLRequestExecutor executor)
 }
 ```
 
-The Hot Chocolate Azure Functions default route is `/api/graphql`. The default maximum request size is `20 * 1000 * 1000` bytes. `ModifyFunctionOptions` configures the same `GraphQLServerOptions` used by ASP.NET Core endpoints, including Nitro, schema requests, GET, multipart, and WebSocket options. Azure trigger authorization, plans, networking, managed identity, and deployment remain Azure platform concerns.
+The default route for Hot Chocolate Azure Functions is `/api/graphql`. The default maximum request size is `20 * 1000 * 1000` bytes. `ModifyFunctionOptions` configures the same `GraphQLServerOptions` as ASP.NET Core endpoints, including Nitro, schema requests, GET, multipart, and WebSocket options. Azure trigger authorization, plans, networking, managed identity, and deployment remain Azure platform concerns.
 
-# Warm the schema without doing real work
+# Warm the schema without executing real work
 
-Hot Chocolate v16 eagerly constructs the schema and request executor during startup. That catches schema errors before traffic and avoids schema construction on the first request. You can also warm selected documents and operation caches:
+Hot Chocolate v16 eagerly constructs the schema and request executor at startup. This catches schema errors before traffic arrives and avoids schema construction on the first request. You can also warm up selected documents and operation caches:
 
 ```csharp
 using HotChocolate.Execution;
@@ -213,11 +213,11 @@ builder
     });
 ```
 
-Warmup tasks block startup. Keep them bounded so a new serverless instance can start within the provider limit. Include the operation name when clients send one because the operation name is part of the operation cache key.
+Warmup tasks block startup. Keep them fast so a new serverless instance can start within the provider’s limit. Always include the operation name if clients send one, because the operation name is part of the operation cache key.
 
 `MarkAsWarmupRequest()` primes parsing, validation, and operation preparation without executing resolvers. It also skips security measures such as persisted-operation enforcement. Do not use warmup requests as a security test.
 
-If you implement `IRequestExecutorWarmupTask`, use `ApplyOnlyOnStartup` when a task should not run on runtime schema rebuilds. Avoid `LazyInitialization` on serverless unless startup limits force it and you accept slower first requests.
+If you implement `IRequestExecutorWarmupTask`, use `ApplyOnlyOnStartup` for tasks that should not run on runtime schema rebuilds. Avoid `LazyInitialization` on serverless unless startup limits force it and you accept slower first requests.
 
 # Treat every instance as disposable
 
@@ -231,13 +231,13 @@ Serverless platforms can recycle instances at any time and scale requests across
 | Local uploads or temporary files            | Object storage and presigned upload URLs                                                                 |
 | Singleton mutable counters or session state | A database, distributed cache, or idempotency store                                                      |
 
-DataLoader is safe in this model because it is a per-request cache. Each GraphQL request gets fresh DataLoader instances and an empty cache. DataLoader reduces N+1 queries within one request, but it is not a cross-request cache and it is not shared across instances.
+DataLoader is safe in this model because it is a per-request cache. Each GraphQL request gets fresh DataLoader instances and an empty cache. DataLoader reduces N+1 queries within a single request, but it is not a cross-request cache and is not shared across instances.
 
 Store sessions, idempotency records, persisted operation documents, subscription events, uploaded files, and domain data in external services.
 
-# Prefer trusted operations for smaller and safer requests
+# Prefer trusted operations for smaller, safer requests
 
-Trusted operations, also called persisted operations, let first-party clients execute a pre-registered operation by ID. This reduces request size and lets you block dynamic documents in production.
+Trusted operations (persisted operations) let first-party clients execute a pre-registered operation by ID. This reduces request size and allows you to block dynamic documents in production.
 
 <PackageInstallation packageName="HotChocolate.PersistedOperations.Redis" />
 
@@ -264,11 +264,11 @@ Clients can then call a persisted operation route such as:
 GET /graphql/operations/0c95d31ca29272475bf837f944f4e513/GetViewer
 ```
 
-Use durable shared storage for serverless. Redis and Azure Blob Storage are good candidates. Filesystem storage is safe only when the mount is shared, durable, and operationally validated. In-memory APQ storage is useful for local development, but it does not survive restarts and each scaled instance has its own cache.
+Always use durable shared storage for serverless. Redis and Azure Blob Storage are good options. Filesystem storage is safe only if the mount is shared, durable, and operationally validated. In-memory APQ storage is useful for local development, but it does not survive restarts and each scaled instance has its own cache.
 
-For mixed or third-party clients, [automatic persisted operations](/docs/hotchocolate/v16/performance/automatic-persisted-operations) can work when the storage is shared. Plan for the first request of a new operation to return a persisted-query-not-found response, then for the client to retry with the full document.
+For mixed or third-party clients, automatic persisted operations can work if the storage is shared. Plan for the first request of a new operation to return a persisted-query-not-found response, then for the client to retry with the full document.
 
-# Keep request bodies and uploads inside platform limits
+# Keep request bodies and uploads within platform limits
 
 Set limits at every layer that can reject the request: the provider, reverse proxy, ASP.NET Core form parsing, and Hot Chocolate request parsing.
 
@@ -310,11 +310,11 @@ The client flow is:
 2. Upload the bytes directly to object storage using `uploadUrl`.
 3. Call another mutation, or rely on storage events, to attach the uploaded file to domain data.
 
-This keeps large bodies out of the GraphQL invocation, avoids buffering pressure, and lets object storage enforce upload limits. If you intentionally use multipart GraphQL uploads, keep `EnforceMultipartRequestsPreflightHeader = true` and require clients to send `GraphQL-Preflight: 1`.
+This approach keeps large bodies out of the GraphQL invocation, avoids buffering pressure, and lets object storage enforce upload limits. If you intentionally use multipart GraphQL uploads, keep `EnforceMultipartRequestsPreflightHeader = true` and require clients to send `GraphQL-Preflight: 1`.
 
 # Align GraphQL timeouts with provider timeouts
 
-Hot Chocolate aborts GraphQL requests after 30 seconds by default. The timeout is not enforced while a debugger is attached. On serverless, set the GraphQL timeout below the platform invocation timeout so Hot Chocolate can return a GraphQL error and cancel downstream work before the platform terminates the process.
+Hot Chocolate aborts GraphQL requests after 30 seconds by default. This timeout is not enforced while a debugger is attached. On serverless, set the GraphQL timeout below the platform invocation timeout so Hot Chocolate can return a GraphQL error and cancel downstream work before the platform terminates the process.
 
 ```csharp
 builder

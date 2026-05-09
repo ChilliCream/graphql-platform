@@ -2,23 +2,23 @@
 title: "Caching for performance"
 ---
 
-Caching can make a Hot Chocolate server faster, but every cache must have a clear boundary. Before you add one, answer three questions:
+Caching can significantly improve the performance of a Hot Chocolate server, but every cache must have a well-defined boundary. Before adding any cache, ask yourself:
 
-1. What exactly is cached?
-2. Who is allowed to reuse it?
-3. How does it expire or get invalidated?
+1. What data will be cached?
+2. Who can reuse this cached data?
+3. When and how does the cache expire or get invalidated?
 
-Hot Chocolate v16 gives you request-scoped DataLoader caching, parsed document caches, prepared operation caches, persisted operation storage, and cache-control metadata for HTTP responses. It does not provide a built-in response-body cache. Complete response reuse happens in browsers, reverse proxies, CDNs, or application-owned caches that you configure around the GraphQL server.
+Hot Chocolate v16 provides several caching mechanisms: request-scoped DataLoader caching, parsed document caches, prepared operation caches, persisted operation storage, and cache-control metadata for HTTP responses. However, it does not include a built-in response-body cache. Full response reuse is handled by browsers, reverse proxies, CDNs, or application-level caches that you configure around your GraphQL server.
 
 # Prerequisites
 
-This page assumes that you operate a Hot Chocolate v16 ASP.NET Core server and understand queries, resolvers, and basic hosting.
+This guide assumes you are running a Hot Chocolate v16 ASP.NET Core server and are familiar with queries, resolvers, and basic hosting concepts.
 
-Examples focus on query operations. Mutations change server state and should not be stored as shared HTTP responses. Subscriptions are long-running streams and are not HTTP-cacheable in the same way.
+The examples here focus on query operations. Mutations change server state and should not be cached as shared HTTP responses. Subscriptions are long-running streams and are not HTTP-cacheable in the same way.
 
-Fusion gateway and subgraph cache composition are out of scope for this page.
+Fusion gateway and subgraph cache composition are not covered on this page.
 
-Start from a normal server setup:
+Begin with a standard server setup:
 
 ```csharp
 builder.Services
@@ -26,31 +26,31 @@ builder.Services
     .AddQueryType<Query>();
 ```
 
-Install `HotChocolate.Caching` only when you want Hot Chocolate to compute cache metadata and emit HTTP `Cache-Control` and `Vary` headers:
+Add the `HotChocolate.Caching` package only if you want Hot Chocolate to compute cache metadata and emit HTTP `Cache-Control` and `Vary` headers:
 
 ```bash
 dotnet add package HotChocolate.Caching
 ```
 
-# Pick the cache that matches the reuse problem
+# Choose the Right Cache Layer
 
-Do not add every cache at once. Pick the layer that matches the work you want to avoid.
+Don’t add every cache at once. Select the layer that matches the specific work you want to avoid.
 
 | Problem                                        | Layer                             | Scope                     | Owner                             | Invalidates when                                                       | Watch out                                                                           |
 | ---------------------------------------------- | --------------------------------- | ------------------------- | --------------------------------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| Duplicate key loads inside one GraphQL request | DataLoader cache                  | One request               | Hot Chocolate and GreenDonut      | Request ends                                                           | It does not help the next request.                                                  |
+| Duplicate key loads inside one GraphQL request | DataLoader cache                  | One request               | Hot Chocolate and GreenDonut      | Request ends                                                           | Does not help the next request.                                                     |
 | Repeated parsing of the same GraphQL document  | Document cache                    | One executor instance     | Hot Chocolate                     | Capacity eviction or executor rebuild                                  | Dynamic query text can churn the cache.                                             |
 | Repeated compilation of the same operation     | Prepared operation cache          | One executor instance     | Hot Chocolate                     | Capacity eviction or executor rebuild                                  | Stable operation IDs improve reuse.                                                 |
-| Sending known operations by ID                 | Persisted operation storage       | Storage backend           | Your deployment and Hot Chocolate | Deployment, versioning, TTL, or storage lifecycle                      | It stores GraphQL documents, not JSON results.                                      |
+| Sending known operations by ID                 | Persisted operation storage       | Storage backend           | Your deployment and Hot Chocolate | Deployment, versioning, TTL, or storage lifecycle                      | Stores GraphQL documents, not JSON results.                                         |
 | Expensive domain data reused across requests   | Resolver or domain cache          | Your application boundary | Your application                  | Writes, events, TTLs, or data-platform invalidation                    | Include authorization, tenant, locale, and arguments in keys when they affect data. |
 | Complete public query responses                | HTTP, reverse proxy, or CDN cache | Browser, proxy, or CDN    | Infrastructure                    | TTL, purge, or cache-key change                                        | Highest privacy risk. Headers apply to the whole GraphQL response.                  |
 | Records in the client UI                       | Client cache                      | One client application    | Client framework                  | Fetch policy, normalized-store updates, refetch, or garbage collection | Server/CDN invalidation does not update every client store.                         |
 
-A slow product catalog query might need more than one layer, but each layer solves a different problem. Use DataLoader for N+1 fan-out, persisted operations for stable operation identity, domain caches for reusable read models, and HTTP/CDN caching only for complete responses that are safe to reuse.
+A slow product catalog query might require multiple cache layers, but each layer addresses a different concern. Use DataLoader for N+1 fan-out, persisted operations for stable operation identity, domain caches for reusable read models, and HTTP/CDN caching only for complete responses that are safe to reuse.
 
-# Use DataLoader for repeated keys inside one request
+# Use DataLoader for Repeated Keys Within a Request
 
-DataLoader is the safest first cache for GraphQL N+1 problems. It batches key lookups and caches loaded values for the duration of one operation.
+DataLoader is the safest first cache for solving GraphQL N+1 problems. It batches key lookups and caches loaded values for the duration of a single operation.
 
 ```csharp
 using Microsoft.EntityFrameworkCore;

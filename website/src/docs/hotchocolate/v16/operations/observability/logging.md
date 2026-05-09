@@ -2,21 +2,21 @@
 title: Production Logging
 ---
 
-This page shows how to operate Hot Chocolate v16 logging safely in production. You use the normal ASP.NET Core logging pipeline for hosting and application logs, then add Hot Chocolate diagnostic listeners or OpenTelemetry instrumentation when you need GraphQL request, resolver, validation, and DataLoader context.
+This guide explains how to set up safe, effective logging for Hot Chocolate v16 in production. You will use the standard ASP.NET Core logging pipeline for host and application logs, and add Hot Chocolate diagnostic listeners or OpenTelemetry instrumentation to capture GraphQL-specific context such as requests, resolvers, validation, and DataLoader activity.
 
-Fusion gateway diagnostics use separate instrumentation and are outside the scope of this page.
+Fusion gateway diagnostics use different instrumentation and are not covered here.
 
 # Prerequisites
 
-Choose the setup that matches your goal.
+Start by choosing the setup that matches your needs:
 
-| Goal                              | Required packages                                               | Configure                                                                                                   |
-| --------------------------------- | --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| ASP.NET Core and application logs | Your normal ASP.NET Core logging providers                      | `Logging` in `appsettings.json`, `ILogger<T>` in your services                                              |
-| GraphQL request lifecycle logs    | Hot Chocolate server packages                                   | `ExecutionDiagnosticEventListener`, `ServerDiagnosticEventListener`, or `DataLoaderDiagnosticEventListener` |
-| Logs correlated with traces       | `HotChocolate.Diagnostics`, OpenTelemetry packages, an exporter | `.AddInstrumentation()`, `AddOpenTelemetry`, `AddHotChocolateInstrumentation()`                             |
+| Goal                              | Required packages                                               | How to configure                                                                                                     |
+| --------------------------------- | --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| ASP.NET Core and application logs | Your usual ASP.NET Core logging providers                       | Configure `Logging` in `appsettings.json`, use `ILogger<T>` in your services                                         |
+| GraphQL request lifecycle logs    | Hot Chocolate server packages                                   | Register `ExecutionDiagnosticEventListener`, `ServerDiagnosticEventListener`, or `DataLoaderDiagnosticEventListener` |
+| Logs correlated with traces       | `HotChocolate.Diagnostics`, OpenTelemetry packages, an exporter | Use `.AddInstrumentation()`, `AddOpenTelemetry`, and `AddHotChocolateInstrumentation()`                              |
 
-For OpenTelemetry examples, add the packages you use in production:
+For OpenTelemetry, add the following packages:
 
 ```bash
 dotnet add package HotChocolate.Diagnostics
@@ -26,11 +26,11 @@ dotnet add package OpenTelemetry.Instrumentation.Http
 dotnet add package OpenTelemetry.Exporter.OpenTelemetryProtocol
 ```
 
-You also need access to `Program.cs` and your logging configuration, usually `appsettings.json`.
+You will also need access to `Program.cs` and your logging configuration, typically in `appsettings.json`.
 
-# Configure a safe production logging baseline
+# Setting a Safe Production Logging Baseline
 
-Start with normal ASP.NET Core logging and server-side exception logging. Keep exception details out of client GraphQL responses outside development.
+Begin with standard ASP.NET Core logging and server-side exception logging. In production, do not expose exception details in GraphQL responses.
 
 ```json
 {
@@ -96,7 +96,7 @@ public sealed class LoggingErrorFilter : IErrorFilter
 }
 ```
 
-Expected client response for an unhandled resolver exception:
+When an unhandled resolver exception occurs, the client receives:
 
 ```json
 {
@@ -115,19 +115,19 @@ Expected client response for an unhandled resolver exception:
 }
 ```
 
-Your server log contains the exception type and stack trace. The GraphQL response contains a stable, safe message and code. Do not log variables, raw documents, headers, cookies, or authorization tokens in this baseline.
+The server log will contain the exception type and stack trace, while the GraphQL response returns a stable, safe message and code. Do not log variables, raw documents, headers, cookies, or authorization tokens in this baseline.
 
-See [Error Handling](/docs/hotchocolate/v16/guides/error-handling), [Errors](/docs/hotchocolate/v16/api-reference/errors), and [Options Reference](/docs/hotchocolate/v16/api-reference/options) for the client-facing error model and `IncludeExceptionDetails` option.
+For more on error handling and client-facing error models, see the [Error Handling](/docs/hotchocolate/v16/guides/error-handling), [Errors](/docs/hotchocolate/v16/api-reference/errors), and [Options Reference](/docs/hotchocolate/v16/api-reference/options) pages.
 
-# Understand what Hot Chocolate logs by default
+# What Hot Chocolate Logs by Default
 
-Hot Chocolate v16 does not require a special logging provider. ASP.NET Core request logging still records HTTP method, path, status code, routing failures, and unhandled ASP.NET Core pipeline exceptions for the `/graphql` endpoint.
+Hot Chocolate v16 does not require a special logging provider. ASP.NET Core request logging continues to record HTTP method, path, status code, routing failures, and unhandled pipeline exceptions for the `/graphql` endpoint.
 
-GraphQL operation details are different. Operation names, document hashes, validation failures, resolver timing, and DataLoader batches are exposed through Hot Chocolate diagnostic events and OpenTelemetry activities. Do not expect a category filter such as `Logging:LogLevel:HotChocolate` to create a stream of GraphQL request lifecycle logs.
+GraphQL operation details—such as operation names, document hashes, validation failures, resolver timing, and DataLoader batches—are available through Hot Chocolate diagnostic events and OpenTelemetry activities. Setting a category filter like `Logging:LogLevel:HotChocolate` will not produce a stream of GraphQL request lifecycle logs.
 
-Schema validation can produce internal Hot Chocolate validation log entries, such as `HCV0001`, during schema construction. Those entries are not the production request telemetry surface.
+Schema validation may produce internal log entries (e.g., `HCV0001`) during schema construction, but these are not part of the production request telemetry.
 
-Use category filters for the hosting and application logs you already have:
+Continue to use category filters for your existing host and application logs:
 
 ```json
 {
@@ -141,11 +141,11 @@ Use category filters for the hosting and application logs you already have:
 }
 ```
 
-If you need GraphQL operation fields in logs, add a diagnostic listener or OpenTelemetry instrumentation.
+If you need GraphQL operation fields in your logs, add a diagnostic listener or OpenTelemetry instrumentation.
 
-# Add GraphQL request context to log scopes
+# Adding GraphQL Request Context to Log Scopes
 
-Use an execution diagnostic listener to attach safe GraphQL identifiers to a logging scope. The scope is active while Hot Chocolate executes the GraphQL request.
+To include safe GraphQL identifiers in your log scopes, use an execution diagnostic listener. The scope remains active for the duration of the GraphQL request.
 
 ```csharp
 // Program.cs
@@ -222,7 +222,7 @@ public sealed class GraphQLLoggingListener : ExecutionDiagnosticEventListener
 }
 ```
 
-Expected structured log properties:
+This produces structured log properties like:
 
 ```text
 Message="GraphQL request completed in 42.7 ms"
@@ -233,13 +233,13 @@ GraphQLDocumentId="GetViewer"
 ElapsedMilliseconds=42.7
 ```
 
-Diagnostic listeners are created once and handlers run synchronously as part of request execution. Keep listener work small, use structured fields, and enqueue expensive export work to a background service. Avoid raw `context.Request.Document`, variables, extensions, and headers in production logs.
+Diagnostic listeners are created once, and their handlers run synchronously during request execution. Keep listener logic lightweight, use structured fields, and offload expensive work to background services. Avoid logging raw documents, variables, extensions, or headers in production.
 
-Operation type is available as the `graphql.operation.type` OpenTelemetry attribute after Hot Chocolate resolves the operation. Prefer OpenTelemetry spans for that field unless your custom listener records it later in the execution pipeline.
+The operation type is available as the `graphql.operation.type` OpenTelemetry attribute after Hot Chocolate resolves the operation. Prefer OpenTelemetry spans for this field unless your custom listener records it later in the pipeline.
 
-# Log request, validation, resolver, subscription, and DataLoader failures
+# Logging Failures: Requests, Validation, Resolvers, Subscriptions, and DataLoaders
 
-Use the hook that matches the failure phase. This keeps alerts actionable and avoids treating client mistakes as server incidents.
+Choose the diagnostic hook that matches the failure phase. This approach keeps alerts actionable and prevents client mistakes from being treated as server incidents.
 
 | Failure phase                      | Hook                                                      | Recommended level                                           | Safe fields                                                              |
 | ---------------------------------- | --------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------ |
@@ -400,7 +400,7 @@ public sealed class DataLoaderFailureListener : DataLoaderDiagnosticEventListene
 }
 ```
 
-Expected output separates the phase:
+You can expect output like:
 
 ```text
 Phase=Validation ErrorCount=2 ErrorCode=HC0011
@@ -408,28 +408,28 @@ Phase=Resolver Path=/viewer/orders/0/total SchemaCoordinate=Order.total ErrorCod
 Phase=DataLoader BatchSize=50 ExceptionType=SqlException
 ```
 
-Use `IErrorFilter` for final client error shaping. Use diagnostic listeners when operators need to know where the failure happened.
+Use `IErrorFilter` to shape client errors, and diagnostic listeners to inform operators where failures occur.
 
-# Redact variables, documents, extensions, and PII
+# Redacting Variables, Documents, Extensions, and PII
 
-Treat every client-controlled value as sensitive until you have reviewed it.
+Treat all client-controlled values as sensitive until you have reviewed them.
 
 | Field                                  | Production default                      | Reason                                                              |
 | -------------------------------------- | --------------------------------------- | ------------------------------------------------------------------- |
-| Operation name                         | Usually safe                            | Low cardinality when clients name operations well                   |
+| Operation name                         | Usually safe                            | Low cardinality if clients use descriptive names                    |
 | Operation type                         | Usually safe                            | `query`, `mutation`, or `subscription`                              |
 | Document hash                          | Usually safe                            | Useful for grouping without exposing the document                   |
 | Trusted document ID                    | Usually safe when IDs are non-sensitive | Useful for persisted and trusted operations                         |
-| Error code                             | Usually safe                            | Stable operational grouping field                                   |
+| Error code                             | Usually safe                            | Stable for operational grouping                                     |
 | Error path and schema coordinate       | Usually safe                            | Identifies failing field without argument values                    |
-| Raw document                           | Sensitive                               | Can contain literal argument values and private field names         |
-| Variables                              | Sensitive                               | Often contain names, emails, tokens, search text, or IDs            |
+| Raw document                           | Sensitive                               | May contain literal argument values and private field names         |
+| Variables                              | Sensitive                               | Often include names, emails, tokens, search text, or IDs            |
 | Request extensions                     | Sensitive                               | Client-controlled vendor data, included by `RequestDetails.Default` |
 | Headers, cookies, authorization tokens | Sensitive                               | Authentication and session data                                     |
 | DataLoader keys                        | Sensitive and high-cardinality          | Often contain database IDs or tenant data                           |
 | Exception messages                     | Potentially sensitive                   | Can reveal SQL, URLs, file paths, or secrets                        |
 
-For conservative production tracing, limit request details:
+For conservative production tracing, restrict request details:
 
 ```csharp
 using HotChocolate.Diagnostics;
@@ -446,9 +446,9 @@ builder
     });
 ```
 
-`RequestDetails.Default` includes `Id`, `Hash`, `OperationName`, and `Extensions`. Use the explicit allowlist above when request extensions may contain sensitive client data. `RequestDetails.All` includes variables and the document. Do not use it as a production default.
+`RequestDetails.Default` includes `Id`, `Hash`, `OperationName`, and `Extensions`. Use the explicit allowlist above if request extensions may contain sensitive data. `RequestDetails.All` includes variables and the document—do not use this as a production default.
 
-Use high-detail settings only behind an environment gate and for short-lived troubleshooting:
+Use high-detail settings only behind an environment gate and for short-term troubleshooting:
 
 ```csharp
 using HotChocolate.Diagnostics;
@@ -478,13 +478,13 @@ builder
     });
 ```
 
-`InstrumentationOptions.IncludeDocument` emits `graphql.document.body`. `InstrumentationOptions.IncludeDataLoaderKeys` emits `graphql.dataloader.batch.keys`. Keep both disabled unless the captured values are approved, bounded, and retained according to your data policy.
+`InstrumentationOptions.IncludeDocument` emits `graphql.document.body`. `InstrumentationOptions.IncludeDataLoaderKeys` emits `graphql.dataloader.batch.keys`. Keep both disabled unless you have reviewed, bounded, and retained the captured values according to your data policy.
 
-Client error masking is not server-log redaction. Redact before writing logs, scopes, span attributes, or span events.
+Masking errors for clients does not redact server logs. Always redact before writing logs, scopes, span attributes, or span events.
 
-# Send logs and traces to OpenTelemetry
+# Sending Logs and Traces to OpenTelemetry
 
-Use OpenTelemetry logs for structured log export and Hot Chocolate instrumentation for GraphQL spans. Set `OTEL_EXPORTER_OTLP_ENDPOINT` according to your collector or vendor.
+Use OpenTelemetry logs for structured log export, and Hot Chocolate instrumentation for GraphQL spans. Set `OTEL_EXPORTER_OTLP_ENDPOINT` to match your collector or vendor.
 
 ```csharp
 // Program.cs
@@ -532,7 +532,7 @@ builder
     });
 ```
 
-Expected result in your observability backend:
+In your observability backend, you should see:
 
 ```text
 Log: GraphQL request completed in 42.7 ms
@@ -543,26 +543,24 @@ Properties: GraphQLOperationName=GetViewer, GraphQLDocumentHash=sha256:2f7c...
 Trace: ASP.NET Core request span -> GraphQL Operation span -> resolver and DataLoader spans
 ```
 
-`IncludeScopes` lets scope fields from `ILogger.BeginScope` travel with OpenTelemetry log records. `ParseStateValues` preserves named message-template properties when the log exporter supports structured state. Trace IDs and span IDs come from the active .NET `Activity`.
+`IncludeScopes` allows scope fields from `ILogger.BeginScope` to travel with OpenTelemetry log records. `ParseStateValues` preserves named message-template properties when supported by the log exporter. Trace and span IDs come from the active .NET `Activity`.
 
-For detailed tracing setup, see [Instrumentation](/docs/hotchocolate/v16/server/instrumentation).
+# Choosing Log Levels, Sampling, and Noise Controls
 
-# Choose log levels, sampling, and noise controls
-
-Use levels consistently so alerts mean the same thing across APIs.
+Use log levels consistently so alerts have the same meaning across your APIs.
 
 | Event                                         | Recommended level              | Notes                                                                 |
 | --------------------------------------------- | ------------------------------ | --------------------------------------------------------------------- |
 | Startup and schema validation problem         | Error or Critical              | The service may fail to start or serve an invalid schema              |
-| HTTP request failure before GraphQL execution | Warning or Error               | Base the level on whether the cause is client input or server failure |
-| Syntax or parse error                         | Debug, Information, or Warning | Use Warning when tracking abuse or malformed traffic                  |
+| HTTP request failure before GraphQL execution | Warning or Error               | Level depends on whether the cause is client input or server failure  |
+| Syntax or parse error                         | Debug, Information, or Warning | Use Warning for abuse or malformed traffic                            |
 | Validation error                              | Debug or Information           | Use Warning only for suspicious volume or policy violations           |
 | Expected domain error                         | Debug, Information, or no log  | Prefer typed schema errors for business outcomes                      |
 | Unhandled request or resolver exception       | Error                          | Page or alert when it affects production users                        |
 | Slow request                                  | Warning                        | Include threshold, elapsed time, operation name, hash or ID, trace ID |
-| DataLoader batch failure                      | Error                          | Do not log keys unless they are approved for logs                     |
+| DataLoader batch failure                      | Error                          | Do not log keys unless approved for logs                              |
 
-Control trace volume separately from log volume. OpenTelemetry sampling affects traces, not every `ILogger` record emitted by your application.
+Control trace volume separately from log volume. OpenTelemetry sampling affects traces, not every `ILogger` record your application emits.
 
 ```csharp
 builder.Services
@@ -581,7 +579,7 @@ builder.Services
     });
 ```
 
-Reduce GraphQL span detail when volume is high:
+Reduce GraphQL span detail if volume is high:
 
 ```csharp
 builder
@@ -600,9 +598,9 @@ Resolver and DataLoader spans can be high volume for large queries. `MaxErrorEve
 
 Add sampling or rate limiting inside custom listeners for repeated validation errors, abusive clients, or noisy expected domain failures.
 
-# Diagnose slow resolvers and DataLoaders with logs linked to traces
+# Diagnosing Slow Resolvers and DataLoaders with Logs and Traces
 
-Start with traces when you need resolver and DataLoader timing. Logs identify the slow operation. Traces show the execution tree.
+When you need resolver and DataLoader timing, start with traces. Logs help you identify the slow operation, while traces show the execution tree.
 
 ```csharp
 // Program.cs
@@ -686,27 +684,27 @@ public sealed class SlowGraphQLRequestListener : ExecutionDiagnosticEventListene
 }
 ```
 
-Expected log:
+A typical log entry looks like:
 
 ```text
 Slow GraphQL request GetOrders with document sha256:91ab... took 847.3 ms. TraceId: 8b9f0f7d6a3c0e2a9f6a7d8e9c0b1a2f
 ```
 
-Use this workflow:
+To investigate:
 
 1. Find the slow log by `GraphQLDocumentHash`, operation name, or route.
-2. Open the trace by `TraceId`.
+2. Open the trace using the `TraceId`.
 3. Inspect `ResolveFieldValue` spans for slow fields.
 4. Inspect `DataLoaderBatch` spans for large or slow batches.
-5. Add application logs inside expensive resolvers or services with named placeholders and no sensitive payloads.
+5. Add application logs inside expensive resolvers or services, using named placeholders and no sensitive payloads.
 
-Turn targeted field-level and DataLoader tracing off after the investigation if the volume is too high.
+After your investigation, turn off targeted field-level and DataLoader tracing if the volume is too high.
 
-See [Performance Tuning](/docs/hotchocolate/v16/guides/performance), [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader), [Trusted Documents](/docs/hotchocolate/v16/performance/trusted-documents), and [Automatic Persisted Operations](/docs/hotchocolate/v16/performance/automatic-persisted-operations).
+See [Performance Tuning](/docs/hotchocolate/v16/guides/performance), [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader), [Trusted Documents](/docs/hotchocolate/v16/performance/trusted-documents), and [Automatic Persisted Operations](/docs/hotchocolate/v16/performance/automatic-persisted-operations) for more.
 
-# Reference: diagnostic hooks and structured fields
+# Reference: Diagnostic Hooks and Structured Fields
 
-Use this table when you decide where a logging requirement belongs.
+Use this table to decide where to log specific events:
 
 | Hook                     | When it fires                                   | Level guideline                    | Safe fields                                                             |
 | ------------------------ | ----------------------------------------------- | ---------------------------------- | ----------------------------------------------------------------------- |
@@ -741,11 +739,11 @@ Use these structured fields consistently:
 | DataLoader keys                      | Sensitive and high-cardinality | Keep disabled unless approved                                  |
 | Variables, document body, extensions | Sensitive                      | Do not log by default                                          |
 
-For the full diagnostic event and OpenTelemetry reference, see [Instrumentation](/docs/hotchocolate/v16/server/instrumentation).
+For a full reference of diagnostic events and OpenTelemetry, see [Instrumentation](/docs/hotchocolate/v16/server/instrumentation).
 
-# Troubleshoot missing logs or trace links
+# Troubleshooting: Missing Logs or Trace Links
 
-Use this checklist when you see HTTP logs but not GraphQL operation details.
+If you see HTTP logs but not GraphQL operation details, use this checklist:
 
 | Symptom                                                 | Check                                                                                                                                                        |
 | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -760,7 +758,7 @@ Use this checklist when you see HTTP logs but not GraphQL operation details.
 | DataLoader spans are missing                            | Confirm `ActivityScopes.DataLoaderBatch` is enabled and the request uses DataLoaders                                                                         |
 | Logs are delayed or dropped                             | Check provider batching, exporter backpressure, and application shutdown flushing                                                                            |
 
-Verification query:
+To verify, run this query:
 
 ```graphql
 query GetViewer {
@@ -771,7 +769,7 @@ query GetViewer {
 }
 ```
 
-Expected telemetry:
+You should see telemetry like:
 
 ```text
 HTTP log: POST /graphql 200
@@ -779,22 +777,22 @@ Application log: GraphQL request completed in N ms, GraphQLOperationName=GetView
 Trace attributes: graphql.operation.name=GetViewer, graphql.document.hash=sha256:...
 ```
 
-Diagnostic listeners run synchronously. If adding a listener changes request latency, remove expensive work from the handler and move it to a queue or background service.
+Diagnostic listeners run synchronously. If adding a listener increases request latency, move expensive work to a queue or background service.
 
-# Troubleshoot excessive or sensitive logs
+# Troubleshooting: Excessive or Sensitive Logs
 
-If production logs contain sensitive data, stop the source first. Then follow your organization's incident process for retention, rotation, purge, and disclosure.
+If you find sensitive data in production logs, stop the source immediately. Then follow your organization's incident process for retention, rotation, purging, and disclosure.
 
-Immediate rollback checklist:
+Immediate rollback steps:
 
 1. Set `IncludeExceptionDetails` to `builder.Environment.IsDevelopment()` or `false`.
 2. Remove `RequestDetails.All`.
-3. Use `RequestDetails.Id | RequestDetails.Hash | RequestDetails.OperationName`, or `RequestDetails.None` for the most restrictive trace mode.
+3. Use `RequestDetails.Id | RequestDetails.Hash | RequestDetails.OperationName`, or `RequestDetails.None` for the strictest trace mode.
 4. Set `IncludeDocument = false`.
 5. Set `IncludeDataLoaderKeys = false`.
 6. Remove variables, extensions, headers, cookies, authorization tokens, raw documents, and DataLoader keys from custom log scopes.
 7. Reduce `ActivityScopes.All` to `ActivityScopes.Default` or a smaller targeted set.
-8. Lower `MaxErrorEvents`, or set it to `0` when root `graphql.error` span events overwhelm the backend.
+8. Lower `MaxErrorEvents`, or set it to `0` if root `graphql.error` span events overwhelm your backend.
 9. Lower expected domain and client errors to Debug or Information, or stop logging them.
 10. Sample repeated validation errors and rate-limit abusive clients separately.
 11. Ensure error filters call `.WithException(null)` before errors are serialized to clients.
@@ -839,13 +837,13 @@ builder
     });
 ```
 
-If noisy validation errors or expensive operations drive the log volume, also review [Request Limits](/docs/hotchocolate/v16/securing-your-api/request-limits) and [Cost Analysis](/docs/hotchocolate/v16/securing-your-api/cost-analysis).
+If noisy validation errors or expensive operations drive log volume, also review [Request Limits](/docs/hotchocolate/v16/securing-your-api/request-limits) and [Cost Analysis](/docs/hotchocolate/v16/securing-your-api/cost-analysis).
 
-# Next steps
+# Next Steps
 
-- Use [Instrumentation](/docs/hotchocolate/v16/server/instrumentation) for the full diagnostic event and OpenTelemetry tracing reference.
-- Use [Error Handling](/docs/hotchocolate/v16/guides/error-handling) and [Errors](/docs/hotchocolate/v16/api-reference/errors) for error filters and client error shaping.
-- Use [HTTP Transport](/docs/hotchocolate/v16/server/http-transport) when troubleshooting transport behavior.
-- Use [Performance Tuning](/docs/hotchocolate/v16/guides/performance) and [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader) when slow logs point to resolver or batching work.
-- Use [Trusted Documents](/docs/hotchocolate/v16/performance/trusted-documents) and [Automatic Persisted Operations](/docs/hotchocolate/v16/performance/automatic-persisted-operations) to reduce document exposure.
-- Use [Request Limits](/docs/hotchocolate/v16/securing-your-api/request-limits) and [Cost Analysis](/docs/hotchocolate/v16/securing-your-api/cost-analysis) for noisy clients and expensive operations.
+- See [Instrumentation](/docs/hotchocolate/v16/server/instrumentation) for the full diagnostic event and OpenTelemetry tracing reference.
+- See [Error Handling](/docs/hotchocolate/v16/guides/error-handling) and [Errors](/docs/hotchocolate/v16/api-reference/errors) for error filters and client error shaping.
+- See [HTTP Transport](/docs/hotchocolate/v16/server/http-transport) for troubleshooting transport behavior.
+- See [Performance Tuning](/docs/hotchocolate/v16/guides/performance) and [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader) when slow logs point to resolver or batching work.
+- See [Trusted Documents](/docs/hotchocolate/v16/performance/trusted-documents) and [Automatic Persisted Operations](/docs/hotchocolate/v16/performance/automatic-persisted-operations) to reduce document exposure.
+- See [Request Limits](/docs/hotchocolate/v16/securing-your-api/request-limits) and [Cost Analysis](/docs/hotchocolate/v16/securing-your-api/cost-analysis) for noisy clients and expensive operations.

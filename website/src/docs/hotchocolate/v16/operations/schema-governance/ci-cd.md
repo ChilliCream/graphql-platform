@@ -2,26 +2,26 @@
 title: Automate schema governance in CI/CD
 ---
 
-Automate Hot Chocolate v16 schema governance so every pull request proves that the server still builds, the exported schema is intentional, schema changes are compatible with the target stage, and trusted-document clients still work. Then publish the approved schema and client operation artifacts during release.
+Automate schema governance for Hot Chocolate v16 so every pull request proves your server builds, the exported schema is intentional, schema changes are compatible with the target stage, and trusted-document clients still work. During release, publish the approved schema and client operation artifacts.
 
-This page covers one Hot Chocolate server API. Fusion composition and source-schema publishing use [`nitro fusion`](/docs/nitro/cli/fusion) workflows and are out of scope.
+This page focuses on a single Hot Chocolate server API. Fusion composition and source-schema publishing require [`nitro fusion`](/docs/nitro/cli/fusion) workflows and are not covered here.
 
 # Prerequisites
 
-You need these pieces before you add CI/CD steps:
+Before adding CI/CD steps, make sure you have:
 
-| Requirement                           | Why you need it                                                                | Verification                                                          |
-| ------------------------------------- | ------------------------------------------------------------------------------ | --------------------------------------------------------------------- |
-| Hot Chocolate v16 server project      | CI exports SDL from the same application that serves traffic.                  | `dotnet build` succeeds.                                              |
-| `HotChocolate.AspNetCore.CommandLine` | Adds `schema export`, `schema list`, and `schema print` to the server process. | `dotnet run --project src/MyApi -- schema list` exits `0`.            |
-| `RunWithGraphQLCommandsAsync(args)`   | Returns command exit codes to CI.                                              | Schema command failures fail the job.                                 |
-| Nitro API and stages                  | Nitro compares candidate artifacts with active stage state.                    | Stages such as `Dev`, `Staging`, and `Prod` exist.                    |
-| Nitro client per application          | Client commands validate and publish trusted documents per client.             | You have a `NITRO_CLIENT_ID` for each client.                         |
-| Nitro API key                         | CI authenticates without an interactive login.                                 | `NITRO_API_KEY` is stored as a CI secret.                             |
-| Nitro CLI or official GitHub Actions  | Pipelines can validate, upload, and publish artifacts.                         | `nitro --help` works, or workflows use `ChilliCream/nitro-*` actions. |
-| Client operation extraction           | Client validation needs a JSON operations file.                                | Relay, Strawberry Shake, or another build step writes operations.     |
+| Requirement                           | Purpose                                                           | How to verify                                                       |
+| ------------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Hot Chocolate v16 server project      | Export SDL from the same app that serves traffic.                 | `dotnet build` succeeds.                                            |
+| `HotChocolate.AspNetCore.CommandLine` | Adds `schema export`, `schema list`, and `schema print` commands. | `dotnet run --project src/MyApi -- schema list` exits with `0`.     |
+| `RunWithGraphQLCommandsAsync(args)`   | Returns command exit codes to CI.                                 | Schema command failures fail the job.                               |
+| Nitro API and stages                  | Compare candidate artifacts with active stage state.              | Stages like `Dev`, `Staging`, and `Prod` exist.                     |
+| Nitro client per application          | Validate and publish trusted documents per client.                | You have a `NITRO_CLIENT_ID` for each client.                       |
+| Nitro API key                         | Authenticate CI without interactive login.                        | `NITRO_API_KEY` is stored as a CI secret.                           |
+| Nitro CLI or official GitHub Actions  | Validate, upload, and publish artifacts in pipelines.             | `nitro --help` works, or workflows use `ChilliCream/nitro-*` steps. |
+| Client operation extraction           | Provide a JSON operations file for client validation.             | Relay, Strawberry Shake, or another build step writes operations.   |
 
-Wire the command-line package into `Program.cs`:
+Integrate the command-line package in `Program.cs`:
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
@@ -36,11 +36,13 @@ app.MapGraphQL();
 return await app.RunWithGraphQLCommandsAsync(args);
 ```
 
-Expected check:
+Check that schema commands work:
 
 ```bash
 dotnet run --project ./src/MyApi -- schema list
 ```
+
+Expected output:
 
 ```text
 _Default
@@ -48,22 +50,22 @@ _Default
 
 Use CI variables and secrets consistently:
 
-| Name                  | Store as           | Purpose                                                             |
-| --------------------- | ------------------ | ------------------------------------------------------------------- |
-| `NITRO_API_ID`        | Variable or secret | API id for schema commands.                                         |
-| `NITRO_CLIENT_ID`     | Variable or secret | Client id for client commands. Use one per client.                  |
-| `NITRO_API_KEY`       | Secret             | API key or PAT for non-interactive Nitro calls.                     |
-| `NITRO_STAGE`         | Variable           | Target stage for validation or publish.                             |
-| `NITRO_CLOUD_URL`     | Variable or secret | Optional custom Nitro backend URL.                                  |
-| `NITRO_OUTPUT_FORMAT` | Variable           | Set to `json` when all Nitro CLI output should be machine-readable. |
+| Name                  | Store as           | Purpose                                              |
+| --------------------- | ------------------ | ---------------------------------------------------- |
+| `NITRO_API_ID`        | Variable or secret | API id for schema commands.                          |
+| `NITRO_CLIENT_ID`     | Variable or secret | Client id for client commands. Use one per client.   |
+| `NITRO_API_KEY`       | Secret             | API key or PAT for non-interactive Nitro calls.      |
+| `NITRO_STAGE`         | Variable           | Target stage for validation or publish.              |
+| `NITRO_CLOUD_URL`     | Variable or secret | Optional custom Nitro backend URL.                   |
+| `NITRO_OUTPUT_FORMAT` | Variable           | Set to `json` for machine-readable Nitro CLI output. |
 
-Prefer API-scoped keys. Use stage-scoped keys when separate workflows publish to separate stages, for example a `Dev` key for continuous integration and a `Prod` key for release promotion. Nitro shows an API key secret only once when you create it.
+Prefer API-scoped keys. Use stage-scoped keys if separate workflows publish to different stages, such as a `Dev` key for CI and a `Prod` key for releases. Nitro only shows an API key secret once when you create it.
 
 # Understand the pipeline shape
 
-Validation and publishing are separate tasks. Pull requests validate candidates. Releases upload immutable versions and publish those versions to stages.
+Validation and publishing are separate. Pull requests validate candidate changes. Releases upload immutable versions and publish them to stages.
 
-| Phase              | Typical command or action                      | Publishes? | Failure blocks                                   | Artifact               |
+| Phase              | Command or action                              | Publishes? | Failure blocks                                   | Artifact               |
 | ------------------ | ---------------------------------------------- | ---------- | ------------------------------------------------ | ---------------------- |
 | Build and test     | `dotnet build`, `dotnet test`                  | No         | Code, resolver, and snapshot regressions         | Test results           |
 | Export schema      | `dotnet run -- schema export`                  | No         | Schema build and export failures                 | `schema.graphqls`      |
@@ -74,11 +76,11 @@ Validation and publishing are separate tasks. Pull requests validate candidates.
 | Publish stage      | `nitro schema publish`, `nitro client publish` | Yes        | Stage gates, rejected changes, approval timeout  | Active stage versions  |
 | Deploy app         | Your deployment system                         | No         | Deployment health checks                         | Server/client binaries |
 
-A Nitro stage represents an environment. Each stage has one active schema and multiple active client versions. Schema versions and client versions are different artifacts, but using the same release tag, such as `v1.4.0` or a Git SHA, makes rollback and audit work predictable.
+A Nitro stage represents an environment. Each stage has one active schema and multiple active client versions. Schema and client versions are separate artifacts, but using the same release tag (like `v1.4.0` or a Git SHA) makes rollback and audit predictable.
 
 # Copy the GitHub Actions workflow shape
 
-Start with two workflows or two jobs: one for pull request validation and one for release promotion. The examples use the Nitro CLI because the commands also work in other CI systems.
+Start with two workflows or jobs: one for pull request validation, one for release promotion. The following examples use the Nitro CLI, but the commands work in other CI systems as well.
 
 ## Validate pull requests
 
@@ -165,7 +167,7 @@ jobs:
 
 Expected result: compatible pull requests pass. Pull requests with unsafe schema changes or invalid client operations fail before merge.
 
-If you want Nitro to add pull request feedback, use the official validation actions and grant `pull-requests: write`:
+To add pull request feedback from Nitro, use the official validation actions and grant `pull-requests: write`:
 
 ```yaml
 permissions:
@@ -267,7 +269,7 @@ jobs:
 
 Expected result: Nitro contains schema and client versions tagged with the release tag. Publishing makes those versions active for the selected stage.
 
-The equivalent upload and publish actions use the same input names:
+You can use the equivalent upload and publish actions, which use the same input names:
 
 ```yaml
 - uses: ChilliCream/nitro-schema-upload@v16.0.0-rc.1.43
@@ -303,7 +305,7 @@ The equivalent upload and publish actions use the same input names:
 
 # Build, test, and snapshot the schema before registry calls
 
-Run local tests before any network-dependent Nitro validation. A schema snapshot test catches accidental SDL changes and gives reviewers a diff in source control.
+Run local tests before any Nitro validation that depends on the network. A schema snapshot test catches accidental SDL changes and provides reviewers with a diff in source control.
 
 ```csharp
 // Tests/SchemaTests.cs
@@ -330,19 +332,19 @@ public class SchemaTests
 }
 ```
 
-Run it before export:
+Run this test before exporting the schema:
 
 ```bash
 dotnet test --no-build
 ```
 
-Expected result: the first run creates a snapshot. Later runs fail with a diff when the SDL changes. Review the diff, decide whether the change is intentional, then update the snapshot in the same pull request.
+Expected result: the first run creates a snapshot. Later runs fail with a diff if the SDL changes. Review the diff, decide if the change is intentional, and update the snapshot in the same pull request.
 
-Use both snapshot tests and Nitro validation. The snapshot tells you the local schema shape changed. Nitro tells you whether that candidate shape is compatible with the active schema and active clients on a stage.
+Use both snapshot tests and Nitro validation. The snapshot shows when your local schema shape changes. Nitro checks if the candidate schema is compatible with the active schema and clients on a stage.
 
 # Export a deterministic schema artifact
 
-Export SDL from the configured server project:
+Export the SDL from your configured server project:
 
 ```bash
 mkdir -p artifacts
@@ -357,15 +359,15 @@ Exported Files:
 - /repo/artifacts/schema-settings.json
 ```
 
-Pass `./artifacts/schema.graphqls` to Nitro schema commands. The generated `schema-settings.json` is tool metadata. Single-API Nitro schema validation uses the SDL file.
+Use `./artifacts/schema.graphqls` as input for Nitro schema commands. The `schema-settings.json` file contains tool metadata. For single-API Nitro schema validation, only the SDL file is needed.
 
-`schema export` writes files. If you omit `--output`, it writes `schema.graphqls` and `schema-settings.json` in the working directory. Use `schema print` when you need SDL on stdout for debugging:
+The `schema export` command writes files. If you omit `--output`, it writes `schema.graphqls` and `schema-settings.json` to the working directory. Use `schema print` to output SDL to stdout for debugging:
 
 ```bash
 dotnet run --project ./src/MyApi -- schema print --schema-name _Default
 ```
 
-List schemas when the server registers more than one request executor:
+If your server registers more than one request executor, list schemas and export by name:
 
 ```bash
 dotnet run --project ./src/MyApi -- schema list
@@ -375,7 +377,7 @@ dotnet run --project ./src/MyApi -- \
   --output ./artifacts/catalog.graphqls
 ```
 
-Use `--semantic-non-null` only when a downstream client still requires SDL with `@semanticNonNull` annotations:
+Use `--semantic-non-null` only if a downstream client still requires SDL with `@semanticNonNull` annotations:
 
 ```bash
 dotnet run --project ./src/MyApi -- \
@@ -384,13 +386,13 @@ dotnet run --project ./src/MyApi -- \
   --output ./artifacts/schema.semantic.graphqls
 ```
 
-Make the export stable:
+To keep exports stable:
 
-- Export from the same environment that defines the contract you deploy.
+- Export from the same environment that defines your deployment contract.
 - Pin the .NET SDK and Hot Chocolate package versions.
-- Avoid schema registration that depends on current time, random values, current culture, local connection strings, or CI-only feature flags.
+- Avoid schema registration that depends on time, random values, culture, local connection strings, or CI-only feature flags.
 - Keep dynamic schema sources ordered deterministically.
-- Log `schema list` in CI when several schemas exist.
+- Log `schema list` in CI if you have multiple schemas.
 
 # Validate schema changes in pull requests
 
@@ -404,19 +406,19 @@ nitro schema validate \
   --output json
 ```
 
-Required inputs are `--api-id`, `--stage`, `--schema-file`, and authentication through `NITRO_API_KEY` or `--api-key`. With `--output json`, the CLI disables prompts and writes machine-readable output.
+You must provide `--api-id`, `--stage`, `--schema-file`, and authenticate with `NITRO_API_KEY` or `--api-key`. The `--output json` flag disables prompts and produces machine-readable output.
 
-Expected result: compatible changes exit `0`. Unsafe changes exit non-zero and report the rejected changes. Run this once per target stage when a pull request can affect multiple release trains.
+Expected result: compatible changes exit with `0`. Unsafe changes exit non-zero and report the rejected changes. Run this once per target stage if a pull request can affect multiple release trains.
 
-Schema validation answers: can this candidate schema become active for this stage without breaking the stage contract and active registered clients? It does not publish the schema.
+Schema validation answers: can this candidate schema become active for this stage without breaking the stage contract or active registered clients? This command does not publish the schema.
 
-Do not use `nitro fusion` commands in this workflow. Fusion has a separate composition model.
+Do not use `nitro fusion` commands in this workflow. Fusion uses a separate composition model.
 
 # Extract trusted documents from clients
 
-Trusted documents are client artifacts. Build them from the same operations the client sends at runtime.
+Trusted documents are client artifacts. Build them from the same operations your client sends at runtime.
 
-A Relay project can write a JSON map of operation hash to operation text:
+For Relay, you can write a JSON map of operation hash to operation text:
 
 ```js
 // relay.config.js
@@ -430,7 +432,7 @@ module.exports = {
 };
 ```
 
-Build the client and copy the file to the shared artifact directory:
+Build the client and copy the file to your shared artifact directory:
 
 ```bash
 cd src/MyWebClient
@@ -438,7 +440,7 @@ yarn relay
 cp persisted_queries.json ../../artifacts/operations.json
 ```
 
-Expected Relay-style output:
+Expected output:
 
 ```json
 {
@@ -447,11 +449,11 @@ Expected Relay-style output:
 }
 ```
 
-The hash algorithm and encoding must match the server. Relay uses MD5 by default, which Hot Chocolate supports without extra configuration. If you configure SHA-1, SHA-256, Base64, or Hex formats, keep the client manifest, Nitro upload, and server document hash provider aligned.
+The hash algorithm and encoding must match the server. Relay uses MD5 by default, which Hot Chocolate supports out of the box. If you use SHA-1, SHA-256, Base64, or Hex, keep the client manifest, Nitro upload, and server document hash provider in sync.
 
-Strawberry Shake can produce persisted operation artifacts as part of the client build. Use the Strawberry Shake client documentation for setup, then pass the generated operations file to `nitro client validate` and `nitro client upload`.
+Strawberry Shake can also produce persisted operation artifacts as part of the client build. Follow the Strawberry Shake documentation, then pass the generated operations file to `nitro client validate` and `nitro client upload`.
 
-If the server loads operations from Nitro at runtime, configure the server with `ChilliCream.Nitro`, `AddNitro()`, and `UsePersistedOperationPipeline()`. See [trusted documents](/docs/hotchocolate/v16/operations/security-hardening/trusted-documents) and [First-Party API](/docs/hotchocolate/v16/guides/private-api) for strict server lock-down.
+If your server loads operations from Nitro at runtime, configure it with `ChilliCream.Nitro`, `AddNitro()`, and `UsePersistedOperationPipeline()`. See [trusted documents](/docs/hotchocolate/v16/operations/security-hardening/trusted-documents) and [First-Party API](/docs/hotchocolate/v16/guides/private-api) for strict server lock-down.
 
 # Validate client operations in pull requests
 
@@ -465,11 +467,11 @@ nitro client validate \
   --output json
 ```
 
-Expected result: valid operations exit `0`. Operations that no longer match the active stage schema exit non-zero.
+Expected result: valid operations exit with `0`. Operations that no longer match the active stage schema exit non-zero.
 
-Client validation answers the opposite question from schema validation: do these candidate operations work against the schema that is already active on the stage? It does not replace schema validation. Run both when a pull request changes server schema and client operations.
+Client validation answers the opposite question from schema validation: do these candidate operations work against the schema already active on the stage? It does not replace schema validation. Run both when a pull request changes the server schema and client operations.
 
-For multiple clients, keep separate client ids and operation files:
+For multiple clients, use separate client ids and operation files:
 
 ```bash
 nitro client validate --client-id "$WEB_CLIENT_ID" --stage Dev --operations-file artifacts/web-operations.json
@@ -480,7 +482,7 @@ Do not reuse the API id for client commands. Client commands require `--client-i
 
 # Upload immutable release artifacts
 
-Upload release artifacts after validation succeeds and before stage publish:
+After validation succeeds and before publishing to a stage, upload your release artifacts:
 
 ```bash
 RELEASE_TAG="${GITHUB_REF_NAME:-local-dev}"
@@ -498,13 +500,13 @@ nitro client upload \
 
 Expected result: Nitro contains unpublished schema and client versions with the release tag.
 
-Upload does not make a version active for traffic. Treat duplicate tag failures as a release decision point. If reruns must be idempotent, detect an existing version before upload. If your process treats tags as immutable, fail loudly and create a new tag.
+Uploading does not make a version active for traffic. Treat duplicate tag failures as a release decision point. If reruns must be idempotent, check for an existing version before uploading. If your process treats tags as immutable, fail loudly and create a new tag.
 
 Use the same tag for schema and client artifacts produced by the same build. Keep CI artifact names, container image tags, schema tags, and client tags aligned so rollback can find the matching known-good set.
 
 # Publish to stages and gate deployments
 
-Publishing activates an uploaded version for one stage:
+Publishing activates an uploaded version for a stage:
 
 ```bash
 nitro schema publish \
@@ -520,7 +522,7 @@ nitro client publish \
   --wait-for-approval
 ```
 
-Expected result: Nitro creates deployment entries, waits for approval when the stage requires it, and marks the release tag as active after approval.
+Expected result: Nitro creates deployment entries, waits for approval if the stage requires it, and marks the release tag as active after approval.
 
 Use stage-specific jobs and secrets when possible:
 
@@ -530,13 +532,13 @@ Use stage-specific jobs and secrets when possible:
 | `Staging` | Publish with approval              | Validate release candidate state before production. |
 | `Prod`    | Publish with approval, then deploy | Gate the deployment job on successful publish jobs. |
 
-`--force` skips prompts and can publish breaking versions. Keep it for documented emergency procedures. `--force` and `--wait-for-approval` are mutually exclusive.
+`--force` skips prompts and can publish breaking versions. Reserve it for documented emergency procedures. `--force` and `--wait-for-approval` cannot be used together.
 
-For servers locked to trusted documents, publish client versions before or alongside the app deployment so new operation IDs are available when traffic arrives. For schema removals, prefer an additive release first, deploy updated clients, keep old client versions published until traffic drains, then remove deprecated fields in a later release.
+If your server is locked to trusted documents, publish client versions before or alongside the app deployment so new operation IDs are available when traffic arrives. For schema removals, use an additive release first, deploy updated clients, keep old client versions published until traffic drains, then remove deprecated fields in a later release.
 
 # Version environments and rolling deployments
 
-Plan stage state before a rollout. A stage has one active schema but can have several active client versions.
+Plan your stage state before a rollout. Each stage has one active schema but can have several active client versions.
 
 | Environment | Active schema tag | Active client tags                        | Deployment state                          |
 | ----------- | ----------------- | ----------------------------------------- | ----------------------------------------- |
@@ -544,13 +546,13 @@ Plan stage state before a rollout. A stage has one active schema but can have se
 | `staging`   | `v1.4.2`          | `web-v1.4.2`, `web-v1.5.0-rc`             | Release candidate is being verified.      |
 | `prod`      | `v1.4.2`          | `web-v1.4.1`, `web-v1.4.2`, `mobile-v8.2` | Rolling or mobile traffic still overlaps. |
 
-During a web rollout, old and new bundles can both send operations. During a mobile rollout, old versions may stay active for weeks or months. Keep old client versions published until telemetry or deployment data shows traffic has drained.
+During a web rollout, old and new bundles can both send operations. For mobile, old versions may stay active for weeks or months. Keep old client versions published until telemetry or deployment data shows traffic has drained.
 
-Never publish a schema that removes fields still used by any active client version. Represent environment differences with Nitro stages, not by changing schema shape at runtime with environment-specific registrations.
+Never publish a schema that removes fields still used by any active client version. Use Nitro stages to represent environment differences, not runtime schema shape changes based on environment-specific registrations.
 
 # Roll back safely
 
-Use these commands during recovery:
+Use these commands to recover from a bad deployment:
 
 ```bash
 nitro schema publish \
