@@ -2,17 +2,19 @@
 
 import React, { FC } from "react";
 
-// Section 10: final CTA. Three buttons in one row. Centered, gradient-accent
-// headline so it lands hard at the bottom of the page (mirrors the other
-// /products/nitro/observability and /enterprise final CTAs).
+import { Band } from "@/components/redesign-system/Band";
+
+// Section 10: final CTA on a glow band. Two buttons (down from three) so
+// the close has a clear primary + secondary, not a tie. The middle "Add MCP
+// to Cursor" button has been demoted to the IDE chip strip in Section 08.
 
 export const AgentsFinalCta: FC = () => {
   return (
-    <section className="cc-ag-section cc-ag-final">
-      <div className="cc-section-label">
-        <span className="num">10</span> Ready?
-      </div>
+    <Band variant="glow" glowFrom="bottom-right" ariaLabel="Ready to ship">
       <div className="cc-ag-final-inner">
+        <div className="cc-section-label cc-ag-final-label">
+          <span className="num">10</span> Ready?
+        </div>
         <div className="eyebrow">Ready?</div>
         <h2 className="display">
           Stop being the <span className="accent">human glue.</span>
@@ -22,12 +24,6 @@ export const AgentsFinalCta: FC = () => {
             Install Nitro CLI
           </a>
           <a
-            href="/products/nitro/agents/cursor"
-            className="cc-btn cc-btn-ghost"
-          >
-            Add MCP to Cursor
-          </a>
-          <a
             href="mailto:contact@chillicream.com?subject=Nitro%20agents%20demo"
             className="cc-btn cc-btn-ghost"
           >
@@ -35,6 +31,6 @@ export const AgentsFinalCta: FC = () => {
           </a>
         </div>
       </div>
-    </section>
+    </Band>
   );
 };

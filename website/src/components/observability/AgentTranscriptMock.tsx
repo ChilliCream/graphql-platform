@@ -4,11 +4,10 @@ import React, { FC } from "react";
 
 import { AGENT_TRACE, TraceWaterfall } from "./TraceWaterfall";
 
-// MCP / agent access mock for Section 08 (the page differentiator). Left pane
-// is a chat-style transcript with a small AGENT pill in the header; right
-// pane is the resulting trace with the slowest span highlighted. The arrow
-// between the two panels is rendered in CSS (not a real connector) because
-// the panels stack on small viewports and a hard arrow would look bad.
+// MCP / agent access mock for Section 08 (the page differentiator). Sits
+// inside an inverted Band — the transcript and the returned trace are NOT
+// framed as cards, they sit on the band surface separated by a single
+// accent-cyan vertical rule. The right pane bleeds toward the band edge.
 
 export const AgentTranscriptMock: FC = () => {
   return (
@@ -47,9 +46,7 @@ export const AgentTranscriptMock: FC = () => {
         </div>
       </div>
 
-      <div className="cc-agent-arrow" aria-hidden>
-        →
-      </div>
+      <div className="cc-agent-rule" aria-hidden />
 
       <div className="cc-agent-trace">
         <div className="cc-agent-trace-header">

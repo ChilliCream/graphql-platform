@@ -10,6 +10,7 @@ import { RelatedIntegrations } from "@/components/integrations/RelatedIntegratio
 import { LandingGlobalStyle } from "@/components/landing/LandingRoot";
 import { SiteLayout } from "@/components/layout";
 import { SEO } from "@/components/misc";
+import { AccentThread } from "@/components/redesign-system/AccentThread";
 import {
   findRelatedIntegrations,
   type Integration,
@@ -38,18 +39,20 @@ const IntegrationDetailPage: FC<IntegrationDetailPageProps> = ({
         description={integration.tagline}
       />
       <LandingGlobalStyle />
-      <IntegrationsRoot>
-        <IntegrationDetailHeader integration={integration} />
+      <AccentThread page="integrations">
+        <IntegrationsRoot>
+          <IntegrationDetailHeader integration={integration} />
 
-        <section className="cc-ind-section cc-ind-body-section">
-          <div className="cc-ind-body-inner">
-            <IntegrationDetailBody integration={integration} />
-            <IntegrationSidebar integration={integration} />
-          </div>
-        </section>
+          <section className="cc-ind-section cc-ind-body-section">
+            <div className="cc-ind-body-inner">
+              <IntegrationDetailBody integration={integration} />
+              <IntegrationSidebar integration={integration} />
+            </div>
+          </section>
 
-        <RelatedIntegrations integrations={related} />
-      </IntegrationsRoot>
+          <RelatedIntegrations integrations={related} />
+        </IntegrationsRoot>
+      </AccentThread>
     </SiteLayout>
   );
 };

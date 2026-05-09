@@ -2,6 +2,7 @@
 
 import React, { FC } from "react";
 
+import { Band } from "@/components/redesign-system/Band";
 import { PILLARS, PillarKey } from "@/data/enterprise/pillars";
 
 const stroke = {
@@ -48,9 +49,13 @@ const PILLAR_ICONS: Record<PillarKey, React.ReactNode> = {
   ),
 };
 
+// Pillars on an accent band, no card chrome. Each pillar is a 1-of-3 column
+// separated by hairlines. The accent band background visually distinguishes
+// this section from the SKU constraint cards further down — pillars describe
+// capabilities (band content), SKUs describe purchasable products (cards).
 export const PlatformPillars: FC = () => {
   return (
-    <section className="cc-ent-section cc-ent-pillars">
+    <Band variant="accent" ariaLabel="Platform pillars">
       <div className="cc-section-label">
         <span className="num">03</span> Platform pillars
       </div>
@@ -79,6 +84,6 @@ export const PlatformPillars: FC = () => {
           ))}
         </div>
       </div>
-    </section>
+    </Band>
   );
 };

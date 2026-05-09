@@ -3,10 +3,16 @@
 import Link from "next/link";
 import React, { FC } from "react";
 
+import { Band } from "@/components/redesign-system/Band";
+
 // Section 08: three starter projects pairing ChilliCream with a partner.
 // Cards link straight into /templates with a topology pre-filter, so the
 // integration page hands off to a working copy-paste flow rather than a dead
 // "look at this" surface.
+//
+// Wrapped in a `<Band variant="glow">` so the page closes with a soft
+// page-accent radial cast under the templates row, matching the rhythm
+// described in uplift-plan P0-integrations-4.
 //
 // We hand-author the three rather than over-engineer a join from
 // templates.ts: the curation is editorial, not automatic.
@@ -36,7 +42,7 @@ const STARTERS = [
 
 export const IntegrationStarterTemplates: FC = () => {
   return (
-    <section className="cc-in-section cc-in-starters">
+    <Band variant="glow" glowFrom="bottom-right" ariaLabel="Starter templates">
       <div className="cc-section-label">
         <span className="num">08</span> Starters
       </div>
@@ -64,6 +70,6 @@ export const IntegrationStarterTemplates: FC = () => {
           ))}
         </div>
       </div>
-    </section>
+    </Band>
   );
 };

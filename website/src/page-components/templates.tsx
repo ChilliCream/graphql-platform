@@ -5,6 +5,7 @@ import React, { FC, Suspense, useEffect } from "react";
 import { LandingGlobalStyle } from "@/components/landing/LandingRoot";
 import { SiteLayout } from "@/components/layout";
 import { SEO } from "@/components/misc";
+import { AccentThread } from "@/components/redesign-system/AccentThread";
 import { TemplatesCtaStrip } from "@/components/templates/TemplatesCtaStrip";
 import { TemplatesGrid } from "@/components/templates/TemplatesGrid";
 import { TemplatesHero } from "@/components/templates/TemplatesHero";
@@ -25,13 +26,15 @@ const TemplatesPage: FC = () => {
         description="Production-ready GraphQL services, federations, and clients. Clone, customize, ship. Filter by topology, language, product mix, and agent-readiness."
       />
       <LandingGlobalStyle />
-      <TemplatesRoot>
-        <TemplatesHero />
-        <Suspense fallback={null}>
-          <TemplatesGrid />
-        </Suspense>
-        <TemplatesCtaStrip />
-      </TemplatesRoot>
+      <AccentThread page="templates">
+        <TemplatesRoot>
+          <TemplatesHero />
+          <Suspense fallback={null}>
+            <TemplatesGrid />
+          </Suspense>
+          <TemplatesCtaStrip />
+        </TemplatesRoot>
+      </AccentThread>
     </SiteLayout>
   );
 };

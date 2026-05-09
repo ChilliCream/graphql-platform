@@ -2,6 +2,7 @@
 
 import React, { FC } from "react";
 
+import { Band } from "@/components/redesign-system/Band";
 import type { SolutionRecord } from "@/data/solutions/types";
 
 interface RelatedSolutionsProps {
@@ -22,32 +23,34 @@ export const RelatedSolutions: FC<RelatedSolutionsProps> = ({
   }
 
   return (
-    <section className="cc-sl-section cc-sl-related">
-      <div className="cc-section-label">
-        <span className="num">{stepNumber}</span> Related
-      </div>
-      <div className="cc-sl-related-inner">
-        <div className="cc-sl-heading">
-          <div className="eyebrow">More solutions</div>
-          <h2 className="display">Where this leads next.</h2>
+    <Band variant="tinted" ariaLabel="Related">
+      <div className="cc-sl-section cc-sl-related">
+        <div className="cc-section-label">
+          <span className="num">{stepNumber}</span> Related
         </div>
-        <div className="cc-sl-related-grid">
-          {solutions.map((s) => (
-            <a
-              key={s.slug}
-              href={`/solutions/${s.slug}`}
-              className="cc-sl-related-card"
-            >
-              <div className="cc-sl-related-eyebrow">
-                {s.category === "industry" ? "Industry" : "Use case"}
-              </div>
-              <h3 className="cc-sl-related-title">{s.title}</h3>
-              <p className="cc-sl-related-body">{s.hero.sub}</p>
-              <span className="cc-sl-related-link">Read more →</span>
-            </a>
-          ))}
+        <div className="cc-sl-related-inner">
+          <div className="cc-sl-heading">
+            <div className="eyebrow">More solutions</div>
+            <h2 className="display">Where this leads next.</h2>
+          </div>
+          <div className="cc-sl-related-grid">
+            {solutions.map((s) => (
+              <a
+                key={s.slug}
+                href={`/solutions/${s.slug}`}
+                className="cc-sl-related-card"
+              >
+                <div className="cc-sl-related-eyebrow">
+                  {s.category === "industry" ? "Industry" : "Use case"}
+                </div>
+                <h3 className="cc-sl-related-title">{s.title}</h3>
+                <p className="cc-sl-related-body">{s.hero.sub}</p>
+                <span className="cc-sl-related-link">Read more →</span>
+              </a>
+            ))}
+          </div>
         </div>
       </div>
-    </section>
+    </Band>
   );
 };

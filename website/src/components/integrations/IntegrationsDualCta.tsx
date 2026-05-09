@@ -2,18 +2,31 @@
 
 import React, { FC } from "react";
 
+import { Band } from "@/components/redesign-system/Band";
+
 // Section 09: two CTAs side by side. Mirrors Vercel's "Request an Integration"
 // + "Join the Marketplace" pattern, acknowledging that the page is read by
 // two audiences: developers wishing for a missing integration, and authors
 // looking to ship one. Both addresses are surfaced; we don't push the
 // authoring path harder than the wishlist path.
+//
+// Wrapped in a tinted `<Band>` and rendered without card chrome (uplift-plan
+// CC2): the band IS the surface, the CTAs sit on it as content panels with
+// hairline divider, not boxes inside boxes.
 export const IntegrationsDualCta: FC = () => {
   return (
-    <section className="cc-in-section cc-in-dualcta">
-      <div className="cc-in-dualcta-inner">
+    <Band
+      variant="tinted"
+      className="cc-in-tinted-band"
+      ariaLabel="Help shape the marketplace"
+    >
+      <div className="cc-section-label">
+        <span className="num">09</span> Get involved
+      </div>
+      <div className="cc-in-dualcta-inner is-bandlocked">
         <a
           href="https://github.com/ChilliCream/graphql-platform/issues/new?labels=integration-request"
-          className="cc-in-dualcta-card"
+          className="cc-in-dualcta-card is-ghost"
           rel="noopener"
         >
           <span className="eyebrow">Don't see your tool?</span>
@@ -26,7 +39,7 @@ export const IntegrationsDualCta: FC = () => {
         </a>
         <a
           href="https://chillicream.com/docs/hotchocolate/v14/server"
-          className="cc-in-dualcta-card"
+          className="cc-in-dualcta-card is-ghost"
           rel="noopener"
         >
           <span className="eyebrow">Building on the platform?</span>
@@ -38,6 +51,6 @@ export const IntegrationsDualCta: FC = () => {
           <span className="cta">Read the docs →</span>
         </a>
       </div>
-    </section>
+    </Band>
   );
 };

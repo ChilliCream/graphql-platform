@@ -2,6 +2,7 @@
 
 import React from "react";
 
+import { Card } from "@/components/redesign-system/Card";
 import { TIERS, TierKey } from "@/data/pricing/tiers";
 
 // Brewer icons reused from Act5.tsx — same line-stroke vocabulary so the
@@ -72,9 +73,23 @@ const Check: React.FC = () => (
   </svg>
 );
 
+// Inline spend-controls strip co-located with the anxiety it calms: lives
+// directly under the Hosted card's CTA. Replaces the standalone 3-tile row
+// (P1-pricing-5).
+const SpendControlsInline: React.FC = () => (
+  <ul className="cc-tier-spend-strip" aria-label="Spend controls">
+    <li>Hard limits</li>
+    <li>Budget alerts</li>
+    <li>No surprise invoices</li>
+  </ul>
+);
+
 export const NitroTierCards: React.FC = () => {
   return (
-    <section className="cc-pricing-section cc-tiers">
+    <div className="cc-tiers">
+      <div className="cc-section-label">
+        <span className="num">03</span> Nitro plans
+      </div>
       <div className="cc-tiers-inner">
         <div className="cc-tiers-heading">
           <div className="eyebrow">Nitro plans</div>
@@ -83,12 +98,23 @@ export const NitroTierCards: React.FC = () => {
             Same engine, same APIs, same DX. Pick the operational shape that
             fits your team. Move between them without re-architecting.
           </p>
+          <p className="cc-tiers-subnote">
+            Looking for the OSS stack? It's free, MIT-licensed, and runs without
+            an account — see the open-source belt above. Need procurement-ready
+            support?{" "}
+            <a href="mailto:contact@chillicream.com?subject=Enterprise">
+              Talk to sales about Enterprise →
+            </a>
+          </p>
         </div>
 
         <div className="cc-tiers-grid">
           {TIERS.map((tier) => (
-            <article
+            <Card
               key={tier.key}
+              variant="constraint"
+              featured={tier.featured}
+              as="article"
               className={"cc-tier-card" + (tier.featured ? " is-featured" : "")}
             >
               {tier.badge && <div className="cc-tier-badge">{tier.badge}</div>}
@@ -131,10 +157,12 @@ export const NitroTierCards: React.FC = () => {
               >
                 {tier.cta} →
               </a>
-            </article>
+
+              {tier.key === "nitro-hosted" && <SpendControlsInline />}
+            </Card>
           ))}
         </div>
       </div>
-    </section>
+    </div>
   );
 };

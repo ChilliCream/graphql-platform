@@ -246,6 +246,17 @@ export const SOLUTIONS: readonly SolutionRecord[] = [
       tertiary: { label: "See Nitro", href: "/products/nitro" },
     },
     related: ["federation", "agents", "single-graph"],
+    // Polyglot keeps the magenta-violet-blue gradient from the original hero;
+    // extend it across the whole page so the accent is a system, not a sticker.
+    accent: {
+      primary: "oklch(0.74 0.18 320)",
+      soft: "rgba(220, 130, 220, 0.12)",
+      line: "rgba(220, 130, 220, 0.34)",
+      gradient:
+        "linear-gradient(120deg, oklch(0.78 0.16 330), oklch(0.72 0.18 290) 55%, oklch(0.70 0.18 250))",
+      glow: "rgba(180, 130, 230, 0.22)",
+    },
+    heroMotif: "orbit",
   },
 
   // ============================================================
@@ -368,6 +379,17 @@ export const SOLUTIONS: readonly SolutionRecord[] = [
       tertiary: { label: "See Nitro", href: "/products/nitro" },
     },
     related: ["federation", "event-driven", "agents"],
+    // Single-graph: a focused, calmer cyan-teal. The page is about one
+    // service, one schema, one beam from origin to client.
+    accent: {
+      primary: "oklch(0.78 0.14 200)",
+      soft: "rgba(96, 200, 220, 0.10)",
+      line: "rgba(96, 200, 220, 0.32)",
+      gradient:
+        "linear-gradient(120deg, oklch(0.80 0.13 200), oklch(0.76 0.14 220))",
+      glow: "rgba(96, 200, 220, 0.20)",
+    },
+    heroMotif: "light-cone",
   },
 
   // ============================================================
@@ -499,6 +521,17 @@ export const SOLUTIONS: readonly SolutionRecord[] = [
       tertiary: { label: "See Nitro", href: "/products/nitro" },
     },
     related: ["polyglot-federation", "single-graph", "agents"],
+    // Federation: violet-indigo. Many teams converging into one supergraph,
+    // a perspective grid vanishing toward a central horizon.
+    accent: {
+      primary: "oklch(0.74 0.16 280)",
+      soft: "rgba(160, 140, 230, 0.10)",
+      line: "rgba(160, 140, 230, 0.32)",
+      gradient:
+        "linear-gradient(120deg, oklch(0.76 0.16 280), oklch(0.74 0.18 250))",
+      glow: "rgba(160, 140, 230, 0.20)",
+    },
+    heroMotif: "perspective-grid",
   },
 
   // ============================================================
@@ -621,6 +654,17 @@ export const SOLUTIONS: readonly SolutionRecord[] = [
       tertiary: { label: "See Nitro", href: "/products/nitro" },
     },
     related: ["federation", "event-driven", "single-graph"],
+    // Agents: amber. Reuse the agents-page accent so the system signal
+    // ("the agent is doing something") is consistent across the suite.
+    accent: {
+      primary: "oklch(0.78 0.16 70)",
+      soft: "rgba(247, 186, 100, 0.12)",
+      line: "rgba(247, 186, 100, 0.34)",
+      gradient:
+        "linear-gradient(120deg, oklch(0.80 0.16 80), oklch(0.74 0.18 40))",
+      glow: "rgba(247, 186, 100, 0.22)",
+    },
+    heroMotif: "ray-burst",
   },
 
   // ============================================================
@@ -743,6 +787,16 @@ export const SOLUTIONS: readonly SolutionRecord[] = [
       tertiary: { label: "See Nitro", href: "/products/nitro" },
     },
     related: ["single-graph", "federation", "agents"],
+    // Event-driven: lime-mint. Things in motion, fan-out, denser orbits.
+    accent: {
+      primary: "oklch(0.78 0.18 150)",
+      soft: "rgba(120, 220, 160, 0.10)",
+      line: "rgba(120, 220, 160, 0.32)",
+      gradient:
+        "linear-gradient(120deg, oklch(0.80 0.18 150), oklch(0.78 0.16 180))",
+      glow: "rgba(120, 220, 160, 0.20)",
+    },
+    heroMotif: "orbit",
   },
 
   // ============================================================
@@ -875,6 +929,16 @@ export const SOLUTIONS: readonly SolutionRecord[] = [
       tertiary: { label: "See Nitro", href: "/products/nitro" },
     },
     related: ["regulated", "federation", "agents"],
+    // Banking: deep cobalt. Trust, gravitas, regulated weight.
+    accent: {
+      primary: "oklch(0.62 0.18 250)",
+      soft: "rgba(80, 110, 220, 0.10)",
+      line: "rgba(80, 110, 220, 0.34)",
+      gradient:
+        "linear-gradient(120deg, oklch(0.62 0.18 250), oklch(0.66 0.14 230))",
+      glow: "rgba(80, 110, 220, 0.22)",
+    },
+    heroMotif: "hemisphere",
   },
 
   // ============================================================
@@ -1007,6 +1071,16 @@ export const SOLUTIONS: readonly SolutionRecord[] = [
       tertiary: { label: "See Nitro", href: "/products/nitro" },
     },
     related: ["banking", "federation", "single-graph"],
+    // Regulated: muted teal-slate. Audit, controls, compliance grid.
+    accent: {
+      primary: "oklch(0.66 0.10 200)",
+      soft: "rgba(120, 170, 200, 0.10)",
+      line: "rgba(120, 170, 200, 0.32)",
+      gradient:
+        "linear-gradient(120deg, oklch(0.68 0.10 200), oklch(0.66 0.12 220))",
+      glow: "rgba(120, 170, 200, 0.20)",
+    },
+    heroMotif: "hemisphere",
   },
 ];
 

@@ -3,6 +3,8 @@
 import Link from "next/link";
 import React, { FC } from "react";
 
+import { Band } from "@/components/redesign-system/Band";
+
 interface RelatedLink {
   readonly key: string;
   readonly eyebrow: string;
@@ -39,35 +41,34 @@ const RELATED: readonly RelatedLink[] = [
   },
 ];
 
-// Section 08: three related links — pricing, enterprise, support. The
-// equivalent of Vercel's "explore Vercel Enterprise" tail card, but split
-// into three because our buyer wants the comparison.
+// Section 07: three related links on a tinted band. No card chrome —
+// content sits on the band, separated by hairlines, so the section reads
+// as a footer-style aside rather than a third row of stacked cards after
+// the architect-call CTA.
 export const RelatedLinks: FC = () => {
   return (
-    <section className="cc-cu-section cc-cu-related">
+    <Band variant="tinted" ariaLabel="Related links">
       <div className="cc-section-label">
-        <span className="num">08</span> Related
+        <span className="num">07</span> Related
       </div>
       <div className="cc-cu-related-inner">
-        <div className="cc-cu-heading">
+        <div className="cc-cu-heading is-flat">
           <div className="eyebrow">Related</div>
-          <h2 className="display">Three more places to go.</h2>
+          <h3 className="cc-cu-related-section-title">
+            Three more places to go.
+          </h3>
         </div>
         <div className="cc-cu-related-grid">
           {RELATED.map((link) => (
-            <Link
-              key={link.key}
-              href={link.href}
-              className="cc-cu-related-card"
-            >
+            <Link key={link.key} href={link.href} className="cc-cu-related-row">
               <span className="cc-cu-related-eyebrow">{link.eyebrow}</span>
-              <h3 className="cc-cu-related-title">{link.title}</h3>
-              <p className="cc-cu-related-body">{link.body}</p>
+              <span className="cc-cu-related-title">{link.title}</span>
+              <span className="cc-cu-related-body">{link.body}</span>
               <span className="cc-cu-related-link">{link.cta}</span>
             </Link>
           ))}
         </div>
       </div>
-    </section>
+    </Band>
   );
 };

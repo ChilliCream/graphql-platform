@@ -2,6 +2,7 @@
 
 import React, { FC } from "react";
 
+import { AccentThread } from "@/components/redesign-system/AccentThread";
 import { findRelatedSolutions } from "@/data/solutions/solutions";
 import type { SolutionRecord } from "@/data/solutions/types";
 
@@ -26,6 +27,21 @@ interface SolutionPageRendererProps {
 // snippet) renumber the trailing sections automatically. Adding a new
 // section means adding one component import and one entry to the
 // composition; the section labels reflow for free.
+//
+// Band rhythm (per solution page):
+//   01 hero               glow band, motif right, accent threads in
+//   02 proof              default band, StatRow
+//   03 pillars            default band, content-on-band, no card chrome
+//   04 architecture       inverted band, full-bleed diagram
+//   05 snippet            tinted band, code-on-band  (use-case pages only)
+//   06 testimonials       default band, single quote per row
+//   07 foundations        tinted band, dense icon row
+//   08 collateral         accent band, narrow CTA card  (when present)
+//   09 adopters           default band, typographic descriptor lockups
+//   10 final CTA          glow band, one primary + secondary link + tertiary
+//   11 related            tinted band, content-on-band
+//
+// Industry pages skip 05 (snippet); the renderer renumbers automatically.
 export const SolutionPageRenderer: FC<SolutionPageRendererProps> = ({
   record,
 }) => {
@@ -49,8 +65,12 @@ export const SolutionPageRenderer: FC<SolutionPageRendererProps> = ({
   const relatedStep = nextStep();
 
   return (
-    <>
-      <SolutionHero hero={record.hero} />
+    <AccentThread page="solutions" override={record.accent}>
+      <SolutionHero
+        hero={record.hero}
+        motif={record.heroMotif}
+        slug={record.slug}
+      />
       <ProofStrip metrics={record.proofMetrics} />
       <PillarsSection pillars={record.pillars} />
       <ConceptDiagram kind={record.diagram} />
@@ -78,6 +98,6 @@ export const SolutionPageRenderer: FC<SolutionPageRendererProps> = ({
       />
       <SolutionFinalCta cta={record.finalCta} stepNumber={finalStep} />
       <RelatedSolutions solutions={related} stepNumber={relatedStep} />
-    </>
+    </AccentThread>
   );
 };

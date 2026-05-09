@@ -3,10 +3,13 @@
 import styled from "styled-components";
 
 // PricingRoot holds the dark navy / cream-ink design tokens for the /pricing
-// page. It mirrors DesktopLandingRoot's tokens, section shell, typography, and
-// button system but stays self-contained: the pricing page has its own
-// sections (hero, OSS strip, tier cards, comparison table, enterprise banner,
-// FAQ, footer CTA) and doesn't share component CSS with the landing acts.
+// page. It mirrors DesktopLandingRoot's tokens, typography, and button
+// system but stays self-contained: the pricing page composes its sections
+// inside `<Band>` primitives, so this stylesheet defines (a) the page
+// background, (b) the per-page accent overrides for `tinted`/`accent`/`glow`
+// bands so they read as subtle tonal steps on a dark canvas, and (c) the
+// component-internal styles for hero, OSS belt, tier cards, comparison
+// table, enterprise band, FAQ, and footer.
 export const PricingRoot = styled.div`
   --cc-ink: #f5f1ea;
   --cc-ink-dim: rgba(245, 241, 234, 0.62);
@@ -42,18 +45,57 @@ export const PricingRoot = styled.div`
     box-sizing: border-box;
   }
 
-  /* ===== Section shell ===== */
-  section.cc-pricing-section {
-    position: relative;
-    width: 100%;
-    padding-left: var(--cc-pad-x);
-    padding-right: var(--cc-pad-x);
+  /* ===== Band overrides for the dark canvas =====
+     Band's tinted variant ships as cream which is meant for pages with a
+     light surface; on the dark pricing canvas we re-interpret it as a
+     subtle tonal step up. accent and glow get tuned to the page accent so
+     the eye registers a band shift without losing the dark theme. */
+  .cc-band {
+    --cc-pad-x: clamp(28px, 5vw, 96px);
+  }
+  .cc-band > div {
+    max-width: 1280px;
+  }
+  .cc-band.cc-band-faq {
+    background: rgba(255, 255, 255, 0.025);
+    color: var(--cc-ink);
+  }
+  .cc-band.cc-band-faq h1,
+  .cc-band.cc-band-faq h2,
+  .cc-band.cc-band-faq h3,
+  .cc-band.cc-band-faq h4 {
+    color: var(--cc-ink);
+  }
+  .cc-band.cc-band-enterprise {
+    background: radial-gradient(
+        60% 80% at 100% 50%,
+        var(--cc-accent-glow, rgba(140, 160, 240, 0.18)),
+        transparent 70%
+      ),
+      var(--cc-accent-soft, rgba(140, 160, 240, 0.08));
+    color: var(--cc-ink);
+  }
+  .cc-band.cc-band-enterprise h1,
+  .cc-band.cc-band-enterprise h2 {
+    color: var(--cc-ink);
+  }
+  .cc-band.cc-band-footer {
+    color: var(--cc-ink);
+  }
+  .cc-band.cc-band-oss {
+    background: #07090f;
+    color: var(--cc-ink);
+  }
+  .cc-band.cc-band-oss h1,
+  .cc-band.cc-band-oss h2 {
+    color: #ffffff;
   }
 
+  /* ===== Section label (numbered eyebrow that floats over each band) ===== */
   .cc-section-label {
     position: absolute;
-    top: 36px;
-    left: var(--cc-pad-x);
+    top: -18px;
+    left: 0;
     font-family: var(--cc-font-mono), monospace;
     font-size: 11px;
     letter-spacing: 0.18em;
@@ -78,8 +120,8 @@ export const PricingRoot = styled.div`
   /* ===== Typography ===== */
   .display {
     font-family: var(--cc-font-sans), sans-serif;
-    font-weight: 500;
-    letter-spacing: -0.035em;
+    font-weight: 600;
+    letter-spacing: -0.04em;
     line-height: 0.98;
   }
   .eyebrow {
@@ -126,13 +168,13 @@ export const PricingRoot = styled.div`
     display: flex;
     gap: 14px;
     justify-content: center;
+    align-items: center;
     flex-wrap: wrap;
   }
 
   /* ===== 01 Hero ===== */
   .cc-pricing-hero {
-    padding-top: 160px;
-    padding-bottom: 80px;
+    position: relative;
     text-align: center;
   }
   .cc-pricing-hero-inner {
@@ -140,16 +182,16 @@ export const PricingRoot = styled.div`
     margin: 0 auto;
   }
   .cc-pricing-hero h1 {
-    font-size: clamp(40px, 6vw, 88px);
+    font-size: clamp(44px, 6.5vw, 96px);
     margin: 18px 0 24px;
     line-height: 1.02;
+    font-weight: 600;
+    letter-spacing: -0.04em;
   }
   .cc-pricing-hero h1 .accent {
-    background: linear-gradient(
-      120deg,
-      var(--cc-col-shi),
-      var(--cc-col-usr) 60%,
-      var(--cc-col-cat)
+    background: var(
+      --cc-accent-gradient,
+      linear-gradient(120deg, var(--cc-col-shi), var(--cc-col-usr) 60%)
     );
     -webkit-background-clip: text;
     background-clip: text;
@@ -160,22 +202,164 @@ export const PricingRoot = styled.div`
     line-height: 1.5;
     color: var(--cc-ink-dim);
     max-width: 60ch;
-    margin: 0 auto;
+    margin: 0 auto 36px;
     text-wrap: pretty;
   }
 
-  /* ===== 02 OSS strip ===== */
+  /* ===== Inline pricing calculator (lives in the hero) ===== */
+  .cc-calc {
+    margin: 0 auto;
+    max-width: 720px;
+    padding: 24px 28px 22px;
+    border: 1px solid var(--cc-ink-faint);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.03);
+    text-align: left;
+    box-shadow: 0 0 80px var(--cc-accent-glow, rgba(140, 160, 240, 0.1));
+  }
+  .cc-calc-row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 14px;
+  }
+  @media (max-width: 560px) {
+    .cc-calc-row {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 14px;
+    }
+  }
+  .cc-calc-eyebrow {
+    display: block;
+    font-family: var(--cc-font-mono), monospace;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--cc-ink-dim);
+    margin-bottom: 4px;
+  }
+  .cc-calc-label {
+    display: block;
+    cursor: pointer;
+  }
+  .cc-calc-value {
+    display: block;
+    font-family: var(--cc-font-sans), sans-serif;
+    font-size: clamp(22px, 2.4vw, 30px);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    color: var(--cc-ink);
+    font-feature-settings: "tnum" 1;
+  }
+  .cc-calc-output {
+    text-align: right;
+  }
+  @media (max-width: 560px) {
+    .cc-calc-output {
+      text-align: left;
+    }
+  }
+  .cc-calc-price {
+    display: block;
+    font-family: var(--cc-font-sans), sans-serif;
+    font-size: clamp(28px, 3.2vw, 40px);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    background: var(
+      --cc-accent-gradient,
+      linear-gradient(120deg, var(--cc-col-shi), var(--cc-col-usr))
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-feature-settings: "tnum" 1;
+  }
+  .cc-calc-price-unit {
+    font-size: 0.5em;
+    font-weight: 400;
+    color: var(--cc-ink-dim);
+    -webkit-text-fill-color: var(--cc-ink-dim);
+    background: none;
+  }
+  .cc-calc-tier {
+    display: block;
+    margin-top: 6px;
+    font-family: var(--cc-font-mono), monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--cc-ink);
+  }
+  .cc-calc-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 999px;
+    background: linear-gradient(
+      90deg,
+      var(--cc-accent-line, rgba(140, 160, 240, 0.32)),
+      rgba(245, 241, 234, 0.12)
+    );
+    outline: none;
+    margin: 8px 0 4px;
+  }
+  .cc-calc-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--cc-ink);
+    border: 3px solid var(--cc-accent, var(--cc-col-shi));
+    cursor: pointer;
+    box-shadow: 0 0 0 6px var(--cc-accent-glow, rgba(140, 160, 240, 0.18));
+    transition: transform 0.15s ease;
+  }
+  .cc-calc-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.08);
+  }
+  .cc-calc-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--cc-ink);
+    border: 3px solid var(--cc-accent, var(--cc-col-shi));
+    cursor: pointer;
+    box-shadow: 0 0 0 6px var(--cc-accent-glow, rgba(140, 160, 240, 0.18));
+  }
+  .cc-calc-slider:focus-visible {
+    outline: 2px solid var(--cc-accent, var(--cc-col-shi));
+    outline-offset: 6px;
+    border-radius: 999px;
+  }
+  .cc-calc-scale {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--cc-font-mono), monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--cc-ink-dim);
+    margin-top: 4px;
+  }
+  .cc-calc-note {
+    margin: 12px 0 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--cc-ink-dim);
+    text-align: left;
+  }
+
+  /* ===== 02 OSS strip (inverted band, no inner card chrome) ===== */
   .cc-oss-strip {
-    padding-top: 32px;
-    padding-bottom: 88px;
+    position: relative;
   }
   .cc-oss-inner {
     max-width: 1080px;
     margin: 0 auto;
-    border: 1px solid var(--cc-ink-faint);
-    border-radius: 18px;
-    background: rgba(255, 255, 255, 0.025);
-    padding: 32px 36px;
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 32px;
@@ -208,14 +392,16 @@ export const PricingRoot = styled.div`
     background: rgba(255, 255, 255, 0.025);
   }
   .cc-oss-chip.is-tag {
-    border-color: rgba(245, 241, 234, 0.32);
-    background: rgba(245, 241, 234, 0.06);
+    border-color: var(--cc-accent-line, rgba(140, 160, 240, 0.32));
+    background: var(--cc-accent-soft, rgba(140, 160, 240, 0.1));
+    color: var(--cc-ink);
   }
   .cc-oss-line {
     font-size: 16px;
     color: var(--cc-ink-dim);
     line-height: 1.55;
     margin: 0;
+    max-width: 60ch;
   }
   .cc-oss-line strong {
     color: var(--cc-ink);
@@ -224,7 +410,7 @@ export const PricingRoot = styled.div`
   .cc-oss-terminal {
     border: 1px solid var(--cc-ink-faint);
     border-radius: 12px;
-    background: rgba(8, 14, 26, 0.85);
+    background: rgba(255, 255, 255, 0.03);
     padding: 14px 18px;
     font-family: var(--cc-font-mono), monospace;
     font-size: 13px;
@@ -233,10 +419,9 @@ export const PricingRoot = styled.div`
     align-items: center;
     gap: 14px;
     min-width: 320px;
-    box-shadow: inset 0 0 0 1px rgba(245, 241, 234, 0.04);
   }
   .cc-oss-terminal .prompt {
-    color: var(--cc-col-shi);
+    color: var(--cc-accent, var(--cc-col-shi));
   }
   .cc-oss-terminal .cmd {
     color: var(--cc-ink);
@@ -247,8 +432,7 @@ export const PricingRoot = styled.div`
 
   /* ===== 03 Tier cards ===== */
   .cc-tiers {
-    padding-top: 24px;
-    padding-bottom: 96px;
+    position: relative;
   }
   .cc-tiers-inner {
     max-width: 1280px;
@@ -257,7 +441,7 @@ export const PricingRoot = styled.div`
   .cc-tiers-heading {
     text-align: center;
     margin: 0 auto 56px;
-    max-width: 720px;
+    max-width: 760px;
   }
   .cc-tiers-heading h2 {
     font-size: clamp(34px, 4.4vw, 56px);
@@ -270,6 +454,19 @@ export const PricingRoot = styled.div`
     max-width: 56ch;
     margin: 0 auto;
     text-wrap: pretty;
+  }
+  .cc-tiers-subnote {
+    margin-top: 18px !important;
+    font-size: 13px !important;
+    color: var(--cc-ink-dim);
+  }
+  .cc-tiers-subnote a {
+    color: var(--cc-accent, var(--cc-col-shi));
+    text-decoration: none;
+    border-bottom: 1px solid var(--cc-accent-line, rgba(140, 160, 240, 0.32));
+  }
+  .cc-tiers-subnote a:hover {
+    border-bottom-color: var(--cc-accent, var(--cc-col-shi));
   }
   .cc-tiers-grid {
     display: grid;
@@ -289,9 +486,8 @@ export const PricingRoot = styled.div`
     display: flex;
     flex-direction: column;
     padding: 40px 32px 32px;
-    border: 1px solid var(--cc-ink-faint);
-    border-radius: 18px;
     background: rgba(255, 255, 255, 0.025);
+    border-radius: 18px;
     transition: border-color 0.18s ease, transform 0.18s ease;
   }
   .cc-tier-card:hover {
@@ -299,11 +495,11 @@ export const PricingRoot = styled.div`
     transform: translateY(-2px);
   }
   .cc-tier-card.is-featured {
-    border-color: rgba(245, 241, 234, 0.45);
     background: rgba(255, 255, 255, 0.06);
-    box-shadow: 0 0 0 1px rgba(245, 241, 234, 0.1) inset,
+    border-top: 2px solid var(--cc-accent, var(--cc-col-shi));
+    box-shadow: 0 0 0 1px rgba(245, 241, 234, 0.08) inset,
       0 30px 80px -40px rgba(0, 0, 0, 0.6),
-      0 0 60px -20px rgba(120, 140, 220, 0.18);
+      0 0 80px -20px var(--cc-accent-glow, rgba(140, 160, 240, 0.2));
   }
   .cc-tier-badge {
     position: absolute;
@@ -312,7 +508,7 @@ export const PricingRoot = styled.div`
     transform: translateX(-50%);
     padding: 5px 12px;
     border-radius: 999px;
-    background: var(--cc-ink);
+    background: var(--cc-accent, var(--cc-ink));
     color: #0c1322;
     font-family: var(--cc-font-mono), monospace;
     font-size: 10px;
@@ -391,7 +587,7 @@ export const PricingRoot = styled.div`
     line-height: 1.5;
   }
   .cc-tier-bullets li svg {
-    color: var(--cc-col-shi);
+    color: var(--cc-accent, var(--cc-col-shi));
     flex-shrink: 0;
     margin-top: 4px;
   }
@@ -400,77 +596,42 @@ export const PricingRoot = styled.div`
     padding: 14px 22px;
     font-size: 14px;
   }
-
-  /* ===== 04 Spend controls ===== */
-  .cc-spend-controls {
-    padding-top: 0;
-    padding-bottom: 96px;
-  }
-  .cc-spend-inner {
-    max-width: 1080px;
-    margin: 0 auto;
-    border: 1px solid var(--cc-ink-faint);
-    border-radius: 18px;
-    background: rgba(255, 255, 255, 0.02);
-    padding: 36px;
-  }
-  .cc-spend-heading {
-    text-align: center;
-    margin: 0 0 28px;
-  }
-  .cc-spend-heading p {
-    font-size: clamp(17px, 1.4vw, 22px);
-    color: var(--cc-ink);
-    margin: 8px 0 0;
-    font-weight: 500;
-    letter-spacing: -0.01em;
-  }
-  .cc-spend-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 18px;
-  }
-  @media (max-width: 880px) {
-    .cc-spend-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-  .cc-spend-tile {
+  /* Inline spend-controls strip lives below the Hosted CTA so the anxiety
+     and its resolution sit in the same card. */
+  .cc-tier-spend-strip {
+    list-style: none;
+    margin: 14px 0 0;
+    padding: 0;
     display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding: 22px 22px;
-    border: 1px solid var(--cc-ink-faint);
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.025);
-  }
-  .cc-spend-tile-icon {
-    width: 36px;
-    height: 36px;
-    border: 1px solid var(--cc-ink-faint);
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
+    flex-wrap: wrap;
     justify-content: center;
-    color: var(--cc-col-shi);
-  }
-  .cc-spend-tile-title {
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--cc-ink);
-    margin: 0;
-  }
-  .cc-spend-tile-body {
-    font-size: 14px;
-    line-height: 1.55;
+    gap: 4px 14px;
+    font-family: var(--cc-font-mono), monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
     color: var(--cc-ink-dim);
-    margin: 0;
+  }
+  .cc-tier-spend-strip li {
+    position: relative;
+    padding-left: 14px;
+  }
+  .cc-tier-spend-strip li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--cc-accent, var(--cc-col-shi));
+    opacity: 0.7;
   }
 
-  /* ===== 05 Comparison table ===== */
+  /* ===== 04 Comparison table (content-on-band, no outer card chrome) ===== */
   .cc-compare {
-    padding-top: 56px;
-    padding-bottom: 120px;
+    position: relative;
   }
   .cc-compare-inner {
     max-width: 1280px;
@@ -490,10 +651,7 @@ export const PricingRoot = styled.div`
     max-width: 1080px;
     margin: 0 auto 36px;
     padding: 14px 20px;
-    border: 1px solid var(--cc-ink-faint);
-    border-left: 2px solid var(--cc-col-ord);
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.02);
+    border-left: 2px solid var(--cc-accent, var(--cc-col-shi));
     font-size: 14px;
     line-height: 1.55;
     color: var(--cc-ink-dim);
@@ -504,9 +662,9 @@ export const PricingRoot = styled.div`
   }
   .cc-compare-scroll {
     overflow-x: auto;
-    border: 1px solid var(--cc-ink-faint);
-    border-radius: 16px;
-    background: rgba(255, 255, 255, 0.015);
+    overflow-y: visible;
+    margin: 0 -8px;
+    padding: 0 8px;
   }
   .cc-compare-table {
     width: 100%;
@@ -518,11 +676,17 @@ export const PricingRoot = styled.div`
     position: sticky;
     top: 0;
     z-index: 3;
-    background: linear-gradient(180deg, #0c1322 0%, #0c1322 80%, transparent);
+    background: linear-gradient(
+      180deg,
+      #0c1322 0%,
+      #0c1322 80%,
+      rgba(12, 19, 34, 0.6)
+    );
     text-align: left;
     padding: 22px 18px 18px;
-    border-bottom: 1px solid var(--cc-ink-faint);
+    border-bottom: 1px solid var(--cc-accent-line, rgba(140, 160, 240, 0.32));
     vertical-align: bottom;
+    backdrop-filter: blur(8px);
   }
   .cc-compare-table thead th.is-feature {
     width: 280px;
@@ -537,7 +701,7 @@ export const PricingRoot = styled.div`
       180deg,
       rgba(20, 36, 60, 0.95) 0%,
       rgba(14, 24, 42, 0.95) 80%,
-      rgba(12, 19, 34, 0)
+      rgba(12, 19, 34, 0.6)
     );
   }
   .cc-compare-col-label {
@@ -567,9 +731,13 @@ export const PricingRoot = styled.div`
   }
   .cc-compare-table tbody tr.cc-group-head th {
     text-align: left;
-    padding: 28px 18px 8px;
+    padding: 36px 18px 12px;
+    border-top: 1px solid var(--cc-accent-line, rgba(140, 160, 240, 0.32));
     border-bottom: 1px solid var(--cc-ink-faint);
-    background: rgba(255, 255, 255, 0.02);
+  }
+  .cc-compare-table tbody tr.cc-group-head.is-first th {
+    border-top: none;
+    padding-top: 28px;
   }
   .cc-compare-group-title {
     font-size: 13px;
@@ -577,7 +745,7 @@ export const PricingRoot = styled.div`
     font-weight: 500;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: var(--cc-ink);
+    color: var(--cc-accent, var(--cc-col-shi));
     display: block;
     margin-bottom: 4px;
   }
@@ -596,7 +764,7 @@ export const PricingRoot = styled.div`
     transition: background 0.12s ease;
   }
   .cc-compare-table tbody tr.cc-row:nth-child(odd) {
-    background: rgba(255, 255, 255, 0.015);
+    background: rgba(255, 255, 255, 0.012);
   }
   .cc-compare-table tbody tr.cc-row:hover {
     background: rgba(255, 255, 255, 0.04);
@@ -624,7 +792,7 @@ export const PricingRoot = styled.div`
     background: rgba(20, 36, 60, 0.35);
   }
   .cc-cell-check svg {
-    color: var(--cc-col-shi);
+    color: var(--cc-accent, var(--cc-col-shi));
     display: block;
   }
   .cc-cell-value {
@@ -657,45 +825,33 @@ export const PricingRoot = styled.div`
     font-family: var(--cc-font-mono), monospace;
     font-size: 14px;
   }
+  .cc-compare-foot {
+    margin: 28px auto 0;
+    text-align: center;
+    font-family: var(--cc-font-mono), monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--cc-ink-dim);
+  }
 
-  /* ===== 06 Enterprise banner ===== */
+  /* ===== 05 Enterprise band (lives on accent Band) ===== */
   .cc-enterprise {
-    padding-top: 0;
-    padding-bottom: 120px;
+    position: relative;
   }
   .cc-enterprise-inner {
     max-width: 1180px;
     margin: 0 auto;
-    position: relative;
-    border-radius: 22px;
-    padding: 1px;
-    background: linear-gradient(
-      135deg,
-      rgba(245, 241, 234, 0.28),
-      rgba(245, 241, 234, 0.04) 35%,
-      rgba(120, 140, 220, 0.22) 70%,
-      rgba(245, 241, 234, 0.06)
-    );
-    box-shadow: 0 30px 80px -40px rgba(0, 0, 0, 0.7),
-      0 0 60px -10px rgba(120, 140, 220, 0.18);
   }
-  .cc-enterprise-card {
-    border-radius: 21px;
-    background: linear-gradient(
-      180deg,
-      rgba(14, 22, 38, 0.96),
-      rgba(10, 17, 30, 0.96)
-    );
-    padding: 56px 56px 52px;
+  .cc-enterprise-grid {
     display: grid;
     grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
     gap: 56px;
     align-items: start;
   }
   @media (max-width: 880px) {
-    .cc-enterprise-card {
+    .cc-enterprise-grid {
       grid-template-columns: 1fr;
-      padding: 36px 28px;
       gap: 36px;
     }
   }
@@ -715,7 +871,7 @@ export const PricingRoot = styled.div`
   .cc-enterprise-bullets {
     list-style: none;
     padding: 0;
-    margin: 0 0 28px;
+    margin: 0;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 16px 24px;
@@ -734,15 +890,14 @@ export const PricingRoot = styled.div`
     line-height: 1.45;
   }
   .cc-enterprise-bullets li svg {
-    color: var(--cc-col-shi);
+    color: var(--cc-accent, var(--cc-col-shi));
     flex-shrink: 0;
     margin-top: 3px;
   }
 
-  /* ===== 07 FAQ ===== */
+  /* ===== 06 FAQ (tinted Band, grouped lists) ===== */
   .cc-faq {
-    padding-top: 0;
-    padding-bottom: 120px;
+    position: relative;
   }
   .cc-faq-inner {
     max-width: 880px;
@@ -755,6 +910,20 @@ export const PricingRoot = styled.div`
   .cc-faq-heading h2 {
     font-size: clamp(34px, 4.4vw, 56px);
     margin: 8px auto 0;
+  }
+  .cc-faq-groups {
+    display: flex;
+    flex-direction: column;
+    gap: 36px;
+  }
+  .cc-faq-group-title {
+    margin: 0 0 12px;
+    font-family: var(--cc-font-mono), monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--cc-accent, var(--cc-col-shi));
   }
   .cc-faq-list {
     display: flex;
@@ -781,7 +950,7 @@ export const PricingRoot = styled.div`
     display: none;
   }
   .cc-faq-item summary:hover {
-    color: var(--cc-col-shi);
+    color: var(--cc-accent, var(--cc-col-shi));
   }
   .cc-faq-num {
     flex-shrink: 0;
@@ -806,7 +975,10 @@ export const PricingRoot = styled.div`
   }
   .cc-faq-item[open] .cc-faq-chevron {
     transform: rotate(180deg);
-    color: var(--cc-ink);
+    color: var(--cc-accent, var(--cc-ink));
+  }
+  .cc-faq-item[open] summary {
+    color: var(--cc-accent, var(--cc-ink));
   }
   .cc-faq-answer {
     padding: 0 4px 28px 40px;
@@ -818,10 +990,8 @@ export const PricingRoot = styled.div`
     margin: 0;
   }
 
-  /* ===== 08 Footer CTA ===== */
+  /* ===== 07 Footer CTA (glow Band) ===== */
   .cc-footer-cta {
-    padding-top: 60px;
-    padding-bottom: 140px;
     text-align: center;
   }
   .cc-footer-cta-inner {
@@ -837,8 +1007,39 @@ export const PricingRoot = styled.div`
   .cc-footer-cta-inner p {
     font-size: clamp(16px, 1.2vw, 19px);
     color: var(--cc-ink-dim);
-    margin: 0 auto 32px;
+    margin: 0 auto 28px;
     max-width: 56ch;
     text-wrap: pretty;
+  }
+  .cc-footer-install {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 18px;
+    border: 1px solid var(--cc-accent-line, rgba(140, 160, 240, 0.32));
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.02);
+    font-family: var(--cc-font-mono), monospace;
+    font-size: 13px;
+    color: var(--cc-ink);
+    margin: 0 auto 24px;
+  }
+  .cc-footer-install .prompt {
+    color: var(--cc-accent, var(--cc-col-shi));
+  }
+  .cc-footer-install .pkg {
+    color: var(--cc-col-bil);
+  }
+  .cc-footer-text-link {
+    color: var(--cc-ink-dim);
+    text-decoration: none;
+    font-size: 14px;
+    border-bottom: 1px solid var(--cc-ink-faint);
+    padding-bottom: 2px;
+    transition: color 0.15s ease, border-color 0.15s ease;
+  }
+  .cc-footer-text-link:hover {
+    color: var(--cc-ink);
+    border-bottom-color: var(--cc-ink);
   }
 `;

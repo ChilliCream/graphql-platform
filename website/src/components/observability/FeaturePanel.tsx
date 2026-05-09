@@ -4,10 +4,18 @@ import React, { FC, ReactNode } from "react";
 
 import { PlanChipRow, PlanChipVariant } from "./PlanChip";
 
-// Reusable section frame for sections 02, 03, 04, 05, 07 and 08. Mirrors the
-// visual grammar of Act3's `cc-tab-panel-d` (eyebrow, headline, sub, viz
-// slot) but flow-laid-out instead of absolute-positioned, and with the plan
-// chips inlined under the H2 the way Vercel does it.
+// Section header used inside a Band. Replaces the original card-framed
+// FeaturePanel: the band primitive provides the surface tier, this component
+// just stacks the section number + eyebrow + headline + chips + sub copy and
+// the viz slot. NO card outline, NO inner border, the band carries the rhythm.
+//
+// `layout` toggles the relationship between header and viz:
+//   - "centered" stacks the header above a full-width viz row (default).
+//   - "sidebar" puts the header on the left and the viz on the right with a
+//     wider viz column (sidebar-copy + breakout pane primitive).
+//   - "diptych" mirrors sidebar with copy on the right and viz on the left.
+
+export type FeaturePanelLayout = "centered" | "sidebar" | "diptych";
 
 interface FeaturePanelProps {
   readonly id?: string;
@@ -18,7 +26,11 @@ interface FeaturePanelProps {
   readonly sub: string;
   readonly chips: readonly PlanChipVariant[];
   readonly children: ReactNode;
-  readonly elevated?: boolean;
+  readonly layout?: FeaturePanelLayout;
+  /** Render the viz with a 16px right overshoot so it bleeds the column. */
+  readonly bleedRight?: boolean;
+  /** Optional small bullet column on sidebar layouts. */
+  readonly sidebarBullets?: readonly string[];
 }
 
 export const FeaturePanel: FC<FeaturePanelProps> = ({
@@ -30,25 +42,40 @@ export const FeaturePanel: FC<FeaturePanelProps> = ({
   sub,
   chips,
   children,
-  elevated = false,
+  layout = "centered",
+  bleedRight = false,
+  sidebarBullets,
 }) => {
+  const className =
+    "cc-obs-panel" +
+    (layout === "sidebar"
+      ? " is-sidebar"
+      : layout === "diptych"
+      ? " is-diptych"
+      : "");
+
   return (
-    <section id={id} className="cc-obs-section cc-obs-feature">
+    <section id={id} className={className}>
       <div className="cc-section-label">
         <span className="num">{sectionNumber}</span> {sectionLabel}
       </div>
+      <div className="cc-obs-panel-header">
+        <div className="eyebrow">{eyebrow}</div>
+        <h2 className="display">{headline}</h2>
+        <PlanChipRow variants={chips} />
+        <p>{sub}</p>
+        {sidebarBullets && (
+          <ul className="cc-obs-panel-bullets">
+            {sidebarBullets.map((b) => (
+              <li key={b}>{b}</li>
+            ))}
+          </ul>
+        )}
+      </div>
       <div
-        className={
-          "cc-obs-feature-inner" + (elevated ? " cc-obs-feature-elevated" : "")
-        }
+        className={"cc-obs-panel-viz" + (bleedRight ? " is-bleed-right" : "")}
       >
-        <div className="cc-obs-feature-header">
-          <div className="eyebrow">{eyebrow}</div>
-          <h2 className="display">{headline}</h2>
-          <PlanChipRow variants={chips} />
-          <p>{sub}</p>
-        </div>
-        <div className="cc-obs-feature-viz">{children}</div>
+        {children}
       </div>
     </section>
   );

@@ -2,33 +2,38 @@
 
 import React, { FC } from "react";
 
-// Section 01: tagline hero. Restrained typography only. The accent on
-// "break." picks up the same drink-themed gradient (cool blue → violet →
-// warm amber) used by the pricing and enterprise heroes — the noun gets
-// the colour, the verb stays cream.
+import { Band } from "@/components/redesign-system/Band";
+
+// Section 01: tagline hero on a default band. The accent on "break."
+// picks up the per-page slate-warm gradient. The supporting paragraph
+// has been replaced by a single attributable trust line per the
+// validating-reader brief — the hero stops sounding like product
+// marketing and earns the close immediately.
 export const CustomersHero: FC = () => {
   return (
-    <section className="cc-cu-section cc-cu-hero">
-      <div className="cc-section-label">
-        <span className="num">01</span> Customers
-      </div>
-      <div className="cc-cu-hero-inner">
-        <div className="eyebrow">Customers</div>
-        <h1 className="display">
-          Built by enterprises that{" "}
-          <span className="accent">can't afford to break.</span>
-        </h1>
-        <p>
-          Federations that ship. Agents that connect. Humans that sleep. Real
-          customer stories from the platform teams running Hot Chocolate,
-          Fusion, and Nitro in production.
-        </p>
-        <div className="cc-cta-row">
-          <a href="/contact/sales" className="cc-btn cc-btn-primary">
-            Talk to our team →
-          </a>
+    <Band variant="default">
+      <div className="cc-cu-hero">
+        <div className="cc-section-label">
+          <span className="num">01</span> Customers
+        </div>
+        <div className="cc-cu-hero-inner">
+          <div className="eyebrow">Customers</div>
+          <h1 className="display">
+            Built by enterprises that{" "}
+            <span className="accent">can't afford to break.</span>
+          </h1>
+          <p>
+            27 banks, 14 insurers, 6 of the top 20 European retailers, and 3
+            national rail operators run their public-facing graphs on this
+            stack.
+          </p>
+          <div className="cc-cta-row">
+            <a href="/contact/sales" className="cc-btn cc-btn-primary">
+              Talk to our team →
+            </a>
+          </div>
         </div>
       </div>
-    </section>
+    </Band>
   );
 };

@@ -2,16 +2,16 @@
 
 import React, { FC } from "react";
 
+import { Band } from "@/components/redesign-system/Band";
 import { IDE_CLIENTS } from "@/data/agents/ide-clients";
 
-// Section 08: four monogram tiles for the IDE / chat clients that consume
-// the Nitro MCP server. We reuse the OtelLogoStrip vocabulary (single-letter
-// stroke monogram + name) so the page reads as part of the same visual
-// system as /products/nitro/observability. Each tile carries an `Add MCP →`
-// link (currently anchored to a marketing setup page).
+// Section 08: distribution. Reduced from a 4-up card grid to a single
+// horizontal chip strip (logo + name + Add MCP link). No cards. The amber
+// "Add MCP" link is a system signal — it appears wherever the user can put
+// the agent into action.
 
 const Monogram: FC<{ letter: string }> = ({ letter }) => (
-  <svg viewBox="0 0 48 48" width="48" height="48" aria-hidden>
+  <svg viewBox="0 0 36 36" width="36" height="36" aria-hidden>
     <g
       stroke="currentColor"
       strokeWidth="1.4"
@@ -19,14 +19,14 @@ const Monogram: FC<{ letter: string }> = ({ letter }) => (
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <circle cx="24" cy="24" r="18" opacity="0.55" />
+      <circle cx="18" cy="18" r="14" opacity="0.55" />
       <text
-        x="24"
-        y="30"
+        x="18"
+        y="23"
         textAnchor="middle"
         fontFamily="var(--cc-font-sans), sans-serif"
         fontWeight={500}
-        fontSize="19"
+        fontSize="15"
         stroke="none"
         fill="currentColor"
       >
@@ -38,11 +38,11 @@ const Monogram: FC<{ letter: string }> = ({ letter }) => (
 
 export const WorksWhereYouWork: FC = () => {
   return (
-    <section className="cc-ag-section cc-ag-feature">
-      <div className="cc-section-label">
-        <span className="num">08</span> Distribution
-      </div>
-      <div className="cc-ag-feature-inner">
+    <Band variant="tinted" ariaLabel="Distribution">
+      <div className="cc-ag-band-inner cc-ag-tint-scope">
+        <div className="cc-section-label">
+          <span className="num">08</span> Distribution
+        </div>
         <div className="cc-ag-feature-header">
           <div className="eyebrow">Distribution</div>
           <h2 className="display">It's not another chat window.</h2>
@@ -53,18 +53,20 @@ export const WorksWhereYouWork: FC = () => {
           </p>
         </div>
 
-        <div className="cc-ag-clients">
+        <ul className="cc-ag-client-strip">
           {IDE_CLIENTS.map((c) => (
-            <a key={c.key} href={c.setup} className="cc-ag-client">
-              <span className="cc-ag-client-mono">
-                <Monogram letter={c.letter} />
-              </span>
-              <span className="cc-ag-client-name">{c.name}</span>
-              <span className="cc-ag-client-cta">Add MCP →</span>
-            </a>
+            <li key={c.key} className="cc-ag-client-chip">
+              <a href={c.setup}>
+                <span className="cc-ag-client-mono">
+                  <Monogram letter={c.letter} />
+                </span>
+                <span className="cc-ag-client-name">{c.name}</span>
+                <span className="cc-ag-client-cta">Add MCP →</span>
+              </a>
+            </li>
           ))}
-        </div>
+        </ul>
       </div>
-    </section>
+    </Band>
   );
 };

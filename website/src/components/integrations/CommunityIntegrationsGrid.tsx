@@ -3,6 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import React, { FC, useMemo } from "react";
 
+import { Band } from "@/components/redesign-system/Band";
 import {
   communityIntegrations,
   recentlyAdded,
@@ -11,10 +12,15 @@ import {
 import { IntegrationCard } from "./IntegrationCard";
 
 // Section 07: full grid of community integrations. Denser layout (4 columns
-// at desktop instead of 3) with smaller cards, mirroring Vercel's "External
-// Integrations" rail at the bottom of /marketplace. The visual hierarchy
-// communicates the same thing the Type pill says: Native is heavier, denser,
-// more present; Community is lighter, more utilitarian.
+// at desktop instead of 3) with smaller cards and stroked monograms,
+// mirroring Vercel's "External Integrations" rail at the bottom of
+// /marketplace. The visual hierarchy communicates the same thing the Type
+// pill says: Native is heavier, denser color; Community is lighter, more
+// utilitarian.
+//
+// Wrapped in a tinted `<Band>` so the hard surface-tone shift between Native
+// and Community lands without any extra divider chrome (uplift-plan
+// P1-integrations-6).
 export const CommunityIntegrationsGrid: FC = () => {
   const searchParams = useSearchParams();
   const type = searchParams?.get("type");
@@ -44,7 +50,11 @@ export const CommunityIntegrationsGrid: FC = () => {
   }
 
   return (
-    <section className="cc-in-section cc-in-typesection">
+    <Band
+      variant="tinted"
+      className="cc-in-tinted-band"
+      ariaLabel="Community integrations"
+    >
       <div className="cc-section-label">
         <span className="num">07</span> Community
       </div>
@@ -55,7 +65,8 @@ export const CommunityIntegrationsGrid: FC = () => {
             <h2 className="display">Community integrations.</h2>
             <p>
               Open-source packages from the ecosystem. Maintained by the
-              community, listed here once they ship a working release.
+              community and reviewed by us, listed once they ship a working
+              release.
             </p>
           </div>
           <span className="count-pill">
@@ -72,6 +83,6 @@ export const CommunityIntegrationsGrid: FC = () => {
           ))}
         </div>
       </div>
-    </section>
+    </Band>
   );
 };

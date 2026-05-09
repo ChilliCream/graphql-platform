@@ -27,6 +27,97 @@ export type ThumbnailKind =
   | "tenancy"
   | "blazor";
 
+// Per-template accent token. Each thumbnail picks one hue from the same
+// palette the page-accent system uses (see redesign-system/AccentThread),
+// so federation thumbnails read enterprise-blue, polyglot reads solutions-
+// plum, agent-ready reads agents-amber, etc. Drives the --cc-accent custom
+// property on the card and on the featured-template hero.
+export type ThumbnailAccent =
+  | "enterprise"
+  | "solutions"
+  | "agents"
+  | "observability"
+  | "pricing"
+  | "customers"
+  | "integrations"
+  | "templates";
+
+export const THUMBNAIL_ACCENT_TOKENS: Record<
+  ThumbnailAccent,
+  {
+    primary: string;
+    soft: string;
+    line: string;
+    gradient: string;
+    glow: string;
+  }
+> = {
+  enterprise: {
+    primary: "oklch(0.72 0.14 230)",
+    soft: "rgba(108, 156, 220, 0.10)",
+    line: "rgba(108, 156, 220, 0.32)",
+    gradient:
+      "linear-gradient(120deg, oklch(0.72 0.14 230), oklch(0.78 0.10 220))",
+    glow: "rgba(108, 156, 220, 0.18)",
+  },
+  solutions: {
+    primary: "oklch(0.74 0.16 320)",
+    soft: "rgba(220, 140, 220, 0.10)",
+    line: "rgba(220, 140, 220, 0.32)",
+    gradient:
+      "linear-gradient(120deg, oklch(0.74 0.16 320), oklch(0.72 0.18 350))",
+    glow: "rgba(220, 140, 220, 0.18)",
+  },
+  agents: {
+    primary: "oklch(0.78 0.16 70)",
+    soft: "rgba(247, 186, 100, 0.10)",
+    line: "rgba(247, 186, 100, 0.32)",
+    gradient:
+      "linear-gradient(120deg, oklch(0.78 0.16 70), oklch(0.74 0.18 40))",
+    glow: "rgba(247, 186, 100, 0.20)",
+  },
+  observability: {
+    primary: "oklch(0.78 0.14 200)",
+    soft: "rgba(96, 200, 220, 0.10)",
+    line: "rgba(96, 200, 220, 0.32)",
+    gradient:
+      "linear-gradient(120deg, oklch(0.78 0.14 200), oklch(0.82 0.12 180))",
+    glow: "rgba(96, 200, 220, 0.20)",
+  },
+  pricing: {
+    primary: "oklch(0.78 0.13 250)",
+    soft: "rgba(140, 160, 240, 0.10)",
+    line: "rgba(140, 160, 240, 0.32)",
+    gradient:
+      "linear-gradient(120deg, oklch(0.78 0.13 250), oklch(0.74 0.16 290))",
+    glow: "rgba(140, 160, 240, 0.18)",
+  },
+  customers: {
+    primary: "oklch(0.74 0.10 70)",
+    soft: "rgba(220, 200, 160, 0.10)",
+    line: "rgba(220, 200, 160, 0.32)",
+    gradient:
+      "linear-gradient(120deg, oklch(0.74 0.10 70), oklch(0.72 0.12 40))",
+    glow: "rgba(220, 200, 160, 0.16)",
+  },
+  integrations: {
+    primary: "oklch(0.74 0.16 150)",
+    soft: "rgba(80, 200, 140, 0.10)",
+    line: "rgba(80, 200, 140, 0.32)",
+    gradient:
+      "linear-gradient(120deg, oklch(0.74 0.16 150), oklch(0.78 0.14 170))",
+    glow: "rgba(80, 200, 140, 0.18)",
+  },
+  templates: {
+    primary: "oklch(0.78 0.14 60)",
+    soft: "rgba(220, 180, 120, 0.10)",
+    line: "rgba(220, 180, 120, 0.32)",
+    gradient:
+      "linear-gradient(120deg, oklch(0.78 0.14 60), oklch(0.76 0.16 30))",
+    glow: "rgba(220, 180, 120, 0.18)",
+  },
+};
+
 export interface CodeBlock {
   readonly language: string;
   readonly code: string;
@@ -49,12 +140,14 @@ export interface Template {
   readonly title: string;
   readonly tagline: string;
   readonly thumbnail: ThumbnailKind;
+  readonly accent: ThumbnailAccent;
   readonly topology: TopologyKey;
   readonly useCases: readonly UseCaseKey[];
   readonly language: LanguageKey;
   readonly clients: readonly ClientKey[];
   readonly products: readonly ProductKey[];
   readonly agentReady: boolean;
+  readonly featured?: boolean;
   readonly githubUrl: string;
   readonly demoUrl?: string;
   readonly license: string;
@@ -71,6 +164,7 @@ const fusion3ServiceFederation: Template = {
   title: "Fusion 3-Service Federation",
   tagline: "Three services, one graph.",
   thumbnail: "federation",
+  accent: "enterprise",
   topology: "federation",
   useCases: ["starter"],
   language: "dotnet",
@@ -151,6 +245,7 @@ const agentReadyApi: Template = {
   title: "Agent-Ready API",
   tagline: "A Hot Chocolate service that exposes itself as an MCP server.",
   thumbnail: "agents",
+  accent: "agents",
   topology: "solo",
   useCases: ["llm-mcp"],
   language: "dotnet",
@@ -236,6 +331,7 @@ const polyglotFederation: Template = {
   tagline:
     "A C# Hot Chocolate service and a Node Yoga service, composed by Fusion.",
   thumbnail: "polyglot",
+  accent: "solutions",
   topology: "polyglot",
   useCases: ["starter"],
   language: "mixed",
@@ -311,6 +407,7 @@ const cqrsWithMocha: Template = {
   tagline:
     "Hot Chocolate + Mocha on the same schema. Commands, queries, events — same surface.",
   thumbnail: "solo",
+  accent: "customers",
   topology: "solo",
   useCases: ["cqrs"],
   language: "dotnet",
@@ -393,6 +490,7 @@ const realtimeSubscriptions: Template = {
   title: "Realtime Subscriptions",
   tagline: "WebSockets via SSE. Live order updates from a single resolver.",
   thumbnail: "subscriptions",
+  accent: "pricing",
   topology: "solo",
   useCases: ["realtime"],
   language: "dotnet",
@@ -477,12 +575,14 @@ const fusionWithNitroObservability: Template = {
   tagline:
     "3-service Fusion mesh with Nitro tracing wired in. The Operator's Window starter.",
   thumbnail: "observability",
+  accent: "observability",
   topology: "federation",
   useCases: ["observability"],
   language: "dotnet",
   clients: ["none"],
   products: ["hot-chocolate", "fusion", "nitro"],
   agentReady: false,
+  featured: true,
   githubUrl:
     "https://github.com/ChilliCream/templates/tree/main/fusion-with-nitro-observability",
   demoUrl: "https://demo.chillicream.com/fusion-with-nitro-observability",
@@ -571,6 +671,7 @@ const multiTenantSaasStarter: Template = {
   title: "Multi-tenant SaaS Starter",
   tagline: "Per-tenant schema isolation, RBAC, audit log.",
   thumbnail: "tenancy",
+  accent: "integrations",
   topology: "solo",
   useCases: ["multi-tenant", "auth"],
   language: "dotnet",
@@ -665,6 +766,7 @@ const blazorStrawberryShake: Template = {
   tagline:
     "Blazor SPA + Strawberry Shake client + Hot Chocolate server. End-to-end typed.",
   thumbnail: "blazor",
+  accent: "templates",
   topology: "solo",
   useCases: ["starter"],
   language: "dotnet",
@@ -757,6 +859,17 @@ export const TEMPLATES: readonly Template[] = [
 
 export const findTemplate = (slug: string): Template | undefined =>
   TEMPLATES.find((t) => t.slug === slug);
+
+// The single template promoted as the index-page hero. Falls back to the
+// first non-Starter entry if no template is flagged.
+export const findFeaturedTemplate = (): Template => {
+  const flagged = TEMPLATES.find((t) => t.featured);
+  if (flagged) {
+    return flagged;
+  }
+  const nonStarter = TEMPLATES.find((t) => !t.useCases.includes("starter"));
+  return nonStarter ?? TEMPLATES[0];
+};
 
 // Related = same topology first, then same product mix overlap, then anything.
 // Capped at 3 to match the Vercel pattern: lateral exploration without

@@ -7,7 +7,21 @@
 // code snippet, fewer pillars allowed). The renderer respects the absence
 // of optional fields so industry pages naturally drop sections.
 
+import type { AccentTokens } from "@/components/redesign-system/AccentThread";
+
 export type SolutionCategory = "use-case" | "industry";
+
+// Page-level hero motif. Each solution page picks one so the hero canvas
+// reads as solution-specific even though the layout is shared. The renderer
+// maps the chosen motif to one of the abstract spatial primitives.
+export type HeroMotif =
+  | "orbit"
+  | "hemisphere"
+  | "perspective-grid"
+  | "ray-burst"
+  | "light-cone"
+  | "dashboard"
+  | "typographic";
 
 export type IconKind =
   | "stack"
@@ -128,4 +142,16 @@ export interface SolutionRecord {
   readonly logoCaption: string;
   readonly finalCta: SolutionFinalCta;
   readonly related: readonly string[];
+  /**
+   * Per-slug accent override. Layered onto the shared "solutions" page
+   * accent so each slug has a distinct chromatic identity that threads
+   * through hero, diagram, proof, and final CTA.
+   */
+  readonly accent?: Partial<AccentTokens>;
+  /**
+   * Page-level hero motif, picked from the abstract-spatial primitives.
+   * The renderer resolves this to the matching illustration so the hero
+   * reads as solution-specific even though the layout is shared.
+   */
+  readonly heroMotif?: HeroMotif;
 }

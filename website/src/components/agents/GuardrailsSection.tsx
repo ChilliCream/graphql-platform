@@ -2,12 +2,14 @@
 
 import React, { FC } from "react";
 
+import { Band } from "@/components/redesign-system/Band";
 import { Guardrail, GUARDRAILS, GuardrailIcon } from "@/data/agents/guardrails";
 
 // Section 07: four guardrails. Tone is ops-grade, not marketing-soft. Each
-// card pairs a stroke icon (in amber) with a serious one-liner. The amber
-// accent reinforces the page's "instrumentation in motion" reading without
-// borrowing chatbot chrome.
+// card pairs a stroke icon (in amber) with a serious one-liner. This is the
+// ONE section on the page that keeps card chrome — the amber stroke is a
+// system signal: "this card has a constraint." Everywhere else on the page,
+// borders have been stripped.
 
 const STROKE = {
   fill: "none" as const,
@@ -67,11 +69,11 @@ const ICONS: Record<GuardrailIcon, () => React.ReactElement> = {
 
 export const GuardrailsSection: FC = () => {
   return (
-    <section className="cc-ag-section cc-ag-feature">
-      <div className="cc-section-label">
-        <span className="num">07</span> Guardrails
-      </div>
-      <div className="cc-ag-feature-inner">
+    <Band variant="default" ariaLabel="Guardrails">
+      <div className="cc-ag-band-inner">
+        <div className="cc-section-label">
+          <span className="num">07</span> Guardrails
+        </div>
         <div className="cc-ag-feature-header">
           <div className="eyebrow">Autonomy with a leash</div>
           <h2 className="display">Bounded by the schema, audited by Mocha.</h2>
@@ -99,6 +101,6 @@ export const GuardrailsSection: FC = () => {
           })}
         </div>
       </div>
-    </section>
+    </Band>
   );
 };

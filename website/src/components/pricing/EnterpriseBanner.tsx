@@ -24,11 +24,17 @@ const Check: React.FC = () => (
   </svg>
 );
 
+// Enterprise banner lives on an accent Band: page accent washes the surface
+// so the band itself carries the differentiation. The inner gradient-border
+// card chrome is gone; the layout stays edge-to-edge content-on-band.
 export const EnterpriseBanner: React.FC = () => {
   return (
-    <section className="cc-pricing-section cc-enterprise">
+    <div className="cc-enterprise">
+      <div className="cc-section-label">
+        <span className="num">05</span> Enterprise
+      </div>
       <div className="cc-enterprise-inner">
-        <div className="cc-enterprise-card">
+        <div className="cc-enterprise-grid">
           <div className="cc-enterprise-copy">
             <div className="eyebrow">Enterprise + Support</div>
             <h2 className="display">
@@ -57,6 +63,6 @@ export const EnterpriseBanner: React.FC = () => {
           </ul>
         </div>
       </div>
-    </section>
+    </div>
   );
 };

@@ -75,11 +75,16 @@ const ComparisonCell: React.FC<{
   }
 };
 
+// The comparison matrix lifted out of an outlined card: it lives directly on
+// the band. Sticky thead engages once the user scrolls past the section
+// heading. Row-group titles stay inside the table for accessibility (real
+// `<th scope=colgroup>`) but are also promoted with a 1px accent rule above
+// each group so the eye can break the wall into chapters.
 export const ComparisonTable: React.FC = () => {
   return (
-    <section className="cc-pricing-section cc-compare">
+    <div className="cc-compare">
       <div className="cc-section-label">
-        <span className="num">05</span> Compare plans
+        <span className="num">04</span> Compare plans
       </div>
       <div className="cc-compare-inner">
         <div className="cc-compare-heading">
@@ -116,9 +121,11 @@ export const ComparisonTable: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {COMPARISON_MATRIX.map((group) => (
+              {COMPARISON_MATRIX.map((group, gi) => (
                 <React.Fragment key={group.title}>
-                  <tr className="cc-group-head">
+                  <tr
+                    className={"cc-group-head" + (gi === 0 ? " is-first" : "")}
+                  >
                     <th
                       scope="colgroup"
                       colSpan={1 + COMPARISON_COLUMNS.length}
@@ -155,7 +162,12 @@ export const ComparisonTable: React.FC = () => {
             </tbody>
           </table>
         </div>
+
+        <p className="cc-compare-foot">
+          Hard limits, budget alerts, no surprise invoices on every Nitro tier.
+          Pay-as-you-go is opt-in.
+        </p>
       </div>
-    </section>
+    </div>
   );
 };

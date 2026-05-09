@@ -2,6 +2,7 @@
 
 import React, { FC } from "react";
 
+import { Band } from "@/components/redesign-system/Band";
 import { featuredIntegrations } from "@/data/integrations/integrations";
 
 import { IntegrationCard } from "./IntegrationCard";
@@ -10,13 +11,24 @@ import { IntegrationCard } from "./IntegrationCard";
 // quarter; flip the `featured` flag on an entry in integrations.ts to swap
 // the lineup. Order matches the order in INTEGRATIONS, so editing the seed
 // array is enough to reorder, no re-sort here.
+//
+// Wrapped in a tinted `<Band>` so the page reads as alternating registers
+// (uplift-plan CC1, P0-integrations-4): hero default → spotlight accent →
+// featured tinted → categories default → native default → community tinted.
 export const FeaturedIntegrations: FC = () => {
   const featured = featuredIntegrations();
   if (featured.length === 0) {
     return null;
   }
   return (
-    <section className="cc-in-section cc-in-featured">
+    <Band
+      variant="tinted"
+      className="cc-in-tinted-band"
+      ariaLabel="Featured integrations"
+    >
+      <div className="cc-section-label">
+        <span className="num">04</span> Featured
+      </div>
       <div className="cc-in-featured-inner">
         <div className="cc-in-featured-head">
           <div>
@@ -30,6 +42,6 @@ export const FeaturedIntegrations: FC = () => {
           ))}
         </div>
       </div>
-    </section>
+    </Band>
   );
 };

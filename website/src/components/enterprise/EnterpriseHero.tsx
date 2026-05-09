@@ -2,49 +2,20 @@
 
 import React, { FC } from "react";
 
-// 5-monogram "trust strip". We can't name customers, so each tile is a
-// stroke-rendered single-letter monogram with a one-line caption underneath
-// describing the segment. Same line-stroke vocabulary as Act5's brewers.
+import { Band } from "@/components/redesign-system/Band";
 
-interface MonogramTile {
-  readonly key: string;
-  readonly letter: string;
-  readonly caption: string;
-}
+// The hero anchors the page accent: H1 with a single accent gradient span,
+// plus a typographic trust line directly under the buttons. The previous
+// 5-tile monogram rack was visually heavy for an anonymised customer signal;
+// a single line of attributed segments reads as proof, not decoration.
 
-const MONOGRAMS: readonly MonogramTile[] = [
-  { key: "eu-bank", letter: "B", caption: "EU retail bank" },
-  { key: "logistics", letter: "L", caption: "Logistics PaaS" },
-  { key: "fsi", letter: "F", caption: "FSI group" },
-  { key: "public", letter: "P", caption: "Public-sector cloud" },
-  { key: "insurer", letter: "I", caption: "Global insurer" },
+const TRUST_SEGMENTS: readonly string[] = [
+  "EU retail bank",
+  "Logistics PaaS",
+  "FSI group",
+  "Public-sector cloud",
+  "Global insurer",
 ];
-
-const Monogram: FC<{ letter: string }> = ({ letter }) => (
-  <svg viewBox="0 0 56 56" width="56" height="56" aria-hidden>
-    <g
-      stroke="currentColor"
-      strokeWidth="1.6"
-      fill="none"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="28" cy="28" r="22" opacity="0.6" />
-      <text
-        x="28"
-        y="34"
-        textAnchor="middle"
-        fontFamily="var(--cc-font-sans), sans-serif"
-        fontWeight={500}
-        fontSize="22"
-        stroke="none"
-        fill="currentColor"
-      >
-        {letter}
-      </text>
-    </g>
-  </svg>
-);
 
 interface EnterpriseHeroProps {
   readonly onPrimaryClick: () => void;
@@ -52,11 +23,11 @@ interface EnterpriseHeroProps {
 
 export const EnterpriseHero: FC<EnterpriseHeroProps> = ({ onPrimaryClick }) => {
   return (
-    <section className="cc-ent-section cc-ent-hero">
-      <div className="cc-section-label">
-        <span className="num">02</span> Enterprise
-      </div>
+    <Band variant="default">
       <div className="cc-ent-hero-inner">
+        <div className="cc-section-label">
+          <span className="num">02</span> Enterprise
+        </div>
         <div className="eyebrow">For platform teams</div>
         <h1 className="display">
           The GraphQL platform for{" "}
@@ -81,17 +52,16 @@ export const EnterpriseHero: FC<EnterpriseHeroProps> = ({ onPrimaryClick }) => {
           </a>
         </div>
 
-        <div className="cc-ent-trust-strip" aria-label="Customer segments">
-          {MONOGRAMS.map((m) => (
-            <div key={m.key} className="cc-ent-trust-tile">
-              <div className="cc-ent-trust-mono">
-                <Monogram letter={m.letter} />
-              </div>
-              <div className="cc-ent-trust-caption">{m.caption}</div>
-            </div>
+        <p className="cc-ent-hero-trustline" aria-label="Customer segments">
+          Trusted by{" "}
+          {TRUST_SEGMENTS.map((segment, i) => (
+            <React.Fragment key={segment}>
+              {i > 0 && <span className="sep"> · </span>}
+              <span className="seg">{segment}</span>
+            </React.Fragment>
           ))}
-        </div>
+        </p>
       </div>
-    </section>
+    </Band>
   );
 };

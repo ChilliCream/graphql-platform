@@ -2,6 +2,7 @@
 
 import React, { FC, useMemo, useState } from "react";
 
+import { Band } from "@/components/redesign-system/Band";
 import { INDUSTRIES } from "@/data/customers/industries";
 import {
   PRODUCTS,
@@ -98,14 +99,14 @@ export const AllStoriesGrid: FC = () => {
   }));
 
   return (
-    <section className="cc-cu-section cc-cu-grid-section">
+    <Band variant="default" ariaLabel="All stories">
       <div className="cc-section-label">
         <span className="num">05</span> All stories
       </div>
       <div className="cc-cu-grid-inner">
-        <div className="cc-cu-heading">
+        <div className="cc-cu-heading is-flat">
           <div className="eyebrow">All stories</div>
-          <h2 className="display">Filter the long tail.</h2>
+          <h3 className="cc-cu-grid-section-title">Filter the long tail.</h3>
           <p>
             Eight stories so far, more on the way each quarter. Tag-filterable
             by product, industry, and story type. No search needed at this
@@ -149,6 +150,6 @@ export const AllStoriesGrid: FC = () => {
           ))}
         </div>
       </div>
-    </section>
+    </Band>
   );
 };

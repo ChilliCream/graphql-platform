@@ -2,21 +2,24 @@
 
 import React, { FC } from "react";
 
+import { Band } from "@/components/redesign-system/Band";
 import { CustomerOutcome as CustomerOutcomeData } from "@/data/enterprise/outcomes";
 
 interface CustomerOutcomeProps {
   readonly outcome: CustomerOutcomeData;
   readonly sectionNumber: string;
   readonly sectionLabel?: string;
+  readonly variant?: "default" | "tinted";
 }
 
 export const CustomerOutcome: FC<CustomerOutcomeProps> = ({
   outcome,
   sectionNumber,
   sectionLabel,
+  variant = "default",
 }) => {
   return (
-    <section className="cc-ent-section cc-ent-outcome">
+    <Band variant={variant} ariaLabel={sectionLabel ?? "Customer outcome"}>
       <div className="cc-section-label">
         <span className="num">{sectionNumber}</span>{" "}
         {sectionLabel ?? "Customer outcome"}
@@ -33,6 +36,6 @@ export const CustomerOutcome: FC<CustomerOutcomeProps> = ({
           </span>
         </div>
       </article>
-    </section>
+    </Band>
   );
 };

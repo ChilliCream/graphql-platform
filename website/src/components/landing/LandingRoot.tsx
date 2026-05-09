@@ -15,6 +15,8 @@ export const LandingGlobalStyle = createGlobalStyle`
     font-family: var(--cc-font-sans), system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
+    --cc-accent: var(--cc-ink);
+    --cc-accent-soft: rgba(245, 241, 234, 0.08);
   }
   body.cc-landing-body * { box-sizing: border-box; }
 `;

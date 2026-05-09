@@ -3,6 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import React, { FC, useMemo } from "react";
 
+import { Band } from "@/components/redesign-system/Band";
 import {
   nativeIntegrations,
   recentlyAdded,
@@ -10,11 +11,14 @@ import {
 
 import { IntegrationCard } from "./IntegrationCard";
 
-// Section 06: full grid of every native integration. "Native" means
-// owned and tested by ChilliCream, the first-party set. Cards render in the
-// richer (non-dense) variant: 1px solid border, larger logo presence, full
-// type badge in the footer. The grid hides itself when the active Type pill
-// excludes Native, so the hero filter feels like a real toggle.
+// Section 06: full grid of every native integration. "Native" means owned and
+// tested by ChilliCream, the first-party set. Cards render with the filled
+// per-integration accent monogram (uplift-plan P0-integrations-1 / 2): the
+// visual richness against the denser, monogram-only Community grid below is
+// the trust signal the badge can no longer carry on its own.
+//
+// The grid hides itself when the active Type pill excludes Native, so the
+// hero filter feels like a real toggle.
 export const NativeIntegrationsGrid: FC = () => {
   const searchParams = useSearchParams();
   const type = searchParams?.get("type");
@@ -44,7 +48,7 @@ export const NativeIntegrationsGrid: FC = () => {
   }
 
   return (
-    <section className="cc-in-section cc-in-typesection">
+    <Band variant="default" ariaLabel="Native integrations">
       <div className="cc-section-label">
         <span className="num">06</span> Native
       </div>
@@ -54,8 +58,8 @@ export const NativeIntegrationsGrid: FC = () => {
             <span className="eyebrow">First-party</span>
             <h2 className="display">Native integrations.</h2>
             <p>
-              Maintained by ChilliCream. Tested against every release, shipped
-              as part of the platform.
+              Built and supported by ChilliCream. Tested against every release,
+              shipped as part of the platform, real partner color on every tile.
             </p>
           </div>
           <span className="count-pill">
@@ -68,6 +72,6 @@ export const NativeIntegrationsGrid: FC = () => {
           ))}
         </div>
       </div>
-    </section>
+    </Band>
   );
 };

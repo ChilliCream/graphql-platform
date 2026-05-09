@@ -2,6 +2,7 @@
 
 import React, { FC } from "react";
 
+import { Band } from "@/components/redesign-system/Band";
 import type { Collateral } from "@/data/solutions/types";
 
 interface SolutionCollateralProps {
@@ -22,22 +23,24 @@ export const SolutionCollateral: FC<SolutionCollateralProps> = ({
   collateral,
   stepNumber,
 }) => (
-  <section className="cc-sl-section cc-sl-collateral">
-    <div className="cc-section-label">
-      <span className="num">{stepNumber}</span> Resource
-    </div>
-    <div className="cc-sl-collateral-inner">
-      <div className="cc-sl-collateral-card">
-        <div>
-          <div className="cc-sl-collateral-eyebrow">
-            {KIND_EYEBROWS[collateral.kind]}
+  <Band variant="accent" ariaLabel="Resource">
+    <div className="cc-sl-section cc-sl-collateral">
+      <div className="cc-section-label">
+        <span className="num">{stepNumber}</span> Resource
+      </div>
+      <div className="cc-sl-collateral-inner">
+        <div className="cc-sl-collateral-card">
+          <div>
+            <div className="cc-sl-collateral-eyebrow">
+              {KIND_EYEBROWS[collateral.kind]}
+            </div>
+            <h2 className="cc-sl-collateral-title">{collateral.title}</h2>
           </div>
-          <h2 className="cc-sl-collateral-title">{collateral.title}</h2>
+          <a href={collateral.href} className="cc-btn cc-btn-primary">
+            Download →
+          </a>
         </div>
-        <a href={collateral.href} className="cc-btn cc-btn-primary">
-          Download →
-        </a>
       </div>
     </div>
-  </section>
+  </Band>
 );

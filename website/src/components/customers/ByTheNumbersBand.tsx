@@ -2,36 +2,33 @@
 
 import React, { FC } from "react";
 
+import { Band } from "@/components/redesign-system/Band";
+import { StatRow, StatItem } from "@/components/redesign-system/StatRow";
 import { AGGREGATE_STATS, TRUST_AGGREGATE } from "@/data/customers/aggregates";
 
-import { MetricStat } from "./MetricStat";
-
-// Section 03: aggregate stats band. Compensates for the missing logos by
-// surfacing the cumulative scale. Updated quarterly. Stats are dominant —
-// 48-88px display type with the gradient accent.
+// Section 02 (post re-sequence): proof strip. Each stat is bound to a
+// single customer (named or anonymous-but-specific), rendered through
+// the shared StatRow primitive on a tinted band. No gradient — the
+// numbers are evidence, not decoration. The trust line above the strip
+// is the highest-credibility sentence on the page.
 export const ByTheNumbersBand: FC = () => {
+  const items: StatItem[] = AGGREGATE_STATS.map((stat) => ({
+    value: stat.value,
+    label: stat.label,
+    attribution: stat.attribution,
+  }));
+
   return (
-    <section className="cc-cu-section cc-cu-numbers">
+    <Band variant="tinted" ariaLabel="Proof strip">
       <div className="cc-section-label">
-        <span className="num">03</span> By the numbers
+        <span className="num">02</span> Proof
       </div>
-      <div className="cc-cu-numbers-inner">
-        <div className="cc-cu-numbers-heading">
-          <div className="eyebrow">By the numbers</div>
-          <h2>The shape of the customer base, in four numbers.</h2>
-        </div>
-        <div className="cc-cu-numbers-grid">
-          {AGGREGATE_STATS.map((stat) => (
-            <MetricStat
-              key={stat.key}
-              eyebrow={stat.eyebrow}
-              value={stat.value}
-              label={stat.label}
-            />
-          ))}
-        </div>
-        <p className="cc-cu-numbers-foot">{TRUST_AGGREGATE}</p>
+      <div className="cc-cu-proof-inner">
+        <p className="cc-cu-proof-trustline" aria-label="Customer reach">
+          {TRUST_AGGREGATE}
+        </p>
+        <StatRow items={items} align="left" />
       </div>
-    </section>
+    </Band>
   );
 };

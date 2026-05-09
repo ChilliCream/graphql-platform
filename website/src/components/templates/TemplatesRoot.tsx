@@ -136,57 +136,116 @@ export const TemplatesRoot = styled.div`
    *                     INDEX PAGE
    * ============================================================ */
 
-  /* ===== 01 Hero ===== */
-  .cc-tp-hero {
-    padding-top: 160px;
-    padding-bottom: 56px;
-    text-align: center;
-  }
+  /* ===== 01 Hero =====
+   * Two-column: H1 + sub-line on the left, an oversized real template card
+   * on the right at ~1.4x gallery scale. Below 980px the columns stack and
+   * the featured card returns to standard scale.
+   */
   .cc-tp-hero-inner {
-    max-width: 920px;
+    max-width: 1320px;
     margin: 0 auto;
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    gap: clamp(32px, 5vw, 80px);
+    align-items: center;
   }
-  .cc-tp-hero .kicker {
-    display: inline-block;
-    padding: 6px 12px;
-    border-radius: 999px;
-    border: 1px solid var(--cc-ink-faint);
-    background: rgba(255, 255, 255, 0.025);
-    margin-bottom: 24px;
+  @media (max-width: 980px) {
+    .cc-tp-hero-inner {
+      grid-template-columns: 1fr;
+      gap: 40px;
+    }
   }
-  .cc-tp-hero h1 {
-    font-size: clamp(40px, 6.2vw, 88px);
-    margin: 0 0 24px;
+  .cc-tp-hero-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    max-width: 36ch;
+  }
+  .cc-tp-hero-stamp {
+    /* TypographicMoment outline at "medium" reads ~64-128px. We keep its
+     * native rhythm but trim the bottom margin so it sits above the H1 like
+     * a stamp, not a separate row. */
+    margin-bottom: 4px;
+  }
+  .cc-tp-hero-copy h1 {
+    font-size: clamp(40px, 6vw, 80px);
+    margin: 0;
     line-height: 1.02;
   }
-  .cc-tp-hero h1 .accent {
-    background: linear-gradient(
-      120deg,
-      var(--cc-col-shi),
-      var(--cc-col-usr) 60%,
-      var(--cc-col-cat)
-    );
+  .cc-tp-hero-copy h1 .accent {
+    background: var(--cc-accent-gradient);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
   }
-  .cc-tp-hero p {
+  .cc-tp-hero-copy p {
     font-size: clamp(15px, 1.2vw, 19px);
     line-height: 1.55;
     color: var(--cc-ink-dim);
     max-width: 56ch;
-    margin: 0 auto;
+    margin: 0;
     text-wrap: pretty;
   }
-
-  /* ===== 02 Gallery (filter rail + grid) ===== */
-  .cc-tp-gallery {
-    padding-top: 32px;
-    padding-bottom: 96px;
+  .cc-tp-hero-featured {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
   }
+
+  /* ===== Featured template card (hero) =====
+   * Same chrome as the gallery card so the user reads it as "an example of
+   * the cards below", scaled up via dedicated padding/font-size overrides.
+   * No CSS transform: scaling via real size keeps text crisp and respects
+   * normal layout flow.
+   */
+  .cc-tp-featured-card {
+    width: min(100%, 460px);
+    box-shadow: 0 0 80px var(--cc-accent-glow);
+    border-color: var(--cc-accent-line);
+  }
+  .cc-tp-featured-card .cc-tp-card-body {
+    padding: 28px 28px 28px;
+    gap: 14px;
+  }
+  .cc-tp-featured-card .cc-tp-card-title {
+    font-size: 26px;
+  }
+  .cc-tp-featured-card .cc-tp-card-tagline {
+    font-size: 16px;
+  }
+  .cc-tp-featured-pill {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    font-family: var(--cc-font-mono), monospace;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--cc-accent);
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(8, 14, 26, 0.7);
+    border: 1px solid var(--cc-accent-line);
+    font-weight: 600;
+  }
+  .cc-tp-featured-cta-row {
+    display: flex;
+    padding-top: 14px;
+  }
+  .cc-tp-featured-cta {
+    pointer-events: none;
+  }
+
+  /* ===== 02 Gallery (filter rail or filter bar + grid) =====
+   * Two layouts share this section:
+   *   .cc-tp-gallery-inner  - rail variant (>12 templates), 6-axis sticky
+   *                           sidebar + grid in a 2-col layout.
+   *   .cc-tp-gallery-stack  - bar variant (<=12 templates), single column,
+   *                           horizontal chip bar above the grid.
+   * Both round-trip to the same URL state.
+   */
   .cc-tp-gallery-inner {
-    max-width: 1320px;
-    margin: 0 auto;
     display: grid;
     grid-template-columns: 264px minmax(0, 1fr);
     gap: 48px;
@@ -198,18 +257,22 @@ export const TemplatesRoot = styled.div`
       gap: 24px;
     }
   }
+  .cc-tp-gallery-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
 
-  /* ===== Filter rail ===== */
+  /* ===== Filter rail (catalogs > 12) =====
+   * No outer border/background container chrome: the Band wrapper supplies
+   * the surface. The rail is content-on-band.
+   */
   .cc-tp-rail {
     position: sticky;
     top: 120px;
     display: flex;
     flex-direction: column;
     gap: 26px;
-    padding: 24px 22px;
-    border: 1px solid var(--cc-ink-faint);
-    border-radius: 18px;
-    background: rgba(255, 255, 255, 0.025);
     max-height: calc(100vh - 140px);
     overflow-y: auto;
   }
@@ -222,6 +285,42 @@ export const TemplatesRoot = styled.div`
     .cc-tp-rail.is-collapsed {
       display: none;
     }
+  }
+
+  /* ===== Filter bar (catalogs <= 12) =====
+   * Horizontal wrapping chip row above the grid. Each tab is a quiet text
+   * chip with a stronger active state, no full strokes per chip.
+   */
+  .cc-tp-filterbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--cc-ink-faint);
+  }
+  .cc-tp-filterbar-tab {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--cc-ink-dim);
+    font-family: var(--cc-font-mono), monospace;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+  }
+  .cc-tp-filterbar-tab:hover {
+    color: var(--cc-ink);
+    background: rgba(255, 255, 255, 0.04);
+  }
+  .cc-tp-filterbar-tab.is-active {
+    color: #0c1322;
+    background: var(--cc-ink);
+    border-color: var(--cc-ink);
   }
   .cc-tp-rail-head {
     display: flex;
@@ -464,15 +563,13 @@ export const TemplatesRoot = styled.div`
     box-shadow: 0 30px 60px -40px rgba(0, 0, 0, 0.7),
       0 0 0 1px rgba(245, 241, 234, 0.08);
   }
+  /* Thumbnail is full-bleed inside the card: no border-bottom, no inner
+   * frame, no per-card gradient. The accent-soft tint sits behind the SVG
+   * so each template carries its own dominant hue at thumbnail scale. */
   .cc-tp-card-thumb {
     aspect-ratio: 16 / 9;
     width: 100%;
-    border-bottom: 1px solid var(--cc-ink-faint);
-    background: linear-gradient(
-      180deg,
-      rgba(14, 22, 38, 0.7),
-      rgba(10, 17, 30, 0.7)
-    );
+    background: var(--cc-accent-soft);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -489,12 +586,12 @@ export const TemplatesRoot = styled.div`
     top: 12px;
     left: 12px;
     font-family: var(--cc-font-mono), monospace;
-    font-size: 9px;
-    letter-spacing: 0.16em;
+    font-size: 11px;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--cc-ink-dim);
-    padding: 4px 8px;
-    border: 1px solid var(--cc-ink-faint);
+    color: var(--cc-ink);
+    padding: 5px 10px;
+    border: 1px solid var(--cc-accent-line);
     border-radius: 6px;
     background: rgba(8, 14, 26, 0.7);
   }
@@ -503,11 +600,11 @@ export const TemplatesRoot = styled.div`
     top: 12px;
     right: 12px;
     font-family: var(--cc-font-mono), monospace;
-    font-size: 9px;
-    letter-spacing: 0.14em;
+    font-size: 11px;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     color: #0c1322;
-    padding: 4px 8px;
+    padding: 5px 10px;
     border-radius: 6px;
     background: var(--cc-ink);
     font-weight: 600;
@@ -555,7 +652,11 @@ export const TemplatesRoot = styled.div`
     line-height: 1;
   }
 
-  /* ===== Empty state ===== */
+  /* ===== Empty state =====
+   * Stroke-rendered "no results" icon picks up the page accent so the panel
+   * stays threaded with /templates' coffee gradient. The dashed outline is
+   * a soft visual cue, not a card.
+   */
   .cc-tp-empty {
     grid-column: 1 / -1;
     border: 1px dashed var(--cc-ink-faint);
@@ -563,18 +664,29 @@ export const TemplatesRoot = styled.div`
     padding: 56px 28px;
     text-align: center;
     background: rgba(255, 255, 255, 0.02);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+  .cc-tp-empty-icon {
+    width: 44px;
+    height: 44px;
+    color: var(--cc-accent);
+    display: block;
+    margin-bottom: 4px;
   }
   .cc-tp-empty h3 {
     font-size: 22px;
     font-weight: 500;
     letter-spacing: -0.02em;
     color: var(--cc-ink);
-    margin: 0 0 10px;
+    margin: 0;
   }
   .cc-tp-empty p {
     font-size: 14px;
     color: var(--cc-ink-dim);
-    margin: 0 0 18px;
+    margin: 0;
     line-height: 1.55;
   }
   .cc-tp-empty button {
@@ -584,29 +696,21 @@ export const TemplatesRoot = styled.div`
     text-transform: uppercase;
     color: var(--cc-ink);
     padding: 10px 18px;
-    border: 1px solid var(--cc-ink-faint);
+    border: 1px solid var(--cc-accent-line);
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.025);
     cursor: pointer;
     transition: border-color 0.15s ease, background 0.15s ease;
   }
   .cc-tp-empty button:hover {
-    border-color: var(--cc-ink);
+    border-color: var(--cc-accent);
     background: rgba(255, 255, 255, 0.05);
   }
 
-  /* ===== 03 CTA strip ===== */
-  .cc-tp-ctastrip {
-    padding-top: 0;
-    padding-bottom: 140px;
-  }
+  /* ===== 03 CTA strip =====
+   * Lives inside a tinted Band; no card chrome around the content.
+   */
   .cc-tp-ctastrip-inner {
-    max-width: 1180px;
-    margin: 0 auto;
-    border: 1px solid var(--cc-ink-faint);
-    border-radius: 22px;
-    background: rgba(255, 255, 255, 0.025);
-    padding: 44px 44px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -621,7 +725,7 @@ export const TemplatesRoot = styled.div`
     margin-bottom: 8px;
     display: block;
   }
-  .cc-tp-ctastrip h2 {
+  .cc-tp-ctastrip-text h2 {
     font-size: clamp(22px, 2.6vw, 30px);
     font-weight: 500;
     letter-spacing: -0.02em;

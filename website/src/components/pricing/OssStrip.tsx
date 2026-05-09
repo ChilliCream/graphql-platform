@@ -9,9 +9,14 @@ const OSS_PRODUCTS = [
   "Fusion (OSS)",
 ];
 
+// The "open source belt": rendered inside an inverted Band, so this strip
+// drops its own card chrome and lays out as content-on-band.
 export const OssStrip: React.FC = () => {
   return (
-    <section className="cc-pricing-section cc-oss-strip">
+    <div className="cc-oss-strip">
+      <div className="cc-section-label">
+        <span className="num">02</span> Open source
+      </div>
       <div className="cc-oss-inner">
         <div className="cc-oss-copy">
           <div className="cc-oss-chips">
@@ -39,6 +44,6 @@ export const OssStrip: React.FC = () => {
           </span>
         </div>
       </div>
-    </section>
+    </div>
   );
 };

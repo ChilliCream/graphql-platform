@@ -44,6 +44,24 @@ export const IntegrationsRoot = styled.div`
     box-sizing: border-box;
   }
 
+  /* The Band variant="tinted" primitive paints a cream surface and sets
+   * its color to var(--cc-ink). On this dark page --cc-ink is also cream, so
+   * we re-bind the ink tokens to dark values inside any band tagged with
+   * .cc-in-tinted-band. The Spotlight accent band re-binds similarly so the
+   * accent wash carries dark ink. */
+  .cc-in-tinted-band {
+    --cc-ink: #0c1322;
+    --cc-ink-dim: rgba(12, 19, 34, 0.7);
+    --cc-ink-faint: rgba(12, 19, 34, 0.16);
+    color: var(--cc-ink);
+  }
+  .cc-in-tinted-band .display,
+  .cc-in-tinted-band h1,
+  .cc-in-tinted-band h2,
+  .cc-in-tinted-band h3 {
+    color: var(--cc-ink);
+  }
+
   /* ===== Section shell ===== */
   section.cc-in-section,
   section.cc-ind-section {
@@ -269,7 +287,133 @@ export const IntegrationsRoot = styled.div`
     color: var(--cc-ink);
   }
 
-  /* ===== 02 Spotlight ===== */
+  /* ===== 02 Spotlight =====
+   * Renders inside a full-bleed accent Band. Two-column layout: copy left,
+   * orbital diagram right. Model providers orbit the central MCP endpoint;
+   * the IDE-client strip below the headline is the per-client setup row. */
+  .cc-in-spotlight-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    gap: clamp(28px, 4vw, 64px);
+    align-items: center;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+  @media (max-width: 980px) {
+    .cc-in-spotlight-grid {
+      grid-template-columns: 1fr;
+      gap: 32px;
+    }
+  }
+  .cc-in-spotlight-copy {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 0;
+  }
+  .cc-in-spotlight-orbital {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    width: 100%;
+    color: var(--cc-ink);
+  }
+  .cc-in-spotlight-orbital-bg {
+    position: absolute;
+    inset: 0;
+    color: var(--cc-ink-faint);
+  }
+  .cc-in-spotlight-orbital-bg svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .cc-in-spotlight-orbital-marks {
+    position: absolute;
+    inset: 0;
+  }
+  .cc-in-spotlight-orbital-mark {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--cc-font-sans), sans-serif;
+    font-size: 12px;
+    color: var(--cc-ink);
+    background: rgba(8, 14, 26, 0.7);
+    border: 1px solid var(--cc-ink-faint);
+    padding: 6px 10px 6px 6px;
+    border-radius: 999px;
+    backdrop-filter: blur(4px);
+    white-space: nowrap;
+  }
+  .cc-in-spotlight-orbital-mono {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: var(--cc-accent, var(--cc-ink));
+    color: #0c1322;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--cc-font-sans), sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    line-height: 1;
+  }
+  .cc-in-spotlight-orbital-name {
+    font-weight: 500;
+    letter-spacing: -0.005em;
+  }
+  .cc-in-spotlight-orbital-core {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(
+      140deg,
+      var(--cc-accent, #f5f1ea),
+      rgba(8, 14, 26, 0.9)
+    );
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--cc-font-mono), monospace;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: #0c1322;
+    box-shadow: 0 12px 32px -16px var(--cc-accent-glow, rgba(0, 0, 0, 0.6)),
+      inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  }
+  .cc-in-spotlight-copy h2 {
+    font-size: clamp(28px, 3.6vw, 44px);
+    margin: 14px 0;
+    max-width: 22ch;
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    text-wrap: balance;
+  }
+  .cc-in-spotlight-copy p {
+    font-size: clamp(14px, 1.1vw, 17px);
+    line-height: 1.55;
+    color: var(--cc-ink-dim);
+    margin: 0 0 24px;
+    max-width: 56ch;
+    text-wrap: pretty;
+  }
+  .cc-in-spotlight-copy .cc-in-spotlight-eyebrow {
+    margin-bottom: 16px;
+  }
+  .cc-in-spotlight-copy .cc-in-spotlight-clients {
+    margin-bottom: 22px;
+  }
+
+  /* ===== 02 Spotlight (legacy card layout) ===== */
   .cc-in-spotlight {
     padding-top: 24px;
     padding-bottom: 56px;
@@ -496,7 +640,10 @@ export const IntegrationsRoot = styled.div`
     }
   }
 
-  /* ===== Category section ===== */
+  /* ===== Category section =====
+   * The first visible category renders with .is-marquee: a darker inset
+   * surface, accent top-rule, and a "Marquee category" eyebrow. This is the
+   * page's one inverted-band moment without breaking the sticky-rail layout. */
   .cc-in-cat-stack {
     display: flex;
     flex-direction: column;
@@ -504,6 +651,30 @@ export const IntegrationsRoot = styled.div`
   }
   .cc-in-cat-block {
     scroll-margin-top: 100px;
+  }
+  .cc-in-cat-block.is-marquee {
+    position: relative;
+    background: rgba(8, 12, 22, 0.7);
+    border: 1px solid var(--cc-accent-line, var(--cc-ink-faint));
+    border-radius: 18px;
+    padding: 28px 28px 32px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+  .cc-in-cat-block.is-marquee::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 28px;
+    right: 28px;
+    height: 2px;
+    background: var(--cc-accent-gradient, var(--cc-accent, var(--cc-ink)));
+    border-radius: 2px;
+  }
+  .cc-in-cat-block.is-marquee .cc-in-cat-head {
+    border-bottom-color: var(--cc-accent-line, var(--cc-ink-faint));
+  }
+  .cc-in-cat-block.is-marquee .cc-in-cat-head .eyebrow {
+    color: var(--cc-accent, var(--cc-ink));
   }
   .cc-in-cat-head {
     display: flex;
@@ -608,7 +779,14 @@ export const IntegrationsRoot = styled.div`
     }
   }
 
-  /* ===== Integration card ===== */
+  /* ===== Integration card =====
+   * Two visual registers:
+   *  .is-native    larger filled monogram with per-integration accent fill,
+   *                left-edge accent stripe via --cc-card-edge, slightly
+   *                stronger surface elevation. Reads as a real partner tile.
+   *  .is-community stroked monogram on a faint background, denser when also
+   *                .is-dense. No accent; the lack of color IS the trust
+   *                tier signal. */
   .cc-in-card {
     position: relative;
     display: flex;
@@ -631,8 +809,34 @@ export const IntegrationsRoot = styled.div`
     box-shadow: 0 30px 60px -40px rgba(0, 0, 0, 0.7),
       0 0 0 1px rgba(245, 241, 234, 0.07);
   }
+  .cc-in-card.is-native {
+    padding-left: 26px;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.045),
+      rgba(255, 255, 255, 0.02) 60%
+    );
+  }
+  .cc-in-card.is-native::before {
+    content: "";
+    position: absolute;
+    top: 14px;
+    bottom: 14px;
+    left: 0;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: var(--cc-card-edge, var(--cc-accent, var(--cc-ink-faint)));
+  }
+  .cc-in-card.is-community {
+    border-color: rgba(245, 241, 234, 0.1);
+    background: rgba(255, 255, 255, 0.018);
+  }
+  .cc-in-card.is-community:hover {
+    border-color: rgba(245, 241, 234, 0.22);
+    background: rgba(255, 255, 255, 0.035);
+  }
   .cc-in-card.is-dense {
-    padding: 16px 16px 14px;
+    padding: 14px 14px 12px;
     gap: 10px;
     border-radius: 12px;
   }
@@ -653,6 +857,15 @@ export const IntegrationsRoot = styled.div`
     color: var(--cc-ink);
     background: rgba(245, 241, 234, 0.04);
     flex: 0 0 auto;
+  }
+  .cc-in-card-mono.is-filled {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    border: none;
+    background: var(--cc-card-mono-fill, var(--cc-ink));
+    box-shadow: 0 8px 22px -12px var(--cc-card-edge, rgba(0, 0, 0, 0.6)),
+      inset 0 1px 0 rgba(255, 255, 255, 0.12);
   }
   .cc-in-card.is-dense .cc-in-card-mono {
     width: 36px;
@@ -723,12 +936,31 @@ export const IntegrationsRoot = styled.div`
     color: var(--cc-ink-dim);
     border: 1px solid var(--cc-ink-faint);
   }
+  .cc-in-card.is-community .cc-in-card-eyebrow {
+    font-family: var(--cc-font-mono), monospace;
+  }
   .cc-in-card-product {
     font-family: var(--cc-font-mono), monospace;
     font-size: 9px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--cc-ink-dim);
+  }
+  .cc-in-card-readlink {
+    margin-left: auto;
+    font-family: var(--cc-font-mono), monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--cc-ink-dim);
+    transition: color 0.15s ease, transform 0.15s ease;
+  }
+  .cc-in-card:hover .cc-in-card-readlink {
+    color: var(--cc-ink);
+    transform: translateX(2px);
+  }
+  .cc-in-card.is-dense .cc-in-card-readlink {
+    display: none;
   }
 
   /* ===== Native + Community sections ===== */
@@ -904,7 +1136,10 @@ export const IntegrationsRoot = styled.div`
     margin-top: 4px;
   }
 
-  /* ===== Dual CTA ===== */
+  /* ===== Dual CTA =====
+   * Renders inside a tinted Band. With .is-bandlocked the wrapper gains a
+   * hairline center rule and the cards drop their border (the band IS the
+   * surface; no card-on-card chrome, per uplift-plan CC2). */
   .cc-in-dualcta {
     padding-top: 0;
     padding-bottom: 140px;
@@ -921,6 +1156,21 @@ export const IntegrationsRoot = styled.div`
       grid-template-columns: 1fr;
     }
   }
+  .cc-in-dualcta-inner.is-bandlocked {
+    gap: 0;
+    margin-top: 8px;
+  }
+  .cc-in-dualcta-inner.is-bandlocked .cc-in-dualcta-card + .cc-in-dualcta-card {
+    border-left: 1px solid var(--cc-ink-faint);
+  }
+  @media (max-width: 880px) {
+    .cc-in-dualcta-inner.is-bandlocked
+      .cc-in-dualcta-card
+      + .cc-in-dualcta-card {
+      border-left: none;
+      border-top: 1px solid var(--cc-ink-faint);
+    }
+  }
   .cc-in-dualcta-card {
     padding: 36px 32px;
     border: 1px solid var(--cc-ink-faint);
@@ -931,7 +1181,25 @@ export const IntegrationsRoot = styled.div`
     gap: 12px;
     text-decoration: none;
     color: inherit;
-    transition: border-color 0.18s ease, background 0.18s ease;
+    transition: border-color 0.18s ease, background 0.18s ease,
+      transform 0.18s ease;
+  }
+  .cc-in-dualcta-card.is-ghost {
+    border: none;
+    background: transparent;
+    border-radius: 0;
+    padding: 28px 32px;
+  }
+  .cc-in-dualcta-card.is-ghost:hover {
+    background: transparent;
+    transform: translateY(-1px);
+  }
+  .cc-in-dualcta-card.is-ghost .cta {
+    color: var(--cc-ink);
+    transition: transform 0.15s ease;
+  }
+  .cc-in-dualcta-card.is-ghost:hover .cta {
+    transform: translateX(2px);
   }
   .cc-in-dualcta-card:hover {
     border-color: rgba(245, 241, 234, 0.32);
@@ -1022,6 +1290,12 @@ export const IntegrationsRoot = styled.div`
     justify-content: center;
     color: var(--cc-ink);
     background: rgba(245, 241, 234, 0.04);
+  }
+  .cc-ind-header-mono.is-filled {
+    border: none;
+    background: var(--cc-mono-fill, var(--cc-ink));
+    box-shadow: 0 14px 28px -16px rgba(0, 0, 0, 0.7),
+      inset 0 1px 0 rgba(255, 255, 255, 0.12);
   }
   .cc-ind-header-text h1 {
     font-size: clamp(30px, 4vw, 48px);

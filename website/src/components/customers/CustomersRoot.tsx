@@ -138,8 +138,9 @@ export const CustomersRoot = styled.div`
 
   /* ===== 01 Hero ===== */
   .cc-cu-hero {
-    padding-top: 160px;
-    padding-bottom: 88px;
+    position: relative;
+    padding-top: 96px;
+    padding-bottom: 32px;
     text-align: center;
   }
   .cc-cu-hero-inner {
@@ -152,11 +153,14 @@ export const CustomersRoot = styled.div`
     line-height: 1.02;
   }
   .cc-cu-hero h1 .accent {
-    background: linear-gradient(
-      120deg,
-      var(--cc-col-shi),
-      var(--cc-col-usr) 60%,
-      var(--cc-col-cat)
+    background: var(
+      --cc-accent-gradient,
+      linear-gradient(
+        120deg,
+        var(--cc-col-shi),
+        var(--cc-col-usr) 60%,
+        var(--cc-col-cat)
+      )
     );
     -webkit-background-clip: text;
     background-clip: text;
@@ -166,7 +170,7 @@ export const CustomersRoot = styled.div`
     font-size: clamp(15px, 1.2vw, 19px);
     line-height: 1.55;
     color: var(--cc-ink-dim);
-    max-width: 56ch;
+    max-width: 60ch;
     margin: 0 auto 32px;
     text-wrap: pretty;
   }
@@ -189,6 +193,52 @@ export const CustomersRoot = styled.div`
     max-width: 56ch;
     margin: 0 auto;
     text-wrap: pretty;
+    line-height: 1.55;
+  }
+  /* Flat heading variant for secondary sections (all-stories, related). */
+  .cc-cu-heading.is-flat {
+    margin-bottom: 24px;
+    text-align: left;
+    max-width: none;
+  }
+  .cc-cu-grid-section-title,
+  .cc-cu-related-section-title {
+    font-family: var(--cc-font-sans), sans-serif;
+    font-size: clamp(22px, 2.1vw, 28px);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    color: var(--cc-ink);
+    margin: 4px 0 8px;
+    line-height: 1.2;
+  }
+  .cc-cu-heading.is-flat p {
+    font-size: 14px;
+    color: var(--cc-ink-dim);
+    margin: 0;
+    max-width: 56ch;
+  }
+
+  /* ===== 02 Proof strip (tinted band) ===== */
+  /* Tinted band uses cream background; flip the ink tokens locally so
+     hairlines and dim type stay legible on cream. */
+  .cc-cu-proof-inner {
+    --cc-ink: #18121d;
+    --cc-ink-dim: rgba(24, 18, 29, 0.62);
+    --cc-ink-faint: rgba(24, 18, 29, 0.16);
+    color: var(--cc-ink);
+    max-width: 1180px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 36px;
+  }
+  .cc-cu-proof-trustline {
+    font-family: var(--cc-font-mono), monospace;
+    font-size: clamp(13px, 1.05vw, 15px);
+    letter-spacing: 0.06em;
+    color: var(--cc-ink);
+    margin: 0;
+    max-width: 70ch;
     line-height: 1.55;
   }
 
@@ -292,68 +342,11 @@ export const CustomersRoot = styled.div`
   }
   .cc-cu-card-foot {
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: space-between;
-    gap: 14px;
+    gap: 16px;
     padding-top: 18px;
     border-top: 1px solid var(--cc-ink-faint);
-  }
-  .cc-cu-card-brand {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    min-width: 0;
-  }
-  .cc-cu-card-logo {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    border: 1.5px solid var(--cc-ink-faint);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--cc-font-sans), sans-serif;
-    font-weight: 600;
-    font-size: 14px;
-    letter-spacing: -0.02em;
-    color: var(--cc-ink);
-    background: rgba(255, 255, 255, 0.025);
-    flex-shrink: 0;
-  }
-  .cc-cu-card-logo.is-anonymous {
-    color: var(--cc-card-accent, var(--cc-ink));
-    border-color: color-mix(
-      in oklch,
-      var(--cc-card-accent, white) 40%,
-      transparent
-    );
-    background: color-mix(
-      in oklch,
-      var(--cc-card-accent, white) 8%,
-      rgba(255, 255, 255, 0.025)
-    );
-  }
-  .cc-cu-card-brand-text {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    min-width: 0;
-  }
-  .cc-cu-card-brand-name {
-    font-size: 13px;
-    color: var(--cc-ink);
-    font-weight: 500;
-    letter-spacing: -0.005em;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .cc-cu-card-brand-meta {
-    font-family: var(--cc-font-mono), monospace;
-    font-size: 10px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--cc-ink-dim);
   }
   .cc-cu-card-link {
     font-family: var(--cc-font-mono), monospace;
@@ -365,212 +358,98 @@ export const CustomersRoot = styled.div`
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    padding-bottom: 2px;
   }
   .cc-cu-card:hover .cc-cu-card-link {
     color: var(--cc-card-accent, var(--cc-col-shi));
   }
 
-  /* ===== 03 By the numbers ===== */
-  .cc-cu-numbers {
-    padding-top: 0;
-    padding-bottom: 120px;
-  }
-  .cc-cu-numbers-inner {
-    max-width: 1280px;
-    margin: 0 auto;
-    border: 1px solid var(--cc-ink-faint);
-    border-radius: 22px;
-    background: rgba(255, 255, 255, 0.02);
-    padding: 56px;
-  }
-  @media (max-width: 880px) {
-    .cc-cu-numbers-inner {
-      padding: 32px 24px;
-    }
-  }
-  .cc-cu-numbers-heading {
-    text-align: center;
-    margin: 0 auto 40px;
-    max-width: 720px;
-  }
-  .cc-cu-numbers-heading h2 {
-    font-size: clamp(24px, 2.8vw, 34px);
-    font-weight: 500;
-    letter-spacing: -0.02em;
-    margin: 8px 0 0;
-    color: var(--cc-ink);
-    line-height: 1.2;
-  }
-  .cc-cu-numbers-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 24px;
-  }
-  @media (max-width: 980px) {
-    .cc-cu-numbers-grid {
-      grid-template-columns: repeat(2, 1fr);
-      gap: 32px;
-    }
-  }
-  @media (max-width: 540px) {
-    .cc-cu-numbers-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-  .cc-cu-num-tile {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 6px 0;
-  }
-  .cc-cu-num-eyebrow {
-    font-family: var(--cc-font-mono), monospace;
-    font-size: 11px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--cc-ink-dim);
-  }
-  .cc-cu-num-value {
-    font-size: clamp(48px, 6.8vw, 88px);
-    font-weight: 500;
-    letter-spacing: -0.035em;
-    color: var(--cc-ink);
-    line-height: 0.95;
-    background: linear-gradient(
-      120deg,
-      var(--cc-col-shi),
-      var(--cc-col-usr) 60%,
-      var(--cc-col-cat)
-    );
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-  .cc-cu-num-label {
-    font-size: 14px;
-    line-height: 1.5;
-    color: var(--cc-ink-dim);
-    text-wrap: pretty;
-  }
-  .cc-cu-numbers-foot {
-    margin: 36px auto 0;
-    padding: 16px 18px;
-    max-width: 720px;
-    text-align: center;
-    border: 1px solid var(--cc-ink-faint);
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.02);
-    font-family: var(--cc-font-mono), monospace;
-    font-size: 11px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--cc-ink-dim);
-    line-height: 1.6;
-  }
-
   /* ===== 04 Industry trust wall ===== */
-  .cc-cu-trust {
-    padding-top: 0;
-    padding-bottom: 120px;
-  }
+  /* Inverted band: dark surface, no card edges. Tiles are content
+     cells separated by hairline foots, varied span by scale, with the
+     industry chip carrying the color and the fact carrying the proof. */
   .cc-cu-trust-inner {
     max-width: 1280px;
     margin: 0 auto;
   }
-  .cc-cu-trust-tabs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0;
-    border-bottom: 1px solid var(--cc-ink-faint);
-    margin: 0 auto 36px;
-    justify-content: center;
-  }
-  .cc-cu-trust-tab {
-    padding: 14px 22px;
-    background: transparent;
-    border: none;
-    border-bottom: 2px solid transparent;
-    color: var(--cc-ink-dim);
-    font-family: var(--cc-font-mono), monospace;
-    font-size: 11px;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    cursor: pointer;
-    margin-bottom: -1px;
-    white-space: nowrap;
-    transition: color 0.15s ease, border-color 0.15s ease;
-  }
-  .cc-cu-trust-tab:hover {
-    color: var(--cc-ink);
-  }
-  .cc-cu-trust-tab.is-active {
-    color: var(--cc-ink);
-    border-bottom-color: var(--cc-ink);
-  }
   .cc-cu-trust-grid {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 14px;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 18px 22px;
   }
   @media (max-width: 1080px) {
     .cc-cu-trust-grid {
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(6, 1fr);
+      gap: 16px;
     }
   }
   @media (max-width: 640px) {
     .cc-cu-trust-grid {
       grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
     }
   }
   .cc-cu-trust-tile {
+    grid-column: span 2;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    padding: 22px 12px 16px;
-    border: 1px solid var(--cc-ink-faint);
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.02);
-    transition: border-color 0.15s ease, background 0.15s ease;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 18px 16px 18px 14px;
+    border-left: 2px solid var(--cc-trust-accent, var(--cc-ink-faint));
+    background: transparent;
+    transition: border-color 0.15s ease;
   }
-  .cc-cu-trust-tile:hover {
-    border-color: rgba(245, 241, 234, 0.3);
-    background: rgba(255, 255, 255, 0.04);
+  .cc-cu-trust-tile.is-md {
+    grid-column: span 3;
   }
-  .cc-cu-trust-tile.is-named {
-    border-color: rgba(245, 241, 234, 0.32);
-    background: rgba(255, 255, 255, 0.045);
+  .cc-cu-trust-tile.is-lg {
+    grid-column: span 4;
+    padding-bottom: 22px;
   }
-  .cc-cu-trust-mono {
-    width: 52px;
-    height: 52px;
-    border-radius: 12px;
-    border: 1.5px solid var(--cc-ink-faint);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--cc-ink);
-    font-family: var(--cc-font-sans), sans-serif;
-    font-weight: 600;
-    font-size: 14px;
-    letter-spacing: -0.02em;
-    background: rgba(255, 255, 255, 0.025);
+  @media (max-width: 1080px) {
+    .cc-cu-trust-tile,
+    .cc-cu-trust-tile.is-md,
+    .cc-cu-trust-tile.is-lg {
+      grid-column: span 2;
+    }
   }
-  .cc-cu-trust-tile.is-named .cc-cu-trust-mono {
-    border-color: rgba(245, 241, 234, 0.45);
-    background: rgba(255, 255, 255, 0.08);
+  @media (max-width: 640px) {
+    .cc-cu-trust-tile,
+    .cc-cu-trust-tile.is-md,
+    .cc-cu-trust-tile.is-lg {
+      grid-column: span 1;
+    }
   }
-  .cc-cu-trust-caption {
+  .cc-cu-trust-chip {
     font-family: var(--cc-font-mono), monospace;
     font-size: 10px;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--cc-trust-accent, var(--cc-ink-dim));
+  }
+  .cc-cu-trust-name {
+    font-family: var(--cc-font-sans), sans-serif;
+    font-weight: 500;
+    font-size: clamp(14px, 1.05vw, 17px);
+    letter-spacing: -0.01em;
+    color: var(--cc-ink);
+    line-height: 1.25;
+  }
+  .cc-cu-trust-tile.is-named .cc-cu-trust-name {
+    font-weight: 600;
+    font-size: clamp(15px, 1.15vw, 19px);
+  }
+  .cc-cu-trust-tile.is-lg .cc-cu-trust-name {
+    font-size: clamp(17px, 1.4vw, 22px);
+  }
+  .cc-cu-trust-fact {
+    font-family: var(--cc-font-mono), monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--cc-ink-dim);
-    text-align: center;
     line-height: 1.4;
-  }
-  .cc-cu-trust-tile.is-named .cc-cu-trust-caption {
-    color: var(--cc-ink);
   }
 
   /* ===== 05 All stories grid ===== */
@@ -636,49 +515,19 @@ export const CustomersRoot = styled.div`
     color: var(--cc-ink-dim);
   }
 
-  /* ===== 07 Architect call CTA ===== */
-  .cc-cu-architect {
-    padding-top: 0;
-    padding-bottom: 120px;
-  }
+  /* ===== 06 Architect call CTA (glow band) ===== */
   .cc-cu-architect-inner {
-    max-width: 1180px;
+    max-width: 880px;
     margin: 0 auto;
-    position: relative;
-    border-radius: 22px;
-    padding: 1px;
-    background: linear-gradient(
-      135deg,
-      rgba(245, 241, 234, 0.28),
-      rgba(245, 241, 234, 0.04) 35%,
-      rgba(120, 140, 220, 0.22) 70%,
-      rgba(245, 241, 234, 0.06)
-    );
-    box-shadow: 0 30px 80px -40px rgba(0, 0, 0, 0.7),
-      0 0 60px -10px rgba(120, 140, 220, 0.18);
-  }
-  .cc-cu-architect-card {
-    border-radius: 21px;
-    background: linear-gradient(
-      180deg,
-      rgba(14, 22, 38, 0.96),
-      rgba(10, 17, 30, 0.96)
-    );
-    padding: 56px 56px 52px;
     text-align: center;
   }
-  @media (max-width: 720px) {
-    .cc-cu-architect-card {
-      padding: 36px 24px;
-    }
-  }
-  .cc-cu-architect-card h2 {
+  .cc-cu-architect-inner h2 {
     font-size: clamp(30px, 3.8vw, 50px);
     margin: 12px auto 14px;
     line-height: 1.05;
     max-width: 22ch;
   }
-  .cc-cu-architect-card p {
+  .cc-cu-architect-inner p {
     font-size: clamp(15px, 1.1vw, 17px);
     line-height: 1.6;
     color: var(--cc-ink-dim);
@@ -686,44 +535,52 @@ export const CustomersRoot = styled.div`
     max-width: 56ch;
     text-wrap: pretty;
   }
-
-  /* ===== 08 Related links ===== */
-  .cc-cu-related {
-    padding-top: 0;
-    padding-bottom: 140px;
+  .cc-cu-architect-inner .cc-cta-row {
+    justify-content: center;
   }
+
+  /* ===== 07 Related links (tinted band, no card chrome) ===== */
   .cc-cu-related-inner {
+    --cc-ink: #18121d;
+    --cc-ink-dim: rgba(24, 18, 29, 0.62);
+    --cc-ink-faint: rgba(24, 18, 29, 0.14);
+    color: var(--cc-ink);
     max-width: 1180px;
     margin: 0 auto;
   }
   .cc-cu-related-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 18px;
+    gap: 0;
+    border-top: 1px solid var(--cc-ink-faint);
   }
   @media (max-width: 880px) {
     .cc-cu-related-grid {
       grid-template-columns: 1fr;
-      max-width: 480px;
-      margin: 0 auto;
     }
   }
-  .cc-cu-related-card {
+  .cc-cu-related-row {
     display: flex;
     flex-direction: column;
-    padding: 26px 24px;
-    border: 1px solid var(--cc-ink-faint);
-    border-radius: 16px;
-    background: rgba(255, 255, 255, 0.025);
+    gap: 8px;
+    padding: 24px 24px 24px 0;
+    border-bottom: 1px solid var(--cc-ink-faint);
     text-decoration: none;
     color: inherit;
-    transition: border-color 0.15s ease, transform 0.15s ease,
-      background 0.15s ease;
+    transition: padding-left 0.15s ease;
   }
-  .cc-cu-related-card:hover {
-    border-color: rgba(245, 241, 234, 0.32);
-    transform: translateY(-2px);
-    background: rgba(255, 255, 255, 0.04);
+  .cc-cu-related-row + .cc-cu-related-row {
+    padding-left: 24px;
+    border-left: 1px solid var(--cc-ink-faint);
+  }
+  @media (max-width: 880px) {
+    .cc-cu-related-row + .cc-cu-related-row {
+      padding-left: 0;
+      border-left: none;
+    }
+  }
+  .cc-cu-related-row:hover {
+    background: rgba(24, 18, 29, 0.04);
   }
   .cc-cu-related-eyebrow {
     font-family: var(--cc-font-mono), monospace;
@@ -731,21 +588,21 @@ export const CustomersRoot = styled.div`
     letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--cc-ink-dim);
-    margin-bottom: 12px;
   }
   .cc-cu-related-title {
-    font-size: 19px;
+    font-family: var(--cc-font-sans), sans-serif;
+    font-size: 18px;
     font-weight: 500;
     letter-spacing: -0.015em;
     color: var(--cc-ink);
-    margin: 0 0 10px;
+    margin: 0;
     line-height: 1.3;
   }
   .cc-cu-related-body {
     font-size: 14px;
     line-height: 1.55;
     color: var(--cc-ink-dim);
-    margin: 0 0 20px;
+    margin: 0;
     flex: 1;
     text-wrap: pretty;
   }

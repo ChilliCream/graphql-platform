@@ -7,7 +7,6 @@ import { SiteLayout } from "@/components/layout";
 import { SEO } from "@/components/misc";
 import { BuiltByTeam } from "@/components/enterprise/BuiltByTeam";
 import { ComplianceGrid } from "@/components/enterprise/ComplianceGrid";
-import { CustomerOutcome } from "@/components/enterprise/CustomerOutcome";
 import { EnterpriseHero } from "@/components/enterprise/EnterpriseHero";
 import { EnterpriseRoot } from "@/components/enterprise/EnterpriseRoot";
 import { EnterpriseSkuCards } from "@/components/enterprise/EnterpriseSkuCards";
@@ -17,8 +16,18 @@ import { MigrationSection } from "@/components/enterprise/MigrationSection";
 import { PlatformPillars } from "@/components/enterprise/PlatformPillars";
 import { PlatformTeamRoi } from "@/components/enterprise/PlatformTeamRoi";
 import { SelfHostedAirGapped } from "@/components/enterprise/SelfHostedAirGapped";
-import { CUSTOMER_OUTCOMES } from "@/data/enterprise/outcomes";
+import { AccentThread } from "@/components/redesign-system/AccentThread";
 
+// Band rhythm (no two adjacent same-surface bands):
+//   hero (default) → ROI (tinted, StatRow not cards) →
+//   pillars (accent, no card chrome) →
+//   federation deep-dive (default, full-bleed signature diagram) →
+//   SKUs (inverted, three constraint cards) →
+//   self-hosted (default, Hemisphere accent on the right) →
+//   compliance (accent, two-tier: Attestations + Capabilities) →
+//   authority "Built by the team" (tinted, TypographicMoment) →
+//   migration (default, ghost cards — paths, not constraints) →
+//   inline form (accent, "What happens next" 3-step strip above).
 const EnterprisePage: FC = () => {
   const formRef = useRef<HTMLElement>(null);
 
@@ -40,28 +49,20 @@ const EnterprisePage: FC = () => {
         description="The GraphQL platform for enterprise platform teams. Federate any backend in any language, on infrastructure you control."
       />
       <LandingGlobalStyle />
-      <EnterpriseRoot>
-        <EnterpriseHero onPrimaryClick={handleScrollToForm} />
-        <PlatformPillars />
-        <CustomerOutcome
-          outcome={CUSTOMER_OUTCOMES[0]}
-          sectionNumber="04"
-          sectionLabel="Customer outcome"
-        />
-        <PlatformTeamRoi />
-        <FederationDeepDive />
-        <CustomerOutcome
-          outcome={CUSTOMER_OUTCOMES[2]}
-          sectionNumber="07"
-          sectionLabel="Polyglot adopter"
-        />
-        <EnterpriseSkuCards />
-        <SelfHostedAirGapped />
-        <ComplianceGrid />
-        <BuiltByTeam />
-        <MigrationSection />
-        <InlineSalesForm ref={formRef} />
-      </EnterpriseRoot>
+      <AccentThread page="enterprise">
+        <EnterpriseRoot>
+          <EnterpriseHero onPrimaryClick={handleScrollToForm} />
+          <PlatformTeamRoi />
+          <PlatformPillars />
+          <FederationDeepDive />
+          <EnterpriseSkuCards />
+          <SelfHostedAirGapped />
+          <ComplianceGrid />
+          <BuiltByTeam />
+          <MigrationSection />
+          <InlineSalesForm ref={formRef} />
+        </EnterpriseRoot>
+      </AccentThread>
     </SiteLayout>
   );
 };

@@ -4,24 +4,29 @@ import Link from "next/link";
 import React, { CSSProperties, FC } from "react";
 
 import { findIndustry } from "@/data/customers/industries";
-import { productLabel, type Story } from "@/data/customers/stories";
+import { type Story } from "@/data/customers/stories";
 
-import { AnonymousMonogram } from "./AnonymousMonogram";
+import { WordmarkLockup } from "./WordmarkLockup";
 
 interface CaseStudyCardProps {
   readonly story: Story;
 }
 
-// Metric-first card with two rendering variants: named (logo monogram in
-// cream-on-glass) and anonymous (industry-accented stroke monogram). Per the
-// brief: metric is the hook, brand is second, link is third.
+// Metric-first card. The lockup zone holds a typographic identity per
+// the disclosure hierarchy: a wordmark for named customers, a structured
+// descriptor for anonymous tiers (no fallback monogram tile, that read as
+// missing-asset placeholder). Industry colors the accent rule on the
+// descriptor and tints the card's corner glow.
 export const CaseStudyCard: FC<CaseStudyCardProps> = ({ story }) => {
   const industry = findIndustry(story.industry);
   const accent = industry.accentVar;
   const cardStyle: CSSProperties = {
     ["--cc-card-accent" as string]: accent,
   };
-  const products = story.products.slice(0, 2).map(productLabel).join(" · ");
+  const lockupVariant = story.named ? "wordmark" : "descriptor";
+  const lockupText = story.named
+    ? story.displayName
+    : story.descriptor ?? story.displayName.toUpperCase();
 
   return (
     <Link
@@ -32,29 +37,17 @@ export const CaseStudyCard: FC<CaseStudyCardProps> = ({ story }) => {
       <div className="cc-cu-card-eyebrow">
         <span className="dot" aria-hidden />
         <span>{industry.label}</span>
-        {products ? <span aria-hidden>·</span> : null}
-        {products ? <span>{products}</span> : null}
       </div>
       <p className="cc-cu-card-metric display">{story.cardMetric}</p>
       <p className="cc-cu-card-context">{story.cardContext}</p>
       <div className="cc-cu-card-foot">
-        <div className="cc-cu-card-brand">
-          {story.named ? (
-            <span className="cc-cu-card-logo" aria-hidden>
-              {story.logoMonogram}
-            </span>
-          ) : (
-            <span className="cc-cu-card-logo is-anonymous" aria-hidden>
-              <AnonymousMonogram industry={industry} size={36} />
-            </span>
-          )}
-          <span className="cc-cu-card-brand-text">
-            <span className="cc-cu-card-brand-name">{story.displayName}</span>
-            <span className="cc-cu-card-brand-meta">
-              {story.named ? "Named customer" : "Anonymous tier"}
-            </span>
-          </span>
-        </div>
+        <WordmarkLockup
+          variant={lockupVariant}
+          text={lockupText}
+          factLine={story.factLine}
+          industry={industry}
+          ghost={story.named ? undefined : industry.monogram}
+        />
         <span className="cc-cu-card-link">Read story →</span>
       </div>
     </Link>

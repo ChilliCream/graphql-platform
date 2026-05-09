@@ -2,21 +2,23 @@
 
 import React, { FC } from "react";
 
+import { Band } from "@/components/redesign-system/Band";
 import { STORIES } from "@/data/customers/stories";
 
 import { CaseStudyCard } from "./CaseStudyCard";
 
-// Section 02: 6-card editorial rail. Mix of 3 named + 3 anonymous tier
-// stories so the page sets the expectation up front: anonymous is normal
-// here and the metric is the hook regardless of whether we can name the
-// brand.
+// Section 03: 6-card editorial rail. These ARE constraint signals — each
+// card is a case-study exhibit with a detail-page target. Cards stay.
+// Mix of 3 named + 3 anonymous tier stories so the page sets the
+// expectation up front: anonymous is normal here and the metric is the
+// hook regardless of whether we can name the brand.
 export const FeaturedRail: FC = () => {
   const featured = STORIES.filter((s) => s.featured).slice(0, 6);
 
   return (
-    <section className="cc-cu-section cc-cu-featured">
+    <Band variant="default" ariaLabel="Featured stories">
       <div className="cc-section-label">
-        <span className="num">02</span> Featured stories
+        <span className="num">03</span> Featured stories
       </div>
       <div className="cc-cu-featured-inner">
         <div className="cc-cu-heading">
@@ -34,6 +36,6 @@ export const FeaturedRail: FC = () => {
           ))}
         </div>
       </div>
-    </section>
+    </Band>
   );
 };

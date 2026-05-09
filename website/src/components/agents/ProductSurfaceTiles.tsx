@@ -2,16 +2,19 @@
 
 import React, { FC } from "react";
 
+import { Band } from "@/components/redesign-system/Band";
 import {
   PRODUCT_SURFACES,
   ProductSurfaceIcon,
 } from "@/data/agents/product-surfaces";
 
-// Section 06: six product surface cards. Each card carries a hand-rolled
-// stroke icon (MCP plug, Hot Chocolate cup, Mocha bean, federation mesh,
-// Strawberry Shake glass, tracing waterfall). We deliberately avoid lucide /
-// generic chrome — these icons live in the same brewer-icon vocabulary as
-// Act5 so the page reads as part of the same system.
+// Section 06: six product surfaces. Originally a 6-up grid of cards that
+// collided headline-for-headline with Section 04 ("Six surfaces..."). We
+// convert it to a vertical stack of borderless rows: surface name (left),
+// one-line capability (right), small inline mini-illustration. NO card
+// chrome. The tinted band breaks the dark page rhythm and lets each row
+// breathe as a list-of-products beat, distinct from Section 04's
+// inventory-of-signals beat.
 
 const STROKE = {
   fill: "none" as const,
@@ -98,37 +101,37 @@ const ICONS: Record<ProductSurfaceIcon, () => React.ReactElement> = {
 
 export const ProductSurfaceTiles: FC = () => {
   return (
-    <section className="cc-ag-section cc-ag-feature">
-      <div className="cc-section-label">
-        <span className="num">06</span> Product surfaces
-      </div>
-      <div className="cc-ag-feature-inner">
+    <Band variant="tinted" ariaLabel="Product surfaces">
+      <div className="cc-ag-band-inner cc-ag-tint-scope">
+        <div className="cc-section-label">
+          <span className="num">06</span> Product surfaces
+        </div>
         <div className="cc-ag-feature-header">
           <div className="eyebrow">Product surfaces</div>
-          <h2 className="display">Six surfaces. One platform.</h2>
+          <h2 className="display">The six pieces that feed the agent.</h2>
           <p>
-            Each primitive earns its place in the agent loop. The MCP server is
-            the endpoint; the rest are the ChilliCream products you already run,
+            Each primitive earns its place in the loop. The MCP server is the
+            endpoint; the rest are the ChilliCream products you already run,
             instrumented for an audience that isn't human.
           </p>
         </div>
 
-        <div className="cc-ag-products">
+        <ul className="cc-ag-product-rows">
           {PRODUCT_SURFACES.map((surface) => {
             const Icon = ICONS[surface.key];
             return (
-              <article key={surface.key} className="cc-ag-product">
-                <div className="cc-ag-product-icon">
+              <li key={surface.key} className="cc-ag-product-row">
+                <span className="cc-ag-product-row-icon" aria-hidden>
                   <Icon />
-                </div>
-                <div className="cc-ag-product-tag">{surface.tag}</div>
-                <h3>{surface.title}</h3>
-                <p>{surface.body}</p>
-              </article>
+                </span>
+                <span className="cc-ag-product-row-tag">{surface.tag}</span>
+                <span className="cc-ag-product-row-name">{surface.title}</span>
+                <span className="cc-ag-product-row-body">{surface.body}</span>
+              </li>
             );
           })}
-        </div>
+        </ul>
       </div>
-    </section>
+    </Band>
   );
 };

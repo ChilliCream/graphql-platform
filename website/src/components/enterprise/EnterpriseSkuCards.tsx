@@ -2,6 +2,8 @@
 
 import React, { FC } from "react";
 
+import { Band } from "@/components/redesign-system/Band";
+import { Card } from "@/components/redesign-system/Card";
 import { SKUS, SkuKey } from "@/data/enterprise/skus";
 
 const Check: FC = () => (
@@ -86,9 +88,13 @@ const SKU_ICONS: Record<SkuKey, React.ReactNode> = {
   ),
 };
 
+// SKUs are constraint signals — three discrete products a buyer picks
+// between. Render as `Card variant="constraint"` on an inverted band so
+// they read as plans-as-tiles (and as visually distinct from the pillars
+// which sit on the accent band as plain band content).
 export const EnterpriseSkuCards: FC = () => {
   return (
-    <section className="cc-ent-section cc-ent-skus">
+    <Band variant="inverted" ariaLabel="Enterprise SKUs">
       <div className="cc-section-label">
         <span className="num">08</span> Enterprise SKUs
       </div>
@@ -104,8 +110,14 @@ export const EnterpriseSkuCards: FC = () => {
           </p>
         </div>
         <div className="cc-ent-skus-grid">
-          {SKUS.map((sku) => (
-            <article key={sku.key} className="cc-ent-sku-card">
+          {SKUS.map((sku, i) => (
+            <Card
+              key={sku.key}
+              variant="constraint"
+              featured={i === 0}
+              as="article"
+              className="cc-ent-sku-card"
+            >
               <div className="cc-ent-sku-icon">{SKU_ICONS[sku.key]}</div>
               <h3 className="cc-ent-sku-name">{sku.name}</h3>
               <p className="cc-ent-sku-tagline">{sku.tagline}</p>
@@ -120,10 +132,10 @@ export const EnterpriseSkuCards: FC = () => {
               <a href={sku.docsHref} className="cc-ent-sku-link">
                 {sku.docsLabel} →
               </a>
-            </article>
+            </Card>
           ))}
         </div>
       </div>
-    </section>
+    </Band>
   );
 };

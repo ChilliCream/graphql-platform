@@ -16,7 +16,25 @@ import { WorksWhereYouWork } from "@/components/agents/WorksWhereYouWork";
 import { LandingGlobalStyle } from "@/components/landing/LandingRoot";
 import { SiteLayout } from "@/components/layout";
 import { SEO } from "@/components/misc";
+import { AccentThread } from "@/components/redesign-system/AccentThread";
+import { Band } from "@/components/redesign-system/Band";
 import { DEMOS } from "@/data/agents/demos";
+
+// Page band rhythm:
+//   01 Hero            default                hero terminal bleeds right
+//   02 Reframe         tinted                 cream break, no card chrome
+//   03 The Loop        accent (full-bleed)    amber wash, the page's USP
+//   04 Six surfaces    default                inventory grid, no card chrome
+//   05 Demos           inverted               "lab" beat, two shape-distinct demos
+//   06 Product rows    tinted                 stacked rows, no card chrome
+//   07 Guardrails      default                ONLY section that keeps card chrome
+//   08 Distribution    tinted                 IDE chip strip, no cards
+//   09 Pricing teaser  accent                 narrow band, single CTA
+//   10 Final CTA       glow                   close, two buttons
+//
+// Wrapped in <AccentThread page="agents"> so amber resolves through the
+// foundation. The legacy --cc-amber alias inside AgentsRoot remains so any
+// existing CSS that references it directly keeps working.
 
 const NitroAgentsPage: FC = () => {
   useEffect(() => {
@@ -33,43 +51,49 @@ const NitroAgentsPage: FC = () => {
         description="The agent that already knows your platform. Hot Chocolate, Mocha, Fusion, and Strawberry Shake feed Nitro a live map of your federation, then expose it over MCP. Your agent stops guessing."
       />
       <LandingGlobalStyle />
-      <AgentsRoot>
-        <AgentsHero />
-        <AgentReframe />
-        <AgentsLoopDiagram />
-        <WhatAgentSees />
+      <AccentThread page="agents">
+        <AgentsRoot>
+          <AgentsHero />
+          <AgentReframe />
+          <AgentsLoopDiagram />
+          <WhatAgentSees />
 
-        {/* Section 05: two-demo proof block. Anchor `proof` is the target of
-            the hero ghost CTA so the visitor lands directly on the load-bearing
-            section. */}
-        <section className="cc-ag-section cc-ag-feature" id="proof">
-          <div className="cc-section-label">
-            <span className="num">05</span> Proof
-          </div>
-          <div className="cc-ag-feature-inner cc-ag-feature-elevated">
-            <div className="cc-ag-feature-header">
-              <div className="eyebrow">Proof</div>
-              <h2 className="display">Two prompts. Two complete loops.</h2>
-              <p>
-                Investigation and operation, both end-to-end. Same MCP surface,
-                same guardrails. The transcripts are real-shape: the tool calls
-                match what Nitro emits today.
-              </p>
+          {/* Section 05: two-demo proof block, inverted band ("lab" beat).
+              Anchor `proof` is the target of the hero ghost CTA so the
+              visitor lands directly on the load-bearing section. */}
+          <Band variant="inverted" id="proof" ariaLabel="Proof">
+            <div className="cc-ag-band-inner">
+              <div className="cc-section-label">
+                <span className="num">05</span> Proof
+              </div>
+              <div className="cc-ag-feature-header">
+                <div className="eyebrow">Proof</div>
+                <h2 className="display">
+                  Diagnose. Compose. Two loops, one agent.
+                </h2>
+                <p>
+                  Two prompts, two complete loops. Demo A descends into causes
+                  (Observe + Reason). Demo B fans out across the four surfaces
+                  the agent has to register against (Act + Compose + Ship). The
+                  transcripts are real-shape: the tool calls match what Nitro
+                  emits today.
+                </p>
+              </div>
+              <div className="cc-ag-demos">
+                {DEMOS.map((demo) => (
+                  <AgentDemo key={demo.key} demo={demo} />
+                ))}
+              </div>
             </div>
-            <div className="cc-ag-demos">
-              {DEMOS.map((demo) => (
-                <AgentDemo key={demo.key} demo={demo} />
-              ))}
-            </div>
-          </div>
-        </section>
+          </Band>
 
-        <ProductSurfaceTiles />
-        <GuardrailsSection />
-        <WorksWhereYouWork />
-        <AgentsPricingTeaser />
-        <AgentsFinalCta />
-      </AgentsRoot>
+          <ProductSurfaceTiles />
+          <GuardrailsSection />
+          <WorksWhereYouWork />
+          <AgentsPricingTeaser />
+          <AgentsFinalCta />
+        </AgentsRoot>
+      </AccentThread>
     </SiteLayout>
   );
 };

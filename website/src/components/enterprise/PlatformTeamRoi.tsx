@@ -2,40 +2,38 @@
 
 import React, { FC } from "react";
 
-interface RoiTile {
-  readonly key: string;
-  readonly value: string;
-  readonly accent: string;
-  readonly caption: string;
-}
+import { Band } from "@/components/redesign-system/Band";
+import { StatRow, StatItem } from "@/components/redesign-system/StatRow";
 
-const ROI_TILES: readonly RoiTile[] = [
+// ROI numbers as a StatRow on a tinted band — NOT a rack of cards. The
+// previous 3-card layout looked identical to the SKUs and pillars below;
+// rendering the numbers as a hairline-separated stat strip earns trust by
+// typography rather than chrome.
+
+const ROI_ITEMS: StatItem[] = [
   {
-    key: "consolidated",
-    value: "47",
-    accent: "BFFs",
-    caption:
-      "Consolidated into one Fusion mesh by a top-5 European retail bank. One on-call rotation, one schema, one tracing story.",
+    value: "47 → 1",
+    label:
+      "Hand-rolled BFFs consolidated into one Fusion mesh. One on-call rotation, one schema, one tracing story.",
+    attribution: "TOP-5 EU RETAIL BANK",
   },
   {
-    key: "rollout",
-    value: "9",
-    accent: "weeks",
-    caption:
+    value: "9 wks",
+    label:
       "End-to-end federation rollout for an 18-service FSI group, including audit sign-off and rollback drills.",
+    attribution: "NORTH AMERICAN FSI GROUP",
   },
   {
-    key: "p99",
-    value: "480→90ms",
-    accent: "p99",
-    caption:
-      "P99 reduction after replacing a stack of hand-rolled BFFs with one Fusion gateway over a single quarter.",
+    value: "480 → 90 ms",
+    label:
+      "P99 reduction after replacing a stack of hand-rolled BFFs with one Fusion gateway, measured over a single quarter.",
+    attribution: "PLATFORM TEAM, RETAIL BANKING",
   },
 ];
 
 export const PlatformTeamRoi: FC = () => {
   return (
-    <section className="cc-ent-section cc-ent-roi">
+    <Band variant="tinted" ariaLabel="Customer outcomes">
       <div className="cc-section-label">
         <span className="num">05</span> Customer outcomes
       </div>
@@ -52,21 +50,12 @@ export const PlatformTeamRoi: FC = () => {
             running Fusion in production.
           </p>
         </div>
-        <div className="cc-ent-roi-grid">
-          {ROI_TILES.map((t) => (
-            <div key={t.key} className="cc-ent-roi-tile">
-              <p className="cc-ent-roi-num">
-                {t.value} <span className="accent">{t.accent}</span>
-              </p>
-              <p className="cc-ent-roi-caption">{t.caption}</p>
-            </div>
-          ))}
-        </div>
+        <StatRow items={ROI_ITEMS} align="left" />
         <p className="cc-ent-roi-note">
           Each metric is approved for publication by the customer. Names and
           industry segments are anonymised; the numbers are not.
         </p>
       </div>
-    </section>
+    </Band>
   );
 };

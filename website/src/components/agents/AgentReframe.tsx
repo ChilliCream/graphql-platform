@@ -2,20 +2,22 @@
 
 import React, { FC } from "react";
 
-// Section 02: the reframe. Two-column compare laid out as a flexbox with a
-// 1px vertical "vs" divider in the middle. Left column reads as "what every
-// other AI dev tool does" — opacity-dimmed, neutral chip styling. Right
-// column reads as "what ChilliCream does" — full opacity, amber chip styling
-// and the column heading is amber so it lands as the bright side. Punchline
-// sits centered under both columns, separated by a dashed divider.
+import { Band } from "@/components/redesign-system/Band";
+
+// Section 02: the reframe. Two-column compare on a tinted band (no card
+// chrome). Left column reads as "what every other AI dev tool does" — opacity
+// dimmed, neutral chip styling. Right column reads as "what ChilliCream does"
+// — full opacity, amber chip styling, amber column heading. Punchline sits
+// centered under both columns, separated by a dashed divider. Amber is used
+// here as the "agent is doing something" signal, not as paint.
 
 export const AgentReframe: FC = () => {
   return (
-    <section className="cc-ag-section cc-ag-feature">
-      <div className="cc-section-label">
-        <span className="num">02</span> Reframe
-      </div>
-      <div className="cc-ag-feature-inner">
+    <Band variant="tinted" ariaLabel="Reframe">
+      <div className="cc-ag-band-inner cc-ag-tint-scope">
+        <div className="cc-section-label">
+          <span className="num">02</span> Reframe
+        </div>
         <div className="cc-ag-feature-header">
           <div className="eyebrow">Reframe</div>
           <h2 className="display">
@@ -65,6 +67,6 @@ export const AgentReframe: FC = () => {
           archaeology.
         </div>
       </div>
-    </section>
+    </Band>
   );
 };

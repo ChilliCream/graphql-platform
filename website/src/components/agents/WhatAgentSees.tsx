@@ -2,13 +2,14 @@
 
 import React, { FC } from "react";
 
+import { Band } from "@/components/redesign-system/Band";
 import { AgentSeesKind, AGENT_SEES_TILES } from "@/data/agents/agent-sees";
 
 // Section 04: six tiles, each carrying a mini-visual that gestures at the
-// kind of signal Nitro exposes through MCP. We keep each viz tight (max
-// ~120px tall) so the grid reads as a "what's queryable" inventory rather
-// than six fully-staged screenshots. Real screenshots can land later — this
-// is the typed-surface promise made visual.
+// kind of signal Nitro exposes through MCP. Borderless on a default band
+// (no card chrome) so the grid reads as a "what's queryable" inventory
+// rather than yet another rack of dark cards. Card chrome is reserved for
+// guardrails (where the edge IS the constraint signal).
 
 const STROKE = {
   fill: "none" as const,
@@ -358,11 +359,11 @@ const RENDERERS: Record<AgentSeesKind, () => React.ReactElement> = {
 
 export const WhatAgentSees: FC = () => {
   return (
-    <section className="cc-ag-section cc-ag-feature">
-      <div className="cc-section-label">
-        <span className="num">04</span> What the agent sees
-      </div>
-      <div className="cc-ag-feature-inner">
+    <Band variant="default" ariaLabel="Six surfaces, one MCP endpoint">
+      <div className="cc-ag-band-inner">
+        <div className="cc-section-label">
+          <span className="num">04</span> What the agent sees
+        </div>
         <div className="cc-ag-feature-header">
           <div className="eyebrow">One schema-typed surface</div>
           <h2 className="display">Six surfaces. One MCP endpoint.</h2>
@@ -387,6 +388,6 @@ export const WhatAgentSees: FC = () => {
           })}
         </div>
       </div>
-    </section>
+    </Band>
   );
 };

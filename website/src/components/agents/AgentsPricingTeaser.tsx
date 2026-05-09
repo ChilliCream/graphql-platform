@@ -2,18 +2,21 @@
 
 import React, { FC } from "react";
 
-// Section 09: pricing teaser. One line of copy + a single CTA. We keep this
-// section deliberately lean so the final CTA below has all the visual
-// weight at the bottom of the page.
+import { Band } from "@/components/redesign-system/Band";
+
+// Section 09: pricing teaser. Narrow accent band (amber wash) with a single
+// CTA. Lean on purpose so the final CTA below carries all the weight at the
+// bottom of the page. The CTA picks up the accent on hover — amber as
+// system signal: "the agent is paid here."
 
 export const AgentsPricingTeaser: FC = () => {
   return (
-    <section className="cc-ag-section cc-ag-feature">
-      <div className="cc-section-label">
-        <span className="num">09</span> Billing
-      </div>
+    <Band variant="accent" ariaLabel="Pricing">
       <div className="cc-ag-pricing-inner">
         <div>
+          <div className="cc-section-label cc-ag-pricing-label">
+            <span className="num">09</span> Billing
+          </div>
           <div className="eyebrow">Billing</div>
           <h2 className="display">Nitro is the paid surface.</h2>
           <p>
@@ -22,10 +25,10 @@ export const AgentsPricingTeaser: FC = () => {
             for observability and federation.
           </p>
         </div>
-        <a href="/pricing" className="cc-btn cc-btn-ghost">
+        <a href="/pricing" className="cc-btn cc-btn-ghost cc-ag-pricing-cta">
           See pricing →
         </a>
       </div>
-    </section>
+    </Band>
   );
 };

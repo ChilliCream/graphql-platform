@@ -337,3 +337,4 @@ src/Mocha/benchmarks/Mocha.Mediator.Benchmarks/Generated/
 /*.png
 /.playwright-mcp/
 /website/.playwright-mcp/
+/website/.next3002/

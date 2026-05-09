@@ -2,6 +2,7 @@
 
 import React, { FC, ReactNode } from "react";
 
+import { Band } from "@/components/redesign-system/Band";
 import type { CodeSnippet as CodeSnippetData } from "@/data/solutions/types";
 
 interface CodeSnippetProps {
@@ -129,21 +130,25 @@ export const CodeSnippet: FC<CodeSnippetProps> = ({ snippet, stepNumber }) => {
   const lines = cleaned.replace(/\n$/, "").split("\n");
 
   return (
-    <section className="cc-sl-section cc-sl-code">
-      <div className="cc-section-label">
-        <span className="num">{stepNumber}</span> Snippet
-      </div>
-      <div className="cc-sl-code-inner">
-        <div className="cc-sl-code-frame">
-          <div className="cc-sl-code-head">
-            <span className="cc-sl-code-file">{fileName}</span>
-            <span className="cc-sl-code-lang">{language}</span>
+    <Band variant="tinted" ariaLabel="Snippet">
+      <div className="cc-sl-section cc-sl-code">
+        <div className="cc-section-label">
+          <span className="num">{stepNumber}</span> Snippet
+        </div>
+        <div className="cc-sl-code-inner">
+          <div className="cc-sl-code-frame">
+            <div className="cc-sl-code-head">
+              <span className="cc-sl-code-file">{fileName}</span>
+              <span className="cc-sl-code-lang">{language}</span>
+            </div>
+            <pre className="cc-sl-code-body">
+              <code>
+                {lines.map((line, i) => renderLine(line, language, i))}
+              </code>
+            </pre>
           </div>
-          <pre className="cc-sl-code-body">
-            <code>{lines.map((line, i) => renderLine(line, language, i))}</code>
-          </pre>
         </div>
       </div>
-    </section>
+    </Band>
   );
 };

@@ -1,24 +1,41 @@
 "use client";
 
 import Link from "next/link";
-import React, { FC } from "react";
+import React, { CSSProperties, FC } from "react";
 
 import { categoryLabel } from "@/data/integrations/categories";
 import type { Integration } from "@/data/integrations/integrations";
+import { partnerAccent } from "@/data/integrations/partner-accents";
 
-interface IntegrationDetailHeaderProps {
-  readonly integration: Integration;
-}
+const FilledMonogram: FC<{ letter: string; ink: string }> = ({
+  letter,
+  ink,
+}) => (
+  <svg viewBox="0 0 72 72" width="100%" height="100%" aria-hidden>
+    <text
+      x="36"
+      y="50"
+      textAnchor="middle"
+      fontFamily="var(--cc-font-sans), sans-serif"
+      fontWeight={700}
+      fontSize="40"
+      letterSpacing="-0.02em"
+      fill={ink}
+    >
+      {letter}
+    </text>
+  </svg>
+);
 
-const Monogram: FC<{ letter: string }> = ({ letter }) => (
+const StrokedMonogram: FC<{ letter: string }> = ({ letter }) => (
   <svg viewBox="0 0 72 72" width="100%" height="100%" aria-hidden>
     <text
       x="36"
       y="48"
       textAnchor="middle"
-      fontFamily="var(--cc-font-sans), sans-serif"
+      fontFamily="var(--cc-font-mono), monospace"
       fontWeight={500}
-      fontSize="34"
+      fontSize="32"
       fill="currentColor"
     >
       {letter}
@@ -46,15 +63,30 @@ const formatStars = (n: number): string => {
   return String(n);
 };
 
+interface MonogramCSS extends CSSProperties {
+  "--cc-mono-fill"?: string;
+}
+
+interface IntegrationDetailHeaderProps {
+  readonly integration: Integration;
+}
+
 // Detail-page header: breadcrumb back to /integrations, breadcrumb to the
-// category, then a row of [logo · name · primary CTA · GitHub stars]. The
+// category, then a row of [logo · name · primary CTA · GitHub stars]. Native
+// integrations get the same filled, partner-color tile as the index card so
+// the visual identity carries from the marketplace into the detail page; the
 // "Get Started" CTA points at docs by default, with sensible fallbacks when
-// docs aren't authored yet. The stars badge is real (read from the seed,
-// updated by hand for now); a future task can wire it to the GitHub API.
+// docs aren't authored yet.
 export const IntegrationDetailHeader: FC<IntegrationDetailHeaderProps> = ({
   integration,
 }) => {
+  const isNative = integration.type === "native";
+  const accent = partnerAccent(integration);
   const ctaHref = integration.links.docs ?? integration.links.website ?? "#";
+  const monoStyle: MonogramCSS | undefined = isNative
+    ? { "--cc-mono-fill": accent.fill }
+    : undefined;
+  const monoClass = `cc-ind-header-mono${isNative ? " is-filled" : ""}`;
   return (
     <section className="cc-ind-section cc-ind-header">
       <div className="cc-section-label">
@@ -75,8 +107,12 @@ export const IntegrationDetailHeader: FC<IntegrationDetailHeaderProps> = ({
           <span className="crumb-current">{integration.name}</span>
         </nav>
         <div className="cc-ind-header-row">
-          <div className="cc-ind-header-mono">
-            <Monogram letter={integration.letter} />
+          <div className={monoClass} style={monoStyle}>
+            {isNative ? (
+              <FilledMonogram letter={integration.letter} ink={accent.ink} />
+            ) : (
+              <StrokedMonogram letter={integration.letter} />
+            )}
           </div>
           <div className="cc-ind-header-text">
             <span className="eyebrow">

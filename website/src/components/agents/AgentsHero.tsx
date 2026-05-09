@@ -2,20 +2,23 @@
 
 import React, { FC } from "react";
 
+import { Band } from "@/components/redesign-system/Band";
+
 import { AgentTerminal } from "./AgentTerminal";
 
 // Section 01: hero. Copy on the left, the auto-cycling AgentTerminal on the
 // right. The H1 is "operator framing" (Headline Option A from the spec). The
 // terminal is the highest-leverage visual on the page, so we let it dominate
-// the right column with an amber-leaning gradient frame.
+// the right column with an amber-leaning gradient frame. Lives on the
+// default band so the page background gradient bleeds through.
 
 export const AgentsHero: FC = () => {
   return (
-    <section className="cc-ag-section cc-ag-hero">
-      <div className="cc-section-label">
-        <span className="num">01</span> Agents
-      </div>
+    <Band variant="default" ariaLabel="Hero">
       <div className="cc-ag-hero-inner">
+        <div className="cc-section-label cc-ag-hero-label">
+          <span className="num">01</span> Agents
+        </div>
         <div className="cc-ag-hero-copy">
           <div className="eyebrow">Nitro · Agents</div>
           <h1 className="display">
@@ -39,6 +42,6 @@ export const AgentsHero: FC = () => {
 
         <AgentTerminal session="nitro mcp · session 7c3a · cart-ops" />
       </div>
-    </section>
+    </Band>
   );
 };

@@ -2,6 +2,9 @@
 
 import React, { FC } from "react";
 
+import { Band } from "@/components/redesign-system/Band";
+import { Hemisphere } from "@/components/redesign-system/illustrations";
+
 const CHIPS: readonly string[] = [
   "Helm chart",
   "Docker / OCI",
@@ -38,9 +41,9 @@ const AirGapDiagram: FC = () => (
       YOUR VPC · NO EGRESS
     </text>
 
-    {/* lock at top-right */}
+    {/* lock at top-right (uses page accent, not a hard-coded color) */}
     <g
-      stroke="var(--cc-col-ord)"
+      stroke="var(--cc-accent, var(--cc-ink))"
       strokeWidth={1.6}
       fill="none"
       strokeLinecap="round"
@@ -153,10 +156,16 @@ const AirGapDiagram: FC = () => (
 
 export const SelfHostedAirGapped: FC = () => {
   return (
-    <section className="cc-ent-section cc-ent-airgap">
+    <Band variant="default" ariaLabel="Self-hosted and air-gapped">
       <div className="cc-section-label">
         <span className="num">09</span> Self-hosted
       </div>
+
+      {/* ambient hemisphere accent on the right edge */}
+      <div className="cc-ent-airgap-hemi" aria-hidden>
+        <Hemisphere side="right" />
+      </div>
+
       <div className="cc-ent-airgap-inner">
         <div className="cc-ent-airgap-grid">
           <div className="cc-ent-airgap-diagram">
@@ -184,6 +193,6 @@ export const SelfHostedAirGapped: FC = () => {
           </div>
         </div>
       </div>
-    </section>
+    </Band>
   );
 };

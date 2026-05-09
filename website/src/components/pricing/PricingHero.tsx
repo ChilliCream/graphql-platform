@@ -2,9 +2,11 @@
 
 import React from "react";
 
+import { PricingCalculator } from "./PricingCalculator";
+
 export const PricingHero: React.FC = () => {
   return (
-    <section className="cc-pricing-section cc-pricing-hero">
+    <div className="cc-pricing-hero">
       <div className="cc-section-label">
         <span className="num">01</span> Pricing
       </div>
@@ -17,7 +19,9 @@ export const PricingHero: React.FC = () => {
           Open source, all the way up. Pay only for the parts you don't want to
           run.
         </p>
+
+        <PricingCalculator />
       </div>
-    </section>
+    </div>
   );
 };

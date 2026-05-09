@@ -3,6 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import React, { FC, useMemo } from "react";
 
+import { Band } from "@/components/redesign-system/Band";
 import {
   CATEGORIES,
   categoryLabel,
@@ -63,7 +64,12 @@ const applyFilters = (
 // Section 05: the catalogue body. Sticky left rail + a stack of category
 // blocks on the right. Each block renders up to PER_CATEGORY_CAP cards plus
 // a "Browse all in <Category> →" link when the category overflows. The whole
-// stack reacts to the hero's Type pill and search box through the URL.
+// stack reacts to the hero's Type pill through the URL.
+//
+// The first visible category renders with `is-marquee`, an inset darker
+// surface that lifts it as the headline category (uplift-plan
+// P0-integrations-4): every page should have at least one full-bleed
+// inversion moment, and "AI & Agents" earns it on this page.
 export const IntegrationsByCategory: FC = () => {
   const searchParams = useSearchParams();
   const type = searchParams?.get("type") ?? null;
@@ -91,7 +97,7 @@ export const IntegrationsByCategory: FC = () => {
   );
 
   return (
-    <section className="cc-in-section cc-in-catalogue">
+    <Band variant="default" ariaLabel="Browse integrations by category">
       <div className="cc-section-label">
         <span className="num">05</span> Browse
       </div>
@@ -101,20 +107,23 @@ export const IntegrationsByCategory: FC = () => {
           {visibleCategories.length === 0 ? (
             <div className="cc-in-empty">
               <h3>No integrations match.</h3>
-              <p>Try a different filter or clear your search.</p>
+              <p>Try a different filter.</p>
             </div>
           ) : (
-            visibleCategories.map((cat) => {
+            visibleCategories.map((cat, index) => {
               const items = byCategory.get(cat.key) ?? [];
               const visible = items.slice(0, PER_CATEGORY_CAP);
+              const isMarquee = index === 0;
+              const blockClass = isMarquee
+                ? "cc-in-cat-block is-marquee"
+                : "cc-in-cat-block";
               return (
-                <div
-                  key={cat.key}
-                  id={`cat-${cat.key}`}
-                  className="cc-in-cat-block"
-                >
+                <div key={cat.key} id={`cat-${cat.key}`} className={blockClass}>
                   <div className="cc-in-cat-head">
                     <div>
+                      {isMarquee && (
+                        <span className="eyebrow">Marquee category</span>
+                      )}
                       <h2 className="display">{cat.label}</h2>
                       <p>{cat.tagline}</p>
                     </div>
@@ -141,6 +150,6 @@ export const IntegrationsByCategory: FC = () => {
           )}
         </div>
       </div>
-    </section>
+    </Band>
   );
 };

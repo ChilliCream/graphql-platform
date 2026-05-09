@@ -84,6 +84,18 @@ export interface Story {
   readonly featured: boolean;
   readonly cardMetric: string;
   readonly cardContext: string;
+  /**
+   * For anonymous customers: the all-caps descriptor used as the typographic
+   * lockup eyebrow on the case-study card (e.g. "TIER-1 EUROPEAN BANK").
+   * For named customers: ignored, the wordmark renders the displayName.
+   */
+  readonly descriptor?: string;
+  /**
+   * One-line fact tucked under the lockup, e.g.
+   * "18M ACCOUNTS · DACH · FUSION + NITRO". Used by both named and
+   * anonymous customers to attach concrete scale to the brand.
+   */
+  readonly factLine?: string;
   readonly eyebrow: string;
   readonly headline: string;
   readonly subhead: string;
@@ -108,6 +120,7 @@ const microsoftCommerceFusion: Story = {
   cardMetric: "5 product graphs → 1 Fusion mesh",
   cardContext:
     "Microsoft consolidated five independent product graphs into a single Fusion supergraph without freezing a single team.",
+  factLine: "COMMERCE PLATFORM · 24 SUBGRAPHS · FUSION + NITRO",
   eyebrow: "Customer Story · Software & SaaS · Fusion + Nitro",
   headline:
     "How a Microsoft commerce team unified five product graphs into one Fusion mesh, without freezing a single roadmap.",
@@ -192,6 +205,7 @@ const sbbPublicData: Story = {
   cardMetric: "1M+ apps querying live SBB data",
   cardContext:
     "SBB exposes real-time travel data through Hot Chocolate and Nitro to over a million third-party apps every day.",
+  factLine: "PUBLIC DATA · 1.2M DAILY CLIENTS · HOT CHOCOLATE + NITRO",
   eyebrow: "Customer Story · Public Sector · Hot Chocolate + Nitro",
   headline:
     "How SBB serves real-time travel data to a million third-party apps every day, on a single Hot Chocolate graph.",
@@ -275,6 +289,7 @@ const adidasStorefront: Story = {
   cardMetric: "27 BFFs → 1 Fusion graph",
   cardContext:
     "Adidas replaced 27 hand-rolled BFFs across 14 markets with a single Fusion supergraph and a generated Strawberry Shake client.",
+  factLine: "DIGITAL STOREFRONT · 14 MARKETS · FUSION + STRAWBERRY SHAKE",
   eyebrow: "Customer Story · Retail & E-commerce · Fusion + Strawberry Shake",
   headline:
     "How Adidas replaced 27 BFFs across 14 markets with one Fusion graph, then handed every market the same generated client.",
@@ -347,6 +362,8 @@ const tier1EuBankFusion: Story = {
   cardMetric: "p99 480ms → 90ms",
   cardContext:
     "A top-5 European retail bank federated 18 subgraphs behind one Fusion mesh and cut mobile p99 by 81%.",
+  descriptor: "TIER-1 EUROPEAN BANK",
+  factLine: "12M ACCOUNTS · DACH · FUSION + NITRO",
   eyebrow: "Customer Story · Banking & Insurance · Fusion + Nitro",
   headline:
     "How a tier-1 European bank cut mobile p99 from 480ms to 90ms — across 18 federated subgraphs.",
@@ -430,6 +447,8 @@ const euInsurerAirgapped: Story = {
   cardMetric: "6-week air-gap rollout, regulator-cleared",
   cardContext:
     "A top-3 European insurer deployed Nitro Self-Hosted into an air-gapped environment in six weeks — including regulator review.",
+  descriptor: "TOP-3 EUROPEAN INSURER",
+  factLine: "9M POLICIES · WESTERN EU · NITRO SELF-HOSTED",
   eyebrow: "Customer Story · Banking & Insurance · Nitro Self-Hosted",
   headline:
     "How a top-3 European insurer cleared a regulator review and deployed Nitro Self-Hosted in six weeks, fully air-gapped.",
@@ -508,6 +527,8 @@ const naHealthNetwork: Story = {
   cardMetric: "47 hospital systems on one HIPAA-compliant graph",
   cardContext:
     "A North-American health network unified 47 hospital systems' patient data behind one HIPAA-compliant Hot Chocolate graph.",
+  descriptor: "NORTH-AMERICAN HEALTH NETWORK",
+  factLine: "47 HOSPITAL SYSTEMS · 14M PATIENTS · HOT CHOCOLATE + NITRO",
   eyebrow: "Customer Story · Healthcare · Hot Chocolate + Nitro",
   headline:
     "How a North-American health network built a HIPAA-compliant graph for 47 hospital systems, in one shared schema.",
@@ -585,6 +606,8 @@ const nordicTelcoMcp: Story = {
   cardMetric: "5 portals → 1 federated network graph",
   cardContext:
     "A Nordic telco federated five portal backends into one supergraph and turned customer-care AHT into a one-query operation.",
+  descriptor: "NORDIC TELCO",
+  factLine: "8M SUBSCRIBERS · NORDICS · FUSION + NITRO",
   eyebrow: "Customer Story · Telco & Media · Fusion + Nitro",
   headline:
     "How a Nordic telco federated five portals into one network graph — and cut customer-care average handle time by 41%.",
@@ -662,6 +685,8 @@ const naFintechGovernance: Story = {
   cardMetric: "PR review time: 11 days → 38 minutes",
   cardContext:
     "A North-American FinTech turned schema review from a multi-day spreadsheet exercise into a 38-minute Nitro-gated PR.",
+  descriptor: "NORTH-AMERICAN FINTECH",
+  factLine: "200M ACCOUNTS · NA · NITRO SCHEMA REGISTRY",
   eyebrow: "Customer Story · Banking & Insurance · Nitro Schema Registry",
   headline:
     "How a North-American FinTech turned schema review from an 11-day spreadsheet exercise into a 38-minute PR.",
@@ -755,12 +780,19 @@ export const findRelated = (
 export const productLabel = (key: ProductKey): string =>
   PRODUCTS.find((p) => p.key === key)?.label ?? key;
 
-// Used by the trust-wall tab content. Each industry shows ~12 tiles.
+// Used by the trust-wall graze grid. Each tile carries a single fact so
+// the wall reads as a proof wall, not a logo wall. `industry` is the
+// chip color hook; `scale` decides asymmetric tile sizing on desktop.
+export type TrustTileScale = "lg" | "md" | "sm";
+
 export interface TrustTile {
   readonly key: string;
   readonly monogram: string;
   readonly caption: string;
   readonly named: boolean;
+  /** A single fact such as "18M accounts" or "320 stores". */
+  readonly fact?: string;
+  readonly scale?: TrustTileScale;
 }
 
 export const TRUST_WALL: Record<string, readonly TrustTile[]> = {
@@ -770,131 +802,194 @@ export const TRUST_WALL: Record<string, readonly TrustTile[]> = {
       monogram: "B",
       caption: "Tier-1 EU bank",
       named: false,
+      fact: "18M accounts",
+      scale: "lg",
     },
     {
       key: "top3-insurer",
       monogram: "I",
       caption: "Top-3 EU insurer",
       named: false,
+      fact: "11 markets",
+      scale: "md",
     },
-    { key: "na-fintech", monogram: "F", caption: "NA FinTech", named: false },
+    {
+      key: "na-fintech",
+      monogram: "F",
+      caption: "NA FinTech",
+      named: false,
+      fact: "200M accounts",
+      scale: "md",
+    },
     {
       key: "swiss-private",
       monogram: "P",
       caption: "Swiss private bank",
       named: false,
+      fact: "CH onshore",
+      scale: "sm",
     },
-    { key: "allianz", monogram: "A", caption: "Allianz", named: true },
+    {
+      key: "allianz",
+      monogram: "A",
+      caption: "Allianz",
+      named: true,
+      fact: "Global insurer",
+      scale: "md",
+    },
     {
       key: "uk-challenger",
       monogram: "C",
       caption: "UK challenger bank",
       named: false,
+      fact: "6.4M users",
+      scale: "sm",
     },
     {
       key: "nordic-pension",
       monogram: "N",
       caption: "Nordic pension fund",
       named: false,
+      fact: "EUR 80B AUM",
+      scale: "sm",
     },
     {
       key: "iberian-bank",
       monogram: "I",
       caption: "Iberian retail bank",
       named: false,
+      fact: "ES + PT",
+      scale: "sm",
     },
     {
       key: "eu-broker",
       monogram: "B",
       caption: "EU broker network",
       named: false,
+      fact: "9 countries",
+      scale: "sm",
     },
     {
       key: "dach-reinsurer",
       monogram: "R",
       caption: "DACH reinsurer",
       named: false,
+      fact: "Tier-1 cedant",
+      scale: "sm",
     },
     {
       key: "global-card",
       monogram: "C",
       caption: "Global card network",
       named: false,
+      fact: "WW",
+      scale: "md",
     },
     {
       key: "fintech-payroll",
       monogram: "P",
       caption: "FinTech payroll PaaS",
       named: false,
+      fact: "12k employers",
+      scale: "sm",
     },
   ],
   "retail-ecommerce": [
-    { key: "adidas", monogram: "AD", caption: "Adidas", named: true },
+    {
+      key: "adidas",
+      monogram: "AD",
+      caption: "Adidas",
+      named: true,
+      fact: "14 markets",
+      scale: "lg",
+    },
     {
       key: "tier1-grocer",
       monogram: "G",
       caption: "Tier-1 EU grocer",
       named: false,
+      fact: "320 stores",
+      scale: "md",
     },
     {
       key: "luxury-conglomerate",
       monogram: "L",
       caption: "Luxury conglomerate",
       named: false,
+      fact: "FR · WW",
+      scale: "md",
     },
     {
       key: "eu-marketplace",
       monogram: "M",
       caption: "EU marketplace",
       named: false,
+      fact: "40M MAU",
+      scale: "md",
     },
     {
       key: "sportswear-dtc",
       monogram: "S",
       caption: "Sportswear DTC",
       named: false,
+      fact: "8 countries",
+      scale: "sm",
     },
     {
       key: "nordic-fashion",
       monogram: "F",
       caption: "Nordic fashion group",
       named: false,
+      fact: "Nordics + DE",
+      scale: "sm",
     },
     {
       key: "home-goods",
       monogram: "H",
       caption: "Home goods retailer",
       named: false,
+      fact: "180 stores",
+      scale: "sm",
     },
     {
       key: "diy-chain",
       monogram: "D",
-      caption: "DIY chain · 9 markets",
+      caption: "DIY chain",
       named: false,
+      fact: "9 markets",
+      scale: "sm",
     },
     {
       key: "beauty-brand",
       monogram: "B",
       caption: "Beauty brand · WW",
       named: false,
+      fact: "60 countries",
+      scale: "sm",
     },
     {
       key: "convenience",
       monogram: "C",
       caption: "Convenience operator",
       named: false,
+      fact: "1.4k locations",
+      scale: "sm",
     },
     {
       key: "kid-edutainment",
       monogram: "K",
       caption: "Kid edutainment",
       named: false,
+      fact: "12M households",
+      scale: "sm",
     },
     {
       key: "music-merch",
       monogram: "M",
       caption: "Music merch platform",
       named: false,
+      fact: "300+ artists",
+      scale: "sm",
     },
   ],
   healthcare: [
@@ -903,72 +998,96 @@ export const TRUST_WALL: Record<string, readonly TrustTile[]> = {
       monogram: "H",
       caption: "NA health network",
       named: false,
+      fact: "47 hospital systems",
+      scale: "lg",
     },
     {
       key: "dach-health",
       monogram: "D",
       caption: "DACH hospital group",
       named: false,
+      fact: "32 hospitals",
+      scale: "md",
     },
     {
       key: "uk-nhs-trust",
       monogram: "N",
       caption: "UK NHS trust",
       named: false,
+      fact: "1.2M patients",
+      scale: "md",
     },
     {
       key: "ehr-vendor",
       monogram: "E",
       caption: "EHR vendor · NA",
       named: false,
+      fact: "9k clinics",
+      scale: "md",
     },
     {
       key: "telehealth",
       monogram: "T",
       caption: "Telehealth platform",
       named: false,
+      fact: "4M consults/yr",
+      scale: "sm",
     },
     {
       key: "lab-network",
       monogram: "L",
       caption: "National lab network",
       named: false,
+      fact: "180M tests/yr",
+      scale: "sm",
     },
     {
       key: "pharma-rd",
       monogram: "P",
       caption: "Pharma R&D platform",
       named: false,
+      fact: "Top-10 sponsor",
+      scale: "sm",
     },
     {
       key: "imaging-cloud",
       monogram: "I",
       caption: "Imaging cloud · EU",
       named: false,
+      fact: "PB-scale store",
+      scale: "sm",
     },
     {
       key: "patient-portal",
       monogram: "P",
-      caption: "Patient portal · 9M users",
+      caption: "Patient portal",
       named: false,
+      fact: "9M users",
+      scale: "sm",
     },
     {
       key: "clinical-trials",
       monogram: "C",
       caption: "Clinical-trials SaaS",
       named: false,
+      fact: "320 active trials",
+      scale: "sm",
     },
     {
       key: "hospital-ops",
       monogram: "O",
       caption: "Hospital ops platform",
       named: false,
+      fact: "DE + AT",
+      scale: "sm",
     },
     {
       key: "dental-network",
       monogram: "D",
       caption: "Dental network · NA",
       named: false,
+      fact: "1.8k practices",
+      scale: "sm",
     },
   ],
   "public-sector": [
@@ -977,131 +1096,194 @@ export const TRUST_WALL: Record<string, readonly TrustTile[]> = {
       monogram: "SBB",
       caption: "Swiss Federal Railways",
       named: true,
+      fact: "1.2M daily clients",
+      scale: "lg",
     },
-    { key: "swissgrid", monogram: "SG", caption: "Swissgrid", named: true },
+    {
+      key: "swissgrid",
+      monogram: "SG",
+      caption: "Swissgrid",
+      named: true,
+      fact: "CH grid operator",
+      scale: "md",
+    },
     {
       key: "national-statistics",
       monogram: "S",
       caption: "National statistics agency",
       named: false,
+      fact: "EU member state",
+      scale: "md",
     },
     {
       key: "tax-authority",
       monogram: "T",
       caption: "EU tax authority",
       named: false,
+      fact: "9M filers",
+      scale: "md",
     },
     {
       key: "city-govt-1",
       monogram: "C",
       caption: "Capital city · DACH",
       named: false,
+      fact: "1.9M residents",
+      scale: "sm",
     },
     {
       key: "transport-authority",
       monogram: "T",
       caption: "Transport authority · UK",
       named: false,
+      fact: "Regional",
+      scale: "sm",
     },
     {
       key: "energy-regulator",
       monogram: "E",
       caption: "Energy regulator",
       named: false,
+      fact: "EU member state",
+      scale: "sm",
     },
     {
       key: "land-registry",
       monogram: "L",
       caption: "National land registry",
       named: false,
+      fact: "All-of-state",
+      scale: "sm",
     },
     {
       key: "edu-ministry",
       monogram: "E",
       caption: "Education ministry",
       named: false,
+      fact: "1.4M students",
+      scale: "sm",
     },
     {
       key: "civil-id",
       monogram: "I",
       caption: "Civil-ID platform",
       named: false,
+      fact: "Population-scale",
+      scale: "sm",
     },
     {
       key: "national-library",
       monogram: "N",
       caption: "National library system",
       named: false,
+      fact: "EU member state",
+      scale: "sm",
     },
     {
       key: "public-broadcaster",
       monogram: "B",
       caption: "Public broadcaster",
       named: false,
+      fact: "8M weekly reach",
+      scale: "sm",
     },
   ],
   "software-saas": [
-    { key: "microsoft", monogram: "MS", caption: "Microsoft", named: true },
+    {
+      key: "microsoft",
+      monogram: "MS",
+      caption: "Microsoft",
+      named: true,
+      fact: "Commerce platform",
+      scale: "lg",
+    },
     {
       key: "saas-erp",
       monogram: "E",
       caption: "SaaS ERP · global",
       named: false,
+      fact: "30k tenants",
+      scale: "md",
     },
     {
       key: "dev-platform",
       monogram: "D",
       caption: "DevTools platform",
       named: false,
+      fact: "1M+ developers",
+      scale: "md",
     },
     {
       key: "data-warehouse",
       monogram: "W",
       caption: "Data warehouse vendor",
       named: false,
+      fact: "Tier-1 BI",
+      scale: "md",
     },
     {
       key: "observability-vendor",
       monogram: "O",
       caption: "Observability SaaS",
       named: false,
+      fact: "Public-listed",
+      scale: "sm",
     },
     {
       key: "billing-platform",
       monogram: "B",
       caption: "Billing platform · NA",
       named: false,
+      fact: "12k merchants",
+      scale: "sm",
     },
     {
       key: "hr-platform",
       monogram: "H",
       caption: "HR platform · EU",
       named: false,
+      fact: "8M employees",
+      scale: "sm",
     },
-    { key: "iam-vendor", monogram: "I", caption: "IAM vendor", named: false },
+    {
+      key: "iam-vendor",
+      monogram: "I",
+      caption: "IAM vendor",
+      named: false,
+      fact: "Tier-1 IdP",
+      scale: "sm",
+    },
     {
       key: "logistics-paas",
       monogram: "L",
       caption: "Logistics PaaS",
       named: false,
+      fact: "12-language mesh",
+      scale: "sm",
     },
     {
       key: "marketing-cloud",
       monogram: "M",
       caption: "Marketing cloud · NA",
       named: false,
+      fact: "5k brands",
+      scale: "sm",
     },
     {
       key: "design-tooling",
       monogram: "D",
       caption: "Design tooling SaaS",
       named: false,
+      fact: "1.5M users",
+      scale: "sm",
     },
     {
       key: "analytics-saas",
       monogram: "A",
       caption: "Analytics SaaS · WW",
       named: false,
+      fact: "Public-listed",
+      scale: "sm",
     },
   ],
   "telco-media": [
@@ -1110,69 +1292,110 @@ export const TRUST_WALL: Record<string, readonly TrustTile[]> = {
       monogram: "T",
       caption: "Nordic telco",
       named: false,
+      fact: "8M subscribers",
+      scale: "lg",
     },
     {
       key: "european-broadcaster",
       monogram: "B",
       caption: "European broadcaster",
       named: false,
+      fact: "Public service",
+      scale: "md",
     },
     {
       key: "streaming-platform",
       monogram: "S",
-      caption: "Streaming platform · 30M",
+      caption: "Streaming platform",
       named: false,
+      fact: "30M MAU",
+      scale: "md",
     },
     {
       key: "publishing-house",
       monogram: "P",
       caption: "Publishing house · DACH",
       named: false,
+      fact: "120 titles",
+      scale: "sm",
     },
     {
       key: "telco-2",
       monogram: "T",
       caption: "Tier-1 telco · UK",
       named: false,
+      fact: "24M lines",
+      scale: "md",
     },
     {
       key: "podcast-network",
       monogram: "N",
       caption: "Podcast network",
       named: false,
+      fact: "300M plays/mo",
+      scale: "sm",
     },
     {
       key: "news-app",
       monogram: "N",
-      caption: "News app · 12M MAU",
+      caption: "News app",
       named: false,
+      fact: "12M MAU",
+      scale: "sm",
     },
     {
       key: "sports-streamer",
       monogram: "S",
       caption: "Sports streamer · EU",
       named: false,
+      fact: "Live + VOD",
+      scale: "sm",
     },
     {
       key: "infra-carrier",
       monogram: "I",
       caption: "Infra carrier",
       named: false,
+      fact: "Backbone",
+      scale: "sm",
     },
-    { key: "iot-mvno", monogram: "I", caption: "IoT MVNO", named: false },
+    {
+      key: "iot-mvno",
+      monogram: "I",
+      caption: "IoT MVNO",
+      named: false,
+      fact: "4M SIMs",
+      scale: "sm",
+    },
     {
       key: "cable-operator",
       monogram: "C",
       caption: "Cable operator · EU",
       named: false,
+      fact: "6M households",
+      scale: "sm",
     },
     {
       key: "media-conglomerate",
       monogram: "M",
       caption: "Media conglomerate",
       named: false,
+      fact: "FR + IT",
+      scale: "sm",
     },
   ],
 };
+
+// Flat, industry-ordered list used by the proof wall (no tabs, single
+// graze-able grid). Keeps source-of-truth in TRUST_WALL, just walks the
+// industry order so callers can sort/group on a stable order.
+export const TRUST_WALL_ALL: readonly (TrustTile & {
+  readonly industry: string;
+})[] = INDUSTRIES.flatMap((industry) =>
+  (TRUST_WALL[industry.key] ?? []).map((tile) => ({
+    ...tile,
+    industry: industry.key,
+  }))
+);
 
 void INDUSTRIES; // re-export anchor so the import isn't dropped by the compiler
