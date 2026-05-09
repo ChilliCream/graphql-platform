@@ -67,7 +67,6 @@ internal sealed class ServiceBusConnection : IAsyncDisposable
                 new ServiceBusAdministrationClient(configuration.FullyQualifiedNamespace, configuration.Credential));
         }
 
-        throw new InvalidOperationException(
-            "Either ConnectionString or FullyQualifiedNamespace + Credential must be provided");
+        throw ThrowHelper.ConnectionStringOrCredentialRequired();
     }
 }

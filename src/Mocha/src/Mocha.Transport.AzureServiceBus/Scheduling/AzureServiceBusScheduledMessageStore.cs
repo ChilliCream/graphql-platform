@@ -21,21 +21,17 @@ internal sealed class AzureServiceBusScheduledMessageStore(AzureServiceBusClient
     {
         if (context.Endpoint is not AzureServiceBusDispatchEndpoint endpoint)
         {
-            throw new InvalidOperationException(
-                "AzureServiceBusScheduledMessageStore requires an AzureServiceBusDispatchEndpoint, "
-                + $"but the dispatch context carries a '{context.Endpoint.GetType().Name}'.");
+            throw ThrowHelper.ScheduledMessageStoreRequiresAsbEndpoint(context.Endpoint.GetType().Name);
         }
 
         if (context.Envelope is not { } envelope)
         {
-            throw new InvalidOperationException(
-                "AzureServiceBusScheduledMessageStore requires a serialized envelope on the dispatch context.");
+            throw ThrowHelper.ScheduledMessageStoreRequiresEnvelope();
         }
 
         if (envelope.ScheduledTime is not { } scheduledTime)
         {
-            throw new InvalidOperationException(
-                "AzureServiceBusScheduledMessageStore requires the envelope to carry a scheduled time.");
+            throw ThrowHelper.ScheduledMessageStoreRequiresScheduledTime();
         }
 
         await endpoint.EnsureProvisionedAsync(cancellationToken);

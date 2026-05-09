@@ -26,7 +26,7 @@ public sealed class AzureServiceBusReceiveEndpointTopologyConvention
     {
         if (configuration.QueueName is null)
         {
-            throw new InvalidOperationException("Queue name is required");
+            throw ThrowHelper.ReceiveEndpointQueueNameRequired();
         }
 
         var topology = (AzureServiceBusMessagingTopology)endpoint.Transport.Topology;
@@ -57,10 +57,10 @@ public sealed class AzureServiceBusReceiveEndpointTopologyConvention
             if (existingQueue.ForwardDeadLetteredMessagesTo is not null
                 && existingQueue.ForwardDeadLetteredMessagesTo != forwardDeadLetteredMessagesTo)
             {
-                throw new InvalidOperationException(
-                    $"Endpoint '{configuration.Name}' configured UseNativeDeadLetterForwarding() but "
-                    + $"queue '{configuration.QueueName}' already forwards dead-lettered messages to "
-                    + $"'{existingQueue.ForwardDeadLetteredMessagesTo}'. Choose one.");
+                throw ThrowHelper.DeadLetterForwardingConflict(
+                    configuration.Name,
+                    configuration.QueueName,
+                    existingQueue.ForwardDeadLetteredMessagesTo);
             }
 
             existingQueue.SetForwardDeadLetteredMessagesTo(forwardDeadLetteredMessagesTo);

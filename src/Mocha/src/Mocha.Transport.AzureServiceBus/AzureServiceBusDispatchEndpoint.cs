@@ -34,7 +34,7 @@ public sealed class AzureServiceBusDispatchEndpoint(AzureServiceBusMessagingTran
     {
         if (configuration.TopicName is null && configuration.QueueName is null)
         {
-            throw new InvalidOperationException("Topic name or queue name is required");
+            throw ThrowHelper.DispatchEndpointTopicOrQueueNameRequired();
         }
     }
 
@@ -42,7 +42,7 @@ public sealed class AzureServiceBusDispatchEndpoint(AzureServiceBusMessagingTran
     {
         if (context.Envelope is not { } envelope)
         {
-            throw new InvalidOperationException("Envelope is not set");
+            throw ThrowHelper.DispatchEndpointEnvelopeNotSet();
         }
 
         var clientManager = transport.ClientManager;
@@ -56,7 +56,7 @@ public sealed class AzureServiceBusDispatchEndpoint(AzureServiceBusMessagingTran
         {
             if (!Uri.TryCreate(envelope.DestinationAddress, UriKind.Absolute, out var destinationAddress))
             {
-                throw new InvalidOperationException("Destination address is not a valid URI");
+                throw ThrowHelper.DispatchEndpointDestinationAddressInvalidUri();
             }
 
             var path = destinationAddress.AbsolutePath.AsSpan();
@@ -65,8 +65,7 @@ public sealed class AzureServiceBusDispatchEndpoint(AzureServiceBusMessagingTran
 
             if (segmentCount != 2)
             {
-                throw new InvalidOperationException(
-                    $"Cannot determine topic or queue name from destination address {destinationAddress}");
+                throw ThrowHelper.DispatchEndpointCannotDetermineDestinationName(destinationAddress.ToString());
             }
 
             var kind = path[ranges[0]];
@@ -76,8 +75,7 @@ public sealed class AzureServiceBusDispatchEndpoint(AzureServiceBusMessagingTran
 
             if (kind is not ("t" or "q"))
             {
-                throw new InvalidOperationException(
-                    $"Cannot determine topic or queue name from destination address {destinationAddress}");
+                throw ThrowHelper.DispatchEndpointCannotDetermineDestinationName(destinationAddress.ToString());
             }
         }
         else if (Topic is not null)
@@ -90,7 +88,7 @@ public sealed class AzureServiceBusDispatchEndpoint(AzureServiceBusMessagingTran
         }
         else
         {
-            throw new InvalidOperationException("Destination not configured");
+            throw ThrowHelper.DispatchEndpointDestinationNotConfigured();
         }
 
         var sender = clientManager.GetSender(entityPath);
@@ -163,8 +161,7 @@ public sealed class AzureServiceBusDispatchEndpoint(AzureServiceBusMessagingTran
             {
                 if (sessionId is not null && partitionKeyString != sessionId)
                 {
-                    throw new InvalidOperationException(
-                        "PartitionKey must equal SessionId when both are set on an Azure Service Bus message.");
+                    throw ThrowHelper.PartitionKeyMustEqualSessionId();
                 }
 
                 message.PartitionKey = partitionKeyString;
@@ -314,18 +311,18 @@ public sealed class AzureServiceBusDispatchEndpoint(AzureServiceBusMessagingTran
         {
             Topic =
                 topology.Topics.FirstOrDefault(t => t.Name == configuration.TopicName)
-                ?? throw new InvalidOperationException("Topic not found");
+                ?? throw ThrowHelper.DispatchEndpointTopicNotFound();
         }
         else if (configuration.QueueName is not null)
         {
             Queue =
                 topology.Queues.FirstOrDefault(q => q.Name == configuration.QueueName)
-                ?? throw new InvalidOperationException("Queue not found");
+                ?? throw ThrowHelper.DispatchEndpointQueueNotFound();
         }
 
         Destination =
             Topic as TopologyResource
             ?? Queue as TopologyResource
-            ?? throw new InvalidOperationException("Destination is not set");
+            ?? throw ThrowHelper.DispatchEndpointDestinationNotSet();
     }
 }

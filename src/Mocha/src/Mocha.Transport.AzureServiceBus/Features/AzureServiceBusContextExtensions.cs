@@ -35,15 +35,11 @@ public static class AzureServiceBusContextExtensions
 
             if (feature.ProcessSessionMessageEventArgs is not null)
             {
-                throw new InvalidOperationException(
-                    "The current Azure Service Bus endpoint is session-bound. "
-                    + "Call GetAzureServiceBusSessionEventArgs() instead.");
+                throw ThrowHelper.EndpointIsSessionBound();
             }
         }
 
-        throw new InvalidOperationException(
-            "The current message context is not running on a non-session Azure Service Bus endpoint. "
-            + "ProcessMessageEventArgs is only available for handlers receiving from ASB.");
+        throw ThrowHelper.ProcessMessageEventArgsUnavailable();
     }
 
     /// <summary>
@@ -67,8 +63,6 @@ public static class AzureServiceBusContextExtensions
             return args;
         }
 
-        throw new InvalidOperationException(
-            "The current message context is not running on a session-bound Azure Service Bus endpoint. "
-            + "ProcessSessionMessageEventArgs is only available for handlers receiving from a session-required queue.");
+        throw ThrowHelper.ProcessSessionMessageEventArgsUnavailable();
     }
 }

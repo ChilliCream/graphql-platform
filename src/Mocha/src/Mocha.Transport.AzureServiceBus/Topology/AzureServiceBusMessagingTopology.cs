@@ -59,7 +59,7 @@ public sealed class AzureServiceBusMessagingTopology(
             var topic = _topics.FirstOrDefault(t => t.Name == configuration.Name);
             if (topic is not null)
             {
-                throw new InvalidOperationException($"Topic '{configuration.Name}' already exists");
+                throw ThrowHelper.TopicAlreadyExists(configuration.Name);
             }
 
             topic = new AzureServiceBusTopic();
@@ -91,7 +91,7 @@ public sealed class AzureServiceBusMessagingTopology(
             var queue = _queues.FirstOrDefault(q => q.Name == configuration.Name);
             if (queue is not null)
             {
-                throw new InvalidOperationException($"Queue '{configuration.Name}' already exists");
+                throw ThrowHelper.QueueAlreadyExists(configuration.Name);
             }
 
             configuration.Topology = this;
@@ -119,16 +119,15 @@ public sealed class AzureServiceBusMessagingTopology(
         lock (_lock)
         {
             var source = _topics.FirstOrDefault(t => t.Name == configuration.Source) ??
-                throw new InvalidOperationException($"Topic '{configuration.Source}' not found in topology");
+                throw ThrowHelper.TopologyTopicNotFound(configuration.Source);
 
             var destination = _queues.FirstOrDefault(q => q.Name == configuration.Destination) ??
-                throw new InvalidOperationException($"Queue '{configuration.Destination}' not found in topology");
+                throw ThrowHelper.TopologyQueueNotFound(configuration.Destination);
 
             if (_subscriptions.Any(s =>
                     s.Source.Name == configuration.Source && s.Destination.Name == configuration.Destination))
             {
-                throw new InvalidOperationException(
-                    $"Subscription from topic '{configuration.Source}' to queue '{configuration.Destination}' already exists");
+                throw ThrowHelper.SubscriptionAlreadyExists(configuration.Source, configuration.Destination);
             }
 
             configuration.Topology = this;

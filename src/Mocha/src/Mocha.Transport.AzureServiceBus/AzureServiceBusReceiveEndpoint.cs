@@ -33,7 +33,7 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
     {
         if (configuration.QueueName is null)
         {
-            throw new InvalidOperationException("Queue name is required");
+            throw ThrowHelper.ReceiveEndpointQueueNameRequired();
         }
 
         _maxConcurrentCalls = Math.Clamp(
@@ -52,14 +52,14 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
     {
         if (configuration.QueueName is null)
         {
-            throw new InvalidOperationException("Queue name is required");
+            throw ThrowHelper.ReceiveEndpointQueueNameRequired();
         }
 
         var topology = (AzureServiceBusMessagingTopology)Transport.Topology;
 
         Queue =
             topology.Queues.FirstOrDefault(q => q.Name == configuration.QueueName)
-            ?? throw new InvalidOperationException("Queue not found");
+            ?? throw ThrowHelper.ReceiveEndpointQueueNotFound();
 
         Source = Queue;
 
@@ -81,12 +81,10 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
 
             if (sessionOnly.Count > 0)
             {
-                throw new InvalidOperationException(
-                    $"Receive endpoint '{configuration.Name}' targets queue '{Queue.Name}', "
-                        + $"which does not require sessions ({nameof(AzureServiceBusQueue.RequiresSession)}=false). "
-                        + "The following session-only options are set and would have no effect: "
-                        + $"{string.Join(", ", sessionOnly)}. Either remove these options, or call "
-                        + "WithRequiresSession() on the queue declaration.");
+                throw ThrowHelper.ReceiveEndpointHasSessionOnlyOptionsOnNonSessionQueue(
+                    configuration.Name,
+                    Queue.Name,
+                    string.Join(", ", sessionOnly));
             }
         }
     }
@@ -97,7 +95,7 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
     {
         if (Transport is not AzureServiceBusMessagingTransport asbTransport)
         {
-            throw new InvalidOperationException("Transport is not an AzureServiceBusMessagingTransport");
+            throw ThrowHelper.TransportIsNotAzureServiceBus();
         }
 
         _logger = context.Services.GetRequiredService<ILogger<AzureServiceBusReceiveEndpoint>>();

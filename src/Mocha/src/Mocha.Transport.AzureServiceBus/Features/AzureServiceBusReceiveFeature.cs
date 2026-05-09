@@ -18,7 +18,7 @@ internal sealed class AzureServiceBusReceiveFeature : IPooledFeature
     public ServiceBusReceivedMessage Message
         => ProcessMessageEventArgs?.Message
         ?? ProcessSessionMessageEventArgs?.Message
-        ?? throw new InvalidOperationException("Receive feature has no args set");
+        ?? throw ThrowHelper.ReceiveFeatureArgsNotSet();
 
     /// <summary>
     /// Gets the settlement actions for the current message.
