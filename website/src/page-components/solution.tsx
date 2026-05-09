@@ -11,20 +11,23 @@ import { SolutionPageRenderer } from "@/components/solutions/SolutionPageRendere
 import { SolutionsRoot } from "@/components/solutions/SolutionsRoot";
 import { SolutionPageRendererCinematic } from "@/components/solutions/cinematic/SolutionPageRendererCinematic";
 import { SolutionsCinematicRoot } from "@/components/solutions/cinematic/SolutionsCinematicRoot";
+import { SolutionPageRendererGrid } from "@/components/solutions/grid/SolutionPageRendererGrid";
 import type { SolutionRecord } from "@/data/solutions/types";
 
 interface SolutionPageProps {
   readonly record: SolutionRecord;
 }
 
-// SolutionPage dispatches on `?v=cinematic` to render either the default
-// band-stacked template (`SolutionPageRenderer` + `SolutionsRoot`) or the
-// cinematic variant (`SolutionPageRendererCinematic` + `SolutionsCinematicRoot`).
-// Both variants reuse the same data file (`solutions.ts`), the same accent
-// thread, and the same shared section components. The cinematic variant
-// adds a single signature on top of the shared composition: a per-slug
-// astronomical star chart background that lights up a different
-// constellation per solution.
+// SolutionPage dispatches on `?v=` to render one of three sibling templates:
+//   default    -> band-stacked composition (`SolutionPageRenderer`)
+//   cinematic  -> default composition + per-slug astronomical chart
+//                 (`SolutionPageRendererCinematic`)
+//   grid       -> hairline-bordered square grid composition
+//                 (`SolutionPageRendererGrid`)
+//
+// All three variants reuse the same data file (`solutions.ts`), the same
+// accent thread, and the same shared illustration vocabulary; only the
+// rendering differs.
 //
 // The variant switcher is rendered at the top level so visitors can hop
 // between variants with one click; useSearchParams requires a Suspense
@@ -50,8 +53,13 @@ const SolutionPage: FC<SolutionPageProps> = ({ record }) => {
 
 const SolutionPageBody: FC<SolutionPageProps> = ({ record }) => {
   const searchParams = useSearchParams();
-  const variant =
-    searchParams.get("v") === "cinematic" ? "cinematic" : "default";
+  const requested = searchParams.get("v");
+  const variant: "default" | "cinematic" | "grid" =
+    requested === "cinematic"
+      ? "cinematic"
+      : requested === "grid"
+      ? "grid"
+      : "default";
 
   const switcherOptions = useMemo(
     () => [
@@ -65,6 +73,11 @@ const SolutionPageBody: FC<SolutionPageProps> = ({ record }) => {
         label: "Cinematic",
         href: `/solutions/${record.slug}/?v=cinematic`,
       },
+      {
+        id: "grid",
+        label: "Grid",
+        href: `/solutions/${record.slug}/?v=grid`,
+      },
     ],
     [record.slug]
   );
@@ -76,6 +89,15 @@ const SolutionPageBody: FC<SolutionPageProps> = ({ record }) => {
           <SolutionPageRendererCinematic record={record} />
         </SolutionsCinematicRoot>
         <VariantSwitcher options={switcherOptions} currentId="cinematic" />
+      </>
+    );
+  }
+
+  if (variant === "grid") {
+    return (
+      <>
+        <SolutionPageRendererGrid record={record} slug={record.slug} />
+        <VariantSwitcher options={switcherOptions} currentId="grid" />
       </>
     );
   }

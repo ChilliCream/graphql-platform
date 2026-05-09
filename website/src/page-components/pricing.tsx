@@ -8,6 +8,7 @@ import { SiteLayout } from "@/components/layout";
 import { SEO } from "@/components/misc";
 import { PricingCinematic } from "@/components/pricing/cinematic/PricingCinematic";
 import { ComparisonTable } from "@/components/pricing/ComparisonTable";
+import { PricingGrid } from "@/components/pricing/grid/PricingGrid";
 import { EnterpriseBanner } from "@/components/pricing/EnterpriseBanner";
 import { NitroTierCards } from "@/components/pricing/NitroTierCards";
 import { OssStrip } from "@/components/pricing/OssStrip";
@@ -27,6 +28,7 @@ interface PricingPageProps {
 const VARIANT_OPTIONS = [
   { id: "default", label: "Default", href: "/pricing/" },
   { id: "cinematic", label: "Cinematic", href: "/pricing/?v=cinematic" },
+  { id: "grid", label: "Grid", href: "/pricing/?v=grid" },
 ];
 
 // Pricing reads as a stack of bands with rhythm, not as 8 stacked cards.
@@ -89,6 +91,9 @@ const PricingPageInner: FC<PricingPageProps> = ({ recentPosts }) => {
 
   if (variant === "cinematic") {
     return <PricingCinematic />;
+  }
+  if (variant === "grid") {
+    return <PricingGrid recentPosts={recentPosts} />;
   }
   return <PricingDefault recentPosts={recentPosts} />;
 };

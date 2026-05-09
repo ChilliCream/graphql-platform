@@ -10,6 +10,7 @@ import { CinematicCustomersPage } from "@/components/customers/cinematic";
 import { CustomersHero } from "@/components/customers/CustomersHero";
 import { CustomersRoot } from "@/components/customers/CustomersRoot";
 import { FeaturedRail } from "@/components/customers/FeaturedRail";
+import { CustomersGrid } from "@/components/customers/grid";
 import { IndustryTrustWall } from "@/components/customers/IndustryTrustWall";
 import { RelatedLinks } from "@/components/customers/RelatedLinks";
 import { LandingGlobalStyle } from "@/components/landing/LandingRoot";
@@ -33,10 +34,27 @@ import { VariantSwitcher } from "@/components/redesign-system/cinematic";
 // Variant dispatch: `?v=cinematic` renders the cinematic variant which
 // threads homepage chrome (ActLabel, VibrantTile, DottedGridBg) through
 // the same band rhythm. Default render is unchanged.
+const VARIANT_OPTIONS = [
+  { id: "default", label: "Default", href: "/customers" },
+  { id: "cinematic", label: "Cinematic", href: "/customers?v=cinematic" },
+  { id: "grid", label: "Grid", href: "/customers?v=grid" },
+];
+
+const resolveVariant = (
+  raw: string | null
+): "default" | "cinematic" | "grid" => {
+  if (raw === "cinematic") {
+    return "cinematic";
+  }
+  if (raw === "grid") {
+    return "grid";
+  }
+  return "default";
+};
+
 const CustomersPage: FC = () => {
   const searchParams = useSearchParams();
-  const variant =
-    searchParams?.get("v") === "cinematic" ? "cinematic" : "default";
+  const variant = resolveVariant(searchParams?.get("v") ?? null);
 
   useEffect(() => {
     document.body.classList.add("cc-landing-body");
@@ -55,6 +73,8 @@ const CustomersPage: FC = () => {
       <AccentThread page="customers">
         {variant === "cinematic" ? (
           <CinematicCustomersPage />
+        ) : variant === "grid" ? (
+          <CustomersGrid />
         ) : (
           <CustomersRoot>
             <CustomersHero />
@@ -67,17 +87,7 @@ const CustomersPage: FC = () => {
           </CustomersRoot>
         )}
       </AccentThread>
-      <VariantSwitcher
-        currentId={variant}
-        options={[
-          { id: "default", label: "Default", href: "/customers" },
-          {
-            id: "cinematic",
-            label: "Cinematic",
-            href: "/customers?v=cinematic",
-          },
-        ]}
-      />
+      <VariantSwitcher currentId={variant} options={VARIANT_OPTIONS} />
     </SiteLayout>
   );
 };

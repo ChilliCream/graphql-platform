@@ -11,6 +11,7 @@ import { AgentsLoopDiagram } from "@/components/agents/AgentsLoopDiagram";
 import { AgentsPricingTeaser } from "@/components/agents/AgentsPricingTeaser";
 import { AgentsRoot } from "@/components/agents/AgentsRoot";
 import { NitroAgentsCinematic } from "@/components/agents/cinematic";
+import { NitroAgentsGrid } from "@/components/agents/grid";
 import { GuardrailsSection } from "@/components/agents/GuardrailsSection";
 import { ProductSurfaceTiles } from "@/components/agents/ProductSurfaceTiles";
 import { WhatAgentSees } from "@/components/agents/WhatAgentSees";
@@ -41,11 +42,32 @@ import { DEMOS } from "@/data/agents/demos";
 //
 // Variant dispatch: `?v=cinematic` renders the cinematic variant which
 // threads homepage chrome (ActLabel, ConnectorLine, FrostedExplainer)
-// through the same band rhythm. Default render is unchanged.
+// through the same band rhythm. `?v=grid` renders the Grid variant, a
+// strict 1px-hairline Vercel-derived recomposition of the same content
+// tree. Default render is unchanged.
+
+type AgentsVariantId = "default" | "cinematic" | "grid";
+
+const VARIANT_OPTIONS = [
+  { id: "default", label: "Default", href: "/products/nitro/agents" },
+  {
+    id: "cinematic",
+    label: "Cinematic",
+    href: "/products/nitro/agents?v=cinematic",
+  },
+  { id: "grid", label: "Grid", href: "/products/nitro/agents?v=grid" },
+];
+
+const resolveVariant = (raw: string | null | undefined): AgentsVariantId => {
+  if (raw === "cinematic" || raw === "grid") {
+    return raw;
+  }
+  return "default";
+};
+
 const NitroAgentsPage: FC = () => {
   const searchParams = useSearchParams();
-  const variant =
-    searchParams?.get("v") === "cinematic" ? "cinematic" : "default";
+  const variant = resolveVariant(searchParams?.get("v"));
 
   useEffect(() => {
     document.body.classList.add("cc-landing-body");
@@ -64,6 +86,8 @@ const NitroAgentsPage: FC = () => {
       <AccentThread page="agents">
         {variant === "cinematic" ? (
           <NitroAgentsCinematic />
+        ) : variant === "grid" ? (
+          <NitroAgentsGrid />
         ) : (
           <AgentsRoot>
             <AgentsHero />
@@ -108,17 +132,7 @@ const NitroAgentsPage: FC = () => {
           </AgentsRoot>
         )}
       </AccentThread>
-      <VariantSwitcher
-        currentId={variant}
-        options={[
-          { id: "default", label: "Default", href: "/products/nitro/agents" },
-          {
-            id: "cinematic",
-            label: "Cinematic",
-            href: "/products/nitro/agents?v=cinematic",
-          },
-        ]}
-      />
+      <VariantSwitcher currentId={variant} options={VARIANT_OPTIONS} />
     </SiteLayout>
   );
 };

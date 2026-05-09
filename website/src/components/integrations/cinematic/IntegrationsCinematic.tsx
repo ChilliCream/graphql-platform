@@ -32,6 +32,7 @@ const VARIANT_OPTIONS = [
     label: "Cinematic",
     href: "/integrations/?v=cinematic",
   },
+  { id: "grid", label: "Grid", href: "/integrations/?v=grid" },
 ];
 
 export const IntegrationsCinematic: FC = () => {

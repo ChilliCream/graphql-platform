@@ -10,6 +10,7 @@ import { EnterpriseHero } from "@/components/enterprise/EnterpriseHero";
 import { EnterpriseRoot } from "@/components/enterprise/EnterpriseRoot";
 import { EnterpriseSkuCards } from "@/components/enterprise/EnterpriseSkuCards";
 import { FederationDeepDive } from "@/components/enterprise/FederationDeepDive";
+import { EnterpriseGrid } from "@/components/enterprise/grid/EnterpriseGrid";
 import { InlineSalesForm } from "@/components/enterprise/InlineSalesForm";
 import { MigrationSection } from "@/components/enterprise/MigrationSection";
 import { PlatformPillars } from "@/components/enterprise/PlatformPillars";
@@ -24,6 +25,7 @@ import { VariantSwitcher } from "@/components/redesign-system/cinematic";
 const VARIANT_OPTIONS = [
   { id: "default", label: "Default", href: "/enterprise/" },
   { id: "cinematic", label: "Cinematic", href: "/enterprise/?v=cinematic" },
+  { id: "grid", label: "Grid", href: "/enterprise/?v=grid" },
 ];
 
 // Band rhythm (no two adjacent same-surface bands):
@@ -88,15 +90,39 @@ const EnterpriseCinematicPage: FC = () => {
   );
 };
 
-// Variant dispatcher reads `?v=cinematic` and renders the cinematic tree;
-// any other value (or none) falls through to the default variant. Wrapped
-// in <Suspense> because useSearchParams suspends during static export.
+// Grid branch wraps the strict-hairline-grid tree in the same SiteLayout/SEO
+// chrome as the default and cinematic branches. The variant switcher is
+// mounted inside the same shell so users can hop between variants while the
+// global header, footer, cookie banner, and accent thread stay constant.
+const EnterpriseGridPage: FC = () => {
+  return (
+    <SiteLayout disableStars>
+      <SEO
+        title="Enterprise"
+        description="The GraphQL platform for enterprise platform teams. Federate any backend in any language, on infrastructure you control."
+      />
+      <LandingGlobalStyle />
+      <AccentThread page="enterprise">
+        <EnterpriseGrid />
+      </AccentThread>
+      <VariantSwitcher options={VARIANT_OPTIONS} currentId="grid" />
+    </SiteLayout>
+  );
+};
+
+// Variant dispatcher reads `?v=cinematic|grid` and renders the matching
+// tree; any other value (or none) falls through to the default variant.
+// Wrapped in <Suspense> because useSearchParams suspends during static
+// export.
 const EnterprisePageInner: FC = () => {
   const searchParams = useSearchParams();
   const variant = searchParams?.get("v");
 
   if (variant === "cinematic") {
     return <EnterpriseCinematicPage />;
+  }
+  if (variant === "grid") {
+    return <EnterpriseGridPage />;
   }
   return <EnterpriseDefault />;
 };

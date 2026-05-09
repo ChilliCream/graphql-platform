@@ -8,6 +8,7 @@ import { FeaturedIntegrations } from "@/components/integrations/FeaturedIntegrat
 import { IntegrationsByCategory } from "@/components/integrations/IntegrationsByCategory";
 import { IntegrationsCinematic } from "@/components/integrations/cinematic/IntegrationsCinematic";
 import { IntegrationsDualCta } from "@/components/integrations/IntegrationsDualCta";
+import { IntegrationsGrid } from "@/components/integrations/grid/IntegrationsGrid";
 import { IntegrationsHero } from "@/components/integrations/IntegrationsHero";
 import { IntegrationsRoot } from "@/components/integrations/IntegrationsRoot";
 import { IntegrationsSpotlight } from "@/components/integrations/IntegrationsSpotlight";
@@ -26,6 +27,7 @@ const VARIANT_OPTIONS = [
     label: "Cinematic",
     href: "/integrations/?v=cinematic",
   },
+  { id: "grid", label: "Grid", href: "/integrations/?v=grid" },
 ];
 
 // Page rhythm (uplift-plan P0-integrations-3 / 4): the page reads as a stack
@@ -74,15 +76,19 @@ const IntegrationsDefault: FC = () => {
   );
 };
 
-// Variant dispatcher reads `?v=cinematic` and renders the cinematic tree;
-// any other value (or none) falls through to the default variant. Wrapped
-// in <Suspense> because useSearchParams suspends during static export.
+// Variant dispatcher reads `?v=cinematic` or `?v=grid` and renders the
+// matching tree; any other value (or none) falls through to the default
+// variant. Wrapped in <Suspense> because useSearchParams suspends during
+// static export.
 const IntegrationsPageInner: FC = () => {
   const searchParams = useSearchParams();
   const variant = searchParams?.get("v");
 
   if (variant === "cinematic") {
     return <IntegrationsCinematic />;
+  }
+  if (variant === "grid") {
+    return <IntegrationsGrid />;
   }
   return <IntegrationsDefault />;
 };

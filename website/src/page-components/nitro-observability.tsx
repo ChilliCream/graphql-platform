@@ -10,6 +10,7 @@ import { AgentTranscriptMock } from "@/components/observability/AgentTranscriptM
 import { ObservabilityCinematicRoot } from "@/components/observability/cinematic/ObservabilityCinematicRoot";
 import { ErrorFeedMock } from "@/components/observability/ErrorFeedMock";
 import { FeaturePanel } from "@/components/observability/FeaturePanel";
+import { ObservabilityGrid } from "@/components/observability/grid/ObservabilityGrid";
 import { ObservabilityFinalCta } from "@/components/observability/ObservabilityFinalCta";
 import { ObservabilityHero } from "@/components/observability/ObservabilityHero";
 import { ObservabilityRoot } from "@/components/observability/ObservabilityRoot";
@@ -34,6 +35,7 @@ const PATH = "/products/nitro/observability/";
 const VARIANT_OPTIONS = [
   { id: "default", label: "Default", href: PATH },
   { id: "cinematic", label: "Cinematic", href: `${PATH}?v=cinematic` },
+  { id: "grid", label: "Grid", href: `${PATH}?v=grid` },
 ];
 
 // SEO + layout shell shared by both variants. Each variant renders its own
@@ -220,15 +222,25 @@ const ObservabilityCinematic: FC = () => (
   </Shell>
 );
 
-// Variant dispatcher reads `?v=cinematic` and renders the cinematic tree;
-// any other value (or none) falls through to the default variant. Wrapped
-// in <Suspense> because useSearchParams suspends during static export.
+const ObservabilityGridVariant: FC = () => (
+  <Shell currentId="grid">
+    <ObservabilityGrid />
+  </Shell>
+);
+
+// Variant dispatcher reads `?v=cinematic` or `?v=grid` and renders the
+// matching tree; any other value (or none) falls through to the default
+// variant. Wrapped in <Suspense> because useSearchParams suspends during
+// static export.
 const ObservabilityPageInner: FC = () => {
   const searchParams = useSearchParams();
   const variant = searchParams?.get("v");
 
   if (variant === "cinematic") {
     return <ObservabilityCinematic />;
+  }
+  if (variant === "grid") {
+    return <ObservabilityGridVariant />;
   }
   return <ObservabilityDefault />;
 };

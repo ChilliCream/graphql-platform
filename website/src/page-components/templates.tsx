@@ -13,6 +13,7 @@ import {
   TemplatesCinematicHero,
   TemplatesCinematicRoot,
 } from "@/components/templates/cinematic";
+import { TemplatesGridVariant } from "@/components/templates/grid";
 import { TemplatesCtaStrip } from "@/components/templates/TemplatesCtaStrip";
 import { TemplatesGrid } from "@/components/templates/TemplatesGrid";
 import { TemplatesHero } from "@/components/templates/TemplatesHero";
@@ -20,8 +21,10 @@ import { TemplatesRoot } from "@/components/templates/TemplatesRoot";
 
 // Dispatch shell: ?v=cinematic swaps in the cinematic variant of the
 // gallery (chapter markers, prism chip filter row, featured-as-exhibit hero
-// via InsetWindow). The default variant is unchanged. The 8 detail pages
-// (/templates/[slug]) only have one variant, so they don't dispatch here.
+// via InsetWindow). ?v=grid swaps in the Grid variant (Vercel-style square
+// hairline-bordered card grid). The default variant is unchanged. The 8
+// detail pages (/templates/[slug]) only have one variant, so they don't
+// dispatch here.
 const TemplatesPage: FC = () => {
   useEffect(() => {
     document.body.classList.add("cc-landing-body");
@@ -50,10 +53,13 @@ const TemplatesPage: FC = () => {
 // can hop between variants without losing filter state in the URL.
 const TemplatesPageBody: FC = () => {
   const searchParams = useSearchParams();
-  const isCinematic = searchParams?.get("v") === "cinematic";
+  const variant = searchParams?.get("v");
 
-  if (isCinematic) {
+  if (variant === "cinematic") {
     return <CinematicTemplates searchParams={searchParams} />;
+  }
+  if (variant === "grid") {
+    return <GridTemplates searchParams={searchParams} />;
   }
   return <DefaultTemplates searchParams={searchParams} />;
 };
@@ -62,9 +68,15 @@ interface VariantProps {
   readonly searchParams: ReturnType<typeof useSearchParams>;
 }
 
+interface VariantHrefs {
+  readonly defaultHref: string;
+  readonly cinematicHref: string;
+  readonly gridHref: string;
+}
+
 const buildVariantHrefs = (
   searchParams: ReturnType<typeof useSearchParams>
-): { defaultHref: string; cinematicHref: string } => {
+): VariantHrefs => {
   const params = new URLSearchParams(searchParams?.toString() ?? "");
   params.delete("v");
   const baseQuery = params.toString();
@@ -72,11 +84,22 @@ const buildVariantHrefs = (
   const cinematicHref = baseQuery
     ? `/templates?${baseQuery}&v=cinematic`
     : "/templates?v=cinematic";
-  return { defaultHref, cinematicHref };
+  const gridHref = baseQuery
+    ? `/templates?${baseQuery}&v=grid`
+    : "/templates?v=grid";
+  return { defaultHref, cinematicHref, gridHref };
 };
 
+const variantOptions = (
+  hrefs: VariantHrefs
+): { id: string; label: string; href: string }[] => [
+  { id: "default", label: "Default", href: hrefs.defaultHref },
+  { id: "cinematic", label: "Cinematic", href: hrefs.cinematicHref },
+  { id: "grid", label: "Grid", href: hrefs.gridHref },
+];
+
 const DefaultTemplates: FC<VariantProps> = ({ searchParams }) => {
-  const { defaultHref, cinematicHref } = buildVariantHrefs(searchParams);
+  const hrefs = buildVariantHrefs(searchParams);
   return (
     <AccentThread page="templates">
       <TemplatesRoot>
@@ -86,19 +109,13 @@ const DefaultTemplates: FC<VariantProps> = ({ searchParams }) => {
         </Suspense>
         <TemplatesCtaStrip />
       </TemplatesRoot>
-      <VariantSwitcher
-        currentId="default"
-        options={[
-          { id: "default", label: "Default", href: defaultHref },
-          { id: "cinematic", label: "Cinematic", href: cinematicHref },
-        ]}
-      />
+      <VariantSwitcher currentId="default" options={variantOptions(hrefs)} />
     </AccentThread>
   );
 };
 
 const CinematicTemplates: FC<VariantProps> = ({ searchParams }) => {
-  const { defaultHref, cinematicHref } = buildVariantHrefs(searchParams);
+  const hrefs = buildVariantHrefs(searchParams);
   return (
     <AccentThread page="templates">
       <TemplatesCinematicRoot>
@@ -108,13 +125,17 @@ const CinematicTemplates: FC<VariantProps> = ({ searchParams }) => {
         </Suspense>
         <TemplatesCtaStrip />
       </TemplatesCinematicRoot>
-      <VariantSwitcher
-        currentId="cinematic"
-        options={[
-          { id: "default", label: "Default", href: defaultHref },
-          { id: "cinematic", label: "Cinematic", href: cinematicHref },
-        ]}
-      />
+      <VariantSwitcher currentId="cinematic" options={variantOptions(hrefs)} />
+    </AccentThread>
+  );
+};
+
+const GridTemplates: FC<VariantProps> = ({ searchParams }) => {
+  const hrefs = buildVariantHrefs(searchParams);
+  return (
+    <AccentThread page="templates">
+      <TemplatesGridVariant />
+      <VariantSwitcher currentId="grid" options={variantOptions(hrefs)} />
     </AccentThread>
   );
 };
