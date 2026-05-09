@@ -26,7 +26,7 @@ A second paragraph follows after a blank line. Inline HTML is also supported: <k
 
 - [Inline link](https://chillicream.com)
 - [Link with title](https://chillicream.com "ChilliCream homepage")
-- Autolink: <https://chillicream.com>
+- Plain URL: [https://chillicream.com](https://chillicream.com)
 - Reference link: [Hot Chocolate][hc]
 - [Jump to Tables](#tables)
 - Footnote reference[^1]
@@ -78,7 +78,7 @@ GraphQL
 
 Inline: `const answer = 42;`
 
-Fenced code block with language:
+### Plain code block
 
 ```ts
 import { createServer } from "node:http";
@@ -91,15 +91,85 @@ const server = createServer((req, res) => {
 server.listen(3000);
 ```
 
-```graphql
-type Query {
-  user(id: ID!): User
+### With filename
+
+```graphql filename="schema.graphql"
+type LineItem {
+  id: Int!
+  quantity: Int!
+  productId: Int!
 }
 
-type User {
-  id: ID!
+type Order {
+  id: Int!
   name: String!
+  items: [LineItem!]!
 }
+
+type Query {
+  orders: [Order!]! @cost(weight: "10")
+}
+```
+
+### Single line highlight `{5}`
+
+```js {5}
+export default function MyApp() {
+  return (
+    <div>
+      <h1>Welcome to my app</h1>
+      <MyButton />
+    </div>
+  );
+}
+```
+
+### Multiple ranges `{1,3-5}`
+
+```bash {1,3-5}
+yarn install
+yarn lint
+yarn dev
+yarn build
+yarn start
+yarn test
+```
+
+### Token highlighting + CodeStep
+
+```csharp filename="Program.cs" [[1, 3, "Query"], [2, 5, "Hello"], [3, 11, "AddGraphQLServer"]]
+using HotChocolate;
+
+public class Query
+{
+    public string Hello() => "Hello, world!";
+}
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>();
+
+var app = builder.Build();
+app.MapGraphQL();
+app.Run();
+```
+
+A minimal Hot Chocolate setup wires up three things:
+
+1. A <CodeStep step={1}>Query class</CodeStep> that defines the root operations of the schema.
+2. Each public method like <CodeStep step={2}>Hello</CodeStep> becomes a GraphQL field on the root type.
+3. The schema is registered through <CodeStep step={3}>AddGraphQLServer</CodeStep> in the DI configuration.
+
+### All supported languages with badges
+
+```csharp filename="Program.cs"
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddGraphQLServer();
+var app = builder.Build();
+app.MapGraphQL();
+app.Run();
 ```
 
 ```bash
@@ -107,7 +177,52 @@ yarn install
 yarn dev
 ```
 
-Indented code block:
+```graphql
+query GetUser($id: ID!) {
+  user(id: $id) {
+    id
+    name
+  }
+}
+```
+
+```sdl
+type Query {
+  hello: String!
+}
+```
+
+```http
+GET /graphql HTTP/1.1
+Host: localhost:5000
+Content-Type: application/json
+```
+
+```json
+{
+  "name": "Tobias",
+  "fans": ["graphql", "shiki"]
+}
+```
+
+```sql
+SELECT id, name FROM users WHERE active = TRUE ORDER BY id;
+```
+
+```xml
+<note>
+  <to>Reader</to>
+  <body>Hello!</body>
+</note>
+```
+
+```diff
+- old line
++ new line
+  unchanged
+```
+
+### Indented code block
 
     plain text
     no syntax highlighting

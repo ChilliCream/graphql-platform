@@ -1,6 +1,7 @@
 import type { MDXComponents } from "mdx/types";
 import { Admonition } from "@/src/design-system/Admonition";
 import { CodeBlock } from "@/src/design-system/CodeBlock";
+import { CodeStep } from "@/src/design-system/CodeStep";
 import { Divider } from "@/src/design-system/Divider";
 import { InlineCode } from "@/src/design-system/InlineCode";
 import { Link } from "@/src/design-system/Link";
@@ -56,6 +57,8 @@ const components: MDXComponents = {
   td: TableCell,
 
   img: Image,
+
+  CodeStep,
 };
 
 export function useMDXComponents(): MDXComponents {

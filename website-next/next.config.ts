@@ -6,6 +6,10 @@ const rewriteMdLinks = path.resolve(
   process.cwd(),
   "src/remark/rewriteMdLinks.mjs"
 );
+const codeBlockMeta = path.resolve(
+  process.cwd(),
+  "src/remark/codeBlockMeta.mjs"
+);
 
 const nextConfig: NextConfig = {
   output: "export",
@@ -15,7 +19,13 @@ const nextConfig: NextConfig = {
 const withMDX = createMDX({
   extension: /\.(md|mdx)$/,
   options: {
-    remarkPlugins: ["remark-frontmatter", "remark-gfm", rewriteMdLinks],
+    format: "mdx",
+    remarkPlugins: [
+      "remark-frontmatter",
+      "remark-gfm",
+      rewriteMdLinks,
+      codeBlockMeta,
+    ],
     rehypePlugins: [],
   },
 });

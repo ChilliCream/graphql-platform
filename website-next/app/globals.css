@@ -1,1 +1,28 @@
 @import "tailwindcss";
+
+/* Shiki output styling — neutralize default <pre> background so the figure
+   chrome owns the visuals; wrap each line so highlights span full width. */
+.shiki-wrapper pre {
+  margin: 0;
+  padding: 1rem 0;
+  background: transparent !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+}
+
+.shiki-wrapper code {
+  display: block;
+  width: max-content;
+  min-width: 100%;
+}
+
+.shiki-wrapper .line {
+  display: inline-block;
+  width: 100%;
+  padding: 0 1rem;
+}
+
+.shiki-wrapper .line.line-highlighted {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 3px 0 0 #6366f1;
+}
