@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-html {
+html:has(:target) {
   scroll-behavior: smooth;
 }
 

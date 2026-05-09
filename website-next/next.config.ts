@@ -11,6 +11,10 @@ const codeBlockMeta = path.resolve(
   "src/remark/codeBlockMeta.mjs"
 );
 const extractToc = path.resolve(process.cwd(), "src/remark/extractToc.mjs");
+const demoteHeadings = path.resolve(
+  process.cwd(),
+  "src/remark/demoteHeadings.mjs"
+);
 const youtubeEmbed = path.resolve(
   process.cwd(),
   "src/remark/youtubeEmbed.mjs"
@@ -31,6 +35,7 @@ const withMDX = createMDX({
       "remark-gfm",
       rewriteMdLinks,
       codeBlockMeta,
+      demoteHeadings,
       extractToc,
       youtubeEmbed,
     ],
