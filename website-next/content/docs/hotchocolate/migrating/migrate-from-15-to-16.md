@@ -6,8 +6,6 @@ This guide will walk you through the manual migration steps to update your Hot C
 
 Start by installing the latest `16.x.x` version of **all** of the `HotChocolate.*` packages referenced by your project.
 
-> This guide is still a work in progress with more updates to follow.
-
 # Breaking changes
 
 Things that have been removed or had a change in behavior that may cause your code not to compile or lead to unexpected behavior at runtime if not addressed.
@@ -29,7 +27,7 @@ builder.AddGraphQL()
 +   .AddWarmupTask((executor, ct) => { /* ... */ });
 ```
 
-Warmup tasks registered with `AddWarmupTask` run at startup **and** when the schema is updated at runtime by default. Checkout the [documentation](../server/warmup.md), if you need your warmup task to only run at startup.
+Warmup tasks registered with `AddWarmupTask` run at startup **and** when the schema is updated at runtime by default. Checkout the [documentation](/docs/hotchocolate/server/warmup), if you need your warmup task to only run at startup.
 
 If you need to preserve lazy initialization for specific scenarios (though this is rarely recommended), you can opt out by setting the `LazyInitialization` option to `true`:
 
@@ -71,8 +69,7 @@ If you're using any of the following configuration APIs, ensure that the applica
 - `AddAzureBlobStorageOperationDocumentStorage`
 - `AddInstrumentation` with a custom `ActivityEnricher`
 
-> [!NOTE]
-> Service injection into resolvers is not affected by this change.
+**Note:** Service injection into resolvers is not affected by this change.
 
 If you need to access the application service provider from within the schema service provider, you can use:
 
@@ -739,6 +736,122 @@ The `DefaultHttpMethod` enum has been removed. Use the `UseGet` boolean property
 +o.UseGet = true;
 ```
 
+## Nitro integration
+
+Update all `ChilliCream.Nitro.*` packages to the same version as the `HotChocolate.AspNetCore` package. The package layout has changed in v16, so most projects will need to update their package IDs as well as their code.
+
+| Old                            | New                                        |
+| ------------------------------ | ------------------------------------------ |
+| `ChilliCream.Nitro`            | `ChilliCream.Nitro.HotChocolate`           |
+| `ChilliCream.Nitro.Core`       | `ChilliCream.Nitro.GraphQL`                |
+| `ChilliCream.Nitro.Telemetry`  | `ChilliCream.Nitro.OpenTelemetry`          |
+| `ChilliCream.Nitro.Azure.Core` | `ChilliCream.Nitro.Azure`                  |
+| `ChilliCream.Nitro.*.Azure`    | `ChilliCream.Nitro.Azure` (single package) |
+
+The package you previously referenced as `ChilliCream.Nitro` is now `ChilliCream.Nitro.HotChocolate`. A new meta-package is published under the old `ChilliCream.Nitro` ID, so don't mix the two up when updating your `.csproj`.
+
+> Note: If you are self-hosting the Nitro backend, make sure to update it to the latest version as well. `10.1.0` is the minimum version required to work with the `ChilliCream.Nitro.*` packages.
+
+v16 changes how Nitro is configured. The connection settings are configured once on the service collection and per-schema feature options are applied through `ModifyNitroOptions` on the GraphQL server builder.
+
+**Before**
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddNitro(o =>
+    {
+        o.ApiId = "...";
+        o.ApiKey = "...";
+        o.Stage = "...";
+
+        o.EnablePersistedQueries = true;
+        o.DefaultQueryCacheExpiration = TimeSpan.FromSeconds(30);
+        o.NotFoundQueryCacheExpiration = TimeSpan.FromSeconds(10);
+
+        o.Metrics.Enabled = true;
+        o.Metrics.ExportIntervalMilliseconds = 1000;
+        o.Metrics.ExportTimeoutMilliseconds = 400;
+
+        o.EnableOperationReporting = true;
+    });
+```
+
+**After**
+
+```csharp
+builder.Services
+    .AddNitro(o =>
+    {
+        o.ApiId = "...";
+        o.ApiKey = "...";
+        o.Stage = "...";
+    })
+    .AddHotChocolate();
+
+builder.Services
+    .AddGraphQLServer()
+    .ModifyNitroOptions(o =>
+    {
+        o.PersistedOperations.Enabled = true;
+        o.PersistedOperations.DefaultQueryCacheExpiration = TimeSpan.FromSeconds(30);
+        o.PersistedOperations.NotFoundQueryCacheExpiration = TimeSpan.FromSeconds(10);
+
+        o.Metrics.Enabled = true;
+        o.Metrics.ExportIntervalMilliseconds = 1000;
+        o.Metrics.ExportTimeoutMilliseconds = 400;
+
+        o.OperationReporting.Enabled = true;
+    });
+```
+
+If you were previously registering an asset cache on the GraphQL server builder, you now do that on the `INitroBuilder` returned from `AddNitro()`.
+
+**Before**
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddNitro()
+    .AddFileSystemAssetCache()
+    // or
+    .AddBlobStorageAssetCache()
+    // or
+    .AddAssetCache<CustomAssetCache>();
+```
+
+**After**
+
+```csharp
+builder.Services
+    .AddNitro()
+    .AddHotChocolate()
+    .AddFileSystemAssetCache()
+    // or
+    .AddBlobStorageAssetCache()
+    // or
+    .AddAssetCache<CustomAssetCache>();
+```
+
+If you were previously hand-rolling the `ConfigureOpenTelemetry*Provider(...)` configuration with `AddNitroExporter()`, you can also switch to a new `AddOpenTelemetry()` API on the `INitroBuilder` that handles the registration for you.
+
+**Before**
+
+```csharp
+services.ConfigureOpenTelemetryMeterProvider(x => x.AddNitroExporter());
+services.ConfigureOpenTelemetryTracerProvider(x => x.AddNitroExporter());
+services.ConfigureOpenTelemetryLoggerProvider(x => x.AddNitroExporter());
+```
+
+**After**
+
+```csharp
+services
+    .AddNitro()
+    // ...
+    .AddOpenTelemetry();
+```
+
 ## Server options now configured via ModifyServerOptions
 
 `GraphQLServerOptions` (GET requests, multipart, batching, schema requests, etc.) are now configured at the schema level using `ModifyServerOptions` instead of per-endpoint:
@@ -776,10 +889,9 @@ builder.AddGraphQL()
 
 Additionally, a new `MaxBatchSize` property limits the number of operations in a single batch. The default is **1024**. Set it to `0` for unlimited.
 
-> [!NOTE]
-> Fusion subgraphs automatically enable batching via `AddSourceSchemaDefaults()`. No action is needed for subgraphs.
+> Note: Fusion subgraphs automatically enable batching via `AddSourceSchemaDefaults()`. No action is needed for subgraphs.
 
-For more details, see [Batching](../server/batching.md).
+For more details, see [Batching](/docs/hotchocolate/server/batching).
 
 ## New default incremental delivery format for @defer and @stream
 
@@ -982,8 +1094,7 @@ There have also been some changes to the methods you can override in your enrich
 | `CreateRootActivityName(...)`                                             | Removed.                                                                                                                                                   |
 | `EnrichError(...)`                                                        | Removed.                                                                                                                                                   |
 
-> [!NOTE]
-> Overriding enricher methods without calling `base` no longer prevents the standard span attributes from being emitted. The semantic-convention attributes are now applied by the instrumentation itself, and custom enrichers are only intended for adding extra information.
+> Note: Overriding enricher methods without calling `base` no longer prevents the standard span attributes from being emitted. The semantic-convention attributes are now applied by the instrumentation itself, and custom enrichers are only intended for adding extra information.
 
 ## Diagnostic Listeners
 
