@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { TreeNode } from "@/src/helpers/buildContentTree";
 
 export function Sidebar({ tree }: { tree: TreeNode[] }) {
@@ -35,7 +35,15 @@ function NodeView({
   const hasChildren = node.children.length > 0;
   const containsCurrent = subtreeContains(node, currentPath);
   const [expanded, setExpanded] = useState(containsCurrent);
-  const isActive = node.href === currentPath;
+  useEffect(() => {
+    if (containsCurrent) {
+      setExpanded(true);
+    }
+  }, [containsCurrent]);
+  const childMatchesCurrent = node.children.some(
+    (c) => c.href === currentPath
+  );
+  const isActive = node.href === currentPath && !childMatchesCurrent;
   const padLeft = `${depth * 0.75 + 0.75}rem`;
 
   return (

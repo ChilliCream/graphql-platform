@@ -2,15 +2,12 @@ import fs from "node:fs";
 import path from "node:path";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Sidebar } from "@/src/design-system/Sidebar";
-import { SidebarDrawer } from "@/src/design-system/SidebarDrawer";
 import { TableOfContents } from "@/src/design-system/TableOfContents";
-import type { HeadingItem } from "@/src/design-system/TableOfContents";
 import { Typography } from "@/src/design-system/Typography";
-import { buildContentTree } from "@/src/helpers/buildContentTree";
+import { compileDoc } from "@/src/helpers/compileDoc";
 import { readFrontmatter } from "@/src/helpers/readFrontmatter";
 
-const CONTENT_ROOT = path.join(process.cwd(), "docs");
+const CONTENT_ROOT = path.join(process.cwd(), "content/docs");
 
 export const dynamicParams = false;
 
@@ -55,25 +52,18 @@ export default async function DocPage({
     notFound();
   }
 
-  const { title } = readFrontmatter(path.join(CONTENT_ROOT, rel));
-  const mod = await import(`@/docs/${rel.slice(0, -3)}.md`);
-  const Doc = mod.default;
-  const toc: HeadingItem[] = Array.isArray(mod.toc) ? mod.toc : [];
-  const product = slug[0];
-  const tree = buildContentTree(
-    path.join(CONTENT_ROOT, product),
-    `/docs/${product}`
+  const { content, frontmatter, toc } = await compileDoc(
+    path.join(CONTENT_ROOT, rel)
   );
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[20rem_1fr] 2xl:grid-cols-[20rem_1fr_20rem]">
-      <SidebarDrawer>
-        <Sidebar tree={tree} />
-      </SidebarDrawer>
+    <div className="grid grid-cols-1 2xl:grid-cols-[1fr_20rem]">
       <main className="min-w-0 px-5 py-8 sm:px-12">
         <article className="mx-auto max-w-5xl">
-          {title ? <Typography variant="h1">{title}</Typography> : null}
-          <Doc />
+          {frontmatter.title ? (
+            <Typography variant="h1">{frontmatter.title}</Typography>
+          ) : null}
+          {content}
         </article>
       </main>
       <TableOfContents items={toc} />

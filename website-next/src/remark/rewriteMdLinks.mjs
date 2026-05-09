@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const CONTENT_ROOTS = ["docs", "blogs"];
+const CONTENT_ROOTS = ["content/docs", "content/blogs"];
 const RULE_ID = "remark-rewrite-md-links";
 const PAGE_FILE_RE = /^page\.(tsx?|jsx?|mdx?)$/;
 const BLOG_STEM_RE = /^(\d{4})-(\d{2})-(\d{2})-(.+)$/;
@@ -104,13 +104,15 @@ export default function remarkRewriteMdLinks() {
       }
 
       const cleanRel = rel.replace(/\.mdx?$/i, "").replace(/\/index$/, "");
+      // Strip the on-disk "content/" prefix to produce the public URL.
+      const urlRel = cleanRel.replace(/^content\//, "");
 
-      if (root === "blogs") {
-        const blogUrl = blogUrlFromCleanRel(cleanRel);
+      if (root === "content/blogs") {
+        const blogUrl = blogUrlFromCleanRel(urlRel);
         if (blogUrl === null) {
           file.fail(
-            `Markdown link "${node.url}" resolves to a blog file with an invalid name "${cleanRel}". ` +
-              `Expected blogs/YYYY-MM-DD-slug.md or blogs/YYYY-MM-DD-slug/YYYY-MM-DD-slug.md`,
+            `Markdown link "${node.url}" resolves to a blog file with an invalid name "${urlRel}". ` +
+              `Expected content/blogs/YYYY-MM-DD-slug.md or content/blogs/YYYY-MM-DD-slug/YYYY-MM-DD-slug.md`,
             node,
             RULE_ID
           );
@@ -120,7 +122,7 @@ export default function remarkRewriteMdLinks() {
         return;
       }
 
-      node.url = `/${cleanRel}${hashPart}`;
+      node.url = `/${urlRel}${hashPart}`;
     });
   };
 }
@@ -211,7 +213,7 @@ function docsFileExists(cwd, subSegments) {
     `${joined}/index.mdx`,
   ];
   return candidates.some((c) =>
-    fs.existsSync(path.join(cwd, "docs", c))
+    fs.existsSync(path.join(cwd, "content", "docs", c))
   );
 }
 
@@ -236,7 +238,7 @@ function blogsRouteExists(cwd, subSegments) {
     `${stem}/${stem}.mdx`,
   ];
   return candidates.some((c) =>
-    fs.existsSync(path.join(cwd, "blogs", c))
+    fs.existsSync(path.join(cwd, "content", "blogs", c))
   );
 }
 

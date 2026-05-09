@@ -3,18 +3,25 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { BlogMetadata } from "@/src/design-system/BlogMetadata";
 import { BlogTags } from "@/src/design-system/BlogTags";
-import { Sidebar } from "@/src/design-system/Sidebar";
-import { SidebarDrawer } from "@/src/design-system/SidebarDrawer";
 import { TableOfContents } from "@/src/design-system/TableOfContents";
-import type { HeadingItem } from "@/src/design-system/TableOfContents";
 import { Typography } from "@/src/design-system/Typography";
-import { buildBlogTree } from "@/src/helpers/buildBlogTree";
 import {
   BLOG_ROOT,
   listBlogPosts,
   resolveBlogFile,
 } from "@/src/helpers/blogPaths";
+import { compileDoc } from "@/src/helpers/compileDoc";
 import { readFrontmatter } from "@/src/helpers/readFrontmatter";
+
+type BlogFrontmatter = {
+  title?: string;
+  description?: string;
+  author?: string;
+  authorUrl?: string;
+  authorImageUrl?: string;
+  date?: string;
+  tags?: string[];
+};
 
 export const dynamicParams = false;
 
@@ -53,48 +60,25 @@ export default async function BlogPage({
     notFound();
   }
 
-  const frontmatter = readFrontmatter(path.join(BLOG_ROOT, rel));
-  const title =
-    typeof frontmatter.title === "string" ? frontmatter.title : undefined;
-  const author =
-    typeof frontmatter.author === "string" ? frontmatter.author : undefined;
-  const authorUrl =
-    typeof frontmatter.authorUrl === "string"
-      ? frontmatter.authorUrl
-      : undefined;
-  const authorImageUrl =
-    typeof frontmatter.authorImageUrl === "string"
-      ? frontmatter.authorImageUrl
-      : undefined;
-  const date =
-    typeof frontmatter.date === "string" ? frontmatter.date : undefined;
-  const tags = Array.isArray(frontmatter.tags)
-    ? (frontmatter.tags as unknown[]).filter(
-        (t): t is string => typeof t === "string"
-      )
-    : undefined;
-
-  const mod = await import(`@/blogs/${rel.slice(0, -3)}.md`);
-  const Post = mod.default;
-  const toc: HeadingItem[] = Array.isArray(mod.toc) ? mod.toc : [];
-  const tree = buildBlogTree();
+  const { content, frontmatter, toc } = await compileDoc<BlogFrontmatter>(
+    path.join(BLOG_ROOT, rel)
+  );
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[20rem_1fr] 2xl:grid-cols-[20rem_1fr_20rem]">
-      <SidebarDrawer>
-        <Sidebar tree={tree} />
-      </SidebarDrawer>
+    <div className="grid grid-cols-1 2xl:grid-cols-[1fr_20rem]">
       <main className="min-w-0 px-5 py-8 sm:px-12">
         <article className="mx-auto max-w-5xl">
-          {title ? <Typography variant="h1">{title}</Typography> : null}
+          {frontmatter.title ? (
+            <Typography variant="h1">{frontmatter.title}</Typography>
+          ) : null}
           <BlogMetadata
-            author={author}
-            authorUrl={authorUrl}
-            authorImageUrl={authorImageUrl}
-            date={date}
+            author={frontmatter.author}
+            authorUrl={frontmatter.authorUrl}
+            authorImageUrl={frontmatter.authorImageUrl}
+            date={frontmatter.date}
           />
-          <BlogTags tags={tags} />
-          <Post />
+          <BlogTags tags={frontmatter.tags} />
+          {content}
         </article>
       </main>
       <TableOfContents items={toc} />
