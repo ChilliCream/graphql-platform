@@ -1,0 +1,8 @@
+title: Performance
+items:
+  - path: index
+    title: Overview
+  - path: trusted-documents
+    title: Trusted Documents
+  - path: automatic-persisted-operations
+    title: Automatic Persisted Operations
