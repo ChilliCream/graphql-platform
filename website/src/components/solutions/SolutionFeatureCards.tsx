@@ -28,26 +28,28 @@ export const SolutionFeatureCards: FC<SolutionFeatureCardsProps> = ({
 
   return (
     <Band variant="tinted" ariaLabel="Foundations">
-      <div className="cc-sl-section cc-sl-features">
-        <div className="cc-section-label">
-          <span className="num">{stepNumber}</span> Foundations
-        </div>
-        <div className="cc-sl-features-inner">
-          <div className="cc-sl-features-head">
-            <div className="eyebrow">Foundations</div>
-            <h2 className="cc-sl-features-headline">
-              Every Fusion deployment ships with these foundations.
-            </h2>
+      <div className="cc-sl-tint-scope">
+        <div className="cc-sl-section cc-sl-features">
+          <div className="cc-section-label">
+            <span className="num">{stepNumber}</span> Foundations
           </div>
-          <div className="cc-sl-features-row">
-            {resolved.map((c) => (
-              <div key={c.id} className="cc-sl-feature-chip">
-                <div className="cc-sl-feature-chip-icon">
-                  <PillarIcon kind={c.icon} size={20} />
+          <div className="cc-sl-features-inner">
+            <div className="cc-sl-features-head">
+              <div className="eyebrow">Foundations</div>
+              <h2 className="cc-sl-features-headline">
+                Every Fusion deployment ships with these foundations.
+              </h2>
+            </div>
+            <div className="cc-sl-features-row">
+              {resolved.map((c) => (
+                <div key={c.id} className="cc-sl-feature-chip">
+                  <div className="cc-sl-feature-chip-icon">
+                    <PillarIcon kind={c.icon} size={20} />
+                  </div>
+                  <span className="cc-sl-feature-chip-label">{c.title}</span>
                 </div>
-                <span className="cc-sl-feature-chip-label">{c.title}</span>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </div>

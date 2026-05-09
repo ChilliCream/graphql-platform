@@ -34,27 +34,29 @@ const ROI_ITEMS: StatItem[] = [
 export const PlatformTeamRoi: FC = () => {
   return (
     <Band variant="tinted" ariaLabel="Customer outcomes">
-      <div className="cc-section-label">
-        <span className="num">05</span> Customer outcomes
-      </div>
-      <div className="cc-ent-roi-inner">
-        <div className="cc-ent-heading">
-          <div className="eyebrow">Customer outcomes</div>
-          <h2 className="display">
-            Real numbers from production platform teams.
-          </h2>
-          <p>
-            We don't quote headline ROI percentages until we have a third-party
-            study to back them up. Here's what we can publish now: the
-            consolidation, the rollout time, and the latency move from teams
-            running Fusion in production.
+      <div className="cc-ent-tint-scope">
+        <div className="cc-section-label">
+          <span className="num">05</span> Customer outcomes
+        </div>
+        <div className="cc-ent-roi-inner">
+          <div className="cc-ent-heading">
+            <div className="eyebrow">Customer outcomes</div>
+            <h2 className="display">
+              Real numbers from production platform teams.
+            </h2>
+            <p>
+              We don't quote headline ROI percentages until we have a
+              third-party study to back them up. Here's what we can publish now:
+              the consolidation, the rollout time, and the latency move from
+              teams running Fusion in production.
+            </p>
+          </div>
+          <StatRow items={ROI_ITEMS} align="left" />
+          <p className="cc-ent-roi-note">
+            Each metric is approved for publication by the customer. Names and
+            industry segments are anonymised; the numbers are not.
           </p>
         </div>
-        <StatRow items={ROI_ITEMS} align="left" />
-        <p className="cc-ent-roi-note">
-          Each metric is approved for publication by the customer. Names and
-          industry segments are anonymised; the numbers are not.
-        </p>
       </div>
     </Band>
   );

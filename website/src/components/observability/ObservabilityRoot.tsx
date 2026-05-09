@@ -765,6 +765,25 @@ export const ObservabilityRoot = styled.div`
     align-self: start;
   }
 
+  /* Tinted-band ink scope.
+     The Band variant="tinted" primitive paints a cream surface, but
+     ObservabilityRoot ships --cc-ink as cream for the dark canvas. Apply
+     this class on the band's content wrapper so labels, headings, hairlines
+     and dim copy all read against the cream. The global h1-h6 rule binds to
+     --cc-heading-text-color (see global-style.tsx), so the scope overrides
+     that token too. */
+  .cc-obs-tint-scope {
+    --cc-ink: #1a1f2e;
+    --cc-ink-dim: rgba(26, 31, 46, 0.66);
+    --cc-ink-faint: rgba(26, 31, 46, 0.16);
+    --cc-heading-text-color: #1a1f2e;
+    color: var(--cc-ink);
+  }
+  .cc-obs-tint-scope .cc-section-label .num {
+    border-color: var(--cc-ink-faint);
+    color: var(--cc-ink);
+  }
+
   /* ===== Trust strip (Section 06) - banded, no card chrome ===== */
   .cc-obs-trust-row {
     display: grid;

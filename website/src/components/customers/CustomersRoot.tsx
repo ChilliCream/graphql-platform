@@ -220,11 +220,13 @@ export const CustomersRoot = styled.div`
 
   /* ===== 02 Proof strip (tinted band) ===== */
   /* Tinted band uses cream background; flip the ink tokens locally so
-     hairlines and dim type stay legible on cream. */
+     hairlines and dim type stay legible on cream. The global h1-h6 rule
+     binds to --cc-heading-text-color, so override that token too. */
   .cc-cu-proof-inner {
     --cc-ink: #18121d;
     --cc-ink-dim: rgba(24, 18, 29, 0.62);
     --cc-ink-faint: rgba(24, 18, 29, 0.16);
+    --cc-heading-text-color: #18121d;
     color: var(--cc-ink);
     max-width: 1180px;
     margin: 0 auto;
@@ -544,6 +546,7 @@ export const CustomersRoot = styled.div`
     --cc-ink: #18121d;
     --cc-ink-dim: rgba(24, 18, 29, 0.62);
     --cc-ink-faint: rgba(24, 18, 29, 0.14);
+    --cc-heading-text-color: #18121d;
     color: var(--cc-ink);
     max-width: 1180px;
     margin: 0 auto;

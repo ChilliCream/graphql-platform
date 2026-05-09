@@ -674,7 +674,9 @@ export const PricingRoot = styled.div`
   }
   .cc-compare-table thead th {
     position: sticky;
-    top: 0;
+    /* Sit below the 72px sticky site header so column titles stay visible
+       as the table extends past the viewport. */
+    top: 72px;
     z-index: 3;
     background: linear-gradient(
       180deg,

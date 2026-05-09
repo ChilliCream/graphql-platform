@@ -173,11 +173,14 @@ export const AgentsRoot = styled.div`
 
   /* When a Band uses variant="tinted" the foundation paints the section
      background cream. The page tokens need to flip in scope so cream-on-cream
-     text doesn't disappear. .cc-ag-tint-scope is the explicit signal. */
+     text doesn't disappear. .cc-ag-tint-scope is the explicit signal. The
+     global h1-h6 rule binds to --cc-heading-text-color (see global-style.tsx),
+     so the scope overrides that token too. */
   .cc-ag-tint-scope {
     --cc-ink: #1a1f2e;
     --cc-ink-dim: rgba(26, 31, 46, 0.66);
     --cc-ink-faint: rgba(26, 31, 46, 0.16);
+    --cc-heading-text-color: #1a1f2e;
     color: var(--cc-ink);
   }
   .cc-ag-tint-scope .cc-section-label .num {

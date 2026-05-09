@@ -131,21 +131,23 @@ export const CodeSnippet: FC<CodeSnippetProps> = ({ snippet, stepNumber }) => {
 
   return (
     <Band variant="tinted" ariaLabel="Snippet">
-      <div className="cc-sl-section cc-sl-code">
-        <div className="cc-section-label">
-          <span className="num">{stepNumber}</span> Snippet
-        </div>
-        <div className="cc-sl-code-inner">
-          <div className="cc-sl-code-frame">
-            <div className="cc-sl-code-head">
-              <span className="cc-sl-code-file">{fileName}</span>
-              <span className="cc-sl-code-lang">{language}</span>
+      <div className="cc-sl-tint-scope">
+        <div className="cc-sl-section cc-sl-code">
+          <div className="cc-section-label">
+            <span className="num">{stepNumber}</span> Snippet
+          </div>
+          <div className="cc-sl-code-inner">
+            <div className="cc-sl-code-frame">
+              <div className="cc-sl-code-head">
+                <span className="cc-sl-code-file">{fileName}</span>
+                <span className="cc-sl-code-lang">{language}</span>
+              </div>
+              <pre className="cc-sl-code-body">
+                <code>
+                  {lines.map((line, i) => renderLine(line, language, i))}
+                </code>
+              </pre>
             </div>
-            <pre className="cc-sl-code-body">
-              <code>
-                {lines.map((line, i) => renderLine(line, language, i))}
-              </code>
-            </pre>
           </div>
         </div>
       </div>

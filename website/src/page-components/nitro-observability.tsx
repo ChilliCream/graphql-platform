@@ -61,24 +61,26 @@ const NitroObservabilityPage: FC = () => {
           {/* 02 Federation traces — tinted band, sidebar copy + full-width
               dense waterfall bleeding off the right edge. */}
           <Band variant="tinted" ariaLabel="Federation-aware traces">
-            <FeaturePanel
-              sectionNumber="02"
-              sectionLabel={tracesPillar.eyebrow}
-              eyebrow={tracesPillar.eyebrow}
-              headline={tracesPillar.headline}
-              sub={tracesPillar.sub}
-              chips={tracesPillar.chips}
-              layout="sidebar"
-              bleedRight
-              sidebarBullets={tracesPillar.bullets}
-            >
-              <TraceWaterfall
-                spans={DENSE_TRACE}
-                monoLane
-                totalLabel="0ms · 600ms"
-                axisMs={[0, 150, 300, 450, 600]}
-              />
-            </FeaturePanel>
+            <div className="cc-obs-tint-scope">
+              <FeaturePanel
+                sectionNumber="02"
+                sectionLabel={tracesPillar.eyebrow}
+                eyebrow={tracesPillar.eyebrow}
+                headline={tracesPillar.headline}
+                sub={tracesPillar.sub}
+                chips={tracesPillar.chips}
+                layout="sidebar"
+                bleedRight
+                sidebarBullets={tracesPillar.bullets}
+              >
+                <TraceWaterfall
+                  spans={DENSE_TRACE}
+                  monoLane
+                  totalLabel="0ms · 600ms"
+                  axisMs={[0, 150, 300, 450, 600]}
+                />
+              </FeaturePanel>
+            </div>
           </Band>
 
           {/* 03 Origin-tagged errors — default band, centered headline +
@@ -129,14 +131,16 @@ const NitroObservabilityPage: FC = () => {
 
           {/* 06 Trust strip — tinted band, 3 columns, no individual cards. */}
           <Band variant="tinted" ariaLabel="Trust strip">
-            <div
-              className="cc-section-label"
-              aria-hidden
-              style={{ marginBottom: 28 }}
-            >
-              <span className="num">06</span> Trust
+            <div className="cc-obs-tint-scope">
+              <div
+                className="cc-section-label"
+                aria-hidden
+                style={{ marginBottom: 28 }}
+              >
+                <span className="num">06</span> Trust
+              </div>
+              <TrustStrip />
             </div>
-            <TrustStrip />
           </Band>
 
           {/* 07 OTEL & integrations — default band, the OTEL timeline +

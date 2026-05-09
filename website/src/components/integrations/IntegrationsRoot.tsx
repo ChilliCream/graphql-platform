@@ -48,11 +48,13 @@ export const IntegrationsRoot = styled.div`
    * its color to var(--cc-ink). On this dark page --cc-ink is also cream, so
    * we re-bind the ink tokens to dark values inside any band tagged with
    * .cc-in-tinted-band. The Spotlight accent band re-binds similarly so the
-   * accent wash carries dark ink. */
+   * accent wash carries dark ink. The global h1-h6 rule binds to
+   * --cc-heading-text-color (see global-style.tsx), so override that too. */
   .cc-in-tinted-band {
     --cc-ink: #0c1322;
     --cc-ink-dim: rgba(12, 19, 34, 0.7);
     --cc-ink-faint: rgba(12, 19, 34, 0.16);
+    --cc-heading-text-color: #0c1322;
     color: var(--cc-ink);
   }
   .cc-in-tinted-band .display,

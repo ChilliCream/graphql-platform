@@ -307,6 +307,25 @@ export const EnterpriseRoot = styled.div`
     color: var(--cc-ink-dim);
   }
 
+  /* Tinted-band ink scope.
+     The Band variant="tinted" primitive paints a cream surface, but
+     EnterpriseRoot ships --cc-ink as cream for the dark canvas. Apply this
+     class on the band's content wrapper so labels, headings, hairlines and
+     dim copy all read against the cream. The global h1-h6 rule binds to
+     --cc-heading-text-color (see global-style.tsx), so the scope overrides
+     that token too. */
+  .cc-ent-tint-scope {
+    --cc-ink: #1a1f2e;
+    --cc-ink-dim: rgba(26, 31, 46, 0.66);
+    --cc-ink-faint: rgba(26, 31, 46, 0.16);
+    --cc-heading-text-color: #1a1f2e;
+    color: var(--cc-ink);
+  }
+  .cc-ent-tint-scope .cc-section-label .num {
+    border-color: var(--cc-ink-faint);
+    color: var(--cc-ink);
+  }
+
   /* ===== 05 ROI numbers (StatRow on tinted band) ===== */
   .cc-ent-roi-inner {
     max-width: 1180px;
