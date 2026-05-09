@@ -1,5 +1,5 @@
 import type { ComponentPropsWithoutRef, ElementType, ReactNode } from "react";
-import { slugify } from "@/src/helpers/slugify";
+import { getText, slugify } from "@/src/helpers/slugify";
 
 export type TypographyVariant =
   | "h1"
@@ -85,8 +85,8 @@ export function Typography({
 }: TypographyProps) {
   const config = variantConfig[variant];
   const Tag = component ?? config.tag;
-  const resolvedId =
-    id ?? (HEADING_VARIANTS.has(variant) ? slugify(children) : undefined);
+  const isHeading = HEADING_VARIANTS.has(variant);
+  const resolvedId = id ?? (isHeading ? slugify(children) : undefined);
 
   return (
     <Tag
@@ -95,6 +95,15 @@ export function Typography({
       {...rest}
     >
       {children}
+      {isHeading && resolvedId ? (
+        <a
+          href={`#${resolvedId}`}
+          className="heading-anchor"
+          aria-label={`Link to ${getText(children)}`}
+        >
+          #
+        </a>
+      ) : null}
     </Tag>
   );
 }

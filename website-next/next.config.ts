@@ -10,6 +10,8 @@ const codeBlockMeta = path.resolve(
   process.cwd(),
   "src/remark/codeBlockMeta.mjs"
 );
+const extractToc = path.resolve(process.cwd(), "src/remark/extractToc.mjs");
+const exportToc = path.resolve(process.cwd(), "src/recma/exportToc.mjs");
 
 const nextConfig: NextConfig = {
   output: "export",
@@ -25,8 +27,10 @@ const withMDX = createMDX({
       "remark-gfm",
       rewriteMdLinks,
       codeBlockMeta,
+      extractToc,
     ],
     rehypePlugins: [],
+    recmaPlugins: [exportToc],
   },
 });
 

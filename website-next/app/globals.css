@@ -1,5 +1,32 @@
 @import "tailwindcss";
 
+html {
+  scroll-behavior: smooth;
+}
+
+:where(h1, h2, h3, h4, h5, h6)[id] {
+  scroll-margin-top: 5rem;
+}
+
+.heading-anchor {
+  margin-left: 0.4rem;
+  color: rgb(120 113 108);
+  opacity: 0;
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+}
+
+:where(h1, h2, h3, h4, h5, h6):hover .heading-anchor,
+.heading-anchor:focus {
+  opacity: 1;
+}
+
+[data-toc-link][data-active="true"] {
+  color: rgb(67 56 202);
+  font-weight: 600;
+  border-left-color: rgb(67 56 202);
+}
+
 /* Shiki output styling — neutralize default <pre> background so the figure
    chrome owns the visuals; wrap each line so highlights span full width. */
 .shiki-wrapper pre {

@@ -1,6 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import { notFound } from "next/navigation";
+import { TableOfContents } from "@/src/design-system/TableOfContents";
+import type { HeadingItem } from "@/src/design-system/TableOfContents";
 
 const CONTENT_ROOT = path.join(process.cwd(), "blogs");
 
@@ -36,7 +38,16 @@ export default async function BlogPage({
 
   const mod = await import(`@/blogs/${rel}`);
   const Post = mod.default;
-  return <Post />;
+  const toc: HeadingItem[] = Array.isArray(mod.toc) ? mod.toc : [];
+
+  return (
+    <div className="mx-auto max-w-7xl px-6 py-8 grid gap-10 lg:grid-cols-[1fr_15rem]">
+      <article className="min-w-0">
+        <Post />
+      </article>
+      <TableOfContents items={toc} />
+    </div>
+  );
 }
 
 function resolveFile(slug: string[]): string | null {
