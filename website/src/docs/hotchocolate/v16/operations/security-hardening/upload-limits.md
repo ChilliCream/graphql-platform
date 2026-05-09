@@ -2,20 +2,20 @@
 title: Harden upload limits
 ---
 
-This page helps you harden Hot Chocolate v16 GraphQL endpoints that accept file uploads. It applies to ASP.NET Core servers that use the `Upload` scalar and `IFile` with the GraphQL multipart request specification. Fusion gateway upload routing is not covered here.
+This guide shows you how to secure file uploads in Hot Chocolate v16 GraphQL endpoints. It focuses on ASP.NET Core servers using the `Upload` scalar and `IFile` with the GraphQL multipart request specification. Fusion gateway upload routing is not included unless specifically mentioned.
 
-Uploads change server state. Model them as mutations, protect them like other state-changing operations, and decide where binary data should flow before you raise any limits.
+Treat uploads as state-changing operations. Always model them as mutations, apply the same protections as other mutations, and carefully plan how binary data flows through your system before increasing any upload limits.
 
 # Prerequisites
 
-This page applies when:
+This guidance applies if:
 
-- You host Hot Chocolate v16 on ASP.NET Core.
-- Your schema has, or will have, an authenticated mutation that accepts an uploaded file.
-- You understand your ASP.NET Core middleware, endpoint, CORS, proxy, and hosting configuration.
-- You can test upload behavior from the same network path your clients use in production.
+- You run Hot Chocolate v16 on ASP.NET Core.
+- Your schema includes (or will include) an authenticated mutation that accepts file uploads.
+- You understand your ASP.NET Core middleware, endpoints, CORS, proxy, and hosting setup.
+- You can test uploads from the same network path your production clients use.
 
-A minimal upload-capable schema registers the upload scalar and accepts `IFile` on a mutation:
+A minimal upload-enabled schema registers the upload scalar and accepts `IFile` in a mutation:
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
@@ -49,30 +49,28 @@ type Mutation {
 }
 ```
 
-# Choose presigned URLs unless GraphQL must process the stream
+# Prefer presigned URLs unless GraphQL must process the stream
 
-Start with an architecture decision. Do not send binary streams through GraphQL when GraphQL only needs to authorize the upload or create metadata.
+Decide on your upload architecture first. Avoid sending binary streams through GraphQL unless the server must process the file contents directly. If GraphQL only needs to authorize the upload or create metadata, use a presigned URL or a dedicated upload service.
 
-| Choose this approach                      | When it fits                                                                                                             |
-| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| Presigned URL or dedicated upload service | GraphQL checks authorization, returns upload constraints, and records metadata, but storage receives the bytes directly. |
-| Multipart GraphQL upload                  | The resolver must inspect, transform, scan, or transactionally process the stream during the mutation.                   |
+| Approach                        | Use when...                                                                                                              |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Presigned URL or upload service | GraphQL checks authorization, returns upload constraints, and records metadata, but storage receives the bytes directly. |
+| Multipart GraphQL upload        | The resolver must inspect, transform, scan, or transactionally process the stream during the mutation.                   |
 
-Presigned URL flows reduce CPU, memory, bandwidth, connection, timeout, and scanner pressure on the GraphQL server. A typical flow is:
+Presigned URL flows reduce load on your GraphQL server—less CPU, memory, bandwidth, connection, timeout, and scanner pressure. A typical presigned URL flow:
 
 1. The client calls an authenticated GraphQL mutation.
-2. The mutation checks authorization and returns a short-lived upload URL plus constraints, such as size, content type, and expiry.
+2. The mutation checks authorization and returns a short-lived upload URL and constraints (size, content type, expiry).
 3. The client uploads bytes to object storage or an upload service.
 4. The client or a storage event confirms completion.
 5. The application scans, validates, and promotes the object before publishing it.
 
-Use multipart GraphQL uploads when the mutation needs the stream as part of the domain operation. In that case, your GraphQL endpoint becomes an upload surface. Keep the surface narrow and set limits at every layer.
-
-See [Files](/docs/hotchocolate/v16/server/files#presigned-upload-urls) for the basic presigned URL pattern.
+Use multipart GraphQL uploads only when the mutation needs the file stream as part of the domain operation. In this case, your GraphQL endpoint becomes an upload surface—keep it as narrow as possible and set limits at every layer.
 
 # Enable multipart upload handling only where needed
 
-Register `AddUploadType()` only for schemas that contain upload mutations. Then disable multipart handling on endpoints that do not accept files.
+Register `AddUploadType()` only for schemas that include upload mutations. Disable multipart handling on endpoints that do not accept files:
 
 ```csharp
 builder.Services
@@ -86,9 +84,9 @@ builder.Services
     });
 ```
 
-`EnableMultipartRequests` defaults to `true`. Set it explicitly so future maintainers can see that uploads are a deliberate choice.
+`EnableMultipartRequests` defaults to `true`. Set it explicitly so future maintainers know uploads are intentional.
 
-When uploads need different limits, authentication policies, CORS headers, rate limits, or monitoring, expose a dedicated HTTP endpoint for upload mutations:
+If uploads require different limits, authentication, CORS, rate limits, or monitoring, expose a dedicated HTTP endpoint for upload mutations:
 
 ```csharp
 app.MapGraphQLHttp("/graphql")
@@ -132,7 +130,7 @@ app.MapGraphQLHttp("/graphql/uploads")
 
 # Set request and file size limits at every layer
 
-Use layered limits so the cheapest layer rejects first. Budget separate values for maximum single file size, total multipart body size, total files per mutation, concurrent uploads, request rate, and scanner or storage queue depth.
+Apply layered limits so the cheapest layer rejects first. Set separate budgets for maximum single file size, total multipart body size, files per mutation, concurrent uploads, request rate, and scanner or storage queue depth.
 
 | Layer                          | Example setting                           | Protects                                     | Typical failure symptom                             | Owner                 |
 | ------------------------------ | ----------------------------------------- | -------------------------------------------- | --------------------------------------------------- | --------------------- |
@@ -162,7 +160,7 @@ builder.Services.Configure<FormOptions>(options =>
 });
 ```
 
-Configure Hot Chocolate's GraphQL request body limit separately:
+Set Hot Chocolate's GraphQL request body limit separately:
 
 ```csharp
 builder
@@ -170,7 +168,7 @@ builder
     .AddMutationType<Mutation>();
 ```
 
-`maxAllowedRequestSize` protects GraphQL request bodies parsed by Hot Chocolate, such as JSON `application/json` requests. It is not the multipart file-size limit. Multipart parsing happens through ASP.NET Core form handling before Hot Chocolate executes the mutation.
+`maxAllowedRequestSize` limits GraphQL request bodies parsed by Hot Chocolate, such as JSON `application/json` requests. It does not control the multipart file-size limit. Multipart parsing happens through ASP.NET Core form handling before Hot Chocolate executes the mutation.
 
 Enforce per-file limits in the resolver as a domain rule:
 
@@ -183,11 +181,13 @@ if (file.Length is null or 0 || file.Length > MaxAvatarBytes)
 }
 ```
 
-Expected result: an oversized upload fails at the earliest configured layer. If your edge limit is 50 MB, Kestrel and `FormOptions` should not be lower unless you intentionally want ASP.NET Core to reject the request.
+Result: an oversized upload fails at the earliest configured layer. If your edge limit is 50 MB, Kestrel and `FormOptions` should not be lower unless you want ASP.NET Core to reject the request earlier.
 
 # Validate the multipart request shape
 
-A valid upload request is a `POST multipart/form-data` request with `operations`, `map`, and file parts. The client must use variables. Upload literals are not sent inline in the GraphQL document.
+A valid upload request is a `POST multipart/form-data` request with `operations`, `map`, and file parts. The client must use variables—upload literals are not sent inline in the GraphQL document.
+
+Example request:
 
 ```bash
 curl http://localhost:5000/graphql/uploads \
@@ -197,7 +197,7 @@ curl http://localhost:5000/graphql/uploads \
   -F 0=@avatar.png
 ```
 
-Expected response shape:
+Expected response:
 
 ```json
 {
@@ -218,7 +218,7 @@ Hot Chocolate expects:
 - Every mapped file key has a matching file part.
 - Variable paths start under `variables`.
 
-Common malformed requests include:
+Common malformed requests and what to check:
 
 | Problem                   | What to check                                                             |
 | ------------------------- | ------------------------------------------------------------------------- |
@@ -231,9 +231,9 @@ Common malformed requests include:
 
 For batched operations, multipart paths can include an operation index before `variables`. Avoid batching uploads unless you have a tested client and a clear per-batch limit.
 
-# Validate file metadata and file contents in the mutation
+# Validate file metadata and contents in the mutation
 
-Treat `IFile.Name`, `IFile.ContentType`, and file extensions as untrusted client input. Validate cheap metadata first, then inspect the stream without loading the whole file into memory.
+Treat `IFile.Name`, `IFile.ContentType`, and file extensions as untrusted input. First, validate cheap metadata. Then, inspect the file stream without loading the entire file into memory.
 
 ```csharp
 using HotChocolate.Authorization;
@@ -288,7 +288,7 @@ public sealed class Mutation
 }
 ```
 
-The storage service should validate file signatures while copying. A forward-only stream is safer than code that assumes the upload stream can seek back to the beginning.
+The storage service should validate file signatures while copying. Use a forward-only stream—do not assume the upload stream can seek.
 
 ```csharp
 public sealed class AvatarStorage
@@ -328,15 +328,15 @@ public sealed class AvatarStorage
 }
 ```
 
-In production, write outside the web root or to object storage, not to an arbitrary path from the client. Generate storage keys on the server. Keep the original file name only as sanitized display metadata when the domain needs it.
+In production, always write outside the web root or to object storage. Never write to a path provided by the client. Generate storage keys on the server. Only keep the original file name as sanitized display metadata if needed.
 
-Add domain-specific validation after you read enough data. Examples include image dimensions, pixel count, document page count, archive entry count, decompressed size, media duration, or scanner verdict. For archives, reject unsafe paths and decompression bombs before extracting any entry.
+Add domain-specific validation after reading enough data. Examples: image dimensions, pixel count, document page count, archive entry count, decompressed size, media duration, or scanner verdict. For archives, reject unsafe paths and decompression bombs before extracting any entry.
 
-Return safe GraphQL errors. Do not echo raw file names, storage keys, scanner details, or path information back to the client.
+Return safe GraphQL errors. Do not echo raw file names, storage keys, scanner details, or path information to the client.
 
 # Stream, scan, and store safely
 
-Handle uploads as a pipeline. Do not buffer the full file into `byte[]`, `MemoryStream`, logs, or GraphQL response data.
+Handle uploads as a pipeline. Never buffer the entire file into a `byte[]`, `MemoryStream`, logs, or GraphQL response data.
 
 ```csharp
 public async Task<UploadAvatarPayload> UploadAvatarAsync(
@@ -378,13 +378,13 @@ public async Task<UploadAvatarPayload> UploadAvatarAsync(
 }
 ```
 
-Expected outcome: uploaded bytes stay private until validation, scanning, promotion, and metadata persistence finish. If the copy, scan, storage call, or request is canceled, partial objects are cleaned up.
+With this approach, uploaded bytes remain private until validation, scanning, promotion, and metadata persistence are complete. If the copy, scan, storage call, or request is canceled, partial objects are cleaned up.
 
-Use a pending or quarantined state when scanning can outlive the HTTP request. In that design, the mutation stores a private object, returns an upload or scan status, and a background process promotes the object after the scan passes.
+Use a pending or quarantined state when scanning may outlive the HTTP request. In this design, the mutation stores a private object, returns an upload or scan status, and a background process promotes the object after the scan passes.
 
 # Protect upload mutations with authorization and tenant boundaries
 
-Require authentication before issuing presigned URLs or accepting multipart uploads. Use mutation authorization, not only endpoint authorization.
+Always require authentication before issuing presigned URLs or accepting multipart uploads. Use mutation-level authorization, not just endpoint authorization.
 
 ```csharp
 using HotChocolate.Authorization;
@@ -410,13 +410,11 @@ public sealed class Mutation
 
 Enforce tenant and user ownership before accepting bytes and again before publishing stored files. Build object keys and metadata from trusted server-side values, not from client form fields.
 
-Log upload decisions with correlation ID, authenticated user or tenant ID, size bucket, content type category, and rejection reason category. Avoid logging raw file names when they may contain personal or sensitive data.
-
-See [Authorization](/docs/hotchocolate/v16/securing-your-api/authorization) for Hot Chocolate authorization setup.
+Log upload decisions with correlation ID, authenticated user or tenant ID, size bucket, content type category, and rejection reason category. Avoid logging raw file names if they may contain personal or sensitive data.
 
 # Rate limit and isolate upload capacity
 
-Uploads consume bandwidth, disk, scanner capacity, storage API calls, and connection slots. Give upload endpoints a smaller abuse budget than normal query endpoints.
+Uploads use bandwidth, disk, scanner capacity, storage API calls, and connection slots. Assign upload endpoints a smaller abuse budget than normal query endpoints.
 
 ```csharp
 using System.Threading.RateLimiting;
@@ -447,46 +445,46 @@ app.MapGraphQLHttp("/graphql/uploads")
     .RequireRateLimiting("graphql-upload-concurrency");
 ```
 
-Use policies per user, IP, tenant, or API key when your application has the data needed for partitioning. Also consider infrastructure-level concurrency limits around scanner and storage queues.
+Apply policies per user, IP, tenant, or API key if your application can partition by these. Also consider infrastructure-level concurrency limits for scanner and storage queues.
 
-Hot Chocolate `MaxConcurrentExecutions` controls concurrent GraphQL executions. It is useful, but it is not a byte-stream throttle. Keep separate rate, body-size, and storage/scanner limits.
+Hot Chocolate's `MaxConcurrentExecutions` controls concurrent GraphQL executions, but it does not throttle byte streams. Keep rate, body-size, and storage/scanner limits separate.
 
 # Avoid timeout, buffering, and memory pitfalls
 
-Multipart parsing is performed by ASP.NET Core form handling before Hot Chocolate executes the mutation. `FormOptions` controls multipart parsing and buffering behavior. Hot Chocolate execution timeout protects GraphQL execution after the request has been parsed, but proxies, Kestrel, form parsing, scanners, and storage calls have their own limits and timeouts.
+ASP.NET Core form handling parses multipart requests before Hot Chocolate executes the mutation. `FormOptions` controls multipart parsing and buffering. Hot Chocolate's execution timeout only protects GraphQL execution after parsing. Proxies, Kestrel, form parsing, scanners, and storage calls each have their own limits and timeouts.
 
-Watch these resource consumers:
+Watch for these resource consumers:
 
-- Edge and proxy buffering before the request reaches ASP.NET Core.
-- ASP.NET Core multipart parsing and form buffering.
-- Resolver code that copies into `MemoryStream` or `byte[]`.
-- Malware scanner clients that buffer before sending to the scanner.
-- Slow storage writes that occupy request and execution slots.
-- Logs that accidentally record file content or sensitive file names.
+- Edge and proxy buffering before requests reach ASP.NET Core
+- ASP.NET Core multipart parsing and form buffering
+- Resolver code that copies into `MemoryStream` or `byte[]`
+- Malware scanner clients that buffer before sending to the scanner
+- Slow storage writes that occupy request and execution slots
+- Logs that accidentally record file content or sensitive file names
 
 Avoid these anti-patterns:
 
-- Reading a large upload into memory to compute a hash or inspect type.
-- Raising only `maxAllowedRequestSize` to fix a multipart `413`.
-- Disabling multipart preflight enforcement to make browser uploads work.
-- Returning file bytes from GraphQL.
-- Storing unscanned files under the web root.
+- Reading large uploads into memory to compute a hash or inspect type
+- Raising only `maxAllowedRequestSize` to fix a multipart `413`
+- Disabling multipart preflight enforcement to make browser uploads work
+- Returning file bytes from GraphQL
+- Storing unscanned files under the web root
 
 Prefer these fixes:
 
-- Align edge, proxy, Kestrel, IIS, `FormOptions`, and resolver limits.
-- Pass `CancellationToken` to stream, scanner, and storage operations.
-- Hash, inspect, and copy incrementally while streaming.
-- Use quarantine and pending states for slow scanning.
-- Delete partial objects on failure or cancellation.
+- Align edge, proxy, Kestrel, IIS, `FormOptions`, and resolver limits
+- Pass `CancellationToken` to stream, scanner, and storage operations
+- Hash, inspect, and copy incrementally while streaming
+- Use quarantine and pending states for slow scanning
+- Delete partial objects on failure or cancellation
 
 # Troubleshoot upload failures by symptom
 
-Use the symptom to find the rejecting layer. Do not weaken the control until you know which layer produced the response.
+Use the observed symptom to identify which layer is rejecting the upload. Do not weaken controls until you know which layer produced the response.
 
 | Symptom                                                         | Likely layer                                                                           | Checks                                                                                                                 | Safe fix                                                                                                                                           |
 | --------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `413 Payload Too Large`                                         | Edge, proxy, Kestrel, ASP.NET Core forms, or Hot Chocolate JSON body parser            | Compare response headers and logs from each layer. Check whether the request is multipart or JSON.                     | Change the intended layer consistently, or reduce file size. For multipart, check `FormOptions` and hosting limits before `maxAllowedRequestSize`. |
+| `413 Payload Too Large`                                         | Edge, proxy, Kestrel, ASP.NET Core forms, or Hot Chocolate JSON body parser            | Compare response headers and logs from each layer. Check if the request is multipart or JSON.                          | Change the intended layer consistently, or reduce file size. For multipart, check `FormOptions` and hosting limits before `maxAllowedRequestSize`. |
 | `400 Bad Request` with `HC0077` or `MultiPartPreflightRequired` | Hot Chocolate multipart preflight enforcement                                          | Confirm the request sends `GraphQL-Preflight: 1`. For browsers, inspect the CORS preflight response.                   | Add the header and allow it in CORS. Keep enforcement enabled.                                                                                     |
 | Browser CORS preflight fails before upload                      | Browser and ASP.NET Core CORS policy                                                   | Check allowed origin, `POST`, `OPTIONS`, `Authorization`, `Content-Type`, `GraphQL-Preflight`, and credentials policy. | Update the trusted-origin CORS policy for the upload endpoint.                                                                                     |
 | `415 Unsupported Media Type`                                    | HTTP transport or client request shape                                                 | Verify upload operations use `multipart/form-data` and normal GraphQL POST requests use `application/json`.            | Send the correct content type for the operation.                                                                                                   |
@@ -498,31 +496,31 @@ Use the symptom to find the rejecting layer. Do not weaken the control until you
 
 # Operational checklist before enabling uploads
 
-Before you enable multipart uploads in production, verify:
+Before enabling multipart uploads in production, verify:
 
-- The presigned URL decision is documented.
-- Multipart is disabled on endpoints that do not need it.
-- `Upload` is registered only for schemas with upload mutations.
-- Multipart preflight header enforcement remains enabled.
-- CORS allows `GraphQL-Preflight` only for trusted browser origins.
-- Edge, proxy, Kestrel, IIS, `FormOptions`, Hot Chocolate JSON body, and resolver limits are aligned.
-- Per-file, per-request, per-user, and per-tenant budgets are documented.
-- Upload mutations require authentication and domain authorization.
-- Content type, extension, magic bytes, and domain-specific file checks are implemented.
-- Files stream to quarantine or storage without full-memory buffering.
-- Malware scanning or equivalent business review happens before publication.
-- Partial upload cleanup is tested.
-- Rate and concurrency limits apply to upload capacity.
-- Monitoring tracks accepted and rejected uploads by status, layer, size bucket, user or tenant, and failure category.
-- The runbook covers `413`, missing preflight, malformed maps, CORS failures, scanner failures, storage failures, and cleanup failures.
+- You have documented your presigned URL vs. direct upload decision
+- Multipart is disabled on endpoints that do not need it
+- `Upload` is registered only for schemas with upload mutations
+- Multipart preflight header enforcement is enabled
+- CORS allows `GraphQL-Preflight` only for trusted browser origins
+- Edge, proxy, Kestrel, IIS, `FormOptions`, Hot Chocolate JSON body, and resolver limits are aligned
+- Per-file, per-request, per-user, and per-tenant budgets are documented
+- Upload mutations require authentication and domain authorization
+- Content type, extension, magic bytes, and domain-specific file checks are implemented
+- Files stream to quarantine or storage without full-memory buffering
+- Malware scanning or equivalent business review happens before publication
+- Partial upload cleanup is tested
+- Rate and concurrency limits apply to upload capacity
+- Monitoring tracks accepted and rejected uploads by status, layer, size bucket, user or tenant, and failure category
+- The runbook covers `413`, missing preflight, malformed maps, CORS failures, scanner failures, storage failures, and cleanup failures
 
 # Next steps
 
-- Learn the basic `Upload` scalar and `IFile` flow in [Files](/docs/hotchocolate/v16/server/files).
-- Review multipart preflight behavior in [HTTP Transport](/docs/hotchocolate/v16/server/http-transport#preflight-header-enforcement).
-- Configure endpoint options in [Endpoints](/docs/hotchocolate/v16/server/endpoints).
-- Tune parser, validation, execution, and timeout limits in [Request Limits](/docs/hotchocolate/v16/securing-your-api/request-limits).
-- Protect mutations with [Authorization](/docs/hotchocolate/v16/securing-your-api/authorization).
-- Review ASP.NET Core file upload guidance for `FormOptions`, Kestrel, IIS, buffering, and request body limits.
-- Review ASP.NET Core rate limiting when you need per-user, per-tenant, or per-IP upload budgets.
-- Use the GraphQL multipart request specification when you debug client request shape.
+- Learn the basic `Upload` scalar and `IFile` flow in [Files](/docs/hotchocolate/v16/server/files)
+- Review multipart preflight behavior in [HTTP Transport](/docs/hotchocolate/v16/server/http-transport#preflight-header-enforcement)
+- Configure endpoint options in [Endpoints](/docs/hotchocolate/v16/server/endpoints)
+- Tune parser, validation, execution, and timeout limits in [Request Limits](/docs/hotchocolate/v16/securing-your-api/request-limits)
+- Protect mutations with [Authorization](/docs/hotchocolate/v16/securing-your-api/authorization)
+- Review ASP.NET Core file upload guidance for `FormOptions`, Kestrel, IIS, buffering, and request body limits
+- Review ASP.NET Core rate limiting for per-user, per-tenant, or per-IP upload budgets
+- Use the GraphQL multipart request specification when debugging client request shape
