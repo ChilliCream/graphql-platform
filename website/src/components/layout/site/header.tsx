@@ -8,7 +8,9 @@ import React, {
   useState,
 } from "react";
 import { useSelector } from "react-redux";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
+
+import { MenuPopout } from "@/components/layout/site/menu-popout";
 import { useLatestBlogPost } from "@/lib/providers";
 
 import {
@@ -131,6 +133,10 @@ export const Header: FC = () => {
             />
             <SolutionsNavItem
               tools={tools}
+              onTopNavClose={handleTopNavClose}
+              onSearchOpen={handleSearchOpen}
+            />
+            <MenuNavItem
               onTopNavClose={handleTopNavClose}
               onSearchOpen={handleSearchOpen}
             />
@@ -1136,6 +1142,40 @@ const SolutionsNavItem: FC<SolutionsNavItemProps> = ({
   );
 };
 
+interface MenuNavItemProps {
+  readonly onTopNavClose: () => void;
+  readonly onSearchOpen: () => void;
+}
+
+const MenuNavItem: FC<MenuNavItemProps> = ({ onTopNavClose, onSearchOpen }) => {
+  const [subNav, navHandlers, linkHandlers] = useSubNav(
+    (hideTopAndSubNav, hideSubNav) => (
+      <>
+        <BackButton onClick={hideSubNav}>
+          <IconContainer $size={16}>
+            <Icon {...AngleLeftIconSvg} />
+          </IconContainer>
+          Back
+        </BackButton>
+        <MenuPopout onItemClick={hideTopAndSubNav} />
+      </>
+    ),
+    onTopNavClose,
+    onSearchOpen,
+    { wide: true }
+  );
+
+  return (
+    <NavItemContainer {...navHandlers}>
+      <NavLink to="/products" prefetch={false} {...linkHandlers}>
+        Menu
+        <SubNavIndicatorIcon />
+      </NavLink>
+      {subNav}
+    </NavItemContainer>
+  );
+};
+
 const EnterpriseNavItem: FC = () => {
   return (
     <NavItemContainer>
@@ -1236,11 +1276,17 @@ function isTouchDevice() {
 type NavHandlers = Record<"onMouseEnter" | "onMouseLeave", MouseEventHandler>;
 type LinkHandlers = Record<"onClick", MouseEventHandler>;
 
+interface UseSubNavOptions {
+  readonly wide?: boolean;
+}
+
 function useSubNav(
   children: (hideTopAndSubNav: () => void, hideSubNav: () => void) => ReactNode,
   onTopNavClose: () => void,
-  onOpenSearchOpen: () => void
+  onOpenSearchOpen: () => void,
+  options?: UseSubNavOptions
 ): [subNav: ReactNode, navHandlers: NavHandlers, linkHandlers: LinkHandlers] {
+  const wide = options?.wide ?? false;
   const [show, setShow] = useState<boolean>(false);
 
   const toggle = useCallback(() => {
@@ -1262,7 +1308,7 @@ function useSubNav(
   }, [onOpenSearchOpen, setShow]);
 
   const subNav = show && (
-    <SubNavContainer>
+    <SubNavContainer $wide={wide}>
       <NavigationHeader>
         <LogoLink
           to="/"
@@ -1282,7 +1328,7 @@ function useSubNav(
           </HamburgerCloseButton>
         </MobileMenu>
       </NavigationHeader>
-      <SubNav>{children(hideTopAndSubMenu, hideSubMenu)}</SubNav>
+      <SubNav $wide={wide}>{children(hideTopAndSubMenu, hideSubMenu)}</SubNav>
     </SubNavContainer>
   );
 
@@ -1375,7 +1421,7 @@ const NavLink = styled(Link)`
   }
 `;
 
-const SubNavContainer = styled.div`
+const SubNavContainer = styled.div<{ $wide?: boolean }>`
   position: fixed;
   top: 0;
   right: 0;
@@ -1402,6 +1448,22 @@ const SubNavContainer = styled.div`
     bottom: initial;
     left: calc(50vw - 568px);
   }
+
+  ${({ $wide }) =>
+    $wide &&
+    css`
+      @media only screen and (min-width: 992px) {
+        right: 16px;
+        left: 16px;
+      }
+
+      @media only screen and (min-width: 1200px) {
+        right: 50%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 720px;
+      }
+    `}
 `;
 
 const NavItemContainer = styled.li`
@@ -1446,7 +1508,7 @@ const NavItemContainer = styled.li`
 
 const SubNav = styled.div.attrs({
   className: "text-3",
-})`
+})<{ $wide?: boolean }>`
   position: relative;
   display: flex;
   flex: 1 1 auto;
@@ -1459,13 +1521,20 @@ const SubNav = styled.div.attrs({
     flex-direction: row;
     border: 1px solid ${THEME_COLORS.boxBorder};
     border-radius: var(--box-border-radius);
-    width: 700px;
+    width: ${({ $wide }) => ($wide ? "100%" : "700px")};
     overflow-y: initial;
 
     ${ApplyBackdropBlur(
       48,
       `background-color: ${THEME_COLORS.backgroundMenu};`
     )}
+
+    ${({ $wide }) =>
+      $wide &&
+      css`
+        max-height: min(720px, calc(100svh - 96px));
+        overflow: hidden;
+      `}
   }
 `;
 
