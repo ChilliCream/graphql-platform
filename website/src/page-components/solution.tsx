@@ -11,6 +11,7 @@ import { SolutionPageRenderer } from "@/components/solutions/SolutionPageRendere
 import { SolutionsRoot } from "@/components/solutions/SolutionsRoot";
 import { SolutionPageRendererCinematic } from "@/components/solutions/cinematic/SolutionPageRendererCinematic";
 import { SolutionsCinematicRoot } from "@/components/solutions/cinematic/SolutionsCinematicRoot";
+import { AgentsSolutionOneGrid } from "@/components/solutions/grid/AgentsSolutionOneGrid";
 import { SolutionPageRendererGrid } from "@/components/solutions/grid/SolutionPageRendererGrid";
 import type { SolutionRecord } from "@/data/solutions/types";
 
@@ -96,7 +97,11 @@ const SolutionPageBody: FC<SolutionPageProps> = ({ record }) => {
   if (variant === "grid") {
     return (
       <>
-        <SolutionPageRendererGrid record={record} slug={record.slug} />
+        {record.slug === "agents" ? (
+          <AgentsSolutionOneGrid record={record} />
+        ) : (
+          <SolutionPageRendererGrid record={record} slug={record.slug} />
+        )}
         <VariantSwitcher options={switcherOptions} currentId="grid" />
       </>
     );
