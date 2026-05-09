@@ -163,4 +163,118 @@ internal static class ThrowHelper
 
     public static Exception HostDescriptionMissing()
         => new InvalidOperationException("Host description is missing.");
+
+    public static Exception TransportLacksCapabilityForInboundRoute(
+        string transportName,
+        InboundRouteKind kind,
+        MessagingTransportCapabilities required,
+        string? messageType,
+        string alternative)
+        => new InvalidOperationException(
+            $"Transport '{transportName}' does not support inbound route kind '{kind}' "
+            + $"because it lacks the '{required}' capability"
+            + (messageType is not null ? $" (message type: {messageType})." : ".")
+            + $" {alternative}");
+
+    public static Exception TransportLacksCapabilityForOutboundRoute(
+        string transportName,
+        OutboundRouteKind kind,
+        MessagingTransportCapabilities required,
+        string? messageType,
+        string alternative)
+        => new InvalidOperationException(
+            $"Transport '{transportName}' does not support outbound route kind '{kind}' "
+            + $"because it lacks the '{required}' capability"
+            + (messageType is not null ? $" (message type: {messageType})." : ".")
+            + $" {alternative}");
+
+    public static Exception TransportLacksCapabilityForReceiveEndpoint(
+        string transportName,
+        string endpointName,
+        ReceiveEndpointKind kind,
+        MessagingTransportCapabilities required,
+        string alternative)
+        => new InvalidOperationException(
+            $"Transport '{transportName}' does not support receive endpoint '{endpointName}' "
+            + $"of kind '{kind}' because it lacks the '{required}' capability. {alternative}");
+
+    public static Exception TransportLacksCapabilityForDispatchEndpoint(
+        string transportName,
+        string endpointName,
+        DispatchEndpointKind kind,
+        MessagingTransportCapabilities required,
+        string alternative)
+        => new InvalidOperationException(
+            $"Transport '{transportName}' does not support dispatch endpoint '{endpointName}' "
+            + $"of kind '{kind}' because it lacks the '{required}' capability. {alternative}");
+
+    public static Exception NoTransportForInboundRoute(
+        InboundRouteKind kind,
+        MessagingTransportCapabilities required,
+        string? messageType)
+        => new InvalidOperationException(
+            $"No configured transport supports inbound route kind '{kind}' "
+            + $"requiring the '{required}' capability"
+            + (messageType is not null ? $" for message type '{messageType}'." : ".")
+            + " Register a transport that supports this messaging pattern, "
+            + "or remove the route.");
+
+    public static Exception NoTransportForOutboundRoute(
+        OutboundRouteKind kind,
+        MessagingTransportCapabilities required,
+        string? messageType)
+        => new InvalidOperationException(
+            $"No configured transport supports outbound route kind '{kind}' "
+            + $"requiring the '{required}' capability"
+            + (messageType is not null ? $" for message type '{messageType}'." : ".")
+            + " Register a transport that supports this messaging pattern, "
+            + "or remove the route.");
+
+    public static Exception TransportDoesNotSupportRequestReply(
+        string transportName,
+        string? messageType)
+        => new InvalidOperationException(
+            $"The '{transportName}' transport does not support request/reply"
+            + (messageType is not null ? $" for message type '{messageType}'." : ".")
+            + " Event Hubs are partitioned streams and do not provide isolated reply endpoints. "
+            + "Use a reply-capable transport, Mocha.Mediator for in-process request/response, "
+            + "or model the response as a correlated completion event.");
+
+    public static Exception TransportDoesNotSupportSendReplyEndpoint(
+        string transportName,
+        string? messageType)
+        => new InvalidOperationException(
+            $"SendAsync with a ReplyEndpoint is not supported by the '{transportName}' transport"
+            + (messageType is not null ? $" for message type '{messageType}'." : ".")
+            + " Send the command without a ReplyEndpoint and publish a correlated completion event, "
+            + "or use a reply-capable transport.");
+
+    public static Exception TransportDoesNotSupportScheduledDelivery(string transportName)
+        => new InvalidOperationException(
+            $"Scheduled delivery is not supported by the '{transportName}' transport. "
+            + "Bind this route or saga to a transport that supports scheduled delivery, "
+            + "or use an external scheduler.");
+
+    public static Exception TransportCannotShareSendAndPublishStream(
+        string transportName,
+        string messageType,
+        string hubName)
+        => new InvalidOperationException(
+            $"Transport '{transportName}' cannot bind send and publish routes for "
+            + $"message type '{messageType}' to the same stream '{hubName}'. "
+            + "Use separate command and event contracts, or bind them to distinct streams.");
+
+    public static Exception EventHubMessageContractCannotBeCommandAndEvent(string messageType)
+        => new InvalidOperationException(
+            $"Event Hubs message type '{messageType}' is configured as both a command "
+            + "and an event. Use separate contracts for send and publish semantics, "
+            + "or route one pattern through a different transport.");
+
+    public static Exception EventHubCommandRequiresDedicatedOwner(
+        string messageType,
+        string hubName)
+        => new InvalidOperationException(
+            $"Event Hubs command stream '{hubName}' for message type '{messageType}' "
+            + "requires exactly one logical owner consumer group. Configure one owner, "
+            + "or model the message as a published event.");
 }

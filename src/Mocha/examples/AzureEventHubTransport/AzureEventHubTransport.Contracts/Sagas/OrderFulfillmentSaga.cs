@@ -6,9 +6,9 @@ namespace AzureEventHubTransport.Contracts.Sagas;
 
 /// <summary>
 /// Orchestrates the order fulfillment workflow:
-///   1. OrderPlacedEvent kicks off the saga → sends ProcessPaymentCommand
-///   2. PaymentProcessedEvent arrives → sends ShipOrderCommand
-///   3. OrderShippedEvent arrives → publishes OrderFulfilledEvent, saga completes
+///   1. OrderPlacedEvent kicks off the saga and sends ProcessPaymentCommand
+///   2. PaymentProcessedEvent arrives and sends ShipOrderCommand
+///   3. OrderShippedEvent arrives, publishes OrderFulfilledEvent, and saga completes
 /// </summary>
 public sealed class OrderFulfillmentSaga : Saga<OrderFulfillmentState>
 {
@@ -20,7 +20,7 @@ public sealed class OrderFulfillmentSaga : Saga<OrderFulfillmentState>
     {
         saga.Initially()
             .OnEvent<OrderPlacedEvent>()
-            .Then(static (state, _) => { })
+            .Then(static (_, _) => { })
             .StateFactory(evt => new OrderFulfillmentState
             {
                 OrderId = evt.OrderId,

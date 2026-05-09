@@ -61,7 +61,7 @@ public class DeadLetterCheckpointTests
         ICheckpointStore checkpointStore,
         Func<EventData, string, CancellationToken, ValueTask> messageHandler)
     {
-        // Use a fake connection string — the processor never actually connects in this unit test
+        // Use a fake connection string. The processor never actually connects in this unit test.
         // because we invoke OnProcessingEventBatchAsync directly via the testable subclass.
         const string fakeConnection =
             "Endpoint=sb://fake.example.com;SharedAccessKeyName=key;SharedAccessKey=value";
@@ -108,7 +108,9 @@ public class DeadLetterCheckpointTests
                 checkpointStore,
                 ownershipStore: null,
                 checkpointInterval: 1,
-                defaultStartingPosition: EventPosition.Earliest)
+                defaultStartingPosition: EventPosition.Earliest,
+                eventBatchMaximumCount: 100,
+                processorOptions: new EventProcessorOptions())
         {
         }
 

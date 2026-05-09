@@ -3,138 +3,66 @@ using Mocha.Transport.AzureEventHub.Tests.Helpers;
 
 namespace Mocha.Transport.AzureEventHub.Tests.Behaviors;
 
-[Collection("EventHub")]
 public class RequestReplyTests
 {
-    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
-    private readonly EventHubFixture _fixture;
-
-    public RequestReplyTests(EventHubFixture fixture)
-    {
-        _fixture = fixture;
-    }
-
     [Fact]
-    public async Task RequestAsync_Should_ReturnTypedResponse_When_HandlerRegistered()
+    public void BuildRuntime_Should_Throw_When_ResponseProducingRequestHandlerRegistered()
     {
         // arrange
-        var hubName = _fixture.GetHubForTest("reqreply");
-        var consumerGroup = _fixture.GetUniqueConsumerGroup();
-        await using var bus = await new ServiceCollection()
-            .AddMessageBus()
-            .AddRequestHandler<GetOrderStatusHandler>()
-            .AddEventHub(t => t
-                .ConnectionString(_fixture.ConnectionString)
-                .Endpoint(hubName).ConsumerGroup(consumerGroup))
-            .BuildTestBusAsync();
-
-        using var scope = bus.Provider.CreateScope();
-        var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        var build = () => CreateRuntime(b => b.AddRequestHandler<GetOrderStatusHandler>());
 
         // act
-        var response = await messageBus.RequestAsync(new GetOrderStatus { OrderId = "ORD-1" }, CancellationToken.None);
+        var ex = Assert.Throws<InvalidOperationException>(build);
 
         // assert
-        Assert.NotNull(response);
-        Assert.Equal("ORD-1", response.OrderId);
-        Assert.Equal("Shipped", response.Status);
+        Assert.Contains("No configured transport supports", ex.Message);
+        Assert.Contains("RequestReply", ex.Message);
     }
 
     [Fact]
-    public async Task RequestAsync_Should_CorrelateResponses_When_ConcurrentRequests()
+    public void BuildRuntime_Should_Throw_When_MultipleResponseProducingRequestHandlersRegistered()
     {
         // arrange
-        var hubName = _fixture.GetHubForTest("reqreply");
-        var consumerGroup = _fixture.GetUniqueConsumerGroup();
-        await using var bus = await new ServiceCollection()
-            .AddMessageBus()
-            .AddRequestHandler<GetOrderStatusHandler>()
-            .AddEventHub(t => t
-                .ConnectionString(_fixture.ConnectionString)
-                .Endpoint(hubName).ConsumerGroup(consumerGroup))
-            .BuildTestBusAsync();
-
-        // act
-        var tasks = new Task<OrderStatusResponse>[10];
-        for (var i = 0; i < 10; i++)
+        var build = () => CreateRuntime(b =>
         {
-            using var scope = bus.Provider.CreateScope();
-            var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-            tasks[i] = messageBus
-                .RequestAsync(new GetOrderStatus { OrderId = $"ORD-{i}" }, CancellationToken.None)
-                .AsTask();
-        }
+            b.AddRequestHandler<GetOrderStatusHandler>();
+            b.AddRequestHandler<GetShipmentStatusHandler>();
+        });
 
-        var responses = await Task.WhenAll(tasks);
+        // act
+        var ex = Assert.Throws<InvalidOperationException>(build);
 
         // assert
-        for (var i = 0; i < 10; i++)
-        {
-            Assert.Equal($"ORD-{i}", responses[i].OrderId);
-            Assert.Equal("Shipped", responses[i].Status);
-        }
+        Assert.Contains("RequestReply", ex.Message);
     }
 
     [Fact]
-    public async Task RequestAsync_Should_Complete_When_VoidRequestAcknowledged()
+    public void BuildRuntime_Should_Succeed_When_OneWaySendHandlerRegistered()
     {
         // arrange
-        var recorder = new MessageRecorder();
-        var hubName = _fixture.GetHubForTest("reqreply");
-        var consumerGroup = _fixture.GetUniqueConsumerGroup();
-        await using var bus = await new ServiceCollection()
-            .AddSingleton(recorder)
-            .AddMessageBus()
-            .AddRequestHandler<ProcessPaymentHandler>()
-            .AddEventHub(t => t
-                .ConnectionString(_fixture.ConnectionString)
-                .Endpoint(hubName).ConsumerGroup(consumerGroup))
-            .BuildTestBusAsync();
-
-        using var scope = bus.Provider.CreateScope();
-        var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        var build = () => CreateRuntime(b => b.AddRequestHandler<ProcessPaymentHandler>());
 
         // act
-        await messageBus.RequestAsync(
-            new ProcessPayment { OrderId = "ORD-1", Amount = 50.00m },
-            CancellationToken.None);
+        var runtime = build();
 
         // assert
-        Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the request within timeout");
+        var route = runtime.Router.InboundRoutes.Single(r =>
+            r.Kind == InboundRouteKind.Send && r.MessageType?.RuntimeType == typeof(ProcessPayment));
+        Assert.NotNull(route.Endpoint);
     }
 
     [Fact]
-    public async Task RequestAsync_Should_ReturnCorrectResponse_When_MultipleRequestTypesRegistered()
+    public void DiscoverEndpoints_Should_NotCreateReplyEndpoints_When_OneWaySendHandlerRegistered()
     {
         // arrange
-        var hubName = _fixture.GetHubForTest("reqreply");
-        var consumerGroup = _fixture.GetUniqueConsumerGroup();
-        await using var bus = await new ServiceCollection()
-            .AddMessageBus()
-            .AddRequestHandler<GetOrderStatusHandler>()
-            .AddRequestHandler<GetShipmentStatusHandler>()
-            .AddEventHub(t => t
-                .ConnectionString(_fixture.ConnectionString)
-                .Endpoint(hubName).ConsumerGroup(consumerGroup))
-            .BuildTestBusAsync();
-
-        using var scope = bus.Provider.CreateScope();
-        var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        var runtime = CreateRuntime(b => b.AddRequestHandler<ProcessPaymentHandler>());
 
         // act
-        var orderResponse = await messageBus.RequestAsync(
-            new GetOrderStatus { OrderId = "ORD-1" },
-            CancellationToken.None);
-
-        var shipmentResponse = await messageBus.RequestAsync(
-            new GetShipmentStatus { TrackingNumber = "TRK-1" },
-            CancellationToken.None);
+        var transport = runtime.Transports.OfType<EventHubMessagingTransport>().Single();
 
         // assert
-        Assert.Equal("ORD-1", orderResponse.OrderId);
-        Assert.Equal("Shipped", orderResponse.Status);
-        Assert.Equal("TRK-1", shipmentResponse.TrackingNumber);
-        Assert.Equal("InTransit", shipmentResponse.Status);
+        Assert.Null(transport.ReplyReceiveEndpoint);
+        Assert.Null(transport.ReplyDispatchEndpoint);
     }
 
     public sealed class ProcessPaymentHandler(MessageRecorder recorder) : IEventRequestHandler<ProcessPayment>
@@ -165,5 +93,16 @@ public class RequestReplyTests
         {
             return new(new ShipmentStatusResponse { TrackingNumber = request.TrackingNumber, Status = "InTransit" });
         }
+    }
+
+    private static MessagingRuntime CreateRuntime(Action<IMessageBusHostBuilder> configure)
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton(new MessageRecorder());
+        var builder = services.AddMessageBus();
+        configure(builder);
+        return builder
+            .AddEventHub(t => t.ConnectionProvider(_ => new StubConnectionProvider()))
+            .BuildRuntime();
     }
 }

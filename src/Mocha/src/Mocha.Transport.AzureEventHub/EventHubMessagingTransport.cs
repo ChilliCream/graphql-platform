@@ -2,7 +2,6 @@ using System.Diagnostics.CodeAnalysis;
 using Azure.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Mocha.Middlewares;
 using static System.StringSplitOptions;
 
 namespace Mocha.Transport.AzureEventHub;
@@ -28,6 +27,10 @@ public sealed class EventHubMessagingTransport : MessagingTransport
 
     /// <inheritdoc />
     public override MessagingTopology Topology => _topology;
+
+    /// <inheritdoc />
+    public override MessagingTransportCapabilities Capabilities
+        => MessagingTransportCapabilities.Send | MessagingTransportCapabilities.PublishSubscribe;
 
     /// <summary>
     /// Gets the connection manager responsible for managing singleton producer clients per hub.
@@ -121,7 +124,7 @@ public sealed class EventHubMessagingTransport : MessagingTransport
 
         // ARM-based provisioning requires explicit resource coordinates.
         // When using connection strings (e.g. emulator), hubs are pre-created
-        // externally — skip provisioning silently.
+        // externally, so skip provisioning silently.
         if (_transportConfiguration.SubscriptionId is null
             || _transportConfiguration.ResourceGroupName is null
             || _transportConfiguration.NamespaceName is null)
@@ -170,9 +173,7 @@ public sealed class EventHubMessagingTransport : MessagingTransport
 
         if (route.Kind is OutboundRouteKind.Send or OutboundRouteKind.Publish)
         {
-            // Event Hubs are shared — always route to the message type's publish hub,
-            // not the local service's receive endpoint.
-            var hubName = context.Naming.GetPublishEndpointName(route.MessageType.RuntimeType);
+            var hubName = GetHubName(context, route);
 
             configuration = new EventHubDispatchEndpointConfiguration
             {
@@ -195,33 +196,19 @@ public sealed class EventHubMessagingTransport : MessagingTransport
         Span<Range> ranges = stackalloc Range[2];
         var segmentCount = path.Split(ranges, '/', RemoveEmptyEntries | TrimEntries);
 
-        // eventhub:///replies
-        if (address.Scheme == Schema && address.Host is "")
+        // eventhub:///h/{hub-name}
+        if (address.Scheme == Schema && address.Host is "" && segmentCount == 2)
         {
-            if (segmentCount == 1 && path[ranges[0]] is "replies")
+            var kind = path[ranges[0]];
+            var name = path[ranges[1]];
+
+            if (kind is "h")
             {
                 configuration = new EventHubDispatchEndpointConfiguration
                 {
-                    Kind = DispatchEndpointKind.Reply,
-                    HubName = _transportConfiguration.ReplyHubName,
-                    Name = "Replies"
+                    HubName = new string(name),
+                    Name = "h/" + new string(name)
                 };
-            }
-
-            // eventhub:///h/{hub-name}
-            if (segmentCount == 2)
-            {
-                var kind = path[ranges[0]];
-                var name = path[ranges[1]];
-
-                if (kind is "h")
-                {
-                    configuration = new EventHubDispatchEndpointConfiguration
-                    {
-                        HubName = new string(name),
-                        Name = "h/" + new string(name)
-                    };
-                }
             }
         }
 
@@ -241,7 +228,7 @@ public sealed class EventHubMessagingTransport : MessagingTransport
             }
         }
 
-        // hub://hub-name (shorthand — hub name is the URI host)
+        // hub://hub-name, where the hub name is the URI host.
         if (configuration is null && address is { Scheme: "hub" })
         {
             var hubName = address.Host;
@@ -256,58 +243,115 @@ public sealed class EventHubMessagingTransport : MessagingTransport
     }
 
     /// <inheritdoc />
-    public override ReceiveEndpointConfiguration CreateEndpointConfiguration(
+    public override ReceiveEndpointConfiguration? CreateEndpointConfiguration(
         IMessagingConfigurationContext context,
         InboundRoute route)
     {
-        EventHubReceiveEndpointConfiguration configuration;
-
-        if (route.Kind == InboundRouteKind.Reply)
+        if (route.Kind is InboundRouteKind.Subscribe or InboundRouteKind.Send
+            && route.MessageType is not null)
         {
-            configuration = new EventHubReceiveEndpointConfiguration
-            {
-                Name = "Replies",
-                HubName = _transportConfiguration.ReplyHubName,
-                ConsumerGroup = "$Default",
-                IsTemporary = false,
-                Kind = ReceiveEndpointKind.Reply,
-                AutoProvision = false,
-                ReceiveMiddlewares = [ReplyReceiveMiddleware.Create()]
-            };
-        }
-        else if (route.Kind is InboundRouteKind.Subscribe or InboundRouteKind.Send
-                 && route.MessageType is not null)
-        {
-            // Event Hubs are shared — each event/command type has its own hub.
-            // Subscribers connect to the message type's publish hub using a
-            // service-specific consumer group for independent read positions.
-            // The endpoint name uses the hub name so that multiple consumers
-            // subscribing to the same message type share one receive endpoint,
-            // while consumers of different message types get separate endpoints.
-            var hubName = context.Naming.GetPublishEndpointName(route.MessageType.RuntimeType);
+            var hubName = GetHubName(context, route);
             var consumerGroup = context.Host.ServiceName is not null
                 ? ToKebabCase(context.Host.ServiceName)
-                : "$Default";
+                : route.Kind is InboundRouteKind.Send
+                    ? hubName
+                    : "$Default";
 
-            configuration = new EventHubReceiveEndpointConfiguration
+            return new EventHubReceiveEndpointConfiguration
             {
                 Name = hubName,
                 HubName = hubName,
                 ConsumerGroup = consumerGroup
             };
         }
-        else
-        {
-            var hubName = context.Naming.GetReceiveEndpointName(route, ReceiveEndpointKind.Default);
-            configuration = new EventHubReceiveEndpointConfiguration
-            {
-                Name = hubName,
-                HubName = hubName,
-                ConsumerGroup = "$Default"
-            };
-        }
 
-        return configuration;
+        return null;
+    }
+
+    private static string GetHubName(IMessagingConfigurationContext context, OutboundRoute route)
+        => route.Kind == OutboundRouteKind.Send
+            ? context.Naming.GetSendEndpointName(route.MessageType.RuntimeType)
+            : context.Naming.GetPublishEndpointName(route.MessageType.RuntimeType);
+
+    private static string GetHubName(IMessagingConfigurationContext context, InboundRoute route)
+        => route.Kind == InboundRouteKind.Send
+            ? context.Naming.GetSendEndpointName(route.MessageType!.RuntimeType)
+            : context.Naming.GetPublishEndpointName(route.MessageType!.RuntimeType);
+
+    /// <inheritdoc />
+    protected override void OnAfterDiscoverEndpoints(IMessagingSetupContext context)
+    {
+        ValidateExplicitDispatchRoutes();
+        ValidateInboundRoutes(context);
+    }
+
+    private void ValidateExplicitDispatchRoutes()
+    {
+        var routeBindings =
+            from endpoint in DispatchEndpoints.OfType<EventHubDispatchEndpoint>()
+            from route in endpoint.Configuration.Routes
+            where route.Kind is OutboundRouteKind.Send or OutboundRouteKind.Publish
+            let hubName = endpoint.Configuration.HubName
+            where hubName is not null
+            group route.Kind by (hubName, route.RuntimeType) into bindings
+            select bindings;
+
+        foreach (var bindings in routeBindings)
+        {
+            var hasSend = bindings.Contains(OutboundRouteKind.Send);
+            var hasPublish = bindings.Contains(OutboundRouteKind.Publish);
+            if (hasSend && hasPublish)
+            {
+                throw ThrowHelper.TransportCannotShareSendAndPublishStream(
+                    Name,
+                    bindings.Key.RuntimeType.FullName ?? bindings.Key.RuntimeType.Name,
+                    bindings.Key.hubName);
+            }
+        }
+    }
+
+    private void ValidateInboundRoutes(IMessagingSetupContext context)
+    {
+        var eventHubInboundRoutes =
+            from route in context.Router.InboundRoutes
+            where route is { MessageType: not null, Endpoint: EventHubReceiveEndpoint endpoint }
+                && ReferenceEquals(endpoint.Transport, this)
+            group route by route.MessageType!.RuntimeType into routeGroup
+            select routeGroup;
+
+        foreach (var routes in eventHubInboundRoutes)
+        {
+            var hasCommandRoute = routes.Any(route => route.Kind == InboundRouteKind.Send);
+            var hasEventRoute = routes.Any(route => route.Kind == InboundRouteKind.Subscribe);
+            if (hasCommandRoute && hasEventRoute)
+            {
+                throw ThrowHelper.EventHubMessageContractCannotBeCommandAndEvent(
+                    routes.Key.FullName ?? routes.Key.Name);
+            }
+
+            if (!hasCommandRoute)
+            {
+                continue;
+            }
+
+            var owners =
+                routes
+                    .Where(route => route.Kind == InboundRouteKind.Send)
+                    .Select(route => ((EventHubReceiveEndpoint)route.Endpoint!).Configuration)
+                    .Select(configuration => (
+                        HubName: configuration.HubName
+                            ?? context.Naming.GetSendEndpointName(routes.Key),
+                        ConsumerGroup: configuration.ConsumerGroup))
+                    .Distinct()
+                    .ToArray();
+
+            if (owners.Length != 1 || owners[0].ConsumerGroup == "$Default")
+            {
+                throw ThrowHelper.EventHubCommandRequiresDedicatedOwner(
+                    routes.Key.FullName ?? routes.Key.Name,
+                    owners.Length == 1 ? owners[0].HubName : context.Naming.GetSendEndpointName(routes.Key));
+            }
+        }
     }
 
     /// <inheritdoc />
@@ -408,7 +452,8 @@ public sealed class EventHubMessagingTransport : MessagingTransport
             nameof(EventHubMessagingTransport),
             receiveEndpoints,
             dispatchEndpoints,
-            topology);
+            topology,
+            Capabilities);
     }
 
     /// <summary>
@@ -422,7 +467,7 @@ public sealed class EventHubMessagingTransport : MessagingTransport
             return input;
         }
 
-        // Already kebab-case or snake_case — normalize only
+        // Already kebab-case or snake_case, normalize only.
         if (input.Contains('-') || input.Contains('_'))
         {
             return input.ToLowerInvariant().Replace('_', '-');

@@ -10,6 +10,8 @@ public sealed class EventHubDefaultSubscriptionOptions
     /// </summary>
     internal void ApplyTo(EventHubSubscriptionConfiguration configuration)
     {
+        ArgumentNullException.ThrowIfNull(configuration);
+
         // No defaults to apply currently. Placeholder for future subscription-level defaults
         // (e.g., default checkpoint interval, default consumer group naming).
     }

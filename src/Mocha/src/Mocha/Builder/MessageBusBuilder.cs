@@ -498,6 +498,8 @@ public partial class MessageBusBuilder : IMessageBusBuilder
 
         setupContext.Transport = null;
 
+        ValidateRouteCapabilities(router, _transports);
+
         // message types can be discovered during completion - hence the copy
         foreach (var messageType in messageRegistry.MessageTypes.ToList())
         {
@@ -571,6 +573,78 @@ public partial class MessageBusBuilder : IMessageBusBuilder
         foreach (var modifier in _dispatchModifiers)
         {
             modifier(_dispatchMiddlewares);
+        }
+    }
+
+    private static void ValidateRouteCapabilities(
+        IMessageRouter router,
+        IReadOnlyList<MessagingTransport> transports)
+    {
+        foreach (var route in router.InboundRoutes)
+        {
+            if (route.Endpoint is not null)
+            {
+                continue;
+            }
+
+            var required = MessagingTransportCapabilityMap.GetRequiredCapability(route.Kind);
+
+            if (required == MessagingTransportCapabilities.None)
+            {
+                continue;
+            }
+
+            var hasCapableTransport = false;
+            foreach (var transport in transports)
+            {
+                if (transport.HasCapability(required))
+                {
+                    hasCapableTransport = true;
+                    break;
+                }
+            }
+
+            if (!hasCapableTransport)
+            {
+                throw ThrowHelper.NoTransportForInboundRoute(
+                    route.Kind,
+                    required,
+                    route.MessageType?.Identity);
+            }
+        }
+
+        foreach (var route in router.OutboundRoutes)
+        {
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+            if (route.Endpoint is not null)
+            {
+                continue;
+            }
+
+            var required = MessagingTransportCapabilityMap.GetRequiredCapability(route.Kind);
+
+            if (required == MessagingTransportCapabilities.None)
+            {
+                continue;
+            }
+
+            var hasCapableTransport = false;
+            foreach (var transport in transports)
+            {
+                if (transport.HasCapability(required))
+                {
+                    hasCapableTransport = true;
+                    break;
+                }
+            }
+
+            if (!hasCapableTransport)
+            {
+                throw ThrowHelper.NoTransportForOutboundRoute(
+                    route.Kind,
+                    required,
+                    route.MessageType?.Identity);
+            }
         }
     }
 }

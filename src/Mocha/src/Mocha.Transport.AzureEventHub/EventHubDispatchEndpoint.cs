@@ -33,27 +33,28 @@ public sealed class EventHubDispatchEndpoint(EventHubMessagingTransport transpor
 
         var cancellationToken = context.CancellationToken;
 
-        // Resolve target hub name
-        string hubName;
         if (Kind == DispatchEndpointKind.Reply)
         {
-            if (!Uri.TryCreate(envelope.DestinationAddress, UriKind.Absolute, out var destinationAddress))
-            {
-                throw new InvalidOperationException("Destination address is not a valid URI");
-            }
+            throw ThrowHelper.TransportDoesNotSupportRequestReply(transport.Name, envelope.MessageType);
+        }
 
-            hubName = ResolveReplyHubName(destinationAddress);
-        }
-        else
+        if (context.ScheduledTime is not null || envelope.ScheduledTime is not null)
         {
-            hubName = Topic?.Name
-                ?? throw new InvalidOperationException("Topic is not set on dispatch endpoint");
+            throw ThrowHelper.TransportDoesNotSupportScheduledDelivery(transport.Name);
         }
+
+        if (envelope.ResponseAddress is not null)
+        {
+            throw ThrowHelper.TransportDoesNotSupportSendReplyEndpoint(transport.Name, envelope.MessageType);
+        }
+
+        var hubName = Topic?.Name
+            ?? throw new InvalidOperationException("Topic is not set on dispatch endpoint");
 
         var producer = transport.ConnectionManager.GetOrCreateProducer(hubName);
 
         // Size validation: Event Hubs has a 1MB message size limit.
-        // This checks the body only — AMQP framing and properties add overhead, so actual
+        // This checks the body only. AMQP framing and properties add overhead, so actual
         // on-wire size will be slightly larger. The broker will reject events that exceed
         // the true limit; this is a fast-fail approximation to surface obvious violations early.
         if (envelope.Body.Length > 1_048_576)
@@ -64,7 +65,7 @@ public sealed class EventHubDispatchEndpoint(EventHubMessagingTransport transpor
                 + "claim-check pattern.");
         }
 
-        // Build EventData from envelope — zero-copy via ReadOnlyMemory<byte> constructor
+        // Build EventData from envelope with the zero-copy ReadOnlyMemory<byte> constructor.
         var eventData = new EventData(envelope.Body);
 
         // Map envelope headers -> AMQP structured properties (zero dictionary allocation path)
@@ -90,11 +91,6 @@ public sealed class EventHubDispatchEndpoint(EventHubMessagingTransport transpor
         if (envelope.MessageType is not null)
         {
             props.Subject = envelope.MessageType;
-        }
-
-        if (envelope.ResponseAddress is not null)
-        {
-            props.ReplyTo = new AmqpAddress(envelope.ResponseAddress);
         }
 
         // Overflow headers go to ApplicationProperties
@@ -141,6 +137,13 @@ public sealed class EventHubDispatchEndpoint(EventHubMessagingTransport transpor
         {
             foreach (var header in envelope.Headers)
             {
+                if (header.Key == MessageHeaders.MessageKind.Key
+                    && header.Value is string messageKind
+                    && messageKind is MessageKind.Request or MessageKind.Reply)
+                {
+                    throw ThrowHelper.TransportDoesNotSupportRequestReply(transport.Name, envelope.MessageType);
+                }
+
                 if (header.Value is not null)
                 {
                     appProps[header.Key] = header.Value;
@@ -223,29 +226,6 @@ public sealed class EventHubDispatchEndpoint(EventHubMessagingTransport transpor
             var logger = context.Services.GetRequiredService<ILogger<EventHubBatchDispatcher>>();
             _batchDispatcher = new EventHubBatchDispatcher(producer, logger);
         }
-    }
-
-    /// <summary>
-    /// Resolves the target hub name from a reply destination address by extracting the
-    /// last path segment.
-    /// </summary>
-    /// <param name="destinationAddress">The destination URI carried on the envelope.</param>
-    /// <returns>The hub name corresponding to the last segment of the URI path.</returns>
-    /// <exception cref="InvalidOperationException">
-    /// Thrown when the path is empty or contains only separators.
-    /// </exception>
-    private static string ResolveReplyHubName(Uri destinationAddress)
-    {
-        var segments = destinationAddress.Segments;
-        var lastSegment = segments.Length > 0 ? segments[^1].Trim('/') : string.Empty;
-
-        if (lastSegment.Length == 0)
-        {
-            throw new InvalidOperationException(
-                $"Cannot determine hub name from destination address '{destinationAddress}': path is empty.");
-        }
-
-        return lastSegment;
     }
 
     /// <summary>

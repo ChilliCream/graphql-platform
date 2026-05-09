@@ -5,7 +5,7 @@ description: "Use Azure Event Hubs as a high-throughput streaming transport for 
 
 # Azure Event Hubs transport
 
-The Azure Event Hubs transport connects Mocha to [Azure Event Hubs](https://learn.microsoft.com/en-us/azure/event-hubs/event-hubs-about) for high-throughput, partition-based messaging. It manages connections, batches outbound messages, checkpoints consumer progress, and supports request/reply with a dedicated reply hub. When you need streaming-scale event processing with ordered delivery within partitions, this is the transport to use.
+The Azure Event Hubs transport connects Mocha to [Azure Event Hubs](https://learn.microsoft.com/en-us/azure/event-hubs/event-hubs-about) for high-throughput, partition-based messaging. It manages connections, batches outbound messages, and checkpoints consumer progress. The transport supports `PublishAsync` and `SendAsync` with stream-backed command semantics, but it does not support request/reply. When you need streaming-scale event processing with ordered delivery within partitions, this is the transport to use.
 
 ```csharp
 using Mocha;
@@ -60,6 +60,30 @@ graph LR
 
 The transport uses **shared hubs** with **service-specific consumer groups**. When multiple services subscribe to the same event, each service gets its own consumer group on the shared hub. This means every service receives every event independently.
 
+# Supported messaging patterns
+
+Event Hubs is a streaming transport. It supports publish/subscribe and stream-backed send, but it does not support request/reply or scheduled delivery.
+
+| Pattern                          | Supported | Notes                                                                          |
+| -------------------------------- | --------- | ------------------------------------------------------------------------------ |
+| `PublishAsync`                   | Yes       | Appends events to publish hubs and fans out through consumer groups.           |
+| `SendAsync`                      | Yes       | Appends commands to send hubs for a configured handler consumer group.         |
+| `RequestAsync` and `ReplyAsync`  | No        | Use RabbitMQ, in-memory, or another reply-capable transport instead.           |
+| `SendAsync` with `ReplyEndpoint` | No        | Model the response as a correlated completion event instead.                   |
+| Scheduled delivery               | No        | Use an external scheduler or bind the route to a scheduling-capable transport. |
+
+If your application needs request/reply alongside Event Hubs streaming, register both transports and keep the contracts separated. Event and stream-backed command routes can use Event Hubs. Request/reply handlers must be bound to a reply-capable transport such as RabbitMQ or in-memory:
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddEventHandler<OrderPlacedEventHandler>()      // Event Hubs stream
+    .AddRequestHandler<ProcessPaymentHandler>()      // Event Hubs command stream
+    .AddRequestHandler<GetOrderStatusHandler>()      // RabbitMQ request/reply route
+    .AddEventHub(t => t.ConnectionString(eventHubConnectionString))
+    .AddRabbitMQ(t => t.ConnectionString(rabbitMqConnectionString));
+```
+
 # Set up the Azure Event Hubs transport
 
 By the end of this section, you will have a Mocha bus connected to Azure Event Hubs with automatic topology discovery.
@@ -92,7 +116,7 @@ var app = builder.Build();
 app.Run();
 ```
 
-`.AddEventHub()` registers the transport, applies default conventions, and wires up the dispatch and receive pipelines. Default conventions automatically create receive endpoints for your registered handlers and dispatch endpoints for the message types they consume.
+`.AddEventHub()` registers the transport, applies default conventions, and wires up dispatch and receive pipelines for publish/subscribe handlers and one-way request handlers. Response-producing request handlers require a reply-capable transport.
 
 ## Register with Azure Identity
 
@@ -172,8 +196,7 @@ orderPlacedHub.AddConsumerGroup("order-placed-orders",
 orderPlacedHub.AddConsumerGroup("order-placed-notifications",
     groupName: "notification-service");
 
-// Reply and error hubs (required for request/reply and fault routing)
-eventHubs.AddHub("replies");
+// Diagnostic hubs for Mocha-managed error and skipped streams
 eventHubs.AddHub("error");
 eventHubs.AddHub("skipped");
 
@@ -222,13 +245,12 @@ Endpoint=sb://localhost;SharedAccessKeyName=RootManageSharedAccessKey;SharedAcce
 
 ## Transport options
 
-| Option               | Type                                                   | Default     | Description                                                                                            |
-| -------------------- | ------------------------------------------------------ | ----------- | ------------------------------------------------------------------------------------------------------ |
-| `ConnectionString`   | `string?`                                              | `null`      | Event Hubs namespace connection string. Mutually exclusive with `Namespace`.                           |
-| `Namespace`          | `string?`                                              | `null`      | Fully qualified namespace (e.g., `mynamespace.servicebus.windows.net`). Uses `DefaultAzureCredential`. |
-| `ConnectionProvider` | `Func<IServiceProvider, IEventHubConnectionProvider>?` | `null`      | Factory for a custom connection provider. Overrides `ConnectionString` and `Namespace`.                |
-| `AutoProvision`      | `bool`                                                 | `true`      | Whether to auto-provision hubs and consumer groups via ARM at startup.                                 |
-| `ReplyHubName`       | `string`                                               | `"replies"` | Hub name used for request/reply correlation.                                                           |
+| Option               | Type                                                   | Default | Description                                                                                            |
+| -------------------- | ------------------------------------------------------ | ------- | ------------------------------------------------------------------------------------------------------ |
+| `ConnectionString`   | `string?`                                              | `null`  | Event Hubs namespace connection string. Mutually exclusive with `Namespace`.                           |
+| `Namespace`          | `string?`                                              | `null`  | Fully qualified namespace (e.g., `mynamespace.servicebus.windows.net`). Uses `DefaultAzureCredential`. |
+| `ConnectionProvider` | `Func<IServiceProvider, IEventHubConnectionProvider>?` | `null`  | Factory for a custom connection provider. Overrides `ConnectionString` and `Namespace`.                |
+| `AutoProvision`      | `bool`                                                 | `true`  | Whether to auto-provision hubs and consumer groups via ARM at startup.                                 |
 
 ## Bus-level defaults
 
@@ -259,7 +281,7 @@ builder.Services
 | `Hub`                | `string` | Required        | Event Hub name to consume from.                                                                 |
 | `ConsumerGroup`      | `string` | Service-derived | Consumer group for this endpoint.                                                               |
 | `CheckpointInterval` | `int`    | `100`           | Number of events processed between checkpoints. Lower values mean faster recovery but more I/O. |
-| `MaxConcurrency`     | `int`    | —               | Maximum concurrent message processing for this endpoint.                                        |
+| `MaxConcurrency`     | `int`    | unset           | Maximum concurrent message processing for this endpoint.                                        |
 
 ## Dispatch endpoint options
 
@@ -284,14 +306,14 @@ builder.Services
 Both `PublishAsync` and `SendAsync` dispatch messages to Event Hubs. The transport resolves the target hub from the message type's configured dispatch endpoint.
 
 ```csharp
-// Publish an event — all subscribers receive it
+// Publish an event, all subscribers receive it
 await messageBus.PublishAsync(new OrderPlacedEvent
 {
     OrderId = orderId,
     ProductName = "Widget"
 }, cancellationToken);
 
-// Send a command — delivered to the configured handler
+// Send a command, delivered to the configured handler
 await messageBus.SendAsync(new ProcessPaymentCommand
 {
     OrderId = orderId,
@@ -299,7 +321,7 @@ await messageBus.SendAsync(new ProcessPaymentCommand
 }, cancellationToken);
 ```
 
-Both publish and send route to the same shared hub (named after the message type). The difference is in how consumers are organized: events use separate consumer groups per service for fan-out, while commands are handled by a single consumer group.
+Publish and send use distinct hubs. Publish hubs are named from the message type namespace and class, while send hubs use the command type name. Use separate CLR contracts for events and commands. The same message type cannot be configured as both a published event and a sent command on Event Hubs. Events use separate consumer groups per service for fan-out, while commands are handled by one dedicated owner consumer group.
 
 ## Batching
 
@@ -365,7 +387,7 @@ builder.Services
     .AddEventHub(t => t.ConnectionString(connectionString));
 ```
 
-The transport derives hub names from the message type's full name (namespace + class, kebab-cased). Consumer group names are derived from the service name. Multiple handlers that consume different events get separate endpoints on separate hubs.
+The transport derives publish hub names from the message type's full name (namespace + class, kebab-cased). Send hub names use the command type name. Consumer group names are derived from the service name. When no service name is configured, one-way command handlers use the send hub name as the owner consumer group instead of `$Default`. Multiple handlers that consume different events get separate endpoints on separate hubs.
 
 ## Explicit endpoint configuration
 
@@ -387,20 +409,20 @@ builder.Services
     });
 ```
 
-Multiple handlers on the same hub and consumer group share one endpoint. The endpoint name is used for deduplication — if two handlers specify the same hub, they are merged into one receive endpoint.
+Multiple event handlers on the same hub and consumer group share one endpoint. The endpoint name is used for deduplication. Commands require exactly one logical owner consumer group. Do not bind the same command stream to multiple consumer groups or to `$Default`.
 
 ## Consumer group isolation
 
 Multiple services subscribe to the same hub through different consumer groups. Each consumer group maintains its own read position:
 
 ```csharp
-// Order Service — has its own consumer group
+// Order Service, has its own consumer group
 builder.Services
     .AddMessageBus()
     .AddEventHandler<OrderPlacedEventHandler>()
     .AddEventHub(t => t.ConnectionString(connectionString));
 
-// Notification Service — independent consumer group, same hub
+// Notification Service, independent consumer group, same hub
 builder.Services
     .AddMessageBus()
     .AddEventHandler<OrderPlacedNotificationHandler>()
@@ -418,7 +440,7 @@ Checkpointing records the last processed sequence number per partition. On resta
 The default. Checkpoints are stored in process memory:
 
 ```csharp
-// This is the default — no configuration needed
+// This is the default, no configuration needed
 builder.Services
     .AddMessageBus()
     .AddEventHub(t => t.ConnectionString(connectionString));
@@ -479,14 +501,13 @@ Without an ownership store, a single instance claims all partitions. With an own
 
 ## Fault routing
 
-When a handler throws an exception, the message is routed to the configured error endpoint with fault headers attached:
+When a handler throws an exception, the message is routed to the configured error endpoint with fault headers attached. Event Hubs error streams are shared streams, so fault headers are sanitized and do not include raw exception messages or stack traces:
 
-| Header                 | Description             |
-| ---------------------- | ----------------------- |
-| `fault-exception-type` | Exception class name    |
-| `fault-message`        | Exception message text  |
-| `fault-stack-trace`    | Full stack trace        |
-| `fault-timestamp`      | When the fault occurred |
+| Header                 | Description                                               |
+| ---------------------- | --------------------------------------------------------- |
+| `fault-exception-type` | Generic fault classification for Event Hubs error streams |
+| `fault-message`        | Generic fault message for operators                       |
+| `fault-timestamp`      | When the fault occurred                                   |
 
 Configure error and skipped endpoints:
 
@@ -501,11 +522,7 @@ t.Endpoint("order-processing")
 
 ## At-least-once delivery
 
-The transport provides at-least-once delivery semantics. If a message fails processing and the event is not checkpointed, it will be redelivered when the processor restarts or rebalances. Your handlers should be [idempotent](https://microservices.io/patterns/communication-style/idempotent-consumer.html) — processing the same message twice should produce the same result.
-
-## Request/reply error propagation
-
-When a handler throws during request/reply processing, the exception is serialized and sent back to the caller as a `RemoteErrorException`. The caller's `RequestAsync` call throws with the remote exception details.
+The transport provides at-least-once delivery semantics. If a message fails processing and the event is not checkpointed, it will be redelivered when the processor restarts or rebalances. Your handlers should be [idempotent](https://microservices.io/patterns/communication-style/idempotent-consumer.html), processing the same message twice should produce the same result.
 
 # Health checks
 
@@ -559,10 +576,10 @@ Connection string authentication cannot provision resources. If you use a connec
 
 ## What gets provisioned
 
-| Resource         | When                                           | Notes                                       |
-| ---------------- | ---------------------------------------------- | ------------------------------------------- |
-| Event Hub entity | When a topic has `AutoProvision = true`        | Idempotent — existing hubs are not modified |
-| Consumer group   | When a subscription has `AutoProvision = true` | `$Default` is skipped (always exists)       |
+| Resource         | When                                           | Notes                                      |
+| ---------------- | ---------------------------------------------- | ------------------------------------------ |
+| Event Hub entity | When a topic has `AutoProvision = true`        | Idempotent, existing hubs are not modified |
+| Consumer group   | When a subscription has `AutoProvision = true` | `$Default` is skipped (always exists)      |
 
 ## Declare topology explicitly
 
@@ -597,7 +614,7 @@ With auto-provisioning disabled, all hubs and consumer groups must exist before 
 The hub does not exist on the namespace. If using the Aspire emulator, ensure all hubs are declared in the AppHost with `AddHub()`. If using Azure, verify the hub exists in the namespace or enable auto-provisioning.
 
 ```csharp
-// AppHost — declare the hub
+// AppHost, declare the hub
 var hub = eventHubs.AddHub("my-hub", hubName: "my-app.events.order-placed");
 ```
 
@@ -606,13 +623,13 @@ var hub = eventHubs.AddHub("my-hub", hubName: "my-app.events.order-placed");
 The consumer group does not exist on the hub. With the Aspire emulator, consumer groups must be declared with `AddConsumerGroup()`. In Azure, either create the consumer group manually, or enable auto-provisioning with ARM credentials.
 
 ```csharp
-// AppHost — declare the consumer group
+// AppHost, declare the consumer group
 hub.AddConsumerGroup("my-consumer", groupName: "my-service");
 ```
 
 ## Hub name mismatch between services
 
-The transport derives hub names from message type names (namespace + class, kebab-cased, with common suffixes removed). All services must reference the same message type from a shared contracts assembly. If hub names do not match, services will publish and consume from different hubs.
+The transport derives publish hub names from message type namespace and class names, and send hub names from command type names, with common suffixes removed. All services must reference the same message type from a shared contracts assembly. If hub names do not match, services will publish and consume from different hubs.
 
 Verify the resolved hub name by checking the startup logs or using explicit endpoint configuration.
 
@@ -628,6 +645,10 @@ If the Blob Storage checkpoint store cannot connect at startup, the transport wi
 
 This is expected behavior with at-least-once delivery. Events processed between the last checkpoint and the process exit will be redelivered. To reduce the replay window, lower the `CheckpointInterval`. To handle duplicates, make your handlers idempotent.
 
+## Request/reply APIs fail
+
+This is expected for Event Hubs. `RequestAsync`, `ReplyAsync`, response-producing request handlers, and `SendAsync` with a `ReplyEndpoint` require isolated reply endpoints, which Event Hubs does not provide. Register a reply-capable transport for those routes or publish a correlated completion event.
+
 ## Batch dispatch messages appear delayed
 
 In batch mode, messages are held for up to 100ms while the transport accumulates a batch. If you need lower latency, switch to single mode:
@@ -641,11 +662,11 @@ t.ConfigureDefaults(defaults =>
 
 # Next steps
 
-- [Routing and endpoints](/docs/mocha/v1/routing-and-endpoints) — Understand how messages are routed to handlers.
-- [Sagas](/docs/mocha/v1/sagas) — Orchestrate multi-step workflows across services.
-- [Middleware and pipelines](/docs/mocha/v1/middleware-and-pipelines) — Customize dispatch and receive behavior.
-- [Observability](/docs/mocha/v1/observability) — Traces, metrics, and diagnostics for your message bus.
+- [Routing and endpoints](/docs/mocha/v1/routing-and-endpoints), understand how messages are routed to handlers.
+- [Sagas](/docs/mocha/v1/sagas), orchestrate multi-step workflows across services.
+- [Middleware and pipelines](/docs/mocha/v1/middleware-and-pipelines), customize dispatch and receive behavior.
+- [Observability](/docs/mocha/v1/observability), traces, metrics, and diagnostics for your message bus.
 
 > **Runnable example:** [AzureEventHubTransport](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/examples/AzureEventHubTransport)
 >
-> The example implements a complete order fulfillment workflow with three services (Order, Shipping, Notification), saga orchestration, request/reply, and the Event Hubs emulator via Aspire.
+> The example implements a complete order fulfillment workflow with three services (Order, Shipping, Notification), saga orchestration, and the Event Hubs emulator via Aspire.

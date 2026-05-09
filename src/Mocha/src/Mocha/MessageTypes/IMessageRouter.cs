@@ -165,12 +165,14 @@ public sealed class MessageRouter : IMessageRouter
             var configuration = new OutboundRouteConfiguration { MessageType = messageType, Kind = kind };
             route.Initialize(context, configuration);
 
-            // TODO not sure about this. What is the "default" transport?
             foreach (var transport in context.Transports)
             {
-                var endpoint = transport.ConnectRoute(context, route);
+                if (!transport.TryConnectRoute(context, route, out var endpoint))
+                {
+                    continue;
+                }
 
-                if (!endpoint.IsCompleted)
+                if (!endpoint!.IsCompleted)
                 {
                     endpoint.DiscoverTopology(context);
                     endpoint.Complete(context);
@@ -178,6 +180,7 @@ public sealed class MessageRouter : IMessageRouter
 
                 return endpoint;
             }
+
             route.Complete(context);
 
             throw ThrowHelper.NoTransportForMessageType(messageType);

@@ -44,7 +44,7 @@ internal sealed class EventHubProvisioner
 
         var collection = _namespaceResource.GetEventHubs();
 
-        // CreateOrUpdate is idempotent — if the hub already exists, this is a no-op.
+        // CreateOrUpdate is idempotent. If the hub already exists, this is a no-op.
         // When partitionCount is null or 0, we leave PartitionCount unset so the ARM API
         // uses the namespace default.
         var data = new EventHubData();
@@ -76,7 +76,7 @@ internal sealed class EventHubProvisioner
         string consumerGroupName,
         CancellationToken cancellationToken)
     {
-        // $Default consumer group always exists — skip provisioning.
+        // $Default consumer group always exists, skip provisioning.
         if (string.Equals(consumerGroupName, "$Default", StringComparison.OrdinalIgnoreCase))
         {
             return;

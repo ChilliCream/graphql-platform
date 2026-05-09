@@ -151,7 +151,7 @@ internal sealed class EventHubBatchDispatcher : IAsyncDisposable
                     }
                     catch (OperationCanceledException) when (timer.IsCancellationRequested)
                     {
-                        // Timer expired — flush what we have.
+                        // Timer expired, flush what we have.
                         break;
                     }
                 }
@@ -184,7 +184,7 @@ internal sealed class EventHubBatchDispatcher : IAsyncDisposable
 
                 if (!batch.TryAdd(item.EventData))
                 {
-                    // Current batch is full — send it and start a new one.
+                    // Current batch is full, send it and start a new one.
                     if (batch.Count > 0)
                     {
                         await SendBatchAsync(batch, _pending, cancellationToken);
@@ -196,7 +196,7 @@ internal sealed class EventHubBatchDispatcher : IAsyncDisposable
 
                     if (!batch.TryAdd(item.EventData))
                     {
-                        // Single event exceeds max batch size — fail it.
+                        // Single event exceeds max batch size, fail it.
                         item.Completion.TrySetException(
                             new InvalidOperationException(
                                 $"Event data exceeds the maximum batch size of {batch.MaximumSizeInBytes} bytes."));

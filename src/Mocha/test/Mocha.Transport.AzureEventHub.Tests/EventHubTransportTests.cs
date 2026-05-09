@@ -61,7 +61,7 @@ public class EventHubTransportTests
     }
 
     [Fact]
-    public void CreateEndpointConfiguration_Should_CreateReplyConfig_When_EventHubRepliesPath()
+    public void CreateEndpointConfiguration_Should_ReturnNull_When_EventHubRepliesPath()
     {
         // arrange
         var runtime = CreateRuntime(b => b.AddRequestHandler<ProcessPaymentHandler>());
@@ -72,10 +72,7 @@ public class EventHubTransportTests
         var config = transport.CreateEndpointConfiguration(context, new Uri("eventhub:///replies"));
 
         // assert
-        Assert.NotNull(config);
-        var ehConfig = Assert.IsType<EventHubDispatchEndpointConfiguration>(config);
-        Assert.Equal(DispatchEndpointKind.Reply, ehConfig.Kind);
-        Assert.Equal("Replies", ehConfig.Name);
+        Assert.Null(config);
     }
 
     [Fact]
@@ -167,6 +164,45 @@ public class EventHubTransportTests
     }
 
     [Fact]
+    public void DiscoverEndpoints_Should_UseDistinctHubs_When_DifferentSendAndPublishContractsRegistered()
+    {
+        // arrange
+        var runtime = CreateRuntime(b =>
+        {
+            b.AddRequestHandler<ProcessPaymentHandler>();
+            b.AddEventHandler<OrderCreatedHandler>();
+        });
+        var transport = runtime.Transports.OfType<EventHubMessagingTransport>().Single();
+
+        // act
+        var hubNames = transport.DispatchEndpoints
+            .Where(e => e.Destination is EventHubTopic)
+            .Select(e => e.Name)
+            .ToArray();
+
+        // assert
+        Assert.Contains("h/process-payment", hubNames);
+        Assert.Contains("h/mocha.test-helpers.order-created", hubNames);
+    }
+
+    [Fact]
+    public void BuildRuntime_Should_Throw_When_SameMessageTypeSentAndPublished()
+    {
+        // arrange
+        var build = () => CreateRuntime(b =>
+        {
+            b.AddRequestHandler<ProcessPaymentHandler>();
+            b.AddEventHandler<ProcessPaymentEventHandler>();
+        });
+
+        // act
+        var ex = Assert.Throws<InvalidOperationException>(build);
+
+        // assert
+        Assert.Contains("both a command and an event", ex.Message);
+    }
+
+    [Fact]
     public void Schema_Should_BeEventHub_When_TransportCreated()
     {
         // arrange & act
@@ -192,6 +228,22 @@ public class EventHubTransportTests
         Assert.Equal("eventhub", description.Schema);
         Assert.Equal("EventHubMessagingTransport", description.TransportType);
         Assert.NotNull(description.Topology);
+    }
+
+    [Fact]
+    public void Describe_Should_IncludeCapabilities_When_EventHubTransport()
+    {
+        // arrange
+        var runtime = CreateRuntime(b => b.AddEventHandler<OrderCreatedHandler>());
+        var transport = runtime.Transports.OfType<EventHubMessagingTransport>().Single();
+
+        // act
+        var description = transport.Describe();
+
+        // assert
+        const MessagingTransportCapabilities expected =
+            MessagingTransportCapabilities.Send | MessagingTransportCapabilities.PublishSubscribe;
+        Assert.Equal(expected, description.Capabilities);
     }
 
     [Fact]
@@ -322,6 +374,15 @@ public class EventHubTransportTests
         public ValueTask HandleAsync(ProcessPayment request, CancellationToken cancellationToken)
         {
             recorder.Record(request);
+            return default;
+        }
+    }
+
+    public sealed class ProcessPaymentEventHandler(MessageRecorder recorder) : IEventHandler<ProcessPayment>
+    {
+        public ValueTask HandleAsync(ProcessPayment message, CancellationToken cancellationToken)
+        {
+            recorder.Record(message);
             return default;
         }
     }

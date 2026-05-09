@@ -41,7 +41,15 @@ internal sealed class ReceiveFaultMiddleware(
             if (envelope?.ResponseAddress is { } responseAddress
                 && Uri.TryCreate(responseAddress, UriKind.Absolute, out var responseAddressUri))
             {
-                await ReplyToSenderAsync(context, responseAddressUri, envelope, fault);
+                var responseTransport = context.Runtime.GetTransport(responseAddressUri);
+                if (responseTransport?.HasCapability(MessagingTransportCapabilities.RequestReply) == true)
+                {
+                    await ReplyToSenderAsync(context, responseAddressUri, responseTransport, envelope, fault);
+                }
+                else
+                {
+                    await SendToErrorEndpointAsync(context, envelope, fault);
+                }
             }
             else
             {
@@ -55,13 +63,13 @@ internal sealed class ReceiveFaultMiddleware(
     private async ValueTask ReplyToSenderAsync(
         IReceiveContext context,
         Uri responseAddress,
+        MessagingTransport responseTransport,
         MessageEnvelope envelope,
         FaultInfo fault)
     {
-        var replyEndpoint = context.Runtime.GetTransport(responseAddress)?.ReplyDispatchEndpoint;
+        var replyEndpoint = responseTransport.ReplyDispatchEndpoint;
         if (replyEndpoint is null)
         {
-            // TODO critical error! (Poision Pill)
             throw ThrowHelper.NoReplyEndpointFound(responseAddress.ToString());
         }
 
@@ -111,7 +119,6 @@ internal sealed class ReceiveFaultMiddleware(
             return;
         }
 
-        // TODO unfortunately this can fail too.. so we need a way around this
         var dispatchContext = pools.DispatchContext.Get();
         try
         {
@@ -122,8 +129,7 @@ internal sealed class ReceiveFaultMiddleware(
                 context.MessageType,
                 context.CancellationToken);
 
-            dispatchContext.Envelope = envelope;
-            envelope?.Headers?.AddFault(fault);
+            dispatchContext.Envelope = CreateErrorEnvelope(errorEndpoint, envelope, fault);
 
             await errorEndpoint.ExecuteAsync(dispatchContext);
         }
@@ -144,6 +150,47 @@ internal sealed class ReceiveFaultMiddleware(
                 return ctx => middleware.InvokeAsync(ctx, next);
             },
             "Fault");
+
+    private static MessageEnvelope? CreateErrorEnvelope(
+        DispatchEndpoint endpoint,
+        MessageEnvelope? envelope,
+        FaultInfo fault)
+    {
+        if (envelope is null)
+        {
+            return null;
+        }
+
+        var includeFaultDetails =
+            endpoint.Transport.HasCapability(MessagingTransportCapabilities.RequestReply);
+        var headers = CreateFaultHeaders(envelope.Headers, includeFaultDetails);
+        headers.AddFault(fault, includeFaultDetails);
+
+        return new MessageEnvelope(envelope)
+        {
+            ResponseAddress = null,
+            ScheduledTime = null,
+            Headers = headers
+        };
+    }
+
+    private static IHeaders CreateFaultHeaders(IHeaders? source, bool includeDetails)
+    {
+        if (source is null)
+        {
+            return new Headers();
+        }
+
+        if (includeDetails)
+        {
+            return new Headers(source);
+        }
+
+        return new Headers(source.Where(static header =>
+            header.Key != MessageHeaders.Fault.ExceptionType.Key
+            && header.Key != MessageHeaders.Fault.Message.Key
+            && header.Key != MessageHeaders.Fault.StackTrace.Key));
+    }
 }
 
 file static class Extensions
@@ -152,15 +199,23 @@ file static class Extensions
     /// Maps fault metadata to transport headers so downstream tooling can inspect failures without
     /// deserializing a message body.
     /// </summary>
-    public static void AddFault(this IHeaders headers, FaultInfo fault)
+    public static void AddFault(this IHeaders headers, FaultInfo fault, bool includeDetails)
     {
         headers.SetMessageKind(MessageKind.Fault);
 
         if (fault.Exceptions.FirstOrDefault() is { } exception)
         {
-            headers.Set(MessageHeaders.Fault.ExceptionType, exception.ExceptionType);
-            headers.Set(MessageHeaders.Fault.Message, exception.Message);
-            headers.Set(MessageHeaders.Fault.StackTrace, exception.StackTrace);
+            if (includeDetails)
+            {
+                headers.Set(MessageHeaders.Fault.ExceptionType, exception.ExceptionType);
+                headers.Set(MessageHeaders.Fault.Message, exception.Message);
+                headers.Set(MessageHeaders.Fault.StackTrace, exception.StackTrace);
+            }
+            else
+            {
+                headers.Set(MessageHeaders.Fault.ExceptionType, "MessageHandlerFault");
+                headers.Set(MessageHeaders.Fault.Message, "The message faulted while being processed.");
+            }
         }
 
         headers.Set(MessageHeaders.Fault.Timestamp, fault.Timestamp.ToString("O"));

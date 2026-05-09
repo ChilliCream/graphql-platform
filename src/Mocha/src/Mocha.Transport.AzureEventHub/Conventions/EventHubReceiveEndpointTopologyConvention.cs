@@ -29,7 +29,7 @@ public sealed class EventHubReceiveEndpointTopologyConvention : IEventHubReceive
             });
         }
 
-        // Ensure consumer group exists in topology model (skip $Default — it always exists)
+        // Ensure consumer group exists in topology model. Skip $Default because it always exists.
         var consumerGroup = configuration.ConsumerGroup ?? "$Default";
         if (consumerGroup != "$Default"
             && topology.Subscriptions.FirstOrDefault(

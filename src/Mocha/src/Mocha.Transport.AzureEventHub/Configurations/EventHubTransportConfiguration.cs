@@ -105,11 +105,4 @@ public class EventHubTransportConfiguration : MessagingTransportConfiguration
     /// Required when <see cref="AutoProvision"/> is <c>true</c>.
     /// </summary>
     public string? NamespaceName { get; set; }
-
-    /// <summary>
-    /// Gets or sets the hub name used for request/reply patterns.
-    /// Event Hubs do not support dynamic hub creation, so a shared hub is used.
-    /// Defaults to <c>"replies"</c>.
-    /// </summary>
-    public string ReplyHubName { get; set; } = "replies";
 }

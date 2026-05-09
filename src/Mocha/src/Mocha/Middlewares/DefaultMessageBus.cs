@@ -57,6 +57,11 @@ public sealed class DefaultMessageBus(
         var messageType = runtime.GetMessageType(message!.GetType());
         var endpoint = runtime.GetPublishEndpoint(messageType);
 
+        if (options.ScheduledTime is not null)
+        {
+            EnsureScheduledDeliverySupported(endpoint);
+        }
+
         var context = _contextPool.Get();
         try
         {
@@ -107,6 +112,16 @@ public sealed class DefaultMessageBus(
         var replyEndpoint = options.ReplyEndpoint;
         var faultEndpoint = options.FaultEndpoint;
         var headers = options.Headers;
+
+        if (options.ScheduledTime is not null)
+        {
+            EnsureScheduledDeliverySupported(endpoint);
+        }
+
+        if (replyEndpoint is not null)
+        {
+            EnsureReplyEndpointSupported(endpoint, replyEndpoint, messageType);
+        }
 
         var context = _contextPool.Get();
         try
@@ -209,6 +224,11 @@ public sealed class DefaultMessageBus(
             throw ThrowHelper.TransportNotFoundForAddress(options.ReplyAddress.ToString());
         }
 
+        if (!transport.HasCapability(MessagingTransportCapabilities.RequestReply))
+        {
+            throw ThrowHelper.TransportDoesNotSupportRequestReply(transport.Name, null);
+        }
+
         var replyEndpoint = transport.ReplyDispatchEndpoint;
         if (replyEndpoint is null)
         {
@@ -237,10 +257,9 @@ public sealed class DefaultMessageBus(
 
             await replyEndpoint.ExecuteAsync(context);
         }
-        catch
+        finally
         {
             _contextPool.Return(context);
-            throw;
         }
     }
 
@@ -254,8 +273,26 @@ public sealed class DefaultMessageBus(
             ? runtime.GetDispatchEndpoint(address)
             : runtime.GetSendEndpoint(requestType);
 
+        if (!endpoint.Transport.HasCapability(MessagingTransportCapabilities.RequestReply))
+        {
+            throw ThrowHelper.TransportDoesNotSupportRequestReply(
+                endpoint.Transport.Name,
+                requestType.Identity);
+        }
+
         var replyEndpoint = options.ReplyEndpoint;
         var faultEndpoint = options.FaultEndpoint;
+
+        if (options.ScheduledTime is not null)
+        {
+            EnsureScheduledDeliverySupported(endpoint);
+        }
+
+        if (replyEndpoint is not null)
+        {
+            EnsureReplyEndpointSupported(endpoint, replyEndpoint, requestType);
+        }
+
         // var operationName = $"send {endpoint}";
         var correlationId = Guid.NewGuid().ToString();
 
@@ -319,6 +356,8 @@ public sealed class DefaultMessageBus(
         var messageType = runtime.GetMessageType(message!.GetType());
         var endpoint = runtime.GetPublishEndpoint(messageType);
 
+        EnsureScheduledDeliverySupported(endpoint);
+
         var context = _contextPool.Get();
         try
         {
@@ -375,6 +414,13 @@ public sealed class DefaultMessageBus(
         var replyEndpoint = options.ReplyEndpoint;
         var faultEndpoint = options.FaultEndpoint;
         var headers = options.Headers;
+
+        EnsureScheduledDeliverySupported(endpoint);
+
+        if (replyEndpoint is not null)
+        {
+            EnsureReplyEndpointSupported(endpoint, replyEndpoint, messageType);
+        }
 
         var context = _contextPool.Get();
         try
@@ -433,6 +479,40 @@ public sealed class DefaultMessageBus(
         {
             context.ConversationId ??= ambient.ConversationId;
             context.CausationId ??= ambient.MessageId;
+        }
+    }
+
+    private void EnsureReplyEndpointSupported(
+        DispatchEndpoint endpoint,
+        Uri replyEndpoint,
+        MessageType messageType)
+    {
+        if (!endpoint.Transport.HasCapability(MessagingTransportCapabilities.RequestReply))
+        {
+            throw ThrowHelper.TransportDoesNotSupportSendReplyEndpoint(
+                endpoint.Transport.Name,
+                messageType.Identity);
+        }
+
+        var replyTransport = runtime.GetTransport(replyEndpoint);
+        if (replyTransport is null)
+        {
+            throw ThrowHelper.TransportNotFoundForAddress(replyEndpoint.ToString());
+        }
+
+        if (!replyTransport.HasCapability(MessagingTransportCapabilities.RequestReply))
+        {
+            throw ThrowHelper.TransportDoesNotSupportSendReplyEndpoint(
+                replyTransport.Name,
+                messageType.Identity);
+        }
+    }
+
+    private static void EnsureScheduledDeliverySupported(DispatchEndpoint endpoint)
+    {
+        if (!endpoint.Transport.HasCapability(MessagingTransportCapabilities.ScheduledDelivery))
+        {
+            throw ThrowHelper.TransportDoesNotSupportScheduledDelivery(endpoint.Transport.Name);
         }
     }
 }

@@ -69,6 +69,16 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     public abstract MessagingTopology Topology { get; }
 
     /// <summary>
+    /// The messaging patterns supported by this transport.
+    /// </summary>
+    public virtual MessagingTransportCapabilities Capabilities => MessagingTransportCapabilities.All;
+
+    /// <summary>
+    /// Defines whether this transport should be preferred for otherwise unrouted messages.
+    /// </summary>
+    public bool IsDefaultTransport { get; private set; }
+
+    /// <summary>
     /// Naming conventions used to derive endpoint, queue, and exchange names from message types and consumers.
     /// </summary>
     public IBusNamingConventions Naming { get; protected set; } = null!;
@@ -153,7 +163,8 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
             GetType().Name,
             receiveEndpoints,
             dispatchEndpoints,
-            topology);
+            topology,
+            Capabilities);
     }
 
     /// <summary>
@@ -253,6 +264,17 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     /// <exception cref="InvalidOperationException">Thrown when endpoint configuration cannot be created for the route.</exception>
     public DispatchEndpoint ConnectRoute(IMessagingConfigurationContext context, OutboundRoute route)
     {
+        var required = MessagingTransportCapabilityMap.GetRequiredCapability(route.Kind);
+        if (!HasCapability(required))
+        {
+            throw ThrowHelper.TransportLacksCapabilityForOutboundRoute(
+                Name,
+                route.Kind,
+                required,
+                route.MessageType.Identity,
+                $"Bind this route to a transport that supports the '{required}' capability.");
+        }
+
         if (CreateEndpointConfiguration(context, route) is not { } configuration)
         {
             throw ThrowHelper.EndpointConfigurationFailed();
@@ -276,6 +298,17 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     /// <exception cref="InvalidOperationException">Thrown when endpoint configuration cannot be created for the route.</exception>
     public ReceiveEndpoint ConnectRoute(IMessagingConfigurationContext context, InboundRoute route)
     {
+        var required = MessagingTransportCapabilityMap.GetRequiredCapability(route.Kind);
+        if (!HasCapability(required))
+        {
+            throw ThrowHelper.TransportLacksCapabilityForInboundRoute(
+                Name,
+                route.Kind,
+                required,
+                route.MessageType?.Identity,
+                $"Bind this route to a transport that supports the '{required}' capability.");
+        }
+
         if (CreateEndpointConfiguration(context, route) is not { } configuration)
         {
             throw ThrowHelper.EndpointConfigurationFailed();
@@ -289,6 +322,93 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
         return endpoint;
     }
 
+    internal bool TryConnectRoute(
+        IMessagingConfigurationContext context,
+        OutboundRoute route,
+        [NotNullWhen(true)] out DispatchEndpoint? endpoint)
+    {
+        if (!ShouldClaimRoute(context, MessagingTransportCapabilityMap.GetRequiredCapability(route.Kind)))
+        {
+            endpoint = null;
+            return false;
+        }
+
+        endpoint = ConnectRoute(context, route);
+        return true;
+    }
+
+    internal bool TryConnectRoute(
+        IMessagingConfigurationContext context,
+        InboundRoute route,
+        [NotNullWhen(true)] out ReceiveEndpoint? endpoint)
+    {
+        if (!ShouldClaimRoute(context, MessagingTransportCapabilityMap.GetRequiredCapability(route.Kind)))
+        {
+            endpoint = null;
+            return false;
+        }
+
+        endpoint = ConnectRoute(context, route);
+        return true;
+    }
+
+    internal bool HasCapability(MessagingTransportCapabilities capability)
+        => (Capabilities & capability) == capability;
+
+    private bool ShouldClaimRoute(
+        IMessagingConfigurationContext context,
+        MessagingTransportCapabilities required)
+    {
+        if (!HasCapability(required))
+        {
+            return false;
+        }
+
+        if (required == MessagingTransportCapabilities.None)
+        {
+            return true;
+        }
+
+        MessagingTransport? preferred = null;
+        var preferredScore = int.MaxValue;
+
+        foreach (var transport in context.Transports)
+        {
+            if (!transport.HasCapability(required))
+            {
+                continue;
+            }
+
+            if (transport.IsDefaultTransport)
+            {
+                preferred = transport;
+                break;
+            }
+
+            var score = CountCapabilities(transport.Capabilities);
+            if (score < preferredScore)
+            {
+                preferred = transport;
+                preferredScore = score;
+            }
+        }
+
+        return ReferenceEquals(preferred, this);
+    }
+
+    private static int CountCapabilities(MessagingTransportCapabilities capabilities)
+    {
+        var count = 0;
+        var value = (int)capabilities;
+        while (value != 0)
+        {
+            count += value & 1;
+            value >>= 1;
+        }
+
+        return count;
+    }
+
     /// <summary>
     /// Creates and registers a new dispatch endpoint from the given configuration.
     /// </summary>
@@ -299,6 +419,17 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
         IMessagingConfigurationContext context,
         DispatchEndpointConfiguration configuration)
     {
+        var required = MessagingTransportCapabilityMap.GetRequiredCapability(configuration.Kind);
+        if (!HasCapability(required))
+        {
+            throw ThrowHelper.TransportLacksCapabilityForDispatchEndpoint(
+                Name,
+                configuration.Name ?? "<unnamed>",
+                configuration.Kind,
+                required,
+                "Use a transport that supports this endpoint kind, or remove this binding.");
+        }
+
         var endpoint = CreateDispatchEndpoint();
 
         endpoint.Initialize(context, configuration);
@@ -318,6 +449,17 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
         IMessagingConfigurationContext context,
         ReceiveEndpointConfiguration configuration)
     {
+        var required = MessagingTransportCapabilityMap.GetRequiredCapability(configuration.Kind);
+        if (!HasCapability(required))
+        {
+            throw ThrowHelper.TransportLacksCapabilityForReceiveEndpoint(
+                Name,
+                configuration.Name ?? "<unnamed>",
+                configuration.Kind,
+                required,
+                "Use a transport that supports this endpoint kind, or remove this binding.");
+        }
+
         var endpoint = CreateReceiveEndpoint();
 
         endpoint.Initialize(context, configuration);

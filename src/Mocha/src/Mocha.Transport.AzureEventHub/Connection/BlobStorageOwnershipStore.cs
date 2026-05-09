@@ -132,7 +132,7 @@ public sealed class BlobStorageOwnershipStore : IPartitionOwnershipStore
             catch (RequestFailedException ex) when (ex.Status is 409 or 412)
             {
                 // ETag conflict or precondition failed: another instance claimed this partition.
-                // Skip it — this is expected during distributed coordination.
+                // Skip it, this is expected during distributed coordination.
             }
         }
 

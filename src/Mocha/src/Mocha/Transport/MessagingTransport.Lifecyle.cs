@@ -26,6 +26,7 @@ public abstract partial class MessagingTransport
         Naming = context.Naming;
         Conventions = new ConventionRegistry(context.Conventions.Concat(Configuration.Conventions));
         Options = Configuration.Options;
+        IsDefaultTransport = Configuration.IsDefaultTransport;
 
         _features = Configuration.Features;
         var busMiddlewares = context.Features.GetRequired<MiddlewareFeature>();
@@ -54,6 +55,8 @@ public abstract partial class MessagingTransport
                     var applied = false;
                     foreach (var route in routes)
                     {
+                        ValidateInboundRouteCapability(route, endpointConfiguration.Name);
+
                         if (route.Endpoint is null)
                         {
                             route.ConnectEndpoint(context, endpoint);
@@ -72,6 +75,7 @@ public abstract partial class MessagingTransport
                             Consumer = consumer
                         };
                         route.Initialize(context, configuration);
+                        ValidateInboundRouteCapability(route, endpointConfiguration.Name);
                         route.ConnectEndpoint(context, endpoint);
                     }
                 }
@@ -89,6 +93,8 @@ public abstract partial class MessagingTransport
 
             foreach (var (runtimeType, kind) in endpointConfiguration.Routes)
             {
+                ValidateOutboundRouteKindCapability(kind, runtimeType, endpointConfiguration.Name);
+
                 var route = context.Router.OutboundRoutes.FirstOrDefault(x =>
                     x.Kind == kind && x.MessageType.RuntimeType == runtimeType
                 );
@@ -141,9 +147,11 @@ public abstract partial class MessagingTransport
         OnBeforeDiscoverEndpoints(context);
 
         var router = context.Router;
+        var supportsRequestReply = HasCapability(MessagingTransportCapabilities.RequestReply);
 
         // discover reply receive endpoint
-        if (ReceiveEndpoints.FirstOrDefault(x => x.Kind == ReceiveEndpointKind.Reply) is null)
+        if (supportsRequestReply
+            && ReceiveEndpoints.FirstOrDefault(x => x.Kind == ReceiveEndpointKind.Reply) is null)
         {
             var replyConsumer = context.Consumers.OfType<ReplyConsumer>().FirstOrDefault();
 
@@ -169,7 +177,8 @@ public abstract partial class MessagingTransport
         }
 
         // discover reply dispatch endpoint
-        if (DispatchEndpoints.FirstOrDefault(x => x.Kind == DispatchEndpointKind.Reply) is null)
+        if (supportsRequestReply
+            && DispatchEndpoints.FirstOrDefault(x => x.Kind == DispatchEndpointKind.Reply) is null)
         {
             var uri = new UriBuilder
             {
@@ -192,10 +201,13 @@ public abstract partial class MessagingTransport
             {
                 if (route.Endpoint is null)
                 {
-                    ConnectRoute(context, route);
+                    TryConnectRoute(context, route, out _);
                 }
 
-                CreateMatchingOutboundRoute(context, route);
+                if (route.Endpoint?.Transport == this)
+                {
+                    CreateMatchingOutboundRoute(context, route);
+                }
             }
         }
 
@@ -206,7 +218,7 @@ public abstract partial class MessagingTransport
             // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
             if (route.Endpoint is null)
             {
-                ConnectRoute(context, route);
+                TryConnectRoute(context, route, out _);
             }
         }
 
@@ -231,6 +243,11 @@ public abstract partial class MessagingTransport
     {
         if (route.Kind is Send or Request or Subscribe)
         {
+            if (!HasCapability(MessagingTransportCapabilityMap.GetRequiredCapability(route.Kind)))
+            {
+                return;
+            }
+
             var outboundRouteKind = route.Kind is Send or Request ? OutboundRouteKind.Send : OutboundRouteKind.Publish;
 
             var outboundRoute = context.Router.OutboundRoutes.FirstOrDefault(x =>
@@ -312,5 +329,44 @@ public abstract partial class MessagingTransport
     public void MarkInitialized()
     {
         IsInitialized = true;
+    }
+
+    private void ValidateInboundRouteCapability(InboundRoute route, string? endpointName)
+    {
+        var required = MessagingTransportCapabilityMap.GetRequiredCapability(route.Kind);
+
+        if (HasCapability(required))
+        {
+            return;
+        }
+
+        throw ThrowHelper.TransportLacksCapabilityForInboundRoute(
+            Name,
+            route.Kind,
+            required,
+            route.MessageType?.Identity,
+            $"Bind this route to a transport that supports the '{required}' capability"
+            + (endpointName is not null ? $" instead of endpoint '{endpointName}'." : "."));
+    }
+
+    private void ValidateOutboundRouteKindCapability(
+        OutboundRouteKind kind,
+        Type runtimeType,
+        string? endpointName)
+    {
+        var required = MessagingTransportCapabilityMap.GetRequiredCapability(kind);
+
+        if (HasCapability(required))
+        {
+            return;
+        }
+
+        throw ThrowHelper.TransportLacksCapabilityForOutboundRoute(
+            Name,
+            kind,
+            required,
+            runtimeType.FullName,
+            $"Bind this route to a transport that supports the '{required}' capability"
+            + (endpointName is not null ? $" instead of endpoint '{endpointName}'." : "."));
     }
 }

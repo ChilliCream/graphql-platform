@@ -98,6 +98,7 @@ public sealed class EventHubReceiveEndpoint(EventHubMessagingTransport transport
                     ct);
 
         var logger = context.Services.GetRequiredService<ILogger<MochaEventProcessor>>();
+        var processorOptions = _processorOptions ?? new EventProcessorOptions();
 
         if (connectionProvider.ConnectionString is not null)
         {
@@ -112,7 +113,7 @@ public sealed class EventHubReceiveEndpoint(EventHubMessagingTransport transport
                 _checkpointInterval,
                 _defaultStartingPosition,
                 _eventBatchMaximumCount,
-                _processorOptions);
+                processorOptions);
         }
         else if (connectionProvider.Credential is not null)
         {
@@ -128,7 +129,7 @@ public sealed class EventHubReceiveEndpoint(EventHubMessagingTransport transport
                 _checkpointInterval,
                 _defaultStartingPosition,
                 _eventBatchMaximumCount,
-                _processorOptions);
+                processorOptions);
         }
         else
         {
