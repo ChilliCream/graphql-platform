@@ -7,13 +7,18 @@ import { Main } from "./main";
 export interface SiteLayoutProps {
   readonly children: ReactNode;
   readonly disableStars?: boolean;
+  readonly noFooter?: boolean;
 }
 
-export const SiteLayout: FC<SiteLayoutProps> = ({ children, disableStars }) => {
+export const SiteLayout: FC<SiteLayoutProps> = ({
+  children,
+  disableStars,
+  noFooter,
+}) => {
   return (
     <>
       <GlobalStyle />
-      <Main>{children}</Main>
+      <Main noFooter={noFooter}>{children}</Main>
       <CookieConsent />
       <Promo />
       {!disableStars && <Stars />}

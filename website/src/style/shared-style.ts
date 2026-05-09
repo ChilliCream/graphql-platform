@@ -128,7 +128,7 @@ export const ZOOM_OUT = keyframes`
 `;
 
 export const DocArticleDesktopGridColumns = css`
-  grid-template-columns: 1fr 230px 740px 230px 1fr;
+  grid-template-columns: 300px minmax(0, 1fr) 300px;
 `;
 
 export interface ThemeColors {

@@ -7,7 +7,14 @@ import { hasScrolled } from "@/state/common";
 import { Footer } from "./footer";
 import { Header } from "./header";
 
-export const Main: FC<PropsWithChildren<unknown>> = ({ children }) => {
+export interface MainProps {
+  readonly noFooter?: boolean;
+}
+
+export const Main: FC<PropsWithChildren<MainProps>> = ({
+  children,
+  noFooter,
+}) => {
   const ref = useRef<HTMLDivElement>(null);
   const dispatch = useDispatch();
 
@@ -58,7 +65,7 @@ export const Main: FC<PropsWithChildren<unknown>> = ({ children }) => {
     <Container ref={ref}>
       <Header />
       <Content>{children}</Content>
-      <Footer />
+      {!noFooter && <Footer />}
       <PageTop onTopScroll={scrollToTop} />
     </Container>
   );

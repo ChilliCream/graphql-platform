@@ -6,6 +6,7 @@ import {
   Article,
   ArticleContainer,
   ArticleWrapper,
+  FooterSlot,
   LayoutContainer,
 } from "./article-layout-elements";
 import { ArticleLayoutNavigation } from "./article-layout-navigation";
@@ -15,12 +16,14 @@ export interface ArticleLayoutProps {
   readonly children: ReactNode;
   readonly navigation: ReactNode;
   readonly aside: ReactNode;
+  readonly footer?: ReactNode;
 }
 
 export function ArticleLayout({
   children,
   navigation,
   aside,
+  footer,
 }: ArticleLayoutProps): ReactElement {
   const ref = useCalculateArticleHeight();
 
@@ -34,6 +37,7 @@ export function ArticleLayout({
           </ArticleContainer>
         </ArticleWrapper>
         <ArticleLayoutAside>{aside}</ArticleLayoutAside>
+        {footer && <FooterSlot>{footer}</FooterSlot>}
       </LayoutContainer>
     </TabGroupProvider>
   );

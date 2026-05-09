@@ -12,6 +12,7 @@ import {
   ArticleTitle,
 } from "@/components/article-elements";
 import { ArticleLayout, SiteLayout } from "@/components/layout";
+import { Footer } from "@/components/layout/site/footer";
 import { Link, SEO } from "@/components/misc";
 import { THEME_COLORS } from "@/style";
 import { ArticleContentFooter } from "@/components/articles/article-content-footer";
@@ -61,7 +62,7 @@ export function DocPageView({
   }, [docsConfig, productPath, versionPath]);
 
   return (
-    <SiteLayout>
+    <SiteLayout noFooter>
       <SEO title={title} description={page.frontmatter?.description} />
       <ArticleLayout
         navigation={
@@ -78,6 +79,7 @@ export function DocPageView({
             <ArticleTableOfContent data={{ headings }} />
           </>
         }
+        footer={<Footer />}
       >
         <ArticleHeader>
           <ResponsiveArticleMenu />

@@ -11,10 +11,10 @@ import {
 
 export const LayoutContainer = styled.div`
   display: grid;
-  grid-template-columns: 1fr 230px 740px 230px 1fr;
+  grid-template-columns: 300px minmax(0, 1fr) 300px;
 
   ${IsSmallDesktop(`
-    grid-template-columns: 230px 1fr;
+    grid-template-columns: 300px minmax(0, 1fr);
     width: auto;
   `)}
 
@@ -35,6 +35,7 @@ const DocArticleStickySideBarStyle = css`
   display: flex;
   flex-direction: column;
   align-self: start;
+  box-sizing: border-box;
   max-height: 90vh;
   padding: 25px 0 0;
   overflow-y: hidden;
@@ -60,7 +61,7 @@ export const Navigation = styled.nav.attrs({
 })<NavigationProps>`
   ${DocArticleStickySideBarStyle}
   grid-row: 1;
-  grid-column: 2;
+  grid-column: 1;
   transition: margin-left 250ms;
 
   ${({ $show }) =>
@@ -78,26 +79,26 @@ export const Navigation = styled.nav.attrs({
       height: ${$height};
     `)}
 
-  ${IsSmallDesktop(`
-    grid-column: 1;
-  `)}
-
   ${IsDesktop(`
+    position: fixed;
     top: 72px;
-    background-color: initial;
+    left: 0;
+    width: 300px;
+    height: calc(100vh - 72px);
+    max-height: none;
+    padding: 32px 24px 32px 32px;
+    overflow-y: auto;
+    background-color: ${THEME_COLORS.background};
   `)}
 `;
 
 export const ArticleWrapper = styled.div`
   display: flex;
+  justify-content: center;
   grid-row: 1;
-  grid-column: 3 / 4;
+  grid-column: 2;
   min-width: 0;
   overflow: visible;
-
-  ${IsSmallDesktop(`
-    grid-column: 2;
-  `)}
 
   ${IsTablet(`
     grid-column: 1;
@@ -105,7 +106,10 @@ export const ArticleWrapper = styled.div`
 `;
 
 export const ArticleContainer = styled.div`
-  padding: 20px 40px 0;
+  width: 100%;
+  max-width: 920px;
+  padding: 20px 48px 0;
+  box-sizing: border-box;
   min-width: 0;
   overflow: visible;
 
@@ -122,10 +126,16 @@ export const Article = styled.article`
   overflow: visible;
   background-color: ${THEME_COLORS.background};
   box-shadow: 0 0 120px 120px ${THEME_COLORS.background};
+`;
 
-  @media only screen and (min-width: 700px) {
-    max-width: 660px;
-  }
+export const FooterSlot = styled.div`
+  grid-row: 2;
+  grid-column: 2;
+  min-width: 0;
+
+  ${IsTablet(`
+    grid-column: 1;
+  `)}
 `;
 
 export interface AsideProps {
@@ -136,7 +146,7 @@ export interface AsideProps {
 export const Aside = styled.aside<AsideProps>`
   ${DocArticleStickySideBarStyle}
   grid-row: 1;
-  grid-column: 4;
+  grid-column: 3;
   margin-left: 0;
   transition: transform 250ms;
 
@@ -154,7 +164,14 @@ export const Aside = styled.aside<AsideProps>`
     `)}
 
   ${IsDesktop(`
+    position: fixed;
     top: 72px;
-    background-color: initial;
-`)}
+    right: 0;
+    width: 300px;
+    height: calc(100vh - 72px);
+    max-height: none;
+    padding: 32px 32px 32px 24px;
+    overflow-y: auto;
+    background-color: ${THEME_COLORS.background};
+  `)}
 `;

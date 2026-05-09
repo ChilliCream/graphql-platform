@@ -36,15 +36,14 @@ interface DocArticleNavigationProduct {
   versions?: Array<{
     path?: string | null;
     title?: string | null;
-    items?: Array<{
-      path?: string | null;
-      title?: string | null;
-      items?: Array<{
-        path?: string | null;
-        title?: string | null;
-      } | null> | null;
-    } | null> | null;
+    items?: Array<DocArticleNavigationItem | null> | null;
   } | null> | null;
+}
+
+interface DocArticleNavigationItem {
+  path?: string | null;
+  title?: string | null;
+  items?: Array<DocArticleNavigationItem | null> | null;
 }
 
 interface DocArticleNavigationData {
@@ -113,18 +112,7 @@ export const DocArticleNavigation: FC<DocArticleNavigationProps> = ({
   const subItems: Item[] =
     activeVersion?.items
       ?.filter((item) => !!item)
-      .map<Item>((item) => ({
-        path: item!.path!,
-        title: item!.title!,
-        items: item!.items
-          ? item?.items
-              .filter((item) => !!item)
-              .map<Item>((item) => ({
-                path: item!.path!,
-                title: item!.title!,
-              }))
-          : undefined,
-      })) ?? [];
+      .map<Item>((item) => mapNavigationItem(item!)) ?? [];
 
   const basePath = `/docs/${activeProduct!.path!}${
     !!activeVersion?.path?.length ? "/" + activeVersion.path : ""
@@ -215,6 +203,18 @@ export const DocArticleNavigation: FC<DocArticleNavigationProps> = ({
     </>
   );
 };
+
+function mapNavigationItem(item: DocArticleNavigationItem): Item {
+  return {
+    path: item.path!,
+    title: item.title!,
+    items: item.items
+      ? item.items
+          .filter((item) => !!item)
+          .map<Item>((item) => mapNavigationItem(item!))
+      : undefined,
+  };
+}
 
 interface NavigationContainerProps {
   readonly basePath: string;

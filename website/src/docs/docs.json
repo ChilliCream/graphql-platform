@@ -359,6 +359,218 @@
         "items": [
           { "path": "index", "title": "Overview" },
           {
+            "path": "get-started",
+            "title": "Get Started",
+            "items": [
+              { "path": "index", "title": "Overview" },
+              { "path": "prerequisites", "title": "Prerequisites" },
+              { "path": "at-a-glance", "title": "At a Glance" },
+              {
+                "path": "install-and-scaffold",
+                "title": "Install and Scaffold"
+              },
+              {
+                "path": "run-your-first-query",
+                "title": "Run Your First Query"
+              },
+              {
+                "path": "add-to-existing-app",
+                "title": "Add to Existing App"
+              },
+              { "path": "connecting-a-client", "title": "Connecting a Client" },
+              {
+                "path": "what-just-happened",
+                "title": "What Just Happened"
+              },
+              { "path": "make-it-yours", "title": "Make It Yours" },
+              { "path": "troubleshooting", "title": "Troubleshooting" },
+              { "path": "next-steps", "title": "Next Steps" }
+            ]
+          },
+          {
+            "path": "learn",
+            "title": "Learn",
+            "items": [
+              { "path": "index", "title": "Overview" },
+              {
+                "path": "1-quick-start",
+                "title": "Quick Start",
+                "items": [
+                  { "path": "index", "title": "Overview" },
+                  { "path": "add-a-field", "title": "Add a Field" },
+                  { "path": "add-an-argument", "title": "Add an Argument" },
+                  {
+                    "path": "use-real-data-preview",
+                    "title": "Use Real Data Preview"
+                  }
+                ]
+              },
+              {
+                "path": "2-tutorial-build-your-first-graphql-server",
+                "title": "Build Your First GraphQL Server",
+                "items": [
+                  {
+                    "path": "index",
+                    "title": "Overview"
+                  },
+                  {
+                    "path": "00-source-code-and-checkpoints",
+                    "title": "Source Code and Checkpoints"
+                  },
+                  {
+                    "path": "01-set-up-the-project",
+                    "title": "Set Up the Project"
+                  },
+                  {
+                    "path": "02-define-your-first-types",
+                    "title": "Define Your First Types"
+                  },
+                  { "path": "03-write-resolvers", "title": "Write Resolvers" },
+                  {
+                    "path": "04-add-arguments-and-filters",
+                    "title": "Add Arguments and Filters"
+                  },
+                  {
+                    "path": "05-connect-to-real-data",
+                    "title": "Connect to Real Data"
+                  },
+                  {
+                    "path": "06-fix-n-plus-1-with-dataloader",
+                    "title": "Fix N+1 with DataLoader"
+                  },
+                  {
+                    "path": "07-add-pagination",
+                    "title": "Add Pagination"
+                  },
+                  { "path": "08-add-mutations", "title": "Add Mutations" },
+                  {
+                    "path": "09-add-subscriptions",
+                    "title": "Add Subscriptions"
+                  },
+                  {
+                    "path": "10-test-your-server",
+                    "title": "Test Your Server"
+                  },
+                  {
+                    "path": "11-call-from-a-client",
+                    "title": "Call from a Client"
+                  },
+                  { "path": "12-secure-your-api", "title": "Secure Your API" },
+                  {
+                    "path": "13-prepare-for-production",
+                    "title": "Prepare for Production"
+                  },
+                  { "path": "stuck", "title": "Stuck?" },
+                  { "path": "you-did-it", "title": "You Did It" }
+                ]
+              },
+              {
+                "path": "3-thinking-in-graphql",
+                "title": "Thinking in GraphQL",
+                "items": [
+                  { "path": "index", "title": "Overview" },
+                  {
+                    "path": "why-graphql-on-dotnet",
+                    "title": "Why GraphQL on .NET"
+                  },
+                  {
+                    "path": "schema-design-principles",
+                    "title": "Schema Design Principles"
+                  },
+                  {
+                    "path": "implementation-first-vs-code-first",
+                    "title": "Implementation-first vs Code-first"
+                  },
+                  {
+                    "path": "how-graphql-executes",
+                    "title": "How GraphQL Executes"
+                  },
+                  { "path": "operations", "title": "Operations" },
+                  {
+                    "path": "caching-and-operation-contracts",
+                    "title": "Caching and Operation Contracts"
+                  },
+                  { "path": "clients", "title": "Clients" },
+                  {
+                    "path": "modeling-entities-vs-operations",
+                    "title": "Modeling Entities vs Operations"
+                  },
+                  {
+                    "path": "polymorphism-and-identity",
+                    "title": "Polymorphism and Identity"
+                  },
+                  {
+                    "path": "resolver-and-data-middleware-model",
+                    "title": "Resolver and Data Middleware Model"
+                  },
+                  { "path": "nullability", "title": "Nullability" },
+                  { "path": "errors", "title": "Errors" },
+                  {
+                    "path": "pagination-styles",
+                    "title": "Pagination Styles"
+                  },
+                  {
+                    "path": "subscriptions-and-realtime",
+                    "title": "Subscriptions and Realtime"
+                  },
+                  {
+                    "path": "testing-graphql-apis",
+                    "title": "Testing GraphQL APIs"
+                  },
+                  {
+                    "path": "performance-mental-model",
+                    "title": "Performance Mental Model"
+                  },
+                  {
+                    "path": "security-and-api-boundaries",
+                    "title": "Security and API Boundaries"
+                  },
+                  {
+                    "path": "schema-evolution",
+                    "title": "Schema Evolution"
+                  },
+                  {
+                    "path": "connecting-to-real-data",
+                    "title": "Connecting to Real Data"
+                  }
+                ]
+              },
+              {
+                "path": "4-installation-and-setup",
+                "title": "Installation and Setup",
+                "items": [
+                  { "path": "index", "title": "Overview" },
+                  { "path": "packages", "title": "Packages" },
+                  {
+                    "path": "existing-aspnet-core-app",
+                    "title": "Existing ASP.NET Core App"
+                  },
+                  { "path": "aspnet-core", "title": "ASP.NET Core" },
+                  { "path": "minimal-apis", "title": "Minimal APIs" },
+                  {
+                    "path": "local-development",
+                    "title": "Local Development"
+                  },
+                  { "path": "azure-functions", "title": "Azure Functions" },
+                  { "path": "aspire", "title": "Aspire" }
+                ]
+              },
+              {
+                "path": "5-coming-from",
+                "title": "Coming From",
+                "items": [
+                  { "path": "index", "title": "Overview" },
+                  { "path": "rest-controllers", "title": "REST Controllers" },
+                  { "path": "graphql-dotnet", "title": "GraphQL.NET" },
+                  {
+                    "path": "hot-chocolate-v16",
+                    "title": "Hot Chocolate v16"
+                  }
+                ]
+              }
+            ]
+          },
+          {
             "path": "get-started-with-graphql-in-net-core",
             "title": "Getting Started"
           },
