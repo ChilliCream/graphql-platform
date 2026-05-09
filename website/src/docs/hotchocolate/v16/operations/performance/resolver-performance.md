@@ -2,25 +2,25 @@
 title: "Resolver Performance"
 ---
 
-This page helps you make Hot Chocolate v16 resolvers fast under production concurrency. It focuses on resolver code inside one Hot Chocolate server: async I/O, cancellation, DataLoader batching, provider-side query shaping, service lifetimes, middleware cost, allocations, instrumentation, and troubleshooting.
+This page guides you in making Hot Chocolate v16 resolvers fast and reliable under production concurrency. It focuses on resolver code within a single Hot Chocolate server, covering async I/O, cancellation, DataLoader batching, provider-side query shaping, service lifetimes, middleware cost, allocations, instrumentation, and troubleshooting.
 
-Fusion gateway planning and distributed query execution are out of scope. Use this page when a field resolver, nested relationship, or data-fetching path in a single Hot Chocolate server is slow.
+Fusion gateway planning and distributed query execution are not covered here. Use this page when a field resolver, nested relationship, or data-fetching path in a single Hot Chocolate server is slow.
 
 # Prerequisites
 
-You should be comfortable with C# `async`/`await`, ASP.NET Core dependency injection, and GraphQL field selections. You do not need Entity Framework Core, MongoDB, or Marten to use the guidance, but the examples show how resolver shape changes when a backend can translate filtering, sorting, projection, or paging.
+You should be familiar with C# `async`/`await`, ASP.NET Core dependency injection, and GraphQL field selections. You do not need to use Entity Framework Core, MongoDB, or Marten, but the examples show how resolver shapes change when a backend supports filtering, sorting, projection, or paging.
 
-Before you tune a resolver, know where to find the deeper topics:
+Before tuning a resolver, know where to find deeper topics:
 
-- [Resolvers](/docs/hotchocolate/v16/resolvers-and-data/resolvers) for resolver signatures, parent values, cancellation, and batch resolvers.
-- [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader) for source-generated loaders, request caching, execution waves, and batch resolvers.
-- [Projections](/docs/hotchocolate/v16/resolvers-and-data/projections), [Filtering](/docs/hotchocolate/v16/resolvers-and-data/filtering), [Sorting](/docs/hotchocolate/v16/resolvers-and-data/sorting), and [Pagination](/docs/hotchocolate/v16/resolvers-and-data/pagination) for provider-side query shaping.
-- [Dependency Injection](/docs/hotchocolate/v16/resolvers-and-data/dependency-injection) for resolver scopes, request scopes, and schema services.
-- [Instrumentation](/docs/hotchocolate/v16/server/instrumentation) for OpenTelemetry and diagnostic listeners.
+- [Resolvers](/docs/hotchocolate/v16/resolvers-and-data/resolvers): resolver signatures, parent values, cancellation, and batch resolvers
+- [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader): source-generated loaders, request caching, execution waves, and batch resolvers
+- [Projections](/docs/hotchocolate/v16/resolvers-and-data/projections), [Filtering](/docs/hotchocolate/v16/resolvers-and-data/filtering), [Sorting](/docs/hotchocolate/v16/resolvers-and-data/sorting), [Pagination](/docs/hotchocolate/v16/resolvers-and-data/pagination): provider-side query shaping
+- [Dependency Injection](/docs/hotchocolate/v16/resolvers-and-data/dependency-injection): resolver scopes, request scopes, and schema services
+- [Instrumentation](/docs/hotchocolate/v16/server/instrumentation): OpenTelemetry and diagnostic listeners
 
-# Start with the fast resolver shape
+# Use the Fast Resolver Shape
 
-A fast nested resolver is a thin adapter. It reads the parent value, accepts services through method parameters, accepts a `CancellationToken`, and delegates I/O to a DataLoader or an application service.
+A performant nested resolver acts as a thin adapter. It reads the parent value, receives services via method parameters, accepts a `CancellationToken`, and delegates I/O to a DataLoader or application service.
 
 ```csharp
 // Types/ProductNode.cs
@@ -35,7 +35,7 @@ public static partial class ProductNode
 }
 ```
 
-Expected behavior for this resolver:
+For this resolver, a query like:
 
 ```graphql
 query ProductsWithBrands {
@@ -50,28 +50,28 @@ query ProductsWithBrands {
 }
 ```
 
-Hot Chocolate calls `GetBrandAsync` once for each selected product, but `IBrandByIdDataLoader` queues the keys and executes one brand batch for the unique brand IDs in the request.
+Hot Chocolate calls `GetBrandAsync` for each selected product, but `IBrandByIdDataLoader` batches the unique brand IDs and executes a single backend call per batch.
 
-Use this shape as your default:
+Follow these principles for fast resolvers:
 
-- Keep GraphQL resolvers thin. Put business rules and data access behind services or DataLoaders.
-- Inject dependencies as resolver method parameters, not constructors on GraphQL type definitions.
-- Return `Task<T>` for asynchronous I/O.
-- Accept `CancellationToken` and pass it to EF Core, MongoDB, Marten, HTTP clients, DataLoaders, and external APIs.
-- Avoid data-access loops inside nested resolvers unless a provider middleware handles the query shape.
-- Treat `ValueTask<T>` as an advanced optimization. Use it only when an API commonly completes synchronously and measurements show allocation pressure.
+- Keep resolvers thin; put business logic and data access in services or DataLoaders
+- Inject dependencies as method parameters, not via type definition constructors
+- Return `Task<T>` for async I/O
+- Accept and pass `CancellationToken` to all async APIs
+- Avoid data-access loops in nested resolvers unless provider middleware shapes the query
+- Use `ValueTask<T>` only as an advanced optimization when APIs often complete synchronously and you have measured allocation pressure
 
-# Understand the resolver execution model
+# How Resolver Execution Works
 
 Hot Chocolate executes a GraphQL operation as a tree of field resolvers:
 
-1. A parent field resolves before its child fields.
-2. Query sibling selections can run in parallel.
-3. Top-level mutation fields execute sequentially. Child selections of a mutation result can still run in parallel.
-4. DataLoaders collect keys during a resolver wave, dispatch between waves, deduplicate keys, and cache results for the current request.
-5. Field middleware wraps every selected field where it is applied.
+1. Parent fields resolve before their children
+2. Sibling selections in a query can run in parallel
+3. Top-level mutation fields run sequentially, but their child selections can run in parallel
+4. DataLoaders collect keys during a resolver wave, dispatch between waves, deduplicate keys, and cache results for the request
+5. Field middleware wraps every selected field where applied
 
-For this operation:
+For example, given:
 
 ```graphql
 query ProductsWithRelations {
@@ -89,7 +89,7 @@ query ProductsWithRelations {
 }
 ```
 
-The execution shape is roughly:
+The execution proceeds as:
 
 ```text
 Wave 1: Resolve products(first: 3)
@@ -105,13 +105,13 @@ Dispatch: BrandById loads unique brand IDs [1, 2]
 Wave 3: Resolve Brand.name and ProductType.name
 ```
 
-This model explains common performance failures. A nested resolver that calls a database service directly creates N calls. A shared scoped service that is not thread-safe can fail when sibling query fields run in parallel. A field middleware that performs work for every leaf field can dominate a large selection set.
+This model highlights common performance issues. If a nested resolver calls a database service directly, it can trigger N backend calls. Shared scoped services that are not thread-safe can fail when sibling fields run in parallel. Middleware that runs for every leaf field can dominate performance in large selection sets.
 
-Do not rely on side effects or execution order in query resolvers. Keep side effects in top-level mutations or explicit application workflows.
+Do not rely on side effects or execution order in query resolvers. Keep side effects in top-level mutations or explicit workflows.
 
-# Measure before changing resolver code
+# Measure Before You Change Resolver Code
 
-Start with evidence. Capture the exact operation name, variables, authenticated user shape, request headers that affect authorization or selection, and representative data volume.
+Always start with evidence. Capture the operation name, variables, authenticated user, request headers affecting authorization or selection, and representative data volume.
 
 Add Hot Chocolate instrumentation and OpenTelemetry:
 
@@ -139,7 +139,7 @@ builder.Services
     });
 ```
 
-With the default Hot Chocolate activity scopes, inspect the request span, field resolver spans, and DataLoader batch spans. DataLoader spans include `graphql.dataloader.batch.size`, which helps you find missed batching.
+With default activity scopes, inspect the request span, field resolver spans, and DataLoader batch spans. DataLoader spans include `graphql.dataloader.batch.size`, which helps you spot missed batching.
 
 Enable all scopes only when you need more detail:
 
@@ -152,9 +152,9 @@ builder
     });
 ```
 
-More scopes add overhead. In production, prefer sampling or targeted diagnostics for known slow operations.
+More scopes add overhead. In production, use sampling or targeted diagnostics for known slow operations.
 
-If you write a diagnostic listener, keep it cheap:
+If you write a diagnostic listener, keep it lightweight:
 
 ```csharp
 public sealed class ResolverTimingListener : ExecutionDiagnosticEventListener
@@ -175,7 +175,7 @@ public sealed class ResolverTimingListener : ExecutionDiagnosticEventListener
 
             if (elapsed > TimeSpan.FromMilliseconds(100))
             {
-                // Enqueue or log a small, low-cardinality signal.
+                // Log a small, low-cardinality signal.
                 Console.WriteLine($"Slow GraphQL field: {fieldName}");
             }
         }
@@ -183,13 +183,13 @@ public sealed class ResolverTimingListener : ExecutionDiagnosticEventListener
 }
 ```
 
-Diagnostic handlers execute synchronously as part of the GraphQL request. Do not export traces, call remote systems, write large logs, or serialize operation documents inside the handler. DataLoader keys, operation documents, and variable values can contain sensitive data and can create high-cardinality telemetry.
+Diagnostic handlers run synchronously as part of the request. Do not export traces, call remote systems, write large logs, or serialize operation documents inside the handler. DataLoader keys, operation documents, and variable values may contain sensitive data and can create high-cardinality telemetry.
 
-# Avoid blocking and sync-over-async
+# Avoid Blocking and Sync-over-Async
 
-Blocking calls waste request threads and can cause latency spikes under load.
+Blocking calls waste request threads and cause latency spikes under load.
 
-Avoid these patterns in resolvers:
+Do not use patterns like:
 
 ```csharp
 public static Brand GetBrand(int id, IBrandClient brandClient)
@@ -199,7 +199,7 @@ public static Brand GetBrand(int id, IBrandClient brandClient)
 }
 ```
 
-Use async I/O with cancellation:
+Instead, use async I/O with cancellation:
 
 ```csharp
 public static async Task<Brand> GetBrandAsync(
@@ -213,11 +213,11 @@ Also avoid `.Wait()`, `GetAwaiter().GetResult()`, `Thread.Sleep`, synchronous EF
 
 For CPU-heavy work, use precomputed data, a cache, a background job, or a bounded application service. Do not start unbounded CPU work from every selected child field.
 
-# Fix N+1 with DataLoader or batch resolvers
+# Fix N+1 with DataLoader or Batch Resolvers
 
 Use a DataLoader when many resolver calls need the same lookup shape. Create one loader per shape, such as `BrandById`, `BrandByName`, or `ProductsByBrandId`.
 
-Bad nested resolver:
+A problematic nested resolver:
 
 ```csharp
 [ObjectType<Product>]
@@ -231,9 +231,9 @@ public static partial class ProductNode
 }
 ```
 
-For 20 products, this resolver can call the backend 20 times.
+For 20 products, this can trigger 20 backend calls.
 
-Source-generated DataLoader:
+Instead, use a source-generated DataLoader:
 
 ```csharp
 // DataLoaders/BrandDataLoaders.cs
@@ -251,7 +251,7 @@ internal static class BrandDataLoaders
 }
 ```
 
-Fast resolver:
+And a fast resolver:
 
 ```csharp
 [ObjectType<Product>]
@@ -265,7 +265,7 @@ public static partial class ProductNode
 }
 ```
 
-Expected backend shape for `products(first: 20) { nodes { brand { name } } }`:
+For `products(first: 20) { nodes { brand { name } } }`, the backend sees:
 
 ```text
 1 products query
@@ -301,13 +301,13 @@ public static partial class BrandNode
 }
 ```
 
-DataLoader caching is request-scoped. Use a separate cache for cross-request caching. The `IReadOnlyList<TKey>` passed into a DataLoader method is rented; do not store it or use it after the method returns.
+DataLoader caching is request-scoped. Use a separate cache for cross-request caching. The `IReadOnlyList<TKey>` passed into a DataLoader is rented; do not store or use it after the method returns.
 
-Use a [batch resolver](/docs/hotchocolate/v16/resolvers-and-data/dataloader#batch-resolvers) when the batching belongs to one field and does not benefit from key-based request caching across fields.
+Use a [batch resolver](/docs/hotchocolate/v16/resolvers-and-data/dataloader#batch-resolvers) when batching is specific to one field and does not benefit from key-based request caching across fields.
 
-# Push filtering, sorting, projection, and paging to the data source
+# Push Filtering, Sorting, Projection, and Paging to the Data Source
 
-Let the backend do set operations. Return a provider-aware shape and let Hot Chocolate middleware translate the selected fields, filters, sort order, and page arguments.
+Let the backend handle set operations. Return a provider-aware shape and let Hot Chocolate middleware translate selected fields, filters, sort order, and page arguments.
 
 ```csharp
 // Types/ProductQueries.cs
@@ -323,7 +323,7 @@ public static partial class ProductQueries
 }
 ```
 
-The order matters: `[UsePaging]`, then `[UseProjection]`, then `[UseFiltering]`, then `[UseSorting]`.
+Order matters: `[UsePaging]`, then `[UseProjection]`, then `[UseFiltering]`, then `[UseSorting]`.
 
 Do not materialize before middleware runs:
 
@@ -349,17 +349,17 @@ public static partial class ProductQueries
 }
 ```
 
-Do not combine `QueryContext<T>` with `[UseProjection]` on the same field. The HC0099 analyzer warns when both are present.
+Do not combine `QueryContext<T>` with `[UseProjection]` on the same field. The HC0099 analyzer will warn if both are present.
 
-Projection has important limits:
+Projection has limits:
 
-- Custom field resolvers are not projected into the database by default.
-- If a child resolver needs a parent value that the client did not select, mark that parent field with `[IsProjected(true)]`.
-- Projected members need public setters so Hot Chocolate can construct projected objects.
+- Custom field resolvers are not projected into the database by default
+- If a child resolver needs a parent value not selected by the client, mark that parent field with `[IsProjected(true)]`
+- Projected members need public setters so Hot Chocolate can construct projected objects
 
-Use DataLoader for relationship fields that do not translate cleanly into one provider query.
+Use DataLoader for relationship fields that do not translate cleanly into a single provider query.
 
-# Choose the right backend query shape
+# Choose the Right Backend Query Shape
 
 | Backend      | Preferred resolver shape                                              | Performance check                                                                                                                                 | Deeper docs                                                                                                                                                            |
 | ------------ | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -383,11 +383,11 @@ public static partial class PersonQueries
 }
 ```
 
-Avoid mixing multiple backends in one resolver path unless you measure the fan-out. When a GraphQL field needs data from a database and an external service, use batching and explicit caching boundaries.
+Avoid mixing multiple backends in one resolver path unless you measure the fan-out. When a GraphQL field needs data from both a database and an external service, use batching and explicit caching boundaries.
 
-# Page large result sets deliberately
+# Page Large Result Sets Deliberately
 
-Put `[UsePaging]` on fields that can grow. In v16, pagination defaults to `DefaultPageSize = 10` and `MaxPageSize = 50` unless you configure them.
+Apply `[UsePaging]` to fields that can grow. In v16, pagination defaults to `DefaultPageSize = 10` and `MaxPageSize = 50` unless you configure them.
 
 ```csharp
 [QueryType]
@@ -402,9 +402,9 @@ public static partial class ProductQueries
 }
 ```
 
-Use stable ordering for deterministic pages. Avoid `IncludeTotalCount` on hot paths unless clients need it. Total count can add a separate database query or remote call.
+Use stable ordering for deterministic pages. Avoid `IncludeTotalCount` on hot paths unless clients need it, as total count can add a separate database query or remote call.
 
-For an already paged external API, return a `Connection<T>` from the page you received instead of loading every remote page:
+For an already paged external API, return a `Connection<T>` from the received page instead of loading every remote page:
 
 ```csharp
 [UsePaging]
@@ -432,7 +432,7 @@ public static async Task<Connection<Product>> GetProductsAsync(
 
 For large one-to-many relationships, do not use an unbounded group DataLoader. Add field-level pagination or design a paged loader.
 
-# Scope services for parallel resolver execution
+# Scope Services for Parallel Resolver Execution
 
 Prefer method-level service injection. Hot Chocolate v16 automatically recognizes registered services in resolver parameters.
 
@@ -444,7 +444,7 @@ public static async Task<Product?> GetProductByIdAsync(
     => await db.Products.FindAsync([id], ct);
 ```
 
-Avoid constructor injection into GraphQL type definitions. Type definitions are singletons, so constructor dependencies can become shared across requests and cannot be synchronized by Hot Chocolate during resolver execution.
+Avoid constructor injection into GraphQL type definitions. Type definitions are singletons, so constructor dependencies can be shared across requests and cannot be synchronized by Hot Chocolate during resolver execution.
 
 By default, scoped services are resolver-scoped for queries and DataLoaders, and request-scoped for mutations:
 
@@ -460,7 +460,7 @@ builder
     });
 ```
 
-This default matters for EF Core because `DbContext` is not thread-safe. Resolver scope prevents parallel query fields from using the same scoped instance.
+This default is important for EF Core because `DbContext` is not thread-safe. Resolver scope prevents parallel query fields from using the same scoped instance.
 
 Use `[UseRequestScope]` only when shared request-scoped state is required and safe:
 
@@ -495,9 +495,9 @@ public static async Task<Dictionary<int, Brand>> GetBrandByIdAsync(
 
 If schema services such as diagnostic listeners, error filters, or activity enrichers need application services, use `AddApplicationService<T>()`. Do not inject scoped request services into singleton diagnostics.
 
-# Keep field middleware and authorization cheap
+# Keep Field Middleware and Authorization Efficient
 
-Field middleware runs for every selected field where you apply it. Each middleware adds work to the field resolver pipeline.
+Field middleware runs for every selected field where applied. Each middleware adds work to the resolver pipeline.
 
 A minimal middleware should do bounded work and call the next delegate:
 
@@ -518,13 +518,13 @@ public static class TrimStringMiddlewareExtensions
 }
 ```
 
-Avoid network calls, database calls, and large allocations in generic middleware. If middleware needs external data, batch it through a service or DataLoader and apply the middleware narrowly.
+Avoid network calls, database calls, and large allocations in generic middleware. If middleware needs external data, batch it through a service or DataLoader and apply it narrowly.
 
-Authorization has the same performance trade-off. Field and type authorization must preserve your security model, but repeated expensive leaf-field checks can multiply work. When semantics allow it, authorize an object-returning parent field once instead of repeating the same expensive policy on many child fields.
+Authorization has similar performance trade-offs. Field and type authorization must preserve your security model, but repeated expensive leaf-field checks can multiply work. When possible, authorize an object-returning parent field once instead of repeating the same expensive policy on many child fields.
 
-# Fetch conditionally when selections change cost
+# Fetch Conditionally When Selections Change Cost
 
-Use `[IsSelected]` for targeted optional work, such as calling an external inventory service only when the client selects inventory data. Prefer projections and DataLoaders first; selection-aware branches are for measured hot paths.
+Use `[IsSelected]` for targeted optional work, such as calling an external inventory service only when the client selects inventory data. Prefer projections and DataLoaders first; use selection-aware branches only for measured hot paths.
 
 ```csharp
 public static async Task<ProductDetails> GetDetailsAsync(
@@ -545,23 +545,23 @@ public static async Task<ProductDetails> GetDetailsAsync(
 }
 ```
 
-Expected behavior: the inventory service is not called unless the `inventory` field is selected under `details`.
+Here, the inventory service is only called if the `inventory` field is selected under `details`.
 
-Keep selection-aware branches small and covered by tests. Do not parse raw GraphQL query text to make performance decisions. If a child resolver needs a parent property that projections might omit, use `[IsProjected(true)]` on that parent property.
+Keep selection-aware branches small and well-tested. Do not parse raw GraphQL query text to make performance decisions. If a child resolver needs a parent property that projections might omit, use `[IsProjected(true)]` on that parent property.
 
-# Minimize allocations in hot resolvers
+# Minimize Allocations in Hot Resolvers
 
-Allocation guidance is most valuable after you have found a hot field. Start with readability and provider-side query shaping, then remove measured allocation sources.
+Focus on allocation improvements after identifying a hot field. Start with readability and provider-side query shaping, then address measured allocation sources.
 
-Common resolver-level allocation fixes:
+Common allocation fixes:
 
-- Do not call `ToList()`, `ToArray()`, or `Select(...).ToList()` before paging, filtering, sorting, or projection middleware can translate the query.
-- Avoid per-item closures, reflection, dynamic dispatch, and repeated string formatting in hot nested resolvers.
-- Avoid building errors, log messages, or formatted strings unless the code path needs them.
-- Use `AsNoTracking()` for read-only EF Core queries.
-- Return `[]` or `Array.Empty<T>()` for empty arrays where appropriate.
-- Do not store DataLoader key lists or parent context lists beyond the method body.
-- Use pooled writers only for custom serialization or buffer-writing scenarios. See [Performance Tuning](/docs/hotchocolate/v16/guides/performance) before adding pooling complexity.
+- Do not call `ToList()`, `ToArray()`, or `Select(...).ToList()` before paging, filtering, sorting, or projection middleware can translate the query
+- Avoid per-item closures, reflection, dynamic dispatch, and repeated string formatting in hot nested resolvers
+- Avoid building errors, log messages, or formatted strings unless needed
+- Use `AsNoTracking()` for read-only EF Core queries
+- Return `[]` or `Array.Empty<T>()` for empty arrays where appropriate
+- Do not store DataLoader key lists or parent context lists beyond the method body
+- Use pooled writers only for custom serialization or buffer-writing scenarios. See [Performance Tuning](/docs/hotchocolate/v16/guides/performance) before adding pooling complexity
 
 Before:
 
@@ -583,13 +583,13 @@ public static IQueryable<Product> GetProducts(CatalogContext db)
     => db.Products.AsNoTracking();
 ```
 
-The second resolver lets Hot Chocolate and the provider build the selected shape after the client supplies paging and field selections.
+The improved resolver lets Hot Chocolate and the provider build the selected shape after the client supplies paging and field selections.
 
-# Handle CPU-heavy resolver work safely
+# Handle CPU-Heavy Resolver Work Safely
 
-CPU-heavy work can dominate request latency even when no I/O is involved. Examples include image generation, document conversion, ML inference, encryption, expensive normalization, and complex aggregation.
+CPU-heavy work can dominate request latency even without I/O. Examples include image generation, document conversion, ML inference, encryption, normalization, and complex aggregation.
 
-Avoid this pattern on a field that appears in lists:
+Avoid this pattern on fields that appear in lists:
 
 ```csharp
 public static string GetThumbnailUrl([Parent] Product product)
@@ -598,6 +598,104 @@ public static string GetThumbnailUrl([Parent] Product product)
     return Storage.WriteThumbnail(product.Id, bytes);
 }
 ```
+
+A better resolver reads precomputed state or queues work outside the request:
+
+```csharp
+public static ProductImage GetImage([Parent] Product product)
+{
+    return new ProductImage(
+        product.ThumbnailUrl,
+        product.ThumbnailStatus);
+}
+```
+
+If CPU work must run during the request, bound concurrency in an application service, make cancellation cooperative, and avoid starting one CPU job per selected child field. Combine this with cost analysis and page-size limits so clients cannot multiply expensive fields without bounds.
+
+# Use Streaming for Perceived Latency, Not Cheaper Resolvers
+
+The `@defer` and `@stream` directives can improve time-to-first-byte for expensive or lower-priority selections. They do not reduce total resolver CPU, database work, or downstream service cost.
+
+```graphql
+query ProductPage {
+  products(first: 10) {
+    nodes {
+      name
+      ...DeferredDetails @defer {
+        description
+        recommendations {
+          name
+        }
+      }
+    }
+  }
+}
+```
+
+With streaming, the initial payload can arrive before the deferred details, depending on server configuration and the HTTP transport used. Deferred resolvers still execute, so they still require batching, cancellation, paging, and provider-side shaping.
+
+Configure incremental delivery in server and transport settings. See Performance Tuning and HTTP Transport for details.
+
+# Benchmark and Load Test Representative Resolver Paths
+
+Verify resolver changes using the operation shapes your clients send. Include realistic variables, selection sets, authorization paths, page sizes, and data volume.
+
+Track these signals:
+
+| Metric                                | What it tells you                             | Likely fix                                                                        |
+| ------------------------------------- | --------------------------------------------- | --------------------------------------------------------------------------------- |
+| p95 and p99 latency                   | Whether tail latency improved                 | Remove blocking calls, batch I/O, reduce downstream calls                         |
+| Allocations and GC                    | Whether hot fields allocate too much          | Avoid early materialization, per-item strings, reflection, or large object graphs |
+| SQL, MongoDB, or Marten query count   | Whether provider work is bounded              | Return `IQueryable<T>`, `IExecutable<T>`, or `QueryContext<T>`                    |
+| External call count                   | Whether resolvers fan out                     | Add DataLoader, batch endpoints, or request caching                               |
+| DataLoader batch size and batch count | Whether batching works                        | Use one loader per lookup shape and avoid execution shapes that split batches     |
+| Error and cancellation rate           | Whether failures cause retries or wasted work | Pass cancellation tokens and model domain errors intentionally                    |
+
+Separate cold-start and warmup behavior from steady state. Warm caches intentionally when measuring steady state. Use microbenchmarks for isolated CPU or allocation hot spots, not end-to-end resolver behavior.
+
+If your test infrastructure supports it, add integration tests that assert backend query counts or DataLoader batch counts for important nested selections.
+
+# Anti-Patterns and Fixes
+
+| Symptom                                                   | Likely cause                                     | Fix                                                                                                 |
+| --------------------------------------------------------- | ------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| A nested field creates one query per parent               | N+1 resolver                                     | Use a source-generated DataLoader or batch resolver.                                                |
+| Throughput collapses under concurrency                    | Blocking calls or sync-over-async                | Use async APIs with `CancellationToken`.                                                            |
+| EF Core reports concurrent operations on the same context | Shared `DbContext` in parallel query fields      | Use resolver scope, DataLoader scope, `IDbContextFactory`, or provider integration.                 |
+| Filtering or paging happens in memory                     | Resolver calls `ToList()` before data middleware | Return `IQueryable<T>`, `IExecutable<T>`, or `QueryContext<T>`.                                     |
+| SQL does not include selected columns                     | Custom resolver prevents projection              | Move logic, use DataLoader, or mark required parent fields with `[IsProjected(true)]`.              |
+| Large child collections overload memory                   | Unbounded relationship field                     | Add `[UsePaging]`, a paged DataLoader, or an external API `Connection<T>`.                          |
+| Hot operation spends time in counts                       | `IncludeTotalCount` on a hot path                | Disable total count or make the count path explicit.                                                |
+| Traces show middleware or auth dominates                  | Repeated per-field work                          | Cache or batch, move checks to a parent field where semantics allow it, or narrow middleware usage. |
+| CPU usage spikes without extra I/O                        | Per-field CPU-heavy computation                  | Precompute, cache, queue, or use a bounded service.                                                 |
+| Nullable fields fail repeatedly                           | Resolver throws or returns unexpected nulls      | Model expected domain errors, understand null propagation, and avoid retry storms.                  |
+| Instrumentation slows the request                         | Too many scopes or synchronous handlers          | Reduce scopes, sample traces, and enqueue expensive diagnostic work.                                |
+
+# Troubleshoot a Slow Resolver Report
+
+Follow this process:
+
+1. Reproduce the exact operation name, variables, authenticated user, request headers, and selected fields
+2. Confirm data volume and page arguments
+3. Enable tracing in a safe environment or sampled production path
+4. Find the slow field path. Compare resolver duration with DataLoader batch duration and downstream spans
+5. Check DataLoader batch size and number of batches. Many small batches can indicate missed batching or an execution shape that splits work
+6. Inspect SQL, MongoDB, or Marten query shape. Check selected fields, filters, sorting, limits, and indexes
+7. Search resolver code for `.Result`, `.Wait()`, `Thread.Sleep`, synchronous I/O, early materialization, CPU-heavy loops, and per-item service calls
+8. Check DI scope, shared state, field middleware, authorization, and diagnostic listeners
+9. Verify cancellation by aborting a request or using a short client timeout in a safe test
+10. Re-run the representative operation and compare latency, allocations, backend call counts, and batch sizes
+
+# Next Steps
+
+- Write resolver signatures with parent values, cancellation, and service injection: Resolvers
+- Batch and cache related data: DataLoader
+- Shape database work: Projections, Pagination, Filtering, Sorting, and Fetching from Databases
+- Tune backend integrations: Entity Framework, MongoDB, and Marten
+- Fix resolver lifetimes: Dependency Injection
+- Inspect traces and diagnostic events: Instrumentation, OpenTelemetry operations, and troubleshooting slow requests
+- Bound expensive operations: Cost Analysis and Performance Tuning
+- Understand middleware cost: Field Middleware and Authorization
 
 A better resolver reads precomputed state or queues work outside the request:
 
