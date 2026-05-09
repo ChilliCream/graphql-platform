@@ -2,6 +2,8 @@ import fs from "node:fs";
 import path from "node:path";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { BlogMetadata } from "@/src/design-system/BlogMetadata";
+import { BlogTags } from "@/src/design-system/BlogTags";
 import { Sidebar } from "@/src/design-system/Sidebar";
 import { SidebarDrawer } from "@/src/design-system/SidebarDrawer";
 import { TableOfContents } from "@/src/design-system/TableOfContents";
@@ -59,7 +61,27 @@ export default async function BlogPage({
     notFound();
   }
 
-  const { title } = readFrontmatter(path.join(CONTENT_ROOT, rel));
+  const frontmatter = readFrontmatter(path.join(CONTENT_ROOT, rel));
+  const title =
+    typeof frontmatter.title === "string" ? frontmatter.title : undefined;
+  const author =
+    typeof frontmatter.author === "string" ? frontmatter.author : undefined;
+  const authorUrl =
+    typeof frontmatter.authorUrl === "string"
+      ? frontmatter.authorUrl
+      : undefined;
+  const authorImageUrl =
+    typeof frontmatter.authorImageUrl === "string"
+      ? frontmatter.authorImageUrl
+      : undefined;
+  const date =
+    typeof frontmatter.date === "string" ? frontmatter.date : undefined;
+  const tags = Array.isArray(frontmatter.tags)
+    ? (frontmatter.tags as unknown[]).filter(
+        (t): t is string => typeof t === "string"
+      )
+    : undefined;
+
   const mod = await import(`@/blogs/${rel}`);
   const Post = mod.default;
   const toc: HeadingItem[] = Array.isArray(mod.toc) ? mod.toc : [];
@@ -73,6 +95,13 @@ export default async function BlogPage({
       <main className="min-w-0 px-5 py-8 sm:px-12">
         <article className="mx-auto max-w-5xl">
           {title ? <Typography variant="h1">{title}</Typography> : null}
+          <BlogMetadata
+            author={author}
+            authorUrl={authorUrl}
+            authorImageUrl={authorImageUrl}
+            date={date}
+          />
+          <BlogTags tags={tags} />
           <Post />
         </article>
       </main>
