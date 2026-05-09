@@ -331,3 +331,9 @@ Directory.Build.user.props
 
 src/Mocha/benchmarks/Mocha.Mediator.Benchmarks/Generated/
 .work/
+
+# Screenshots from local verification runs
+/*.jpeg
+/*.png
+/.playwright-mcp/
+/website/.playwright-mcp/
