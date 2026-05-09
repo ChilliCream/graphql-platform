@@ -29,6 +29,16 @@ internal static class MiddlewareFactory
         };
     }
 
+    internal static Func<RequestDelegate, RequestDelegate> CreateDynamicSchemaMiddleware(
+        Func<HttpContext, string> schemaNameResolver)
+    {
+        return next =>
+        {
+            var middleware = new DynamicSchemaMiddleware(next, schemaNameResolver);
+            return context => middleware.InvokeAsync(context);
+        };
+    }
+
     internal static Func<RequestDelegate, RequestDelegate> CreateWebSocketSubscriptionMiddleware(
         HttpRequestExecutorProxy executor,
         GraphQLServerOptions serverOptions)

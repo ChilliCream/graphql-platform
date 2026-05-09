@@ -33,7 +33,7 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
             && context.ParseContentType() is RequestContentType.Json)
         {
             var ct = context.RequestAborted;
-            var session = await Executor.GetOrCreateSessionAsync(ct);
+            var session = await GetExecutorSessionAsync(context, ct);
 
             using (session.DiagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpPost))
             {
@@ -48,7 +48,7 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
         }
     }
 
-    protected async Task HandleRequestAsync(HttpContext context, ExecutorSession session, CancellationToken ct)
+protected async Task HandleRequestAsync(HttpContext context, ExecutorSession session, CancellationToken ct)
     {
         var options = GetOptions(context);
         HttpStatusCode? statusCode = null;

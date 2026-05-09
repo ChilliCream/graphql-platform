@@ -58,7 +58,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
         if (HttpMethods.IsPost(context.Request.Method)
             && context.ParseContentType() == RequestContentType.Form)
         {
-            var session = await Executor.GetOrCreateSessionAsync(context.RequestAborted);
+            var session = await GetExecutorSessionAsync(context, context.RequestAborted);
             var options = GetOptions(context);
 
             if (!options.EnableMultipartRequests)

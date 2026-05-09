@@ -42,7 +42,7 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
 
         if (isCandidate)
         {
-            var session = await Executor.GetOrCreateSessionAsync(context.RequestAborted);
+            var session = await GetExecutorSessionAsync(context, context.RequestAborted);
             var options = GetOptions(context);
 
             if (options.EnableSchemaRequests)

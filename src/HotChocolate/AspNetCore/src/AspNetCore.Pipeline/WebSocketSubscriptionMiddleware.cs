@@ -30,7 +30,7 @@ public sealed class WebSocketSubscriptionMiddleware : MiddlewareBase
 
     private async Task HandleWebSocketSessionAsync(HttpContext context)
     {
-        var session = await Executor.GetOrCreateSessionAsync(context.RequestAborted);
+        var session = await GetExecutorSessionAsync(context, context.RequestAborted);
         var options = GetOptions(context);
 
         using (session.DiagnosticEvents.WebSocketSession(context))

@@ -97,6 +97,112 @@ public static class EndpointRouteBuilderExtensions
     }
 
     /// <summary>
+    /// Adds a GraphQL endpoint that resolves the schema name dynamically per request.
+    /// The <paramref name="schemaNameResolver"/> delegate is invoked for each incoming
+    /// request to determine which GraphQL schema to use, enabling multi-tenant scenarios
+    /// where the schema is determined from the request context (e.g., JWT claims,
+    /// headers, or route parameters).
+    /// </summary>
+    /// <param name="endpointRouteBuilder">
+    /// The <see cref="IEndpointRouteBuilder"/>.
+    /// </param>
+    /// <param name="path">
+    /// The path to which the GraphQL endpoint shall be mapped.
+    /// </param>
+    /// <param name="schemaNameResolver">
+    /// A delegate that resolves the schema name from the current
+    /// <see cref="HttpContext"/>. The returned schema name must correspond to a schema
+    /// registered via <see cref="M:Microsoft.Extensions.DependencyInjection.HotChocolateAspNetCoreServiceCollectionExtensions.AddGraphQLServer(Microsoft.Extensions.DependencyInjection.IServiceCollection,string,int,bool)"/>.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="GraphQLEndpointConventionBuilder"/> so that
+    /// configuration can be chained.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="endpointRouteBuilder" /> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="schemaNameResolver" /> is <c>null</c>.
+    /// </exception>
+    public static GraphQLEndpointConventionBuilder MapGraphQL(
+        this IEndpointRouteBuilder endpointRouteBuilder,
+        string path,
+        Func<HttpContext, string> schemaNameResolver)
+        => MapGraphQL(endpointRouteBuilder, new PathString(path), schemaNameResolver);
+
+    /// <summary>
+    /// Adds a GraphQL endpoint that resolves the schema name dynamically per request.
+    /// The <paramref name="schemaNameResolver"/> delegate is invoked for each incoming
+    /// request to determine which GraphQL schema to use, enabling multi-tenant scenarios
+    /// where the schema is determined from the request context (e.g., JWT claims,
+    /// headers, or route parameters).
+    /// </summary>
+    /// <param name="endpointRouteBuilder">
+    /// The <see cref="IEndpointRouteBuilder"/>.
+    /// </param>
+    /// <param name="path">
+    /// The path to which the GraphQL endpoint shall be mapped.
+    /// </param>
+    /// <param name="schemaNameResolver">
+    /// A delegate that resolves the schema name from the current
+    /// <see cref="HttpContext"/>. The returned schema name must correspond to a schema
+    /// registered via <see cref="M:Microsoft.Extensions.DependencyInjection.HotChocolateAspNetCoreServiceCollectionExtensions.AddGraphQLServer(Microsoft.Extensions.DependencyInjection.IServiceCollection,string,int,bool)"/>.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="GraphQLEndpointConventionBuilder"/> so that
+    /// configuration can be chained.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="endpointRouteBuilder" /> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="schemaNameResolver" /> is <c>null</c>.
+    /// </exception>
+    public static GraphQLEndpointConventionBuilder MapGraphQL(
+        this IEndpointRouteBuilder endpointRouteBuilder,
+        PathString path,
+        Func<HttpContext, string> schemaNameResolver)
+    {
+        ArgumentNullException.ThrowIfNull(endpointRouteBuilder);
+        ArgumentNullException.ThrowIfNull(schemaNameResolver);
+
+        path = path.ToString().TrimEnd('/');
+        var pattern = Parse(path + "/{**slug}");
+
+        var requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
+        var services = endpointRouteBuilder.ServiceProvider;
+
+        var defaultSchemaName = TryResolveSchemaName(services);
+        var executorProvider = services.GetRequiredService<IRequestExecutorProvider>();
+        var executorEvents = services.GetRequiredService<IRequestExecutorEvents>();
+        var formOptions = services.GetRequiredService<IOptions<FormOptions>>();
+        var executor = new HttpRequestExecutorProxy(executorProvider, executorEvents, defaultSchemaName);
+        var serverOptions = services.GetServerOptions(defaultSchemaName);
+
+        requestPipeline
+            .Use(MiddlewareFactory.CreateDynamicSchemaMiddleware(schemaNameResolver))
+            .Use(MiddlewareFactory.CreateCancellationMiddleware())
+            .Use(MiddlewareFactory.CreateWebSocketSubscriptionMiddleware(executor, serverOptions))
+            .Use(MiddlewareFactory.CreateHttpPostMiddleware(executor, serverOptions))
+            .Use(MiddlewareFactory.CreateHttpMultipartMiddleware(executor, serverOptions, formOptions))
+            .Use(MiddlewareFactory.CreateHttpGetMiddleware(executor, serverOptions))
+            .Use(MiddlewareFactory.CreateHttpGetSchemaMiddleware(
+                executor, serverOptions, path, MiddlewareRoutingType.Integrated))
+            .UseNitroApp(path, serverOptions.Tool)
+            .Use(_ => context =>
+            {
+                context.Response.StatusCode = 404;
+                return Task.CompletedTask;
+            });
+
+        return new GraphQLEndpointConventionBuilder(
+            endpointRouteBuilder
+                .Map(pattern, requestPipeline.Build())
+                .WithDisplayName("Hot Chocolate GraphQL Pipeline")
+                .WithMetadata(serverOptions.Tool));
+    }
+
+    /// <summary>
     /// Adds a GraphQL endpoint to the endpoint configurations.
     /// </summary>
     /// <param name="applicationBuilder">
@@ -232,6 +338,99 @@ public static class EndpointRouteBuilderExtensions
     }
 
     /// <summary>
+    /// Adds a GraphQL HTTP endpoint that resolves the schema name dynamically per request.
+    /// The <paramref name="schemaNameResolver"/> delegate is invoked for each incoming
+    /// request to determine which GraphQL schema to use.
+    /// </summary>
+    /// <param name="endpointRouteBuilder">
+    /// The <see cref="IEndpointRouteBuilder"/>.
+    /// </param>
+    /// <param name="pattern">
+    /// The path to which the GraphQL HTTP endpoint shall be mapped.
+    /// </param>
+    /// <param name="schemaNameResolver">
+    /// A delegate that resolves the schema name from the current
+    /// <see cref="HttpContext"/>.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="GraphQLHttpEndpointConventionBuilder"/> so that
+    /// configuration can be chained.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="endpointRouteBuilder" /> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="schemaNameResolver" /> is <c>null</c>.
+    /// </exception>
+    public static GraphQLHttpEndpointConventionBuilder MapGraphQLHttp(
+        this IEndpointRouteBuilder endpointRouteBuilder,
+        [StringSyntax("Route")] string pattern,
+        Func<HttpContext, string> schemaNameResolver)
+        => MapGraphQLHttp(endpointRouteBuilder, Parse(pattern), schemaNameResolver);
+
+    /// <summary>
+    /// Adds a GraphQL HTTP endpoint that resolves the schema name dynamically per request.
+    /// The <paramref name="schemaNameResolver"/> delegate is invoked for each incoming
+    /// request to determine which GraphQL schema to use.
+    /// </summary>
+    /// <param name="endpointRouteBuilder">
+    /// The <see cref="IEndpointRouteBuilder"/>.
+    /// </param>
+    /// <param name="pattern">
+    /// The path to which the GraphQL HTTP endpoint shall be mapped.
+    /// </param>
+    /// <param name="schemaNameResolver">
+    /// A delegate that resolves the schema name from the current
+    /// <see cref="HttpContext"/>.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="GraphQLHttpEndpointConventionBuilder"/> so that
+    /// configuration can be chained.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="endpointRouteBuilder" /> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="schemaNameResolver" /> is <c>null</c>.
+    /// </exception>
+    public static GraphQLHttpEndpointConventionBuilder MapGraphQLHttp(
+        this IEndpointRouteBuilder endpointRouteBuilder,
+        RoutePattern pattern,
+        Func<HttpContext, string> schemaNameResolver)
+    {
+        ArgumentNullException.ThrowIfNull(endpointRouteBuilder);
+        ArgumentNullException.ThrowIfNull(pattern);
+        ArgumentNullException.ThrowIfNull(schemaNameResolver);
+
+        var requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
+        var services = endpointRouteBuilder.ServiceProvider;
+
+        var defaultSchemaName = TryResolveSchemaName(services);
+        var executorProvider = services.GetRequiredService<IRequestExecutorProvider>();
+        var executorEvents = services.GetRequiredService<IRequestExecutorEvents>();
+        var formOptions = services.GetRequiredService<IOptions<FormOptions>>();
+        var executor = new HttpRequestExecutorProxy(executorProvider, executorEvents, defaultSchemaName);
+        var serverOptions = services.GetServerOptions(defaultSchemaName);
+
+        requestPipeline
+            .Use(MiddlewareFactory.CreateDynamicSchemaMiddleware(schemaNameResolver))
+            .Use(MiddlewareFactory.CreateCancellationMiddleware())
+            .Use(MiddlewareFactory.CreateHttpPostMiddleware(executor, serverOptions))
+            .Use(MiddlewareFactory.CreateHttpMultipartMiddleware(executor, serverOptions, formOptions))
+            .Use(MiddlewareFactory.CreateHttpGetMiddleware(executor, serverOptions))
+            .Use(_ => context =>
+            {
+                context.Response.StatusCode = 404;
+                return Task.CompletedTask;
+            });
+
+        return new GraphQLHttpEndpointConventionBuilder(
+            endpointRouteBuilder
+                .Map(pattern, requestPipeline.Build())
+                .WithDisplayName("Hot Chocolate GraphQL HTTP Pipeline"));
+    }
+
+    /// <summary>
     /// Adds a GraphQL WebSocket endpoint to the endpoint configurations.
     /// </summary>
     /// <param name="endpointRouteBuilder">
@@ -295,6 +494,98 @@ public static class EndpointRouteBuilderExtensions
         var serverOptions = services.GetServerOptions(schemaNameOrDefault);
 
         requestPipeline
+            .Use(MiddlewareFactory.CreateCancellationMiddleware())
+            .Use(MiddlewareFactory.CreateWebSocketSubscriptionMiddleware(executor, serverOptions))
+            .Use(_ => context =>
+            {
+                context.Response.StatusCode = 404;
+                return Task.CompletedTask;
+            });
+
+        var builder = new GraphQLEndpointConventionBuilder(
+            endpointRouteBuilder
+                .Map(pattern, requestPipeline.Build())
+                .WithDisplayName("Hot Chocolate GraphQL WebSocket Pipeline"));
+
+        return new GraphQLWebSocketEndpointConventionBuilder(builder);
+    }
+
+    /// <summary>
+    /// Adds a GraphQL WebSocket endpoint that resolves the schema name dynamically per request.
+    /// The <paramref name="schemaNameResolver"/> delegate is invoked for each incoming
+    /// request to determine which GraphQL schema to use.
+    /// </summary>
+    /// <param name="endpointRouteBuilder">
+    /// The <see cref="IEndpointConventionBuilder"/>.
+    /// </param>
+    /// <param name="pattern">
+    /// The path to which the GraphQL WebSocket endpoint shall be mapped.
+    /// </param>
+    /// <param name="schemaNameResolver">
+    /// A delegate that resolves the schema name from the current
+    /// <see cref="HttpContext"/>.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="GraphQLWebSocketEndpointConventionBuilder"/> so that
+    /// configuration can be chained.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="endpointRouteBuilder" /> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="schemaNameResolver" /> is <c>null</c>.
+    /// </exception>
+    public static GraphQLWebSocketEndpointConventionBuilder MapGraphQLWebSocket(
+        this IEndpointRouteBuilder endpointRouteBuilder,
+        [StringSyntax("Route")] string pattern,
+        Func<HttpContext, string> schemaNameResolver)
+        => MapGraphQLWebSocket(endpointRouteBuilder, Parse(pattern), schemaNameResolver);
+
+    /// <summary>
+    /// Adds a GraphQL WebSocket endpoint that resolves the schema name dynamically per request.
+    /// The <paramref name="schemaNameResolver"/> delegate is invoked for each incoming
+    /// request to determine which GraphQL schema to use.
+    /// </summary>
+    /// <param name="endpointRouteBuilder">
+    /// The <see cref="IEndpointConventionBuilder"/>.
+    /// </param>
+    /// <param name="pattern">
+    /// The path to which the GraphQL WebSocket endpoint shall be mapped.
+    /// </param>
+    /// <param name="schemaNameResolver">
+    /// A delegate that resolves the schema name from the current
+    /// <see cref="HttpContext"/>.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="GraphQLWebSocketEndpointConventionBuilder"/> so that
+    /// configuration can be chained.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="endpointRouteBuilder" /> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="schemaNameResolver" /> is <c>null</c>.
+    /// </exception>
+    public static GraphQLWebSocketEndpointConventionBuilder MapGraphQLWebSocket(
+        this IEndpointRouteBuilder endpointRouteBuilder,
+        RoutePattern pattern,
+        Func<HttpContext, string> schemaNameResolver)
+    {
+        ArgumentNullException.ThrowIfNull(endpointRouteBuilder);
+        ArgumentNullException.ThrowIfNull(pattern);
+        ArgumentNullException.ThrowIfNull(schemaNameResolver);
+
+        var requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
+        var services = endpointRouteBuilder.ServiceProvider;
+
+        var defaultSchemaName = TryResolveSchemaName(services);
+        var executorProvider = services.GetRequiredService<IRequestExecutorProvider>();
+        var executorEvents = services.GetRequiredService<IRequestExecutorEvents>();
+        var executor = new HttpRequestExecutorProxy(executorProvider, executorEvents, defaultSchemaName);
+        var serverOptions = services.GetServerOptions(defaultSchemaName);
+
+        requestPipeline
+            .Use(MiddlewareFactory.CreateDynamicSchemaMiddleware(schemaNameResolver))
             .Use(MiddlewareFactory.CreateCancellationMiddleware())
             .Use(MiddlewareFactory.CreateWebSocketSubscriptionMiddleware(executor, serverOptions))
             .Use(_ => context =>
@@ -739,6 +1030,17 @@ public static class EndpointRouteBuilderExtensions
 
     private static GraphQLServerOptions GetServerOptions(this IServiceProvider services, string schemaName)
         => services.GetRequiredService<IOptionsMonitor<GraphQLServerOptions>>().Get(schemaName);
+
+    private static string TryResolveSchemaName(IServiceProvider services)
+    {
+        if (services.GetService<IRequestExecutorProvider>() is { } provider
+            && provider.SchemaNames.Length == 1)
+        {
+            return provider.SchemaNames[0];
+        }
+
+        return ISchemaDefinition.DefaultName;
+    }
 
     private static void TryResolveSchemaName(IServiceProvider services, ref string? schemaName)
     {

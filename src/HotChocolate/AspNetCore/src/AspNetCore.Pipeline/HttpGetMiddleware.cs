@@ -28,7 +28,7 @@ public sealed class HttpGetMiddleware : MiddlewareBase
     {
         if (HttpMethods.IsGet(context.Request.Method))
         {
-            var session = await Executor.GetOrCreateSessionAsync(context.RequestAborted);
+            var session = await GetExecutorSessionAsync(context, context.RequestAborted);
             var options = GetOptions(context);
 
             if (options.EnableGetRequests
