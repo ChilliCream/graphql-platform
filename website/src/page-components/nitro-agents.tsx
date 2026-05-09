@@ -1,5 +1,6 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import React, { FC, useEffect } from "react";
 
 import { AgentDemo } from "@/components/agents/AgentDemo";
@@ -9,6 +10,7 @@ import { AgentsHero } from "@/components/agents/AgentsHero";
 import { AgentsLoopDiagram } from "@/components/agents/AgentsLoopDiagram";
 import { AgentsPricingTeaser } from "@/components/agents/AgentsPricingTeaser";
 import { AgentsRoot } from "@/components/agents/AgentsRoot";
+import { NitroAgentsCinematic } from "@/components/agents/cinematic";
 import { GuardrailsSection } from "@/components/agents/GuardrailsSection";
 import { ProductSurfaceTiles } from "@/components/agents/ProductSurfaceTiles";
 import { WhatAgentSees } from "@/components/agents/WhatAgentSees";
@@ -18,6 +20,7 @@ import { SiteLayout } from "@/components/layout";
 import { SEO } from "@/components/misc";
 import { AccentThread } from "@/components/redesign-system/AccentThread";
 import { Band } from "@/components/redesign-system/Band";
+import { VariantSwitcher } from "@/components/redesign-system/cinematic";
 import { DEMOS } from "@/data/agents/demos";
 
 // Page band rhythm:
@@ -35,8 +38,15 @@ import { DEMOS } from "@/data/agents/demos";
 // Wrapped in <AccentThread page="agents"> so amber resolves through the
 // foundation. The legacy --cc-amber alias inside AgentsRoot remains so any
 // existing CSS that references it directly keeps working.
-
+//
+// Variant dispatch: `?v=cinematic` renders the cinematic variant which
+// threads homepage chrome (ActLabel, ConnectorLine, FrostedExplainer)
+// through the same band rhythm. Default render is unchanged.
 const NitroAgentsPage: FC = () => {
+  const searchParams = useSearchParams();
+  const variant =
+    searchParams?.get("v") === "cinematic" ? "cinematic" : "default";
+
   useEffect(() => {
     document.body.classList.add("cc-landing-body");
     return () => {
@@ -52,48 +62,63 @@ const NitroAgentsPage: FC = () => {
       />
       <LandingGlobalStyle />
       <AccentThread page="agents">
-        <AgentsRoot>
-          <AgentsHero />
-          <AgentReframe />
-          <AgentsLoopDiagram />
-          <WhatAgentSees />
+        {variant === "cinematic" ? (
+          <NitroAgentsCinematic />
+        ) : (
+          <AgentsRoot>
+            <AgentsHero />
+            <AgentReframe />
+            <AgentsLoopDiagram />
+            <WhatAgentSees />
 
-          {/* Section 05: two-demo proof block, inverted band ("lab" beat).
-              Anchor `proof` is the target of the hero ghost CTA so the
-              visitor lands directly on the load-bearing section. */}
-          <Band variant="inverted" id="proof" ariaLabel="Proof">
-            <div className="cc-ag-band-inner">
-              <div className="cc-section-label">
-                <span className="num">05</span> Proof
+            {/* Section 05: two-demo proof block, inverted band ("lab" beat).
+                Anchor `proof` is the target of the hero ghost CTA so the
+                visitor lands directly on the load-bearing section. */}
+            <Band variant="inverted" id="proof" ariaLabel="Proof">
+              <div className="cc-ag-band-inner">
+                <div className="cc-section-label">
+                  <span className="num">05</span> Proof
+                </div>
+                <div className="cc-ag-feature-header">
+                  <div className="eyebrow">Proof</div>
+                  <h2 className="display">
+                    Diagnose. Compose. Two loops, one agent.
+                  </h2>
+                  <p>
+                    Two prompts, two complete loops. Demo A descends into causes
+                    (Observe + Reason). Demo B fans out across the four surfaces
+                    the agent has to register against (Act + Compose + Ship).
+                    The transcripts are real-shape: the tool calls match what
+                    Nitro emits today.
+                  </p>
+                </div>
+                <div className="cc-ag-demos">
+                  {DEMOS.map((demo) => (
+                    <AgentDemo key={demo.key} demo={demo} />
+                  ))}
+                </div>
               </div>
-              <div className="cc-ag-feature-header">
-                <div className="eyebrow">Proof</div>
-                <h2 className="display">
-                  Diagnose. Compose. Two loops, one agent.
-                </h2>
-                <p>
-                  Two prompts, two complete loops. Demo A descends into causes
-                  (Observe + Reason). Demo B fans out across the four surfaces
-                  the agent has to register against (Act + Compose + Ship). The
-                  transcripts are real-shape: the tool calls match what Nitro
-                  emits today.
-                </p>
-              </div>
-              <div className="cc-ag-demos">
-                {DEMOS.map((demo) => (
-                  <AgentDemo key={demo.key} demo={demo} />
-                ))}
-              </div>
-            </div>
-          </Band>
+            </Band>
 
-          <ProductSurfaceTiles />
-          <GuardrailsSection />
-          <WorksWhereYouWork />
-          <AgentsPricingTeaser />
-          <AgentsFinalCta />
-        </AgentsRoot>
+            <ProductSurfaceTiles />
+            <GuardrailsSection />
+            <WorksWhereYouWork />
+            <AgentsPricingTeaser />
+            <AgentsFinalCta />
+          </AgentsRoot>
+        )}
       </AccentThread>
+      <VariantSwitcher
+        currentId={variant}
+        options={[
+          { id: "default", label: "Default", href: "/products/nitro/agents" },
+          {
+            id: "cinematic",
+            label: "Cinematic",
+            href: "/products/nitro/agents?v=cinematic",
+          },
+        ]}
+      />
     </SiteLayout>
   );
 };

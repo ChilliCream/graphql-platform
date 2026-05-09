@@ -975,3 +975,17 @@ export const ConceptDiagram: FC<ConceptDiagramProps> = ({ kind }) => {
     </Band>
   );
 };
+
+// Title lookup for the architecture band, exposed for variant consumers
+// that compose their own band+chrome around the diagram body.
+export const DIAGRAM_TITLES = TITLES;
+
+// Renders just the SVG body for a given diagram kind. The default
+// `ConceptDiagram` wraps this in an inverted band with the section label
+// and heading; the cinematic variant uses this entry point directly so it
+// can layer anchors and connector lines on top of the same SVG without
+// duplicating geometry.
+export const ConceptDiagramBody: FC<ConceptDiagramProps> = ({ kind }) => {
+  const Variant = VARIANTS[kind];
+  return <Variant />;
+};

@@ -4,88 +4,27 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React, { FC, useCallback, useMemo } from "react";
 
 import { Band } from "@/components/redesign-system/Band";
-import {
-  type ClientKey,
-  type LanguageKey,
-  type ProductKey,
-  type TopologyKey,
-  type UseCaseKey,
-} from "@/data/templates/filters";
+import { ActLabel } from "@/components/redesign-system/cinematic/ActLabel";
 import { TEMPLATES, type Template } from "@/data/templates/templates";
 
-import { FilterBar } from "./FilterBar";
-import { FilterRail, parseFilters } from "./FilterRail";
-import { TemplateCard } from "./TemplateCard";
+import { FilterRail, parseFilters } from "../FilterRail";
+import { TemplateCard } from "../TemplateCard";
+import { matchesFilters } from "../TemplatesGrid";
 
-// Threshold below which the filter rail collapses to a horizontal chip bar.
-// 6-axis sticky chrome on a tiny corpus reads as configurator overkill, so
-// we only restore the rail once the catalog has enough rows to justify the
-// vertical real estate.
+import { CinematicFilterBar } from "./CinematicFilterBar";
+
+// Threshold below which the cinematic gallery uses the prism chip row
+// instead of the 6-axis sticky rail. Mirrors TemplatesGrid's RAIL_THRESHOLD
+// so the variants stay symmetric.
 const RAIL_THRESHOLD = 12;
 
-// Exported so cinematic-variant grids can share the same client-side filter
-// predicate without re-deriving the axis logic.
-export const matchesFilters = (
-  template: Template,
-  filters: ReturnType<typeof parseFilters>
-): boolean => {
-  const topology = filters.topology;
-  if (
-    topology &&
-    topology.size > 0 &&
-    !topology.has(template.topology as TopologyKey)
-  ) {
-    return false;
-  }
-  const useCase = filters.use;
-  if (
-    useCase &&
-    useCase.size > 0 &&
-    !template.useCases.some((u) => useCase.has(u as UseCaseKey))
-  ) {
-    return false;
-  }
-  const language = filters.language;
-  if (
-    language &&
-    language.size > 0 &&
-    !language.has(template.language as LanguageKey)
-  ) {
-    return false;
-  }
-  const client = filters.client;
-  if (
-    client &&
-    client.size > 0 &&
-    !template.clients.some((c) => client.has(c as ClientKey))
-  ) {
-    return false;
-  }
-  const product = filters.product;
-  if (
-    product &&
-    product.size > 0 &&
-    !template.products.some((p) => product.has(p as ProductKey))
-  ) {
-    return false;
-  }
-  const agent = filters.agent;
-  if (agent && agent.size > 0 && agent.has("yes") && !template.agentReady) {
-    return false;
-  }
-  return true;
-};
-
-// Section 02: filter chrome + grid. Filter state lives in the URL via
-// useSearchParams; we read it once per render and pass it as a prop to the
-// chrome and the grid. The grid filters TEMPLATES client-side because there
-// are <50 templates total and a search index is overkill.
-//
-// Chrome shape depends on catalog size: <=12 templates collapses to a single
-// horizontal FilterBar above the grid (no rail container chrome), >12
-// restores the 6-axis sticky FilterRail. Both round-trip to the same URL
-// state so deep links survive the layout switch.
-export const TemplatesGrid: FC = () => {
+// Cinematic gallery: same URL-driven filter behavior as the default grid;
+// the prism `CinematicFilterBar` replaces the flat `FilterBar` chrome and
+// `<ActLabel n="02" name="GALLERY" />` chapters the section. The 6-axis rail
+// stays unchanged for >12 templates, since the rail is already its own
+// strong piece of chrome and re-skinning it would duplicate FilterRail
+// without an obvious payoff.
+export const TemplatesCinematicGrid: FC = () => {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -113,10 +52,12 @@ export const TemplatesGrid: FC = () => {
   const useRail = TEMPLATES.length > RAIL_THRESHOLD;
 
   return (
-    <Band variant="default" ariaLabel="Templates gallery">
-      <div className="cc-section-label">
-        <span className="num">02</span> Gallery
-      </div>
+    <Band
+      variant="default"
+      ariaLabel="Templates gallery"
+      className="cc-tp-cinematic-band"
+    >
+      <ActLabel n="02" name="Gallery" />
       {useRail ? (
         <div className="cc-tp-gallery-inner">
           <FilterRail active={filters} totalCount={TEMPLATES.length} />
@@ -128,7 +69,7 @@ export const TemplatesGrid: FC = () => {
         </div>
       ) : (
         <div className="cc-tp-gallery-stack">
-          <FilterBar active={filters} />
+          <CinematicFilterBar active={filters} />
           <GridArea
             visible={visible}
             totalActive={totalActive}
@@ -180,10 +121,8 @@ interface EmptyStateProps {
   readonly onClear: () => void;
 }
 
-// Empty-filter state. The icon is a stroke-rendered "no results" mark
-// (intersecting circle with a slash) that picks up the page accent on the
-// stroke, mirroring the brewer-icon vocabulary used elsewhere in the
-// gallery.
+// Empty state mirrors TemplatesGrid's EmptyState verbatim so the cinematic
+// variant doesn't regress the no-results affordance.
 const EmptyState: FC<EmptyStateProps> = ({ onClear }) => {
   return (
     <div className="cc-tp-empty" role="status" aria-live="polite">
