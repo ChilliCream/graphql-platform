@@ -51,6 +51,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder
     .AddGraphQL()
     .AddQueryType<Query>()
+    .AddApplicationService<ILoggerFactory>()
     .ModifyRequestOptions(options =>
     {
         options.IncludeExceptionDetails = builder.Environment.IsDevelopment();
@@ -70,9 +71,9 @@ public sealed class LoggingErrorFilter : IErrorFilter
 {
     private readonly ILogger<LoggingErrorFilter> _logger;
 
-    public LoggingErrorFilter(ILogger<LoggingErrorFilter> logger)
+    public LoggingErrorFilter(ILoggerFactory loggerFactory)
     {
-        _logger = logger;
+        _logger = loggerFactory.CreateLogger<LoggingErrorFilter>();
     }
 
     public IError OnError(IError error)
@@ -123,7 +124,7 @@ For more on error handling and client-facing error models, see the [Error Handli
 
 Hot Chocolate v16 does not require a special logging provider. ASP.NET Core request logging continues to record HTTP method, path, status code, routing failures, and unhandled pipeline exceptions for the `/graphql` endpoint.
 
-GraphQL operation details—such as operation names, document hashes, validation failures, resolver timing, and DataLoader batches—are available through Hot Chocolate diagnostic events and OpenTelemetry activities. Setting a category filter like `Logging:LogLevel:HotChocolate` will not produce a stream of GraphQL request lifecycle logs.
+GraphQL operation details, such as operation names, document hashes, validation failures, resolver timing, and DataLoader batches, are available through Hot Chocolate diagnostic events and OpenTelemetry activities. Setting a category filter like `Logging:LogLevel:HotChocolate` will not produce a stream of GraphQL request lifecycle logs.
 
 Schema validation may produce internal log entries (e.g., `HCV0001`) during schema construction, but these are not part of the production request telemetry.
 
@@ -152,6 +153,7 @@ To include safe GraphQL identifiers in your log scopes, use an execution diagnos
 builder
     .AddGraphQL()
     .AddQueryType<Query>()
+    .AddApplicationService<ILoggerFactory>()
     .AddDiagnosticEventListener<GraphQLLoggingListener>();
 ```
 
@@ -168,9 +170,9 @@ public sealed class GraphQLLoggingListener : ExecutionDiagnosticEventListener
 {
     private readonly ILogger<GraphQLLoggingListener> _logger;
 
-    public GraphQLLoggingListener(ILogger<GraphQLLoggingListener> logger)
+    public GraphQLLoggingListener(ILoggerFactory loggerFactory)
     {
-        _logger = logger;
+        _logger = loggerFactory.CreateLogger<GraphQLLoggingListener>();
     }
 
     public override IDisposable ExecuteRequest(RequestContext context)
@@ -258,6 +260,7 @@ Register listeners with the GraphQL builder:
 builder
     .AddGraphQL()
     .AddQueryType<Query>()
+    .AddApplicationService<ILoggerFactory>()
     .AddDiagnosticEventListener<GraphQLFailureListener>()
     .AddDiagnosticEventListener<GraphQLServerFailureListener>()
     .AddDiagnosticEventListener<DataLoaderFailureListener>();
@@ -275,9 +278,9 @@ public sealed class GraphQLFailureListener : ExecutionDiagnosticEventListener
 {
     private readonly ILogger<GraphQLFailureListener> _logger;
 
-    public GraphQLFailureListener(ILogger<GraphQLFailureListener> logger)
+    public GraphQLFailureListener(ILoggerFactory loggerFactory)
     {
-        _logger = logger;
+        _logger = loggerFactory.CreateLogger<GraphQLFailureListener>();
     }
 
     public override void RequestError(RequestContext context, Exception error)
@@ -340,9 +343,9 @@ public sealed class GraphQLServerFailureListener : ServerDiagnosticEventListener
 {
     private readonly ILogger<GraphQLServerFailureListener> _logger;
 
-    public GraphQLServerFailureListener(ILogger<GraphQLServerFailureListener> logger)
+    public GraphQLServerFailureListener(ILoggerFactory loggerFactory)
     {
-        _logger = logger;
+        _logger = loggerFactory.CreateLogger<GraphQLServerFailureListener>();
     }
 
     public override void HttpRequestError(HttpContext context, Exception exception)
@@ -376,9 +379,9 @@ public sealed class DataLoaderFailureListener : DataLoaderDiagnosticEventListene
 {
     private readonly ILogger<DataLoaderFailureListener> _logger;
 
-    public DataLoaderFailureListener(ILogger<DataLoaderFailureListener> logger)
+    public DataLoaderFailureListener(ILoggerFactory loggerFactory)
     {
-        _logger = logger;
+        _logger = loggerFactory.CreateLogger<DataLoaderFailureListener>();
     }
 
     public override void BatchError<TKey>(
@@ -446,7 +449,7 @@ builder
     });
 ```
 
-`RequestDetails.Default` includes `Id`, `Hash`, `OperationName`, and `Extensions`. Use the explicit allowlist above if request extensions may contain sensitive data. `RequestDetails.All` includes variables and the document—do not use this as a production default.
+`RequestDetails.Default` includes `Id`, `Hash`, `OperationName`, and `Extensions`. Use the explicit allowlist above if request extensions may contain sensitive data. `RequestDetails.All` includes variables and the document. Do not use this as a production default.
 
 Use high-detail settings only behind an environment gate and for short-term troubleshooting:
 
@@ -522,6 +525,7 @@ builder.Services
 builder
     .AddGraphQL()
     .AddQueryType<Query>()
+    .AddApplicationService<ILoggerFactory>()
     .AddDiagnosticEventListener<GraphQLLoggingListener>()
     .AddInstrumentation(options =>
     {
@@ -607,6 +611,7 @@ When you need resolver and DataLoader timing, start with traces. Logs help you i
 builder
     .AddGraphQL()
     .AddQueryType<Query>()
+    .AddApplicationService<ILoggerFactory>()
     .AddDiagnosticEventListener<SlowGraphQLRequestListener>()
     .AddInstrumentation(options =>
     {
@@ -635,9 +640,9 @@ public sealed class SlowGraphQLRequestListener : ExecutionDiagnosticEventListene
     private static readonly TimeSpan s_threshold = TimeSpan.FromMilliseconds(500);
     private readonly ILogger<SlowGraphQLRequestListener> _logger;
 
-    public SlowGraphQLRequestListener(ILogger<SlowGraphQLRequestListener> logger)
+    public SlowGraphQLRequestListener(ILoggerFactory loggerFactory)
     {
-        _logger = logger;
+        _logger = loggerFactory.CreateLogger<SlowGraphQLRequestListener>();
     }
 
     public override IDisposable ExecuteRequest(RequestContext context)

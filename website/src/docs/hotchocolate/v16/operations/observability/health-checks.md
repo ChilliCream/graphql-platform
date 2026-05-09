@@ -186,7 +186,7 @@ builder
     .AddWarmupTask<ProductCardWarmupTask>();
 ```
 
-Generic warmup tasks are activated from Hot Chocolate schema services. If your task needs application services, cross-register them with `.AddApplicationService<T>()`, use a factory overload, or access the root service provider as needed. For more on the service-provider model, see the v15 to v16 migration guide.
+Generic warmup tasks are activated from Hot Chocolate schema services. If your task needs application services, cross-register them with `.AddApplicationService<T>()`, use a factory overload, or access the root service provider as needed. For more on the service-provider model, see the [v15 to v16 migration guide](/docs/hotchocolate/v16/migrating/migrate-from-15-to-16#clearer-separation-between-schema-and-application-services).
 
 # Add dependency checks to readiness
 

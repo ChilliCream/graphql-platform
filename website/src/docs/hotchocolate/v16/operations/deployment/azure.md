@@ -50,7 +50,7 @@ builder
     .AddGraphQL(maxAllowedRequestSize: 1 * 1000 * 1000)
     .AddAuthorization()
     .AddQueryType<Query>()
-    .AllowIntrospection(builder.Environment.IsDevelopment())
+    .DisableIntrospection(disable: !builder.Environment.IsDevelopment())
     .ModifyServerOptions(options =>
     {
         options.Tool.Enable = builder.Environment.IsDevelopment();
@@ -105,7 +105,7 @@ A browser request to `/graphql` in production should not show Nitro if you have 
 
 # Choose an Azure hosting model for GraphQL
 
-Select your Azure host based on the GraphQL behaviors you need, not just the deployment format.
+Select your Azure host based on the GraphQL behaviors you need, not only the deployment format.
 
 | Azure host      | Use when                                                                                           | Considerations                                                                                                                                                         | Hot Chocolate settings to review                                                                                            |
 | --------------- | -------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
@@ -169,7 +169,7 @@ After setup, an event published on one replica should reach subscribers connecte
 
 # Choose WebSocket or SSE for Azure networks
 
-Hot Chocolate exposes subscriptions through the standard GraphQL endpoint. Your choice of transport—WebSocket or SSE—affects proxy compatibility, client support, and reconnect behavior.
+Hot Chocolate exposes subscriptions through the standard GraphQL endpoint. Your choice of transport, WebSocket or SSE, affects proxy compatibility, client support, and reconnect behavior.
 
 WebSocket is full duplex and widely supported by GraphQL subscription clients. Hot Chocolate supports both `graphql-transport-ws` and `graphql-ws` protocols; the client selects the protocol using the `Sec-WebSocket-Protocol` header. For App Service, enable WebSockets in the platform settings. Application Gateway and other proxies must preserve upgrade requests. After the upgrade, some WAF and header rewrite features may no longer inspect or modify payloads.
 
@@ -633,7 +633,7 @@ Send a successful request and a request that produces a GraphQL error. Applicati
 | Trusted operation works in staging but not production             | Missing container, wrong container or prefix, operation artifact not deployed, or identity lacks storage permission.                  | Check Blob container, blob names, deployment artifacts, and identity role assignments.         | Create the container before startup, deploy operation blobs, and grant storage access.       |
 | Slow first request or failed startup                              | Schema initialization or warmup issue, dependency unavailable, or lazy initialization enabled.                                        | Check startup logs and `/readyz`.                                                              | Keep eager initialization, fix dependencies, and use warmup tasks for important operations.  |
 | No GraphQL spans in Application Insights                          | Missing `.AddInstrumentation()`, missing `.AddHotChocolateInstrumentation()`, exporter not configured, sampling, or identity problem  | Compare local OpenTelemetry output with Azure export.                                          | Register both Hot Chocolate instrumentation calls and configure Azure Monitor export.        |
-| Introspection unexpectedly allowed or denied                      | Default security, explicit `.AllowIntrospection(...)`, environment name, or interceptor allowlist.                                    | Send an introspection query and inspect environment/configuration.                             | Make the introspection policy explicit and test the production slot or revision.             |
+| Introspection unexpectedly allowed or denied                      | Default security, explicit `.DisableIntrospection(...)`, environment name, or interceptor allowlist.                                  | Send an introspection query and inspect environment/configuration.                             | Make the introspection policy explicit and test the production slot or revision.             |
 
 # Next steps
 

@@ -14,7 +14,7 @@ Client or CloudFront
   -> databases, ElastiCache Redis, and downstream services
 ```
 
-This guide focuses on standalone Hot Chocolate v16 server deployments. Fusion gateway and subgraph scenarios are not covered. For AWS infrastructure setup—such as VPCs, clusters, target groups, certificates, IAM roles, CloudFront distributions, API Gateway stages, and Kubernetes objects—refer to the AWS documentation.
+This guide focuses on standalone Hot Chocolate v16 server deployments. Fusion gateway and subgraph scenarios are not covered. For AWS infrastructure setup, such as VPCs, clusters, target groups, certificates, IAM roles, CloudFront distributions, API Gateway stages, and Kubernetes objects, refer to the AWS documentation.
 
 # Prerequisites
 
@@ -32,7 +32,7 @@ Before deploying, ensure you have:
 
 # Choose an AWS Host Based on GraphQL Needs
 
-Select your AWS hosting model based on the transports your GraphQL clients require, not just how you package your app.
+Select your AWS hosting model based on the transports your GraphQL clients require, not only how you package your app.
 
 | Hosting Model                                      | Best Fit                                                                                                                       | WebSocket and SSE Support                                                                                                                           | Scale-Out Notes                                                                                                              | Hot Chocolate Considerations                                                                                                  |
 | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
@@ -197,13 +197,13 @@ Hot Chocolate determines response formats and transports based on HTTP methods a
 | WebSocket subscriptions           | `Upgrade: websocket`, `Connection: Upgrade`, and a GraphQL WebSocket subprotocol.                    | Route to an endpoint with `UseWebSockets()` and proxy upgrade support. Align idle timeout and keep-alives. |
 | Auth and CORS                     | `Authorization`, cookies (if used), `Origin`, `Access-Control-Request-*`.                            | Forward headers required by ASP.NET Core authentication and CORS. Never cache across auth boundaries.      |
 
-ALB is a common choice for long-running ASP.NET Core services, WebSockets, and standard HTTP GraphQL. Set the ALB idle timeout above your expected quiet periods, or keep Hot Chocolate keep-alive pings below that timeout. The default Hot Chocolate WebSocket keep-alive interval is 5 seconds; the sample uses 30 seconds as an example—adjust as needed.
+ALB is a common choice for long-running ASP.NET Core services, WebSockets, and standard HTTP GraphQL. Set the ALB idle timeout above your expected quiet periods, or keep Hot Chocolate keep-alive pings below that timeout. The default Hot Chocolate WebSocket keep-alive interval is 5 seconds; the sample uses 30 seconds as an example. Adjust it as needed.
 
 API Gateway works for simple HTTP GraphQL, especially short queries and mutations. Before using it for subscriptions, SSE, incremental delivery, batching, or uploads, check AWS documentation for current body size limits, integration timeout, streaming support, and WebSocket API architecture.
 
 CloudFront can front GraphQL, but only cache GraphQL responses when the cache key includes every value that changes the response. For authenticated APIs, avoid caching personalized responses unless your cache policy varies by authorization context and you have tested tenant isolation. GET persisted queries are the most common cacheable shape.
 
-Verify that AWS preserves transports, not just Kestrel:
+Verify that AWS preserves transports through the full route, not Kestrel alone:
 
 ```bash
 curl -i https://api.example.com/graphql \
