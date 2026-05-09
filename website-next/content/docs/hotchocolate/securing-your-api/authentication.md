@@ -18,8 +18,7 @@ Setting up authentication follows the same pattern as any ASP.NET Core applicati
 
 ## 2. Register the Authentication Scheme
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 var signingKey = new SymmetricSecurityKey(
     Encoding.UTF8.GetBytes("MySuperSecretKey"));
 
@@ -43,8 +42,7 @@ builder.Services
 
 Register the authentication middleware in the request pipeline:
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 app.UseRouting();
 app.UseAuthentication();
 
@@ -60,8 +58,7 @@ app.UseEndpoints(endpoints =>
 
 ## 5. Register Authorization on the Schema
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder
     .AddGraphQL()
     .AddAuthorization()
@@ -77,8 +74,7 @@ After authentication, the `ClaimsPrincipal` of the current user is available in 
 <ExampleTabs>
 <Implementation>
 
-```csharp
-// Types/UserQueries.cs
+```csharp filename="Types/UserQueries.cs"
 [QueryType]
 public static partial class UserQueries
 {
@@ -99,8 +95,7 @@ public static partial class UserQueries
 </Implementation>
 <Code>
 
-```csharp
-// Types/UserQueriesType.cs
+```csharp filename="Types/UserQueriesType.cs"
 public class UserQueriesType : ObjectType
 {
     protected override void Configure(IObjectTypeDescriptor descriptor)
@@ -139,8 +134,7 @@ var isAdmin = claimsPrincipal.IsInRole("Administrator");
 
 If you need to add claims or identities to the `ClaimsPrincipal` before it reaches your resolvers, register an `IHttpRequestInterceptor`:
 
-```csharp
-// Interceptors/HttpRequestInterceptor.cs
+```csharp filename="Interceptors/HttpRequestInterceptor.cs"
 public class HttpRequestInterceptor : DefaultHttpRequestInterceptor
 {
     public override ValueTask OnCreateAsync(
@@ -158,8 +152,7 @@ public class HttpRequestInterceptor : DefaultHttpRequestInterceptor
 }
 ```
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder
     .AddGraphQL()
     .AddHttpRequestInterceptor<HttpRequestInterceptor>();

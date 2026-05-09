@@ -265,8 +265,7 @@ This is standard GraphQL error behavior. The unauthorized field returns `null`, 
 
 Here is the complete middleware chain for a gateway with JWT authentication and header propagation, annotated with what each step does:
 
-```csharp
-// Gateway/Program.cs
+```csharp filename="Gateway/Program.cs"
 var builder = WebApplication.CreateBuilder(args);
 
 // --- Service Registration ---

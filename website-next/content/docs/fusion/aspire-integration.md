@@ -29,9 +29,7 @@ The AppHost wires together your subgraphs and gateway. Three extension methods c
 
 **C# configuration**
 
-```csharp
-// AppHost/Program.cs
-
+```csharp filename="AppHost/Program.cs"
 var builder = DistributedApplication.CreateBuilder(args);
 
 builder.AddGraphQLOrchestrator();
@@ -85,9 +83,7 @@ All three parameters have sensible defaults. The `sourceSchemaName` defaults to 
 
 You do not need to run every subgraph locally. When your system has many subgraphs but you only develop on a few, use `WithGraphQLSchemaFile()` to include pre-exported schema files for the subgraphs you are not running.
 
-```csharp
-// AppHost/Program.cs
-
+```csharp filename="AppHost/Program.cs"
 var builder = DistributedApplication.CreateBuilder(args);
 
 builder.AddGraphQLOrchestrator();

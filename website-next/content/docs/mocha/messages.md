@@ -29,8 +29,7 @@ This section walks through defining a message, attaching custom headers when pub
 
 Messages can be any class, record, or struct. Records with `{ get; init; }` properties are a natural fit:
 
-```csharp
-// OrderPlaced.cs
+```csharp filename="OrderPlaced.cs"
 namespace MyApp;
 
 public sealed record OrderPlaced
@@ -80,8 +79,7 @@ The bus merges your headers into the envelope's header collection before dispatc
 
 `IEventHandler<T>` receives the deserialized message and a cancellation token - that is all. To read message IDs, correlation IDs, timestamps, or custom headers, implement `IConsumer<T>` instead. The `IConsumeContext<T>` parameter gives you both the deserialized message and all envelope fields:
 
-```csharp
-// OrderAuditConsumer.cs
+```csharp filename="OrderAuditConsumer.cs"
 using Mocha;
 
 namespace MyApp;

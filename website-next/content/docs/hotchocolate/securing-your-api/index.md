@@ -60,8 +60,7 @@ Introspection powers developer tools but can also reveal your schema to attacker
 
 Hot Chocolate uses MD5 for document hashing by default. If you need FIPS compliance, switch to SHA256:
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder
     .AddGraphQL()
     .AddSha256DocumentHashProvider();

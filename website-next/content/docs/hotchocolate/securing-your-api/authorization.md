@@ -20,8 +20,7 @@ After configuring authentication, complete these steps to enable authorization.
 
 Call `AddAuthorization()` on both `IServiceCollection` (for ASP.NET Core services) and `IRequestExecutorBuilder` (for the `@authorize` directive and middleware):
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder.Services.AddAuthorization();
 
 builder
@@ -32,8 +31,7 @@ builder
 
 ## 3. Add Authorization Middleware
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
@@ -53,8 +51,7 @@ The `@authorize` directive can be applied to types and fields. When applied to a
 <ExampleTabs>
 <Implementation>
 
-```csharp
-// Models/User.cs
+```csharp filename="Models/User.cs"
 [Authorize]
 public class User
 {
@@ -67,8 +64,7 @@ public class User
 
 With the source generator, you can apply `[Authorize]` to resolver methods:
 
-```csharp
-// Types/UserQueries.cs
+```csharp filename="Types/UserQueries.cs"
 [QueryType]
 public static partial class UserQueries
 {
@@ -87,8 +83,7 @@ public static partial class UserQueries
 </Implementation>
 <Code>
 
-```csharp
-// Types/UserType.cs
+```csharp filename="Types/UserType.cs"
 public class UserType : ObjectType<User>
 {
     protected override void Configure(IObjectTypeDescriptor<User> descriptor)
@@ -135,8 +130,7 @@ Then restrict access by role:
 <ExampleTabs>
 <Implementation>
 
-```csharp
-// Models/User.cs
+```csharp filename="Models/User.cs"
 [Authorize(Roles = ["Guest", "Administrator"])]
 public class User
 {
@@ -150,8 +144,7 @@ public class User
 </Implementation>
 <Code>
 
-```csharp
-// Types/UserType.cs
+```csharp filename="Types/UserType.cs"
 public class UserType : ObjectType<User>
 {
     protected override void Configure(IObjectTypeDescriptor<User> descriptor)
@@ -176,8 +169,7 @@ Policies decouple authorization logic from your GraphQL resolvers. A policy cons
 
 Register policies on the service collection:
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AtLeast21", policy =>
@@ -196,8 +188,7 @@ Apply policies to fields:
 <ExampleTabs>
 <Implementation>
 
-```csharp
-// Models/User.cs
+```csharp filename="Models/User.cs"
 [Authorize(Policy = "AllEmployees")]
 public class User
 {
@@ -211,8 +202,7 @@ public class User
 </Implementation>
 <Code>
 
-```csharp
-// Types/UserType.cs
+```csharp filename="Types/UserType.cs"
 public class UserType : ObjectType<User>
 {
     protected override void Configure(IObjectTypeDescriptor<User> descriptor)
@@ -232,8 +222,7 @@ The `@authorize` directive is repeatable. When multiple policies are specified, 
 <ExampleTabs>
 <Implementation>
 
-```csharp
-// Models/User.cs
+```csharp filename="Models/User.cs"
 [Authorize(Policy = "AtLeast21")]
 [Authorize(Policy = "HasCountry")]
 public class User
@@ -245,8 +234,7 @@ public class User
 </Implementation>
 <Code>
 
-```csharp
-// Types/UserType.cs
+```csharp filename="Types/UserType.cs"
 public class UserType : ObjectType<User>
 {
     protected override void Configure(IObjectTypeDescriptor<User> descriptor)
@@ -267,8 +255,7 @@ public class UserType : ObjectType<User>
 
 When you need access to GraphQL-specific data in your authorization handler, use `IResolverContext` as the resource type:
 
-```csharp
-// Authorization/MinimumAgeHandler.cs
+```csharp filename="Authorization/MinimumAgeHandler.cs"
 public class MinimumAgeHandler
     : AuthorizationHandler<MinimumAgeRequirement, IResolverContext>
 {
@@ -289,8 +276,7 @@ Use `[AllowAnonymous]` to bypass authorization on specific fields. This is usefu
 
 > **Use `HotChocolate.AspNetCore.Authorization.AllowAnonymousAttribute`**, not `Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute`.
 
-```csharp
-// Types/AccountMutations.cs
+```csharp filename="Types/AccountMutations.cs"
 [MutationType]
 public static partial class AccountMutations
 {
@@ -314,8 +300,7 @@ public static partial class AccountMutations
 
 Apply authorization to the entire GraphQL endpoint by calling `RequireAuthorization()`:
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapGraphQL().RequireAuthorization();

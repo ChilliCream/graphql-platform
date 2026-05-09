@@ -8,8 +8,7 @@ Testing a GraphQL server means testing resolvers, the schema shape, and the exec
 
 The foundation for all integration tests is an `IRequestExecutor`. You build one from a `ServiceCollection` the same way you configure the server in `Program.cs`, but without the ASP.NET Core host.
 
-```csharp
-// Tests/ProductTests.cs
+```csharp filename="Tests/ProductTests.cs"
 public class ProductTests
 {
     [Fact]
@@ -32,8 +31,7 @@ public class ProductTests
 
 You can register any services your resolvers depend on before calling `AddGraphQL()`. This lets you inject real or mock implementations.
 
-```csharp
-// Tests/ProductTests.cs
+```csharp filename="Tests/ProductTests.cs"
 var executor = await new ServiceCollection()
     .AddSingleton<ICatalogService>(new FakeCatalogService())
     .AddGraphQL()
@@ -45,8 +43,7 @@ var executor = await new ServiceCollection()
 
 Use `executor.ExecuteAsync()` to run a GraphQL operation and get back an `IExecutionResult`. For type-safe access to the result, call `ExpectOperationResult()`:
 
-```csharp
-// Tests/ProductTests.cs
+```csharp filename="Tests/ProductTests.cs"
 [Fact]
 public async Task Get_Product_Returns_Expected_Data()
 {
@@ -70,8 +67,7 @@ public async Task Get_Product_Returns_Expected_Data()
 
 To pass variables, use `OperationRequestBuilder`:
 
-```csharp
-// Tests/ProductTests.cs
+```csharp filename="Tests/ProductTests.cs"
 [Fact]
 public async Task Get_Product_By_Id()
 {
@@ -103,8 +99,7 @@ Asserting on individual fields works for small results, but GraphQL responses ca
 
 Call `MatchSnapshot()` on the result. The first run creates a snapshot file in a `__snapshots__/` directory next to your test file. Subsequent runs compare against that file.
 
-```csharp
-// Tests/ProductTests.cs
+```csharp filename="Tests/ProductTests.cs"
 [Fact]
 public async Task Get_Product_Snapshot()
 {
@@ -129,8 +124,7 @@ When the schema changes and the response shape changes with it, delete the old s
 
 For smaller results, inline the expected output directly in your test. This keeps the expectation visible next to the assertion.
 
-```csharp
-// Tests/ProductTests.cs
+```csharp filename="Tests/ProductTests.cs"
 [Fact]
 public async Task Get_Product_Inline()
 {
@@ -162,8 +156,7 @@ public async Task Get_Product_Inline()
 
 Integration tests run the full execution pipeline, which is thorough but slower. When you want fast feedback on resolver logic, test the method directly.
 
-```csharp
-// Types/ProductQueries.cs
+```csharp filename="Types/ProductQueries.cs"
 [QueryType]
 public static partial class ProductQueries
 {
@@ -172,8 +165,7 @@ public static partial class ProductQueries
 }
 ```
 
-```csharp
-// Tests/ProductQueriesTests.cs
+```csharp filename="Tests/ProductQueriesTests.cs"
 public class ProductQueriesTests
 {
     [Fact]
@@ -212,8 +204,7 @@ This approach is useful for resolvers that contain business logic. For resolvers
 
 When you want to catch unintended schema changes (renamed fields, changed nullability, missing types), snapshot the schema SDL.
 
-```csharp
-// Tests/SchemaTests.cs
+```csharp filename="Tests/SchemaTests.cs"
 public class SchemaTests
 {
     [Fact]
@@ -235,8 +226,7 @@ public class SchemaTests
 
 You can also use `executor.Schema.ToString()` to get the SDL as a string if you need to inspect it programmatically:
 
-```csharp
-// Tests/SchemaTests.cs
+```csharp filename="Tests/SchemaTests.cs"
 [Fact]
 public async Task Schema_Contains_Product_Type()
 {
@@ -259,8 +249,7 @@ If you register custom field middleware or error filters, test them through the 
 
 Register middleware in the test executor the same way you register it in `Program.cs`, then execute a query that exercises it.
 
-```csharp
-// Tests/LoggingMiddlewareTests.cs
+```csharp filename="Tests/LoggingMiddlewareTests.cs"
 [Fact]
 public async Task Logging_Middleware_Does_Not_Alter_Result()
 {
@@ -284,8 +273,7 @@ public async Task Logging_Middleware_Does_Not_Alter_Result()
 
 To verify that your error filter transforms errors correctly, trigger an error in a resolver and assert on the error message in the result.
 
-```csharp
-// Tests/ErrorFilterTests.cs
+```csharp filename="Tests/ErrorFilterTests.cs"
 [Fact]
 public async Task Error_Filter_Masks_Internal_Errors()
 {

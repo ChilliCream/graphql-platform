@@ -16,8 +16,7 @@ dotnet add package HotChocolate.Adapters.Mcp
 
 Register the MCP adapter on your GraphQL server and map the MCP endpoint:
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 var builder = WebApplication.CreateBuilder(args);
 
 builder
@@ -41,8 +40,7 @@ app.Run();
 
 Each MCP tool is defined by a GraphQL operation document. You create an `OperationToolDefinition` with a parsed GraphQL document that contains exactly one operation:
 
-```csharp
-// Services/MyMcpStorage.cs
+```csharp filename="Services/MyMcpStorage.cs"
 using HotChocolate.Adapters.Mcp.Storage;
 using HotChocolate.Language;
 
@@ -78,8 +76,7 @@ When an AI agent calls an MCP tool, the adapter takes the JSON arguments, maps t
 
 The `IMcpStorage` interface provides tool and prompt definitions to the adapter. You implement this interface to load definitions from any source: a file system, database, or in-memory collection.
 
-```csharp
-// Services/FileMcpStorage.cs
+```csharp filename="Services/FileMcpStorage.cs"
 using HotChocolate.Adapters.Mcp.Storage;
 
 public class FileMcpStorage : IMcpStorage
@@ -147,8 +144,7 @@ var tool = new OperationToolDefinition(
 
 You can annotate resolver methods with `[McpToolAnnotations]` to set hints at the schema level:
 
-```csharp
-// Types/Mutation.cs
+```csharp filename="Types/Mutation.cs"
 using HotChocolate.Adapters.Mcp.Directives;
 
 public class Mutation
@@ -160,8 +156,7 @@ public class Mutation
 
 You can also apply annotations using the fluent descriptor API:
 
-```csharp
-// Types/MutationType.cs
+```csharp filename="Types/MutationType.cs"
 public class MutationType : ObjectType<Mutation>
 {
     protected override void Configure(
@@ -238,8 +233,7 @@ var prompt = new PromptDefinition("code_review")
 
 You can configure the underlying MCP server options and add custom (non-GraphQL) tools through the `AddMcp` overload:
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder
     .AddGraphQL()
     .AddQueryType<Query>()
@@ -279,8 +273,7 @@ In stateless mode, only the Streamable HTTP POST endpoint is available.
 
 The MCP adapter works with Fusion gateway servers. Instead of `AddGraphQL()`, use `AddGraphQLGateway()` and the rest of the configuration remains the same:
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder
     .AddGraphQLGateway()
     .AddInMemoryConfiguration(compositeSchema)

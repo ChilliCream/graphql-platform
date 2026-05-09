@@ -14,8 +14,7 @@ Filtering is part of the `HotChocolate.Data` package.
 
 Register filtering on the schema:
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder
     .AddGraphQL()
     .AddFiltering();
@@ -26,8 +25,7 @@ Apply the `[UseFiltering]` attribute to a resolver that returns `IQueryable<T>` 
 <ExampleTabs>
 <Implementation>
 
-```csharp
-// Types/UserQueries.cs
+```csharp filename="Types/UserQueries.cs"
 [QueryType]
 public static partial class UserQueries
 {
@@ -40,8 +38,7 @@ public static partial class UserQueries
 </Implementation>
 <Code>
 
-```csharp
-// Types/UserQueries.cs
+```csharp filename="Types/UserQueries.cs"
 public class UserQueries
 {
     public IQueryable<User> GetUsers(CatalogContext db)
@@ -103,8 +100,7 @@ Operations: `eq`, `neq`, `in`, `nin`.
 
 Filters are generated for nested objects, supporting filtering across database relationships:
 
-```csharp
-// Models/User.cs
+```csharp filename="Models/User.cs"
 public class User
 {
     public string Name { get; set; }
@@ -160,8 +156,7 @@ The `or` field must be used at the top level of the filter. Placing it inside a 
 
 Disable these combinators in a custom filter type:
 
-```csharp
-// Types/UserFilterType.cs
+```csharp filename="Types/UserFilterType.cs"
 public class UserFilterType : FilterInputType<User>
 {
     protected override void Configure(IFilterInputTypeDescriptor<User> descriptor)
@@ -175,8 +170,7 @@ public class UserFilterType : FilterInputType<User>
 
 Customize which fields are filterable and which operations are available by extending `FilterInputType<T>`:
 
-```csharp
-// Types/UserFilterType.cs
+```csharp filename="Types/UserFilterType.cs"
 public class UserFilterType : FilterInputType<User>
 {
     protected override void Configure(IFilterInputTypeDescriptor<User> descriptor)
@@ -190,8 +184,7 @@ public class UserFilterType : FilterInputType<User>
 
 Restrict operations on a field by defining a custom operation type:
 
-```csharp
-// Types/CustomStringOperationFilterInputType.cs
+```csharp filename="Types/CustomStringOperationFilterInputType.cs"
 public class CustomStringOperationFilterInputType : StringOperationFilterInputType
 {
     protected override void Configure(IFilterInputTypeDescriptor descriptor)
@@ -207,8 +200,7 @@ Apply the custom filter type:
 <ExampleTabs>
 <Implementation>
 
-```csharp
-// Types/UserQueries.cs
+```csharp filename="Types/UserQueries.cs"
 [QueryType]
 public static partial class UserQueries
 {
@@ -221,8 +213,7 @@ public static partial class UserQueries
 </Implementation>
 <Code>
 
-```csharp
-// Types/UserQueriesType.cs
+```csharp filename="Types/UserQueriesType.cs"
 public class UserQueriesType : ObjectType<UserQueries>
 {
     protected override void Configure(IObjectTypeDescriptor<UserQueries> descriptor)
@@ -245,8 +236,7 @@ Filter conventions let you change filtering behavior globally across your schema
 
 Extend `FilterConvention` and override `Configure`, or use `FilterConventionExtension` to build on top of the defaults:
 
-```csharp
-// Conventions/CustomFilterConvention.cs
+```csharp filename="Conventions/CustomFilterConvention.cs"
 public class CustomFilterConvention : FilterConvention
 {
     protected override void Configure(IFilterConventionDescriptor descriptor)
@@ -257,8 +247,7 @@ public class CustomFilterConvention : FilterConvention
 }
 ```
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder
     .AddGraphQL()
     .AddConvention<IFilterConvention, CustomFilterConvention>();
@@ -268,8 +257,7 @@ builder
 
 Bind custom filter types to .NET types through the convention:
 
-```csharp
-// Conventions/CustomFilterConvention.cs
+```csharp filename="Conventions/CustomFilterConvention.cs"
 public class CustomFilterConvention : FilterConvention
 {
     protected override void Configure(IFilterConventionDescriptor descriptor)
@@ -284,8 +272,7 @@ public class CustomFilterConvention : FilterConvention
 
 When you use custom scalars (including those from `HotChocolate.Types.Scalars`), you must create and bind a filter type for each scalar:
 
-```csharp
-// Types/EmailAddressOperationFilterInputType.cs
+```csharp filename="Types/EmailAddressOperationFilterInputType.cs"
 public class EmailAddressOperationFilterInputType : FilterInputType
 {
     protected override void Configure(IFilterInputTypeDescriptor descriptor)
@@ -297,8 +284,7 @@ public class EmailAddressOperationFilterInputType : FilterInputType
 }
 ```
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder
     .AddGraphQL()
     .AddFiltering(x => x

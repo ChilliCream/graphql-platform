@@ -12,8 +12,7 @@ Sorting is part of the `HotChocolate.Data` package.
 
 Register sorting on the schema:
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder
     .AddGraphQL()
     .AddSorting();
@@ -24,8 +23,7 @@ Apply the `[UseSorting]` attribute to a resolver that returns `IQueryable<T>` or
 <ExampleTabs>
 <Implementation>
 
-```csharp
-// Types/UserQueries.cs
+```csharp filename="Types/UserQueries.cs"
 [QueryType]
 public static partial class UserQueries
 {
@@ -38,8 +36,7 @@ public static partial class UserQueries
 </Implementation>
 <Code>
 
-```csharp
-// Types/UserQueries.cs
+```csharp filename="Types/UserQueries.cs"
 public class UserQueries
 {
     public IQueryable<User> GetUsers(CatalogContext db)
@@ -106,8 +103,7 @@ query {
 
 In v16, the `NullOrdering` enum controls how `null` values sort relative to non-null values. This is relevant when sorting on nullable fields. Set this through `PagingOptions` at the global level:
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder
     .AddGraphQL()
     .ModifyPagingOptions(opt => opt.NullOrdering = NullOrdering.NativeNullsLast);
@@ -123,8 +119,7 @@ builder
 
 Customize which fields are sortable by extending `SortInputType<T>`:
 
-```csharp
-// Types/UserSortType.cs
+```csharp filename="Types/UserSortType.cs"
 public class UserSortType : SortInputType<User>
 {
     protected override void Configure(ISortInputTypeDescriptor<User> descriptor)
@@ -138,8 +133,7 @@ public class UserSortType : SortInputType<User>
 
 Restrict sort directions on a field by providing a custom enum type:
 
-```csharp
-// Types/AscOnlySortEnumType.cs
+```csharp filename="Types/AscOnlySortEnumType.cs"
 public class AscOnlySortEnumType : DefaultSortEnumType
 {
     protected override void Configure(ISortEnumTypeDescriptor descriptor)
@@ -149,8 +143,7 @@ public class AscOnlySortEnumType : DefaultSortEnumType
 }
 ```
 
-```csharp
-// Types/UserSortType.cs
+```csharp filename="Types/UserSortType.cs"
 public class UserSortType : SortInputType<User>
 {
     protected override void Configure(ISortInputTypeDescriptor<User> descriptor)
@@ -166,8 +159,7 @@ Apply the custom sort type:
 <ExampleTabs>
 <Implementation>
 
-```csharp
-// Types/UserQueries.cs
+```csharp filename="Types/UserQueries.cs"
 [QueryType]
 public static partial class UserQueries
 {
@@ -180,8 +172,7 @@ public static partial class UserQueries
 </Implementation>
 <Code>
 
-```csharp
-// Types/UserQueriesType.cs
+```csharp filename="Types/UserQueriesType.cs"
 public class UserQueriesType : ObjectType<UserQueries>
 {
     protected override void Configure(IObjectTypeDescriptor<UserQueries> descriptor)
@@ -202,8 +193,7 @@ Sort conventions let you change sorting behavior globally across your schema.
 
 Extend `SortConvention` and override `Configure`:
 
-```csharp
-// Conventions/CustomSortConvention.cs
+```csharp filename="Conventions/CustomSortConvention.cs"
 public class CustomSortConvention : SortConvention
 {
     protected override void Configure(ISortConventionDescriptor descriptor)
@@ -214,8 +204,7 @@ public class CustomSortConvention : SortConvention
 }
 ```
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder
     .AddGraphQL()
     .AddConvention<ISortConvention, CustomSortConvention>();
@@ -223,8 +212,7 @@ builder
 
 To extend the default behavior without replacing it, use `SortConventionExtension`:
 
-```csharp
-// Conventions/CustomSortConventionExtension.cs
+```csharp filename="Conventions/CustomSortConventionExtension.cs"
 public class CustomSortConventionExtension : SortConventionExtension
 {
     protected override void Configure(ISortConventionDescriptor descriptor)
@@ -239,8 +227,7 @@ public class CustomSortConventionExtension : SortConventionExtension
 
 Bind custom sort types to .NET types through the convention:
 
-```csharp
-// Conventions/CustomSortConvention.cs
+```csharp filename="Conventions/CustomSortConvention.cs"
 public class CustomSortConvention : SortConvention
 {
     protected override void Configure(ISortConventionDescriptor descriptor)

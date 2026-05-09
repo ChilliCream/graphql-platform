@@ -41,8 +41,7 @@ Use a marker interface (an interface with no members) or an abstract class to gr
 <ExampleTabs>
 <Implementation>
 
-```csharp
-// Types/IPostContent.cs
+```csharp filename="Types/IPostContent.cs"
 [UnionType("PostContent")]
 public interface IPostContent
 {
@@ -72,8 +71,7 @@ public static partial class ContentQueries
 }
 ```
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder
     .AddGraphQL()
     .AddType<TextContent>()
@@ -85,8 +83,7 @@ Each type that implements the marker interface must be registered so Hot Chocola
 </Implementation>
 <Code>
 
-```csharp
-// Types/PostContentType.cs
+```csharp filename="Types/PostContentType.cs"
 public class PostContentType : UnionType
 {
     protected override void Configure(IUnionTypeDescriptor descriptor)
@@ -102,8 +99,7 @@ The member types are registered through the union definition, so you do not need
 
 You can also use a marker interface with `UnionType<T>`:
 
-```csharp
-// Types/PostContentType.cs
+```csharp filename="Types/PostContentType.cs"
 public class PostContentType : UnionType<IPostContent>
 {
 }

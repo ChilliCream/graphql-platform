@@ -360,8 +360,7 @@ The client selects its preferred sub-protocol via the standard WebSocket `Sec-We
 
 You must register the ASP.NET Core WebSocket middleware before calling `MapGraphQL()`. Without this, WebSocket upgrade requests are not handled.
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 var builder = WebApplication.CreateBuilder(args);
 
 builder

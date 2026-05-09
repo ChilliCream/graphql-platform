@@ -14,8 +14,7 @@ Your schema is a contract. Once external developers build against it, changing o
 
 **Add descriptions to every type, field, and argument.** Public API consumers rely on introspection and tooling like [Nitro](/products/nitro) to explore your schema. A field without a description is a field that generates support tickets.
 
-```csharp
-// Types/Organization.cs
+```csharp filename="Types/Organization.cs"
 [GraphQLDescription("A company or group that owns repositories.")]
 public class Organization
 {
@@ -37,8 +36,7 @@ public class Organization
 
 Every list field that could grow beyond a handful of items should be a connection. Connections give clients a standardized way to page through results, and they give you control over how much data a single request can fetch.
 
-```csharp
-// Types/OrganizationQueries.cs
+```csharp filename="Types/OrganizationQueries.cs"
 [QueryType]
 public static partial class OrganizationQueries
 {
@@ -52,8 +50,7 @@ Set `MaxPageSize` deliberately. This value is the upper bound on how many items 
 
 For public APIs, require clients to specify how many items they want by enabling `RequirePagingBoundaries`. Without this, clients that omit `first` or `last` still get results, but cost analysis has to assume the worst case.
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder
     .AddGraphQL()
     .ModifyPagingOptions(opt =>
@@ -72,8 +69,7 @@ Cost analysis is the most important security layer for a public GraphQL API. It 
 
 Hot Chocolate enables cost analysis by default. The default limits (`MaxFieldCost = 1000`, `MaxTypeCost = 1000`) work as a starting point, but you should tune them based on your schema and expected query patterns.
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder
     .AddGraphQL()
     .ModifyCostOptions(options =>
@@ -98,8 +94,7 @@ For paginated fields, these weights multiply by the page size. A resolver with w
 
 If a resolver calls an external API, runs a complex computation, or triggers a database-heavy operation, increase its cost weight:
 
-```csharp
-// Types/ReportQueries.cs
+```csharp filename="Types/ReportQueries.cs"
 [QueryType]
 public static partial class ReportQueries
 {
@@ -115,8 +110,7 @@ public static partial class ReportQueries
 
 For list fields where you know the typical size differs from the default, use `[ListSize]` to give the analyzer a more accurate estimate:
 
-```csharp
-// Types/OrganizationNode.cs
+```csharp filename="Types/OrganizationNode.cs"
 [ObjectType<Organization>]
 public static partial class OrganizationNode
 {
@@ -143,8 +137,7 @@ Introspection lets anyone discover every type, field, and argument in your schem
 
 **Option B: Restrict introspection in production.** If you prefer to control schema discovery, disable introspection and allow it only for authorized requests:
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder
     .AddGraphQL()
     .AllowIntrospection(builder.Environment.IsDevelopment());
@@ -152,8 +145,7 @@ builder
 
 For a more granular approach, use a request interceptor to allow introspection based on authentication or a specific header:
 
-```csharp
-// Interceptors/IntrospectionInterceptor.cs
+```csharp filename="Interceptors/IntrospectionInterceptor.cs"
 public class IntrospectionInterceptor : DefaultHttpRequestInterceptor
 {
     public override ValueTask OnCreateAsync(HttpContext context,
@@ -171,8 +163,7 @@ public class IntrospectionInterceptor : DefaultHttpRequestInterceptor
 }
 ```
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder
     .AddGraphQL()
     .AllowIntrospection(false)
@@ -185,8 +176,7 @@ builder
 
 Most public APIs have fields that require authentication or specific permissions. Use the `[Authorize]` attribute to protect sensitive types and fields.
 
-```csharp
-// Types/ViewerQueries.cs
+```csharp filename="Types/ViewerQueries.cs"
 [QueryType]
 public static partial class ViewerQueries
 {
@@ -204,8 +194,7 @@ public static partial class ViewerQueries
 
 For role-based access:
 
-```csharp
-// Types/AdminQueries.cs
+```csharp filename="Types/AdminQueries.cs"
 [QueryType]
 public static partial class AdminQueries
 {
@@ -218,8 +207,7 @@ public static partial class AdminQueries
 
 For policy-based access, define policies in your service configuration:
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("CanReadBilling", policy =>
@@ -229,8 +217,7 @@ builder.Services.AddAuthorization(options =>
 
 Then apply them to fields:
 
-```csharp
-// Types/BillingNode.cs
+```csharp filename="Types/BillingNode.cs"
 [ObjectType<Organization>]
 public static partial class BillingNode
 {
@@ -255,8 +242,7 @@ Cost analysis handles query complexity, but you also want to limit how many requ
 
 Set a maximum query depth to reject pathologically nested queries before cost analysis even runs:
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder
     .AddGraphQL()
     .AddMaxExecutionDepthRule(15);
@@ -268,8 +254,7 @@ Choose a depth that accommodates your deepest legitimate query path. For most AP
 
 Combine Hot Chocolate's query-level protections with ASP.NET Core's rate limiting middleware to limit requests per client:
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder.Services.AddRateLimiter(options =>
 {
     options.AddFixedWindowLimiter("graphql", opt =>
@@ -297,8 +282,7 @@ Request batching allows a client to send multiple GraphQL operations in a single
 
 In Hot Chocolate v16, request batching is disabled by default. If you have explicitly enabled it, disable it for your public API:
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder
     .AddGraphQL()
     .ModifyRequestOptions(opt => opt.AllowedBatchOperations = AllowedBatchOperations.None);
@@ -308,8 +292,7 @@ builder
 
 Here is a complete `Program.cs` that combines all the configuration from this guide into one starting point:
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 var builder = WebApplication.CreateBuilder(args);
 
 // Authentication (configure for your identity provider)

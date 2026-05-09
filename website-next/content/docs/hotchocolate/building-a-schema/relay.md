@@ -18,8 +18,7 @@ Hot Chocolate handles this through a middleware. The `[ID]` attribute opts a fie
 <ExampleTabs>
 <Implementation>
 
-```csharp
-// Types/Product.cs
+```csharp filename="Types/Product.cs"
 public class Product
 {
     [ID]
@@ -33,8 +32,7 @@ The `[ID]` attribute rewrites the field type to `ID!` and serializes the value a
 
 For foreign key fields that reference another type, specify the target type name:
 
-```csharp
-// Types/OrderItem.cs
+```csharp filename="Types/OrderItem.cs"
 public class OrderItem
 {
     [ID]
@@ -50,8 +48,7 @@ In v16, the generic `[ID<Product>]` form infers the GraphQL type name from the t
 </Implementation>
 <Code>
 
-```csharp
-// Types/ProductType.cs
+```csharp filename="Types/ProductType.cs"
 public class ProductType : ObjectType<Product>
 {
     protected override void Configure(IObjectTypeDescriptor<Product> descriptor)
@@ -77,8 +74,7 @@ When a field returns a serialized global ID, any argument that accepts that ID m
 <ExampleTabs>
 <Implementation>
 
-```csharp
-// Types/ProductQueries.cs
+```csharp filename="Types/ProductQueries.cs"
 [QueryType]
 public static partial class ProductQueries
 {
@@ -128,8 +124,7 @@ To restrict to a specific type:
 
 Mark input object properties with `[ID]` to deserialize global IDs in input types.
 
-```csharp
-// Types/UpdateProductInput.cs
+```csharp filename="Types/UpdateProductInput.cs"
 public class UpdateProductInput
 {
     [ID]
@@ -143,8 +138,7 @@ public class UpdateProductInput
 
 You can access the `IIdSerializer` service directly to serialize or deserialize global IDs in custom code.
 
-```csharp
-// Types/ProductQueries.cs
+```csharp filename="Types/ProductQueries.cs"
 [QueryType]
 public static partial class ProductQueries
 {
@@ -167,8 +161,7 @@ Global object identification extends global identifiers by enabling clients to r
 
 ## Enabling Global Object Identification
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder
     .AddGraphQL()
     .AddGlobalObjectIdentification();
@@ -207,8 +200,7 @@ At least one type in the schema must implement `Node`, or the schema fails to bu
 
 Annotate your class with `[Node]`. Hot Chocolate looks for a static method named `Get`, `GetAsync`, `Get{TypeName}`, or `Get{TypeName}Async` that accepts the ID as its first parameter and returns the type.
 
-```csharp
-// Types/Product.cs
+```csharp filename="Types/Product.cs"
 [Node]
 public class Product
 {
@@ -266,8 +258,7 @@ public class ProductNodeResolver
 </Implementation>
 <Code>
 
-```csharp
-// Types/ProductType.cs
+```csharp filename="Types/ProductType.cs"
 public class ProductType : ObjectType<Product>
 {
     protected override void Configure(IObjectTypeDescriptor<Product> descriptor)
@@ -304,8 +295,7 @@ Node resolvers are ideal places to use [DataLoaders](../resolvers-and-data/datal
 
 When adding Node support through a type extension, place the `[Node]` attribute on the extension class:
 
-```csharp
-// Types/ProductExtensions.cs
+```csharp filename="Types/ProductExtensions.cs"
 [Node]
 [ExtendObjectType<Product>]
 public static partial class ProductExtensions
@@ -320,8 +310,7 @@ public static partial class ProductExtensions
 
 Some data models use composite keys (multiple fields forming a unique identifier). Hot Chocolate supports complex IDs through custom ID types and type converters.
 
-```csharp
-// Types/ProductId.cs
+```csharp filename="Types/ProductId.cs"
 public readonly record struct ProductId(string Sku, int BatchNumber)
 {
     public override string ToString() => $"{Sku}:{BatchNumber}";
@@ -343,8 +332,7 @@ public class Product
 
 Register type converters so Hot Chocolate can serialize and deserialize the complex ID:
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder
     .AddGraphQL()
     .AddTypeConverter<string, ProductId>(ProductId.Parse)
@@ -358,8 +346,7 @@ In v16, the source generator can produce a `NodeIdValueSerializer` for your cust
 
 Mutation payloads can include a `query` field that gives clients access to the full Query type. This lets a client fetch everything it needs to update its state in a single round trip.
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder
     .AddGraphQL()
     .AddQueryFieldToMutationPayloads();

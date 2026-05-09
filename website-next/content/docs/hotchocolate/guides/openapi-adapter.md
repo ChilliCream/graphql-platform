@@ -16,8 +16,7 @@ dotnet add package HotChocolate.Adapters.OpenApi
 
 Register the adapter on your GraphQL server and map the endpoints:
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services
@@ -200,8 +199,7 @@ Each document is a separate entry in your `IOpenApiDefinitionStorage`. Fragment-
 
 The `IOpenApiDefinitionStorage` interface provides endpoint and fragment definitions to the adapter:
 
-```csharp
-// Services/MyOpenApiStorage.cs
+```csharp filename="Services/MyOpenApiStorage.cs"
 using HotChocolate.Adapters.OpenApi;
 using HotChocolate.Adapters.OpenApi.Storage;
 using HotChocolate.Language;
@@ -240,8 +238,7 @@ public class MyOpenApiStorage : IOpenApiDefinitionStorage
 
 Register it with your GraphQL server:
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 var storage = new MyOpenApiStorage();
 
 builder
@@ -262,8 +259,7 @@ Each endpoint definition's description becomes the OpenAPI operation summary. Ro
 
 The OpenAPI adapter works with Fusion gateway servers. Replace `AddGraphQL()` with `AddGraphQLGateway()` and the rest of the configuration remains the same:
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder
     .AddGraphQLGateway()
     .AddInMemoryConfiguration(compositeSchema)

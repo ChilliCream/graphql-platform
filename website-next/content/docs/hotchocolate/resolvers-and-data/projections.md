@@ -33,8 +33,7 @@ Projections are part of the `HotChocolate.Data` package.
 
 Register projections on the schema:
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder
     .AddGraphQL()
     .AddProjections();
@@ -45,8 +44,7 @@ Apply the `[UseProjection]` attribute to a resolver that returns `IQueryable<T>`
 <ExampleTabs>
 <Implementation>
 
-```csharp
-// Types/UserQueries.cs
+```csharp filename="Types/UserQueries.cs"
 [QueryType]
 public static partial class UserQueries
 {
@@ -59,8 +57,7 @@ public static partial class UserQueries
 </Implementation>
 <Code>
 
-```csharp
-// Types/UserQueries.cs
+```csharp filename="Types/UserQueries.cs"
 public class UserQueries
 {
     public IQueryable<User> GetUsers(CatalogContext db)
@@ -88,8 +85,7 @@ The projection middleware creates a `Select` expression for the entire subtree o
 
 In v16, `QueryContext<T>` provides an alternative to the `[UseProjection]` middleware. Instead of applying projections as middleware, you return a `QueryContext<T>` from your resolver and Hot Chocolate applies projections, filtering, and sorting at execution time.
 
-```csharp
-// Types/UserQueries.cs
+```csharp filename="Types/UserQueries.cs"
 [QueryType]
 public static partial class UserQueries
 {
@@ -130,8 +126,7 @@ public static IQueryable<User> GetUsers(CatalogContext db)
 
 Projections work with filtering, sorting, and pagination. Maintain the correct middleware order:
 
-```csharp
-// Types/UserQueries.cs
+```csharp filename="Types/UserQueries.cs"
 [QueryType]
 public static partial class UserQueries
 {
@@ -146,8 +141,7 @@ public static partial class UserQueries
 
 Filtering and sorting can project over relationships. Projections cannot project pagination over relationships. For nested collections that need filtering or sorting, apply those attributes to the collection property:
 
-```csharp
-// Models/User.cs
+```csharp filename="Models/User.cs"
 public class User
 {
     public int Id { get; set; }
@@ -176,8 +170,7 @@ public class User
 
 When you want a field to return a single entity instead of a list, use `[UseFirstOrDefault]` or `[UseSingleOrDefault]`. These rewrite the return type from `IQueryable<T>` to `T?` and apply the corresponding LINQ operation:
 
-```csharp
-// Types/UserQueries.cs
+```csharp filename="Types/UserQueries.cs"
 [QueryType]
 public static partial class UserQueries
 {
@@ -204,8 +197,7 @@ Resolvers on a type sometimes need data from the parent that the client did not 
 <ExampleTabs>
 <Implementation>
 
-```csharp
-// Models/User.cs
+```csharp filename="Models/User.cs"
 public class User
 {
     public int Id { get; set; }
@@ -219,8 +211,7 @@ public class User
 </Implementation>
 <Code>
 
-```csharp
-// Types/UserType.cs
+```csharp filename="Types/UserType.cs"
 public class UserType : ObjectType<User>
 {
     protected override void Configure(IObjectTypeDescriptor<User> descriptor)
@@ -242,8 +233,7 @@ Use `[IsProjected(false)]` to exclude a field from projection. The field remains
 <ExampleTabs>
 <Implementation>
 
-```csharp
-// Models/User.cs
+```csharp filename="Models/User.cs"
 public class User
 {
     public int Id { get; set; }
@@ -257,8 +247,7 @@ public class User
 </Implementation>
 <Code>
 
-```csharp
-// Types/UserType.cs
+```csharp filename="Types/UserType.cs"
 public class UserType : ObjectType<User>
 {
     protected override void Configure(IObjectTypeDescriptor<User> descriptor)

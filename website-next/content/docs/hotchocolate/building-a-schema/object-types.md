@@ -32,8 +32,7 @@ In the implementation-first approach, a C# class becomes a GraphQL object type a
 <ExampleTabs>
 <Implementation>
 
-```csharp
-// Types/Author.cs
+```csharp filename="Types/Author.cs"
 public class Author
 {
     public string Name { get; set; }
@@ -47,8 +46,7 @@ Public properties become fields on the `Author` object type. No additional regis
 </Implementation>
 <Code>
 
-```csharp
-// Types/Author.cs
+```csharp filename="Types/Author.cs"
 public class Author
 {
     public string Name { get; set; }
@@ -66,8 +64,7 @@ When you inherit from `ObjectType<Author>`, the public properties on `Author` ar
 
 You can override the `Configure` method to customize the type further.
 
-```csharp
-// Types/AuthorType.cs
+```csharp filename="Types/AuthorType.cs"
 public class AuthorType : ObjectType<Author>
 {
     protected override void Configure(IObjectTypeDescriptor<Author> descriptor)
@@ -81,8 +78,7 @@ public class AuthorType : ObjectType<Author>
 
 Since multiple classes could inherit from `ObjectType<Author>` with different configurations, Hot Chocolate cannot infer which one to use when you return an `Author` from a resolver. You must register code-first types explicitly.
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder
     .AddGraphQL()
     .AddType<AuthorType>();
@@ -100,8 +96,7 @@ Public properties with a getter are automatically mapped to GraphQL fields. Hot 
 <ExampleTabs>
 <Implementation>
 
-```csharp
-// Types/Product.cs
+```csharp filename="Types/Product.cs"
 public class Product
 {
     public int Id { get; set; }
@@ -117,8 +112,7 @@ public class Product
 </Implementation>
 <Code>
 
-```csharp
-// Types/Product.cs
+```csharp filename="Types/Product.cs"
 public class Product
 {
     public int Id { get; set; }
@@ -157,8 +151,7 @@ Public methods on a class become resolver fields. This is how you add computed f
 <ExampleTabs>
 <Implementation>
 
-```csharp
-// Types/Author.cs
+```csharp filename="Types/Author.cs"
 public class Author
 {
     public string Name { get; set; }
@@ -175,8 +168,7 @@ The `BookService` parameter is resolved from the dependency injection container.
 </Implementation>
 <Code>
 
-```csharp
-// Types/AuthorType.cs
+```csharp filename="Types/AuthorType.cs"
 public class AuthorType : ObjectType<Author>
 {
     protected override void Configure(IObjectTypeDescriptor<Author> descriptor)
@@ -219,8 +211,7 @@ You can rename fields, ignore them, and add descriptions without changing the sh
 <ExampleTabs>
 <Implementation>
 
-```csharp
-// Types/Author.cs
+```csharp filename="Types/Author.cs"
 public class Author
 {
     [GraphQLName("fullName")]
@@ -231,8 +222,7 @@ public class Author
 </Implementation>
 <Code>
 
-```csharp
-// Types/AuthorType.cs
+```csharp filename="Types/AuthorType.cs"
 public class AuthorType : ObjectType<Author>
 {
     protected override void Configure(IObjectTypeDescriptor<Author> descriptor)
@@ -252,8 +242,7 @@ You can also rename the type itself.
 <ExampleTabs>
 <Implementation>
 
-```csharp
-// Types/Author.cs
+```csharp filename="Types/Author.cs"
 [GraphQLName("BookAuthor")]
 public class Author
 {
@@ -264,8 +253,7 @@ public class Author
 </Implementation>
 <Code>
 
-```csharp
-// Types/AuthorType.cs
+```csharp filename="Types/AuthorType.cs"
 public class AuthorType : ObjectType<Author>
 {
     protected override void Configure(IObjectTypeDescriptor<Author> descriptor)
@@ -287,8 +275,7 @@ If only one client needs different names, prefer using [aliases](https://graphql
 
 Use the `[GraphQLIgnore]` attribute to prevent a property or method from appearing in the schema.
 
-```csharp
-// Types/Product.cs
+```csharp filename="Types/Product.cs"
 public class Product
 {
     public string Name { get; set; }
@@ -303,8 +290,7 @@ public class Product
 
 Use the `Ignore` method on the descriptor.
 
-```csharp
-// Types/ProductType.cs
+```csharp filename="Types/ProductType.cs"
 public class ProductType : ObjectType<Product>
 {
     protected override void Configure(IObjectTypeDescriptor<Product> descriptor)
@@ -324,8 +310,7 @@ Descriptions appear in GraphQL introspection and tooling like Nitro. They help c
 <ExampleTabs>
 <Implementation>
 
-```csharp
-// Types/Product.cs
+```csharp filename="Types/Product.cs"
 [GraphQLDescription("A product in the catalog.")]
 public class Product
 {
@@ -338,8 +323,7 @@ public class Product
 
 You can also use XML documentation comments. Hot Chocolate reads `<summary>` tags when `UseXmlDocumentation` is enabled (it is enabled by default).
 
-```csharp
-// Types/Product.cs
+```csharp filename="Types/Product.cs"
 /// <summary>
 /// A product in the catalog.
 /// </summary>
@@ -357,8 +341,7 @@ public class Product
 </Implementation>
 <Code>
 
-```csharp
-// Types/ProductType.cs
+```csharp filename="Types/ProductType.cs"
 public class ProductType : ObjectType<Product>
 {
     protected override void Configure(IObjectTypeDescriptor<Product> descriptor)
@@ -379,8 +362,7 @@ public class ProductType : ObjectType<Product>
 
 By default, all public properties and methods are included as fields. You can switch to explicit binding, where you opt in to each field individually.
 
-```csharp
-// Types/ProductType.cs
+```csharp filename="Types/ProductType.cs"
 public class ProductType : ObjectType<Product>
 {
     protected override void Configure(IObjectTypeDescriptor<Product> descriptor)
@@ -397,8 +379,7 @@ Only `name` and `price` appear in the schema. All other properties on `Product` 
 
 You can also set this globally, which affects all types.
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder
     .AddGraphQL()
     .ModifyOptions(options =>
@@ -430,8 +411,7 @@ You can override the inferred nullability when needed.
 <ExampleTabs>
 <Implementation>
 
-```csharp
-// Types/Product.cs
+```csharp filename="Types/Product.cs"
 public class Product
 {
     [GraphQLNonNullType]
@@ -442,8 +422,7 @@ public class Product
 </Implementation>
 <Code>
 
-```csharp
-// Types/ProductType.cs
+```csharp filename="Types/ProductType.cs"
 public class ProductType : ObjectType<Product>
 {
     protected override void Configure(IObjectTypeDescriptor<Product> descriptor)
@@ -467,8 +446,7 @@ Hot Chocolate v16 automatically maps `Dictionary<TKey, TValue>` properties to a 
 <ExampleTabs>
 <Implementation>
 
-```csharp
-// Types/Product.cs
+```csharp filename="Types/Product.cs"
 public class Product
 {
     public string Name { get; set; }
@@ -480,8 +458,7 @@ public class Product
 </Implementation>
 <Code>
 
-```csharp
-// Types/Product.cs
+```csharp filename="Types/Product.cs"
 public class Product
 {
     public string Name { get; set; }

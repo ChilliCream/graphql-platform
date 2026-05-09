@@ -13,8 +13,7 @@ The most common use case is adding resolver fields to an existing type.
 <ExampleTabs>
 <Implementation>
 
-```csharp
-// Types/Book.cs
+```csharp filename="Types/Book.cs"
 public class Book
 {
     public int Id { get; set; }
@@ -33,8 +32,7 @@ public static partial class BookExtensions
 }
 ```
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder
     .AddGraphQL()
     .AddTypeExtension<BookExtensions>();
@@ -45,8 +43,7 @@ The `genres` field appears on the `Book` type alongside the original fields.
 </Implementation>
 <Code>
 
-```csharp
-// Types/BookTypeExtensions.cs
+```csharp filename="Types/BookTypeExtensions.cs"
 public class BookTypeExtensions : ObjectTypeExtension<Book>
 {
     protected override void Configure(IObjectTypeDescriptor<Book> descriptor)
@@ -63,8 +60,7 @@ public class BookTypeExtensions : ObjectTypeExtension<Book>
 }
 ```
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder
     .AddGraphQL()
     .AddTypeExtension<BookTypeExtensions>();
@@ -84,8 +80,7 @@ With the source generator, use `[QueryType]`, `[MutationType]`, or `[Subscriptio
 
 If you need to extend a root type without the source generator, use `[ExtendObjectType]`:
 
-```csharp
-// Types/BookQueries.cs
+```csharp filename="Types/BookQueries.cs"
 [ExtendObjectType(typeof(Query))]
 public class BookQueries
 {
@@ -96,8 +91,7 @@ public class BookQueries
 }
 ```
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder
     .AddGraphQL()
     .AddTypeExtension<BookQueries>();
@@ -106,8 +100,7 @@ builder
 </Implementation>
 <Code>
 
-```csharp
-// Types/QueryBookResolvers.cs
+```csharp filename="Types/QueryBookResolvers.cs"
 public class QueryBookResolvers : ObjectTypeExtension<Query>
 {
     protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
@@ -123,8 +116,7 @@ public class QueryBookResolvers : ObjectTypeExtension<Query>
 }
 ```
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder
     .AddGraphQL()
     .AddTypeExtension<QueryBookResolvers>();
@@ -140,8 +132,7 @@ You can exclude fields from the original type.
 <ExampleTabs>
 <Implementation>
 
-```csharp
-// Types/BookExtensions.cs
+```csharp filename="Types/BookExtensions.cs"
 [ExtendObjectType(typeof(Book),
     IgnoreProperties = new[] { nameof(Book.AuthorId) })]
 public class BookExtensions
@@ -149,8 +140,7 @@ public class BookExtensions
 }
 ```
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder
     .AddGraphQL()
     .AddTypeExtension<BookExtensions>();
@@ -159,8 +149,7 @@ builder
 </Implementation>
 <Code>
 
-```csharp
-// Types/BookTypeExtensions.cs
+```csharp filename="Types/BookTypeExtensions.cs"
 public class BookTypeExtensions : ObjectTypeExtension<Book>
 {
     protected override void Configure(IObjectTypeDescriptor<Book> descriptor)
@@ -170,8 +159,7 @@ public class BookTypeExtensions : ObjectTypeExtension<Book>
 }
 ```
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder
     .AddGraphQL()
     .AddTypeExtension<BookTypeExtensions>();
@@ -184,8 +172,7 @@ builder
 
 Replace a field by binding a new resolver to an existing property. This is useful for replacing foreign key IDs with resolved entities.
 
-```csharp
-// Types/BookExtensions.cs
+```csharp filename="Types/BookExtensions.cs"
 [ExtendObjectType<Book>]
 public static partial class BookExtensions
 {
@@ -204,8 +191,7 @@ When you cannot reference the target type directly, extend it by its GraphQL typ
 <ExampleTabs>
 <Implementation>
 
-```csharp
-// Types/FooExtensions.cs
+```csharp filename="Types/FooExtensions.cs"
 [ExtendObjectType("Foo")]
 public class FooExtensions
 {
@@ -221,8 +207,7 @@ For root types, use the constants in `OperationTypeNames` instead of string lite
 </Implementation>
 <Code>
 
-```csharp
-// Types/FooTypeExtensions.cs
+```csharp filename="Types/FooTypeExtensions.cs"
 public class FooTypeExtensions : ObjectTypeExtension
 {
     protected override void Configure(IObjectTypeDescriptor descriptor)
@@ -247,8 +232,7 @@ public class FooTypeExtensions : ObjectTypeExtension
 
 You can extend every type that inherits from a base class or implements an interface.
 
-```csharp
-// Types/AuditExtensions.cs
+```csharp filename="Types/AuditExtensions.cs"
 [ExtendObjectType(typeof(object))]
 public class AuditExtensions
 {
@@ -263,8 +247,7 @@ public class AuditExtensions
 
 You can also target a specific interface:
 
-```csharp
-// Types/PostExtensions.cs
+```csharp filename="Types/PostExtensions.cs"
 [ExtendObjectType(typeof(IPost))]
 public class PostExtensions
 {

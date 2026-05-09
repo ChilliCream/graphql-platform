@@ -58,8 +58,7 @@ Use a batch DataLoader when each key maps to at most one result. This is the mos
 
 **C# DataLoader**
 
-```csharp
-// DataLoaders/BrandDataLoaders.cs
+```csharp filename="DataLoaders/BrandDataLoaders.cs"
 internal static class BrandDataLoaders
 {
     [DataLoader]
@@ -77,8 +76,7 @@ The source generator produces an `IBrandByIdDataLoader` interface and a `BrandBy
 
 **C# resolver**
 
-```csharp
-// Types/ProductNode.cs
+```csharp filename="Types/ProductNode.cs"
 [ObjectType<Product>]
 public static partial class ProductNode
 {
@@ -98,8 +96,7 @@ Use a group DataLoader when each key maps to multiple results. This is common fo
 
 **C# DataLoader**
 
-```csharp
-// DataLoaders/ProductDataLoaders.cs
+```csharp filename="DataLoaders/ProductDataLoaders.cs"
 internal static class ProductDataLoaders
 {
     [DataLoader]
@@ -119,8 +116,7 @@ The return type is `Dictionary<int, Product[]>`. The source generator recognizes
 
 **C# resolver**
 
-```csharp
-// Types/BrandNode.cs
+```csharp filename="Types/BrandNode.cs"
 [ObjectType<Brand>]
 public static partial class BrandNode
 {
@@ -195,8 +191,7 @@ Mark a method with `[BatchResolver]`. The `[Parent]` parameter and all arguments
 
 **C# resolver**
 
-```csharp
-// Types/UserNode.cs
+```csharp filename="Types/UserNode.cs"
 [ObjectType<User>]
 public static partial class UserNode
 {
@@ -214,8 +209,7 @@ The execution engine collects all `User` parent objects being resolved in the cu
 
 Batch resolvers support dependency injection and field arguments. Arguments that are list types are collected from each parent context.
 
-```csharp
-// Types/UserNode.cs
+```csharp filename="Types/UserNode.cs"
 [ObjectType<User>]
 public static partial class UserNode
 {
@@ -235,8 +229,7 @@ public static partial class UserNode
 
 Use `ResolverResult` to return per-item errors without failing the entire batch. Each element in the returned list can be either a success or an error.
 
-```csharp
-// Types/UserNode.cs
+```csharp filename="Types/UserNode.cs"
 [ObjectType<User>]
 public static partial class UserNode
 {
@@ -261,8 +254,7 @@ public static partial class UserNode
 
 In the code-first approach, use `ResolveBatch` on the field descriptor.
 
-```csharp
-// Types/UserType.cs
+```csharp filename="Types/UserType.cs"
 public class UserType : ObjectType<User>
 {
     protected override void Configure(IObjectTypeDescriptor<User> descriptor)
@@ -298,8 +290,7 @@ descriptor
 
 The `[IsSelected]` attribute lets a resolver check whether specific fields are selected in the query. This is useful for skipping expensive data fetching when the client does not need the result.
 
-```csharp
-// Types/ProductNode.cs
+```csharp filename="Types/ProductNode.cs"
 [ObjectType<Product>]
 public static partial class ProductNode
 {
@@ -328,8 +319,7 @@ If the client query does not select the `inventory` field, `inventorySelected` i
 
 You can write DataLoader classes by hand when you need full control over the batching logic. This is rarely needed since the source generator covers most cases.
 
-```csharp
-// DataLoaders/BrandByIdDataLoader.cs
+```csharp filename="DataLoaders/BrandByIdDataLoader.cs"
 public class BrandByIdDataLoader : BatchDataLoader<int, Brand>
 {
     private readonly IServiceProvider _services;

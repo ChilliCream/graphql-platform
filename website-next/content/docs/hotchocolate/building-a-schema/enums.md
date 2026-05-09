@@ -38,8 +38,7 @@ Hot Chocolate picks up any C# `enum` that appears in a resolver's return type or
 <ExampleTabs>
 <Implementation>
 
-```csharp
-// Types/UserRole.cs
+```csharp filename="Types/UserRole.cs"
 public enum UserRole
 {
     Guest,
@@ -63,8 +62,7 @@ No extra registration is needed. The source generator discovers `UserRole` throu
 </Implementation>
 <Code>
 
-```csharp
-// Types/UserRole.cs
+```csharp filename="Types/UserRole.cs"
 public enum UserRole
 {
     Guest,
@@ -80,8 +78,7 @@ public class UserRoleType : EnumType<UserRole>
 
 Code-first enum types are not automatically inferred because multiple `EnumType<UserRole>` subclasses could exist with different configurations. Register the type explicitly or specify it on a per-field basis:
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder
     .AddGraphQL()
     .AddType<UserRoleType>();
@@ -108,8 +105,7 @@ Use `[GraphQLName]` to set an explicit name on the type or individual values.
 <ExampleTabs>
 <Implementation>
 
-```csharp
-// Types/UserRole.cs
+```csharp filename="Types/UserRole.cs"
 [GraphQLName("Role")]
 public enum UserRole
 {
@@ -123,8 +119,7 @@ public enum UserRole
 </Implementation>
 <Code>
 
-```csharp
-// Types/UserRoleType.cs
+```csharp filename="Types/UserRoleType.cs"
 public class UserRoleType : EnumType<UserRole>
 {
     protected override void Configure(IEnumTypeDescriptor<UserRole> descriptor)
@@ -156,8 +151,7 @@ You can exclude individual enum members from the GraphQL schema.
 <ExampleTabs>
 <Implementation>
 
-```csharp
-// Types/UserRole.cs
+```csharp filename="Types/UserRole.cs"
 public enum UserRole
 {
     [GraphQLIgnore]
@@ -171,8 +165,7 @@ public enum UserRole
 </Implementation>
 <Code>
 
-```csharp
-// Types/UserRoleType.cs
+```csharp filename="Types/UserRoleType.cs"
 public class UserRoleType : EnumType<UserRole>
 {
     protected override void Configure(IEnumTypeDescriptor<UserRole> descriptor)
@@ -189,8 +182,7 @@ public class UserRoleType : EnumType<UserRole>
 
 In code-first, you can bind an enum type to any .NET type, such as `string`.
 
-```csharp
-// Types/UserRoleType.cs
+```csharp filename="Types/UserRoleType.cs"
 public class UserRoleType : EnumType<string>
 {
     protected override void Configure(IEnumTypeDescriptor<string> descriptor)

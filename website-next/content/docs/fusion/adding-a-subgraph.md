@@ -94,9 +94,7 @@ The Shipping subgraph owns shipment data and contributes a `shipments` field to 
 
 Create `Shipment.cs` in the Shipping project:
 
-```csharp
-// Shipping/Shipment.cs
-
+```csharp filename="Shipping/Shipment.cs"
 namespace Shipping;
 
 public class Shipment
@@ -117,9 +115,7 @@ Each shipment has a `ProductId` that references a product from the Products subg
 
 Create `ShipmentRepository.cs`:
 
-```csharp
-// Shipping/ShipmentRepository.cs
-
+```csharp filename="Shipping/ShipmentRepository.cs"
 namespace Shipping;
 
 public static class ShipmentRepository
@@ -143,9 +139,7 @@ public static class ShipmentRepository
 
 An entity stub is a lightweight declaration that says "I know this type exists in the graph and I want to add fields to it." Create `Types/Product.cs`:
 
-```csharp
-// Shipping/Types/Product.cs
-
+```csharp filename="Shipping/Types/Product.cs"
 namespace Shipping;
 
 public sealed record Product(int Id)
@@ -161,9 +155,7 @@ This is not a duplicate of the Product type from the Products subgraph. It is an
 
 Create `Types/ShippingQueries.cs` with a public lookup for `Shipment` and an internal lookup for `Product`:
 
-```csharp
-// Shipping/Types/ShippingQueries.cs
-
+```csharp filename="Shipping/Types/ShippingQueries.cs"
 namespace Shipping;
 
 [QueryType]
@@ -188,9 +180,7 @@ For more on public vs. internal lookups and when to use each, see [Entities and 
 
 The `Shipment` type currently exposes a raw `ProductId`. To expose `shipment.product` instead, add a type extension. Create `Types/ShipmentNode.cs`:
 
-```csharp
-// Shipping/Types/ShipmentNode.cs
-
+```csharp filename="Shipping/Types/ShipmentNode.cs"
 using HotChocolate.Types;
 
 namespace Shipping;

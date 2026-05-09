@@ -107,9 +107,7 @@ type InternalLookups @internal {
 
 **C# declaration**
 
-```csharp
-// Reviews/Types/InternalLookups.cs
-
+```csharp filename="Reviews/Types/InternalLookups.cs"
 [QueryType]
 public static partial class Query
 {
@@ -159,9 +157,7 @@ type Query {
 
 **C# resolver**
 
-```csharp
-// Products/Types/ProductQueries.cs
-
+```csharp filename="Products/Types/ProductQueries.cs"
 [QueryType]
 public static partial class ProductQueries
 {
@@ -230,9 +226,7 @@ type Product {
 
 **C# declaration**
 
-```csharp
-// Products/Types/Product.cs
-
+```csharp filename="Products/Types/Product.cs"
 public class Product
 {
     public int Id { get; set; }
@@ -262,9 +256,7 @@ Opt-in features are disabled by default. Enable them in your schema configuratio
 
 **C# configuration**
 
-```csharp
-// Products/Program.cs
-
+```csharp filename="Products/Program.cs"
 builder
     .AddGraphQL("Products")
     .AddTypes()
@@ -304,9 +296,7 @@ You can declare the stability level of each opt-in feature at the schema level. 
 
 **C# configuration**
 
-```csharp
-// Products/Program.cs
-
+```csharp filename="Products/Program.cs"
 builder
     .AddGraphQL("Products")
     .AddTypes()

@@ -24,8 +24,7 @@ You can deprecate output fields, input fields, arguments, and enum values. Depre
 <ExampleTabs>
 <Implementation>
 
-```csharp
-// Types/BookQueries.cs
+```csharp filename="Types/BookQueries.cs"
 [QueryType]
 public static partial class BookQueries
 {
@@ -47,8 +46,7 @@ The .NET `[Obsolete("reason")]` attribute works the same way as `[GraphQLDepreca
 </Implementation>
 <Code>
 
-```csharp
-// Types/BookQueriesType.cs
+```csharp filename="Types/BookQueriesType.cs"
 public class BookQueriesType : ObjectType
 {
     protected override void Configure(IObjectTypeDescriptor descriptor)
@@ -82,8 +80,7 @@ Fields marked with `@requiresOptIn` are hidden from introspection by default. Co
 
 Opt-in feature support is disabled by default. Enable it in your schema options:
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder
     .AddGraphQL()
     .ModifyOptions(o => o.EnableOptInFeatures = true);
@@ -96,8 +93,7 @@ Apply `@requiresOptIn` to output fields, input fields, arguments, and enum value
 <ExampleTabs>
 <Implementation>
 
-```csharp
-// Types/Session.cs
+```csharp filename="Types/Session.cs"
 public class Session
 {
     public string Id { get; set; }
@@ -114,8 +110,7 @@ public class Session
 </Implementation>
 <Code>
 
-```csharp
-// Types/SessionType.cs
+```csharp filename="Types/SessionType.cs"
 public class SessionType : ObjectType<Session>
 {
     protected override void Configure(IObjectTypeDescriptor<Session> descriptor)
@@ -171,8 +166,7 @@ You can declare the stability level of each opt-in feature. This helps consumers
 <ExampleTabs>
 <Implementation>
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder
     .AddGraphQL()
     .ModifyOptions(o => o.EnableOptInFeatures = true)
@@ -182,8 +176,7 @@ builder
 </Implementation>
 <Code>
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder
     .AddGraphQL()
     .ModifyOptions(o => o.EnableOptInFeatures = true)

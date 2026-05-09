@@ -35,8 +35,7 @@ Mark a class with `[QueryType]` and the source generator registers it as part of
 <ExampleTabs>
 <Implementation>
 
-```csharp
-// Types/BookQueries.cs
+```csharp filename="Types/BookQueries.cs"
 [QueryType]
 public static partial class BookQueries
 {
@@ -50,8 +49,7 @@ The source generator creates a `book` field on the Query type. No additional reg
 </Implementation>
 <Code>
 
-```csharp
-// Types/BookQueries.cs
+```csharp filename="Types/BookQueries.cs"
 public class BookQueries
 {
     public Book GetBook()
@@ -70,8 +68,7 @@ public class BookQueriesType : ObjectType<BookQueries>
 }
 ```
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder
     .AddGraphQL()
     .AddQueryType<BookQueriesType>();
@@ -84,8 +81,7 @@ builder
 
 GraphQL allows only one Query type per schema, but your codebase does not have to define all query fields in a single class. With the source generator, you can annotate multiple classes with `[QueryType]`. The source generator merges them into one Query type.
 
-```csharp
-// Types/ProductQueries.cs
+```csharp filename="Types/ProductQueries.cs"
 [QueryType]
 public static partial class ProductQueries
 {
@@ -97,8 +93,7 @@ public static partial class ProductQueries
 }
 ```
 
-```csharp
-// Types/AuthorQueries.cs
+```csharp filename="Types/AuthorQueries.cs"
 [QueryType]
 public static partial class AuthorQueries
 {
@@ -129,8 +124,7 @@ A `[QueryType]` class can be either static or non-static.
 
 **Static classes** are the recommended default. They have no instance state, which makes resolvers predictable and testable.
 
-```csharp
-// Types/ProductQueries.cs
+```csharp filename="Types/ProductQueries.cs"
 [QueryType]
 public static partial class ProductQueries
 {
@@ -141,8 +135,7 @@ public static partial class ProductQueries
 
 **Non-static classes** are registered as singletons on the service collection by the source generator. Use this when you need constructor-injected dependencies, though injecting services directly into resolver method parameters is preferred in most cases.
 
-```csharp
-// Types/ProductQueries.cs
+```csharp filename="Types/ProductQueries.cs"
 [QueryType]
 public partial class ProductQueries
 {

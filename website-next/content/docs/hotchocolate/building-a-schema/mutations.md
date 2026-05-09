@@ -33,8 +33,7 @@ Mark a class with `[MutationType]` and the source generator registers it as part
 <ExampleTabs>
 <Implementation>
 
-```csharp
-// Types/BookMutations.cs
+```csharp filename="Types/BookMutations.cs"
 [MutationType]
 public static partial class BookMutations
 {
@@ -55,8 +54,7 @@ public static partial class BookMutations
 </Implementation>
 <Code>
 
-```csharp
-// Types/BookMutations.cs
+```csharp filename="Types/BookMutations.cs"
 public class BookMutations
 {
     public async Task<Book> AddBookAsync(
@@ -83,8 +81,7 @@ public class BookMutationsType : ObjectType<BookMutations>
 }
 ```
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder
     .AddGraphQL()
     .AddMutationType<BookMutationsType>();
@@ -97,8 +94,7 @@ builder
 
 Like query types, you can annotate multiple classes with `[MutationType]`. The source generator merges them into one Mutation type.
 
-```csharp
-// Types/BookMutations.cs
+```csharp filename="Types/BookMutations.cs"
 [MutationType]
 public static partial class BookMutations
 {
@@ -113,8 +109,7 @@ public static partial class BookMutations
 }
 ```
 
-```csharp
-// Types/AuthorMutations.cs
+```csharp filename="Types/AuthorMutations.cs"
 [MutationType]
 public static partial class AuthorMutations
 {
@@ -135,8 +130,7 @@ In GraphQL, it is best practice for each mutation to accept a single `input` arg
 
 Hot Chocolate generates the input and payload types for you when mutation conventions are enabled.
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder
     .AddGraphQL()
     .AddMutationConventions(applyToAllMutations: true);
@@ -147,8 +141,7 @@ With conventions enabled, you write the resolver with plain parameters and a ret
 <ExampleTabs>
 <Implementation>
 
-```csharp
-// Types/UserMutations.cs
+```csharp filename="Types/UserMutations.cs"
 [MutationType]
 public static partial class UserMutations
 {
@@ -164,8 +157,7 @@ public static partial class UserMutations
 </Implementation>
 <Code>
 
-```csharp
-// Types/UserMutationsType.cs
+```csharp filename="Types/UserMutationsType.cs"
 public class UserMutationsType : ObjectType<UserMutations>
 {
     protected override void Configure(
@@ -229,8 +221,7 @@ public static UpdateUserNamePayload UpdateUserNameAsync(UpdateUserNameInput inpu
 
 Override the global naming patterns through `MutationConventionOptions`:
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder
     .AddGraphQL()
     .AddMutationConventions(
@@ -258,8 +249,7 @@ public static async Task<User?> UpdateUserNameAsync(/* ... */)
 
 Mutation conventions support typed domain errors on the payload. Annotate a mutation with `[Error]` to declare which exceptions represent domain errors. Hot Chocolate catches those exceptions and maps them to error types on the payload. All other exceptions remain runtime errors.
 
-```csharp
-// Types/UserMutations.cs
+```csharp filename="Types/UserMutations.cs"
 [MutationType]
 public static partial class UserMutations
 {
@@ -307,8 +297,7 @@ There are three ways to map an exception to a schema error:
 
 **Map with a factory method.** Create an error class with a `public static CreateErrorFrom(MyException ex)` method. This lets you control the error shape and hide internal details.
 
-```csharp
-// Errors/UserNameTakenError.cs
+```csharp filename="Errors/UserNameTakenError.cs"
 public class UserNameTakenError
 {
     private UserNameTakenError(string message) => Message = message;
@@ -322,8 +311,7 @@ public class UserNameTakenError
 
 **Map with a constructor.** Give the error class a constructor that accepts the exception.
 
-```csharp
-// Errors/UserNameTakenError.cs
+```csharp filename="Errors/UserNameTakenError.cs"
 public class UserNameTakenError
 {
     public UserNameTakenError(UserNameTakenException ex)
@@ -342,8 +330,7 @@ The default error interface requires a `message` field. To add an error code or 
 <ExampleTabs>
 <Implementation>
 
-```csharp
-// Types/IUserError.cs
+```csharp filename="Types/IUserError.cs"
 [GraphQLName("UserError")]
 public interface IUserError
 {
@@ -352,8 +339,7 @@ public interface IUserError
 }
 ```
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder
     .AddGraphQL()
     .AddErrorInterfaceType<IUserError>();
@@ -362,8 +348,7 @@ builder
 </Implementation>
 <Code>
 
-```csharp
-// Types/CustomErrorInterfaceType.cs
+```csharp filename="Types/CustomErrorInterfaceType.cs"
 public class CustomErrorInterfaceType : InterfaceType
 {
     protected override void Configure(IInterfaceTypeDescriptor descriptor)
@@ -375,8 +360,7 @@ public class CustomErrorInterfaceType : InterfaceType
 }
 ```
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder
     .AddGraphQL()
     .AddErrorInterfaceType<CustomErrorInterfaceType>();
@@ -391,8 +375,7 @@ All error types must declare the fields required by the interface. They do not n
 
 When a request contains multiple mutations, Hot Chocolate can wrap them in a transaction. The default implementation uses `System.Transactions.TransactionScope`, which works with ADO.NET providers and Entity Framework.
 
-```csharp
-// Program.cs
+```csharp filename="Program.cs"
 builder
     .AddGraphQL()
     .AddDefaultTransactionScopeHandler();

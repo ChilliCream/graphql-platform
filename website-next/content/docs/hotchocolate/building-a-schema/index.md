@@ -12,8 +12,7 @@ Hot Chocolate inspects your C# types and produces GraphQL equivalents. Understan
 
 **Types.** A C# class or record becomes a GraphQL object type. Each public property or method becomes a field. The GraphQL type name matches the C# type name.
 
-```csharp
-// Types/Book.cs
+```csharp filename="Types/Book.cs"
 public class Book
 {
     public int Id { get; set; }
@@ -46,8 +45,7 @@ Hot Chocolate supports two approaches to defining a schema. Both produce the sam
 
 You write standard C# classes and decorate them with attributes. A source generator handles the rest. This is the approach used throughout this documentation.
 
-```csharp
-// Types/ProductQueries.cs
+```csharp filename="Types/ProductQueries.cs"
 [QueryType]
 public static partial class ProductQueries
 {
@@ -67,8 +65,7 @@ The source generator produces a `productById` field on the Query type, infers th
 
 You create classes that inherit from `ObjectType<T>` and configure each field explicitly through a descriptor API. This decouples the GraphQL schema shape from your C# model.
 
-```csharp
-// Types/ProductType.cs
+```csharp filename="Types/ProductType.cs"
 public class ProductType : ObjectType<Product>
 {
     protected override void Configure(IObjectTypeDescriptor<Product> descriptor)

@@ -69,8 +69,7 @@ When you need to override the inferred nullability, use attributes or the descri
 <ExampleTabs>
 <Implementation>
 
-```csharp
-// Types/Book.cs
+```csharp filename="Types/Book.cs"
 public class Book
 {
     [GraphQLNonNullType]
@@ -85,8 +84,7 @@ public class Book
 </Implementation>
 <Code>
 
-```csharp
-// Types/BookType.cs
+```csharp filename="Types/BookType.cs"
 public class BookType : ObjectType<Book>
 {
     protected override void Configure(IObjectTypeDescriptor<Book> descriptor)
@@ -121,8 +119,7 @@ To override nullability on list items explicitly:
 <ExampleTabs>
 <Implementation>
 
-```csharp
-// Types/Book.cs
+```csharp filename="Types/Book.cs"
 public class Book
 {
     [GraphQLType(typeof(ListType<NonNullType<StringType>>))]
@@ -133,8 +130,7 @@ public class Book
 </Implementation>
 <Code>
 
-```csharp
-// Types/BookType.cs
+```csharp filename="Types/BookType.cs"
 public class BookType : ObjectType<Book>
 {
     protected override void Configure(IObjectTypeDescriptor<Book> descriptor)
