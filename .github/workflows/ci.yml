@@ -19,6 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       website_changes: ${{ steps.check-website.outputs.website_changes }}
+      website_next_changes: ${{ steps.check-website-next.outputs.website_next_changes }}
       library_changes: ${{ steps.check-library.outputs.library_changes }}
       src_changes: ${{ steps.check-src.outputs.src_changes }}
     steps:
@@ -38,10 +39,20 @@ jobs:
             echo "website_changes=false" >> $GITHUB_OUTPUT
           fi
 
+      - name: Check for changes in website-next directory
+        id: check-website-next
+        run: |
+          changes=$(git diff --name-only HEAD~1 HEAD -- ./website-next)
+          if [[ -n "$changes" ]]; then
+            echo "website_next_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "website_next_changes=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Check for changes outside website directory
         id: check-library
         run: |
-          changes=$(git diff --name-only HEAD~1 HEAD -- ':!./website')
+          changes=$(git diff --name-only HEAD~1 HEAD -- ':!./website' ':!./website-next')
           if [[ -n "$changes" ]]; then
             echo "library_changes=true" >> $GITHUB_OUTPUT
           else
@@ -146,6 +157,46 @@ jobs:
       - name: Build Website
         run: yarn build
         working-directory: website
+
+  website-next-tests:
+    name: "Website Next Tests"
+    needs: check-changes
+    if: needs.check-changes.outputs.website_next_changes == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v6
+        with:
+          show-progress: false
+
+      - name: Install Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: "yarn"
+          cache-dependency-path: "website-next/yarn.lock"
+
+      - name: Cache Yarn Packages
+        uses: actions/cache@v5
+        with:
+          path: |
+            website-next/.yarn/cache
+            website-next/.next/cache
+          key: ${{ runner.os }}-yarn-next-${{ hashFiles('website-next/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-next-
+
+      - name: Install Packages
+        run: yarn --immutable --network-timeout 100000
+        working-directory: website-next
+
+      - name: Lint
+        run: yarn lint
+        working-directory: website-next
+
+      - name: Build
+        run: yarn build
+        working-directory: website-next
 
   configure:
     name: Generate Test Matrix
@@ -352,6 +403,7 @@ jobs:
       [
         library-tests,
         website-tests,
+        website-next-tests,
         validate-nitro-client,
         verify-nitro-npm-package,
       ]
@@ -364,4 +416,5 @@ jobs:
           always() &&
           (needs.library-tests.result == 'failure' ||
            needs.website-tests.result == 'failure' ||
+           needs.website-next-tests.result == 'failure' ||
            needs.verify-nitro-npm-package.result == 'failure')
