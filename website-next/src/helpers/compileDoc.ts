@@ -21,7 +21,13 @@ export type CompiledDoc<T extends Frontmatter = Frontmatter> = {
 export async function compileDoc<T extends Frontmatter = Frontmatter>(
   absPath: string
 ): Promise<CompiledDoc<T>> {
-  const source = await fs.readFile(absPath, "utf-8");
+  // MDX 3 rejects HTML comments (`<!-- ... -->`). They survive on disk for
+  // tooling that reads them (e.g. cspell `<!-- spell-checker:ignore ... -->`)
+  // but get stripped before MDX compilation.
+  const source = (await fs.readFile(absPath, "utf-8")).replace(
+    /<!--[\s\S]*?-->/g,
+    ""
+  );
   const captured: { toc: HeadingItem[] } = { toc: [] };
 
   const captureToc = () => (_tree: unknown, file: VFile) => {

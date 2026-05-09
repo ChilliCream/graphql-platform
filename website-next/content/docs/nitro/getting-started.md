@@ -1,6 +1,7 @@
 ---
 title: "Getting Started"
 ---
+<!-- spell-checker:ignore lvbgpp -->
 
 Ready to explore the features of Nitro? In this getting started guide, we'll show you how to get up and running with Nitro.
 You have the option to choose between the convenience of the web app or the enhanced capabilities of the desktop version. We'll guide you through the setup process, so you can start enjoying all that Nitro has to offer.

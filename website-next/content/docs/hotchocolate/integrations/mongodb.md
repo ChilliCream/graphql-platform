@@ -2,6 +2,7 @@
 title: MongoDB
 description: Learn how to integrate MongoDB with Hot Chocolate v16, including filtering, sorting, projections, and pagination.
 ---
+<!-- spell-checker:ignore Shorton -->
 
 Hot Chocolate has a data integration for MongoDB. With this integration, you can translate paging, filtering, sorting, and projections directly into native MongoDB queries.
 

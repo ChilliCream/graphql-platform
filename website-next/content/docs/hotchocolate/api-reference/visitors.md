@@ -2,6 +2,7 @@
 title: Visitors
 description: Learn how to use the SyntaxWalker to traverse GraphQL abstract syntax trees in Hot Chocolate v16.
 ---
+<!-- spell-checker:ignore SKIPANDLEAVE -->
 
 Hot Chocolate creates an abstract syntax tree (AST) for every incoming request. The execution engine evaluates this tree in many ways. Validation is a good example: a set of rules is applied to the tree to find semantic flaws.
 

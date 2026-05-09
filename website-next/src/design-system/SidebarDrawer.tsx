@@ -3,6 +3,8 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 
+
+
 /**
  * Wraps the sidebar to provide:
  * - Desktop (lg+): visible inline, sticky.
@@ -13,10 +15,13 @@ import { usePathname } from "next/navigation";
 export function SidebarDrawer({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
-
-  useEffect(() => {
-    setOpen(false);
-  }, [pathname]);
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (prevPathname !== pathname) {
+    setPrevPathname(pathname);
+    if (open) {
+      setOpen(false);
+    }
+  }
 
   useEffect(() => {
     if (!open) {

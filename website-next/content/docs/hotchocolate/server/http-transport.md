@@ -1,6 +1,7 @@
 ---
 title: HTTP Transport
 ---
+<!-- spell-checker:ignore Bname, Buser -->
 
 Hot Chocolate implements the latest version of the [GraphQL over HTTP specification](https://github.com/graphql/graphql-over-http/blob/a1e6d8ca248c9a19eb59a2eedd988c204909ee3f/spec/GraphQLOverHTTP.md).
 

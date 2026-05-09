@@ -35,8 +35,8 @@ export const ManyTabs: Story = {
   args: {
     children: Array.from({ length: 8 }, (_, i) => (
       <Tab key={i} label={`Tab ${i + 1}`}>
-        Content for tab {i + 1}. The tab strip wraps when there's not enough
-        horizontal room.
+        Content for tab {i + 1}. The tab strip wraps when there&apos;s not
+        enough horizontal room.
       </Tab>
     )),
   },

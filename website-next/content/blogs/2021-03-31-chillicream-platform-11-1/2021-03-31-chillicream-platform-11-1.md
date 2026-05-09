@@ -15,6 +15,7 @@ author: Michael Staib
 authorUrl: https://github.com/michaelstaib
 authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
+<!-- spell-checker:ignore lvbgpp, mydb, Shorton -->
 
 Today we are releasing Hot Chocolate server and Strawberry Shake client 11.1. This release brings many things that we skipped for the initial release of Hot Chocolate server 11. The platform now contains four major components: Hot Chocolate server, Hot Chocolate gateway, Banana Cake Pop, and Strawberry Shake.
 

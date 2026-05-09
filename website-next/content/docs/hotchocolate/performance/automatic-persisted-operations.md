@@ -1,6 +1,7 @@
 ---
 title: "Automatic persisted operations"
 ---
+<!-- spell-checker:ignore yeex -->
 
 This guide walks you through how automatic persisted operations work and how to set them up with a Hot Chocolate GraphQL server.
 

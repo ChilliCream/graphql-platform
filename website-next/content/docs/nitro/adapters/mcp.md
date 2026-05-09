@@ -1,6 +1,7 @@
 ---
 title: "MCP"
 ---
+<!-- spell-checker:ignore: ontoolresult onhostcontextchanged onteardown -->
 
 The [Model Context Protocol](https://modelcontextprotocol.io/) (MCP) is an open standard that connects AI applications to external systems through a single uniform interface. The host (Claude, ChatGPT, a VS Code agent) speaks the protocol once, and any MCP-compatible server plugs in without bespoke glue code per product.
 
