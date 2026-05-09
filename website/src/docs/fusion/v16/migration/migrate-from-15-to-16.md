@@ -683,7 +683,7 @@ Each subgraph also needs an `Aspire` environment in `schema-settings.json`. This
 }
 ```
 
-## Per repository migration
+# Per repository migration
 
 <!-- TODO: At the start we want to check for and collect satisfiability issues so we can work on them
 
@@ -705,7 +705,7 @@ Satisfiability validation failed.
 
  -->
 
-### Migrate subgraph-config.json
+## Migrate subgraph-config.json
 
 For each subgraph in your repository, the existing `subgraph-config.json` file needs to be migrated to the new `schema-settings.json` format.
 
@@ -757,7 +757,7 @@ If your subgraph is using a version older than the latest HotChocolate v15 or yo
  }
 ```
 
-#### Environment-specific configuration
+### Environment-specific configuration
 
 Fusion v1 let you set environment-specific values from the pipeline with `fusion subgraph config set`:
 
@@ -793,7 +793,7 @@ Fusion v2 moves these values into `schema-settings.json`. Replace anything that 
 
 Composition resolves the placeholders against a chosen environment. Pass `--environment <environment>` to `nitro fusion compose` to select one explicitly, or rely on `nitro fusion publish`, which derives the environment from its `--stage` value. When publishing through Nitro, the keys under `environments` therefore need to match the stage names defined in Nitro.
 
-### Update subgraph
+## Update subgraph
 
 The concept of batch resolvers like `productByIds(ids: [ID!]!)` does no longer exist in Fusion v2. Batching is done on the transport level through [variable and request batching](https://github.com/graphql/graphql-over-http/blob/fb404ac12dde473f3d9f5a1b1026574c7475e1e4/spec/Appendix%20B%20--%20Variable%20Batching.md). This means singular fields like `Query.productById(id: ID!): Product` are invoked with a list of IDs instead of a plural `Query.productsById(ids: [ID!]!): [Product!]` field. Checkout [this GitHub issue](https://github.com/graphql/composite-schemas-spec/issues/25#issue-2173900758) for details on this decision.
 
@@ -817,15 +817,15 @@ Variable and request batching aren't enabled by default, so you also need to upd
 
 If you want to, you can also now [migrate the subgraph to Hot Chocolate v16](#migrate-subgraph-to-v16), but it's not required at this point.
 
-### Migrate workflows
+## Migrate pipelines
 
-The migration to Fusion v2 is designed to happen one subgraph repository at a time. While some of your subgraphs are still on v15 and others are already on v16, the gateway needs to keep working for both. The workflow changes in this section ensure that both archive formats stay available side-by-side until every subgraph has been migrated and the gateway itself is cut over.
+The migration to Fusion v2 is designed to happen one subgraph repository at a time. While some of your subgraphs are still on v15 and others are already on v16, the gateway needs to keep working for both. The pipeline changes in this section ensure that both archive formats stay available side-by-side until every subgraph has been migrated and the gateway itself is cut over.
 
 In Fusion v15 each subgraph pipeline produces a Fusion gateway package (`.fgp`) and publishes it back to Nitro as the latest archive. In Fusion v16 the equivalent artifact is the Fusion archive (`.far`). To bridge the two formats during the transition, the v15 compose step is kept in place and the freshly composed `.fgp` is embedded into the published `.far` through the `--legacy-v1-archive` option. v15 gateways continue to download the embedded `.fgp`, v16 gateways download the `.far` directly.
 
-A typical subgraph repository has two workflows that need updating: the **deployment workflow** that publishes the subgraph's archive to Nitro and the **PR validation workflow** that ensures the composed schema introduces no breaking changes. The same transition strategy applies to both, only the final Nitro command changes while the existing v15 download and compose steps stay in place.
+A typical subgraph repository has two pipelines that need updating: the **deployment pipeline** that publishes the subgraph's archive to Nitro and the **PR validation pipeline** that ensures the composed schema introduces no breaking changes. The same transition strategy applies to both, only the final Nitro command changes while the existing v15 download and compose steps stay in place.
 
-#### Deployment workflow
+### Deployment pipeline
 
 In practice this means three changes to your existing deployment pipeline:
 
@@ -866,7 +866,7 @@ dotnet nitro fusion-configuration publish commit \
   --api-key <api-key>
 ```
 
-##### Upload the source schema in the build job
+#### Upload the source schema in the build job
 
 Add a step to the build job that uploads the exported source schema to Nitro. The `tag` is later used by the publish step to find the matching upload.
 
@@ -899,7 +899,7 @@ dotnet nitro fusion upload \
 
 > Note: The `dotnet fusion subgraph pack` step is still required while the v15 compose step runs in the deploy job, since v15 composition consumes the `.fsp` archive. It can be removed once the subgraph is migrated to v16 and the v15 compose step is dropped (see [Cleanup](#cleanup)).
 
-##### Replace `publish commit` with `nitro fusion publish` in the deploy job
+#### Replace `publish commit` with `nitro fusion publish` in the deploy job
 
 In the deploy job, leave the existing v15 commands that download the latest `.fgp` and run v15 composition untouched. Only the trailing `dotnet nitro fusion-configuration publish commit` is removed:
 
@@ -951,9 +951,9 @@ dotnet nitro fusion publish \
 
 > Note: `--legacy-v1-archive` is only required during the transition. Once every subgraph has been migrated to v16 and the gateway has been cut over to consume `.far` directly, the v15 compose step and the `--legacy-v1-archive` option can be removed (see [Cleanup](#cleanup)).
 
-#### PR validation workflow
+### PR validation pipeline
 
-In addition to the deployment workflow, most subgraph repositories have a PR validation workflow that downloads the latest archive, runs composition with the proposed change, and verifies that the composed schema introduces no breaking changes. Below are the relevant v15 steps for reference:
+In addition to the deployment pipeline, most subgraph repositories have a PR validation pipeline that downloads the latest archive, runs composition with the proposed change, and verifies that the composed schema introduces no breaking changes. Below are the relevant v15 steps for reference:
 
 ```bash
 dotnet run --project ./src/SubgraphA -- schema export --output schema.graphql
@@ -974,7 +974,7 @@ dotnet nitro fusion-configuration validate \
   --api-key <api-key>
 ```
 
-As with the deployment workflow, the v15 download and compose steps stay in place during the transition so the v15 composition path keeps being validated. Only the final `dotnet nitro fusion-configuration validate` is replaced by `dotnet nitro fusion validate`. Pass the freshly composed `gateway.fgp` via `--legacy-v1-archive` so the validation also covers the embedded v15 archive:
+As with the deployment pipeline, the v15 download and compose steps stay in place during the transition so the v15 composition path keeps being validated. Only the final `dotnet nitro fusion-configuration validate` is replaced by `dotnet nitro fusion validate`. Pass the freshly composed `gateway.fgp` via `--legacy-v1-archive` so the validation also covers the embedded v15 archive:
 
 ```diff
 - dotnet nitro fusion-configuration validate \
@@ -1013,16 +1013,10 @@ dotnet nitro fusion validate \
 </PipelineChoiceTabs.CLI>
 </PipelineChoiceTabs>
 
-### Migrate subgraph to v16
+## Migrate subgraph to v16
 
 <!-- TODO: Link to Hot Chocolate migration guide and mention that the version: 1.0.0 should be removed. Also `AddSourceSchemaDefaults` (TODO: Check if this modifies the batching already) -->
-
-## Migrate gateway
-
-TODO
 
 ## Cleanup
 
 Remove `HotChocolate.Fusion.CommandLine` and `ChilliCream.Nitro.CLI` from pipelines.
-
-<!-- TODO: If people don't use our GitHub actions how can they use `ChilliCream.Nitro.CLI` and `ChilliCream.Nitro.CommandLine` side-by-side as both map to `dotnet nitro`? -->

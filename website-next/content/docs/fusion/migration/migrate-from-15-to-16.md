@@ -817,15 +817,15 @@ Variable and request batching aren't enabled by default, so you also need to upd
 
 If you want to, you can also now [migrate the subgraph to Hot Chocolate v16](#migrate-subgraph-to-v16), but it's not required at this point.
 
-### Migrate workflows
+### Migrate pipelines
 
-The migration to Fusion v2 is designed to happen one subgraph repository at a time. While some of your subgraphs are still on v15 and others are already on v16, the gateway needs to keep working for both. The workflow changes in this section ensure that both archive formats stay available side-by-side until every subgraph has been migrated and the gateway itself is cut over.
+The migration to Fusion v2 is designed to happen one subgraph repository at a time. While some of your subgraphs are still on v15 and others are already on v16, the gateway needs to keep working for both. The pipeline changes in this section ensure that both archive formats stay available side-by-side until every subgraph has been migrated and the gateway itself is cut over.
 
 In Fusion v15 each subgraph pipeline produces a Fusion gateway package (`.fgp`) and publishes it back to Nitro as the latest archive. In Fusion v16 the equivalent artifact is the Fusion archive (`.far`). To bridge the two formats during the transition, the v15 compose step is kept in place and the freshly composed `.fgp` is embedded into the published `.far` through the `--legacy-v1-archive` option. v15 gateways continue to download the embedded `.fgp`, v16 gateways download the `.far` directly.
 
-A typical subgraph repository has two workflows that need updating: the **deployment workflow** that publishes the subgraph's archive to Nitro and the **PR validation workflow** that ensures the composed schema introduces no breaking changes. The same transition strategy applies to both, only the final Nitro command changes while the existing v15 download and compose steps stay in place.
+A typical subgraph repository has two pipelines that need updating: the **deployment pipeline** that publishes the subgraph's archive to Nitro and the **PR validation pipeline** that ensures the composed schema introduces no breaking changes. The same transition strategy applies to both, only the final Nitro command changes while the existing v15 download and compose steps stay in place.
 
-#### Deployment workflow
+#### Deployment pipeline
 
 In practice this means three changes to your existing deployment pipeline:
 
@@ -951,9 +951,9 @@ dotnet nitro fusion publish \
 
 > Note: `--legacy-v1-archive` is only required during the transition. Once every subgraph has been migrated to v16 and the gateway has been cut over to consume `.far` directly, the v15 compose step and the `--legacy-v1-archive` option can be removed (see [Cleanup](#cleanup)).
 
-#### PR validation workflow
+#### PR validation pipeline
 
-In addition to the deployment workflow, most subgraph repositories have a PR validation workflow that downloads the latest archive, runs composition with the proposed change, and verifies that the composed schema introduces no breaking changes. Below are the relevant v15 steps for reference:
+In addition to the deployment pipeline, most subgraph repositories have a PR validation pipeline that downloads the latest archive, runs composition with the proposed change, and verifies that the composed schema introduces no breaking changes. Below are the relevant v15 steps for reference:
 
 ```bash
 dotnet run --project ./src/SubgraphA -- schema export --output schema.graphql
@@ -974,7 +974,7 @@ dotnet nitro fusion-configuration validate \
   --api-key <api-key>
 ```
 
-As with the deployment workflow, the v15 download and compose steps stay in place during the transition so the v15 composition path keeps being validated. Only the final `dotnet nitro fusion-configuration validate` is replaced by `dotnet nitro fusion validate`. Pass the freshly composed `gateway.fgp` via `--legacy-v1-archive` so the validation also covers the embedded v15 archive:
+As with the deployment pipeline, the v15 download and compose steps stay in place during the transition so the v15 composition path keeps being validated. Only the final `dotnet nitro fusion-configuration validate` is replaced by `dotnet nitro fusion validate`. Pass the freshly composed `gateway.fgp` via `--legacy-v1-archive` so the validation also covers the embedded v15 archive:
 
 ```diff
 - dotnet nitro fusion-configuration validate \
