@@ -1,8 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { TableOfContents } from "@/src/design-system/TableOfContents";
 import type { HeadingItem } from "@/src/design-system/TableOfContents";
+import { Typography } from "@/src/design-system/Typography";
+import { readFrontmatter } from "@/src/helpers/readFrontmatter";
 
 const CONTENT_ROOT = path.join(process.cwd(), "blogs");
 
@@ -24,6 +27,23 @@ export function generateStaticParams(): { slug: string[] }[] {
     .map((slug) => ({ slug }));
 }
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string[] }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const rel = resolveFile(slug);
+  if (rel === null) {
+    return {};
+  }
+  const { title, description } = readFrontmatter(path.join(CONTENT_ROOT, rel));
+  return {
+    title,
+    description,
+  };
+}
+
 export default async function BlogPage({
   params,
 }: {
@@ -36,6 +56,7 @@ export default async function BlogPage({
     notFound();
   }
 
+  const { title } = readFrontmatter(path.join(CONTENT_ROOT, rel));
   const mod = await import(`@/blogs/${rel}`);
   const Post = mod.default;
   const toc: HeadingItem[] = Array.isArray(mod.toc) ? mod.toc : [];
@@ -43,6 +64,7 @@ export default async function BlogPage({
   return (
     <div className="mx-auto max-w-7xl px-6 py-8 grid gap-10 lg:grid-cols-[1fr_15rem]">
       <article className="min-w-0">
+        {title ? <Typography variant="h1">{title}</Typography> : null}
         <Post />
       </article>
       <TableOfContents items={toc} />

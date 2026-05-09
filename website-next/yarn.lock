@@ -1518,6 +1518,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"argparse@npm:^1.0.7":
+  version: 1.0.10
+  resolution: "argparse@npm:1.0.10"
+  dependencies:
+    sprintf-js: "npm:~1.0.2"
+  checksum: 10/c6a621343a553ff3779390bb5ee9c2263d6643ebcd7843227bdde6cc7adbed796eb5540ca98db19e3fd7b4714e1faa51551f8849b268bb62df27ddb15cbcd91e
+  languageName: node
+  linkType: hard
+
 "argparse@npm:^2.0.1":
   version: 2.0.1
   resolution: "argparse@npm:2.0.1"
@@ -2535,6 +2544,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"esprima@npm:^4.0.0":
+  version: 4.0.1
+  resolution: "esprima@npm:4.0.1"
+  bin:
+    esparse: ./bin/esparse.js
+    esvalidate: ./bin/esvalidate.js
+  checksum: 10/f1d3c622ad992421362294f7acf866aa9409fbad4eb2e8fa230bd33944ce371d32279667b242d8b8907ec2b6ad7353a717f3c0e60e748873a34a7905174bc0eb
+  languageName: node
+  linkType: hard
+
 "esquery@npm:^1.5.0":
   version: 1.7.0
   resolution: "esquery@npm:1.7.0"
@@ -2632,6 +2651,15 @@ __metadata:
   version: 2.0.3
   resolution: "esutils@npm:2.0.3"
   checksum: 10/b23acd24791db11d8f65be5ea58fd9a6ce2df5120ae2da65c16cfc5331ff59d5ac4ef50af66cd4bde238881503ec839928a0135b99a036a9cdfa22d17fd56cdb
+  languageName: node
+  linkType: hard
+
+"extend-shallow@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "extend-shallow@npm:2.0.1"
+  dependencies:
+    is-extendable: "npm:^0.1.0"
+  checksum: 10/8fb58d9d7a511f4baf78d383e637bd7d2e80843bd9cd0853649108ea835208fb614da502a553acc30208e1325240bb7cc4a68473021612496bb89725483656d8
   languageName: node
   linkType: hard
 
@@ -2913,6 +2941,18 @@ __metadata:
   version: 4.2.11
   resolution: "graceful-fs@npm:4.2.11"
   checksum: 10/bf152d0ed1dc159239db1ba1f74fdbc40cb02f626770dcd5815c427ce0688c2635a06ed69af364396da4636d0408fcf7d4afdf7881724c3307e46aff30ca49e2
+  languageName: node
+  linkType: hard
+
+"gray-matter@npm:^4.0.3":
+  version: 4.0.3
+  resolution: "gray-matter@npm:4.0.3"
+  dependencies:
+    js-yaml: "npm:^3.13.1"
+    kind-of: "npm:^6.0.2"
+    section-matter: "npm:^1.0.0"
+    strip-bom-string: "npm:^1.0.0"
+  checksum: 10/9a8f146a7a918d2524d5d60e0b4d45729f5bca54aa41247f971d9e4bc984943fda58159435763d463ec2abc8a0e238e807bd9b05e3a48f4a613a325c9dd5ad0c
   languageName: node
   linkType: hard
 
@@ -3233,6 +3273,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"is-extendable@npm:^0.1.0":
+  version: 0.1.1
+  resolution: "is-extendable@npm:0.1.1"
+  checksum: 10/3875571d20a7563772ecc7a5f36cb03167e9be31ad259041b4a8f73f33f885441f778cee1f1fe0085eb4bc71679b9d8c923690003a36a6a5fdf8023e6e3f0672
+  languageName: node
+  linkType: hard
+
 "is-extglob@npm:^2.1.1":
   version: 2.1.1
   resolution: "is-extglob@npm:2.1.1"
@@ -3444,6 +3491,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"js-yaml@npm:^3.13.1":
+  version: 3.14.2
+  resolution: "js-yaml@npm:3.14.2"
+  dependencies:
+    argparse: "npm:^1.0.7"
+    esprima: "npm:^4.0.0"
+  bin:
+    js-yaml: bin/js-yaml.js
+  checksum: 10/172e0b6007b0bf0fc8d2469c94424f7dd765c64a047d2b790831fecef2204a4054eabf4d911eb73ab8c9a3256ab8ba1ee8d655b789bf24bf059c772acc2075a1
+  languageName: node
+  linkType: hard
+
 "js-yaml@npm:^4.1.1":
   version: 4.1.1
   resolution: "js-yaml@npm:4.1.1"
@@ -3523,6 +3582,13 @@ __metadata:
   dependencies:
     json-buffer: "npm:3.0.1"
   checksum: 10/167eb6ef64cc84b6fa0780ee50c9de456b422a1e18802209234f7c2cf7eae648c7741f32e50d7e24ccb22b24c13154070b01563d642755b156c357431a191e75
+  languageName: node
+  linkType: hard
+
+"kind-of@npm:^6.0.0, kind-of@npm:^6.0.2":
+  version: 6.0.3
+  resolution: "kind-of@npm:6.0.3"
+  checksum: 10/5873d303fb36aad875b7538798867da2ae5c9e328d67194b0162a3659a627d22f742fc9c4ae95cd1704132a24b00cae5041fc00c0f6ef937dc17080dc4dbb962
   languageName: node
   linkType: hard
 
@@ -5177,6 +5243,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"section-matter@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "section-matter@npm:1.0.0"
+  dependencies:
+    extend-shallow: "npm:^2.0.1"
+    kind-of: "npm:^6.0.0"
+  checksum: 10/cedfda3a9238f66942d92531fe043dd134702a462cdc9e254cd6aa418c66ca0d229900e4da78ffd1a07051e7b239251c4dc4748e9d1c76bf41a37bff7a478556
+  languageName: node
+  linkType: hard
+
 "semver@npm:^6.3.1":
   version: 6.3.1
   resolution: "semver@npm:6.3.1"
@@ -5417,6 +5493,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"sprintf-js@npm:~1.0.2":
+  version: 1.0.3
+  resolution: "sprintf-js@npm:1.0.3"
+  checksum: 10/c34828732ab8509c2741e5fd1af6b767c3daf2c642f267788f933a65b1614943c282e74c4284f4fa749c264b18ee016a0d37a3e5b73aee446da46277d3a85daa
+  languageName: node
+  linkType: hard
+
 "stable-hash@npm:^0.0.5":
   version: 0.0.5
   resolution: "stable-hash@npm:0.0.5"
@@ -5521,6 +5604,13 @@ __metadata:
     character-entities-html4: "npm:^2.0.0"
     character-entities-legacy: "npm:^3.0.0"
   checksum: 10/42bd2f37528795a7b4386bd39dc4699515fb0f0b8c418a6bb29ae205ce66eaff9e8801a2bee65b8049c918c9475a71c7e5911f6a88c19f1d84ebdcba3d881a2d
+  languageName: node
+  linkType: hard
+
+"strip-bom-string@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "strip-bom-string@npm:1.0.0"
+  checksum: 10/5635a3656d8512a2c194d6c8d5dee7ef0dde6802f7be9413b91e201981ad4132506656d9cf14137f019fd50f0269390d91c7f6a2601b1bee039a4859cfce4934
   languageName: node
   linkType: hard
 
@@ -5975,6 +6065,7 @@ __metadata:
     "@types/react-dom": "npm:^19"
     eslint: "npm:^9"
     eslint-config-next: "npm:16.2.6"
+    gray-matter: "npm:^4.0.3"
     next: "npm:16.2.6"
     react: "npm:19.2.4"
     react-dom: "npm:19.2.4"

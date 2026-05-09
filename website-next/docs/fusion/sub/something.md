@@ -1,8 +1,7 @@
 ---
 title: Code block showcase
+description: Examples covering filename, line and token highlighting, and language badges.
 ---
-
-# Code blocks
 
 ## Plain TypeScript
 

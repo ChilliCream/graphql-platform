@@ -1,8 +1,7 @@
 ---
-title: Some blog
+title: Hot Chocolate is making waves
+description: A short post to demonstrate the blog layout, table of contents, and cross-document linking.
 ---
-
-# Hot Chocolate is making waves
 
 A short post to demonstrate the blog layout, table of contents, and cross-document linking.
 
