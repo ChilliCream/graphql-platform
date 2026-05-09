@@ -2,9 +2,12 @@ import fs from "node:fs";
 import path from "node:path";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { Sidebar } from "@/src/design-system/Sidebar";
+import { SidebarDrawer } from "@/src/design-system/SidebarDrawer";
 import { TableOfContents } from "@/src/design-system/TableOfContents";
 import type { HeadingItem } from "@/src/design-system/TableOfContents";
 import { Typography } from "@/src/design-system/Typography";
+import { buildContentTree } from "@/src/helpers/buildContentTree";
 import { readFrontmatter } from "@/src/helpers/readFrontmatter";
 
 const CONTENT_ROOT = path.join(process.cwd(), "blogs");
@@ -60,13 +63,19 @@ export default async function BlogPage({
   const mod = await import(`@/blogs/${rel}`);
   const Post = mod.default;
   const toc: HeadingItem[] = Array.isArray(mod.toc) ? mod.toc : [];
+  const tree = buildContentTree(CONTENT_ROOT, "/blogs");
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-8 grid gap-10 lg:grid-cols-[1fr_15rem]">
-      <article className="min-w-0">
-        {title ? <Typography variant="h1">{title}</Typography> : null}
-        <Post />
-      </article>
+    <div className="grid grid-cols-1 lg:grid-cols-[20rem_1fr] 2xl:grid-cols-[20rem_1fr_20rem]">
+      <SidebarDrawer>
+        <Sidebar tree={tree} />
+      </SidebarDrawer>
+      <main className="min-w-0 px-5 py-8 sm:px-12">
+        <article className="mx-auto max-w-5xl">
+          {title ? <Typography variant="h1">{title}</Typography> : null}
+          <Post />
+        </article>
+      </main>
       <TableOfContents items={toc} />
     </div>
   );

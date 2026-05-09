@@ -16,7 +16,7 @@ export function TableOfContents({ items }: TableOfContentsProps) {
   }
 
   return (
-    <aside className="hidden lg:block sticky top-20 self-start w-60 shrink-0">
+    <aside className="hidden 2xl:block sticky top-0 self-start max-h-screen overflow-y-auto px-5 py-8 max-w-[21rem]">
       <p className="text-xs font-semibold uppercase tracking-widest text-stone-500 mb-3">
         On this page
       </p>
