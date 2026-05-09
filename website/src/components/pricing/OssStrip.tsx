@@ -1,0 +1,44 @@
+"use client";
+
+import React from "react";
+
+const OSS_PRODUCTS = [
+  "Hot Chocolate",
+  "Mocha",
+  "Strawberry Shake",
+  "Fusion (OSS)",
+];
+
+export const OssStrip: React.FC = () => {
+  return (
+    <section className="cc-pricing-section cc-oss-strip">
+      <div className="cc-oss-inner">
+        <div className="cc-oss-copy">
+          <div className="cc-oss-chips">
+            <span className="cc-oss-chip is-tag">Free forever</span>
+            {OSS_PRODUCTS.map((label) => (
+              <span key={label} className="cc-oss-chip">
+                {label}
+              </span>
+            ))}
+          </div>
+          <p className="cc-oss-line">
+            <strong>MIT-licensed.</strong> No account needed. No upsell. Build,
+            ship, and scale a production GraphQL platform on the OSS stack
+            alone.
+          </p>
+        </div>
+        <div
+          className="cc-oss-terminal"
+          aria-label="Install Hot Chocolate from NuGet"
+        >
+          <span className="prompt">$</span>
+          <span>
+            <span className="cmd">dotnet add package </span>
+            <span className="pkg">HotChocolate</span>
+          </span>
+        </div>
+      </div>
+    </section>
+  );
+};

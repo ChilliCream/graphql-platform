@@ -1,0 +1,627 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - link "ChilliCream Home" [ref=e5] [cursor=pointer]:
+          - /url: /
+          - img [ref=e6]
+        - navigation [ref=e8]:
+          - list [ref=e9]:
+            - listitem [ref=e10]:
+              - link "Platform" [ref=e11] [cursor=pointer]:
+                - /url: /platform
+                - text: Platform
+                - img [ref=e13]
+            - listitem [ref=e15]:
+              - link "Services" [ref=e16] [cursor=pointer]:
+                - /url: /services
+                - text: Services
+                - img [ref=e18]
+            - listitem [ref=e20]:
+              - link "Developers" [ref=e21] [cursor=pointer]:
+                - /url: /docs
+                - text: Developers
+                - img [ref=e23]
+            - listitem [ref=e25]:
+              - link "Company" [ref=e26] [cursor=pointer]:
+                - /url: /resources
+                - text: Company
+                - img [ref=e28]
+            - listitem [ref=e30]:
+              - link "Pricing" [ref=e31] [cursor=pointer]:
+                - /url: /pricing/
+            - listitem [ref=e32]:
+              - link "Help" [ref=e33] [cursor=pointer]:
+                - /url: /help/
+        - generic [ref=e34]:
+          - generic:
+            - generic:
+              - generic:
+                - link "Star ChilliCream/graphql-platform on GitHub":
+                  - /url: https://github.com/ChilliCream/graphql-platform
+                  - text: Star
+          - link "Request a Demo" [ref=e35] [cursor=pointer]:
+            - /url: mailto:contact@chillicream.com?subject=Demo
+          - link "Launch" [ref=e36] [cursor=pointer]:
+            - /url: https://nitro.chillicream.com
+          - button "Search" [ref=e37] [cursor=pointer]:
+            - img [ref=e39]
+    - main [ref=e41]:
+      - generic [ref=e42]:
+        - generic [ref=e43]:
+          - generic [ref=e44]:
+            - generic [ref=e45]: "01"
+            - text: Observability
+          - generic [ref=e46]:
+            - generic [ref=e47]:
+              - generic [ref=e48]: Nitro · Observability
+              - heading "Operator's Window." [level=1] [ref=e49]
+              - paragraph [ref=e50]: One trace spans the gateway and every owning service. One control surface for staging and prod. The federation, finally legible.
+              - generic [ref=e51]:
+                - link "Start free →" [ref=e52] [cursor=pointer]:
+                  - /url: /pricing
+                - link "Book a demo" [ref=e53] [cursor=pointer]:
+                  - /url: mailto:contact@chillicream.com?subject=Nitro%20demo
+            - generic [ref=e55]:
+              - generic [ref=e57]: nitro · cart-checkout · 3a4f
+              - img [ref=e63]:
+                - generic [ref=e65]:
+                  - generic [ref=e66]: 0ms
+                  - generic [ref=e67]: 150ms
+                  - generic [ref=e68]: 300ms
+                  - generic [ref=e69]: 450ms
+                  - generic [ref=e70]: 600ms
+                - generic [ref=e71]:
+                  - generic [ref=e72]:
+                    - generic [ref=e73]: gateway · cart-checkout
+                    - generic [ref=e74]: 4 HOPS
+                    - generic [ref=e76]: 412ms
+                  - generic [ref=e77]:
+                    - generic [ref=e78]: Catalog.products
+                    - generic [ref=e80]: 38ms
+                  - generic [ref=e81]:
+                    - generic [ref=e82]: Billing.charge
+                    - generic [ref=e84]: 302ms
+                    - generic [ref=e86]: ↑ 412ms · timeout
+                  - generic [ref=e87]:
+                    - generic [ref=e88]: Ordering.create
+                    - generic [ref=e90]: 47ms
+                  - generic [ref=e91]:
+                    - generic [ref=e92]: Shipping.quote
+                    - generic [ref=e94]: 52ms
+                - generic [ref=e95]: 0ms · 600ms
+              - generic [ref=e96]:
+                - generic [ref=e97]:
+                  - generic [ref=e98]: Errors · last hour
+                  - list [ref=e99]:
+                    - listitem [ref=e100]:
+                      - generic [ref=e102]: TIMEOUT @ Billing.charge
+                      - generic [ref=e103]: 12:04
+                    - listitem [ref=e104]:
+                      - generic [ref=e106]: OK @ Catalog.products
+                      - generic [ref=e107]: 12:04
+                    - listitem [ref=e108]:
+                      - generic [ref=e110]: VALIDATION @ Shipping.quote
+                      - generic [ref=e111]: 12:03
+                - generic [ref=e112]:
+                  - generic [ref=e113]: Schema diff · billing.graphql
+                  - generic [ref=e114]: "− zip: String!"
+                  - generic [ref=e115]: "+ postalCode: String!"
+                  - generic [ref=e116]: 1 breaking · 4 audited
+        - generic [ref=e117]:
+          - generic [ref=e118]:
+            - generic [ref=e119]: "02"
+            - text: Federation-aware traces
+          - generic [ref=e120]:
+            - generic [ref=e121]:
+              - generic [ref=e122]: Federation-aware traces
+              - heading "Trace the whole graph." [level=2] [ref=e123]
+              - generic [ref=e124]:
+                - generic [ref=e125]: Nitro
+                - generic [ref=e127]: OSS-compatible
+              - paragraph [ref=e129]: One waterfall, every hop. Field-level latency from the gateway through every owning service.
+            - 'img "Trace waterfall: gateway and four service spans" [ref=e131]':
+              - generic [ref=e133]:
+                - generic [ref=e134]: 0ms
+                - generic [ref=e135]: 150ms
+                - generic [ref=e136]: 300ms
+                - generic [ref=e137]: 450ms
+                - generic [ref=e138]: 600ms
+              - generic [ref=e139]:
+                - generic [ref=e140]:
+                  - generic [ref=e141]: gateway · cart-checkout
+                  - generic [ref=e142]: 4 HOPS
+                  - generic [ref=e144]: 412ms
+                - generic [ref=e145]:
+                  - generic [ref=e146]: Catalog.products
+                  - generic [ref=e148]: 38ms
+                - generic [ref=e149]:
+                  - generic [ref=e150]: Billing.charge
+                  - generic [ref=e152]: 302ms
+                  - generic [ref=e154]: ↑ 412ms · timeout
+                - generic [ref=e155]:
+                  - generic [ref=e156]: Ordering.create
+                  - generic [ref=e158]: 47ms
+                - generic [ref=e159]:
+                  - generic [ref=e160]: Shipping.quote
+                  - generic [ref=e162]: 52ms
+              - generic [ref=e163]: 0ms · 600ms
+        - generic [ref=e164]:
+          - generic [ref=e165]:
+            - generic [ref=e166]: "03"
+            - text: Origin-tagged errors
+          - generic [ref=e167]:
+            - generic [ref=e168]:
+              - generic [ref=e169]: Origin-tagged errors
+              - heading "Errors with addresses." [level=2] [ref=e170]
+              - generic [ref=e172]: Nitro
+              - paragraph [ref=e174]: Every error carries the field path that produced it. Click through to the resolver in the offending service.
+            - generic [ref=e176]:
+              - generic [ref=e177]:
+                - generic [ref=e178]:
+                  - generic [ref=e179]: Error feed
+                  - generic [ref=e180]: last hour
+                - list [ref=e181]:
+                  - listitem [ref=e182]:
+                    - generic [ref=e184]: TIMEOUT @ Billing.charge
+                    - generic [ref=e185]: 12:04
+                  - listitem [ref=e186]:
+                    - generic [ref=e188]: ECONNRESET @ Shipping.quote
+                    - generic [ref=e189]: 11:58
+                  - listitem [ref=e190]:
+                    - generic [ref=e192]: VALIDATION @ Catalog.products
+                    - generic [ref=e193]: 11:51
+                  - listitem [ref=e194]:
+                    - generic [ref=e196]: AUTH @ Users.session
+                    - generic [ref=e197]: 11:42
+                  - listitem [ref=e198]:
+                    - generic [ref=e200]: TIMEOUT @ Billing.charge
+                    - generic [ref=e201]: 11:33
+                  - listitem [ref=e202]:
+                    - generic [ref=e204]: VALIDATION @ Ordering.create
+                    - generic [ref=e205]: 11:30
+              - generic [ref=e206]:
+                - generic [ref=e207]:
+                  - generic [ref=e208]: Field path
+                  - generic [ref=e209]: Billing service
+                - generic "Field path" [ref=e210]: Query.cart.items[2].billingAddress.zip
+                - generic [ref=e211]:
+                  - generic [ref=e212]:
+                    - generic [ref=e213]: "12"
+                    - text: async Task<string> ResolveZipAsync(
+                  - generic [ref=e214]:
+                    - generic [ref=e215]: "13"
+                    - text: BillingAddress address)
+                  - generic [ref=e216]:
+                    - generic [ref=e217]: "14"
+                    - text: "{"
+                  - generic [ref=e218]:
+                    - generic [ref=e219]: "15"
+                    - text: var result = await _zipApi
+                  - generic [ref=e220]:
+                    - generic [ref=e221]: "16"
+                    - text: .LookupAsync(address.PostalCode);
+                  - generic [ref=e222]:
+                    - generic [ref=e223]: "17"
+                    - text: return result.Zip;
+                  - generic [ref=e224]:
+                    - generic [ref=e225]: "18"
+                    - text: "} // Billing.Resolvers/Address.cs"
+        - generic [ref=e226]:
+          - generic [ref=e227]:
+            - generic [ref=e228]: "04"
+            - text: Query replay
+          - generic [ref=e229]:
+            - generic [ref=e230]:
+              - generic [ref=e231]: Query replay
+              - heading "Reproduce, don't speculate." [level=2] [ref=e232]
+              - generic [ref=e234]: Nitro
+              - paragraph [ref=e236]: Capture a failing prod query, replay it against staging with the same headers, variables, identity. Same control surface, every environment.
+            - generic [ref=e238]:
+              - generic "Captured query" [ref=e239]:
+                - generic [ref=e240]: POST
+                - generic [ref=e241]: /graphql
+                - generic [ref=e242]: ·
+                - generic [ref=e243]: op cart-checkout
+                - generic [ref=e244]: ·
+                - generic [ref=e245]: session 3a4f
+                - generic [ref=e246]: ·
+                - generic [ref=e247]: captured 12:04:18
+              - generic [ref=e248]:
+                - generic [ref=e249]:
+                  - generic [ref=e250]:
+                    - generic [ref=e251]: Production · trace
+                    - generic [ref=e252]: FAILED · 412ms
+                  - 'img "Trace waterfall: gateway and four service spans" [ref=e254]':
+                    - generic [ref=e256]:
+                      - generic [ref=e257]: 0ms
+                      - generic [ref=e258]: 125ms
+                      - generic [ref=e259]: 250ms
+                      - generic [ref=e260]: 375ms
+                      - generic [ref=e261]: 500ms
+                    - generic [ref=e262]:
+                      - generic [ref=e263]:
+                        - generic [ref=e264]: gateway
+                        - generic [ref=e266]: 412ms
+                      - generic [ref=e267]:
+                        - generic [ref=e268]: Catalog.products
+                        - generic [ref=e270]: 38ms
+                      - generic [ref=e271]:
+                        - generic [ref=e272]: Billing.charge
+                        - generic [ref=e274]: FAILED
+                        - generic [ref=e276]: timeout
+                    - generic [ref=e277]: 0ms · 500ms
+                - generic [ref=e278]:
+                  - generic [ref=e279]:
+                    - generic [ref=e280]: Staging · replay
+                    - generic [ref=e281]: OK · 87ms
+                  - 'img "Trace waterfall: gateway and four service spans" [ref=e283]':
+                    - generic [ref=e285]:
+                      - generic [ref=e286]: 0ms
+                      - generic [ref=e287]: 125ms
+                      - generic [ref=e288]: 250ms
+                      - generic [ref=e289]: 375ms
+                      - generic [ref=e290]: 500ms
+                    - generic [ref=e291]:
+                      - generic [ref=e292]:
+                        - generic [ref=e293]: gateway
+                        - generic [ref=e295]: 87ms
+                      - generic [ref=e296]:
+                        - generic [ref=e297]: Catalog.products
+                        - generic [ref=e299]: 31ms
+                      - generic [ref=e300]:
+                        - generic [ref=e301]: Billing.charge
+                        - generic [ref=e303]: 44ms
+                    - generic [ref=e304]: 0ms · 500ms
+        - generic [ref=e305]:
+          - generic [ref=e306]:
+            - generic [ref=e307]: "05"
+            - text: Schema diffs & audit
+          - generic [ref=e308]:
+            - generic [ref=e309]:
+              - generic [ref=e310]: Schema diffs & audit
+              - heading "Catch breaking changes in CI." [level=2] [ref=e311]
+              - generic [ref=e312]:
+                - generic [ref=e313]: Fusion
+                - generic [ref=e315]: Nitro
+              - paragraph [ref=e317]: Composition runs on every PR. Breaking-change detection with field-level diffs. Full audit log of every schema your gateway has ever served.
+            - generic [ref=e319]:
+              - generic [ref=e320]:
+                - generic [ref=e321]:
+                  - generic [ref=e322]:
+                    - img [ref=e324]
+                    - generic [ref=e326]: composition / fusion
+                    - generic [ref=e327]: passed
+                  - generic [ref=e328]:
+                    - img [ref=e330]
+                    - generic [ref=e332]: breaking-change-detection
+                    - generic [ref=e333]: 1 breaking
+                  - generic [ref=e334]:
+                    - img [ref=e336]
+                    - generic [ref=e338]: subgraph-tests / billing
+                    - generic [ref=e339]: passed
+                - generic "Schema diff" [ref=e340]:
+                  - generic [ref=e341]:
+                    - generic [ref=e342]: billing.graphql
+                    - generic [ref=e343]: +2 −2
+                  - generic [ref=e344]:
+                    - generic [ref=e345]:
+                      - generic [ref=e346]: "12"
+                      - generic [ref=e348]: type
+                    - generic [ref=e349]:
+                      - generic [ref=e350]: "12"
+                      - generic [ref=e352]: "type BillingAddress {"
+                    - generic [ref=e353]:
+                      - generic [ref=e354]: "13"
+                      - generic [ref=e356]: "street: String!"
+                    - generic [ref=e357]:
+                      - generic [ref=e358]: "14"
+                      - generic [ref=e360]: "city: String!"
+                    - generic [ref=e361]:
+                      - generic [ref=e362]: "15"
+                      - generic [ref=e363]: −
+                      - generic [ref=e364]: "zip: String!"
+                    - generic [ref=e365]:
+                      - generic [ref=e366]: "15"
+                      - generic [ref=e367]: +
+                      - generic [ref=e368]: "postalCode: String!"
+                    - generic [ref=e369]:
+                      - generic [ref=e370]: "16"
+                      - generic [ref=e372]: "country: String!"
+                    - generic [ref=e373]:
+                      - generic [ref=e374]: "17"
+                      - generic [ref=e376]: "}"
+                    - generic [ref=e378]: "18"
+                    - generic [ref=e381]:
+                      - generic [ref=e382]: "19"
+                      - generic [ref=e384]: "extend type Cart {"
+                    - generic [ref=e385]:
+                      - generic [ref=e386]: "20"
+                      - generic [ref=e387]: −
+                      - generic [ref=e388]: "billingAddress: BillingAddress!"
+                    - generic [ref=e389]:
+                      - generic [ref=e390]: "20"
+                      - generic [ref=e391]: +
+                      - generic [ref=e392]: "billingAddress: BillingAddress @deprecated"
+                    - generic [ref=e393]:
+                      - generic [ref=e394]: "21"
+                      - generic [ref=e396]: "}"
+              - generic [ref=e397]:
+                - generic [ref=e398]: Schema audit log
+                - list [ref=e399]:
+                  - listitem [ref=e400]:
+                    - generic [ref=e401]:
+                      - text: Renamed Cart.billingAddress.zip → postalCode
+                      - generic [ref=e402]: "@billing-team"
+                    - generic [ref=e403]: today
+                  - listitem [ref=e404]:
+                    - generic [ref=e405]:
+                      - text: Added Shipping.quote(currency) argument
+                      - generic [ref=e406]: "@shipping-team"
+                    - generic [ref=e407]: yesterday
+                  - listitem [ref=e408]:
+                    - generic [ref=e409]:
+                      - text: Promoted Catalog v2.4.1 to production
+                      - generic [ref=e410]: "@catalog-team"
+                    - generic [ref=e411]: 3 days ago
+                  - listitem [ref=e412]:
+                    - generic [ref=e413]:
+                      - text: Removed Users.legacyId (after deprecation window)
+                      - generic [ref=e414]: "@users-team"
+                    - generic [ref=e415]: 1 week ago
+        - generic [ref=e416]:
+          - generic [ref=e417]:
+            - generic [ref=e418]: "06"
+            - text: Trust
+          - generic [ref=e419]:
+            - generic [ref=e420]:
+              - img [ref=e422]
+              - heading "Federation-aware out of the box" [level=3] [ref=e432]
+              - paragraph [ref=e433]: Traces, errors, and replays know about the gateway and every owning service. Nothing to wire up.
+            - generic [ref=e434]:
+              - img [ref=e436]
+              - heading "Same surface for dev, staging, prod" [level=3] [ref=e438]
+              - paragraph [ref=e439]: One control surface across every environment. Capture in prod, replay in staging, ship the fix the same day.
+            - generic [ref=e440]:
+              - img [ref=e442]
+              - heading "OpenTelemetry. Bring your backend." [level=3] [ref=e446]
+              - paragraph [ref=e447]: Federation traces drop into Jaeger, Tempo, Datadog, Honeycomb, Grafana, New Relic. No glue code, no proxies.
+        - generic [ref=e448]:
+          - generic [ref=e449]:
+            - generic [ref=e450]: "07"
+            - text: OTEL & integrations
+          - generic [ref=e451]:
+            - generic [ref=e452]:
+              - generic [ref=e453]: OTEL & integrations
+              - heading "Bring your backend." [level=2] [ref=e454]
+              - generic [ref=e456]: All plans
+              - paragraph [ref=e458]: Built on OpenTelemetry. Federation traces appear in the tools you already use, no glue.
+            - generic [ref=e459]:
+              - img [ref=e460]:
+                - generic [ref=e462]: 0ms
+                - generic [ref=e464]: 100ms
+                - generic [ref=e466]: 200ms
+                - generic [ref=e468]: 300ms
+                - generic [ref=e470]: 400ms
+                - generic [ref=e472]: 500ms
+                - generic [ref=e475]: Catalog
+                - generic [ref=e478]: Billing
+                - generic [ref=e481]: Ordering
+                - generic [ref=e484]: Shipping
+                - generic [ref=e487]: Users
+              - generic "OTEL-compatible backends" [ref=e488]:
+                - generic [ref=e489]:
+                  - img [ref=e491]:
+                    - generic [ref=e494]: J
+                  - generic [ref=e495]: Jaeger
+                - generic [ref=e496]:
+                  - img [ref=e498]:
+                    - generic [ref=e501]: T
+                  - generic [ref=e502]: Tempo
+                - generic [ref=e503]:
+                  - img [ref=e505]:
+                    - generic [ref=e508]: D
+                  - generic [ref=e509]: Datadog
+                - generic [ref=e510]:
+                  - img [ref=e512]:
+                    - generic [ref=e515]: H
+                  - generic [ref=e516]: Honeycomb
+                - generic [ref=e517]:
+                  - img [ref=e519]:
+                    - generic [ref=e522]: G
+                  - generic [ref=e523]: Grafana
+                - generic [ref=e524]:
+                  - img [ref=e526]:
+                    - generic [ref=e529]: "N"
+                  - generic [ref=e530]: New Relic
+        - generic [ref=e531]:
+          - generic [ref=e532]:
+            - generic [ref=e533]: "08"
+            - text: MCP for agents
+          - generic [ref=e534]:
+            - generic [ref=e535]:
+              - generic [ref=e536]: MCP for agents
+              - heading "Your agents can read it too." [level=2] [ref=e537]
+              - generic [ref=e539]: Nitro
+              - paragraph [ref=e541]: The same observability data, exposed through Nitro's MCP surface. Traces, schema diffs, replay, queryable by any MCP-aware agent.
+            - generic [ref=e543]:
+              - generic [ref=e544]:
+                - generic [ref=e545]:
+                  - generic [ref=e546]: MCP · Nitro
+                  - generic [ref=e547]: session 3a4f
+                - generic [ref=e548]:
+                  - generic [ref=e549]: You
+                  - generic [ref=e550]: show me the slowest resolver in the last hour
+                - generic [ref=e551]:
+                  - generic [ref=e552]: Agent
+                  - generic [ref=e553]:
+                    - text: Querying
+                    - code [ref=e554]: traces.aggregate
+                    - text: on the Nitro MCP surface, filtered by p95 over the last hour.
+                  - generic [ref=e555]:
+                    - text: "→ MCP call:"
+                    - code [ref=e556]: traces.topResolvers
+                    - text: "(window: 1h, by: p95)"
+                  - generic [ref=e557]:
+                    - text: ← 1 result ·
+                    - code [ref=e558]: Billing.charge
+                    - text: · p95 412ms · 2.4k samples
+                - generic [ref=e559]:
+                  - generic [ref=e560]: Agent
+                  - generic [ref=e561]:
+                    - code [ref=e562]: Billing.charge
+                    - text: is slowest at p95 412ms, mostly on the external charge call. Want me to replay one of the failing traces against staging?
+              - generic [ref=e563]: →
+              - generic [ref=e564]:
+                - generic [ref=e565]: Returned trace · cart-checkout
+                - 'img "Trace waterfall: gateway and four service spans" [ref=e566]':
+                  - generic [ref=e568]:
+                    - generic [ref=e569]: 0ms
+                    - generic [ref=e570]: 150ms
+                    - generic [ref=e571]: 300ms
+                    - generic [ref=e572]: 450ms
+                    - generic [ref=e573]: 600ms
+                  - generic [ref=e574]:
+                    - generic [ref=e575]:
+                      - generic [ref=e576]: gateway · cart-checkout
+                      - generic [ref=e577]: 4 HOPS
+                      - generic [ref=e579]: 412ms
+                    - generic [ref=e580]:
+                      - generic [ref=e581]: Catalog.products
+                      - generic [ref=e583]: 38ms
+                    - generic [ref=e584]:
+                      - generic [ref=e585]: Billing.charge
+                      - generic [ref=e588]: 302ms
+                      - generic [ref=e590]: ← slowest in window
+                    - generic [ref=e591]:
+                      - generic [ref=e592]: Ordering.create
+                      - generic [ref=e594]: 47ms
+                    - generic [ref=e595]:
+                      - generic [ref=e596]: Shipping.quote
+                      - generic [ref=e598]: 52ms
+                  - generic [ref=e599]: 0ms · 600ms
+        - generic [ref=e600]:
+          - generic [ref=e601]:
+            - generic [ref=e602]: "09"
+            - text: Get started
+          - generic [ref=e603]:
+            - generic [ref=e604]: Ready when you are
+            - heading "See the federation. Quietly." [level=2] [ref=e605]
+            - generic [ref=e606]:
+              - link "Start free →" [ref=e607] [cursor=pointer]:
+                - /url: /pricing
+              - link "Talk to an engineer" [ref=e608] [cursor=pointer]:
+                - /url: mailto:contact@chillicream.com?subject=Nitro%20observability
+              - link "Nitro for enterprise" [ref=e609] [cursor=pointer]:
+                - /url: /enterprise
+    - contentinfo [ref=e610]:
+      - generic [ref=e611]:
+        - generic [ref=e612]:
+          - link "ChilliCream Home" [ref=e614] [cursor=pointer]:
+            - /url: /
+            - img [ref=e615]
+          - paragraph [ref=e618]:
+            - text: "1207 Delaware Ave #3567"
+            - text: Wilmington, DE 19806
+            - text: United States
+          - generic:
+            - generic:
+              - generic:
+                - link "Star ChilliCream/graphql-platform on GitHub":
+                  - /url: https://github.com/ChilliCream/graphql-platform
+                  - text: Star
+        - generic [ref=e619]:
+          - generic [ref=e620]:
+            - heading "Platform" [level=3] [ref=e621]
+            - navigation [ref=e622]:
+              - link "Analytics" [ref=e623] [cursor=pointer]:
+                - /url: /platform/analytics/
+              - link "Continuous Integration" [ref=e624] [cursor=pointer]:
+                - /url: /platform/continuous-integration/
+              - link "Ecosystem" [ref=e625] [cursor=pointer]:
+                - /url: /platform/ecosystem/
+              - link "Nitro" [ref=e626] [cursor=pointer]:
+                - /url: /products/nitro/
+          - generic [ref=e627]:
+            - heading "Services" [level=3] [ref=e628]
+            - navigation [ref=e629]:
+              - link "Advisory" [ref=e630] [cursor=pointer]:
+                - /url: /services/advisory/
+              - link "Support" [ref=e631] [cursor=pointer]:
+                - /url: /services/support/
+              - link "Training" [ref=e632] [cursor=pointer]:
+                - /url: /services/training/
+          - generic [ref=e633]:
+            - heading "Documentation" [level=3] [ref=e634]
+            - navigation [ref=e635]:
+              - link "Nitro" [ref=e636] [cursor=pointer]:
+                - /url: /docs/nitro/
+              - link "Fusion" [ref=e637] [cursor=pointer]:
+                - /url: /docs/fusion/v15/
+              - link "Hot Chocolate" [ref=e638] [cursor=pointer]:
+                - /url: /docs/hotchocolate/v15/
+              - link "Strawberry Shake" [ref=e639] [cursor=pointer]:
+                - /url: /docs/strawberryshake/v15/
+              - link "Mocha" [ref=e640] [cursor=pointer]:
+                - /url: /docs/mocha/v16/
+          - generic [ref=e641]:
+            - heading "Company" [level=3] [ref=e642]
+            - navigation [ref=e643]:
+              - link "Contact" [ref=e644] [cursor=pointer]:
+                - /url: mailto:contact@chillicream.com
+              - link "Shop" [ref=e645] [cursor=pointer]:
+                - /url: https://store.chillicream.com
+              - link "Acceptable Use Policy" [ref=e646] [cursor=pointer]:
+                - /url: /legal/acceptable-use-policy/
+              - link "Cookie Policy" [ref=e647] [cursor=pointer]:
+                - /url: /legal/cookie-policy/
+              - link "Privacy Policy" [ref=e648] [cursor=pointer]:
+                - /url: /legal/privacy-policy/
+              - link "Terms of Service" [ref=e649] [cursor=pointer]:
+                - /url: /legal/terms-of-service/
+              - link "ChilliCream License" [ref=e650] [cursor=pointer]:
+                - /url: /licensing/chillicream-license/
+      - generic [ref=e652]:
+        - link "ChilliCream Blog" [ref=e653] [cursor=pointer]:
+          - /url: /blog/
+          - img [ref=e655]
+          - generic [ref=e657]: ChilliCream Blog
+        - link "ChilliCream on GitHub" [ref=e658] [cursor=pointer]:
+          - /url: https://github.com/ChilliCream/graphql-platform
+          - img [ref=e660]
+          - generic [ref=e662]: ChilliCream on GitHub
+        - link "ChilliCream Slack Community" [ref=e663] [cursor=pointer]:
+          - /url: https://slack.chillicream.com/
+          - img [ref=e665]
+          - generic [ref=e667]: ChilliCream Slack Community
+        - link "ChilliCream YouTube Channel" [ref=e668] [cursor=pointer]:
+          - /url: https://www.youtube.com/c/ChilliCream
+          - img [ref=e670]
+          - generic [ref=e672]: ChilliCream YouTube Channel
+        - link "ChilliCream on X" [ref=e673] [cursor=pointer]:
+          - /url: https://x.com/Chilli_Cream
+          - img [ref=e675]
+          - generic [ref=e677]: ChilliCream on X
+        - link "ChilliCream on LinkedIn" [ref=e678] [cursor=pointer]:
+          - /url: https://www.linkedin.com/company/chillicream
+          - img [ref=e680]
+          - generic [ref=e682]: ChilliCream on LinkedIn
+      - generic [ref=e683]: © 2026 ChilliCream, Inc. ・ All Rights Reserved
+  - dialog "cookieconsent" [ref=e684]:
+    - generic [ref=e685]:
+      - generic [ref=e686]:
+        - text: This website uses cookies to ensure you get the best experience on our website.
+        - link "Learn more about our cookie policy" [ref=e687] [cursor=pointer]:
+          - /url: /legal/cookie-policy.html
+      - button "Got it!" [ref=e688] [cursor=pointer]
+  - dialog "promo" [ref=e689]:
+    - generic [ref=e691]:
+      - generic [ref=e692]:
+        - generic [ref=e693]: Getting Started with GraphQL in .NET
+        - paragraph [ref=e694]: Learn to build modern APIs like those used by Facebook and Netflix in our self-paced getting started course on Dometrain.
+      - generic [ref=e695]:
+        - link "Check it out!" [ref=e696] [cursor=pointer]:
+          - /url: https://courses.chillicream.com
+        - button "dismiss promo message" [ref=e697] [cursor=pointer]:
+          - img [ref=e699]
+  - alert [ref=e701]

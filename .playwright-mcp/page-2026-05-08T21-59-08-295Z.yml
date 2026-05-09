@@ -1,0 +1,242 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - link "ChilliCream Home" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - img [ref=e6]
+      - navigation [ref=e8]:
+        - list [ref=e9]:
+          - listitem [ref=e10]:
+            - link "Platform" [ref=e11] [cursor=pointer]:
+              - /url: /platform
+              - text: Platform
+              - img [ref=e13]
+          - listitem [ref=e15]:
+            - link "Services" [ref=e16] [cursor=pointer]:
+              - /url: /services
+              - text: Services
+              - img [ref=e18]
+          - listitem [ref=e20]:
+            - link "Developers" [ref=e21] [cursor=pointer]:
+              - /url: /docs
+              - text: Developers
+              - img [ref=e23]
+          - listitem [ref=e25]:
+            - link "Company" [ref=e26] [cursor=pointer]:
+              - /url: /resources
+              - text: Company
+              - img [ref=e28]
+          - listitem [ref=e30]:
+            - link "Pricing" [ref=e31] [cursor=pointer]:
+              - /url: /pricing/
+          - listitem [ref=e32]:
+            - link "Help" [ref=e33] [cursor=pointer]:
+              - /url: /help/
+      - generic [ref=e34]:
+        - generic:
+          - generic:
+            - link "Star ChilliCream/graphql-platform on GitHub":
+              - /url: https://github.com/ChilliCream/graphql-platform
+              - text: Star
+        - link "Request a Demo" [ref=e35] [cursor=pointer]:
+          - /url: mailto:contact@chillicream.com?subject=Demo
+        - link "Launch" [ref=e36] [cursor=pointer]:
+          - /url: https://nitro.chillicream.com
+        - button "Search" [ref=e37] [cursor=pointer]:
+          - img [ref=e39]
+  - main [ref=e41]:
+    - generic [ref=e42]:
+      - generic [ref=e43]:
+        - generic [ref=e44]:
+          - generic [ref=e45]: "01"
+          - text: Contact sales
+        - generic [ref=e46]:
+          - generic [ref=e47]: Talk to our team
+          - heading "Talk to our team." [level=1] [ref=e48]
+          - paragraph [ref=e49]: Get a custom demo, walk through your deployment fit (cloud, self-hosted, or air-gapped), and leave with a written POC plan and pricing.
+      - generic [ref=e51]:
+        - generic [ref=e53]:
+          - generic [ref=e54]: The form
+          - heading "Five fields, real reply." [level=2] [ref=e55]
+          - generic [ref=e56]:
+            - generic [ref=e57]:
+              - generic [ref=e58]: Work email
+              - textbox "Work email" [ref=e59]:
+                - /placeholder: you@company.com
+            - generic [ref=e60]:
+              - generic [ref=e61]: Company
+              - textbox "Company" [ref=e62]:
+                - /placeholder: Company name
+            - generic [ref=e63]:
+              - generic [ref=e64]: Country
+              - combobox "Country" [ref=e65]:
+                - option "Select a country" [disabled] [selected]
+                - option "United States"
+                - option "Canada"
+                - option "United Kingdom"
+                - option "Germany"
+                - option "France"
+                - option "Switzerland"
+                - option "Austria"
+                - option "Netherlands"
+                - option "Belgium"
+                - option "Sweden"
+                - option "Norway"
+                - option "Denmark"
+                - option "Finland"
+                - option "Ireland"
+                - option "Spain"
+                - option "Portugal"
+                - option "Italy"
+                - option "Poland"
+                - option "Czechia"
+                - option "Australia"
+                - option "New Zealand"
+                - option "Singapore"
+                - option "Japan"
+                - option "United Arab Emirates"
+                - option "Other"
+            - generic [ref=e66]:
+              - generic [ref=e67]: What are you exploring?
+              - combobox "What are you exploring?" [ref=e68]:
+                - option "Select one" [disabled] [selected]
+                - option "Fusion federation"
+                - option "Nitro"
+                - option "Self-hosted / air-gapped"
+                - option "Hot Chocolate enterprise support"
+                - option "Not sure yet"
+            - generic [ref=e69]:
+              - generic [ref=e70]: Tell us about your project (optional)
+              - textbox "Tell us about your project (optional)" [ref=e71]:
+                - /placeholder: Stack, scale, regulatory constraints, target timeline.
+            - button "Talk to sales →" [ref=e72] [cursor=pointer]
+            - paragraph [ref=e73]: We reply within one business day. No phone, no live chat — just a real engineer on a real call.
+        - complementary [ref=e74]:
+          - region "Customer outcomes" [ref=e75]:
+            - paragraph [ref=e76]: Recent outcomes
+            - list [ref=e77]:
+              - listitem [ref=e78]:
+                - generic [ref=e79]: EU retail bank
+                - generic [ref=e80]: 47 BFFs → 1 Fusion mesh, p99 480ms → 90ms
+              - listitem [ref=e81]:
+                - generic [ref=e82]: Logistics PaaS
+                - generic [ref=e83]: 12-language polyglot federation on Nitro Self-Hosted
+              - listitem [ref=e84]:
+                - generic [ref=e85]: FSI group
+                - generic [ref=e86]: Air-gapped Nitro deployed in 6 weeks
+          - generic [ref=e87]:
+            - paragraph [ref=e88]: Quiet alternative
+            - paragraph [ref=e89]:
+              - text: Prefer email?
+              - strong [ref=e90]: sales@chillicream.com
+              - text: . We don't run a phone tree or a live-chat widget — every reply comes from an engineer.
+      - generic [ref=e92]:
+        - generic [ref=e93]:
+          - generic [ref=e94]: What happens next
+          - heading "From submit to signed POC plan." [level=2] [ref=e95]
+          - paragraph [ref=e96]: No phone tree. No SDR sequence. Three steps, one engineer, and a written plan you can take to your platform team.
+        - generic [ref=e97]:
+          - article [ref=e98]:
+            - generic [ref=e99]: "01"
+            - heading "We reply within one business day." [level=3] [ref=e100]
+            - paragraph [ref=e101]: An engineer reads your submission and responds with concrete next steps. No SDR triage, no calendar widget.
+          - article [ref=e102]:
+            - generic [ref=e103]: "02"
+            - heading "30-minute discovery with a solution architect." [level=3] [ref=e104]
+            - paragraph [ref=e105]: Your stack, your scale, your regulatory constraints. We come prepared with a tailored agenda based on your interest.
+          - article [ref=e106]:
+            - generic [ref=e107]: "03"
+            - heading "Tailored demo + POC plan." [level=3] [ref=e108]
+            - paragraph [ref=e109]: A written deployment plan, a 30-day POC scope on a slice of your stack, and a price quote you can take to procurement.
+  - contentinfo [ref=e110]:
+    - generic [ref=e111]:
+      - generic [ref=e112]:
+        - link "ChilliCream Home" [ref=e114] [cursor=pointer]:
+          - /url: /
+          - img [ref=e115]
+        - paragraph [ref=e118]:
+          - text: "1207 Delaware Ave #3567"
+          - text: Wilmington, DE 19806
+          - text: United States
+        - generic:
+          - generic:
+            - link "Star ChilliCream/graphql-platform on GitHub":
+              - /url: https://github.com/ChilliCream/graphql-platform
+              - text: Star
+      - generic [ref=e119]:
+        - generic [ref=e120]:
+          - heading "Platform" [level=3] [ref=e121]
+          - navigation [ref=e122]:
+            - link "Analytics" [ref=e123] [cursor=pointer]:
+              - /url: /platform/analytics/
+            - link "Continuous Integration" [ref=e124] [cursor=pointer]:
+              - /url: /platform/continuous-integration/
+            - link "Ecosystem" [ref=e125] [cursor=pointer]:
+              - /url: /platform/ecosystem/
+            - link "Nitro" [ref=e126] [cursor=pointer]:
+              - /url: /products/nitro/
+        - generic [ref=e127]:
+          - heading "Services" [level=3] [ref=e128]
+          - navigation [ref=e129]:
+            - link "Advisory" [ref=e130] [cursor=pointer]:
+              - /url: /services/advisory/
+            - link "Support" [ref=e131] [cursor=pointer]:
+              - /url: /services/support/
+            - link "Training" [ref=e132] [cursor=pointer]:
+              - /url: /services/training/
+        - generic [ref=e133]:
+          - heading "Documentation" [level=3] [ref=e134]
+          - navigation [ref=e135]:
+            - link "Nitro" [ref=e136] [cursor=pointer]:
+              - /url: /docs/nitro/
+            - link "Fusion" [ref=e137] [cursor=pointer]:
+              - /url: /docs/fusion/v15/
+            - link "Hot Chocolate" [ref=e138] [cursor=pointer]:
+              - /url: /docs/hotchocolate/v15/
+            - link "Strawberry Shake" [ref=e139] [cursor=pointer]:
+              - /url: /docs/strawberryshake/v15/
+            - link "Mocha" [ref=e140] [cursor=pointer]:
+              - /url: /docs/mocha/v16/
+        - generic [ref=e141]:
+          - heading "Company" [level=3] [ref=e142]
+          - navigation [ref=e143]:
+            - link "Contact" [ref=e144] [cursor=pointer]:
+              - /url: mailto:contact@chillicream.com
+            - link "Shop" [ref=e145] [cursor=pointer]:
+              - /url: https://store.chillicream.com
+            - link "Acceptable Use Policy" [ref=e146] [cursor=pointer]:
+              - /url: /legal/acceptable-use-policy/
+            - link "Cookie Policy" [ref=e147] [cursor=pointer]:
+              - /url: /legal/cookie-policy/
+            - link "Privacy Policy" [ref=e148] [cursor=pointer]:
+              - /url: /legal/privacy-policy/
+            - link "Terms of Service" [ref=e149] [cursor=pointer]:
+              - /url: /legal/terms-of-service/
+            - link "ChilliCream License" [ref=e150] [cursor=pointer]:
+              - /url: /licensing/chillicream-license/
+    - generic [ref=e152]:
+      - link "ChilliCream Blog" [ref=e153] [cursor=pointer]:
+        - /url: /blog/
+        - img [ref=e155]
+        - generic [ref=e157]: ChilliCream Blog
+      - link "ChilliCream on GitHub" [ref=e158] [cursor=pointer]:
+        - /url: https://github.com/ChilliCream/graphql-platform
+        - img [ref=e160]
+        - generic [ref=e162]: ChilliCream on GitHub
+      - link "ChilliCream Slack Community" [ref=e163] [cursor=pointer]:
+        - /url: https://slack.chillicream.com/
+        - img [ref=e165]
+        - generic [ref=e167]: ChilliCream Slack Community
+      - link "ChilliCream YouTube Channel" [ref=e168] [cursor=pointer]:
+        - /url: https://www.youtube.com/c/ChilliCream
+        - img [ref=e170]
+        - generic [ref=e172]: ChilliCream YouTube Channel
+      - link "ChilliCream on X" [ref=e173] [cursor=pointer]:
+        - /url: https://x.com/Chilli_Cream
+        - img [ref=e175]
+        - generic [ref=e177]: ChilliCream on X
+      - link "ChilliCream on LinkedIn" [ref=e178] [cursor=pointer]:
+        - /url: https://www.linkedin.com/company/chillicream
+        - img [ref=e180]
+        - generic [ref=e182]: ChilliCream on LinkedIn
+    - generic [ref=e183]: © 2026 ChilliCream, Inc. ・ All Rights Reserved

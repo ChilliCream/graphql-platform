@@ -1,0 +1,631 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - link "ChilliCream Home" [ref=e5] [cursor=pointer]:
+          - /url: /
+          - img [ref=e6]
+        - navigation [ref=e8]:
+          - list [ref=e9]:
+            - listitem [ref=e10]:
+              - link "Platform" [ref=e11] [cursor=pointer]:
+                - /url: /platform
+                - text: Platform
+                - img [ref=e13]
+            - listitem [ref=e15]:
+              - link "Services" [ref=e16] [cursor=pointer]:
+                - /url: /services
+                - text: Services
+                - img [ref=e18]
+            - listitem [ref=e20]:
+              - link "Developers" [ref=e21] [cursor=pointer]:
+                - /url: /docs
+                - text: Developers
+                - img [ref=e23]
+            - listitem [ref=e25]:
+              - link "Company" [ref=e26] [cursor=pointer]:
+                - /url: /resources
+                - text: Company
+                - img [ref=e28]
+            - listitem [ref=e30]:
+              - link "Pricing" [ref=e31] [cursor=pointer]:
+                - /url: /pricing/
+            - listitem [ref=e32]:
+              - link "Help" [ref=e33] [cursor=pointer]:
+                - /url: /help/
+        - generic [ref=e34]:
+          - generic:
+            - generic:
+              - generic:
+                - link "Star ChilliCream/graphql-platform on GitHub":
+                  - /url: https://github.com/ChilliCream/graphql-platform
+                  - text: Star
+          - link "Request a Demo" [ref=e35] [cursor=pointer]:
+            - /url: mailto:contact@chillicream.com?subject=Demo
+          - link "Launch" [ref=e36] [cursor=pointer]:
+            - /url: https://nitro.chillicream.com
+          - button "Search" [ref=e37] [cursor=pointer]:
+            - img [ref=e39]
+    - main [ref=e41]:
+      - generic [ref=e42]:
+        - generic [ref=e43]:
+          - generic [ref=e44]:
+            - generic [ref=e45]: "01"
+            - text: Agents
+          - generic [ref=e46]:
+            - generic [ref=e47]:
+              - generic [ref=e48]: Nitro · Agents
+              - heading "The agent that already knows your platform." [level=1] [ref=e49]
+              - paragraph [ref=e50]: "Hot Chocolate, Mocha, Fusion, and Strawberry Shake feed Nitro a live map of your federation: schema, traces, code, topology. Then we expose it over MCP. Your agent stops guessing."
+              - generic [ref=e51]:
+                - link "Try the MCP server →" [ref=e52] [cursor=pointer]:
+                  - /url: /pricing
+                - link "See it in a real incident" [ref=e53] [cursor=pointer]:
+                  - /url: "#proof"
+            - generic [ref=e55]:
+              - generic [ref=e57]: nitro mcp · session 7c3a · cart-ops
+              - generic [ref=e62]:
+                - generic [ref=e63]:
+                  - generic [ref=e64]: USER
+                  - generic [ref=e65]: find the slowest resolver this hour
+                - generic [ref=e66]:
+                  - generic [ref=e67]: AGENT
+                  - generic [ref=e68]: Searching traces across the federation.
+                - generic [ref=e69]:
+                  - generic [ref=e70]: MCP
+                  - generic [ref=e71]: "graph.search({ since: \"1h\", orderBy: \"p95\" })"
+                - generic [ref=e72]:
+                  - generic [ref=e73]: MCP
+                  - generic [ref=e74]: → 1 result · Billing.charge · p95 412ms
+                - generic [ref=e75]:
+                  - generic [ref=e76]: AGENT
+                  - generic [ref=e77]: Opening the resolver in the Billing service.
+                - generic [ref=e78]:
+                  - generic [ref=e79]: MCP
+                  - generic [ref=e80]: "resolver.read({ path: \"Billing.charge\" })"
+                - generic [ref=e81]:
+                  - generic [ref=e82]: MCP
+                  - generic [ref=e83]: → Billing.Resolvers/Charge.cs · 84 lines · 1 hot path
+                - generic [ref=e84]:
+                  - generic [ref=e85]: USER
+                  - generic [ref=e86]: add a cancel-order command
+        - generic [ref=e88]:
+          - generic [ref=e89]:
+            - generic [ref=e90]: "02"
+            - text: Reframe
+          - generic [ref=e91]:
+            - generic [ref=e92]:
+              - generic [ref=e93]: Reframe
+              - heading "Code generation is downstream of system understanding." [level=2] [ref=e94]
+              - paragraph [ref=e95]: Most AI for developers helps an agent write the next line. Nitro lets an agent operate the whole platform that line runs in.
+            - generic [ref=e96]:
+              - generic [ref=e97]:
+                - generic [ref=e98]: AI in your IDE
+                - heading "Auto-completes the next line." [level=3] [ref=e99]
+                - paragraph [ref=e100]: Knows your repo's surface. Suggests imports. Refactors the file you're staring at. Stops at the file boundary.
+                - list [ref=e101]:
+                  - listitem [ref=e102]: File-scoped
+                  - listitem [ref=e103]: Snippet-shaped
+                  - listitem [ref=e104]: Static repo view
+              - generic [ref=e105]: vs
+              - generic [ref=e106]:
+                - generic [ref=e107]: Agents on your platform
+                - heading "Operates the system." [level=3] [ref=e108]
+                - paragraph [ref=e109]: Reads every trace. Walks every resolver. Diffs every schema. Knows which subgraph owns each field, and changes it safely across the federation.
+                - list [ref=e110]:
+                  - listitem [ref=e111]: Federation-wide
+                  - listitem [ref=e112]: Schema-typed
+                  - listitem [ref=e113]: Live runtime view
+            - generic [ref=e114]: One agent. Six surfaces. Zero archaeology.
+        - generic [ref=e115]:
+          - generic [ref=e116]:
+            - generic [ref=e117]: "03"
+            - text: The Loop
+          - generic [ref=e118]:
+            - generic [ref=e119]:
+              - generic [ref=e120]: The Loop
+              - heading "Observe → Reason → Act → Compose → Ship." [level=2] [ref=e121]
+              - paragraph [ref=e122]: One feedback loop, every primitive accounted for. The agent doesn't just propose a fix. It reads the system, reasons in your conventions, makes the change, composes it across services, and ships the regenerated client.
+            - img [ref=e124]:
+              - generic [ref=e131]:
+                - generic [ref=e134]: "01"
+                - generic [ref=e135]: Observe
+                - generic [ref=e136]: Nitro telemetry
+              - generic [ref=e137]:
+                - generic [ref=e140]: "02"
+                - generic [ref=e141]: Reason
+                - generic [ref=e142]: MCP server
+              - generic [ref=e143]:
+                - generic [ref=e146]: "03"
+                - generic [ref=e147]: Act
+                - generic [ref=e148]: Hot Chocolate
+              - generic [ref=e149]:
+                - generic [ref=e152]: "04"
+                - generic [ref=e153]: Compose
+                - generic [ref=e154]: Fusion composition
+              - generic [ref=e155]:
+                - generic [ref=e158]: "05"
+                - generic [ref=e159]: Ship
+                - generic [ref=e160]: Strawberry Shake
+            - generic [ref=e161]:
+              - generic [ref=e162]:
+                - generic [ref=e163]: Step 01
+                - heading "Observe" [level=4] [ref=e164]
+                - generic [ref=e165]: Nitro telemetry · Mocha topology
+                - paragraph [ref=e166]: Traces, metrics, logs, and the live messaging topology stream into Nitro from every owning service.
+              - generic [ref=e167]:
+                - generic [ref=e168]: Step 02
+                - heading "Reason" [level=4] [ref=e169]
+                - generic [ref=e170]: MCP server · graph schema
+                - paragraph [ref=e171]: The MCP surface exposes the federated schema, code references, and team conventions as typed tools.
+              - generic [ref=e172]:
+                - generic [ref=e173]: Step 03
+                - heading "Act" [level=4] [ref=e174]
+                - generic [ref=e175]: Hot Chocolate · Mocha · Fusion
+                - paragraph [ref=e176]: Resolvers, CQRS commands, and Fusion routes are first-class objects the agent can read and propose changes to.
+              - generic [ref=e177]:
+                - generic [ref=e178]: Step 04
+                - heading "Compose" [level=4] [ref=e179]
+                - generic [ref=e180]: Fusion composition
+                - paragraph [ref=e181]: Fusion stitches the change across services, validates field ownership, and runs breaking-change detection in CI.
+              - generic [ref=e182]:
+                - generic [ref=e183]: Step 05
+                - heading "Ship" [level=4] [ref=e184]
+                - generic [ref=e185]: Strawberry Shake · OpenAPI · MCP
+                - paragraph [ref=e186]: Clients regenerate. OpenAPI updates. The MCP tool surface widens. The loop closes without a single hand-edit.
+        - generic [ref=e187]:
+          - generic [ref=e188]:
+            - generic [ref=e189]: "04"
+            - text: What the agent sees
+          - generic [ref=e190]:
+            - generic [ref=e191]:
+              - generic [ref=e192]: One schema-typed surface
+              - heading "Six surfaces. One MCP endpoint." [level=2] [ref=e193]
+              - paragraph [ref=e194]: Every signal a senior engineer would chase — distributed traces, metrics, logs, messaging topology, the API graph, and the source code itself — queryable from one schema-typed place.
+            - generic [ref=e195]:
+              - generic [ref=e196]:
+                - generic [ref=e197]: Distributed traces
+                - heading "Every span across the federation." [level=3] [ref=e198]
+                - paragraph [ref=e199]: One waterfall, gateway plus every owning service. Field-level latency, every hop.
+                - generic [ref=e201]:
+                  - generic [ref=e202]:
+                    - generic [ref=e203]: gateway
+                    - generic [ref=e206]: 552ms
+                  - generic [ref=e207]:
+                    - generic [ref=e208]: Catalog
+                    - generic [ref=e211]: 72ms
+                  - generic [ref=e212]:
+                    - generic [ref=e213]: Billing
+                    - generic [ref=e216]: 396ms
+                  - generic [ref=e217]:
+                    - generic [ref=e218]: Shipping
+                    - generic [ref=e221]: 84ms
+              - generic [ref=e222]:
+                - generic [ref=e223]: Metrics & perf
+                - heading "p95 by resolver, by field." [level=3] [ref=e224]
+                - paragraph [ref=e225]: Allocations, hot fields, and per-tenant breakdowns. The agent reads them like a senior engineer.
+                - img [ref=e227]:
+                  - generic [ref=e231]: p95 412ms
+                  - generic [ref=e232]: Billing.charge
+              - generic [ref=e233]:
+                - generic [ref=e234]: Logs
+                - heading "Correlated to graph fields." [level=3] [ref=e235]
+                - paragraph [ref=e236]: Every log line carries the field path that emitted it. Search by trace, replay by request id.
+                - generic [ref=e238]:
+                  - generic [ref=e239]: 12:04 err @Billing.charge timeout · 412ms
+                  - generic [ref=e240]: 12:03 info @Catalog.products ok · 38ms
+                  - generic [ref=e241]: 12:02 warn @Shipping.quote retry · 84ms
+                  - generic [ref=e242]: 12:01 info @Ordering.create ok · 47ms
+              - generic [ref=e243]:
+                - generic [ref=e244]: Messaging topology
+                - heading "Mocha publishers and subscribers." [level=3] [ref=e245]
+                - paragraph [ref=e246]: Commands, queries, events, and the topics that carry them. Topology, not just logs.
+                - img [ref=e248]:
+                  - generic [ref=e264]: orders
+                  - generic [ref=e267]: billing
+              - generic [ref=e272]:
+                - generic [ref=e273]: The API graph
+                - heading "Type → field → resolver." [level=3] [ref=e274]
+                - paragraph [ref=e275]: Walk the supergraph. Know which subgraph owns each field. Jump to source from any node.
+                - img [ref=e277]:
+                  - generic [ref=e279]: Cart
+                  - generic [ref=e281]: .total
+                  - generic [ref=e283]: Billing
+                  - generic [ref=e284]: type
+                  - generic [ref=e285]: field
+                  - generic [ref=e286]: owner
+              - generic [ref=e287]:
+                - generic [ref=e288]: Code references
+                - heading "CQRS, REST, and resolvers." [level=3] [ref=e289]
+                - paragraph [ref=e290]: The agent reads your conventions before it suggests a single line of code. No greenfield drift.
+                - generic [ref=e292]:
+                  - generic [ref=e293]:
+                    - generic [ref=e294]: "12"
+                    - text: public sealed record CancelOrder(
+                  - generic [ref=e295]:
+                    - generic [ref=e296]: "13"
+                    - text: OrderId id, Reason reason)
+                  - generic [ref=e297]:
+                    - generic [ref=e298]: "14"
+                    - text: ": ICommand;"
+                  - generic [ref=e299]:
+                    - generic [ref=e300]: "15"
+                    - text: // emits OrderCancelled
+        - generic [ref=e301]:
+          - generic [ref=e302]:
+            - generic [ref=e303]: "05"
+            - text: Proof
+          - generic [ref=e304]:
+            - generic [ref=e305]:
+              - generic [ref=e306]: Proof
+              - heading "Two prompts. Two complete loops." [level=2] [ref=e307]
+              - paragraph [ref=e308]: "Investigation and operation, both end-to-end. Same MCP surface, same guardrails. The transcripts are real-shape: the tool calls match what Nitro emits today."
+            - generic [ref=e309]:
+              - article [ref=e310]:
+                - generic [ref=e311]:
+                  - generic [ref=e312]: Demo A · Investigate
+                  - heading "Why is /orders slow?" [level=3] [ref=e313]
+                  - paragraph [ref=e314]: From a one-line user prompt to a PR with the right index, in five MCP calls.
+                - generic [ref=e315]:
+                  - generic [ref=e316]:
+                    - generic [ref=e317]:
+                      - generic [ref=e318]: MCP · Nitro
+                      - generic [ref=e319]: nitro mcp · session 7c3a · cart-ops
+                    - generic [ref=e320]:
+                      - generic [ref=e321]: You
+                      - generic [ref=e322]: Why is /orders slow?
+                    - generic [ref=e323]:
+                      - generic [ref=e324]: Agent
+                      - generic [ref=e326]: Pulling latest p95 traces for the createOrder mutation, last hour.
+                      - generic "MCP tool call" [ref=e327]:
+                        - generic [ref=e328]: MCP
+                        - code [ref=e329]: "traces.search({ op: \"createOrder\", since: \"1h\" })"
+                    - generic [ref=e330]:
+                      - generic [ref=e331]: Agent
+                      - generic [ref=e333]: Found 412ms p95 in Billing.charge. Opening the resolver.
+                      - generic "MCP tool call" [ref=e334]:
+                        - generic [ref=e335]: MCP
+                        - code [ref=e336]: "resolver.read({ path: \"Billing.charge\" })"
+                    - generic [ref=e337]:
+                      - generic [ref=e338]: Agent
+                      - generic [ref=e340]: Resolver issues SELECT * FROM payments WHERE customer_id = ? without an index. The query plan shows a sequential scan.
+                    - generic [ref=e341]:
+                      - generic [ref=e342]: Agent
+                      - generic [ref=e344]: "Suggesting a composite index on (customer_id, created_at). Opening PR #4187."
+                      - generic "MCP tool call" [ref=e345]:
+                        - generic [ref=e346]: MCP
+                        - code [ref=e347]: "pr.open({ branch: \"perf/billing-index\", title: \"Add composite index on payments\" })"
+                  - generic [ref=e348]:
+                    - generic [ref=e349]:
+                      - generic [ref=e350]: Returned trace · createOrder
+                      - generic [ref=e351]: 0ms · 600ms
+                    - 'img "Trace waterfall: gateway and four service spans" [ref=e352]':
+                      - generic [ref=e354]:
+                        - generic [ref=e355]: 0ms
+                        - generic [ref=e356]: 150ms
+                        - generic [ref=e357]: 300ms
+                        - generic [ref=e358]: 450ms
+                        - generic [ref=e359]: 600ms
+                      - generic [ref=e360]:
+                        - generic [ref=e361]:
+                          - generic [ref=e362]: gateway · cart-checkout
+                          - generic [ref=e363]: 4 HOPS
+                          - generic [ref=e365]: 412ms
+                        - generic [ref=e366]:
+                          - generic [ref=e367]: Catalog.products
+                          - generic [ref=e369]: 38ms
+                        - generic [ref=e370]:
+                          - generic [ref=e371]: Billing.charge
+                          - generic [ref=e374]: 302ms
+                          - generic [ref=e376]: ← slowest in window
+                        - generic [ref=e377]:
+                          - generic [ref=e378]: Ordering.create
+                          - generic [ref=e380]: 47ms
+                        - generic [ref=e381]:
+                          - generic [ref=e382]: Shipping.quote
+                          - generic [ref=e384]: 52ms
+                      - generic [ref=e385]: 0ms · 600ms
+                    - generic "Suggested SQL change" [ref=e386]:
+                      - generic [ref=e387]: "-- Billing.Resolvers/Charge.cs · proposed"
+                      - generic [ref=e388]: CREATE INDEX idx_payments_customer_created
+                      - generic [ref=e389]: ON payments (customer_id, created_at);
+                      - generic [ref=e390]: "+ filed as PR #4187"
+              - article [ref=e391]:
+                - generic [ref=e392]:
+                  - generic [ref=e393]: Demo B · Operate
+                  - heading "Add a cancel-order command." [level=3] [ref=e394]
+                  - paragraph [ref=e395]: Conventions read, command scaffolded, four surfaces registered. No human glue.
+                - generic [ref=e396]:
+                  - generic [ref=e397]:
+                    - generic [ref=e398]:
+                      - generic [ref=e399]: MCP · Nitro
+                      - generic [ref=e400]: nitro mcp · session 9f12 · order-svc
+                    - generic [ref=e401]:
+                      - generic [ref=e402]: You
+                      - generic [ref=e403]: Add a cancel-order command.
+                    - generic [ref=e404]:
+                      - generic [ref=e405]: Agent
+                      - generic [ref=e407]: Reading your CQRS conventions in OrderModule.Commands.
+                      - generic "MCP tool call" [ref=e408]:
+                        - generic [ref=e409]: MCP
+                        - code [ref=e410]: "conventions.list({ module: \"OrderModule\" })"
+                    - generic [ref=e411]:
+                      - generic [ref=e412]: Agent
+                      - generic [ref=e414]: Generating CancelOrderCommand + handler with audit log via Mocha.
+                      - generic "MCP tool call" [ref=e415]:
+                        - generic [ref=e416]: MCP
+                        - code [ref=e417]: "command.scaffold({ name: \"CancelOrder\", emits: \"OrderCancelled\" })"
+                    - generic [ref=e418]:
+                      - generic [ref=e419]: Agent
+                      - generic [ref=e421]: Registering on the graph, OpenAPI, and the MCP tool surface.
+                      - generic "MCP tool call" [ref=e422]:
+                        - generic [ref=e423]: MCP
+                        - code [ref=e424]: "register({ surfaces: [\"graph\", \"openapi\", \"mcp\"] })"
+                    - generic [ref=e425]:
+                      - generic [ref=e426]: Agent
+                      - generic [ref=e428]: Strawberry Shake will regenerate the client on next build. The loop is closed.
+                  - generic [ref=e429]:
+                    - generic [ref=e430]:
+                      - generic [ref=e431]: Registration ledger · CancelOrder
+                      - generic [ref=e432]: 4 / 4 surfaces
+                    - generic [ref=e433]:
+                      - generic [ref=e434]:
+                        - img [ref=e436]
+                        - generic [ref=e438]: schema.graphql · Mutation.cancelOrder
+                        - generic [ref=e439]: GraphQL
+                      - generic [ref=e440]:
+                        - img [ref=e442]
+                        - generic [ref=e444]: openapi.yaml · POST /orders/:id/cancel
+                        - generic [ref=e445]: OpenAPI
+                      - generic [ref=e446]:
+                        - img [ref=e448]
+                        - generic [ref=e450]: mcp.tools · command.cancelOrder
+                        - generic [ref=e451]: MCP tool
+                      - generic [ref=e452]:
+                        - img [ref=e454]
+                        - generic [ref=e456]: client.csproj · CancelOrderMutation
+                        - generic [ref=e457]: Strawberry Shake
+                    - generic "Generated handler" [ref=e458]:
+                      - generic [ref=e459]: // OrderModule/Commands/CancelOrderHandler.cs
+                      - generic [ref=e460]: public sealed class CancelOrderHandler
+                      - generic [ref=e461]: ": ICommandHandler<CancelOrder>"
+        - generic [ref=e462]:
+          - generic [ref=e463]:
+            - generic [ref=e464]: "06"
+            - text: Product surfaces
+          - generic [ref=e465]:
+            - generic [ref=e466]:
+              - generic [ref=e467]: Product surfaces
+              - heading "Six surfaces. One platform." [level=2] [ref=e468]
+              - paragraph [ref=e469]: Each primitive earns its place in the agent loop. The MCP server is the endpoint; the rest are the ChilliCream products you already run, instrumented for an audience that isn't human.
+            - generic [ref=e470]:
+              - article [ref=e471]:
+                - img [ref=e473]
+                - generic [ref=e477]: Endpoint
+                - heading "Nitro MCP Server" [level=3] [ref=e478]
+                - paragraph [ref=e479]: The endpoint your agent talks to. Schema-typed, scoped, audited.
+              - article [ref=e480]:
+                - img [ref=e482]
+                - generic [ref=e489]: Server
+                - heading "Hot Chocolate" [level=3] [ref=e490]
+                - paragraph [ref=e491]: Server framework with first-class agent telemetry. Every resolver, every span.
+              - article [ref=e492]:
+                - img [ref=e494]
+                - generic [ref=e498]: Messaging
+                - heading "Mocha" [level=3] [ref=e499]
+                - paragraph [ref=e500]: Every command, query, and event observable. Replayable. Auditable.
+              - article [ref=e501]:
+                - img [ref=e503]
+                - generic [ref=e514]: Federation
+                - heading "Fusion" [level=3] [ref=e515]
+                - paragraph [ref=e516]: Walk the supergraph. Know which subgraph owns each field, in code or at runtime.
+              - article [ref=e517]:
+                - img [ref=e519]
+                - generic [ref=e523]: Client
+                - heading "Strawberry Shake" [level=3] [ref=e524]
+                - paragraph [ref=e525]: Regenerated when the graph changes. Your clients stay in sync without a PR.
+              - article [ref=e526]:
+                - img [ref=e528]
+                - generic [ref=e534]: Telemetry
+                - heading "Distributed tracing" [level=3] [ref=e535]
+                - paragraph [ref=e536]: Field-level latency, error origins, cost attribution. Federated by default.
+        - generic [ref=e537]:
+          - generic [ref=e538]:
+            - generic [ref=e539]: "07"
+            - text: Guardrails
+          - generic [ref=e540]:
+            - generic [ref=e541]:
+              - generic [ref=e542]: Autonomy with a leash
+              - heading "Bounded by the schema, audited by Mocha." [level=2] [ref=e543]
+              - paragraph [ref=e544]: Agents move fastest when the rails are real. Every Nitro MCP interaction is typed against the live federated schema, scoped to an identity, and replayable from the audit log.
+            - generic [ref=e545]:
+              - generic [ref=e546]:
+                - img [ref=e548]
+                - generic [ref=e553]:
+                  - heading "Schema-typed responses" [level=4] [ref=e554]
+                  - paragraph [ref=e555]: No hallucinated fields. The agent's outputs are validated against the live federated schema before they leave Nitro.
+              - generic [ref=e556]:
+                - img [ref=e558]
+                - generic [ref=e561]:
+                  - heading "Scoped tokens" [level=4] [ref=e562]
+                  - paragraph [ref=e563]: Per-agent identity, per-environment scope, per-resource RBAC. Same auth surface as your engineers.
+              - generic [ref=e564]:
+                - img [ref=e566]
+                - generic [ref=e570]:
+                  - heading "Audit log via Mocha" [level=4] [ref=e571]
+                  - paragraph [ref=e572]: Every tool call, query, and mutation is published to a Mocha topic. Replayable, exportable, no lossy summary.
+              - generic [ref=e573]:
+                - img [ref=e575]
+                - generic [ref=e580]:
+                  - heading "Sandbox-runnable migrations" [level=4] [ref=e581]
+                  - paragraph [ref=e582]: Schema changes run in a staging slice with replayed traffic before they touch the production graph.
+        - generic [ref=e583]:
+          - generic [ref=e584]:
+            - generic [ref=e585]: "08"
+            - text: Distribution
+          - generic [ref=e586]:
+            - generic [ref=e587]:
+              - generic [ref=e588]: Distribution
+              - heading "It's not another chat window." [level=2] [ref=e589]
+              - paragraph [ref=e590]: It's the same chat window, suddenly aware of your platform. The Nitro MCP server slots into the agent clients your team already uses, with one config line.
+            - generic [ref=e591]:
+              - link "Cursor Add MCP →" [ref=e592] [cursor=pointer]:
+                - /url: /products/nitro/agents/cursor
+                - img [ref=e594]:
+                  - generic [ref=e597]: C
+                - generic [ref=e598]: Cursor
+                - generic [ref=e599]: Add MCP →
+              - link "Claude Code Add MCP →" [ref=e600] [cursor=pointer]:
+                - /url: /products/nitro/agents/claude-code
+                - img [ref=e602]:
+                  - generic [ref=e605]: K
+                - generic [ref=e606]: Claude Code
+                - generic [ref=e607]: Add MCP →
+              - link "Copilot Chat Add MCP →" [ref=e608] [cursor=pointer]:
+                - /url: /products/nitro/agents/copilot-chat
+                - img [ref=e610]:
+                  - generic [ref=e613]: P
+                - generic [ref=e614]: Copilot Chat
+                - generic [ref=e615]: Add MCP →
+              - link "GitHub Copilot Add MCP →" [ref=e616] [cursor=pointer]:
+                - /url: /products/nitro/agents/github-copilot
+                - img [ref=e618]:
+                  - generic [ref=e621]: G
+                - generic [ref=e622]: GitHub Copilot
+                - generic [ref=e623]: Add MCP →
+        - generic [ref=e624]:
+          - generic [ref=e625]:
+            - generic [ref=e626]: "09"
+            - text: Billing
+          - generic [ref=e627]:
+            - generic [ref=e628]:
+              - generic [ref=e629]: Billing
+              - heading "Nitro is the paid surface." [level=2] [ref=e630]
+              - paragraph [ref=e631]: Hot Chocolate, Mocha, Strawberry Shake, and Fusion are open source and feed it. The agent loop runs on the same plan you already pay for observability and federation.
+            - link "See pricing →" [ref=e632] [cursor=pointer]:
+              - /url: /pricing
+        - generic [ref=e633]:
+          - generic [ref=e634]:
+            - generic [ref=e635]: "10"
+            - text: Ready?
+          - generic [ref=e636]:
+            - generic [ref=e637]: Ready?
+            - heading "Stop being the human glue." [level=2] [ref=e638]
+            - generic [ref=e639]:
+              - link "Install Nitro CLI" [ref=e640] [cursor=pointer]:
+                - /url: /docs/nitro
+              - link "Add MCP to Cursor" [ref=e641] [cursor=pointer]:
+                - /url: /products/nitro/agents/cursor
+              - link "Book a demo" [ref=e642] [cursor=pointer]:
+                - /url: mailto:contact@chillicream.com?subject=Nitro%20agents%20demo
+    - contentinfo [ref=e643]:
+      - generic [ref=e644]:
+        - generic [ref=e645]:
+          - link "ChilliCream Home" [ref=e647] [cursor=pointer]:
+            - /url: /
+            - img [ref=e648]
+          - paragraph [ref=e651]:
+            - text: "1207 Delaware Ave #3567"
+            - text: Wilmington, DE 19806
+            - text: United States
+          - generic:
+            - generic:
+              - generic:
+                - link "Star ChilliCream/graphql-platform on GitHub":
+                  - /url: https://github.com/ChilliCream/graphql-platform
+                  - text: Star
+        - generic [ref=e652]:
+          - generic [ref=e653]:
+            - heading "Platform" [level=3] [ref=e654]
+            - navigation [ref=e655]:
+              - link "Analytics" [ref=e656] [cursor=pointer]:
+                - /url: /platform/analytics/
+              - link "Continuous Integration" [ref=e657] [cursor=pointer]:
+                - /url: /platform/continuous-integration/
+              - link "Ecosystem" [ref=e658] [cursor=pointer]:
+                - /url: /platform/ecosystem/
+              - link "Nitro" [ref=e659] [cursor=pointer]:
+                - /url: /products/nitro/
+          - generic [ref=e660]:
+            - heading "Services" [level=3] [ref=e661]
+            - navigation [ref=e662]:
+              - link "Advisory" [ref=e663] [cursor=pointer]:
+                - /url: /services/advisory/
+              - link "Support" [ref=e664] [cursor=pointer]:
+                - /url: /services/support/
+              - link "Training" [ref=e665] [cursor=pointer]:
+                - /url: /services/training/
+          - generic [ref=e666]:
+            - heading "Documentation" [level=3] [ref=e667]
+            - navigation [ref=e668]:
+              - link "Nitro" [ref=e669] [cursor=pointer]:
+                - /url: /docs/nitro/
+              - link "Fusion" [ref=e670] [cursor=pointer]:
+                - /url: /docs/fusion/v15/
+              - link "Hot Chocolate" [ref=e671] [cursor=pointer]:
+                - /url: /docs/hotchocolate/v15/
+              - link "Strawberry Shake" [ref=e672] [cursor=pointer]:
+                - /url: /docs/strawberryshake/v15/
+              - link "Mocha" [ref=e673] [cursor=pointer]:
+                - /url: /docs/mocha/v16/
+          - generic [ref=e674]:
+            - heading "Company" [level=3] [ref=e675]
+            - navigation [ref=e676]:
+              - link "Contact" [ref=e677] [cursor=pointer]:
+                - /url: mailto:contact@chillicream.com
+              - link "Shop" [ref=e678] [cursor=pointer]:
+                - /url: https://store.chillicream.com
+              - link "Acceptable Use Policy" [ref=e679] [cursor=pointer]:
+                - /url: /legal/acceptable-use-policy/
+              - link "Cookie Policy" [ref=e680] [cursor=pointer]:
+                - /url: /legal/cookie-policy/
+              - link "Privacy Policy" [ref=e681] [cursor=pointer]:
+                - /url: /legal/privacy-policy/
+              - link "Terms of Service" [ref=e682] [cursor=pointer]:
+                - /url: /legal/terms-of-service/
+              - link "ChilliCream License" [ref=e683] [cursor=pointer]:
+                - /url: /licensing/chillicream-license/
+      - generic [ref=e685]:
+        - link "ChilliCream Blog" [ref=e686] [cursor=pointer]:
+          - /url: /blog/
+          - img [ref=e688]
+          - generic [ref=e690]: ChilliCream Blog
+        - link "ChilliCream on GitHub" [ref=e691] [cursor=pointer]:
+          - /url: https://github.com/ChilliCream/graphql-platform
+          - img [ref=e693]
+          - generic [ref=e695]: ChilliCream on GitHub
+        - link "ChilliCream Slack Community" [ref=e696] [cursor=pointer]:
+          - /url: https://slack.chillicream.com/
+          - img [ref=e698]
+          - generic [ref=e700]: ChilliCream Slack Community
+        - link "ChilliCream YouTube Channel" [ref=e701] [cursor=pointer]:
+          - /url: https://www.youtube.com/c/ChilliCream
+          - img [ref=e703]
+          - generic [ref=e705]: ChilliCream YouTube Channel
+        - link "ChilliCream on X" [ref=e706] [cursor=pointer]:
+          - /url: https://x.com/Chilli_Cream
+          - img [ref=e708]
+          - generic [ref=e710]: ChilliCream on X
+        - link "ChilliCream on LinkedIn" [ref=e711] [cursor=pointer]:
+          - /url: https://www.linkedin.com/company/chillicream
+          - img [ref=e713]
+          - generic [ref=e715]: ChilliCream on LinkedIn
+      - generic [ref=e716]: © 2026 ChilliCream, Inc. ・ All Rights Reserved
+  - dialog "cookieconsent" [ref=e717]:
+    - generic [ref=e718]:
+      - generic [ref=e719]:
+        - text: This website uses cookies to ensure you get the best experience on our website.
+        - link "Learn more about our cookie policy" [ref=e720] [cursor=pointer]:
+          - /url: /legal/cookie-policy.html
+      - button "Got it!" [ref=e721] [cursor=pointer]
+  - dialog "promo" [ref=e722]:
+    - generic [ref=e724]:
+      - generic [ref=e725]:
+        - generic [ref=e726]: Getting Started with GraphQL in .NET
+        - paragraph [ref=e727]: Learn to build modern APIs like those used by Facebook and Netflix in our self-paced getting started course on Dometrain.
+      - generic [ref=e728]:
+        - link "Check it out!" [ref=e729] [cursor=pointer]:
+          - /url: https://courses.chillicream.com
+        - button "dismiss promo message" [ref=e730] [cursor=pointer]:
+          - img [ref=e732]
+  - alert [ref=e734]
