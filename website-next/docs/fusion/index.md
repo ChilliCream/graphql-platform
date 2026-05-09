@@ -15,10 +15,36 @@ description: A showcase of every markdown feature.
 
 ## Paragraphs and Inline Formatting
 
-This is a regular paragraph with **bold text**, *italic text*, ***bold and italic***, ~~strikethrough~~, and `inline code`. You can also combine **_bold italic_** using underscores. Here is a hard line break:
+This is a regular paragraph with **bold text**, _italic text_, **_bold and italic_**, ~~strikethrough~~, and `inline code`. You can also combine **_bold italic_** using underscores. Here is a hard line break:
 end of line.
 
 A second paragraph follows after a blank line. Inline HTML is also supported: <kbd>Ctrl</kbd> + <kbd>C</kbd>.
+
+## Tabs
+
+<Tabs>
+
+<Tab label="npm">
+
+npm stuff in here
+
+```bash
+npm do stuff
+```
+
+</Tab>
+
+<Tab label="yarn">
+
+```bash
+yarn do stuff
+```
+
+yarn stuff in here
+
+</Tab>
+
+</Tabs>
 
 ## Links and References
 
@@ -30,6 +56,7 @@ A second paragraph follows after a blank line. Inline HTML is also supported: <k
 - Footnote reference[^1]
 
 [hc]: https://chillicream.com/docs/hotchocolate
+
 [^1]: This is the footnote body.
 
 ## Lists
@@ -227,11 +254,11 @@ SELECT id, name FROM users WHERE active = TRUE ORDER BY id;
 
 ## Tables
 
-| Feature        | Status      | Notes                  |
-| -------------- | :---------: | ---------------------: |
-| Headings       | ✅          | All six levels         |
-| Tables         | ✅          | With alignment         |
-| Footnotes      | ✅          | See bottom of page     |
+| Feature   | Status |              Notes |
+| --------- | :----: | -----------------: |
+| Headings  |   ✅   |     All six levels |
+| Tables    |   ✅   |     With alignment |
+| Footnotes |   ✅   | See bottom of page |
 
 ## Horizontal Rule
 
@@ -246,7 +273,8 @@ SELECT id, name FROM users WHERE active = TRUE ORDER BY id;
 <details>
   <summary>Click to expand</summary>
 
-  Hidden content with **markdown** still rendered inside.
+Hidden content with **markdown** still rendered inside.
+
 </details>
 
 <div align="center">

@@ -8,6 +8,7 @@ import { Link } from "@/src/design-system/Link";
 import { List, ListItem } from "@/src/design-system/List";
 import { Image } from "@/src/design-system/Image";
 import { Quote } from "@/src/design-system/Quote";
+import { Tab, Tabs } from "@/src/design-system/Tabs";
 import { detectAdmonition } from "@/src/helpers/detectAdmonition";
 import {
   Table,
@@ -59,6 +60,8 @@ const components: MDXComponents = {
   img: Image,
 
   CodeStep,
+  Tabs,
+  Tab,
 };
 
 export function useMDXComponents(): MDXComponents {
