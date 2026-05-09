@@ -2,36 +2,32 @@
 
 import React, { FC } from "react";
 
+import { AllStoriesGrid } from "@/components/customers/AllStoriesGrid";
+import { ArchitectCallCta } from "@/components/customers/ArchitectCallCta";
 import { ByTheNumbersBand } from "@/components/customers/ByTheNumbersBand";
+import { CustomersHero } from "@/components/customers/CustomersHero";
+import { FeaturedRail } from "@/components/customers/FeaturedRail";
+import { IndustryTrustWall } from "@/components/customers/IndustryTrustWall";
 import { RelatedLinks } from "@/components/customers/RelatedLinks";
 
-import { CinematicAllStoriesGrid } from "./CinematicAllStoriesGrid";
-import { CinematicArchitectCallCta } from "./CinematicArchitectCallCta";
-import { CinematicCustomersHero } from "./CinematicCustomersHero";
 import { CinematicCustomersRoot } from "./CinematicCustomersRoot";
-import { CinematicFeaturedRail } from "./CinematicFeaturedRail";
-import { CinematicIndustryTrustWall } from "./CinematicIndustryTrustWall";
+import { StampArchive } from "./StampArchive";
 
-// Cinematic variant of the /customers index. Mirrors the default band
-// rhythm but threads homepage chrome through three precise insertions:
-//
-//   - `<ActLabel>` chapters: 01 CUSTOMERS · 02 FEATURED STORIES ·
-//     03 TRUSTED BY · 04 ALL STORIES · 05 RESEARCH CALL.
-//   - `<VibrantTile>` for the top three featured stories (orange,
-//     yellow-rays, pink) — the marketing peak, not the spine.
-//   - `<DottedGridBg>` behind the long trust wall — directory framing.
-//
-// ByTheNumbersBand and RelatedLinks reuse the default components verbatim.
-// They sit between the chaptered bands and stay outside the act-label run.
+// Cinematic variant of the /customers index. Renders the default
+// component tree under a `<CinematicCustomersRoot>` shell that lays a
+// single archival flourish behind the bands: a hand-placed scatter of
+// postage stamps with verified-reference postmarks, date strips, and
+// wax-seal overstamps. The bands themselves are unchanged.
 export const CinematicCustomersPage: FC = () => {
   return (
     <CinematicCustomersRoot>
-      <CinematicCustomersHero />
+      <StampArchive />
+      <CustomersHero />
       <ByTheNumbersBand />
-      <CinematicFeaturedRail />
-      <CinematicIndustryTrustWall />
-      <CinematicAllStoriesGrid />
-      <CinematicArchitectCallCta />
+      <FeaturedRail />
+      <IndustryTrustWall />
+      <AllStoriesGrid />
+      <ArchitectCallCta />
       <RelatedLinks />
     </CinematicCustomersRoot>
   );

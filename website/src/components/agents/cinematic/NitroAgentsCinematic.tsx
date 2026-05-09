@@ -2,51 +2,78 @@
 
 import React, { FC } from "react";
 
-import { AgentReframeCinematic } from "./AgentReframeCinematic";
+import { AgentDemo } from "../AgentDemo";
+import { AgentReframe } from "../AgentReframe";
+import { AgentsFinalCta } from "../AgentsFinalCta";
+import { AgentsHero } from "../AgentsHero";
+import { AgentsLoopDiagram } from "../AgentsLoopDiagram";
+import { AgentsPricingTeaser } from "../AgentsPricingTeaser";
+import { GuardrailsSection } from "../GuardrailsSection";
+import { ProductSurfaceTiles } from "../ProductSurfaceTiles";
+import { WhatAgentSees } from "../WhatAgentSees";
+import { WorksWhereYouWork } from "../WorksWhereYouWork";
+import { Band } from "@/components/redesign-system/Band";
+import { DEMOS } from "@/data/agents/demos";
+
 import { AgentsCinematicRoot } from "./AgentsCinematicRoot";
-import { AgentsFinalCtaCinematic } from "./AgentsFinalCtaCinematic";
-import { AgentsHeroCinematic } from "./AgentsHeroCinematic";
-import { AgentsLoopDiagramCinematic } from "./AgentsLoopDiagramCinematic";
-import { AgentsPricingTeaserCinematic } from "./AgentsPricingTeaserCinematic";
-import { AgentsProofCinematic } from "./AgentsProofCinematic";
-import { GuardrailsSectionCinematic } from "./GuardrailsSectionCinematic";
-import { ProductSurfaceTilesCinematic } from "./ProductSurfaceTilesCinematic";
-import { WhatAgentSeesCinematic } from "./WhatAgentSeesCinematic";
-import { WorksWhereYouWorkCinematic } from "./WorksWhereYouWorkCinematic";
+import { PunchCardBackground } from "./PunchCardBackground";
 
-// Cinematic variant of the agents page. Composes the cinematic-flavoured
-// section components inside `AgentsCinematicRoot`, which extends the
-// default `AgentsRoot` with extra band gutter clearance and hides the
-// legacy inline `.cc-section-label` so the new `<ActLabel>` chapter
-// markers carry the chapter chrome alone. The page expects to be rendered
-// inside `<AccentThread page="agents">` (the page-component takes care of
-// that so both variants share one thread instance).
+// Cinematic variant of /products/nitro/agents. Renders the same component
+// tree as the default variant (AgentsHero, AgentReframe, AgentsLoopDiagram,
+// WhatAgentSees, two AgentDemos, ProductSurfaceTiles, GuardrailsSection,
+// WorksWhereYouWork, AgentsPricingTeaser, AgentsFinalCta) with a single
+// distinctive design idea layered behind everything: a faint mainframe
+// punch-card geometric pattern (hollow Hollerith slots, a sparse pattern of
+// amber-punched holes spelling "AGENT" / "MCP", column numbers along the
+// top, row labels down the left, the 9-row dashed separator and a
+// chamfered orientation notch in the top-left corner).
 //
-// Page chapter rhythm (matches the homepage-uplift plan):
-//   01 AGENTS              hero
-//   02 REFRAME             cream tinted band, vs row
-//   03 AGENT LOOP          accent band, ConnectorLine threading
-//   04 SIX SURFACES        default band, six tiles
-//   05 PROOF               inverted band, two demos
-//   06 PRODUCT SURFACES    cream tinted band, six rows
-//   07 GUARDRAILS          default band, four cards
-//   08 DISTRIBUTION        cream tinted band, FrostedExplainer (cream)
-//   09 BILLING             accent band, pricing teaser
-//   10 READY?              glow band, final CTA
-
+// VariantSwitcher is owned by the page-component dispatcher
+// (`/page-components/nitro-agents.tsx`) so cinematic readers can hop back
+// to the default variant from there.
 export const NitroAgentsCinematic: FC = () => {
   return (
     <AgentsCinematicRoot>
-      <AgentsHeroCinematic />
-      <AgentReframeCinematic />
-      <AgentsLoopDiagramCinematic />
-      <WhatAgentSeesCinematic />
-      <AgentsProofCinematic />
-      <ProductSurfaceTilesCinematic />
-      <GuardrailsSectionCinematic />
-      <WorksWhereYouWorkCinematic />
-      <AgentsPricingTeaserCinematic />
-      <AgentsFinalCtaCinematic />
+      <PunchCardBackground />
+      <AgentsHero />
+      <AgentReframe />
+      <AgentsLoopDiagram />
+      <WhatAgentSees />
+
+      {/* Section 05: two-demo proof block, inverted band ("lab" beat).
+          Anchor `proof` is the target of the hero ghost CTA so the
+          visitor lands directly on the load-bearing section. */}
+      <Band variant="inverted" id="proof" ariaLabel="Proof">
+        <div className="cc-ag-band-inner">
+          <div className="cc-section-label">
+            <span className="num">05</span> Proof
+          </div>
+          <div className="cc-ag-feature-header">
+            <div className="eyebrow">Proof</div>
+            <h2 className="display">
+              Diagnose. Compose. Two loops, one agent.
+            </h2>
+            <p>
+              Two prompts, two complete loops. Demo A descends into causes
+              (Observe + Reason). Demo B fans out across the four surfaces the
+              agent has to register against (Act + Compose + Ship). The
+              transcripts are real-shape: the tool calls match what Nitro emits
+              today.
+            </p>
+          </div>
+          <div className="cc-ag-demos">
+            {DEMOS.map((demo) => (
+              <AgentDemo key={demo.key} demo={demo} />
+            ))}
+          </div>
+        </div>
+      </Band>
+
+      <ProductSurfaceTiles />
+      <GuardrailsSection />
+      <WorksWhereYouWork />
+      <AgentsPricingTeaser />
+      <AgentsFinalCta />
     </AgentsCinematicRoot>
   );
 };

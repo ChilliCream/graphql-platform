@@ -21,9 +21,10 @@ interface SolutionPageProps {
 // band-stacked template (`SolutionPageRenderer` + `SolutionsRoot`) or the
 // cinematic variant (`SolutionPageRendererCinematic` + `SolutionsCinematicRoot`).
 // Both variants reuse the same data file (`solutions.ts`), the same accent
-// thread, and the same shared section components: the cinematic variant
-// only swaps the page chrome (gutter padding, ActLabel chapter markers,
-// connector-line overlay on the diagram, frosted plates on the quotes).
+// thread, and the same shared section components. The cinematic variant
+// adds a single signature on top of the shared composition: a per-slug
+// astronomical star chart background that lights up a different
+// constellation per solution.
 //
 // The variant switcher is rendered at the top level so visitors can hop
 // between variants with one click; useSearchParams requires a Suspense
@@ -71,7 +72,7 @@ const SolutionPageBody: FC<SolutionPageProps> = ({ record }) => {
   if (variant === "cinematic") {
     return (
       <>
-        <SolutionsCinematicRoot>
+        <SolutionsCinematicRoot slug={record.slug}>
           <SolutionPageRendererCinematic record={record} />
         </SolutionsCinematicRoot>
         <VariantSwitcher options={switcherOptions} currentId="cinematic" />

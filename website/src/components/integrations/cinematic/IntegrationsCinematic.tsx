@@ -2,46 +2,28 @@
 
 import React, { FC, Suspense, useEffect } from "react";
 
+import { CommunityIntegrationsGrid } from "@/components/integrations/CommunityIntegrationsGrid";
+import { FeaturedIntegrations } from "@/components/integrations/FeaturedIntegrations";
+import { IntegrationsByCategory } from "@/components/integrations/IntegrationsByCategory";
+import { IntegrationsDualCta } from "@/components/integrations/IntegrationsDualCta";
+import { IntegrationsHero } from "@/components/integrations/IntegrationsHero";
+import { IntegrationsSpotlight } from "@/components/integrations/IntegrationsSpotlight";
+import { IntegrationStarterTemplates } from "@/components/integrations/IntegrationStarterTemplates";
+import { NativeIntegrationsGrid } from "@/components/integrations/NativeIntegrationsGrid";
 import { LandingGlobalStyle } from "@/components/landing/LandingRoot";
 import { SiteLayout } from "@/components/layout";
 import { SEO } from "@/components/misc";
 import { AccentThread } from "@/components/redesign-system/AccentThread";
-import { Band } from "@/components/redesign-system/Band";
-import {
-  ActLabel,
-  VariantSwitcher,
-} from "@/components/redesign-system/cinematic";
+import { VariantSwitcher } from "@/components/redesign-system/cinematic";
 
-import { IntegrationsCinematicByCategory } from "./IntegrationsCinematicByCategory";
-import { IntegrationsCinematicCommunityGrid } from "./IntegrationsCinematicCommunityGrid";
-import { IntegrationsCinematicDualCta } from "./IntegrationsCinematicDualCta";
-import { IntegrationsCinematicFeatured } from "./IntegrationsCinematicFeatured";
-import { IntegrationsCinematicHero } from "./IntegrationsCinematicHero";
-import { IntegrationsCinematicNativeGrid } from "./IntegrationsCinematicNativeGrid";
+import { CircuitTraces } from "./CircuitTraces";
 import { IntegrationsCinematicRoot } from "./IntegrationsCinematicRoot";
-import { IntegrationsCinematicSpotlight } from "./IntegrationsCinematicSpotlight";
-import { IntegrationsCinematicStarters } from "./IntegrationsCinematicStarters";
 
-// Cinematic variant of /integrations. Same band rhythm as the default variant,
-// same data files, same accent thread. The chrome lifted from the homepage:
-//   * <ActLabel n="0X" name="..." /> in the gutter of the hero, spotlight and
-//     featured bands, and one per visible category block (04, 05, 06, ...);
-//   * <DottedGridBg density="sm" fade="both" /> under the Native tile wall so
-//     the directory reads as a topology surface;
-//   * <ScatterIllustration variant="orbit-mini" /> anchored in the bottom-
-//     right of the dual-CTA band, echoing the hero's MCP orbital diagram.
-//
-// Anti-patterns this variant deliberately AVOIDS (per uplift-plan section 4):
-//   * No connector lines (the grid is a directory, not a diagram).
-//   * No vibrant blog tiles (the integration tiles already carry partner
-//     color; vibrant tiles on top would compound noise).
-//   * No FusionLensEffect.
-//
-// VariantSwitcher is mounted once at the bottom of the tree so cinematic
-// readers can hop back to the default variant. URL filters (?type, ?q,
-// ?category) keep working: each cinematic component reads useSearchParams
-// the same way the default variant does, and the hero's filter pills pass
-// through current params (including ?v=cinematic) when writing.
+// Cinematic variant of /integrations. Renders the default component tree
+// under an `<IntegrationsCinematicRoot>` shell that lays a single
+// distinctive flourish behind the bands: a `<CircuitTraces>` PCB-trace
+// background. The bands themselves are unchanged from the default
+// variant, so the catalog, hero, spotlight, and CTA chrome stay 1:1.
 const VARIANT_OPTIONS = [
   { id: "default", label: "Default", href: "/integrations/" },
   {
@@ -68,25 +50,23 @@ export const IntegrationsCinematic: FC = () => {
       <LandingGlobalStyle />
       <AccentThread page="integrations">
         <IntegrationsCinematicRoot>
-          <Band variant="default" className="cc-band cc-band-hero">
-            <ActLabel n="01" name="Integrations" />
-            <Suspense fallback={null}>
-              <IntegrationsCinematicHero />
-            </Suspense>
-          </Band>
-          <IntegrationsCinematicSpotlight />
-          <IntegrationsCinematicFeatured />
+          <CircuitTraces />
           <Suspense fallback={null}>
-            <IntegrationsCinematicByCategory />
+            <IntegrationsHero />
+          </Suspense>
+          <IntegrationsSpotlight />
+          <FeaturedIntegrations />
+          <Suspense fallback={null}>
+            <IntegrationsByCategory />
           </Suspense>
           <Suspense fallback={null}>
-            <IntegrationsCinematicNativeGrid />
+            <NativeIntegrationsGrid />
           </Suspense>
           <Suspense fallback={null}>
-            <IntegrationsCinematicCommunityGrid />
+            <CommunityIntegrationsGrid />
           </Suspense>
-          <IntegrationsCinematicStarters />
-          <IntegrationsCinematicDualCta />
+          <IntegrationStarterTemplates />
+          <IntegrationsDualCta />
         </IntegrationsCinematicRoot>
       </AccentThread>
       <VariantSwitcher options={VARIANT_OPTIONS} currentId="cinematic" />
