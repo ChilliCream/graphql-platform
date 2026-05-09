@@ -2,13 +2,13 @@
 title: Manage client contracts
 ---
 
-Use client contracts to release a Hot Chocolate v16 server without guessing which clients break. The schema is the type-level contract. Registered operations are the executable contract for each client version. Nitro stores both, validates them by stage, and can provide the persisted operations that Hot Chocolate executes in production.
+Client contracts let you release a Hot Chocolate v16 server with confidence, knowing exactly which clients depend on your schema. The schema itself is your type-level contract, while registered operations define the executable contract for each client version. Nitro stores both contracts, validates them by stage, and supplies the persisted operations that Hot Chocolate runs in production.
 
-This page covers one Hot Chocolate server API. Fusion gateway contracts use separate `nitro fusion` commands and are out of scope.
+This page focuses on the Hot Chocolate server API. Fusion gateway contracts require separate `nitro fusion` commands and are not covered here.
 
-# Manage client contracts at a glance
+# Overview: Managing Client Contracts
 
-A schema diff tells you what changed. Registered operations tell you which deployed clients depend on the schema shape. Use both signals in your release workflow:
+When you change your schema, a schema diff shows what changed. Registered operations reveal which deployed clients rely on specific schema shapes. Use both signals in your release workflow:
 
 ```text
 1. Change the Hot Chocolate schema.
@@ -20,43 +20,43 @@ A schema diff tells you what changed. Registered operations tell you which deplo
 7. Enforce registered operation IDs in production.
 ```
 
-The model has four parts:
+This model has four key parts:
 
-1. **Schema contract.** The exported SDL describes the fields, arguments, nullability, enum values, directives, descriptions, and deprecations your server exposes.
-2. **Executable client contract.** A client version registers the exact operations it can send. The operations are keyed by hash.
-3. **Stage state.** Each stage, such as `dev`, `staging`, or `production`, has one active schema and many active client versions.
-4. **Runtime enforcement.** Hot Chocolate can reject ad-hoc operations and execute only registered persisted operation IDs.
+1. **Schema contract:** The exported SDL defines the fields, arguments, nullability, enum values, directives, descriptions, and deprecations your server exposes.
+2. **Executable client contract:** Each client version registers the exact operations it can send, keyed by hash.
+3. **Stage state:** Each stage (like `dev`, `staging`, or `production`) has one active schema and multiple active client versions.
+4. **Runtime enforcement:** Hot Chocolate can reject ad-hoc operations and only execute registered persisted operation IDs.
 
-Use the registry as the shared source of truth for CI gates and releases. Use Hot Chocolate runtime settings to make production traffic follow the registered contract.
+Use the registry as your single source of truth for CI gates and releases. Configure Hot Chocolate runtime settings to ensure production traffic follows the registered contract.
 
-# Confirm prerequisites before you create a contract gate
+# Prerequisites for Contract Gates
 
-You need these pieces before the workflow can block incompatible releases:
+Before you can block incompatible releases with contract gates, make sure you have the following:
 
-| Requirement                           | Why you need it                                       | Expected result                                                           |
-| ------------------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------- |
-| Hot Chocolate v16 server              | Exports the schema and enforces persisted operations. | The server builds and starts.                                             |
-| `HotChocolate.AspNetCore.CommandLine` | Adds `schema export`.                                 | `dotnet run -- schema export --output schema.graphql` writes SDL.         |
-| `RunWithGraphQLCommandsAsync(args)`   | Returns command failures to CI.                       | `Program.cs` returns an exit code.                                        |
-| Nitro API and stage                   | Stores active schemas and client versions.            | You have an API ID and stages such as `dev` and `production`.             |
-| Nitro CLI authentication              | Runs registry commands.                               | Use `nitro login` locally or `NITRO_API_KEY` in CI.                       |
-| CI secret store                       | Protects API keys.                                    | `NITRO_API_KEY` is available only to release jobs that need it.           |
-| `ChilliCream.Nitro` package           | Lets the server read persisted operations from Nitro. | `AddNitro()` is available in server configuration.                        |
-| Client operation extraction           | Produces the operations file for each client build.   | You have a JSON file such as `persisted_queries.json`.                    |
-| Client IDs                            | Separates independently deployed consumers.           | Examples: `web-checkout`, `ios-shop`, `android-shop`, `inventory-worker`. |
-| Tag policy                            | Connects registry versions to artifacts.              | Use semver, mobile build numbers, Git SHAs, or release IDs.               |
+| Requirement                           | Purpose                                        | Expected Result                                                          |
+| ------------------------------------- | ---------------------------------------------- | ------------------------------------------------------------------------ |
+| Hot Chocolate v16 server              | Exports schema, enforces persisted operations  | Server builds and starts                                                 |
+| `HotChocolate.AspNetCore.CommandLine` | Adds `schema export` command                   | `dotnet run -- schema export --output schema.graphql` writes SDL         |
+| `RunWithGraphQLCommandsAsync(args)`   | Returns command failures to CI                 | `Program.cs` returns an exit code                                        |
+| Nitro API and stage                   | Stores schemas and client versions             | You have an API ID and stages like `dev` and `production`                |
+| Nitro CLI authentication              | Runs registry commands                         | Use `nitro login` locally or `NITRO_API_KEY` in CI                       |
+| CI secret store                       | Protects API keys                              | `NITRO_API_KEY` is available only to release jobs that need it           |
+| `ChilliCream.Nitro` package           | Reads persisted operations from Nitro          | `AddNitro()` is available in server configuration                        |
+| Client operation extraction           | Produces operations file for each client build | You have a JSON file like `persisted_queries.json`                       |
+| Client IDs                            | Distinguishes independently deployed consumers | Examples: `web-checkout`, `ios-shop`, `android-shop`, `inventory-worker` |
+| Tag policy                            | Connects registry versions to artifacts        | Use semver, build numbers, Git SHAs, or release IDs                      |
 
-At minimum, the contract workflow produces these artifacts and identifiers: `schema.graphql`, a Nitro API ID, a stage name, a Nitro API key, a client ID, a client version tag, and an operations JSON file.
+At a minimum, your workflow should produce: `schema.graphql`, a Nitro API ID, a stage name, a Nitro API key, a client ID, a client version tag, and an operations JSON file.
 
-# Export and review the schema contract
+# Export and Review the Schema Contract
 
-Start every server change by exporting the SDL from the configured application:
+Whenever you change the server, start by exporting the SDL from your configured application:
 
 ```bash
 dotnet run -- schema export --output schema.graphql
 ```
 
-Expected output:
+You should see output like:
 
 ```text
 Exported Files:
@@ -64,7 +64,7 @@ Exported Files:
 - /repo/schema-settings.json
 ```
 
-Configure command-line support in `Program.cs`:
+To enable this, set up command-line support in `Program.cs`:
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
@@ -79,22 +79,22 @@ app.MapGraphQL();
 return await app.RunWithGraphQLCommandsAsync(args);
 ```
 
-Return the exit code from `RunWithGraphQLCommandsAsync`. CI can then fail when schema construction fails.
+Always return the exit code from `RunWithGraphQLCommandsAsync` so CI can fail if schema construction fails.
 
-Store the exported SDL as a CI artifact. Review the diff in pull requests, especially when a change affects:
+Store the exported SDL as a CI artifact. In pull requests, review the diff carefully, especially for:
 
-- Removed or renamed fields.
-- Return type or nullability changes.
-- Added required arguments.
-- Added enum values, which can be dangerous for generated clients that use exhaustive matching.
-- Added interface implementations, which can be dangerous for generated clients that handle possible types.
-- Updated descriptions, deprecation reasons, and stability notes.
+- Removed or renamed fields
+- Changes to return types or nullability
+- Added required arguments
+- Added enum values (can break generated clients using exhaustive matching)
+- Added interface implementations (can break generated clients handling possible types)
+- Updated descriptions, deprecation reasons, or stability notes
 
-Descriptions and deprecation reasons are contract text. Treat them as part of the review, not decoration.
+Treat descriptions and deprecation reasons as part of the contract, not as optional decoration.
 
-## Add a schema snapshot test
+## Add a Schema Snapshot Test
 
-A local snapshot test catches accidental schema drift before a registry command runs:
+A local snapshot test helps you catch accidental schema drift before you run any registry commands:
 
 ```csharp
 // Tests/SchemaTests.cs
@@ -123,11 +123,11 @@ public class SchemaTests
 }
 ```
 
-Expected result: the first run creates a snapshot. Later runs fail with a schema diff when the SDL changes. Review the diff, then update the snapshot only when the change is intentional.
+Expected result: The first run creates a snapshot. Later runs fail with a schema diff if the SDL changes. Review the diff and update the snapshot only when the change is intentional.
 
-# Register client operations as executable contracts
+# Register Client Operations as Executable Contracts
 
-Each independently deployed client should publish the operations it can execute. Validate the operations before you upload or publish a version:
+Each independently deployed client should publish the operations it can execute. Always validate operations before uploading or publishing a version:
 
 ```bash
 nitro client create --name "web-checkout" --api-id "<api-id>"
@@ -148,11 +148,11 @@ nitro client publish \
   --stage "dev"
 ```
 
-Expected result: Nitro has a validated client version with an owner, a tag, an operations file, and an active stage.
+After these steps, Nitro will have a validated client version with an owner, tag, operations file, and active stage.
 
-## Extract operations during the client build
+## Extract Operations During the Client Build
 
-Relay can write a Relay-style persisted operations file. Hot Chocolate uses MD5 by default, and Relay commonly uses MD5, so the default hash provider matches this setup.
+Relay can generate a persisted operations file. Hot Chocolate and Relay both use MD5 by default, so the default hash provider matches this setup.
 
 ```js
 // relay.config.js
@@ -175,13 +175,13 @@ A minimal operations file maps operation hash to operation text:
 }
 ```
 
-Other clients can use the same shape if their build produces stable operation hashes and GraphQL documents.
+Other clients can use this format if their build produces stable operation hashes and GraphQL documents.
 
-## Publish each deployable client separately
+## Publish Each Deployable Client Separately
 
-Do not combine unrelated applications under one client ID. A web app, iOS app, Android app, and background worker usually need separate clients because they deploy and retire versions differently.
+Do not combine unrelated applications under one client ID. Web, iOS, Android, and background worker apps usually need separate client IDs because they deploy and retire versions independently.
 
-A typical CI sequence is:
+A typical CI sequence:
 
 1. Build the client and extract operations.
 2. Run `nitro client validate` against the target stage.
@@ -189,21 +189,21 @@ A typical CI sequence is:
 4. Publish the version to the stage where that artifact is deployed.
 5. Keep old mobile versions published until their support window ends.
 
-If you use Nitro operation monitoring for adoption evidence, send these headers with requests:
+If you use Nitro operation monitoring to track adoption, send these headers with requests:
 
 ```http
 GraphQL-Client-Id: <client-id>
 GraphQL-Client-Version: <client-version-tag>
 ```
 
-# Gate schema changes with schema and client checks
+# Gate Schema Changes with Schema and Client Checks
 
-A safe server gate has two checks:
+A robust server gate uses two checks:
 
 1. Validate the schema diff against the target stage.
 2. Validate each submitted client operations file against the active schema for that stage.
 
-Run schema validation in pull requests:
+To validate the schema in pull requests:
 
 ```bash
 nitro schema validate \
@@ -212,9 +212,9 @@ nitro schema validate \
   --schema-file ./schema.graphql
 ```
 
-Expected result: the command exits with code `0` when Nitro accepts the candidate SDL for that stage. It exits non-zero for rejected schema changes or invalid SDL.
+The command exits with code `0` if Nitro accepts the candidate SDL for that stage. It exits non-zero for rejected schema changes or invalid SDL.
 
-Use upload and publish in the release flow:
+For releases, upload and publish the schema:
 
 ```bash
 nitro schema upload \
@@ -229,22 +229,22 @@ nitro schema publish \
   --wait-for-approval
 ```
 
-Expected result: Nitro stores the tagged schema and marks it active for the stage after approval, when the stage requires approval.
+Nitro stores the tagged schema and marks it active for the stage after approval, if required.
 
-Use this release order when a server and clients change together:
+When server and clients change together, follow this release order:
 
 1. Export the server schema and run schema snapshot tests.
 2. Validate the schema against the target stage.
 3. Validate updated client operations against the stage.
 4. Upload server and client artifacts with immutable tags.
-5. Publish compatible client versions to the stage when those clients deploy.
+5. Publish compatible client versions to the stage as they deploy.
 6. Publish the schema version to the same stage as the server deployment.
 
-Do not treat a removed field as safe only because a local search finds no uses. The registry state and runtime telemetry decide whether supported active clients still depend on it.
+Never assume a removed field is safe just because a local search finds no uses. The registry state and runtime telemetry determine whether any supported active client still depends on it.
 
-# Enforce trusted documents in production
+# Enforce Trusted Documents in Production
 
-Use trusted documents when production should execute only registered operations. Add `ChilliCream.Nitro`, connect the server to Nitro, enable the persisted operation pipeline, and map the persisted operation endpoint:
+To ensure production only executes registered operations, use trusted documents. Add `ChilliCream.Nitro`, connect your server to Nitro, enable the persisted operation pipeline, and map the persisted operation endpoint:
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
@@ -272,7 +272,7 @@ app.MapGraphQLPersistedOperations();
 app.Run();
 ```
 
-`AddNitro()` can read these environment variables:
+`AddNitro()` reads these environment variables:
 
 ```text
 NITRO_API_KEY=<api-key>
@@ -280,21 +280,21 @@ NITRO_API_ID=<api-id>
 NITRO_STAGE=production
 ```
 
-The settings work together:
+These settings work together:
 
 - `UsePersistedOperationPipeline()` resolves operations by ID.
-- `OnlyAllowPersistedDocuments = true` rejects operations that are not registered.
-- `AllowDocumentBody = false` puts the server in strict route mode. The transport does not read incoming `query` document bodies.
+- `OnlyAllowPersistedDocuments = true` rejects any operation not registered.
+- `AllowDocumentBody = false` puts the server in strict route mode, ignoring incoming `query` document bodies.
 - `MapGraphQLPersistedOperations()` exposes `/graphql/persisted/{operationId}` and `/graphql/persisted/{operationId}/{operationName}` for GET and POST.
-- `MapGraphQL()` remains available only where developer tooling and ad-hoc operations are allowed.
+- `MapGraphQL()` is available only where developer tooling and ad-hoc operations are allowed.
 
-A strict GET request puts the operation ID and operation name in the route:
+A strict GET request includes the operation ID and name in the route:
 
 ```http
 GET /graphql/persisted/0c95d31ca29272475bf837f944f4e513/GetProducts?variables={"first":10}
 ```
 
-A strict POST request sends variables, not `query` and not `id`:
+A strict POST request sends only variables, not `query` or `id`:
 
 ```http
 POST /graphql/persisted/0c95d31ca29272475bf837f944f4e513/GetProducts
@@ -305,7 +305,7 @@ Content-Type: application/json
 }
 ```
 
-During migration, you can use the standard `/graphql` body shape with an `id` field when you intentionally allow document bodies:
+During migration, you can use the standard `/graphql` body shape with an `id` field if you intentionally allow document bodies:
 
 ```json
 {
@@ -316,11 +316,11 @@ During migration, you can use the standard `/graphql` body shape with an `id` fi
 
 If legacy clients still send `query`, set `AllowDocumentBody = true` only for the migration window. Strict route mode is the production target for a locked-down first-party API.
 
-Use a request interceptor with `AllowNonPersistedOperation()` only for controlled development or administrative scenarios. Do not grant that bypass to normal production traffic.
+Use a request interceptor with `AllowNonPersistedOperation()` only for controlled development or administrative scenarios. Never grant that bypass to normal production traffic.
 
-# Deprecate, migrate, and remove fields with owner evidence
+# Deprecate, Migrate, and Remove Fields with Owner Evidence
 
-Add the replacement first, then deprecate the old field with an actionable reason:
+When you need to remove a field, always add the replacement first, then deprecate the old field with a clear, actionable reason:
 
 ```csharp
 // Types/ProductQueries.cs
@@ -338,15 +338,15 @@ public static partial class ProductQueries
 }
 ```
 
-Good deprecation reasons name the replacement and the removal window:
+A good deprecation reason names the replacement and the removal window:
 
-| Reason                                                       | Quality                                         |
-| ------------------------------------------------------------ | ----------------------------------------------- |
-| `Use productById instead. Removal planned after 2026-03-31.` | Good, gives an action and date.                 |
-| `Deprecated.`                                                | Poor, gives no migration path.                  |
-| `Old field.`                                                 | Poor, gives no owner, replacement, or timeline. |
+| Reason                                                       | Quality                                  |
+| ------------------------------------------------------------ | ---------------------------------------- |
+| `Use productById instead. Removal planned after 2026-03-31.` | Good: gives an action and date           |
+| `Deprecated.`                                                | Poor: no migration path                  |
+| `Old field.`                                                 | Poor: no owner, replacement, or timeline |
 
-Use this removal playbook:
+Follow this removal playbook:
 
 1. Add the replacement field, argument, enum value, or input field.
 2. Deprecate the old schema element with an actionable reason.
@@ -354,9 +354,9 @@ Use this removal playbook:
 4. Publish updated clients that stop using it.
 5. Keep older mobile versions active until their support window ends.
 6. Unpublish retired client versions.
-7. Remove the schema element only when active registry state and runtime monitoring show no supported client still uses it.
+7. Remove the schema element only when registry state and runtime monitoring show no supported client still uses it.
 
-Unpublish retired versions from a stage:
+To unpublish retired versions from a stage:
 
 ```bash
 nitro client unpublish \
@@ -367,7 +367,7 @@ nitro client unpublish \
 
 Required input fields and required arguments need a default value before you can deprecate them. In v16, if an object field implements an interface field, deprecate the interface field as well.
 
-A release timeline can look like this:
+A release timeline might look like this:
 
 | Date   | Server action                                                   | Web action                                      | iOS action                          | Android action                      |
 | ------ | --------------------------------------------------------------- | ----------------------------------------------- | ----------------------------------- | ----------------------------------- |
@@ -375,9 +375,9 @@ A release timeline can look like this:
 | Feb 15 | Keep both fields.                                               | Unpublish old web tag after rollout.            | Keep supported app versions active. | Keep supported app versions active. |
 | Mar 31 | Remove `product` only if no supported active operations use it. | No action.                                      | Unpublish retired builds.           | Unpublish retired builds.           |
 
-# Version and roll out clients by stage
+# Version and Roll Out Clients by Stage
 
-Stages let you model real deployment state. One stage can have a schema that is not yet active in another stage, and each stage can have a different set of active client versions.
+Stages let you model real deployment state. Each stage can have a different active schema and a different set of active client versions.
 
 | Stage        | Active schema tag       | Active web tags                    | Active iOS tags                    | Active Android tags          |
 | ------------ | ----------------------- | ---------------------------------- | ---------------------------------- | ---------------------------- |
@@ -385,13 +385,13 @@ Stages let you model real deployment state. One stage can have a schema that is 
 | `staging`    | `server-2026.01.10-rc1` | `web-2026.01.10-rc1`               | `ios-1200`                         | `android-940`                |
 | `production` | `server-2025.12.15`     | `web-2025.12.15`, `web-2026.01.10` | `ios-1180`, `ios-1190`, `ios-1200` | `android-930`, `android-940` |
 
-A web client may have one active production version, or two during a rollout. A mobile client may have many active production versions for weeks or months because users update at different times.
+A web client may have one active production version, or two during a rollout. Mobile clients may have several active production versions for weeks or months, since users update at different times.
 
 Define a retirement policy before approving removals. For example:
 
 > A client version can be unpublished when telemetry is below 0.1 percent of requests for 14 consecutive days and the published support window has ended.
 
-Publish schema and client versions to the same stage where their artifacts run. Tags should map to artifacts that teams can find later, such as a Git SHA, container image tag, semantic version, release ID, or mobile build number.
+Always publish schema and client versions to the same stage where their artifacts run. Tags should map to artifacts that teams can find later, such as a Git SHA, container image tag, semantic version, release ID, or mobile build number.
 
 # Keep private, preview, and internal fields out of the stable contract
 
