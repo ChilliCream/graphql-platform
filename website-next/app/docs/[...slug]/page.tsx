@@ -59,7 +59,11 @@ export default async function DocPage({
   const mod = await import(`@/docs/${rel.slice(0, -3)}.md`);
   const Doc = mod.default;
   const toc: HeadingItem[] = Array.isArray(mod.toc) ? mod.toc : [];
-  const tree = buildContentTree(CONTENT_ROOT, "/docs");
+  const product = slug[0];
+  const tree = buildContentTree(
+    path.join(CONTENT_ROOT, product),
+    `/docs/${product}`
+  );
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[20rem_1fr] 2xl:grid-cols-[20rem_1fr_20rem]">

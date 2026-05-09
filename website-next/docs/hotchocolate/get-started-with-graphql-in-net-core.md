@@ -123,7 +123,7 @@ If everything worked, the terminal output includes a line like this:
 Now listening on: http://localhost:5095
 ```
 
-Open <a href="http://localhost:5095/graphql" target="_blank" rel="noopener noreferrer">http://localhost:5095/graphql</a> in your browser. You should see the Nitro GraphQL IDE.
+Open [http://localhost:5095/graphql](http://localhost:5095/graphql) in your browser. You should see the Nitro GraphQL IDE.
 
 ![GraphQL IDE](../../../images/getting-started-nitro.webp)
 

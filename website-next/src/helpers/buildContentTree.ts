@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { readFrontmatter } from "./readFrontmatter";
+import yaml from "js-yaml";
 
 export type TreeNode = {
   title: string;
@@ -8,10 +8,15 @@ export type TreeNode = {
   children: TreeNode[];
 };
 
+type MetaItem = { path: string; title: string };
+type Meta = { title: string; items?: MetaItem[] };
+
+const META_FILE = "structure.yaml";
+
 /**
- * Walks a content root (docs/ or blogs/) and produces a navigation tree
- * mirroring the directory structure. Title comes from frontmatter `title`,
- * falling back to the slug segment.
+ * Walks a content root and produces an ordered navigation tree mirroring the
+ * directory structure. Each directory must contain a `_meta.yml` describing its
+ * display title and the ordered list of children with their display names.
  */
 export function buildContentTree(rootAbs: string, urlPrefix: string): TreeNode[] {
   if (!fs.existsSync(rootAbs)) {
@@ -20,37 +25,59 @@ export function buildContentTree(rootAbs: string, urlPrefix: string): TreeNode[]
   return walk(rootAbs, urlPrefix);
 }
 
+function readMeta(dirAbs: string): Meta {
+  const metaPath = path.join(dirAbs, META_FILE);
+  if (!fs.existsSync(metaPath)) {
+    throw new Error(`Missing ${META_FILE} in ${dirAbs}`);
+  }
+  const parsed = yaml.load(fs.readFileSync(metaPath, "utf-8")) as Meta | null;
+  if (!parsed || typeof parsed.title !== "string" || !parsed.title.trim()) {
+    throw new Error(`Invalid ${META_FILE} in ${dirAbs}: missing 'title'`);
+  }
+  return parsed;
+}
+
 function walk(dirAbs: string, urlPrefix: string): TreeNode[] {
-  const entries = fs
-    .readdirSync(dirAbs, { withFileTypes: true })
-    .sort((a, b) => a.name.localeCompare(b.name));
-
-  const folders = entries.filter((e) => e.isDirectory());
-  const files = entries.filter(
-    (e) => e.isFile() && /\.mdx?$/i.test(e.name) && !/^index\.mdx?$/i.test(e.name)
-  );
-
+  const meta = readMeta(dirAbs);
+  const items = meta.items ?? [];
   const nodes: TreeNode[] = [];
 
-  for (const folder of folders) {
-    const indexFile = ["index.md", "index.mdx"]
-      .map((n) => path.join(dirAbs, folder.name, n))
-      .find((p) => fs.existsSync(p));
+  for (const item of items) {
+    if (!item.path || !item.title) {
+      throw new Error(
+        `Invalid item in ${path.join(dirAbs, META_FILE)}: each item needs 'path' and 'title'`
+      );
+    }
 
-    const href = `${urlPrefix}/${folder.name}`;
-    const title = indexFile
-      ? readFrontmatter(indexFile).title ?? folder.name
-      : folder.name;
-    const children = walk(path.join(dirAbs, folder.name), href);
-    nodes.push({ title, href: indexFile ? href : null, children });
-  }
+    const fileExt = [".md", ".mdx"].find((ext) =>
+      fs.existsSync(path.join(dirAbs, `${item.path}${ext}`))
+    );
 
-  for (const file of files) {
-    const slug = file.name.replace(/\.mdx?$/i, "");
-    const href = `${urlPrefix}/${slug}`;
-    const title =
-      readFrontmatter(path.join(dirAbs, file.name)).title ?? slug;
-    nodes.push({ title, href, children: [] });
+    if (fileExt) {
+      const isIndex = item.path === "index";
+      const href = isIndex ? urlPrefix : `${urlPrefix}/${item.path}`;
+      nodes.push({ title: item.title, href, children: [] });
+      continue;
+    }
+
+    const subAbs = path.join(dirAbs, item.path);
+    if (fs.existsSync(subAbs) && fs.statSync(subAbs).isDirectory()) {
+      const childUrl = `${urlPrefix}/${item.path}`;
+      const indexFile = ["index.md", "index.mdx"]
+        .map((n) => path.join(subAbs, n))
+        .find((p) => fs.existsSync(p));
+      const children = walk(subAbs, childUrl);
+      nodes.push({
+        title: item.title,
+        href: indexFile ? childUrl : null,
+        children,
+      });
+      continue;
+    }
+
+    throw new Error(
+      `Item '${item.path}' referenced in ${path.join(dirAbs, META_FILE)} does not exist on disk`
+    );
   }
 
   return nodes;

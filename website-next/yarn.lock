@@ -2145,6 +2145,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/js-yaml@npm:^4.0.9":
+  version: 4.0.9
+  resolution: "@types/js-yaml@npm:4.0.9"
+  checksum: 10/a0ce595db8a987904badd21fc50f9f444cb73069f4b95a76cc222e0a17b3ff180669059c763ec314bc4c3ce284379177a9da80e83c5f650c6c1310cafbfaa8e6
+  languageName: node
+  linkType: hard
+
 "@types/json-schema@npm:^7.0.15":
   version: 7.0.15
   resolution: "@types/json-schema@npm:7.0.15"
@@ -8916,6 +8923,7 @@ __metadata:
     "@storybook/nextjs-vite": "npm:^9"
     "@tailwindcss/postcss": "npm:^4"
     "@tailwindcss/vite": "npm:^4.3.0"
+    "@types/js-yaml": "npm:^4.0.9"
     "@types/mdx": "npm:^2.0.13"
     "@types/node": "npm:^20"
     "@types/react": "npm:^19"
@@ -8923,6 +8931,7 @@ __metadata:
     eslint: "npm:^9"
     eslint-config-next: "npm:16.2.6"
     gray-matter: "npm:^4.0.3"
+    js-yaml: "npm:^4.1.1"
     mermaid: "npm:^11.14.0"
     next: "npm:16.2.6"
     react: "npm:19.2.4"
