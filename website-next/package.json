@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "@mdx-js/loader": "^3.1.1",
@@ -22,14 +24,18 @@
     "shiki": "^4.0.2"
   },
   "devDependencies": {
+    "@storybook/nextjs-vite": "^9",
     "@tailwindcss/postcss": "^4",
+    "@tailwindcss/vite": "^4.3.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
+    "storybook": "^9",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vite": "^6"
   },
   "packageManager": "yarn@4.2.2+sha224.1e50daf19e5e249a025569752c60b88005fddf57d10fcde5fc68b88f"
 }
