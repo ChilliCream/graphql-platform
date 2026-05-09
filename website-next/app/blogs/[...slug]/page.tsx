@@ -12,8 +12,8 @@ export function generateStaticParams(): { slug: string[] }[] {
   }
 
   return walk(CONTENT_ROOT)
-    .filter((f) => f.endsWith(".md"))
-    .map((f) => path.relative(CONTENT_ROOT, f).replace(/\.md$/, ""))
+    .filter((f) => /\.mdx?$/.test(f))
+    .map((f) => path.relative(CONTENT_ROOT, f).replace(/\.mdx?$/, ""))
     .map((rel) => rel.split(path.sep))
     .map((parts) =>
       parts[parts.length - 1] === "index" ? parts.slice(0, -1) : parts
@@ -28,21 +28,32 @@ export default async function BlogPage({
   params: Promise<{ slug: string[] }>;
 }) {
   const { slug } = await params;
-  const joined = slug.join("/");
+  const rel = resolveFile(slug);
 
-  let mod;
-  try {
-    mod = await import(`@/blogs/${joined}.md`);
-  } catch {
-    try {
-      mod = await import(`@/blogs/${joined}/index.md`);
-    } catch {
-      notFound();
-    }
+  if (rel === null) {
+    notFound();
   }
 
+  const mod = await import(`@/blogs/${rel}`);
   const Post = mod.default;
   return <Post />;
+}
+
+function resolveFile(slug: string[]): string | null {
+  const joined = slug.join("/");
+  const candidates = [
+    `${joined}.md`,
+    `${joined}.mdx`,
+    `${joined}/index.md`,
+    `${joined}/index.mdx`,
+  ];
+
+  for (const c of candidates) {
+    if (fs.existsSync(path.join(CONTENT_ROOT, c))) {
+      return c;
+    }
+  }
+  return null;
 }
 
 function walk(dir: string): string[] {
