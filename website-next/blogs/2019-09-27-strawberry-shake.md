@@ -76,7 +76,8 @@ dotnet graphql init ./StarWars http://localhost:5000/graphql -n StarWars
 
 The init command will download the schema as GraphQL SDL and create a config to refetch the schema. Also, the config contains the client name. The client name defines how the client class is and interface is named.
 
-> Note: You can pass in the token and scheme if your endpoint is authenticated. There is also an update command to update the local schema.
+> [!NOTE]
+> You can pass in the token and scheme if your endpoint is authenticated. There is also an update command to update the local schema.
 
 The configuration will look like the following:
 
@@ -239,7 +240,8 @@ public interface IStarWarsClient
 
 OK, let's get it running and then go into more details. By default the generator will also generate dependency injection code for `Microsoft.Extensions.DependencyInjection`. In order to get our client up and running we just have to set up a dependency injection container.
 
-> Note: You can shut of dependency injection generation with a _MSBuild_ property. The client can also be instantiated with a builder or by using a different dependency injection container.
+> [!NOTE]
+> You can shut of dependency injection generation with a _MSBuild_ property. The client can also be instantiated with a builder or by using a different dependency injection container.
 
 Replace you `Program` class with the following code.
 

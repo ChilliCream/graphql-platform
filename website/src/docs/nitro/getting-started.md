@@ -72,5 +72,3 @@ Sign in to your account by clicking the 'Sign In' button on the user icon in the
 **Step 10:** Great job! You've successfully created, executed, and saved your first GraphQL query using Nitro. To learn more about the Nitro User Interface, head over to the [Explore the UI](/docs/nitro/explore-the-ui) guide.
 
 Happy querying!
-
-<!-- spell-checker:ignore lvbgpp -->

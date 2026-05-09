@@ -1,5 +1,0 @@
----
-title: Something
----
-
-Something something

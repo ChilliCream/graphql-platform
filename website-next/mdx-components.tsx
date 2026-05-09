@@ -9,6 +9,16 @@ import { List, ListItem } from "@/src/design-system/List";
 import { Image } from "@/src/design-system/Image";
 import { Quote } from "@/src/design-system/Quote";
 import { Tab, Tabs } from "@/src/design-system/Tabs";
+import { ApiChoiceTabs } from "@/src/design-system/ApiChoiceTabs";
+import { InputChoiceTabs } from "@/src/design-system/InputChoiceTabs";
+import {
+  Code,
+  ExampleCode,
+  ExampleTabs,
+  Implementation,
+  Schema,
+} from "@/src/design-system/ExampleTabs";
+import { PackageInstallation } from "@/src/design-system/PackageInstallation";
 import { Video } from "@/src/design-system/Video";
 import { detectAdmonition } from "@/src/helpers/detectAdmonition";
 import {
@@ -64,6 +74,14 @@ const components: MDXComponents = {
   Tabs,
   Tab,
   Video,
+  ApiChoiceTabs,
+  InputChoiceTabs,
+  ExampleTabs,
+  Implementation,
+  Code,
+  ExampleCode,
+  Schema,
+  PackageInstallation,
 };
 
 export function useMDXComponents(): MDXComponents {

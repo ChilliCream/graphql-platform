@@ -7,7 +7,8 @@ import {
 } from "react";
 import type { AdmonitionKind } from "@/src/design-system/Admonition";
 
-const ALERT_REGEX = /^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*\n?/;
+const ALERT_REGEX =
+  /^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION|EXPERIMENTAL)\]\s*\n?/;
 
 export type AdmonitionMatch = {
   kind: AdmonitionKind;

@@ -55,7 +55,8 @@ app.MapGraphQL();
 app.Run();
 ```
 
-> Note: After 2025-01-01T00:00:00Z, GraphQL servers are no longer required to support the legacy transport mode.
+> [!NOTE]
+> After 2025-01-01T00:00:00Z, GraphQL servers are no longer required to support the legacy transport mode.
 
 Apart from GraphQL over HTTP, we also focused on supporting even more GraphQL transport protocols. So, with Hot Chocolate 13, we now implement the GraphQL-SSE protocol, which allows you to use server-sent events for subscriptions or even queries that use defer. GraphQL-SSE, for me, has become the go-to solution for subscriptions.
 

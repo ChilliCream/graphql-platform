@@ -711,5 +711,3 @@ We are doing as before a community gathering where we will walk you through all 
 [pascal]: https://twitter.com/Pascal_Senn
 [fred]: https://github.com/fredericbirke
 [documentation]: https://chillicream.com/products/strawberryshake
-
-{/* spell-checker:ignore lvbgpp, mydb, Shorton */}

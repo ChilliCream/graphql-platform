@@ -7,7 +7,14 @@ const meta = {
   argTypes: {
     kind: {
       control: "select",
-      options: ["note", "tip", "important", "warning", "caution"],
+      options: [
+        "note",
+        "tip",
+        "important",
+        "warning",
+        "caution",
+        "experimental",
+      ],
     },
   },
 } satisfies Meta<typeof Admonition>;
@@ -50,6 +57,14 @@ export const Caution: Story = {
   },
 };
 
+export const Experimental: Story = {
+  args: {
+    kind: "experimental",
+    children:
+      "An unstable feature whose API may change before it is finalized.",
+  },
+};
+
 export const AllKinds: Story = {
   args: { kind: "note", children: "" },
   render: () => (
@@ -59,6 +74,7 @@ export const AllKinds: Story = {
       <Admonition kind="important">Important information.</Admonition>
       <Admonition kind="warning">Warning content.</Admonition>
       <Admonition kind="caution">Cautionary content.</Admonition>
+      <Admonition kind="experimental">Experimental content.</Admonition>
     </div>
   ),
 };

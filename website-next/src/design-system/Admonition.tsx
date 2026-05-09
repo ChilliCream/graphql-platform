@@ -5,7 +5,8 @@ export type AdmonitionKind =
   | "tip"
   | "important"
   | "warning"
-  | "caution";
+  | "caution"
+  | "experimental";
 
 const config: Record<
   AdmonitionKind,
@@ -122,6 +123,28 @@ const config: Record<
         <polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2" />
         <line x1="15" y1="9" x2="9" y2="15" />
         <line x1="9" y1="9" x2="15" y2="15" />
+      </svg>
+    ),
+  },
+  experimental: {
+    label: "Experimental",
+    containerClass: "bg-fuchsia-50 ring-1 ring-fuchsia-200 text-fuchsia-950",
+    labelClass: "text-fuchsia-700",
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="h-5 w-5"
+        aria-hidden="true"
+      >
+        <path d="M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2" />
+        <path d="M6.453 15h11.094" />
+        <path d="M8.5 2h7" />
       </svg>
     ),
   },

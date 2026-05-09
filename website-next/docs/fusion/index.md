@@ -1,338 +1,108 @@
 ---
-title: Fusion
-description: A showcase of every markdown feature.
+title: "Overview"
 ---
 
-## Heading Level 2
+Fusion lets you split one GraphQL API into multiple smaller services, without changing how clients consume it. Clients still send queries to one endpoint, and Fusion combines data from all services into one response. Teams can deploy independently, and contract conflicts are caught during build time.
 
-### Heading Level 3
+# What Is Fusion
 
-#### Heading Level 4
+Fusion is ChilliCream's API gateway for exposing one GraphQL API over multiple upstream services. Those upstream services can be GraphQL, OpenAPI-based REST, or gRPC. Each service owns its contract and implementation. Fusion composes those contracts at build time, and the gateway orchestrates execution at runtime. Fusion implements the [GraphQL Composite Schemas specification](https://graphql.github.io/composite-schemas-spec/draft/), an open standard being developed under the GraphQL Foundation.
 
-##### Heading Level 5
+The architecture has three parts:
 
-###### Heading Level 6
+![Fusion Architecture Overview](../../shared/fusion/fusion-overview.png)
 
-## Paragraphs and Inline Formatting
+**Subgraphs** are the upstream services behind the Fusion gateway: GraphQL services, OpenAPI-based REST services, and gRPC services. Each subgraph owns part of the API surface and implementation logic, and can be developed and deployed independently.
 
-This is a regular paragraph with **bold text**, _italic text_, **_bold and italic_**, ~~strikethrough~~, and `inline code`. You can also combine **_bold italic_** using underscores. Here is a hard line break:
-end of line.
+A **source schema** is the contract document for a subgraph, such as a GraphQL schema, an OpenAPI document, or a gRPC/protobuf definition.
 
-A second paragraph follows after a blank line. Inline HTML is also supported: <kbd>Ctrl</kbd> + <kbd>C</kbd>.
+**Composition** processes all source schemas, validates them against each other, and produces a Fusion archive (`.far`) that contains the composite schema and gateway configuration. Type conflicts, missing fields, and incompatible enums are caught in CI before deployment.
 
-## Tabs
+The **gateway** receives client requests, determines which subgraphs to call, executes those calls, and merges the results.
 
-<Tabs>
+**GraphQL subgraphs stay standard GraphQL servers.** The [GraphQL Composite Schemas specification](https://graphql.github.io/composite-schemas-spec/draft/) is designed so a standard GraphQL server can already act as a compatible subgraph. In a common Hot Chocolate setup, subgraphs remain normal Hot Chocolate servers with regular resolvers, without a separate distributed-runtime package or vendor-specific protocol layer.
 
-<Tab label="npm">
+The result: clients send one request to one endpoint and receive one unified response, while Fusion handles routing and aggregation across upstream services.
 
-npm stuff in here
-
-```bash
-npm do stuff
-```
-
-</Tab>
-
-<Tab label="yarn">
-
-```bash
-yarn do stuff
-```
-
-yarn stuff in here
-
-</Tab>
-
-</Tabs>
-
-## Links and References
-
-- [Inline link](https://chillicream.com)
-- [Link with title](https://chillicream.com "ChilliCream homepage")
-- Plain URL: [https://chillicream.com](https://chillicream.com)
-- Reference link: [Hot Chocolate][hc]
-- [Jump to Tables](#tables)
-- Footnote reference[^1]
-
-[hc]: https://chillicream.com/docs/hotchocolate
-
-[^1]: This is the footnote body.
-
-## Lists
-
-### Unordered
-
-- Apples
-- Oranges
-  - Mandarin
-  - Blood orange
-- Pears
-
-### Ordered
-
-1. First
-2. Second
-   1. Nested second
-   2. Another nested
-3. Third
-
-### Task List
-
-- [x] Write the spec
-- [x] Implement the parser
-- [ ] Ship to production
-
-### Definition List
-
-Term
-: Definition of the term.
-
-GraphQL
-: A query language for your API.
-
-## Blockquotes
-
-> Single-line blockquote.
-
-> Multi-line blockquote with **formatting** and a [link](https://chillicream.com).
->
-> > Nested blockquote.
-
-## Code
-
-Inline: `const answer = 42;`
-
-### Plain code block
-
-```ts
-import { createServer } from "node:http";
-
-const server = createServer((req, res) => {
-  res.writeHead(200, { "Content-Type": "text/plain" });
-  res.end("Hello, world!\n");
-});
-
-server.listen(3000);
-```
-
-### With filename
-
-```graphql filename="schema.graphql"
-type LineItem {
-  id: Int!
-  quantity: Int!
-  productId: Int!
-}
-
-type Order {
-  id: Int!
-  name: String!
-  items: [LineItem!]!
-}
-
-type Query {
-  orders: [Order!]! @cost(weight: "10")
-}
-```
-
-### Single line highlight `{5}`
-
-```js {5}
-export default function MyApp() {
-  return (
-    <div>
-      <h1>Welcome to my app</h1>
-      <MyButton />
-    </div>
-  );
-}
-```
-
-### Multiple ranges `{1,3-5}`
-
-```bash {1,3-5}
-yarn install
-yarn lint
-yarn dev
-yarn build
-yarn start
-yarn test
-```
-
-### Token highlighting + CodeStep
-
-```csharp filename="Program.cs" [[1, 3, "Query"], [2, 5, "Hello"], [3, 11, "AddGraphQLServer"]]
-using HotChocolate;
-
-public class Query
-{
-    public string Hello() => "Hello, world!";
-}
-
-var builder = WebApplication.CreateBuilder(args);
-
-builder.Services
-    .AddGraphQLServer()
-    .AddQueryType<Query>();
-
-var app = builder.Build();
-app.MapGraphQL();
-app.Run();
-```
-
-A minimal Hot Chocolate setup wires up three things:
-
-1. A <CodeStep step={1}>Query class</CodeStep> that defines the root operations of the schema.
-2. Each public method like <CodeStep step={2}>Hello</CodeStep> becomes a GraphQL field on the root type.
-3. The schema is registered through <CodeStep step={3}>AddGraphQLServer</CodeStep> in the DI configuration.
-
-### All supported languages with badges
-
-```csharp filename="Program.cs"
-var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddGraphQLServer();
-var app = builder.Build();
-app.MapGraphQL();
-app.Run();
-```
-
-```bash
-yarn install
-yarn dev
-```
+The following query touches three services, but the client doesn't know or care about this implementation detail.
 
 ```graphql
-query GetUser($id: ID!) {
-  user(id: $id) {
-    id
-    name
+query {
+  products(first: 5) {
+    nodes {
+      name          # from Products service
+      price         # from Products service
+      reviews {     # from Reviews service
+        stars
+        author {
+          username  # from Accounts service
+        }
+      }
+    }
   }
 }
 ```
 
-```sdl
-type Query {
-  hello: String!
-}
-```
+# Key Terminology
 
-```http
-GET /graphql HTTP/1.1
-Host: localhost:5000
-Content-Type: application/json
-```
+| Term                 | Definition                                                                                                                                               |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Subgraph**         | An upstream service behind the Fusion gateway. A subgraph can be a GraphQL service, an OpenAPI-based REST service, or a gRPC service.                    |
+| **Source schema**    | The contract document published by one subgraph (for example a GraphQL schema, OpenAPI document, or gRPC/protobuf definition).                           |
+| **Composite schema** | The unified, client-facing GraphQL schema produced during composition. Clients query this schema as if it were a single API.                             |
+| **Gateway**          | The public entry point for client requests. It receives queries against the composite schema, routes requests across subgraphs, and assembles responses. |
+| **Entity**           | A type with a stable key that can be referenced across GraphQL subgraphs. A subgraph can define an entity without resolving it locally.                  |
+| **Lookup**           | A Query field annotated with a `@lookup` directive that resolves an entity by key in that subgraph.                                                      |
+| **Composition**      | The offline step that validates source schemas and produces the composite schema and gateway configuration. Runs via the Nitro CLI or Aspire.            |
 
-```json
-{
-  "name": "Tobias",
-  "fans": ["graphql", "shiki"]
-}
-```
+# When to Use Fusion
 
-```sql
-SELECT id, name FROM users WHERE active = TRUE ORDER BY id;
-```
+Fusion adds operational complexity, including a gateway process, a composition step in your build pipeline, and distributed debugging. That complexity pays off in specific situations:
 
-```xml
-<note>
-  <to>Reader</to>
-  <body>Hello!</body>
-</note>
-```
+- **Multiple teams need to ship independently.** If different teams own different parts of your API (e.g., a product catalog team and a reviews team), Fusion lets each team deploy on their own schedule without coordinating schema changes through a shared codebase.
 
-```diff
-- old line
-+ new line
-  unchanged
-```
+- **You need to scale services differently.** Your product search might need 10 instances while your user profile service needs 2. With separate services, you scale each one based on its actual load.
 
-### Mermaid diagram
+- **Your domain has clear boundaries.** If your data naturally splits into distinct areas (accounts, products, orders, reviews), separate services map well to those boundaries. Each service owns its data store and its API contract.
 
-```mermaid
-flowchart LR
-  Client["GraphQL Client"] -->|HTTP| Gateway
-  Gateway -->|sub-query| BooksSchema["Books Schema"]
-  Gateway -->|sub-query| AuthorsSchema["Authors Schema"]
-  BooksSchema --> DB[(Books DB)]
-  AuthorsSchema --> Identity[(Identity DB)]
-```
+- **You want build-time validation of distributed contracts.** Composition catches conflicts between source schemas before deployment. Your CI pipeline can validate that a change in one service does not break the composed API.
 
-### Indented code block
+# When NOT to Use Fusion
 
-    plain text
-    no syntax highlighting
+Fusion is not the right choice for every project. Evaluate whether the additional complexity is justified:
 
-## Tables
+- **One team, one service.** If one team owns the entire API and deploys it as a single unit, a standard Hot Chocolate server is simpler and has lower operational overhead. You likely do not need a gateway, a composition pipeline, or distributed tracing.
 
-| Feature   | Status |              Notes |
-| --------- | :----: | -----------------: |
-| Headings  |   ✅   |     All six levels |
-| Tables    |   ✅   |     With alignment |
-| Footnotes |   ✅   | See bottom of page |
+- **A small or early-stage API.** If your API has a handful of types and modest traffic, a distributed gateway setup often adds more complexity than value. Start with a monolith and split later when needed. Hot Chocolate supports an incremental path from monolith to modular monolith to distributed architecture.
 
-## Horizontal Rule
+- **No clear domain boundaries.** If your types are deeply intertwined and most queries touch most of the schema, splitting into many services can create more cross-service calls than it removes. Fusion works best when services are relatively self-contained and have clear data contracts.
 
----
+- **Your team is just getting started with GraphQL.** Learn GraphQL and Hot Chocolate first. Get comfortable with types, resolvers, DataLoaders, and the execution pipeline. Fusion adds concepts on top of that foundation and is easier to adopt once the basics are understood.
 
-## Images
+The cost of premature distribution is real: more services to deploy, more infrastructure to monitor, and harder debugging when something goes wrong. Start simple, and add Fusion when the pain of a monolith outweighs the cost of distribution.
 
-![Alt text](https://chillicream.com/img/projects/greendonut-banner.svg "Title text")
+# Migrating from a Monolith
 
-![Nitro banner](./nitro-banner.png "Nitro")
+If you already have a Hot Chocolate server, you can adopt Fusion incrementally.
 
-## Videos
+**Start with one upstream service.** Point the Fusion gateway at your existing Hot Chocolate server as the only subgraph. Composition works with one source schema. Your clients connect to the gateway instead of directly to your server, but behavior stays the same.
 
-A paragraph that contains only a YouTube link is rendered as an embedded player. In raw markdown viewers it stays a clickable link.
+**Add services incrementally.** When a new team or domain needs its own service, add another subgraph. The new service can extend types from the original service with entity stubs where needed. Composition merges both source schemas, and the gateway handles cross-service execution automatically. Your original service does not need a rewrite.
 
-[Watch the introduction](https://youtu.be/qrh97hToWpM)
+**Clients see no difference.** Whether you have one subgraph or ten, clients still call one endpoint and keep the same query surface. You can split your monolith over weeks or months without breaking the client contract.
 
-A YouTube link inline with surrounding text stays a regular link, e.g. see [this talk](https://youtu.be/qrh97hToWpM) for more context.
+The key insight: this is not a rewrite. It is a gradual process. You move types and fields to new services over time, and the gateway smooths over the transition.
 
-## Raw HTML
+# Next Steps
 
-<details>
-  <summary>Click to expand</summary>
+Where you go from here depends on what you need:
 
-Hidden content with **markdown** still rendered inside.
+- **"I want to build something."** Start with the [Getting Started](./getting-started.md) tutorial. You will create two services and a gateway from scratch.
 
-</details>
+- **"I want to add another service to an existing project."** Go to [Adding a Subgraph](./adding-a-subgraph.md). It covers creating a new service (subgraph) that extends existing entity types.
 
-<div align="center">
+- **"I'm migrating from another distributed GraphQL framework."** Read [Coming from Apollo Federation](./migration/coming-from-apollo-federation.md) or [Migrating from Schema Stitching](./migration/migrating-from-schema-stitching.md). These guides map familiar concepts to Fusion equivalents and walk through a migration.
 
-Centered block via raw HTML.
+- **"I need to deploy this."** See [Deployment & CI/CD](./deployment-and-ci-cd.md) for pipeline setup, schema management, and gateway configuration.
 
-</div>
-
-## Escapes
-
-\*not italic\*, \`not code\`, \# not a heading.
-
-## Admonitions (GitHub-style alerts)
-
-> [!NOTE]
-> Useful information that users should know.
-
-> [!TIP]
-> Helpful advice for doing things better.
-
-> [!IMPORTANT]
-> Key information users need to know.
-
-> [!WARNING]
-> Urgent info that needs immediate attention.
-
-> [!CAUTION]
-> Risk of negative outcomes.
-
-## Emoji
-
-:rocket: :tada: :sparkles:
-
-## Keyboard
-
-Press <kbd>Cmd</kbd> + <kbd>K</kbd> to open the command palette.
-
-## Final Paragraph
-
-That covers the markdown surface: headings, inline marks, links, lists, blockquotes, code, tables, images, raw HTML, admonitions, emoji, footnotes, and definitions.
+- **"I need CDN and browser caching behavior."** See [Cache Control](./cache-control.md) for `@cacheControl`, composition merge behavior, and gateway response headers.

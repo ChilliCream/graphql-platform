@@ -255,7 +255,8 @@ services
         })
 ```
 
-> Note: You can also partially opt-out of the convention by for instance crafting your own input type but letting the convention produce the payload.
+> [!NOTE]
+> You can also partially opt-out of the convention by for instance crafting your own input type but letting the convention produce the payload.
 
 ## Errors
 
