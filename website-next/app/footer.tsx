@@ -26,6 +26,14 @@ const products: { path: string; title: string }[] = [
   { path: "mocha", title: "Mocha" },
 ];
 
+const basicPages: { path: string; title: string }[] = [
+  { path: "legal/acceptable-use-policy", title: "Acceptable Use Policy" },
+  { path: "legal/cookie-policy", title: "Cookie Policy" },
+  { path: "legal/privacy-policy", title: "Privacy Policy" },
+  { path: "legal/terms-of-service", title: "Terms of Service" },
+  { path: "licensing/chillicream-license", title: "ChilliCream License" },
+];
+
 export default function Footer() {
   return (
     <footer className="mt-10 w-full border-t border-stone-200 bg-white/80 px-4 pt-14 pb-14 text-sm text-stone-600 backdrop-blur-sm lg:pt-36">
@@ -71,15 +79,11 @@ export default function Footer() {
             <LinkColumn title="Company">
               <NavLink href="mailto:contact@chillicream.com">Contact</NavLink>
               <NavLink href={tools.shop}>Shop</NavLink>
-              <NavLink href="/legal/acceptable-use-policy">
-                Acceptable Use Policy
-              </NavLink>
-              <NavLink href="/legal/cookie-policy">Cookie Policy</NavLink>
-              <NavLink href="/legal/privacy-policy">Privacy Policy</NavLink>
-              <NavLink href="/legal/terms-of-service">Terms of Service</NavLink>
-              <NavLink href="/licensing/chillicream-license">
-                ChilliCream License
-              </NavLink>
+              {basicPages.map((page) => (
+                <NavLink key={page.path} href={`/${page.path}`}>
+                  {page.title}
+                </NavLink>
+              ))}
             </LinkColumn>
           </div>
         </Section>
@@ -94,7 +98,10 @@ export default function Footer() {
             <SocialLink href={tools.slack} label="ChilliCream Slack Community">
               <SlackIcon className="h-[22px] w-auto fill-current" />
             </SocialLink>
-            <SocialLink href={tools.youtube} label="ChilliCream YouTube Channel">
+            <SocialLink
+              href={tools.youtube}
+              label="ChilliCream YouTube Channel"
+            >
               <YouTubeIcon className="h-[22px] w-auto fill-current" />
             </SocialLink>
             <SocialLink href={tools.x} label="ChilliCream on X">
@@ -117,9 +124,7 @@ export default function Footer() {
 }
 
 function Section({ children }: { children: ReactNode }) {
-  return (
-    <div className="flex flex-col gap-8 lg:flex-row">{children}</div>
-  );
+  return <div className="flex flex-col gap-8 lg:flex-row">{children}</div>;
 }
 
 function LinkColumn({
@@ -139,13 +144,7 @@ function LinkColumn({
   );
 }
 
-function NavLink({
-  href,
-  children,
-}: {
-  href: string;
-  children: ReactNode;
-}) {
+function NavLink({ href, children }: { href: string; children: ReactNode }) {
   const className =
     "text-stone-600 no-underline transition-colors hover:text-fuchsia-700";
 
