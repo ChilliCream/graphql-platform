@@ -6,6 +6,7 @@ import {
 } from "react";
 import { codeToHtml } from "shiki";
 import { LANGUAGES, STEP_PALETTE } from "./languages";
+import { MermaidDiagram } from "./MermaidDiagram";
 import { parseCodeBlockMeta } from "@/src/helpers/parseCodeBlockMeta";
 
 const THEME = "github-dark";
@@ -45,6 +46,11 @@ export async function CodeBlock({ children, className = "" }: CodeBlockProps) {
   }
 
   const { code, language, meta } = extracted;
+
+  if (language === "mermaid") {
+    return <MermaidDiagram source={code} />;
+  }
+
   const parsed = parseCodeBlockMeta(meta);
   const descriptor = LANGUAGES[language];
   const shikiLang = descriptor?.shiki ?? language;
@@ -85,14 +91,15 @@ export async function CodeBlock({ children, className = "" }: CodeBlockProps) {
               }
               const palette = STEP_PALETTE[match.step] ?? STEP_PALETTE[1];
               const leading = rawText.match(/^\s*/)?.[0] ?? "";
-              const trailing = rawText.slice(leading.length).match(/\s*$/)?.[0] ?? "";
+              const trailing =
+                rawText.slice(leading.length).match(/\s*$/)?.[0] ?? "";
               const coreLen = rawText.length - leading.length - trailing.length;
               if (coreLen <= 0) {
                 continue;
               }
               const core = rawText.slice(
                 leading.length,
-                leading.length + coreLen
+                leading.length + coreLen,
               );
               const innerSpan = {
                 type: "element" as const,

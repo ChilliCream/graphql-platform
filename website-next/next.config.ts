@@ -11,6 +11,10 @@ const codeBlockMeta = path.resolve(
   "src/remark/codeBlockMeta.mjs"
 );
 const extractToc = path.resolve(process.cwd(), "src/remark/extractToc.mjs");
+const youtubeEmbed = path.resolve(
+  process.cwd(),
+  "src/remark/youtubeEmbed.mjs"
+);
 const exportToc = path.resolve(process.cwd(), "src/recma/exportToc.mjs");
 
 const nextConfig: NextConfig = {
@@ -28,6 +32,7 @@ const withMDX = createMDX({
       rewriteMdLinks,
       codeBlockMeta,
       extractToc,
+      youtubeEmbed,
     ],
     rehypePlugins: [],
     recmaPlugins: [exportToc],

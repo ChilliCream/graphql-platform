@@ -247,6 +247,17 @@ SELECT id, name FROM users WHERE active = TRUE ORDER BY id;
   unchanged
 ```
 
+### Mermaid diagram
+
+```mermaid
+flowchart LR
+  Client["GraphQL Client"] -->|HTTP| Gateway
+  Gateway -->|sub-query| BooksSchema["Books Schema"]
+  Gateway -->|sub-query| AuthorsSchema["Authors Schema"]
+  BooksSchema --> DB[(Books DB)]
+  AuthorsSchema --> Identity[(Identity DB)]
+```
+
 ### Indented code block
 
     plain text
@@ -267,6 +278,14 @@ SELECT id, name FROM users WHERE active = TRUE ORDER BY id;
 ## Images
 
 ![Alt text](https://chillicream.com/img/projects/greendonut-banner.svg "Title text")
+
+## Videos
+
+A paragraph that contains only a YouTube link is rendered as an embedded player. In raw markdown viewers it stays a clickable link.
+
+[Watch the introduction](https://youtu.be/qrh97hToWpM)
+
+A YouTube link inline with surrounding text stays a regular link, e.g. see [this talk](https://youtu.be/qrh97hToWpM) for more context.
 
 ## Raw HTML
 

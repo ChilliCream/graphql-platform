@@ -108,6 +108,13 @@ const diffSample = `   public sealed class Query
 +          new Book("C# in Depth", new Author("Jon Skeet"));
    }`;
 
+const mermaidSample = `flowchart LR
+  Client["GraphQL Client"] -->|HTTP| Gateway
+  Gateway -->|sub-query| BooksSchema["Books Schema"]
+  Gateway -->|sub-query| AuthorsSchema["Authors Schema"]
+  BooksSchema --> DB[(Books DB)]
+  AuthorsSchema --> Identity[(Identity DB)]`;
+
 export const TypeScript: Story = languageStory(
   "tsx",
   tsxSample,
@@ -168,3 +175,5 @@ export const PlainText: Story = languageStory(
   undefined,
   { name: "Plain Text" }
 );
+
+export const Mermaid: Story = languageStory("mermaid", mermaidSample);
