@@ -464,7 +464,11 @@ const BlazorThumb: FC = () => (
   </svg>
 );
 
-const THUMBNAILS: Record<ThumbnailKind, () => ReactElement> = {
+// Per-`ThumbnailKind` SVG renderers. Exported so the cinematic hero
+// (`TemplatesCinematicHero`) can lift the featured template's thumbnail
+// into the InsetWindow viz slot at exhibit scale without duplicating the
+// SVG definitions.
+export const TEMPLATE_THUMBNAILS: Record<ThumbnailKind, () => ReactElement> = {
   federation: () => <FederationThumb />,
   solo: () => <SoloThumb />,
   polyglot: () => <PolyglotThumb />,
@@ -483,7 +487,11 @@ interface AccentVarsCSS extends CSSProperties {
   "--cc-accent-glow": string;
 }
 
-const accentVarsFor = (template: Template): AccentVarsCSS => {
+// Resolves the per-template accent CSS variables that drive the thumbnail
+// stroke and label colors. Exported so cinematic surfaces (e.g.
+// `TemplatesCinematicHero`) can reuse the same accent vocabulary on
+// non-card chrome (InsetWindow viz slot, etc.).
+export const templateAccentVars = (template: Template): AccentVarsCSS => {
   const tokens = THUMBNAIL_ACCENT_TOKENS[template.accent];
   return {
     "--cc-accent": tokens.primary,
@@ -505,8 +513,8 @@ interface TemplateCardProps {
 // crowd the chip row at the bottom. The thumbnail is full-bleed inside the
 // card (no inner frame, no padding) and tinted by the per-template accent.
 export const TemplateCard: FC<TemplateCardProps> = ({ template }) => {
-  const Thumb = THUMBNAILS[template.thumbnail];
-  const style = accentVarsFor(template);
+  const Thumb = TEMPLATE_THUMBNAILS[template.thumbnail];
+  const style = templateAccentVars(template);
   return (
     <Link
       href={`/templates/${template.slug}`}
@@ -548,8 +556,8 @@ interface FeaturedTemplateCardProps {
 export const FeaturedTemplateCard: FC<FeaturedTemplateCardProps> = ({
   template,
 }) => {
-  const Thumb = THUMBNAILS[template.thumbnail];
-  const style = accentVarsFor(template);
+  const Thumb = TEMPLATE_THUMBNAILS[template.thumbnail];
+  const style = templateAccentVars(template);
   return (
     <Link
       href={`/templates/${template.slug}`}

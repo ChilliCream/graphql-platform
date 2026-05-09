@@ -1,10 +1,12 @@
 "use client";
 
-import React, { FC, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import React, { FC, Suspense, useEffect } from "react";
 
 import { LandingGlobalStyle } from "@/components/landing/LandingRoot";
 import { SiteLayout } from "@/components/layout";
 import { SEO } from "@/components/misc";
+import { PricingCinematic } from "@/components/pricing/cinematic/PricingCinematic";
 import { ComparisonTable } from "@/components/pricing/ComparisonTable";
 import { EnterpriseBanner } from "@/components/pricing/EnterpriseBanner";
 import { NitroTierCards } from "@/components/pricing/NitroTierCards";
@@ -15,11 +17,17 @@ import { PricingHero } from "@/components/pricing/PricingHero";
 import { PricingRoot } from "@/components/pricing/PricingRoot";
 import { AccentThread } from "@/components/redesign-system/AccentThread";
 import { Band } from "@/components/redesign-system/Band";
+import { VariantSwitcher } from "@/components/redesign-system/cinematic";
 import { RecentBlogPost } from "@/components/widgets/most-recent-blog-posts-section";
 
 interface PricingPageProps {
   recentPosts?: RecentBlogPost[];
 }
+
+const VARIANT_OPTIONS = [
+  { id: "default", label: "Default", href: "/pricing/" },
+  { id: "cinematic", label: "Cinematic", href: "/pricing/?v=cinematic" },
+];
 
 // Pricing reads as a stack of bands with rhythm, not as 8 stacked cards.
 // Mapping (left to right in scroll order):
@@ -33,14 +41,7 @@ interface PricingPageProps {
 //
 // Spend-controls is no longer a standalone band: it inlines into the Hosted
 // tier card (P1-pricing-5).
-const PricingPage: FC<PricingPageProps> = () => {
-  useEffect(() => {
-    document.body.classList.add("cc-landing-body");
-    return () => {
-      document.body.classList.remove("cc-landing-body");
-    };
-  }, []);
-
+const PricingDefault: FC<PricingPageProps> = () => {
   return (
     <SiteLayout disableStars>
       <SEO title="Pricing" />
@@ -74,7 +75,36 @@ const PricingPage: FC<PricingPageProps> = () => {
           </Band>
         </PricingRoot>
       </AccentThread>
+      <VariantSwitcher options={VARIANT_OPTIONS} currentId="default" />
     </SiteLayout>
+  );
+};
+
+// Variant dispatcher reads `?v=cinematic` and renders the cinematic tree;
+// any other value (or none) falls through to the default variant. Wrapped
+// in <Suspense> because useSearchParams suspends during static export.
+const PricingPageInner: FC<PricingPageProps> = ({ recentPosts }) => {
+  const searchParams = useSearchParams();
+  const variant = searchParams?.get("v");
+
+  if (variant === "cinematic") {
+    return <PricingCinematic />;
+  }
+  return <PricingDefault recentPosts={recentPosts} />;
+};
+
+const PricingPage: FC<PricingPageProps> = ({ recentPosts }) => {
+  useEffect(() => {
+    document.body.classList.add("cc-landing-body");
+    return () => {
+      document.body.classList.remove("cc-landing-body");
+    };
+  }, []);
+
+  return (
+    <Suspense fallback={null}>
+      <PricingPageInner recentPosts={recentPosts} />
+    </Suspense>
   );
 };
 
