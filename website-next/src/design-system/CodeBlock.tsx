@@ -98,6 +98,7 @@ export async function CodeBlock({ children, className = "" }: CodeBlockProps) {
                 type: "element" as const,
                 tagName: "span",
                 properties: {
+                  "data-step": match.step,
                   style: `background:${palette.bg};border:1px solid ${palette.border};border-radius:0.25rem;padding:0 0.25rem;color:${palette.text}`,
                 },
                 children: [{ type: "text" as const, value: core }],

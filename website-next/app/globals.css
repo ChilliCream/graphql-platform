@@ -26,3 +26,18 @@
   background: rgba(255, 255, 255, 0.08);
   box-shadow: inset 3px 0 0 #6366f1;
 }
+
+/* Hovering a CodeStep in prose dims only the code block that contains
+   a matching step, keeping the matching highlighted token fully visible.
+   Activation is driven by JS (CodeStep) which toggles these classes. */
+.shiki-wrapper .line > span {
+  transition: opacity 0.15s ease;
+}
+
+figure.code-step-dim .shiki-wrapper .line > span {
+  opacity: 0.5;
+}
+
+figure.code-step-dim .shiki-wrapper .line > span:has(.code-step-active) {
+  opacity: 1;
+}
