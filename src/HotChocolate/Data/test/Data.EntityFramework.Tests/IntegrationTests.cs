@@ -3,6 +3,7 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using System.Linq.Expressions;
 using System.Text.Json;
 
 namespace HotChocolate.Data;
@@ -709,5 +710,111 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     public class SingleOrDefaultActiveUser : SingleOrDefaultUser
     {
         public bool IsActive { get; set; }
+    }
+
+    [Fact]
+    public async Task AsSelector_Should_ReturnIdentityExpression_When_DddAggregateHasOnlyPrivateConstructors()
+    {
+        // arrange
+        var databaseName = $"db-{Guid.NewGuid():N}";
+
+        await using (var seedContext = new DddBlogDbContext(
+            new DbContextOptionsBuilder<DddBlogDbContext>()
+                .UseInMemoryDatabase(databaseName)
+                .Options))
+        {
+            await seedContext.Database.EnsureCreatedAsync();
+            await seedContext.Blogs.AddAsync(DddBlog.Create("Blog1"));
+            await seedContext.SaveChangesAsync();
+        }
+
+        var executor = await new ServiceCollection()
+            .AddDbContext<DddBlogDbContext>(b => b.UseInMemoryDatabase(databaseName))
+            .AddGraphQL()
+            .AddProjections()
+            .AddQueryType<DddBlogQuery>()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                blogs {
+                    id
+                    name
+                }
+            }
+            """);
+
+        // assert
+        var operationResult = result.ExpectOperationResult();
+        Assert.True(operationResult.Errors is null || operationResult.Errors.Count == 0);
+        Assert.True(operationResult.Data.HasValue);
+    }
+
+    [Fact]
+    public async Task AsSelector_Should_UseMemberInitExpression_When_PocoHasPublicParameterlessConstructor()
+    {
+        // arrange
+        var captured = new List<Expression<Func<SimpleBlog, SimpleBlog>>>();
+
+        var executor = await new ServiceCollection()
+            .AddSingleton(captured)
+            .AddGraphQL()
+            .AddQueryType<SimpleBlogQuery>()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync("{ blogs { id name } }");
+
+        // assert
+        var operationResult = result.ExpectOperationResult();
+        Assert.True(operationResult.Errors is null || operationResult.Errors.Count == 0);
+        var expr = Assert.Single(captured);
+        Assert.IsType<MemberInitExpression>(expr.Body);
+    }
+
+    public class DddBlogQuery
+    {
+        public IQueryable<DddBlog> GetBlogs(
+            DddBlogDbContext context,
+            ISelection selection)
+            => context.Blogs.Select(selection.AsSelector<DddBlog>());
+    }
+
+    public sealed class DddBlogDbContext(DbContextOptions<DddBlogDbContext> options)
+        : DbContext(options)
+    {
+        public DbSet<DddBlog> Blogs => Set<DddBlog>();
+    }
+
+    public sealed class DddBlog
+    {
+        private DddBlog() { }
+
+        private DddBlog(string name) { Name = name; }
+
+        public int Id { get; private set; }
+
+        public string Name { get; private set; } = "";
+
+        public static DddBlog Create(string name) => new(name);
+    }
+
+    public class SimpleBlogQuery
+    {
+        public IReadOnlyList<SimpleBlog> GetBlogs(
+            ISelection selection,
+            [Service] List<Expression<Func<SimpleBlog, SimpleBlog>>> captured)
+        {
+            captured.Add(selection.AsSelector<SimpleBlog>());
+            return [new SimpleBlog { Id = 1, Name = "test" }];
+        }
+    }
+
+    public sealed class SimpleBlog
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = "";
     }
 }
