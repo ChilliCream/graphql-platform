@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -13,188 +14,308 @@ namespace HotChocolate.Types.Relay;
 /// </summary>
 internal static class NodeFieldResolvers
 {
-    private static readonly Task<object?> s_nullTask = Task.FromResult<object?>(null);
-
     /// <summary>
-    /// This is the resolver of the node field.
+    /// This is the batch resolver of the node field.
     /// </summary>
-    public static async ValueTask ResolveSingleNodeAsync(
-        IMiddlewareContext context,
-        INodeIdSerializer serializer)
+    public static async ValueTask ResolveNodeBatchAsync(
+        ImmutableArray<IMiddlewareContext> contexts,
+        INodeIdSerializerAccessor serializerAccessor)
     {
-        var nodeId = context.ArgumentLiteral<StringValueNode>(Id);
-        var deserializedId = serializer.Parse(nodeId.Value, Unsafe.As<Schema>(context.Schema));
+        if (contexts.Length == 0)
+        {
+            return;
+        }
+
+        var serializer = serializerAccessor.Serializer;
+        var first = contexts[0];
+        var schema = first.Schema;
+        var deserializedId = ResolveNodeId(first, serializer, Id);
         var typeName = deserializedId.TypeName;
 
-        // if the type has a registered node resolver, we will execute it.
-        if (context.Schema.Types.TryGetType<ObjectType>(typeName, out var type)
-            && type.Features.Get<NodeTypeFeature>() is { NodeResolver: not null } feature)
+        if (!schema.Types.TryGetType<ObjectType>(typeName, out var type)
+            || type.Features.Get<NodeTypeFeature>() is not { NodeResolver: { } nodeResolver })
         {
-            var typeConverter = context.Service<ITypeConverter>();
-            SetLocalContext(context, nodeId, deserializedId, type);
-            TryReplaceArguments(context, feature.NodeResolver, Id, nodeId);
-            context.Result = await ExecutePipelineAsync(context, type, feature.NodeResolver, typeConverter);
+            for (var i = 0; i < contexts.Length; i++)
+            {
+                var ctx = contexts[i];
+                ctx.ReportError(ErrorHelper.Relay_NoNodeResolver(typeName, ctx.Path));
+                ctx.Result = null;
+            }
+            return;
         }
-        else
+
+        var typeConverter = first.Service<ITypeConverter>();
+
+        for (var i = 0; i < contexts.Length; i++)
         {
-            context.ReportError(ErrorHelper.Relay_NoNodeResolver(typeName, context.Path));
-            context.Result = null;
+            var ctx = contexts[i];
+            var nodeId = ctx.ArgumentLiteral<StringValueNode>(Id);
+            var localId = i == 0 ? deserializedId : ResolveNodeId(ctx, serializer, Id);
+            SetLocalContext(ctx, nodeId, localId, type);
+            TryReplaceArguments(ctx, nodeResolver, Id, nodeId);
+        }
+
+        await DispatchAsync(contexts, nodeResolver).ConfigureAwait(false);
+
+        for (var i = 0; i < contexts.Length; i++)
+        {
+            var ctx = contexts[i];
+            ctx.Result = CoerceResult(ctx.Result, type, typeConverter);
         }
     }
 
     /// <summary>
-    /// This is the resolver of the `nodes` field.
+    /// This is the batch resolver of the nodes field.
     /// </summary>
-    public static async ValueTask ResolveManyNodeAsync(
-        IMiddlewareContext context,
-        INodeIdSerializer serializer,
+    public static async ValueTask ResolveNodesBatchAsync(
+        ImmutableArray<IMiddlewareContext> contexts,
+        INodeIdSerializerAccessor serializerAccessor,
         int maxAllowedNodes)
     {
-        var schema = context.Schema;
-
-        if (context.ArgumentKind(Ids) == ValueKind.List)
+        if (contexts.Length == 0)
         {
-            var list = context.ArgumentLiteral<ListValueNode>(Ids);
-
-            if (list.Items.Count > maxAllowedNodes)
-            {
-                context.ReportError(
-                    ErrorHelper.FetchedToManyNodesAtOnce(
-                        context.Path,
-                        maxAllowedNodes,
-                        list.Items.Count));
-                return;
-            }
-
-            var tasks = ArrayPool<Task<object?>>.Shared.Rent(list.Items.Count);
-            var results = new object?[list.Items.Count];
-            var ct = context.RequestAborted;
-            var typeConverter = context.Service<ITypeConverter>();
-
-            for (var i = 0; i < list.Items.Count; i++)
-            {
-                ct.ThrowIfCancellationRequested();
-
-                var nodeId = (StringValueNode)list.Items[i];
-                var deserializedId = serializer.Parse(nodeId.Value, Unsafe.As<Schema>(context.Schema));
-                var typeName = deserializedId.TypeName;
-
-                // if the type has a registered node resolver, we will execute it.
-                if (schema.Types.TryGetType<ObjectType>(typeName, out var type)
-                    && type.Features.Get<NodeTypeFeature>() is { NodeResolver: not null } feature)
-                {
-                    var nodeContext = context.Clone();
-                    SetLocalContext(nodeContext, nodeId, deserializedId, type);
-                    TryReplaceArguments(nodeContext, feature.NodeResolver, Ids, nodeId);
-                    tasks[i] = ExecutePipelineAsync(nodeContext, type, feature.NodeResolver, typeConverter);
-                }
-                else
-                {
-                    tasks[i] = s_nullTask;
-
-                    context.ReportError(ErrorHelper.Relay_NoNodeResolver(typeName, context.Path));
-                }
-            }
-
-            for (var i = 0; i < list.Items.Count; i++)
-            {
-                ct.ThrowIfCancellationRequested();
-
-                var task = tasks[i];
-
-                if (task.IsCompleted)
-                {
-                    if (task.Exception is null)
-                    {
-                        if (task.Result is IError error)
-                        {
-                            results[i] = null;
-                            context.ReportError(error.WithPath(context.Path.Append(i)));
-                        }
-                        else
-                        {
-                            results[i] = task.Result;
-                        }
-                    }
-                    else
-                    {
-                        results[i] = null;
-                        ReportError(context, i, task.Exception);
-                    }
-                }
-                else
-                {
-                    try
-                    {
-                        results[i] = await task;
-                    }
-                    catch (Exception ex)
-                    {
-                        results[i] = null;
-                        ReportError(context, i, ex);
-                    }
-                }
-            }
-
-            context.Result = results;
-            ArrayPool<Task<object?>>.Shared.Return(tasks, true);
+            return;
         }
-        else
+
+        var serializer = serializerAccessor.Serializer;
+        var schema = contexts[0].Schema;
+        var typeConverter = contexts[0].Service<ITypeConverter>();
+
+        // Per parent context: parse all IDs, allocate the result array, build per-ID child contexts.
+        var parents = new ParentEntry[contexts.Length];
+        Dictionary<string, TypeGroup>? typeGroups = null;
+
+        for (var p = 0; p < contexts.Length; p++)
         {
-            var results = new object?[1];
-            var nodeId = context.ArgumentLiteral<StringValueNode>(Ids);
-            var deserializedId = serializer.Parse(nodeId.Value, Unsafe.As<Schema>(context.Schema));
-            var typeName = deserializedId.TypeName;
+            var parent = contexts[p];
+            int idCount;
+            ListValueNode? listIds = null;
+            StringValueNode? singleId = null;
 
-            // if the type has a registered node resolver, we will execute it.
-            if (schema.Types.TryGetType<ObjectType>(typeName, out var type)
-                && type.Features.Get<NodeTypeFeature>() is { NodeResolver: not null } feature)
+            if (parent.ArgumentKind(Ids) == ValueKind.List)
             {
-                var typeConverter = context.Service<ITypeConverter>();
-                var nodeContext = context.Clone();
-
-                SetLocalContext(nodeContext, nodeId, deserializedId, type);
-                TryReplaceArguments(nodeContext, feature.NodeResolver, Ids, nodeId);
-
-                var result = await ExecutePipelineAsync(nodeContext, type, feature.NodeResolver, typeConverter);
-
-                if (result is IError error)
-                {
-                    results[0] = null;
-                    context.ReportError(error.WithPath(context.Path.Append(0)));
-                }
-                else
-                {
-                    results[0] = result;
-                }
+                listIds = parent.ArgumentLiteral<ListValueNode>(Ids);
+                idCount = listIds.Items.Count;
             }
             else
             {
-                results[0] = null;
-
-                context.ReportError(ErrorHelper.Relay_NoNodeResolver(typeName, context.Path));
+                singleId = parent.ArgumentLiteral<StringValueNode>(Ids);
+                idCount = 1;
             }
 
-            context.Result = results;
+            if (idCount > maxAllowedNodes)
+            {
+                parent.ReportError(
+                    ErrorHelper.FetchedToManyNodesAtOnce(parent.Path, maxAllowedNodes, idCount));
+                parents[p] = new ParentEntry(null);
+                continue;
+            }
+
+            var results = new object?[idCount];
+            parents[p] = new ParentEntry(results);
+
+            for (var i = 0; i < idCount; i++)
+            {
+                var nodeId = listIds is not null
+                    ? (StringValueNode)listIds.Items[i]
+                    : singleId!;
+                var deserializedId = serializer.Parse(nodeId.Value, Unsafe.As<Schema>(schema));
+                var typeName = deserializedId.TypeName;
+
+                if (!schema.Types.TryGetType<ObjectType>(typeName, out var type)
+                    || type.Features.Get<NodeTypeFeature>() is not { NodeResolver: { } nodeResolver })
+                {
+                    parent.ReportError(ErrorHelper.Relay_NoNodeResolver(typeName, parent.Path));
+                    results[i] = null;
+                    continue;
+                }
+
+                var child = parent.Clone();
+                SetLocalContext(child, nodeId, deserializedId, type);
+                TryReplaceArguments(child, nodeResolver, Ids, nodeId);
+
+                typeGroups ??= [];
+                if (!typeGroups.TryGetValue(typeName, out var group))
+                {
+                    group = new TypeGroup(type, nodeResolver, []);
+                    typeGroups[typeName] = group;
+                }
+                group.Entries.Add(new ChildEntry(child, p, i));
+            }
+        }
+
+        if (typeGroups is not null)
+        {
+            foreach (var group in typeGroups.Values)
+            {
+                await DispatchTypeGroupAsync(group.Entries, group.Resolver).ConfigureAwait(false);
+
+                for (var k = 0; k < group.Entries.Count; k++)
+                {
+                    var entry = group.Entries[k];
+                    var parent = contexts[entry.ParentIndex];
+                    var result = entry.Context.Result;
+
+                    if (result is IError error)
+                    {
+                        parent.ReportError(error.WithPath(parent.Path.Append(entry.IdIndex)));
+                        parents[entry.ParentIndex].Results![entry.IdIndex] = null;
+                    }
+                    else
+                    {
+                        parents[entry.ParentIndex].Results![entry.IdIndex] =
+                            CoerceResult(result, group.Type, typeConverter);
+                    }
+                }
+            }
+        }
+
+        for (var p = 0; p < contexts.Length; p++)
+        {
+            contexts[p].Result = parents[p].Results;
         }
     }
 
-    private static async Task<object?> ExecutePipelineAsync(
-        IMiddlewareContext nodeResolverContext,
-        ObjectType type,
-        NodeResolverInfo nodeResolverInfo,
-        ITypeConverter typeConverter)
+    private static async Task DispatchTypeGroupAsync(
+        List<ChildEntry> group,
+        NodeResolverInfo nodeResolver)
     {
-        if (nodeResolverInfo.BatchPipeline is { } batchPipeline)
+        if (nodeResolver.BatchPipeline is { } batchPipeline)
         {
-            await batchPipeline([nodeResolverContext]).ConfigureAwait(false);
-        }
-        else
-        {
-            await nodeResolverInfo.Pipeline.Invoke(nodeResolverContext).ConfigureAwait(false);
+            // Sub-partition by inner BatchPartitionKey, mirroring the engine's recursion for `node`.
+            if (nodeResolver.BatchPartitionKey is { } innerPartitioner && group.Count > 1)
+            {
+                Dictionary<ulong, List<ChildEntry>>? partitions = null;
+                var firstKey = innerPartitioner(group[0].Context);
+
+                for (var i = 1; i < group.Count; i++)
+                {
+                    var key = innerPartitioner(group[i].Context);
+
+                    if (partitions is null)
+                    {
+                        if (key == firstKey)
+                        {
+                            continue;
+                        }
+
+                        partitions = [];
+                        var firstPartition = new List<ChildEntry>(i);
+                        for (var j = 0; j < i; j++)
+                        {
+                            firstPartition.Add(group[j]);
+                        }
+                        partitions[firstKey] = firstPartition;
+                    }
+
+                    if (!partitions.TryGetValue(key, out var partition))
+                    {
+                        partition = [];
+                        partitions[key] = partition;
+                    }
+                    partition.Add(group[i]);
+                }
+
+                if (partitions is null)
+                {
+                    var slice = ImmutableArray.CreateBuilder<IMiddlewareContext>(group.Count);
+                    for (var i = 0; i < group.Count; i++)
+                    {
+                        slice.Add(group[i].Context);
+                    }
+                    await batchPipeline(slice.MoveToImmutable()).ConfigureAwait(false);
+                    return;
+                }
+
+                foreach (var partition in partitions.Values)
+                {
+                    var slice = ImmutableArray.CreateBuilder<IMiddlewareContext>(partition.Count);
+                    for (var i = 0; i < partition.Count; i++)
+                    {
+                        slice.Add(partition[i].Context);
+                    }
+                    await batchPipeline(slice.MoveToImmutable()).ConfigureAwait(false);
+                }
+
+                return;
+            }
+
+            var contextsBuilder = ImmutableArray.CreateBuilder<IMiddlewareContext>(group.Count);
+            for (var i = 0; i < group.Count; i++)
+            {
+                contextsBuilder.Add(group[i].Context);
+            }
+
+            await batchPipeline(contextsBuilder.MoveToImmutable()).ConfigureAwait(false);
+            return;
         }
 
-        return CoerceResult(nodeResolverContext.Result, type, typeConverter);
+        var pipeline = nodeResolver.Pipeline;
+
+        if (group.Count == 1)
+        {
+            await pipeline(group[0].Context).ConfigureAwait(false);
+            return;
+        }
+
+        var tasks = new Task[group.Count];
+        for (var i = 0; i < group.Count; i++)
+        {
+            tasks[i] = pipeline(group[i].Context).AsTask();
+        }
+        await Task.WhenAll(tasks).ConfigureAwait(false);
+    }
+
+    private static async Task DispatchAsync(
+        ImmutableArray<IMiddlewareContext> contexts,
+        NodeResolverInfo nodeResolver)
+    {
+        if (nodeResolver.BatchPipeline is { } batchPipeline)
+        {
+            await batchPipeline(contexts).ConfigureAwait(false);
+            return;
+        }
+
+        var pipeline = nodeResolver.Pipeline;
+
+        if (contexts.Length == 1)
+        {
+            await pipeline(contexts[0]).ConfigureAwait(false);
+            return;
+        }
+
+        var tasks = ArrayPool<Task>.Shared.Rent(contexts.Length);
+        try
+        {
+            for (var i = 0; i < contexts.Length; i++)
+            {
+                tasks[i] = pipeline(contexts[i]).AsTask();
+            }
+
+            // Wait only on the first contexts.Length slots since the rented buffer may be larger.
+            for (var i = 0; i < contexts.Length; i++)
+            {
+                await tasks[i].ConfigureAwait(false);
+            }
+        }
+        finally
+        {
+            ArrayPool<Task>.Shared.Return(tasks, true);
+        }
+    }
+
+    private static NodeId ResolveNodeId(
+        IMiddlewareContext context,
+        INodeIdSerializer serializer,
+        string argumentName)
+    {
+        if (context.LocalContextData.TryGetValue(IdValue, out var cached) && cached is NodeId nodeId)
+        {
+            return nodeId;
+        }
+
+        var literal = context.ArgumentLiteral<StringValueNode>(argumentName);
+        return serializer.Parse(literal.Value, Unsafe.As<Schema>(context.Schema));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -256,6 +377,15 @@ internal static class NodeFieldResolvers
             : result;
     }
 
-    private static void ReportError(IResolverContext context, int item, Exception ex)
-        => context.ReportError(ex, error => error.SetPath(context.Path.Append(item)));
+    private readonly record struct ParentEntry(object?[]? Results);
+
+    private readonly record struct ChildEntry(
+        IMiddlewareContext Context,
+        int ParentIndex,
+        int IdIndex);
+
+    private sealed record TypeGroup(
+        ObjectType Type,
+        NodeResolverInfo Resolver,
+        List<ChildEntry> Entries);
 }

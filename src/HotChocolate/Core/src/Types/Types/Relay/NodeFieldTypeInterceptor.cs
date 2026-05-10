@@ -1,7 +1,9 @@
+using System.Runtime.CompilerServices;
 using HotChocolate.Configuration;
 using HotChocolate.Features;
 using HotChocolate.Internal;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Types.Composite;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
@@ -9,6 +11,7 @@ using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
 using static HotChocolate.Types.Relay.NodeConstants;
 using static HotChocolate.Types.Relay.NodeFieldResolvers;
+using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Types.Relay;
 
@@ -137,18 +140,14 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
             {
                 new ArgumentConfiguration(Id, Relay_NodeField_Id_Description, id)
             },
-            MiddlewareConfigurations =
-            {
-                new FieldMiddlewareConfiguration(_ =>
-                {
-                    INodeIdSerializer? serializer = null;
-                    return async context =>
-                    {
-                        serializer ??= serializerAccessor.Serializer;
-                        await ResolveSingleNodeAsync(context, serializer).ConfigureAwait(false);
-                    };
-                })
-            },
+            BatchResolver = contexts => ResolveNodeBatchAsync(contexts, serializerAccessor),
+            // node has 2 partitioners (outer by node type, inner by user partitioner);
+            // nodes has none — see node-field-batch-resolver-plan.md.
+            BatchPartitionKeyResolvers =
+            [
+                NodeOuterPartitioner(serializerAccessor),
+                NodeInnerPartitioner()
+            ],
             Flags = CoreFieldFlags.ParallelExecutable | CoreFieldFlags.GlobalIdNodeField
         };
 
@@ -190,18 +189,8 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
             {
                 new ArgumentConfiguration(Ids, Relay_NodesField_Ids_Description, ids)
             },
-            MiddlewareConfigurations =
-            {
-                new FieldMiddlewareConfiguration(_ =>
-                {
-                    INodeIdSerializer? serializer = null;
-                    return async context =>
-                    {
-                        serializer ??= serializerAccessor.Serializer;
-                        await ResolveManyNodeAsync(context, serializer, maxAllowedNodes).ConfigureAwait(false);
-                    };
-                })
-            },
+            BatchResolver = contexts =>
+                ResolveNodesBatchAsync(contexts, serializerAccessor, maxAllowedNodes),
             Flags = CoreFieldFlags.ParallelExecutable | CoreFieldFlags.GlobalIdNodesField
         };
 
@@ -216,5 +205,35 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
         field.TouchFeatures();
 
         fields.Insert(index, field);
+    }
+
+    private static BatchPartitionKeyResolver NodeOuterPartitioner(
+        INodeIdSerializerAccessor serializerAccessor)
+    {
+        INodeIdSerializer? serializer = null;
+        return context =>
+        {
+            serializer ??= serializerAccessor.Serializer;
+            var nodeId = context.ArgumentLiteral<StringValueNode>(Id);
+            var deserializedId = serializer.Parse(nodeId.Value, Unsafe.As<Schema>(context.Schema));
+            context.SetLocalState(IdValue, deserializedId);
+            return (uint)StringComparer.Ordinal.GetHashCode(deserializedId.TypeName);
+        };
+    }
+
+    private static BatchPartitionKeyResolver NodeInnerPartitioner()
+    {
+        return context =>
+        {
+            var deserializedId = context.GetLocalState<NodeId>(IdValue);
+
+            if (context.Schema.Types.TryGetType<ObjectType>(deserializedId.TypeName, out var type)
+                && type.Features.Get<NodeTypeFeature>() is { NodeResolver.BatchPartitionKey: { } inner })
+            {
+                return inner(context);
+            }
+
+            return 0;
+        };
     }
 }
