@@ -177,7 +177,7 @@ The base schema is stored exactly as supplied. Fusion does not fold the extensio
 | --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | `extend type X` references a type not in the base schema        | The type is implicitly created.                                                                       |
 | Extension declares a field that already exists on the base type | Directives merge onto the existing field. Return type and any provided arguments must match the base. |
-| Extension declares the same field twice in one document         | Parsing fails with a duplicate field error.                                                           |
+| Same field appears twice in one `extend` block                  | Parsing fails with a duplicate field error.                                                           |
 | Extension applies a directive the schema does not define        | Implicitly created at parse time. Fusion's built-in directives do not need to be declared.            |
 | Non-repeatable directive applied twice to the same target       | Parsing fails with a non-repeatable directive error.                                                  |
 
