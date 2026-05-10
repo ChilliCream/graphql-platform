@@ -148,7 +148,7 @@ Thinking pages help you choose the right approach. Other documentation shows you
 | Add Hot Chocolate to an existing ASP.NET Core app | [Existing ASP.NET Core app](/docs/hotchocolate/v16/learn/4-installation-and-setup/existing-aspnet-core-app/) |
 | Translate REST, OData, Apollo Server, GraphQL.NET, or earlier Hot Chocolate habits | [Coming from another stack](/docs/hotchocolate/v16/learn/5-coming-from/) |
 | Look up exact attributes, descriptors, options, or provider APIs | [Building a schema](/docs/hotchocolate/v16/building-a-schema/), [Resolvers and data](/docs/hotchocolate/v16/resolvers-and-data/), or [Server](/docs/hotchocolate/v16/server/) |
-| Recover from a tutorial issue | [Stuck in the tutorial](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server/stuck/) |
+| Recover from setup or endpoint issues | [Get Started troubleshooting](/docs/hotchocolate/v16/get-started/troubleshooting/) |
 | Explore, register, or monitor APIs with ChilliCream tooling | [Nitro](/docs/nitro/) |
 
 # Next steps

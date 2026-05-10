@@ -426,6 +426,6 @@ After your endpoint works, choose your next step:
 - [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader/): Avoid N+1 query behavior when loading related data.
 - [Authorization](/docs/hotchocolate/v16/securing-your-api/authorization/): Add policies and roles to fields or operations.
 - [HTTP Transport](/docs/hotchocolate/v16/server/http-transport/) and [Endpoints](/docs/hotchocolate/v16/server/endpoints/): Learn about request semantics and endpoint options.
-- [Prepare for production](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server/13-prepare-for-production/): Review production readiness.
+- [Server](/docs/hotchocolate/v16/server/), [Securing your API](/docs/hotchocolate/v16/securing-your-api/), and [Performance](/docs/hotchocolate/v16/performance/): Review production readiness.
 - [ASP.NET Core setup](/docs/hotchocolate/v16/learn/4-installation-and-setup/aspnet-core/): Switch if Functions no longer fits your API.
 - [Migrate from 15 to 16](/docs/hotchocolate/v16/migrating/migrate-from-15-to-16/): Upgrade from an older Hot Chocolate server.

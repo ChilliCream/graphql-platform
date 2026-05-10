@@ -302,7 +302,7 @@ Use [Nitro operations](/docs/nitro/documents/operations/) for a quick design che
 
 # Next steps
 
-- Build the guided implementation in [Add pagination](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server/07-add-pagination/).
+- Build the guided implementation in [Add pagination](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server/05-add-pagination/).
 - Configure cursor pagination, total count, providers, names, page sizes, and nullable cursor keys in [Pagination](/docs/hotchocolate/v16/resolvers-and-data/pagination/).
 - Add relative page cursors with the Hot Chocolate paging options when the UI needs nearby page-window controls.
 - Add stable ordering with [Sorting](/docs/hotchocolate/v16/resolvers-and-data/sorting/).

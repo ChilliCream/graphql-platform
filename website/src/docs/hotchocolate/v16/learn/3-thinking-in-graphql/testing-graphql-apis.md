@@ -67,7 +67,7 @@ When building an `ISchemaDefinition` directly, use the Hot Chocolate CookieCrumb
 schema.MatchSnapshot();
 ```
 
-For setup steps, required packages, and snapshot update workflow, see [Test your server](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server/10-test-your-server/) or the [Testing guide](/docs/hotchocolate/v16/guides/testing/).
+For setup steps, required packages, and snapshot update workflow, see the [Testing guide](/docs/hotchocolate/v16/guides/testing/).
 
 # Test Real Operations That Represent User Journeys
 
@@ -296,7 +296,7 @@ Grow the suite as the schema and production risk grow. A small internal API may 
 
 # Go Deeper When You Need Implementation Details
 
-- For step-by-step test setup, see [Test your server](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server/10-test-your-server/).
+- For step-by-step test setup, see the [Testing guide](/docs/hotchocolate/v16/guides/testing/).
 - For executor tests and CookieCrumble APIs, see the [Testing guide](/docs/hotchocolate/v16/guides/testing/).
 - For schema change review, see [Schema evolution](/docs/hotchocolate/v16/learn/3-thinking-in-graphql/schema-evolution/) and [Schema design principles](/docs/hotchocolate/v16/learn/3-thinking-in-graphql/schema-design-principles/).
 - For null propagation and partial data, see [Nullability](/docs/hotchocolate/v16/learn/3-thinking-in-graphql/nullability/) and [Errors](/docs/hotchocolate/v16/learn/3-thinking-in-graphql/errors/).

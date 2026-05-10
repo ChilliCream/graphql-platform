@@ -12,11 +12,11 @@ Use the table below to match your current goal with the recommended next page.
 | Your goal | When to choose this | Go here |
 | --- | --- | --- |
 | Make another small change | You want to practice after your first working query and confirm each change as you go. | [Learn quick start](/docs/hotchocolate/v16/learn/1-quick-start) |
-| Build a complete server | You want a step-by-step project that covers schema basics, data, clients, security, and production. | [Build your first GraphQL server](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server) |
+| Build a guided first server | You want a step-by-step project that covers schema basics, query resolvers, a small data service, pagination, and one mutation. | [Build your first GraphQL server](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server) |
 | Understand GraphQL concepts | You are new to GraphQL, coming from REST or controllers, or want to understand schemas, operations, execution, clients, nullability, errors, and data access. | [Thinking in GraphQL](/docs/hotchocolate/v16/learn/3-thinking-in-graphql) |
 | Add GraphQL to an existing app | You have an ASP.NET Core app and want to add `/graphql` alongside your current routes. | [Add to an existing app](/docs/hotchocolate/v16/get-started/add-to-existing-app) |
 | Call the server from another process | Nitro is working, and now you need to send operations from an application, CLI tool, backend service, or generated client. | [Connect a client](/docs/hotchocolate/v16/get-started/connecting-a-client) |
-| Prepare for a production discussion | You need to review request limits, trusted documents, warmup, observability, smoke tests, and security before rollout. | [Prepare for production](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server/13-prepare-for-production) |
+| Prepare for a production discussion | You need to review request limits, trusted documents, warmup, observability, smoke tests, and security before rollout. | [Server](/docs/hotchocolate/v16/server), [Securing your API](/docs/hotchocolate/v16/securing-your-api), and [Performance](/docs/hotchocolate/v16/performance) |
 | Recover or look up exact behavior | Something is not working, or you need details about endpoints, schema types, resolvers, data middleware, security, or transport. | [Troubleshooting](/docs/hotchocolate/v16/get-started/troubleshooting) |
 
 # Short, focused lessons: Learn quick start
@@ -31,11 +31,11 @@ This approach is helpful when you want to:
 
 If you have already finished [Make it yours](/docs/hotchocolate/v16/get-started/make-it-yours), the quick start lessons continue in the same style but with more structure.
 
-# Build a complete server: Tutorial project
+# Build a guided first server: Tutorial project
 
-Choose [Build your first GraphQL server](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server) if you want a guided project that covers more than isolated edits. This tutorial builds a realistic server over several chapters. You will define the schema, write resolvers, connect to data, call the server from clients, add security, test behavior, and prepare for production.
+Choose [Build your first GraphQL server](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server) if you want a guided project that covers more than isolated edits. This tutorial builds a small product catalog server over several chapters. You will define the schema, write resolvers, move data behind a small service, add pagination, and add one mutation.
 
-This path helps you see how all the parts fit together. The tutorial includes source code and checkpoints so you can compare your project to a known state if you need to get back on track.
+This path helps you see how the first pieces fit together before you move to deeper reference docs.
 
 # Deepen your understanding: GraphQL and Hot Chocolate concepts
 
@@ -73,7 +73,7 @@ Use this as a bridge from "the server works" to "an application can use this API
 
 # Prepare for production
 
-Choose [Prepare for production](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server/13-prepare-for-production) when you need a checklist for team planning before rollout. This section introduces the topics to review before going live. It does not replace a deployment plan, security review, or platform-specific hosting guide.
+Use the production reference areas when you need a checklist for team planning before rollout. These sections introduce the topics to review before going live. They do not replace a deployment plan, security review, or platform-specific hosting guide.
 
 Use this page to start discussions about:
 
@@ -84,7 +84,7 @@ Use this page to start discussions about:
 - deployment smoke tests
 - authentication, authorization, and introspection policy
 
-For more details on hardening your server, combine the production chapter with [Securing your API](/docs/hotchocolate/v16/securing-your-api), [Performance](/docs/hotchocolate/v16/performance), and [Server](/docs/hotchocolate/v16/server).
+For more details on hardening your server, combine [Securing your API](/docs/hotchocolate/v16/securing-your-api), [Performance](/docs/hotchocolate/v16/performance), and [Server](/docs/hotchocolate/v16/server).
 
 # Troubleshooting and reference
 
@@ -116,7 +116,6 @@ If you are unsure which route to take, follow this order:
 2. Build the guided project in [Build your first GraphQL server](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server).
 3. Read [Thinking in GraphQL](/docs/hotchocolate/v16/learn/3-thinking-in-graphql) if a concept is blocking your design.
 4. Use [Installation and setup](/docs/hotchocolate/v16/learn/4-installation-and-setup) when adapting the server to your hosting environment.
-5. Review [Prepare for production](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server/13-prepare-for-production) before rollout planning.
+5. Review [Server](/docs/hotchocolate/v16/server), [Securing your API](/docs/hotchocolate/v16/securing-your-api), and [Performance](/docs/hotchocolate/v16/performance) before rollout planning.
 
 You can always skip ahead if your current work matches a more specific topic.
-

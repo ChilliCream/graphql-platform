@@ -17,11 +17,11 @@ Use the table below to find the best starting point for your current situation.
 | --- | --- | --- | --- |
 | You do not have a running server yet | [Get Started](/docs/hotchocolate/v16/get-started/) | A first working Hot Chocolate result and a verified endpoint | [Quick start lessons](/docs/hotchocolate/v16/learn/1-quick-start/) or the [full tutorial](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server/) |
 | You have a running server and want small next steps | [Quick start lessons](/docs/hotchocolate/v16/learn/1-quick-start/) | A new field, an argument, a query variable, and an early data access preview | [Build the full tutorial project](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server/) |
-| You want a complete guided project | [Build your first GraphQL server](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server/) | A tutorial server with schema, resolvers, data access, DataLoader, pagination, mutations, subscriptions, tests, a client call, security basics, and production preparation | [Source code and checkpoints](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server/00-source-code-and-checkpoints/) when you need to recover |
+| You want a guided first-server project | [Build your first GraphQL server](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server/) | A tutorial server with schema types, query resolvers, a small data service, cursor pagination, and one mutation | [You did it](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server/you-did-it/) for next-step links |
 | You want to understand GraphQL and Hot Chocolate concepts before coding more | [Thinking in GraphQL](/docs/hotchocolate/v16/learn/3-thinking-in-graphql/) | A mental model for schemas, operations, resolvers, data, nullability, errors, clients, performance, and schema evolution | The tutorial chapter that lets you apply the concept |
 | You need to add Hot Chocolate to a specific host | [Installation and setup](/docs/hotchocolate/v16/learn/4-installation-and-setup/) | The setup route for your ASP.NET Core app, local environment, container, proxy, Azure Functions, Aspire, or worker-style execution | [Packages](/docs/hotchocolate/v16/learn/4-installation-and-setup/packages/) when version alignment is in question |
 | You are translating previous experience | [Coming from another stack](/docs/hotchocolate/v16/learn/5-coming-from/) | A bridge from REST, EF-backed REST APIs, OData, Apollo Server, GraphQL.NET, or earlier Hot Chocolate knowledge | Targeted Learn pages for the concepts that differ |
-| You are blocked in the tutorial | [Stuck in the tutorial](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server/stuck/) | A symptom-based recovery route for project state, schema output, query results, data, or checkpoints | [Source code and checkpoints](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server/00-source-code-and-checkpoints/) |
+| You are blocked in the tutorial | [Get Started troubleshooting](/docs/hotchocolate/v16/get-started/troubleshooting/) | Help with template installation, restore, startup, endpoints, Nitro, and schema refresh issues | Return to the tutorial page where the result first differed |
 
 # Follow the recommended reading order
 
@@ -31,7 +31,7 @@ You do not need to read every page in order. Use this sequence when you want a c
 
 1. Get a first result in [Get Started](/docs/hotchocolate/v16/get-started/) if you have not already done so.
 2. Use the [quick start lessons](/docs/hotchocolate/v16/learn/1-quick-start/) to make small schema and resolver edits.
-3. Build the [full tutorial project](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server/).
+3. Build the [first-server tutorial project](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server/).
 4. Read [Thinking in GraphQL](/docs/hotchocolate/v16/learn/3-thinking-in-graphql/) when design questions appear.
 5. Use [Installation and setup](/docs/hotchocolate/v16/learn/4-installation-and-setup/) when you adapt the ideas to a real host.
 6. Use [Coming from another stack](/docs/hotchocolate/v16/learn/5-coming-from/) when older concepts influence your design choices.
@@ -40,7 +40,7 @@ After the first two steps, you will have a running server, a new field, an argum
 
 ## If you already know GraphQL or .NET server development
 
-Skim the [quick start lessons](/docs/hotchchocolate/v16/learn/1-quick-start/) or the [tutorial overview](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server/) to get familiar with the documentation style. Then read [Implementation-first vs code-first](/docs/hotchocolate/v16/learn/3-thinking-in-graphql/implementation-first-vs-code-first/) to understand how schema examples are presented.
+Skim the [quick start lessons](/docs/hotchocolate/v16/learn/1-quick-start/) or the [tutorial overview](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server/) to get familiar with the documentation style. Then read [Implementation-first vs code-first](/docs/hotchocolate/v16/learn/3-thinking-in-graphql/implementation-first-vs-code-first/) to understand how schema examples are presented.
 
 From there, go to [setup guidance](/docs/hotchocolate/v16/learn/4-installation-and-setup/) or the concept essay that addresses your current design question.
 
@@ -61,24 +61,24 @@ The quick start lessons are designed for short, focused edits once your server i
 | [Add an argument](/docs/hotchocolate/v16/learn/1-quick-start/add-an-argument/) | You want a field that changes based on client input | An operation with a variable changes the field result |
 | [Use real data preview](/docs/hotchocolate/v16/learn/1-quick-start/use-real-data-preview/) | You want to replace sample data with a first data source | A resolver returns data from your chosen source and you know where deeper data guidance lives |
 
-Use these lessons to build confidence with small changes. When you are ready for a complete server path with data modeling, batching, tests, and production hardening, move to the full tutorial.
+Use these lessons to build confidence with small changes. When you are ready for a guided project that connects setup, schema types, resolvers, pagination, and mutations, move to the first-server tutorial.
 
-# Build the full tutorial project
+# Build the first-server tutorial project
 
-The full tutorial is the best way to gain a lasting understanding. It guides you through building a realistic server, from project setup to production readiness.
+The first-server tutorial is the best way to connect the basics in one small project. It guides you through building a product catalog server from project setup through the first mutation.
 
 You will progress through these phases:
 
 1. **Set up the project:** Create and run the tutorial baseline, open Nitro, and verify the server.
-2. **Define the graph:** Add types, fields, arguments, filters, and resolver methods.
-3. **Connect data:** Replace in-memory examples with real data access patterns, then use DataLoader to avoid repeated work.
-4. **Shape client operations:** Add pagination, mutations, subscriptions, and a client request flow.
-5. **Verify behavior:** Test the server and compare responses with checkpoints.
-6. **Prepare for production:** Review security basics, field-level authorization, and readiness checks.
+2. **Define the graph:** Add product and brand types.
+3. **Read data:** Add query resolvers and move catalog data behind a small service.
+4. **Shape list results:** Add cursor pagination without returning all products at once.
+5. **Change data:** Add one create-product mutation.
+6. **Choose next steps:** Move to reference docs for filtering, sorting, DataLoader, testing, clients, security, or production topics.
 
-Start with [Build your first GraphQL server](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server/). Bookmark [Source code and checkpoints](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server/00-source-code-and-checkpoints/) and [Stuck in the tutorial](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server/stuck/) for quick recovery if you get stuck.
+Start with [Build your first GraphQL server](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server/). If you get stuck, return to the page where your output first differed and compare the command, code, schema, and operation shown there.
 
-If you only need a specific part, use the tutorial chapters as entry points. For example, open the DataLoader chapter if you see repeated data calls for the same relationship field, or the production chapter when preparing a deployment checklist.
+If you only need a specific part, use the tutorial pages as entry points. For example, open [Add pagination](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server/05-add-pagination/) for the first connection example, or use the reference docs when you need a production feature.
 
 # Use Thinking in GraphQL for design questions
 
@@ -141,8 +141,8 @@ Encountering obstacles is part of learning any framework. Use the table below to
 | Package restore or runtime errors suggest mixed Hot Chocolate versions | [Packages](/docs/hotchocolate/v16/learn/4-installation-and-setup/packages/) |
 | The local server starts but `/graphql` returns 404 or does not show the expected tool | [Get Started troubleshooting](/docs/hotchocolate/v16/get-started/troubleshooting/) and [server endpoints](/docs/hotchocolate/v16/server/endpoints/) |
 | A new field or argument does not appear after an edit | [Add a field](/docs/hotchocolate/v16/learn/1-quick-start/add-a-field/) or [Building a schema](/docs/hotchocolate/v16/building-a-schema/) |
-| Tutorial output differs from the expected result | [Stuck in the tutorial](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server/stuck/) |
-| You need to restore a known tutorial state | [Source code and checkpoints](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server/00-source-code-and-checkpoints/) |
+| Tutorial output differs from the expected result | Return to the page where the output first differed and compare the command, code, schema, variables, and response shown there |
+| You need setup or endpoint recovery help | [Get Started troubleshooting](/docs/hotchocolate/v16/get-started/troubleshooting/) |
 | Data access or DataLoader behavior differs from the lesson | [Resolver and data middleware model](/docs/hotchocolate/v16/learn/3-thinking-in-graphql/resolver-and-data-middleware-model/) and [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader/) |
 | Previous stack vocabulary is leading to the wrong design | [Coming from another stack](/docs/hotchocolate/v16/learn/5-coming-from/) |
 

@@ -228,7 +228,7 @@ DataLoader batches keys and deduplicates repeated loads during a single GraphQL 
 
 Batch boundaries must respect tenant, authorization, cancellation, and data ownership. Never batch keys from contexts that shouldn’t see the same data. If your backing source can already fetch the relationship in one planned provider query, you may not need DataLoader for that field.
 
-See the [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader/) reference and the tutorial [Fix N+1 with DataLoader](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server/06-fix-n-plus-1-with-dataloader/).
+See the [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader/) reference.
 
 # Keep upstream models behind your schema
 
@@ -344,8 +344,8 @@ Choose your next step based on what you need to accomplish:
 
 | I need to... | Go to |
 | --- | --- |
-| Follow a guided implementation | [Connect to real data tutorial](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server/05-connect-to-real-data/) |
-| Batch relationship lookups | [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader/) and [Fix N+1 with DataLoader](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server/06-fix-n-plus-1-with-dataloader/) |
+| Follow a first-server guided implementation | [Use a data service](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server/04-use-a-data-service/) |
+| Batch relationship lookups | [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader/) |
 | Design list fields | [Pagination styles](/docs/hotchocolate/v16/learn/3-thinking-in-graphql/pagination-styles/) and [Pagination](/docs/hotchocolate/v16/resolvers-and-data/pagination/) |
 | Compose provider-backed shaping | [Resolver and data middleware model](/docs/hotchocolate/v16/learn/3-thinking-in-graphql/resolver-and-data-middleware-model/), [Projections](/docs/hotchocolate/v16/resolvers-and-data/projections/), [Filtering](/docs/hotchocolate/v16/resolvers-and-data/filtering/), and [Sorting](/docs/hotchocolate/v16/resolvers-and-data/sorting/) |
 | Configure common database providers | [Entity Framework Core](/docs/hotchocolate/v16/integrations/entity-framework/), [MongoDB](/docs/hotchocolate/v16/integrations/mongodb/), [Marten](/docs/hotchocolate/v16/integrations/marten/), and RavenDB with `HotChocolate.Data.Raven` |

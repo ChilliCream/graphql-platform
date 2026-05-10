@@ -85,7 +85,7 @@ In Hot Chocolate, application code typically publishes events using `ITopicEvent
 
 The topic acts as the link between publishers and subscribers. By default, simple examples use the subscription method name as the topic. When the audience depends on an argument, a `[Topic]` pattern can route by resource, tenant, or user.
 
-For implementation details, see [Subscriptions](/docs/hotchocolate/v16/building-a-schema/subscriptions/). To build your first working flow, follow the tutorial chapter [Add subscriptions](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server/09-add-subscriptions/).
+For implementation details and working examples, see [Subscriptions](/docs/hotchocolate/v16/building-a-schema/subscriptions/).
 
 # Designing topics: who should receive the event?
 
@@ -220,7 +220,7 @@ Before going to production, consider these questions:
 | Where are broker, transport, and resolver errors visible? | You need logs, traces, metrics, and smoke tests that include realtime paths. |
 | Which layer can close or buffer streams? | Proxies, gateways, load balancers, and browsers can affect WebSocket and SSE behavior. |
 
-Use production smoke tests that keep a subscription active, publish a known event, and verify the streamed response. Pair this with server instrumentation and broker monitoring. The tutorial production chapter covers [production readiness](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server/13-prepare-for-production/), and Nitro can help observe operations through [Operation Monitoring](/docs/nitro/open-telemetry/operation-monitoring/).
+Use production smoke tests that keep a subscription active, publish a known event, and verify the streamed response. Pair this with server instrumentation and broker monitoring. Nitro can help observe operations through [Operation Monitoring](/docs/nitro/open-telemetry/operation-monitoring/).
 
 # Troubleshooting missing or delayed events
 
@@ -240,11 +240,11 @@ When troubleshooting, isolate the first boundary that fails: connection settings
 
 Use this mental model to guide your next step:
 
-- **Build your first subscription:** follow [Add subscriptions](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server/09-add-subscriptions/).
+- **Build your first subscription:** start with [Subscriptions](/docs/hotchocolate/v16/building-a-schema/subscriptions/).
 - **Define subscription fields, publish events, and configure providers:** see [Subscriptions](/docs/hotchocolate/v16/building-a-schema/subscriptions/).
 - **Configure GraphQL endpoints and transports:** see [Endpoints](/docs/hotchocolate/v16/server/endpoints/) and [HTTP transport](/docs/hotchocolate/v16/server/http-transport/).
 - **Secure connection and operation behavior:** see [Authentication](/docs/hotchocolate/v16/securing-your-api/authentication/), [Authorization](/docs/hotchocolate/v16/securing-your-api/authorization/), and [Interceptors](/docs/hotchocolate/v16/server/interceptors/).
 - **Verify manually:** use Nitro [Connection Settings](/docs/nitro/documents/connection-settings/) and [Response Pane](/docs/nitro/documents/response/).
-- **Prepare for production rollout:** review [Prepare for production](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server/13-prepare-for-production/), [Instrumentation](/docs/hotchocolate/v16/server/instrumentation/), [Endpoints](/docs/hotchocolate/v16/server/endpoints/), and Microsoft's [proxy and load balancer configuration](https://learn.microsoft.com/aspnet/core/host-and-deploy/proxy-load-balancer).
+- **Prepare for production rollout:** review [Instrumentation](/docs/hotchocolate/v16/server/instrumentation/), [Endpoints](/docs/hotchocolate/v16/server/endpoints/), [Performance](/docs/hotchocolate/v16/performance/), and Microsoft's [proxy and load balancer configuration](https://learn.microsoft.com/aspnet/core/host-and-deploy/proxy-load-balancer).
 
 A production-ready subscription design names the subscription operation, routes events through topics, selects a streaming transport, chooses a delivery backend, and defines lifecycle, authorization, recovery, and observability policies.

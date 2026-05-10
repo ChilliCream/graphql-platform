@@ -413,4 +413,4 @@ Next, follow the page that matches your production path:
 - [Endpoints](/docs/hotchocolate/v16/server/endpoints/) for path, Nitro, schema request, HTTP, and WebSocket options
 - [Securing your API](/docs/hotchocolate/v16/securing-your-api/) for authentication, authorization, introspection, request limits, and cost analysis
 - [HTTP transport](/docs/hotchocolate/v16/server/http-transport/) for request envelopes, GET and POST behavior, batching, and CSRF-related preflight settings
-- [Prepare for production](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server/13-prepare-for-production/) for the tutorial production checklist
+- [Server](/docs/hotchocolate/v16/server/), [Securing your API](/docs/hotchocolate/v16/securing-your-api/), and [Performance](/docs/hotchocolate/v16/performance/) for production readiness topics

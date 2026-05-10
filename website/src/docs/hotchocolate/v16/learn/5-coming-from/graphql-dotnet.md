@@ -361,7 +361,7 @@ For testing, use a mix of:
 - HTTP integration tests for endpoint behavior
 - authorization and error tests for client-visible failure contracts
 
-See [Test your server](/docs/hotchocolate/v16/learn/2-tutorial-build-your-first-graphql-server/10-test-your-server/) and the [Testing guide](/docs/hotchocolate/v16/guides/testing/) for Hot Chocolate test setup.
+See the [Testing guide](/docs/hotchocolate/v16/guides/testing/) for Hot Chocolate test setup.
 
 **Checkpoint:** Choose your migration strategy and your first slice before starting the migration branch.
 
