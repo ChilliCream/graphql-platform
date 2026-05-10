@@ -70,7 +70,7 @@ enum StockStatus {
 
 What each block does:
 
-- `extend type Query { productById(id: ID!): Product @lookup }` promotes an existing field to a lookup. The field signature must match the base exactly (same name, same arguments, same return type) so the extension targets the existing field rather than declaring a new one.
+- `extend type Query { productById(id: ID!): Product @lookup }` promotes an existing field to a lookup. The field name targets the existing field, and the return type must match the base. Arguments do not need to be repeated; if you do repeat them, their types and defaults must match the base. New arguments may be added.
 - `extend type Query { productByCode(code: String!): Product @lookup @internal }` is also a lookup, but `@internal` keeps it out of the public surface. The gateway uses it to enter the Products subgraph when resolving cross-subgraph references, while clients never see it. See [Entities and Lookups](/docs/fusion/v16/entities-and-lookups) for the public versus internal lookup distinction.
 - `extend type Product { warehouseLocationCode: String @inaccessible }` applies a directive to an existing field. The field type repeats the base declaration; only the directive is the new contribution. Hidden fields can still be referenced by `@require` dependencies in other source schemas. See [Schema Exposure and Evolution](/docs/fusion/v16/schema-exposure-and-evolution).
 - `extend type Product { stockStatus(warehouseLocationCode: ... @require(...)): StockStatus! }` adds a brand new field with a hidden resolver argument. `@require(field: "warehouseLocationCode")` tells the gateway to populate the argument from the existing `warehouseLocationCode` field, and the argument is removed from the public surface so clients see `stockStatus: StockStatus!` with no arguments. Adding a field via extensions still requires that field to be resolvable at runtime by the underlying subgraph implementation: the extensions document only declares the field, it does not provide the resolver. See [Data Requirements](/docs/fusion/v16/data-requirements-and-mapping) for `@require` semantics.
@@ -173,17 +173,17 @@ The base schema is stored exactly as supplied. Fusion does not fold the extensio
 
 ## Behavior Reference
 
-| Situation                                                       | Behavior                                                                                   |
-| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| `extend type X` references a type not in the base schema        | The type is implicitly created.                                                            |
-| Extension declares a field that already exists on the base type | Directives merge onto the existing field. A signature mismatch is a parsing error.         |
-| Extension declares the same field twice in one document         | Parsing fails with a duplicate field error.                                                |
-| Extension applies a directive the schema does not define        | Implicitly created at parse time. Fusion's built-in directives do not need to be declared. |
-| Non-repeatable directive applied twice to the same target       | Parsing fails with a non-repeatable directive error.                                       |
+| Situation                                                       | Behavior                                                                                              |
+| --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `extend type X` references a type not in the base schema        | The type is implicitly created.                                                                       |
+| Extension declares a field that already exists on the base type | Directives merge onto the existing field. Return type and any provided arguments must match the base. |
+| Extension declares the same field twice in one document         | Parsing fails with a duplicate field error.                                                           |
+| Extension applies a directive the schema does not define        | Implicitly created at parse time. Fusion's built-in directives do not need to be declared.            |
+| Non-repeatable directive applied twice to the same target       | Parsing fails with a non-repeatable directive error.                                                  |
 
 ## Troubleshooting
 
-**My directive did not apply.** Check that the extension's field signature matches the base field's name, arguments, and return type exactly. A signature mismatch is treated as a different field, so the directive lands somewhere you did not intend or triggers an unrelated error.
+**My directive did not apply.** Check the field name. If it does not exactly match a field on the base type, the parser adds a new field rather than extending the existing one, and the directive lands on that new field. Return type or repeated argument mismatches are different and cause parsing to fail rather than silently producing a new field.
 
 **Composition reports the field is already defined.** You wrote a bare `type X` redeclaration where you meant `extend type X`, and the field was duplicated. Add the `extend` keyword.
 
