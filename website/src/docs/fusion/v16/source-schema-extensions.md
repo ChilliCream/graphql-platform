@@ -178,8 +178,8 @@ The base schema is stored exactly as supplied. Fusion does not fold the extensio
 | `extend type X` references a type not in the base schema        | The type is implicitly created.                                                                       |
 | Extension declares a field that already exists on the base type | Directives merge onto the existing field. Return type and any provided arguments must match the base. |
 | Same field appears twice in one `extend` block                  | Parsing fails with a duplicate field error.                                                           |
-| Extension applies a directive the schema does not define        | Implicitly created at parse time. Fusion's built-in directives do not need to be declared.            |
-| Non-repeatable directive applied twice to the same target       | Parsing fails with a non-repeatable directive error.                                                  |
+| Extension applies a directive the schema does not define        | Implicit at parse time. Fusion's built-ins compose as-is; other custom directives must be declared.   |
+| Extension re-applies a non-repeatable directive to the target   | Parsing fails when the extension's directives are merged onto the target.                             |
 
 ## Troubleshooting
 
@@ -187,7 +187,7 @@ The base schema is stored exactly as supplied. Fusion does not fold the extensio
 
 **Composition reports the field is already defined.** You wrote a bare `type X` redeclaration where you meant `extend type X`, and the field was duplicated. Add the `extend` keyword.
 
-**I want to apply a directive that the schema does not import.** No action needed. Extensions accept undefined directives at parse time, and Fusion resolves its built-in directives during composition.
+**I want to apply a directive that the schema does not import.** Fusion's built-in directives compose without further declaration. For any other custom directive, declare it in the schema (or in the extensions document) before applying it; otherwise composition will fail validation even though the parser accepts the unknown directive.
 
 ## Next Steps
 
