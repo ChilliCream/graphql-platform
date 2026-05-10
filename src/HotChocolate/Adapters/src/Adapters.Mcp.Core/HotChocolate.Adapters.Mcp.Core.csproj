@@ -12,33 +12,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CaseConverter" />
     <PackageReference Include="ChilliCream.ModelContextProtocol.AspNetCore" />
     <PackageReference Include="JsonSchema.Net" />
     <PackageReference Include="System.Reactive" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Adapters.Mcp.Abstractions\HotChocolate.Adapters.Mcp.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\AspNetCore\src\Transport.Formatters\HotChocolate.Transport.Formatters.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Execution.Abstractions\HotChocolate.Execution.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Types.Abstractions\HotChocolate.Types.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Validation\HotChocolate.Validation.csproj" />
     <ProjectReference Include="..\..\..\Language\src\Language\HotChocolate.Language.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="Properties\McpAdapterResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>McpAdapterResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="Properties\McpAdapterResources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>McpAdapterResources.resx</DependentUpon>
-    </Compile>
   </ItemGroup>
 
 </Project>

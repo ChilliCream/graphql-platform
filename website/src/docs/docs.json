@@ -22,32 +22,74 @@
             "path": "explore-the-ui",
             "title": "Explore the UI",
             "items": [
-              { "path": "index", "title": "Overview" },
-              { "path": "status-bar", "title": "Status Bar" },
-              { "path": "explorer", "title": "Explorer" }
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "status-bar",
+                "title": "Status Bar"
+              },
+              {
+                "path": "explorer",
+                "title": "Explorer"
+              }
             ]
           },
           {
             "path": "documents",
             "title": "Documents",
             "items": [
-              { "path": "index", "title": "Overview" },
-              { "path": "operations", "title": "Operations" },
-              { "path": "response", "title": "Response Pane" },
-              { "path": "schema-reference", "title": "Schema Reference" },
-              { "path": "schema-definition", "title": "Schema Definition" },
-              { "path": "connection-settings", "title": "Connection Settings" },
-              { "path": "authentication", "title": "Authentication Flows" }
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "operations",
+                "title": "Operations"
+              },
+              {
+                "path": "response",
+                "title": "Response Pane"
+              },
+              {
+                "path": "schema-reference",
+                "title": "Schema Reference"
+              },
+              {
+                "path": "schema-definition",
+                "title": "Schema Definition"
+              },
+              {
+                "path": "connection-settings",
+                "title": "Connection Settings"
+              },
+              {
+                "path": "authentication",
+                "title": "Authentication Flows"
+              }
             ]
           },
           {
             "path": "apis",
             "title": "APIs",
             "items": [
-              { "path": "overview", "title": "Overview" },
-              { "path": "stages", "title": "Stages" },
-              { "path": "deployments", "title": "Deployments" },
-              { "path": "fusion", "title": "Fusion" },
+              {
+                "path": "overview",
+                "title": "Overview"
+              },
+              {
+                "path": "stages",
+                "title": "Stages"
+              },
+              {
+                "path": "deployments",
+                "title": "Deployments"
+              },
+              {
+                "path": "fusion",
+                "title": "Fusion"
+              },
               {
                 "path": "schema-registry",
                 "title": "Schema Registry"
@@ -74,7 +116,10 @@
                 "path": "service-monitoring",
                 "title": "Service Monitoring"
               },
-              { "path": "logging", "title": "Logging" }
+              {
+                "path": "logging",
+                "title": "Logging"
+              }
             ]
           },
           {
@@ -98,42 +143,61 @@
             "title": "CLI",
             "items": [
               {
-                "path": "index",
-                "title": "Introduction"
-              },
-              {
-                "path": "authentication",
-                "title": "Authentication"
+                "path": "installation",
+                "title": "Installation"
               },
               {
                 "path": "global-options",
                 "title": "Global Options"
               },
               {
-                "path": "automation",
-                "title": "Automation"
-              }
-            ]
-          },
-          {
-            "path": "cli-commands",
-            "title": "CLI Commands",
-            "items": [
-              { "path": "api-key", "title": "api-key" },
-              { "path": "api", "title": "api" },
-              { "path": "client", "title": "client" },
-              { "path": "environment", "title": "environment" },
-              { "path": "launch", "title": "launch" },
-              { "path": "login", "title": "login" },
-              { "path": "logout", "title": "logout" },
-              { "path": "pat", "title": "pat" },
-              { "path": "schema", "title": "schema" },
-              { "path": "stage", "title": "stage" },
-              {
-                "path": "fusion-configuration",
-                "title": "fusion-configuration"
+                "path": "session",
+                "title": "session"
               },
-              { "path": "workspace", "title": "workspace" }
+              {
+                "path": "api",
+                "title": "api"
+              },
+              {
+                "path": "api-key",
+                "title": "api-key"
+              },
+              {
+                "path": "pat",
+                "title": "pat"
+              },
+              {
+                "path": "schema",
+                "title": "schema"
+              },
+              {
+                "path": "client",
+                "title": "client"
+              },
+              {
+                "path": "fusion",
+                "title": "fusion"
+              },
+              {
+                "path": "mcp",
+                "title": "mcp"
+              },
+              {
+                "path": "openapi",
+                "title": "openapi"
+              },
+              {
+                "path": "environment",
+                "title": "environment"
+              },
+              {
+                "path": "stage",
+                "title": "stage"
+              },
+              {
+                "path": "workspace",
+                "title": "workspace"
+              }
             ]
           },
           {
@@ -144,17 +208,42 @@
             "path": "integrations",
             "title": "Integrations",
             "items": [
-              { "path": "express", "title": "Express Server" },
-              { "path": "hot-chocolate", "title": "Hot Chocolate" }
+              {
+                "path": "express",
+                "title": "Express Server"
+              },
+              {
+                "path": "hot-chocolate",
+                "title": "Hot Chocolate"
+              }
+            ]
+          },
+          {
+            "path": "adapters",
+            "title": "Adapters",
+            "items": [
+              {
+                "path": "mcp",
+                "title": "MCP"
+              }
             ]
           },
           {
             "path": "settings",
             "title": "Settings",
             "items": [
-              { "path": "index", "title": "Overview" },
-              { "path": "themes", "title": "Themes" },
-              { "path": "key-bindings", "title": "Key Bindings" }
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "themes",
+                "title": "Themes"
+              },
+              {
+                "path": "key-bindings",
+                "title": "Key Bindings"
+              }
             ]
           }
         ]
@@ -250,6 +339,16 @@
           {
             "path": "directives-reference",
             "title": "Directive Reference"
+          },
+          {
+            "path": "adapters",
+            "title": "Adapters",
+            "items": [
+              {
+                "path": "mcp",
+                "title": "MCP"
+              }
+            ]
           },
           {
             "path": "migration",
@@ -357,7 +456,10 @@
         "title": "v16 (preview)",
         "preview": true,
         "items": [
-          { "path": "index", "title": "Overview" },
+          {
+            "path": "index",
+            "title": "Overview"
+          },
           {
             "path": "get-started-with-graphql-in-net-core",
             "title": "Getting Started"
@@ -366,106 +468,274 @@
             "path": "building-a-schema",
             "title": "Building a Schema",
             "items": [
-              { "path": "index", "title": "Overview" },
-              { "path": "queries", "title": "Queries" },
-              { "path": "mutations", "title": "Mutations" },
-              { "path": "subscriptions", "title": "Subscriptions" },
-              { "path": "object-types", "title": "Object Types" },
-              { "path": "scalars", "title": "Scalars" },
-              { "path": "arguments", "title": "Arguments" },
-              { "path": "input-object-types", "title": "Input Object Types" },
-              { "path": "lists", "title": "Lists" },
-              { "path": "non-null", "title": "Non-Null" },
-              { "path": "enums", "title": "Enums" },
-              { "path": "interfaces", "title": "Interfaces" },
-              { "path": "unions", "title": "Unions" },
-              { "path": "extending-types", "title": "Extending Types" },
-              { "path": "directives", "title": "Directives" },
-              { "path": "documentation", "title": "Documentation" },
-              { "path": "versioning", "title": "Versioning" },
-              { "path": "relay", "title": "Relay" },
-              { "path": "dynamic-schemas", "title": "Dynamic Schemas" }
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "queries",
+                "title": "Queries"
+              },
+              {
+                "path": "mutations",
+                "title": "Mutations"
+              },
+              {
+                "path": "subscriptions",
+                "title": "Subscriptions"
+              },
+              {
+                "path": "object-types",
+                "title": "Object Types"
+              },
+              {
+                "path": "scalars",
+                "title": "Scalars"
+              },
+              {
+                "path": "arguments",
+                "title": "Arguments"
+              },
+              {
+                "path": "input-object-types",
+                "title": "Input Object Types"
+              },
+              {
+                "path": "lists",
+                "title": "Lists"
+              },
+              {
+                "path": "non-null",
+                "title": "Non-Null"
+              },
+              {
+                "path": "enums",
+                "title": "Enums"
+              },
+              {
+                "path": "interfaces",
+                "title": "Interfaces"
+              },
+              {
+                "path": "unions",
+                "title": "Unions"
+              },
+              {
+                "path": "extending-types",
+                "title": "Extending Types"
+              },
+              {
+                "path": "directives",
+                "title": "Directives"
+              },
+              {
+                "path": "documentation",
+                "title": "Documentation"
+              },
+              {
+                "path": "versioning",
+                "title": "Versioning"
+              },
+              {
+                "path": "relay",
+                "title": "Relay"
+              },
+              {
+                "path": "dynamic-schemas",
+                "title": "Dynamic Schemas"
+              }
             ]
           },
           {
             "path": "resolvers-and-data",
             "title": "Resolvers and Data",
             "items": [
-              { "path": "index", "title": "Overview" },
-              { "path": "resolvers", "title": "Resolvers" },
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "resolvers",
+                "title": "Resolvers"
+              },
               {
                 "path": "dependency-injection",
                 "title": "Dependency Injection"
               },
-              { "path": "dataloader", "title": "DataLoader" },
-              { "path": "pagination", "title": "Pagination" },
-              { "path": "filtering", "title": "Filtering" },
-              { "path": "sorting", "title": "Sorting" },
-              { "path": "projections", "title": "Projections" },
+              {
+                "path": "dataloader",
+                "title": "DataLoader"
+              },
+              {
+                "path": "pagination",
+                "title": "Pagination"
+              },
+              {
+                "path": "filtering",
+                "title": "Filtering"
+              },
+              {
+                "path": "sorting",
+                "title": "Sorting"
+              },
+              {
+                "path": "projections",
+                "title": "Projections"
+              },
               {
                 "path": "fetching-from-databases",
                 "title": "Fetching from Databases"
               },
-              { "path": "fetching-from-rest", "title": "Fetching from REST" }
+              {
+                "path": "fetching-from-rest",
+                "title": "Fetching from REST"
+              }
             ]
           },
           {
             "path": "guides",
             "title": "Guides",
             "items": [
-              { "path": "public-api", "title": "Building a Public API" },
-              { "path": "private-api", "title": "Building a Private API" },
-              { "path": "error-handling", "title": "Error Handling" },
-              { "path": "schema-evolution", "title": "Schema Evolution" },
-              { "path": "testing", "title": "Testing" },
-              { "path": "performance", "title": "Performance" },
-              { "path": "dynamic-schemas", "title": "Dynamic Schemas" },
-              { "path": "mcp-adapter", "title": "MCP Adapter" },
-              { "path": "openapi-adapter", "title": "OpenAPI Adapter" }
+              {
+                "path": "public-api",
+                "title": "Building a Public API"
+              },
+              {
+                "path": "private-api",
+                "title": "Building a Private API"
+              },
+              {
+                "path": "error-handling",
+                "title": "Error Handling"
+              },
+              {
+                "path": "schema-evolution",
+                "title": "Schema Evolution"
+              },
+              {
+                "path": "testing",
+                "title": "Testing"
+              },
+              {
+                "path": "performance",
+                "title": "Performance"
+              },
+              {
+                "path": "dynamic-schemas",
+                "title": "Dynamic Schemas"
+              },
+              {
+                "path": "mcp-adapter",
+                "title": "MCP Adapter"
+              },
+              {
+                "path": "openapi-adapter",
+                "title": "OpenAPI Adapter"
+              }
             ]
           },
           {
             "path": "execution-engine",
             "title": "Execution Engine",
             "items": [
-              { "path": "index", "title": "Overview" },
-              { "path": "field-middleware", "title": "Field Middleware" }
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "field-middleware",
+                "title": "Field Middleware"
+              }
             ]
           },
           {
             "path": "integrations",
             "title": "Integrations",
             "items": [
-              { "path": "index", "title": "Overview" },
-              { "path": "entity-framework", "title": "Entity Framework" },
-              { "path": "mongodb", "title": "MongoDB" },
-              { "path": "spatial-data", "title": "Spatial Data" },
-              { "path": "marten", "title": "Marten" }
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "entity-framework",
+                "title": "Entity Framework"
+              },
+              {
+                "path": "mongodb",
+                "title": "MongoDB"
+              },
+              {
+                "path": "spatial-data",
+                "title": "Spatial Data"
+              },
+              {
+                "path": "marten",
+                "title": "Marten"
+              }
             ]
           },
           {
             "path": "server",
             "title": "Server",
             "items": [
-              { "path": "index", "title": "Overview" },
-              { "path": "endpoints", "title": "Endpoints" },
-              { "path": "http-transport", "title": "Transports" },
-              { "path": "cache-control", "title": "Cache Control" },
-              { "path": "interceptors", "title": "Interceptors" },
-              { "path": "warmup", "title": "Warmup" },
-              { "path": "global-state", "title": "Global State" },
-              { "path": "files", "title": "File Uploads" },
-              { "path": "instrumentation", "title": "Instrumentation" },
-              { "path": "batching", "title": "Batching" },
-              { "path": "command-line", "title": "CLI Commands" }
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "endpoints",
+                "title": "Endpoints"
+              },
+              {
+                "path": "http-transport",
+                "title": "Transports"
+              },
+              {
+                "path": "cache-control",
+                "title": "Cache Control"
+              },
+              {
+                "path": "interceptors",
+                "title": "Interceptors"
+              },
+              {
+                "path": "warmup",
+                "title": "Warmup"
+              },
+              {
+                "path": "global-state",
+                "title": "Global State"
+              },
+              {
+                "path": "files",
+                "title": "File Uploads"
+              },
+              {
+                "path": "instrumentation",
+                "title": "Instrumentation"
+              },
+              {
+                "path": "batching",
+                "title": "Batching"
+              },
+              {
+                "path": "command-line",
+                "title": "CLI Commands"
+              }
             ]
           },
           {
             "path": "performance",
             "title": "Performance",
             "items": [
-              { "path": "index", "title": "Overview" },
-              { "path": "trusted-documents", "title": "Trusted Documents" },
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "trusted-documents",
+                "title": "Trusted Documents"
+              },
               {
                 "path": "automatic-persisted-operations",
                 "title": "Automatic Persisted Operations"
@@ -476,26 +746,68 @@
             "path": "securing-your-api",
             "title": "Securing Your API",
             "items": [
-              { "path": "index", "title": "Overview" },
-              { "path": "authentication", "title": "Authentication" },
-              { "path": "authorization", "title": "Authorization" },
-              { "path": "cost-analysis", "title": "Cost Analysis" },
-              { "path": "request-limits", "title": "Request Limits" },
-              { "path": "introspection", "title": "Controlling Introspection" }
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "authentication",
+                "title": "Authentication"
+              },
+              {
+                "path": "authorization",
+                "title": "Authorization"
+              },
+              {
+                "path": "cost-analysis",
+                "title": "Cost Analysis"
+              },
+              {
+                "path": "request-limits",
+                "title": "Request Limits"
+              },
+              {
+                "path": "introspection",
+                "title": "Controlling Introspection"
+              }
             ]
           },
           {
             "path": "api-reference",
             "title": "API Reference",
             "items": [
-              { "path": "custom-attributes", "title": "Attributes" },
-              { "path": "options", "title": "Configuration Options" },
-              { "path": "errors", "title": "Error Codes" },
-              { "path": "extending-filtering", "title": "Extending Filtering" },
-              { "path": "apollo-federation", "title": "Apollo Federation" },
-              { "path": "language", "title": "Language" },
-              { "path": "visitors", "title": "Visitors" },
-              { "path": "executable", "title": "Executable" }
+              {
+                "path": "custom-attributes",
+                "title": "Attributes"
+              },
+              {
+                "path": "options",
+                "title": "Configuration Options"
+              },
+              {
+                "path": "errors",
+                "title": "Error Codes"
+              },
+              {
+                "path": "extending-filtering",
+                "title": "Extending Filtering"
+              },
+              {
+                "path": "apollo-federation",
+                "title": "Apollo Federation"
+              },
+              {
+                "path": "language",
+                "title": "Language"
+              },
+              {
+                "path": "visitors",
+                "title": "Visitors"
+              },
+              {
+                "path": "executable",
+                "title": "Executable"
+              }
             ]
           },
           {
@@ -2924,10 +3236,22 @@
             "path": "transports",
             "title": "Transports",
             "items": [
-              { "path": "index", "title": "Overview" },
-              { "path": "in-memory", "title": "InMemory" },
-              { "path": "rabbitmq", "title": "RabbitMQ" },
-              { "path": "postgres", "title": "PostgreSQL" }
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "in-memory",
+                "title": "InMemory"
+              },
+              {
+                "path": "rabbitmq",
+                "title": "RabbitMQ"
+              },
+              {
+                "path": "postgres",
+                "title": "PostgreSQL"
+              }
             ]
           },
           {
@@ -2938,7 +3262,10 @@
             "path": "mediator",
             "title": "Mediator",
             "items": [
-              { "path": "index", "title": "Overview" },
+              {
+                "path": "index",
+                "title": "Overview"
+              },
               {
                 "path": "pipeline-and-middleware",
                 "title": "Pipeline & Middleware"

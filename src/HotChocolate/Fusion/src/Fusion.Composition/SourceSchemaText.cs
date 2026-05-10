@@ -7,4 +7,5 @@ namespace HotChocolate.Fusion;
 /// </summary>
 public readonly record struct SourceSchemaText(
     string Name,
-    string SourceText);
+    string SourceText,
+    string? ExtensionsSourceText = null);

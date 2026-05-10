@@ -1,10 +1,18 @@
 {
+  "source": {
+    "name": "HotChocolate.Diagnostics"
+  },
   "activities": [
     {
       "OperationName": "GraphQL Operation",
       "DisplayName": "subscription",
+      "Kind": "Internal",
       "Status": "Ok",
       "tags": [
+        {
+          "Key": "graphql.processing.type",
+          "Value": "request"
+        },
         {
           "Key": "graphql.operation.type",
           "Value": "subscription"
@@ -32,6 +40,7 @@
         {
           "OperationName": "GraphQL Document Parsing",
           "DisplayName": "GraphQL Document Parsing",
+          "Kind": "Internal",
           "Status": "Ok",
           "tags": [
             {
@@ -44,6 +53,7 @@
         {
           "OperationName": "GraphQL Document Validation",
           "DisplayName": "GraphQL Document Validation",
+          "Kind": "Internal",
           "Status": "Ok",
           "tags": [
             {
@@ -60,6 +70,7 @@
         {
           "OperationName": "GraphQL Operation Planning",
           "DisplayName": "GraphQL Operation Planning",
+          "Kind": "Internal",
           "Status": "Ok",
           "tags": [
             {
@@ -84,6 +95,7 @@
         {
           "OperationName": "GraphQL Operation Execution",
           "DisplayName": "GraphQL Operation Execution",
+          "Kind": "Internal",
           "Status": "Ok",
           "tags": [
             {
@@ -108,6 +120,7 @@
             {
               "OperationName": "GraphQL Subscription Event",
               "DisplayName": "GraphQL Subscription Event",
+              "Kind": "Internal",
               "Status": "Ok",
               "tags": [
                 {
@@ -136,6 +149,7 @@
                 {
                   "OperationName": "SimpleSubscription.onMessage",
                   "DisplayName": "SimpleSubscription.onMessage",
+                  "Kind": "Internal",
                   "Status": "Ok",
                   "tags": [
                     {
@@ -143,23 +157,23 @@
                       "Value": "resolve"
                     },
                     {
-                      "Key": "graphql.selection.name",
+                      "Key": "graphql.field.alias",
                       "Value": "onMessage"
                     },
                     {
-                      "Key": "graphql.selection.path",
+                      "Key": "graphql.field.path",
                       "Value": "onMessage"
                     },
                     {
-                      "Key": "graphql.selection.field.name",
+                      "Key": "graphql.field.name",
                       "Value": "onMessage"
                     },
                     {
-                      "Key": "graphql.selection.field.coordinate",
+                      "Key": "graphql.field.schema_coordinate",
                       "Value": "SimpleSubscription.onMessage"
                     },
                     {
-                      "Key": "graphql.selection.field.parent_type",
+                      "Key": "graphql.field.parent_type",
                       "Value": "SimpleSubscription"
                     }
                   ],

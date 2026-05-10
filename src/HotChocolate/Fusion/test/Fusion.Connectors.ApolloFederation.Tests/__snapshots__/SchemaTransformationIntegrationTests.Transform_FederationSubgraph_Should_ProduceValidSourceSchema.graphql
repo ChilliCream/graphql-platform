@@ -1,0 +1,27 @@
+schema @fusion__connector(kind: "Apollo") {
+  query: Query
+}
+
+type Query {
+  product(id: Int!): Product
+  productById(id: Int!): Product @internal @lookup
+  topProducts: [Product!]!
+  userByEmail(email: String!): User @internal @lookup
+}
+
+type Product @key(fields: "id") {
+  id: Int!
+  name: String!
+  price: Float!
+}
+
+type User @key(fields: "email") {
+  email: String!
+  name: String!
+}
+
+"The @fusion__connector directive declares which connector kind handles this source schema."
+directive @fusion__connector(
+  "The kind of connector that backs this source schema."
+  kind: String!
+) on SCHEMA

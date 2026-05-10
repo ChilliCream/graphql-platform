@@ -335,6 +335,52 @@ response:
               "fields": null
             },
             {
+              "name": "__SearchResult",
+              "kind": "OBJECT",
+              "fields": [
+                {
+                  "name": "cursor",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "coordinate",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "definition",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "pathsToRoot",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "score",
+                  "type": {
+                    "name": "Float",
+                    "kind": "SCALAR"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "__SchemaDefinition",
+              "kind": "UNION",
+              "fields": null
+            },
+            {
               "name": "Query",
               "kind": "OBJECT",
               "fields": [
@@ -589,6 +635,11 @@ response:
             },
             {
               "name": "Boolean",
+              "kind": "SCALAR",
+              "fields": null
+            },
+            {
+              "name": "Float",
               "kind": "SCALAR",
               "fields": null
             },

@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+html:has(:target) {
+  scroll-behavior: smooth;
+}
+
+:where(h1, h2, h3, h4, h5, h6)[id] {
+  scroll-margin-top: 5rem;
+}
+
+.heading-anchor {
+  margin-left: 0.4rem;
+  color: rgb(100 116 139);
+  opacity: 0;
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+}
+
+:where(h1, h2, h3, h4, h5, h6):hover .heading-anchor,
+.heading-anchor:focus {
+  opacity: 1;
+}
+
+[data-toc-link][data-active="true"] {
+  color: rgb(4 120 87);
+  font-weight: 600;
+  border-left-color: rgb(4 120 87);
+}
+
+/* Shiki output styling — neutralize default <pre> background so the figure
+   chrome owns the visuals; wrap each line so highlights span full width. */
+.shiki-wrapper pre {
+  margin: 0;
+  padding: 1rem 0;
+  background: transparent !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+}
+
+.shiki-wrapper code {
+  display: block;
+  width: max-content;
+  min-width: 100%;
+}
+
+.shiki-wrapper .line {
+  display: inline-block;
+  width: 100%;
+  padding: 0 1rem;
+}
+
+.shiki-wrapper .line.line-highlighted {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 3px 0 0 #10b981;
+}
+
+/* Hovering a CodeStep in prose dims only the code block that contains
+   a matching step, keeping the matching highlighted token fully visible.
+   Activation is driven by JS (CodeStep) which toggles these classes. */
+.shiki-wrapper .line > span {
+  transition: opacity 0.15s ease;
+}
+
+figure.code-step-dim .shiki-wrapper .line > span {
+  opacity: 0.5;
+}
+
+figure.code-step-dim .shiki-wrapper .line > span:has(.code-step-active) {
+  opacity: 1;
+}

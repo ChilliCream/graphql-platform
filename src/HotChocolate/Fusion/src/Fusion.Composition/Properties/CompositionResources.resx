@@ -33,6 +33,12 @@
   <data name="CompositionLogExtensions_EntryMessageWithSchemaName" xml:space="preserve">
     <value>{0} (Schema: '{1}')</value>
   </data>
+  <data name="ConnectorMutableDirectiveDefinition_Argument_Kind_Description" xml:space="preserve">
+    <value>The kind of connector that backs this source schema.</value>
+  </data>
+  <data name="ConnectorMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @fusion__connector directive declares which connector kind handles this source schema.</value>
+  </data>
   <data name="CostDirective_WeightArgument_Invalid" xml:space="preserve">
     <value>The @cost directive must have a 'weight' argument of type String.</value>
   </data>
@@ -56,6 +62,12 @@
   </data>
   <data name="ExternalMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @external directive indicates that a field is recognized by the current source schema but is not directly contributed (resolved) by it.</value>
+  </data>
+  <data name="FusionConnectorMutableDirectiveDefinition_Argument_Kind_Description" xml:space="preserve">
+    <value>The kind of connector that handles the source schema represented by this enum value.</value>
+  </data>
+  <data name="FusionConnectorMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @fusion__connector directive declares which connector kind handles a source schema.</value>
   </data>
   <data name="FusionCostMutableDirectiveDefinition_Argument_Schema_Description" xml:space="preserve">
     <value>The name of the source schema that defined the cost metadata.</value>
@@ -326,6 +338,9 @@
   </data>
   <data name="LogEntryHelper_InvalidGraphQL" xml:space="preserve">
     <value>Invalid GraphQL in source schema. Exception message: {0}.</value>
+  </data>
+  <data name="LogEntryHelper_InvalidGraphQLInExtensions" xml:space="preserve">
+    <value>Invalid GraphQL in source schema extensions. Exception message: {0}.</value>
   </data>
   <data name="LogEntryHelper_InvalidShareableUsage" xml:space="preserve">
     <value>The field '{0}' in schema '{1}' must not be marked as shareable.</value>

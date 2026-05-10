@@ -12,6 +12,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="OpenTelemetry" />
+    <PackageReference Include="OpenTelemetry.Exporter.InMemory" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="__resources__\IntrospectionSchema.graphql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

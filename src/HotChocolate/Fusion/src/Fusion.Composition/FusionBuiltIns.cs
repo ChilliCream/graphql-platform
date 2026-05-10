@@ -18,6 +18,7 @@ internal static class FusionBuiltIns
     public static FrozenDictionary<string, MutableDirectiveDefinition> SourceSchemaDirectives { get; } =
         new HashSet<MutableDirectiveDefinition>(
         [
+            new ConnectorMutableDirectiveDefinition(s_stringType),
             new ExternalMutableDirectiveDefinition(),
             new InaccessibleMutableDirectiveDefinition(),
             new InternalMutableDirectiveDefinition(),

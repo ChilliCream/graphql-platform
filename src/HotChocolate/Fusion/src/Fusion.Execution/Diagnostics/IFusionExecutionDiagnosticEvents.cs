@@ -174,6 +174,27 @@ public interface IFusionExecutionDiagnosticEvents : ICoreExecutionDiagnosticEven
         IntrospectionExecutionNode node);
 
     /// <summary>
+    /// Called when executing a source schema request within an operation execution node.
+    /// This wraps the actual HTTP call to the source schema.
+    /// </summary>
+    /// <param name="context">
+    /// The operation plan context.
+    /// </param>
+    /// <param name="node">
+    /// The operation execution node that is making the request.
+    /// </param>
+    /// <param name="schemaName">
+    /// The name of the source schema being queried.
+    /// </param>
+    /// <returns>
+    /// Returns a scope that is disposed when the source schema request is completed.
+    /// </returns>
+    IDisposable ExecuteSourceSchemaRequest(
+        OperationPlanContext context,
+        OperationExecutionNode node,
+        string schemaName);
+
+    /// <summary>
     /// Called when a general error occurs in an execution node context.
     /// </summary>
     /// <param name="context">

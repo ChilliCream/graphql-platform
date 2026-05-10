@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using HotChocolate.Diagnostics;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution;
@@ -54,6 +55,7 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
 
             activity.SetStatus(ActivityStatusCode.Error);
             activity.AddException(error);
+            activity.SetErrorType(error);
 
             enricher.EnrichRequestError(context, error, activity);
         }
@@ -66,7 +68,7 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
             var activity = span.Activity;
 
             activity.SetStatus(ActivityStatusCode.Error);
-            activity.AddGraphQLError(error);
+            activity.SetErrorType(error, ActivityExtensions.ExecutionErrorType);
 
             enricher.EnrichRequestError(context, error, activity);
         }
@@ -116,7 +118,7 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
 
         foreach (var error in errors)
         {
-            activity.AddGraphQLError(error);
+            activity.SetErrorType(error, ActivityExtensions.ValidationErrorType);
         }
 
         enricher.EnrichValidationErrors(context, errors, activity);
@@ -175,7 +177,14 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
             plan.OperationName,
             enricher);
 
-        return span ?? EmptyScope;
+        if (span is null)
+        {
+            return EmptyScope;
+        }
+
+        context.Features.Set(span);
+
+        return span;
     }
 
     public override IDisposable ExecuteOperationNode(
@@ -195,16 +204,7 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         ExecutionNode node,
         string schemaName,
         ulong subscriptionId)
-    {
-        var nodeScope = ExecuteNode(context, node, schemaName);
-        context.RequestContext.Features.Set(
-            new SubscriptionContextFeature
-            {
-                SubscriptionContext = Activity.Current?.Context
-            });
-
-        return nodeScope;
-    }
+        => ExecuteNode(context, node, schemaName);
 
     public override IDisposable ExecuteNodeFieldNode(
         OperationPlanContext context,
@@ -224,7 +224,11 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         if (Activity.Current is { } activity)
         {
             activity.SetStatus(ActivityStatusCode.Error);
-            activity.AddException(error);
+            activity.AddGraphQLErrorEvent(
+                error,
+                operationType: GetOperationType(context),
+                operationName: context.OperationPlan.Operation.Name);
+            activity.SetErrorType(error);
 
             enricher.EnrichExecutionNodeError(context, node, error, activity);
         }
@@ -239,7 +243,11 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         if (Activity.Current is { } activity)
         {
             activity.SetStatus(ActivityStatusCode.Error);
-            activity.AddException(error);
+            activity.AddGraphQLErrorEvent(
+                error,
+                operationType: GetOperationType(context),
+                operationName: context.OperationPlan.Operation.Name);
+            activity.SetErrorType(error);
 
             enricher.EnrichSourceSchemaTransportError(context, node, schemaName, error, activity);
         }
@@ -254,7 +262,11 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         if (Activity.Current is { } activity)
         {
             activity.SetStatus(ActivityStatusCode.Error);
-            activity.AddException(error);
+            activity.AddGraphQLErrorEvent(
+                error,
+                operationType: GetOperationType(context),
+                operationName: context.OperationPlan.Operation.Name);
+            activity.SetErrorType(error);
 
             enricher.EnrichSourceSchemaStoreError(context, node, schemaName, error, activity);
         }
@@ -266,13 +278,9 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         string schemaName,
         ulong subscriptionId)
     {
-        ActivityContext? subscriptionContext = null;
-
-        if (context.RequestContext.Features.TryGet<SubscriptionContextFeature>(out var feature)
-            && feature.SubscriptionContext is { } storedSubscriptionContext)
-        {
-            subscriptionContext = storedSubscriptionContext;
-        }
+        var subscriptionContext = context.RequestContext.Features.TryGet<ExecuteRequestSpan>(out var requestSpan)
+            ? requestSpan.Activity.Context
+            : (ActivityContext?)null;
 
         var span = SubscriptionEventSpan.Start(
             Source,
@@ -301,7 +309,11 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         if (Activity.Current is { } activity)
         {
             activity.SetStatus(ActivityStatusCode.Error);
-            activity.AddException(exception);
+            activity.AddGraphQLErrorEvent(
+                exception,
+                operationType: GetOperationType(context),
+                operationName: context.OperationPlan.Operation.Name);
+            activity.SetErrorType(exception);
 
             enricher.EnrichSubscriptionEventError(
                 context,
@@ -365,11 +377,6 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         }
     }
 
-    private sealed class SubscriptionContextFeature
-    {
-        public ActivityContext? SubscriptionContext { get; set; }
-    }
-
     private IDisposable ExecuteNode(OperationPlanContext context, ExecutionNode node, string? schemaName)
     {
         if (options.SkipExecutePlanNodes)
@@ -381,4 +388,9 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
 
         return span ?? EmptyScope;
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static string GetOperationType(OperationPlanContext context)
+        => SemanticConventions.GraphQL.Operation.TypeValues[
+            context.OperationPlan.Operation.Definition.Operation];
 }

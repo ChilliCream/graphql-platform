@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Fetching;
 using HotChocolate.Resolvers;
@@ -91,8 +92,12 @@ internal sealed partial class OperationContext
         _batchDispatcher = batchDispatcher;
         _variableIndex = variableIndex;
 
-        var errorHandlingMode = _requestContext.Request.ErrorHandlingMode
-            ?? _schema.GetOptions().DefaultErrorHandlingMode;
+        var executorOptions = _schema.Services.GetRequiredService<IRequestExecutorOptionsAccessor>();
+        var errorHandlingMode =
+            executorOptions.AllowErrorHandlingModeOverride
+                && _requestContext.Request.ErrorHandlingMode is { } requestedMode
+                    ? requestedMode
+                    : executorOptions.DefaultErrorHandlingMode;
         _propagateNullValues = errorHandlingMode is Language.ErrorHandlingMode.Propagate;
 
         IncludeFlags = operation.CreateIncludeFlags(variables);

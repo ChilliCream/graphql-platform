@@ -85,7 +85,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         WriteNodes(jsonWriter, plan.Operation, plan.AllNodes, trace);
 
         WriteDeliveryGroups(jsonWriter, plan.DeliveryGroups);
-        WriteDeferredSubPlans(jsonWriter, plan.DeferredSubPlans);
+        WriteIncrementalPlans(jsonWriter, plan.IncrementalPlans);
 
         jsonWriter.WriteEndObject();
     }
@@ -172,7 +172,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
     private static void WriteDeliveryGroups(
         JsonWriter jsonWriter,
-        ImmutableArray<DeferUsage> deliveryGroups)
+        ImmutableArray<DeliveryGroup> deliveryGroups)
     {
         if (deliveryGroups.IsDefaultOrEmpty)
         {
@@ -192,7 +192,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
     private static void WriteDeliveryGroup(
         JsonWriter jsonWriter,
-        DeferUsage deliveryGroup)
+        DeliveryGroup deliveryGroup)
     {
         jsonWriter.WriteStartObject();
 
@@ -223,36 +223,36 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WriteEndObject();
     }
 
-    private static void WriteDeferredSubPlans(
+    private static void WriteIncrementalPlans(
         JsonWriter jsonWriter,
-        ImmutableArray<ExecutionSubPlan> deferredSubPlans)
+        ImmutableArray<IncrementalPlan> incrementalPlans)
     {
-        if (deferredSubPlans.IsDefaultOrEmpty)
+        if (incrementalPlans.IsDefaultOrEmpty)
         {
             return;
         }
 
-        jsonWriter.WritePropertyName("deferredSubPlans");
+        jsonWriter.WritePropertyName("incrementalPlans");
         jsonWriter.WriteStartArray();
 
-        foreach (var subPlan in deferredSubPlans)
+        foreach (var incrementalPlan in incrementalPlans)
         {
-            WriteDeferredSubPlan(jsonWriter, subPlan);
+            WriteIncrementalPlan(jsonWriter, incrementalPlan);
         }
 
         jsonWriter.WriteEndArray();
     }
 
-    private static void WriteDeferredSubPlan(
+    private static void WriteIncrementalPlan(
         JsonWriter jsonWriter,
-        ExecutionSubPlan subPlan)
+        IncrementalPlan incrementalPlan)
     {
         jsonWriter.WriteStartObject();
 
         jsonWriter.WritePropertyName("deliveryGroupIds");
         jsonWriter.WriteStartArray();
 
-        foreach (var deliveryGroup in subPlan.DeliveryGroups)
+        foreach (var deliveryGroup in incrementalPlan.DeliveryGroups)
         {
             jsonWriter.WriteNumberValue(deliveryGroup.Id);
         }
@@ -260,16 +260,48 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WriteEndArray();
 
         jsonWriter.WritePropertyName("parentNodeId");
-        jsonWriter.WriteNumberValue(subPlan.ParentNodeId);
+        jsonWriter.WriteNumberValue(incrementalPlan.ParentNodeId);
+
+        if (!incrementalPlan.Requirements.IsDefaultOrEmpty)
+        {
+            jsonWriter.WritePropertyName("requirements");
+            jsonWriter.WriteStartArray();
+
+            foreach (var requirement in incrementalPlan.Requirements)
+            {
+                WriteRequirement(jsonWriter, requirement);
+            }
+
+            jsonWriter.WriteEndArray();
+        }
 
         jsonWriter.WritePropertyName("operation");
-        WriteOperation(jsonWriter, subPlan.Operation);
+        WriteOperation(jsonWriter, incrementalPlan.Operation);
 
-        if (!subPlan.AllNodes.IsDefaultOrEmpty)
+        if (!incrementalPlan.AllNodes.IsDefaultOrEmpty)
         {
             jsonWriter.WritePropertyName("nodes");
-            WriteNodes(jsonWriter, subPlan.Operation, subPlan.AllNodes, null);
+            WriteNodes(jsonWriter, incrementalPlan.Operation, incrementalPlan.AllNodes, null);
         }
+
+        jsonWriter.WriteEndObject();
+    }
+
+    private static void WriteRequirement(JsonWriter jsonWriter, OperationRequirement requirement)
+    {
+        jsonWriter.WriteStartObject();
+
+        jsonWriter.WritePropertyName("name");
+        jsonWriter.WriteStringValue(requirement.Key);
+
+        jsonWriter.WritePropertyName("type");
+        jsonWriter.WriteStringValue(requirement.Type.ToString());
+
+        jsonWriter.WritePropertyName("path");
+        jsonWriter.WriteStringValue(requirement.Path.ToString());
+
+        jsonWriter.WritePropertyName("selectionMap");
+        jsonWriter.WriteStringValue(requirement.Map.ToString());
 
         jsonWriter.WriteEndObject();
     }
@@ -336,21 +368,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
             foreach (var requirement in node.Requirements)
             {
-                jsonWriter.WriteStartObject();
-
-                jsonWriter.WritePropertyName("name");
-                jsonWriter.WriteStringValue(requirement.Key);
-
-                jsonWriter.WritePropertyName("type");
-                jsonWriter.WriteStringValue(requirement.Type.ToString());
-
-                jsonWriter.WritePropertyName("path");
-                jsonWriter.WriteStringValue(requirement.Path.ToString());
-
-                jsonWriter.WritePropertyName("selectionMap");
-                jsonWriter.WriteStringValue(requirement.Map.ToString());
-
-                jsonWriter.WriteEndObject();
+                WriteRequirement(jsonWriter, requirement);
             }
 
             jsonWriter.WriteEndArray();
@@ -377,7 +395,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
             jsonWriter.WriteBooleanValue(true);
         }
 
-        if (node.Dependencies.Length > 0)
+        if (node.Dependencies.Length > 0 || node.ParentDependencies.Length > 0)
         {
             jsonWriter.WritePropertyName("dependencies");
             jsonWriter.WriteStartArray();
@@ -387,11 +405,24 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
                 jsonWriter.WriteNumberValue(dependency.Id);
             }
 
+            foreach (var parentStepId in node.ParentDependencies)
+            {
+                WriteParentDependency(jsonWriter, parentStepId);
+            }
+
             jsonWriter.WriteEndArray();
         }
 
         TryWriteNodeTrace(jsonWriter, operation, trace);
 
+        jsonWriter.WriteEndObject();
+    }
+
+    private static void WriteParentDependency(JsonWriter jsonWriter, int parentStepId)
+    {
+        jsonWriter.WriteStartObject();
+        jsonWriter.WritePropertyName("parentNodeId");
+        jsonWriter.WriteNumberValue(parentStepId);
         jsonWriter.WriteEndObject();
     }
 
@@ -525,7 +556,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
             jsonWriter.WriteBooleanValue(true);
         }
 
-        if (operationDef.Dependencies.Length > 0)
+        if (operationDef.Dependencies.Length > 0 || operationDef.ParentDependencies.Length > 0)
         {
             jsonWriter.WritePropertyName("dependencies");
             jsonWriter.WriteStartArray();
@@ -533,6 +564,11 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
             foreach (var dependency in operationDef.Dependencies)
             {
                 jsonWriter.WriteNumberValue(dependency.Id);
+            }
+
+            foreach (var parentStepId in operationDef.ParentDependencies)
+            {
+                WriteParentDependency(jsonWriter, parentStepId);
             }
 
             jsonWriter.WriteEndArray();
@@ -613,21 +649,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
             foreach (var requirement in operationDef.Requirements)
             {
-                jsonWriter.WriteStartObject();
-
-                jsonWriter.WritePropertyName("name");
-                jsonWriter.WriteStringValue(requirement.Key);
-
-                jsonWriter.WritePropertyName("type");
-                jsonWriter.WriteStringValue(requirement.Type.ToString());
-
-                jsonWriter.WritePropertyName("path");
-                jsonWriter.WriteStringValue(requirement.Path.ToString());
-
-                jsonWriter.WritePropertyName("selectionMap");
-                jsonWriter.WriteStringValue(requirement.Map.ToString());
-
-                jsonWriter.WriteEndObject();
+                WriteRequirement(jsonWriter, requirement);
             }
 
             jsonWriter.WriteEndArray();
@@ -654,7 +676,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
             jsonWriter.WriteBooleanValue(true);
         }
 
-        if (operationDef.Dependencies.Length > 0)
+        if (operationDef.Dependencies.Length > 0 || operationDef.ParentDependencies.Length > 0)
         {
             jsonWriter.WritePropertyName("dependencies");
             jsonWriter.WriteStartArray();
@@ -662,6 +684,11 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
             foreach (var dependency in operationDef.Dependencies)
             {
                 jsonWriter.WriteNumberValue(dependency.Id);
+            }
+
+            foreach (var parentStepId in operationDef.ParentDependencies)
+            {
+                WriteParentDependency(jsonWriter, parentStepId);
             }
 
             jsonWriter.WriteEndArray();

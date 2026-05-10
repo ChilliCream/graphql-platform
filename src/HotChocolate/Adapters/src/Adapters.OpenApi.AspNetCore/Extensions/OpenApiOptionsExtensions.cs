@@ -1,4 +1,3 @@
-using HotChocolate.Execution;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -10,24 +9,25 @@ public static class OpenApiOptionsExtensions
     {
         return options.AddDocumentTransformer((document, context, ct) =>
         {
+            var manager = context.ApplicationServices.GetRequiredService<OpenApiManager>();
+
             var resolvedSchemaName = schemaName;
-            TryResolveSchemaName(context.ApplicationServices, ref resolvedSchemaName);
+            TryResolveSchemaName(manager, ref resolvedSchemaName);
             resolvedSchemaName ??= ISchemaDefinition.DefaultName;
 
-            var transformer = context.ApplicationServices
-                .GetRequiredKeyedService<DynamicOpenApiDocumentTransformer>(resolvedSchemaName);
+            var transformer = (DynamicOpenApiDocumentTransformer)manager
+                .Get(resolvedSchemaName)
+                .DocumentTransformer;
 
             return transformer.TransformAsync(document, context, ct);
         });
     }
 
-    private static void TryResolveSchemaName(IServiceProvider services, ref string? schemaName)
+    private static void TryResolveSchemaName(OpenApiManager manager, ref string? schemaName)
     {
-        if (schemaName is null
-            && services.GetService<IRequestExecutorProvider>() is { } provider
-            && provider.SchemaNames.Length == 1)
+        if (schemaName is null && manager.Names.Length == 1)
         {
-            schemaName = provider.SchemaNames[0];
+            schemaName = manager.Names[0];
         }
     }
 }

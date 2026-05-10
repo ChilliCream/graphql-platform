@@ -14,6 +14,9 @@ internal sealed class ActivityExecutionDiagnosticListener(
 {
     private const string ResolveFieldSpanKey = "HotChocolate.Diagnostics.ResolveFieldSpan";
 
+    private static readonly AsyncLocal<SubscriptionEventSpan?> s_currentSubscriptionEventSpan =
+        new();
+
     public override bool EnableResolveFieldValue => true;
 
     public override IDisposable ExecuteRequest(RequestContext context)
@@ -56,6 +59,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
 
             activity.SetStatus(ActivityStatusCode.Error);
             activity.AddException(error);
+            activity.SetErrorType(error);
 
             enricher.EnrichRequestError(context, error, activity);
         }
@@ -68,7 +72,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
             var activity = span.Activity;
 
             activity.SetStatus(ActivityStatusCode.Error);
-            activity.AddGraphQLError(error);
+            activity.SetErrorType(error, ActivityExtensions.ExecutionErrorType);
 
             enricher.EnrichRequestError(context, error, activity);
         }
@@ -116,9 +120,17 @@ internal sealed class ActivityExecutionDiagnosticListener(
 
         activity.SetStatus(ActivityStatusCode.Error);
 
-        foreach (var error in errors)
+        if (errors is [var firstError, ..])
         {
-            activity.AddGraphQLError(error);
+            activity.SetErrorType(firstError, ActivityExtensions.ValidationErrorType);
+
+            // Propagate the phase-specific error.type to the root request span so
+            // it does not fall back to EXECUTION_ERROR when validation produced
+            // the failure. SetErrorType is a no-op if the tag is already set.
+            if (context.Features.TryGet<ExecuteRequestSpan>(out var rootSpan))
+            {
+                rootSpan.Activity.SetErrorType(firstError, ActivityExtensions.ValidationErrorType);
+            }
         }
 
         enricher.EnrichValidationErrors(context, errors, activity);
@@ -234,9 +246,29 @@ internal sealed class ActivityExecutionDiagnosticListener(
             && value is ResolveFieldSpan span)
         {
             span.Activity.SetStatus(ActivityStatusCode.Error);
-            span.Activity.AddGraphQLError(error);
+            span.Activity.SetErrorType(
+                error,
+                ActivityExtensions.ExecutionErrorType,
+                preferException: true);
 
             enricher.EnrichResolverError(context, error, span.Activity);
+        }
+
+        // For subscription operations, the per-event errors are not visible to
+        // ExecuteRequestSpanBase.OnComplete (each event is its own result). Emit
+        // the graphql.error event on the subscription event span (the effective
+        // root for the event) so the error surfaces there too.
+        if (s_currentSubscriptionEventSpan.Value is { } eventSpan)
+        {
+            var eventActivity = eventSpan.Activity;
+            eventActivity.SetStatus(ActivityStatusCode.Error);
+            eventActivity.SetErrorType(error, ActivityExtensions.ExecutionErrorType);
+            eventActivity.AddGraphQLErrorEvent(
+                error,
+                operationType: SemanticConventions.GraphQL.Operation.TypeValues[
+                    context.Operation.Definition.Operation],
+                operationName: context.Operation.Name,
+                schemaCoordinate: context.Selection.Field.Coordinate.ToString());
         }
     }
 
@@ -282,6 +314,8 @@ internal sealed class ActivityExecutionDiagnosticListener(
 
         enricher.EnrichOnSubscriptionEvent(context, subscriptionId, span.Activity);
 
+        s_currentSubscriptionEventSpan.Value = span;
+
         return span;
     }
 
@@ -294,6 +328,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
         {
             activity.SetStatus(ActivityStatusCode.Error);
             activity.AddException(exception);
+            activity.SetErrorType(exception);
         }
     }
 

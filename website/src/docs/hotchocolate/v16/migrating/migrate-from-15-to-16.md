@@ -79,6 +79,20 @@ If you need to access the application service provider from within the schema se
 IServiceProvider applicationServices = schemaServices.GetRootServiceProvider();
 ```
 
+## Internal directives hidden from schema endpoint
+
+Previously, the `/graphql/schema.graphql` endpoint was returning the schema containing internal directives like `@authorize`. Starting with v16 the endpoint no longer includes internal directives by default.
+
+If you need to retain the previous behavior, set `DisableInternalDirectives` to `true` through `ModifyOptions`. This treats every directive as public, even directives that explicitly call `Internal()` and regardless of `DefaultDirectiveVisibility`:
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .ModifyOptions(o => o.DisableInternalDirectives = true);
+```
+
+Be aware that internal directives may carry sensitive information (for example, authorization policies attached via `@authorize`). Only enable this if you understand and accept that risk.
+
 ## Cache size configuration
 
 Previously, document and operation cache sizes were globally configured through the `IServiceCollection`. In an effort to align and properly scope our configuration APIs, we've moved the configuration of these caches to the `IRequestExecutorBuilder`. If you're currently calling `AddDocumentCache` or `AddOperationCache` directly on the `IServiceCollection`, move the configuration to `ModifyOptions` on the `IRequestExecutorBuilder`:
@@ -980,38 +994,6 @@ We removed the following methods from the `IExecutionDiagnosticEventListener` si
 
 Some other methods also had a change in their signature - simply override them again to fix any compilation issues.
 
-<!--
-TODO: This should probably go on in the Fusion specific guide.
-
-### Fusion diagnostic listener API redesign
-
-Fusion diagnostics were redesigned in v16.
-
-- v15 interface: `HotChocolate.Fusion.Execution.Diagnostic.IFusionDiagnosticEvents` / `IFusionDiagnosticEventListener`
-- v16 interface: `HotChocolate.Fusion.Diagnostics.IFusionExecutionDiagnosticEvents` / `IFusionExecutionDiagnosticEventListener`
-
-This is not a signature-only change. The old high-level hooks were removed:
-
-- `ExecuteFederatedQuery(IRequestContext)`
-- `QueryPlanExecutionError(Exception)`
-- `ResolveError(Exception)`
-- `ResolveByKeyBatchError(Exception)`
-- `SubgraphRequestError(string, Exception)`
-
-The new API is execution-stage specific and provides request/plan/node/subscription hooks, for example:
-
-- `PlanOperation(...)`, `PlanOperationError(...)`
-- `ExecuteOperationNode(...)`, `ExecuteOperationBatchNode(...)`, `ExecuteSubscriptionNode(...)`, `ExecuteNodeFieldNode(...)`, `ExecuteIntrospectionNode(...)`
-- `ExecutionNodeError(...)`, `SourceSchemaTransportError(...)`, `SourceSchemaStoreError(...)`
-- `OnSubscriptionEvent(...)`, `SubscriptionEventError(...)`
-
-There is no 1:1 mapping for all old methods. In most cases:
-
-- `SubgraphRequestError(...)` maps to `SourceSchemaTransportError(...)`
-- `ResolveError(...)` / `ResolveByKeyBatchError(...)` map to `ExecutionNodeError(...)` and source-schema error hooks depending on error kind
-
-Also note that `SubscriptionTransportError(...)` is no longer exposed separately in the fusion diagnostics API; use `SourceSchemaTransportError(...)`. -->
-
 ## Experimental @semanticNonNull support removed
 
 Hot Chocolate v15 included experimental support for the `@semanticNonNull` directive, which let you mark fields as semantically non-null while still returning `null` (rather than propagating to the parent) when a resolver errored. We've removed this feature in v16 in favor of the [`onError` proposal](https://github.com/graphql/graphql-spec/pull/1163).
@@ -1031,7 +1013,7 @@ If you still need to keep the behavior of not propagating nulls for errors on no
 ```csharp
 builder
     .AddGraphQL()
-    .ModifyOptions(o => o.DefaultErrorHandlingMode = ErrorHandlingMode.Null);
+    .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = ErrorHandlingMode.Null);
 ```
 
 ### Clients that still need a schema with @semanticNonNull annotations

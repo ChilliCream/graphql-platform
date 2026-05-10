@@ -1,7 +1,6 @@
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
-using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate;
@@ -81,6 +80,9 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <inheritdoc cref="IReadOnlySchemaOptions.DefaultDirectiveVisibility"/>
     public DirectiveVisibility DefaultDirectiveVisibility { get; set; } =
         DirectiveVisibility.Public;
+
+    /// <inheritdoc cref="IReadOnlySchemaOptions.DisableInternalDirectives"/>
+    public bool DisableInternalDirectives { get; set; }
 
     /// <inheritdoc cref="IReadOnlySchemaOptions.DefaultResolverStrategy"/>
     public ExecutionStrategy DefaultResolverStrategy { get; set; } =
@@ -190,9 +192,6 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <inheritdoc cref="IReadOnlySchemaOptions.ApplySerializeAsToScalars"/>
     public bool ApplySerializeAsToScalars { get; set; }
 
-    /// <inheritdoc cref="IReadOnlySchemaOptions.DefaultErrorHandlingMode"/>
-    public ErrorHandlingMode DefaultErrorHandlingMode { get; set; } = ErrorHandlingMode.Propagate;
-
     /// <summary>
     /// Creates a mutable options object from a read-only options object.
     /// </summary>
@@ -211,6 +210,7 @@ public class SchemaOptions : IReadOnlySchemaOptions
             DefaultBindingBehavior = options.DefaultBindingBehavior,
             EnableDirectiveIntrospection = options.EnableDirectiveIntrospection,
             DefaultDirectiveVisibility = options.DefaultDirectiveVisibility,
+            DisableInternalDirectives = options.DisableInternalDirectives,
             DefaultResolverStrategy = options.DefaultResolverStrategy,
             ValidatePipelineOrder = options.ValidatePipelineOrder,
             StrictRuntimeTypeValidation = options.StrictRuntimeTypeValidation,
@@ -234,7 +234,6 @@ public class SchemaOptions : IReadOnlySchemaOptions
             ApplyShareableToPageInfo = options.ApplyShareableToPageInfo,
             ApplyShareableToConnections = options.ApplyShareableToConnections,
             ApplyShareableToNodeFields = options.ApplyShareableToNodeFields,
-            ApplySerializeAsToScalars = options.ApplySerializeAsToScalars,
-            DefaultErrorHandlingMode = options.DefaultErrorHandlingMode
+            ApplySerializeAsToScalars = options.ApplySerializeAsToScalars
         };
 }
