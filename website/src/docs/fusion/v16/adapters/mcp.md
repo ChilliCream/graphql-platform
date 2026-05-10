@@ -79,6 +79,8 @@ builder
         });
 ```
 
+Tools registered through `configureServer` appear alongside the GraphQL-derived tools, so you can mix native MCP tools with operation tools in the same gateway.
+
 ## Mapping the MCP Endpoint
 
 `MapGraphQLMcp()` accepts two optional arguments:
