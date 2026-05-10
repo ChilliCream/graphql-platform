@@ -648,6 +648,13 @@ type AuthorizationEventLog {
   workspace: Workspace
 }
 
+type AzureDevOpsSourceMetadata {
+  commitUrl: URL
+  shortCommitHash: String
+  workflowRunName: String!
+  workflowRunUrl: URL!
+}
+
 type BasicAuthenticationFlowOptions {
   password: String!
   username: String!
@@ -5794,7 +5801,7 @@ union SchemaMemberChange =
 
 union SetActiveWorkspaceError = UnauthorizedOperation | WorkspaceNotFound
 
-union SourceMetadata = GitHubSourceMetadata
+union SourceMetadata = AzureDevOpsSourceMetadata | GitHubSourceMetadata
 
 union StageCondition = AfterStageCondition
 
@@ -6015,6 +6022,23 @@ input ApiUpdateChangeInput {
 
 input ApproveDeploymentInput {
   deploymentId: ID!
+}
+
+input AzureDevOpsActorInput {
+  email: String
+  name: String!
+}
+
+input AzureDevOpsSourceMetadataInput {
+  actor: AzureDevOpsActorInput!
+  commitHash: String
+  jobId: String
+  pipelineName: String!
+  projectUrl: URL!
+  repositoryUrl: URL
+  runId: String!
+  runNumber: String!
+  taskId: String
 }
 
 input BasicAuthenticationFlowOptionsInput {
@@ -6393,6 +6417,7 @@ input SetActiveWorkspaceInput {
 }
 
 input SourceMetadataInput @oneOf {
+  azureDevOps: AzureDevOpsSourceMetadataInput
   github: GitHubSourceMetadataInput
 }
 
