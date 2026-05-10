@@ -370,29 +370,43 @@ This registers the schema as a Fusion source schema, which:
 Remove `"version": "1.0.0"` from `schema-settings.json`:
 
 ```diff
- {
+{
 -  "version": "1.0.0",
    "name": "products",
-   "transports": {
-     "http": {
-       "url": "{{URL}}"
-     }
-   }
- }
+   // ...
+}
 ```
 
-Without `"version": "1.0.0"` the composition treats the subgraph as a modern Fusion v2 subgraph: the full validations are enforced and the Fusion v1 inferences (such as fields ending in `ById` being treated as `@lookup`) are no longer applied. As a result, a few things that used to be inferred now have to be explicit.
+Without `"version": "1.0.0"` the composition treats the subgraph as a Fusion v2 subgraph: the full validations are enforced and the Fusion v1 inferences (such as fields ending in `ById` being treated as `@lookup`) are no longer applied. As a result, a few things that used to be inferred now have to be explicit.
 
 Annotate `By<Field>` lookup fields like `productById(id: ID!): Product` with `[Lookup]` (`@lookup`):
 
 ```diff
- type Query {
--  productById(id: ID!): Product @internal
-+  productById(id: ID!): Product @lookup @internal
- }
+[QueryType]
+public static class Query
+{
++    [Lookup]
+     public static Product GetProductById(int id)
+         => // ...
+}
 ```
 
-If composition reports that another source schema already exposes a field or type, annotate it with `[Shareable]` (`@shareable`). `@shareable` was introduced in Hot Chocolate 15.
+Missing `@lookup` annotations will usually manifest as `UNSATISFIABLE` errors in the composition. See [Entities and lookups](/docs/fusion/v16/entities-and-lookups) for details.
+
+If your graph has overlapping fields, i.e. multiple subgraphs providing the same field, you now also have to explicitly mark those fields as shareable from both sides.
+
+```diff
+[ObjectType]
+public class Product
+{
++    [Shareable]
+     public string Name { get; set; }
+}
+```
+
+Missing `@shareable` annotations will usually manifest as `INVALID_FIELD_SHARING` errors in the composition. See [Field ownership and sharing](/docs/fusion/v16/field-ownership-and-sharing) for details.
+
+See [Composition](/docs/fusion/v16/composition) for guidance on composition behavior and an explanation of any other errors you might encounter, including what they mean and how to fix them.
 
 # Upgrade the gateway
 
@@ -1075,4 +1089,12 @@ Each subgraph also needs an `Aspire` environment in `schema-settings.json`. This
 
 # Cleanup
 
-Remove `HotChocolate.Fusion.CommandLine` and `ChilliCream.Nitro.CLI` from pipelines.
+Once the gateway has been [cut over to v16](#upgrade-the-gateway) and every subgraph publishes a `.far`, the dual-format bridge is no longer needed. In every subgraph pipeline you can now drop all `dotnet fusion` usages (`subgraph pack`, `subgraph config set`, `compose`) and all `dotnet nitro fusion-configuration *` commands, since the equivalent work is now done by `dotnet nitro fusion *` (`upload`, `publish`, `validate`). Also remove the `--legacy-v1-archive` option from those `dotnet nitro fusion publish` / `validate` steps.
+
+Since `dotnet fusion` is no longer used, you can remove any reference to the `HotChocolate.Fusion.CommandLine` package from your pipelines and from `./.config/dotnet-tools.json`.
+
+You can also fully replace `ChilliCream.Nitro.CLI` with [`ChilliCream.Nitro.CommandLine`](/docs/nitro/cli/installation.md).
+
+> Note: Hold off until the v16 gateway has been running in production long enough that a rollback to v15 is off the table. Once the v15 compose step is gone the `.fgp` is no longer refreshed, and a rollback would mean restoring these steps first. Cleanup is independent per subgraph, so there is no need to do all repositories at once.
+
+Finally, if you haven't done so already, each subgraph can now independently [switch to Hot Chocolate v16](#migrate-subgraph-to-v16) at its own pace.
