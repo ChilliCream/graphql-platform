@@ -91,6 +91,27 @@ builder.Services
 
 Be aware that internal directives may carry sensitive information (for example, authorization policies attached via `@authorize`). Only enable this if you understand and accept that risk.
 
+## New analyzers
+
+If you reference the `HotChocolate.Types.Analyzers` package, version 16 ships a number of new analyzers that surface misconfigurations and discouraged patterns at compile time. Several of them report at `Error` severity, so they can break a build that compiled cleanly on version 15. In most cases the fix is exactly what the diagnostic suggests. If you believe a diagnostic is a false positive, please [open an issue](https://github.com/ChilliCream/graphql-platform/issues).
+
+The following new analyzers report at `Error` severity and can fail your build:
+
+| ID     | Title                                              | What it reports                                                                                                                            |
+| ------ | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| HC0094 | Bind member not found                              | The member referenced by `BindMember`/`nameof(...)` does not exist on the target type.                                                     |
+| HC0095 | Bind member type mismatch                          | The type used in a `nameof` expression does not match the `[ObjectType<T>]` type.                                                          |
+| HC0097 | Parent attribute type mismatch                     | A `[Parent]` parameter's type must be the parent runtime type or a base type/interface it implements.                                      |
+| HC0098 | Parent method type mismatch                        | The type argument in `Parent<T>()` must be the parent runtime type or a base type/interface it implements.                                 |
+| HC0099 | QueryContext with UseProjection                    | A resolver with a `QueryContext<T>` parameter cannot also use `[UseProjection]`.                                                           |
+| HC0100 | Data attribute order                               | `[UsePaging]`, `[UseProjection]`, `[UseFiltering]` and `[UseSorting]` must be applied in that order.                                       |
+| HC0101 | QueryContext connection type mismatch              | The `QueryContext<T>` type argument must match the connection's node type.                                                                 |
+| HC0092 | ID attribute redundant on node resolver parameters | `[ID]` is redundant on a `[NodeResolver]` parameter, since the attribute already declares the `id` parameter as an ID type. Remove `[ID]`. |
+| HC0093 | Node resolver must be public                       | A `[NodeResolver]` method must be `public`.                                                                                                |
+| HC0104 | Node resolver `id` parameter                       | The first parameter of a node resolver must be the node ID and must be named `id`.                                                         |
+| HC0105 | ID attribute must target the property              | On a record parameter, the `[ID]` attribute must use the `property:` target specifier (`[property: ID]`).                                  |
+| HC0106 | Microsoft authorization attribute not allowed      | Use the `[Authorize]` attribute from `HotChocolate.Authorization` instead of the one from `Microsoft.AspNetCore.Authorization`.            |
+
 ## Cache size configuration
 
 Previously, document and operation cache sizes were globally configured through the `IServiceCollection`. In an effort to align and properly scope our configuration APIs, we've moved the configuration of these caches to the `IRequestExecutorBuilder`. If you're currently calling `AddDocumentCache` or `AddOperationCache` directly on the `IServiceCollection`, move the configuration to `ModifyOptions` on the `IRequestExecutorBuilder`:
