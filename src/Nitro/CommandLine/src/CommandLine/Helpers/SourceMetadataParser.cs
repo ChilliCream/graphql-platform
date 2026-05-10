@@ -8,7 +8,7 @@ internal static class SourceMetadataParser
 {
     private const string TypePropertyName = "type";
     private const string GitHubType = "github";
-    private const string AzureDevOpsType = "azureDevOps";
+    private const string AzureDevOpsType = "azure-devops";
 
     public static SourceMetadata? Parse(string? json)
     {

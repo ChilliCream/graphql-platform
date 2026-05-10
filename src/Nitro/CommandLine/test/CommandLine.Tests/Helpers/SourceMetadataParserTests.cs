@@ -143,7 +143,7 @@ public sealed class SourceMetadataParserTests
         const string json =
             """
             {
-              "type": "azureDevOps",
+              "type": "azure-devops",
               "actor": { "name": "Ada Lovelace", "email": "ada.lovelace@example.com" },
               "pipelineName": "My Custom Pipeline",
               "runNumber": "20260510T164405Z",
@@ -189,7 +189,7 @@ public sealed class SourceMetadataParserTests
         const string json =
             """
             {
-              "type": "azureDevOps",
+              "type": "azure-devops",
               "actor": { "name": "Ada Lovelace" },
               "pipelineName": "My Custom Pipeline",
               "runNumber": "20260510T164405Z",
@@ -241,7 +241,7 @@ public sealed class SourceMetadataParserTests
         // assert
         Assert.Throws<ExitException>(Act).Message.MatchInlineSnapshot(
             "Failed to parse --source-metadata: unsupported 'type' value 'gitlab'. "
-            + "Expected 'github' or 'azureDevOps'.");
+            + "Expected 'github' or 'azure-devops'.");
     }
 
     [Fact]
@@ -261,7 +261,7 @@ public sealed class SourceMetadataParserTests
         // assert
         Assert.Throws<ExitException>(Act).Message.MatchInlineSnapshot(
             "Failed to parse --source-metadata: 'type' must be a string. "
-            + "Expected 'github' or 'azureDevOps'.");
+            + "Expected 'github' or 'azure-devops'.");
     }
 
     [Fact]
@@ -304,7 +304,7 @@ public sealed class SourceMetadataParserTests
         const string json =
             """
             {
-              "type": "azureDevOps",
+              "type": "azure-devops",
               "actor": { "name": "Ada Lovelace" }
             }
             """;
