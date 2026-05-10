@@ -275,6 +275,10 @@
             "title": "Adding a Subgraph"
           },
           {
+            "path": "source-schema-extensions",
+            "title": "Source Schema Extensions"
+          },
+          {
             "path": "guides",
             "title": "Guides",
             "items": [
