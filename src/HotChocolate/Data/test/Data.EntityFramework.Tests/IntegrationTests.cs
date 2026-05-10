@@ -1,10 +1,10 @@
+using System.Linq.Expressions;
+using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using System.Linq.Expressions;
-using System.Text.Json;
 
 namespace HotChocolate.Data;
 
@@ -648,6 +648,108 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         }
     }
 
+    [Fact]
+    public async Task AsSelector_Should_ExecuteSuccessfully_When_TypeHasOnlyPrivateConstructors()
+    {
+        // arrange
+        var databaseName = $"db-{Guid.NewGuid():N}";
+
+        await using (var seedContext = new FactoryOnlyBlogDbContext(
+            new DbContextOptionsBuilder<FactoryOnlyBlogDbContext>()
+                .UseInMemoryDatabase(databaseName)
+                .Options))
+        {
+            await seedContext.Database.EnsureCreatedAsync();
+            await seedContext.Blogs.AddAsync(FactoryOnlyBlog.Create("Blog1"));
+            await seedContext.SaveChangesAsync();
+        }
+
+        var executor = await new ServiceCollection()
+            .AddDbContext<FactoryOnlyBlogDbContext>(b => b.UseInMemoryDatabase(databaseName))
+            .AddGraphQL()
+            .AddProjections()
+            .AddQueryType<FactoryOnlyBlogQuery>()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                blogs {
+                    id
+                    name
+                }
+            }
+            """);
+
+        // assert
+        var operationResult = result.ExpectOperationResult();
+        Assert.True(operationResult.Errors is null || operationResult.Errors.Count == 0);
+        Assert.True(operationResult.Data.HasValue);
+    }
+
+    [Fact]
+    public async Task AsSelector_Should_UseMemberInitExpression_When_PocoHasPublicParameterlessConstructor()
+    {
+        // arrange
+        var captured = new List<Expression<Func<SimpleBlog, SimpleBlog>>>();
+
+        var executor = await new ServiceCollection()
+            .AddSingleton(captured)
+            .AddGraphQL()
+            .AddQueryType<SimpleBlogQuery>()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync("{ blogs { id name } }");
+
+        // assert
+        var operationResult = result.ExpectOperationResult();
+        Assert.True(operationResult.Errors is null || operationResult.Errors.Count == 0);
+        var expr = Assert.Single(captured);
+        Assert.IsType<MemberInitExpression>(expr.Body);
+    }
+
+    [Fact]
+    public async Task AsSelector_Should_ExecuteSuccessfully_When_TypeHasMixedAccessibilityConstructors()
+    {
+        // arrange
+        var databaseName = $"db-{Guid.NewGuid():N}";
+
+        await using (var seedContext = new MixedCtorBlogDbContext(
+            new DbContextOptionsBuilder<MixedCtorBlogDbContext>()
+                .UseInMemoryDatabase(databaseName)
+                .Options))
+        {
+            await seedContext.Database.EnsureCreatedAsync();
+            await seedContext.Blogs.AddAsync(MixedCtorBlog.Create("Blog1"));
+            await seedContext.SaveChangesAsync();
+        }
+
+        var executor = await new ServiceCollection()
+            .AddDbContext<MixedCtorBlogDbContext>(b => b.UseInMemoryDatabase(databaseName))
+            .AddGraphQL()
+            .AddProjections()
+            .AddQueryType<MixedCtorBlogQuery>()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                blogs {
+                    id
+                    name
+                }
+            }
+            """);
+
+        // assert
+        var operationResult = result.ExpectOperationResult();
+        Assert.True(operationResult.Errors is null || operationResult.Errors.Count == 0);
+        Assert.True(operationResult.Data.HasValue);
+    }
+
     public class ConstructorInjectionQuery
     {
         [UseProjection]
@@ -712,93 +814,58 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         public bool IsActive { get; set; }
     }
 
-    [Fact]
-    public async Task AsSelector_Should_ReturnIdentityExpression_When_DddAggregateHasOnlyPrivateConstructors()
+    public class FactoryOnlyBlogQuery
     {
-        // arrange
-        var databaseName = $"db-{Guid.NewGuid():N}";
-
-        await using (var seedContext = new DddBlogDbContext(
-            new DbContextOptionsBuilder<DddBlogDbContext>()
-                .UseInMemoryDatabase(databaseName)
-                .Options))
-        {
-            await seedContext.Database.EnsureCreatedAsync();
-            await seedContext.Blogs.AddAsync(DddBlog.Create("Blog1"));
-            await seedContext.SaveChangesAsync();
-        }
-
-        var executor = await new ServiceCollection()
-            .AddDbContext<DddBlogDbContext>(b => b.UseInMemoryDatabase(databaseName))
-            .AddGraphQL()
-            .AddProjections()
-            .AddQueryType<DddBlogQuery>()
-            .BuildRequestExecutorAsync();
-
-        // act
-        var result = await executor.ExecuteAsync(
-            """
-            {
-                blogs {
-                    id
-                    name
-                }
-            }
-            """);
-
-        // assert
-        var operationResult = result.ExpectOperationResult();
-        Assert.True(operationResult.Errors is null || operationResult.Errors.Count == 0);
-        Assert.True(operationResult.Data.HasValue);
-    }
-
-    [Fact]
-    public async Task AsSelector_Should_UseMemberInitExpression_When_PocoHasPublicParameterlessConstructor()
-    {
-        // arrange
-        var captured = new List<Expression<Func<SimpleBlog, SimpleBlog>>>();
-
-        var executor = await new ServiceCollection()
-            .AddSingleton(captured)
-            .AddGraphQL()
-            .AddQueryType<SimpleBlogQuery>()
-            .BuildRequestExecutorAsync();
-
-        // act
-        var result = await executor.ExecuteAsync("{ blogs { id name } }");
-
-        // assert
-        var operationResult = result.ExpectOperationResult();
-        Assert.True(operationResult.Errors is null || operationResult.Errors.Count == 0);
-        var expr = Assert.Single(captured);
-        Assert.IsType<MemberInitExpression>(expr.Body);
-    }
-
-    public class DddBlogQuery
-    {
-        public IQueryable<DddBlog> GetBlogs(
-            DddBlogDbContext context,
+        public IQueryable<FactoryOnlyBlog> GetBlogs(
+            FactoryOnlyBlogDbContext context,
             ISelection selection)
-            => context.Blogs.Select(selection.AsSelector<DddBlog>());
+            => context.Blogs.Select(selection.AsSelector<FactoryOnlyBlog>());
     }
 
-    public sealed class DddBlogDbContext(DbContextOptions<DddBlogDbContext> options)
+    public sealed class FactoryOnlyBlogDbContext(DbContextOptions<FactoryOnlyBlogDbContext> options)
         : DbContext(options)
     {
-        public DbSet<DddBlog> Blogs => Set<DddBlog>();
+        public DbSet<FactoryOnlyBlog> Blogs => Set<FactoryOnlyBlog>();
     }
 
-    public sealed class DddBlog
+    public sealed class FactoryOnlyBlog
     {
-        private DddBlog() { }
+        private FactoryOnlyBlog() { }
 
-        private DddBlog(string name) { Name = name; }
+        private FactoryOnlyBlog(string name) { Name = name; }
 
         public int Id { get; private set; }
 
-        public string Name { get; private set; } = "";
+        public string Name { get; private set; } = string.Empty;
 
-        public static DddBlog Create(string name) => new(name);
+        public static FactoryOnlyBlog Create(string name) => new(name);
+    }
+
+    public class MixedCtorBlogQuery
+    {
+        public IQueryable<MixedCtorBlog> GetBlogs(
+            MixedCtorBlogDbContext context,
+            ISelection selection)
+            => context.Blogs.Select(selection.AsSelector<MixedCtorBlog>());
+    }
+
+    public sealed class MixedCtorBlogDbContext(DbContextOptions<MixedCtorBlogDbContext> options)
+        : DbContext(options)
+    {
+        public DbSet<MixedCtorBlog> Blogs => Set<MixedCtorBlog>();
+    }
+
+    public sealed class MixedCtorBlog
+    {
+        private MixedCtorBlog() { }
+
+        public MixedCtorBlog(string name) { Name = name; }
+
+        public int Id { get; private set; }
+
+        public string Name { get; private set; } = string.Empty;
+
+        public static MixedCtorBlog Create(string name) => new(name);
     }
 
     public class SimpleBlogQuery
@@ -815,6 +882,6 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     public sealed class SimpleBlog
     {
         public int Id { get; set; }
-        public string Name { get; set; } = "";
+        public string Name { get; set; } = string.Empty;
     }
 }

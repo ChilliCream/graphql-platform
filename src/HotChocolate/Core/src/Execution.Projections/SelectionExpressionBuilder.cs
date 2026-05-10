@@ -630,12 +630,12 @@ internal sealed class SelectionExpressionBuilder
     }
 
     private static bool ShouldReuseExistingInstance(Type type)
-        => type.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-               .Any(c => c.GetParameters().Length == 0)
-            && type.GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic)
-                .Any(t =>
-                    t.GetParameters().Length > 0
-                    && !IsRecordCopyConstructor(t, type));
+    {
+        var ctors = type.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+        return ctors.Any(ctor => ctor.GetParameters().Length == 0)
+            && ctors.Any(ctor => !ctor.IsPublic && !IsRecordCopyConstructor(ctor, type));
+    }
 
     private static bool IsRecordCopyConstructor(ConstructorInfo constructor, Type declaringType)
     {
