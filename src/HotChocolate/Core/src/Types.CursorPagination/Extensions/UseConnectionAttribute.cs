@@ -136,7 +136,7 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
                 new BatchFieldMiddlewareConfiguration(
                     CreateBatchPagingValidationMiddleware(),
                     key: Paging));
-            definition.BatchPartitionKeyResolver = PagingHelper.GetPagingBatchPartitionKey;
+            definition.BatchPartitionKeyResolvers = [PagingHelper.GetPagingBatchPartitionKey];
             definition.Tasks.Add(
                 new OnCreateTypeSystemConfigurationTask(
                     (_, d) => d.Features.Set(options), definition));

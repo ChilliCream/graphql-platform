@@ -85,7 +85,7 @@ public static class PagingHelper
 
         var batchIndex = definition.BatchMiddlewareConfigurations.IndexOf(batchPlaceholder);
         definition.BatchMiddlewareConfigurations[batchIndex] = new(batchMiddleware, key: Paging);
-        definition.BatchPartitionKeyResolver = GetPagingBatchPartitionKey;
+        definition.BatchPartitionKeyResolvers = [GetPagingBatchPartitionKey];
         definition.Features.Set(options);
     }
 

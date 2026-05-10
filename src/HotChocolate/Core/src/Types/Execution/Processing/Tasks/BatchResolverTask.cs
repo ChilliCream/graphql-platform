@@ -289,22 +289,25 @@ internal sealed class BatchResolverTask : IResolverTask
             }
         }
 
-        if (_field.BatchPartitionKeyResolver is { } partitioner && contexts.Length > 1)
+        if (_field.BatchPartitionKeyResolvers.IsEmpty || contexts.Length == 1)
         {
-            await ExecutePartitionedBatchPipelineAsync(contexts, partitioner, cancellationToken)
-                .ConfigureAwait(false);
+            await ExecuteSingleBatchPipelineAsync(contexts, cancellationToken).ConfigureAwait(false);
         }
         else
         {
-            await ExecuteSingleBatchPipelineAsync(contexts, cancellationToken).ConfigureAwait(false);
+            await ExecutePartitionedBatchPipelineAsync(contexts, depth: 0, cancellationToken)
+                .ConfigureAwait(false);
         }
     }
 
     private async ValueTask ExecutePartitionedBatchPipelineAsync(
         ImmutableArray<IMiddlewareContext> contexts,
-        BatchPartitionKeyResolver partitioner,
+        int depth,
         CancellationToken cancellationToken)
     {
+        var partitioners = _field.BatchPartitionKeyResolvers;
+        var partitioner = partitioners[depth];
+        var hasNextLevel = depth + 1 < partitioners.Length;
         var firstKey = partitioner(contexts[0]);
         Dictionary<ulong, ImmutableArray<IMiddlewareContext>.Builder>? partitions = null;
 
@@ -345,14 +348,34 @@ internal sealed class BatchResolverTask : IResolverTask
 
         if (partitions is null)
         {
-            await ExecuteSingleBatchPipelineAsync(contexts, cancellationToken).ConfigureAwait(false);
+            // all-same-key fast path: every context shares firstKey, so no allocation —
+            // recurse on the original array if there's another partitioner level, otherwise dispatch.
+            if (hasNextLevel)
+            {
+                await ExecutePartitionedBatchPipelineAsync(contexts, depth + 1, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            else
+            {
+                await ExecuteSingleBatchPipelineAsync(contexts, cancellationToken).ConfigureAwait(false);
+            }
             return;
         }
 
         foreach (var partition in partitions.Values)
         {
-            await ExecuteSingleBatchPipelineAsync(partition.ToImmutable(), cancellationToken)
-                .ConfigureAwait(false);
+            var partitionContexts = partition.ToImmutable();
+
+            if (hasNextLevel && partitionContexts.Length > 1)
+            {
+                await ExecutePartitionedBatchPipelineAsync(
+                    partitionContexts, depth + 1, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                await ExecuteSingleBatchPipelineAsync(partitionContexts, cancellationToken)
+                    .ConfigureAwait(false);
+            }
         }
     }
 

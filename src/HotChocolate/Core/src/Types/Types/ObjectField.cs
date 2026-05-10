@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -42,7 +43,7 @@ public sealed class ObjectField : OutputField
         ResultPostProcessor = original.ResultPostProcessor;
         PureResolver = original.PureResolver;
         BatchResolver = original.BatchResolver;
-        BatchPartitionKeyResolver = original.BatchPartitionKeyResolver;
+        BatchPartitionKeyResolvers = original.BatchPartitionKeyResolvers;
         DependencyInjectionScope = original.DependencyInjectionScope;
         Middleware = original.Middleware;
         Flags = original.Flags;
@@ -105,7 +106,7 @@ public sealed class ObjectField : OutputField
     /// </summary>
     public BatchFieldDelegate? BatchResolver { get; private set; }
 
-    internal BatchPartitionKeyResolver? BatchPartitionKeyResolver { get; private set; }
+    internal ImmutableArray<BatchPartitionKeyResolver> BatchPartitionKeyResolvers { get; private set; } = [];
 
     /// <summary>
     /// Gets the result post-processor.
@@ -233,7 +234,7 @@ public sealed class ObjectField : OutputField
         // Compile the batch resolver pipeline if a batch resolver is configured.
         if (definition.BatchResolver is not null)
         {
-            BatchPartitionKeyResolver = definition.BatchPartitionKeyResolver;
+            BatchPartitionKeyResolvers = definition.BatchPartitionKeyResolvers;
             BatchResolver = CompileBatchPipeline(
                 definition.GetBatchMiddlewareDefinitions(),
                 definition.BatchResolver);

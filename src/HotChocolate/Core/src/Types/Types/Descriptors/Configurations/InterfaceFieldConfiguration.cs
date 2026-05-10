@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Collections.Immutable;
 using System.Reflection;
 using HotChocolate.Execution;
 using HotChocolate.Internal;
@@ -83,7 +84,7 @@ public class InterfaceFieldConfiguration : OutputFieldConfiguration
     /// </summary>
     public BatchFieldDelegate? BatchResolver { get; set; }
 
-    internal BatchPartitionKeyResolver? BatchPartitionKeyResolver { get; set; }
+    internal ImmutableArray<BatchPartitionKeyResolver> BatchPartitionKeyResolvers { get; set; } = [];
 
     /// <summary>
     /// A list of batch middleware components which will be used to form the batch field pipeline.
@@ -293,7 +294,7 @@ public class InterfaceFieldConfiguration : OutputFieldConfiguration
         target.Resolver = Resolver;
         target.PureResolver = PureResolver;
         target.BatchResolver = BatchResolver;
-        target.BatchPartitionKeyResolver = BatchPartitionKeyResolver;
+        target.BatchPartitionKeyResolvers = BatchPartitionKeyResolvers;
         target.IsParallelExecutable = IsParallelExecutable;
         target.DependencyInjectionScope = DependencyInjectionScope;
         target.HasStreamResult = HasStreamResult;
@@ -347,7 +348,7 @@ public class InterfaceFieldConfiguration : OutputFieldConfiguration
         target.Resolver = Resolver;
         target.PureResolver = PureResolver;
         target.BatchResolver = BatchResolver;
-        target.BatchPartitionKeyResolver = BatchPartitionKeyResolver;
+        target.BatchPartitionKeyResolvers = BatchPartitionKeyResolvers;
         target.IsParallelExecutable = IsParallelExecutable;
         target.DependencyInjectionScope = DependencyInjectionScope;
         target.HasStreamResult = HasStreamResult;
@@ -430,9 +431,9 @@ public class InterfaceFieldConfiguration : OutputFieldConfiguration
             target.BatchResolver = BatchResolver;
         }
 
-        if (BatchPartitionKeyResolver is not null)
+        if (!BatchPartitionKeyResolvers.IsEmpty)
         {
-            target.BatchPartitionKeyResolver = BatchPartitionKeyResolver;
+            target.BatchPartitionKeyResolvers = BatchPartitionKeyResolvers;
         }
 
         if (ResultPostProcessor is not null)

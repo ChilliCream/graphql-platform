@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Collections.Immutable;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Execution;
@@ -98,7 +99,7 @@ public class ObjectFieldConfiguration : OutputFieldConfiguration
     /// </summary>
     public BatchFieldDelegate? BatchResolver { get; set; }
 
-    internal BatchPartitionKeyResolver? BatchPartitionKeyResolver { get; set; }
+    internal ImmutableArray<BatchPartitionKeyResolver> BatchPartitionKeyResolvers { get; set; } = [];
 
     /// <summary>
     /// A list of batch middleware components which will be used to form the batch field pipeline.
@@ -333,7 +334,7 @@ public class ObjectFieldConfiguration : OutputFieldConfiguration
         target.Resolver = Resolver;
         target.PureResolver = PureResolver;
         target.BatchResolver = BatchResolver;
-        target.BatchPartitionKeyResolver = BatchPartitionKeyResolver;
+        target.BatchPartitionKeyResolvers = BatchPartitionKeyResolvers;
         target.SubscribeResolver = SubscribeResolver;
         target.IsIntrospectionField = IsIntrospectionField;
         target.IsParallelExecutable = IsParallelExecutable;
@@ -424,9 +425,9 @@ public class ObjectFieldConfiguration : OutputFieldConfiguration
             target.BatchResolver = BatchResolver;
         }
 
-        if (BatchPartitionKeyResolver is not null)
+        if (!BatchPartitionKeyResolvers.IsEmpty)
         {
-            target.BatchPartitionKeyResolver = BatchPartitionKeyResolver;
+            target.BatchPartitionKeyResolvers = BatchPartitionKeyResolvers;
         }
 
         if (SubscribeResolver is not null)
