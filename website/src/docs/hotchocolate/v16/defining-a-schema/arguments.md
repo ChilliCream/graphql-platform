@@ -143,6 +143,22 @@ C# default parameter values also work:
 public static List<Product> GetProducts(int limit = 10)
 ```
 
+For complex default values that cannot be expressed as C# constants (such as input objects), use `[DefaultValueSyntax]` with GraphQL value syntax:
+
+```csharp
+[QueryType]
+public static partial class ProductQueries
+{
+    public static List<Product> GetProducts(
+        [DefaultValueSyntax("{ title: null, year: 2024 }")] BookFilterInput filter)
+    {
+        // ...
+    }
+}
+```
+
+This produces `products(filter: BookFilterInput! = { title: null, year: 2024 }): [Product!]!`. The string is parsed as a GraphQL value literal at schema build time.
+
 # The ID Attribute
 
 The `[ID]` attribute marks a parameter as a GraphQL `ID` scalar. When combined with [global object identification](/docs/hotchocolate/v16/defining-a-schema/relay), it also deserializes the opaque global ID back to the underlying value.
