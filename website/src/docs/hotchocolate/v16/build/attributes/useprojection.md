@@ -4,7 +4,7 @@ title: UseProjection attribute
 
 The `[UseProjection]` attribute enables Hot Chocolate to build a provider projection based on the GraphQL selection set. For database-backed fields, this can reduce the number of selected columns and joins when the underlying provider supports translating the projection.
 
-This attribute is the code-first entry point for projections in Hot Chocolate v16. The most common scenario is an Entity Framework Core resolver that returns an unmaterialized `IQueryable<T>`.
+This attribute is the code-first entry point for projections in Hot Chocolate. The most common scenario is an Entity Framework Core resolver that returns an unmaterialized `IQueryable<T>`.
 
 # How `[UseProjection]` Works
 

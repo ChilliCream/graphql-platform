@@ -2,7 +2,7 @@
 title: Directives
 ---
 
-Directives are annotations in GraphQL. In Hot Chocolate v16, clients use executable directives within operations, while schema authors use type-system directives to add metadata or behavior to schema elements.
+Directives are annotations in GraphQL. In Hot Chocolate, clients use executable directives within operations, while schema authors use type-system directives to add metadata or behavior to schema elements.
 
 ```graphql
 # Schema SDL
@@ -36,7 +36,7 @@ fragment ProductDetails on Product {
 
 Before creating a custom directive, check if an existing directive-based feature meets your needs. Use attributes or descriptor APIs when Hot Chocolate already provides a feature, and verify the generated SDL. Create custom directives only when clients, schema registries, or tooling require metadata or schema-visible behavior.
 
-> Note: This page covers GraphQL directives in Hot Chocolate v16. It does not address Apollo Federation or Fusion subgraph directives and attributes such as `@key`, `@requires`, `@provides`, `@lookup`, `[Shareable]`, `[Lookup]`, or `[Internal]`. For those, see the Fusion subgraph documentation.
+> Note: This page covers GraphQL directives in Hot Chocolate. It does not address Apollo Federation or Fusion subgraph directives and attributes such as `@key`, `@requires`, `@provides`, `@lookup`, `[Shareable]`, `[Lookup]`, or `[Internal]`. For those, see the Fusion subgraph documentation.
 
 # Understanding directive categories
 

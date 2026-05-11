@@ -12,7 +12,7 @@ This page focuses on the first two areas and clarifies when a setting belongs to
 
 ## Start with the subgraph service
 
-Begin by installing the packages required for a typical v16 attribute-based subgraph:
+Begin by installing the packages required for a typical attribute-based subgraph:
 
 | Package                               | Purpose                                                          |
 | ------------------------------------- | ---------------------------------------------------------------- |
@@ -171,7 +171,7 @@ A newly generated settings file includes the schema name and an HTTP transport U
 
 The generated URL always starts as `http://localhost:5000/graphql`. Update this to the endpoint the gateway can reach for the environment you are composing for.
 
-Verified defaults for v16:
+Verified defaults:
 
 | Area                                     | Default                                                                                  |
 | ---------------------------------------- | ---------------------------------------------------------------------------------------- |

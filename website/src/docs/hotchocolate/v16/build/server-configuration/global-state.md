@@ -349,7 +349,7 @@ In integration tests, send the HTTP or WebSocket input that your interceptor rea
 
 ## `SetProperty`, `TryAddProperty`, or `GetGlobalValue` does not compile
 
-These names are from older Hot Chocolate versions. In v16, use `SetGlobalState`, `AddGlobalState`, `TryAddGlobalState`, `GetGlobalState`, and `GetGlobalStateOrDefault`.
+These names are from older Hot Chocolate versions. Use `SetGlobalState`, `AddGlobalState`, `TryAddGlobalState`, `GetGlobalState`, and `GetGlobalStateOrDefault`.
 
 ## `[GlobalState]` throws because the value is missing
 

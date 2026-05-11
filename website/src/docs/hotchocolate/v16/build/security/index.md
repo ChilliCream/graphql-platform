@@ -6,7 +6,7 @@ title: Security
 
 Securing a GraphQL API with Hot Chocolate involves multiple layers. While a Hot Chocolate server typically exposes a single HTTP endpoint, each request can differ in field selection, depth, aliases, fragments, variables, batching, file uploads, and transport. Authentication identifies the caller. Authorization determines what the caller can access. Operation controls and limits define how much work a valid caller may request from the server.
 
-This page serves as your starting point for securing a Hot Chocolate v16 API. It guides you to detailed setup pages and highlights the key decisions to make before moving to production.
+This page serves as your starting point for securing a Hot Chocolate API. It guides you to detailed setup pages and highlights the key decisions to make before moving to production.
 
 ## Secure GraphQL in layers
 
@@ -72,7 +72,7 @@ Internal traffic can cause harm through compromised credentials, automation bugs
 
 ## What Hot Chocolate protects by default
 
-When you enable default security through the standard server registration, Hot Chocolate v16 provides several key GraphQL protections:
+When you enable default security through the standard server registration, Hot Chocolate provides several key GraphQL protections:
 
 - Cost analysis is enabled.
 - Introspection is disabled when the host environment is not set to development.

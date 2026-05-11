@@ -194,7 +194,7 @@ directive @listSize(
 | ----------------------------- | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | `AssumedSize`                 | Static estimate and variable fallback          | Must be non-negative. Use a server-enforced maximum or a conservative cap.                                                 |
 | `SlicingArguments`            | Numeric arguments that determine list size     | Literal values, schema defaults, and variables influence analysis differently.                                             |
-| `SlicingArgumentDefaultValue` | Fallback when no slicing value is available    | Must be non-negative. Hot Chocolate v16 emits it only when slicing arguments are present.                                  |
+| `SlicingArgumentDefaultValue` | Fallback when no slicing value is available    | Must be non-negative. Hot Chocolate emits this only when slicing arguments are present.                                    |
 | `SizedFields`                 | Child list fields governed by the parent field | Common values are `edges`, `nodes`, and `items`.                                                                           |
 | `RequireOneSlicingArgument`   | Require one usable slicing argument            | The attribute default is `true`. Generated paging metadata follows `RequirePagingBoundaries`, which is `false` by default. |
 

@@ -425,7 +425,7 @@ Extending MongoDB filtering follows the same structural pattern as queryable han
 
 ### Raven
 
-`.AddRavenFiltering()` is the Raven provider registration in v16. Treat Raven filters as provider-specific, even when the expression resembles the default queryable path. Always verify the generated Raven query or run an integration test against Raven before exposing a custom operation on a Raven-backed resolver.
+`.AddRavenFiltering()` registers the RavenDB filtering convention and provider. Treat Raven filters as provider-specific, even when the expression resembles the default queryable path. Always verify the generated Raven query or run an integration test against Raven before exposing a custom operation on a Raven-backed resolver.
 
 ### Spatial
 

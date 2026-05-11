@@ -608,7 +608,7 @@ Sorting may expose framework sort direction enum types, such as ascending or des
 
 Normal GraphQL enums represent one named value at a time. `[Flags]` enums represent bitwise combinations, so they need a different schema shape.
 
-Hot Chocolate v16 has opt-in flag enum support:
+Hot Chocolate has opt-in flag enum support:
 
 ```csharp
 // Program.cs

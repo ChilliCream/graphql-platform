@@ -27,7 +27,7 @@ builder.Services
 
 `UseAutomaticPersistedOperationPipeline()` sets up the runtime registration pipeline. Do not use `UsePersistedOperationPipeline()` for APQ, as that pipeline is intended for operation documents that have already been registered or published.
 
-Hot Chocolate v16 offers these hash providers:
+Hot Chocolate offers these hash providers:
 
 | Provider                             | Request property | Algorithm name | Formats                                                   |
 | ------------------------------------ | ---------------- | -------------- | --------------------------------------------------------- |
@@ -245,7 +245,7 @@ Consider these causes:
 
 ## Old examples use persisted query API names
 
-Hot Chocolate renamed persisted query APIs to persisted operation APIs in earlier versions. For v16, use `UseAutomaticPersistedOperationPipeline()`, `UsePersistedOperationPipeline()`, and `AddInMemoryOperationDocumentStorage()`.
+Hot Chocolate renamed persisted query APIs to persisted operation APIs in earlier versions. Use `UseAutomaticPersistedOperationPipeline()`, `UsePersistedOperationPipeline()`, and `AddInMemoryOperationDocumentStorage()`.
 
 # Security considerations
 

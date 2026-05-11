@@ -2,7 +2,7 @@
 title: HTTP transport
 ---
 
-Hot Chocolate processes GraphQL operations over HTTP using ASP.NET Core endpoints. This page explains how to send requests that follow Hot Chocolate v16 defaults, select response formats, configure transport options, and troubleshoot common HTTP issues.
+Hot Chocolate processes GraphQL operations over HTTP using ASP.NET Core endpoints. This page explains how to send requests that follow Hot Chocolate defaults, select response formats, configure transport options, and troubleshoot common HTTP issues.
 
 Most examples use the default `/graphql` route. For details on changing paths, splitting HTTP and WebSocket routes, hosting Nitro separately, or exposing SDL endpoints, see [Endpoint mapping](/docs/hotchocolate/v16/build/server-configuration/endpoints).
 
@@ -190,7 +190,7 @@ Ensure that ASP.NET Core, Kestrel, IIS, and reverse proxy request limits are con
 
 ## Choose response formats with Accept
 
-By default, Hot Chocolate v16 uses the GraphQL over HTTP response format. The client selects the response format using the `Accept` header.
+By default, Hot Chocolate uses the GraphQL over HTTP response format. The client selects the response format using the `Accept` header.
 
 | `Accept` value                      | Response format               | Use it for                                                                             |
 | ----------------------------------- | ----------------------------- | -------------------------------------------------------------------------------------- |
@@ -260,7 +260,7 @@ Accept: text/event-stream
 Accept: application/jsonl
 ```
 
-In v16, the default incremental delivery wire format is v0.2. Clients can request a specific format using the `incrementalSpec` parameter:
+The default incremental delivery wire format is v0.2. Clients can request a specific format using the `incrementalSpec` parameter:
 
 ```http
 Accept: multipart/mixed; incrementalSpec=v0.2
@@ -274,7 +274,7 @@ Reverse proxies may buffer or delay streaming responses. Test streaming clients 
 
 ## Enable batching only for intended clients
 
-Hot Chocolate supports variable batching and request batching over HTTP POST, but batching is disabled by default in v16.
+Hot Chocolate supports variable batching and request batching over HTTP POST, but batching is disabled by default.
 
 ```csharp
 builder

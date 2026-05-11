@@ -4,7 +4,7 @@ title: Execution depth and limits
 
 GraphQL allows clients to define the shape of each request. While this flexibility is powerful, it also means that even a valid request can be resource-intensive before any resolver executes. For public endpoints, it is essential to set boundaries at every stage: request body handling, parsing, validation, execution, pagination, batching, and cancellation.
 
-This page explains the Hot Chocolate v16 controls that help keep request workloads predictable, focusing on limits and depth rules. For operation budgets, see [cost analysis](cost-analysis.md). If you can restrict production clients to known operations, see [trusted documents](../../performance/trusted-documents.md).
+This page explains the Hot Chocolate controls that help keep request workloads predictable, focusing on limits and depth rules. For operation budgets, see [cost analysis](cost-analysis.md). If you can restrict production clients to known operations, see [trusted documents](../../performance/trusted-documents.md).
 
 # Understanding the Request Lifecycle
 

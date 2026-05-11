@@ -4,7 +4,7 @@ title: "Parent access"
 
 # Accessing Parent Values in Resolvers
 
-When a field needs information from the object that contains it, you access the parent value. In Hot Chocolate v16, you can access this value using `this`, `[Parent]`, or `context.Parent<T>()`, depending on how your resolver is defined.
+When a field needs information from the object that contains it, you access the parent value. You can access this value using `this`, `[Parent]`, or `context.Parent<T>()`, depending on how your resolver is defined.
 
 This page explains how to access parent values. For details on resolver signatures, service injection, and DataLoader setup, see the links in [Go next](#go-next).
 

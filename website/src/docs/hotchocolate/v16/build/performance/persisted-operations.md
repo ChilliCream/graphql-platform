@@ -449,9 +449,9 @@ For multi-environment deployments, keep operation stores isolated by environment
 
 # Migration notes
 
-Older Hot Chocolate versions and older workshop material may use persisted query names such as `UsePersistedQueryPipeline()` or `AddFileSystemQueryStorage(...)`. In v16, use persisted operation APIs:
+Older Hot Chocolate versions and older workshop material may use persisted query names such as `UsePersistedQueryPipeline()` or `AddFileSystemQueryStorage(...)`. Use persisted operation APIs instead:
 
-| Older name                       | v16 name                                      |
+| Older name                       | Current name                                  |
 | -------------------------------- | --------------------------------------------- |
 | `UsePersistedQueryPipeline()`    | `UsePersistedOperationPipeline()`             |
 | `AddFileSystemQueryStorage(...)` | `AddFileSystemOperationDocumentStorage(...)`  |

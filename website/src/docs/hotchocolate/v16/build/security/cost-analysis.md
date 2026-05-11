@@ -2,7 +2,7 @@
 title: Cost analysis
 ---
 
-Cost analysis helps protect a Hot Chocolate v16 server from GraphQL operations that, while valid, may be too resource-intensive to execute safely. Before any resolver runs, the system estimates the cost of an operation, compares it to your configured budgets, and rejects requests that exceed those limits.
+Cost analysis helps protect a Hot Chocolate server from GraphQL operations that, while valid, may be too resource-intensive to execute safely. Before any resolver runs, the system estimates the cost of an operation, compares it to your configured budgets, and rejects requests that exceed those limits.
 
 Refer to this page if your clients can send dynamic GraphQL documents. If all production clients use pre-registered operations, also review [trusted documents](trusted-documents.md), as allowlisting and cost budgets address different concerns.
 
@@ -82,7 +82,7 @@ An accepted operation continues through the request pipeline and executes normal
 
 # How Hot Chocolate estimates cost
 
-Hot Chocolate v16 cost analysis is based on static schema metadata and the operation document. The analyzer runs after document validation and before execution.
+Hot Chocolate cost analysis is based on static schema metadata and the operation document. The analyzer runs after document validation and before execution.
 
 ```text
 parse
@@ -644,7 +644,7 @@ Cost analysis is one security layer.
 
 # Next steps
 
-- Review the [security overview](index.md) to place cost analysis in the full v16 security model.
+- Review the [security overview](index.md) to place cost analysis in the full security model.
 - Use [Cost attribute](../attributes/cost.md) and [ListSize attribute](../attributes/listsize.md) for schema metadata details.
 - Tune server behavior from [Server configuration](../server-configuration/index.md).
 - Pair cost budgets with [Pagination](../pagination/index.md), [Trusted documents](trusted-documents.md), and [Request limits](execution-depth-and-limits.md).

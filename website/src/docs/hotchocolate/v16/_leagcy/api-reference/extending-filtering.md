@@ -1,6 +1,6 @@
 ---
 title: Extending Filtering
-description: Learn how to extend the filtering system in Hot Chocolate v16 with custom conventions, providers, and field handlers.
+description: Learn how to extend the filtering system in Hot Chocolate with custom conventions, providers, and field handlers.
 ---
 
 The `HotChocolate.Data` package works with all databases that support `IQueryable`. The default settings include all filter operations that work over `IQueryable` on all databases. In some cases, this is not enough. Some databases might not support `IQueryable`. Others may have technology-specific operations (e.g., SQL `LIKE`). The filtering system is designed with extensibility in mind.

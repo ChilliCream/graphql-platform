@@ -101,7 +101,7 @@ public sealed class Brand
 
 # Let Hot Chocolate infer object types
 
-Hot Chocolate v16 can infer object types from public C# members.
+Hot Chocolate can infer object types from public C# members.
 
 ```csharp
 using Catalog.Models;
@@ -176,12 +176,12 @@ Inference is a good starting point. Configure the type when public members expos
 
 # Choose a configuration style
 
-| Style                      | Use when                                                                            | Example APIs                                                                                           | Trade-off                                                   |
-| -------------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------- |
-| Conventions                | The inferred schema already matches your public API.                                | Public properties and methods.                                                                         | Public members can enter the schema.                        |
-| Attributes                 | You need local metadata near the CLR member.                                        | `[GraphQLName]`, `[GraphQLDescription]`, `[GraphQLIgnore]`, `[GraphQLType<T>]`, `[GraphQLDeprecated]`. | GraphQL metadata lives on the CLR type.                     |
-| `[ObjectType<T>]` class    | You use the v16 source generator and want type configuration near resolver methods. | `[ObjectType<Product>]`, `static partial void Configure(...)`.                                         | Requires generated type registration, such as `AddTypes()`. |
-| `ObjectType<T>` descriptor | You want central code-first schema modules.                                         | `ObjectType<Product>`, `IObjectTypeDescriptor<Product>`, `.AddType<ProductType>()`.                    | More code, with clear schema boundaries.                    |
+| Style                      | Use when                                                                        | Example APIs                                                                                           | Trade-off                                                   |
+| -------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------- |
+| Conventions                | The inferred schema already matches your public API.                            | Public properties and methods.                                                                         | Public members can enter the schema.                        |
+| Attributes                 | You need local metadata near the CLR member.                                    | `[GraphQLName]`, `[GraphQLDescription]`, `[GraphQLIgnore]`, `[GraphQLType<T>]`, `[GraphQLDeprecated]`. | GraphQL metadata lives on the CLR type.                     |
+| `[ObjectType<T>]` class    | You use the source generator and want type configuration near resolver methods. | `[ObjectType<Product>]`, `static partial void Configure(...)`.                                         | Requires generated type registration, such as `AddTypes()`. |
+| `ObjectType<T>` descriptor | You want central code-first schema modules.                                     | `ObjectType<Product>`, `IObjectTypeDescriptor<Product>`, `.AddType<ProductType>()`.                    | More code, with clear schema boundaries.                    |
 
 A practical flow:
 
@@ -362,14 +362,14 @@ builder
 
 Hot Chocolate infers field types from CLR types and nullable annotations. Override the GraphQL type when the public contract needs a specific scalar, list shape, or nullability.
 
-| CLR shape                                      | Typical GraphQL shape               | Notes                                                 |
-| ---------------------------------------------- | ----------------------------------- | ----------------------------------------------------- |
-| `string` with nullable reference types enabled | `String!`                           | Non-null output.                                      |
-| `string?`                                      | `String`                            | Nullable output.                                      |
-| `int`                                          | `Int!`                              | Non-null value type.                                  |
-| `int?`                                         | `Int`                               | Nullable value type.                                  |
-| `IReadOnlyList<Product>`                       | `[Product!]!`                       | List and item nullability are separate.               |
-| `Dictionary<string, string>`                   | `[KeyValuePairOfStringAndString!]!` | v16 maps dictionaries to key-value pair object lists. |
+| CLR shape                                      | Typical GraphQL shape               | Notes                                                   |
+| ---------------------------------------------- | ----------------------------------- | ------------------------------------------------------- |
+| `string` with nullable reference types enabled | `String!`                           | Non-null output.                                        |
+| `string?`                                      | `String`                            | Nullable output.                                        |
+| `int`                                          | `Int!`                              | Non-null value type.                                    |
+| `int?`                                         | `Int`                               | Nullable value type.                                    |
+| `IReadOnlyList<Product>`                       | `[Product!]!`                       | List and item nullability are separate.                 |
+| `Dictionary<string, string>`                   | `[KeyValuePairOfStringAndString!]!` | Dictionaries are mapped to key-value pair object lists. |
 
 Use `[GraphQLType<T>]` near the CLR member when you configure the type with attributes, as shown in [Configure a type with attributes](#configure-a-type-with-attributes). Use `.Type<T>()` in a descriptor module.
 
@@ -462,7 +462,7 @@ builder
     .AddType<BrandType>();
 ```
 
-Register source-generated `[ObjectType<T>]` modules with the generated registration method for your project. The default v16 template uses `AddTypes()`.
+Register source-generated `[ObjectType<T>]` modules with the generated registration method for your project. The default template uses `AddTypes()`.
 
 ```csharp
 builder
@@ -470,7 +470,7 @@ builder
     .AddTypes();
 ```
 
-## Configure a type with a v16 ObjectType class
+## Configure a type with an ObjectType class
 
 Use `[ObjectType<T>]` classes when your project uses the source generator and you want a type module with resolver methods.
 
@@ -641,9 +641,9 @@ Implementation choices:
 
 For resolver execution details, see [Resolvers](/docs/hotchocolate/v16/build/resolvers). For efficient related data fetching, see [DataLoader](/docs/hotchocolate/v16/build/dataloader). For global IDs and node lookups, see [Relay](/docs/hotchocolate/v16/build/schema-elements/relay).
 
-# Use dictionary properties in v16
+# Use dictionary properties
 
-Hot Chocolate v16 maps `Dictionary<TKey, TValue>` properties to lists of generated key-value pair object types. For `Dictionary<string, string>`, the generated SDL is:
+Hot Chocolate maps `Dictionary<TKey, TValue>` properties to lists of generated key-value pair object types. For `Dictionary<string, string>`, the generated SDL is:
 
 ```graphql
 type Product {

@@ -2,9 +2,9 @@
 title: "NodaTime Scalars"
 ---
 
-NodaTime scalars allow your GraphQL API to expose NodaTime date and time types instead of the default .NET types. The `HotChocolate.Types.NodaTime` package provides five scalar implementations in v16, each following the specifications at [scalars.graphql.org](https://scalars.graphql.org/).
+NodaTime scalars allow your GraphQL API to expose NodaTime date and time types instead of the default .NET types. The `HotChocolate.Types.NodaTime` package provides five scalar implementations, each following the specifications at [scalars.graphql.org](https://scalars.graphql.org/).
 
-This page explains how to install the package, register the scalars, model fields and arguments with NodaTime types, configure fractional-second precision, and resolve common migration issues in v16.
+This page explains how to install the package, register the scalars, model fields and arguments with NodaTime types, configure fractional-second precision, and resolve common migration issues.
 
 # Adding NodaTime Support
 
@@ -46,7 +46,7 @@ Begin by considering the meaning of the value in your domain, then select the No
 | Time of day                                       | `LocalTime`            | `LocalTime`     | `"15:30:00"`             | Use for store hours, daily cutoffs, and recurring local times.                  |
 | Elapsed amount of time                            | `Duration`             | `Duration`      | `"PT5M"`                 | Use for retry delays, grace periods, and timeouts.                              |
 
-> If your domain requires `Instant`, `ZonedDateTime`, `OffsetDate`, `OffsetTime`, `DateTimeZone`, `IsoDayOfWeek`, or `Period`, the v16 NodaTime package does not provide a scalar for that CLR type. Convert the value at your GraphQL boundary or implement a custom scalar for your API contract.
+> If your domain requires `Instant`, `ZonedDateTime`, `OffsetDate`, `OffsetTime`, `DateTimeZone`, `IsoDayOfWeek`, or `Period`, the NodaTime package does not provide a scalar for that CLR type. Convert the value at your GraphQL boundary or implement a custom scalar for your API contract.
 
 # Modeling Fields and Arguments with NodaTime
 
@@ -146,7 +146,7 @@ Nullability follows the same rules as other fields and arguments in Hot Chocolat
 
 # Supported Scalar Reference
 
-`HotChocolate.Types.NodaTime` provides exactly five NodaTime scalar implementations in v16.
+`HotChocolate.Types.NodaTime` provides exactly five NodaTime scalar implementations.
 
 | GraphQL scalar  | NodaTime runtime type     | Registered scalar type | Related BCL binding after `AddNodaTime()` | Example GraphQL value                   | Use when                                                 |
 | --------------- | ------------------------- | ---------------------- | ----------------------------------------- | --------------------------------------- | -------------------------------------------------------- |
@@ -172,7 +172,7 @@ Clients provide NodaTime scalar values as strings in GraphQL literals or JSON va
 | `LocalTime`     | `HH:mm:ss` with optional fractional seconds                 | `"15:30:00.123456789"`   | `"2023-12-24T15:30:00"`, `"15:30:00+01:00"`             | Fractional seconds can contain up to configured `InputPrecision`, max `9`. |
 | `Duration`      | ISO 8601 duration string                                    | `"PT5M"`                 | `"5 minutes"`, `"00:05:00"`                             | `DateTimeOptions` does not apply.                                          |
 
-Use uppercase `T` and `Z` in examples and client code. The v16 parsers accept lowercase `t` for `DateTime` and `LocalDateTime`, and lowercase `z` for `DateTime`, but uppercase values are clearer and match canonical examples.
+Use uppercase `T` and `Z` in examples and client code. The parsers accept lowercase `t` for `DateTime` and `LocalDateTime`, and lowercase `z` for `DateTime`, but uppercase values are clearer and match canonical examples.
 
 Output uses `OutputPrecision`. A value accepted with 9 fractional-second digits may serialize with fewer digits if you configure a lower output precision.
 
@@ -234,7 +234,7 @@ This section helps you anticipate schema changes after registering NodaTime. For
 
 # v15 Upgrade Notes
 
-In v16, `HotChocolate.Types.NodaTime` was rewritten to align with the GraphQL scalar specifications. Parsing is stricter than in previous versions, and only five scalar classes remain built in:
+`HotChocolate.Types.NodaTime` was rewritten to align with the GraphQL scalar specifications. Parsing is stricter than in previous versions, and only five scalar classes remain built in:
 
 - `DateTimeType`
 - `DurationType`
@@ -319,7 +319,7 @@ Keep inputs at or below the configured precision. Adjust `OutputPrecision` only 
 
 ## InstantType or ZonedDateTimeType cannot be found
 
-**Cause:** Legacy NodaTime scalar types were removed from the v16 package.
+**Cause:** Legacy NodaTime scalar types were removed from the package.
 
 Use one of the five supported scalars where possible. If your API must expose a different leaf value contract, see [Custom Scalars](./custom-scalars).
 

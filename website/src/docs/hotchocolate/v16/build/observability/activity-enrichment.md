@@ -2,7 +2,7 @@
 title: Activity enrichment
 ---
 
-Activity enrichment lets you add application context to the `Activity` spans that Hot Chocolate v16 creates with `.AddInstrumentation()`. Use this feature when your traces already show GraphQL activity, but you want to include safe tags such as correlation ID, tenant tier, client name, request source, or sanitized error categories.
+Activity enrichment lets you add application context to the `Activity` spans that Hot Chocolate creates with `.AddInstrumentation()`. Use this feature when your traces already show GraphQL activity, but you want to include safe tags such as correlation ID, tenant tier, client name, request source, or sanitized error categories.
 
 Enrichment is not a replacement for logging, metrics, exporter setup, or background processing hooks. Enricher methods run synchronously during request processing, so they must be fast, minimize allocations, and avoid network or database calls.
 
@@ -43,7 +43,7 @@ For details on exporters, resources, sampling, and full tracing setup, see [Open
 
 # Minimal custom enricher
 
-To create a custom enricher, define a type that derives from `ActivityEnricher`. In v16, the constructor receives `InstrumentationOptions`:
+To create a custom enricher, define a type that derives from `ActivityEnricher`. The constructor receives `InstrumentationOptions`:
 
 ```csharp
 using System.Diagnostics;
@@ -87,7 +87,7 @@ public sealed class GraphQLActivityEnricher(
 }
 ```
 
-Use `Activity.SetTag(...)` for attributes you want to search, filter, or group by. You may call `base` from overrides, but v16 does not require this for built-in GraphQL attributes. Hot Chocolate applies standard span attributes outside your custom enricher.
+Use `Activity.SetTag(...)` for attributes you want to search, filter, or group by. You may call `base` from overrides, but this is not required for built-in GraphQL attributes. Hot Chocolate applies standard span attributes outside your custom enricher.
 
 # Safety and cardinality rules
 
@@ -142,7 +142,7 @@ private static bool TryGetKnownClient(
 }
 ```
 
-If you read distributed context or `Activity.Current.Baggage`, only copy validated, bounded values into tags. Hot Chocolate v16 does not provide a separate baggage-specific enricher API.
+If you read distributed context or `Activity.Current.Baggage`, only copy validated, bounded values into tags. Hot Chocolate does not provide a separate baggage-specific enricher API.
 
 # Add request and tenant tags
 
@@ -222,7 +222,7 @@ Prefer using tier, region, deployment ring, or a pseudonymous user hash over raw
 
 # Add operation metadata without duplicating built-ins
 
-Hot Chocolate v16 already emits core GraphQL attributes, including:
+Hot Chocolate already emits core GraphQL attributes, including:
 
 - `graphql.operation.type`
 - `graphql.operation.name`
@@ -542,7 +542,7 @@ Choose diagnostic events instead of activity enrichment when you need to:
 - Perform queued or asynchronous work after a diagnostic moment.
 - Observe lifecycle events without creating or modifying spans.
 
-Hot Chocolate v16 provides `ServerDiagnosticEventListener`, `ExecutionDiagnosticEventListener`, and `DataLoaderDiagnosticEventListener`. Register listeners with `.AddDiagnosticEventListener<T>()`. See [Diagnostic events](./diagnostic-events) for listener patterns.
+Hot Chocolate provides `ServerDiagnosticEventListener`, `ExecutionDiagnosticEventListener`, and `DataLoaderDiagnosticEventListener`. Register listeners with `.AddDiagnosticEventListener<T>()`. See [Diagnostic events](./diagnostic-events) for listener patterns.
 
 # Next steps
 

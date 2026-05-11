@@ -105,7 +105,7 @@ Batch responses are streamed as results become available. Hot Chocolate writes e
 
 | Accept header                        | Response content type                | Notes                                                                      |
 | ------------------------------------ | ------------------------------------ | -------------------------------------------------------------------------- |
-| `application/graphql-response+jsonl` | `application/graphql-response+jsonl` | JSON Lines response stream used by the v16 HTTP client tests.              |
+| `application/graphql-response+jsonl` | `application/graphql-response+jsonl` | JSON Lines response stream used by the HTTP client tests.                  |
 | `application/jsonl`                  | `application/jsonl`                  | JSON Lines response stream.                                                |
 | `multipart/mixed`                    | `multipart/mixed`                    | Default streaming transport when no streaming `Accept` header is supplied. |
 | `text/event-stream`                  | `text/event-stream`                  | Use when the client already supports SSE parsing.                          |

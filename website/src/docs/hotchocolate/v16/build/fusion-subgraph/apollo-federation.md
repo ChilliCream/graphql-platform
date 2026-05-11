@@ -2,7 +2,7 @@
 title: Apollo Federation compatibility
 ---
 
-Use Apollo Federation compatibility when you need a Hot Chocolate v16 service to work with Apollo Federation tooling, such as Apollo Router, GraphOS, or an Apollo Federation composition pipeline. The service remains a standard Hot Chocolate server, but it exposes Federation schema metadata and protocol fields that Apollo tools recognize.
+Use Apollo Federation compatibility when you need a Hot Chocolate service to work with Apollo Federation tooling, such as Apollo Router, GraphOS, or an Apollo Federation composition pipeline. The service remains a standard Hot Chocolate server, but it exposes Federation schema metadata and protocol fields that Apollo tools recognize.
 
 If your service will be composed by Hot Chocolate Fusion, begin with [Fusion subgraphs](/docs/hotchocolate/v16/build/fusion-subgraph). Fusion native subgraphs use composite schema metadata like `[Lookup]`, `[EntityKey]`, `[Is]`, and `[Require]`. Apollo Federation metadata uses `[Key]`, `[ReferenceResolver]`, `_service`, and `_entities`. While these models are related at the architecture level, they do not share the same API surface.
 
@@ -33,7 +33,7 @@ builder
     .AddType<Product>();
 ```
 
-The `AddApolloFederation()` method enables Federation SDL metadata and adds the Federation protocol fields. In v16, the default is `FederationVersion.Federation26`. Specify a version explicitly if Apollo tooling or a directive requires it:
+The `AddApolloFederation()` method enables Federation SDL metadata and adds the Federation protocol fields. The default is `FederationVersion.Federation26`. Specify a version explicitly if Apollo tooling or a directive requires it:
 
 ```csharp
 builder
@@ -41,7 +41,7 @@ builder
     .AddApolloFederation(FederationVersion.Federation27);
 ```
 
-Hot Chocolate v16 supports `Federation10` and Federation v2.0 through v2.7. Federation v2 output uses `schema @link(...)` imports for the directives present in the schema.
+Hot Chocolate supports `Federation10` and Federation v2.0 through v2.7. Federation v2 output uses `schema @link(...)` imports for the directives present in the schema.
 
 ## Define an owned entity
 
@@ -276,7 +276,7 @@ For Federation v2 schemas, a matching type name and key are often enough for ent
 
 ## Use common Federation directives
 
-This section covers the directives most often used in subgraph authoring. For the full v16 attribute reference, see [Apollo Federation attributes](/docs/hotchocolate/v16/build/fusion-subgraph/apollo-federation-attributes).
+This section covers the directives most often used in subgraph authoring. For the full attribute reference, see [Apollo Federation attributes](/docs/hotchocolate/v16/build/fusion-subgraph/apollo-federation-attributes).
 
 ### `@external`
 

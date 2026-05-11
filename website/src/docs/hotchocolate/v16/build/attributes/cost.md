@@ -4,7 +4,7 @@ title: Cost attribute
 
 The `[Cost]` attribute lets you describe how expensive a field, type, or argument is for Hot Chocolate's cost analysis. When a custom list field can multiply the work of nested selections, use `[ListSize]` alongside it.
 
-A GraphQL field may appear simple in the schema, but its resolver could call a database, invoke a remote service, or return many objects. Hot Chocolate v16 reads cost metadata before execution, calculates the operation cost, and can reject operations that exceed your configured budget.
+A GraphQL field may appear simple in the schema, but its resolver could call a database, invoke a remote service, or return many objects. Hot Chocolate reads cost metadata before execution, calculates the operation cost, and can reject operations that exceed your configured budget.
 
 This page explains the attribute entry point. For details on the cost algorithm, request headers, global limits, filtering, sorting, and enforcement, see [Cost Analysis](/docs/hotchocolate/v16/build/security/cost-analysis).
 
@@ -202,7 +202,7 @@ public sealed class ProductSearchInput
 }
 ```
 
-Supported `[Cost]` targets in v16:
+Supported `[Cost]` targets:
 
 | CLR target         | GraphQL metadata target    | Common use                              |
 | ------------------ | -------------------------- | --------------------------------------- |
@@ -262,7 +262,7 @@ builder
     });
 ```
 
-Common v16 options include:
+Common options include:
 
 | Option                             | Default | Use it to                                                     |
 | ---------------------------------- | ------- | ------------------------------------------------------------- |

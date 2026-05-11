@@ -1,6 +1,6 @@
 ---
 title: Errors
-description: Learn how to handle, create, and filter GraphQL errors in Hot Chocolate v16.
+description: Learn how to handle, create, and filter GraphQL errors in Hot Chocolate.
 ---
 
 Hot Chocolate provides several ways to report errors from your GraphQL resolvers. You can return `IError` instances, throw a `GraphQLException`, or use non-terminating field errors through `IResolverContext.ReportError`.

@@ -479,7 +479,7 @@ descriptor
     .Authorize(Policies.CanReadAuditLog, ApplyPolicy.Validation);
 ```
 
-Validation-level authorization does not deny a field resolver. In v16 executor tests, validation failures carry HTTP status code `401`. If HTTP status codes are important for your clients, cover this behavior with an integration test for your endpoint setup.
+Validation-level authorization does not deny a field resolver. In executor tests, validation failures carry HTTP status code `401`. If HTTP status codes are important for your clients, cover this behavior with an integration test for your endpoint setup.
 
 # Allow anonymous fields
 

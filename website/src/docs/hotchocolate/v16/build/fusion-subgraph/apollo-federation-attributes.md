@@ -2,7 +2,7 @@
 title: Apollo Federation attributes
 ---
 
-Apollo Federation attributes allow a Hot Chocolate v16 subgraph to emit SDL compatible with Apollo Federation. The attributes described here are provided by `HotChocolate.ApolloFederation` and control the SDL that routers and composition tools consume.
+Apollo Federation attributes allow a Hot Chocolate subgraph to emit SDL compatible with Apollo Federation. The attributes described here are provided by `HotChocolate.ApolloFederation` and control the SDL that routers and composition tools consume.
 
 For new Fusion-native subgraphs, use the Fusion attributes from `HotChocolate.Types.Composite`, such as `[Lookup]`, `[EntityKey]`, `[Is]`, and `[Require]`. The Apollo Federation attributes on this page are intended for building Federation-compatible subgraphs, migrating existing Federation schemas, or interoperating with Apollo Federation composition.
 
@@ -28,7 +28,7 @@ builder
     .AddApolloFederation(FederationVersion.Federation27);
 ```
 
-Hot Chocolate v16 supports `Federation10` and Federation v2.0 through v2.7. Federation v2 output uses `@link` imports for Federation directives in the schema. If you select a version that is too low for a required directive, schema creation will fail.
+Hot Chocolate supports `Federation10` and Federation v2.0 through v2.7. Federation v2 output uses `@link` imports for Federation directives in the schema. If you select a version that is too low for a required directive, schema creation will fail.
 
 ## When to use attributes
 

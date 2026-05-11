@@ -4,7 +4,7 @@ title: "Relay"
 
 Relay-style schema helpers are useful when the same entity appears in multiple query paths. For example, a product might show up in a catalog list, a detail screen, a mutation result, or a search result. Clients need these appearances to represent a single record in a normalized cache, and they require predictable ways to refetch records and navigate lists.
 
-Hot Chocolate v16 offers server-side schema conventions for stable identity, refetchable entities, cursor-based connections, and mutation payloads. These conventions support Relay clients, Apollo-style normalized caches, Strawberry Shake, and custom clients. You do not need to use Relay JS to benefit from these schema patterns.
+Hot Chocolate offers server-side schema conventions for stable identity, refetchable entities, cursor-based connections, and mutation payloads. These conventions support Relay clients, Apollo-style normalized caches, Strawberry Shake, and custom clients. You do not need to use Relay JS to benefit from these schema patterns.
 
 This page serves as a guide. It explains the main concepts, provides short previews, and directs you to detailed implementation pages.
 
@@ -87,7 +87,7 @@ public sealed class Product
 }
 ```
 
-Use `[ID<T>]` for IDs that refer to another GraphQL type, such as foreign keys in arguments or input objects. In v16, `[ID<T>]` uses the configured GraphQL type name for `T`. Learn more in [Global Identifiers](./global-identifiers).
+Use `[ID<T>]` for IDs that refer to another GraphQL type, such as foreign keys in arguments or input objects. `[ID<T>]` uses the configured GraphQL type name for `T`. Learn more in [Global Identifiers](./global-identifiers).
 
 ## Add Refetch Only to Entities Loadable by ID
 

@@ -1,6 +1,6 @@
 ---
 title: Attribute Reference
-description: Comprehensive reference of all built-in attributes in Hot Chocolate v16 for configuring your GraphQL schema.
+description: Comprehensive reference of all built-in attributes in Hot Chocolate for configuring your GraphQL schema.
 ---
 
 Hot Chocolate provides a wide range of attributes that you can apply to your .NET types, properties, methods, and parameters to configure the GraphQL schema. This page serves as a comprehensive reference.

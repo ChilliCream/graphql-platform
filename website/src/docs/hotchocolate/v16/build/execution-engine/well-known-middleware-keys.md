@@ -2,7 +2,7 @@
 title: Well-known middleware keys
 ---
 
-Well-known middleware keys provide stable anchor points within the Hot Chocolate v16 execution pipeline. These keys let you specify exactly where your custom middleware should run in relation to built-in middleware.
+Well-known middleware keys provide stable anchor points within the Hot Chocolate execution pipeline. These keys let you specify exactly where your custom middleware should run in relation to built-in middleware.
 
 Hot Chocolate uses two main middleware pipelines:
 
@@ -13,7 +13,7 @@ Always use the provided constants rather than copying string values. Optional fe
 
 # Adding Request Middleware at a Specific Point
 
-In v16, the request pipeline passes a `RequestContext` through each middleware component. You can add custom middleware using `UseRequest` on `IRequestExecutorBuilder`.
+The request pipeline passes a `RequestContext` through each middleware component. You can add custom middleware using `UseRequest` on `IRequestExecutorBuilder`.
 
 ```csharp
 using HotChocolate.Execution;
@@ -202,25 +202,25 @@ Field middleware does not use `UseRequest` and does not provide public `before` 
 
 The following constants are defined on `HotChocolate.WellKnownMiddleware`:
 
-| Constant               | Key Value                                  | Registered By                                                 | Application Guidance                                                                               |
-| ---------------------- | ------------------------------------------ | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| `Paging`               | `HotChocolate.Types.Paging`                | `.UsePaging()`, `[UsePaging]`                                 | Common data middleware. Follow the required order below.                                           |
-| `Projection`           | `HotChocolate.Data.Projection`             | `.UseProjection()`, `[UseProjection]`                         | Common data middleware. Follow the required order below.                                           |
-| `Filtering`            | `HotChocolate.Data.Filtering`              | `.UseFiltering()`, `[UseFiltering]`                           | Common data middleware. Follow the required order below.                                           |
-| `Sorting`              | `HotChocolate.Data.Sorting`                | `.UseSorting()`, `[UseSorting]`                               | Common data middleware. Follow the required order below.                                           |
-| `DataLoader`           | `HotChocolate.Fetching.DataLoader`         | DataLoader field helpers                                      | Feature-specific. Prefer the DataLoader APIs.                                                      |
-| `GlobalId`             | `HotChocolate.Types.GlobalId`              | Relay global ID and node helpers                              | Feature-specific. Prefer Relay APIs.                                                               |
-| `SingleOrDefault`      | `HotChocolate.Data.SingleOrDefault`        | Data projection helpers                                       | Feature-specific. Prefer documented data APIs.                                                     |
-| `Authorization`        | `HotChocolate.Authorization`               | `.Authorize()`, `[Authorize]`, authorization type interceptor | Feature-specific. Configure authorization through the authorization APIs.                          |
-| `DbContext`            | `HotChocolate.Data.EF.UseDbContext`        | Legacy or provider data middleware                            | Participates in data order validation. Do not add in new v16 code unless provider docs require it. |
-| `ToList`               | `HotChocolate.Data.EF.ToList`              | Provider integrations                                         | Provider-oriented diagnostic key.                                                                  |
-| `ResolverServiceScope` | `HotChocolate.Resolvers.ServiceScope`      | Resolver service infrastructure                               | Infrastructure diagnostic key.                                                                     |
-| `PooledService`        | `HotChocolate.Resolvers.PooledService`     | Resolver service infrastructure                               | Infrastructure diagnostic key.                                                                     |
-| `ResolverService`      | `HotChocolate.Resolvers.ResolverService`   | Resolver service infrastructure                               | Infrastructure diagnostic key.                                                                     |
-| `MutationArguments`    | `HotChocolate.Types.Mutations.Arguments`   | Mutation convention interceptor                               | Mutation convention diagnostic key.                                                                |
-| `MutationErrors`       | `HotChocolate.Types.Mutations.Errors`      | Mutation convention interceptor                               | Mutation convention diagnostic key.                                                                |
-| `MutationErrorNull`    | `HotChocolate.Types.Mutations.Errors.Null` | Mutation convention interceptor                               | Mutation convention diagnostic key.                                                                |
-| `MutationResult`       | `HotChocolate.Types.Mutations.Result`      | Mutation convention interceptor                               | Mutation convention diagnostic key.                                                                |
+| Constant               | Key Value                                  | Registered By                                                 | Application Guidance                                                                           |
+| ---------------------- | ------------------------------------------ | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `Paging`               | `HotChocolate.Types.Paging`                | `.UsePaging()`, `[UsePaging]`                                 | Common data middleware. Follow the required order below.                                       |
+| `Projection`           | `HotChocolate.Data.Projection`             | `.UseProjection()`, `[UseProjection]`                         | Common data middleware. Follow the required order below.                                       |
+| `Filtering`            | `HotChocolate.Data.Filtering`              | `.UseFiltering()`, `[UseFiltering]`                           | Common data middleware. Follow the required order below.                                       |
+| `Sorting`              | `HotChocolate.Data.Sorting`                | `.UseSorting()`, `[UseSorting]`                               | Common data middleware. Follow the required order below.                                       |
+| `DataLoader`           | `HotChocolate.Fetching.DataLoader`         | DataLoader field helpers                                      | Feature-specific. Prefer the DataLoader APIs.                                                  |
+| `GlobalId`             | `HotChocolate.Types.GlobalId`              | Relay global ID and node helpers                              | Feature-specific. Prefer Relay APIs.                                                           |
+| `SingleOrDefault`      | `HotChocolate.Data.SingleOrDefault`        | Data projection helpers                                       | Feature-specific. Prefer documented data APIs.                                                 |
+| `Authorization`        | `HotChocolate.Authorization`               | `.Authorize()`, `[Authorize]`, authorization type interceptor | Feature-specific. Configure authorization through the authorization APIs.                      |
+| `DbContext`            | `HotChocolate.Data.EF.UseDbContext`        | Legacy or provider data middleware                            | Participates in data order validation. Do not add in new code unless provider docs require it. |
+| `ToList`               | `HotChocolate.Data.EF.ToList`              | Provider integrations                                         | Provider-oriented diagnostic key.                                                              |
+| `ResolverServiceScope` | `HotChocolate.Resolvers.ServiceScope`      | Resolver service infrastructure                               | Infrastructure diagnostic key.                                                                 |
+| `PooledService`        | `HotChocolate.Resolvers.PooledService`     | Resolver service infrastructure                               | Infrastructure diagnostic key.                                                                 |
+| `ResolverService`      | `HotChocolate.Resolvers.ResolverService`   | Resolver service infrastructure                               | Infrastructure diagnostic key.                                                                 |
+| `MutationArguments`    | `HotChocolate.Types.Mutations.Arguments`   | Mutation convention interceptor                               | Mutation convention diagnostic key.                                                            |
+| `MutationErrors`       | `HotChocolate.Types.Mutations.Errors`      | Mutation convention interceptor                               | Mutation convention diagnostic key.                                                            |
+| `MutationErrorNull`    | `HotChocolate.Types.Mutations.Errors.Null` | Mutation convention interceptor                               | Mutation convention diagnostic key.                                                            |
+| `MutationResult`       | `HotChocolate.Types.Mutations.Result`      | Mutation convention interceptor                               | Mutation convention diagnostic key.                                                            |
 
 Most application code should not use these raw key values directly. Instead, use the feature method or attribute that registers the middleware.
 

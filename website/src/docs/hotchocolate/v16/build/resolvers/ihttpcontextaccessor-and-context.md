@@ -475,7 +475,7 @@ Do not hide cancellation tokens inside HTTP accessors or service locators. Keep 
 
 `IResolverContext` is used within field resolvers or field middleware. Most resolver code should rely on this type for GraphQL execution data.
 
-`RequestContext` is the concrete request pipeline context in v16, intended for request middleware, not for standard field resolver methods.
+`RequestContext` is the concrete request pipeline context, intended for request middleware, not for standard field resolver methods.
 
 ```csharp
 builder
@@ -539,9 +539,9 @@ Whenever possible, design resolvers to be transport-neutral. For example, a reso
 
 ---
 
-## Use v16 API names
+## Use current API names
 
-| Need                                            | Use in v16                                       | Avoid in new v16 examples                                           |
+| Need                                            | Use                                              | Avoid                                                               |
 | ----------------------------------------------- | ------------------------------------------------ | ------------------------------------------------------------------- |
 | Set or replace one global state value           | `requestBuilder.SetGlobalState("Key", value)`    | `SetProperty("Key", value)`                                         |
 | Add a global state value only when missing      | `requestBuilder.TryAddGlobalState("Key", value)` | `TryAddProperty("Key", value)`                                      |

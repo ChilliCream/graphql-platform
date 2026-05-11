@@ -2,7 +2,7 @@
 title: Request context
 ---
 
-The `RequestContext` is the per-operation envelope that Hot Chocolate uses throughout the v16 request pipeline. It is essential for writing request middleware, diagnostics, interceptors, enrichers, or other execution engine integrations.
+The `RequestContext` is the per-operation envelope that Hot Chocolate uses throughout the request pipeline. It is essential for writing request middleware, diagnostics, interceptors, enrichers, or other execution engine integrations.
 
 In most cases, resolver code should not access `RequestContext` directly. Instead, place request-specific data such as tenant IDs, correlation IDs, and user information into global state before execution. Then, access this data in resolvers using resolver parameters or `IResolverContext`.
 
@@ -156,7 +156,7 @@ Do not read or mutate `RequestContext` from a resolver. Field resolvers can run 
 | `ContextData`           | Mutable request-wide global state for the operation                                                                                                                                | Request middleware and enrichers. Resolver code should use resolver global-state APIs |
 | `Features`              | Advanced feature collection used by Hot Chocolate integrations                                                                                                                     | Framework-level integrations or documented feature contracts                          |
 
-Hot Chocolate v16 uses the concrete `RequestContext` type. The old `IRequestContext` interface no longer exists.
+Hot Chocolate uses the concrete `RequestContext` type. The old `IRequestContext` interface no longer exists.
 
 # Check which data is available
 

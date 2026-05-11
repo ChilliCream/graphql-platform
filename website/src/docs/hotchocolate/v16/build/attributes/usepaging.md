@@ -2,7 +2,7 @@
 title: UsePaging attribute
 ---
 
-The `[UsePaging]` attribute adds Hot Chocolate's cursor paging middleware to a field that returns a collection. This attribute is the local, code-first entry point for connection paging in Hot Chocolate v16.
+The `[UsePaging]` attribute adds Hot Chocolate's cursor paging middleware to a field that returns a collection. This attribute is the local, code-first entry point for connection paging in Hot Chocolate.
 
 When you page a field, it returns a connection rather than a raw list. The connection provides clients with page arguments, opaque cursors, item nodes, and page metadata.
 

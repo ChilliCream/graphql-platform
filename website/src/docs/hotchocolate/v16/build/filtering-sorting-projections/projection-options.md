@@ -2,7 +2,7 @@
 title: Projection options
 ---
 
-Projections in Hot Chocolate allow you to shape a data-source query based on the GraphQL selection set. The default v16 projection provider generates LINQ `Select` expressions for queryable results. Integrations with other providers can translate the same selection set into provider-specific projection shapes, such as MongoDB projection documents.
+Projections in Hot Chocolate allow you to shape a data-source query based on the GraphQL selection set. The default projection provider generates LINQ `Select` expressions for queryable results. Integrations with other providers can translate the same selection set into provider-specific projection shapes, such as MongoDB projection documents.
 
 Use projections when your resolver returns a supported, unmaterialized source and your data provider can translate the selected members. Do not use projections for authorization, as a replacement for DataLoader, or to guarantee that every provider will always select fewer columns for every request.
 
@@ -157,7 +157,7 @@ Returning a materialized list means the database query has already run. The defa
 
 # Registration options
 
-There is no `ProjectionOptions` options bag in v16. Projection customization is based on conventions, providers, scopes, field middleware, and field metadata.
+There is no `ProjectionOptions` options bag. Projection customization is based on conventions, providers, scopes, field middleware, and field metadata.
 
 | Scenario                        | Registration API                                                | Resolver result shape                                                    | Field API                                                 | Notes                                                                   |
 | ------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------ | --------------------------------------------------------- | ----------------------------------------------------------------------- |
@@ -339,7 +339,7 @@ Use `[UseSingleOrDefault]` when more than one matching row should be treated as 
 
 # QueryContext<T> as an alternative
 
-`QueryContext<T>` is a separate v16 pattern for layered applications. It carries projection, filtering, and sorting information to an application service instead of applying projection middleware to an `IQueryable<T>` field.
+`QueryContext<T>` is a pattern for layered applications. It carries projection, filtering, and sorting information to an application service instead of applying projection middleware to an `IQueryable<T>` field.
 
 ```csharp
 [QueryType]

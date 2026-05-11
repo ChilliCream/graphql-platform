@@ -4,7 +4,7 @@ title: Schema options
 
 # Configuring Schema Options
 
-Schema options let you control how Hot Chocolate v16 builds the schema and type system. These options are applied before any GraphQL requests are processed, making them the right place to set root type names, binding conventions, schema validation, directive metadata, schema output ordering, startup behavior, and per-executor schema caches.
+Schema options let you control how Hot Chocolate builds the schema and type system. These options are applied before any GraphQL requests are processed, making them the right place to set root type names, binding conventions, schema validation, directive metadata, schema output ordering, startup behavior, and per-executor schema caches.
 
 You can configure schema options using `ModifyOptions` on the `IRequestExecutorBuilder` returned by `builder.AddGraphQL()` or `builder.Services.AddGraphQLServer()`:
 
@@ -224,9 +224,9 @@ type Product {
 }
 ```
 
-Hot Chocolate v16 does not include `EnableSemanticNonNull` in `SchemaOptions`. The experimental `@semanticNonNull` opt-in from v15 was removed. If a legacy client still requires semantic non-null SDL, use the schema formatter option `RewriteToSemanticNonNull`, `MapGraphQLSemanticNonNullSchema()`, or the schema export command with `--semantic-non-null`. These are schema printing and endpoint concerns, not schema options.
+Hot Chocolate does not include `EnableSemanticNonNull` in `SchemaOptions`. The experimental `@semanticNonNull` opt-in from v15 was removed. If a legacy client still requires semantic non-null SDL, use the schema formatter option `RewriteToSemanticNonNull`, `MapGraphQLSemanticNonNullSchema()`, or the schema export command with `--semantic-non-null`. These are schema printing and endpoint concerns, not schema options.
 
-One-of input objects are now built in. Do not use an `EnableOneOf` schema option in v16. Instead, mark the input with `[OneOf]` or configure the input descriptor with `OneOf()`:
+One-of input objects are now built in. Do not use an `EnableOneOf` schema option. Instead, mark the input with `[OneOf]` or configure the input descriptor with `OneOf()`:
 
 ```csharp
 using HotChocolate;
@@ -378,7 +378,7 @@ Schema printing offers additional formatter options. For example, semantic non-n
 
 # Tuning Startup and Cache Behavior
 
-Hot Chocolate v16 initializes the schema and request executor eagerly by default. For production, keep `LazyInitialization` set to `false` so schema errors are caught during application startup.
+Hot Chocolate initializes the schema and request executor eagerly by default. For production, keep `LazyInitialization` set to `false` so schema errors are caught during application startup.
 
 ```csharp
 builder
@@ -426,23 +426,23 @@ Use schema options for conventions that apply to the entire request executor. Fo
 | Mark one directive public or internal | `.Public()` or `.Internal()` on the directive type         | Avoids changing directive visibility globally.       |
 | Override one nullability wrapper      | `[GraphQLType<T>]` or `.Type<T>()`                         | The SDL contract is explicit at the affected member. |
 
-# Migrating v15 Schema Option Usage to v16
+# Migrating v15 Schema Option Usage
 
-| Older expectation                                     | v16 action                                                                                         | Why                                                             |
+| Older expectation                                     | Action                                                                                             | Why                                                             |
 | ----------------------------------------------------- | -------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
 | `EnableOneOf` in schema options                       | Remove it. Use `[OneOf]` or `descriptor.OneOf()`.                                                  | One-of input objects are now built in.                          |
-| `EnableSemanticNonNull` in schema options             | Remove it. Use formatter, endpoint, or CLI semantic non-null export only for legacy SDL consumers. | The experimental schema option was removed in v16.              |
-| `InitializeOnStartup`                                 | Remove it or move work to `AddWarmupTask`.                                                         | Eager initialization is the v16 default.                        |
+| `EnableSemanticNonNull` in schema options             | Remove it. Use formatter, endpoint, or CLI semantic non-null export only for legacy SDL consumers. | The experimental schema option was removed.                     |
+| `InitializeOnStartup`                                 | Remove it or move work to `AddWarmupTask`.                                                         | Eager initialization is the default.                            |
 | `AddDocumentCache(size)`                              | Set `OperationDocumentCacheSize` in `ModifyOptions`.                                               | Cache size is scoped to each request executor.                  |
 | `AddOperationCache(size)`                             | Set `PreparedOperationCacheSize` in `ModifyOptions`.                                               | Cache size is scoped to each request executor.                  |
-| Internal directives visible in SDL                    | Keep the v16 default, or set `DisableInternalDirectives = true` only for compatibility.            | v16 hides internal directives by default.                       |
+| Internal directives visible in SDL                    | Keep the default, or set `DisableInternalDirectives = true` only for compatibility.                | Internal directives are hidden by default.                      |
 | Global object identification limits in schema options | Configure global object identification APIs.                                                       | Node batching and node resolution moved out of `SchemaOptions`. |
 | Operation introspection as a schema option            | Use validation introspection APIs.                                                                 | Operation introspection is request validation behavior.         |
 | SDL endpoint exposure as a schema option              | Use endpoint or server options.                                                                    | SDL downloads are endpoint behavior.                            |
 
-# Reference: Supported v16 Schema Options
+# Reference: Supported Schema Options
 
-The table below lists the `SchemaOptions` properties available in v16 for this repository.
+The table below lists the `SchemaOptions` properties available for this repository.
 
 | Option                                    | Type                         | Default             | Effect                                                                           | Example guidance                                                                       |
 | ----------------------------------------- | ---------------------------- | ------------------- | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
@@ -490,7 +490,7 @@ The table below lists the `SchemaOptions` properties available in v16 for this r
 | `ModifyOptions` did not affect GET, uploads, batching, Nitro, or SDL downloads | These are server, transport, or endpoint settings                                        | Use server configuration and endpoint pages for those settings.                           |
 | Introspection queries are blocked but SDL can still be downloaded              | Operation introspection policy and SDL endpoints are separate                            | Configure operation introspection in validation and SDL exposure on endpoints.            |
 | A custom directive does not appear in applied directive introspection          | Applied directive introspection is disabled or the directive is internal                 | Enable `EnableDirectiveIntrospection` and check directive visibility.                     |
-| Internal directives disappeared from SDL after v16 migration                   | v16 hides internal directives by default                                                 | Keep the safer default, or set `DisableInternalDirectives = true` only for compatibility. |
+| Internal directives disappeared from SDL after migration                       | Internal directives are hidden by default                                                | Keep the safer default, or set `DisableInternalDirectives = true` only for compatibility. |
 | Fields disappeared after enabling explicit binding                             | Explicit binding requires field registration                                             | Add descriptor fields or use type-level explicit binding for the affected type only.      |
 | Schema startup fails after a migration                                         | Strict validation is catching schema errors earlier                                      | Keep `StrictValidation` enabled and fix the reported schema error.                        |
 | Data middleware order fails validation                                         | Known middleware appears in the wrong order or more than once                            | Use paging, projection, filtering, sorting order and remove duplicates.                   |

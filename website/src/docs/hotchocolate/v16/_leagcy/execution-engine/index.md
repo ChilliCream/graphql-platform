@@ -1,6 +1,6 @@
 ---
 title: Execution Engine
-description: Learn about the Hot Chocolate v16 request execution pipeline, keyed middleware, and how to add custom middleware with precise ordering.
+description: Learn about the Hot Chocolate request execution pipeline, keyed middleware, and how to add custom middleware with precise ordering.
 ---
 
 # Overview
@@ -25,7 +25,7 @@ When a GraphQL request arrives, the execution engine passes a `RequestContext` t
 
 # RequestContext
 
-In v16, the `IRequestContext` interface has been replaced by the concrete `RequestContext` class. This class carries all request state through the pipeline.
+The `IRequestContext` interface has been replaced by the concrete `RequestContext` class. This class carries all request state through the pipeline.
 
 Key properties on `RequestContext`:
 
@@ -57,7 +57,7 @@ Document-related information that was previously scattered across `IRequestConte
 
 # Keyed Middleware Pipeline
 
-In v16, the request pipeline uses a keyed middleware system. Every built-in middleware has a unique key defined in `WellKnownRequestMiddleware`. This allows you to insert custom middleware at a precise position relative to any built-in middleware.
+The request pipeline uses a keyed middleware system. Every built-in middleware has a unique key defined in `WellKnownRequestMiddleware`. This allows you to insert custom middleware at a precise position relative to any built-in middleware.
 
 ## Adding Custom Middleware
 

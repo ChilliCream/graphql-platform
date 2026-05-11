@@ -4,7 +4,7 @@ title: OpenTelemetry
 
 OpenTelemetry enables distributed tracing for Hot Chocolate execution. Without GraphQL instrumentation, a trace typically displays a single ASP.NET Core span for `/graphql`. When you add Hot Chocolate instrumentation, the trace reveals details such as HTTP parsing, validation, operation planning, resolver fields, and DataLoader batches.
 
-This guide covers tracing in Hot Chocolate v16, using OTLP for compatibility with collectors and various tracing backends.
+This guide covers tracing in Hot Chocolate, using OTLP for compatibility with collectors and various tracing backends.
 
 # Mental model
 
@@ -189,7 +189,7 @@ Check these values to verify correct setup:
 | Processing type attribute                                | `graphql.processing.type`                                                   |
 | Document identity                                        | `graphql.document.hash`, and sometimes `graphql.document.id`                |
 
-Hot Chocolate v16 uses a low-cardinality display name for the root span. Use `graphql.operation.name` to access the client-supplied operation name.
+Hot Chocolate uses a low-cardinality display name for the root span. Use `graphql.operation.name` to access the client-supplied operation name.
 
 # Choose instrumentation detail safely
 
@@ -395,7 +395,7 @@ Use other observability APIs if you need different behavior:
 | Sensitive data appears                                  | `RequestDetails.All`, `RequestDetails.Extensions`, `RequestDetails.Variables`, `RequestDetails.Document`, `IncludeDocument`, `IncludeDataLoaderKeys`, or custom enrichment exported raw data. | Narrow request details, disable full documents and DataLoader keys, and review enrichers.                          |
 | DataLoader keys are missing                             | `IncludeDataLoaderKeys` defaults to `false`.                                                                                                                                                  | Enable it only in a safe environment or with safe keys.                                                            |
 | GraphQL span is error, but HTTP status is 200           | GraphQL execution errors can be represented in a successful HTTP response.                                                                                                                    | Inspect `graphql.error.count`, `graphql.error` events, `error.type`, and the response errors.                      |
-| Operation name is not in the span name                  | v16 uses a low-cardinality display name.                                                                                                                                                      | Use `graphql.operation.name` for the operation name.                                                               |
+| Operation name is not in the span name                  | Hot Chocolate uses a low-cardinality display name.                                                                                                                                            | Use `graphql.operation.name` for the operation name.                                                               |
 | Validation or planning spans are missing                | The relevant `ActivityScopes` flag is disabled or the operation was served from a cache path that did not run that phase.                                                                     | Enable the scope needed for the investigation and account for persisted or cached documents.                       |
 
 # Production checklist

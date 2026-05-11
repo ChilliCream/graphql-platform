@@ -4,7 +4,7 @@ title: "Batch DataLoader"
 
 A batch DataLoader gathers multiple resolver requests for related data and retrieves them in a single set-based operation. Use `BatchDataLoader<TKey, TValue>` when each key maps to zero or one value, such as `BrandId -> Brand`, `CustomerId -> Customer`, or `Sku -> Product`.
 
-This page covers manual batch DataLoader classes in Hot Chocolate v16. For most new v16 code, the source-generated `[DataLoader]` model is recommended. Manual classes are helpful when you need custom base-class logic, specialized options, migration compatibility, or explicit constructor control.
+This page covers manual batch DataLoader classes. For most new code, the source-generated `[DataLoader]` model is recommended. Manual classes are helpful when you need custom base-class logic, specialized options, migration compatibility, or explicit constructor control.
 
 ## Why batch related-object lookups?
 
@@ -64,7 +64,7 @@ This approach is ideal for one-to-one and many-to-one lookups where each key map
 
 ## Creating a manual batch loader
 
-A manual loader inherits from `BatchDataLoader<TKey, TValue>`. In v16, the constructor receives an `IBatchScheduler` and a non-null `DataLoaderOptions` from dependency injection, then passes both to the base class.
+A manual loader inherits from `BatchDataLoader<TKey, TValue>`. The constructor receives an `IBatchScheduler` and a non-null `DataLoaderOptions` from dependency injection, then passes both to the base class.
 
 The batch method receives all keys scheduled for the current batch. It should perform a single set-based backend call and return a dictionary keyed by the same values passed to `LoadAsync`.
 
@@ -230,7 +230,7 @@ Adjust `MaxBatchSize` according to the backend limit you need to enforce. Settin
 
 ## Prefer source-generated loaders when possible
 
-In v16, source-generated loaders are the default for convenience. You write a static method with `[DataLoader]`, and the generator creates the DataLoader class and interface.
+Source-generated loaders are the default for convenience. You write a static method with `[DataLoader]`, and the generator creates the DataLoader class and interface.
 
 ```csharp
 internal static class BrandDataLoaders

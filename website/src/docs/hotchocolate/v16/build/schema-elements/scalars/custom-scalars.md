@@ -4,9 +4,9 @@ title: "Custom Scalars"
 
 A custom scalar is a named GraphQL leaf type in GraphQL, implemented in Hot Chocolate with custom coercion logic and a .NET runtime representation. Use a custom scalar when your clients need a reusable, atomic value that is not covered by existing scalars.
 
-By the end of this page, you will know how to decide if a scalar is the right fit, implement the v16 coercion methods, register and apply your scalar, bind a dedicated runtime type, and test the behavior that clients depend on.
+By the end of this page, you will know how to decide if a scalar is the right fit, implement the coercion methods, register and apply your scalar, bind a dedicated runtime type, and test the behavior that clients depend on.
 
-This guide focuses on authoring custom scalars in Hot Chocolate v16. For built-in scalars, see [Built-in Scalars](./built-in-scalars). For optional package scalars, see [Community Scalars](./community-scalars). For NodaTime support, see [NodaTime Scalars](./nodatime-scalars).
+This guide focuses on authoring custom scalars. For built-in scalars, see [Built-in Scalars](./built-in-scalars). For optional package scalars, see [Community Scalars](./community-scalars). For NodaTime support, see [NodaTime Scalars](./nodatime-scalars).
 
 # Decide if your value should be a scalar
 
@@ -26,7 +26,7 @@ Good candidates for custom scalars are values like `OrderCode` or `Slug`, where 
 
 Avoid creating a custom scalar to replace a built-in or package scalar that already matches your contract. Choose a custom scalar when your domain value requires a schema name, specific validation, and serialization behavior that clients should learn from the schema.
 
-# Understand the v16 scalar coercion flow
+# Understand the scalar coercion flow
 
 A scalar processes four main paths. GraphQL literals and JSON variables are distinct inputs, so be sure to test both.
 

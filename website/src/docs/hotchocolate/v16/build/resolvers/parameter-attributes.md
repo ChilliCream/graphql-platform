@@ -6,7 +6,7 @@ title: "Resolver Parameter Attributes"
 
 Resolver parameters in Hot Chocolate can originate from several sources: the GraphQL client, the current parent object, dependency injection, request state, subscription events, or runtime helpers. When conventions are not sufficient, parameter attributes clarify the source of each value.
 
-This page covers the resolver parameter binding attributes available in Hot Chocolate v16:
+This page covers the resolver parameter binding attributes available in Hot Chocolate:
 
 - `[Argument]`
 - `[Parent]`
@@ -64,7 +64,7 @@ type Product {
 | `user`              | Authenticated user   | `ClaimsPrincipal` binds by type.                  |
 | `cancellationToken` | Request cancellation | `CancellationToken` binds by type.                |
 
-Attributes are one way to control parameter binding. Hot Chocolate v16 also recognizes registered services, DataLoaders, and built-in runtime types by their parameter type.
+Attributes are one way to control parameter binding. Hot Chocolate also recognizes registered services, DataLoaders, and built-in runtime types by their parameter type.
 
 ## Understand the binding order
 
@@ -233,7 +233,7 @@ For more on type extensions, instance members, `context.Parent<T>()`, and batch 
 
 ## Inject services without confusing them with arguments
 
-In v16, Hot Chocolate automatically infers registered services:
+Hot Chocolate automatically infers registered services:
 
 ```csharp
 [QueryType]
@@ -278,7 +278,7 @@ public static partial class ProductQueries
 | `[Service] ProductService? products`            | Optional service. The parameter can receive `null`.                                      |
 | `[Service("archive")] ProductService? products` | Optional keyed service. The parameter can receive `null` when the key is not registered. |
 
-Do not use `[ScopedService]` for resolver parameters in v16. Use an inferred service parameter or `[Service]`, and refer to the service injection documentation for scopes and lifetimes.
+Do not use `[ScopedService]` for resolver parameters. Use an inferred service parameter or `[Service]`, and refer to the service injection documentation for scopes and lifetimes.
 
 For more on service lifetimes, resolver scopes, constructor injection, and keyed service setup, see [Service Injection](./service-injection).
 

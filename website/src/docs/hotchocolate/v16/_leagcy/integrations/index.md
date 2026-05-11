@@ -1,6 +1,6 @@
 ---
 title: Integrations
-description: Learn how to integrate Hot Chocolate v16 with Entity Framework Core, MongoDB, Spatial Data, and Marten.
+description: Learn how to integrate Hot Chocolate with Entity Framework Core, MongoDB, Spatial Data, and Marten.
 ---
 
 This section covers how to integrate different data technologies into your Hot Chocolate GraphQL server.

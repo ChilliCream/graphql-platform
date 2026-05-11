@@ -2,7 +2,7 @@
 title: Authorize attribute
 ---
 
-The `[Authorize]` attribute secures GraphQL object types and fields using the Hot Chocolate authorization pipeline. This attribute is the primary code-first method for schema authorization in Hot Chocolate v16.
+The `[Authorize]` attribute secures GraphQL object types and fields using the Hot Chocolate authorization pipeline. This attribute is the primary code-first method for schema authorization in Hot Chocolate.
 
 When you use `[Authorize]`, it checks the current `ClaimsPrincipal` against the ASP.NET Core default policy, a named policy, or specified roles. For authorization to succeed, authentication must first create the `ClaimsPrincipal`.
 
@@ -192,7 +192,7 @@ public sealed class Account
 }
 ```
 
-In v16, object type authorization is evaluated when a field returns the authorized type. It is not re-evaluated for each selected child field. Use field-level authorization if only certain fields on a type should be private.
+Object type authorization is evaluated when a field returns the authorized type. It is not re-evaluated for each selected child field. Use field-level authorization if only certain fields on a type should be private.
 
 You can also apply `[Authorize]` to a source-generator type class:
 
@@ -436,7 +436,7 @@ Common descriptor equivalents include `.Authorize()`, `.Authorize(policy)`, `.Au
 | Unsupported MVC member | `AuthenticationSchemes`                              |
 | Public field opt-out   | `[AllowAnonymous]` from `HotChocolate.Authorization` |
 
-Internal directives such as `@authorize` are hidden from downloaded SDL by default in v16. You typically verify authorization by executing protected operations, not by inspecting the directive in the schema SDL.
+Internal directives such as `@authorize` are hidden from downloaded SDL by default. You typically verify authorization by executing protected operations, not by inspecting the directive in the schema SDL.
 
 # Next steps
 

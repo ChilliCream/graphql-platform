@@ -4,7 +4,7 @@ title: "DataLoader attribute"
 
 # DataLoader Attribute
 
-Nested GraphQL fields often introduce the N+1 data-access problem: a parent resolver loads a list, and then a child resolver performs a separate lookup for each item. Hot Chocolate v16 addresses this with the `[DataLoader]` attribute. By annotating a static loading method, you enable the GreenDonut source generator to create the DataLoader type, its interface, and registration hooks automatically.
+Nested GraphQL fields often introduce the N+1 data-access problem: a parent resolver loads a list, and then a child resolver performs a separate lookup for each item. Hot Chocolate addresses this with the `[DataLoader]` attribute. By annotating a static loading method, you enable the GreenDonut source generator to create the DataLoader type, its interface, and registration hooks automatically.
 
 Refer to this page when you want to generate DataLoaders from source. For manual [batch](./batch-dataloader), [group](./group-dataloader), and [cache](./cache-dataloader) DataLoader classes, see their dedicated pages.
 
@@ -226,7 +226,7 @@ internal static class TenantProductDataLoaders
 }
 ```
 
-DataLoader method services use dependency injection, similar to resolver services. In v16, scoped services in query resolvers and DataLoaders use resolver or DataLoader scope by default. Review service lifetimes before changing the generated scope, especially for non-thread-safe services such as EF Core contexts.
+DataLoader method services use dependency injection, similar to resolver services. Scoped services in query resolvers and DataLoaders use resolver or DataLoader scope by default. Review service lifetimes before changing the generated scope, especially for non-thread-safe services such as EF Core contexts.
 
 ## Configure generated names, access, and service scope
 

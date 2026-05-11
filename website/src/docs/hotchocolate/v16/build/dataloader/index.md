@@ -102,7 +102,7 @@ For more comprehensive data access strategies, see [Fetching from databases](/do
 
 ## Getting Started with Source-Generated DataLoaders
 
-For most v16 code, define a static method, annotate it with `[DataLoader]`, inject the generated interface into your resolvers, and call `LoadAsync`.
+Define a static method, annotate it with `[DataLoader]`, inject the generated interface into your resolvers, and call `LoadAsync`.
 
 The source generator creates names based on your method. For example, `GetBrandByIdAsync` becomes `BrandByIdDataLoader` and `IBrandByIdDataLoader`, with `Get` and `Async` removed.
 

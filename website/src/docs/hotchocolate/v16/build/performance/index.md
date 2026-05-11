@@ -2,7 +2,7 @@
 title: Performance
 ---
 
-Hot Chocolate v16 is designed for high-throughput GraphQL execution. However, performance improvements are most effective when they address the actual bottleneck. Use this page to learn how to measure request cost, select the right optimization, and find links to detailed guidance for each area.
+Hot Chocolate is designed for high-throughput GraphQL execution. However, performance improvements are most effective when they address the actual bottleneck. Use this page to learn how to measure request cost, select the right optimization, and find links to detailed guidance for each area.
 
 # Identify the Bottleneck
 
@@ -67,7 +67,7 @@ Key points:
 
 # Reduce Startup and First-Request Latency
 
-By default, Hot Chocolate v16 eagerly builds the schema. With `LazyInitialization` set to `false`, schema errors are surfaced at startup, and the request executor is ready before the server begins handling requests.
+By default, Hot Chocolate eagerly builds the schema. With `LazyInitialization` set to `false`, schema errors are surfaced at startup, and the request executor is ready before the server begins handling requests.
 
 If your first live requests also require hot document and operation cache entries, use warmup tasks:
 
@@ -346,7 +346,7 @@ Read next: [Resolvers](/docs/hotchocolate/v16/build/resolvers) and [Field middle
 
 # Production Checklist
 
-Before putting a v16 server into production, review the following:
+Before putting a server into production, review the following:
 
 - [ ] Instrument representative traffic and identify the slowest operation shapes.
 - [ ] Keep eager initialization unless startup constraints require lazy initialization.

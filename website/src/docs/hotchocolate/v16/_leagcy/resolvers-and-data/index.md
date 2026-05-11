@@ -37,7 +37,7 @@ Execution completes when every resolver in the tree has produced a result.
 
 # Resolvers
 
-Resolvers are the building blocks of data fetching. A resolver can call a database, a REST API, a gRPC service, or any other data source. In Hot Chocolate v16, the source generator is the primary way to define resolvers. You write plain C# methods and the generator wires them into the schema.
+Resolvers are the building blocks of data fetching. A resolver can call a database, a REST API, a gRPC service, or any other data source. In Hot Chocolate, the source generator is the primary way to define resolvers. You write plain C# methods and the generator wires them into the schema.
 
 [Learn more about resolvers](/docs/hotchocolate/v16/resolvers-and-data/resolvers)
 

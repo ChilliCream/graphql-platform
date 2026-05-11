@@ -4,7 +4,7 @@ title: Resolver compiler
 
 A resolver method in Hot Chocolate can accept client arguments, services, the current parent object, state, cancellation, and context objects within a single C# signature. The resolver compiler is responsible for transforming this signature into the field delegate that the field pipeline executes.
 
-Refer to this page when you need to understand how Hot Chocolate v16 classifies resolver parameters, why a parameter appears in the schema, or which resolver shape offers the lowest overhead during requests.
+Refer to this page when you need to understand how Hot Chocolate classifies resolver parameters, why a parameter appears in the schema, or which resolver shape offers the lowest overhead during requests.
 
 ## What you will learn
 
@@ -42,7 +42,7 @@ schema field
   -> field middleware invokes the delegate during requests
 ```
 
-In v16, there are three common authoring paths:
+There are three common authoring paths:
 
 | Authoring path                        | How the delegate is prepared                               | When it occurs        | Typical use                                                                            |
 | ------------------------------------- | ---------------------------------------------------------- | --------------------- | -------------------------------------------------------------------------------------- |
@@ -56,14 +56,14 @@ Operation compilation is a separate process. It prepares a validated GraphQL ope
 
 Hot Chocolate can invoke several C# member shapes as resolvers:
 
-| Resolver shape                                     | Receiver                           | Use when                                                                                                  |
-| -------------------------------------------------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| Public property on a source type                   | Current parent object              | The field maps to source data already present on the object.                                              |
-| Public method on a source type                     | Current parent object              | The source object owns the field logic and can use `this`.                                                |
-| Static method on an attributed root or object type | No receiver                        | You want dependencies visible as method parameters. This is the preferred v16 implementation-first shape. |
-| Static method on `[ObjectType<T>]`                 | No receiver, parent is a parameter | You are adding fields to another runtime type. Use `[Parent] T parent`.                                   |
-| Instance method on a separate resolver type        | Resolver object from Hot Chocolate | You need a resolver class. Do not store request-specific state on the instance.                           |
-| Descriptor `.Resolve(...)` delegate                | Delegate parameter                 | You control value access with `ctx.ArgumentValue<T>()`, `ctx.Service<T>()`, and related APIs.             |
+| Resolver shape                                     | Receiver                           | Use when                                                                                              |
+| -------------------------------------------------- | ---------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Public property on a source type                   | Current parent object              | The field maps to source data already present on the object.                                          |
+| Public method on a source type                     | Current parent object              | The source object owns the field logic and can use `this`.                                            |
+| Static method on an attributed root or object type | No receiver                        | You want dependencies visible as method parameters. This is the preferred implementation-first shape. |
+| Static method on `[ObjectType<T>]`                 | No receiver, parent is a parameter | You are adding fields to another runtime type. Use `[Parent] T parent`.                               |
+| Instance method on a separate resolver type        | Resolver object from Hot Chocolate | You need a resolver class. Do not store request-specific state on the instance.                       |
+| Descriptor `.Resolve(...)` delegate                | Delegate parameter                 | You control value access with `ctx.ArgumentValue<T>()`, `ctx.Service<T>()`, and related APIs.         |
 
 A static resolver keeps all request inputs in the method signature:
 
@@ -192,7 +192,7 @@ Use `[Parent(requires: nameof(Book.AuthorId))]` when projection-aware fields req
 
 ## Service binding and DI scope
 
-In v16, registered application services are inferred automatically:
+Registered application services are inferred automatically:
 
 ```csharp
 builder.Services.AddScoped<BookService>();
@@ -317,7 +317,7 @@ Synchronous resolvers with pure parameter bindings can use a synchronous fast pa
 
 ## AOT and source generation considerations
 
-The runtime resolver compiler builds expression trees during schema initialization and is intended for JIT-compatible environments. If you are targeting native AOT, prefer the v16 implementation-first source generator path and avoid dynamic schema patterns that require runtime expression compilation.
+The runtime resolver compiler builds expression trees during schema initialization and is intended for JIT-compatible environments. If you are targeting native AOT, prefer the implementation-first source generator path and avoid dynamic schema patterns that require runtime expression compilation.
 
 Source generation and runtime compilation follow the same user-facing binding model: arguments, services, parent values, state, cancellation, context, and custom bindings are still classified from the resolver signature. Diagnostics can differ. Source-generated code can report analyzer diagnostics during build, while runtime-compiled schemas usually report schema initialization or execution errors.
 

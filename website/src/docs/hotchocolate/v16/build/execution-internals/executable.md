@@ -2,7 +2,7 @@
 title: Executable documents
 ---
 
-Hot Chocolate compiles a GraphQL operation document before any resolver executes. This page explains how that process works in v16, helping you place request middleware, build executor requests for tests, understand persisted-operation behavior, and select the right API when inspecting execution state.
+Hot Chocolate compiles a GraphQL operation document before any resolver executes. This page explains how that process works, helping you place request middleware, build executor requests for tests, understand persisted-operation behavior, and select the right API when inspecting execution state.
 
 This page focuses on executable GraphQL operation documents. It does not cover resolver-returned `IExecutable<T>`, which is the data-source abstraction used for filtering, sorting, projections, and integrations.
 
@@ -123,7 +123,7 @@ var request = OperationRequest.FromId(
 
 # Pipeline state
 
-Where you place middleware determines which values are available. The default v16 server pipeline processes document and operation phases in this order:
+Where you place middleware determines which values are available. The default server pipeline processes document and operation phases in this order:
 
 | Stage                    | Built-in middleware or extension point                               | State produced or consumed                                                                                            |
 | ------------------------ | -------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
@@ -395,7 +395,7 @@ APQ flow:
 4. Hot Chocolate stores the document and executes it.
 5. Later requests can use the ID-only path.
 
-Relevant v16 setup APIs include:
+Relevant setup APIs include:
 
 ```csharp
 builder
@@ -457,7 +457,7 @@ Use request executor APIs when you want to execute GraphQL, run integration test
 | Operation was not found                                      | Name does not match an operation definition, or ID points to another document            | Request operation name and document contents                          |
 | Compiled operation is unavailable                            | Middleware ran before operation resolution, or an earlier phase stopped                  | Place after `OperationResolverMiddleware`; use `TryGetOperation(...)` |
 | Variables are unavailable or not coerced                     | Middleware ran before variable coercion                                                  | Place after `OperationVariableCoercionMiddleware`                     |
-| Resolver sees multiple syntax nodes for one selection        | v16 compiled selections merge compatible fields                                          | Use compiled `ISelection`; use syntax nodes for source facts          |
+| Resolver sees multiple syntax nodes for one selection        | Compiled selections merge compatible fields                                              | Use compiled `ISelection`; use syntax nodes for source facts          |
 | Reader expected `IExecutable<T>` behavior                    | Naming collision with data-source executable API                                         | See the executable data-source API page                               |
 
 # API quick reference

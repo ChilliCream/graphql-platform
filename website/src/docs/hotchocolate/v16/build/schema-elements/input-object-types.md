@@ -481,7 +481,7 @@ public sealed class ProductSelectorInputType
 }
 ```
 
-Rules for `@oneOf` input objects in Hot Chocolate v16:
+Rules for `@oneOf` input objects:
 
 - Exactly one field must be provided and non-null.
 - All fields in a one-of input must be nullable.

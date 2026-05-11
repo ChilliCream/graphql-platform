@@ -272,7 +272,7 @@ The Redis provider uses [StackExchange.Redis](https://github.com/StackExchange/S
 
 ## NATS
 
-The NATS provider is new in Hot Chocolate v16. Like Redis, it supports multi-instance deployments. NATS uses core publish/subscribe. JetStream is not required.
+The NATS provider supports multi-instance deployments, like Redis. NATS uses core publish/subscribe. JetStream is not required.
 
 Install the packages:
 

@@ -253,16 +253,16 @@ descriptor
         });
 ```
 
-| Option                                | Default                       | Use it for                                                                         |
-| ------------------------------------- | ----------------------------- | ---------------------------------------------------------------------------------- |
-| `Type`                                | Inferred                      | Override the item GraphQL type when inference is not enough.                       |
-| `CollectionSegmentName`               | Generated from the field name | Set an explicit segment type name for this field.                                  |
-| `DefaultPageSize`                     | `10`                          | Choose the page size used when `take` is omitted.                                  |
-| `MaxPageSize`                         | `50`                          | Cap the largest accepted `take` value.                                             |
-| `IncludeTotalCount`                   | `false`                       | Add `totalCount: Int!` to the segment.                                             |
-| `RequirePagingBoundaries`             | `false`                       | Require clients to pass `take`.                                                    |
-| `ProviderName`                        | Inferred provider             | Select a registered named provider.                                                |
-| `InferCollectionSegmentNameFromField` | `true`                        | Keep v16 field-name segment naming. Set `false` only for legacy type-based naming. |
+| Option                                | Default                       | Use it for                                                                     |
+| ------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------ |
+| `Type`                                | Inferred                      | Override the item GraphQL type when inference is not enough.                   |
+| `CollectionSegmentName`               | Generated from the field name | Set an explicit segment type name for this field.                              |
+| `DefaultPageSize`                     | `10`                          | Choose the page size used when `take` is omitted.                              |
+| `MaxPageSize`                         | `50`                          | Cap the largest accepted `take` value.                                         |
+| `IncludeTotalCount`                   | `false`                       | Add `totalCount: Int!` to the segment.                                         |
+| `RequirePagingBoundaries`             | `false`                       | Require clients to pass `take`.                                                |
+| `ProviderName`                        | Inferred provider             | Select a registered named provider.                                            |
+| `InferCollectionSegmentNameFromField` | `true`                        | Keep field-name segment naming. Set `false` only for legacy type-based naming. |
 
 Use [Paging options](paging-options.md) for global defaults and shared paging configuration.
 
@@ -387,7 +387,7 @@ public static partial class UserQueries
 }
 ```
 
-The v16 constructor is `new CollectionSegment<T>(items, info, totalCount)`. Match resolver parameters to the GraphQL argument names `skip` and `take`. If you delegate to another service, apply the same defaults and maximum page size that your GraphQL field exposes.
+The constructor is `new CollectionSegment<T>(items, info, totalCount)`. Match resolver parameters to the GraphQL argument names `skip` and `take`. If you delegate to another service, apply the same defaults and maximum page size that your GraphQL field exposes.
 
 For advanced custom fields, `OffsetPagingArguments` represents the nullable runtime `Skip` and `Take` values, `ApplyOffsetPaginationAsync` can apply offset pagination from an `IResolverContext`, and `AddOffsetPagingArguments()` adds the `skip` and `take` arguments during manual field setup.
 

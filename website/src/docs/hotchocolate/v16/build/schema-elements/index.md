@@ -4,7 +4,7 @@ title: "Schema Elements"
 
 A GraphQL schema defines the contract that clients interact with. It specifies the available operations, selectable fields, accepted arguments, and the structure of responses.
 
-Hot Chocolate v16 enables you to define this contract in C# and review the resulting GraphQL SDL. This page serves as your guide: it introduces the main schema element categories, demonstrates how a C# model translates to SDL, and directs you to detailed pages for each modeling task.
+Hot Chocolate enables you to define this contract in C# and review the resulting GraphQL SDL. This page serves as your guide: it introduces the main schema element categories, demonstrates how a C# model translates to SDL, and directs you to detailed pages for each modeling task.
 
 # Begin with the client-facing contract
 
@@ -51,7 +51,7 @@ If you are unsure where to begin, look at the SDL. If an element is selected by 
 
 # How C# produces the same contract
 
-The implementation-first approach is the recommended default in the v16 schema documentation. You define C# types, add Hot Chocolate attributes where schema guidance is needed, and the source generator handles schema setup.
+The implementation-first approach is the recommended default in the schema documentation. You define C# types, add Hot Chocolate attributes where schema guidance is needed, and the source generator handles schema setup.
 
 ```csharp
 #nullable enable
@@ -161,11 +161,11 @@ The generated SDL is the artifact consumed by clients, schema registries, IDE to
 
 # Select an authoring style
 
-Hot Chocolate v16 offers two C# authoring styles, both of which produce GraphQL SDL.
+Hot Chocolate offers two C# authoring styles, both of which produce GraphQL SDL.
 
 ## Implementation-first: recommended default
 
-Choose implementation-first when you want your schema to follow standard C# types with minimal ceremony. This is the main approach used throughout the v16 schema documentation.
+Choose implementation-first when you want your schema to follow standard C# types with minimal ceremony. This is the main approach used throughout the schema documentation.
 
 Common building blocks:
 
@@ -207,7 +207,7 @@ You can combine both styles. Many projects use implementation-first for most sch
 
 ## About SDL-first authoring
 
-This section focuses on Hot Chocolate's C# authoring models. Use the generated SDL to inspect the contract clients see. If you want to author a schema from SDL, refer to the broader v16 documentation for a dedicated page, as this section does not cover SDL-first authoring.
+This section focuses on Hot Chocolate's C# authoring models. Use the generated SDL to inspect the contract clients see. If you want to author a schema from SDL, refer to the broader documentation for a dedicated page, as this section does not cover SDL-first authoring.
 
 # Use the schema element map
 
@@ -215,7 +215,7 @@ The following map helps you select the next detailed page without needing to lea
 
 ## Operation root types
 
-| Element      | Purpose                                                                                | v16 authoring cue                              | Learn more                                  |
+| Element      | Purpose                                                                                | Authoring cue                                  | Learn more                                  |
 | ------------ | -------------------------------------------------------------------------------------- | ---------------------------------------------- | ------------------------------------------- |
 | Query        | Read entry point. Query fields should be side-effect-free and may execute in parallel. | `[QueryType]` or `AddQueryType`.               | [Queries](./operations-queries)             |
 | Mutation     | Write entry point. Top-level mutation fields execute serially.                         | `[MutationType]` or `AddMutationType`.         | [Mutations](./operations-mutations)         |

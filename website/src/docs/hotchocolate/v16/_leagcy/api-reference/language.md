@@ -1,6 +1,6 @@
 ---
 title: Language
-description: Learn about the Hot Chocolate v16 GraphQL Abstract Syntax Tree (AST) and syntax node types.
+description: Learn about the Hot Chocolate GraphQL Abstract Syntax Tree (AST) and syntax node types.
 ---
 
 # Abstract Syntax Tree (AST)

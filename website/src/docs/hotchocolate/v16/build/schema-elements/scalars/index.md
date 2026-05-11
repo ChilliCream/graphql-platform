@@ -143,7 +143,7 @@ type ChatMessage {
 
 A response still contains a JSON string for the identifier. With global object identification enabled, that string is opaque and not the raw `Guid` value.
 
-Use `[ID<T>]` when the identifier belongs to a specific GraphQL type or participates in typed ID behavior. In v16, `[ID<T>]` uses the configured GraphQL type name when one exists.
+Use `[ID<T>]` when the identifier belongs to a specific GraphQL type or participates in typed ID behavior. `[ID<T>]` uses the configured GraphQL type name when one exists.
 
 ```csharp
 using HotChocolate.Types;
@@ -202,7 +202,7 @@ Choose `UUID` for tracking values, correlation values, external UUID fields, and
 
 Use `Any` when the shape is intentionally open, such as for metadata, extension bags, pass-through JSON, or interoperability boundaries. Prefer object types for selectable result shapes and input object types for known input shapes.
 
-In v16, `JsonElement` maps to `Any`.
+`JsonElement` maps to `Any`.
 
 ```csharp
 using System.Text.Json;
@@ -360,8 +360,8 @@ Is the value a reusable indivisible wire format?
 | ------------------------------------------------------------------------------ | ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | My `id` field is `String`, not `ID`.                                           | `ID` is explicit.                                 | Add `[ID]`, `[ID<T>]`, `[GraphQLType<IdType>]`, or equivalent type configuration.                                                                   |
 | My `Guid` field is `UUID`, but I expected `ID`.                                | Plain `Guid` maps to `UUID`.                      | Mark opaque identifiers with `[ID]` or configure the field as `IdType`.                                                                             |
-| My dictionary or POCO does not return as `Any`.                                | v16 `Any` uses `JsonElement` as its runtime type. | Use `JsonElement`, register `AddJsonTypeConverter()`, or model a specific object type.                                                              |
-| My `URL`, `ByteArray`, `Json`, or `TimeSpan` scalar changed after upgrading.   | v16 renamed or merged several scalar mappings.    | Review [Built-in Scalars](./built-in-scalars) and the [v15 to v16 migration guide](/docs/hotchocolate/v16/_leagcy/migrating/migrate-from-15-to-16). |
+| My dictionary or POCO does not return as `Any`.                                | `Any` uses `JsonElement` as its runtime type.     | Use `JsonElement`, register `AddJsonTypeConverter()`, or model a specific object type.                                                              |
+| My `URL`, `ByteArray`, `Json`, or `TimeSpan` scalar changed after upgrading.   | Several scalar mappings were renamed or merged.   | Review [Built-in Scalars](./built-in-scalars) and the [v15 to v16 migration guide](/docs/hotchocolate/v16/_leagcy/migrating/migrate-from-15-to-16). |
 | My NodaTime type is missing, or `TimeSpan` did not become NodaTime `Duration`. | NodaTime registrations are specific.              | Register `AddNodaTime()` and review [NodaTime Scalars](./nodatime-scalars).                                                                         |
 | I only need validation for a string.                                           | Validation alone may not require a custom scalar. | Check package scalars, validation, directives, and custom scalar reuse before creating a new scalar.                                                |
 

@@ -2,7 +2,7 @@
 title: Authentication
 ---
 
-Authentication determines who is calling your GraphQL API. In Hot Chocolate v16, authentication is managed by ASP.NET Core. Hot Chocolate does not parse JWTs, validate cookies, issue tokens, or implement login flows. Instead, it receives the `ClaimsPrincipal` that ASP.NET Core places on `HttpContext.User` and makes that principal available during GraphQL execution.
+Authentication determines who is calling your GraphQL API. Authentication is managed by ASP.NET Core. Hot Chocolate does not parse JWTs, validate cookies, issue tokens, or implement login flows. Instead, it receives the `ClaimsPrincipal` that ASP.NET Core places on `HttpContext.User` and makes that principal available during GraphQL execution.
 
 A typical request flows as follows:
 
@@ -162,7 +162,7 @@ For tenant, viewer, or domain-user objects, consider mapping claims once in a re
 
 # How Hot Chocolate Receives the User
 
-Hot Chocolate v16 includes default interceptors for ASP.NET Core transports:
+Hot Chocolate includes default interceptors for ASP.NET Core transports:
 
 - `DefaultHttpRequestInterceptor.OnCreateAsync(...)` reads `HttpContext.User` for HTTP requests and stores the `ClaimsPrincipal` in GraphQL request state.
 - `DefaultSocketSessionInterceptor.OnRequestAsync(...)` reads `session.Connection.HttpContext.User` for each WebSocket operation and stores the `ClaimsPrincipal` in GraphQL request state.
@@ -235,7 +235,7 @@ Another approach is to send authentication data in the GraphQL over WebSocket `c
 
 The default socket interceptor accepts connections. If sockets must be authenticated, enforce this through endpoint authorization, a custom `ISocketSessionInterceptor`, or both.
 
-When a token is supplied only in `connection_init`, validating the token in `OnConnectAsync` is not sufficient. The resulting `ClaimsPrincipal` must also be available to later operation requests. One v16 pattern is to store the validated principal on the connection `HttpContext` and assign it before the base `OnRequestAsync` copies the user into GraphQL request state:
+When a token is supplied only in `connection_init`, validating the token in `OnConnectAsync` is not sufficient. The resulting `ClaimsPrincipal` must also be available to later operation requests. One pattern is to store the validated principal on the connection `HttpContext` and assign it before the base `OnRequestAsync` copies the user into GraphQL request state:
 
 ```csharp
 using System.Security.Claims;

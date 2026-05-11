@@ -9,7 +9,7 @@ When a production GraphQL incident occurs, you need answers to questions like:
 - Which downstream calls were involved in the same request?
 - Did the trace, log, or metric contain data that is safe to store?
 
-Hot Chocolate v16 provides three main entry points for observability:
+Hot Chocolate provides three main entry points for observability:
 
 1. **Diagnostic events**: Synchronous lifecycle hooks for custom logging, metrics, and in-process policies.
 2. **OpenTelemetry instrumentation**: Converts selected Hot Chocolate events into .NET `Activity` spans.
@@ -42,7 +42,7 @@ Diagnostic events provide lifecycle information from Hot Chocolate. When you cal
 
 The `ActivityEnricher` customizes activities emitted by Hot Chocolate. It does not create a separate tracing setup and does not replace diagnostic listeners.
 
-For logging and metrics, use standard .NET patterns. Choose `ILogger`, OpenTelemetry logging, `Meter`, or diagnostic listeners as needed. The built-in observability surface in v16 is based on traces and activities. You can build custom metrics from diagnostic events.
+For logging and metrics, use standard .NET patterns. Choose `ILogger`, OpenTelemetry logging, `Meter`, or diagnostic listeners as needed. The built-in observability surface is based on traces and activities. You can build custom metrics from diagnostic events.
 
 # Choosing Your Observability Approach
 
@@ -108,7 +108,7 @@ This layer covers GraphQL over HTTP requests, single and batch requests, operati
 
 The execution layer includes request execution, document parsing, validation, cost analysis, variable coercion, operation compilation, operation execution, resolver fields, subscriptions, document cache activity, persisted or trusted document lookup, operation cache activity, and executor lifecycle events.
 
-In v16, the root GraphQL activity name is low-cardinality. When Hot Chocolate knows the operation type, the display name is `query`, `mutation`, or `subscription`. The operation name is emitted as the `graphql.operation.name` attribute.
+The root GraphQL activity name is low-cardinality. When Hot Chocolate knows the operation type, the display name is `query`, `mutation`, or `subscription`. The operation name is emitted as the `graphql.operation.name` attribute.
 
 ## DataLoader Layer
 
@@ -134,7 +134,7 @@ builder
     });
 ```
 
-Key v16 options:
+Key options:
 
 | Option                          | Default                  | Purpose                                                          |
 | ------------------------------- | ------------------------ | ---------------------------------------------------------------- |
@@ -167,7 +167,7 @@ GraphQL error responses, server logs, and OpenTelemetry events are separate surf
 
 Use diagnostic events for custom logging, custom metrics, policy hooks, or integration with existing in-process observability code.
 
-Hot Chocolate v16 provides listener base classes for the main event families:
+Hot Chocolate provides listener base classes for the main event families:
 
 - `ServerDiagnosticEventListener`
 - `ExecutionDiagnosticEventListener`
@@ -220,7 +220,7 @@ builder
 
 Diagnostic handlers run synchronously as part of the request. Keep them fast, avoid blocking I/O, and enqueue expensive work for a background service. Scope methods return `IDisposable`; return `EmptyScope` if you do not need completion logic. For custom execution listeners, `EnableResolveFieldValue` defaults to `false` because resolver field events can be high volume.
 
-If a listener requires application services from the schema service provider, use the v16 application service registration pattern described in [service injection](../resolvers/service-injection).
+If a listener requires application services from the schema service provider, use the application service registration pattern described in [service injection](../resolvers/service-injection).
 
 # When to Use OpenTelemetry Tracing
 
@@ -324,7 +324,7 @@ This is a custom instrumentation pattern, not a built-in Hot Chocolate metrics s
 
 ## Names Changed After Upgrading
 
-If v15 traces or attributes no longer match your dashboards, review the migration notes for `.AddInstrumentation()`, root span naming, request details, DataLoader attributes, and the v16 `ActivityEnricher` constructor.
+If v15 traces or attributes no longer match your dashboards, review the migration notes for `.AddInstrumentation()`, root span naming, request details, DataLoader attributes, and the `ActivityEnricher` constructor.
 
 # Production Checklist
 
@@ -343,7 +343,7 @@ If v15 traces or attributes no longer match your dashboards, review the migratio
 
 - [OpenTelemetry](./opentelemetry): setup, scopes, request details, span families, exporter-neutral guidance, and expected output.
 - [Diagnostic events](./diagnostic-events): listener types, event contracts, custom logging, custom metrics, synchronous handler guidance, and examples.
-- [Activity enrichment](./activity-enrichment): `ActivityEnricher` implementation, safe tag design, DI registration, and v16 migration notes.
+- [Activity enrichment](./activity-enrichment): `ActivityEnricher` implementation, safe tag design, DI registration, and migration notes.
 - [Execution engine](../execution-engine): where instrumentation fits into the request pipeline.
 - [HTTP transport](../server-configuration/http-transport) and [WebSocket transport](../server-configuration/websocket-transport): transport behavior that affects traces.
 - [Performance](../performance): interpreting traces for latency and throughput work.

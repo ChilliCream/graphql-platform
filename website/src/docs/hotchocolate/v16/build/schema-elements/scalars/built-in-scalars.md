@@ -341,7 +341,7 @@ type Shipment {
 }
 ```
 
-The `Date` scalar is also built in for date-only values. `DateOnly` maps to `LocalDate` by default in v16, so bind `DateType` explicitly when the schema contract should use `Date`.
+The `Date` scalar is also built in for date-only values. `DateOnly` maps to `LocalDate` by default, so bind `DateType` explicitly when the schema contract should use `Date`.
 
 For additional date and time types using NodaTime, see the [NodaTime Scalars](/docs/hotchocolate/v16/build/schema-elements/scalars/nodatime-scalars) documentation.
 
@@ -626,7 +626,7 @@ The `ID` scalar accepts strings and integers, but rejects float-like numeric inp
 
 ## My DateOnly field is not the scalar I expected
 
-Hot Chocolate v16 maps `DateOnly` to `LocalDate`. If you expected `Date`, you can override the mapping explicitly:
+Hot Chocolate maps `DateOnly` to `LocalDate`. If you expected `Date`, you can override the mapping explicitly:
 
 ```csharp
 [GraphQLType<DateType>]

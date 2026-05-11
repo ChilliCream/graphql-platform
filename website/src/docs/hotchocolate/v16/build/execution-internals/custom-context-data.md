@@ -74,7 +74,7 @@ Note: Type-system descriptor metadata and field definitions are separate from ru
 
 ## Request and global context data
 
-Global state is the main v16 feature for storing values that apply to the entire request. Hot Chocolate keeps this data in `RequestContext.ContextData` for the operation. Request middleware, enrichers, and diagnostics access this dictionary through `RequestContext.ContextData`. Field middleware and resolvers access the same request-wide values via `IResolverContext.ContextData` or the global state helper methods.
+Global state is the primary mechanism for storing values that apply to the entire request. Hot Chocolate keeps this data in `RequestContext.ContextData` for the operation. Request middleware, enrichers, and diagnostics access this dictionary through `RequestContext.ContextData`. Field middleware and resolvers access the same request-wide values via `IResolverContext.ContextData` or the global state helper methods.
 
 Use global state for values that are relevant to the whole operation request, such as:
 
@@ -104,7 +104,7 @@ Resolvers and field middleware can read or write request-wide state using these 
 | `SetGlobalState<T>(string, T)`                    | Sets or overwrites request-wide state during execution.                                        |
 | `GetOrSetGlobalState<T>(string, Func<string, T>)` | Reads an existing value or creates and stores one.                                             |
 
-The v16 request context uses a thread-safe dictionary for request context data. However, this does not make the stored objects themselves thread-safe. When parallel resolvers may access the same value, store only immutable values, records, strings, value types, or read-only DTOs.
+The request context uses a thread-safe dictionary for request context data. However, this does not make the stored objects themselves thread-safe. When parallel resolvers may access the same value, store only immutable values, records, strings, value types, or read-only DTOs.
 
 ## Scoped context data
 
@@ -649,17 +649,17 @@ For HTTP or WebSocket integration tests, send the header, payload, or connection
 
 # Troubleshooting
 
-| Symptom                                                    | Likely cause                                                                                        | Solution                                                                                                                        |
-| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| A value is `null` or default                               | Key mismatch, wrong type, missing transport data, or `Get*StateOrDefault<T>` hiding a cast failure. | Use constants, validate the type with `Get*State<T>`, and check the boundary that sets the value.                               |
-| `[GlobalState]`, `[ScopedState]`, or `[LocalState]` throws | Required parameter is missing or incompatible.                                                      | Set the value earlier, use the correct scope, or make the parameter nullable with a default when absence is valid.              |
-| `AddGlobalState` throws                                    | The key was already added.                                                                          | Use `SetGlobalState` for overwrite behavior or `TryAddGlobalState` when the first value should win.                             |
-| A sibling field cannot see scoped state                    | Scoped state is branch-local.                                                                       | Use global state when every branch needs the value.                                                                             |
-| A child field cannot see local state                       | Local state stays in the current field pipeline.                                                    | Use scoped state for descendant selections.                                                                                     |
-| A value disappears between middleware components           | Middleware order issue, late write, or remove call.                                                 | Set the value before `await next(context)` and confirm middleware ordering.                                                     |
-| Behavior changes under load                                | Mutable value is shared by parallel resolvers.                                                      | Store immutable values or use synchronization.                                                                                  |
-| A service is disposed or used from the wrong scope         | A service instance was stored in context data.                                                      | Inject the service with DI instead.                                                                                             |
-| Older samples do not compile                               | The sample uses v15 or older names.                                                                 | Use v16 APIs: `SetGlobalState`, `AddGlobalState`, `TryAddGlobalState`, `GetGlobalState`, `GetScopedState`, and `GetLocalState`. |
+| Symptom                                                    | Likely cause                                                                                        | Solution                                                                                                                            |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| A value is `null` or default                               | Key mismatch, wrong type, missing transport data, or `Get*StateOrDefault<T>` hiding a cast failure. | Use constants, validate the type with `Get*State<T>`, and check the boundary that sets the value.                                   |
+| `[GlobalState]`, `[ScopedState]`, or `[LocalState]` throws | Required parameter is missing or incompatible.                                                      | Set the value earlier, use the correct scope, or make the parameter nullable with a default when absence is valid.                  |
+| `AddGlobalState` throws                                    | The key was already added.                                                                          | Use `SetGlobalState` for overwrite behavior or `TryAddGlobalState` when the first value should win.                                 |
+| A sibling field cannot see scoped state                    | Scoped state is branch-local.                                                                       | Use global state when every branch needs the value.                                                                                 |
+| A child field cannot see local state                       | Local state stays in the current field pipeline.                                                    | Use scoped state for descendant selections.                                                                                         |
+| A value disappears between middleware components           | Middleware order issue, late write, or remove call.                                                 | Set the value before `await next(context)` and confirm middleware ordering.                                                         |
+| Behavior changes under load                                | Mutable value is shared by parallel resolvers.                                                      | Store immutable values or use synchronization.                                                                                      |
+| A service is disposed or used from the wrong scope         | A service instance was stored in context data.                                                      | Inject the service with DI instead.                                                                                                 |
+| Older samples do not compile                               | The sample uses v15 or older names.                                                                 | Use current APIs: `SetGlobalState`, `AddGlobalState`, `TryAddGlobalState`, `GetGlobalState`, `GetScopedState`, and `GetLocalState`. |
 
 # API reference
 

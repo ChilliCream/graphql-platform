@@ -2,7 +2,7 @@
 title: Execution engine
 ---
 
-Hot Chocolate v16 processes a GraphQL operation using two nested pipelines:
+Hot Chocolate processes a GraphQL operation using two nested pipelines:
 
 - The **request pipeline**, which runs once per operation request
 - The **field pipeline**, which runs for every selected field during execution
@@ -204,7 +204,7 @@ Result:
 }
 ```
 
-# The Default v16 Request Pipeline
+# The Default Request Pipeline
 
 Hot Chocolate provides this core request pipeline unless you replace it:
 

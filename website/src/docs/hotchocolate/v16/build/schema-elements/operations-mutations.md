@@ -81,7 +81,7 @@ Selected child fields, normal read-style resolver execution
 
 # Adding a mutation field with `[MutationType]`
 
-Use `[MutationType]` to add fields to the root `Mutation` type with implementation-first schema building. In v16 source-generator examples, make the type `partial`.
+Use `[MutationType]` to add fields to the root `Mutation` type with implementation-first schema building. When using the source generator, make the type `partial`.
 
 ```csharp
 #nullable enable
@@ -544,7 +544,7 @@ Use Hot Chocolate's `[AllowAnonymous]` attribute, not `Microsoft.AspNetCore.Auth
 
 GraphQL serializes top-level mutation fields for ordering. Transactions are a separate application or Hot Chocolate configuration concern. External side effects, such as email, message publishing, and webhooks, may not roll back with database state.
 
-Current v16 mutation guidance includes transaction scope handler APIs for mutation requests. Treat them as integration points, not as the default unit-of-work design for every application.
+Hot Chocolate includes transaction scope handler APIs for mutation requests. Treat them as integration points, not as the default unit-of-work design for every application.
 
 | API                                    | Purpose                                                                                 |
 | -------------------------------------- | --------------------------------------------------------------------------------------- |

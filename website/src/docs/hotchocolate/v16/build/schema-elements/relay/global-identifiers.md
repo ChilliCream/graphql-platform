@@ -520,7 +520,7 @@ Expected behavior:
 
 # Choose type names deliberately
 
-Global IDs include the GraphQL type name. In v16, `[ID<T>]` uses the configured GraphQL type name for `T` when Hot Chocolate can resolve it.
+Global IDs include the GraphQL type name. `[ID<T>]` uses the configured GraphQL type name for `T` when Hot Chocolate can resolve it.
 
 ```csharp
 #nullable enable

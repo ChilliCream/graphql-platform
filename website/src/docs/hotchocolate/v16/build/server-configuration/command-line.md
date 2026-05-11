@@ -2,7 +2,7 @@
 title: Command line
 ---
 
-Hot Chocolate provides command-line support for generating repeatable schema artifacts from the same ASP.NET Core application that serves your GraphQL requests. The v16 server CLI focuses on schema operations: exporting SDL files, printing SDL to stdout, and listing registered schemas.
+Hot Chocolate provides command-line support for generating repeatable schema artifacts from the same ASP.NET Core application that serves your GraphQL requests. The server CLI focuses on schema operations: exporting SDL files, printing SDL to stdout, and listing registered schemas.
 
 ## Common Commands
 
@@ -61,7 +61,7 @@ app.MapGraphQL();
 return app.RunWithGraphQLCommands(args);
 ```
 
-In v16, `RunWithGraphQLCommandsAsync(args)` returns `Task<int>`, and `RunWithGraphQLCommands(args)` returns `int`. Return this value from `Program.cs` so shell scripts and CI systems can detect command failures.
+`RunWithGraphQLCommandsAsync(args)` returns `Task<int>`, and `RunWithGraphQLCommands(args)` returns `int`. Return this value from `Program.cs` so shell scripts and CI systems can detect command failures.
 
 Command mode is activated only when the arguments start with `schema`. For all other arguments, the host runs as usual, and the method returns `0` when the server stops.
 
@@ -96,7 +96,7 @@ app.MapGraphQL();
 return await app.RunWithGraphQLCommandsAsync(args);
 ```
 
-Use a single GraphQL registration style per project. The v16 minimal hosting documentation uses `builder.AddGraphQL()`. Projects based on the service collection may use `builder.Services.AddGraphQLServer()` instead.
+Use a single GraphQL registration style per project. The minimal hosting documentation uses `builder.AddGraphQL()`. Projects based on the service collection may use `builder.Services.AddGraphQLServer()` instead.
 
 # Exporting a Schema File
 

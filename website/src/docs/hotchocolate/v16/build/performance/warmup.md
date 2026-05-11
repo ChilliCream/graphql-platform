@@ -2,7 +2,7 @@
 title: Warmup
 ---
 
-Warmup allows you to move predictable GraphQL startup and first-request work to a controlled point in your application's lifecycle. In Hot Chocolate v16, schema and request executor creation happen eagerly by default. You can add warmup tasks to pre-populate the document and prepared-operation caches with representative operations before production traffic reaches your endpoint.
+Warmup allows you to move predictable GraphQL startup and first-request work to a controlled point in your application's lifecycle. In Hot Chocolate, schema and request executor creation happen eagerly by default. You can add warmup tasks to pre-populate the document and prepared-operation caches with representative operations before production traffic reaches your endpoint.
 
 Warmup is useful for costs associated with Hot Chocolate setup and operation preparation, such as:
 
@@ -13,9 +13,9 @@ Warmup is useful for costs associated with Hot Chocolate setup and operation pre
 
 Warmup does not replace load testing, publishing persisted operations, schema checks in CI, or readiness probes.
 
-# Start with the v16 default
+# Start with the default
 
-A typical v16 server uses `AddGraphQL()` and maps the GraphQL endpoint:
+A typical server uses `AddGraphQL()` and maps the GraphQL endpoint:
 
 ```csharp
 builder
@@ -313,7 +313,7 @@ Use Hot Chocolate instrumentation and application logs to place timestamps aroun
 
 Lazy initialization can be suitable for development tools, short-lived jobs, or applications where GraphQL is rarely used and first-request latency is not important. It can also help when a platform enforces a strict process-start budget and readiness is handled by a later explicit check.
 
-For production APIs that receive traffic soon after deployment, keep the v16 eager default and use bounded warmup tasks for the operations that matter.
+For production APIs that receive traffic soon after deployment, keep the eager default and use bounded warmup tasks for the operations that matter.
 
 # Next steps
 

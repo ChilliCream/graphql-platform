@@ -4,7 +4,7 @@ title: Custom descriptor attributes
 
 Custom descriptor attributes allow you to encapsulate repeated Hot Chocolate schema configuration within a C# attribute. They are ideal when your team already uses attributes for schema configuration and the repeated rule has a clear, domain-specific name.
 
-This page explains how to create custom attributes for fields, arguments, types, and multiple descriptor kinds in Hot Chocolate v16.
+This page explains how to create custom attributes for fields, arguments, types, and multiple descriptor kinds.
 
 # When to Use a Custom Descriptor Attribute
 
@@ -347,9 +347,9 @@ interface Product {
 
 Ignore unsupported descriptor types when the attribute can be harmless on extra targets. Throw a clear exception only when misuse should fail schema building.
 
-# Handle nullable providers in v16
+# Handle nullable providers
 
-In Hot Chocolate v16, descriptor attribute provider values are nullable:
+Descriptor attribute provider values are nullable:
 
 - `TryConfigure(..., ICustomAttributeProvider? attributeProvider)`
 - `OnConfigure(..., MemberInfo? member)`
@@ -476,7 +476,7 @@ For middleware attributes, execute a representative query and snapshot the resul
 | The attribute never runs.                                                       | Check `AttributeUsage`, the CLR target, whether the type is part of the schema, and whether the descriptor type matches the base class.                                |
 | It runs on object fields but not interface fields.                              | `ObjectFieldDescriptorAttribute` handles object fields only. Use `DescriptorAttribute` and handle `IInterfaceFieldDescriptor`, or create an interface field attribute. |
 | Middleware runs in the wrong order.                                             | Check `Order`, `[CallerLineNumber]`, inherited attributes, and source order.                                                                                           |
-| `member`, `parameter`, or `type` is null.                                       | v16 allows nullable providers. Null-check the provider or set `RequiresAttributeProvider = true` when reflection metadata is required.                                 |
+| `member`, `parameter`, or `type` is null.                                       | Providers are nullable. Null-check the provider or set `RequiresAttributeProvider = true` when reflection metadata is required.                                        |
 | Services are unavailable or scoped services fail.                               | Attribute configuration runs during schema building. Move request-scoped work into middleware or resolvers.                                                            |
 | The schema changed but reviewers cannot see why.                                | The attribute hides too much. Prefer fluent configuration, a descriptor class, or a smaller attribute.                                                                 |
 | The attribute works in reflection-based tests but fails with source generation. | Remove the reflection dependency, null-check the provider, or document and enforce `RequiresAttributeProvider`.                                                        |

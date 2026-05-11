@@ -635,8 +635,8 @@ Add execution tests for representative queries and mutations, invalid metadata, 
 | `CreateTypesAsync`                           | Creates current dynamic types and extensions.           | Receives `IDescriptorContext` and `CancellationToken`.   |
 | `TypesChanged`                               | Signals that schema metadata changed.                   | Raise after publishing a valid new snapshot.             |
 | `.AddTypeModule<T>()`                        | Registers a module.                                     | Use on the GraphQL request executor builder.             |
-| `ObjectTypeConfiguration`                    | Configures generated object types and extensions.       | v16 configuration type.                                  |
-| `InputObjectTypeConfiguration`               | Configures generated input object types and extensions. | v16 configuration type.                                  |
+| `ObjectTypeConfiguration`                    | Configures generated object types and extensions.       | Configuration type for generated schemas.                |
+| `InputObjectTypeConfiguration`               | Configures generated input object types and extensions. | Configuration type for generated schemas.                |
 | `ObjectFieldConfiguration`                   | Configures generated object fields.                     | Supports async and pure resolver delegates.              |
 | `InputFieldConfiguration`                    | Configures generated input fields.                      | Inherits argument configuration behavior.                |
 | `ArgumentConfiguration`                      | Configures generated field arguments.                   | Use for generated input type arguments.                  |

@@ -2,7 +2,7 @@
 title: "Service Injection"
 ---
 
-Resolvers frequently require application services such as repositories, domain services, HTTP clients, DataLoaders, tenant providers, or EF Core contexts. In Hot Chocolate v16, the standard approach is to register these services with ASP.NET Core dependency injection and receive them as resolver parameters.
+Resolvers frequently require application services such as repositories, domain services, HTTP clients, DataLoaders, tenant providers, or EF Core contexts. In Hot Chocolate, the standard approach is to register these services with ASP.NET Core dependency injection and receive them as resolver parameters.
 
 This page explains how service injection works and how service scopes behave during GraphQL execution. For a broader overview of resolver parameters, see [Resolver Signatures](./resolver-signature). For details on attributes that bind arguments, parents, state, and selections, refer to [Parameter Attributes](./parameter-attributes).
 
@@ -115,7 +115,7 @@ Example response:
 }
 ```
 
-In v16, Hot Chocolate infers registered service parameters automatically. You do not need to use `[Service]` for this common resolver pattern.
+Hot Chocolate infers registered service parameters automatically. You do not need to use `[Service]` for this common resolver pattern.
 
 ## Use `ctx.Service<T>()` in code-first resolvers
 
@@ -154,7 +154,7 @@ var prices = ctx.Service<IPriceService>("retail");
 
 ## Use `[Service]` for keyed and explicit service binding
 
-While Hot Chocolate v16 typically infers registered services, `[Service]` is still helpful when you need a keyed service or want to explicitly mark a parameter as a service.
+While Hot Chocolate typically infers registered services, `[Service]` is still helpful when you need a keyed service or want to explicitly mark a parameter as a service.
 
 Register a keyed service with ASP.NET Core DI:
 
@@ -679,7 +679,7 @@ HTTP request interceptors support the same provider replacement pattern.
 
 | Scenario                         | API                                        | Notes                                  |
 | -------------------------------- | ------------------------------------------ | -------------------------------------- |
-| Registered resolver service      | `ProductService products`                  | Preferred v16 resolver pattern.        |
+| Registered resolver service      | `ProductService products`                  | Preferred resolver pattern.            |
 | Explicit service parameter       | `[Service] ProductService products`        | Use for clarity or inference fallback. |
 | Keyed service parameter          | `[Service("retail")] IPriceService prices` | Primary keyed service pattern.         |
 | Code-first resolver service      | `ctx.Service<ProductService>()`            | Use inside resolver delegates.         |

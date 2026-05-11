@@ -4,7 +4,7 @@ title: Diagnostic events
 
 Diagnostic events in Hot Chocolate are lifecycle callbacks that allow you to observe and react to key moments in GraphQL processing. Use them when standard traces indicate a slow or failing request, but your application requires a custom log entry, metric, audit marker, or a precisely scoped timing signal.
 
-This page explains how to implement custom diagnostic listeners in Hot Chocolate v16. It does not cover exporter, dashboard, or span attribute configuration. For standard distributed tracing, begin with [OpenTelemetry](./opentelemetry). To add safe tags to Hot Chocolate spans, use `ActivityEnricher`. If you need to modify client-visible GraphQL errors, use error filters instead of diagnostic listeners.
+This page explains how to implement custom diagnostic listeners in Hot Chocolate. It does not cover exporter, dashboard, or span attribute configuration. For standard distributed tracing, begin with [OpenTelemetry](./opentelemetry). To add safe tags to Hot Chocolate spans, use `ActivityEnricher`. If you need to modify client-visible GraphQL errors, use error filters instead of diagnostic listeners.
 
 # Mental model
 
@@ -212,7 +212,7 @@ Execution events are grouped as follows:
 | Persisted and trusted documents | `RetrievedDocumentFromStorage`, `DocumentNotFoundInStorage`, `UntrustedDocumentRejected`                     |
 | Schema executor lifecycle       | `ExecutorCreated`, `ExecutorEvicted`                                                                         |
 
-Hot Chocolate v16 exposes executor lifecycle events, not a separate schema diagnostic listener.
+Hot Chocolate exposes executor lifecycle events, not a separate schema diagnostic listener.
 
 # Observe resolver execution only when needed
 

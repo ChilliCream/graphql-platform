@@ -2,7 +2,7 @@
 title: Build and operate a Hot Chocolate server
 ---
 
-You have a running GraphQL endpoint. Now it is time to shape it into a maintainable production API. This page provides an overview of the Hot Chocolate v16 build and operations documentation, focusing on the standalone Hot Chocolate server path.
+You have a running GraphQL endpoint. Now it is time to shape it into a maintainable production API. This page provides an overview of the Hot Chocolate build and operations documentation, focusing on the standalone Hot Chocolate server path.
 
 Use this page as your navigation hub. Begin with the task you want to accomplish, follow the linked child page for details, and return here when you need to address a new concern.
 
@@ -51,7 +51,7 @@ Schema contract
 
 # Start configuration in Program.cs
 
-In v16, most configuration begins with the request executor builder returned by `AddGraphQL()`. Here, you attach schema types, resolvers, security, performance, instrumentation, `ModifyRequestOptions(...)`, and other options. Use `MapGraphQL()`, specialized endpoint methods, and endpoint `WithOptions(...)` to configure ASP.NET Core endpoint behavior.
+Most configuration begins with the request executor builder returned by `AddGraphQL()`. Here, you attach schema types, resolvers, security, performance, instrumentation, `ModifyRequestOptions(...)`, and other options. Use `MapGraphQL()`, specialized endpoint methods, and endpoint `WithOptions(...)` to configure ASP.NET Core endpoint behavior.
 
 ```csharp
 #nullable enable
@@ -100,7 +100,7 @@ type Query {
 }
 ```
 
-Some older samples use `AddGraphQLServer()`. For new v16 ASP.NET Core projects, use `AddGraphQL()`.
+Some older samples use `AddGraphQLServer()`. For new ASP.NET Core projects, use `AddGraphQL()`.
 
 If you use source-generated attributes like `[QueryType]`, include the generated `.AddTypes()` call in `Program.cs`. Use `.AddQueryType<T>()` when registering an explicit root type.
 
@@ -108,7 +108,7 @@ If you use source-generated attributes like `[QueryType]`, include the generated
 
 The schema defines your public contract. It models the operations clients can run, the fields they can select, the arguments they can pass, and the values they receive.
 
-The default v16 approach is implementation-first: write C# types and attributes, then inspect the generated SDL. Use code-first descriptor types when you need precise control over names, fields, directives, or generated infrastructure.
+The default approach is implementation-first: write C# types and attributes, then inspect the generated SDL. Use code-first descriptor types when you need precise control over names, fields, directives, or generated infrastructure.
 
 ```csharp
 [QueryType]
@@ -215,7 +215,7 @@ query {
 }
 ```
 
-If you use `QueryContext<T>` in v16, do not combine it with `[UseProjection]` on the same field. Choose one projection approach per field.
+If you use `QueryContext<T>`, do not combine it with `[UseProjection]` on the same field. Choose one projection approach per field.
 
 | Feature                   | Start with                                                                                   | Provider setup                                                                                                                                                                                                 |
 | ------------------------- | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

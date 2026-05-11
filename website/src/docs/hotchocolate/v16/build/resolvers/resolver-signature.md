@@ -202,7 +202,7 @@ Choose a return type that matches the data source and how Hot Chocolate should p
 | `IExecutable<T>`                            | A Hot Chocolate data provider executable should own query execution.            | Provider-specific. Follow the provider documentation for construction and middleware support. | [Result Handling](./resolver-result-handling)                                                        |
 | `IAsyncEnumerable<T>`                       | Values are produced asynchronously.                                             | Confirm the field's middleware and transport behavior before using it as a list shape.        | [Result Handling](./resolver-result-handling)                                                        |
 | `Connection<T>`                             | The resolver constructs a cursor paging result.                                 | Common with custom paging services and external APIs.                                         | [Pagination](/docs/hotchocolate/v16/build/pagination)                                                |
-| `QueryContext<T>`                           | You use the v16 integrated projection, filtering, and sorting pattern.          | Do not combine with `[UseProjection]`.                                                        | [Projections](/docs/hotchocolate/v16/build/filtering-sorting-projections/projection-options)         |
+| `QueryContext<T>`                           | You use the integrated projection, filtering, and sorting pattern.              | Do not combine with `[UseProjection]`.                                                        | [Projections](/docs/hotchocolate/v16/build/filtering-sorting-projections/projection-options)         |
 | Payload or result object                    | A mutation returns data plus expected domain errors.                            | Keep domain failures in the payload shape instead of throwing for expected cases.             | [Mutations](/docs/hotchocolate/v16/build/schema-elements/operations-mutations)                       |
 
 Treat `IExecutable<T>` and `IAsyncEnumerable<T>` as specialized return types. Hot Chocolate supports them, but correct usage depends on the provider, middleware stack, and transport requirements. Consult provider documentation or the result handling page before using them widely.
@@ -233,7 +233,7 @@ See [Parent access](./parent-attribute) for more details on working with parent 
 
 ## Add services and DataLoaders as runtime inputs
 
-In Hot Chocolate v16, registered services are inferred automatically. Place services directly in the resolver method signature and keep application logic outside the resolver.
+Registered services are inferred automatically. Place services directly in the resolver method signature and keep application logic outside the resolver.
 
 ```csharp
 [QueryType]
@@ -367,7 +367,7 @@ public static partial class BookQueries
 
 This signature works well for curated in-memory data, but is not suitable when you want provider translation for paging, projection, filtering, or sorting.
 
-`QueryContext<T>` is an alternative v16 pattern for integrated projection, filtering, and sorting. Do not combine `QueryContext<T>` with `[UseProjection]`; select one approach. See [Projections](/docs/hotchocolate/v16/build/filtering-sorting-projections/projection-options) for more information.
+`QueryContext<T>` is an alternative pattern for integrated projection, filtering, and sorting. Do not combine `QueryContext<T>` with `[UseProjection]`; select one approach. See [Projections](/docs/hotchocolate/v16/build/filtering-sorting-projections/projection-options) for more information.
 
 ---
 

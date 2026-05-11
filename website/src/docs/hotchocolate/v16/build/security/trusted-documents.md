@@ -4,7 +4,7 @@ title: Trusted documents
 
 Trusted documents transform a GraphQL endpoint for controlled clients into an allowlist of approved operations. During the client build, each operation is extracted, registered with the server through a release process, and then referenced in production traffic by an operation ID instead of arbitrary GraphQL text.
 
-In Hot Chocolate v16, this security approach is built on persisted operations. Persisted operations provide the storage and lookup mechanism, while trusted documents enforce that only operations from this controlled workflow can be executed in production.
+In Hot Chocolate, this security approach is built on persisted operations. Persisted operations provide the storage and lookup mechanism, while trusted documents enforce that only operations from this controlled workflow can be executed in production.
 
 Use trusted documents when you control the clients, such as web apps, mobile apps, internal services, or private APIs. For public APIs with unknown client documents, you still need cost analysis, request limits, authentication, authorization, introspection policy, and rate limiting.
 
@@ -82,7 +82,7 @@ builder.Services
     .AddFileSystemOperationDocumentStorage("./persisted_operations");
 ```
 
-Hot Chocolate v16 also provides `AddMD5DocumentHashProvider()` and `AddSha1DocumentHashProvider()`. Configure hash providers on the GraphQL builder. Use a provider and format that match your client compiler and publishing workflow.
+Hot Chocolate also provides `AddMD5DocumentHashProvider()` and `AddSha1DocumentHashProvider()`. Configure hash providers on the GraphQL builder. Use a provider and format that match your client compiler and publishing workflow.
 
 # Enforce trusted documents only
 

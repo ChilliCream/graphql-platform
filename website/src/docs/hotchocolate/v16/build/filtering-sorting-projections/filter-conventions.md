@@ -4,7 +4,7 @@ title: Filter conventions
 
 A filter convention provides schema-wide configuration for filtering in Hot Chocolate. It determines the default `where` argument name, operation field names and descriptions, runtime type bindings, and the provider responsible for translating filter input at execution time.
 
-This page covers the Hot Chocolate v16 convention APIs. To learn about input shapes for a specific entity or field, see [filter types](filter-types.md). For custom providers and handlers, refer to [Extending Filtering](/docs/hotchocolate/v16/build/filtering-sorting-projections/extending-filtering).
+This page covers the convention APIs. To learn about input shapes for a specific entity or field, see [filter types](filter-types.md). For custom providers and handlers, refer to [Extending Filtering](/docs/hotchocolate/v16/build/filtering-sorting-projections/extending-filtering).
 
 # How filtering conventions work
 
@@ -142,7 +142,7 @@ Each operation has a stable internal ID from `DefaultFilterOperations`. The conv
 
 # Default runtime type bindings
 
-The default v16 convention binds common .NET runtime types to their corresponding operation filter input types:
+The default convention binds common .NET runtime types to their corresponding operation filter input types:
 
 | Runtime type                                                 | Default filter input type               |
 | ------------------------------------------------------------ | --------------------------------------- |

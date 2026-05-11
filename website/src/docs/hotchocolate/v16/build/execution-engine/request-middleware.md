@@ -30,7 +30,7 @@ Most applications use the built-in pipeline and add a small middleware at a spec
 | Rewrite errors after Hot Chocolate creates them                                                  | Error filters                                            | `IError`                  | Request control flow                                                       |
 | Enrich `RequestContext` before the pipeline without ordering                                     | `IRequestContextEnricher`                                | `RequestContext`          | Logic that must run before or after a named middleware                     |
 
-# The default v16 request pipeline
+# The default request pipeline
 
 If you do not configure a custom pipeline, Hot Chocolate provides a default request pipeline. Add middleware relative to these keys rather than replacing the entire pipeline, unless you are building an advanced execution feature.
 
@@ -53,7 +53,7 @@ Features such as persisted operations and automatic persisted operations insert 
 
 # Working with `RequestContext`
 
-Hot Chocolate v16 uses the public abstract `RequestContext` class. Do not use older `IRequestContext` examples.
+Hot Chocolate uses the public abstract `RequestContext` class. Do not use older `IRequestContext` examples.
 
 | Property                | Use it for                                                                | Placement notes                                                             |
 | ----------------------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
@@ -269,7 +269,7 @@ builder.Services
 
 Use constants for state keys, store typed values, and avoid putting owned resources or scoped service instances into global state. Resolvers can consume global state with resolver APIs such as `[GlobalState]`. See the global state page for resolver-side patterns.
 
-In v16, use `SetGlobalState`, `AddGlobalState`, `TryAddGlobalState`, and `RemoveGlobalState` on `OperationRequestBuilder`. Older examples that use `SetProperty` or `TryAddProperty` are not v16 request-building APIs.
+Use `SetGlobalState`, `AddGlobalState`, `TryAddGlobalState`, and `RemoveGlobalState` on `OperationRequestBuilder`. Older examples that use `SetProperty` or `TryAddProperty` are not current request-building APIs.
 
 # Adding app-specific timing or correlation
 
@@ -310,7 +310,7 @@ This example is intentionally placed inside instrumentation and before execution
 
 | Symptom                                                        | Check                                                                                                                  |
 | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `IRequestContext` is not found.                                | Use `RequestContext` in v16.                                                                                           |
+| `IRequestContext` is not found.                                | Use `RequestContext`.                                                                                                  |
 | `SetProperty` or `TryAddProperty` is not found.                | Use `SetGlobalState`, `AddGlobalState`, `TryAddGlobalState`, or `RemoveGlobalState`.                                   |
 | Middleware never runs.                                         | Confirm it is registered on the active `IRequestExecutorBuilder` and was not skipped by duplicate key behavior.        |
 | Middleware runs after resolvers.                               | Unpositioned middleware is appended. Insert before `OperationExecutionMiddleware`.                                     |

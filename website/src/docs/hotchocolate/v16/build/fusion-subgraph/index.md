@@ -4,7 +4,7 @@ title: Fusion subgraphs
 
 A Fusion subgraph is a standard Hot Chocolate GraphQL server that provides a source schema to a larger composite schema. You continue to own and operate the ASP.NET Core service. The Fusion gateway manages query planning across services, communicates with each subgraph using its configured transport, and returns a single result to the client.
 
-Use this page if you own a Hot Chocolate v16 service, such as Products or Reviews, and want it to participate in a Fusion graph. You will set a source schema name, add entity lookup metadata, export the source schema files, and prepare the subgraph for composition.
+Use this page if you own a Hot Chocolate service, such as Products or Reviews, and want it to participate in a Fusion graph. You will set a source schema name, add entity lookup metadata, export the source schema files, and prepare the subgraph for composition.
 
 ## What you will build
 
@@ -23,13 +23,13 @@ You will need:
 
 | Requirement                                                           | Why it matters                                                           |
 | --------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| An ASP.NET Core Hot Chocolate v16 service                             | A Fusion subgraph is hosted as a GraphQL server.                         |
+| An ASP.NET Core Hot Chocolate service                                 | A Fusion subgraph is hosted as a GraphQL server.                         |
 | `HotChocolate.AspNetCore`                                             | Provides the GraphQL server integration.                                 |
 | `HotChocolate.AspNetCore.CommandLine`                                 | Enables `schema export` for CI and local composition.                    |
 | `HotChocolate.Types.Analyzers` when using generated type registration | Provides `AddTypes()` and source-schema setup generated from attributes. |
 | A stable domain key, such as `Product.Id`                             | Entity lookups are key based.                                            |
 
-In v16, Fusion attributes are found in `HotChocolate.Types.Composite`. For new v16 subgraphs, do not use older Fusion source-schema packages or namespaces.
+Fusion attributes are found in `HotChocolate.Types.Composite`. For new subgraphs, do not use older Fusion source-schema packages or namespaces.
 
 ## Understanding the subgraph boundary
 
@@ -276,7 +276,7 @@ Before handing a subgraph to a gateway or registry, verify the following:
 - Lookups return nullable single entities.
 - Non-key fields have one owner unless every definition is marked `[Shareable]` and has matching semantics.
 - Key argument mappings use `[Is]` when argument names or shapes differ.
-- Exported schema files are produced by the v16 project, not copied from an older setup.
+- Exported schema files are produced by the current project, not copied from an older setup.
 - CI runs schema export and composition before publishing or deploying gateway artifacts.
 
 ## Troubleshooting
@@ -290,7 +290,7 @@ Before handing a subgraph to a gateway or registry, verify the following:
 | Composition cannot move to the subgraph that contributes a field | Add a compatible public or internal lookup for that entity in the contributing subgraph.                                                                |
 | A lookup argument does not map to the entity key                 | Add `[Is]` to map the argument to the entity field, or declare the key explicitly with `[EntityKey]` when needed.                                       |
 | The gateway calls the wrong endpoint locally                     | Update `transports.http.url` in `schema-settings.json` for the local port.                                                                              |
-| A project still has old composition settings                     | Export fresh `schema.graphqls` and `schema-settings.json` from the v16 project and update the Nitro composition inputs.                                 |
+| A project still has old composition settings                     | Export fresh `schema.graphqls` and `schema-settings.json` from the current project and update the Nitro composition inputs.                             |
 
 ## API quick reference
 

@@ -414,7 +414,7 @@ Place custom middleware according to its purpose:
 - Put final result transformation outside the middleware that should produce the value you want to transform
 - Avoid placing custom middleware between paging, projection, filtering, and sorting unless you have tested that interaction
 
-Hot Chocolate v16 validates the known data middleware pipeline by default through `SchemaOptions.ValidatePipelineOrder`. It detects duplicate known data middleware and invalid order for `UseDbContext`, `UsePaging`, `UseProjection`, `UseFiltering`, and `UseSorting`.
+Hot Chocolate validates the known data middleware pipeline by default through `SchemaOptions.ValidatePipelineOrder`. It detects duplicate known data middleware and invalid order for `UseDbContext`, `UsePaging`, `UseProjection`, `UseFiltering`, and `UseSorting`.
 
 Authorization can run before or after the resolver depending on `ApplyPolicy`. Unauthorized fields usually complete as `null` and include GraphQL errors. Configure GraphQL authorization with Hot Chocolate authorization APIs, not ASP.NET Core MVC attributes on GraphQL fields.
 

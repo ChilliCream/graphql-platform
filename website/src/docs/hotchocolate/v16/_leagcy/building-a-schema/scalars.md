@@ -10,29 +10,29 @@ Every scalar defines how values convert between the GraphQL wire format (JSON) a
 
 Hot Chocolate automatically maps .NET types to GraphQL scalars. When you use a `string` property, it becomes a `String` field in your schema without any configuration.
 
-| .NET Type         | GraphQL Scalar  | Notes                                                                     |
-| ----------------- | --------------- | ------------------------------------------------------------------------- |
-| `string`          | `String`        | UTF-8 character sequence                                                  |
-| `bool`            | `Boolean`       | `true` or `false`                                                         |
-| `int`             | `Int`           | Signed 32-bit integer                                                     |
-| `float`, `double` | `Float`         | IEEE 754 double-precision                                                 |
-| `decimal`         | `Decimal`       | High-precision decimal (separate from `Float`)                            |
-| `long`            | `Long`          | Signed 64-bit integer                                                     |
-| `short`           | `Short`         | Signed 16-bit integer                                                     |
-| `DateTime`        | `DateTime`      | Date and time with time zone offset                                       |
-| `DateTimeOffset`  | `DateTime`      | Date and time with time zone offset                                       |
-| `DateOnly`        | `Date`          | Date without time or time zone                                            |
-| `TimeOnly`        | `LocalTime`     | Time of day without date or time zone                                     |
-| `TimeSpan`        | `Duration`      | Duration of time (renamed from `TimeSpan` in v16)                         |
-| `Guid`            | `UUID`          | Universally unique identifier (RFC 9562)                                  |
-| `Uri`             | `URI`           | Uniform resource identifier (new in v16, replaces `URL` for `System.Uri`) |
-| `byte[]`          | `Base64String`  | Base64-encoded byte array (new in v16, replaces deprecated `ByteArray`)   |
-| `byte`            | `UnsignedByte`  | Unsigned 8-bit integer (renamed in v16)                                   |
-| `sbyte`           | `Byte`          | Signed 8-bit integer (renamed in v16)                                     |
-| `ushort`          | `UnsignedShort` | Unsigned 16-bit integer (new in v16)                                      |
-| `uint`            | `UnsignedInt`   | Unsigned 32-bit integer (new in v16)                                      |
-| `ulong`           | `UnsignedLong`  | Unsigned 64-bit integer (new in v16)                                      |
-| `JsonElement`     | `Any`           | Any valid GraphQL value (v16 merged `Json` into `Any`)                    |
+| .NET Type         | GraphQL Scalar  | Notes                                                         |
+| ----------------- | --------------- | ------------------------------------------------------------- |
+| `string`          | `String`        | UTF-8 character sequence                                      |
+| `bool`            | `Boolean`       | `true` or `false`                                             |
+| `int`             | `Int`           | Signed 32-bit integer                                         |
+| `float`, `double` | `Float`         | IEEE 754 double-precision                                     |
+| `decimal`         | `Decimal`       | High-precision decimal (separate from `Float`)                |
+| `long`            | `Long`          | Signed 64-bit integer                                         |
+| `short`           | `Short`         | Signed 16-bit integer                                         |
+| `DateTime`        | `DateTime`      | Date and time with time zone offset                           |
+| `DateTimeOffset`  | `DateTime`      | Date and time with time zone offset                           |
+| `DateOnly`        | `Date`          | Date without time or time zone                                |
+| `TimeOnly`        | `LocalTime`     | Time of day without date or time zone                         |
+| `TimeSpan`        | `Duration`      | Duration of time (renamed from `TimeSpan`)                    |
+| `Guid`            | `UUID`          | Universally unique identifier (RFC 9562)                      |
+| `Uri`             | `URI`           | Uniform resource identifier (replaces `URL` for `System.Uri`) |
+| `byte[]`          | `Base64String`  | Base64-encoded byte array (replaces deprecated `ByteArray`)   |
+| `byte`            | `UnsignedByte`  | Unsigned 8-bit integer (renamed)                              |
+| `sbyte`           | `Byte`          | Signed 8-bit integer (renamed)                                |
+| `ushort`          | `UnsignedShort` | Unsigned 16-bit integer                                       |
+| `uint`            | `UnsignedInt`   | Unsigned 32-bit integer                                       |
+| `ulong`           | `UnsignedLong`  | Unsigned 64-bit integer                                       |
+| `JsonElement`     | `Any`           | Any valid GraphQL value (`Json` has been merged into `Any`)   |
 
 Hot Chocolate only exposes scalars that your schema uses. Unused scalars do not appear in the generated schema.
 

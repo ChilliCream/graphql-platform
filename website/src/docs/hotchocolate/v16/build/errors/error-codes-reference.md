@@ -6,7 +6,7 @@ Hot Chocolate uses error codes as the machine-readable component of errors. When
 
 Use error codes for diagnostics, support runbooks, and client-side branching. Avoid branching on the `message` text, as messages may change, be redacted, or replaced by error filters.
 
-This reference documents source-verified Hot Chocolate v16 server codes. It does not cover application-specific codes, Strawberry Shake, Nitro, Mocha, or placeholder constants.
+This reference documents source-verified Hot Chocolate server codes. It does not cover application-specific codes, Strawberry Shake, Nitro, Mocha, or placeholder constants.
 
 ```json
 {
@@ -34,7 +34,7 @@ Some GraphQL validation errors do not have a Hot Chocolate code. These errors ma
 
 # Finding an error code
 
-The following table lists the built-in v16 server code families, verified from `HotChocolate.ErrorCodes` and schema validation log constants. Placeholder constants are intentionally omitted.
+The following table lists the built-in server code families, verified from `HotChocolate.ErrorCodes` and schema validation log constants. Placeholder constants are intentionally omitted.
 
 | Code                                   | Category                | Phase                      | Boundary            | Meaning                                                                 | Start here                                                      |
 | -------------------------------------- | ----------------------- | -------------------------- | ------------------- | ----------------------------------------------------------------------- | --------------------------------------------------------------- |
@@ -434,7 +434,7 @@ See [Errors](/docs/hotchocolate/v16/build/errors), [Error builder](/docs/hotchoc
 
 # Find the source of a code
 
-For framework troubleshooting, search the v16 source for the code value and for the `ErrorCodes` constant name.
+For framework troubleshooting, search the source for the code value and for the `ErrorCodes` constant name.
 
 ```bash
 rg -n 'HC0047|CostExceeded|SetCode\(|extensions\["code"\]' src/HotChocolate

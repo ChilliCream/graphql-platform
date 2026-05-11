@@ -2,7 +2,7 @@
 title: "Extending Types"
 ---
 
-Type extensions help you keep your Hot Chocolate v16 schema modular as your graph expands across features, models, and teams. A type extension adds fields or configuration to an existing schema type during schema build.
+Type extensions help you keep your Hot Chocolate schema modular as your graph expands across features, models, and teams. A type extension adds fields or configuration to an existing schema type during schema build.
 
 Hot Chocolate merges all these contributions into the final schema type. The printed SDL will show a single `type Product`, one `input CreateProductInput`, or one `interface CatalogItem`. It does not print GraphQL SDL `extend type` blocks for code-first or implementation-first type extensions.
 
@@ -24,7 +24,7 @@ Use this page to modularize your schema within a single Hot Chocolate server. If
 
 | Goal                                                               | Use                                           | Example API                                                                     | Notes                                                                    |
 | ------------------------------------------------------------------ | --------------------------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| Split root operation fields by feature                             | Source-generated operation type attributes    | `[QueryType]`, `[MutationType]`, `[SubscriptionType]`                           | Preferred implementation-first pattern in v16.                           |
+| Split root operation fields by feature                             | Source-generated operation type attributes    | `[QueryType]`, `[MutationType]`, `[SubscriptionType]`                           | Preferred implementation-first pattern.                                  |
 | Add resolver fields to an object type                              | Object type extension                         | `[ExtendObjectType<Product>]`, `ObjectTypeExtension<Product>`                   | Use for navigation fields, calculated fields, and models you do not own. |
 | Hide an object field or method                                     | Ignore configuration                          | `IgnoreProperties`, `IgnoreFields`, `[GraphQLIgnore]`, `descriptor.Ignore(...)` | Use extension-level ignores when you cannot change the model.            |
 | Replace an object field                                            | Bind a resolver to the original member        | `[BindMember(nameof(Product.BrandId))]`                                         | Common for replacing a foreign key scalar with an object field.          |
@@ -85,7 +85,7 @@ public static partial class ProductBrandExtensions
 }
 ```
 
-Register the extension with the same pattern your project uses for other schema types. When the v16 source generator registers annotated types, include the generated `AddTypes()` call.
+Register the extension with the same pattern your project uses for other schema types. When the source generator registers annotated types, include the generated `AddTypes()` call.
 
 ```csharp
 // Program.cs, generated registration
@@ -197,7 +197,7 @@ type Product {
 
 # Split root operation types by feature
 
-GraphQL has one `Query`, one `Mutation`, and optionally one `Subscription` root type per schema. Your C# code can split those fields across many classes. In implementation-first v16 code, use `partial` operation classes so the source generator can add schema wiring.
+GraphQL has one `Query`, one `Mutation`, and optionally one `Subscription` root type per schema. Your C# code can split those fields across many classes. In implementation-first code, use `partial` operation classes so the source generator can add schema wiring.
 
 ```csharp
 // Types/CatalogOperations.cs

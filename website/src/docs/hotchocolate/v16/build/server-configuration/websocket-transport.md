@@ -2,7 +2,7 @@
 title: WebSocket transport
 ---
 
-GraphQL subscriptions require three main components: a subscription field in the schema, a subscription provider to deliver events, and a transport to send subscription results to the client. This page explains how to configure the WebSocket transport for Hot Chocolate v16 on ASP.NET Core.
+GraphQL subscriptions require three main components: a subscription field in the schema, a subscription provider to deliver events, and a transport to send subscription results to the client. This page explains how to configure the WebSocket transport for Hot Chocolate on ASP.NET Core.
 
 | Piece                 | Responsibility                                                         | Learn more                                                                             |
 | --------------------- | ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |

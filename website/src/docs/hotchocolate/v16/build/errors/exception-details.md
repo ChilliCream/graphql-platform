@@ -62,7 +62,7 @@ builder
     });
 ```
 
-If you do not set this option, Hot Chocolate v16 defaults to `Debugger.IsAttached`. This is helpful for local debugging, but for production, use an explicit policy so that local development, CI, staging, and production environments behave predictably.
+If you do not set this option, Hot Chocolate defaults to `Debugger.IsAttached`. This is helpful for local debugging, but for production, use an explicit policy so that local development, CI, staging, and production environments behave predictably.
 
 For production, always disable exception details:
 
@@ -172,7 +172,7 @@ builder
     });
 ```
 
-In v16, class error filters are schema-level services. Constructor dependencies from the application service provider must be cross-registered with `AddApplicationService<T>()`, or supplied by a documented factory pattern. Services added this way are resolved during schema initialization and used as singletons in schema services.
+Class error filters are schema-level services. Constructor dependencies from the application service provider must be cross-registered with `AddApplicationService<T>()`, or supplied by a documented factory pattern. Services added this way are resolved during schema initialization and used as singletons in schema services.
 
 Calling `WithException(null)` is intentional. It prevents later debug serialization for that error, but later filters will not see the exception through `error.Exception`. Log or capture what you need before clearing it.
 
@@ -203,7 +203,7 @@ Only expose values that are safe for the current user and stable enough to docum
 
 # Error filters, logging, and diagnostics
 
-Error filters shape the GraphQL error before serialization. Registered filters run in order, and each filter receives the output of the previous one. In the v16 server pipeline, the built-in debug filter is added when `IncludeExceptionDetails` is enabled, so a custom filter can sanitize an error before debug details are appended.
+Error filters shape the GraphQL error before serialization. Registered filters run in order, and each filter receives the output of the previous one. In the server pipeline, the built-in debug filter is added when `IncludeExceptionDetails` is enabled, so a custom filter can sanitize an error before debug details are appended.
 
 Use filters to shape responses. Use logging and diagnostics for operational monitoring:
 
@@ -303,7 +303,7 @@ Search your application and tests for unconditional `IncludeExceptionDetails = t
 
 ## My error filter cannot use my service
 
-In v16, schema-level components such as error filters and diagnostic listeners use schema services. If a filter constructor needs an application service, register that service with `AddApplicationService<T>()`. Avoid using scoped request services in filter constructors because the schema service instance is created during schema initialization.
+Schema-level components such as error filters and diagnostic listeners use schema services. If a filter constructor needs an application service, register that service with `AddApplicationService<T>()`. Avoid using scoped request services in filter constructors because the schema service instance is created during schema initialization.
 
 ## Clients need actionable errors
 
@@ -311,7 +311,7 @@ Do not enable exception details to address this. Add stable `extensions.code` va
 
 ## TypeConverter exceptions reach my filter
 
-Hot Chocolate v16 propagates TypeConverter exceptions to error filters. Handle them like other unexpected exceptions: log them internally, return a safe message and code, and avoid exposing converter exception details in production.
+Hot Chocolate propagates TypeConverter exceptions to error filters. Handle them like other unexpected exceptions: log them internally, return a safe message and code, and avoid exposing converter exception details in production.
 
 # What is safe to expose?
 

@@ -113,7 +113,7 @@ builder
     });
 ```
 
-# Hot Chocolate v16 Defaults
+# Defaults
 
 The standard ASP.NET Core registration applies default security unless you opt out.
 
@@ -123,7 +123,7 @@ builder
     .AddQueryType<Query>();
 ```
 
-Calling `AddGraphQL()` on `IHostApplicationBuilder` delegates to `AddGraphQLServer(...)`. With default security enabled, Hot Chocolate v16:
+Calling `AddGraphQL()` on `IHostApplicationBuilder` delegates to `AddGraphQLServer(...)`. With default security enabled, Hot Chocolate:
 
 - Adds cost analysis.
 - Disables introspection when the host environment is not development.
@@ -254,7 +254,7 @@ Keep production error messages neutral. Do not reveal required roles, internal e
 
 Disabling introspection controls whether metadata queries are allowed. Depth limits control how much recursive introspection work is accepted when introspection is enabled.
 
-Hot Chocolate v16 defaults:
+Hot Chocolate defaults:
 
 | Limit                          | Default |
 | ------------------------------ | ------- |

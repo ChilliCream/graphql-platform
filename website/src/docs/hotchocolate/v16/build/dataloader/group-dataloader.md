@@ -12,7 +12,7 @@ This approach allows each field resolver to request the children for its parent,
 Batch by parent key -> query all children -> group by parent key -> return one collection per parent
 ```
 
-For Hot Chocolate v16, begin with a source-generated `[DataLoader]` method that takes an `IReadOnlyList<TKey>` and returns a dictionary where each value is a collection, such as `Dictionary<int, Product[]>`. In source generator terms, this is an array-valued batch loader. Throughout this page, "group DataLoader" refers to this one-to-many lookup pattern.
+Begin with a source-generated `[DataLoader]` method that takes an `IReadOnlyList<TKey>` and returns a dictionary where each value is a collection, such as `Dictionary<int, Product[]>`. In source generator terms, this is an array-valued batch loader. Throughout this page, "group DataLoader" refers to this one-to-many lookup pattern.
 
 ## When to Use This Pattern
 
@@ -281,7 +281,7 @@ This generates `IBrandProductsDataLoader`.
 
 ## Using `ILookup<TKey, TValue>` When Appropriate
 
-`Dictionary<TKey, TValue[]>` is the recommended pattern for unpaged one-to-many fields in v16. However, a source-generated method that returns `ILookup<TKey, TValue>` is also supported and is useful when your code naturally produces a lookup.
+`Dictionary<TKey, TValue[]>` is the recommended pattern for unpaged one-to-many fields. However, a source-generated method that returns `ILookup<TKey, TValue>` is also supported and is useful when your code naturally produces a lookup.
 
 ```csharp
 using GreenDonut;

@@ -180,7 +180,7 @@ Use `ErrorBuilder.New()` when creating a new error outside a filter. Inside a fi
 
 # Injecting services into a filter
 
-In v16, error filters are schema services. If your filter needs an application service, make it available to schema services using `AddApplicationService<T>()`.
+Error filters are schema services. If your filter needs an application service, make it available to schema services using `AddApplicationService<T>()`.
 
 ```csharp
 builder.Services.AddSingleton<ErrorCodeMapper>();

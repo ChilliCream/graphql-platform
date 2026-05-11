@@ -46,7 +46,7 @@ builder
     });
 ```
 
-In v16, each cache is scoped to a single schema instance. If your application hosts multiple schemas, each schema maintains its own caches.
+Each cache is scoped to a single schema instance. If your application hosts multiple schemas, each schema maintains its own caches.
 
 For APIs with a known set of operations, consider using [persisted operations](/docs/hotchocolate/v16/performance/trusted-documents) to eliminate parsing and validation entirely.
 
@@ -163,7 +163,7 @@ builder
     });
 ```
 
-In v16, the default incremental delivery wire format is v0.2, which uses `pending`, `incremental`, and `completed` fields to track deferred fragments.
+The default incremental delivery wire format is v0.2, which uses `pending`, `incremental`, and `completed` fields to track deferred fragments.
 
 [Learn more about incremental delivery](/docs/hotchocolate/v16/server/http-transport)
 

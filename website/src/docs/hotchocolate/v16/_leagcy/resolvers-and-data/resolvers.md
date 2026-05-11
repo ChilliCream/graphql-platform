@@ -2,7 +2,7 @@
 title: "Resolvers"
 ---
 
-A resolver is a function that produces the value for a field in your GraphQL schema. Every field, whether it maps to a database column, a computed value, or an API call, is backed by a resolver. In Hot Chocolate v16, the source generator is the primary way to define resolvers. You write plain C# methods and the generator handles schema wiring at build time.
+A resolver is a function that produces the value for a field in your GraphQL schema. Every field, whether it maps to a database column, a computed value, or an API call, is backed by a resolver. In Hot Chocolate, the source generator is the primary way to define resolvers. You write plain C# methods and the generator handles schema wiring at build time.
 
 # Properties as Resolvers
 
@@ -204,7 +204,7 @@ public class UserType : ObjectType<User>
 
 # Dependency Injection
 
-In Hot Chocolate v16, registered services are automatically recognized as service parameters without needing the `[Service]` attribute. If a parameter type is registered in the DI container, Hot Chocolate injects it.
+In Hot Chocolate, registered services are automatically recognized as service parameters without needing the `[Service]` attribute. If a parameter type is registered in the DI container, Hot Chocolate injects it.
 
 ```csharp
 // Types/BookQueries.cs

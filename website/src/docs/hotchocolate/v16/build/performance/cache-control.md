@@ -2,7 +2,7 @@
 title: Cache control
 ---
 
-Cache control in Hot Chocolate allows you to specify how a GraphQL query response can be reused by HTTP caches. In version 16, Hot Chocolate reads cache metadata from the selected fields and types, determines a conservative policy for the entire response, and emits HTTP `Cache-Control` and `Vary` headers accordingly.
+Cache control in Hot Chocolate allows you to specify how a GraphQL query response can be reused by HTTP caches. Hot Chocolate reads cache metadata from the selected fields and types, determines a conservative policy for the entire response, and emits HTTP `Cache-Control` and `Vary` headers accordingly.
 
 Hot Chocolate does not store GraphQL responses, operate a CDN, purge external caches, or invalidate cached objects. For cache control to improve latency or reduce server load, a browser, reverse proxy, CDN, or another HTTP cache must receive the response and honor the headers.
 
@@ -102,7 +102,7 @@ For authenticated APIs, it is recommended to start with `ApplyDefaults = false` 
 
 # Adding Cache Metadata
 
-Hot Chocolate v16 allows you to specify cache metadata using attribute-based schemas, fluent code-first configuration, or schema-first SDL.
+Hot Chocolate allows you to specify cache metadata using attribute-based schemas, fluent code-first configuration, or schema-first SDL.
 
 ## Attribute-Based Schema
 
@@ -202,7 +202,7 @@ type Query {
 }
 ```
 
-The `@cacheControl` directive can be applied to object types, field definitions, interface types, and union types. Hot Chocolate v16 will reject cache control applied to interface fields during schema validation.
+The `@cacheControl` directive can be applied to object types, field definitions, interface types, and union types. Hot Chocolate will reject cache control applied to interface fields during schema validation.
 
 # Argument Reference
 
@@ -298,7 +298,7 @@ builder
 
 # Dynamic and Request-Specific Behavior
 
-In Hot Chocolate v16, cache hints are schema metadata. If a field can return public data in some cases and private data in others, it is best to use a conservative static policy such as `PRIVATE`, split the schema into separate fields with different policies, or avoid shared HTTP caches for that response.
+Cache hints are schema metadata. If a field can return public data in some cases and private data in others, it is best to use a conservative static policy such as `PRIVATE`, split the schema into separate fields with different policies, or avoid shared HTTP caches for that response.
 
 For request-level decisions, you can use an HTTP request interceptor to opt out of cache-control header generation by calling `SkipQueryCaching()` on the `OperationRequestBuilder`:
 
@@ -461,7 +461,7 @@ Common reasons for a low cache hit rate include:
 
 ## Schema Validation Fails
 
-Hot Chocolate v16 validates cache-control metadata at schema build time. Common causes for validation failures include:
+Hot Chocolate validates cache-control metadata at schema build time. Common causes for validation failures include:
 
 - Negative `maxAge` or `sharedMaxAge`
 - `inheritMaxAge` on an object, interface, or union type

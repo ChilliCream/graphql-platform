@@ -27,7 +27,7 @@ subscription WatchBooks {
 
 # Defining the `Subscription` Root Type
 
-Apply `[SubscriptionType]` to contribute fields to the GraphQL `Subscription` root type. In implementation-first v16 code, declare the class as `partial` so the source generator can add schema wiring.
+Apply `[SubscriptionType]` to contribute fields to the GraphQL `Subscription` root type. In implementation-first code, declare the class as `partial` so the source generator can add schema wiring.
 
 ```csharp
 #nullable enable

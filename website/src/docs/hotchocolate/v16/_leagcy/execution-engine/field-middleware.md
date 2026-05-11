@@ -1,6 +1,6 @@
 ---
 title: Field Middleware
-description: Learn how to create and apply field middleware in Hot Chocolate v16 to run reusable logic before or after field resolvers.
+description: Learn how to create and apply field middleware in Hot Chocolate to run reusable logic before or after field resolvers.
 ---
 
 Field middleware is one of the fundamental components in Hot Chocolate. It allows you to create reusable logic that runs before or after a field resolver. Field middleware is composable: you can specify multiple middleware, and they execute in order. The field resolver is always the last element in the middleware chain.

@@ -18,7 +18,7 @@ Hot Chocolate includes these directives out of the box:
 | `@skip(if: Boolean!)`              | Fields, fragments              | Excludes a field when the condition is `true` |
 | `@include(if: Boolean!)`           | Fields, fragments              | Includes a field when the condition is `true` |
 | `@deprecated(reason: String)`      | Field definitions, enum values | Marks a schema element as deprecated          |
-| `@requiresOptIn(feature: String!)` | Field definitions              | Marks a field as experimental (v16)           |
+| `@requiresOptIn(feature: String!)` | Field definitions              | Marks a field as experimental                 |
 
 See [Versioning](/docs/hotchocolate/v16/defining-a-schema/versioning) for details on `@deprecated` and `@requiresOptIn`.
 

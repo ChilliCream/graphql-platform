@@ -106,7 +106,7 @@ Prefer local annotations or field configuration instead of schema-wide runtime b
 
 # Reference: available package scalars
 
-The additional scalars package provides the following v16 scalar types:
+The additional scalars package provides the following scalar types:
 
 | Scalar         | Resolver runtime | GraphQL value example                               | Use when                                                                                                                |
 | -------------- | ---------------- | --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
@@ -184,7 +184,7 @@ builder
 | `B`    | Hyphenated in braces      | `{00000000-0000-0000-0000-000000000000}` |
 | `P`    | Hyphenated in parentheses | `(00000000-0000-0000-0000-000000000000)` |
 
-If you are upgrading old schema snapshots, note that older Hot Chocolate versions used the scalar name `Uuid`. In v16, the scalar name is `UUID`.
+If you are upgrading old schema snapshots, note that older Hot Chocolate versions used the scalar name `Uuid`. The scalar name is `UUID`.
 
 # Configure DateTime for precision or input format
 
@@ -233,7 +233,7 @@ Client inputs for `DateTime` must include a date, time, and offset, such as `202
 
 # Use Any for JSON-like metadata and interoperability
 
-The `Any` scalar is built in, but many v16 JSON scenarios require explicit `AnyType` annotations or `.AddJsonTypeConverter()`. Use `Any` for extension data, metadata, or interoperability boundaries where the JSON shape is intentionally open.
+The `Any` scalar is built in, but many JSON scenarios require explicit `AnyType` annotations or `.AddJsonTypeConverter()`. Use `Any` for extension data, metadata, or interoperability boundaries where the JSON shape is intentionally open.
 
 When the fields are known, prefer object types and input object types. These provide clients with selectable fields, stronger validation, and improved tooling.
 
@@ -354,7 +354,7 @@ public static partial class ImportQueries
 | Custom DTO returned as `Any`                              | `.AddJsonTypeConverter()` or a dedicated type converter | Prefer a GraphQL object type when fields are known.        |
 | Custom conversion such as `TimeZoneInfo` to a JSON string | `AddTypeConverter<TFrom, JsonElement>()`                | Use for focused conversions, not broad domain modeling.    |
 
-In v16, `Json` is merged into `Any`. Replace old `JsonType` annotations with `AnyType`. Complex input values arrive as `JsonElement`. Cyclic CLR object graphs cannot be coerced to JSON, so return an acyclic DTO or prebuilt `JsonElement`.
+`Json` is merged into `Any`. Replace old `JsonType` annotations with `AnyType`. Complex input values arrive as `JsonElement`. Cyclic CLR object graphs cannot be coerced to JSON, so return an acyclic DTO or prebuilt `JsonElement`.
 
 `AddJsonTypeConverter()` may use reflection or dynamic code paths in some environments. Consider this for advanced deployment scenarios such as trimming and Native AOT.
 

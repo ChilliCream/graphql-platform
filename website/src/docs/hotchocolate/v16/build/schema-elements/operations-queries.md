@@ -4,7 +4,7 @@ title: "Queries"
 
 The `Query` root type serves as the main entry point for read operations in a Hot Chocolate schema. It is the only operation root type that must be present, and it defines the stable entry points clients use to read data.
 
-This page explains how Hot Chocolate v16 maps C# resolver methods to fields on the `Query` type, how to organize those fields across focused classes, and how to select root fields that remain useful as your schema evolves.
+This page explains how Hot Chocolate maps C# resolver methods to fields on the `Query` type, how to organize those fields across focused classes, and how to select root fields that remain useful as your schema evolves.
 
 # Separate operations, root types, and C# classes
 

@@ -6,7 +6,7 @@ title: Server configuration
 
 This page guides you through configuring a Hot Chocolate server, starting from the ASP.NET Core endpoint that receives requests, and moving inward to the Hot Chocolate executor, which builds the schema, processes operation requests, runs middleware, calls resolvers, and writes results.
 
-Use this page as your starting point for v16 server configuration. Here, you'll find a working `Program.cs`, an overview of the main configuration areas, and links to detailed child pages for further options.
+Use this page as your starting point for server configuration. Here, you'll find a working `Program.cs`, an overview of the main configuration areas, and links to detailed child pages for further options.
 
 ## Start with a Minimal Server
 
@@ -57,9 +57,9 @@ type Query {
 }
 ```
 
-The method `builder.AddGraphQL()` is the minimal hosting entry point in v16. In some setups, you might see `builder.Services.AddGraphQLServer()` used with the service collection. Both approaches configure a Hot Chocolate request executor.
+The method `builder.AddGraphQL()` is the minimal hosting entry point. In some setups, you might see `builder.Services.AddGraphQLServer()` used with the service collection. Both approaches configure a Hot Chocolate request executor.
 
-The call to `app.MapGraphQL()` maps the combined GraphQL endpoint at `/graphql`. The final line, `RunWithGraphQLCommandsAsync(args)`, allows the same application to serve HTTP traffic or handle GraphQL CLI commands. If you prefer a synchronous method, `RunWithGraphQLCommands(args)` is also available and returns an exit code in v16.
+The call to `app.MapGraphQL()` maps the combined GraphQL endpoint at `/graphql`. The final line, `RunWithGraphQLCommandsAsync(args)`, allows the same application to serve HTTP traffic or handle GraphQL CLI commands. If you prefer a synchronous method, `RunWithGraphQLCommands(args)` is also available and returns an exit code.
 
 ## Understand the Two Configuration Layers
 
@@ -330,7 +330,7 @@ Use this checklist as a routing guide, not as a complete security reference.
 | Startup readiness              | Eager initialization, `AddWarmupTask(...)`       | [Warmup](/docs/hotchocolate/v16/build/performance/warmup)                                                 |
 | Observability                  | `AddDiagnosticEventListener(...)`, OpenTelemetry | [Instrumentation](/docs/hotchocolate/v16/build/observability)                                             |
 
-In v16, Hot Chocolate eagerly initializes the schema at startup by default. Add warmup tasks if you want to prepare representative operations or caches before the server accepts traffic. Keep diagnostic event handlers efficient, as they run synchronously on the execution path.
+Hot Chocolate eagerly initializes the schema at startup by default. Add warmup tasks if you want to prepare representative operations or caches before the server accepts traffic. Keep diagnostic event handlers efficient, as they run synchronously on the execution path.
 
 ## Troubleshoot Common Configuration Issues
 
@@ -352,7 +352,7 @@ Introspection queries and SDL download endpoints are controlled separately. Use 
 
 ### The first request or startup takes longer than expected
 
-Hot Chocolate builds the schema eagerly at startup in v16. Warmup tasks can add to startup time. If startup time is more important than first-request latency, review lazy initialization tradeoffs on the warmup page.
+Hot Chocolate builds the schema eagerly at startup, and warmup tasks can add to startup time. If startup time is more important than first-request latency, review lazy initialization tradeoffs on the warmup page.
 
 ### A request is rejected before resolver execution
 

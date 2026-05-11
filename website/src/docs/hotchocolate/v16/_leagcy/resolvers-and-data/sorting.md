@@ -104,7 +104,7 @@ query {
 
 # NullOrdering Enum
 
-In v16, the `NullOrdering` enum controls how `null` values sort relative to non-null values. This is relevant when sorting on nullable fields. Set this through `PagingOptions` at the global level:
+The `NullOrdering` enum controls how `null` values sort relative to non-null values. This is relevant when sorting on nullable fields. Set this through `PagingOptions` at the global level:
 
 ```csharp
 // Program.cs

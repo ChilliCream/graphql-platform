@@ -12,7 +12,7 @@ products: [Product!]!
 products(first: 10, after: $cursor): ProductsConnection
 ```
 
-This page introduces pagination in Hot Chocolate v16. Here, you will learn how to select a pagination model, enable paging, combine it with data middleware, and navigate to more detailed topics.
+This page introduces pagination in Hot Chocolate. Here, you will learn how to select a pagination model, enable paging, combine it with data middleware, and navigate to more detailed topics.
 
 ```text
 resolver source -> paging arguments -> paging provider -> connection or segment -> client navigation
@@ -20,7 +20,7 @@ resolver source -> paging arguments -> paging provider -> connection or segment 
 
 # Choosing a Pagination Model
 
-Hot Chocolate v16 supports two paging models:
+Hot Chocolate supports two paging models:
 
 | Model              | Enable with                                 | Client arguments                   | Schema shape                                                  | Recommended for                                                                                                    |
 | ------------------ | ------------------------------------------- | ---------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |

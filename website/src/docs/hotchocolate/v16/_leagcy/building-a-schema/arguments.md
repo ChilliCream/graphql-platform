@@ -171,7 +171,7 @@ public static Product? GetProduct(
     => db.Products.Find(id);
 ```
 
-In v16, you can also use the generic form `[ID<Product>]` which infers the type name automatically.
+You can also use the generic form `[ID<Product>]` which infers the type name automatically.
 
 # Complex Arguments
 

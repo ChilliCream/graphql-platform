@@ -2,7 +2,7 @@
 title: Language and AST
 ---
 
-Hot Chocolate v16 parses GraphQL source text into syntax nodes before validation and execution. This page explains how to parse, inspect, print, and traverse parsed documents, and how to pass them to execution. It also clarifies the distinction between the syntax tree, runtime schema types, and compiled execution selections.
+Hot Chocolate parses GraphQL source text into syntax nodes before validation and execution. This page explains how to parse, inspect, print, and traverse parsed documents, and how to pass them to execution. It also clarifies the distinction between the syntax tree, runtime schema types, and compiled execution selections.
 
 Use the language and AST APIs when building tooling around GraphQL documents, such as:
 
@@ -473,7 +473,7 @@ flowchart LR
     G -. source references .-> D
 ```
 
-Parsing rejects malformed GraphQL and documents that exceed parser limits, but does not check if fields or directives exist in your schema. Validation enforces those schema rules. Operation compilation can merge selections and resolve fragments, so a single v16 execution selection may correspond to multiple field syntax nodes. When resolver or middleware APIs expose selection syntax wrappers, use the current wrapper API to inspect the underlying `FieldNode`.
+Parsing rejects malformed GraphQL and documents that exceed parser limits, but does not check if fields or directives exist in your schema. Validation enforces those schema rules. Operation compilation can merge selections and resolve fragments, so a single execution selection may correspond to multiple field syntax nodes. When resolver or middleware APIs expose selection syntax wrappers, use the current wrapper API to inspect the underlying `FieldNode`.
 
 # Syntax Kinds Quick Reference
 
@@ -518,7 +518,7 @@ The `Kind` property of `ISyntaxNode` returns a `SyntaxKind` value. This enum cov
 | A visitor does not find directives or arguments     | Those child categories are opt-in.                                                          | Set `VisitDirectives = true` or `VisitArguments = true` in `SyntaxVisitorOptions`.                                                                 |
 | Printed GraphQL differs from submitted text         | Printing formats the parsed structure and omits ignored whitespace and comments.            | Store original source separately when exact text matters.                                                                                          |
 | Parsed SDL changes do not affect the running schema | Parsed SDL nodes are syntax, not runtime schema definitions.                                | Build or rebuild the schema through schema APIs.                                                                                                   |
-| Resolver selection syntax does not map to one field | v16 operation compilation can merge selections.                                             | Use current selection APIs and inspect the underlying `FieldNode` from wrapper objects where exposed.                                              |
+| Resolver selection syntax does not map to one field | Operation compilation can merge selections.                                                 | Use current selection APIs and inspect the underlying `FieldNode` from wrapper objects where exposed.                                              |
 | `IExecutable<T>` appears related                    | The name refers to a data-source abstraction.                                               | Use `OperationDocument`, `OperationDocumentSourceText`, or `DocumentNode` for GraphQL documents.                                                   |
 | Empty input behaves differently by input type       | Empty byte spans and sequences produce an empty `DocumentNode`; empty strings are rejected. | Normalize upstream input before parsing if this distinction matters.                                                                               |
 

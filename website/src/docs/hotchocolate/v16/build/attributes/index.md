@@ -4,7 +4,7 @@ title: "Attributes"
 
 Attributes allow you to configure a Hot Chocolate schema directly on the C# type, member, or parameter that requires configuration. They are best used for static, local rules that are concise enough to be understood at the declaration site.
 
-This page provides an overview of attributes in Hot Chocolate v16. It explains the core concepts, demonstrates how common attributes work together, and links to detailed pages for each attribute. This is not an exhaustive reference for every attribute.
+This page provides an overview of attributes in Hot Chocolate. It explains the core concepts, demonstrates how common attributes work together, and links to detailed pages for each attribute. This is not an exhaustive reference for every attribute.
 
 # Configuring a Field with Attributes
 
@@ -194,7 +194,7 @@ paging -> projection -> filtering -> sorting -> resolver result
 
 Paging determines the list or connection shape. Projection selects the required fields from the data source. Filtering and sorting allow clients to shape the query results.
 
-The v16 analyzer checks method declarations for known data attributes and reports ordering issues. It cannot catch every ordering problem on properties or custom descriptor attributes. If you see an ordering warning, reorder the attributes as shown and ensure that projections, filtering, and sorting are registered in the schema.
+The analyzer checks method declarations for known data attributes and reports ordering issues. It cannot catch every ordering problem on properties or custom descriptor attributes. If you see an ordering warning, reorder the attributes as shown and ensure that projections, filtering, and sorting are registered in the schema.
 
 # Common Attributes in This Section
 
