@@ -19,7 +19,7 @@ type Mutation {
 
 # Defining an Input Type
 
-Any C# class or record used as a resolver parameter (that is not a scalar, enum, or service) becomes an input type in the schema.
+Any C# class or record used as a resolver parameter (that is not a scalar, enum, or service) becomes an input object type in the schema.
 
 <ExampleTabs>
 <Implementation>

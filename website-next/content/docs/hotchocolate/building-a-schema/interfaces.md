@@ -305,6 +305,71 @@ builder
 
 Register intermediate interfaces (like `DatedMessage`) explicitly if they are not returned directly from a resolver field.
 
+# Default Resolvers
+
+Interface fields can define default resolvers, similar to default interface methods in C#. When an object type implements the interface, it automatically inherits the resolver for any field where it does not define its own. If the object type does not even declare the field, the field is created automatically with the interface's resolver.
+
+This is useful when multiple types share the same resolution logic for a field and you want to define it once on the interface rather than repeating it in every implementing type.
+
+<ExampleTabs>
+<Implementation>
+
+```csharp
+[InterfaceType("Message")]
+public interface IMessage
+{
+    User Author { get; }
+    DateTime CreatedAt { get; }
+}
+
+[InterfaceType<IMessage>]
+public static partial class MessageNode
+{
+    public static string DisplayName([Parent] IMessage message)
+        => $"{message.Author.Name} - {message.CreatedAt:d}";
+}
+```
+
+All object types implementing `IMessage` inherit the `displayName` field and its resolver. No additional configuration is needed on the implementing types.
+
+</Implementation>
+<Code>
+
+```csharp
+public class MessageType : InterfaceType
+{
+    protected override void Configure(IInterfaceTypeDescriptor descriptor)
+    {
+        descriptor.Name("Message");
+
+        descriptor
+            .Field("displayName")
+            .Type<StringType>()
+            .Resolve(context =>
+            {
+                var message = context.Parent<IMessage>();
+                return $"{message.Author.Name} - {message.CreatedAt:d}";
+            });
+    }
+}
+
+public class TextMessageType : ObjectType<TextMessage>
+{
+    protected override void Configure(
+        IObjectTypeDescriptor<TextMessage> descriptor)
+    {
+        descriptor.Implements<MessageType>();
+    }
+}
+```
+
+`TextMessageType` inherits the `displayName` field and its resolver from `MessageType`. No additional configuration is needed.
+
+</Code>
+</ExampleTabs>
+
+Object types can override an inherited resolver by defining their own resolver for the same field.
+
 # Next Steps
 
 - **Need types without shared fields?** See [Unions](./unions.md).
