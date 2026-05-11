@@ -2,7 +2,7 @@
 title: Migrate Hot Chocolate Fusion from 15 to 16
 ---
 
-> Note: While directives and behavior largly mirror v15, v16 is a complete re-implementation of Fusion that not only affects the gateway itself, but also the archive format and composition process. Therefore, you can't simply bump the package versions in the gateway and be done with the update. You'll need a coordinated strategy to incrementally adopt Fusion v2 in Subgraphs and their deployment process, before you can switch the gateway to v16.
+> Note: While directives and behavior largely mirror v15, v16 is a complete re-implementation of Fusion that not only affects the gateway itself, but also the archive format and composition process. Therefore, you can't simply bump the package versions in the gateway and be done with the update. You'll need a coordinated strategy to incrementally adopt Fusion v2 in Subgraphs and their deployment process, before you can switch the gateway to v16.
 
 # Migration at a glance
 
@@ -16,7 +16,7 @@ The migration happens in three stages, and the gateway keeps serving traffic the
 
 <!-- TODO: At the start we want to check for and collect satisfiability issues so we can work on them
 
-exmaple ci output:
+example ci output:
 
 Validating Fusion configuration of API 'QXBpCmcwMTlkMmIzMGUzNGY3YzQ2OTBjNTgxOTNkYjI1M2EyZg==' against stage 'dev'
 ├── Downloading existing configuration from 'dev'
@@ -64,7 +64,7 @@ If you need to do this conversion manually: Create a `schema-settings.json` file
  }
 ```
 
-> Note: By default the Fusion v2 composition assums your subgraph is compatible with the latest features. By adding `"version": "1.0.0"` we tell the composition that this is a legacy (Fusion v1) subgraph, which relaxes certain validations like `@shareable` and re-creates inferences that were present in Fusion v1, like fields ending in `ById` being inferred as `@lookup`.
+> Note: By default the Fusion v2 composition assumes your subgraph is compatible with the latest features. By adding `"version": "1.0.0"` we tell the composition that this is a legacy (Fusion v1) subgraph, which relaxes certain validations like `@shareable` and re-creates inferences that were present in Fusion v1, like fields ending in `ById` being inferred as `@lookup`.
 
 If your subgraph is using a version older than the latest HotChocolate v15 or your subgraph uses an entirely different technology, you also need to disable variable batching in `schema-settings.json`.
 
@@ -133,7 +133,7 @@ If an entity currently only has batch `Query` root fields in your subgraph, you'
 ```diff
  type Query {
    productsById(ids: [ID!]!): [Product!] @lookup @internal
-+  productByid(id: ID!): Product @lookup @internal
++  productById(id: ID!): Product @lookup @internal
  }
 ```
 
@@ -148,11 +148,18 @@ If you want to, you can also now [migrate the subgraph to Hot Chocolate v16](#mi
 
 ## Migrate pipelines
 
-The migration to Fusion v2 is designed to happen one subgraph repository at a time. While some of your subgraphs are still on v15 and others are already on v16, the gateway needs to keep working for both. The pipeline changes in this section ensure that both archive formats stay available side-by-side until every subgraph has been migrated and the gateway itself is cut over.
+Migrate one subgraph repository at a time. Throughout this stage your gateway stays on v15 and keeps serving traffic; you [cut it over to v16](#upgrade-the-gateway) only after every subgraph publishes a `.far` archive.
 
-In Fusion v15 each subgraph pipeline produces a Fusion gateway package (`.fgp`) and publishes it back to Nitro as the latest archive. In Fusion v16 the equivalent artifact is the Fusion archive (`.far`). To bridge the two formats during the transition, the v15 compose step is kept in place and the freshly composed `.fgp` is embedded into the published `.far` through the `--legacy-v1-archive` option. v15 gateways continue to download the embedded `.fgp`, v16 gateways download the `.far` directly.
+> Note: In Fusion v15 a subgraph pipeline composes a Fusion gateway package (`.fgp`) and publishes it to Nitro as the latest archive. In Fusion v16 the equivalent artifact is the Fusion archive (`.far`).
 
-A typical subgraph repository has two pipelines that need updating: the **deployment pipeline** that publishes the subgraph's archive to Nitro and the **PR validation pipeline** that ensures the composed schema introduces no breaking changes. The same transition strategy applies to both, only the final Nitro command changes while the existing v15 download and compose steps stay in place.
+The change to each subgraph pipeline is small: keep the v15 compose step that produces the `.fgp`, but instead of publishing the `.fgp` directly, publish a `.far` with that `.fgp` embedded via `--legacy-v1-archive`. This keeps the `.fgp` fresh for the running v15 gateway and makes the `.far` available for the v16 cut-over.
+
+Two pipelines in a typical subgraph repository need this change:
+
+- the **deployment pipeline** that publishes the subgraph's archive to Nitro, and
+- the **PR validation pipeline** that checks the composed schema for breaking changes.
+
+In both, the existing v15 download and compose steps stay in place; only the final Nitro command changes.
 
 ### Deployment pipeline
 
@@ -344,7 +351,7 @@ dotnet nitro fusion validate \
 
 ## Migrate subgraph to v16
 
-Once a subgraph is publishing a `.far`, you can migrate the subgraph project itself to Hot Chocolate v16 at any time. This is optional and independent of the gateway cutover, but it lets you drop the legacy compatibility mode and use the full Fusion v2 feature set.
+Once a subgraph is publishing a `.far`, you can migrate the subgraph project itself to Hot Chocolate v16 at any time. This is optional and independent of the gateway cut-over, but it lets you drop the legacy compatibility mode and use the full Fusion v2 feature set.
 
 Start by working through the [Hot Chocolate 15 to 16 migration guide](/docs/hotchocolate/v16/migrating/migrate-from-15-to-16) for the subgraph project. Once that is done, apply the steps below.
 
