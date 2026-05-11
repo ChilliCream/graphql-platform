@@ -36,9 +36,7 @@ Hot Chocolate comes with many more scalars than the GraphQL core scalars, mappin
 | `ulong`                 | `UnsignedLong`  | Implicit | Unsigned 64-bit integer (new in v16)                                      | [Spec](https://scalars.graphql.org/chillicream/unsigned-long.html)   |
 | `JsonElement`           | `Any`           | Implicit | Any valid GraphQL value (v16 merged `Json` into `Any`)                    | [Spec](https://scalars.graphql.org/chillicream/any.html)             |
 
-:::note
-Hot Chocolate only exposes scalars that your schema uses. Unused scalars do not appear in the generated schema.
-:::
+> **Note:** Hot Chocolate only exposes scalars that your schema uses. Unused scalars do not appear in the generated schema.
 
 ## ID
 
