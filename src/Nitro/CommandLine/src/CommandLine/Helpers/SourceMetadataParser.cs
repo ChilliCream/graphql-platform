@@ -23,7 +23,7 @@ internal static class SourceMetadataParser
 
             if (document.RootElement.ValueKind != JsonValueKind.Object)
             {
-                throw new ExitException("Failed to parse --source-metadata: expected a JSON object.");
+                throw new InvalidOperationException("Expected a JSON object.");
             }
 
             // When no 'type' marker is present we assume GitHub for backwards compatibility.
@@ -32,37 +32,32 @@ internal static class SourceMetadataParser
             {
                 if (typeElement.ValueKind != JsonValueKind.String)
                 {
-                    throw new ExitException(
-                        $"Failed to parse --source-metadata: '{TypePropertyName}' must be a string. "
-                        + $"Expected '{GitHubType}' or '{AzureDevOpsType}'.");
+                    throw new InvalidOperationException(
+                        $"'{TypePropertyName}' must be a string. Expected '{GitHubType}' or '{AzureDevOpsType}'.");
                 }
 
-                type = typeElement.GetString();
+                type = typeElement.GetString()!;
             }
 
             return type switch
             {
                 GitHubType => new SourceMetadata(GitHub: ParseGitHub(document.RootElement)),
                 AzureDevOpsType => new SourceMetadata(AzureDevOps: ParseAzureDevOps(document.RootElement)),
-                _ => throw new ExitException(
-                    $"Failed to parse --source-metadata: unsupported '{TypePropertyName}' value '{type}'. "
+                _ => throw new InvalidOperationException(
+                    $"Unsupported '{TypePropertyName}' value '{type}'. "
                     + $"Expected '{GitHubType}' or '{AzureDevOpsType}'.")
             };
         }
-        catch (ExitException)
-        {
-            throw;
-        }
         catch (Exception ex)
         {
-            throw new ExitException($"Failed to parse --source-metadata: {ex.Message}");
+            throw new ExitException($"Failed to parse --source-metadata: {ex.Message.EscapeMarkup()}");
         }
     }
 
     private static SourceGitHubMetadata ParseGitHub(JsonElement element)
     {
         var dto = element.Deserialize(SourceMetadataJsonContext.Default.GitHubSourceMetadataDto)
-            ?? throw new ExitException("Failed to parse --source-metadata: deserialized value was null.");
+            ?? throw new InvalidOperationException("Could not deserialize GitHub source metadata.");
 
         return new SourceGitHubMetadata(
             dto.Actor,
@@ -77,7 +72,7 @@ internal static class SourceMetadataParser
     private static SourceAzureDevOpsMetadata ParseAzureDevOps(JsonElement element)
     {
         var dto = element.Deserialize(SourceMetadataJsonContext.Default.AzureDevOpsSourceMetadataDto)
-            ?? throw new ExitException("Failed to parse --source-metadata: deserialized value was null.");
+            ?? throw new InvalidOperationException("Could not deserialize Azure DevOps source metadata.");
 
         return new SourceAzureDevOpsMetadata(
             new AzureDevOpsActor(dto.Actor.Name, dto.Actor.Email),

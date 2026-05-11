@@ -240,7 +240,7 @@ public sealed class SourceMetadataParserTests
 
         // assert
         Assert.Throws<ExitException>(Act).Message.MatchInlineSnapshot(
-            "Failed to parse --source-metadata: unsupported 'type' value 'gitlab'. "
+            "Failed to parse --source-metadata: Unsupported 'type' value 'gitlab'. "
             + "Expected 'github' or 'azure-devops'.");
     }
 
@@ -275,7 +275,7 @@ public sealed class SourceMetadataParserTests
 
         // assert
         Assert.Throws<ExitException>(Act).Message.MatchInlineSnapshot(
-            "Failed to parse --source-metadata: expected a JSON object.");
+            "Failed to parse --source-metadata: Expected a JSON object.");
     }
 
     [Fact]
