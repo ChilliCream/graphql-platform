@@ -42,7 +42,6 @@ Apply the `[UsePaging]` attribute to a resolver that returns `IEnumerable<T>` or
 <Implementation>
 
 ```csharp
-// Types/UserQueries.cs
 [QueryType]
 public static partial class UserQueries
 {
@@ -56,7 +55,6 @@ public static partial class UserQueries
 <Code>
 
 ```csharp
-// Types/UserQueriesType.cs
 public class UserQueriesType : ObjectType
 {
     protected override void Configure(IObjectTypeDescriptor descriptor)
@@ -86,7 +84,6 @@ When you need full control over the pagination process, return a `Connection<T>`
 <Implementation>
 
 ```csharp
-// Types/UserQueries.cs
 [QueryType]
 public static partial class UserQueries
 {
@@ -121,7 +118,6 @@ public static partial class UserQueries
 <Code>
 
 ```csharp
-// Types/UserQueriesType.cs
 public class UserQueriesType : ObjectType
 {
     protected override void Configure(IObjectTypeDescriptor descriptor)
@@ -169,7 +165,6 @@ You can configure pagination behavior per field or globally.
 <Implementation>
 
 ```csharp
-// Types/UserQueries.cs
 [QueryType]
 public static partial class UserQueries
 {
@@ -201,7 +196,6 @@ descriptor
 Apply consistent pagination settings across your entire schema:
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .ModifyPagingOptions(opt =>
@@ -299,7 +293,6 @@ var connection = new Connection<User>(
 Add fields to a Connection or Edge type using type extensions. This is useful for aggregation fields or metadata.
 
 ```csharp
-// Types/UsersConnectionExtension.cs
 [ExtendObjectType("UsersConnection")]
 public class UsersConnectionExtension
 {
@@ -311,7 +304,6 @@ public class UsersConnectionExtension
 ```
 
 ```csharp
-// Types/UsersEdgeExtension.cs
 [ExtendObjectType("UsersEdge")]
 public class UsersEdgeExtension
 {
@@ -338,7 +330,6 @@ Set `NullOrdering` on `PagingOptions` to match your database:
 | `NativeNullsLast`  | Nulls sort after non-null values (PostgreSQL default).                         |
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .ModifyPagingOptions(opt => opt.NullOrdering = NullOrdering.NativeNullsLast);
@@ -351,7 +342,6 @@ When `NullOrdering` is `Unspecified` and the EF Core paging handler is used, ord
 The `UsePaging` middleware provides a unified API that adapts to different data sources through pagination providers. The default provider supports `IEnumerable<T>` and `IQueryable<T>`. Other providers handle specific databases like MongoDB.
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .AddMongoDbPagingProviders();

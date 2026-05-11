@@ -46,7 +46,6 @@ Hot Chocolate maps C# interfaces and abstract classes to GraphQL interface types
 <Implementation>
 
 ```csharp
-// Types/IMessage.cs
 [InterfaceType("Message")]
 public interface IMessage
 {
@@ -54,7 +53,6 @@ public interface IMessage
     DateTime CreatedAt { get; set; }
 }
 
-// Types/TextMessage.cs
 public class TextMessage : IMessage
 {
     public User Author { get; set; }
@@ -62,7 +60,6 @@ public class TextMessage : IMessage
     public string Content { get; set; }
 }
 
-// Types/MessageQueries.cs
 [QueryType]
 public static partial class MessageQueries
 {
@@ -74,7 +71,6 @@ public static partial class MessageQueries
 ```
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .AddType<TextMessage>();
@@ -85,7 +81,6 @@ You must register each implementing type explicitly so Hot Chocolate knows which
 You can also use an abstract class instead of an interface:
 
 ```csharp
-// Types/Message.cs
 [InterfaceType]
 public abstract class Message
 {
@@ -98,14 +93,12 @@ public abstract class Message
 <Code>
 
 ```csharp
-// Types/IMessage.cs
 public interface IMessage
 {
     User Author { get; set; }
     DateTime CreatedAt { get; set; }
 }
 
-// Types/MessageType.cs
 public class MessageType : InterfaceType<IMessage>
 {
     protected override void Configure(
@@ -115,7 +108,6 @@ public class MessageType : InterfaceType<IMessage>
     }
 }
 
-// Types/TextMessage.cs
 public class TextMessage : IMessage
 {
     public User Author { get; set; }
@@ -123,7 +115,6 @@ public class TextMessage : IMessage
     public string Content { get; set; }
 }
 
-// Types/TextMessageType.cs
 public class TextMessageType : ObjectType<TextMessage>
 {
     protected override void Configure(
@@ -135,7 +126,6 @@ public class TextMessageType : ObjectType<TextMessage>
 ```
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .AddQueryType<QueryType>()
@@ -153,7 +143,6 @@ You can exclude specific fields from the GraphQL interface.
 <Implementation>
 
 ```csharp
-// Types/IMessage.cs
 [InterfaceType("Message")]
 public interface IMessage
 {
@@ -168,7 +157,6 @@ public interface IMessage
 <Code>
 
 ```csharp
-// Types/MessageType.cs
 public class MessageType : InterfaceType<IMessage>
 {
     protected override void Configure(
@@ -190,7 +178,6 @@ Use `[GraphQLName]` or the `Name` method to override inferred names.
 <Implementation>
 
 ```csharp
-// Types/IMessage.cs
 [GraphQLName("Post")]
 public interface IMessage
 {
@@ -212,7 +199,6 @@ public interface IMessage
 <Code>
 
 ```csharp
-// Types/MessageType.cs
 public class MessageType : InterfaceType<IMessage>
 {
     protected override void Configure(
@@ -247,21 +233,18 @@ GraphQL interfaces can implement other interfaces, forming a hierarchy.
 <Implementation>
 
 ```csharp
-// Types/IMessage.cs
 [InterfaceType("Message")]
 public interface IMessage
 {
     User Author { get; set; }
 }
 
-// Types/IDatedMessage.cs
 [InterfaceType("DatedMessage")]
 public interface IDatedMessage : IMessage
 {
     DateTime CreatedAt { get; set; }
 }
 
-// Types/TextMessage.cs
 public class TextMessage : IDatedMessage
 {
     public User Author { get; set; }
@@ -271,7 +254,6 @@ public class TextMessage : IDatedMessage
 ```
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .AddType<IDatedMessage>()
@@ -282,7 +264,6 @@ builder
 <Code>
 
 ```csharp
-// Types/DatedMessageType.cs
 public class DatedMessageType : InterfaceType<IDatedMessage>
 {
     protected override void Configure(
@@ -293,7 +274,6 @@ public class DatedMessageType : InterfaceType<IDatedMessage>
     }
 }
 
-// Types/TextMessageType.cs
 public class TextMessageType : ObjectType<TextMessage>
 {
     protected override void Configure(
@@ -305,7 +285,6 @@ public class TextMessageType : ObjectType<TextMessage>
 ```
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .AddQueryType<QueryType>()

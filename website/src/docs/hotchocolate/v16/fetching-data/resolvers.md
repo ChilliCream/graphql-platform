@@ -9,7 +9,6 @@ A resolver is a function that produces the value for a field in your GraphQL sch
 Any public property with a `get` accessor on a type is automatically treated as a resolver that returns its value.
 
 ```csharp
-// Models/User.cs
 public class User
 {
     public int Id { get; set; }
@@ -28,7 +27,6 @@ Public methods on your types become resolvers. The source generator strips the `
 <Implementation>
 
 ```csharp
-// Types/BookQueries.cs
 [QueryType]
 public static partial class BookQueries
 {
@@ -43,14 +41,12 @@ This produces a `book` field on the Query type.
 <Code>
 
 ```csharp
-// Types/BookQueries.cs
 public class BookQueries
 {
     public Book GetBook()
         => new Book { Title = "C# in depth", Author = "Jon Skeet" };
 }
 
-// Types/BookQueriesType.cs
 public class BookQueriesType : ObjectType<BookQueries>
 {
     protected override void Configure(IObjectTypeDescriptor<BookQueries> descriptor)
@@ -63,7 +59,6 @@ public class BookQueriesType : ObjectType<BookQueries>
 ```
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .AddQueryType<BookQueriesType>();
@@ -93,7 +88,6 @@ Add a `CancellationToken` parameter to your resolver and Hot Chocolate automatic
 <Implementation>
 
 ```csharp
-// Types/BookQueries.cs
 [QueryType]
 public static partial class BookQueries
 {
@@ -109,7 +103,6 @@ public static partial class BookQueries
 <Code>
 
 ```csharp
-// Types/BookQueries.cs
 public class BookQueries
 {
     public async Task<Book?> GetBookByIdAsync(
@@ -146,7 +139,6 @@ When you define a resolver on a type, you often need the value that was resolved
 In the implementation-first approach, you can access parent properties through the `this` keyword when the resolver is defined on the type itself:
 
 ```csharp
-// Models/User.cs
 public class User
 {
     public int Id { get; set; }
@@ -164,7 +156,6 @@ public class User
 When the resolver is defined elsewhere (such as in a type extension), use the `[Parent]` attribute to inject the parent value:
 
 ```csharp
-// Types/UserExtensions.cs
 [ExtendObjectType<User>]
 public static partial class UserExtensions
 {
@@ -182,7 +173,6 @@ public static partial class UserExtensions
 Use the `[Parent]` attribute on a parameter, or access the parent through `IResolverContext`:
 
 ```csharp
-// Types/UserType.cs
 public class UserType : ObjectType<User>
 {
     protected override void Configure(IObjectTypeDescriptor<User> descriptor)
@@ -207,7 +197,6 @@ public class UserType : ObjectType<User>
 In Hot Chocolate v16, registered services are automatically recognized as service parameters without needing the `[Service]` attribute. If a parameter type is registered in the DI container, Hot Chocolate injects it.
 
 ```csharp
-// Types/BookQueries.cs
 [QueryType]
 public static partial class BookQueries
 {
@@ -219,7 +208,6 @@ public static partial class BookQueries
 ```
 
 ```csharp
-// Program.cs
 builder.Services.AddScoped<CatalogService>();
 
 builder
@@ -236,12 +224,10 @@ Hot Chocolate resolves `CatalogService` from the DI container at execution time.
 Use `IHttpContextAccessor` when you need access to HTTP-specific details like headers or cookies:
 
 ```csharp
-// Program.cs
 builder.Services.AddHttpContextAccessor();
 ```
 
 ```csharp
-// Types/BookQueries.cs
 [QueryType]
 public static partial class BookQueries
 {
@@ -262,7 +248,6 @@ Batch resolvers allow you to resolve a field for multiple parent objects in a si
 Mark a static method with `[BatchResolver]` to define an inline batch resolver. The method receives all parent objects at once and returns results keyed by parent.
 
 ```csharp
-// Types/UserExtensions.cs
 [ExtendObjectType<User>]
 public static partial class UserExtensions
 {
@@ -284,7 +269,6 @@ public static partial class UserExtensions
 For more control, use `ResolveBatch()` in code-first to define a batch resolver inline. Use `ResolverResult<T>` when your batch resolver needs to return partial results or errors:
 
 ```csharp
-// Types/UserType.cs
 public class UserType : ObjectType<User>
 {
     protected override void Configure(IObjectTypeDescriptor<User> descriptor)
@@ -307,7 +291,6 @@ public class UserType : ObjectType<User>
 The `[IsSelected]` attribute lets you check whether a particular field was requested in the query. Use this to skip expensive data loading when the client does not need certain fields.
 
 ```csharp
-// Types/UserQueries.cs
 [QueryType]
 public static partial class UserQueries
 {

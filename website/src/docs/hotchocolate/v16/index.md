@@ -19,7 +19,6 @@ Hot Chocolate supports two approaches to building a GraphQL schema. Both produce
 You write standard C# classes and decorate them with attributes like `[QueryType]`. A source generator inspects your code at build time and produces the GraphQL schema automatically. This is the recommended approach and the one used throughout this documentation.
 
 ```csharp
-// Types/ProductQueries.cs
 [QueryType]
 public static partial class ProductQueries
 {
@@ -40,7 +39,6 @@ This approach matches how Meta originally built GraphQL and how many large-scale
 You create classes that inherit from `ObjectType<T>`, `InputObjectType<T>`, and other base types. You configure each type explicitly using a descriptor API. This approach gives you full control over every aspect of the schema.
 
 ```csharp
-// Types/ProductType.cs
 public class ProductType : ObjectType<Product>
 {
     protected override void Configure(IObjectTypeDescriptor<Product> descriptor)

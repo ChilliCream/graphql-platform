@@ -9,7 +9,6 @@ Hot Chocolate is designed for high throughput out of the box. The schema is buil
 The schema is constructed eagerly at startup by default. You can go a step further and register warmup tasks that pre-populate in-memory caches before the server starts accepting traffic. This eliminates cold-start latency for the first requests after deployment.
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .AddWarmupTask(async (executor, cancellationToken) =>
@@ -36,7 +35,6 @@ Hot Chocolate caches parsed and compiled operations so that repeated requests sk
 - `OperationDocumentCacheSize` controls the parsed document cache (default `256`, minimum `16`).
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .ModifyOptions(options =>
@@ -57,7 +55,6 @@ DataLoaders collect individual fetch requests during resolver execution and disp
 The default `MaxBatchSize` for DataLoaders is `1024`. If your data source has a lower limit on batch sizes (for example, a SQL `IN` clause limit), you can adjust this through `DataLoaderOptions` when creating a manual DataLoader class:
 
 ```csharp
-// DataLoaders/ProductByIdDataLoader.cs
 public class ProductByIdDataLoader : BatchDataLoader<int, Product>
 {
     private readonly IDbContextFactory<CatalogContext> _dbContextFactory;
@@ -92,7 +89,6 @@ For most applications, the source-generated DataLoader approach (using the `[Dat
 Use `[UseProjection]` to translate GraphQL field selections into database-level `SELECT` clauses. When a client requests only `name` and `email`, Hot Chocolate queries only those columns from the database rather than loading entire entities.
 
 ```csharp
-// Types/UserQueries.cs
 [QueryType]
 public static partial class UserQueries
 {
@@ -109,7 +105,6 @@ Combine `[UseProjection]` with `[UseFiltering]` and `[UseSorting]` to push filte
 As an alternative to middleware stacking, `QueryContext<T>` integrates projection, filtering, and sorting into a single return type:
 
 ```csharp
-// Types/UserQueries.cs
 [QueryType]
 public static partial class UserQueries
 {
@@ -127,7 +122,6 @@ Do not combine `QueryContext<T>` with `[UseProjection]` on the same field. The H
 Cost analysis calculates the cost of every operation before execution and rejects operations that exceed your budget. Even on private APIs, cost analysis protects against accidentally expensive operations during development. It catches runaway queries before they reach production.
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .ModifyCostOptions(options =>
@@ -153,7 +147,6 @@ Large responses increase serialization time, network transfer time, and client p
 Enable these directives in schema options:
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .ModifyOptions(options =>
@@ -180,7 +173,6 @@ Use OpenTelemetry to find slow resolvers and DataLoaders. Hot Chocolate ships wi
 For custom diagnostics, implement a diagnostic event listener:
 
 ```csharp
-// Diagnostics/PerformanceEventListener.cs
 public class PerformanceEventListener : ExecutionDiagnosticEventListener
 {
     private readonly ILogger<PerformanceEventListener> _logger;
@@ -216,7 +208,6 @@ public class PerformanceEventListener : ExecutionDiagnosticEventListener
 ```
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .AddDiagnosticEventListener<PerformanceEventListener>();

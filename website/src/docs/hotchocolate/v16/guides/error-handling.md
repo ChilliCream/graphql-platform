@@ -30,7 +30,6 @@ By default, exception details are hidden in production. Instead of exposing the 
 During development, if a debugger is attached, Hot Chocolate includes the original exception message and stack trace. You can also enable this behavior explicitly:
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .ModifyRequestOptions(opt => opt.IncludeExceptionDetails = true);
@@ -45,7 +44,6 @@ An error filter lets you intercept every error before it reaches the client. Use
 Register an error filter with `AddErrorFilter`. The filter receives an `IError` and must return an `IError`. You can modify the error using its `With*` methods, which return a new `IError` instance with the changed property.
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .AddErrorFilter(error =>
@@ -67,7 +65,6 @@ builder
 For more complex scenarios, implement the `IErrorFilter` interface as a class. This lets you inject services such as a logger.
 
 ```csharp
-// Infrastructure/LoggingErrorFilter.cs
 public class LoggingErrorFilter : IErrorFilter
 {
     private readonly ILogger<LoggingErrorFilter> _logger;
@@ -95,7 +92,6 @@ public class LoggingErrorFilter : IErrorFilter
 ```
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .AddErrorFilter<LoggingErrorFilter>();
@@ -147,7 +143,6 @@ The most straightforward approach is to annotate the mutation with the exception
 <Implementation>
 
 ```csharp
-// Exceptions/UserNameTakenException.cs
 public class UserNameTakenException : Exception
 {
     public UserNameTakenException(string username)
@@ -161,7 +156,6 @@ public class UserNameTakenException : Exception
 ```
 
 ```csharp
-// Types/UserMutations.cs
 [MutationType]
 public static partial class UserMutations
 {
@@ -180,7 +174,6 @@ public static partial class UserMutations
 <Code>
 
 ```csharp
-// Types/UserMutationsType.cs
 public class UserMutationsType : ObjectType<UserMutations>
 {
     protected override void Configure(
@@ -223,7 +216,6 @@ interface Error {
 When you need control over the error shape, or want to hide internal details from the exception, create a dedicated error class with a static `CreateErrorFrom` method. Hot Chocolate discovers this method by convention.
 
 ```csharp
-// Errors/UserNameTakenError.cs
 public class UserNameTakenError
 {
     private UserNameTakenError(string message, string username)
@@ -244,7 +236,6 @@ public class UserNameTakenError
 Then reference the error class instead of the exception:
 
 ```csharp
-// Types/UserMutations.cs
 [MutationType]
 public static partial class UserMutations
 {
@@ -261,7 +252,6 @@ public static partial class UserMutations
 A single error class can handle multiple exception types by defining multiple `CreateErrorFrom` overloads:
 
 ```csharp
-// Errors/UserValidationError.cs
 public class UserValidationError
 {
     private UserValidationError(string message) => Message = message;
@@ -281,7 +271,6 @@ public class UserValidationError
 Alternatively, give the error class a constructor that accepts the exception.
 
 ```csharp
-// Errors/UserNameTakenError.cs
 public class UserNameTakenError
 {
     public UserNameTakenError(UserNameTakenException ex)
@@ -301,7 +290,6 @@ public class UserNameTakenError
 For error factories that need access to services (such as a localizer or a logger), implement the `IPayloadErrorFactory<TException, TError>` interface. Hot Chocolate resolves the factory from the DI container.
 
 ```csharp
-// Errors/UserNameTakenErrorFactory.cs
 public class UserNameTakenErrorFactory
     : IPayloadErrorFactory<UserNameTakenException, UserNameTakenError>
 {
@@ -320,7 +308,6 @@ public class UserNameTakenErrorFactory
 Register the factory in the DI container:
 
 ```csharp
-// Program.cs
 builder.Services
     .AddSingleton<IPayloadErrorFactory<UserNameTakenException, UserNameTakenError>,
         UserNameTakenErrorFactory>();
@@ -331,7 +318,6 @@ builder.Services
 A mutation can return multiple domain errors at once by throwing an `AggregateException`. Hot Chocolate unwraps it and maps each inner exception to its corresponding error type.
 
 ```csharp
-// Services/UserService.cs
 public async Task<User> UpdateNameAsync(
     Guid userId, string username, CancellationToken ct)
 {
@@ -374,7 +360,6 @@ By default, mutation convention errors implement an `Error` interface with a sin
 <Implementation>
 
 ```csharp
-// Types/IUserError.cs
 [GraphQLName("UserError")]
 public interface IUserError
 {
@@ -384,7 +369,6 @@ public interface IUserError
 ```
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .AddMutationConventions(applyToAllMutations: true)
@@ -395,7 +379,6 @@ builder
 <Code>
 
 ```csharp
-// Types/CustomErrorInterfaceType.cs
 public class CustomErrorInterfaceType : InterfaceType
 {
     protected override void Configure(IInterfaceTypeDescriptor descriptor)
@@ -408,7 +391,6 @@ public class CustomErrorInterfaceType : InterfaceType
 ```
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .AddMutationConventions(applyToAllMutations: true)
@@ -421,7 +403,6 @@ builder
 All error types must declare every field required by the interface. They do not need to implement the C# interface, but they must have matching properties.
 
 ```csharp
-// Errors/UserNameTakenError.cs
 public class UserNameTakenError
 {
     public UserNameTakenError(UserNameTakenException ex)
@@ -458,7 +439,6 @@ Query and subscription resolvers do not use mutation conventions, so domain erro
 Use `ReportError` on `IResolverContext` to add an error to the response while still returning data (or `null`) from the resolver. The error appears in the top-level `errors` array.
 
 ```csharp
-// Types/UserQueries.cs
 [QueryType]
 public static partial class UserQueries
 {
@@ -498,7 +478,6 @@ For queries where you need typed error handling similar to mutation conventions,
 <Implementation>
 
 ```csharp
-// Types/UserQueries.cs
 [QueryType]
 public static partial class UserQueries
 {
@@ -517,12 +496,10 @@ public static partial class UserQueries
 ```
 
 ```csharp
-// Types/UserNotFoundError.cs
 public record UserNotFoundError(string Message);
 ```
 
 ```csharp
-// Types/IUserByEmailResult.cs
 [UnionType("UserByEmailResult")]
 public interface IUserByEmailResult;
 
@@ -535,7 +512,6 @@ public partial record UserNotFoundError : IUserByEmailResult;
 <Code>
 
 ```csharp
-// Types/UserByEmailResultType.cs
 public class UserByEmailResultType : UnionType
 {
     protected override void Configure(IUnionTypeDescriptor descriptor)

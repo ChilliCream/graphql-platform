@@ -41,7 +41,6 @@ Method parameters on a resolver become GraphQL arguments.
 <Implementation>
 
 ```csharp
-// Types/UserQueries.cs
 [QueryType]
 public static partial class UserQueries
 {
@@ -56,7 +55,6 @@ The `username` parameter becomes a `username: String!` argument. The `UserServic
 <Code>
 
 ```csharp
-// Types/UserQueriesType.cs
 public class UserQueriesType : ObjectType
 {
     protected override void Configure(IObjectTypeDescriptor descriptor)
@@ -83,7 +81,6 @@ public class UserQueriesType : ObjectType
 Use `[GraphQLName]` to change the argument name in the schema while keeping the C# parameter name unchanged.
 
 ```csharp
-// Types/UserQueries.cs
 [QueryType]
 public static partial class UserQueries
 {
@@ -101,7 +98,6 @@ This produces `user(name: String!): User` in the schema.
 An argument is required when its C# type is non-nullable. Make an argument optional by using a nullable type.
 
 ```csharp
-// Types/ProductQueries.cs
 [QueryType]
 public static partial class ProductQueries
 {
@@ -128,7 +124,6 @@ When using nullable reference types (recommended), `string` maps to `String!` an
 Use `[DefaultValue]` to assign a default to an argument. The default appears in the schema and is used when the client omits the argument.
 
 ```csharp
-// Types/ProductQueries.cs
 [QueryType]
 public static partial class ProductQueries
 {
@@ -153,7 +148,6 @@ public static List<Product> GetProducts(int limit = 10)
 The `[ID]` attribute marks a parameter as a GraphQL `ID` scalar. When combined with [global object identification](/docs/hotchocolate/v16/defining-a-schema/relay), it also deserializes the opaque global ID back to the underlying value.
 
 ```csharp
-// Types/ProductQueries.cs
 [QueryType]
 public static partial class ProductQueries
 {
@@ -178,10 +172,8 @@ In v16, you can also use the generic form `[ID<Product>]` which infers the type 
 When an argument needs multiple fields, use an [input object type](/docs/hotchocolate/v16/defining-a-schema/input-object-types) instead of multiple scalar arguments.
 
 ```csharp
-// Types/BookFilterInput.cs
 public record BookFilterInput(string? Title, string? Author, int? Year);
 
-// Types/BookQueries.cs
 [QueryType]
 public static partial class BookQueries
 {

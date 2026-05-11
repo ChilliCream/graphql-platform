@@ -45,12 +45,10 @@ Create a new project from within Visual Studio using the **GraphQL Server** temp
 The `Types` directory contains two record types that represent the domain model.
 
 ```csharp
-// Types/Author.cs
 public record Author(string Name);
 ```
 
 ```csharp
-// Types/Book.cs
 public record Book(string Title, Author Author);
 ```
 
@@ -61,7 +59,6 @@ These are regular C# types. Hot Chocolate infers the GraphQL schema from them.
 The `Query` class defines the root type for read operations. Each public method becomes a field that clients can query.
 
 ```csharp
-// Types/Query.cs
 [QueryType]
 public static partial class Query
 {

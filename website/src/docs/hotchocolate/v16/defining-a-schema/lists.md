@@ -47,7 +47,6 @@ Any type implementing `IEnumerable<T>` is treated as a list.
 <Implementation>
 
 ```csharp
-// Types/UserQueries.cs
 [QueryType]
 public static partial class UserQueries
 {
@@ -62,7 +61,6 @@ The return type `List<User>` is automatically mapped to `[User!]!` when NRT is e
 <Code>
 
 ```csharp
-// Types/UserQueriesType.cs
 public class UserQueriesType : ObjectType
 {
     protected override void Configure(IObjectTypeDescriptor descriptor)
@@ -109,7 +107,6 @@ public List<string> Tags { get; set; }
 Hot Chocolate supports nested lists (lists of lists). This pattern is useful for representing matrix-like data.
 
 ```csharp
-// Types/GridQueries.cs
 [QueryType]
 public static partial class GridQueries
 {

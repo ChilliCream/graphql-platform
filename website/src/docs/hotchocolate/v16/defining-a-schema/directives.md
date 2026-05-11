@@ -27,7 +27,6 @@ See [Versioning](/docs/hotchocolate/v16/defining-a-schema/versioning) for detail
 Create a class that inherits from `DirectiveType` and override the `Configure` method. Register it explicitly with `.AddDirectiveType<T>()`.
 
 ```csharp
-// Types/MyDirectiveType.cs
 public class MyDirectiveType : DirectiveType
 {
     protected override void Configure(IDirectiveTypeDescriptor descriptor)
@@ -39,7 +38,6 @@ public class MyDirectiveType : DirectiveType
 ```
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .AddDirectiveType<MyDirectiveType>();
@@ -60,13 +58,11 @@ query {
 Directives can accept arguments. Use a backing POCO class with `DirectiveType<T>` to define arguments as properties.
 
 ```csharp
-// Types/CacheDirective.cs
 public class CacheDirective
 {
     public int MaxAge { get; set; }
 }
 
-// Types/CacheDirectiveType.cs
 public class CacheDirectiveType : DirectiveType<CacheDirective>
 {
     protected override void Configure(
@@ -83,7 +79,6 @@ This produces `directive @cache(maxAge: Int!) on FIELD_DEFINITION`.
 You can also define arguments without a POCO:
 
 ```csharp
-// Types/CacheDirectiveType.cs
 public class CacheDirectiveType : DirectiveType
 {
     protected override void Configure(IDirectiveTypeDescriptor descriptor)
@@ -103,7 +98,6 @@ public class CacheDirectiveType : DirectiveType
 By default, a directive can appear only once at a given location. To allow a directive to be applied multiple times, mark it as repeatable.
 
 ```csharp
-// Types/TagDirectiveType.cs
 public class TagDirectiveType : DirectiveType
 {
     protected override void Configure(IDirectiveTypeDescriptor descriptor)
@@ -140,7 +134,6 @@ Executable directives appear in client queries. Locations include `FIELD`, `FRAG
 You can attach a type-system directive to a type definition.
 
 ```csharp
-// Types/ProductType.cs
 public class ProductType : ObjectType
 {
     protected override void Configure(IObjectTypeDescriptor descriptor)
@@ -162,7 +155,6 @@ descriptor.Directive("cache", new ArgumentNode("maxAge", 60));
 Directives become powerful when you attach middleware. A directive middleware can modify field results, short-circuit resolution, or add side effects.
 
 ```csharp
-// Types/UpperCaseDirectiveType.cs
 public class UpperCaseDirectiveType : DirectiveType
 {
     protected override void Configure(IDirectiveTypeDescriptor descriptor)

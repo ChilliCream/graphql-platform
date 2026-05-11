@@ -25,14 +25,12 @@ Any C# class or record used as a resolver parameter (that is not a scalar, enum,
 <Implementation>
 
 ```csharp
-// Types/CreateBookInput.cs
 public class CreateBookInput
 {
     public string Title { get; set; }
     public string Author { get; set; }
 }
 
-// Types/BookMutations.cs
 [MutationType]
 public static partial class BookMutations
 {
@@ -55,14 +53,12 @@ If a class used as an argument does not end in `Input`, Hot Chocolate appends `I
 <Code>
 
 ```csharp
-// Types/CreateBookInput.cs
 public class CreateBookInput
 {
     public string Title { get; set; }
     public string Author { get; set; }
 }
 
-// Types/CreateBookInputType.cs
 public class CreateBookInputType : InputObjectType<CreateBookInput>
 {
     protected override void Configure(
@@ -88,7 +84,6 @@ Input types can use immutable classes or C# records. Hot Chocolate calls the con
 Hot Chocolate validates input constructors at schema build time, so mismatches are caught early.
 
 ```csharp
-// Types/CreateBookInput.cs
 public record CreateBookInput(string Title, string Author);
 ```
 
@@ -102,7 +97,6 @@ The `[DefaultValue]` attribute assigns a default value to an input field. When t
 <Implementation>
 
 ```csharp
-// Types/UserFilterInput.cs
 public class UserFilterInput
 {
     public string? Name { get; set; }
@@ -125,7 +119,6 @@ input UserFilterInput {
 <Code>
 
 ```csharp
-// Types/UserFilterInputType.cs
 public class UserFilterInputType : InputObjectType<UserFilterInput>
 {
     protected override void Configure(
@@ -146,7 +139,6 @@ Default values maintain backward compatibility. When you add a new field to an i
 For complex defaults (objects or lists), use `[DefaultValueSyntax]` with GraphQL value literal syntax.
 
 ```csharp
-// Types/UserProfileInput.cs
 public class UserProfileInput
 {
     public string? Name { get; set; }
@@ -169,7 +161,6 @@ descriptor
 Use `Optional<T>` to distinguish between a field that was not provided and a field explicitly set to `null`. This is important for partial updates where you need to know whether the client intended to clear a value.
 
 ```csharp
-// Types/UpdateBookInput.cs
 public class UpdateBookInput
 {
     [DefaultValue("")]
@@ -206,7 +197,6 @@ input PetInput @oneOf {
 <Implementation>
 
 ```csharp
-// Types/PetInput.cs
 [OneOf]
 public class PetInput
 {
@@ -214,21 +204,18 @@ public class PetInput
     public DogInput? Dog { get; set; }
 }
 
-// Types/CatInput.cs
 public class CatInput
 {
     public string Name { get; set; }
     public int NumberOfLives { get; set; }
 }
 
-// Types/DogInput.cs
 public class DogInput
 {
     public string Name { get; set; }
     public bool WagsTail { get; set; }
 }
 
-// Types/PetMutations.cs
 [MutationType]
 public static partial class PetMutations
 {
@@ -243,7 +230,6 @@ public static partial class PetMutations
 <Code>
 
 ```csharp
-// Types/PetInputType.cs
 public class PetInputType : InputObjectType<PetInput>
 {
     protected override void Configure(

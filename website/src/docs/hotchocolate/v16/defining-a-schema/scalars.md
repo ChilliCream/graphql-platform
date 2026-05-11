@@ -90,14 +90,12 @@ Represents a unique identifier. The `ID` type is **not** automatically inferred.
 <Implementation>
 
 ```csharp
-// Types/Product.cs
 public sealed class Product
 {
     [GraphQLType<IdType>]
     public int Id { get; set; }
 }
 
-// Types/ProductQueries.cs
 [QueryType]
 public static partial class ProductQueries
 {
@@ -112,13 +110,11 @@ public static partial class ProductQueries
 <Code>
 
 ```csharp
-// Types/Product.cs
 public sealed class Product
 {
     public int Id { get; set; }
 }
 
-// Types/ProductType.cs
 public sealed class ProductType : ObjectType<Product>
 {
     protected override void Configure(IObjectTypeDescriptor<Product> descriptor)
@@ -128,7 +124,6 @@ public sealed class ProductType : ObjectType<Product>
     }
 }
 
-// Types/QueryType.cs
 public sealed class QueryType : ObjectType
 {
     protected override void Configure(IObjectTypeDescriptor descriptor)
@@ -153,7 +148,6 @@ public sealed class QueryType : ObjectType
 <Schema>
 
 ```csharp
-// Types/Product.cs
 public sealed class Product
 {
     public int Id { get; set; }
@@ -161,7 +155,6 @@ public sealed class Product
 ```
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .AddDocumentFromString(
@@ -245,7 +238,6 @@ Although the built-in scalars can parse up to 9 fractional second digits, the un
 To customize the built-in scalars, register configured scalar instances explicitly:
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .AddType(new DateTimeType(new DateTimeOptions
@@ -281,7 +273,6 @@ The `UuidType` always returns values in the specified format. When parsing input
 To change the default format:
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .AddType(new UuidType('N'));
@@ -316,7 +307,6 @@ The `Any` scalar uses `System.Text.Json.JsonElement` as its .NET runtime type. F
 To access an argument dynamically:
 
 ```csharp
-// Types/MetadataQueries.cs
 JsonElement value = context.ArgumentValue<JsonElement>("filter");
 
 if (value.ValueKind == JsonValueKind.Object)
@@ -359,7 +349,6 @@ public enum ValueKind
 By default, `Any` expects a `JsonElement`. To return common .NET types such as `Dictionary<string, object>` or `ExpandoObject`, register the JSON type converter:
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .AddJsonTypeConverter();
@@ -368,7 +357,6 @@ builder
 With the converter registered, resolvers can return dictionaries or any JSON-serializable object:
 
 ```csharp
-// Types/MetadataQueries.cs
 [GraphQLType<AnyType>]
 public object GetData() => new Dictionary<string, object>
 {
@@ -382,7 +370,6 @@ public object GetData() => new Dictionary<string, object>
 For custom reference types, register a dedicated converter to control serialization. For example, to serialize `TimeZoneInfo` as its string ID instead of a full JSON object:
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .AddTypeConverter<TimeZoneInfo, JsonElement>(
@@ -392,7 +379,6 @@ builder
 The resolver can then return the type directly:
 
 ```csharp
-// Types/SettingsQueries.cs
 [GraphQLType<AnyType>]
 public TimeZoneInfo GetTimezone() => TimeZoneInfo.Utc; // serializes as "UTC"
 ```
@@ -427,7 +413,6 @@ For more specific use cases, install the `HotChocolate.Types.Scalars` package:
 Many of these scalars are built on native .NET types. An email address, for example, is represented as a `string`, but returning a `string` from your resolver causes Hot Chocolate to interpret it as a `StringType`. You need to specify the scalar type explicitly:
 
 ```csharp
-// Types/UserQueries.cs
 [GraphQLType<EmailAddressType>]
 public string GetEmail() => "test@example.com";
 ```
@@ -457,7 +442,6 @@ These NodaTime scalars expose the same `@specifiedBy` URLs and implement the sam
 Register them with `AddNodaTime()`:
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .AddNodaTime();
@@ -468,7 +452,6 @@ builder
 If you prefer, you can still register individual scalar types explicitly. For example:
 
 ```csharp
-// Program.cs
 using NodaTimeDurationType = HotChocolate.Types.NodaTime.DurationType;
 
 builder
@@ -488,7 +471,6 @@ Unlike the built-in BCL-backed scalars, the NodaTime implementations preserve up
 If you need non-default NodaTime precision settings, register those scalar types individually instead of using `AddNodaTime()`:
 
 ```csharp
-// Program.cs
 using NodaTimeDateTimeOptions = HotChocolate.Types.NodaTime.DateTimeOptions;
 using NodaTimeDateTimeType = HotChocolate.Types.NodaTime.DateTimeType;
 using NodaTimeLocalDateTimeType = HotChocolate.Types.NodaTime.LocalDateTimeType;
@@ -515,7 +497,6 @@ builder
 You can override the default .NET-to-scalar mappings by specifying type bindings explicitly:
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .BindRuntimeType<string, StringType>();
@@ -524,7 +505,6 @@ builder
 You can also bind scalars to arrays or complex types:
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .BindRuntimeType<byte[], Base64StringType>();
@@ -535,7 +515,6 @@ builder
 You can reuse existing scalar types with different runtime types by registering converters. For example, to map NodaTime's `OffsetDateTime` to the existing `DateTimeType`:
 
 ```csharp
-// Types/ScheduleQueries.cs
 public sealed class ScheduleQueries
 {
     public OffsetDateTime GetDateTime(OffsetDateTime offsetDateTime)
@@ -546,7 +525,6 @@ public sealed class ScheduleQueries
 ```
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .AddQueryType<ScheduleQueries>()
@@ -571,7 +549,6 @@ A custom scalar converts values between the GraphQL wire format and a .NET runti
 Extend `ScalarType<TRuntimeType, TLiteral>` to create a custom scalar:
 
 ```csharp
-// Types/CreditCardNumberType.cs
 public sealed class CreditCardNumberType : ScalarType<string, StringValueNode>
 {
     private readonly ICreditCardValidator _validator;
@@ -634,7 +611,6 @@ Hot Chocolate provides specialized base classes for common scalar patterns.
 Use `IntegerTypeBase<T>` for numeric scalars with min/max constraints. The base class handles parsing, validation, and range checking automatically.
 
 ```csharp
-// Types/TcpPortType.cs
 public sealed class TcpPortType : IntegerTypeBase<int>
 {
     public TcpPortType()
@@ -673,7 +649,6 @@ Hot Chocolate also provides `FloatTypeBase<T>` for floating-point scalars (`floa
 Use `RegexType` for string scalars that must match a specific pattern. This works well for formats like phone numbers, postal codes, or identifiers.
 
 ```csharp
-// Types/HexColorType.cs
 public sealed class HexColorType : RegexType
 {
     public HexColorType()
@@ -689,7 +664,6 @@ public sealed class HexColorType : RegexType
 You can also instantiate `RegexType` directly when registering scalars:
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .AddType(new RegexType(

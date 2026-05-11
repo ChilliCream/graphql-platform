@@ -142,7 +142,6 @@ Override the default cost for a specific field:
 <Implementation>
 
 ```csharp
-// Types/BookQueries.cs
 [QueryType]
 public static partial class BookQueries
 {
@@ -156,7 +155,6 @@ public static partial class BookQueries
 <Code>
 
 ```csharp
-// Types/BookQueriesType.cs
 public class BookQueriesType : ObjectType
 {
     protected override void Configure(IObjectTypeDescriptor descriptor)
@@ -182,7 +180,6 @@ For fields that return lists, control how cost analysis estimates the list size:
 <Implementation>
 
 ```csharp
-// Types/BookQueries.cs
 [QueryType]
 public static partial class BookQueries
 {
@@ -200,7 +197,6 @@ public static partial class BookQueries
 <Code>
 
 ```csharp
-// Types/BookQueriesType.cs
 public class BookQueriesType : ObjectType
 {
     protected override void Configure(IObjectTypeDescriptor descriptor)
@@ -239,7 +235,6 @@ This is invaluable when tuning your cost configuration. Send representative quer
 Read cost metrics from `IResolverContext` or `IMiddlewareContext`:
 
 ```csharp
-// Types/BookQueries.cs
 public static Book GetBook(IResolverContext context)
 {
     var costMetrics = (CostMetrics)context.ContextData[WellKnownContextData.CostMetrics]!;
@@ -266,7 +261,6 @@ Use the `GraphQL-Cost: report` header to measure the cost of your actual client 
 Increase the limits if legitimate queries are rejected. Decrease them if you want tighter protection. The right values depend on your infrastructure and acceptable load.
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .ModifyCostOptions(options =>
@@ -343,7 +337,6 @@ Now the cost drops to a level within the default budget.
 | `DefaultResolverCost` | `10.0`  | Default cost for an async resolver.                  |
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .ModifyCostOptions(options =>
@@ -388,7 +381,6 @@ options.Sorting.DefaultSortOperationCost = 10.0;
 If you protect your API through other means (such as trusted documents), you can disable cost enforcement. The analyzer still computes costs for reporting, but does not reject queries:
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .ModifyCostOptions(o => o.EnforceCostLimits = false);

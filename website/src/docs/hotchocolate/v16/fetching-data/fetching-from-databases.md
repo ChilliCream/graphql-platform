@@ -14,7 +14,6 @@ In this example, you inject a MongoDB collection into a resolver and query it di
 <Implementation>
 
 ```csharp
-// Models/Book.cs
 public class Book
 {
     public Guid Id { get; set; }
@@ -22,7 +21,6 @@ public class Book
     public string Author { get; set; }
 }
 
-// Types/BookQueries.cs
 [QueryType]
 public static partial class BookQueries
 {
@@ -35,7 +33,6 @@ public static partial class BookQueries
 ```
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .AddTypes();
@@ -45,7 +42,6 @@ builder
 <Code>
 
 ```csharp
-// Models/Book.cs
 public class Book
 {
     public Guid Id { get; set; }
@@ -53,7 +49,6 @@ public class Book
     public string Author { get; set; }
 }
 
-// Types/BookQueries.cs
 public class BookQueries
 {
     public async Task<Book?> GetBookByIdAsync(
@@ -63,7 +58,6 @@ public class BookQueries
         => await collection.Find(x => x.Id == id).FirstOrDefaultAsync(ct);
 }
 
-// Types/BookQueriesType.cs
 public class BookQueriesType : ObjectType<BookQueries>
 {
     protected override void Configure(IObjectTypeDescriptor<BookQueries> descriptor)
@@ -76,7 +70,6 @@ public class BookQueriesType : ObjectType<BookQueries>
 ```
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .AddQueryType<BookQueriesType>();
@@ -90,7 +83,6 @@ builder
 When using EF Core, inject your `DbContext` directly into resolvers. Hot Chocolate's EF Core integration registers the context correctly for concurrent resolver execution.
 
 ```csharp
-// Types/BookQueries.cs
 [QueryType]
 public static partial class BookQueries
 {

@@ -41,7 +41,6 @@ Each subscription field uses two attributes:
 <Implementation>
 
 ```csharp
-// Types/BookSubscriptions.cs
 [SubscriptionType]
 public static partial class BookSubscriptions
 {
@@ -57,7 +56,6 @@ The source generator wires up the Subscription type automatically. No additional
 <Code>
 
 ```csharp
-// Types/BookSubscriptions.cs
 public class BookSubscriptions
 {
     [Subscribe]
@@ -67,7 +65,6 @@ public class BookSubscriptions
 ```
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .AddSubscriptionType<BookSubscriptions>();
@@ -85,7 +82,6 @@ To trigger a subscription, you publish an event using `ITopicEventSender`. This 
 You typically publish events from mutations after a successful write. Inject `ITopicEventSender` as a method parameter, the same way you inject any other service.
 
 ```csharp
-// Types/BookMutations.cs
 [MutationType]
 public static partial class BookMutations
 {
@@ -116,7 +112,6 @@ You can also publish events from anywhere you have access to `ITopicEventSender`
 By default, every subscriber to a field receives every event published to that topic. When you need subscribers to receive events for a specific resource, use the `[Topic]` attribute with argument placeholders to create dynamic topics.
 
 ```csharp
-// Types/OrderSubscriptions.cs
 [SubscriptionType]
 public static partial class OrderSubscriptions
 {
@@ -134,7 +129,6 @@ The `{orderId}` placeholder is replaced with the actual argument value at subscr
 Publish to the matching topic from your mutation:
 
 ```csharp
-// Types/OrderMutations.cs
 [MutationType]
 public static partial class OrderMutations
 {
@@ -168,7 +162,6 @@ public static string OnMessage(string arg1, string arg2, [EventMessage] string m
 If you want to decouple the topic name from the method name, use `[Topic]` with a fixed string.
 
 ```csharp
-// Types/BookSubscriptions.cs
 [SubscriptionType]
 public static partial class BookSubscriptions
 {
@@ -190,7 +183,6 @@ await sender.SendAsync("NewBookAvailable", book, ct);
 If you need more control over how a subscription connects to the pub/sub system, use `[Subscribe(With = ...)]` to point to a custom subscribe resolver method.
 
 ```csharp
-// Types/BookSubscriptions.cs
 [SubscriptionType]
 public static partial class BookSubscriptions
 {
@@ -219,7 +211,6 @@ Hot Chocolate supports both the modern [graphql-ws](https://github.com/enisdenjo
 Add the WebSocket middleware to your request pipeline:
 
 ```csharp
-// Program.cs
 app.UseRouting();
 
 app.UseWebSockets();
@@ -244,7 +235,6 @@ A subscription provider is the pub/sub backend that delivers events between your
 The in-memory provider works without any external infrastructure. It is suitable for single-server deployments and local development.
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .AddInMemorySubscriptions();
@@ -261,7 +251,6 @@ Install the package:
 <PackageInstallation packageName="HotChocolate.Subscriptions.Redis" />
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .AddRedisSubscriptions(
@@ -281,7 +270,6 @@ Install the packages:
 <PackageInstallation packageName="NATS.Extensions.Microsoft.DependencyInjection" external />
 
 ```csharp
-// Program.cs
 using NATS.Extensions.Microsoft.DependencyInjection;
 
 builder.Services
@@ -302,7 +290,6 @@ builder
 If multiple GraphQL servers share the same NATS broker, set a `TopicPrefix` to isolate their topics:
 
 ```csharp
-// Program.cs
 using HotChocolate.Subscriptions;
 
 builder
@@ -324,7 +311,6 @@ Install the package:
 <PackageInstallation packageName="HotChocolate.Subscriptions.Postgres" />
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .AddSubscriptionType<BookSubscriptions>()
@@ -348,7 +334,6 @@ var dataSource = dataSourceBuilder.Build();
 GraphQL allows only one Subscription type per schema, but you can split your subscription fields across multiple classes. With the source generator, annotate each class with `[SubscriptionType]`. The source generator merges them into one Subscription type.
 
 ```csharp
-// Types/BookSubscriptions.cs
 [SubscriptionType]
 public static partial class BookSubscriptions
 {
@@ -359,7 +344,6 @@ public static partial class BookSubscriptions
 ```
 
 ```csharp
-// Types/OrderSubscriptions.cs
 [SubscriptionType]
 public static partial class OrderSubscriptions
 {

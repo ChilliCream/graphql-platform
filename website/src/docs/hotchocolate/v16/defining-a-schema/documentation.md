@@ -22,7 +22,6 @@ The `[GraphQLDescription]` attribute sets a description on any schema element.
 <Implementation>
 
 ```csharp
-// Types/User.cs
 [GraphQLDescription("Represents a registered user.")]
 public class User
 {
@@ -30,7 +29,6 @@ public class User
     public string Username { get; set; }
 }
 
-// Types/UserRole.cs
 [GraphQLDescription("Available user roles.")]
 public enum UserRole
 {
@@ -41,7 +39,6 @@ public enum UserRole
     Moderator
 }
 
-// Types/UserQueries.cs
 [QueryType]
 public static partial class UserQueries
 {
@@ -57,7 +54,6 @@ public static partial class UserQueries
 <Code>
 
 ```csharp
-// Types/UserType.cs
 public class UserType : ObjectType<User>
 {
     protected override void Configure(IObjectTypeDescriptor<User> descriptor)
@@ -70,7 +66,6 @@ public class UserType : ObjectType<User>
     }
 }
 
-// Types/UserRoleType.cs
 public class UserRoleType : EnumType<UserRole>
 {
     protected override void Configure(IEnumTypeDescriptor<UserRole> descriptor)
@@ -94,7 +89,6 @@ In code-first, the `Description()` method takes precedence over all other forms 
 Hot Chocolate can generate descriptions from standard C# XML documentation comments. This lets you maintain a single source of documentation for both your C# code and GraphQL schema.
 
 ```csharp
-// Types/User.cs
 /// <summary>
 /// Represents a registered user.
 /// </summary>
@@ -106,7 +100,6 @@ public class User
     public string Username { get; set; }
 }
 
-// Types/UserRole.cs
 /// <summary>
 /// Available user roles.
 /// </summary>
@@ -123,7 +116,6 @@ public enum UserRole
     Moderator
 }
 
-// Types/UserQueries.cs
 [QueryType]
 public static partial class UserQueries
 {
@@ -154,7 +146,6 @@ The `<NoWarn>` element is optional. It suppresses compiler warnings for types wi
 If you do not want XML comments to appear in the schema:
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .ModifyOptions(opt => opt.UseXmlDocumentation = false);
@@ -173,7 +164,6 @@ When both `[GraphQLDescription]` and XML documentation are present, they follow 
 If you use a custom naming convention and XML documentation, pass an `XmlDocumentationProvider` to the convention so descriptions are preserved:
 
 ```csharp
-// Types/CustomNamingConventions.cs
 public class CustomNamingConventions : DefaultNamingConventions
 {
     public CustomNamingConventions(
@@ -183,7 +173,6 @@ public class CustomNamingConventions : DefaultNamingConventions
 ```
 
 ```csharp
-// Program.cs
 IReadOnlySchemaOptions capturedSchemaOptions;
 
 builder

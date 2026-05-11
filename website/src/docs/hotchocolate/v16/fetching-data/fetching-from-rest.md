@@ -38,7 +38,6 @@ Register the generated client in your DI container and inject it into your resol
 <Implementation>
 
 ```csharp
-// Types/TodoQueries.cs
 [QueryType]
 public static partial class TodoQueries
 {
@@ -56,7 +55,6 @@ public static partial class TodoQueries
 ```
 
 ```csharp
-// Program.cs
 builder.Services.AddHttpClient<TodoService>();
 
 builder
@@ -68,7 +66,6 @@ builder
 <Code>
 
 ```csharp
-// Types/TodoQueries.cs
 public class TodoQueries
 {
     public async Task<ICollection<TodoItem>> GetTodosAsync(
@@ -83,7 +80,6 @@ public class TodoQueries
         => await service.GetByIdAsync(id, ct);
 }
 
-// Types/TodoQueriesType.cs
 public class TodoQueriesType : ObjectType<TodoQueries>
 {
     protected override void Configure(IObjectTypeDescriptor<TodoQueries> descriptor)
@@ -100,7 +96,6 @@ public class TodoQueriesType : ObjectType<TodoQueries>
 ```
 
 ```csharp
-// Program.cs
 builder.Services.AddHttpClient<TodoService>();
 
 builder
@@ -133,7 +128,6 @@ You can now open Nitro on your GraphQL server at `/graphql` and query your REST 
 When multiple GraphQL fields resolve data from the same REST endpoint, use a [DataLoader](/docs/hotchocolate/v16/fetching-data/dataloader) to batch and deduplicate calls. This prevents sending redundant HTTP requests for the same resource.
 
 ```csharp
-// DataLoaders/TodoByIdDataLoader.cs
 public class TodoByIdDataLoader : BatchDataLoader<long, TodoItem>
 {
     private readonly TodoService _service;

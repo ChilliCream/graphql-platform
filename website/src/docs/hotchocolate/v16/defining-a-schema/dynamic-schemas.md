@@ -14,7 +14,6 @@ In multi-tenant or CMS-like applications, the GraphQL schema may need to change 
 When you fire the `TypesChanged` event, Hot Chocolate phases out the old schema and builds a new one using the updated types from your module. This gives you hot-reload behavior without restarting the application.
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .AddTypeModule<MyTypeModule>();
@@ -25,7 +24,6 @@ builder
 This example reads type definitions from a JSON file. In a real application, the JSON might come from a database, an admin UI, or an external configuration service.
 
 ```csharp
-// Infrastructure/JsonTypeModule.cs
 public class JsonTypeModule : ITypeModule
 {
     private readonly string _file;
