@@ -149,6 +149,8 @@ Public methods on a class become resolver fields. This is how you add computed f
 <ExampleTabs>
 <Implementation>
 
+You can define resolver methods directly on your C# models, as shown below:
+
 ```csharp
 public class Author
 {
@@ -161,7 +163,28 @@ public class Author
 }
 ```
 
-The `BookService` parameter is resolved from the dependency injection container. `CancellationToken` is provided by the execution engine. Neither appears as a GraphQL argument.
+Here, the `BookService` parameter is injected from the dependency injection container, and `CancellationToken` is provided by the execution engine. Neither appears as a GraphQL argument.
+
+However, a cleaner approach is to separate GraphQL-specific resolvers from your domain models by using a dedicated resolver class. This keeps your domain types free of API concerns and makes them more reusable:
+
+```csharp
+public class Author
+{
+    public string Name { get; set; }
+}
+
+[ObjectType<Author>]
+public static partial class AuthorNode
+{
+    public static async Task<List<Book>> GetBooksAsync(
+        [Parent] Author author,
+        BookService bookService,
+        CancellationToken ct)
+        => await bookService.GetBooksByAuthorAsync(author.Name, ct);
+}
+```
+
+The `[ObjectType<Author>]` attribute tells the source generator that this class contributes fields to the `Author` type. The `[Parent]` parameter receives the resolved `Author` instance. The class must be `static partial` so the source generator can wire it up.
 
 </Implementation>
 <Code>
@@ -209,11 +232,46 @@ You can rename fields, ignore them, and add descriptions without changing the sh
 <ExampleTabs>
 <Implementation>
 
+Use `[GraphQLName]` on a property to change its name in the schema:
+
 ```csharp
 public class Author
 {
     [GraphQLName("fullName")]
     public string Name { get; set; }
+}
+```
+
+When using a separate resolver class, the method name determines the field name. The `Get` prefix is stripped and the result is camelCased, so `GetFullName` becomes `fullName`:
+
+```csharp
+public class Author
+{
+    public string Name { get; set; }
+}
+
+[ObjectType<Author>]
+public static partial class AuthorNode
+{
+    public static string GetFullName([Parent] Author author)
+        => author.Name;
+}
+```
+
+If the naming convention does not produce the name you want, apply `[GraphQLName]` to the resolver method:
+
+```csharp
+public class Author
+{
+    public string Name { get; set; }
+}
+
+[ObjectType<Author>]
+public static partial class AuthorNode
+{
+    [GraphQLName("fullName")]
+    public static string GetFullName([Parent] Author author)
+        => author.Name;
 }
 ```
 
@@ -240,11 +298,28 @@ You can also rename the type itself.
 <ExampleTabs>
 <Implementation>
 
+Use `[GraphQLName]` on the domain class:
+
 ```csharp
 [GraphQLName("BookAuthor")]
 public class Author
 {
     public string Name { get; set; }
+}
+```
+
+When using a separate resolver class, apply `[GraphQLName]` to the resolver class instead:
+
+```csharp
+public class Author
+{
+    public string Name { get; set; }
+}
+
+[ObjectType<Author>]
+[GraphQLName("BookAuthor")]
+public static partial class AuthorNode
+{
 }
 ```
 
@@ -271,7 +346,7 @@ If only one client needs different names, prefer using [aliases](https://graphql
 <ExampleTabs>
 <Implementation>
 
-Use the `[GraphQLIgnore]` attribute to prevent a property or method from appearing in the schema.
+Use the `[GraphQLIgnore]` attribute to prevent a property or method from appearing in the schema:
 
 ```csharp
 public class Product
@@ -282,6 +357,46 @@ public class Product
     public string InternalSku { get; set; }
 }
 ```
+
+For resolver types, you can use the internal fluent API to ignore a field:
+
+```csharp
+public class Product
+{
+    public string Name { get; set; }
+    public string InternalSku { get; set; }
+}
+
+[ObjectType<Product>]
+public static partial class ProductNode
+{
+    static partial void Configure(IObjectTypeDescriptor<Product> descriptor)
+        => descriptor.Ignore(t => t.InternalSku);
+}
+```
+
+Often, you’ll ignore a field because you want to introduce a resolver that replaces a model property. This can be done with the `[BindMember]` attribute:
+
+```csharp
+public class Product
+{
+    public string Name { get; set; }
+    public int BrandId { get; set; }
+}
+
+[ObjectType<Product>]
+public static partial class ProductNode
+{
+    [BindMember(nameof(Product.BrandId))]
+    public static async Task<Brand> GetBrandAsync(
+        [Parent] Product product,
+        BrandService brandService,
+        CancellationToken cancellationToken)
+        => await brandService.GetBrandByIdAsync(product.BrandId, cancellationToken);
+}
+```
+
+You can also bind multiple members from your model to a single resolver.
 
 </Implementation>
 <Code>
@@ -308,6 +423,8 @@ Descriptions appear in GraphQL introspection and tooling like Nitro. They help c
 <ExampleTabs>
 <Implementation>
 
+Use `[GraphQLDescription]` on a class or property:
+
 ```csharp
 [GraphQLDescription("A product in the catalog.")]
 public class Product
@@ -333,6 +450,26 @@ public class Product
     public string Name { get; set; }
 
     public decimal Price { get; set; }
+}
+```
+
+When using a separate resolver class, apply `[GraphQLDescription]` to the resolver class or its methods. XML documentation comments work the same way:
+
+```csharp
+public class Product
+{
+    public string Name { get; set; }
+
+    public decimal Price { get; set; }
+}
+
+[ObjectType<Product>]
+[GraphQLDescription("A product in the catalog.")]
+public static partial class ProductNode
+{
+    [GraphQLDescription("The display name shown to customers.")]
+    public static string GetName([Parent] Product product)
+        => product.Name;
 }
 ```
 

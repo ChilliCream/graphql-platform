@@ -523,10 +523,6 @@
                 "title": "Unions"
               },
               {
-                "path": "extending-types",
-                "title": "Extending Types"
-              },
-              {
                 "path": "directives",
                 "title": "Directives"
               },
