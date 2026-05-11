@@ -2,7 +2,7 @@
 title: Migrate Hot Chocolate Fusion from 15 to 16
 ---
 
-> Note: While directives and behavior largly mirror v15, v16 is a complete re-implementation of Fusion that not only affects the gateway itself, but also the archive format and composition process. Therefore, you can't simply bump the package versions in the gateway and be done with the update. You'll need a coordinated strategy to incrementally adopt Fusion v2 in Subgraphs and their deployment process, before you can switch the gateway to v16.
+> Note: While directives and behavior largely mirror v15, v16 is a complete re-implementation of Fusion that not only affects the gateway itself, but also the archive format and composition process. Therefore, you can't simply bump the package versions in the gateway and be done with the update. You'll need a coordinated strategy to incrementally adopt Fusion v2 in Subgraphs and their deployment process, before you can switch the gateway to v16.
 
 # Migration at a glance
 
@@ -16,7 +16,7 @@ The migration happens in three stages, and the gateway keeps serving traffic the
 
 <!-- TODO: At the start we want to check for and collect satisfiability issues so we can work on them
 
-exmaple ci output:
+example ci output:
 
 Validating Fusion configuration of API 'QXBpCmcwMTlkMmIzMGUzNGY3YzQ2OTBjNTgxOTNkYjI1M2EyZg==' against stage 'dev'
 ├── Downloading existing configuration from 'dev'
@@ -64,7 +64,7 @@ If you need to do this conversion manually: Create a `schema-settings.json` file
  }
 ```
 
-> Note: By default the Fusion v2 composition assums your subgraph is compatible with the latest features. By adding `"version": "1.0.0"` we tell the composition that this is a legacy (Fusion v1) subgraph, which relaxes certain validations like `@shareable` and re-creates inferences that were present in Fusion v1, like fields ending in `ById` being inferred as `@lookup`.
+> Note: By default the Fusion v2 composition assumes your subgraph is compatible with the latest features. By adding `"version": "1.0.0"` we tell the composition that this is a legacy (Fusion v1) subgraph, which relaxes certain validations like `@shareable` and re-creates inferences that were present in Fusion v1, like fields ending in `ById` being inferred as `@lookup`.
 
 If your subgraph is using a version older than the latest HotChocolate v15 or your subgraph uses an entirely different technology, you also need to disable variable batching in `schema-settings.json`.
 
@@ -124,7 +124,7 @@ Composition resolves the placeholders against a chosen environment. Pass `--envi
 
 ## Update subgraph
 
-The concept of batch resolvers like `productByIds(ids: [ID!]!)` does no longer exist in Fusion v2. Batching is done on the transport level through [variable and request batching](https://github.com/graphql/graphql-over-http/blob/fb404ac12dde473f3d9f5a1b1026574c7475e1e4/spec/Appendix%20B%20--%20Variable%20Batching.md). This means singular fields like `Query.productById(id: ID!): Product` are invoked with a list of IDs instead of a plural `Query.productsById(ids: [ID!]!): [Product!]` field. Checkout [this GitHub issue](https://github.com/graphql/composite-schemas-spec/issues/25#issue-2173900758) for details on this decision.
+The concept of batch resolvers like `productByIds(ids: [ID!]!)` no longer exists in Fusion v2. Batching is done on the transport level through [variable and request batching](https://github.com/graphql/graphql-over-http/blob/fb404ac12dde473f3d9f5a1b1026574c7475e1e4/spec/Appendix%20B%20--%20Variable%20Batching.md). This means singular fields like `Query.productById(id: ID!): Product` are invoked with a list of IDs instead of a plural `Query.productsById(ids: [ID!]!): [Product!]` field. Check out [this GitHub issue](https://github.com/graphql/composite-schemas-spec/issues/25#issue-2173900758) for details on this decision.
 
 Since you don't want multiple invocations of the `Query.productById` field during a single request to hit the database multiple times, you need to ensure your `Query` root fields and `[NodeResolver]` implementations (powering the `Query.node(id: ID!): Node` field) are using [`DataLoader`](/docs/hotchocolate/resolvers-and-data/dataloader). This is a best practice and ensures the performance of your server does not degrade in comparison to the previous batching fields.
 
@@ -133,7 +133,7 @@ If an entity currently only has batch `Query` root fields in your subgraph, you'
 ```diff
  type Query {
    productsById(ids: [ID!]!): [Product!] @lookup @internal
-+  productByid(id: ID!): Product @lookup @internal
++  productById(id: ID!): Product @lookup @internal
  }
 ```
 
@@ -141,18 +141,25 @@ Variable and request batching aren't enabled by default, so you also need to upd
 
 ```diff
 - app.MapGraphQL();
-+ app.MapGraphQL().WithOptions(new GraphQLServerOptions { EnableBatching = true })`.
++ app.MapGraphQL().WithOptions(new GraphQLServerOptions { EnableBatching = true });
 ```
 
 If you want to, you can also now [migrate the subgraph to Hot Chocolate v16](#migrate-subgraph-to-v16), but it's not required at this point.
 
 ## Migrate pipelines
 
-The migration to Fusion v2 is designed to happen one subgraph repository at a time. While some of your subgraphs are still on v15 and others are already on v16, the gateway needs to keep working for both. The pipeline changes in this section ensure that both archive formats stay available side-by-side until every subgraph has been migrated and the gateway itself is cut over.
+Migrate one subgraph repository at a time. Throughout this stage your gateway stays on v15 and keeps serving traffic; you [cut it over to v16](#upgrade-the-gateway) only after every subgraph publishes a `.far` archive.
 
-In Fusion v15 each subgraph pipeline produces a Fusion gateway package (`.fgp`) and publishes it back to Nitro as the latest archive. In Fusion v16 the equivalent artifact is the Fusion archive (`.far`). To bridge the two formats during the transition, the v15 compose step is kept in place and the freshly composed `.fgp` is embedded into the published `.far` through the `--legacy-v1-archive` option. v15 gateways continue to download the embedded `.fgp`, v16 gateways download the `.far` directly.
+> Note: In Fusion v15 a subgraph pipeline composes a Fusion gateway package (`.fgp`) and publishes it to Nitro as the latest archive. In Fusion v16 the equivalent artifact is the Fusion archive (`.far`).
 
-A typical subgraph repository has two pipelines that need updating: the **deployment pipeline** that publishes the subgraph's archive to Nitro and the **PR validation pipeline** that ensures the composed schema introduces no breaking changes. The same transition strategy applies to both, only the final Nitro command changes while the existing v15 download and compose steps stay in place.
+The change to each subgraph pipeline is small: keep the v15 compose step that produces the `.fgp`, but instead of publishing the `.fgp` directly, publish a `.far` with that `.fgp` embedded via `--legacy-v1-archive`. This keeps the `.fgp` fresh for the running v15 gateway and makes the `.far` available for the v16 cut-over.
+
+Two pipelines in a typical subgraph repository need this change:
+
+- the **deployment pipeline** that publishes the subgraph's archive to Nitro, and
+- the **PR validation pipeline** that checks the composed schema for breaking changes.
+
+In both, the existing v15 download and compose steps stay in place; only the final Nitro command changes.
 
 ### Deployment pipeline
 
@@ -344,7 +351,7 @@ dotnet nitro fusion validate \
 
 ## Migrate subgraph to v16
 
-Once a subgraph is publishing a `.far`, you can migrate the subgraph project itself to Hot Chocolate v16 at any time. This is optional and independent of the gateway cutover, but it lets you drop the legacy compatibility mode and use the full Fusion v2 feature set.
+Once a subgraph is publishing a `.far`, you can migrate the subgraph project itself to Hot Chocolate v16 at any time. This is optional and independent of the gateway cut-over, but it lets you drop the legacy compatibility mode and use the full Fusion v2 feature set.
 
 Start by working through the [Hot Chocolate 15 to 16 migration guide](/docs/hotchocolate/migrating/migrate-from-15-to-16) for the subgraph project. Once that is done, apply the steps below.
 
@@ -370,29 +377,43 @@ This registers the schema as a Fusion source schema, which:
 Remove `"version": "1.0.0"` from `schema-settings.json`:
 
 ```diff
- {
+{
 -  "version": "1.0.0",
    "name": "products",
-   "transports": {
-     "http": {
-       "url": "{{URL}}"
-     }
-   }
- }
+   // ...
+}
 ```
 
-Without `"version": "1.0.0"` the composition treats the subgraph as a modern Fusion v2 subgraph: the full validations are enforced and the Fusion v1 inferences (such as fields ending in `ById` being treated as `@lookup`) are no longer applied. As a result, a few things that used to be inferred now have to be explicit.
+Without `"version": "1.0.0"` the composition treats the subgraph as a Fusion v2 subgraph: the full validations are enforced and the Fusion v1 inferences (such as fields ending in `ById` being treated as `@lookup`) are no longer applied. As a result, a few things that used to be inferred now have to be explicit.
 
 Annotate `By<Field>` lookup fields like `productById(id: ID!): Product` with `[Lookup]` (`@lookup`):
 
 ```diff
- type Query {
--  productById(id: ID!): Product @internal
-+  productById(id: ID!): Product @lookup @internal
- }
+[QueryType]
+public static class Query
+{
++    [Lookup]
+     public static Product GetProductById(int id)
+         => // ...
+}
 ```
 
-If composition reports that another source schema already exposes a field or type, annotate it with `[Shareable]` (`@shareable`). `@shareable` was introduced in Hot Chocolate 15.
+Missing `@lookup` annotations will usually manifest as `UNSATISFIABLE` errors in the composition. See [Entities and lookups](/docs/fusion/entities-and-lookups) for details.
+
+If your graph has overlapping fields, i.e. multiple subgraphs providing the same field, you now also have to explicitly mark those fields as shareable from both sides.
+
+```diff
+[ObjectType]
+public class Product
+{
++    [Shareable]
+     public string Name { get; set; }
+}
+```
+
+Missing `@shareable` annotations will usually manifest as `INVALID_FIELD_SHARING` errors in the composition. See [Field ownership and sharing](/docs/fusion/field-ownership-and-sharing) for details.
+
+See [Composition](/docs/fusion/composition) for guidance on composition behavior and an explanation of any other errors you might encounter, including what they mean and how to fix them.
 
 # Upgrade the gateway
 
@@ -1075,4 +1096,12 @@ Each subgraph also needs an `Aspire` environment in `schema-settings.json`. This
 
 # Cleanup
 
-Remove `HotChocolate.Fusion.CommandLine` and `ChilliCream.Nitro.CLI` from pipelines.
+Once the gateway has been [cut over to v16](#upgrade-the-gateway) and every subgraph publishes a `.far`, the dual-format bridge is no longer needed. In every subgraph pipeline you can now drop all `dotnet fusion` usages (`subgraph pack`, `subgraph config set`, `compose`) and all `dotnet nitro fusion-configuration *` commands, since the equivalent work is now done by `dotnet nitro fusion *` (`upload`, `publish`, `validate`). Also remove the `--legacy-v1-archive` option from those `dotnet nitro fusion publish` / `validate` steps.
+
+Since `dotnet fusion` is no longer used, you can remove any reference to the `HotChocolate.Fusion.CommandLine` package from your pipelines and from `./.config/dotnet-tools.json`.
+
+You can also fully replace `ChilliCream.Nitro.CLI` with [`ChilliCream.Nitro.CommandLine`](/docs/nitro/cli/installation).
+
+> Note: Hold off until the v16 gateway has been running in production long enough that a rollback to v15 is off the table. Once the v15 compose step is gone the `.fgp` is no longer refreshed, and a rollback would mean restoring these steps first. Cleanup is independent per subgraph, so there is no need to do all repositories at once.
+
+Finally, if you haven't done so already, each subgraph can now independently [switch to Hot Chocolate v16](#migrate-subgraph-to-v16) at its own pace.

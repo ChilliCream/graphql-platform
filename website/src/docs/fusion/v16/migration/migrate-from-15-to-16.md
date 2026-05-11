@@ -124,7 +124,7 @@ Composition resolves the placeholders against a chosen environment. Pass `--envi
 
 ## Update subgraph
 
-The concept of batch resolvers like `productByIds(ids: [ID!]!)` does no longer exist in Fusion v2. Batching is done on the transport level through [variable and request batching](https://github.com/graphql/graphql-over-http/blob/fb404ac12dde473f3d9f5a1b1026574c7475e1e4/spec/Appendix%20B%20--%20Variable%20Batching.md). This means singular fields like `Query.productById(id: ID!): Product` are invoked with a list of IDs instead of a plural `Query.productsById(ids: [ID!]!): [Product!]` field. Checkout [this GitHub issue](https://github.com/graphql/composite-schemas-spec/issues/25#issue-2173900758) for details on this decision.
+The concept of batch resolvers like `productByIds(ids: [ID!]!)` no longer exists in Fusion v2. Batching is done on the transport level through [variable and request batching](https://github.com/graphql/graphql-over-http/blob/fb404ac12dde473f3d9f5a1b1026574c7475e1e4/spec/Appendix%20B%20--%20Variable%20Batching.md). This means singular fields like `Query.productById(id: ID!): Product` are invoked with a list of IDs instead of a plural `Query.productsById(ids: [ID!]!): [Product!]` field. Check out [this GitHub issue](https://github.com/graphql/composite-schemas-spec/issues/25#issue-2173900758) for details on this decision.
 
 Since you don't want multiple invocations of the `Query.productById` field during a single request to hit the database multiple times, you need to ensure your `Query` root fields and `[NodeResolver]` implementations (powering the `Query.node(id: ID!): Node` field) are using [`DataLoader`](/docs/hotchocolate/v16/resolvers-and-data/dataloader). This is a best practice and ensures the performance of your server does not degrade in comparison to the previous batching fields.
 
@@ -141,7 +141,7 @@ Variable and request batching aren't enabled by default, so you also need to upd
 
 ```diff
 - app.MapGraphQL();
-+ app.MapGraphQL().WithOptions(new GraphQLServerOptions { EnableBatching = true })`.
++ app.MapGraphQL().WithOptions(new GraphQLServerOptions { EnableBatching = true });
 ```
 
 If you want to, you can also now [migrate the subgraph to Hot Chocolate v16](#migrate-subgraph-to-v16), but it's not required at this point.
