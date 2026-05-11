@@ -275,6 +275,10 @@
             "title": "Adding a Subgraph"
           },
           {
+            "path": "source-schema-extensions",
+            "title": "Source Schema Extensions"
+          },
+          {
             "path": "guides",
             "title": "Guides",
             "items": [
@@ -339,6 +343,16 @@
           {
             "path": "directives-reference",
             "title": "Directive Reference"
+          },
+          {
+            "path": "adapters",
+            "title": "Adapters",
+            "items": [
+              {
+                "path": "mcp",
+                "title": "MCP"
+              }
+            ]
           },
           {
             "path": "migration",
