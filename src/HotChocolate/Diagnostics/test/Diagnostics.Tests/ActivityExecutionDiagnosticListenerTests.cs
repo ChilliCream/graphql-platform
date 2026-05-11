@@ -396,7 +396,7 @@ public partial class ActivityExecutionDiagnosticListenerTests
                 .ExecuteRequestAsync("{ throwInvalidOperation }");
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 

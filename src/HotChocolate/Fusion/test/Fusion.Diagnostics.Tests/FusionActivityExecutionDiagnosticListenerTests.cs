@@ -4,6 +4,7 @@ using HotChocolate.PersistedOperations;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
+using static CookieCrumble.TestEnvironment;
 using static HotChocolate.Fusion.Diagnostics.ActivityTestHelper;
 
 namespace HotChocolate.Fusion.Diagnostics;
@@ -175,7 +176,7 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             await executor.ExecuteAsync(request);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 

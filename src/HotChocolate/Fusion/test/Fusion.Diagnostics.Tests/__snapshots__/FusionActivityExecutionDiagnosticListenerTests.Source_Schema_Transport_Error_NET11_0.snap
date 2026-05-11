@@ -1,0 +1,257 @@
+{
+  "source": {
+    "name": "HotChocolate.Fusion.Diagnostics"
+  },
+  "activities": [
+    {
+      "OperationName": "GraphQL Operation",
+      "DisplayName": "query",
+      "Kind": "Internal",
+      "Status": "Error",
+      "tags": [
+        {
+          "Key": "graphql.processing.type",
+          "Value": "request"
+        },
+        {
+          "Key": "graphql.operation.type",
+          "Value": "query"
+        },
+        {
+          "Key": "graphql.operation.name",
+          "Value": "SayHelloQuery"
+        },
+        {
+          "Key": "graphql.document.hash",
+          "Value": "md5:b3cf9afa2200bfa14e2a67e36d17e933"
+        },
+        {
+          "Key": "graphql.document.body",
+          "Value": "query SayHelloQuery {\n  sayHello\n}"
+        },
+        {
+          "Key": "graphql.error.count",
+          "Value": 1
+        },
+        {
+          "Key": "error.type",
+          "Value": "System.Net.Http.HttpRequestException"
+        }
+      ],
+      "event": [
+        {
+          "Name": "AddedOperationPlanToCache",
+          "Tags": []
+        },
+        {
+          "Name": "AddedDocumentToCache",
+          "Tags": []
+        },
+        {
+          "Name": "graphql.error",
+          "Tags": [
+            {
+              "Key": "graphql.error.message",
+              "Value": "Unexpected Execution Error"
+            },
+            {
+              "Key": "graphql.field.path",
+              "Value": "sayHello"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "graphql.operation.name",
+              "Value": "SayHelloQuery"
+            },
+            {
+              "Key": "exception.type",
+              "Value": "System.Net.Http.HttpRequestException"
+            },
+            {
+              "Key": "exception.message",
+              "Value": "Response status code does not indicate success: 500 (Internal Server Error)."
+            },
+            {
+              "Key": "exception.stacktrace",
+              "Value": "System.Net.Http.HttpRequestException: Response status code does not indicate success: 500 (Internal Server Error).\n   at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()\n   at HotChocolate.Fusion.Transport.Http.GraphQLHttpResponse.ReadAsResultAsync(CancellationToken cancellationToken) in GraphQLHttpResponse.cs\n   at HotChocolate.Fusion.Execution.Clients.HttpSourceSchemaClient.Response.ReadAsResultStreamCoreAsync(CancellationToken cancellationToken)+MoveNext() in HttpSourceSchemaClient.cs\n   at HotChocolate.Fusion.Execution.Clients.HttpSourceSchemaClient.Response.ReadAsResultStreamCoreAsync(CancellationToken cancellationToken)+System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.GetResult()\n   at HotChocolate.Fusion.Execution.Clients.HttpSourceSchemaClient.Response.WithResultCallback(IAsyncEnumerable`1 results, OperationPlanContext context, ExecutionNode node, Action`3 onSourceSchemaResult, CancellationToken cancellationToken)+MoveNext() in HttpSourceSchemaClient.cs\n   at HotChocolate.Fusion.Execution.Clients.HttpSourceSchemaClient.Response.WithResultCallback(IAsyncEnumerable`1 results, OperationPlanContext context, ExecutionNode node, Action`3 onSourceSchemaResult, CancellationToken cancellationToken)+MoveNext() in HttpSourceSchemaClient.cs\n   at HotChocolate.Fusion.Execution.Clients.HttpSourceSchemaClient.Response.WithResultCallback(IAsyncEnumerable`1 results, OperationPlanContext context, ExecutionNode node, Action`3 onSourceSchemaResult, CancellationToken cancellationToken)+System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.GetResult()\n   at HotChocolate.Fusion.Execution.Nodes.OperationExecutionNode.OnExecuteAsync(OperationPlanContext context, CancellationToken cancellationToken) in OperationExecutionNode.cs\n--- End of stack trace from previous location ---\n   at HotChocolate.Fusion.Execution.Nodes.OperationExecutionNode.OnExecuteAsync(OperationPlanContext context, CancellationToken cancellationToken) in OperationExecutionNode.cs"
+            }
+          ]
+        }
+      ],
+      "activities": [
+        {
+          "OperationName": "GraphQL Document Parsing",
+          "DisplayName": "GraphQL Document Parsing",
+          "Kind": "Internal",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:b3cf9afa2200bfa14e2a67e36d17e933"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Document Validation",
+          "DisplayName": "GraphQL Document Validation",
+          "Kind": "Internal",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "validate"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:b3cf9afa2200bfa14e2a67e36d17e933"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Operation Planning",
+          "DisplayName": "GraphQL Operation Planning",
+          "Kind": "Internal",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "plan"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:b3cf9afa2200bfa14e2a67e36d17e933"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "graphql.operation.name",
+              "Value": "SayHelloQuery"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Operation Execution",
+          "DisplayName": "GraphQL Operation Execution",
+          "Kind": "Internal",
+          "Status": "Error",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "execute"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "graphql.operation.name",
+              "Value": "SayHelloQuery"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:b3cf9afa2200bfa14e2a67e36d17e933"
+            },
+            {
+              "Key": "error.type",
+              "Value": "System.Net.Http.HttpRequestException"
+            }
+          ],
+          "event": [],
+          "activities": [
+            {
+              "OperationName": "GraphQL Step Execution",
+              "DisplayName": "GraphQL Step Execution",
+              "Kind": "Internal",
+              "Status": "Error",
+              "tags": [
+                {
+                  "Key": "graphql.processing.type",
+                  "Value": "step_execute"
+                },
+                {
+                  "Key": "graphql.operation.type",
+                  "Value": "query"
+                },
+                {
+                  "Key": "graphql.operation.name",
+                  "Value": "SayHelloQuery"
+                },
+                {
+                  "Key": "graphql.document.hash",
+                  "Value": "md5:b3cf9afa2200bfa14e2a67e36d17e933"
+                },
+                {
+                  "Key": "graphql.operation.step.id",
+                  "Value": "1"
+                },
+                {
+                  "Key": "graphql.operation.step.kind",
+                  "Value": "operation"
+                },
+                {
+                  "Key": "graphql.operation.step.plan.id",
+                  "Value": "28c3e8f816706daf288091936d3937e2b3e7e7eb19b3cb8dc3b506c202b5aa67"
+                },
+                {
+                  "Key": "graphql.source_schema.name",
+                  "Value": "a"
+                },
+                {
+                  "Key": "graphql.source_schema.operation.name",
+                  "Value": "SayHelloQuery_b3cf9afa_1"
+                },
+                {
+                  "Key": "graphql.source_schema.operation.hash",
+                  "Value": "sha256:4ccd60434973fb8605a668347b5f8707d89fd9caeb1ff20d8f3e4f21476e8d81"
+                },
+                {
+                  "Key": "error.type",
+                  "Value": "System.Net.Http.HttpRequestException"
+                }
+              ],
+              "event": [
+                {
+                  "Name": "graphql.error",
+                  "Tags": [
+                    {
+                      "Key": "graphql.error.message",
+                      "Value": "Response status code does not indicate success: 500 (Internal Server Error)."
+                    },
+                    {
+                      "Key": "exception.type",
+                      "Value": "System.Net.Http.HttpRequestException"
+                    },
+                    {
+                      "Key": "exception.message",
+                      "Value": "Response status code does not indicate success: 500 (Internal Server Error)."
+                    },
+                    {
+                      "Key": "exception.stacktrace",
+                      "Value": "System.Net.Http.HttpRequestException: Response status code does not indicate success: 500 (Internal Server Error).\n   at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()\n   at HotChocolate.Fusion.Transport.Http.GraphQLHttpResponse.ReadAsResultAsync(CancellationToken cancellationToken) in GraphQLHttpResponse.cs\n   at HotChocolate.Fusion.Execution.Clients.HttpSourceSchemaClient.Response.ReadAsResultStreamCoreAsync(CancellationToken cancellationToken)+MoveNext() in HttpSourceSchemaClient.cs\n   at HotChocolate.Fusion.Execution.Clients.HttpSourceSchemaClient.Response.ReadAsResultStreamCoreAsync(CancellationToken cancellationToken)+System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.GetResult()\n   at HotChocolate.Fusion.Execution.Clients.HttpSourceSchemaClient.Response.WithResultCallback(IAsyncEnumerable`1 results, OperationPlanContext context, ExecutionNode node, Action`3 onSourceSchemaResult, CancellationToken cancellationToken)+MoveNext() in HttpSourceSchemaClient.cs\n   at HotChocolate.Fusion.Execution.Clients.HttpSourceSchemaClient.Response.WithResultCallback(IAsyncEnumerable`1 results, OperationPlanContext context, ExecutionNode node, Action`3 onSourceSchemaResult, CancellationToken cancellationToken)+MoveNext() in HttpSourceSchemaClient.cs\n   at HotChocolate.Fusion.Execution.Clients.HttpSourceSchemaClient.Response.WithResultCallback(IAsyncEnumerable`1 results, OperationPlanContext context, ExecutionNode node, Action`3 onSourceSchemaResult, CancellationToken cancellationToken)+System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.GetResult()\n   at HotChocolate.Fusion.Execution.Nodes.OperationExecutionNode.OnExecuteAsync(OperationPlanContext context, CancellationToken cancellationToken) in OperationExecutionNode.cs\n--- End of stack trace from previous location ---\n   at HotChocolate.Fusion.Execution.Nodes.OperationExecutionNode.OnExecuteAsync(OperationPlanContext context, CancellationToken cancellationToken) in OperationExecutionNode.cs"
+                    },
+                    {
+                      "Key": "graphql.operation.type",
+                      "Value": "query"
+                    },
+                    {
+                      "Key": "graphql.operation.name",
+                      "Value": "SayHelloQuery"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
