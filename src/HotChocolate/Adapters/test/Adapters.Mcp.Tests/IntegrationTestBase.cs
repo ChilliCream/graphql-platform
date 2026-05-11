@@ -269,6 +269,76 @@ public abstract class IntegrationTestBase
     }
 
     [Fact]
+    public async Task ListPrompts_DuplicateName_DeduplicatesAndDoesNotCrash()
+    {
+        // arrange
+        var storage = new MultiCollectionMcpStorage(
+            prompts:
+            [
+                new PromptDefinition("code_review")
+                {
+                    Title = "First Code Review",
+                    Messages =
+                    [
+                        new PromptMessageDefinition(
+                            RoleDefinition.User,
+                            new TextContentBlockDefinition("Review (first)."))
+                    ]
+                },
+                new PromptDefinition("code_review")
+                {
+                    Title = "Second Code Review",
+                    Messages =
+                    [
+                        new PromptMessageDefinition(
+                            RoleDefinition.User,
+                            new TextContentBlockDefinition("Review (second)."))
+                    ]
+                }
+            ]);
+        var server = await CreateTestServerAsync(storage);
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+
+        // act
+        var prompts = await mcpClient.ListPromptsAsync();
+
+        // assert
+        var prompt = Assert.Single(prompts);
+        Assert.Equal("code_review", prompt.Name);
+        Assert.Equal("First Code Review", prompt.ProtocolPrompt.Title);
+    }
+
+    [Fact]
+    public async Task ListTools_DuplicateName_DeduplicatesAndDoesNotCrash()
+    {
+        // arrange
+        var storage = new MultiCollectionMcpStorage(
+            tools:
+            [
+                new OperationToolDefinition(
+                    Utf8GraphQLParser.Parse("query GetBooks { books { title } }"))
+                {
+                    Title = "First GetBooks"
+                },
+                new OperationToolDefinition(
+                    Utf8GraphQLParser.Parse("query GetBooks { books { title } }"))
+                {
+                    Title = "Second GetBooks"
+                }
+            ]);
+        var server = await CreateTestServerAsync(storage);
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+
+        // act
+        var tools = await mcpClient.ListToolsAsync();
+
+        // assert
+        var tool = Assert.Single(tools);
+        Assert.Equal("get_books", tool.Name);
+        Assert.Equal("First GetBooks", tool.Title);
+    }
+
+    [Fact]
     public async Task GetPrompt_Missing_ThrowsException()
     {
         // arrange

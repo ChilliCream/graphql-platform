@@ -92,8 +92,18 @@ internal sealed class McpStorageObserver : IDisposable
         var prompts = ImmutableDictionary.CreateBuilder<string, (Prompt, ImmutableArray<PromptMessage>)>();
         using var scope = _diagnosticEvents.InitializePrompts();
 
-        foreach (var promptDefinition in await _storage.GetPromptDefinitionsAsync(cancellationToken))
+        var definitions = (await _storage.GetPromptDefinitionsAsync(cancellationToken))
+            .OrderBy(p => p.Name, StringComparer.Ordinal);
+
+        foreach (var promptDefinition in definitions)
         {
+            // When multiple definitions share a name (e.g. across collections published to the
+            // same stage), the first one wins after ordering by name.
+            if (prompts.ContainsKey(promptDefinition.Name))
+            {
+                continue;
+            }
+
             var prompt = PromptFactory.CreatePrompt(promptDefinition);
             prompts.Add(promptDefinition.Name, prompt);
         }
@@ -107,8 +117,18 @@ internal sealed class McpStorageObserver : IDisposable
         var tools = ImmutableDictionary.CreateBuilder<string, OperationTool>();
         using var scope = _diagnosticEvents.InitializeTools();
 
-        foreach (var toolDefinition in await _storage.GetOperationToolDefinitionsAsync(cancellationToken))
+        var definitions = (await _storage.GetOperationToolDefinitionsAsync(cancellationToken))
+            .OrderBy(t => t.Name, StringComparer.Ordinal);
+
+        foreach (var toolDefinition in definitions)
         {
+            // When multiple definitions share a name (e.g. across collections published to the
+            // same stage), the first one wins after ordering by name.
+            if (tools.ContainsKey(toolDefinition.Name))
+            {
+                continue;
+            }
+
             var validationResult = s_documentValidator.Validate(_schema, toolDefinition.Document);
 
             if (validationResult.HasErrors)
