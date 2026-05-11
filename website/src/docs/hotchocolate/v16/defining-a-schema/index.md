@@ -1,152 +1,202 @@
 ---
-title: "Overview"
+title: "Type System"
 ---
 
-A GraphQL schema defines the contract between your server and its clients. It declares what data clients can query, what mutations they can perform, and what events they can subscribe to. In Hot Chocolate, you build the schema from C# code, and the framework translates your types and methods into a GraphQL schema at build time.
+A GraphQL schema defines the contract that clients interact with. It specifies the available operations, selectable fields, accepted arguments, and the structure of responses.
 
-This page explains how that translation works and how to choose between the two supported approaches. The sub-pages in this section cover each schema element in detail.
+Hot Chocolate enables you to define this contract in C# and review the resulting GraphQL SDL. This page serves as your guide: it introduces the main type system concepts, demonstrates how a C# model translates to SDL, and directs you to detailed pages for each modeling task.
 
-# How Hot Chocolate Maps C# to GraphQL
+# Understanding the Schema as the API Contract
 
-Hot Chocolate inspects your C# types and produces GraphQL equivalents. Understanding the mapping rules makes the rest of the documentation predictable.
+When working with GraphQL, everything starts with the schema. The schema defines the contract between your API and its clients, describing the available operations and the data that can be requested.
 
-**Types.** A C# class or record becomes a GraphQL object type. Each public property or method becomes a field. The GraphQL type name matches the C# type name.
+Clients interact with your API by sending GraphQL operations. They do not call your C# methods or classes directly. Instead, they rely on the schema to understand what is possible.
 
-```csharp
-// Types/Book.cs
-public class Book
-{
-    public int Id { get; set; }
-    public string Title { get; set; }
-    public Author Author { get; set; }
-}
-```
+To introduce the main concepts of the GraphQL type system, consider the following example. This schema highlights the essential building blocks you will encounter:
 
 ```graphql
+type Query {
+  bookById(id: ID!): Book
+}
+
+type Mutation {
+  createBook(input: CreateBookInput!): Book!
+}
+
 type Book {
-  id: Int!
+  id: ID!
   title: String!
-  author: Author!
+  authors: [Author!]!
+}
+
+type Author {
+  id: ID!
+  name: String!
+}
+
+input CreateBookInput {
+  title: String!
+  authorIds: [ID!]!
 }
 ```
 
-**Nullability.** Non-nullable C# types (like `int` and `string` with nullable reference types enabled) become non-null GraphQL types (`Int!`, `String!`). Nullable C# types (`int?`, `string?`) become nullable GraphQL types.
+This example presents queries, mutations, object types, input types, and scalar values. Each part of the schema plays a specific role in shaping how clients interact with your API. The table below breaks down these elements and explains their purpose within the type system.
 
-**Naming.** Method names are converted to camelCase. The `Get` prefix and `Async` suffix are stripped. `GetBookByIdAsync` becomes `bookById`.
+| SDL part                    | Type system member  | What it means                     | Learn more                                 |
+| --------------------------- | ------------------- | --------------------------------- | ------------------------------------------ |
+| `Query`                     | Operation root type | Entry point for read operations.  | [Queries](./queries)                       |
+| `Mutation`                  | Operation root type | Entry point for write operations. | [Mutations](./mutations)                   |
+| `bookById` and `createBook` | Fields              | Selectable members on a type.     | [Object Types](./object-types)             |
+| `id` and `input`            | Arguments           | Values supplied to a field.       | [Arguments](./arguments)                   |
+| `Book` and `Author`         | Object types        | Returned data shapes.             | [Object Types](./object-types)             |
+| `CreateBookInput`           | Input object type   | Structured data sent by a client. | [Input Object Types](./input-object-types) |
+| `ID` and `String`           | Scalars             | Leaf values with no subfields.    | [Scalars](./scalars)                       |
+| `!` and `[]`                | Type modifiers      | Non-null and list wrappers.       | [Lists and Non-Null](./lists)              |
 
-**Scalars.** C# primitives map to GraphQL scalars: `string` to `String`, `int` to `Int`, `float`/`double` to `Float`, `bool` to `Boolean`. `DateTime`, `Guid`, `Uri`, and other .NET types have built-in scalar mappings. See [Scalars](/docs/hotchocolate/v16/defining-a-schema/scalars) for the full list.
+If you are unsure how to identify the parts of your schema, start by looking at the SDL. Elements that a client can select in a query are fields. Values that a client supplies to those fields are arguments or input fields. When you see `!` or `[]` wrapping another type, these are type modifiers that indicate non-nullability or lists.
 
-**Collections.** `List<T>`, `IEnumerable<T>`, arrays, and other collection types become GraphQL list types (`[T]`).
+For example, a client might send the following query and mutation:
 
-# Two Approaches
+```graphql
+query {
+  bookById(id: "1") {
+    title
+    authors {
+      name
+    }
+  }
+}
 
-Hot Chocolate supports two approaches to defining a schema. Both produce the same GraphQL output. They differ in how much control you want over the mapping.
-
-## Implementation-first (recommended)
-
-You write standard C# classes and decorate them with attributes. A source generator handles the rest. This is the approach used throughout this documentation.
-
-```csharp
-// Types/ProductQueries.cs
-[QueryType]
-public static partial class ProductQueries
-{
-    public static async Task<Product?> GetProductByIdAsync(
-        int id,
-        CatalogContext db,
-        CancellationToken ct)
-        => await db.Products.FindAsync([id], ct);
+mutation {
+  createBook(input: { title: "New Book", authorIds: ["2"] }) {
+    id
+    title
+  }
 }
 ```
 
-The source generator produces a `productById` field on the Query type, infers the return type as `Product`, and registers everything at build time. You do not write type descriptors or SDL.
+In these examples, `bookById` and `createBook` are fields. The `id` and `input` values are arguments. The selections inside the curly braces, such as `title` and `authors`, are fields on the returned types.
 
-**When to use:** Most of the time. It keeps your schema close to your domain code and lets the tooling handle the translation. The source generator catches errors at compile time rather than at startup.
+# Schema Authoring Styles
 
-## Code-first
+Hot Chocolate offers two C# authoring styles, both of which produce GraphQL SDL.
 
-You create classes that inherit from `ObjectType<T>` and configure each field explicitly through a descriptor API. This decouples the GraphQL schema shape from your C# model.
+## Implementation-First
+
+The implementation-first approach allows you to define your GraphQL schema using standard C# types and attributes. This keeps your contract close to your domain code with minimal ceremony, provides compile-time feedback, and ensures a clear mapping between code and schema. This workflow is streamlined for most application schemas.
+
+Common building blocks include:
+
+- `[QueryType]`, `[MutationType]`, and `[SubscriptionType]` for operation root fields
+- `partial` source-generator classes for annotated root type classes
+- Attributes such as `[GraphQLName]`, `[GraphQLDescription]`, `[GraphQLIgnore]`, `[ID]`, `[Node]`, `[InterfaceType]`, `[UnionType]`, and `[OneOf]` when the inferred schema needs guidance
+- Generated dependency injection modules for GraphQL types
+
+## Code-First
+
+The code-first approach allows you to define GraphQL types and their structure directly in C# using the Hot Chocolate type descriptor API. This is useful when your GraphQL schema needs to differ from your C# model or when building reusable schema components.
 
 ```csharp
-// Types/ProductType.cs
-public class ProductType : ObjectType<Product>
+using HotChocolate.Types;
+
+public sealed class BookType : ObjectType<Book>
 {
-    protected override void Configure(IObjectTypeDescriptor<Product> descriptor)
+    protected override void Configure(IObjectTypeDescriptor<Book> descriptor)
     {
         descriptor
-            .Field(p => p.Id)
-            .Type<NonNullType<IdType>>();
-
-        descriptor
-            .Field(p => p.Name)
-            .Type<NonNullType<StringType>>();
+            .Field(t => t.Title)
+            .Type<NonNullType<StringType>>()
+            .Description("The title displayed to readers.");
     }
 }
 ```
 
-**When to use:** When you need the GraphQL schema to differ significantly from your C# model, when you are building shared infrastructure that generates schemas programmatically, or when you need access to descriptor APIs that do not have attribute equivalents.
+# Navigating the Type System Map
 
-Both approaches can coexist in the same project. You can use implementation-first for most types and switch to code-first for specific cases.
-
-# Schema Elements
-
-A GraphQL schema is built from a small set of elements. Each has its own page with full examples in both approaches.
+The following map helps you select the next detailed page without needing to learn every rule here.
 
 ## Root Types
 
-Every schema has up to three root types that serve as entry points for operations.
+GraphQL defines a single root type for each operation kind. In C#, you can organize root fields across multiple semantic classes, and Hot Chocolate will merge them into the final root type.
 
-| Root Type    | Purpose                             | Attribute            | Page                                                                    |
-| ------------ | ----------------------------------- | -------------------- | ----------------------------------------------------------------------- |
-| Query        | Read data. Runs fields in parallel. | `[QueryType]`        | [Queries](/docs/hotchocolate/v16/defining-a-schema/queries)             |
-| Mutation     | Write data. Runs fields serially.   | `[MutationType]`     | [Mutations](/docs/hotchocolate/v16/defining-a-schema/mutations)         |
-| Subscription | Stream real-time events.            | `[SubscriptionType]` | [Subscriptions](/docs/hotchocolate/v16/defining-a-schema/subscriptions) |
-
-Only the Query type is required. Add Mutation and Subscription types as needed.
+| Element      | Purpose                                                                                | Authoring cue                                  | Learn more                       |
+| ------------ | -------------------------------------------------------------------------------------- | ---------------------------------------------- | -------------------------------- |
+| Query        | Read entry point. Query fields should be side-effect-free and may execute in parallel. | `[QueryType]` or `AddQueryType`.               | [Queries](./queries)             |
+| Mutation     | Write entry point. Top-level mutation fields execute serially.                         | `[MutationType]` or `AddMutationType`.         | [Mutations](./mutations)         |
+| Subscription | Event stream entry point.                                                              | `[SubscriptionType]` or `AddSubscriptionType`. | [Subscriptions](./subscriptions) |
 
 ## Output Types
 
-These types describe the shape of data returned to clients.
+Output types describe the shapes of data that clients can select after a field resolves.
 
-| Type        | C# Mapping                                             | Page                                                                  |
-| ----------- | ------------------------------------------------------ | --------------------------------------------------------------------- |
-| Object type | Class or record with public properties/methods         | [Object Types](/docs/hotchocolate/v16/defining-a-schema/object-types) |
-| Interface   | C# interface or abstract class                         | [Interfaces](/docs/hotchocolate/v16/defining-a-schema/interfaces)     |
-| Union       | Multiple object types grouped together                 | [Unions](/docs/hotchocolate/v16/defining-a-schema/unions)             |
-| Enum        | C# enum                                                | [Enums](/docs/hotchocolate/v16/defining-a-schema/enums)               |
-| Scalar      | Primitive or custom type (String, Int, DateTime, etc.) | [Scalars](/docs/hotchocolate/v16/defining-a-schema/scalars)           |
+| Element     | Use it for                                                                                                  | Learn more                     |
+| ----------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------ |
+| Object type | Normal returned data shapes, such as `Book` or `Author`.                                                    | [Object Types](./object-types) |
+| Scalar      | Leaf values such as `String`, `Int`, `Boolean`, `ID`, `UUID`, `URI`, `DateTime`, `Any`, and custom scalars. | [Scalars](./scalars)           |
+| Enum        | A closed set of symbolic values in input or output positions.                                               | [Enums](./enums)               |
+| Interface   | Polymorphic output types that share fields.                                                                 | [Interfaces](./interfaces)     |
+| Union       | Polymorphic output types that do not need shared fields.                                                    | [Unions](./unions)             |
+
+## Fields and Arguments
+
+Fields and arguments define how clients interact with your schema. Fields are selectable members on types, while arguments allow clients to supply values to those fields.
+
+| Element  | Purpose                                                                                                             | Learn more                                                                     |
+| -------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Field    | A selectable member on a root type or object type. Root fields start operations. Nested fields shape returned data. | [Queries](./queries), [Mutations](./mutations), [Object Types](./object-types) |
+| Argument | A value supplied to a field. Common uses include lookup IDs, filters, paging arguments, and mutation payloads.      | [Arguments](./arguments)                                                       |
+
+Not every C# method parameter becomes an argument. Service parameters, parent values, cancellation tokens, and resolver context parameters are resolver concerns.
 
 ## Input Types
 
-These types describe the shape of data sent by clients.
+Input types define the shapes of data that clients can send to your API, such as arguments and input objects for mutations and queries.
 
-| Type              | Purpose                                                | Page                                                                              |
-| ----------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------- |
-| Arguments         | Parameters on a field                                  | [Arguments](/docs/hotchocolate/v16/defining-a-schema/arguments)                   |
-| Input object type | Complex argument payloads (commonly used in mutations) | [Input Object Types](/docs/hotchocolate/v16/defining-a-schema/input-object-types) |
+| Element           | Use it for                                                                  | Learn more                                 |
+| ----------------- | --------------------------------------------------------------------------- | ------------------------------------------ |
+| Argument          | A scalar, enum, ID, list, or input object supplied to a field.              | [Arguments](./arguments)                   |
+| Input object type | Structured payloads for mutations, filters, and other complex field inputs. | [Input Object Types](./input-object-types) |
+
+GraphQL separates input and output type systems. Input objects can use defaults, `Optional<T>`, and `@oneOf`, but those rules are detailed on the input pages.
 
 ## Type Modifiers
 
-Modifiers wrap other types to change their nullability or turn them into lists.
+Type modifiers such as non-null and list indicate whether a field or argument is required or can accept multiple values.
 
-| Modifier | GraphQL      | C#                          | Page                                                          |
-| -------- | ------------ | --------------------------- | ------------------------------------------------------------- |
-| Non-null | `String!`    | `string` (with NRT enabled) | [Non-Null](/docs/hotchocolate/v16/defining-a-schema/non-null) |
-| Nullable | `String`     | `string?`                   | [Non-Null](/docs/hotchocolate/v16/defining-a-schema/non-null) |
-| List     | `[String!]!` | `List<string>`              | [Lists](/docs/hotchocolate/v16/defining-a-schema/lists)       |
+| Modifier                | Example    | What it says                                            | Learn more                    |
+| ----------------------- | ---------- | ------------------------------------------------------- | ----------------------------- |
+| Non-null                | `String!`  | The field or argument must not be null in the contract. | [Lists and Non-Null](./lists) |
+| List                    | `[Book]`   | The value is a collection.                              | [Lists and Non-Null](./lists) |
+| List plus item non-null | `[Book!]!` | The list is required, and every item is required.       | [Lists and Non-Null](./lists) |
 
-## Organizing Your Schema
+Input optionality, default values, and output nullability are related but not identical. Refer to the type modifier and input object pages when the distinction matters.
 
-| Topic                        | Purpose                                                      | Page                                                                        |
-| ---------------------------- | ------------------------------------------------------------ | --------------------------------------------------------------------------- |
-| Extending types              | Split a type definition across multiple classes              | [Extending Types](/docs/hotchocolate/v16/defining-a-schema/extending-types) |
-| Directives                   | Add metadata or alter runtime behavior                       | [Directives](/docs/hotchocolate/v16/defining-a-schema/directives)           |
-| Global object identification | Stable IDs and the `node` field for Relay-compatible clients | [Relay](/docs/hotchocolate/v16/defining-a-schema/relay)                     |
+## Schema Organization and Advanced Modeling
 
-# Next Steps
+Organize your schema for maintainability and support advanced modeling scenarios using type extensions, Relay helpers, and dynamic schemas.
 
-- **"I want to define my first query."** Start with [Queries](/docs/hotchocolate/v16/defining-a-schema/queries). It covers the `[QueryType]` attribute, naming conventions, and how to register multiple query classes.
+| Topic           | Use it for                                                                                               | Learn more                           |
+| --------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------ |
+| Type extensions | Split large object or root type definitions across classes. Extensions are merged into the final schema. | [Extending Types](./extending-types) |
+| Relay helpers   | Use stable IDs, global object identification, `node`, `nodes`, `[ID]`, `[Node]`, and `[NodeResolver]`.   | [Relay](./relay)                     |
+| Dynamic schemas | Generate types from CMS, multi-tenant, or configuration-driven metadata with `ITypeModule`.              | [Dynamic Schemas](./dynamic-schemas) |
 
-- **"I want to fetch data from a database."** See [Resolvers](/docs/hotchocolate/v16/fetching-data/resolvers) for how fields load data, and [DataLoader](/docs/hotchocolate/v16/fetching-data/dataloader) for batching.
+## Contract Metadata and Lifecycle
 
-- **"I want to understand how my C# types become GraphQL types."** Read [Object Types](/docs/hotchocolate/v16/defining-a-schema/object-types) for a detailed walkthrough of the mapping rules.
+Metadata and lifecycle features help you document, annotate, and evolve your schema safely over time.
+
+| Topic                     | Use it for                                                                          | Learn more                                |
+| ------------------------- | ----------------------------------------------------------------------------------- | ----------------------------------------- |
+| Descriptions              | Add schema documentation from XML comments, `[GraphQLDescription]`, or descriptors. | [Documentation Comments](./documentation) |
+| Directives                | Add schema metadata or executable behavior, depending on the directive kind.        | [Directives](./directives)                |
+| Deprecation and evolution | Communicate lifecycle changes and plan compatible schema updates.                   | [Versioning](./versioning)                |
+
+Use type extensions for static modularity. Choose dynamic schemas only when the schema must change based on external metadata or runtime configuration.
+
+# Next steps
+
+- Build a read entry point with [Queries](./queries).
+- Learn how returned shapes are inferred and configured in [Object Types](./object-types).
+- Add field inputs with [Arguments](./arguments) and [Input Object Types](./input-object-types).
+- Strengthen the contract with [Lists and Non-Null](./lists).
+- Move to runtime behavior with [Resolvers](../fetching-data/resolvers) and [DataLoader](../fetching-data/dataloader) after the schema shape is clear.
