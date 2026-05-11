@@ -16,6 +16,7 @@ export interface DocPage {
   product?: string;
   version?: string;
   lastUpdated?: string;
+  lastUpdatedIso?: string;
   lastAuthorName?: string;
 }
 
@@ -53,11 +54,12 @@ if (!_globalCache.__docPagesCache) {
 
 function getGitMetadata(filePath: string): {
   lastUpdated: string;
+  lastUpdatedIso: string;
   lastAuthorName: string;
 } {
   // Skip expensive git operations in development — 636 execSync calls is brutal
   if (process.env.NODE_ENV === "development") {
-    return { lastUpdated: "", lastAuthorName: "" };
+    return { lastUpdated: "", lastUpdatedIso: "", lastAuthorName: "" };
   }
 
   try {
@@ -74,12 +76,15 @@ function getGitMetadata(filePath: string): {
         month: "long",
         day: "2-digit",
       });
-      return { lastUpdated, lastAuthorName: authorName || "" };
+      const lastUpdatedIso = Number.isNaN(date.getTime())
+        ? ""
+        : date.toISOString();
+      return { lastUpdated, lastUpdatedIso, lastAuthorName: authorName || "" };
     }
   } catch {
     // Git metadata not available
   }
-  return { lastUpdated: "", lastAuthorName: "" };
+  return { lastUpdated: "", lastUpdatedIso: "", lastAuthorName: "" };
 }
 
 export function getDocsConfig(): DocsProduct[] {
@@ -118,7 +123,7 @@ export function getAllDocPages(options?: {
     }
 
     const gitMeta = options?.skipGitMetadata
-      ? { lastUpdated: "", lastAuthorName: "" }
+      ? { lastUpdated: "", lastUpdatedIso: "", lastAuthorName: "" }
       : getGitMetadata(file);
 
     pages.push({
@@ -129,6 +134,7 @@ export function getAllDocPages(options?: {
       product,
       version,
       lastUpdated: gitMeta.lastUpdated,
+      lastUpdatedIso: gitMeta.lastUpdatedIso,
       lastAuthorName: gitMeta.lastAuthorName,
     });
   }
