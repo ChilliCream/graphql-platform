@@ -85,7 +85,7 @@ public class ProductByIdDataLoader : BatchDataLoader<int, Product>
 
 For most applications, the source-generated DataLoader approach (using the `[DataLoader]` attribute) is the recommended starting point.
 
-[Learn more about DataLoaders](/docs/hotchocolate/v16/resolvers-and-data/dataloader)
+[Learn more about DataLoaders](/docs/hotchocolate/v16/fetching-data/dataloader)
 
 # Projections and Database Efficiency
 
@@ -120,7 +120,7 @@ public static partial class UserQueries
 
 Do not combine `QueryContext<T>` with `[UseProjection]` on the same field. The HC0099 analyzer warns when both are present.
 
-[Learn more about projections](/docs/hotchocolate/v16/resolvers-and-data/projections)
+[Learn more about projections](/docs/hotchocolate/v16/fetching-data/projections)
 
 # Cost Analysis for Resource Protection
 
@@ -140,7 +140,7 @@ builder
 
 Use the `GraphQL-Cost: report` HTTP header to inspect the cost of any operation without changing enforcement. Send your most complex expected operations and verify they fall within your limits.
 
-[Learn more about cost analysis](/docs/hotchocolate/v16/securing-your-api/cost-analysis)
+[Learn more about cost analysis](/docs/hotchocolate/v16/security/cost-analysis)
 
 # Reduce Response Size
 
@@ -230,8 +230,8 @@ Diagnostic event handlers execute synchronously as part of the GraphQL request. 
 
 - **Server warmup:** [Warmup](/docs/hotchocolate/v16/server/warmup) covers custom warmup tasks and lazy initialization.
 - **Persisted operations:** [Persisted Operations](/docs/hotchocolate/v16/performance/trusted-documents) covers both pre-stored and automatic persisted operations.
-- **DataLoaders:** [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader) covers source-generated DataLoaders, manual DataLoader classes, and batch resolvers.
-- **Projections:** [Projections](/docs/hotchocolate/v16/resolvers-and-data/projections) covers the `[UseProjection]` middleware and `QueryContext<T>`.
-- **Cost analysis:** [Cost Analysis](/docs/hotchocolate/v16/securing-your-api/cost-analysis) covers custom weights, filtering and sorting costs, and the tuning guide.
+- **DataLoaders:** [DataLoader](/docs/hotchocolate/v16/fetching-data/dataloader) covers source-generated DataLoaders, manual DataLoader classes, and batch resolvers.
+- **Projections:** [Projections](/docs/hotchocolate/v16/fetching-data/projections) covers the `[UseProjection]` middleware and `QueryContext<T>`.
+- **Cost analysis:** [Cost Analysis](/docs/hotchocolate/v16/security/cost-analysis) covers custom weights, filtering and sorting costs, and the tuning guide.
 - **Instrumentation:** [Instrumentation](/docs/hotchocolate/v16/server/instrumentation) covers diagnostic event listeners and OpenTelemetry integration.
-- **Configuration reference:** [Options](/docs/hotchocolate/v16/api-reference/options) lists all schema, request, and server options with their defaults.
+- **Configuration reference:** [Options](/docs/hotchocolate/v16/server/options) lists all schema, request, and server options with their defaults.

@@ -469,7 +469,7 @@
             "title": "Getting Started"
           },
           {
-            "path": "building-a-schema",
+            "path": "defining-a-schema",
             "title": "Building a Schema",
             "items": [
               {
@@ -551,7 +551,7 @@
             ]
           },
           {
-            "path": "resolvers-and-data",
+            "path": "fetching-data",
             "title": "Resolvers and Data",
             "items": [
               {
@@ -593,6 +593,34 @@
               {
                 "path": "fetching-from-rest",
                 "title": "Fetching from REST"
+              },
+              {
+                "path": "entity-framework",
+                "title": "Entity Framework"
+              },
+              {
+                "path": "mongodb",
+                "title": "MongoDB"
+              },
+              {
+                "path": "spatial-data",
+                "title": "Spatial Data"
+              },
+              {
+                "path": "marten",
+                "title": "Marten"
+              },
+              {
+                "path": "errors",
+                "title": "Error Codes"
+              },
+              {
+                "path": "extending-filtering",
+                "title": "Extending Filtering"
+              },
+              {
+                "path": "executable",
+                "title": "Executable"
               }
             ]
           },
@@ -635,6 +663,10 @@
               {
                 "path": "openapi-adapter",
                 "title": "OpenAPI Adapter"
+              },
+              {
+                "path": "federation",
+                "title": "Federation"
               }
             ]
           },
@@ -649,32 +681,6 @@
               {
                 "path": "field-middleware",
                 "title": "Field Middleware"
-              }
-            ]
-          },
-          {
-            "path": "integrations",
-            "title": "Integrations",
-            "items": [
-              {
-                "path": "index",
-                "title": "Overview"
-              },
-              {
-                "path": "entity-framework",
-                "title": "Entity Framework"
-              },
-              {
-                "path": "mongodb",
-                "title": "MongoDB"
-              },
-              {
-                "path": "spatial-data",
-                "title": "Spatial Data"
-              },
-              {
-                "path": "marten",
-                "title": "Marten"
               }
             ]
           },
@@ -725,6 +731,10 @@
               {
                 "path": "command-line",
                 "title": "CLI Commands"
+              },
+              {
+                "path": "options",
+                "title": "Configuration Options"
               }
             ]
           },
@@ -747,7 +757,7 @@
             ]
           },
           {
-            "path": "securing-your-api",
+            "path": "security",
             "title": "Securing Your API",
             "items": [
               {
@@ -785,32 +795,12 @@
                 "title": "Attributes"
               },
               {
-                "path": "options",
-                "title": "Configuration Options"
-              },
-              {
-                "path": "errors",
-                "title": "Error Codes"
-              },
-              {
-                "path": "extending-filtering",
-                "title": "Extending Filtering"
-              },
-              {
-                "path": "apollo-federation",
-                "title": "Apollo Federation"
-              },
-              {
                 "path": "language",
                 "title": "Language"
               },
               {
                 "path": "visitors",
                 "title": "Visitors"
-              },
-              {
-                "path": "executable",
-                "title": "Executable"
               }
             ]
           },

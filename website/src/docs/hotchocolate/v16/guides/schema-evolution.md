@@ -84,7 +84,7 @@ public class ProductType : ObjectType<Product>
 
 Descriptions appear in introspection results and in tools like [Nitro](/products/nitro). The more descriptive your schema, the fewer support questions you receive when fields change.
 
-[Learn more about schema documentation](/docs/hotchocolate/v16/building-a-schema/documentation)
+[Learn more about schema documentation](/docs/hotchocolate/v16/defining-a-schema/documentation)
 
 # Deprecate Fields Instead of Removing Them
 
@@ -156,7 +156,7 @@ You can deprecate output fields, input fields, arguments, and enum values. Keep 
 
 > Warning: You cannot deprecate non-null arguments or input fields that have no default value. Deprecating a required field would silently break queries that depend on it. Add a default value first, then apply the deprecation.
 
-[Learn more about deprecation](/docs/hotchocolate/v16/building-a-schema/versioning)
+[Learn more about deprecation](/docs/hotchocolate/v16/defining-a-schema/versioning)
 
 # Opt-In Features with @requiresOptIn
 
@@ -268,7 +268,7 @@ Consumers query feature stability through introspection:
 }
 ```
 
-[Learn more about opt-in features](/docs/hotchocolate/v16/building-a-schema/versioning)
+[Learn more about opt-in features](/docs/hotchocolate/v16/defining-a-schema/versioning)
 
 # Additive Changes Are Safe
 
@@ -300,6 +300,6 @@ When you need to make a breaking change, follow this sequence:
 
 # Next Steps
 
-- **Schema documentation reference:** [Documentation](/docs/hotchocolate/v16/building-a-schema/documentation) covers `[GraphQLDescription]`, XML docs, and priority order.
-- **Versioning reference:** [Versioning](/docs/hotchocolate/v16/building-a-schema/versioning) covers `@deprecated`, `@requiresOptIn`, and feature stability in full detail.
+- **Schema documentation reference:** [Documentation](/docs/hotchocolate/v16/defining-a-schema/documentation) covers `[GraphQLDescription]`, XML docs, and priority order.
+- **Versioning reference:** [Versioning](/docs/hotchocolate/v16/defining-a-schema/versioning) covers `@deprecated`, `@requiresOptIn`, and feature stability in full detail.
 - **Building a public API:** [Public API Guide](/docs/hotchocolate/v16/guides/public-api) covers cost analysis, pagination, and authorization for APIs consumed by external developers.

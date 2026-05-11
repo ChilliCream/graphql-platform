@@ -489,7 +489,7 @@ If a request is rejected because it lacks the required preflight header, the ser
 
 - [Endpoints](/docs/hotchocolate/v16/server/endpoints) for configuring the GraphQL middleware and per-endpoint options.
 - [Batching](/docs/hotchocolate/v16/server/batching) for details on variable batching and request batching.
-- [Subscriptions](/docs/hotchocolate/v16/building-a-schema/subscriptions) for defining subscription types and event publishing.
+- [Subscriptions](/docs/hotchocolate/v16/defining-a-schema/subscriptions) for defining subscription types and event publishing.
 - [Interceptors](/docs/hotchocolate/v16/server/interceptors) for hooking into WebSocket and HTTP request processing.
 - [Migrate from v15 to v16](/docs/hotchocolate/v16/migrating/migrate-from-15-to-16#new-default-incremental-delivery-format-for-defer-and-stream) for the incremental delivery migration details.
 

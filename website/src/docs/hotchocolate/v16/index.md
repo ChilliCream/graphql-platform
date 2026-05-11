@@ -70,9 +70,9 @@ A public API is consumed by third-party developers or external clients. GitHub's
 
 Hot Chocolate provides **cost analysis** for this scenario. You assign weights to fields and connections, and the server rejects operations that exceed the budget before execution begins.
 
-- [Cost analysis](/docs/hotchocolate/v16/securing-your-api/cost-analysis) explains field weights, type costs, and budget configuration.
-- [Authorization](/docs/hotchocolate/v16/securing-your-api/authorization) limits access to types and fields based on roles or policies.
-- [Controlling introspection](/docs/hotchocolate/v16/securing-your-api/introspection) lets you restrict schema visibility in production.
+- [Cost analysis](/docs/hotchocolate/v16/security/cost-analysis) explains field weights, type costs, and budget configuration.
+- [Authorization](/docs/hotchocolate/v16/security/authorization) limits access to types and fields based on roles or policies.
+- [Controlling introspection](/docs/hotchocolate/v16/security/introspection) lets you restrict schema visibility in production.
 
 ## Private GraphQL
 
@@ -113,7 +113,7 @@ Where you go from here depends on what you need:
 
 - **"I want to understand the schema system."** Read [Defining a Schema](/docs/hotchocolate/v16/defining-a-schema). It covers queries, mutations, subscriptions, and all the GraphQL types.
 
-- **"I need to fetch data efficiently."** Go to [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader) for batching and caching, or [Resolvers](/docs/hotchocolate/v16/resolvers-and-data/resolvers) for the full resolver API.
+- **"I need to fetch data efficiently."** Go to [DataLoader](/docs/hotchocolate/v16/fetching-data/dataloader) for batching and caching, or [Resolvers](/docs/hotchocolate/v16/fetching-data/resolvers) for the full resolver API.
 
 - **"I need to secure my API."** See [Securing Your API](/docs/hotchocolate/v16/security) for authentication, authorization, cost analysis, and trusted documents.
 

@@ -230,4 +230,4 @@ In day-to-day terms, the flow is simple:
 
 - [HTTP Transport](/docs/hotchocolate/v16/server/http-transport) for request and response behavior.
 - [Interceptors](/docs/hotchocolate/v16/server/interceptors) for request-level control.
-- [Configuration Options](/docs/hotchocolate/v16/api-reference/options) for the full options reference.
+- [Configuration Options](/docs/hotchocolate/v16/server/options) for the full options reference.

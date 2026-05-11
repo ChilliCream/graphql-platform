@@ -29,9 +29,9 @@ public class Organization
 
 **Plan for deprecation from day one.** Use `@deprecated` to phase out fields and `@requiresOptIn` to gate experimental features. Never remove a field without a deprecation period.
 
-[Learn more about schema documentation](/docs/hotchocolate/v16/building-a-schema/documentation)
+[Learn more about schema documentation](/docs/hotchocolate/v16/defining-a-schema/documentation)
 
-[Learn more about versioning and deprecation](/docs/hotchocolate/v16/building-a-schema/versioning)
+[Learn more about versioning and deprecation](/docs/hotchocolate/v16/defining-a-schema/versioning)
 
 # Use Cursor-Based Pagination for All Lists
 
@@ -64,7 +64,7 @@ builder
     });
 ```
 
-[Learn more about pagination](/docs/hotchocolate/v16/resolvers-and-data/pagination)
+[Learn more about pagination](/docs/hotchocolate/v16/fetching-data/pagination)
 
 # Configure Cost Analysis
 
@@ -133,7 +133,7 @@ public static partial class OrganizationNode
 
 Use the `GraphQL-Cost: report` HTTP header to see the cost of any query without changing enforcement. Send your most complex expected queries and verify they fall within your limits before deploying.
 
-[Learn more about cost analysis](/docs/hotchocolate/v16/securing-your-api/cost-analysis)
+[Learn more about cost analysis](/docs/hotchocolate/v16/security/cost-analysis)
 
 # Control Introspection
 
@@ -179,7 +179,7 @@ builder
     .AddHttpRequestInterceptor<IntrospectionInterceptor>();
 ```
 
-[Learn more about introspection](/docs/hotchocolate/v16/securing-your-api/introspection)
+[Learn more about introspection](/docs/hotchocolate/v16/security/introspection)
 
 # Set Up Authorization
 
@@ -245,7 +245,7 @@ public static partial class BillingNode
 
 Use `HotChocolate.Authorization.AuthorizeAttribute`, not the Microsoft one. The Microsoft attribute does not integrate with the Hot Chocolate authorization pipeline.
 
-[Learn more about authorization](/docs/hotchocolate/v16/securing-your-api/authorization)
+[Learn more about authorization](/docs/hotchocolate/v16/security/authorization)
 
 # Rate Limiting and Depth Limits
 
@@ -374,10 +374,10 @@ Adjust the specific values (`MaxPageSize`, `MaxFieldCost`, `MaxTypeCost`, depth 
 
 # Next Steps
 
-- **Cost analysis reference:** [Cost Analysis](/docs/hotchocolate/v16/securing-your-api/cost-analysis) covers all options, custom weights, filtering and sorting costs, and the tuning guide.
-- **Authorization reference:** [Authorization](/docs/hotchocolate/v16/securing-your-api/authorization) covers roles, policies, global authorization, and accessing `IResolverContext` in handlers.
-- **Pagination reference:** [Pagination](/docs/hotchocolate/v16/resolvers-and-data/pagination) covers the `Connection<T>` type, total counts, extending connection types, and pagination providers.
-- **Schema documentation:** [Documentation](/docs/hotchocolate/v16/building-a-schema/documentation) covers `[GraphQLDescription]`, XML docs, and priority order.
-- **Schema versioning:** [Versioning](/docs/hotchocolate/v16/building-a-schema/versioning) covers `@deprecated`, `@requiresOptIn`, and feature stability.
-- **Introspection:** [Introspection](/docs/hotchocolate/v16/securing-your-api/introspection) covers disabling, allowlisting, and custom error messages.
+- **Cost analysis reference:** [Cost Analysis](/docs/hotchocolate/v16/security/cost-analysis) covers all options, custom weights, filtering and sorting costs, and the tuning guide.
+- **Authorization reference:** [Authorization](/docs/hotchocolate/v16/security/authorization) covers roles, policies, global authorization, and accessing `IResolverContext` in handlers.
+- **Pagination reference:** [Pagination](/docs/hotchocolate/v16/fetching-data/pagination) covers the `Connection<T>` type, total counts, extending connection types, and pagination providers.
+- **Schema documentation:** [Documentation](/docs/hotchocolate/v16/defining-a-schema/documentation) covers `[GraphQLDescription]`, XML docs, and priority order.
+- **Schema versioning:** [Versioning](/docs/hotchocolate/v16/defining-a-schema/versioning) covers `@deprecated`, `@requiresOptIn`, and feature stability.
+- **Introspection:** [Introspection](/docs/hotchocolate/v16/security/introspection) covers disabling, allowlisting, and custom error messages.
 - **Trusted documents:** If you later add first-party clients that you control, [Trusted Documents](/docs/hotchocolate/v16/performance/trusted-documents) let you bypass cost analysis for pre-approved operations.
