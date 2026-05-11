@@ -53,6 +53,10 @@
             {
               "Key": "graphql.operation.type",
               "Value": "query"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:eb7651f0968bfe850896354cd6bcbd0d"
             }
           ]
         }

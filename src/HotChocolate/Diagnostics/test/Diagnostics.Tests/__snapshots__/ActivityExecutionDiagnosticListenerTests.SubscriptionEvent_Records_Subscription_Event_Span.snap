@@ -125,7 +125,7 @@
               "tags": [
                 {
                   "Key": "graphql.processing.type",
-                  "Value": "execute"
+                  "Value": "subscription_event"
                 },
                 {
                   "Key": "graphql.operation.type",

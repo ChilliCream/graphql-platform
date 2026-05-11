@@ -69,6 +69,10 @@
             {
               "Key": "graphql.operation.name",
               "Value": "SayHelloOperation"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:851fb754d9ba6b5cc5a55ebcbea2621d"
             }
           ]
         }

@@ -1,6 +1,6 @@
 {
   "source": {
-    "name": "HotChocolate.Diagnostics"
+    "name": "HotChocolate.Fusion.Diagnostics"
   },
   "activities": [
     {
@@ -19,11 +19,7 @@
         },
         {
           "Key": "graphql.document.hash",
-          "Value": "md5:ae3f9af1d2570e25f30a1ad002172b82"
-        },
-        {
-          "Key": "graphql.document.body",
-          "Value": "{\n  causeFatalError\n}"
+          "Value": "md5:6e78386576e454e4780875a7606e0d16"
         },
         {
           "Key": "graphql.error.count",
@@ -31,12 +27,12 @@
         },
         {
           "Key": "error.type",
-          "Value": "CUSTOM_ERROR_CODE"
+          "Value": "EXECUTION_ERROR"
         }
       ],
       "event": [
         {
-          "Name": "AddedOperationToCache",
+          "Name": "AddedOperationPlanToCache",
           "Tags": []
         },
         {
@@ -48,15 +44,11 @@
           "Tags": [
             {
               "Key": "graphql.error.message",
-              "Value": "fail"
+              "Value": "Mood cannot coerce the given value JSON element of type `String` to a runtime value."
             },
             {
               "Key": "graphql.field.path",
-              "Value": "causeFatalError"
-            },
-            {
-              "Key": "graphql.error.code",
-              "Value": "CUSTOM_ERROR_CODE"
+              "Value": "greetMood"
             },
             {
               "Key": "graphql.operation.type",
@@ -64,7 +56,7 @@
             },
             {
               "Key": "graphql.document.hash",
-              "Value": "md5:ae3f9af1d2570e25f30a1ad002172b82"
+              "Value": "md5:6e78386576e454e4780875a7606e0d16"
             }
           ]
         }
@@ -78,7 +70,7 @@
           "tags": [
             {
               "Key": "graphql.document.hash",
-              "Value": "md5:ae3f9af1d2570e25f30a1ad002172b82"
+              "Value": "md5:6e78386576e454e4780875a7606e0d16"
             }
           ],
           "event": []
@@ -95,7 +87,7 @@
             },
             {
               "Key": "graphql.document.hash",
-              "Value": "md5:ae3f9af1d2570e25f30a1ad002172b82"
+              "Value": "md5:6e78386576e454e4780875a7606e0d16"
             }
           ],
           "event": []
@@ -112,11 +104,32 @@
             },
             {
               "Key": "graphql.document.hash",
-              "Value": "md5:ae3f9af1d2570e25f30a1ad002172b82"
+              "Value": "md5:6e78386576e454e4780875a7606e0d16"
             },
             {
               "Key": "graphql.operation.type",
               "Value": "query"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Variable Coercion",
+          "DisplayName": "GraphQL Variable Coercion",
+          "Kind": "Internal",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "variable_coercion"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:6e78386576e454e4780875a7606e0d16"
             }
           ],
           "event": []
@@ -137,48 +150,56 @@
             },
             {
               "Key": "graphql.document.hash",
-              "Value": "md5:ae3f9af1d2570e25f30a1ad002172b82"
+              "Value": "md5:6e78386576e454e4780875a7606e0d16"
             },
             {
               "Key": "error.type",
-              "Value": "CUSTOM_ERROR_CODE"
+              "Value": "EXECUTION_ERROR"
             }
           ],
           "event": [],
           "activities": [
             {
-              "OperationName": "SimpleQuery.causeFatalError",
-              "DisplayName": "SimpleQuery.causeFatalError",
+              "OperationName": "GraphQL Step Execution",
+              "DisplayName": "GraphQL Step Execution",
               "Kind": "Internal",
-              "Status": "Error",
+              "Status": "Ok",
               "tags": [
                 {
                   "Key": "graphql.processing.type",
-                  "Value": "resolve"
+                  "Value": "step_execute"
                 },
                 {
-                  "Key": "graphql.field.alias",
-                  "Value": "causeFatalError"
+                  "Key": "graphql.operation.type",
+                  "Value": "query"
                 },
                 {
-                  "Key": "graphql.field.path",
-                  "Value": "causeFatalError"
+                  "Key": "graphql.document.hash",
+                  "Value": "md5:6e78386576e454e4780875a7606e0d16"
                 },
                 {
-                  "Key": "graphql.field.name",
-                  "Value": "causeFatalError"
+                  "Key": "graphql.operation.step.id",
+                  "Value": "1"
                 },
                 {
-                  "Key": "graphql.field.schema_coordinate",
-                  "Value": "SimpleQuery.causeFatalError"
+                  "Key": "graphql.operation.step.kind",
+                  "Value": "operation"
                 },
                 {
-                  "Key": "graphql.field.parent_type",
-                  "Value": "SimpleQuery"
+                  "Key": "graphql.operation.step.plan.id",
+                  "Value": "2e1b1885ffe6f212546fa4bd4f1343545db562aa93c24e02c85024bb1e4bbae0"
                 },
                 {
-                  "Key": "error.type",
-                  "Value": "CUSTOM_ERROR_CODE"
+                  "Key": "graphql.source_schema.name",
+                  "Value": "a"
+                },
+                {
+                  "Key": "graphql.source_schema.operation.name",
+                  "Value": "Op_6e783865_1"
+                },
+                {
+                  "Key": "graphql.source_schema.operation.hash",
+                  "Value": "sha256:0dfa0a2d24c8e4422563d556aea9ab42b677dda1a9d54f60176f8fe0b5ffb527"
                 }
               ],
               "event": []
