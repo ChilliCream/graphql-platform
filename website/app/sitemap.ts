@@ -3,10 +3,13 @@ import fs from "fs";
 import path from "path";
 import type { MetadataRoute } from "next";
 
-import { getAllBlogPosts, getAllTags } from "@/lib/blog";
-import { getContentDir } from "@/lib/content";
+import { getAllBlogPosts, getAllTags, getPostsPerPage } from "@/lib/blog";
+import {
+  getContentDir,
+  getFilesRecursively,
+  readMarkdownFile,
+} from "@/lib/content";
 import { getAllDocPages } from "@/lib/docs";
-import { getPostsPerPage } from "@/lib/blog";
 import { siteMetadata } from "@/lib/site-config";
 
 export const dynamic = "force-static";
@@ -62,6 +65,7 @@ const DOCS_DISALLOWED = [
 const mtimeCache = new Map<string, Date | undefined>();
 
 function gitMTime(filePath: string): Date | undefined {
+  if (process.env.NODE_ENV === "development") return undefined;
   if (mtimeCache.has(filePath)) return mtimeCache.get(filePath);
 
   let result: Date | undefined;
@@ -88,6 +92,21 @@ function readBasicSlugs(subdir: string): string[] {
     .readdirSync(dir)
     .filter((f) => f.endsWith(".md"))
     .map((f) => f.replace(/\.md$/, ""));
+}
+
+function getBlogPostFilePaths(): Map<string, string> {
+  const map = new Map<string, string>();
+  const blogDir = getContentDir("blog");
+  for (const file of getFilesRecursively(blogDir, ".md")) {
+    const { frontmatter } = readMarkdownFile(file);
+    if (
+      typeof frontmatter.path === "string" &&
+      frontmatter.path.startsWith("/blog/")
+    ) {
+      map.set(frontmatter.path, file);
+    }
+  }
+  return map;
 }
 
 function parseIso(value: string | undefined): Date | undefined {
@@ -126,10 +145,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
   }
 
   const posts = getAllBlogPosts();
+  const blogFilePaths = getBlogPostFilePaths();
   const postMTimes = new Map<string, Date>();
   let latestPostDate: Date | undefined;
   for (const post of posts) {
-    const mtime = gitMTime(post.filePath) ?? new Date(post.date) ?? fallback;
+    const filePath = blogFilePaths.get(post.slug);
+    const mtime =
+      (filePath ? gitMTime(filePath) : undefined) ??
+      parseIso(post.date) ??
+      fallback;
     postMTimes.set(post.slug, mtime);
     if (!latestPostDate || mtime > latestPostDate) latestPostDate = mtime;
   }

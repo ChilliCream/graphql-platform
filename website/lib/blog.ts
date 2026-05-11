@@ -21,7 +21,6 @@ export interface BlogPost {
   content: string;
   readingTime: string;
   path: string;
-  filePath: string;
 }
 
 const BLOG_DIR = getContentDir("blog");
@@ -72,7 +71,6 @@ export function getAllBlogPosts(): BlogPost[] {
       content,
       readingTime: readingTime(content).text,
       path: frontmatter.path,
-      filePath: file,
     });
   }
 
