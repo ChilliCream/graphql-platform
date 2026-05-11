@@ -478,7 +478,7 @@ public partial class ActivityExecutionDiagnosticListenerTests
                         .Build());
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 

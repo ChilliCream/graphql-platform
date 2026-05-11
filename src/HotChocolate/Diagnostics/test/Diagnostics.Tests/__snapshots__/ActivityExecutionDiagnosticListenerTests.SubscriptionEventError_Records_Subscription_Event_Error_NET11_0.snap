@@ -125,7 +125,7 @@
               "tags": [
                 {
                   "Key": "graphql.processing.type",
-                  "Value": "execute"
+                  "Value": "subscription_event"
                 },
                 {
                   "Key": "graphql.operation.type",
@@ -171,6 +171,10 @@
                     {
                       "Key": "graphql.operation.name",
                       "Value": "OnFailingMessageSubscription"
+                    },
+                    {
+                      "Key": "graphql.document.hash",
+                      "Value": "md5:1f38a1bfe720ad0cb6083bf8b309d3aa"
                     },
                     {
                       "Key": "exception.type",

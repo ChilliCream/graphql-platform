@@ -67,6 +67,10 @@
               "Value": "SayHelloQuery"
             },
             {
+              "Key": "graphql.document.hash",
+              "Value": "md5:b3cf9afa2200bfa14e2a67e36d17e933"
+            },
+            {
               "Key": "exception.type",
               "Value": "System.Net.Http.HttpRequestException"
             },
@@ -244,6 +248,10 @@
                     {
                       "Key": "graphql.operation.name",
                       "Value": "SayHelloQuery"
+                    },
+                    {
+                      "Key": "graphql.document.hash",
+                      "Value": "md5:b3cf9afa2200bfa14e2a67e36d17e933"
                     }
                   ]
                 }
