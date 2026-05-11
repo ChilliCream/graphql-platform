@@ -8,7 +8,11 @@ Hot Chocolate enables you to define this contract in C# and review the resulting
 
 # Begin with the client-facing contract
 
-Clients interact with your schema by sending GraphQL operations. They do not call your C# methods directly. Even a small schema illustrates most type system concepts:
+When working with GraphQL, everything starts with the schema. The schema defines the contract between your API and its clients, describing the available operations and the data that can be requested.
+
+Clients interact with your API by sending GraphQL operations. They do not call your C# methods or classes directly. Instead, they rely on the schema to understand what is possible.
+
+To introduce the main concepts of the GraphQL type system, consider the following example. This schema highlights the essential building blocks you will encounter:
 
 ```graphql
 type Query {
@@ -36,6 +40,8 @@ input CreateBookInput {
 }
 ```
 
+This example presents queries, mutations, object types, input types, and scalar values. Each part of the schema plays a specific role in shaping how clients interact with your API. The table below breaks down these elements and explains their purpose within the type system.
+
 | SDL part                    | Type system member  | What it means                     | Learn more                                 |
 | --------------------------- | ------------------- | --------------------------------- | ------------------------------------------ |
 | `Query`                     | Operation root type | Entry point for read operations.  | [Queries](./operations-queries)            |
@@ -47,138 +53,48 @@ input CreateBookInput {
 | `ID` and `String`           | Scalars             | Leaf values with no subfields.    | [Scalars](./scalars)                       |
 | `!` and `[]`                | Type modifiers      | Non-null and list wrappers.       | [Lists and Non-Null](./lists-and-non-null) |
 
-If you are unsure where to begin, look at the SDL. If an element is selected by a client, it is a field. If a client provides it to a field, it is an argument or input field. If it wraps another type with `!` or `[]`, it is a type modifier.
+If you are unsure how to identify the parts of your schema, start by looking at the SDL. Elements that a client can select in a query are fields. Values that a client supplies to those fields are arguments or input fields. When you see `!` or `[]` wrapping another type, these are type modifiers that indicate non-nullability or lists.
 
-# How C# produces the same contract
-
-The implementation-first approach is the recommended default in the schema documentation. You define C# types, add Hot Chocolate attributes where schema guidance is needed, and the source generator handles schema setup.
-
-```csharp
-#nullable enable
-
-using HotChocolate.Types;
-
-public sealed class Book
-{
-    [ID]
-    public int Id { get; init; }
-
-    public required string Title { get; init; }
-
-    public required IReadOnlyList<Author> Authors { get; init; }
-}
-
-public sealed class Author
-{
-    [ID]
-    public int Id { get; init; }
-
-    public required string Name { get; init; }
-}
-
-public sealed class CreateBookInput
-{
-    public required string Title { get; init; }
-
-    [ID<Author>]
-    public required IReadOnlyList<int> AuthorIds { get; init; }
-}
-
-public interface IBookService
-{
-    Task<Book?> GetBookByIdAsync(
-        int id,
-        CancellationToken cancellationToken);
-
-    Task<Book> CreateBookAsync(
-        CreateBookInput input,
-        CancellationToken cancellationToken);
-}
-
-[QueryType]
-public static partial class BookQueries
-{
-    public static Task<Book?> GetBookByIdAsync(
-        [ID] int id,
-        IBookService books,
-        CancellationToken cancellationToken)
-        => books.GetBookByIdAsync(id, cancellationToken);
-}
-
-[MutationType]
-public static partial class BookMutations
-{
-    public static Task<Book> CreateBookAsync(
-        CreateBookInput input,
-        IBookService books,
-        CancellationToken cancellationToken)
-        => books.CreateBookAsync(input, cancellationToken);
-}
-```
-
-The generated schema exposes the contract that clients see:
+For example, a client might send the following query and mutation:
 
 ```graphql
-type Query {
-  bookById(id: ID!): Book
+query {
+  bookById(id: "1") {
+    title
+    authors {
+      name
+    }
+  }
 }
 
-type Mutation {
-  createBook(input: CreateBookInput!): Book!
-}
-
-type Book {
-  id: ID!
-  title: String!
-  authors: [Author!]!
-}
-
-type Author {
-  id: ID!
-  name: String!
-}
-
-input CreateBookInput {
-  title: String!
-  authorIds: [Int!]!
+mutation {
+  createBook(input: { title: "New Book", authorIds: ["2"] }) {
+    id
+    title
+  }
 }
 ```
 
-Key mappings include:
-
-| C# authoring element                           | GraphQL type system member | Notes                                                                                            |
-| ---------------------------------------------- | -------------------------- | ------------------------------------------------------------------------------------------------ |
-| `[QueryType]` method                           | Field on `Query`           | `GetBookByIdAsync` becomes `bookById`.                                                           |
-| `[MutationType]` method                        | Field on `Mutation`        | Top-level mutation fields execute serially.                                                      |
-| Method parameter                               | Argument                   | Services and framework parameters, such as `CancellationToken`, do not become GraphQL arguments. |
-| Class or record returned from a resolver       | Object type                | Public properties and methods can become fields.                                                 |
-| Class or record used as a resolver parameter   | Input object type          | Input and output types are separate GraphQL concepts.                                            |
-| `string` with nullable reference types enabled | `String!`                  | Nullable annotations influence GraphQL nullability.                                              |
-| `IReadOnlyList<T>`                             | `[T]` list wrapper         | The list and item nullability are modeled separately.                                            |
-| `[ID]`                                         | `ID` scalar behavior       | Use Relay guidance when you need global object identification.                                   |
-
-The generated SDL is the artifact consumed by clients, schema registries, IDE tools, and tests. Review it regularly as you model your schema.
+In these examples, `bookById` and `createBook` are fields. The `id` and `input` values are arguments. The selections inside the curly braces, such as `title` and `authors`, are fields on the returned types.
 
 # Select an authoring style
 
 Hot Chocolate offers two C# authoring styles, both of which produce GraphQL SDL.
 
-## Implementation-first: recommended default
+## Implementation-first
 
-Choose implementation-first when you want your schema to follow standard C# types with minimal ceremony. This is the main approach used throughout the schema documentation.
+Implementation-first lets you define your GraphQL schema using standard C# types and attributes, keeping your contract close to your domain code with minimal ceremony. You get compile-time feedback, clear mapping between code and schema, and a streamlined workflow for most application schemas.
 
 Common building blocks:
 
 - `[QueryType]`, `[MutationType]`, and `[SubscriptionType]` for operation root fields
 - `partial` source-generator classes for annotated root type classes
 - Attributes such as `[GraphQLName]`, `[GraphQLDescription]`, `[GraphQLIgnore]`, `[ID]`, `[Node]`, `[InterfaceType]`, `[UnionType]`, and `[OneOf]` when the inferred schema needs guidance
-- Generated `AddTypes` setup for annotated implementation-first types
+- Generated dependency injection modules for GraphQL types
 
-This style is well suited for application schemas, compile-time feedback, and teams that want the GraphQL contract close to the C# implementation.
+## Code-first
 
-## Code-first: descriptor control
-
-Use code-first when you need descriptor-level control, when the GraphQL shape differs from the C# shape, or when building reusable schema infrastructure.
+Code-first lets you specify GraphQL types and their structure directly in C# using the Hot Chocolate type descriptor API. This approach is useful when your GraphQL schema needs to differ from your C# model, or when building reusable schema components.
 
 ```csharp
 using HotChocolate.Types;
