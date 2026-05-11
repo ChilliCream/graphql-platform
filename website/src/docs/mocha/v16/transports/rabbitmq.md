@@ -151,11 +151,9 @@ graph LR
 
 **Request/reply:** The transport creates a temporary reply queue per service instance. The reply address is embedded in the request message so the responder knows where to send the reply.
 
-:::warning
-**Message loss warning.** Messages published before the transport completes its Start phase may be lost if no queue is bound to the exchange yet. During deployment, ensure consuming services start before publishing services, or use [publisher confirms](https://www.rabbitmq.com/docs/reliability#publisher-confirms) to detect lost messages.
-
-If a message is published to an exchange with no bound queue - for example, when no consumer has started - that message is dropped. Mocha auto-provisions topology, but the window between exchange creation and queue binding is a real operational risk.
-:::
+> **Warning:** Messages published before the transport completes its Start phase may be lost if no queue is bound to the exchange yet. During deployment, ensure consuming services start before publishing services, or use [publisher confirms](https://www.rabbitmq.com/docs/reliability#publisher-confirms) to detect lost messages.
+>
+> If a message is published to an exchange with no bound queue - for example, when no consumer has started - that message is dropped. Mocha auto-provisions topology, but the window between exchange creation and queue binding is a real operational risk.
 
 ## Publisher confirms
 

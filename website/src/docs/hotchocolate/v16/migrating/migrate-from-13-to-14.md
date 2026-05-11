@@ -78,7 +78,7 @@ For more information, see the [Dependency Injection](/docs/hotchocolate/v14/serv
 - The `RegisterDbContext` method is no longer required, and has therefore been removed, along with the `DbContextKind` enum.
 - Use `RegisterDbContextFactory` to register a DbContext factory.
 
-For more information, see the [Entity Framework integration](/docs/hotchocolate/v14/integrations/entity-framework) documentation.
+For more information, see the [Entity Framework integration](/docs/hotchocolate/v14/fetching-data/entity-framework) documentation.
 
 ## New GID format
 

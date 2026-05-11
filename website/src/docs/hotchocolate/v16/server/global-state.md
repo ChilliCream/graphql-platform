@@ -126,4 +126,4 @@ Take a look at the implementation-first or code-first example.
 # Next Steps
 
 - [Interceptors](/docs/hotchocolate/v16/server/interceptors) for initializing state before request execution.
-- [Dependency Injection](/docs/hotchocolate/v16/resolvers-and-data/dependency-injection) for injecting services into resolvers.
+- [Dependency Injection](/docs/hotchocolate/v16/fetching-data/dependency-injection) for injecting services into resolvers.
