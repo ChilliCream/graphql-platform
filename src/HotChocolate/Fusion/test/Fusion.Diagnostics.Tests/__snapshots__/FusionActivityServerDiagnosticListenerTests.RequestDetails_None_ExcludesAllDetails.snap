@@ -1,4 +1,7 @@
 {
+  "source": {
+    "name": "HotChocolate.Fusion.Diagnostics"
+  },
   "activities": [
     {
       "OperationName": "ExecuteHttpRequest",
@@ -34,6 +37,14 @@
             {
               "Key": "graphql.processing.type",
               "Value": "request"
+            },
+            {
+              "Key": "server.address",
+              "Value": "localhost"
+            },
+            {
+              "Key": "server.port",
+              "Value": 5000
             },
             {
               "Key": "graphql.operation.type",

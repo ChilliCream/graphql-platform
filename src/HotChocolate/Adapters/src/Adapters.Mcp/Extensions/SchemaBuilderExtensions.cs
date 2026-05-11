@@ -1,6 +1,7 @@
 using HotChocolate.Adapters.Mcp.Directives;
 
-namespace HotChocolate.Adapters.Mcp.Extensions;
+// ReSharper disable once CheckNamespace
+namespace HotChocolate;
 
 public static class SchemaBuilderExtensions
 {

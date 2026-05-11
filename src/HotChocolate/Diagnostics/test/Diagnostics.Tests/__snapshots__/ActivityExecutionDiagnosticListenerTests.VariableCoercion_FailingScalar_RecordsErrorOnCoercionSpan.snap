@@ -1,0 +1,169 @@
+{
+  "source": {
+    "name": "HotChocolate.Diagnostics"
+  },
+  "activities": [
+    {
+      "OperationName": "GraphQL Operation",
+      "DisplayName": "query",
+      "Kind": "Internal",
+      "Status": "Error",
+      "tags": [
+        {
+          "Key": "graphql.processing.type",
+          "Value": "request"
+        },
+        {
+          "Key": "error.type",
+          "Value": "HotChocolate.Types.LeafCoercionException"
+        },
+        {
+          "Key": "graphql.operation.type",
+          "Value": "query"
+        },
+        {
+          "Key": "graphql.document.hash",
+          "Value": "md5:6e78386576e454e4780875a7606e0d16"
+        },
+        {
+          "Key": "graphql.error.count",
+          "Value": 1
+        }
+      ],
+      "event": [
+        {
+          "Name": "AddedOperationToCache",
+          "Tags": []
+        },
+        {
+          "Name": "exception",
+          "Tags": [
+            {
+              "Key": "exception.message",
+              "Value": "Mood cannot coerce the given value JSON element of type `String` to a runtime value."
+            },
+            {
+              "Key": "exception.stacktrace",
+              "Value": "HotChocolate.Types.LeafCoercionException: Mood cannot coerce the given value JSON element of type `String` to a runtime value.\n   at HotChocolate.Types.InputParser.DeserializeLeaf(JsonElement inputValue, ILeafType type, Path path, InputField field, IFeatureProvider context) in InputParser.cs\n   at HotChocolate.Types.InputParser.Deserialize(JsonElement inputValue, IType type, Path path, InputField field, IFeatureProvider context) in InputParser.cs\n   at HotChocolate.Types.InputParser.ParseInputValue(JsonElement inputValue, IType type, IFeatureProvider context, Path path) in InputParser.cs\n   at HotChocolate.Execution.Processing.VariableCoercionHelper.CoerceVariableValue(VariableDefinitionNode variableDefinition, IInputType variableType, JsonElement inputValue, IFeatureProvider context) in VariableCoercionHelper.cs\n   at HotChocolate.Execution.Processing.VariableCoercionHelper.CoerceVariableValuesInternal(ISchemaDefinition schema, IReadOnlyList`1 variableDefinitions, JsonElement variableValues, Dictionary`2 coercedValues, IFeatureProvider context) in VariableCoercionHelper.cs\n   at HotChocolate.Execution.Processing.VariableCoercionHelper.CoerceVariableValues(ISchemaDefinition schema, IReadOnlyList`1 variableDefinitions, JsonElement variableValues, Dictionary`2 coercedValues, IFeatureProvider context) in VariableCoercionHelper.cs\n   at HotChocolate.Execution.Pipeline.PipelineTools.CoerceVariables(RequestContext context, VariableCoercionHelper coercionHelper, IReadOnlyList`1 variableDefinitions, IExecutionDiagnosticEvents diagnosticEvents) in PipelineTools.cs\n   at HotChocolate.Execution.Pipeline.OperationVariableCoercionMiddleware.InvokeAsync(RequestContext context) in OperationVariableCoercionMiddleware.cs\n   at HotChocolate.Execution.Pipeline.SkipWarmupExecutionMiddleware.InvokeAsync(RequestContext context) in SkipWarmupExecutionMiddleware.cs\n   at HotChocolate.Execution.Pipeline.OperationResolverMiddleware.InvokeAsync(RequestContext context) in OperationResolverMiddleware.cs\n   at HotChocolate.Execution.Pipeline.OperationCacheMiddleware.InvokeAsync(RequestContext context) in OperationCacheMiddleware.cs\n   at HotChocolate.Execution.Pipeline.DocumentValidationMiddleware.InvokeAsync(RequestContext context) in DocumentValidationMiddleware.cs\n   at HotChocolate.Execution.Pipeline.DocumentParserMiddleware.InvokeAsync(RequestContext context) in DocumentParserMiddleware.cs\n   at HotChocolate.Execution.Pipeline.DocumentCacheMiddleware.InvokeAsync(RequestContext context) in DocumentCacheMiddleware.cs\n   at HotChocolate.Execution.Pipeline.TimeoutMiddleware.InvokeAsync(RequestContext context) in TimeoutMiddleware.cs\n   at HotChocolate.Execution.Pipeline.ExceptionMiddleware.InvokeAsync(RequestContext context) in ExceptionMiddleware.cs"
+            },
+            {
+              "Key": "exception.type",
+              "Value": "HotChocolate.Types.LeafCoercionException"
+            }
+          ]
+        },
+        {
+          "Name": "graphql.error",
+          "Tags": [
+            {
+              "Key": "graphql.error.message",
+              "Value": "Mood cannot coerce the given value JSON element of type `String` to a runtime value."
+            },
+            {
+              "Key": "graphql.field.path",
+              "Value": "mood"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:6e78386576e454e4780875a7606e0d16"
+            },
+            {
+              "Key": "exception.type",
+              "Value": "System.FormatException"
+            },
+            {
+              "Key": "exception.message",
+              "Value": "'happy' is not a recognized mood."
+            },
+            {
+              "Key": "exception.stacktrace",
+              "Value": "System.FormatException: 'happy' is not a recognized mood.\n   at HotChocolate.Diagnostics.ActivityExecutionDiagnosticListenerTests.MoodScalarType.OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context) in ActivityExecutionDiagnosticListenerTests.cs\n   at HotChocolate.Types.ScalarType`2.CoerceInputValue(JsonElement inputValue, IFeatureProvider context) in ScalarType~2.cs"
+            }
+          ]
+        }
+      ],
+      "activities": [
+        {
+          "OperationName": "GraphQL Document Parsing",
+          "DisplayName": "GraphQL Document Parsing",
+          "Kind": "Internal",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:6e78386576e454e4780875a7606e0d16"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Document Validation",
+          "DisplayName": "GraphQL Document Validation",
+          "Kind": "Internal",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "validate"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:6e78386576e454e4780875a7606e0d16"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Operation Planning",
+          "DisplayName": "GraphQL Operation Planning",
+          "Kind": "Internal",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "plan"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:6e78386576e454e4780875a7606e0d16"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Variable Coercion",
+          "DisplayName": "GraphQL Variable Coercion",
+          "Kind": "Internal",
+          "Status": "Error",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "variable_coercion"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:6e78386576e454e4780875a7606e0d16"
+            },
+            {
+              "Key": "error.type",
+              "Value": "EXECUTION_ERROR"
+            }
+          ],
+          "event": []
+        }
+      ]
+    }
+  ]
+}

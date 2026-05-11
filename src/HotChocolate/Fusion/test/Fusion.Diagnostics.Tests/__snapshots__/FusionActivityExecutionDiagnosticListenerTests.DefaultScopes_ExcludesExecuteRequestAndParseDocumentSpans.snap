@@ -1,4 +1,7 @@
 {
+  "source": {
+    "name": "HotChocolate.Fusion.Diagnostics"
+  },
   "activities": [
     {
       "OperationName": "GraphQL Document Validation",

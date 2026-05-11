@@ -206,4 +206,4 @@ The resolver compiler builds an optimized resolver pipeline for each field. You 
 
 - [Field middleware](/docs/hotchocolate/v16/execution-engine/field-middleware) for per-field processing
 - [Instrumentation](/docs/hotchocolate/v16/server/instrumentation) for diagnostic events
-- [Error handling](/docs/hotchocolate/v16/api-reference/errors) for error filters and error builders
+- [Error handling](/docs/hotchocolate/v16/fetching-data/errors) for error filters and error builders

@@ -1,0 +1,285 @@
+---
+title: "Deployment and CI/CD"
+---
+
+This page covers the CI/CD pipelines that ship a Fusion gateway in production: uploading source schemas to Nitro from each subgraph repository, publishing a Fusion configuration to a stage after a deployment, and validating composition on pull requests before merge. Composition runs in CI, the gateway pulls the latest archive from Nitro at runtime, and no archive file is ever shipped by hand.
+
+The gateway closes the loop with `AddNitro().AddFusion()`, which subscribes to the latest archive on the configured stage and hot-swaps it without a restart.
+
+# Prerequisites
+
+Before wiring up your pipelines you need:
+
+- A **Nitro account**. If you don't have one yet, see the [Nitro documentation](https://chillicream.com/docs/nitro) to sign up and create an organization.
+- An **API ID** for the Fusion gateway. Each gateway has its own API in Nitro. The ID looks like `QXBpCmcwMTk5MGUzNDVlMWU3MjMyYjc2MjYxYzFiNjRkMGQzYg==`. See the [Nitro documentation](https://chillicream.com/docs/nitro) for how to create an API and copy the ID.
+- An **API key** with permission to upload source schemas, publish configurations, and validate against the target stage. Store it as a CI secret (`NITRO_API_KEY`).
+- A **stage** to deploy to (for example `dev`, `staging`, `production`). Stages are created in Nitro and addressed by name.
+
+> Note: All `nitro fusion` subcommands fall back to the environment variables `NITRO_API_ID`, `NITRO_API_KEY`, `NITRO_STAGE`, and `NITRO_TAG` when the corresponding command-line option is omitted. Setting these at the job level keeps the individual commands compact. See the [CLI reference](/docs/fusion/cli) for the full list.
+
+# Deployment workflow
+
+The deployment pipeline is split across two jobs. The **build job** compiles each subgraph, exports its source schema, and uploads that schema to Nitro tagged with the current commit. The **deploy job** ships the subgraph application itself and then asks Nitro to publish a new Fusion configuration that references the uploaded source schema by tag. Nitro composes the configuration server-side from the registered source schemas (see [Composition](/docs/fusion/composition) for what composition does) and makes the resulting archive available to all gateways subscribed to that stage.
+
+The runtime side is configured once on the gateway:
+
+```csharp
+builder.Services.AddNitro().AddFusion();
+
+builder.Services
+    .AddGraphQLGatewayServer()
+    .ModifyNitroOptions(o =>
+    {
+        o.Service.ApiId = "...";
+        o.Service.ApiKey = "...";
+        o.Service.Stage = "production";
+    });
+```
+
+With the runtime in place, every successful `nitro fusion publish` becomes the new configuration the gateway serves traffic against. You don't ship the archive yourself.
+
+## Upload the source schema
+
+The build job exports the subgraph's GraphQL SDL and uploads it to Nitro. The export step uses the standard Hot Chocolate schema export command:
+
+```bash
+dotnet run --project ./src/SubgraphA -- schema export --output schema.graphql
+```
+
+After the export, upload the file. The `tag` you pass here is the handle the publish step uses later to find this exact upload, so use a value that's unique per build (the commit SHA works well):
+
+<PipelineChoiceTabs>
+<PipelineChoiceTabs.GitHubAction>
+
+```yaml
+- uses: ChilliCream/nitro-fusion-upload@v16
+  with:
+    tag: ${{ github.sha }}
+    api-id: ${{ secrets.NITRO_API_ID }}
+    api-key: ${{ secrets.NITRO_API_KEY }}
+    source-schema-files: |
+      ./src/SubgraphA/schema.graphql
+```
+
+</PipelineChoiceTabs.GitHubAction>
+<PipelineChoiceTabs.CLI>
+
+```bash
+nitro fusion upload \
+  --tag "${{ github.sha }}" \
+  --api-id "${{ secrets.NITRO_API_ID }}" \
+  --api-key "${{ secrets.NITRO_API_KEY }}" \
+  --source-schema-file "./src/SubgraphA/schema.graphql"
+```
+
+</PipelineChoiceTabs.CLI>
+</PipelineChoiceTabs>
+
+> Note: The tag you pass to `upload` must match the tag you reference from `publish`. If they drift, the publish step won't find the source schema and the deployment fails before any traffic is rerouted.
+
+A complete build-and-deploy workflow looks like this:
+
+```yaml
+name: Deploy SubgraphA
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Export source schema
+        run: dotnet run --project ./src/SubgraphA -- schema export --output ./src/SubgraphA/schema.graphql
+
+      - name: Upload source schema to Nitro
+        uses: ChilliCream/nitro-fusion-upload@v16
+        with:
+          tag: ${{ github.sha }}
+          api-id: ${{ secrets.NITRO_API_ID }}
+          api-key: ${{ secrets.NITRO_API_KEY }}
+          source-schema-files: |
+            ./src/SubgraphA/schema.graphql
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy subgraph
+        run: |
+          # deploy your subgraph application here, e.g. push container image, kubectl apply, etc.
+
+      - name: Publish Fusion configuration
+        uses: ChilliCream/nitro-fusion-publish@v16
+        with:
+          tag: ${{ github.sha }}
+          stage: production
+          api-id: ${{ secrets.NITRO_API_ID }}
+          api-key: ${{ secrets.NITRO_API_KEY }}
+          source-schemas: |
+            subgraph-a@${{ github.sha }}
+```
+
+## Publish the Fusion configuration
+
+The deploy job publishes a new Fusion configuration that references the source schema uploaded in the build job. Nitro re-composes from the registered source schemas, runs validation, and makes the new archive available on the target stage.
+
+<PipelineChoiceTabs>
+<PipelineChoiceTabs.GitHubAction>
+
+```yaml
+- uses: ChilliCream/nitro-fusion-publish@v16
+  with:
+    tag: ${{ github.sha }}
+    stage: production
+    api-id: ${{ secrets.NITRO_API_ID }}
+    api-key: ${{ secrets.NITRO_API_KEY }}
+    source-schemas: |
+      subgraph-a@${{ github.sha }}
+```
+
+</PipelineChoiceTabs.GitHubAction>
+<PipelineChoiceTabs.CLI>
+
+```bash
+nitro fusion publish \
+  --tag "${{ github.sha }}" \
+  --stage "production" \
+  --api-id "${{ secrets.NITRO_API_ID }}" \
+  --api-key "${{ secrets.NITRO_API_KEY }}" \
+  --source-schema "subgraph-a@${{ github.sha }}"
+```
+
+</PipelineChoiceTabs.CLI>
+</PipelineChoiceTabs>
+
+The `--source-schema` value uses the `name@version` syntax. The `name` is the source schema name from the subgraph's `schema-settings.json` (the `name` field), and the `version` is the tag you passed to `nitro fusion upload` in the build job. To publish a configuration that combines this subgraph with sibling subgraphs at fixed versions, repeat the option:
+
+```bash
+nitro fusion publish \
+  --tag "${{ github.sha }}" \
+  --stage "production" \
+  --source-schema "subgraph-a@${{ github.sha }}" \
+  --source-schema "subgraph-b@v2.4.1" \
+  --source-schema "subgraph-c@latest"
+```
+
+> Note: `nitro fusion publish` must run **after** the subgraph application has been deployed and is reachable at its production URL. Once publish succeeds, gateways subscribed to that stage start routing traffic against the new schema, and any subgraph endpoint referenced by it must already accept requests. Publishing first and deploying second produces a window where the gateway sends traffic to a URL that isn't live yet.
+
+# Pull request validation
+
+Before merging a change to a subgraph schema, the PR validation workflow asks Nitro to compose the proposed source schema together with the currently published versions of the other subgraphs and reports any composition errors or breaking changes against the target stage. This catches incompatibilities before they reach `main`.
+
+<PipelineChoiceTabs>
+<PipelineChoiceTabs.GitHubAction>
+
+```yaml
+- uses: ChilliCream/nitro-fusion-validate@v16
+  with:
+    stage: production
+    api-id: ${{ secrets.NITRO_API_ID }}
+    api-key: ${{ secrets.NITRO_API_KEY }}
+    source-schema-files: |
+      ./src/SubgraphA/schema.graphql
+```
+
+</PipelineChoiceTabs.GitHubAction>
+<PipelineChoiceTabs.CLI>
+
+```bash
+nitro fusion validate \
+  --stage "production" \
+  --api-id "${{ secrets.NITRO_API_ID }}" \
+  --api-key "${{ secrets.NITRO_API_KEY }}" \
+  --source-schema-file "./src/SubgraphA/schema.graphql"
+```
+
+</PipelineChoiceTabs.CLI>
+</PipelineChoiceTabs>
+
+A complete PR validation workflow:
+
+```yaml
+name: Validate SubgraphA
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Export source schema
+        run: dotnet run --project ./src/SubgraphA -- schema export --output ./src/SubgraphA/schema.graphql
+
+      - name: Validate against production stage
+        uses: ChilliCream/nitro-fusion-validate@v16
+        with:
+          stage: production
+          api-id: ${{ secrets.NITRO_API_ID }}
+          api-key: ${{ secrets.NITRO_API_KEY }}
+          source-schema-files: |
+            ./src/SubgraphA/schema.graphql
+```
+
+> Note: Validate against the same stage you'll publish to. Validating against `dev` while you're about to publish to `production` defeats the purpose, since the source schemas registered on the two stages can differ.
+
+# Without Nitro
+
+Nitro is the supported path. It handles the schema registry, server-side composition, breaking-change detection, persisted operation tracking, and atomic rollout to subscribed gateways. If you can use Nitro, use it.
+
+If you can't, you compose locally, ship the resulting archive to durable storage yourself, and load it on the gateway. The local compose step produces a `gateway.far`:
+
+```bash
+nitro fusion compose \
+  --source-schema-file ./src/SubgraphA/schema.graphqls \
+  --source-schema-file ./src/SubgraphB/schema.graphqls \
+  --archive ./gateway.far
+```
+
+The gateway loads the archive from disk:
+
+```csharp
+builder.Services
+    .AddGraphQLGatewayServer()
+    .AddFileSystemConfiguration("gateway.far");
+```
+
+If the archive lives in object storage, a container registry, or a custom source, implement `IFusionConfigurationProvider` and register it through `AddConfigurationProvider`:
+
+```csharp
+builder.Services
+    .AddGraphQLGatewayServer()
+    .AddConfigurationProvider(sp => new CustomConfigurationProvider());
+```
+
+See the [configuration provider API](/docs/fusion/migration/migrate-from-15-to-16#configuration-provider-api) section in the migration guide for the full surface (`IFusionConfigurationProvider`, `AddFileSystemConfiguration`, `AddInMemoryConfiguration`, `AddConfigurationProvider`).
+
+Going down this path means you own the production concerns Nitro otherwise handles for you:
+
+- **Exclusive write access.** Pushes from multiple subgraph pipelines must serialize so that two pipelines don't compose against stale state and overwrite each other's archive.
+- **Pre-publish validation.** Before publishing a new archive, you have to download the previously deployed one, re-run composition with the proposed change, and check for breaking changes. Otherwise a bad subgraph change reaches the gateway unfiltered.
+- **Persisted operation safety.** The previously deployed archive must keep working for in-flight clients. Removing a field that's still referenced by persisted operations breaks live traffic.
+- **Atomic rollout.** The gateway must pick up the new archive without a request seeing a half-written file. Write to a temporary path and rename, or use a storage layer with atomic swaps.
+
+For any meaningful production setup (multiple subgraph pipelines, schema registry, breaking-change detection, persisted operation tracking, atomic rollout), Nitro handles all of this and is the recommended option.
+
+# Next steps
+
+- [CLI reference](/docs/fusion/cli) for every `nitro fusion` command and its options.
+- [Composition](/docs/fusion/composition) for what runs server-side when you publish.
+- [Migrating from v15 to v16](/docs/fusion/migration/migrate-from-15-to-16) if you're moving an existing gateway over.

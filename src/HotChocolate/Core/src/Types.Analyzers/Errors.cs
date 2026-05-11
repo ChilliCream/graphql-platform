@@ -41,24 +41,6 @@ public static class Errors
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
-    public static readonly DiagnosticDescriptor InterfaceTypePartialKeywordMissing =
-        new(
-            id: "HC0106",
-            title: "Partial Keyword Missing",
-            messageFormat: "A split interface type class needs to be a partial class",
-            category: "TypeSystem",
-            DiagnosticSeverity.Error,
-            isEnabledByDefault: true);
-
-    public static readonly DiagnosticDescriptor InterfaceTypeStaticKeywordMissing =
-        new(
-            id: "HC0112",
-            title: "Static Keyword Missing",
-            messageFormat: "A split interface type class needs to be a static class",
-            category: "TypeSystem",
-            DiagnosticSeverity.Error,
-            isEnabledByDefault: true);
-
     public static readonly DiagnosticDescriptor TooManyNodeResolverArguments =
         new(
             id: "HC0083",
@@ -73,42 +55,6 @@ public static class Errors
             id: "HC0084",
             title: "Invalid Argument Name",
             messageFormat: "A node resolver can only have a single field argument called `id`",
-            category: "TypeSystem",
-            DiagnosticSeverity.Error,
-            isEnabledByDefault: true);
-
-    public static readonly DiagnosticDescriptor DataLoaderCannotBeGeneric =
-        new(
-            id: "HC0111",
-            title: "DataLoader Cannot Be Generic",
-            messageFormat: "The DataLoader source generator cannot generate generic DataLoaders",
-            category: "DataLoader",
-            DiagnosticSeverity.Error,
-            isEnabledByDefault: true);
-
-    public static readonly DiagnosticDescriptor ConnectionSingleGenericTypeArgument =
-        new(
-            id: "HC0110",
-            title: "Invalid Connection Structure",
-            messageFormat: "A generic connection/edge type must have a single generic type argument that represents the node type",
-            category: "TypeSystem",
-            DiagnosticSeverity.Error,
-            isEnabledByDefault: true);
-
-    public static readonly DiagnosticDescriptor ConnectionNameFormatIsInvalid =
-        new(
-            id: "HC0109",
-            title: "Invalid Connection/Edge Name Format",
-            messageFormat: "A connection/edge name must be in the format `{0}Edge` or `{0}Connection`",
-            category: "TypeSystem",
-            DiagnosticSeverity.Error,
-            isEnabledByDefault: true);
-
-    public static readonly DiagnosticDescriptor ConnectionNameDuplicate =
-        new(
-            id: "HC0108",
-            title: "Invalid Connection/Edge Name",
-            messageFormat: "The type `{0}` cannot be mapped to the GraphQL type name `{1}` as `{2}` is already mapped to it",
             category: "TypeSystem",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
@@ -253,6 +199,60 @@ public static class Errors
             id: "HC0106",
             title: "Microsoft Authorization Attribute Not Allowed",
             messageFormat: "Use HotChocolate.Authorization.{0} instead",
+            category: "TypeSystem",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor InterfaceTypePartialKeywordMissing =
+        new(
+            id: "HC0107",
+            title: "Partial Keyword Missing",
+            messageFormat: "A split interface type class needs to be a partial class",
+            category: "TypeSystem",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor ConnectionNameDuplicate =
+        new(
+            id: "HC0108",
+            title: "Invalid Connection/Edge Name",
+            messageFormat: "The type `{0}` cannot be mapped to the GraphQL type name `{1}` as `{2}` is already mapped to it",
+            category: "TypeSystem",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor ConnectionNameFormatIsInvalid =
+        new(
+            id: "HC0109",
+            title: "Invalid Connection/Edge Name Format",
+            messageFormat: "A connection/edge name must be in the format `{0}Edge` or `{0}Connection`",
+            category: "TypeSystem",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor ConnectionSingleGenericTypeArgument =
+        new(
+            id: "HC0110",
+            title: "Invalid Connection Structure",
+            messageFormat: "A generic connection/edge type must have a single generic type argument that represents the node type",
+            category: "TypeSystem",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor DataLoaderCannotBeGeneric =
+        new(
+            id: "HC0111",
+            title: "DataLoader Cannot Be Generic",
+            messageFormat: "The DataLoader source generator cannot generate generic DataLoaders",
+            category: "DataLoader",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor InterfaceTypeStaticKeywordMissing =
+        new(
+            id: "HC0112",
+            title: "Static Keyword Missing",
+            messageFormat: "A split interface type class needs to be a static class",
             category: "TypeSystem",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);

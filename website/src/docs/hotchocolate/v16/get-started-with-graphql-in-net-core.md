@@ -45,12 +45,10 @@ Create a new project from within Visual Studio using the **GraphQL Server** temp
 The `Types` directory contains two record types that represent the domain model.
 
 ```csharp
-// Types/Author.cs
 public record Author(string Name);
 ```
 
 ```csharp
-// Types/Book.cs
 public record Book(string Title, Author Author);
 ```
 
@@ -61,7 +59,6 @@ These are regular C# types. Hot Chocolate infers the GraphQL schema from them.
 The `Query` class defines the root type for read operations. Each public method becomes a field that clients can query.
 
 ```csharp
-// Types/Query.cs
 [QueryType]
 public static partial class Query
 {
@@ -179,7 +176,7 @@ Your GraphQL server is running and responding to queries.
 
 - **"I want to learn about the type system."** See [Defining a Schema](/docs/hotchocolate/v16/defining-a-schema) for queries, mutations, subscriptions, and all the GraphQL types.
 
-- **"I want to fetch data from a database."** See [DataLoader](/docs/hotchocolate/v16/resolvers-and-data/dataloader) for batched data fetching, or [Entity Framework](/docs/hotchocolate/v16/integrations/entity-framework) for EF Core integration.
+- **"I want to fetch data from a database."** See [DataLoader](/docs/hotchocolate/v16/fetching-data/dataloader) for batched data fetching, or [Entity Framework](/docs/hotchocolate/v16/fetching-data/entity-framework) for EF Core integration.
 
 - **"I want a deeper tutorial."** Check out the [GraphQL Workshop](https://github.com/ChilliCream/graphql-workshop) for a hands-on walkthrough covering types, resolvers, DataLoaders, filtering, and more.
 

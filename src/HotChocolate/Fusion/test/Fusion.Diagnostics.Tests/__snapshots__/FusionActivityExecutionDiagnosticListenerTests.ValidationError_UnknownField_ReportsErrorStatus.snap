@@ -1,4 +1,7 @@
 {
+  "source": {
+    "name": "HotChocolate.Fusion.Diagnostics"
+  },
   "activities": [
     {
       "OperationName": "GraphQL Operation",
@@ -39,6 +42,10 @@
                   "column": 3
                 }
               ]
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:1526f207d516803b71eb8a0db419b57b"
             }
           ]
         }

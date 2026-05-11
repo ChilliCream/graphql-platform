@@ -286,6 +286,13 @@ public sealed class CreateOpenApiCollectionCommandTests(NitroCommandFixture fixt
                 """
                 Not authorized
                 """
+            },
+            {
+                new CreateOpenApiCollectionCommandMutation_CreateOpenApiCollection_Errors_DuplicateNameError(
+                    "Name already in use", "DuplicateNameError"),
+                """
+                The name 'my-openapi' is already in use by another OpenAPI Collection.
+                """
             }
         };
 }

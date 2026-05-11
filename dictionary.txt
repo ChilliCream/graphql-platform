@@ -74,6 +74,7 @@ fricking
 frontends
 Fzzz
 GEOGCS
+geolocation
 Giroux
 GraphiQL
 graphqlconfig
@@ -163,6 +164,7 @@ queryables
 quox
 quux
 Rafi
+rafaelstaib
 reencode
 refetched
 relayjs
@@ -180,6 +182,7 @@ Roslynator
 roundtrips
 RRGGBB
 runbooks
+sandboxed
 Satisfiability
 Senn
 shoooe

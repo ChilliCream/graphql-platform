@@ -306,6 +306,89 @@ public class FusionArchiveTests : IDisposable
     }
 
     [Fact]
+    public async Task SetSourceSchema_WithSchemaExtensions_StoresAndReturnsExtensions()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+        var schemaContent = "type User { id: ID! }"u8.ToArray();
+        var extensionsContent = "extend type User { name: String! }"u8.ToArray();
+        var settings = CreateSettingsJson();
+        const string schemaName = "user-service";
+
+        // Act
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        var metadata = CreateTestMetadata();
+        await archive.SetArchiveMetadataAsync(metadata);
+        await archive.SetSourceSchemaConfigurationAsync(schemaName, schemaContent, settings, extensionsContent);
+
+        // Assert
+        var found = await archive.TryGetSourceSchemaConfigurationAsync(schemaName);
+        Assert.NotNull(found);
+
+        await using var extensionsStream = await found.TryOpenReadSchemaExtensionsAsync();
+        Assert.NotNull(extensionsStream);
+        using var reader = new StreamReader(extensionsStream);
+        var retrievedExtensions = await reader.ReadToEndAsync();
+        Assert.Equal(Encoding.UTF8.GetString(extensionsContent), retrievedExtensions);
+    }
+
+    [Fact]
+    public async Task SetSourceSchema_WithoutSchemaExtensions_RemovesPreviouslyStoredExtensions()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+        var schemaContent = "type User { id: ID! }"u8.ToArray();
+        var extensionsContent = "extend type User { name: String! }"u8.ToArray();
+        var settings = CreateSettingsJson();
+        const string schemaName = "user-service";
+        var metadata = CreateTestMetadata();
+
+        // Act - initial archive with extensions
+        using (var archive = FusionArchive.Create(stream, leaveOpen: true))
+        {
+            await archive.SetArchiveMetadataAsync(metadata);
+            await archive.SetSourceSchemaConfigurationAsync(schemaName, schemaContent, settings, extensionsContent);
+            await archive.CommitAsync();
+        }
+
+        // Act - re-open in update mode and overwrite the same source schema without extensions
+        stream.Position = 0;
+        using (var updateArchive = FusionArchive.Open(stream, FusionArchiveMode.Update, leaveOpen: true))
+        {
+            await updateArchive.SetSourceSchemaConfigurationAsync(schemaName, schemaContent, settings);
+            await updateArchive.CommitAsync();
+        }
+
+        // Assert - extensions are gone
+        stream.Position = 0;
+        using var readArchive = FusionArchive.Open(stream, leaveOpen: true);
+        var found = await readArchive.TryGetSourceSchemaConfigurationAsync(schemaName);
+        Assert.NotNull(found);
+        Assert.Null(await found.TryOpenReadSchemaExtensionsAsync());
+    }
+
+    [Fact]
+    public async Task SetSourceSchema_WithoutSchemaExtensions_TryOpenReadSchemaExtensionsReturnsNull()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+        var schemaContent = "type User { id: ID! }"u8.ToArray();
+        var settings = CreateSettingsJson();
+        const string schemaName = "user-service";
+
+        // Act
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        var metadata = CreateTestMetadata();
+        await archive.SetArchiveMetadataAsync(metadata);
+        await archive.SetSourceSchemaConfigurationAsync(schemaName, schemaContent, settings);
+
+        // Assert
+        var found = await archive.TryGetSourceSchemaConfigurationAsync(schemaName);
+        Assert.NotNull(found);
+        Assert.Null(await found.TryOpenReadSchemaExtensionsAsync());
+    }
+
+    [Fact]
     public async Task SetSourceSchema_WithInvalidSchemaName_ThrowsArgumentException()
     {
         // Arrange
@@ -426,6 +509,48 @@ public class FusionArchiveTests : IDisposable
             var result = await archive.VerifySignatureAsync(publicOnlyCert);
             Assert.Equal(SignatureVerificationResult.Valid, result);
         }
+    }
+
+    [Fact]
+    public async Task SignArchive_AfterRemovingSchemaExtensions_ProducesValidSignature()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+        using var cert = CreateTestCertificate();
+#if NET9_0_OR_GREATER
+        using var publicOnlyCert = X509CertificateLoader.LoadCertificate(cert.Export(X509ContentType.Cert));
+#else
+        using var publicOnlyCert = new X509Certificate2(cert.Export(X509ContentType.Cert));
+#endif
+
+        var schemaContent = "type User { id: ID! }"u8.ToArray();
+        var extensionsContent = "extend type User { name: String! }"u8.ToArray();
+        var settings = CreateSettingsJson();
+        const string schemaName = "user-service";
+        var metadata = CreateTestMetadata();
+
+        // Act - initial archive with extensions
+        using (var archive = FusionArchive.Create(stream, leaveOpen: true))
+        {
+            await archive.SetArchiveMetadataAsync(metadata);
+            await archive.SetSourceSchemaConfigurationAsync(schemaName, schemaContent, settings, extensionsContent);
+            await archive.CommitAsync();
+        }
+
+        // Act - re-open in update mode, drop extensions, then sign
+        stream.Position = 0;
+        using (var updateArchive = FusionArchive.Open(stream, FusionArchiveMode.Update, leaveOpen: true))
+        {
+            await updateArchive.SetSourceSchemaConfigurationAsync(schemaName, schemaContent, settings);
+            await updateArchive.SignArchiveAsync(cert);
+            await updateArchive.CommitAsync();
+        }
+
+        // Assert - signature is valid against the post-deletion file set
+        stream.Position = 0;
+        using var readArchive = FusionArchive.Open(stream, leaveOpen: true);
+        var result = await readArchive.VerifySignatureAsync(publicOnlyCert);
+        Assert.Equal(SignatureVerificationResult.Valid, result);
     }
 
     [Fact]

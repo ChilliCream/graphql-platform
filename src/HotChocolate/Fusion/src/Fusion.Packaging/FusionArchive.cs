@@ -446,6 +446,9 @@ public sealed class FusionArchive : IDisposable
     /// <param name="schemaName">The name of the source schema.</param>
     /// <param name="schema">The source schema as UTF-8 encoded bytes.</param>
     /// <param name="settings">The source schema configuration.</param>
+    /// <param name="schemaExtensions">
+    /// The source schema extensions as UTF-8 encoded bytes. If empty, no extensions file is written.
+    /// </param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <exception cref="ArgumentException">Thrown when schemaName is null, empty, or invalid.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when schema is empty.</exception>
@@ -455,6 +458,7 @@ public sealed class FusionArchive : IDisposable
         string schemaName,
         ReadOnlyMemory<byte> schema,
         JsonDocument settings,
+        ReadOnlyMemory<byte> schemaExtensions = default,
         CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrEmpty(schemaName);
@@ -486,6 +490,17 @@ public sealed class FusionArchive : IDisposable
         await using (var stream = _session.OpenWrite(FileNames.GetSourceSchemaPath(schemaName)))
         {
             await stream.WriteAsync(schema, cancellationToken);
+        }
+
+        if (schemaExtensions.Length > 0)
+        {
+            await using var stream = _session.OpenWrite(FileNames.GetSourceSchemaExtensionsPath(schemaName));
+            await stream.WriteAsync(schemaExtensions, cancellationToken);
+        }
+        else
+        {
+            // Ensure no stale extensions linger from a previous composition.
+            _session.Delete(FileNames.GetSourceSchemaExtensionsPath(schemaName));
         }
 
         await using (var stream = _session.OpenWrite(FileNames.GetSourceSchemaSettingsPath(schemaName)))
@@ -528,10 +543,22 @@ public sealed class FusionArchive : IDisposable
             settings = await JsonDocument.ParseAsync(stream, default, cancellationToken);
         }
 
-        return new SourceSchemaConfiguration(OpenReadSchemaAsync, settings);
+        return new SourceSchemaConfiguration(OpenReadSchemaAsync, TryOpenReadSchemaExtensionsAsync, settings);
 
         Task<Stream> OpenReadSchemaAsync(CancellationToken ct)
             => _session.OpenReadAsync(FileNames.GetSourceSchemaPath(schemaName), FileKind.Schema, ct);
+
+        async Task<Stream?> TryOpenReadSchemaExtensionsAsync(CancellationToken ct)
+        {
+            var extensionsPath = FileNames.GetSourceSchemaExtensionsPath(schemaName);
+
+            if (!await _session.ExistsAsync(extensionsPath, FileKind.Schema, ct))
+            {
+                return null;
+            }
+
+            return await _session.OpenReadAsync(extensionsPath, FileKind.Schema, ct);
+        }
     }
 
     /// <summary>
