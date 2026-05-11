@@ -6,8 +6,6 @@ This guide will walk you through the manual migration steps to update your Hot C
 
 Start by installing the latest `16.x.x` version of **all** of the `HotChocolate.*` packages referenced by your project.
 
-> This guide is still a work in progress with more updates to follow.
-
 # Breaking changes
 
 Things that have been removed or had a change in behavior that may cause your code not to compile or lead to unexpected behavior at runtime if not addressed.
@@ -29,7 +27,7 @@ builder.AddGraphQL()
 +   .AddWarmupTask((executor, ct) => { /* ... */ });
 ```
 
-Warmup tasks registered with `AddWarmupTask` run at startup **and** when the schema is updated at runtime by default. Checkout the [documentation](/docs/hotchocolate/v16/server/warmup), if you need your warmup task to only run at startup.
+Warmup tasks registered with `AddWarmupTask` run at startup **and** when the schema is updated at runtime by default. Check out the [documentation](/docs/hotchocolate/v16/server/warmup), if you need your warmup task to only run at startup.
 
 If you need to preserve lazy initialization for specific scenarios (though this is rarely recommended), you can opt out by setting the `LazyInitialization` option to `true`:
 
@@ -92,6 +90,27 @@ builder.Services
 ```
 
 Be aware that internal directives may carry sensitive information (for example, authorization policies attached via `@authorize`). Only enable this if you understand and accept that risk.
+
+## New analyzers
+
+If you reference the `HotChocolate.Types.Analyzers` package, version 16 ships a number of new analyzers that surface misconfigurations and discouraged patterns at compile time. Several of them report at `Error` severity, so they can break a build that compiled cleanly on version 15. In most cases the fix is exactly what the diagnostic suggests. If you believe a diagnostic is a false positive, please [open an issue](https://github.com/ChilliCream/graphql-platform/issues).
+
+The following new analyzers report at `Error` severity and can fail your build:
+
+| ID     | Title                                              | What it reports                                                                                                                            |
+| ------ | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| HC0094 | Bind member not found                              | The member referenced by `BindMember`/`nameof(...)` does not exist on the target type.                                                     |
+| HC0095 | Bind member type mismatch                          | The type used in a `nameof` expression does not match the `[ObjectType<T>]` type.                                                          |
+| HC0097 | Parent attribute type mismatch                     | A `[Parent]` parameter's type must be the parent runtime type or a base type/interface it implements.                                      |
+| HC0098 | Parent method type mismatch                        | The type argument in `Parent<T>()` must be the parent runtime type or a base type/interface it implements.                                 |
+| HC0099 | QueryContext with UseProjection                    | A resolver with a `QueryContext<T>` parameter cannot also use `[UseProjection]`.                                                           |
+| HC0100 | Data attribute order                               | `[UsePaging]`, `[UseProjection]`, `[UseFiltering]` and `[UseSorting]` must be applied in that order.                                       |
+| HC0101 | QueryContext connection type mismatch              | The `QueryContext<T>` type argument must match the connection's node type.                                                                 |
+| HC0092 | ID attribute redundant on node resolver parameters | `[ID]` is redundant on a `[NodeResolver]` parameter, since the attribute already declares the `id` parameter as an ID type. Remove `[ID]`. |
+| HC0093 | Node resolver must be public                       | A `[NodeResolver]` method must be `public`.                                                                                                |
+| HC0104 | Node resolver `id` parameter                       | The first parameter of a node resolver must be the node ID and must be named `id`.                                                         |
+| HC0105 | ID attribute must target the property              | On a record parameter, the `[ID]` attribute must use the `property:` target specifier (`[property: ID]`).                                  |
+| HC0106 | Microsoft authorization attribute not allowed      | Use the `[Authorize]` attribute from `HotChocolate.Authorization` instead of the one from `Microsoft.AspNetCore.Authorization`.            |
 
 ## Cache size configuration
 
@@ -736,6 +755,122 @@ The `DefaultHttpMethod` enum has been removed. Use the `UseGet` boolean property
 ```diff
 -o.HttpMethod = DefaultHttpMethod.Get;
 +o.UseGet = true;
+```
+
+## Nitro integration
+
+Update all `ChilliCream.Nitro.*` packages to the same version as the `HotChocolate.AspNetCore` package. The package layout has changed in v16, so most projects will need to update their package IDs as well as their code.
+
+| Old                            | New                                        |
+| ------------------------------ | ------------------------------------------ |
+| `ChilliCream.Nitro`            | `ChilliCream.Nitro.HotChocolate`           |
+| `ChilliCream.Nitro.Core`       | `ChilliCream.Nitro.GraphQL`                |
+| `ChilliCream.Nitro.Telemetry`  | `ChilliCream.Nitro.OpenTelemetry`          |
+| `ChilliCream.Nitro.Azure.Core` | `ChilliCream.Nitro.Azure`                  |
+| `ChilliCream.Nitro.*.Azure`    | `ChilliCream.Nitro.Azure` (single package) |
+
+The package you previously referenced as `ChilliCream.Nitro` is now `ChilliCream.Nitro.HotChocolate`. A new meta-package is published under the old `ChilliCream.Nitro` ID, so don't mix the two up when updating your `.csproj`.
+
+> Note: If you are self-hosting the Nitro backend, make sure to update it to the latest version as well. `10.1.0` is the minimum version required to work with the `ChilliCream.Nitro.*` packages.
+
+v16 changes how Nitro is configured. The connection settings are configured once on the service collection and per-schema feature options are applied through `ModifyNitroOptions` on the GraphQL server builder.
+
+**Before**
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddNitro(o =>
+    {
+        o.ApiId = "...";
+        o.ApiKey = "...";
+        o.Stage = "...";
+
+        o.EnablePersistedQueries = true;
+        o.DefaultQueryCacheExpiration = TimeSpan.FromSeconds(30);
+        o.NotFoundQueryCacheExpiration = TimeSpan.FromSeconds(10);
+
+        o.Metrics.Enabled = true;
+        o.Metrics.ExportIntervalMilliseconds = 1000;
+        o.Metrics.ExportTimeoutMilliseconds = 400;
+
+        o.EnableOperationReporting = true;
+    });
+```
+
+**After**
+
+```csharp
+builder.Services
+    .AddNitro(o =>
+    {
+        o.ApiId = "...";
+        o.ApiKey = "...";
+        o.Stage = "...";
+    })
+    .AddHotChocolate();
+
+builder.Services
+    .AddGraphQLServer()
+    .ModifyNitroOptions(o =>
+    {
+        o.PersistedOperations.Enabled = true;
+        o.PersistedOperations.DefaultQueryCacheExpiration = TimeSpan.FromSeconds(30);
+        o.PersistedOperations.NotFoundQueryCacheExpiration = TimeSpan.FromSeconds(10);
+
+        o.Metrics.Enabled = true;
+        o.Metrics.ExportIntervalMilliseconds = 1000;
+        o.Metrics.ExportTimeoutMilliseconds = 400;
+
+        o.OperationReporting.Enabled = true;
+    });
+```
+
+If you were previously registering an asset cache on the GraphQL server builder, you now do that on the `INitroBuilder` returned from `AddNitro()`.
+
+**Before**
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddNitro()
+    .AddFileSystemAssetCache()
+    // or
+    .AddBlobStorageAssetCache()
+    // or
+    .AddAssetCache<CustomAssetCache>();
+```
+
+**After**
+
+```csharp
+builder.Services
+    .AddNitro()
+    .AddHotChocolate()
+    .AddFileSystemAssetCache()
+    // or
+    .AddBlobStorageAssetCache()
+    // or
+    .AddAssetCache<CustomAssetCache>();
+```
+
+If you were previously hand-rolling the `ConfigureOpenTelemetry*Provider(...)` configuration with `AddNitroExporter()`, you can also switch to a new `AddOpenTelemetry()` API on the `INitroBuilder` that handles the registration for you.
+
+**Before**
+
+```csharp
+services.ConfigureOpenTelemetryMeterProvider(x => x.AddNitroExporter());
+services.ConfigureOpenTelemetryTracerProvider(x => x.AddNitroExporter());
+services.ConfigureOpenTelemetryLoggerProvider(x => x.AddNitroExporter());
+```
+
+**After**
+
+```csharp
+services
+    .AddNitro()
+    // ...
+    .AddOpenTelemetry();
 ```
 
 ## Server options now configured via ModifyServerOptions
