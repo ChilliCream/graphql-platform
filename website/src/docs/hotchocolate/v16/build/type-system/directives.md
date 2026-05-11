@@ -2,7 +2,7 @@
 title: Directives
 ---
 
-Directives are annotations in GraphQL. In Hot Chocolate, clients use executable directives within operations, while schema authors use type-system directives to add metadata or behavior to schema elements.
+Directives are annotations in GraphQL. In Hot Chocolate, clients use executable directives within operations, while schema authors use type-system directives to add metadata or behavior to type system members.
 
 ```graphql
 # Schema SDL
@@ -49,13 +49,13 @@ GraphQL organizes directives by their location.
 
 Hot Chocolate features can also be grouped by their practical use.
 
-| Use                         | Directives                                          | Typical action                                                      |
-| --------------------------- | --------------------------------------------------- | ------------------------------------------------------------------- |
-| Client operation control    | `@skip`, `@include`, `@defer`, `@stream`            | Allow clients to include, omit, defer, or stream selections.        |
-| Schema lifecycle metadata   | `@deprecated`, `@requiresOptIn`                     | Communicate migration status or feature stability.                  |
-| Schema metadata for tooling | `@tag`, custom metadata directives                  | Label schema elements for registries, documentation, or governance. |
-| Server policy metadata      | `@authorize`, `@cost`, `@listSize`, `@cacheControl` | Configure security, cost, or caching features.                      |
-| Runtime directive behavior  | Custom directive middleware                         | Attach schema-visible runtime behavior to a directive.              |
+| Use                         | Directives                                          | Typical action                                                          |
+| --------------------------- | --------------------------------------------------- | ----------------------------------------------------------------------- |
+| Client operation control    | `@skip`, `@include`, `@defer`, `@stream`            | Allow clients to include, omit, defer, or stream selections.            |
+| Schema lifecycle metadata   | `@deprecated`, `@requiresOptIn`                     | Communicate migration status or feature stability.                      |
+| Schema metadata for tooling | `@tag`, custom metadata directives                  | Label type system members for registries, documentation, or governance. |
+| Server policy metadata      | `@authorize`, `@cost`, `@listSize`, `@cacheControl` | Configure security, cost, or caching features.                          |
+| Runtime directive behavior  | Custom directive middleware                         | Attach schema-visible runtime behavior to a directive.                  |
 
 Avoid using directives for every reusable concern. Use descriptions for human-readable documentation, descriptor attributes or field middleware for server-only behavior, and the dedicated APIs for authorization, cost, and cache control when available.
 
@@ -243,7 +243,7 @@ public sealed class AudienceDirectiveType : DirectiveType<AudienceDirective>
 
 ## Register and apply the directive
 
-Register directive types with `.AddDirectiveType<T>()`. Apply a type-system directive with `descriptor.Directive(...)` on the descriptor for the schema element.
+Register directive types with `.AddDirectiveType<T>()`. Apply a type-system directive with `descriptor.Directive(...)` on the descriptor for the target type system member.
 
 ```csharp
 using HotChocolate.Types;
@@ -705,7 +705,7 @@ When `showInventory` is `false`, the response does not contain the `inventory` f
 | Symptom                                                                            | Likely cause                                                                                                                 | Solution                                                                                                                                                    |
 | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | A custom directive definition is missing from SDL.                                 | The directive type was not registered, or `RemoveUnusedTypeSystemDirectives` removed an unused type-system directive.        | Call `.AddDirectiveType<T>()` and apply the directive somewhere, or set `RemoveUnusedTypeSystemDirectives = false` for SDL export scenarios.                |
-| A directive application is missing from an object, field, argument, or enum value. | The directive location does not include that schema element, or the descriptor API was applied to the wrong descriptor.      | Add the correct `DirectiveLocation` and apply the directive on the descriptor for the target element.                                                       |
+| A directive application is missing from an object, field, argument, or enum value. | The directive location does not include that target, or the descriptor API was applied to the wrong descriptor.              | Add the correct `DirectiveLocation` and apply the directive on the descriptor for the target element.                                                       |
 | `appliedDirectives` is missing from introspection.                                 | Applied directive introspection is disabled.                                                                                 | Set `EnableDirectiveIntrospection = true`.                                                                                                                  |
 | An internal directive is hidden from directive introspection.                      | The directive is internal or the default directive visibility is internal.                                                   | Call `.Public()` on your directive, adjust `DefaultDirectiveVisibility`, or use `DisableInternalDirectives` for compatibility.                              |
 | `@requiresOptIn` does not appear.                                                  | Opt-in feature support is disabled.                                                                                          | Set `ModifyOptions(o => o.EnableOptInFeatures = true)`.                                                                                                     |

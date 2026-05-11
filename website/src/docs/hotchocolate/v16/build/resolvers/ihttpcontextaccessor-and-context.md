@@ -560,4 +560,4 @@ Whenever possible, design resolvers to be transport-neutral. For example, a reso
 - [Global State](/docs/hotchocolate/v16/build/server-configuration/global-state): Set up server-wide global state.
 - [Interceptors](/docs/hotchocolate/v16/build/server-configuration/interceptors): Configure HTTP and WebSocket request interception.
 - [Authentication](/docs/hotchocolate/v16/build/security/authentication) and [Authorization](/docs/hotchocolate/v16/build/security/authorization): Set up security.
-- [Subscriptions](/docs/hotchocolate/v16/build/schema-elements/operations-subscriptions): Learn about WebSocket and SSE transport behavior.
+- [Subscriptions](/docs/hotchocolate/v16/build/type-system/operations-subscriptions): Learn about WebSocket and SSE transport behavior.

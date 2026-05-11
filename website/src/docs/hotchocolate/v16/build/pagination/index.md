@@ -422,7 +422,7 @@ Most fields should return `IQueryable<T>`, `IExecutable<T>`, or a bounded in-mem
 - Use `[UseConnection]`, `PageConnection<T>`, and `EnableRelativeCursors` for page-bar or relative cursor scenarios.
 - Extend connection and edge types when clients need aggregate fields or edge metadata.
 
-See [Cursor connections](connections-cursor.md) and [Paging options](paging-options.md) for more on these scenarios. If your client follows Relay conventions, see [Relay support](/docs/hotchocolate/v16/build/schema-elements/relay).
+See [Cursor connections](connections-cursor.md) and [Paging options](paging-options.md) for more on these scenarios. If your client follows Relay conventions, see [Relay support](/docs/hotchocolate/v16/build/type-system/relay).
 
 # Troubleshooting Common Paging Issues
 
@@ -446,4 +446,4 @@ See [Cursor connections](connections-cursor.md) and [Paging options](paging-opti
 - Register or select a provider: [Paging providers](paging-providers.md)
 - Combine with data middleware: [Projections](/docs/hotchocolate/v16/build/filtering-sorting-projections/projection-options), [Filtering](/docs/hotchocolate/v16/build/filtering-sorting-projections/filter-types), and [Sorting](/docs/hotchocolate/v16/build/filtering-sorting-projections/sort-types)
 - Protect public schemas: [Cost analysis](/docs/hotchocolate/v16/build/security/cost-analysis) and the [Public API guide](/docs/hotchocolate/v16/_leagcy/guides/public-api)
-- Understand Relay conventions: [Relay support](/docs/hotchocolate/v16/build/schema-elements/relay)
+- Understand Relay conventions: [Relay support](/docs/hotchocolate/v16/build/type-system/relay)

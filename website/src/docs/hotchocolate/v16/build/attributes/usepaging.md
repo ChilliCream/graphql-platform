@@ -510,7 +510,7 @@ Register the provider and set `ProviderName` on the field if the source type doe
 # Next steps
 
 - [Pagination](/docs/hotchocolate/v16/build/pagination) for connection concepts and manual `Connection<T>` construction.
-- [Relay Connections](../schema-elements/relay/connections) for the generated connection schema contract.
+- [Relay Connections](../type-system/relay/connections) for the generated connection schema contract.
 - [Attributes overview](./) for attribute and descriptor tradeoffs.
 - [Projections](/docs/hotchocolate/v16/build/filtering-sorting-projections/projection-options), [Filtering](/docs/hotchocolate/v16/build/filtering-sorting-projections/filter-types), and [Sorting](/docs/hotchocolate/v16/build/filtering-sorting-projections/sort-types) for the data middleware stack.
 - [Field middleware](/docs/hotchocolate/v16/build/execution-engine/field-middleware) for execution ordering.

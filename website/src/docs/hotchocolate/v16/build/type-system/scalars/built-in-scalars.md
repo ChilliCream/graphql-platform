@@ -343,7 +343,7 @@ type Shipment {
 
 The `Date` scalar is also built in for date-only values. `DateOnly` maps to `LocalDate` by default, so bind `DateType` explicitly when the schema contract should use `Date`.
 
-For additional date and time types using NodaTime, see the [NodaTime Scalars](/docs/hotchocolate/v16/build/schema-elements/scalars/nodatime-scalars) documentation.
+For additional date and time types using NodaTime, see the [NodaTime Scalars](/docs/hotchocolate/v16/build/type-system/scalars/nodatime-scalars) documentation.
 
 ## Configure date/time precision
 
@@ -558,7 +558,7 @@ public class Schedule
 
 For more complex field configuration, see [Object Types](../object-types#choose-attributes-or-descriptors).
 
-To create your own scalar types, see [Custom Scalars](/docs/hotchocolate/v16/build/schema-elements/scalars/custom-scalars).
+To create your own scalar types, see [Custom Scalars](/docs/hotchocolate/v16/build/type-system/scalars/custom-scalars).
 
 # Nullability and generated SDL
 
@@ -697,7 +697,7 @@ For more complex cases, decide whether `Any` is still the right contract or whet
 
 # Next steps
 
-- [Custom Scalars](/docs/hotchocolate/v16/build/schema-elements/scalars/custom-scalars) - Create your own scalar types for domain-specific values
-- [NodaTime Scalars](/docs/hotchocolate/v16/build/schema-elements/scalars/nodatime-scalars) - Use NodaTime types for advanced date and time handling
-- [Community Scalars](/docs/hotchocolate/v16/build/schema-elements/scalars/community-scalars) - Discover additional scalar types from the community
+- [Custom Scalars](/docs/hotchocolate/v16/build/type-system/scalars/custom-scalars) - Create your own scalar types for domain-specific values
+- [NodaTime Scalars](/docs/hotchocolate/v16/build/type-system/scalars/nodatime-scalars) - Use NodaTime types for advanced date and time handling
+- [Community Scalars](/docs/hotchocolate/v16/build/type-system/scalars/community-scalars) - Discover additional scalar types from the community
 - [Object Types](../object-types#choose-attributes-or-descriptors) - Learn advanced field configuration with attributes and descriptors

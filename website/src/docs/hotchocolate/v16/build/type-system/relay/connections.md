@@ -51,7 +51,7 @@ type PageInfo {
 
 The Relay core contract requires `edges`, `pageInfo`, and for each edge, a `cursor` and `node`. The `nodes` and `totalCount` fields are Hot Chocolate extensions to this contract.
 
-Cursors are opaque tokens representing positions. Do not parse, construct, or reveal their internal format. If clients need to refetch items by identity, use [global object identification](/docs/hotchocolate/v16/build/schema-elements/relay).
+Cursors are opaque tokens representing positions. Do not parse, construct, or reveal their internal format. If clients need to refetch items by identity, use [global object identification](/docs/hotchocolate/v16/build/type-system/relay).
 
 # Adding a Connection Field with `UsePaging`
 
@@ -382,7 +382,7 @@ A connection can expose any object type as `node`. Relay-style clients benefit w
 
 Global object identification is not required for connections to function, but it is recommended if you want Relay client stores to cache and refetch items by identity.
 
-See [Relay and Global Object Identification](/docs/hotchocolate/v16/build/schema-elements/relay) for setup instructions.
+See [Relay and Global Object Identification](/docs/hotchocolate/v16/build/type-system/relay) for setup instructions.
 
 # Connection Options Reference
 
@@ -427,11 +427,11 @@ Cursors are opaque position tokens, not global IDs. Use global object identifica
 
 # Next Steps
 
-- **Set up global object identification:** [Relay and Global Object Identification](/docs/hotchocolate/v16/build/schema-elements/relay)
+- **Set up global object identification:** [Relay and Global Object Identification](/docs/hotchocolate/v16/build/type-system/relay)
 - **Configure paging boundaries, providers, and cursor behavior:** [Pagination](/docs/hotchocolate/v16/build/pagination)
 - **Filter results on a paged field:** [Filtering](/docs/hotchocolate/v16/build/filtering-sorting-projections/filter-types)
 - **Sort results on a paged field:** [Sorting](/docs/hotchocolate/v16/build/filtering-sorting-projections/sort-types)
 - **Optimize database queries with projections:** [Projections](/docs/hotchocolate/v16/build/filtering-sorting-projections/projection-options)
 - **Batch data fetching efficiently:** [DataLoader](/docs/hotchocolate/v16/build/dataloader)
-- **Extend connection or edge types:** [Extending Types](/docs/hotchocolate/v16/build/schema-elements/extending-types)
+- **Extend connection or edge types:** [Extending Types](/docs/hotchocolate/v16/build/type-system/extending-types)
 - **Protect against expensive queries:** [Cost Analysis](/docs/hotchocolate/v16/build/security/cost-analysis)

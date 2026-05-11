@@ -25,7 +25,7 @@ Static operation analysis
 extensions.operationCost and configured limits
 ```
 
-The `[Cost]` attribute adds `@cost(weight: "...")`. This weight contributes to the field or type cost when the annotated schema element is used in an operation.
+The `[Cost]` attribute adds `@cost(weight: "...")`. This weight contributes to the field or type cost when the annotated type or field is used in an operation.
 
 The `[ListSize]` attribute adds `@listSize(...)`. This metadata tells the analyzer how many list items to assume, or which argument controls the list length. That size multiplies nested selections.
 
@@ -212,7 +212,7 @@ Supported `[Cost]` targets:
 | Enum               | Enum type                  | Advanced enum cost model                |
 | Input property     | Input field definition     | Expensive input option                  |
 
-Start with field-level weights. Type, enum, and scalar weights are advanced schema-wide choices because they affect every operation that reaches those schema elements.
+Start with field-level weights. Type, enum, and scalar weights are advanced schema-wide choices because they affect every operation that reaches those types.
 
 # Verifying the schema and measured cost
 
@@ -354,7 +354,7 @@ Check the following:
 
 - Import `HotChocolate.CostAnalysis.Types`.
 - Confirm the attribute target becomes a schema descriptor. `[ListSize]` is for object fields.
-- Inspect the SDL for `@cost` or `@listSize` on the expected schema element.
+- Inspect the SDL for `@cost` or `@listSize` on the expected type or field.
 - Compare `GraphQL-Cost: report` results before and after the change.
 - If the new value matches a default, `ApplyCostDefaults` may make the difference hard to see.
 

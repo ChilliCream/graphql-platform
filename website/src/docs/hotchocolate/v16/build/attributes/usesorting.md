@@ -50,7 +50,7 @@ query {
 
 # What the Attribute Adds to the Schema
 
-`[UseSorting]` automatically generates several schema elements:
+`[UseSorting]` automatically generates several type system members:
 
 **Field argument:** The attribute adds an `order` argument to the field. The name is determined by the active `SortConvention` (default is `order`). If you configure a convention with a different argument name, the generated argument will use that name.
 

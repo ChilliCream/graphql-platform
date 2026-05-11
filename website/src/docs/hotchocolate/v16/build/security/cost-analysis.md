@@ -112,7 +112,7 @@ When `ApplyCostDefaults` is `true`, Hot Chocolate adds default metadata during s
 | Async resolver pipeline field | `10.0`                 | Controlled by `DefaultResolverCost`.                      |
 | List without `@listSize`      | `1`                    | Add paging or list-size metadata for lists that can grow. |
 
-Explicit `@cost` or `[Cost]` metadata overrides the default weight for that schema element. If a field-cost sum becomes negative, Hot Chocolate floors that field cost at zero.
+Explicit `@cost` or `[Cost]` metadata overrides the default weight for that type or field. If a field-cost sum becomes negative, Hot Chocolate floors that field cost at zero.
 
 ## Lists multiply nested cost
 

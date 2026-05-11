@@ -308,5 +308,5 @@ Related topics:
 
 - [Authorization](/docs/hotchocolate/v16/build/security/authorization) for field authorization behavior.
 - [Diagnostic events](/docs/hotchocolate/v16/build/observability/diagnostic-events) for server-side error observation.
-- [Mutation fields](/docs/hotchocolate/v16/build/schema-elements/operations-mutations) for mutation schema design.
+- [Mutation fields](/docs/hotchocolate/v16/build/type-system/operations-mutations) for mutation schema design.
 - [Request options](/docs/hotchocolate/v16/build/server-configuration/schema-options) for execution options such as `IncludeExceptionDetails`.

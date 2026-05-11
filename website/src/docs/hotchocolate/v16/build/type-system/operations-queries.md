@@ -50,7 +50,7 @@ A typical response for this query might look like:
 }
 ```
 
-Query fields must not cause side effects. The execution engine may run sibling query fields concurrently and in any order, so avoid mutating application state in a query resolver. Place all write operations in [mutations](/docs/hotchocolate/v16/build/schema-elements/operations-mutations).
+Query fields must not cause side effects. The execution engine may run sibling query fields concurrently and in any order, so avoid mutating application state in a query resolver. Place all write operations in [mutations](/docs/hotchocolate/v16/build/type-system/operations-mutations).
 
 # Start with the schema you want
 
@@ -226,7 +226,7 @@ Use a small, focused set of root field shapes for clarity and maintainability.
 
 | Shape                | Example field              | Use when                                         | Avoid when                                      | Details                                                                               |
 | -------------------- | -------------------------- | ------------------------------------------------ | ----------------------------------------------- | ------------------------------------------------------------------------------------- |
-| Detail by ID         | `productById(id:)`         | A screen needs one entity by its identifier.     | The field is entity refetch through global IDs. | [Arguments](./arguments), [Relay](/docs/hotchocolate/v16/build/schema-elements/relay) |
+| Detail by ID         | `productById(id:)`         | A screen needs one entity by its identifier.     | The field is entity refetch through global IDs. | [Arguments](./arguments), [Relay](/docs/hotchocolate/v16/build/type-system/relay)     |
 | Business lookup      | `brandByName(name:)`       | The key is meaningful in the domain.             | The lookup can return many matches.             | [Arguments](./arguments)                                                              |
 | Collection           | `products`                 | Clients need a root list entry point.            | The dataset can grow without bounds.            | [Pagination](/docs/hotchocolate/v16/build/pagination)                                 |
 | Paginated collection | `products(first:, after:)` | The dataset can be large.                        | The resolver loads every row before paging.     | [Pagination](/docs/hotchocolate/v16/build/pagination)                                 |
@@ -484,7 +484,7 @@ builder
     .AddQueryType<ProductQueriesType>();
 ```
 
-Use `.AddTypeExtension<T>()`, `[ExtendObjectType]`, or `ObjectTypeExtension<T>` to extend an existing root type without source-generated `[QueryType]` classes. For extension patterns, see [Extending Types](/docs/hotchocolate/v16/build/schema-elements/extending-types).
+Use `.AddTypeExtension<T>()`, `[ExtendObjectType]`, or `ObjectTypeExtension<T>` to extend an existing root type without source-generated `[QueryType]` classes. For extension patterns, see [Extending Types](/docs/hotchocolate/v16/build/type-system/extending-types).
 
 # Keep query execution safe
 

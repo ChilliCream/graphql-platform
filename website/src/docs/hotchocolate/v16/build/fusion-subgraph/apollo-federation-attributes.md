@@ -495,7 +495,7 @@ type Money @shareable {
 
 Federation v2 automatically treats key fields as shareable. Use `[Shareable]` explicitly for non-key fields or types that are intentionally resolved by multiple subgraphs.
 
-## Hide schema elements with `[Inaccessible]`
+## Hide types and fields with `[Inaccessible]`
 
 Apply `[Inaccessible]` to a field or type that is required for composition or query planning but should be hidden from the client-facing supergraph API.
 
@@ -689,7 +689,7 @@ Policies are evaluated by Apollo Router configuration, Rhai scripts, or coproces
 
 ## Add metadata with `[Tag]`
 
-Use `[Tag]` from `HotChocolate.Types` to attach repeatable metadata to schema elements.
+Use `[Tag]` from `HotChocolate.Types` to attach repeatable metadata to types and fields.
 
 ```csharp
 using HotChocolate.Types;
@@ -772,5 +772,5 @@ Also, execute an `_entities` query for each key shape your subgraph resolves. Th
 
 - Review the general Apollo Federation setup in [Apollo Federation Subgraph Support](/docs/hotchocolate/v16/build/fusion-subgraph/apollo-federation).
 - Learn about attribute mechanics in [Attribute Reference](/docs/hotchocolate/v16/build/attributes/custom-descriptor-attributes).
-- See [Object Types](/docs/hotchocolate/v16/build/schema-elements/object-types), [Resolvers](/docs/hotchocolate/v16/build/resolvers), and [DataLoader](/docs/hotchocolate/v16/build/dataloader) for schema and resolver patterns.
+- See [Object Types](/docs/hotchocolate/v16/build/type-system/object-types), [Resolvers](/docs/hotchocolate/v16/build/resolvers), and [DataLoader](/docs/hotchocolate/v16/build/dataloader) for schema and resolver patterns.
 - For Fusion-native entity modeling, refer to [Entities and Lookups](/docs/fusion/v16/entities-and-lookups) and [Coming from Apollo Federation](/docs/fusion/v16/migration/coming-from-apollo-federation).

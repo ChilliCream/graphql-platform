@@ -364,7 +364,7 @@ Useful extension methods include `SetCoordinate(SchemaCoordinate)`, `SetInputPat
 ## Next steps
 
 - [Resolver result handling](/docs/hotchocolate/v16/build/resolvers/resolver-result-handling) for choosing between values, `IError`, `ReportError`, and typed result models.
-- [Mutation conventions](/docs/hotchocolate/v16/build/schema-elements/operations-mutations) for typed payload errors.
+- [Mutation conventions](/docs/hotchocolate/v16/build/type-system/operations-mutations) for typed payload errors.
 - [DataLoader](/docs/hotchocolate/v16/build/dataloader) for batch resolvers and `ResolverResult.Fail`.
 - [Interceptors](/docs/hotchocolate/v16/build/server-configuration/interceptors) for failing a request before execution.
 - [Instrumentation](/docs/hotchocolate/v16/build/observability) for logging and diagnostics.

@@ -717,5 +717,5 @@ Use `ModifyAuthorizationOptions(...)` and `AddAuthorizationHandler<T>()` only if
 - Review the full attribute reference in [Authorize attribute](../attributes/authorize.md).
 - Review endpoint mapping in [Endpoints](../server-configuration/endpoints.md).
 - Review WebSocket hooks in [Interceptors](../server-configuration/interceptors.md).
-- Review subscription fields in [Operations: subscriptions](../schema-elements/operations-subscriptions.md).
+- Review subscription fields in [Operations: subscriptions](../type-system/operations-subscriptions.md).
 - Review resolver parameters in [Resolver signatures](../resolvers/resolver-signature.md).

@@ -642,5 +642,5 @@ Cursor pagination is usually preferred for large or changing lists, as it naviga
 - [Paging options](paging-options.md) for defaults, limits, `IncludeNodesField`, `NullOrdering`, and relative cursor settings
 - [Paging providers](paging-providers.md) for provider registration and named providers
 - [Projections](/docs/hotchocolate/v16/build/filtering-sorting-projections/projection-options), [Filtering](/docs/hotchocolate/v16/build/filtering-sorting-projections/filter-types), and [Sorting](/docs/hotchocolate/v16/build/filtering-sorting-projections/sort-types) for data middleware
-- [Relay support](/docs/hotchocolate/v16/build/schema-elements/relay) for Relay conventions beyond connections
+- [Relay support](/docs/hotchocolate/v16/build/type-system/relay) for Relay conventions beyond connections
 - [Cost analysis](/docs/hotchocolate/v16/build/security/cost-analysis) for query cost limits on paged fields

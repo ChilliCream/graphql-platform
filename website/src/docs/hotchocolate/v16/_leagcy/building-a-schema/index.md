@@ -4,7 +4,7 @@ title: "Overview"
 
 A GraphQL schema defines the contract between your server and its clients. It declares what data clients can query, what mutations they can perform, and what events they can subscribe to. In Hot Chocolate, you build the schema from C# code, and the framework translates your types and methods into a GraphQL schema at build time.
 
-This page explains how that translation works and how to choose between the two supported approaches. The sub-pages in this section cover each schema element in detail.
+This page explains how that translation works and how to choose between the two supported approaches. The sub-pages in this section cover each type definition in detail.
 
 # How Hot Chocolate Maps C# to GraphQL
 
@@ -88,9 +88,9 @@ public class ProductType : ObjectType<Product>
 
 Both approaches can coexist in the same project. You can use implementation-first for most types and switch to code-first for specific cases.
 
-# Schema Elements
+# Type System
 
-A GraphQL schema is built from a small set of elements. Each has its own page with full examples in both approaches.
+A GraphQL schema is built from a small set of type definitions. Each has its own page with full examples in both approaches.
 
 ## Root Types
 

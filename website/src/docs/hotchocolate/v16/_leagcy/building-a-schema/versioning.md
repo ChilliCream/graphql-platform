@@ -4,7 +4,7 @@ title: "Versioning"
 
 Unlike REST APIs, GraphQL schemas do not use URL-based versioning (like `/graphql/v2`). Most schema changes are additive and non-breaking: adding new types and new fields does not affect existing queries. Removing a field or changing its nullability, however, is a breaking change.
 
-GraphQL provides two directives to manage the lifecycle of schema elements:
+GraphQL provides two directives to manage the lifecycle of fields and types:
 
 - `@deprecated` signals that a field is being phased out and consumers should migrate away.
 - `@requiresOptIn` signals that a field is not yet stable and requires explicit consumer consent.

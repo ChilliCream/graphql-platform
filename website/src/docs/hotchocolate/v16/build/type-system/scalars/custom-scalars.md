@@ -10,7 +10,7 @@ This guide focuses on authoring custom scalars. For built-in scalars, see [Built
 
 # Decide if your value should be a scalar
 
-Begin by considering the public schema. A scalar should represent a single leaf value with a consistent format. If your value requires fields, choices, or operation-specific rules, another schema element is usually more appropriate.
+Begin by considering the public schema. A scalar should represent a single leaf value with a consistent format. If your value requires fields, choices, or operation-specific rules, another type is usually more appropriate.
 
 | Need                                              | Prefer                             | Example                                                                          |
 | ------------------------------------------------- | ---------------------------------- | -------------------------------------------------------------------------------- |

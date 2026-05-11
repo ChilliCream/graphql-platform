@@ -28,7 +28,7 @@ query GetProduct($id: ID!) {
 }
 ```
 
-This page explains arguments as schema elements. For details on how arguments are passed to resolvers, see [Resolvers](/docs/hotchocolate/v16/build/resolvers). For guidance on designing structured input, see [Input Object Types](./input-object-types).
+This page explains arguments as type system members. For details on how arguments are passed to resolvers, see [Resolvers](/docs/hotchocolate/v16/build/resolvers). For guidance on designing structured input, see [Input Object Types](./input-object-types).
 
 # Adding a Field Argument
 
@@ -174,7 +174,7 @@ Naming tips:
 | Make binding explicit | Use `[Argument("name")]` to explicitly bind a parameter as an argument and optionally override its name.    |
 | Add descriptions      | Use `[GraphQLDescription]`, XML `<param>` comments, or the descriptor `.Description(...)` method.           |
 
-For more on description precedence and XML documentation setup, see [Documentation](/docs/hotchocolate/v16/build/schema-elements/documentation-comments).
+For more on description precedence and XML documentation setup, see [Documentation](/docs/hotchocolate/v16/build/type-system/documentation-comments).
 
 # Required, Optional, and Default Arguments
 
@@ -325,7 +325,7 @@ builder
     });
 ```
 
-`ID` is a scalar type. If you enable global object identification, Hot Chocolate can decode opaque global IDs before your resolver receives the CLR value. An `ID` argument alone does not make a field a Relay node lookup. For node fields, global IDs, and `[Node]` APIs, see [Relay and global object identification](/docs/hotchocolate/v16/build/schema-elements/relay).
+`ID` is a scalar type. If you enable global object identification, Hot Chocolate can decode opaque global IDs before your resolver receives the CLR value. An `ID` argument alone does not make a field a Relay node lookup. For node fields, global IDs, and `[Node]` APIs, see [Relay and global object identification](/docs/hotchocolate/v16/build/type-system/relay).
 
 # Choosing Scalar Arguments or Input Objects
 
@@ -492,7 +492,7 @@ input AddToBasketInput {
 }
 ```
 
-GraphQL nullability can require fields like `quantity`. Business rules (such as `quantity > 0`, product existence, inventory checks, and authorization) should be handled in your resolver, service, or domain logic. For more on mutation conventions and payload design, see [Mutations](/docs/hotchocolate/v16/build/schema-elements/operations-mutations).
+GraphQL nullability can require fields like `quantity`. Business rules (such as `quantity > 0`, product existence, inventory checks, and authorization) should be handled in your resolver, service, or domain logic. For more on mutation conventions and payload design, see [Mutations](/docs/hotchocolate/v16/build/type-system/operations-mutations).
 
 # Deprecating Arguments Safely
 
@@ -634,9 +634,9 @@ Use GraphQL type shapes for transport-level validation, and keep business valida
 # Next Steps
 
 - Model structured values with [Input Object Types](./input-object-types).
-- Review scalar mapping with [Scalars](./scalars/index) and ID behavior with [Relay](/docs/hotchocolate/v16/build/schema-elements/relay).
+- Review scalar mapping with [Scalars](./scalars/index) and ID behavior with [Relay](/docs/hotchocolate/v16/build/type-system/relay).
 - Tune nullability and collections with [Lists and Non-Null](./lists-and-non-null).
-- Add descriptions with [Documentation](/docs/hotchocolate/v16/build/schema-elements/documentation-comments) and plan changes with [Versioning](/docs/hotchocolate/v16/_leagcy/building-a-schema/versioning).
+- Add descriptions with [Documentation](/docs/hotchocolate/v16/build/type-system/documentation-comments) and plan changes with [Versioning](/docs/hotchocolate/v16/_leagcy/building-a-schema/versioning).
 - Use [Pagination](/docs/hotchocolate/v16/build/pagination), [Filtering](/docs/hotchocolate/v16/build/filtering-sorting-projections/filter-types), and [Sorting](/docs/hotchocolate/v16/build/filtering-sorting-projections/sort-types) for generated collection arguments.
 - Move from schema shape to execution with [Resolvers](/docs/hotchocolate/v16/build/resolvers) and [Custom Attributes](/docs/hotchocolate/v16/build/attributes/custom-descriptor-attributes).
 - Review [Cost Analysis](/docs/hotchocolate/v16/build/security/cost-analysis) when argument combinations can produce expensive operations.

@@ -19,7 +19,7 @@ type Brand {
 }
 ```
 
-Use object types for data clients read. For structured input from clients, use [input object types](/docs/hotchocolate/v16/build/schema-elements/input-object-types). To share output fields, use [interfaces](/docs/hotchocolate/v16/build/schema-elements/interfaces). For polymorphic output without shared fields, use [unions](/docs/hotchocolate/v16/build/schema-elements/unions). To add fields from another module, use [type extensions](/docs/hotchocolate/v16/build/schema-elements/extending-types).
+Use object types for data clients read. For structured input from clients, use [input object types](/docs/hotchocolate/v16/build/type-system/input-object-types). To share output fields, use [interfaces](/docs/hotchocolate/v16/build/type-system/interfaces). For polymorphic output without shared fields, use [unions](/docs/hotchocolate/v16/build/type-system/unions). To add fields from another module, use [type extensions](/docs/hotchocolate/v16/build/type-system/extending-types).
 
 Key terms:
 
@@ -378,7 +378,7 @@ descriptor.Field(t => t.Id).Type<NonNullType<IdType>>();
 descriptor.Field(t => t.Tags).Type<NonNullType<ListType<NonNullType<StringType>>>>();
 ```
 
-For full rules, see [Non-Null](/docs/hotchocolate/v16/build/schema-elements/lists-and-non-null), [Lists](/docs/hotchocolate/v16/build/schema-elements/lists-and-non-null), and [Scalars](/docs/hotchocolate/v16/build/schema-elements/scalars).
+For full rules, see [Non-Null](/docs/hotchocolate/v16/build/type-system/lists-and-non-null), [Lists](/docs/hotchocolate/v16/build/type-system/lists-and-non-null), and [Scalars](/docs/hotchocolate/v16/build/type-system/scalars).
 
 # Add fields with resolvers
 
@@ -637,9 +637,9 @@ Implementation choices:
 
 - Add a resolver method in a `[ObjectType<T>]` class.
 - Add a descriptor field with `.Field("brand").Resolve(...)`.
-- Use a [type extension](/docs/hotchocolate/v16/build/schema-elements/extending-types) when another module owns the added field.
+- Use a [type extension](/docs/hotchocolate/v16/build/type-system/extending-types) when another module owns the added field.
 
-For resolver execution details, see [Resolvers](/docs/hotchocolate/v16/build/resolvers). For efficient related data fetching, see [DataLoader](/docs/hotchocolate/v16/build/dataloader). For global IDs and node lookups, see [Relay](/docs/hotchocolate/v16/build/schema-elements/relay).
+For resolver execution details, see [Resolvers](/docs/hotchocolate/v16/build/resolvers). For efficient related data fetching, see [DataLoader](/docs/hotchocolate/v16/build/dataloader). For global IDs and node lookups, see [Relay](/docs/hotchocolate/v16/build/type-system/relay).
 
 # Use dictionary properties
 
@@ -671,27 +671,27 @@ Clients query dictionary data as a list.
 
 Generated key-value pair type names depend on the key and value types. Include expected SDL in tests or schema review when dictionary fields are part of your public API.
 
-# Connect object types to related schema elements
+# Connect object types to related types
 
-Object types are central, but nearby schema elements have their own design rules.
+Object types are central, but nearby types have their own design rules.
 
-| Need                                        | Use                           | Learn more                                                                             |
-| ------------------------------------------- | ----------------------------- | -------------------------------------------------------------------------------------- |
-| Structured input for mutations or arguments | Input object type             | [Input Object Types](/docs/hotchocolate/v16/build/schema-elements/input-object-types)  |
-| Shared output fields across types           | Interface                     | [Interfaces](/docs/hotchocolate/v16/build/schema-elements/interfaces)                  |
-| Polymorphic output without shared fields    | Union                         | [Unions](/docs/hotchocolate/v16/build/schema-elements/unions)                          |
-| Add fields from another module              | Type extension                | [Extending Types](/docs/hotchocolate/v16/build/schema-elements/extending-types)        |
-| Query entry points                          | Query root object type        | [Queries](/docs/hotchocolate/v16/build/schema-elements/operations-queries)             |
-| Writes                                      | Mutation root object type     | [Mutations](/docs/hotchocolate/v16/build/schema-elements/operations-mutations)         |
-| Event streams                               | Subscription root object type | [Subscriptions](/docs/hotchocolate/v16/build/schema-elements/operations-subscriptions) |
+| Need                                        | Use                           | Learn more                                                                         |
+| ------------------------------------------- | ----------------------------- | ---------------------------------------------------------------------------------- |
+| Structured input for mutations or arguments | Input object type             | [Input Object Types](/docs/hotchocolate/v16/build/type-system/input-object-types)  |
+| Shared output fields across types           | Interface                     | [Interfaces](/docs/hotchocolate/v16/build/type-system/interfaces)                  |
+| Polymorphic output without shared fields    | Union                         | [Unions](/docs/hotchocolate/v16/build/type-system/unions)                          |
+| Add fields from another module              | Type extension                | [Extending Types](/docs/hotchocolate/v16/build/type-system/extending-types)        |
+| Query entry points                          | Query root object type        | [Queries](/docs/hotchocolate/v16/build/type-system/operations-queries)             |
+| Writes                                      | Mutation root object type     | [Mutations](/docs/hotchocolate/v16/build/type-system/operations-mutations)         |
+| Event streams                               | Subscription root object type | [Subscriptions](/docs/hotchocolate/v16/build/type-system/operations-subscriptions) |
 
 ### Link object types to interfaces
 
-Object types can implement interfaces with descriptor APIs such as `descriptor.Implements<NodeType>()`. Register implementing object types when they are not otherwise discovered. See [Interfaces](/docs/hotchocolate/v16/build/schema-elements/interfaces) for C# interface modeling and interface type registration.
+Object types can implement interfaces with descriptor APIs such as `descriptor.Implements<NodeType>()`. Register implementing object types when they are not otherwise discovered. See [Interfaces](/docs/hotchocolate/v16/build/type-system/interfaces) for C# interface modeling and interface type registration.
 
 ### Link object types to type extensions
 
-Type extensions merge fields into the final object type at schema build time. Use `[ExtendObjectType<T>]`, `ObjectTypeExtension<T>`, or `.AddTypeExtension<T>()`. See [Extending Types](/docs/hotchocolate/v16/build/schema-elements/extending-types) for adding, replacing, and removing fields.
+Type extensions merge fields into the final object type at schema build time. Use `[ExtendObjectType<T>]`, `ObjectTypeExtension<T>`, or `.AddTypeExtension<T>()`. See [Extending Types](/docs/hotchocolate/v16/build/type-system/extending-types) for adding, replacing, and removing fields.
 
 # Troubleshoot object types
 
@@ -718,7 +718,7 @@ Type extensions merge fields into the final object type at schema build time. Us
 - Check nullable reference type settings in the project.
 - Check list nullability and item nullability separately.
 - Use `[GraphQLType<T>]`, `[GraphQLType("...")]`, or `.Type<T>()` for explicit overrides.
-- See [Non-Null](/docs/hotchocolate/v16/build/schema-elements/lists-and-non-null), [Lists](/docs/hotchocolate/v16/build/schema-elements/lists-and-non-null), and [Scalars](/docs/hotchocolate/v16/build/schema-elements/scalars).
+- See [Non-Null](/docs/hotchocolate/v16/build/type-system/lists-and-non-null), [Lists](/docs/hotchocolate/v16/build/type-system/lists-and-non-null), and [Scalars](/docs/hotchocolate/v16/build/type-system/scalars).
 
 ## A resolver field causes repeated database calls
 
@@ -754,8 +754,8 @@ Common descriptor APIs:
 
 # Next steps
 
-- Define entry points with [Queries](/docs/hotchocolate/v16/build/schema-elements/operations-queries), [Mutations](/docs/hotchocolate/v16/build/schema-elements/operations-mutations), and [Subscriptions](/docs/hotchocolate/v16/build/schema-elements/operations-subscriptions).
-- Define input payloads with [Input Object Types](/docs/hotchocolate/v16/build/schema-elements/input-object-types).
-- Share output fields with [Interfaces](/docs/hotchocolate/v16/build/schema-elements/interfaces) or choose polymorphic results with [Unions](/docs/hotchocolate/v16/build/schema-elements/unions).
-- Add fields from another module with [Extending Types](/docs/hotchocolate/v16/build/schema-elements/extending-types).
-- Tune nullability and collections with [Non-Null](/docs/hotchocolate/v16/build/schema-elements/lists-and-non-null) and [Lists](/docs/hotchocolate/v16/build/schema-elements/lists-and-non-null).
+- Define entry points with [Queries](/docs/hotchocolate/v16/build/type-system/operations-queries), [Mutations](/docs/hotchocolate/v16/build/type-system/operations-mutations), and [Subscriptions](/docs/hotchocolate/v16/build/type-system/operations-subscriptions).
+- Define input payloads with [Input Object Types](/docs/hotchocolate/v16/build/type-system/input-object-types).
+- Share output fields with [Interfaces](/docs/hotchocolate/v16/build/type-system/interfaces) or choose polymorphic results with [Unions](/docs/hotchocolate/v16/build/type-system/unions).
+- Add fields from another module with [Extending Types](/docs/hotchocolate/v16/build/type-system/extending-types).
+- Tune nullability and collections with [Non-Null](/docs/hotchocolate/v16/build/type-system/lists-and-non-null) and [Lists](/docs/hotchocolate/v16/build/type-system/lists-and-non-null).

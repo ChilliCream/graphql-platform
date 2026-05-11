@@ -486,4 +486,4 @@ Diagnostic listeners observe execution synchronously. Do not use them to control
 - Fetch related data with [DataLoader](/docs/hotchocolate/v16/build/dataloader) and the [DataLoader attribute](/docs/hotchocolate/v16/build/dataloader/dataloader-attribute).
 - Configure protocol behavior with [HTTP transport](/docs/hotchocolate/v16/build/server-configuration/http-transport), [WebSocket transport](/docs/hotchocolate/v16/build/server-configuration/websocket-transport), and batching.
 - Observe production behavior with [instrumentation](/docs/hotchocolate/v16/build/observability) and OpenTelemetry.
-- Review [errors](/docs/hotchocolate/v16/build/errors), [error handling](/docs/hotchocolate/v16/_leagcy/guides/error-handling), and [lists and non-null](/docs/hotchocolate/v16/build/schema-elements/lists-and-non-null) when you need precise error and null behavior.
+- Review [errors](/docs/hotchocolate/v16/build/errors), [error handling](/docs/hotchocolate/v16/_leagcy/guides/error-handling), and [lists and non-null](/docs/hotchocolate/v16/build/type-system/lists-and-non-null) when you need precise error and null behavior.

@@ -316,5 +316,5 @@ The Fusion attributes in this table are found in `HotChocolate.Types.Composite`.
 - Add another source schema with [Adding a Subgraph](/docs/fusion/v16/adding-a-subgraph).
 - Compose local schemas with [Fusion CLI](/docs/fusion/v16/cli) and [Composition](/docs/fusion/v16/composition).
 - Deploy the composed graph with [Deployment and CI/CD](/docs/fusion/v16/deployment-and-ci-cd).
-- Review Hot Chocolate server basics in [Command Line](/docs/hotchocolate/v16/build/server-configuration/command-line), [Object Types](/docs/hotchocolate/v16/build/schema-elements/object-types), [Extending Types](/docs/hotchocolate/v16/build/schema-elements/extending-types), [Resolvers](/docs/hotchocolate/v16/build/resolvers), and [DataLoader](/docs/hotchocolate/v16/build/dataloader).
+- Review Hot Chocolate server basics in [Command Line](/docs/hotchocolate/v16/build/server-configuration/command-line), [Object Types](/docs/hotchocolate/v16/build/type-system/object-types), [Extending Types](/docs/hotchocolate/v16/build/type-system/extending-types), [Resolvers](/docs/hotchocolate/v16/build/resolvers), and [DataLoader](/docs/hotchocolate/v16/build/dataloader).
 - For Federation-compatible subgraph syntax, see [Apollo Federation Subgraph Support](/docs/hotchocolate/v16/build/fusion-subgraph/apollo-federation).

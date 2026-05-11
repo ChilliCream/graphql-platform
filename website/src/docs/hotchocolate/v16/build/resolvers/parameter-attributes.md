@@ -407,7 +407,7 @@ subscription WatchBooks {
 }
 ```
 
-`[EventMessage]` is only relevant when Hot Chocolate is resolving a subscription event. For more on topics, transports, and publishing events, see [Subscriptions](/docs/hotchocolate/v16/build/schema-elements/operations-subscriptions).
+`[EventMessage]` is only relevant when Hot Chocolate is resolving a subscription event. For more on topics, transports, and publishing events, see [Subscriptions](/docs/hotchocolate/v16/build/type-system/operations-subscriptions).
 
 ## Use runtime helper parameters without attributes
 
@@ -476,13 +476,13 @@ Decision checklist:
 
 | Goal                               | Page                                                                                                                                            |
 | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| Design GraphQL arguments           | [Arguments](/docs/hotchocolate/v16/build/schema-elements/arguments)                                                                             |
+| Design GraphQL arguments           | [Arguments](/docs/hotchocolate/v16/build/type-system/arguments)                                                                                 |
 | Review resolver signatures         | [Resolver Signatures](./resolver-signature)                                                                                                     |
 | Access parent values               | [Parent access](./parent-attribute)                                                                                                             |
 | Inject services and keyed services | [Service Injection](./service-injection)                                                                                                        |
 | Read and write request state       | [Global State](/docs/hotchocolate/v16/build/server-configuration/global-state)                                                                  |
 | Configure request interceptors     | [Interceptors](/docs/hotchocolate/v16/build/server-configuration/interceptors)                                                                  |
-| Add subscriptions                  | [Subscriptions](/docs/hotchocolate/v16/build/schema-elements/operations-subscriptions)                                                          |
+| Add subscriptions                  | [Subscriptions](/docs/hotchocolate/v16/build/type-system/operations-subscriptions)                                                              |
 | Access authenticated users         | [Authentication](/docs/hotchocolate/v16/build/security/authentication) and [Authorization](/docs/hotchocolate/v16/build/security/authorization) |
 | Batch related data                 | [DataLoader](/docs/hotchocolate/v16/build/dataloader)                                                                                           |
 | Access HTTP-specific data          | [HTTP Context and State](./ihttpcontextaccessor-and-context)                                                                                    |

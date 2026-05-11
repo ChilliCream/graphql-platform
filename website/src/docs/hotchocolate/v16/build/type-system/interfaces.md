@@ -32,7 +32,7 @@ Clients can query `id`, `role`, and `sentAt` on `Message`. The `content` and `do
 
 # When to Use an Interface
 
-Decide on the schema element before writing code. Interfaces are most effective when the shared fields are part of the API contract, not an implementation detail alone.
+Decide on the type before writing code. Interfaces are most effective when the shared fields are part of the API contract, not an implementation detail alone.
 
 | Need                                  | Use                                                   | Notes                                           |
 | ------------------------------------- | ----------------------------------------------------- | ----------------------------------------------- |
@@ -338,7 +338,7 @@ Use a consistent naming style per type to keep the schema predictable.
 | Implement another interface | CLR inheritance plus registration                        | `descriptor.Implements<OtherInterfaceType>()`                                        | Register intermediate interfaces when needed.                   |
 | Customize runtime matching  | Not available                                            | Object `descriptor.IsOfType(...)` or interface `descriptor.ResolveAbstractType(...)` | Use only when the defaults do not match your runtime values.    |
 
-For field nullability, descriptions, directives, and object-only field configuration, see [Object types](./object-types), [Non-Null](/docs/hotchocolate/v16/build/schema-elements/lists-and-non-null), and [Documentation](/docs/hotchocolate/v16/build/schema-elements/documentation-comments).
+For field nullability, descriptions, directives, and object-only field configuration, see [Object types](./object-types), [Non-Null](/docs/hotchocolate/v16/build/type-system/lists-and-non-null), and [Documentation](/docs/hotchocolate/v16/build/type-system/documentation-comments).
 
 # Understanding Runtime Type Resolution
 
@@ -430,12 +430,12 @@ In code-first schemas, call `descriptor.Implements<OtherInterfaceType>()` from t
 
 Several Hot Chocolate features build on GraphQL interfaces. Refer to their dedicated pages for complete workflows.
 
-| Workflow                     | What to know                                                                                                                                                             | Read next                                                                       |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------- |
-| Relay `Node`                 | `Node` is the Relay global identification interface with an `id: ID!` field. Hot Chocolate provides `[Node]`, `.ImplementsNode()`, ID serialization, and node resolvers. | [Relay](/docs/hotchocolate/v16/build/schema-elements/relay)                     |
-| Type extensions by interface | `[ExtendObjectType(typeof(SomeInterface))]` adds fields to implementing object types, not to the interface type itself.                                                  | [Extending types](/docs/hotchocolate/v16/build/schema-elements/extending-types) |
-| Error interfaces             | Mutation error payloads can expose shared error fields through an output interface. Keep error modeling with mutation documentation.                                     | [Mutations](/docs/hotchocolate/v16/build/schema-elements/operations-mutations)  |
-| Selection sets and fragments | Interface queries use the same selection set and fragment rules as other GraphQL queries.                                                                                | [Queries](/docs/hotchocolate/v16/build/schema-elements/operations-queries)      |
+| Workflow                     | What to know                                                                                                                                                             | Read next                                                                   |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------- |
+| Relay `Node`                 | `Node` is the Relay global identification interface with an `id: ID!` field. Hot Chocolate provides `[Node]`, `.ImplementsNode()`, ID serialization, and node resolvers. | [Relay](/docs/hotchocolate/v16/build/type-system/relay)                     |
+| Type extensions by interface | `[ExtendObjectType(typeof(SomeInterface))]` adds fields to implementing object types, not to the interface type itself.                                                  | [Extending types](/docs/hotchocolate/v16/build/type-system/extending-types) |
+| Error interfaces             | Mutation error payloads can expose shared error fields through an output interface. Keep error modeling with mutation documentation.                                     | [Mutations](/docs/hotchocolate/v16/build/type-system/operations-mutations)  |
+| Selection sets and fragments | Interface queries use the same selection set and fragment rules as other GraphQL queries.                                                                                | [Queries](/docs/hotchocolate/v16/build/type-system/operations-queries)      |
 
 # Troubleshooting Interfaces
 
@@ -447,7 +447,7 @@ Several Hot Chocolate features build on GraphQL interfaces. Refer to their dedic
 | Interface field is missing from SDL                             | Explicit binding is enabled, the field was ignored, or global binding changed defaults | Add `descriptor.Field(...)`, remove `[GraphQLIgnore]`, or change binding behavior.                                                     |
 | Query validation rejects a concrete field                       | The field belongs to an implementor, not the interface                                 | Use an inline or named fragment on the concrete type.                                                                                  |
 | Implementor does not satisfy an interface field                 | Field name, nullability, or GraphQL type does not match                                | Align the interface field and object field configuration.                                                                              |
-| Extension field appears on objects, not on the interface        | Extension by interface targets implementors                                            | This is expected. See [Extending types](/docs/hotchocolate/v16/build/schema-elements/extending-types).                                 |
+| Extension field appears on objects, not on the interface        | Extension by interface targets implementors                                            | This is expected. See [Extending types](/docs/hotchocolate/v16/build/type-system/extending-types).                                     |
 | A C# marker interface creates an unhelpful GraphQL interface    | The interface has no shared fields                                                     | Use a [union](./unions) when result types only share context.                                                                          |
 
 # Next Steps
@@ -455,4 +455,4 @@ Several Hot Chocolate features build on GraphQL interfaces. Refer to their dedic
 - Define concrete implementors with [Object types](./object-types).
 - Model polymorphic output without shared fields using [Unions](./unions).
 - Learn about input alternatives with [Input object types](./input-object-types).
-- Add fields across implementors with [Extending types](/docs/hotchocolate/v16/build/schema-elements/extending-types).
+- Add fields across implementors with [Extending types](/docs/hotchocolate/v16/build/type-system/extending-types).

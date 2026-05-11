@@ -38,7 +38,7 @@ Avoid enums for open-ended values, frequently changing external codes, free-form
 | A true or false choice           | Boolean     | `includeArchived: Boolean`            |
 | A value with fields or behavior  | Object type | `Status { code label color }`         |
 
-For custom primitive values, see [Scalars](/docs/hotchocolate/v16/build/schema-elements/scalars). For output shapes with fields, see [Object Types](./object-types).
+For custom primitive values, see [Scalars](/docs/hotchocolate/v16/build/type-system/scalars). For output shapes with fields, see [Object Types](./object-types).
 
 # Defining an Enum from a C# Enum
 
@@ -136,7 +136,7 @@ type Query {
 }
 ```
 
-For more on input modeling, see [Arguments](/docs/hotchocolate/v16/build/schema-elements/arguments) and [Input Object Types](./input-object-types).
+For more on input modeling, see [Arguments](/docs/hotchocolate/v16/build/type-system/arguments) and [Input Object Types](./input-object-types).
 
 # Using Enum Values in Operations and JSON
 
@@ -327,7 +327,7 @@ public sealed class OrderStatusType : EnumType<OrderStatus>
 </Code>
 </ExampleTabs>
 
-For XML documentation comments and precedence rules, see [Documentation](/docs/hotchocolate/v16/build/schema-elements/documentation-comments).
+For XML documentation comments and precedence rules, see [Documentation](/docs/hotchocolate/v16/build/type-system/documentation-comments).
 
 # Safely Deprecating Enum Values
 
@@ -713,6 +713,6 @@ Flag enum support is opt-in and uses flag-specific input and output shapes when 
 
 - Use enum fields on [Object Types](./object-types).
 - Use enums inside [Input Object Types](./input-object-types).
-- Compare enums with [Scalars](/docs/hotchocolate/v16/build/schema-elements/scalars).
-- Add descriptions with [Documentation](/docs/hotchocolate/v16/build/schema-elements/documentation-comments).
+- Compare enums with [Scalars](/docs/hotchocolate/v16/build/type-system/scalars).
+- Add descriptions with [Documentation](/docs/hotchocolate/v16/build/type-system/documentation-comments).
 - Plan enum changes with [Versioning](/docs/hotchocolate/v16/_leagcy/building-a-schema/versioning) and [Schema Evolution](/docs/hotchocolate/v16/_leagcy/guides/schema-evolution).

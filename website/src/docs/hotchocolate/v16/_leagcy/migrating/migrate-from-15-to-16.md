@@ -351,7 +351,7 @@ Previously, the global ID input value formatter was added to ID filter fields re
 
 ## fieldCoordinate renamed to coordinate in error extensions
 
-Some GraphQL validation errors included an extension named `fieldCoordinate` that provided a schema coordinate pointing to the field or argument that caused the error. Since schema coordinates can reference various schema elements (not just fields), we've renamed this extension to `coordinate` for clarity.
+Some GraphQL validation errors included an extension named `fieldCoordinate` that provided a schema coordinate pointing to the field or argument that caused the error. Since schema coordinates can reference various type system members (not just fields), we've renamed this extension to `coordinate` for clarity.
 
 ```diff
 {

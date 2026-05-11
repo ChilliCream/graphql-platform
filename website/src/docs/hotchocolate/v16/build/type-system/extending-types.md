@@ -18,7 +18,7 @@ CatalogQueries        ProductBrandExtensions       ProductReviewExtensions
 Final GraphQL schema: one Query type, one Product type
 ```
 
-Use this page to modularize your schema within a single Hot Chocolate server. If you need to shape your schema from runtime metadata, see [Dynamic Schemas](/docs/hotchocolate/v16/build/schema-elements/dynamic-schemas). If different services, deployed independently, own separate parts of the graph, see [Fusion](/docs/hotchocolate/v16/_leagcy/fusion).
+Use this page to modularize your schema within a single Hot Chocolate server. If you need to shape your schema from runtime metadata, see [Dynamic Schemas](/docs/hotchocolate/v16/build/type-system/dynamic-schemas). If different services, deployed independently, own separate parts of the graph, see [Fusion](/docs/hotchocolate/v16/_leagcy/fusion).
 
 # Choosing the right extension
 
@@ -482,7 +482,7 @@ input CreateProductInput {
 }
 ```
 
-For CLR-backed input objects, make sure your runtime binding can handle any field you add before you depend on the value. If your goal is to build input types from runtime metadata, use [Dynamic Schemas](/docs/hotchocolate/v16/build/schema-elements/dynamic-schemas) instead.
+For CLR-backed input objects, make sure your runtime binding can handle any field you add before you depend on the value. If your goal is to build input types from runtime metadata, use [Dynamic Schemas](/docs/hotchocolate/v16/build/type-system/dynamic-schemas) instead.
 
 # Extend an interface type
 
@@ -717,5 +717,5 @@ This page covers one Hot Chocolate server. Use [Fusion](/docs/hotchocolate/v16/_
 - Learn resolver parameters in [Resolvers](/docs/hotchocolate/v16/build/resolvers).
 - Avoid N+1 lookups with [DataLoader](/docs/hotchocolate/v16/build/dataloader).
 - Extend generated connection and edge types with [Pagination](/docs/hotchocolate/v16/build/pagination).
-- Use `[Node]` and global object identification with [Relay](/docs/hotchocolate/v16/build/schema-elements/relay).
+- Use `[Node]` and global object identification with [Relay](/docs/hotchocolate/v16/build/type-system/relay).
 - Review attribute names in [Custom Attributes](/docs/hotchocolate/v16/build/attributes/custom-descriptor-attributes).

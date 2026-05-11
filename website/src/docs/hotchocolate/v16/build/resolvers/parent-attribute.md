@@ -144,7 +144,7 @@ builder
     .AddTypes();
 ```
 
-The parent access rule is the same as for `[ObjectType<Product>]`: the `Product` object being resolved is injected into the `[Parent]` parameter. For more on type extension patterns, see [Type extensions](/docs/hotchocolate/v16/build/schema-elements/extending-types).
+The parent access rule is the same as for `[ObjectType<Product>]`: the `Product` object being resolved is injected into the `[Parent]` parameter. For more on type extension patterns, see [Type extensions](/docs/hotchocolate/v16/build/type-system/extending-types).
 
 ## Using `context.Parent<T>()` in Descriptor Fields
 
@@ -292,7 +292,7 @@ The returned list must have the same count and order as the parent list. Source-
 | `[Parent]` type does not match                       | The source generator analyzer can report a mismatch, or `context.Parent<T>()` can fail. | Use the object type's CLR type, a valid base class, or a valid interface.      |
 | A custom resolver needs a hidden or projected member | The parent object may not contain the needed value.                                     | Keep required keys on the parent object and validate projection configuration. |
 
-For null propagation rules, see [Non-null](/docs/hotchocolate/v16/build/schema-elements/lists-and-non-null). For custom resolver projection behavior, see [Projections](/docs/hotchocolate/v16/build/filtering-sorting-projections/projection-options).
+For null propagation rules, see [Non-null](/docs/hotchocolate/v16/build/type-system/lists-and-non-null). For custom resolver projection behavior, see [Projections](/docs/hotchocolate/v16/build/filtering-sorting-projections/projection-options).
 
 ## Troubleshooting Parent Value Issues
 
@@ -345,6 +345,6 @@ public static async Task<Brand?> GetBrandAsync(
 | Review resolver naming, return types, and supported parameters | [Resolver Signature](./resolver-signature)                                                   |
 | Inject application services and understand resolver scopes     | [Service Injection](./service-injection)                                                     |
 | Batch relationship loading and generated loader interfaces     | [DataLoader](/docs/hotchocolate/v16/build/dataloader)                                        |
-| Organize fields outside CLR models                             | [Type extensions](/docs/hotchocolate/v16/build/schema-elements/extending-types)              |
+| Organize fields outside CLR models                             | [Type extensions](/docs/hotchocolate/v16/build/type-system/extending-types)                  |
 | Understand custom resolver projection behavior                 | [Projections](/docs/hotchocolate/v16/build/filtering-sorting-projections/projection-options) |
-| Review GraphQL null propagation and C# nullability             | [Non-null](/docs/hotchocolate/v16/build/schema-elements/lists-and-non-null)                  |
+| Review GraphQL null propagation and C# nullability             | [Non-null](/docs/hotchocolate/v16/build/type-system/lists-and-non-null)                      |

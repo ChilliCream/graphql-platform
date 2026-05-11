@@ -366,7 +366,7 @@ Startup diagnostics are usually thrown or logged while the schema is built. Fix 
 | `TS_NO_NAME_DEFINED`       | Member has no name.                         | Provide a valid GraphQL name.                                                        |
 | `TS_UNRESOLVED_TYPES`      | Unresolved types remain.                    | Register missing types or fix type references.                                       |
 
-See [schema elements](/docs/hotchocolate/v16/build/schema-elements), [middleware order](/docs/hotchocolate/v16/build/execution-engine/well-known-middleware-keys), [Relay global identifiers](/docs/hotchocolate/v16/build/schema-elements/relay/global-identifiers), and [mutations](/docs/hotchocolate/v16/build/schema-elements/operations-mutations).
+See [type system](/docs/hotchocolate/v16/build/type-system), [middleware order](/docs/hotchocolate/v16/build/execution-engine/well-known-middleware-keys), [Relay global identifiers](/docs/hotchocolate/v16/build/type-system/relay/global-identifiers), and [mutations](/docs/hotchocolate/v16/build/type-system/operations-mutations).
 
 # Schema validation diagnostics
 
@@ -408,7 +408,7 @@ These codes come from scalars, data providers, paging, filtering, and spatial pa
 | `FILTER_FIELD_DESCRIPTOR_TYPE` | Filtering     | Filter field descriptor type invalid.     | Check custom filter configuration.                              |
 | `FILTER_OBJECT_TYPE`           | Filtering     | Filter object type invalid.               | Check custom filter types and conventions.                      |
 
-See [pagination](/docs/hotchocolate/v16/build/pagination), [filtering, sorting, and projections](/docs/hotchocolate/v16/build/filtering-sorting-projections), and [custom scalars](/docs/hotchocolate/v16/build/schema-elements/scalars/custom-scalars).
+See [pagination](/docs/hotchocolate/v16/build/pagination), [filtering, sorting, and projections](/docs/hotchocolate/v16/build/filtering-sorting-projections), and [custom scalars](/docs/hotchocolate/v16/build/type-system/scalars/custom-scalars).
 
 # Custom application codes
 

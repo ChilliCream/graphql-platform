@@ -420,6 +420,6 @@ Use this approach only when the standard generated or manual cache loader cannot
 - Learn more in the [DataLoader overview](./index).
 - Explore resolver injection patterns in [Service Injection](../resolvers/service-injection).
 - Review resolver parameter basics in [Resolver Signatures](../resolvers/resolver-signature).
-- Use [Mutations](../schema-elements/operations-mutations) when write operations interact with cached reads.
+- Use [Mutations](../type-system/operations-mutations) when write operations interact with cached reads.
 - See broader execution and batching guidance in [Performance](/docs/hotchocolate/v16/_leagcy/guides/performance).
 - Understand response caching with [Cache Control](/docs/hotchocolate/v16/build/performance/cache-control).

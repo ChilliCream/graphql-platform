@@ -4,11 +4,11 @@ title: WebSocket transport
 
 GraphQL subscriptions require three main components: a subscription field in the schema, a subscription provider to deliver events, and a transport to send subscription results to the client. This page explains how to configure the WebSocket transport for Hot Chocolate on ASP.NET Core.
 
-| Piece                 | Responsibility                                                         | Learn more                                                                             |
-| --------------------- | ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| Subscription field    | Defines what the client can subscribe to.                              | [Subscriptions](/docs/hotchocolate/v16/build/schema-elements/operations-subscriptions) |
-| Subscription provider | Moves published events to active subscriptions.                        | [Subscriptions](/docs/hotchocolate/v16/build/schema-elements/operations-subscriptions) |
-| WebSocket transport   | Carries connection, operation, result, keep-alive, and close messages. | This page                                                                              |
+| Piece                 | Responsibility                                                         | Learn more                                                                         |
+| --------------------- | ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Subscription field    | Defines what the client can subscribe to.                              | [Subscriptions](/docs/hotchocolate/v16/build/type-system/operations-subscriptions) |
+| Subscription provider | Moves published events to active subscriptions.                        | [Subscriptions](/docs/hotchocolate/v16/build/type-system/operations-subscriptions) |
+| WebSocket transport   | Carries connection, operation, result, keep-alive, and close messages. | This page                                                                          |
 
 # When to use WebSockets
 
@@ -293,6 +293,6 @@ GraphQL parsing and validation failures usually produce an operation-level `erro
 
 - Configure routes and endpoint policies with [Endpoint mapping](/docs/hotchocolate/v16/build/server-configuration/endpoints).
 - Configure HTTP, SSE, multipart, and incremental delivery with [HTTP transport](/docs/hotchocolate/v16/build/server-configuration/http-transport).
-- Build subscription fields, topics, publishing, and providers with [Subscriptions](/docs/hotchocolate/v16/build/schema-elements/operations-subscriptions).
+- Build subscription fields, topics, publishing, and providers with [Subscriptions](/docs/hotchocolate/v16/build/type-system/operations-subscriptions).
 - Customize the full socket lifecycle with [Interceptors](/docs/hotchocolate/v16/build/server-configuration/interceptors).
 - Apply operation authorization with [Authorization](/docs/hotchocolate/v16/build/security/authorization).

@@ -141,7 +141,7 @@ When nullable reference types are enabled, Hot Chocolate maps C# nullability to 
 | `List<Product?>`  | `[Product]!`               | The list is present, but items may be `null`.           |
 | `List<Product?>?` | `[Product]`                | The list and its items may be `null`.                   |
 
-For the complete mapping, see [Non-Null](/docs/hotchocolate/v16/build/schema-elements/lists-and-non-null) and [Lists](/docs/hotchocolate/v16/build/schema-elements/lists-and-non-null).
+For the complete mapping, see [Non-Null](/docs/hotchocolate/v16/build/type-system/lists-and-non-null) and [Lists](/docs/hotchocolate/v16/build/type-system/lists-and-non-null).
 
 ### Null Propagation for Non-Null Violations
 
@@ -193,12 +193,12 @@ Select a collection shape based on who should control query execution.
 
 | Return shape                                           | Use when                                                             | Execution behavior                                                                                               | Details                                                                                                            |
 | ------------------------------------------------------ | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `IEnumerable<T>`, `IReadOnlyList<T>`, `List<T>`, array | Items are already in memory.                                         | Hot Chocolate completes the value as a GraphQL list.                                                             | [Lists](/docs/hotchocolate/v16/build/schema-elements/lists-and-non-null)                                           |
+| `IEnumerable<T>`, `IReadOnlyList<T>`, `List<T>`, array | Items are already in memory.                                         | Hot Chocolate completes the value as a GraphQL list.                                                             | [Lists](/docs/hotchocolate/v16/build/type-system/lists-and-non-null)                                               |
 | `IQueryable<T>`                                        | EF Core or another LINQ provider should compose database operations. | Data middleware can add paging, projection, filtering, and sorting before materialization.                       | [Projections](/docs/hotchocolate/v16/build/filtering-sorting-projections/projection-options)                       |
 | `IExecutable<T>`                                       | A Hot Chocolate data provider exposes provider-neutral execution.    | Hot Chocolate recognizes it as list-like and calls executable operations such as `ToListAsync`.                  | [Executable](/docs/hotchocolate/v16/build/execution-internals/executable)                                          |
 | `Connection<T>`                                        | The resolver owns cursor paging.                                     | The returned value is already a connection payload.                                                              | [Pagination](/docs/hotchocolate/v16/build/pagination)                                                              |
 | `QueryContext<T>`                                      | You use the integrated projection, filtering, and sorting pattern.   | Execution applies the query context behavior.                                                                    | [Projections](/docs/hotchocolate/v16/build/filtering-sorting-projections/projection-options#querycontextt-pattern) |
-| `IAsyncEnumerable<T>`                                  | Items are produced asynchronously.                                   | Ordinary field completion materializes the sequence for a list result. Use subscriptions for live event streams. | [Subscriptions](/docs/hotchocolate/v16/build/schema-elements/operations-subscriptions)                             |
+| `IAsyncEnumerable<T>`                                  | Items are produced asynchronously.                                   | Ordinary field completion materializes the sequence for a list result. Use subscriptions for live event streams. | [Subscriptions](/docs/hotchocolate/v16/build/type-system/operations-subscriptions)                                 |
 
 ### Let Data Middleware Compose `IQueryable<T>`
 
@@ -504,7 +504,7 @@ public static partial class BasketMutations
 }
 ```
 
-The implicit conversions create either the success result or the error result. Keep detailed mutation convention setup in the [Mutations](/docs/hotchocolate/v16/build/schema-elements/operations-mutations) page.
+The implicit conversions create either the success result or the error result. Keep detailed mutation convention setup in the [Mutations](/docs/hotchocolate/v16/build/type-system/operations-mutations) page.
 
 ## Modeling Query Outcomes with Unions
 
@@ -563,7 +563,7 @@ query {
 }
 ```
 
-Use [Unions](/docs/hotchocolate/v16/build/schema-elements/unions) for detailed union declaration patterns. Use `IError`, `GraphQLException`, or `ReportError` for GraphQL execution diagnostics instead.
+Use [Unions](/docs/hotchocolate/v16/build/type-system/unions) for detailed union declaration patterns. Use `IError`, `GraphQLException`, or `ReportError` for GraphQL execution diagnostics instead.
 
 ## Returning Subscription Event Payloads
 
@@ -608,7 +608,7 @@ public static partial class ProductSubscriptions
 }
 ```
 
-`ISourceStream<T>` is a subscription source stream. It is not the return shape for ordinary query fields. If a query resolver returns `IAsyncEnumerable<T>`, ordinary field completion materializes it as a list unless you use a verified incremental delivery feature. For subscription setup and transports, see [Subscriptions](/docs/hotchocolate/v16/build/schema-elements/operations-subscriptions) and [HTTP Transport](/docs/hotchocolate/v16/build/server-configuration/http-transport).
+`ISourceStream<T>` is a subscription source stream. It is not the return shape for ordinary query fields. If a query resolver returns `IAsyncEnumerable<T>`, ordinary field completion materializes it as a list unless you use a verified incremental delivery feature. For subscription setup and transports, see [Subscriptions](/docs/hotchocolate/v16/build/type-system/operations-subscriptions) and [HTTP Transport](/docs/hotchocolate/v16/build/server-configuration/http-transport).
 
 ## Handling DataLoader and Batch Resolver Item Results
 
@@ -710,7 +710,7 @@ If the second user has no email, the response can contain data for the first ite
 ## Next Steps
 
 - Learn how to design resolver parameters in [Resolver Signatures](./resolver-signature).
-- Configure nullability with [Non-Null](/docs/hotchocolate/v16/build/schema-elements/lists-and-non-null).
-- Model mutation payloads in [Mutations](/docs/hotchocolate/v16/build/schema-elements/operations-mutations).
+- Configure nullability with [Non-Null](/docs/hotchocolate/v16/build/type-system/lists-and-non-null).
+- Model mutation payloads in [Mutations](/docs/hotchocolate/v16/build/type-system/operations-mutations).
 - Explore field error construction in [Errors](/docs/hotchocolate/v16/build/errors).
 - Add batching with [DataLoader](/docs/hotchocolate/v16/build/dataloader).

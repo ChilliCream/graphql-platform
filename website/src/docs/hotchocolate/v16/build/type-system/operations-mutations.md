@@ -25,7 +25,7 @@ mutation CreateBook($input: CreateBookInput!) {
 }
 ```
 
-This page covers mutation operation fields and schema design. For details on input modeling, see [Input Object Types](./input-object-types). For Relay-specific payload `query` fields, refer to [Query Field in Mutation Payloads](/docs/hotchocolate/v16/build/schema-elements/relay#query-field-in-mutation-payloads).
+This page covers mutation operation fields and schema design. For details on input modeling, see [Input Object Types](./input-object-types). For Relay-specific payload `query` fields, refer to [Query Field in Mutation Payloads](/docs/hotchocolate/v16/build/type-system/relay#query-field-in-mutation-payloads).
 
 # How mutation execution works
 
@@ -566,7 +566,7 @@ Discoverability APIs:
 | `QueryFieldName`                     | Renames the generated payload query field.          |
 | `MutationPayloadPredicate`           | Chooses which payload types receive the field.      |
 
-See [Query Field in Mutation Payloads](/docs/hotchocolate/v16/build/schema-elements/relay#query-field-in-mutation-payloads) for the Relay-specific walkthrough.
+See [Query Field in Mutation Payloads](/docs/hotchocolate/v16/build/type-system/relay#query-field-in-mutation-payloads) for the Relay-specific walkthrough.
 
 # Troubleshoot mutation fields
 
@@ -579,26 +579,26 @@ See [Query Field in Mutation Payloads](/docs/hotchocolate/v16/build/schema-eleme
 | A domain exception appears in top-level `errors`.                           | The exception is not declared as a payload error or conventions are not active.                               | Model expected failures as payload errors. See [Error Handling](/docs/hotchocolate/v16/_leagcy/guides/error-handling).             |
 | A mutation with several root fields does not roll back as expected.         | Serial execution was mistaken for a transaction.                                                              | Coordinate transactions in application code or transaction configuration.                                                          |
 | `[AllowAnonymous]` does not bypass authorization.                           | The ASP.NET Core attribute may have been imported.                                                            | Use Hot Chocolate's authorization attribute.                                                                                       |
-| A payload does not contain `query`.                                         | Relay payload query field configuration is absent or the predicate does not match.                            | See [Query Field in Mutation Payloads](/docs/hotchocolate/v16/build/schema-elements/relay#query-field-in-mutation-payloads).       |
+| A payload does not contain `query`.                                         | Relay payload query field configuration is absent or the predicate does not match.                            | See [Query Field in Mutation Payloads](/docs/hotchocolate/v16/build/type-system/relay#query-field-in-mutation-payloads).           |
 
 # API reference summary
 
-| API                                       | Purpose                                                                                   | Where to go next                                                                                                         |
-| ----------------------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `[MutationType]`                          | Contributes fields to the root `Mutation` type with implementation-first schema building. | This page.                                                                                                               |
-| `[Mutation]`                              | Marks a static method or property as a mutation root field in operation classes.          | Attribute reference or this page when comparing root-field options.                                                      |
-| `.AddMutationType<T>()`                   | Registers a descriptor-based mutation root type.                                          | This page.                                                                                                               |
-| `.AddMutationConventions(...)`            | Enables generated input and payload conventions.                                          | This page.                                                                                                               |
-| `[UseMutationConvention]`                 | Opts a field into conventions or customizes a conventional field.                         | This page.                                                                                                               |
-| `[UseMutationConvention(Disable = true)]` | Opts a field out of global conventions.                                                   | This page.                                                                                                               |
-| `MutationConventionOptions`               | Configures input, payload, and error naming conventions.                                  | This page.                                                                                                               |
-| `[Error]` and `[Error<T>]`                | Declares expected domain errors for payload error generation.                             | [Error Handling](/docs/hotchocolate/v16/_leagcy/guides/error-handling).                                                  |
-| `FieldResult<...>`                        | Returns either a success value or a typed domain error value.                             | [Error Handling](/docs/hotchocolate/v16/_leagcy/guides/error-handling).                                                  |
-| `[Authorize]`                             | Protects mutation fields.                                                                 | [Authorization](/docs/hotchocolate/v16/build/security/authorization).                                                    |
-| `[AllowAnonymous]`                        | Allows public mutation fields.                                                            | [Authorization](/docs/hotchocolate/v16/build/security/authorization).                                                    |
-| `.AddDefaultTransactionScopeHandler()`    | Adds default transaction scope handling for mutation requests.                            | Transaction section on this page.                                                                                        |
-| `.AddTransactionScopeHandler<T>()`        | Adds custom transaction scope handling.                                                   | Transaction section on this page.                                                                                        |
-| `.AddQueryFieldToMutationPayloads(...)`   | Adds a Relay-style query field to payloads.                                               | [Query Field in Mutation Payloads](/docs/hotchocolate/v16/build/schema-elements/relay#query-field-in-mutation-payloads). |
+| API                                       | Purpose                                                                                   | Where to go next                                                                                                     |
+| ----------------------------------------- | ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `[MutationType]`                          | Contributes fields to the root `Mutation` type with implementation-first schema building. | This page.                                                                                                           |
+| `[Mutation]`                              | Marks a static method or property as a mutation root field in operation classes.          | Attribute reference or this page when comparing root-field options.                                                  |
+| `.AddMutationType<T>()`                   | Registers a descriptor-based mutation root type.                                          | This page.                                                                                                           |
+| `.AddMutationConventions(...)`            | Enables generated input and payload conventions.                                          | This page.                                                                                                           |
+| `[UseMutationConvention]`                 | Opts a field into conventions or customizes a conventional field.                         | This page.                                                                                                           |
+| `[UseMutationConvention(Disable = true)]` | Opts a field out of global conventions.                                                   | This page.                                                                                                           |
+| `MutationConventionOptions`               | Configures input, payload, and error naming conventions.                                  | This page.                                                                                                           |
+| `[Error]` and `[Error<T>]`                | Declares expected domain errors for payload error generation.                             | [Error Handling](/docs/hotchocolate/v16/_leagcy/guides/error-handling).                                              |
+| `FieldResult<...>`                        | Returns either a success value or a typed domain error value.                             | [Error Handling](/docs/hotchocolate/v16/_leagcy/guides/error-handling).                                              |
+| `[Authorize]`                             | Protects mutation fields.                                                                 | [Authorization](/docs/hotchocolate/v16/build/security/authorization).                                                |
+| `[AllowAnonymous]`                        | Allows public mutation fields.                                                            | [Authorization](/docs/hotchocolate/v16/build/security/authorization).                                                |
+| `.AddDefaultTransactionScopeHandler()`    | Adds default transaction scope handling for mutation requests.                            | Transaction section on this page.                                                                                    |
+| `.AddTransactionScopeHandler<T>()`        | Adds custom transaction scope handling.                                                   | Transaction section on this page.                                                                                    |
+| `.AddQueryFieldToMutationPayloads(...)`   | Adds a Relay-style query field to payloads.                                               | [Query Field in Mutation Payloads](/docs/hotchocolate/v16/build/type-system/relay#query-field-in-mutation-payloads). |
 
 # Next steps
 

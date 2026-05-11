@@ -164,7 +164,7 @@ type Book {
 }
 ```
 
-Read more: [Schema elements](/docs/hotchocolate/v16/build/schema-elements), [Resolvers](/docs/hotchocolate/v16/build/resolvers).
+Read more: [Type system](/docs/hotchocolate/v16/build/type-system), [Resolvers](/docs/hotchocolate/v16/build/resolvers).
 
 ## Configure Endpoint Behavior Deliberately
 

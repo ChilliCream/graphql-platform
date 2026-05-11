@@ -529,5 +529,5 @@ The `Kind` property of `ISyntaxNode` returns a `SyntaxKind` value. This enum cov
 - [Execution depth and limits](../security/execution-depth-and-limits.md): Understand parser, validation, execution, and transport limits.
 - [Persisted operations](../performance/persisted-operations.md) and [trusted documents](../security/trusted-documents.md): Explore operation storage and allow-list workflows.
 - [Error builder](../errors/error-builder.md): Learn to create errors that include source locations.
-- [Schema elements](../schema-elements/index.md): Review runtime schema definitions.
+- [Type system](../type-system/index.md): Review runtime schema definitions.
 - [Extending filtering](../filtering-sorting-projections/extending-filtering.md): See a higher-level extension point for analyzing selection syntax.

@@ -16,7 +16,7 @@ Hot Chocolate provides two ways to add descriptions: the `[GraphQLDescription]` 
 
 # Using GraphQLDescription
 
-The `[GraphQLDescription]` attribute sets a description on any schema element.
+The `[GraphQLDescription]` attribute sets a description on any type or field.
 
 <ExampleTabs>
 <Implementation>

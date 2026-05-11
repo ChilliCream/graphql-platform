@@ -501,10 +501,10 @@ The table below lists the `SchemaOptions` properties available for this reposito
 
 # Next Steps
 
-- Shape object fields with [Object Types](/docs/hotchocolate/v16/build/schema-elements/object-types).
-- Shape input contracts with [Input Object Types](/docs/hotchocolate/v16/build/schema-elements/input-object-types).
-- Configure nullability with [Lists and Non-Null](/docs/hotchocolate/v16/build/schema-elements/lists-and-non-null).
-- Author directive metadata with [Directives](/docs/hotchocolate/v16/build/schema-elements/directives).
+- Shape object fields with [Object Types](/docs/hotchocolate/v16/build/type-system/object-types).
+- Shape input contracts with [Input Object Types](/docs/hotchocolate/v16/build/type-system/input-object-types).
+- Configure nullability with [Lists and Non-Null](/docs/hotchocolate/v16/build/type-system/lists-and-non-null).
+- Author directive metadata with [Directives](/docs/hotchocolate/v16/build/type-system/directives).
 - Configure endpoint behavior with [Endpoint mapping](/docs/hotchocolate/v16/build/server-configuration/endpoints).
 - Control operation introspection with [Introspection](/docs/hotchocolate/v16/build/security/introspection).
 - Review v16 migration details in [Migrate from 15 to 16](/docs/hotchocolate/v16/_leagcy/migrating/migrate-from-15-to-16).

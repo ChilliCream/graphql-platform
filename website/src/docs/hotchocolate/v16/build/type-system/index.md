@@ -1,14 +1,14 @@
 ---
-title: "Schema Elements"
+title: "Type System"
 ---
 
 A GraphQL schema defines the contract that clients interact with. It specifies the available operations, selectable fields, accepted arguments, and the structure of responses.
 
-Hot Chocolate enables you to define this contract in C# and review the resulting GraphQL SDL. This page serves as your guide: it introduces the main schema element categories, demonstrates how a C# model translates to SDL, and directs you to detailed pages for each modeling task.
+Hot Chocolate enables you to define this contract in C# and review the resulting GraphQL SDL. This page serves as your guide: it introduces the main type system concepts, demonstrates how a C# model translates to SDL, and directs you to detailed pages for each modeling task.
 
 # Begin with the client-facing contract
 
-Clients interact with your schema by sending GraphQL operations. They do not call your C# methods directly. Even a small schema illustrates most schema element categories:
+Clients interact with your schema by sending GraphQL operations. They do not call your C# methods directly. Even a small schema illustrates most type system concepts:
 
 ```graphql
 type Query {
@@ -36,7 +36,7 @@ input CreateBookInput {
 }
 ```
 
-| SDL part                    | Schema element      | What it means                     | Learn more                                 |
+| SDL part                    | Type system member  | What it means                     | Learn more                                 |
 | --------------------------- | ------------------- | --------------------------------- | ------------------------------------------ |
 | `Query`                     | Operation root type | Entry point for read operations.  | [Queries](./operations-queries)            |
 | `Mutation`                  | Operation root type | Entry point for write operations. | [Mutations](./operations-mutations)        |
@@ -146,16 +146,16 @@ input CreateBookInput {
 
 Key mappings include:
 
-| C# authoring element                           | GraphQL schema element | Notes                                                                                            |
-| ---------------------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------ |
-| `[QueryType]` method                           | Field on `Query`       | `GetBookByIdAsync` becomes `bookById`.                                                           |
-| `[MutationType]` method                        | Field on `Mutation`    | Top-level mutation fields execute serially.                                                      |
-| Method parameter                               | Argument               | Services and framework parameters, such as `CancellationToken`, do not become GraphQL arguments. |
-| Class or record returned from a resolver       | Object type            | Public properties and methods can become fields.                                                 |
-| Class or record used as a resolver parameter   | Input object type      | Input and output types are separate GraphQL concepts.                                            |
-| `string` with nullable reference types enabled | `String!`              | Nullable annotations influence GraphQL nullability.                                              |
-| `IReadOnlyList<T>`                             | `[T]` list wrapper     | The list and item nullability are modeled separately.                                            |
-| `[ID]`                                         | `ID` scalar behavior   | Use Relay guidance when you need global object identification.                                   |
+| C# authoring element                           | GraphQL type system member | Notes                                                                                            |
+| ---------------------------------------------- | -------------------------- | ------------------------------------------------------------------------------------------------ |
+| `[QueryType]` method                           | Field on `Query`           | `GetBookByIdAsync` becomes `bookById`.                                                           |
+| `[MutationType]` method                        | Field on `Mutation`        | Top-level mutation fields execute serially.                                                      |
+| Method parameter                               | Argument                   | Services and framework parameters, such as `CancellationToken`, do not become GraphQL arguments. |
+| Class or record returned from a resolver       | Object type                | Public properties and methods can become fields.                                                 |
+| Class or record used as a resolver parameter   | Input object type          | Input and output types are separate GraphQL concepts.                                            |
+| `string` with nullable reference types enabled | `String!`                  | Nullable annotations influence GraphQL nullability.                                              |
+| `IReadOnlyList<T>`                             | `[T]` list wrapper         | The list and item nullability are modeled separately.                                            |
+| `[ID]`                                         | `ID` scalar behavior       | Use Relay guidance when you need global object identification.                                   |
 
 The generated SDL is the artifact consumed by clients, schema registries, IDE tools, and tests. Review it regularly as you model your schema.
 
@@ -203,13 +203,13 @@ builder
     .AddType<BookType>();
 ```
 
-You can combine both styles. Many projects use implementation-first for most schema elements and code-first for types that require descriptor APIs.
+You can combine both styles. Many projects use implementation-first for most types and code-first for types that require descriptor APIs.
 
 ## About SDL-first authoring
 
 This section focuses on Hot Chocolate's C# authoring models. Use the generated SDL to inspect the contract clients see. If you want to author a schema from SDL, refer to the broader documentation for a dedicated page, as this section does not cover SDL-first authoring.
 
-# Use the schema element map
+# Use the type system map
 
 The following map helps you select the next detailed page without needing to learn every rule here.
 
@@ -277,7 +277,7 @@ Input optionality, default values, and output nullability are related but not id
 | --------------- | -------------------------------------------------------------------------------------------------------- | -------------------------------------- |
 | Type extensions | Split large object or root type definitions across classes. Extensions are merged into the final schema. | [Extending Types](./extending-types)   |
 | Relay helpers   | Use stable IDs, global object identification, `node`, `nodes`, `[ID]`, `[Node]`, and `[NodeResolver]`.   | [Relay](../../building-a-schema/relay) |
-| Dynamic schemas | Generate schema elements from CMS, multi-tenant, or configuration-driven metadata with `ITypeModule`.    | [Dynamic Schemas](./dynamic-schemas)   |
+| Dynamic schemas | Generate types from CMS, multi-tenant, or configuration-driven metadata with `ITypeModule`.              | [Dynamic Schemas](./dynamic-schemas)   |
 
 Use type extensions for static modularity. Choose dynamic schemas only when the schema must change based on external metadata or runtime configuration.
 
@@ -285,18 +285,18 @@ Use type extensions for static modularity. Choose dynamic schemas only when the 
 
 If you are new to Hot Chocolate schema modeling, begin with [Queries](./operations-queries), then [Object Types](./object-types), [Arguments](./arguments), and [Lists and Non-Null](./lists-and-non-null).
 
-| Your task                                    | Read next                                                                                                            |
-| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| Define the first read field.                 | [Queries](./operations-queries), then [Object Types](./object-types), then [Arguments](./arguments).                 |
-| Add a write operation.                       | [Mutations](./operations-mutations), then [Input Object Types](./input-object-types), then [Arguments](./arguments). |
-| Stream events to clients.                    | [Subscriptions](./operations-subscriptions).                                                                         |
-| Model returned data.                         | [Object Types](./object-types), then [Interfaces](./interfaces) or [Unions](./unions) for polymorphism.              |
-| Accept complex input.                        | [Input Object Types](./input-object-types), then [Lists and Non-Null](./lists-and-non-null).                         |
-| Control names, descriptions, or visibility.  | [Object Types](./object-types), [Documentation Comments](./documentation-comments), and [Directives](./directives).  |
-| Make IDs Relay-compatible.                   | [Relay](../../building-a-schema/relay).                                                                              |
-| Split a growing schema across files.         | [Extending Types](./extending-types).                                                                                |
-| Generate schema elements from configuration. | [Dynamic Schemas](./dynamic-schemas).                                                                                |
-| Plan safe schema changes.                    | [Versioning](../../building-a-schema/versioning) and schema evolution guidance.                                      |
+| Your task                                   | Read next                                                                                                            |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Define the first read field.                | [Queries](./operations-queries), then [Object Types](./object-types), then [Arguments](./arguments).                 |
+| Add a write operation.                      | [Mutations](./operations-mutations), then [Input Object Types](./input-object-types), then [Arguments](./arguments). |
+| Stream events to clients.                   | [Subscriptions](./operations-subscriptions).                                                                         |
+| Model returned data.                        | [Object Types](./object-types), then [Interfaces](./interfaces) or [Unions](./unions) for polymorphism.              |
+| Accept complex input.                       | [Input Object Types](./input-object-types), then [Lists and Non-Null](./lists-and-non-null).                         |
+| Control names, descriptions, or visibility. | [Object Types](./object-types), [Documentation Comments](./documentation-comments), and [Directives](./directives).  |
+| Make IDs Relay-compatible.                  | [Relay](../../building-a-schema/relay).                                                                              |
+| Split a growing schema across files.        | [Extending Types](./extending-types).                                                                                |
+| Generate types from configuration.          | [Dynamic Schemas](./dynamic-schemas).                                                                                |
+| Plan safe schema changes.                   | [Versioning](../../building-a-schema/versioning) and schema evolution guidance.                                      |
 
 # Troubleshooting common first problems
 

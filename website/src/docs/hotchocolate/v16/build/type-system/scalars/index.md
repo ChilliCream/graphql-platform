@@ -169,7 +169,7 @@ type Mutation {
 }
 ```
 
-The client sends the `Product` ID string. Hot Chocolate decodes that value before your resolver receives the `int productId`. For global object identification, node IDs, and composite IDs, see the [Relay and global object identification docs](/docs/hotchocolate/v16/build/schema-elements/relay).
+The client sends the `Product` ID string. Hot Chocolate decodes that value before your resolver receives the `int productId`. For global object identification, node IDs, and composite IDs, see the [Relay and global object identification docs](/docs/hotchocolate/v16/build/type-system/relay).
 
 # Keep UUID values as UUID
 
@@ -301,24 +301,24 @@ The custom scalar page covers the implementation APIs, including `ScalarType<TRu
 
 # Choose the route by problem
 
-| What you want to model                                 | Use this                                          | Go to                                                                                                    |
-| ------------------------------------------------------ | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| Ordinary CLR primitives and BCL date or time values    | Inferred built-in scalars                         | [Built-in Scalars](./built-in-scalars)                                                                   |
-| `Guid` as a value                                      | `UUID`                                            | [Built-in Scalars](./built-in-scalars)                                                                   |
-| Opaque entity identifiers                              | `ID`, `[ID]`, `[ID<T>]`, Relay or global IDs      | [Built-in Scalars](./built-in-scalars), then [Relay](/docs/hotchocolate/v16/build/schema-elements/relay) |
-| Arbitrary JSON-like values                             | `Any`                                             | [Built-in Scalars](./built-in-scalars)                                                                   |
-| `Uri`, `byte[]`, date/time precision, UUID formats     | Built-in scalar options                           | [Built-in Scalars](./built-in-scalars)                                                                   |
-| Email, phone, IP, color, ISBN, MAC address, UTC offset | `HotChocolate.Types.Scalars`                      | [Community Scalars](./community-scalars)                                                                 |
-| NodaTime domain model                                  | `HotChocolate.Types.NodaTime` and `AddNodaTime()` | [NodaTime Scalars](./nodatime-scalars)                                                                   |
-| File upload input                                      | `Upload` and `AddUploadType()`                    | [File uploads](/docs/hotchocolate/v16/_leagcy/server/files)                                              |
-| Reusable custom leaf format                            | Custom scalar                                     | [Custom Scalars](./custom-scalars)                                                                       |
-| Known input shape                                      | Input object type                                 | [Input Object Types](../input-object-types)                                                              |
-| Selectable result shape                                | Object type                                       | [Object Types](../object-types)                                                                          |
-| Closed set                                             | Enum                                              | [Enums](../enums)                                                                                        |
+| What you want to model                                 | Use this                                          | Go to                                                                                                |
+| ------------------------------------------------------ | ------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Ordinary CLR primitives and BCL date or time values    | Inferred built-in scalars                         | [Built-in Scalars](./built-in-scalars)                                                               |
+| `Guid` as a value                                      | `UUID`                                            | [Built-in Scalars](./built-in-scalars)                                                               |
+| Opaque entity identifiers                              | `ID`, `[ID]`, `[ID<T>]`, Relay or global IDs      | [Built-in Scalars](./built-in-scalars), then [Relay](/docs/hotchocolate/v16/build/type-system/relay) |
+| Arbitrary JSON-like values                             | `Any`                                             | [Built-in Scalars](./built-in-scalars)                                                               |
+| `Uri`, `byte[]`, date/time precision, UUID formats     | Built-in scalar options                           | [Built-in Scalars](./built-in-scalars)                                                               |
+| Email, phone, IP, color, ISBN, MAC address, UTC offset | `HotChocolate.Types.Scalars`                      | [Community Scalars](./community-scalars)                                                             |
+| NodaTime domain model                                  | `HotChocolate.Types.NodaTime` and `AddNodaTime()` | [NodaTime Scalars](./nodatime-scalars)                                                               |
+| File upload input                                      | `Upload` and `AddUploadType()`                    | [File uploads](/docs/hotchocolate/v16/_leagcy/server/files)                                          |
+| Reusable custom leaf format                            | Custom scalar                                     | [Custom Scalars](./custom-scalars)                                                                   |
+| Known input shape                                      | Input object type                                 | [Input Object Types](../input-object-types)                                                          |
+| Selectable result shape                                | Object type                                       | [Object Types](../object-types)                                                                      |
+| Closed set                                             | Enum                                              | [Enums](../enums)                                                                                    |
 
 # Follow the scalar decision flow
 
-Use this flow if you are unsure whether a scalar is the right schema element.
+Use this flow if you are unsure whether a scalar is the right type.
 
 ```text
 Does the value have selectable fields?
@@ -368,8 +368,8 @@ Is the value a reusable indivisible wire format?
 # Choose your next step
 
 1. Start with inferred CLR mappings in [Built-in Scalars](./built-in-scalars).
-2. Clarify `ID` and `UUID` behavior in [Built-in Scalars](./built-in-scalars), then use [Relay and global object identification](/docs/hotchocolate/v16/build/schema-elements/relay) for node IDs and typed IDs.
+2. Clarify `ID` and `UUID` behavior in [Built-in Scalars](./built-in-scalars), then use [Relay and global object identification](/docs/hotchocolate/v16/build/type-system/relay) for node IDs and typed IDs.
 3. Add common format scalars with [Community Scalars](./community-scalars).
 4. Use NodaTime domain types with [NodaTime Scalars](./nodatime-scalars).
 5. Author a custom scalar only after you rule out built-ins, package scalars, converters, object types, input object types, enums, validation, and Relay IDs.
-6. For adjacent schema modeling, see [Object Types](../object-types), [Input Object Types](../input-object-types), [Enums](../enums), [Arguments](/docs/hotchocolate/v16/build/schema-elements/arguments), and [File uploads](/docs/hotchocolate/v16/_leagcy/server/files).
+6. For adjacent schema modeling, see [Object Types](../object-types), [Input Object Types](../input-object-types), [Enums](../enums), [Arguments](/docs/hotchocolate/v16/build/type-system/arguments), and [File uploads](/docs/hotchocolate/v16/_leagcy/server/files).

@@ -41,7 +41,7 @@ Select the approach that matches your schema style and how you manage ownership.
 
 # Adding explicit descriptions with attributes
 
-The `[GraphQLDescription]` attribute allows you to set a description on any schema element. This provides explicit schema metadata and does not rely on XML documentation file generation.
+The `[GraphQLDescription]` attribute allows you to set a description on any type system member. This provides explicit schema metadata and does not rely on XML documentation file generation.
 
 ```csharp
 using HotChocolate;
@@ -251,7 +251,7 @@ input ProductFilterInput {
 
 # Adding descriptions in code-first type configuration
 
-Fluent code-first descriptors offer a `Description(...)` method for all schema elements.
+Fluent code-first descriptors offer a `Description(...)` method for all type system members.
 
 ```csharp
 public class ProductType : ObjectType<Product>
@@ -359,7 +359,7 @@ enum RefundStatus {
 
 **Precedence:** Fluent `Description(...)` in code-first configuration overrides attributes and XML documentation. This is true even if the value is null or empty. Avoid using empty strings as a fallback to XML documentation.
 
-# Deprecating schema elements with reasons
+# Deprecating type system members with reasons
 
 Descriptions explain what an element means. Deprecation reasons tell clients whether they should continue using an element and where to migrate instead.
 
@@ -616,10 +616,10 @@ To query enum value descriptions and deprecations:
 
 # Next steps
 
-- [Object types](/docs/hotchocolate/v16/build/schema-elements/object-types) for defining fields and object members
-- [Arguments](/docs/hotchocolate/v16/build/schema-elements/arguments) for argument binding
-- [Input object types](/docs/hotchocolate/v16/build/schema-elements/input-object-types) for input field modeling
-- [Enums](/docs/hotchocolate/v16/build/schema-elements/enums) for enum modeling
+- [Object types](/docs/hotchocolate/v16/build/type-system/object-types) for defining fields and object members
+- [Arguments](/docs/hotchocolate/v16/build/type-system/arguments) for argument binding
+- [Input object types](/docs/hotchocolate/v16/build/type-system/input-object-types) for input field modeling
+- [Enums](/docs/hotchocolate/v16/build/type-system/enums) for enum modeling
 - [Schema evolution](/docs/hotchocolate/v16/_leagcy/guides/schema-evolution) for deprecation policy and removal workflow
 - [Server endpoints](/docs/hotchocolate/v16/build/server-configuration/endpoints) for SDL download and endpoint configuration
 - [Command-line tools](/docs/hotchocolate/v16/build/server-configuration/command-line) for schema export

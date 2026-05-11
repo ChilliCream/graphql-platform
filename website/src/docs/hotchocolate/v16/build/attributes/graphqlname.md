@@ -402,7 +402,7 @@ Check for these causes:
 
 - The attribute is on the wrong symbol. Place it on the property or resolver method for fields, on the parameter for arguments, on the input property for input fields, and on the enum member for enum values.
 - The type is not registered or discovered by your schema builder path.
-- Descriptor configuration names the same schema element elsewhere. Explicit descriptor configuration can override an inferred object type name and may affect other elements depending on the configuration path.
+- Descriptor configuration names the same type or field elsewhere. Explicit descriptor configuration can override an inferred object type name and may affect other elements depending on the configuration path.
 - The element is an input object type, and Hot Chocolate appended `Input` after name inference.
 
 ## Schema creation fails after adding a name
@@ -430,7 +430,7 @@ Input object names get `Input` appended if the inferred name does not already en
 | Syntax                   | `[GraphQLName("schemaName")]`                                                                                       |
 | Namespace                | `HotChocolate`                                                                                                      |
 | CLR attribute targets    | Class, struct, interface, property, method, parameter, enum, field                                                  |
-| Common schema elements   | Object, interface, input, and enum type names; object, interface, and input fields; resolver arguments; enum values |
+| Common targets           | Object, interface, input, and enum type names; object, interface, and input fields; resolver arguments; enum values |
 | Constructor validation   | Rejects `null` and empty strings                                                                                    |
 | Recommended name pattern | `/^[_A-Za-z][_0-9A-Za-z]*$/`                                                                                        |
 | Reserved prefix to avoid | `__`                                                                                                                |
@@ -440,9 +440,9 @@ Related APIs include descriptor `.Name(...)`, `.Field(...).Name(...)`, `.Value(.
 # Next steps
 
 - [Attributes overview](./) for how attributes participate in schema building.
-- [Object Types](../schema-elements/object-types) for object type and property naming.
-- [Queries](../schema-elements/operations-queries) for resolver method naming.
-- [Arguments](../schema-elements/arguments) for resolver parameter naming and argument binding.
-- [Input Object Types](../schema-elements/input-object-types) for input object contracts.
-- [Enums](../schema-elements/enums) for enum naming and descriptor alternatives.
-- [Interfaces](../schema-elements/interfaces) for interface names and interface fields.
+- [Object Types](../type-system/object-types) for object type and property naming.
+- [Queries](../type-system/operations-queries) for resolver method naming.
+- [Arguments](../type-system/arguments) for resolver parameter naming and argument binding.
+- [Input Object Types](../type-system/input-object-types) for input object contracts.
+- [Enums](../type-system/enums) for enum naming and descriptor alternatives.
+- [Interfaces](../type-system/interfaces) for interface names and interface fields.
