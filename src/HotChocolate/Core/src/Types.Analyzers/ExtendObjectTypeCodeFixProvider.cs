@@ -67,9 +67,14 @@ public sealed class ExtendObjectTypeCodeFixProvider : CodeFixProvider
         if (attribute.Name is GenericNameSyntax genericName)
         {
             // Preserve the generic type argument: [ExtendObjectType<T>] -> [ObjectType<T>]
-            var newGenericName = genericName.WithIdentifier(
-                SyntaxFactory.Identifier("ObjectType"));
+            var newGenericName = genericName.WithIdentifier(SyntaxFactory.Identifier("ObjectType"));
             newAttribute = attribute.WithName(newGenericName);
+        }
+        else if (attribute.Name is QualifiedNameSyntax { Right: GenericNameSyntax qualifiedGenericName } qualifiedName)
+        {
+            // Preserve qualifier and generic type argument: [Ns.ExtendObjectType<T>] -> [Ns.ObjectType<T>]
+            var newGenericName = qualifiedGenericName.WithIdentifier(SyntaxFactory.Identifier("ObjectType"));
+            newAttribute = attribute.WithName(SyntaxFactory.QualifiedName(qualifiedName.Left, newGenericName));
         }
         else if (attribute.ArgumentList?.Arguments.Count == 1
             && attribute.ArgumentList.Arguments[0].Expression is TypeOfExpressionSyntax typeofExpression)
@@ -80,7 +85,12 @@ public sealed class ExtendObjectTypeCodeFixProvider : CodeFixProvider
                 SyntaxFactory.TypeArgumentList(
                     SyntaxFactory.SingletonSeparatedList(typeofExpression.Type)));
 
-            newAttribute = SyntaxFactory.Attribute(newGenericName);
+            // Preserve qualifier if present: [Ns.ExtendObjectType(typeof(T))] -> [Ns.ObjectType<T>]
+            NameSyntax newFullName = attribute.Name is QualifiedNameSyntax q
+                ? SyntaxFactory.QualifiedName(q.Left, newGenericName)
+                : newGenericName;
+
+            newAttribute = attribute.WithName(newFullName).WithArgumentList(null);
         }
         else
         {
