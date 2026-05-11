@@ -34,7 +34,15 @@ internal sealed class VariableCoercionSpan(
 
     protected override void OnComplete()
     {
-        if (context.VariableValues.Length > 0)
+        // The pipeline assigns `RequestContext.VariableValues` only when
+        // coercion completes successfully. A length of zero therefore means
+        // the coercion threw before the values were committed.
+        if (context.VariableValues.Length == 0)
+        {
+            Activity.SetStatus(ActivityStatusCode.Error);
+            Activity.SetErrorType(ActivityExtensions.ExecutionErrorType);
+        }
+        else if (Activity.Status != ActivityStatusCode.Error)
         {
             Activity.SetStatus(ActivityStatusCode.Ok);
         }

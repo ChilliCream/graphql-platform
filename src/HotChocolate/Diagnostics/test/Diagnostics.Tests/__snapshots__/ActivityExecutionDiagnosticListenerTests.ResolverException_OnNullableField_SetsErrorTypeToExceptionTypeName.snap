@@ -55,6 +55,10 @@
               "Value": "query"
             },
             {
+              "Key": "graphql.document.hash",
+              "Value": "md5:8e782a6a10f01f9f72ecb3f1ae638606"
+            },
+            {
               "Key": "exception.type",
               "Value": "System.InvalidOperationException"
             },
