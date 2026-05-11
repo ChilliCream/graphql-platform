@@ -2,29 +2,125 @@
 title: "Directives"
 ---
 
-Directives add metadata to a GraphQL schema or alter the runtime execution of a query. Every GraphQL server provides the built-in directives `@skip`, `@include`, and `@deprecated`. Hot Chocolate lets you create custom directives with middleware that can transform field results, enforce authorization, or implement any cross-cutting concern.
+Directives let you add metadata for client tools (such as code generators and IDEs) or modify a GraphQL server’s runtime execution and type validation behavior.
 
-There are two categories of directives:
+There are two kinds of directives: executable directives, which annotate parts of GraphQL documents, and type-system directives, which annotate SDL types.
 
-- **Executable directives** appear in client queries and alter how the server processes specific fields or fragments.
-- **Type-system directives** appear on schema definitions (types, fields, arguments) and provide metadata to clients and tooling.
+The GraphQL specification defines five built-in directives that every server must support:
 
-# Built-in Directives
+| Directive      | Kind        | SDL                                                                                                                                                 |
+| -------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@skip`        | Executable  | `directive @skip(if: Boolean!) on FIELD \| FRAGMENT_SPREAD \| INLINE_FRAGMENT`                                                                      |
+| `@include`     | Executable  | `directive @include(if: Boolean!) on FIELD \| FRAGMENT_SPREAD \| INLINE_FRAGMENT`                                                                   |
+| `@deprecated`  | Type-system | `directive @deprecated(reason: String! = "No longer supported") on FIELD_DEFINITION \| ARGUMENT_DEFINITION \| INPUT_FIELD_DEFINITION \| ENUM_VALUE` |
+| `@specifiedBy` | Type-system | `directive @specifiedBy(url: String!) on SCALAR`                                                                                                    |
+| `@oneOf`       | Type-system | `directive @oneOf on INPUT_OBJECT`                                                                                                                  |
 
-Hot Chocolate includes these directives out of the box:
+`@skip` and `@include` are executable directives used in queries to conditionally exclude or include fields. `@deprecated` marks schema elements as deprecated. `@specifiedBy` provides a URL pointing to the specification of a custom scalar type. `@oneOf` marks an input object as requiring exactly one of its fields to be set.
 
-| Directive                          | Location                       | Purpose                                       |
-| ---------------------------------- | ------------------------------ | --------------------------------------------- |
-| `@skip(if: Boolean!)`              | Fields, fragments              | Excludes a field when the condition is `true` |
-| `@include(if: Boolean!)`           | Fields, fragments              | Includes a field when the condition is `true` |
-| `@deprecated(reason: String)`      | Field definitions, enum values | Marks a schema element as deprecated          |
-| `@requiresOptIn(feature: String!)` | Field definitions              | Marks a field as experimental (v16)           |
+# Structure
 
-See [Versioning](/docs/hotchocolate/v16/defining-a-schema/versioning) for details on `@deprecated` and `@requiresOptIn`.
+Directives consist of a name and zero or more arguments. `@skip`, for example, has the name **skip** and a mandatory argument named **if**. Also, `@skip` carries a piece of hidden information only examinable in SDL, namely the location, which specifies where a directive is applicable. Let's take a look at the SDL of the `@skip` directive.
 
-# Creating a Custom Directive
+```sdl
+directive @skip(if: Boolean!) on
+    | FIELD
+    | FRAGMENT_SPREAD
+    | INLINE_FRAGMENT
+```
 
-Create a class that inherits from `DirectiveType` and override the `Configure` method. Register it explicitly with `.AddDirectiveType<T>()`.
+The `directive` keyword in SDL indicates that we're dealing with a directive type declaration. The `@` sign also indicates that this is a directive but more from a usage perspective.
+
+The word `skip` represents the directive's name followed by a pair of parentheses that includes a list of arguments, consisting, in our case, of one argument named `if` of type non-nullable boolean (meaning it is required).
+
+The `on` keyword indicates the location where or at which part a directive is applicable, followed by a list of exact locations separated by pipes `|`. In the case of `@skip`, we can see that we're dealing with an executable directive because this directive is only applicable to fields, fragment-spreads, and inline-fragments.
+
+# Usage
+
+Let's say we have a GraphQL document and want to exclude details under certain circumstances; it would probably look something like this.
+
+```graphql
+query me($excludeDetails: Boolean!) {
+  me {
+    id
+    name
+    ...Details @skip(if: $excludeDetails)
+  }
+}
+
+fragment Details on User {
+  mobileNumber
+  phoneNumber
+}
+```
+
+With `@skip`, we've successfully altered the GraphQL's runtime execution behavior. If `$excludeDetails` is set to `true`, the execution engine will exclude the fields `mobileNumber` and `phoneNumber`; the response would look like this.
+
+```json
+{
+  "data": {
+    "me": {
+      "id": "VXNlcgox",
+      "name": "Henry"
+    }
+  }
+}
+```
+
+Now that we know how to use directives in GraphQL, let's head over to the next section, which is about one crucial aspect of directives.
+
+## Order Matters
+
+**The order of directives is significant**, because the execution is in **sequential order**, which means one after the other. If we have something like the following example, we can see how directives can affect each other.
+
+```graphql
+query me {
+  me {
+    name @skip(if: true) @include(if: true)
+  }
+}
+```
+
+Since we excluded the field `name` in the first place, `@include` does not affect the field `name` anymore. We then just get an empty `me` object in return.
+
+```json
+{
+  "data": {
+    "me": {}
+  }
+}
+```
+
+> **Note:** We will have a deep dive on directives' order under the [Middleware](#order) section.
+
+Now that we have a basic understanding of what directives are, how they work, and what we can do with them, let's create a custom directive.
+
+# Custom Directives
+
+To create a custom directive we need to define its name, location, and optionally its arguments. We also have to register the directive explicitly.
+
+<ExampleTabs>
+<Implementation>
+
+Annotate a C# class with the `[DirectiveType]` attribute. The directive name is inferred from the class name (minus the "Directive" suffix if present). Public properties automatically become directive arguments.
+
+```csharp
+[DirectiveType(DirectiveLocation.Field)]
+public class MyDirective
+{
+}
+```
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddDirectiveType<MyDirective>();
+```
+
+</Implementation>
+<Code>
+
+Create a class that inherits from `DirectiveType` and override the `Configure` method.
 
 ```csharp
 public class MyDirectiveType : DirectiveType
@@ -38,156 +134,332 @@ public class MyDirectiveType : DirectiveType
 ```
 
 ```csharp
-builder
-    .AddGraphQL()
+builder.Services
+    .AddGraphQLServer()
     .AddDirectiveType<MyDirectiveType>();
 ```
 
-This registers a `@my` directive that can be applied to fields:
+</Code>
+</ExampleTabs>
+
+[Learn more about Locations](#locations)
+
+We have registered a new directive named `my` without any arguments and limited the usage to fields only. A GraphQL query request with our new directive could look like this.
 
 ```graphql
-query {
-  product @my {
-    name
-  }
+query foo {
+  bar @my
 }
 ```
 
-# Directive Arguments
+As of now, our custom directive provides no functionality. We will handle that part in the [Middleware](#middleware) section. But before that, let's talk about repeatable directives and arguments.
 
-Directives can accept arguments. Use a backing POCO class with `DirectiveType<T>` to define arguments as properties.
+## Repeatable
 
-```csharp
-public class CacheDirective
-{
-    public int MaxAge { get; set; }
-}
+By default, directives are not repeatable, which means directives are unique and can only be applied once at a specific location. For example, if we use the `my` directive twice at the field `bar`, we will encounter a validation error. So the following GraphQL query request results in an error if the directive is not repeatable.
 
-public class CacheDirectiveType : DirectiveType<CacheDirective>
-{
-    protected override void Configure(
-        IDirectiveTypeDescriptor<CacheDirective> descriptor)
-    {
-        descriptor.Name("cache");
-        descriptor.Location(DirectiveLocation.FieldDefinition);
-    }
+```graphql
+query foo {
+  bar @my @my
 }
 ```
 
-This produces `directive @cache(maxAge: Int!) on FIELD_DEFINITION`.
+We can enable repeatability like the following.
 
-You can also define arguments without a POCO:
+<ExampleTabs>
+<Implementation>
+
+Set `IsRepeatable = true` on the attribute.
 
 ```csharp
-public class CacheDirectiveType : DirectiveType
+[DirectiveType(DirectiveLocation.Field, IsRepeatable = true)]
+public class MyDirective
+{
+}
+```
+
+</Implementation>
+<Code>
+
+Call `Repeatable()` on the descriptor.
+
+```csharp
+public class MyDirectiveType : DirectiveType
 {
     protected override void Configure(IDirectiveTypeDescriptor descriptor)
     {
-        descriptor.Name("cache");
-        descriptor.Location(DirectiveLocation.FieldDefinition);
-
-        descriptor
-            .Argument("maxAge")
-            .Type<NonNullType<IntType>>();
-    }
-}
-```
-
-# Repeatable Directives
-
-By default, a directive can appear only once at a given location. To allow a directive to be applied multiple times, mark it as repeatable.
-
-```csharp
-public class TagDirectiveType : DirectiveType
-{
-    protected override void Configure(IDirectiveTypeDescriptor descriptor)
-    {
-        descriptor.Name("tag");
-        descriptor.Location(DirectiveLocation.FieldDefinition);
+        descriptor.Name("my");
+        descriptor.Location(DirectiveLocation.Field);
         descriptor.Repeatable();
     }
 }
 ```
 
-This produces `directive @tag repeatable on FIELD_DEFINITION`.
+</Code>
+</ExampleTabs>
 
-# Directive Locations
+This configuration will translate into the following SDL.
 
-A directive declares where it can be applied. Combine multiple locations with the pipe operator.
+```sdl
+directive @my repeatable on FIELD
+```
+
+## Arguments
+
+A directive can provide additional information through arguments. They might also come in handy, in combination with repeatable directives, for reusability purposes.
+
+<ExampleTabs>
+<Implementation>
+
+Any public property on the class becomes a directive argument automatically.
+
+```csharp
+[DirectiveType(DirectiveLocation.FieldDefinition)]
+public class MyDirective
+{
+    public string Name { get; set; }
+}
+```
+
+</Implementation>
+<Code>
+
+Use a backing POCO with `DirectiveType<T>`. Public properties on the POCO are included as arguments implicitly.
+
+```csharp
+public class MyDirective
+{
+    public string Name { get; set; }
+}
+
+public class MyDirectiveType : DirectiveType<MyDirective>
+{
+    protected override void Configure(
+        IDirectiveTypeDescriptor<MyDirective> descriptor)
+    {
+        descriptor.Name("my");
+        descriptor.Location(DirectiveLocation.FieldDefinition);
+    }
+}
+```
+
+If we prefer to not use a backing POCO we can also use the `Argument()` method on the descriptor.
+
+```csharp
+public class MyDirectiveType : DirectiveType
+{
+    protected override void Configure(IDirectiveTypeDescriptor descriptor)
+    {
+        descriptor.Name("my");
+        descriptor.Location(DirectiveLocation.Field);
+
+        descriptor
+            .Argument("name")
+            .Type<NonNullType<StringType>>();
+    }
+}
+```
+
+</Code>
+</ExampleTabs>
+
+This configuration will translate into the following SDL.
+
+```sdl
+directive @my(name: String!) on FIELD
+```
+
+## Usage within Types
+
+We could associate the `MyDirectiveType` with an object type like the following.
+
+```csharp
+public class FooType : ObjectType
+{
+    protected override void Configure(IObjectTypeDescriptor descriptor)
+    {
+        descriptor.Name("Foo");
+        descriptor.Directive("my", new ArgumentNode("name", "bar"));
+    }
+}
+```
+
+> Note: For this to work the `MyDirectiveType` directive needs to have the appropriate location within the schema. In this example it would be `DirectiveLocation.Object`.
+
+Referencing directives using their name is not type-safe and could lead to runtime errors, which are avoidable by using our generic variant of the directive type.
+
+Once we have defined our directive using `DirectiveType<T>`, we can pass an instance of the backing POCO (`<T>`) instead of the name of the directive and an `ArgumentNode`.
+
+```csharp
+public class FooType : ObjectType
+{
+    protected override void Configure(IObjectTypeDescriptor descriptor)
+    {
+        descriptor.Name("Foo");
+        descriptor.Directive(new MyDirective { Name = "bar" });
+    }
+}
+```
+
+Since the directive instance that we have added to our type is now a strong .NET type, we don't have to fear changes to the directive structure or name anymore.
+
+## Locations
+
+A directive can define one or multiple locations, where it can be applied. Multiple locations are separated by a pipe `|`.
 
 ```csharp
 descriptor.Location(DirectiveLocation.Field | DirectiveLocation.Object);
 ```
 
-## Type-System Locations
+Generally we distinguish between two types of locations: Type system and executable locations.
 
-Type-system directives appear on schema definitions. Their argument values are fixed at schema build time and are visible through introspection.
+### Type System Locations
 
-Common locations include `OBJECT`, `FIELD_DEFINITION`, `INPUT_OBJECT`, `INPUT_FIELD_DEFINITION`, `INTERFACE`, `ENUM`, `ENUM_VALUE`, `UNION`, `SCALAR`, and `ARGUMENT_DEFINITION`.
+Type system locations specify where we can place a specific directive in the schema. The arguments of directives specified in these locations are fixed. We can query such directives through introspection.
 
-## Executable Locations
+The following schema shows where type system directives can be applied.
 
-Executable directives appear in client queries. Locations include `FIELD`, `FRAGMENT_SPREAD`, `INLINE_FRAGMENT`, `QUERY`, `MUTATION`, and `SUBSCRIPTION`.
+```sdl
+directive @schema on SCHEMA
+directive @object on OBJECT
+directive @argumentDefinition on ARGUMENT_DEFINITION
+directive @fieldDefinition on FIELD_DEFINITION
+directive @inputObject on INPUT_OBJECT
+directive @inputFieldDefinition on INPUT_FIELD_DEFINITION
+directive @interface on INTERFACE
+directive @enum on ENUM
+directive @enumValue on ENUM_VALUE
+directive @union on UNION
+directive @scalar on SCALAR
+schema @schema {
+  query: Query
+}
+type Query @object {
+  search(by: SearchInput! @argumentDefinition): SearchResult @fieldDefinition
+}
+input SearchInput @inputObject {
+  searchTerm: String @inputFieldDefinition
+}
+interface HasDescription @interface {
+  description: String
+}
+type Product implements HasDescription {
+  added: DateTime
+  description: String
+}
+enum UserKind @enum {
+  Administrator @enumValue
+  Moderator
+}
+type User {
+  name: String
+  userKind: UserKind
+}
+union SearchResult @union = Product | User
+scalar DateTime @scalar
+```
 
-# Applying Directives to Types
+### Executable Locations
 
-You can attach a type-system directive to a type definition.
+Executable locations specify where a client can place a specific directive, when executing an operation.
 
-```csharp
-public class ProductType : ObjectType
-{
-    protected override void Configure(IObjectTypeDescriptor descriptor)
-    {
-        descriptor.Name("Product");
-        descriptor.Directive(new CacheDirective { MaxAge = 60 });
+Our server defines the following directives.
+
+```sdl
+directive @query on QUERY
+directive @field on FIELD
+directive @fragmentSpread on FRAGMENT_SPREAD
+directive @inlineFragment on INLINE_FRAGMENT
+directive @fragmentDefinition on FRAGMENT_DEFINITION
+directive @mutation on MUTATION
+directive @subscription on SUBSCRIPTION
+```
+
+The following request document shows where we, as a client, can apply these directives.
+
+```graphql
+query getUsers @query {
+  search(by: { searchTerm: "Foo" }) @field {
+    ...DescriptionFragment @fragmentSpread
+    ... on User @inlineFragment {
+      userKind
     }
+  }
+}
+
+fragment DescriptionFragment on HasDescription @fragmentDefinition {
+  description
+}
+
+mutation createNewUser @mutation {
+  createUser(input: { name: "Ada Lovelace" }) {
+    user {
+      name
+    }
+  }
+}
+
+subscription subscribeToUser @subscription {
+  onUserChanged(id: 1) {
+    user {
+      name
+    }
+  }
 }
 ```
 
-Using the POCO form is type-safe. You can also use the string-based form, but it is more error-prone:
+## Middleware
+
+What makes directives in Hot Chocolate very useful is the ability to associate a middleware with it. A middleware can alternate the result, or even produce the result, of a field. A directive middleware is only added to a field middleware pipeline when the directive was annotated to the object definition, the field definition or the field.
+
+Moreover, if the directive is repeatable the middleware will be added multiple times to the middleware allowing to build a real pipeline with it.
+
+In order to add a middleware to a directive we could declare it with the descriptor as a delegate.
 
 ```csharp
-descriptor.Directive("cache", new ArgumentNode("maxAge", 60));
-```
-
-# Directive Middleware
-
-Directives become powerful when you attach middleware. A directive middleware can modify field results, short-circuit resolution, or add side effects.
-
-```csharp
-public class UpperCaseDirectiveType : DirectiveType
+public class MyDirectiveType : DirectiveType<MyDirective>
 {
-    protected override void Configure(IDirectiveTypeDescriptor descriptor)
+    protected override void Configure(
+        IDirectiveTypeDescriptor<MyDirective> descriptor)
     {
-        descriptor.Name("upperCase");
-        descriptor.Location(DirectiveLocation.FieldDefinition);
+        descriptor.Name("my");
+        descriptor.Location(DirectiveLocation.Object);
 
-        descriptor.Use((next, directive) => async context =>
+        descriptor.Use((next, directive) => context =>
         {
-            await next.Invoke(context);
-
-            if (context.Result is string s)
-            {
-                context.Result = s.ToUpperInvariant();
-            }
+            context.Result = "Bar";
+            return next.Invoke(context);
         });
     }
 }
 ```
 
-Middleware runs in the order directives appear. For a field with `@a @b @c`, the middleware executes in order: `a`, then `b`, then `c`. Directives on the object type run before directives on the field definition, which run before directives in the query.
+Directives with middleware or executable directives can be put on object types and on their field definitions or on the field selection in a query. Executable directives on an object type will replace the field resolver of every field of the annotated object type.
 
-Each middleware can call `next.Invoke(context)` to pass execution to the next directive. Skipping the `next` call short-circuits the pipeline.
+### Order
 
-# Directive Execution Order
+In GraphQL the order of directives is significant and with our middleware we use this order to create a resolver pipeline through which the result flows.
 
-Given this schema and query:
+The resolver pipeline consists of a sequence of directive delegates, called one after the other.
 
-```graphql
+Each delegate can perform operations before and after the next delegate. A delegate can also decide to not pass a resolver request to the next delegate, which is called short-circuiting the resolver pipeline.
+Short-circuiting is often desirable because it avoids unnecessary work.
+
+The order of the middleware pipeline is defined by the order of the directives. Since executable directives will flow from the object type to its field definitions, the directives of the type would be called first in the order that they were annotated.
+
+```sdl
+type Query {
+  foo: Bar
+}
+
 type Bar @a @b {
   baz: String @c @d
 }
 ```
+
+So, the directives in the above example would be called in the following order `a, b, c, d`.
+
+If there were more directives in the query, they would be appended to the directives from the type.
 
 ```graphql
 {
@@ -197,10 +469,8 @@ type Bar @a @b {
 }
 ```
 
-The directive middleware executes in order: `a`, `b`, `c`, `d`, `e`, `f`. Object-level directives run first, followed by field-definition directives, followed by query directives.
+So, now the order would be like the following: `a, b, c, d, e, f`.
 
-# Next Steps
+Every middleware can execute the original resolver function by calling `ResolveAsync()` on the `IDirectiveContext`.
 
-- **Need to deprecate fields?** See [Versioning](/docs/hotchocolate/v16/defining-a-schema/versioning).
-- **Need to authorize fields?** See [Authorization](/docs/hotchocolate/v16/security/authorization).
-- **Need to extend types?** See [Extending Types](/docs/hotchocolate/v16/defining-a-schema/extending-types).
+<!-- spell-checker:ignore VXNlcgox -->
