@@ -107,13 +107,72 @@ public class PostContentType : UnionType<IPostContent>
 
 # Union vs Interface
 
-Choose a union when the grouped types have no meaningful shared fields. Choose an interface when you want to guarantee a common set of fields across all implementing types.
+Both unions and interfaces are abstract types that let a field return one of several object types. They differ in how much structure they enforce and how clients query them.
 
-| Feature                      | Union | Interface |
-| ---------------------------- | ----- | --------- |
-| Common fields required       | No    | Yes       |
-| Query shared fields directly | No    | Yes       |
-| Types can belong to multiple | Yes   | Yes       |
+**Use a union** when the member types are genuinely different entities with no meaningful shared fields, for example a search that can return a `User`, a `Post`, or a `Comment`. Clients must use inline fragments for every field because the union guarantees no common structure.
+
+```graphql
+union SearchResult = User | Post | Comment
+
+# Client must fragment into each type
+query {
+  search(term: "graphql") {
+    ... on User {
+      name
+    }
+    ... on Post {
+      title
+    }
+    ... on Comment {
+      body
+    }
+  }
+}
+```
+
+**Use an interface** when the types share common fields that clients regularly query together. The interface enforces a contract: every implementing type must include the interface fields. Clients can query those fields directly without fragments.
+
+```graphql
+interface Event {
+  id: ID!
+  timestamp: DateTime!
+}
+
+# Shared fields are queryable directly
+query {
+  events {
+    id
+    timestamp
+    ... on UserEvent {
+      user {
+        name
+      }
+    }
+    ... on SystemEvent {
+      severity
+    }
+  }
+}
+```
+
+**Use both together** when you need the flexibility of a union with some guaranteed fields across members. The errors-as-data pattern is a common example: a union separates success from failure, while an interface guarantees a `message` field on all error types.
+
+```graphql
+interface CheckoutError {
+  message: String!
+}
+
+type InsufficientStockError implements CheckoutError {
+  message: String!
+  availableStock: Int!
+}
+
+type InvalidPaymentError implements CheckoutError {
+  message: String!
+}
+
+union CheckoutResult = Order | InsufficientStockError | InvalidPaymentError
+```
 
 # Next Steps
 
