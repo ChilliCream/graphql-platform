@@ -114,12 +114,12 @@ jobs:
 
     steps:
       - name: 📦 Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           show-progress: false
 
       - name: 🛠 Install .NET
-        uses: actions/setup-dotnet@v5
+        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5
         with:
           dotnet-version: |
             8.x
@@ -135,7 +135,7 @@ jobs:
           NitroIdentityScopes: ${{ secrets.NITRO_IDENTITY_SCOPES }}
 
       - name: 📤 Upload Nitro CLI client operations
-        uses: ChilliCream/nitro-client-upload@v16.0.0-rc.1.43
+        uses: ChilliCream/nitro-client-upload@1a35b3fbdc6dac5d2aa3c49b2fb061ce15b6999c # v16.0.1-p.5
         with:
           tag: ${{ env.GIT_TAG }}
           operations-file: src/Nitro/Common/src/ChilliCream.Nitro.Client/persisted/operations.json
@@ -143,7 +143,7 @@ jobs:
           api-key: ${{ secrets.NITRO_API_KEY }}
 
       - name: 🚀 Publish Nitro CLI client (Dev)
-        uses: ChilliCream/nitro-client-publish@v16.0.0-rc.1.43
+        uses: ChilliCream/nitro-client-publish@6b0b716ab02a9b1009facb78e4aeb2ae0c0629a1 # v16.0.1-p.5
         with:
           tag: ${{ env.GIT_TAG }}
           stage: Dev
@@ -152,7 +152,7 @@ jobs:
           force: true
 
       - name: 🚀 Publish Nitro CLI client (Prod)
-        uses: ChilliCream/nitro-client-publish@v16.0.0-rc.1.43
+        uses: ChilliCream/nitro-client-publish@6b0b716ab02a9b1009facb78e4aeb2ae0c0629a1 # v16.0.1-p.5
         with:
           tag: ${{ env.GIT_TAG }}
           stage: Prod
@@ -161,7 +161,7 @@ jobs:
           force: true
 
       - name: NuGet login
-        uses: NuGet/login@v1
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1
         id: login
         with:
           user: ${{ secrets.NUGET_USERNAME }}
@@ -214,10 +214,10 @@ jobs:
 
     steps:
       - name: 📦 Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: 🛠 Install .NET
-        uses: actions/setup-dotnet@v5
+        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5
         with:
           dotnet-version: 10.x
 
@@ -242,13 +242,13 @@ jobs:
           NitroIdentityScopes: ${{ secrets.NITRO_IDENTITY_SCOPES }}
 
       - name: 🖋️ Azure login (Windows)
-        uses: azure/login@v3
+        uses: azure/login@532459ea530d8321f2fb9bb10d1e0bcf23869a43 # v3
         if: runner.os == 'Windows'
         with:
           creds: ${{ secrets.SIGNING_CREDENTIALS }}
 
       - name: 🖋️ Sign binary (Windows)
-        uses: azure/artifact-signing-action@v1
+        uses: azure/artifact-signing-action@b443cf8ea4124818d2ea9f043cba29fc3ec47b16 # v1
         if: runner.os == 'Windows'
         with:
           endpoint: ${{ vars.AZURE_TRUSTED_SIGNING_ACCOUNT_ENDPOINT }}
@@ -350,7 +350,7 @@ jobs:
           security delete-keychain $RUNNER_TEMP/app-signing.keychain-db
 
       - name: 📤 Upload packaged binary as artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: nitro-${{ matrix.rid }}
           path: nitro-${{ matrix.rid }}.${{ runner.os == 'Linux' && 'tar.gz' || 'zip' }}
@@ -387,17 +387,17 @@ jobs:
 
     steps:
       - name: 📦 Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: 🧰 Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version: 24
           registry-url: ${{ vars.NPM_REGISTRY_URL }}
           scope: "@chillicream"
 
       - name: 📥 Download nitro binary
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: nitro-${{ matrix.rid }}
           path: dist
@@ -462,7 +462,7 @@ jobs:
           fi
 
       - name: 📤 Upload tarball as artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: chillicream-nitro-${{ matrix.rid }}-${{ env.GIT_TAG }}.tgz
           path: src/Nitro/CommandLine/src/npm/chillicream-nitro-${{ matrix.rid }}/chillicream-nitro-${{ matrix.rid }}-${{ env.GIT_TAG }}.tgz
@@ -489,10 +489,10 @@ jobs:
 
     steps:
       - name: 📦 Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: 🧰 Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version: 24
           registry-url: ${{ vars.NPM_REGISTRY_URL }}
@@ -567,7 +567,7 @@ jobs:
           fi
 
       - name: 📤 Upload tarball as artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: chillicream-nitro-${{ env.GIT_TAG }}.tgz
           path: src/Nitro/CommandLine/src/npm/chillicream-nitro/chillicream-nitro-${{ env.GIT_TAG }}.tgz
@@ -619,14 +619,14 @@ jobs:
 
     steps:
       - name: 📦 Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           sparse-checkout: .github/actions
           show-progress: false
 
       - name: 🔐 Create GitHub App token
         id: app-token
-        uses: actions/create-github-app-token@v3
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3
         with:
           app-id: ${{ secrets.ACTIONS_APP_ID }}
           private-key: ${{ secrets.ACTIONS_APP_PRIVATE_KEY }}
@@ -668,14 +668,14 @@ jobs:
 
     steps:
       - name: 📦 Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           sparse-checkout: .github/actions
           show-progress: false
 
       - name: 🔐 Create GitHub App token
         id: app-token
-        uses: actions/create-github-app-token@v3
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3
         with:
           app-id: ${{ secrets.ACTIONS_APP_ID }}
           private-key: ${{ secrets.ACTIONS_APP_PRIVATE_KEY }}
