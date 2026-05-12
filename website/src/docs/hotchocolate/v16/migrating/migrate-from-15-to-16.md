@@ -759,21 +759,18 @@ The `DefaultHttpMethod` enum has been removed. Use the `UseGet` boolean property
 
 ## Nitro integration
 
-Update all `ChilliCream.Nitro.*` packages to the same version as the `HotChocolate.AspNetCore` package. The package layout has changed in v16, so most projects will need to update their package IDs as well as their code.
+The Nitro NuGet packages have been restructured in v16. Versions now align with the rest of the platform, so you are migrating from `1.x` to `16.x`. For the full migration guide covering all package renames, API changes, and complete before/after examples, see [Migrating Nitro from 1 to 16](/docs/nitro/migration/migrate-from-1-to-16).
 
-| Old                            | New                                        |
-| ------------------------------ | ------------------------------------------ |
-| `ChilliCream.Nitro`            | `ChilliCream.Nitro.HotChocolate`           |
-| `ChilliCream.Nitro.Core`       | `ChilliCream.Nitro.GraphQL`                |
-| `ChilliCream.Nitro.Telemetry`  | `ChilliCream.Nitro.OpenTelemetry`          |
-| `ChilliCream.Nitro.Azure.Core` | `ChilliCream.Nitro.Azure`                  |
-| `ChilliCream.Nitro.*.Azure`    | `ChilliCream.Nitro.Azure` (single package) |
+The key changes for HotChocolate projects:
 
-The package you previously referenced as `ChilliCream.Nitro` is now `ChilliCream.Nitro.HotChocolate`. A new meta-package is published under the old `ChilliCream.Nitro` ID, so don't mix the two up when updating your `.csproj`.
+- **Package rename:** The old `ChilliCream.Nitro` package is now `ChilliCream.Nitro.HotChocolate`. A new meta-package takes the old `ChilliCream.Nitro` ID.
+- **Connection settings** are configured once on the service collection via `AddNitro()`.
+- **Per-schema feature options** (persisted operations, metrics, operation reporting) are configured via `ModifyNitroOptions()` on the GraphQL builder.
+- **`AddNitroExporter()`** is replaced by `AddOpenTelemetry()` on the `INitroBuilder`.
+- **Asset cache** is now configured globally on `INitroBuilder` instead of per-schema.
+- **`AddDefaults()`** is a source-generated method that wires up the default integration when the correct packages are referenced.
 
 > Note: If you are self-hosting the Nitro backend, make sure to update it to the latest version as well. `10.1.0` is the minimum version required to work with the `ChilliCream.Nitro.*` packages.
-
-v16 changes how Nitro is configured. The connection settings are configured once on the service collection and per-schema feature options are applied through `ModifyNitroOptions` on the GraphQL server builder.
 
 **Before**
 
@@ -785,16 +782,8 @@ builder.Services
         o.ApiId = "...";
         o.ApiKey = "...";
         o.Stage = "...";
-
         o.EnablePersistedQueries = true;
-        o.DefaultQueryCacheExpiration = TimeSpan.FromSeconds(30);
-        o.NotFoundQueryCacheExpiration = TimeSpan.FromSeconds(10);
-
         o.Metrics.Enabled = true;
-        o.Metrics.ExportIntervalMilliseconds = 1000;
-        o.Metrics.ExportTimeoutMilliseconds = 400;
-
-        o.EnableOperationReporting = true;
     });
 ```
 
@@ -808,69 +797,15 @@ builder.Services
         o.ApiKey = "...";
         o.Stage = "...";
     })
-    .AddHotChocolate();
+    .AddDefaults();
 
 builder.Services
     .AddGraphQLServer()
     .ModifyNitroOptions(o =>
     {
         o.PersistedOperations.Enabled = true;
-        o.PersistedOperations.DefaultQueryCacheExpiration = TimeSpan.FromSeconds(30);
-        o.PersistedOperations.NotFoundQueryCacheExpiration = TimeSpan.FromSeconds(10);
-
         o.Metrics.Enabled = true;
-        o.Metrics.ExportIntervalMilliseconds = 1000;
-        o.Metrics.ExportTimeoutMilliseconds = 400;
-
-        o.OperationReporting.Enabled = true;
     });
-```
-
-If you were previously registering an asset cache on the GraphQL server builder, you now do that on the `INitroBuilder` returned from `AddNitro()`.
-
-**Before**
-
-```csharp
-builder.Services
-    .AddGraphQLServer()
-    .AddNitro()
-    .AddFileSystemAssetCache()
-    // or
-    .AddBlobStorageAssetCache()
-    // or
-    .AddAssetCache<CustomAssetCache>();
-```
-
-**After**
-
-```csharp
-builder.Services
-    .AddNitro()
-    .AddHotChocolate()
-    .AddFileSystemAssetCache()
-    // or
-    .AddBlobStorageAssetCache()
-    // or
-    .AddAssetCache<CustomAssetCache>();
-```
-
-If you were previously hand-rolling the `ConfigureOpenTelemetry*Provider(...)` configuration with `AddNitroExporter()`, you can also switch to a new `AddOpenTelemetry()` API on the `INitroBuilder` that handles the registration for you.
-
-**Before**
-
-```csharp
-services.ConfigureOpenTelemetryMeterProvider(x => x.AddNitroExporter());
-services.ConfigureOpenTelemetryTracerProvider(x => x.AddNitroExporter());
-services.ConfigureOpenTelemetryLoggerProvider(x => x.AddNitroExporter());
-```
-
-**After**
-
-```csharp
-services
-    .AddNitro()
-    // ...
-    .AddOpenTelemetry();
 ```
 
 ## Server options now configured via ModifyServerOptions

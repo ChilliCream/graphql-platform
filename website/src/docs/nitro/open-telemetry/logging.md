@@ -41,6 +41,8 @@ To install the Nitro services, run the following commands in your project's root
 
 ```bash
 dotnet add package ChilliCream.Nitro
+dotnet add package ChilliCream.Nitro.HotChocolate
+dotnet add package ChilliCream.Nitro.OpenTelemetry
 dotnet add package OpenTelemetry.Extensions.Hosting
 dotnet add package OpenTelemetry.Instrumentation.AspNetCore
 ```
@@ -52,19 +54,21 @@ Below is a sample implementation in C#:
 public void ConfigureServices(IServiceCollection services)
 {
     services
-        .AddGraphQL()
-        .AddQueryType<Query>()
         .AddNitro(x =>
         {
             x.ApiKey = "<<your-api-key>>";
             x.ApiId = "QXBpCmc5NGYwZTIzNDZhZjQ0NjBmYTljNDNhZDA2ZmRkZDA2Ng==";
             x.Stage = "dev";
         })
+        .AddOpenTelemetry();
+
+    services
+        .AddGraphQL()
+        .AddQueryType<Query>()
         .AddInstrumentation();
 
     services
         .AddLogging(x => x
-            .AddNitroExporter()
             .AddOpenTelemetry(options =>
             {
                 options.IncludeFormattedMessage = true;
@@ -85,14 +89,16 @@ public void ConfigureServices(IServiceCollection services)
 > public void ConfigureServices(IServiceCollection services)
 > {
 >     services
+>         .AddNitro()
+>         .AddOpenTelemetry();
+>
+>     services
 >         .AddGraphQL()
 >         .AddQueryType<Query>()
->         .AddNitro()
 >         .AddInstrumentation(); // Enable the graphql telemetry
 >
 >     services
 >         .AddLogging(x => x
->              .AddNitroExporter()
 >              .AddOpenTelemetry(options =>
 >              {
 >                  options.IncludeFormattedMessage = true;

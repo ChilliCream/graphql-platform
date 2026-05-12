@@ -9,7 +9,7 @@ Nitro’s OpenTelemetry support extends beyond GraphQL, allowing you to gather a
 ## Prerequisites
 
 1. **.NET Application**: You’ll need a .NET project (e.g., ASP.NET Core, worker service, etc.) where you want to enable telemetry.
-2. **ChilliCream.Nitro.Telemetry**: Make sure to reference version **15.0.0** or **14.1.0** of the `ChilliCream.Nitro.Telemetry` package.
+2. **ChilliCream.Nitro.OpenTelemetry**: Make sure to reference the `ChilliCream.Nitro` meta-package and the `ChilliCream.Nitro.OpenTelemetry` package.
 3. **OpenTelemetry**: Have the OpenTelemetry packages or extensions configured in your project.
 
 ## Quick Start
@@ -19,23 +19,30 @@ Nitro’s OpenTelemetry support extends beyond GraphQL, allowing you to gather a
 In your .NET project, install the following NuGet packages if they are not already present:
 
 ```shell
-dotnet add package ChilliCream.Nitro.Telemetry --version 15.0.0
+dotnet add package ChilliCream.Nitro
+dotnet add package ChilliCream.Nitro.OpenTelemetry
 dotnet add package OpenTelemetry --version <appropriate version>
 dotnet add package OpenTelemetry.Extensions.Hosting --version <appropriate version>
 ```
 
-### 2. Configure OpenTelemetry Exporters
+### 2. Register Nitro and OpenTelemetry Exporters
 
-Configure your OpenTelemetry **tracer** and **logger** providers to export data to Nitro. For example, in your `Program.cs` or `Startup.cs`:
+Register the Nitro connection and OpenTelemetry exporters. Call `AddNitro` with your API credentials, then chain `AddOpenTelemetry()` to register the OTLP exporters for tracing, metrics, and logging. For example, in your `Program.cs` or `Startup.cs`:
 
 ```csharp
-services.ConfigureOpenTelemetryTracerProvider(x => x.AddNitroExporter());
-services.ConfigureOpenTelemetryLoggerProvider(x => x.AddNitroExporter());
+services
+    .AddNitro(options =>
+    {
+        options.ApiId = apiId;     // Replace with your Nitro API ID
+        options.ApiKey = apiKey;   // Replace with your Nitro API Key
+        options.Stage = stage;     // Replace with your environment or stage name
+    })
+    .AddOpenTelemetry();
 ```
 
-If you’re using ASP.NET Core, you might do this in the `ConfigureServices` method.
+### 3. Add Additional Instrumentation
 
-You can also add additional instrumentation as needed, such as for HTTP requests or background jobs.
+You can continue configuring OpenTelemetry providers for non-Nitro instrumentation as needed, such as for ASP.NET Core or HTTP requests.
 
 ```shell
 dotnet add package OpenTelemetry.Extensions.Hosting
@@ -46,24 +53,8 @@ dotnet add package OpenTelemetry.Instrumentation.AspNetCore
 services.ConfigureOpenTelemetryTracerProvider(x =>
 {
     x.AddAspNetCoreInstrumentation();
-    x.AddNitroExporter();
 });
 ```
-
-### 3. Register Nitro Telemetry
-
-Next, register Nitro telemetry with the appropriate **API credentials** in the same method:
-
-```csharp
-services.AddNitroTelemetry(options =>
-{
-    options.ApiId = apiId;     // Replace with your Nitro API ID
-    options.ApiKey = apiKey;   // Replace with your Nitro API Key
-    options.Stage = stage;     // Replace with your environment or stage name
-});
-```
-
-These options tell Nitro where to send the collected telemetry.
 
 ### 4. View Your Traces
 
