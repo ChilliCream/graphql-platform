@@ -173,14 +173,25 @@ internal sealed class OpenApiDefinitionRegistry : IDisposable
 
         _transformer.AddDefinitions(endpoints, models, modelsByName, schema);
 
-        // When multiple endpoints share (method, route): the first descriptor with a valid
-        // document wins. If no duplicate validates, the first invalid descriptor is kept so
-        // the route is still registered (the middleware returns HTTP 500 on call).
-        var chosen = new Dictionary<(string, string), OpenApiEndpointDescriptor>();
-        var invalidFallbacks = new Dictionary<(string, string), OpenApiEndpointDescriptor>();
+        // When multiple endpoints share (method, route): a descriptor with a valid document
+        // wins. If no duplicate produces a valid descriptor, the first one whose document
+        // failed validation is kept so the route is still registered (the middleware returns
+        // HTTP 500 on call). Descriptors that fail to construct outright are skipped.
+        // The chosen descriptors are tracked in a list so registration order is deterministic
+        // (first appearance of each key in `endpoints`, which is already sorted by name).
+        var chosenDescriptors = new List<OpenApiEndpointDescriptor>();
+        var keyToIndex = new Dictionary<(string, string), int>();
+        var keyHasValid = new HashSet<(string, string)>();
 
         foreach (var endpoint in endpoints)
         {
+            var key = (endpoint.HttpMethod, endpoint.Route);
+
+            if (keyHasValid.Contains(key))
+            {
+                continue;
+            }
+
             OpenApiEndpointDescriptor descriptor;
 
             try
@@ -189,35 +200,34 @@ internal sealed class OpenApiDefinitionRegistry : IDisposable
             }
             catch
             {
-                // If descriptor construction fails entirely, we just skip over it.
-                continue;
-            }
-
-            var key = (endpoint.HttpMethod, endpoint.Route);
-
-            if (chosen.ContainsKey(key))
-            {
                 continue;
             }
 
             if (descriptor.HasValidDocument)
             {
-                chosen.Add(key, descriptor);
-            }
-            else
-            {
-                invalidFallbacks.TryAdd(key, descriptor);
-            }
-        }
+                if (keyToIndex.TryGetValue(key, out var existingIndex))
+                {
+                    // Promote: an earlier invalid descriptor is being replaced by a valid one.
+                    chosenDescriptors[existingIndex] = descriptor;
+                }
+                else
+                {
+                    keyToIndex[key] = chosenDescriptors.Count;
+                    chosenDescriptors.Add(descriptor);
+                }
 
-        foreach (var (key, descriptor) in invalidFallbacks)
-        {
-            chosen.TryAdd(key, descriptor);
+                keyHasValid.Add(key);
+            }
+            else if (!keyToIndex.ContainsKey(key))
+            {
+                keyToIndex[key] = chosenDescriptors.Count;
+                chosenDescriptors.Add(descriptor);
+            }
         }
 
         var httpEndpoints = new List<Endpoint>();
 
-        foreach (var descriptor in chosen.Values)
+        foreach (var descriptor in chosenDescriptors)
         {
             try
             {
