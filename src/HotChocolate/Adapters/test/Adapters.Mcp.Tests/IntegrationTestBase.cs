@@ -481,6 +481,37 @@ public abstract class IntegrationTestBase
     }
 
     [Fact]
+    public async Task ListTools_DuplicateName_FirstInvalidSecondValid_PrefersValid()
+    {
+        // arrange
+        // Storage returns the invalid definition first, then a valid one with the same name.
+        // A strict first-in-storage-order rule would surface the invalid tool. Prefer-valid
+        // must promote the valid duplicate so the tool is callable.
+        var invalid = new OperationToolDefinition(
+            Utf8GraphQLParser.Parse("query GetBooks { doesNotExist }"))
+        {
+            Title = "Invalid GetBooks"
+        };
+        var valid = new OperationToolDefinition(
+            Utf8GraphQLParser.Parse("query GetBooks { books { title } }"))
+        {
+            Title = "Valid GetBooks"
+        };
+        var storage = new MultiCollectionMcpStorage(tools: [invalid, valid]);
+        var server = await CreateTestServerAsync(storage);
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+
+        // act
+        var tools = await mcpClient.ListToolsAsync();
+        var callResult = await mcpClient.CallToolAsync("get_books");
+
+        // assert
+        var tool = Assert.Single(tools);
+        Assert.Equal("Valid GetBooks", tool.Title);
+        Assert.False(callResult.IsError);
+    }
+
+    [Fact]
     public async Task ListTools_RemoveWinningDuplicate_WhenLoserIsInvalid_LoserSurfacesAsInvalid()
     {
         // arrange

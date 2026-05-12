@@ -239,11 +239,13 @@ internal sealed class McpStorageObserver : IDisposable
     private async Task RebuildToolsAsync(CancellationToken cancellationToken)
     {
         var tools = ImmutableDictionary.CreateBuilder<string, OperationTool>();
+        var invalidFallbacks = new Dictionary<string, OperationToolDefinition>(StringComparer.Ordinal);
 
         foreach (var toolDefinition in await _storage.GetOperationToolDefinitionsAsync(cancellationToken))
         {
-            // When multiple definitions share a name (e.g. across collections published to the
-            // same stage), the first one wins in storage iteration order.
+            // When multiple definitions share a name (e.g. across collections published to
+            // the same stage), the first valid one wins. A later valid duplicate is skipped
+            // here; an earlier invalid duplicate is overridden once the valid one arrives.
             if (tools.ContainsKey(toolDefinition.Name))
             {
                 continue;
@@ -254,11 +256,23 @@ internal sealed class McpStorageObserver : IDisposable
             if (validationResult.HasErrors)
             {
                 _diagnosticEvents.ValidationErrors(validationResult.Errors);
-                tools.Add(toolDefinition.Name, OperationToolFactory.CreateInvalidTool(toolDefinition));
+                // Remember the first invalid definition per name as a fallback. It is only
+                // surfaced if no valid duplicate exists.
+                invalidFallbacks.TryAdd(toolDefinition.Name, toolDefinition);
                 continue;
             }
 
             tools.Add(toolDefinition.Name, _toolFactory.CreateTool(toolDefinition));
+        }
+
+        // For names with no valid definition at all, surface the first invalid one so calls
+        // to it return the "unavailable" error rather than tool-not-found.
+        foreach (var (name, definition) in invalidFallbacks)
+        {
+            if (!tools.ContainsKey(name))
+            {
+                tools.Add(name, OperationToolFactory.CreateInvalidTool(definition));
+            }
         }
 
         _tools = tools.ToImmutable();
