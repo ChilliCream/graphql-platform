@@ -60,6 +60,15 @@ namespace HotChocolate.Adapters.Mcp.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The tool &apos;{0}&apos; is currently unavailable..
+        /// </summary>
+        internal static string CallToolHandler_ToolInvalid {
+            get {
+                return ResourceManager.GetString("CallToolHandler_ToolInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The tool &apos;{0}&apos; was not found..
         /// </summary>
         internal static string CallToolHandler_ToolNotFound {

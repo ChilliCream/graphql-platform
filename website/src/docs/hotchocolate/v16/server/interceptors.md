@@ -343,5 +343,5 @@ requestBuilder.AllowIntrospection();
 # Next Steps
 
 - [Global State](/docs/hotchocolate/v16/server/global-state) for sharing per-request data between resolvers.
-- [Dependency Injection](/docs/hotchocolate/v16/resolvers-and-data/dependency-injection) for details on service injection and switching providers.
-- [Introspection](/docs/hotchocolate/v16/securing-your-api/introspection) for controlling introspection on a per-request basis.
+- [Dependency Injection](/docs/hotchocolate/v16/fetching-data/dependency-injection) for details on service injection and switching providers.
+- [Introspection](/docs/hotchocolate/v16/security/introspection) for controlling introspection on a per-request basis.

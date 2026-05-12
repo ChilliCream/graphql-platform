@@ -248,9 +248,7 @@ The transport runs migrations automatically on first use. Migrations are protect
 
 Each migration is tracked in the migrations table and is idempotent - running the same migration twice has no effect. The migration creates the schema if it does not exist, then applies each pending migration in order within a single transaction.
 
-:::warning
-**Advisory lock scope.** The advisory lock ID is fixed. If you run multiple independent Mocha transports in the same PostgreSQL cluster with different table prefixes, they share the same advisory lock. This is safe - it serializes migrations but does not block normal message operations.
-:::
+> **Warning:** The advisory lock ID is fixed. If you run multiple independent Mocha transports in the same PostgreSQL cluster with different table prefixes, they share the same advisory lock. This is safe - it serializes migrations but does not block normal message operations.
 
 # Declare custom topology
 
