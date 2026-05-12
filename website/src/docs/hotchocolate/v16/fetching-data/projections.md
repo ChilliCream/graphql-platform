@@ -264,4 +264,4 @@ public class UserType : ObjectType<User>
 - **Need to filter results?** See [Filtering](/docs/hotchocolate/v16/fetching-data/filtering).
 - **Need to sort results?** See [Sorting](/docs/hotchocolate/v16/fetching-data/sorting).
 - **Need to page through results?** See [Pagination](/docs/hotchocolate/v16/fetching-data/pagination).
-- **Need to integrate with Entity Framework?** See [Entity Framework Integration](/docs/hotchocolate/v16/fetching-data/entity-framework).
+- **Need to integrate with Entity Framework?** See [Entity Framework Integration](/docs/hotchocolate/v16/fetching-data/integrations/entity-framework).

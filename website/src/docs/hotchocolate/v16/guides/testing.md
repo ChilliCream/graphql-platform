@@ -93,7 +93,7 @@ public async Task Get_Product_By_Id()
 
 # Snapshot Testing with CookieCrumble
 
-Asserting on individual fields works for small results, but GraphQL responses can be large and nested. Snapshot testing captures the entire response and compares it against a stored baseline. Hot Chocolate uses [CookieCrumble](/docs/hotchocolate/v16/testing) for this.
+Asserting on individual fields works for small results, but GraphQL responses can be large and nested. Snapshot testing captures the entire response and compares it against a stored baseline. Hot Chocolate uses [CookieCrumble](/docs/hotchocolate/v16/guides/testing) for this.
 
 ## File-Based Snapshots
 

@@ -390,5 +390,5 @@ builder
 
 - **Need to restrict access to fields?** See [Authorization](/docs/hotchocolate/v16/security/authorization).
 - **Building a private API?** See [Trusted Documents](/docs/hotchocolate/v16/performance/trusted-documents).
-- **Need to limit query depth?** See [Query Depth](/docs/hotchocolate/v16/security/query-depth).
+- **Need to limit query depth?** See [Request Limits](/docs/hotchocolate/v16/security/request-limits).
 - **Need an overview of security options?** See [Security Overview](/docs/hotchocolate/v16/security).

@@ -45,7 +45,7 @@ Resolvers are the building blocks of data fetching. A resolver can call a databa
 
 DataLoaders deduplicate and batch requests to data sources. When multiple resolvers request the same entity in a single request, a DataLoader ensures only one call goes to the backing store. DataLoaders can significantly reduce the load on your databases and services.
 
-[Learn more about DataLoaders](/docs/hotchocolate/v16/fetching-data/dataloader)
+[Learn more about DataLoaders](/docs/hotchocolate/v16/fetching-data/batching/dataloader)
 
 # Pagination
 
@@ -75,12 +75,9 @@ Projections optimize database queries by selecting only the columns that match t
 
 Hot Chocolate is not bound to a specific database or architecture. You can fetch data from any source in your resolvers. We provide specific guidance for the most common patterns:
 
-- [Fetching from databases](/docs/hotchocolate/v16/fetching-data/fetching-from-databases)
-- [Fetching from REST APIs](/docs/hotchocolate/v16/fetching-data/fetching-from-rest)
-
 # Next Steps
 
 - **New to resolvers?** Start with [Resolvers](/docs/hotchocolate/v16/fetching-data/resolvers).
-- **Need to batch data access?** See [DataLoader](/docs/hotchocolate/v16/fetching-data/dataloader).
+- **Need to batch data access?** See [DataLoader](/docs/hotchocolate/v16/fetching-data/batching/dataloader).
 - **Need to page through lists?** See [Pagination](/docs/hotchocolate/v16/fetching-data/pagination).
 - **Need to filter or sort?** See [Filtering](/docs/hotchocolate/v16/fetching-data/filtering) and [Sorting](/docs/hotchocolate/v16/fetching-data/sorting).

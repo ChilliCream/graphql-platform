@@ -321,6 +321,6 @@ The negation is `nwithin`.
 
 - [Filtering](/docs/hotchocolate/v16/fetching-data/filtering) for general filtering concepts
 - [Projections](/docs/hotchocolate/v16/fetching-data/projections) for projection setup
-- [Entity Framework integration](/docs/hotchocolate/v16/fetching-data/entity-framework) for EF Core setup
+- [Entity Framework integration](/docs/hotchocolate/v16/fetching-data/integrations/entity-framework) for EF Core setup
 
 <!-- spell-checker:ignore ndistance -->

@@ -82,7 +82,7 @@ public class ProductByIdDataLoader : BatchDataLoader<int, Product>
 
 For most applications, the source-generated DataLoader approach (using the `[DataLoader]` attribute) is the recommended starting point.
 
-[Learn more about DataLoaders](/docs/hotchocolate/v16/fetching-data/dataloader)
+[Learn more about DataLoaders](/docs/hotchocolate/v16/fetching-data/batching/dataloader)
 
 # Projections and Database Efficiency
 
@@ -221,7 +221,7 @@ Diagnostic event handlers execute synchronously as part of the GraphQL request. 
 
 - **Server warmup:** [Warmup](/docs/hotchocolate/v16/server/warmup) covers custom warmup tasks and lazy initialization.
 - **Persisted operations:** [Persisted Operations](/docs/hotchocolate/v16/performance/trusted-documents) covers both pre-stored and automatic persisted operations.
-- **DataLoaders:** [DataLoader](/docs/hotchocolate/v16/fetching-data/dataloader) covers source-generated DataLoaders, manual DataLoader classes, and batch resolvers.
+- **DataLoaders:** [DataLoader](/docs/hotchocolate/v16/fetching-data/batching/dataloader) covers source-generated DataLoaders, manual DataLoader classes, and batch resolvers.
 - **Projections:** [Projections](/docs/hotchocolate/v16/fetching-data/projections) covers the `[UseProjection]` middleware and `QueryContext<T>`.
 - **Cost analysis:** [Cost Analysis](/docs/hotchocolate/v16/security/cost-analysis) covers custom weights, filtering and sorting costs, and the tuning guide.
 - **Instrumentation:** [Instrumentation](/docs/hotchocolate/v16/server/instrumentation) covers diagnostic event listeners and OpenTelemetry integration.

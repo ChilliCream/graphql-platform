@@ -228,5 +228,5 @@ Take a look at the annotation-based or code-first example.
 # Next Steps
 
 - [Dependency Injection](/docs/hotchocolate/v16/fetching-data/dependency-injection) for DI scope configuration
-- [DataLoader](/docs/hotchocolate/v16/fetching-data/dataloader) for batching patterns
+- [DataLoader](/docs/hotchocolate/v16/fetching-data/batching/dataloader) for batching patterns
 - [Filtering](/docs/hotchocolate/v16/fetching-data/filtering) for applying filters to EF Core queries

@@ -132,7 +132,7 @@ Like the convention, a provider is configured through a fluent interface. Every 
 
 The provider translates an incoming query into a database query by traversing an input object and executing the handlers on the fields. The output is always some kind of _filter definition_. For `IQueryable`, this is an expression. For MongoDB, this is a `FilterDefinition`.
 
-To inspect and analyze the input object, the provider uses a visitor. See [Visitors](/docs/hotchocolate/v16/api-reference/visitors) for details on how visitors work.
+To inspect and analyze the input object, the provider uses a visitor.
 
 ## Provider Descriptor
 
@@ -288,5 +288,4 @@ builder
 # Next Steps
 
 - [Filtering](/docs/hotchocolate/v16/fetching-data/filtering) for using built-in filtering
-- [Visitors](/docs/hotchocolate/v16/api-reference/visitors) for understanding the visitor pattern
-- [MongoDB integration](/docs/hotchocolate/v16/fetching-data/mongodb) for MongoDB-specific filtering
+- [MongoDB integration](/docs/hotchocolate/v16/fetching-data/integrations/mongodb) for MongoDB-specific filtering

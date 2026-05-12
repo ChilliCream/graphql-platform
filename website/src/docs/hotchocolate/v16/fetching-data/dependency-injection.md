@@ -2,12 +2,11 @@
 title: Dependency Injection
 ---
 
-If you are unfamiliar with dependency injection, the following articles provide a good starting point:
+If you're unfamiliar with dependency injection, the ASP.NET Core documentation is a good starting point:
 
-- [Dependency injection in .NET](https://docs.microsoft.com/dotnet/core/extensions/dependency-injection)
-- [Dependency injection in ASP.NET Core](https://docs.microsoft.com/aspnet/core/fundamentals/dependency-injection)
+- [Dependency injection in ASP.NET Core](https://learn.microsoft.com/aspnet/core/fundamentals/dependency-injection)
 
-Dependency injection with Hot Chocolate works almost the same as with a regular ASP.NET Core application. Nothing changes about how you add services to the DI container.
+Dependency injection in Hot Chocolate works the same as in a regular ASP.NET Core application: register services with the DI container as usual.
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
@@ -18,22 +17,26 @@ builder.Services
     .AddTransient<MyTransientService>();
 ```
 
-# Implicit Service Injection
-
 Hot Chocolate automatically recognizes types registered as services in the DI container and injects them into resolver method parameters without requiring any attribute. This works similarly to [Minimal APIs parameter binding](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/minimal-apis/parameter-binding).
 
 When the execution engine encounters a resolver parameter whose type is registered in the DI container, it resolves the service automatically. You do not need to apply the `[Service]` attribute.
 
+```csharp
+public static async Task<Book?> GetBookByIdAsync(
+    Guid id,
+    BookService bookService)
+{
+    return await bookService.GetBookAsync(id);
+}
+```
+
 # Resolver Injection
 
-Inject dependencies into your resolvers as method arguments. This is the recommended approach.
-
-[Learn more about why constructor injection into GraphQL types is a bad idea](#constructor-injection)
-
-Injecting dependencies at the method level has several benefits:
+Injecting services at the method level has several benefits:
 
 - The execution engine can optimize the resolver and adjust the execution strategy based on the needs of a specific service.
 - Refactoring (moving the resolver method between classes) becomes easier because the resolver does not depend on its outer class.
+- If many resolvers are colocated in a single class we only need to resolve the services that are needed for resolvers that are actually being executed
 
 In the following example, `BookService` is injected automatically when it is registered as a service in the DI container:
 
@@ -42,7 +45,7 @@ In the following example, `BookService` is injected automatically when it is reg
 
 ```csharp
 [QueryType]
-public static class Query
+public static partial class Query
 {
     public static async Task<Book?> GetBookByIdAsync(
         Guid id,
@@ -75,18 +78,15 @@ public sealed class QueryType : ObjectType
 ```
 
 </Code>
-<Schema>
-
-Take a look at the implementation-first or code-first example.
-
-</Schema>
 </ExampleTabs>
 
-## Default Scope
+## Service Scoping
 
-By default, scoped services are scoped to the resolver for queries and DataLoaders, and to the current request for mutations. This means that each execution of a query or DataLoader that accepts a scoped service receives a **separate** instance, avoiding threading issues with services that do not support multi-threading (for example, Entity Framework DbContexts). Since mutations are executed sequentially, they receive the **same** request-scoped instance.
+In GraphQL, resolvers are expected to be side-effect free. The execution engine may run them in parallel or out of order, so relying on shared mutable state within services can lead to issues. For example, if multiple resolvers use the same Entity Framework DbContext concurrently, it can cause thread-safety problems and execution errors.
 
-You can change these defaults globally:
+To avoid this, Hot Chocolate creates a new service scope for each async resolver and each DataLoader dispatch. This ensures every resolver or DataLoader execution receives its own service instance.
+
+If you want to change the default scoping behavior, you can update the GraphQL options.
 
 ```csharp
 builder
@@ -136,67 +136,31 @@ public sealed class QueryType : ObjectType
 ```
 
 </Code>
-<Schema>
-
-Take a look at the implementation-first or code-first example.
-
-</Schema>
 </ExampleTabs>
-
-# Application Services in Schema Services
-
-Hot Chocolate maintains a separate internal service provider for schema services. If you need application services to be available within schema-level components (such as diagnostic event listeners, error filters, or interceptors), you must cross-register them using `AddApplicationService<T>()`:
-
-```csharp
-builder.Services.AddSingleton<MyService>();
-
-builder
-    .AddGraphQL()
-    .AddApplicationService<MyService>()
-    .AddDiagnosticEventListener<MyDiagnosticEventListener>();
-```
-
-Services registered via `AddApplicationService<T>()` are resolved once during schema initialization from the application service provider and registered as singletons in the schema service provider.
-
-The following configuration APIs require `AddApplicationService<T>()` for any application services they depend on:
-
-- `AddHttpRequestInterceptor`
-- `AddSocketSessionInterceptor`
-- `AddErrorFilter`
-- `AddDiagnosticEventListener`
-- `AddOperationCompilerOptimizer`
-- `AddTransactionScopeHandler`
-- `AddRedisOperationDocumentStorage`
-- `AddAzureBlobStorageOperationDocumentStorage`
-- `AddInstrumentation` with a custom `ActivityEnricher`
-
-> Note: Service injection into resolvers is not affected by this. Resolvers continue to use the application service provider directly.
 
 # Constructor Injection
 
-When starting out with Hot Chocolate you might be inclined to inject dependencies into your GraphQL type definitions using the constructor.
+If you're coming from an ASP.NET core controller-based workflow, you might be used to injecting services into your types via the constructor. In Hot Chocolate, you should <strong style="color: red">avoid</strong> injecting services into GraphQL type definitions for these reasons:
 
-You should <strong style="color: red">avoid</strong> doing this, because:
+- GraphQL type definitions are registered as singletons, so constructor-injected services would also become singletons.
+- Hot Chocolate cannot synchronize access to those services during request execution, which can cause issues with services that are not thread-safe (such as EF Core's DbContext).
 
-- GraphQL type definitions are singletons and your injected dependency will also become a singleton.
-- Access to this dependency cannot be synchronized by Hot Chocolate during request execution.
-
-This does not apply within your own dependencies. Your `ServiceA` class can still inject `ServiceB` through the constructor.
-
-When you need to access dependency injection services in your resolvers, use the [method-level dependency injection approach](#resolver-injection) described above.
+> _Note:_ This guidance does not apply to your own application services. For example, `ServiceA` can still inject `ServiceB` via constructor injection.
 
 # Keyed Services
 
-A keyed service registered like this:
+A keyed service is a service registered in the DI container with an associated key or name. This allows you to register multiple instances of the same service type, each identified by a unique key. Keyed services are useful when you need different configurations or implementations of the same service type within your application.
+
+You can register a keyed service like this:
 
 ```csharp
 builder.Services.AddKeyedScoped<BookService>("bookService");
 ```
 
-...can be accessed in your resolver with the `[Service]` attribute specifying the key:
-
 <ExampleTabs>
 <Implementation>
+
+You can then access the keyed service in your resolver by applying the `[Service]` attribute with the key:
 
 ```csharp
 [QueryType]
@@ -213,6 +177,8 @@ public static class Query
 
 </Implementation>
 <Code>
+
+You can also access the keyed service in your resolver by passing the key to the `Service` helper on the resolver context.
 
 ```csharp
 public sealed class QueryType : ObjectType
@@ -233,40 +199,13 @@ public sealed class QueryType : ObjectType
 ```
 
 </Code>
-<Schema>
-
-Take a look at the implementation-first or code-first example.
-
-</Schema>
 </ExampleTabs>
-
-# Accessing the HttpContext
-
-The [IHttpContextAccessor](https://docs.microsoft.com/dotnet/api/microsoft.aspnetcore.http.ihttpcontextaccessor) allows you to access the [HttpContext](https://docs.microsoft.com/dotnet/api/microsoft.aspnetcore.http.httpcontext) of the current request from within your resolvers. This is useful when you need to read or set a header or cookie.
-
-First register the `IHttpContextAccessor` as a service.
-
-```csharp
-builder.Services.AddHttpContextAccessor();
-```
-
-Then inject it into your resolver.
-
-```csharp
-public string Foo(string id, IHttpContextAccessor httpContextAccessor)
-{
-    if (httpContextAccessor.HttpContext is not null)
-    {
-        // Omitted code for brevity
-    }
-}
-```
 
 # Switching the Service Provider
 
-While Hot Chocolate's internals rely on Microsoft's dependency injection container, you are not required to manage your own dependencies using this container. By default, Hot Chocolate uses the request-scoped [`HttpContext.RequestServices`](https://docs.microsoft.com/dotnet/api/microsoft.aspnetcore.http.httpcontext.requestservices) `IServiceProvider` to provide services to your resolvers.
+While Hot Chocolate's internals rely on Microsoft's dependency injection container, you are not required to manage your own dependencies using Microsoft`s container. By default, Hot Chocolate uses the request-scoped [`HttpContext.RequestServices`](https://docs.microsoft.com/dotnet/api/microsoft.aspnetcore.http.httpcontext.requestservices) `IServiceProvider` to provide services to your resolvers.
 
-You can switch out the service provider used for GraphQL requests, as long as your DI container implements the [`IServiceProvider`](https://docs.microsoft.com/dotnet/api/system.iserviceprovider) interface.
+You can switch out the service provider used for GraphQL requests, as long as your DI container implements the [`IServiceProvider`](https://docs.microsoft.com/dotnet/api/system.iserviceprovider) interface and supports scoping.
 
 To switch the service provider, call [`SetServices`](/docs/hotchocolate/v16/server/interceptors#setservices) on the [`OperationRequestBuilder`](/docs/hotchocolate/v16/server/interceptors#operationrequestbuilder) in both the [`IHttpRequestInterceptor`](/docs/hotchocolate/v16/server/interceptors#ihttprequestinterceptor) and the [`ISocketSessionInterceptor`](/docs/hotchocolate/v16/server/interceptors#isocketsessioninterceptor).
 

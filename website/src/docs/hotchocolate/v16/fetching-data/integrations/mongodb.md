@@ -220,6 +220,6 @@ public IExecutable<Person> GetPersonById(
 
 - [Pagination](/docs/hotchocolate/v16/fetching-data/pagination) for pagination setup
 - [Filtering](/docs/hotchocolate/v16/fetching-data/filtering) for filtering concepts
-- [Executable](/docs/hotchocolate/v16/fetching-data/executable) for the `IExecutable` abstraction
+- [Executable](/docs/hotchocolate/v16/fetching-data/integrations) for the `IExecutable` abstraction
 
 <!-- spell-checker:ignore Shorton -->

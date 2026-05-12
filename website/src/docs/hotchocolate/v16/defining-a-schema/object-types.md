@@ -643,6 +643,6 @@ This works with any key and value types. For example, `Dictionary<string, int>` 
 
 - **Need to define query entry points?** See [Queries](/docs/hotchocolate/v16/defining-a-schema/queries).
 - **Need to understand resolver patterns?** See [Resolvers](/docs/hotchocolate/v16/fetching-data/resolvers).
-- **Need to compose types from multiple classes?** See [Extending Types](/docs/hotchocolate/v16/defining-a-schema/extending-types).
+- **Need to compose types from multiple classes?** See [Extending Types](/docs/hotchocolate/v16/defining-a-schema/object-types).
 - **Need to define input for mutations?** See [Input Object Types](/docs/hotchocolate/v16/defining-a-schema/input-object-types).
-- **Need to fetch data efficiently?** See [DataLoader](/docs/hotchocolate/v16/fetching-data/dataloader).
+- **Need to fetch data efficiently?** See [DataLoader](/docs/hotchocolate/v16/fetching-data/batching/dataloader).

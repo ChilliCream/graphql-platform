@@ -334,7 +334,7 @@ app.MapGraphQLPersistedOperations(requireOperationName: true);
 
 When enabled, requests to `/{operationId}` without an operation name return a `400 Bad Request` response.
 
-For details on storing and managing persisted operations, see [Trusted Documents](/docs/hotchocolate/v16/security/trusted-documents).
+For details on storing and managing persisted operations, see [Trusted Documents](/docs/hotchocolate/v16/performance/trusted-documents).
 
 # AddGraphQL Parameters
 
@@ -458,5 +458,5 @@ Per-endpoint `WithOptions` overrides take precedence over schema-level defaults.
 
 - [HTTP Transport](/docs/hotchocolate/v16/server/http-transport) for details on request formats, response formats, WebSocket transport, and SSE.
 - [Interceptors](/docs/hotchocolate/v16/server/interceptors) for hooking into request processing.
-- [Trusted Documents](/docs/hotchocolate/v16/security/trusted-documents) for the full persisted operations workflow.
+- [Trusted Documents](/docs/hotchocolate/v16/performance/trusted-documents) for the full persisted operations workflow.
 - [Cost Analysis](/docs/hotchocolate/v16/security/cost-analysis) for understanding the default security cost analyzer.

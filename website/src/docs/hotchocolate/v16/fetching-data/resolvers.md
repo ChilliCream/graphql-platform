@@ -205,7 +205,7 @@ descriptor
 </Code>
 </ExampleTabs>
 
-[Learn more about arguments](/docs/hotchocolate/v15/defining-a-schema/arguments)
+[Learn more about arguments](/docs/hotchocolate/v16/defining-a-schema/arguments)
 
 # Injecting Services
 
