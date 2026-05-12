@@ -61,7 +61,7 @@ export function DocPageView({
   }, [docsConfig, productPath, versionPath]);
 
   return (
-    <SiteLayout>
+    <SiteLayout disableStars>
       <SEO title={title} description={page.frontmatter?.description} />
       <ArticleLayout
         navigation={
