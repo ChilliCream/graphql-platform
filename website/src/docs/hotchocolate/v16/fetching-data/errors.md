@@ -3,77 +3,191 @@ title: Errors
 description: Learn how to handle, create, and filter GraphQL errors in Hot Chocolate.
 ---
 
-Hot Chocolate provides several ways to report errors from your GraphQL resolvers. You can return `IError` instances, throw a `GraphQLException`, or use non-terminating field errors through `IResolverContext.ReportError`.
+In GraphQL, errors are not all-or-nothing. If a resolver fails, the rest of the query can still return data. This is called a _field error_ (or non-terminating error). When this happens, the failed field returns `null`, and an entry is added to the `errors` array. Other fields continue to resolve as usual.
 
-# Returning Errors
+# Exceptions
 
-Return an `IError` or `IEnumerable<IError>` from a field resolver to report errors in the GraphQL response.
+The easiest way to signal an error is to throw an exception. Hot Chocolate will catch any exception thrown during resolver execution and automatically turn it into a GraphQL error.
 
-Throw a `GraphQLException` from any resolver, and the execution engine catches it and translates it into a field error.
-
-Call `IResolverContext.ReportError` to raise a non-terminating error. This allows you to return a result and report an error for the same field.
-
-> To log errors, see the [instrumentation documentation](/docs/hotchocolate/v16/server/instrumentation) for connecting your logging framework.
-
-# Error Builder
-
-Errors can have many properties. The `ErrorBuilder` provides a fluent API for constructing them:
+<ExampleTabs>
+<Implementation>
 
 ```csharp
-var error = ErrorBuilder
-    .New()
-    .SetMessage("This is my error.")
-    .SetCode("FOO_BAR")
-    .Build();
+[QueryType]
+public static partial class Query
+{
+    public static Book GetBook()
+    {
+        throw new InvalidOperationException("Something went wrong.");
+    }
+}
+```
+
+</Implementation>
+<Code>
+
+```csharp
+public class QueryType : ObjectType
+{
+    protected override void Configure(IObjectTypeDescriptor descriptor)
+    {
+        descriptor
+            .Field("book")
+            .Type<BookType>()
+            .Resolve(ctx =>
+            {
+                throw new InvalidOperationException("Something went wrong.");
+            });
+    }
+}
+```
+
+</Code>
+</ExampleTabs>
+
+By default, Hot Chocolate does **not** send exception details to the client. Instead, the response contains a generic message to avoid exposing internal information.
+
+```json
+{
+  "errors": [
+    {
+      "message": "Unexpected Execution Error",
+      "locations": [{ "line": 1, "column": 3 }],
+      "path": ["book"]
+    }
+  ],
+  "data": {
+    "book": null
+  }
+}
 ```
 
 # Error Filters
 
-When an unexpected exception is thrown during execution, the engine creates an `IError` with the message **Unexpected Execution Error** and attaches the original exception. Exception details are not serialized by default, so the user sees only the generic message.
+If you use typed exceptions and want to return specific GraphQL errors, you can implement error filters. Error filters let you catch errors before they reach the client and rewrite them as needed.
 
-To translate exceptions into errors with useful information, implement an `IErrorFilter` and register it:
-
-```csharp
-builder.Services.AddErrorFilter<MyErrorFilter>();
-```
-
-You can also register a filter as a delegate:
-
-```csharp
-builder.Services.AddErrorFilter(error =>
-{
-    if (error.Exception is NullReferenceException)
-    {
-        return error.WithCode("NullRef");
-    }
-
-    return error;
-});
-```
-
-Errors are immutable. Helper methods like `WithMessage`, `WithCode`, and others return a new error with the desired properties. You can also create a builder from an existing error to modify multiple properties:
-
-```csharp
-return ErrorBuilder
-    .FromError(error)
-    .SetMessage("This is my error.")
-    .SetCode("FOO_BAR")
-    .Build();
-```
-
-# Exception Details
-
-To include exception details in GraphQL errors automatically, enable the `IncludeExceptionDetails` option. By default, this is enabled when the debugger is attached:
+For example, if your service throws a `NotFoundException`, you can map it to a clear error message and code:
 
 ```csharp
 builder
     .AddGraphQL()
-    .ModifyRequestOptions(
-        o => o.IncludeExceptionDetails =
-            builder.Environment.IsDevelopment());
+    .AddErrorFilter(error =>
+    {
+        if (error.Exception is NotFoundException ex)
+        {
+            return ErrorBuilder
+                .FromError(error)
+                .SetMessage(ex.Message)
+                .SetCode("NOT_FOUND")
+                .Build();
+        }
+
+        return error;
+    });
 ```
 
-> Do not enable `IncludeExceptionDetails` in production. Exception details can leak security-sensitive information.
+Now, when a resolver throws a `NotFoundException`, the client receives a structured error instead of a generic message:
+
+```json
+{
+  "errors": [
+    {
+      "message": "The book with ID '123' was not found.",
+      "locations": [{ "line": 1, "column": 3 }],
+      "path": ["book"],
+      "extensions": {
+        "code": "NOT_FOUND"
+      }
+    }
+  ],
+  "data": {
+    "book": null
+  }
+}
+```
+
+> **Note:** Errors are immutable. Methods like `WithMessage`, `WithCode`, and `RemoveExtension` return a new error instance. Use `ErrorBuilder.FromError(error)` to change multiple properties at once.
+
+# GraphQLException
+
+If you want full control over the error in a resolver, throw a `GraphQLException`. Unlike regular exceptions, these errors are sent to the client as-is, without being wrapped in a generic message.
+
+<ExampleTabs>
+<Implementation>
+
+```csharp
+[QueryType]
+public static partial class Query
+{
+    public static Book GetBook()
+    {
+        throw new GraphQLException("The book could not be found.");
+    }
+}
+```
+
+</Implementation>
+<Code>
+
+```csharp
+public class QueryType : ObjectType
+{
+    protected override void Configure(IObjectTypeDescriptor descriptor)
+    {
+        descriptor
+            .Field("book")
+            .Type<BookType>()
+            .Resolve(ctx =>
+            {
+                throw new GraphQLException("The book could not be found.");
+            });
+    }
+}
+```
+
+</Code>
+</ExampleTabs>
+
+```json
+{
+  "errors": [
+    {
+      "message": "The book could not be found.",
+      "locations": [{ "line": 1, "column": 3 }],
+      "path": ["book"]
+    }
+  ],
+  "data": {
+    "book": null
+  }
+}
+```
+
+You can also use `GraphQLException` with an `ErrorBuilder` to add a code, extensions, or multiple errors:
+
+```csharp
+throw new GraphQLException(
+    ErrorBuilder
+        .New()
+        .SetMessage("The book could not be found.")
+        .SetCode("BOOK_NOT_FOUND")
+        .Build());
+```
+
+```json
+{
+  "errors": [
+    {
+      "message": "The book could not be found.",
+      "locations": [{ "line": 1, "column": 3 }],
+      "path": ["book"],
+      "extensions": {
+        "code": "BOOK_NOT_FOUND"
+      }
+    }
+  ]
+}
+```
 
 # Next Steps
 

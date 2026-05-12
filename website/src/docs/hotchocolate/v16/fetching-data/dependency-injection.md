@@ -203,7 +203,7 @@ public sealed class QueryType : ObjectType
 
 # Switching the Service Provider
 
-While Hot Chocolate's internals rely on Microsoft's dependency injection container, you are not required to manage your own dependencies using Microsoft`s container. By default, Hot Chocolate uses the request-scoped [`HttpContext.RequestServices`](https://docs.microsoft.com/dotnet/api/microsoft.aspnetcore.http.httpcontext.requestservices) `IServiceProvider` to provide services to your resolvers.
+While Hot Chocolate's internals rely on Microsoft's dependency injection container, you are not required to manage your own dependencies using Microsoft's container. By default, Hot Chocolate uses the request-scoped [`HttpContext.RequestServices`](https://docs.microsoft.com/dotnet/api/microsoft.aspnetcore.http.httpcontext.requestservices) `IServiceProvider` to provide services to your resolvers.
 
 You can switch out the service provider used for GraphQL requests, as long as your DI container implements the [`IServiceProvider`](https://docs.microsoft.com/dotnet/api/system.iserviceprovider) interface and supports scoping.
 

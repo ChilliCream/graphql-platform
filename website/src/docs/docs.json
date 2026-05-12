@@ -577,6 +577,10 @@
                 "title": "Dependency Injection"
               },
               {
+                "path": "errors",
+                "title": "Errors"
+              },
+              {
                 "path": "field-middleware",
                 "title": "Field Middleware"
               },
@@ -613,10 +617,6 @@
                     "title": "Batch Resolvers"
                   }
                 ]
-              },
-              {
-                "path": "errors",
-                "title": "Errors"
               },
               {
                 "path": "integrations",
