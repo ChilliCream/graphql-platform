@@ -173,27 +173,59 @@ internal sealed class OpenApiDefinitionRegistry : IDisposable
 
         _transformer.AddDefinitions(endpoints, models, modelsByName, schema);
 
-        // Update endpoints
-        var httpEndpoints = new List<Endpoint>();
-        var processedEndpoints = new HashSet<(string, string)>();
+        // When multiple endpoints share (method, route): the first descriptor with a valid
+        // document wins. If no duplicate validates, the first invalid descriptor is kept so
+        // the route is still registered (the middleware returns HTTP 500 on call).
+        var chosen = new Dictionary<(string, string), OpenApiEndpointDescriptor>();
+        var invalidFallbacks = new Dictionary<(string, string), OpenApiEndpointDescriptor>();
 
         foreach (var endpoint in endpoints)
         {
+            OpenApiEndpointDescriptor descriptor;
+
+            try
+            {
+                descriptor = OpenApiEndpointFactory.CreateEndpointDescriptor(endpoint, modelsByName, schema);
+            }
+            catch
+            {
+                // If descriptor construction fails entirely, we just skip over it.
+                continue;
+            }
+
             var key = (endpoint.HttpMethod, endpoint.Route);
 
-            if (!processedEndpoints.Add(key))
+            if (chosen.ContainsKey(key))
             {
                 continue;
             }
 
+            if (descriptor.HasValidDocument)
+            {
+                chosen.Add(key, descriptor);
+            }
+            else
+            {
+                invalidFallbacks.TryAdd(key, descriptor);
+            }
+        }
+
+        foreach (var (key, descriptor) in invalidFallbacks)
+        {
+            chosen.TryAdd(key, descriptor);
+        }
+
+        var httpEndpoints = new List<Endpoint>();
+
+        foreach (var descriptor in chosen.Values)
+        {
             try
             {
-                var httpEndpoint = OpenApiEndpointFactory.Create(endpoint, modelsByName, schema);
-                httpEndpoints.Add(httpEndpoint);
+                httpEndpoints.Add(OpenApiEndpointFactory.CreateEndpoint(schema.Name, descriptor));
             }
             catch
             {
-                // If the construction of an endpoint fails, we just skip over it.
+                // If wrapping the descriptor in an ASP.NET endpoint fails, we just skip over it.
             }
         }
 
