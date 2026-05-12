@@ -7,6 +7,7 @@ schema {
 type Query {
   apiById(id: ID!): Api
   fusionConfigurationByApiId(id: ID!, stage: String!): FusionConfiguration
+  mcpFeatureCollectionById(id: ID!): McpFeatureCollection
   me: Viewer
   "Fetches an object given its ID."
   node("ID of the object." id: ID!): Node
@@ -206,14 +207,16 @@ type Api implements Node {
   mcpFeatureCollections(
     "Returns the elements in the list that come after the specified cursor."
     after: String
-    "Returns the elements in the list that come before the specified cursor."
-    before: String
     "Returns the first _n_ elements from the list."
     first: Int
-    "Returns the last _n_ elements from the list."
-    last: Int
     search: String
   ): ApiMcpFeatureCollectionsConnection
+  mcpFeatureCollectionVersions(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+  ): ApiMcpFeatureCollectionVersionsConnection
   mockSchemas(
     "Returns the elements in the list that come after the specified cursor."
     after: String
@@ -513,6 +516,26 @@ type ApiMcpFeatureCollectionsEdge {
   node: McpFeatureCollection!
 }
 
+"A connection to a list of items."
+type ApiMcpFeatureCollectionVersionsConnection {
+  "A list of edges."
+  edges: [ApiMcpFeatureCollectionVersionsEdge!]
+  "A flattened list of the nodes."
+  nodes: [McpFeatureCollectionVersion!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "Identifies the total count of items in the connection."
+  totalCount: Int!
+}
+
+"An edge in a connection."
+type ApiMcpFeatureCollectionVersionsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: McpFeatureCollectionVersion!
+}
+
 type ApiNotFoundError implements Error {
   apiId: ID!
   message: String!
@@ -646,6 +669,13 @@ type AuthorizationEventLog {
   """
   traceId: String!
   workspace: Workspace
+}
+
+type AzureDevOpsSourceMetadata implements SourceMetadata {
+  commitUrl: URL
+  shortCommitHash: String
+  workflowRunName: String!
+  workflowRunUrl: URL!
 }
 
 type BasicAuthenticationFlowOptions {
@@ -1590,7 +1620,7 @@ type FusionSubgraphVersion {
   tag: String!
 }
 
-type GitHubSourceMetadata {
+type GitHubSourceMetadata implements SourceMetadata {
   commitUrl: URL!
   shortCommitHash: String!
   workflowRunName: String!
@@ -1951,17 +1981,28 @@ type McpFeatureCollection implements Node {
   api: Api
   createdAt: DateTime!
   createdBy: UserInfo!
+  deployments(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+    stageId: ID
+  ): McpFeatureCollectionDeploymentsConnection
   id: ID!
   name: String!
+  publishedTools(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+    stageId: ID!
+  ): McpFeatureCollectionPublishedToolsConnection
+  publishedVersion(stageId: ID!): PublishedMcpFeatureCollectionVersion
   versions(
     "Returns the elements in the list that come after the specified cursor."
     after: String
-    "Returns the elements in the list that come before the specified cursor."
-    before: String
     "Returns the first _n_ elements from the list."
     first: Int
-    "Returns the last _n_ elements from the list."
-    last: Int
   ): McpFeatureCollectionVersionsConnection
 }
 
@@ -1989,9 +2030,85 @@ type McpFeatureCollectionDeployment implements Node & Deployment {
   tag: String!
 }
 
+"A connection to a list of items."
+type McpFeatureCollectionDeploymentsConnection {
+  "A list of edges."
+  edges: [McpFeatureCollectionDeploymentsEdge!]
+  "A flattened list of the nodes."
+  nodes: [McpFeatureCollectionDeployment!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "Identifies the total count of items in the connection."
+  totalCount: Int!
+}
+
+"An edge in a connection."
+type McpFeatureCollectionDeploymentsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: McpFeatureCollectionDeployment!
+}
+
+type McpFeatureCollectionInsight {
+  averageLatency: Float
+  errorRate: Float
+  id: ID!
+  impact: Float
+  mcpFeatureCollection: McpFeatureCollection
+  opm: Float
+  successRate: Float
+  totalCount: Long
+  totalCountWithErrors: Long
+}
+
+"A connection to a list of items."
+type McpFeatureCollectionInsightsConnection {
+  "A list of edges."
+  edges: [McpFeatureCollectionInsightsEdge!]
+  "A flattened list of the nodes."
+  nodes: [McpFeatureCollectionInsight!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type McpFeatureCollectionInsightsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: McpFeatureCollectionInsight!
+}
+
 type McpFeatureCollectionNotFoundError implements Error {
   mcpFeatureCollectionId: ID!
   message: String!
+}
+
+"A connection to a list of items."
+type McpFeatureCollectionPublishedToolsConnection {
+  "A list of edges."
+  edges: [McpFeatureCollectionPublishedToolsEdge!]
+  "A flattened list of the nodes."
+  nodes: [PublishedMcpTool!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "Identifies the total count of items in the connection."
+  totalCount: Int!
+}
+
+"An edge in a connection."
+type McpFeatureCollectionPublishedToolsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: PublishedMcpTool!
+}
+
+type McpFeatureCollectionSummary {
+  collectionCount: Int!
+  deploymentCount: Int!
+  toolCount: Int!
 }
 
 type McpFeatureCollectionValidationArchiveError implements McpFeatureCollectionVersionValidationError & ProcessingError {
@@ -2039,6 +2156,12 @@ type McpFeatureCollectionVersion implements Node {
   hash: String!
   id: ID!
   mcpFeatureCollection: McpFeatureCollection
+  publishedTo(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+  ): PublishedMcpFeatureCollectionVersionsConnection
   tag: String!
 }
 
@@ -2071,6 +2194,8 @@ type McpFeatureCollectionVersionsConnection {
   nodes: [McpFeatureCollectionVersion!]
   "Information to aid in pagination."
   pageInfo: PageInfo!
+  "Identifies the total count of items in the connection."
+  totalCount: Int!
 }
 
 "An edge in a connection."
@@ -2088,6 +2213,49 @@ type McpFeatureCollectionVersionValidationFailed implements McpFeatureCollection
 
 type McpFeatureCollectionVersionValidationSuccess implements McpFeatureCollectionVersionValidationResult {
   state: ProcessingState!
+}
+
+type McpTool implements Node {
+  id: ID!
+  name: String!
+}
+
+type McpToolErrorInsight {
+  epm: Float!
+  id: ID!
+  lastSeen: DateTime!
+  message: String!
+  totalCount: Long!
+  type: String!
+}
+
+"A connection to a list of items."
+type McpToolErrorInsightsConnection {
+  "A list of edges."
+  edges: [McpToolErrorInsightsEdge!]
+  "A flattened list of the nodes."
+  nodes: [McpToolErrorInsight!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type McpToolErrorInsightsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: McpToolErrorInsight!
+}
+
+type McpToolSettings {
+  annotations: McpToolSettingsAnnotations
+  title: String
+}
+
+type McpToolSettingsAnnotations {
+  destructiveHint: Boolean
+  idempotentHint: Boolean
+  openWorldHint: Boolean
 }
 
 type MockSchema {
@@ -3741,6 +3909,142 @@ type PublishedClientVersion {
   version: ClientVersion
 }
 
+type PublishedMcpFeatureCollectionVersion implements Node {
+  id: ID!
+  publishedAt: DateTime!
+  stage: Stage
+  version: McpFeatureCollectionVersion
+}
+
+"A connection to a list of items."
+type PublishedMcpFeatureCollectionVersionsConnection {
+  "A list of edges."
+  edges: [PublishedMcpFeatureCollectionVersionsEdge!]
+  "A flattened list of the nodes."
+  nodes: [PublishedMcpFeatureCollectionVersion!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "Identifies the total count of items in the connection."
+  totalCount: Int!
+}
+
+"An edge in a connection."
+type PublishedMcpFeatureCollectionVersionsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: PublishedMcpFeatureCollectionVersion!
+}
+
+type PublishedMcpTool implements Node {
+  collectionVersion: McpFeatureCollectionVersion
+  document(mcpFeatureCollectionVersionId: ID): String!
+  id: ID!
+  metrics(from: DateTime, to: DateTime): PublishedMcpToolMetrics!
+  revisions(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+  ): PublishedMcpToolRevisionsConnection
+  settings(mcpFeatureCollectionVersionId: ID): McpToolSettings
+  stage: Stage
+  tool: McpTool
+}
+
+type PublishedMcpToolErrorsGraph {
+  dataset: [PublishedMcpToolErrorsGraphData!]!
+}
+
+type PublishedMcpToolErrorsGraphData {
+  count: Long!
+  epoch: Long!
+}
+
+type PublishedMcpToolLatencyGraph {
+  dataset: [PublishedMcpToolLatencyGraphData!]!
+}
+
+type PublishedMcpToolLatencyGraphData {
+  epoch: Long!
+  max: Float!
+  mean: Float!
+  min: Float!
+  p50: Float!
+  p95: Float!
+  p99: Float!
+}
+
+type PublishedMcpToolMetrics {
+  errorInsights(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+    search: String
+  ): McpToolErrorInsightsConnection
+  errorRate: Float!
+  errors: PublishedMcpToolErrorsGraph!
+  firstSeen: DateTime
+  impact: Float!
+  lastSeen: DateTime
+  latency: PublishedMcpToolLatencyGraph!
+  meanDuration: Float!
+  opm: Float!
+  p95Latency: Float!
+  p99Latency: Float!
+  requests: PublishedMcpToolRequestsGraph!
+  throughput: PublishedMcpToolThroughputGraph!
+  totalErrors: Long!
+  totalRequests: Long!
+}
+
+type PublishedMcpToolRequestsGraph {
+  dataset: [PublishedMcpToolRequestsGraphData!]!
+}
+
+type PublishedMcpToolRequestsGraphData {
+  count: Long!
+  epoch: Long!
+}
+
+type PublishedMcpToolRevision {
+  collectionVersion: McpFeatureCollectionVersion!
+}
+
+"A connection to a list of items."
+type PublishedMcpToolRevisionsConnection {
+  "A list of edges."
+  edges: [PublishedMcpToolRevisionsEdge!]
+  "A flattened list of the nodes."
+  nodes: [PublishedMcpToolRevision!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "Identifies the total count of items in the connection."
+  totalCount: Int!
+}
+
+"An edge in a connection."
+type PublishedMcpToolRevisionsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: PublishedMcpToolRevision!
+}
+
+type PublishedMcpToolThroughputGraph {
+  dataset: [PublishedMcpToolThroughputGraphData!]!
+}
+
+type PublishedMcpToolThroughputGraphData {
+  epoch: Long!
+  errorRate: Float!
+  opm: Float!
+  successRate: Float!
+  totalCount: Long!
+  totalCountWithError: Long!
+}
+
 type PublishedOpenApiCollectionVersion implements Node {
   id: ID!
   publishedAt: DateTime!
@@ -4384,12 +4688,13 @@ type Stage implements Node {
     last: Int
     to: DateTime
   ): OpenTelemetryLogsConnection
-  mcpFeatureCollections(
+  mcpDeployments(
     "Returns the elements in the list that come after the specified cursor."
     after: String
     "Returns the first _n_ elements from the list."
     first: Int
-  ): StageMcpFeatureCollectionsConnection
+  ): StageMcpFeatureCollectionDeploymentsConnection
+  mcpFeatureCollectionSummary: McpFeatureCollectionSummary!
   metrics: StageMetrics!
   name: String!
   openApiDeployments(
@@ -4401,6 +4706,25 @@ type Stage implements Node {
   openApiSummary: OpenApiSummary!
   publishedClients: [PublishedClient!]!
   publishedFusionConfiguration: FusionConfiguration
+  publishedMcpFeatureCollections(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+    search: String
+  ): StagePublishedMcpFeatureCollectionsConnection
+  publishedMcpToolById(id: ID!): PublishedMcpTool
+  publishedMcpTools(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+    from: DateTime
+    mcpFeatureCollectionIds: [ID!]
+    orderBy: [McpToolOrderByInput!]
+    search: String
+    to: DateTime
+  ): StagePublishedMcpToolsConnection
   publishedOpenApiCollections(
     "Returns the elements in the list that come after the specified cursor."
     after: String
@@ -4497,26 +4821,39 @@ type StageLatencySummary {
 }
 
 "A connection to a list of items."
-type StageMcpFeatureCollectionsConnection {
+type StageMcpFeatureCollectionDeploymentsConnection {
   "A list of edges."
-  edges: [StageMcpFeatureCollectionsEdge!]
+  edges: [StageMcpFeatureCollectionDeploymentsEdge!]
   "A flattened list of the nodes."
-  nodes: [McpFeatureCollection!]
+  nodes: [McpFeatureCollectionDeployment!]
   "Information to aid in pagination."
   pageInfo: PageInfo!
 }
 
 "An edge in a connection."
-type StageMcpFeatureCollectionsEdge {
+type StageMcpFeatureCollectionDeploymentsEdge {
   "A cursor for use in pagination."
   cursor: String!
   "The item at the end of the edge."
-  node: McpFeatureCollection!
+  node: McpFeatureCollectionDeployment!
+}
+
+type StageMcpFeatureCollectionsMetrics {
+  insights(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+    from: DateTime!
+    orderBy: [McpFeatureCollectionInsightsOrderByInput!]
+    to: DateTime!
+  ): McpFeatureCollectionInsightsConnection
 }
 
 type StageMetrics {
   clients: StageClientsMetrics!
   errors: StageErrorsMetrics!
+  mcpFeatureCollections: StageMcpFeatureCollectionsMetrics!
   openApiCollections: StageOpenApiCollectionsMetrics!
   operation(hash: String!, operationName: String!): StageOperationMetrics!
   operations: StageOperationsMetrics!
@@ -4612,6 +4949,42 @@ type StageOperationsMetrics {
     operationKinds: [OperationKind!]
     to: DateTime!
   ): OperationsThroughputGraph
+}
+
+"A connection to a list of items."
+type StagePublishedMcpFeatureCollectionsConnection {
+  "A list of edges."
+  edges: [StagePublishedMcpFeatureCollectionsEdge!]
+  "A flattened list of the nodes."
+  nodes: [McpFeatureCollection!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type StagePublishedMcpFeatureCollectionsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: McpFeatureCollection!
+}
+
+"A connection to a list of items."
+type StagePublishedMcpToolsConnection {
+  "A list of edges."
+  edges: [StagePublishedMcpToolsEdge!]
+  "A flattened list of the nodes."
+  nodes: [PublishedMcpTool!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type StagePublishedMcpToolsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: PublishedMcpTool!
 }
 
 "A connection to a list of items."
@@ -5473,6 +5846,13 @@ interface SchemaVersionValidationResult {
   state: ProcessingState!
 }
 
+interface SourceMetadata {
+  commitUrl: URL
+  shortCommitHash: String
+  workflowRunName: String!
+  workflowRunUrl: URL!
+}
+
 interface StageChangedEvent {
   kind: StageChangeKind!
 }
@@ -5794,8 +6174,6 @@ union SchemaMemberChange =
 
 union SetActiveWorkspaceError = UnauthorizedOperation | WorkspaceNotFound
 
-union SourceMetadata = GitHubSourceMetadata
-
 union StageCondition = AfterStageCondition
 
 union StartFusionConfigurationCompositionError =
@@ -6017,6 +6395,23 @@ input ApproveDeploymentInput {
   deploymentId: ID!
 }
 
+input AzureDevOpsActorInput {
+  email: String
+  name: String!
+}
+
+input AzureDevOpsSourceMetadataInput {
+  actor: AzureDevOpsActorInput!
+  commitHash: String
+  jobId: String
+  pipelineName: String!
+  projectUrl: URL!
+  repositoryUrl: URL
+  runId: String!
+  runNumber: String!
+  taskId: String
+}
+
 input BasicAuthenticationFlowOptionsInput {
   password: String!
   username: String!
@@ -6188,6 +6583,23 @@ input GraphQLCoordinateOrderByInput {
   totalReferences: SortEnumType
   totalRequests: SortEnumType
   totalUsages: SortEnumType
+}
+
+input McpFeatureCollectionInsightsOrderByInput {
+  averageLatency: SortEnumType
+  errorRate: SortEnumType
+  impact: SortEnumType
+  opm: SortEnumType
+  totalCount: SortEnumType
+  totalCountWithError: SortEnumType
+}
+
+input McpToolOrderByInput {
+  errorRate: SortEnumType
+  meanDuration: SortEnumType
+  name: SortEnumType
+  opm: SortEnumType
+  totalRequests: SortEnumType
 }
 
 input OAuth2AuthenticationFlowOptionsInput {
@@ -6393,6 +6805,7 @@ input SetActiveWorkspaceInput {
 }
 
 input SourceMetadataInput @oneOf {
+  azureDevOps: AzureDevOpsSourceMetadataInput
   github: GitHubSourceMetadataInput
 }
 
