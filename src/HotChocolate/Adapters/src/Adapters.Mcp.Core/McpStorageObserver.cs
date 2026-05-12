@@ -58,25 +58,27 @@ internal sealed class McpStorageObserver : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        if (_promptsSubscription is not null || _toolsSubscription is not null)
-        {
-            return;
-        }
-
         await _semaphore.WaitAsync(cancellationToken);
-
-        _promptsSubscription = _storage
-            .Buffer<PromptStorageEventArgs>(TimeSpan.FromMilliseconds(500), 10)
-            .Where(batch => batch.Count > 0)
-            .Subscribe(_ => HandlePromptsChangedAsync().FireAndForget());
-
-        _toolsSubscription = _storage
-            .Buffer<OperationToolStorageEventArgs>(TimeSpan.FromMilliseconds(500), 10)
-            .Where(batch => batch.Count > 0)
-            .Subscribe(_ => HandleToolsChangedAsync().FireAndForget());
 
         try
         {
+            // Re-check inside the lock so a concurrent StartAsync call can't pass the
+            // outside check and then overwrite this caller's subscriptions.
+            if (_promptsSubscription is not null || _toolsSubscription is not null)
+            {
+                return;
+            }
+
+            _promptsSubscription = _storage
+                .Buffer<PromptStorageEventArgs>(TimeSpan.FromMilliseconds(500), 10)
+                .Where(batch => batch.Count > 0)
+                .Subscribe(_ => HandlePromptsChangedAsync().FireAndForget());
+
+            _toolsSubscription = _storage
+                .Buffer<OperationToolStorageEventArgs>(TimeSpan.FromMilliseconds(500), 10)
+                .Where(batch => batch.Count > 0)
+                .Subscribe(_ => HandleToolsChangedAsync().FireAndForget());
+
             await Task.WhenAll(
                 InitializePromptsAsync(cancellationToken),
                 InitializeToolsAsync(cancellationToken));
