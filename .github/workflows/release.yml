@@ -432,7 +432,6 @@ jobs:
         shell: bash
         env:
           REGISTRY: ${{ vars.NPM_REGISTRY_URL }}
-          PKG: "@chillicream/nitro-${{ matrix.rid }}"
           TARBALL: "./chillicream-nitro-${{ matrix.rid }}-${{ needs.compute-release-context.outputs.git_tag }}.tgz"
         run: |
           set -euo pipefail
@@ -440,26 +439,18 @@ jobs:
           # Pick the band this release publishes under, based on release context.
           if [[ "$IS_HIGHEST_STABLE_MAJOR" == "true" ]]; then
             PRIMARY_BAND="latest"
-            SECONDARY_BAND="latest-${MAJOR}"
           elif [[ "$IS_STABLE" == "true" ]]; then
             PRIMARY_BAND="latest-${MAJOR}"
-            SECONDARY_BAND=""
           elif [[ "$GIT_TAG" =~ -rc\. ]]; then
             PRIMARY_BAND="rc"
-            SECONDARY_BAND=""
           else
             PRIMARY_BAND="preview"
-            SECONDARY_BAND=""
           fi
 
           npm publish "$TARBALL" \
             --access public \
             --registry="$REGISTRY" \
             --tag "$PRIMARY_BAND"
-
-          if [[ -n "$SECONDARY_BAND" ]]; then
-            npm dist-tag add "${PKG}@${GIT_TAG}" "$SECONDARY_BAND" --registry="$REGISTRY"
-          fi
 
       - name: 📤 Upload tarball as artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
@@ -537,7 +528,6 @@ jobs:
         shell: bash
         env:
           REGISTRY: ${{ vars.NPM_REGISTRY_URL }}
-          PKG: "@chillicream/nitro"
           TARBALL: "./chillicream-nitro-${{ needs.compute-release-context.outputs.git_tag }}.tgz"
         run: |
           set -euo pipefail
@@ -545,26 +535,18 @@ jobs:
           # Pick the band this release publishes under, based on release context.
           if [[ "$IS_HIGHEST_STABLE_MAJOR" == "true" ]]; then
             PRIMARY_BAND="latest"
-            SECONDARY_BAND="latest-${MAJOR}"
           elif [[ "$IS_STABLE" == "true" ]]; then
             PRIMARY_BAND="latest-${MAJOR}"
-            SECONDARY_BAND=""
           elif [[ "$GIT_TAG" =~ -rc\. ]]; then
             PRIMARY_BAND="rc"
-            SECONDARY_BAND=""
           else
             PRIMARY_BAND="preview"
-            SECONDARY_BAND=""
           fi
 
           npm publish "$TARBALL" \
             --access public \
             --registry="$REGISTRY" \
             --tag "$PRIMARY_BAND"
-
-          if [[ -n "$SECONDARY_BAND" ]]; then
-            npm dist-tag add "${PKG}@${GIT_TAG}" "$SECONDARY_BAND" --registry="$REGISTRY"
-          fi
 
       - name: 📤 Upload tarball as artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
