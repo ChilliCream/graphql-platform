@@ -1,0 +1,211 @@
+{
+  "source": {
+    "name": "HotChocolate.Fusion.Diagnostics"
+  },
+  "activities": [
+    {
+      "OperationName": "Microsoft.AspNetCore.Hosting.HttpRequestIn",
+      "DisplayName": "GET /faulty-book",
+      "Kind": "Server",
+      "Status": "Error",
+      "tags": [
+        {
+          "Key": "server.address",
+          "Value": "localhost"
+        },
+        {
+          "Key": "http.request.method",
+          "Value": "GET"
+        },
+        {
+          "Key": "url.scheme",
+          "Value": "http"
+        },
+        {
+          "Key": "url.path",
+          "Value": "/faulty-book"
+        },
+        {
+          "Key": "network.protocol.version",
+          "Value": "1.1"
+        },
+        {
+          "Key": "http.route",
+          "Value": "/faulty-book"
+        },
+        {
+          "Key": "http.response.status_code",
+          "Value": 500
+        }
+      ],
+      "event": [],
+      "activities": [
+        {
+          "OperationName": "GraphQL Document Validation",
+          "DisplayName": "GraphQL Document Validation",
+          "Kind": "Internal",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "validate"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:e3dcf9a653465feb05e37160cfc4b6a5"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Operation Planning",
+          "DisplayName": "GraphQL Operation Planning",
+          "Kind": "Internal",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "plan"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:e3dcf9a653465feb05e37160cfc4b6a5"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "graphql.operation.name",
+              "Value": "GetFaultyBook"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Step Execution",
+          "DisplayName": "GraphQL Step Execution",
+          "Kind": "Internal",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "step_execute"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "graphql.operation.name",
+              "Value": "GetFaultyBook"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:e3dcf9a653465feb05e37160cfc4b6a5"
+            },
+            {
+              "Key": "graphql.operation.step.id",
+              "Value": "1"
+            },
+            {
+              "Key": "graphql.operation.step.kind",
+              "Value": "operation"
+            },
+            {
+              "Key": "graphql.operation.step.plan.id",
+              "Value": "655e2f8d494b58bb16ed61d1478f225c8006e7bfb96c067718222bed7c3a8432"
+            },
+            {
+              "Key": "graphql.source_schema.name",
+              "Value": "a"
+            },
+            {
+              "Key": "graphql.source_schema.operation.name",
+              "Value": "GetFaultyBook_e3dcf9a6_1"
+            },
+            {
+              "Key": "graphql.source_schema.operation.hash",
+              "Value": "sha256:291a6e1ef435849fcb727b8e53c489fbd15f3caae54ecbb13185c7dc2a2e7f95"
+            }
+          ],
+          "event": [],
+          "activities": [
+            {
+              "OperationName": "System.Net.Http.HttpRequestOut",
+              "DisplayName": "System.Net.Http.HttpRequestOut",
+              "Kind": "Client",
+              "Status": "Unset",
+              "tags": [
+                {
+                  "Key": "http.request.method",
+                  "Value": "POST"
+                },
+                {
+                  "Key": "server.address",
+                  "Value": "localhost"
+                },
+                {
+                  "Key": "server.port",
+                  "Value": 5000
+                },
+                {
+                  "Key": "url.full",
+                  "Value": "http://localhost:5000/graphql"
+                },
+                {
+                  "Key": "http.response.status_code",
+                  "Value": 200
+                }
+              ],
+              "event": [],
+              "activities": [
+                {
+                  "OperationName": "Microsoft.AspNetCore.Hosting.HttpRequestIn",
+                  "DisplayName": "POST /graphql/{**slug}",
+                  "Kind": "Server",
+                  "Status": "Unset",
+                  "tags": [
+                    {
+                      "Key": "server.address",
+                      "Value": "localhost"
+                    },
+                    {
+                      "Key": "server.port",
+                      "Value": 5000
+                    },
+                    {
+                      "Key": "http.request.method",
+                      "Value": "POST"
+                    },
+                    {
+                      "Key": "url.scheme",
+                      "Value": "http"
+                    },
+                    {
+                      "Key": "url.path",
+                      "Value": "/graphql"
+                    },
+                    {
+                      "Key": "network.protocol.version",
+                      "Value": "1.1"
+                    },
+                    {
+                      "Key": "http.route",
+                      "Value": "/graphql/{**slug}"
+                    },
+                    {
+                      "Key": "http.response.status_code",
+                      "Value": 200
+                    }
+                  ],
+                  "event": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

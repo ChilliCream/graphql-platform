@@ -1,0 +1,213 @@
+{
+  "source": {
+    "name": "Experimental.ModelContextProtocol"
+  },
+  "activities": [
+    {
+      "OperationName": "tools/call get_faulty_book",
+      "DisplayName": "tools/call get_faulty_book",
+      "Kind": "Client",
+      "Status": "Error",
+      "tags": [
+        {
+          "Key": "mcp.session.id",
+          "Value": "<scrubbed>"
+        },
+        {
+          "Key": "jsonrpc.request.id",
+          "Value": "3"
+        },
+        {
+          "Key": "mcp.method.name",
+          "Value": "tools/call"
+        },
+        {
+          "Key": "network.transport",
+          "Value": "unknown"
+        },
+        {
+          "Key": "mcp.protocol.version",
+          "Value": "2025-11-25"
+        },
+        {
+          "Key": "gen_ai.tool.name",
+          "Value": "get_faulty_book"
+        },
+        {
+          "Key": "gen_ai.operation.name",
+          "Value": "execute_tool"
+        },
+        {
+          "Key": "error.type",
+          "Value": "tool_error"
+        }
+      ],
+      "event": [],
+      "activities": [
+        {
+          "OperationName": "tools/call get_faulty_book",
+          "DisplayName": "tools/call get_faulty_book",
+          "Kind": "Server",
+          "Status": "Error",
+          "tags": [
+            {
+              "Key": "mcp.session.id",
+              "Value": "<scrubbed>"
+            },
+            {
+              "Key": "jsonrpc.request.id",
+              "Value": "3"
+            },
+            {
+              "Key": "mcp.method.name",
+              "Value": "tools/call"
+            },
+            {
+              "Key": "network.transport",
+              "Value": "tcp"
+            },
+            {
+              "Key": "network.protocol.name",
+              "Value": "http"
+            },
+            {
+              "Key": "mcp.protocol.version",
+              "Value": "2025-11-25"
+            },
+            {
+              "Key": "gen_ai.tool.name",
+              "Value": "get_faulty_book"
+            },
+            {
+              "Key": "gen_ai.operation.name",
+              "Value": "execute_tool"
+            },
+            {
+              "Key": "error.type",
+              "Value": "tool_error"
+            }
+          ],
+          "event": [],
+          "activities": [
+            {
+              "OperationName": "GraphQL Document Validation",
+              "DisplayName": "GraphQL Document Validation",
+              "Kind": "Internal",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "graphql.processing.type",
+                  "Value": "validate"
+                },
+                {
+                  "Key": "graphql.document.hash",
+                  "Value": "md5:e3dcf9a653465feb05e37160cfc4b6a5"
+                }
+              ],
+              "event": []
+            },
+            {
+              "OperationName": "GraphQL Operation Planning",
+              "DisplayName": "GraphQL Operation Planning",
+              "Kind": "Internal",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "graphql.processing.type",
+                  "Value": "plan"
+                },
+                {
+                  "Key": "graphql.document.hash",
+                  "Value": "md5:e3dcf9a653465feb05e37160cfc4b6a5"
+                },
+                {
+                  "Key": "graphql.operation.type",
+                  "Value": "query"
+                },
+                {
+                  "Key": "graphql.operation.name",
+                  "Value": "GetFaultyBook"
+                }
+              ],
+              "event": []
+            },
+            {
+              "OperationName": "Query.faultyBook",
+              "DisplayName": "Query.faultyBook",
+              "Kind": "Internal",
+              "Status": "Error",
+              "tags": [
+                {
+                  "Key": "graphql.processing.type",
+                  "Value": "resolve"
+                },
+                {
+                  "Key": "graphql.field.alias",
+                  "Value": "faultyBook"
+                },
+                {
+                  "Key": "graphql.field.path",
+                  "Value": "faultyBook"
+                },
+                {
+                  "Key": "graphql.field.name",
+                  "Value": "faultyBook"
+                },
+                {
+                  "Key": "graphql.field.schema_coordinate",
+                  "Value": "Query.faultyBook"
+                },
+                {
+                  "Key": "graphql.field.parent_type",
+                  "Value": "Query"
+                },
+                {
+                  "Key": "error.type",
+                  "Value": "EXECUTION_ERROR"
+                }
+              ],
+              "event": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "OperationName": "Microsoft.AspNetCore.Hosting.HttpRequestIn",
+      "DisplayName": "POST /graphql/mcp/",
+      "Kind": "Server",
+      "Status": "Unset",
+      "tags": [
+        {
+          "Key": "server.address",
+          "Value": "localhost"
+        },
+        {
+          "Key": "http.request.method",
+          "Value": "POST"
+        },
+        {
+          "Key": "url.scheme",
+          "Value": "http"
+        },
+        {
+          "Key": "url.path",
+          "Value": "/graphql/mcp"
+        },
+        {
+          "Key": "network.protocol.version",
+          "Value": "1.1"
+        },
+        {
+          "Key": "http.route",
+          "Value": "/graphql/mcp/"
+        },
+        {
+          "Key": "http.response.status_code",
+          "Value": 200
+        }
+      ],
+      "event": []
+    }
+  ]
+}
