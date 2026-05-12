@@ -649,19 +649,18 @@ The `watchFileForUpdates` parameter is gone — file watching is the default beh
 
 ### Nitro integration
 
-Update all `ChilliCream.Nitro.*` packages to the same version as the `HotChocolate.Fusion.AspNetCore` package. If you're referencing any packages besides `ChilliCream.Nitro.Fusion` change the package references as shown below:
+The packages have been restructured in v16. Versions now align with the rest of the platform, so you are migrating from `1.x` to `16.x`. For the full migration guide covering all package renames, API changes, and complete before/after examples, see [Migrating Nitro from 1 to 16](/docs/nitro/migration/migrate-from-1-to-16).
 
-| Old                            | New                                        |
-| ------------------------------ | ------------------------------------------ |
-| `ChilliCream.Nitro.Core`       | `ChilliCream.Nitro.GraphQL`                |
-| `ChilliCream.Nitro`            | `ChilliCream.Nitro.HotChocolate`           |
-| `ChilliCream.Nitro.Telemetry`  | `ChilliCream.Nitro.OpenTelemetry`          |
-| `ChilliCream.Nitro.Azure.Core` | `ChilliCream.Nitro.Azure`                  |
-| `ChilliCream.Nitro.*.Azure`    | `ChilliCream.Nitro.Azure` (single package) |
+The key changes for Fusion projects:
+
+- **Package rename:** `ChilliCream.Nitro.Core` becomes `ChilliCream.Nitro.GraphQL`, `ChilliCream.Nitro.Telemetry` becomes `ChilliCream.Nitro.OpenTelemetry`, and Azure packages are consolidated into `ChilliCream.Nitro.Azure`.
+- **`ConfigureFromCloud()`** is replaced by `AddNitro().AddDefaults()` on the service collection.
+- **Per-gateway feature options** are configured via `ModifyNitroOptions()` on the gateway builder.
+- **`AddNitroExporter()`** is replaced by `AddOpenTelemetry()` on the `INitroBuilder`.
+- **Asset cache** is now configured globally on `INitroBuilder` instead of per-gateway.
+- **`AddDefaults()`** is a source-generated method that wires up the default integration when the correct packages are referenced.
 
 > Note: If you are self-hosting the Nitro backend, make sure to update it to the latest version as well. `10.1.0` is the minimum version required to work with the `ChilliCream.Nitro.*` packages.
-
-v16 changes how Nitro is configured instead of the per gateway configuration `ConfigureFromCloud` call, you configure Nitro once on the service collection and then apply optional per gateway setting overrides.
 
 **Before**
 
@@ -686,99 +685,9 @@ builder.Services
         o.ApiKey = "...";
         o.Stage = "...";
     })
-    .AddFusion();
+    .AddDefaults();
 
 builder.Services.AddGraphQLGatewayServer();
-```
-
-Per gateway settings can be overridden via the `ModifyNitroOptions` API. There have also been some changes to the structure of options.
-
-**Before**
-
-```csharp
-builder.Services
-    .AddFusionGatewayServer()
-    .ConfigureFromCloud(o =>
-    {
-        o.EnablePersistedQueries = true;
-        o.DefaultQueryCacheExpiration = TimeSpan.FromSeconds(30);
-        o.NotFoundQueryCacheExpiration = TimeSpan.FromSeconds(10);
-
-        o.LocalFusionConfigurationFile = "gateway.fgp";
-
-        o.Metrics.Enabled = true;
-        o.Metrics.ExportIntervalMilliseconds = 1000;
-        o.Metrics.ExportTimeoutMilliseconds = 400;
-
-        o.EnableOperationReporting = true;
-    });
-```
-
-**After**
-
-```csharp
-builder.Services
-    .AddGraphQLGatewayServer()
-    .ModifyNitroOptions(o =>
-    {
-        o.PersistedOperations.Enabled = true;
-        o.PersistedOperations.DefaultQueryCacheExpiration = TimeSpan.FromSeconds(30);
-        o.PersistedOperations.NotFoundQueryCacheExpiration = TimeSpan.FromSeconds(10);
-
-        o.LocalFusionConfigurationFile = "gateway.fgp";
-
-        o.Metrics.Enabled = true;
-        o.Metrics.ExportIntervalMilliseconds = 1000;
-        o.Metrics.ExportTimeoutMilliseconds = 400;
-
-        o.OperationReporting.Enabled = true;
-    });
-```
-
-If you were previously registering an asset cache you now do that on the `INitroBuilder` returned from `AddNitro()`:
-
-**Before**
-
-```csharp
-builder.Services
-    .AddFusionGatewayServer()
-    .AddFileSystemAssetCache()
-    // or
-    .AddBlobStorageAssetCache()
-    // or
-    .AddAssetCache<CustomAssetCache>()
-```
-
-**After**
-
-```csharp
-builder.Services
-    .AddNitro()
-    .AddFusion()
-    .AddFileSystemAssetCache()
-    // or
-    .AddBlobStorageAssetCache()
-    // or
-    .AddAssetCache<CustomAssetCache>()
-```
-
-If you were previously hand-rolling the `ConfigureOpenTelemetry*Provider(...)` configuration with `AddNitroExporter()`, you can also switch to a new `AddOpenTelemetry()` API on the `INitroBuilder` that handles the registration for you.
-
-**Before**
-
-```csharp
-services.ConfigureOpenTelemetryMeterProvider(x => x.AddNitroExporter());
-services.ConfigureOpenTelemetryTracerProvider(x => x.AddNitroExporter());
-services.ConfigureOpenTelemetryLoggerProvider(x => x.AddNitroExporter());
-```
-
-**After**
-
-```csharp
-services
-    .AddNitro()
-    // ...
-    .AddOpenTelemetry();
 ```
 
 ### Diagnostic listener API redesigned

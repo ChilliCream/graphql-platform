@@ -14,6 +14,7 @@ To install the Nitro services, run the following command in your project's root 
 
 ```bash
 dotnet add package ChilliCream.Nitro
+dotnet add package ChilliCream.Nitro.HotChocolate
 ```
 
 After installing the package, you need to configure the services in your startup class. Below is a sample implementation in C#:
@@ -22,14 +23,17 @@ After installing the package, you need to configure the services in your startup
 public void ConfigureServices(IServiceCollection services)
 {
     services
-        .AddGraphQL()
-        .AddQueryType<Query>()
         .AddNitro(x =>
         {
             x.ApiKey = "<<your-api-key>>";
             x.ApiId = "QXBpCmc5NGYwZTIzNDZhZjQ0NjBmYTljNDNhZDA2ZmRkZDA2Ng==";
             x.Stage = "dev";
-        });
+        })
+        .AddDefaults();
+
+    services
+        .AddGraphQL()
+        .AddQueryType<Query>();
 }
 ```
 
@@ -45,9 +49,12 @@ public void ConfigureServices(IServiceCollection services)
 > public void ConfigureServices(IServiceCollection services)
 > {
 >     services
->         .AddGraphQL()
->         .AddQueryType<Query>()
 >         .AddNitro()
+>         .AddDefaults();
+>
+>     services
+>         .AddGraphQL()
+>         .AddQueryType<Query>();
 > }
 > ```
 >
