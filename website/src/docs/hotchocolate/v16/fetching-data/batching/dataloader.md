@@ -4,7 +4,7 @@ title: "DataLoader"
 
 DataLoaders solve the N+1 problem in GraphQL. When the execution engine resolves a list of objects and each object needs related data, a naive implementation fires one database query per object. A DataLoader collects all those individual requests, waits for the execution engine to finish the current batch of resolvers, and then sends one query for all requested keys at once.
 
-This page covers the source-generated DataLoader (the recommended approach) and manual DataLoader classes. If you are new to GraphQL data fetching, start with [Resolvers](/docs/hotchocolate/v16/fetching-data/resolvers) first.
+This page covers the source-generated DataLoader (the recommended approach) and manual DataLoader classes. If you are new to GraphQL data fetching, start with [Resolvers](/docs/hotchocolate/v16/resolvers/resolvers) first.
 
 # The N+1 Problem
 
@@ -212,6 +212,6 @@ public class BrandByIdDataLoader : BatchDataLoader<int, Brand>
 # Next Steps
 
 - **Need simpler batching without caching?** See [Batch Resolvers](/docs/hotchocolate/v16/fetching-data/batching/batch-resolver).
-- **Need to understand resolver basics?** See [Resolvers](/docs/hotchocolate/v16/fetching-data/resolvers).
+- **Need to understand resolver basics?** See [Resolvers](/docs/hotchocolate/v16/resolvers/resolvers).
 - **Need pagination?** See [Pagination](/docs/hotchocolate/v16/fetching-data/pagination) for cursor-based connections.
 - **Using Entity Framework?** See [Entity Framework](/docs/hotchocolate/v16/fetching-data/integrations/entity-framework) for integration patterns with DataLoaders.

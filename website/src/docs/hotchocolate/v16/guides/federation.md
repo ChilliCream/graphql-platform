@@ -416,6 +416,6 @@ For creating a supergraph, see the [Apollo Router documentation](https://www.apo
 
 # Next Steps
 
-- [Resolvers](/docs/hotchocolate/v16/fetching-data/resolvers) for resolver patterns
+- [Resolvers](/docs/hotchocolate/v16/resolvers/resolvers) for resolver patterns
 - [DataLoader](/docs/hotchocolate/v16/fetching-data/batching/dataloader) for batching in reference resolvers
 - [Apollo Federation docs](https://www.apollographql.com/docs/federation/) for supergraph configuration

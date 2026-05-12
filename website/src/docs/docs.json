@@ -561,8 +561,8 @@
             ]
           },
           {
-            "path": "fetching-data",
-            "title": "Resolvers and Data",
+            "path": "resolvers",
+            "title": "Resolvers",
             "items": [
               {
                 "path": "index",
@@ -583,6 +583,16 @@
               {
                 "path": "field-middleware",
                 "title": "Field Middleware"
+              }
+            ]
+          },
+          {
+            "path": "fetching-data",
+            "title": "Fetching Data",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
               },
               {
                 "path": "pagination",

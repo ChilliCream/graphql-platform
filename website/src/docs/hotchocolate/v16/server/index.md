@@ -34,7 +34,7 @@ For WebSockets, the interceptor also handles lifecycle events such as when a cli
 
 Hot Chocolate recognizes services registered in your DI container and injects them into resolvers automatically. Services are resolved implicitly without requiring the `[Service]` attribute.
 
-[Learn more about dependency injection](/docs/hotchocolate/v16/fetching-data/dependency-injection)
+[Learn more about dependency injection](/docs/hotchocolate/v16/resolvers/dependency-injection)
 
 # Warmup
 

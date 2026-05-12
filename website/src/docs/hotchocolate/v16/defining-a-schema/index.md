@@ -199,4 +199,4 @@ Use type extensions for static modularity. Choose dynamic schemas only when the 
 - Learn how returned shapes are inferred and configured in [Object Types](./object-types).
 - Add field inputs with [Arguments](./arguments) and [Input Object Types](./input-object-types).
 - Strengthen the contract with [Lists and Non-Null](./lists).
-- Move to runtime behavior with [Resolvers](../fetching-data/resolvers) and [DataLoader](../fetching-data/batching/dataloader) after the schema shape is clear.
+- Move to runtime behavior with [Resolvers](../resolvers/resolvers) and [DataLoader](../fetching-data/batching/dataloader) after the schema shape is clear.

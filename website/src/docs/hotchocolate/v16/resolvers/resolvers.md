@@ -229,7 +229,7 @@ public class Query
 }
 ```
 
-[Learn more about dependency injection](/docs/hotchocolate/v16/fetching-data/dependency-injection)
+[Learn more about dependency injection](/docs/hotchocolate/v16/resolvers/dependency-injection)
 
 # Accessing parent values
 

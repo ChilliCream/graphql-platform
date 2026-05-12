@@ -2,50 +2,7 @@
 title: Overview
 ---
 
-Every field in a GraphQL schema is backed by a resolver function that produces the field's value. Understanding how resolvers compose into a tree is the key mental model for building efficient GraphQL APIs with Hot Chocolate.
-
-# The Resolver Tree
-
-When Hot Chocolate receives a query, it builds a resolver tree that mirrors the shape of the request. Consider this query:
-
-```graphql
-query {
-  me {
-    name
-    company {
-      id
-      name
-    }
-  }
-}
-```
-
-This produces the following resolver tree:
-
-```mermaid
-graph LR
-  A(query: QueryType) --> B(me: UserType)
-  B --> C(name: StringType)
-  B --> D(company: CompanyType)
-  D --> E(id: IdType)
-  D --> F(name: StringType)
-```
-
-The execution engine traverses this tree starting from root resolvers. A child resolver can only execute after its parent has produced a value. Sibling resolvers at the same level run in parallel. Because of this parallel execution, resolvers (except top-level mutation fields) must be free of side effects.
-
-Execution completes when every resolver in the tree has produced a result.
-
-# Resolvers
-
-Resolvers are the building blocks of data fetching. A resolver can call a database, a REST API, a gRPC service, or any other data source. In Hot Chocolate, the source generator is the primary way to define resolvers. You write plain C# methods and the generator wires them into the schema.
-
-[Learn more about resolvers](/docs/hotchocolate/v16/fetching-data/resolvers)
-
-# DataLoader
-
-DataLoaders deduplicate and batch requests to data sources. When multiple resolvers request the same entity in a single request, a DataLoader ensures only one call goes to the backing store. DataLoaders can significantly reduce the load on your databases and services.
-
-[Learn more about DataLoaders](/docs/hotchocolate/v16/fetching-data/batching/dataloader)
+Hot Chocolate provides data middleware that applies common operations directly to your `IQueryable` or `IExecutable` data sources. Instead of implementing pagination, filtering, sorting, and projections by hand, you declare them on your fields and Hot Chocolate generates the corresponding GraphQL types and applies the operations at execution time.
 
 # Pagination
 
@@ -71,13 +28,18 @@ Projections optimize database queries by selecting only the columns that match t
 
 [Learn more about projections](/docs/hotchocolate/v16/fetching-data/projections)
 
-# Data Sources
+# Batching
 
-Hot Chocolate is not bound to a specific database or architecture. You can fetch data from any source in your resolvers. We provide specific guidance for the most common patterns:
+DataLoaders and batch resolvers solve the N+1 problem in GraphQL. When the execution engine resolves a list of objects and each needs related data, a DataLoader collects all individual requests and sends a single query for all keys at once.
 
-# Next Steps
+- [DataLoader](/docs/hotchocolate/v16/fetching-data/batching/dataloader) for key-based batching with deduplication and caching.
+- [Batch Resolvers](/docs/hotchocolate/v16/fetching-data/batching/batch-resolver) for simpler cases where caching is not needed.
 
-- **New to resolvers?** Start with [Resolvers](/docs/hotchocolate/v16/fetching-data/resolvers).
-- **Need to batch data access?** See [DataLoader](/docs/hotchocolate/v16/fetching-data/batching/dataloader).
-- **Need to page through lists?** See [Pagination](/docs/hotchocolate/v16/fetching-data/pagination).
-- **Need to filter or sort?** See [Filtering](/docs/hotchocolate/v16/fetching-data/filtering) and [Sorting](/docs/hotchocolate/v16/fetching-data/sorting).
+# Integrations
+
+Hot Chocolate is not bound to a specific database. The data middleware works with any `IQueryable` provider. We provide specific guidance for the most common data sources:
+
+- [Entity Framework](/docs/hotchocolate/v16/fetching-data/integrations/entity-framework) for EF Core DbContext patterns and pooling.
+- [MongoDB](/docs/hotchocolate/v16/fetching-data/integrations/mongodb) for the MongoDB driver integration.
+- [Marten](/docs/hotchocolate/v16/fetching-data/integrations/marten) for Marten document database support.
+- [Extending Filtering](/docs/hotchocolate/v16/fetching-data/integrations/extending-filtering) for building custom filter providers.
