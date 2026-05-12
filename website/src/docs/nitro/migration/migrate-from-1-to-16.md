@@ -19,7 +19,7 @@ The packages have been restructured to separate connection settings from feature
 
 > **Watch out:** The old `ChilliCream.Nitro` package becomes `ChilliCream.Nitro.HotChocolate`. A new meta-package is published under the old `ChilliCream.Nitro` ID. Don't mix these up when referencing.
 
-### Azure packages consolidated
+## Azure packages consolidated
 
 The old per-component Azure packages (`ChilliCream.Nitro.HotChocolate.Azure`, `ChilliCream.Nitro.Fusion.Azure`) have been replaced by a single `ChilliCream.Nitro.Azure` package. Remove the old ones and add the new one.
 
