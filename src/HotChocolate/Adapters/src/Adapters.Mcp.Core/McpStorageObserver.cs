@@ -83,7 +83,14 @@ internal sealed class McpStorageObserver : IDisposable
         }
         finally
         {
-            _semaphore.Release();
+            try
+            {
+                _semaphore.Release();
+            }
+            catch (ObjectDisposedException)
+            {
+                // Dispose() may have raced ahead and disposed the semaphore.
+            }
         }
     }
 

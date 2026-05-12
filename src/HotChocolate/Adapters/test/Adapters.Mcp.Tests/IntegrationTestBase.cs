@@ -962,6 +962,14 @@ public abstract class IntegrationTestBase
         var listener = new TestMcpDiagnosticEventListener();
         var server = await CreateTestServerAsync(storage, diagnosticEventListener: listener);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+        var listChangedResetEvent = new ManualResetEventSlim(false);
+        mcpClient.RegisterNotificationHandler(
+            NotificationMethods.ToolListChangedNotification,
+            async (_, _) =>
+            {
+                listChangedResetEvent.Set();
+                await ValueTask.CompletedTask;
+            });
 
         // act
         await storage.AddOrUpdateToolAsync(
@@ -970,11 +978,12 @@ public abstract class IntegrationTestBase
             {
                 Title = "AFTER"
             });
-        await Task.Delay(1000); // Wait for the observer buffer to flush.
+        var notified = listChangedResetEvent.Wait(TimeSpan.FromSeconds(5));
         var listed = await mcpClient.ListToolsAsync();
         var callResult = await mcpClient.CallToolAsync("tool");
 
         // assert
+        Assert.True(notified);
         var tool = Assert.Single(listed);
         Assert.Equal("AFTER", tool.Title);
         Assert.True(callResult.IsError);
