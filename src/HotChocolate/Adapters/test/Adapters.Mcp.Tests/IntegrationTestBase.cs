@@ -339,6 +339,230 @@ public abstract class IntegrationTestBase
     }
 
     [Fact]
+    public async Task ListPrompts_RemoveWinningDuplicate_LoserSurfaces()
+    {
+        // arrange
+        var winning = new PromptDefinition("code_review")
+        {
+            Title = "First Code Review",
+            Messages =
+            [
+                new PromptMessageDefinition(
+                    RoleDefinition.User,
+                    new TextContentBlockDefinition("Review (first)."))
+            ]
+        };
+        var losing = new PromptDefinition("code_review")
+        {
+            Title = "Second Code Review",
+            Messages =
+            [
+                new PromptMessageDefinition(
+                    RoleDefinition.User,
+                    new TextContentBlockDefinition("Review (second)."))
+            ]
+        };
+        var storage = new MultiCollectionMcpStorage(prompts: [winning, losing]);
+        var server = await CreateTestServerAsync(storage);
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+        var listChangedResetEvent = new ManualResetEventSlim(false);
+        mcpClient.RegisterNotificationHandler(
+            NotificationMethods.PromptListChangedNotification,
+            async (_, _) =>
+            {
+                listChangedResetEvent.Set();
+                await ValueTask.CompletedTask;
+            });
+
+        // act
+        storage.RemovePromptAt(0);
+        var notified = listChangedResetEvent.Wait(TimeSpan.FromSeconds(5));
+        var prompts = await mcpClient.ListPromptsAsync();
+
+        // assert
+        Assert.True(notified);
+        var prompt = Assert.Single(prompts);
+        Assert.Equal("Second Code Review", prompt.ProtocolPrompt.Title);
+    }
+
+    [Fact]
+    public async Task ListPrompts_UpdateLosingDuplicate_WinnerUnchanged()
+    {
+        // arrange
+        var winning = new PromptDefinition("code_review")
+        {
+            Title = "First Code Review",
+            Messages =
+            [
+                new PromptMessageDefinition(
+                    RoleDefinition.User,
+                    new TextContentBlockDefinition("Review (first)."))
+            ]
+        };
+        var losing = new PromptDefinition("code_review")
+        {
+            Title = "Second Code Review",
+            Messages =
+            [
+                new PromptMessageDefinition(
+                    RoleDefinition.User,
+                    new TextContentBlockDefinition("Review (second)."))
+            ]
+        };
+        var storage = new MultiCollectionMcpStorage(prompts: [winning, losing]);
+        var server = await CreateTestServerAsync(storage);
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+        var listChangedResetEvent = new ManualResetEventSlim(false);
+        mcpClient.RegisterNotificationHandler(
+            NotificationMethods.PromptListChangedNotification,
+            async (_, _) =>
+            {
+                listChangedResetEvent.Set();
+                await ValueTask.CompletedTask;
+            });
+
+        // act
+        storage.ReplacePromptAt(
+            1,
+            new PromptDefinition("code_review")
+            {
+                Title = "Second Code Review (updated)",
+                Messages =
+                [
+                    new PromptMessageDefinition(
+                        RoleDefinition.User,
+                        new TextContentBlockDefinition("Review (second updated)."))
+                ]
+            });
+        var notified = listChangedResetEvent.Wait(TimeSpan.FromSeconds(5));
+        var prompts = await mcpClient.ListPromptsAsync();
+
+        // assert
+        Assert.True(notified);
+        var prompt = Assert.Single(prompts);
+        Assert.Equal("First Code Review", prompt.ProtocolPrompt.Title);
+    }
+
+    [Fact]
+    public async Task ListTools_RemoveWinningDuplicate_LoserSurfaces()
+    {
+        // arrange
+        var winning = new OperationToolDefinition(
+            Utf8GraphQLParser.Parse("query GetBooks { books { title } }"))
+        {
+            Title = "First GetBooks"
+        };
+        var losing = new OperationToolDefinition(
+            Utf8GraphQLParser.Parse("query GetBooks { books { title } }"))
+        {
+            Title = "Second GetBooks"
+        };
+        var storage = new MultiCollectionMcpStorage(tools: [winning, losing]);
+        var server = await CreateTestServerAsync(storage);
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+        var listChangedResetEvent = new ManualResetEventSlim(false);
+        mcpClient.RegisterNotificationHandler(
+            NotificationMethods.ToolListChangedNotification,
+            async (_, _) =>
+            {
+                listChangedResetEvent.Set();
+                await ValueTask.CompletedTask;
+            });
+
+        // act
+        storage.RemoveToolAt(0);
+        var notified = listChangedResetEvent.Wait(TimeSpan.FromSeconds(5));
+        var tools = await mcpClient.ListToolsAsync();
+
+        // assert
+        Assert.True(notified);
+        var tool = Assert.Single(tools);
+        Assert.Equal("Second GetBooks", tool.Title);
+    }
+
+    [Fact]
+    public async Task ListTools_RemoveWinningDuplicate_WhenLoserIsInvalid_LoserSurfacesAsInvalid()
+    {
+        // arrange
+        var winning = new OperationToolDefinition(
+            Utf8GraphQLParser.Parse("query GetBooks { books { title } }"))
+        {
+            Title = "Valid GetBooks"
+        };
+        var losing = new OperationToolDefinition(
+            Utf8GraphQLParser.Parse("query GetBooks { doesNotExist }"))
+        {
+            Title = "Invalid GetBooks"
+        };
+        var storage = new MultiCollectionMcpStorage(tools: [winning, losing]);
+        var server = await CreateTestServerAsync(storage);
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+        var listChangedResetEvent = new ManualResetEventSlim(false);
+        mcpClient.RegisterNotificationHandler(
+            NotificationMethods.ToolListChangedNotification,
+            async (_, _) =>
+            {
+                listChangedResetEvent.Set();
+                await ValueTask.CompletedTask;
+            });
+
+        // act
+        storage.RemoveToolAt(0);
+        var notified = listChangedResetEvent.Wait(TimeSpan.FromSeconds(5));
+        var tools = await mcpClient.ListToolsAsync();
+        var callResult = await mcpClient.CallToolAsync("get_books");
+
+        // assert
+        Assert.True(notified);
+        var tool = Assert.Single(tools);
+        Assert.Equal("Invalid GetBooks", tool.Title);
+        Assert.True(callResult.IsError);
+    }
+
+    [Fact]
+    public async Task ListTools_UpdateLosingDuplicate_WinnerUnchanged()
+    {
+        // arrange
+        var winning = new OperationToolDefinition(
+            Utf8GraphQLParser.Parse("query GetBooks { books { title } }"))
+        {
+            Title = "First GetBooks"
+        };
+        var losing = new OperationToolDefinition(
+            Utf8GraphQLParser.Parse("query GetBooks { books { title } }"))
+        {
+            Title = "Second GetBooks"
+        };
+        var storage = new MultiCollectionMcpStorage(tools: [winning, losing]);
+        var server = await CreateTestServerAsync(storage);
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+        var listChangedResetEvent = new ManualResetEventSlim(false);
+        mcpClient.RegisterNotificationHandler(
+            NotificationMethods.ToolListChangedNotification,
+            async (_, _) =>
+            {
+                listChangedResetEvent.Set();
+                await ValueTask.CompletedTask;
+            });
+
+        // act
+        storage.ReplaceToolAt(
+            1,
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse("query GetBooks { books { title } }"))
+            {
+                Title = "Second GetBooks (updated)"
+            });
+        var notified = listChangedResetEvent.Wait(TimeSpan.FromSeconds(5));
+        var tools = await mcpClient.ListToolsAsync();
+
+        // assert
+        Assert.True(notified);
+        var tool = Assert.Single(tools);
+        Assert.Equal("First GetBooks", tool.Title);
+    }
+
+    [Fact]
     public async Task GetPrompt_Missing_ThrowsException()
     {
         // arrange
@@ -643,7 +867,7 @@ public abstract class IntegrationTestBase
     }
 
     [Fact]
-    public async Task ListTools_InitializeToolsInvalidDocument_ReturnsExpectedResult()
+    public async Task ListTools_InitializeToolsInvalidDocument_SurfacesBothToolsAndLogsErrors()
     {
         // arrange
         var storage = new TestMcpStorage();
@@ -661,7 +885,9 @@ public abstract class IntegrationTestBase
         var result = await mcpClient.ListToolsAsync();
 
         // assert
-        Assert.Single(result, tool => tool.Name == "valid"); // The invalid tool is ignored.
+        Assert.Equal(2, result.Count);
+        Assert.Contains(result, tool => tool.Name == "valid");
+        Assert.Contains(result, tool => tool.Name == "invalid");
         Assert.Collection(
             listener.ValidationErrorLog,
             firstError =>
@@ -671,7 +897,29 @@ public abstract class IntegrationTestBase
     }
 
     [Fact]
-    public async Task ListTools_UpdateToolsInvalidDocument_ReturnsExpectedResult()
+    public async Task CallTool_InvalidDocument_ReturnsErrorResult()
+    {
+        // arrange
+        var storage = new TestMcpStorage();
+        await storage.AddOrUpdateToolAsync(
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse("query Invalid { doesNotExist1 }")));
+        var listener = new TestMcpDiagnosticEventListener();
+        var server = await CreateTestServerAsync(storage, diagnosticEventListener: listener);
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+
+        // act
+        var result = await mcpClient.CallToolAsync("invalid");
+
+        // assert
+        Assert.True(result.IsError);
+        var content = Assert.Single(result.Content);
+        var text = Assert.IsType<TextContentBlock>(content).Text;
+        Assert.Equal("The tool 'invalid' is currently unavailable.", text);
+    }
+
+    [Fact]
+    public async Task ListTools_UpdateToolsInvalidDocument_KeepsToolInListButCallFails()
     {
         // arrange
         var storage = new TestMcpStorage();
@@ -692,10 +940,13 @@ public abstract class IntegrationTestBase
                 Title = "AFTER"
             });
         await Task.Delay(1000); // Wait for the observer buffer to flush.
-        var result = await mcpClient.ListToolsAsync();
+        var listed = await mcpClient.ListToolsAsync();
+        var callResult = await mcpClient.CallToolAsync("tool");
 
         // assert
-        Assert.Single(result, tool => tool.Title == "BEFORE"); // The invalid update is ignored.
+        var tool = Assert.Single(listed);
+        Assert.Equal("AFTER", tool.Title);
+        Assert.True(callResult.IsError);
         Assert.Collection(
             listener.ValidationErrorLog,
             firstError =>

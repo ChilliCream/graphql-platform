@@ -68,12 +68,12 @@ internal sealed class McpStorageObserver : IDisposable
         _promptsSubscription = _storage
             .Buffer<PromptStorageEventArgs>(TimeSpan.FromMilliseconds(500), 10)
             .Where(batch => batch.Count > 0)
-            .Subscribe(onNext: ProcessBatch);
+            .Subscribe(_ => HandlePromptsChangedAsync().FireAndForget());
 
         _toolsSubscription = _storage
             .Buffer<OperationToolStorageEventArgs>(TimeSpan.FromMilliseconds(500), 10)
             .Where(batch => batch.Count > 0)
-            .Subscribe(onNext: ProcessBatch);
+            .Subscribe(_ => HandleToolsChangedAsync().FireAndForget());
 
         try
         {
@@ -89,8 +89,135 @@ internal sealed class McpStorageObserver : IDisposable
 
     private async Task InitializePromptsAsync(CancellationToken cancellationToken)
     {
-        var prompts = ImmutableDictionary.CreateBuilder<string, (Prompt, ImmutableArray<PromptMessage>)>();
         using var scope = _diagnosticEvents.InitializePrompts();
+        await RebuildPromptsAsync(cancellationToken);
+    }
+
+    private async Task InitializeToolsAsync(CancellationToken cancellationToken)
+    {
+        using var scope = _diagnosticEvents.InitializeTools();
+        await RebuildToolsAsync(cancellationToken);
+    }
+
+    private async Task HandlePromptsChangedAsync()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        try
+        {
+            await _semaphore.WaitAsync(_ct);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+        catch (ObjectDisposedException)
+        {
+            return;
+        }
+
+        var rebuildSucceeded = false;
+        try
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            using var scope = _diagnosticEvents.UpdatePrompts();
+            await RebuildPromptsAsync(_ct);
+            rebuildSucceeded = true;
+        }
+        catch
+        {
+            // Ignore unexpected exceptions while processing updates.
+        }
+        finally
+        {
+            try
+            {
+                _semaphore.Release();
+            }
+            catch (ObjectDisposedException)
+            {
+            }
+        }
+
+        if (!rebuildSucceeded)
+        {
+            return;
+        }
+
+        foreach (var mcpServer in _mcpServers.Values)
+        {
+            mcpServer.SendNotificationAsync(PromptListChangedNotification, cancellationToken: _ct).FireAndForget();
+        }
+    }
+
+    private async Task HandleToolsChangedAsync()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        try
+        {
+            await _semaphore.WaitAsync(_ct);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+        catch (ObjectDisposedException)
+        {
+            return;
+        }
+
+        var rebuildSucceeded = false;
+        try
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            using var scope = _diagnosticEvents.UpdateTools();
+            await RebuildToolsAsync(_ct);
+            rebuildSucceeded = true;
+        }
+        catch
+        {
+            // Ignore unexpected exceptions while processing updates.
+        }
+        finally
+        {
+            try
+            {
+                _semaphore.Release();
+            }
+            catch (ObjectDisposedException)
+            {
+            }
+        }
+
+        if (!rebuildSucceeded)
+        {
+            return;
+        }
+
+        foreach (var mcpServer in _mcpServers.Values)
+        {
+            mcpServer.SendNotificationAsync(ToolListChangedNotification, cancellationToken: _ct).FireAndForget();
+        }
+    }
+
+    private async Task RebuildPromptsAsync(CancellationToken cancellationToken)
+    {
+        var prompts = ImmutableDictionary.CreateBuilder<string, (Prompt, ImmutableArray<PromptMessage>)>();
 
         foreach (var promptDefinition in await _storage.GetPromptDefinitionsAsync(cancellationToken))
         {
@@ -109,25 +236,25 @@ internal sealed class McpStorageObserver : IDisposable
         _registry.UpdatePrompts(_prompts);
     }
 
-    private async Task InitializeToolsAsync(CancellationToken cancellationToken)
+    private async Task RebuildToolsAsync(CancellationToken cancellationToken)
     {
         var tools = ImmutableDictionary.CreateBuilder<string, OperationTool>();
-        using var scope = _diagnosticEvents.InitializeTools();
 
         foreach (var toolDefinition in await _storage.GetOperationToolDefinitionsAsync(cancellationToken))
         {
+            // When multiple definitions share a name (e.g. across collections published to the
+            // same stage), the first one wins in storage iteration order.
+            if (tools.ContainsKey(toolDefinition.Name))
+            {
+                continue;
+            }
+
             var validationResult = s_documentValidator.Validate(_schema, toolDefinition.Document);
 
             if (validationResult.HasErrors)
             {
                 _diagnosticEvents.ValidationErrors(validationResult.Errors);
-                continue;
-            }
-
-            // When multiple definitions share a name (e.g. across collections published to the
-            // same stage), the first one wins in storage iteration order.
-            if (tools.ContainsKey(toolDefinition.Name))
-            {
+                tools.Add(toolDefinition.Name, OperationToolFactory.CreateInvalidTool(toolDefinition));
                 continue;
             }
 
@@ -136,95 +263,6 @@ internal sealed class McpStorageObserver : IDisposable
 
         _tools = tools.ToImmutable();
         _registry.UpdateTools(_tools);
-    }
-
-    private void ProcessBatch(IList<PromptStorageEventArgs> eventArgs)
-    {
-        _semaphore.Wait(_ct);
-
-        try
-        {
-            foreach (var eventArg in eventArgs)
-            {
-                switch (eventArg.Type)
-                {
-                    case PromptStorageEventType.Updated:
-                        using (_diagnosticEvents.UpdatePrompts())
-                        {
-                            var prompt = PromptFactory.CreatePrompt(eventArg.PromptDefinition!);
-                            _prompts = _prompts.SetItem(eventArg.Name, prompt);
-                            break;
-                        }
-
-                    case PromptStorageEventType.Removed:
-                        _prompts = _prompts.Remove(eventArg.Name);
-                        break;
-
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-            }
-
-            _registry.UpdatePrompts(_prompts);
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
-
-        foreach (var mcpServer in _mcpServers.Values)
-        {
-            mcpServer.SendNotificationAsync(PromptListChangedNotification, cancellationToken: _ct).FireAndForget();
-        }
-    }
-
-    private void ProcessBatch(IList<OperationToolStorageEventArgs> eventArgs)
-    {
-        _semaphore.Wait(_ct);
-
-        try
-        {
-            foreach (var eventArg in eventArgs)
-            {
-                switch (eventArg.Type)
-                {
-                    case OperationToolStorageEventType.Updated:
-                        using (_diagnosticEvents.UpdateTools())
-                        {
-                            var validationResult =
-                                s_documentValidator.Validate(_schema, eventArg.ToolDefinition!.Document);
-
-                            if (validationResult.HasErrors)
-                            {
-                                _diagnosticEvents.ValidationErrors(validationResult.Errors);
-                                continue;
-                            }
-
-                            var tool = _toolFactory.CreateTool(eventArg.ToolDefinition!);
-                            _tools = _tools.SetItem(eventArg.Name, tool);
-                            break;
-                        }
-
-                    case OperationToolStorageEventType.Removed:
-                        _tools = _tools.Remove(eventArg.Name);
-                        break;
-
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-            }
-
-            _registry.UpdateTools(_tools);
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
-
-        foreach (var mcpServer in _mcpServers.Values)
-        {
-            mcpServer.SendNotificationAsync(ToolListChangedNotification, cancellationToken: _ct).FireAndForget();
-        }
     }
 
     public void Dispose()
