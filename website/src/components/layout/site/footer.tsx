@@ -1,4 +1,7 @@
+"use client";
+
 import React, { FC } from "react";
+import { usePathname } from "next/navigation";
 import styled from "styled-components";
 
 import { IconContainer } from "@/components/misc/icon-container";
@@ -8,7 +11,9 @@ import { Icon, Logo } from "@/components/sprites";
 import { GitHubStarButton } from "@/components/widgets";
 import { siteMetadata } from "@/lib/site-config";
 import docsConfig from "@/docs/docs.json";
-import { MAX_CONTENT_WIDTH, THEME_COLORS } from "@/style";
+import { IsDesktop, MAX_CONTENT_WIDTH, THEME_COLORS } from "@/style";
+
+const DOCS_SIDEBAR_WIDTH = 300;
 
 // Icons
 import BlogIconSvg from "@/images/icons/blog.svg";
@@ -29,8 +34,11 @@ const products = docsConfig.map((p: any) => ({
 }));
 
 export const Footer: FC = () => {
+  const pathname = usePathname();
+  const isDocs = pathname?.startsWith("/docs") ?? false;
+
   return (
-    <Container>
+    <Container $isDocs={isDocs}>
       <Section>
         <Company>
           <LogoContainer>
@@ -164,7 +172,7 @@ export const Footer: FC = () => {
 
 const Container = styled.footer.attrs({
   className: "text-3",
-})`
+})<{ readonly $isDocs: boolean }>`
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -185,6 +193,13 @@ const Container = styled.footer.attrs({
     gap: 32px;
     padding-top: 144px;
   }
+
+  ${({ $isDocs }) =>
+    $isDocs &&
+    IsDesktop(`
+      padding-left: ${DOCS_SIDEBAR_WIDTH + 32}px;
+      padding-right: ${DOCS_SIDEBAR_WIDTH + 32}px;
+    `)}
 `;
 
 const Section = styled.div`

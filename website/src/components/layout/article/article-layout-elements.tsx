@@ -9,6 +9,9 @@ import {
   THEME_COLORS,
 } from "@/style";
 
+const SIDEBAR_WIDTH_DESKTOP = 300;
+const HEADER_HEIGHT = 72;
+
 export const LayoutContainer = styled.div`
   display: grid;
   grid-template-columns: 1fr 230px 740px 230px 1fr;
@@ -20,6 +23,11 @@ export const LayoutContainer = styled.div`
 
   ${IsTablet(`
     grid-template-columns: 1fr;
+  `)}
+
+  ${IsDesktop(`
+    display: block;
+    padding: 0 ${SIDEBAR_WIDTH_DESKTOP}px;
   `)}
 
   grid-template-rows: 1fr;
@@ -83,8 +91,19 @@ export const Navigation = styled.nav.attrs({
   `)}
 
   ${IsDesktop(`
-    top: 72px;
-    background-color: initial;
+    top: ${HEADER_HEIGHT}px;
+    background-color: ${THEME_COLORS.background};
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: ${SIDEBAR_WIDTH_DESKTOP}px;
+    max-height: none;
+    height: calc(100vh - ${HEADER_HEIGHT}px);
+    box-sizing: border-box;
+    padding: 32px 16px 32px 32px;
+    overflow-y: auto;
+    z-index: 20;
+    border-right: 1px solid ${THEME_COLORS.boxBorder};
   `)}
 `;
 
@@ -102,6 +121,11 @@ export const ArticleWrapper = styled.div`
   ${IsTablet(`
     grid-column: 1;
   `)}
+
+  ${IsDesktop(`
+    display: block;
+    grid-column: auto;
+  `)}
 `;
 
 export const ArticleContainer = styled.div`
@@ -113,6 +137,12 @@ export const ArticleContainer = styled.div`
     width: 100%;
     padding: 0;
   `)}
+
+  ${IsDesktop(`
+    padding: 32px 56px 0;
+    display: flex;
+    justify-content: center;
+  `)}
 `;
 
 export const Article = styled.article`
@@ -121,11 +151,16 @@ export const Article = styled.article`
   flex-direction: column;
   overflow: visible;
   background-color: ${THEME_COLORS.background};
-  box-shadow: 0 0 120px 120px ${THEME_COLORS.background};
 
   @media only screen and (min-width: 700px) {
-    max-width: 660px;
+    max-width: 820px;
   }
+
+  ${IsDesktop(`
+    width: 100%;
+    max-width: 880px;
+    margin: 0 auto;
+  `)}
 `;
 
 export interface AsideProps {
@@ -154,7 +189,18 @@ export const Aside = styled.aside<AsideProps>`
     `)}
 
   ${IsDesktop(`
-    top: 72px;
-    background-color: initial;
+    top: ${HEADER_HEIGHT}px;
+    background-color: ${THEME_COLORS.background};
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    width: ${SIDEBAR_WIDTH_DESKTOP}px;
+    max-height: none;
+    height: calc(100vh - ${HEADER_HEIGHT}px);
+    box-sizing: border-box;
+    padding: 32px 32px 32px 16px;
+    overflow-y: auto;
+    z-index: 20;
+    border-left: 1px solid ${THEME_COLORS.boxBorder};
 `)}
 `;
