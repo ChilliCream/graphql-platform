@@ -11,9 +11,12 @@ import { Icon, Logo } from "@/components/sprites";
 import { GitHubStarButton } from "@/components/widgets";
 import { siteMetadata } from "@/lib/site-config";
 import docsConfig from "@/docs/docs.json";
-import { IsDesktop, MAX_CONTENT_WIDTH, THEME_COLORS } from "@/style";
-
-const DOCS_SIDEBAR_WIDTH = 300;
+import {
+  DOCS_SIDEBAR_WIDTH,
+  IsDesktop,
+  MAX_CONTENT_WIDTH,
+  THEME_COLORS,
+} from "@/style";
 
 // Icons
 import BlogIconSvg from "@/images/icons/blog.svg";
