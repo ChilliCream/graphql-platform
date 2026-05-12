@@ -28,7 +28,7 @@ internal static class OpenApiEndpointFactory
         return CreateEndpoint(schema.Name, endpointDescriptor);
     }
 
-    private static Endpoint CreateEndpoint(string schemaName, OpenApiEndpointDescriptor endpointDescriptor)
+    public static Endpoint CreateEndpoint(string schemaName, OpenApiEndpointDescriptor endpointDescriptor)
     {
         var requestDelegate = CreateRequestDelegate(schemaName, endpointDescriptor);
 
@@ -53,7 +53,7 @@ internal static class OpenApiEndpointFactory
         return middleware.InvokeAsync;
     }
 
-    private static OpenApiEndpointDescriptor CreateEndpointDescriptor(
+    public static OpenApiEndpointDescriptor CreateEndpointDescriptor(
         OpenApiEndpointDefinition endpointDefinition,
         IDictionary<string, OpenApiModelDefinition> modelsByName,
         ISchemaDefinition schema)

@@ -1,5 +1,5 @@
 ---
-title: stage
+title: stage Command
 ---
 
 The `nitro stage` commands manage the stages of an API. Stages represent deployment targets (for example dev, staging, production) that artifacts like schemas, clients, and fusion configurations are published to.

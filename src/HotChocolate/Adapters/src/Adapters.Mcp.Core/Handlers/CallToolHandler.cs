@@ -43,6 +43,21 @@ internal static class CallToolHandler
             };
         }
 
+        if (!tool.HasValidDocument)
+        {
+            return new CallToolResult
+            {
+                Content =
+                [
+                    new TextContentBlock
+                    {
+                        Text = string.Format(CallToolHandler_ToolInvalid, context.Params.Name)
+                    }
+                ],
+                IsError = true
+            };
+        }
+
         var requestExecutor = services.GetRequiredService<IRequestExecutor>();
         var rootServiceProvider = services.GetRequiredService<IRootServiceProviderAccessor>().ServiceProvider;
         var httpContext = rootServiceProvider.GetRequiredService<IHttpContextAccessor>().HttpContext!;

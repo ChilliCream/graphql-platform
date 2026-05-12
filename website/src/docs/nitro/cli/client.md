@@ -1,5 +1,5 @@
 ---
-title: client
+title: client Command
 ---
 
 The `nitro client` commands manage clients of an API. A client is a registered consumer of a GraphQL API (for example a web app, a mobile app, or another service) along with the set of operations it sends.
