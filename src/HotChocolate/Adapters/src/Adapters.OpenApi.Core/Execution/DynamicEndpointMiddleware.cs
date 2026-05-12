@@ -5,6 +5,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -61,75 +62,81 @@ internal sealed class DynamicEndpointMiddleware(
                 .Get(schemaName)
                 .ExecutorProxy;
             var session = await proxy.GetOrCreateSessionAsync(context.RequestAborted);
+            var requestKind = HttpMethods.IsGet(context.Request.Method)
+                ? HttpRequestKind.HttpGet
+                : HttpRequestKind.HttpPost;
 
-            using var variableBuffer = new PooledArrayWriter();
-            using var variables = await BuildVariablesAsync(
-                endpointDescriptor,
-                context,
-                variableBuffer,
-                cancellationToken);
-
-            var requestBuilder = OperationRequestBuilder.New()
-                .SetDocument(endpointDescriptor.Document)
-                .SetErrorHandlingMode(ErrorHandlingMode.Propagate)
-                .SetVariableValues(variables);
-
-            await session.OnCreateAsync(context, requestBuilder, cancellationToken);
-
-            var executionResult = await session.ExecuteAsync(
-                requestBuilder.Build(),
-                cancellationToken).ConfigureAwait(false);
-
-            // If the request was canceled, we do not attempt to write a response.
-            if (cancellationToken.IsCancellationRequested)
+            using (session.DiagnosticEvents.ExecuteHttpRequest(context, requestKind))
             {
-                return;
-            }
+                using var variableBuffer = new PooledArrayWriter();
+                using var variables = await BuildVariablesAsync(
+                    endpointDescriptor,
+                    context,
+                    variableBuffer,
+                    cancellationToken);
 
-            // If we do not have an operation result, something went wrong, and we return HTTP 500.
-            if (executionResult is not OperationResult operationResult)
-            {
+                var requestBuilder = OperationRequestBuilder.New()
+                    .SetDocument(endpointDescriptor.Document)
+                    .SetErrorHandlingMode(ErrorHandlingMode.Propagate)
+                    .SetVariableValues(variables);
+
+                await session.OnCreateAsync(context, requestBuilder, cancellationToken);
+
+                var executionResult = await session.ExecuteAsync(
+                    requestBuilder.Build(),
+                    cancellationToken).ConfigureAwait(false);
+
+                // If the request was canceled, we do not attempt to write a response.
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                // If we do not have an operation result, something went wrong, and we return HTTP 500.
+                if (executionResult is not OperationResult operationResult)
+                {
 #if NET9_0_OR_GREATER
-                await Results.InternalServerError().ExecuteAsync(context);
+                    await Results.InternalServerError().ExecuteAsync(context);
 #else
-                await Results.StatusCode(500).ExecuteAsync(context);
+                    await Results.StatusCode(500).ExecuteAsync(context);
 #endif
-                return;
-            }
-
-            // If the request had validation errors or execution didn't start, we return HTTP 400.
-            if (operationResult.ContextData.ContainsKey(ExecutionContextData.ValidationErrors)
-                || !operationResult.Data.HasValue)
-            {
-                var firstErrorMessage = operationResult.Errors.FirstOrDefault()?.Message;
-
-                if (!string.IsNullOrEmpty(firstErrorMessage))
-                {
-                    await Results.Problem(
-                        detail: firstErrorMessage,
-                        statusCode: StatusCodes.Status400BadRequest).ExecuteAsync(context);
-                }
-                else
-                {
-                    await Results.BadRequest().ExecuteAsync(context);
+                    return;
                 }
 
-                return;
+                // If the request had validation errors or execution didn't start, we return HTTP 400.
+                if (operationResult.ContextData.ContainsKey(ExecutionContextData.ValidationErrors)
+                    || !operationResult.Data.HasValue)
+                {
+                    var firstErrorMessage = operationResult.Errors.FirstOrDefault()?.Message;
+
+                    if (!string.IsNullOrEmpty(firstErrorMessage))
+                    {
+                        await Results.Problem(
+                            detail: firstErrorMessage,
+                            statusCode: StatusCodes.Status400BadRequest).ExecuteAsync(context);
+                    }
+                    else
+                    {
+                        await Results.BadRequest().ExecuteAsync(context);
+                    }
+
+                    return;
+                }
+
+                // If execution started, and we produced GraphQL errors,
+                // we return HTTP 500 or 401/403 for authorization errors.
+                if (!operationResult.Errors.IsEmpty)
+                {
+                    var result = GetResultFromErrors(operationResult.Errors);
+
+                    await result.ExecuteAsync(context);
+                    return;
+                }
+
+                var formatter = session.Schema.Services.GetRequiredService<IOpenApiResultFormatter>();
+
+                await formatter.FormatResultAsync(operationResult, context, endpointDescriptor, cancellationToken);
             }
-
-            // If execution started, and we produced GraphQL errors,
-            // we return HTTP 500 or 401/403 for authorization errors.
-            if (!operationResult.Errors.IsEmpty)
-            {
-                var result = GetResultFromErrors(operationResult.Errors);
-
-                await result.ExecuteAsync(context);
-                return;
-            }
-
-            var formatter = session.Schema.Services.GetRequiredService<IOpenApiResultFormatter>();
-
-            await formatter.FormatResultAsync(operationResult, context, endpointDescriptor, cancellationToken);
         }
         catch (BadRequestException badRequestException)
         {
