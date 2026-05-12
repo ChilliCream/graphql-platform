@@ -1,0 +1,249 @@
+{
+  "source": {
+    "name": "Experimental.ModelContextProtocol"
+  },
+  "activities": [
+    {
+      "OperationName": "tools/call get_book",
+      "DisplayName": "tools/call get_book",
+      "Kind": "Client",
+      "Status": "Unset",
+      "tags": [
+        {
+          "Key": "mcp.session.id",
+          "Value": "<scrubbed>"
+        },
+        {
+          "Key": "jsonrpc.request.id",
+          "Value": "3"
+        },
+        {
+          "Key": "mcp.method.name",
+          "Value": "tools/call"
+        },
+        {
+          "Key": "network.transport",
+          "Value": "unknown"
+        },
+        {
+          "Key": "mcp.protocol.version",
+          "Value": "2025-11-25"
+        },
+        {
+          "Key": "gen_ai.tool.name",
+          "Value": "get_book"
+        },
+        {
+          "Key": "gen_ai.operation.name",
+          "Value": "execute_tool"
+        }
+      ],
+      "event": [],
+      "activities": [
+        {
+          "OperationName": "tools/call get_book",
+          "DisplayName": "tools/call get_book",
+          "Kind": "Server",
+          "Status": "Unset",
+          "tags": [
+            {
+              "Key": "mcp.session.id",
+              "Value": "<scrubbed>"
+            },
+            {
+              "Key": "jsonrpc.request.id",
+              "Value": "3"
+            },
+            {
+              "Key": "mcp.method.name",
+              "Value": "tools/call"
+            },
+            {
+              "Key": "network.transport",
+              "Value": "tcp"
+            },
+            {
+              "Key": "network.protocol.name",
+              "Value": "http"
+            },
+            {
+              "Key": "mcp.protocol.version",
+              "Value": "2025-11-25"
+            },
+            {
+              "Key": "gen_ai.tool.name",
+              "Value": "get_book"
+            },
+            {
+              "Key": "gen_ai.operation.name",
+              "Value": "execute_tool"
+            }
+          ],
+          "event": [],
+          "activities": [
+            {
+              "OperationName": "ExecuteHttpRequest",
+              "DisplayName": "query",
+              "Kind": "Internal",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "graphql.http.kind",
+                  "Value": "HttpPost"
+                },
+                {
+                  "Key": "graphql.schema.name",
+                  "Value": "_Default"
+                },
+                {
+                  "Key": "graphql.processing.type",
+                  "Value": "request"
+                },
+                {
+                  "Key": "server.address",
+                  "Value": "localhost"
+                },
+                {
+                  "Key": "graphql.operation.type",
+                  "Value": "query"
+                },
+                {
+                  "Key": "graphql.operation.name",
+                  "Value": "GetBook"
+                },
+                {
+                  "Key": "graphql.document.hash",
+                  "Value": "md5:c52af8760a01da3bb53071ab959ab7de"
+                }
+              ],
+              "event": [
+                {
+                  "Name": "AddedOperationToCache",
+                  "Tags": []
+                },
+                {
+                  "Name": "AddedDocumentToCache",
+                  "Tags": []
+                }
+              ],
+              "activities": [
+                {
+                  "OperationName": "GraphQL Document Validation",
+                  "DisplayName": "GraphQL Document Validation",
+                  "Kind": "Internal",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.processing.type",
+                      "Value": "validate"
+                    },
+                    {
+                      "Key": "graphql.document.hash",
+                      "Value": "md5:c52af8760a01da3bb53071ab959ab7de"
+                    }
+                  ],
+                  "event": []
+                },
+                {
+                  "OperationName": "GraphQL Operation Planning",
+                  "DisplayName": "GraphQL Operation Planning",
+                  "Kind": "Internal",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.processing.type",
+                      "Value": "plan"
+                    },
+                    {
+                      "Key": "graphql.document.hash",
+                      "Value": "md5:c52af8760a01da3bb53071ab959ab7de"
+                    },
+                    {
+                      "Key": "graphql.operation.type",
+                      "Value": "query"
+                    },
+                    {
+                      "Key": "graphql.operation.name",
+                      "Value": "GetBook"
+                    }
+                  ],
+                  "event": []
+                },
+                {
+                  "OperationName": "Query.book",
+                  "DisplayName": "Query.book",
+                  "Kind": "Internal",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.processing.type",
+                      "Value": "resolve"
+                    },
+                    {
+                      "Key": "graphql.field.alias",
+                      "Value": "book"
+                    },
+                    {
+                      "Key": "graphql.field.path",
+                      "Value": "book"
+                    },
+                    {
+                      "Key": "graphql.field.name",
+                      "Value": "book"
+                    },
+                    {
+                      "Key": "graphql.field.schema_coordinate",
+                      "Value": "Query.book"
+                    },
+                    {
+                      "Key": "graphql.field.parent_type",
+                      "Value": "Query"
+                    }
+                  ],
+                  "event": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "OperationName": "Microsoft.AspNetCore.Hosting.HttpRequestIn",
+      "DisplayName": "POST /graphql/mcp/",
+      "Kind": "Server",
+      "Status": "Unset",
+      "tags": [
+        {
+          "Key": "server.address",
+          "Value": "localhost"
+        },
+        {
+          "Key": "http.request.method",
+          "Value": "POST"
+        },
+        {
+          "Key": "url.scheme",
+          "Value": "http"
+        },
+        {
+          "Key": "url.path",
+          "Value": "/graphql/mcp"
+        },
+        {
+          "Key": "network.protocol.version",
+          "Value": "1.1"
+        },
+        {
+          "Key": "http.route",
+          "Value": "/graphql/mcp/"
+        },
+        {
+          "Key": "http.response.status_code",
+          "Value": 200
+        }
+      ],
+      "event": []
+    }
+  ]
+}

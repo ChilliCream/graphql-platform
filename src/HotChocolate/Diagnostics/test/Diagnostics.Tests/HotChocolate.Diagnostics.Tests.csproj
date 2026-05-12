@@ -12,6 +12,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Adapters\src\Adapters.Mcp\HotChocolate.Adapters.Mcp.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' != 'net8.0'">
+    <ProjectReference Include="..\..\..\Adapters\src\Adapters.OpenApi\HotChocolate.Adapters.OpenApi.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="OpenTelemetry" />
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" />
     <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" />
