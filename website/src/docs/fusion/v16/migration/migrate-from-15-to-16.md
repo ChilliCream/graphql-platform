@@ -660,6 +660,8 @@ The key changes for Fusion projects:
 - **Asset cache** is now configured globally on `INitroBuilder` instead of per-gateway.
 - **`AddDefaults()`** is a source-generated method that wires up the default integration when the correct packages are referenced.
 
+> Note: If you are self-hosting the Nitro backend, make sure to update it to the latest version as well. `10.1.0` is the minimum version required to work with the `ChilliCream.Nitro.*` packages.
+
 **Before**
 
 ```csharp

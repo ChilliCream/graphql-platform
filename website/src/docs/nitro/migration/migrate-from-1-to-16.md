@@ -25,7 +25,7 @@ The old per-component Azure packages (`ChilliCream.Nitro.HotChocolate.Azure`, `C
 
 # API Changes
 
-## `services.AddNitro()` returns builer
+## `services.AddNitro()` returns builder
 
 The return type changed from `IServiceCollection` to `INitroBuilder`. This enables fluent chaining for add-on packages like OpenTelemetry and Azure asset caching.
 
