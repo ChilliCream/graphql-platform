@@ -90,35 +90,26 @@
           "event": [],
           "activities": [
             {
-              "OperationName": "GraphQL Document Validation",
-              "DisplayName": "GraphQL Document Validation",
+              "OperationName": "ExecuteHttpRequest",
+              "DisplayName": "query",
               "Kind": "Internal",
-              "Status": "Ok",
+              "Status": "Error",
               "tags": [
                 {
-                  "Key": "graphql.processing.type",
-                  "Value": "validate"
+                  "Key": "graphql.http.kind",
+                  "Value": "HttpPost"
                 },
                 {
-                  "Key": "graphql.document.hash",
-                  "Value": "md5:e3dcf9a653465feb05e37160cfc4b6a5"
-                }
-              ],
-              "event": []
-            },
-            {
-              "OperationName": "GraphQL Operation Planning",
-              "DisplayName": "GraphQL Operation Planning",
-              "Kind": "Internal",
-              "Status": "Ok",
-              "tags": [
-                {
-                  "Key": "graphql.processing.type",
-                  "Value": "plan"
+                  "Key": "graphql.schema.name",
+                  "Value": "_Default"
                 },
                 {
-                  "Key": "graphql.document.hash",
-                  "Value": "md5:e3dcf9a653465feb05e37160cfc4b6a5"
+                  "Key": "graphql.processing.type",
+                  "Value": "request"
+                },
+                {
+                  "Key": "server.address",
+                  "Value": "localhost"
                 },
                 {
                   "Key": "graphql.operation.type",
@@ -127,46 +118,136 @@
                 {
                   "Key": "graphql.operation.name",
                   "Value": "GetFaultyBook"
-                }
-              ],
-              "event": []
-            },
-            {
-              "OperationName": "Query.faultyBook",
-              "DisplayName": "Query.faultyBook",
-              "Kind": "Internal",
-              "Status": "Error",
-              "tags": [
-                {
-                  "Key": "graphql.processing.type",
-                  "Value": "resolve"
                 },
                 {
-                  "Key": "graphql.field.alias",
-                  "Value": "faultyBook"
+                  "Key": "graphql.document.hash",
+                  "Value": "md5:e3dcf9a653465feb05e37160cfc4b6a5"
                 },
                 {
-                  "Key": "graphql.field.path",
-                  "Value": "faultyBook"
-                },
-                {
-                  "Key": "graphql.field.name",
-                  "Value": "faultyBook"
-                },
-                {
-                  "Key": "graphql.field.schema_coordinate",
-                  "Value": "Query.faultyBook"
-                },
-                {
-                  "Key": "graphql.field.parent_type",
-                  "Value": "Query"
+                  "Key": "graphql.error.count",
+                  "Value": 1
                 },
                 {
                   "Key": "error.type",
                   "Value": "EXECUTION_ERROR"
                 }
               ],
-              "event": []
+              "event": [
+                {
+                  "Name": "AddedOperationToCache",
+                  "Tags": []
+                },
+                {
+                  "Name": "AddedDocumentToCache",
+                  "Tags": []
+                },
+                {
+                  "Name": "graphql.error",
+                  "Tags": [
+                    {
+                      "Key": "graphql.error.message",
+                      "Value": "Something went wrong"
+                    },
+                    {
+                      "Key": "graphql.field.path",
+                      "Value": "faultyBook"
+                    },
+                    {
+                      "Key": "graphql.operation.type",
+                      "Value": "query"
+                    },
+                    {
+                      "Key": "graphql.operation.name",
+                      "Value": "GetFaultyBook"
+                    },
+                    {
+                      "Key": "graphql.document.hash",
+                      "Value": "md5:e3dcf9a653465feb05e37160cfc4b6a5"
+                    }
+                  ]
+                }
+              ],
+              "activities": [
+                {
+                  "OperationName": "GraphQL Document Validation",
+                  "DisplayName": "GraphQL Document Validation",
+                  "Kind": "Internal",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.processing.type",
+                      "Value": "validate"
+                    },
+                    {
+                      "Key": "graphql.document.hash",
+                      "Value": "md5:e3dcf9a653465feb05e37160cfc4b6a5"
+                    }
+                  ],
+                  "event": []
+                },
+                {
+                  "OperationName": "GraphQL Operation Planning",
+                  "DisplayName": "GraphQL Operation Planning",
+                  "Kind": "Internal",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.processing.type",
+                      "Value": "plan"
+                    },
+                    {
+                      "Key": "graphql.document.hash",
+                      "Value": "md5:e3dcf9a653465feb05e37160cfc4b6a5"
+                    },
+                    {
+                      "Key": "graphql.operation.type",
+                      "Value": "query"
+                    },
+                    {
+                      "Key": "graphql.operation.name",
+                      "Value": "GetFaultyBook"
+                    }
+                  ],
+                  "event": []
+                },
+                {
+                  "OperationName": "Query.faultyBook",
+                  "DisplayName": "Query.faultyBook",
+                  "Kind": "Internal",
+                  "Status": "Error",
+                  "tags": [
+                    {
+                      "Key": "graphql.processing.type",
+                      "Value": "resolve"
+                    },
+                    {
+                      "Key": "graphql.field.alias",
+                      "Value": "faultyBook"
+                    },
+                    {
+                      "Key": "graphql.field.path",
+                      "Value": "faultyBook"
+                    },
+                    {
+                      "Key": "graphql.field.name",
+                      "Value": "faultyBook"
+                    },
+                    {
+                      "Key": "graphql.field.schema_coordinate",
+                      "Value": "Query.faultyBook"
+                    },
+                    {
+                      "Key": "graphql.field.parent_type",
+                      "Value": "Query"
+                    },
+                    {
+                      "Key": "error.type",
+                      "Value": "EXECUTION_ERROR"
+                    }
+                  ],
+                  "event": []
+                }
+              ]
             }
           ]
         }

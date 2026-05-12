@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
+using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Transport.Formatters;
@@ -61,6 +62,7 @@ internal static class CallToolHandler
         var requestExecutor = services.GetRequiredService<IRequestExecutor>();
         var rootServiceProvider = services.GetRequiredService<IRootServiceProviderAccessor>().ServiceProvider;
         var httpContext = rootServiceProvider.GetRequiredService<IHttpContextAccessor>().HttpContext!;
+        var diagnosticEvents = requestExecutor.Schema.Services.GetRequiredService<IServerDiagnosticEvents>();
         var requestBuilder = CreateRequestBuilder(httpContext);
 
         if (context.Params?.Arguments is { Count: > 0 } arguments)
@@ -69,24 +71,28 @@ internal static class CallToolHandler
         }
 
         var request = requestBuilder.SetDocument(tool.DocumentNode).Build();
-        var result = await requestExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
-        var operationResult = result.ExpectOperationResult();
 
-        using var writer = new PooledArrayWriter();
-
-        JsonResultFormatter.Indented.Format(operationResult, writer);
-        var jsonOperationResult = Encoding.UTF8.GetString(writer.WrittenSpan);
-
-        return new CallToolResult
+        using (diagnosticEvents.ExecuteHttpRequest(httpContext, HttpRequestKind.HttpPost))
         {
-            // https://modelcontextprotocol.io/specification/2025-06-18/server/tools#structured-content
-            // For backwards compatibility, a tool that returns structured content SHOULD
-            // also return functionally equivalent unstructured content. (For example,
-            // serialized JSON can be returned in a TextContent block.)
-            Content = [new TextContentBlock { Text = jsonOperationResult }],
-            StructuredContent = JsonElement.Parse(jsonOperationResult),
-            IsError = !operationResult.Errors.IsEmpty
-        };
+            var result = await requestExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
+            var operationResult = result.ExpectOperationResult();
+
+            using var writer = new PooledArrayWriter();
+
+            JsonResultFormatter.Indented.Format(operationResult, writer);
+            var jsonOperationResult = Encoding.UTF8.GetString(writer.WrittenSpan);
+
+            return new CallToolResult
+            {
+                // https://modelcontextprotocol.io/specification/2025-06-18/server/tools#structured-content
+                // For backwards compatibility, a tool that returns structured content SHOULD
+                // also return functionally equivalent unstructured content. (For example,
+                // serialized JSON can be returned in a TextContent block.)
+                Content = [new TextContentBlock { Text = jsonOperationResult }],
+                StructuredContent = JsonElement.Parse(jsonOperationResult),
+                IsError = !operationResult.Errors.IsEmpty
+            };
+        }
     }
 
 #if !NET9_0_OR_GREATER

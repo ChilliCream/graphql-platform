@@ -41,35 +41,26 @@
       "event": [],
       "activities": [
         {
-          "OperationName": "GraphQL Document Validation",
-          "DisplayName": "GraphQL Document Validation",
+          "OperationName": "ExecuteHttpRequest",
+          "DisplayName": "query",
           "Kind": "Internal",
           "Status": "Ok",
           "tags": [
             {
-              "Key": "graphql.processing.type",
-              "Value": "validate"
+              "Key": "graphql.http.kind",
+              "Value": "HttpGet"
             },
             {
-              "Key": "graphql.document.hash",
-              "Value": "md5:c52af8760a01da3bb53071ab959ab7de"
-            }
-          ],
-          "event": []
-        },
-        {
-          "OperationName": "GraphQL Operation Planning",
-          "DisplayName": "GraphQL Operation Planning",
-          "Kind": "Internal",
-          "Status": "Ok",
-          "tags": [
-            {
-              "Key": "graphql.processing.type",
-              "Value": "plan"
+              "Key": "graphql.schema.name",
+              "Value": "_Default"
             },
             {
-              "Key": "graphql.document.hash",
-              "Value": "md5:c52af8760a01da3bb53071ab959ab7de"
+              "Key": "graphql.processing.type",
+              "Value": "request"
+            },
+            {
+              "Key": "server.address",
+              "Value": "localhost"
             },
             {
               "Key": "graphql.operation.type",
@@ -78,42 +69,99 @@
             {
               "Key": "graphql.operation.name",
               "Value": "GetBook"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:c52af8760a01da3bb53071ab959ab7de"
             }
           ],
-          "event": []
-        },
-        {
-          "OperationName": "Query.book",
-          "DisplayName": "Query.book",
-          "Kind": "Internal",
-          "Status": "Ok",
-          "tags": [
+          "event": [
             {
-              "Key": "graphql.processing.type",
-              "Value": "resolve"
+              "Name": "AddedOperationToCache",
+              "Tags": []
             },
             {
-              "Key": "graphql.field.alias",
-              "Value": "book"
-            },
-            {
-              "Key": "graphql.field.path",
-              "Value": "book"
-            },
-            {
-              "Key": "graphql.field.name",
-              "Value": "book"
-            },
-            {
-              "Key": "graphql.field.schema_coordinate",
-              "Value": "Query.book"
-            },
-            {
-              "Key": "graphql.field.parent_type",
-              "Value": "Query"
+              "Name": "AddedDocumentToCache",
+              "Tags": []
             }
           ],
-          "event": []
+          "activities": [
+            {
+              "OperationName": "GraphQL Document Validation",
+              "DisplayName": "GraphQL Document Validation",
+              "Kind": "Internal",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "graphql.processing.type",
+                  "Value": "validate"
+                },
+                {
+                  "Key": "graphql.document.hash",
+                  "Value": "md5:c52af8760a01da3bb53071ab959ab7de"
+                }
+              ],
+              "event": []
+            },
+            {
+              "OperationName": "GraphQL Operation Planning",
+              "DisplayName": "GraphQL Operation Planning",
+              "Kind": "Internal",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "graphql.processing.type",
+                  "Value": "plan"
+                },
+                {
+                  "Key": "graphql.document.hash",
+                  "Value": "md5:c52af8760a01da3bb53071ab959ab7de"
+                },
+                {
+                  "Key": "graphql.operation.type",
+                  "Value": "query"
+                },
+                {
+                  "Key": "graphql.operation.name",
+                  "Value": "GetBook"
+                }
+              ],
+              "event": []
+            },
+            {
+              "OperationName": "Query.book",
+              "DisplayName": "Query.book",
+              "Kind": "Internal",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "graphql.processing.type",
+                  "Value": "resolve"
+                },
+                {
+                  "Key": "graphql.field.alias",
+                  "Value": "book"
+                },
+                {
+                  "Key": "graphql.field.path",
+                  "Value": "book"
+                },
+                {
+                  "Key": "graphql.field.name",
+                  "Value": "book"
+                },
+                {
+                  "Key": "graphql.field.schema_coordinate",
+                  "Value": "Query.book"
+                },
+                {
+                  "Key": "graphql.field.parent_type",
+                  "Value": "Query"
+                }
+              ],
+              "event": []
+            }
+          ]
         }
       ]
     }

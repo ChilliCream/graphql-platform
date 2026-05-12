@@ -82,56 +82,26 @@
           "event": [],
           "activities": [
             {
-              "OperationName": "GraphQL Document Validation",
-              "DisplayName": "GraphQL Document Validation",
+              "OperationName": "ExecuteHttpRequest",
+              "DisplayName": "query",
               "Kind": "Internal",
               "Status": "Ok",
               "tags": [
                 {
-                  "Key": "graphql.processing.type",
-                  "Value": "validate"
+                  "Key": "graphql.http.kind",
+                  "Value": "HttpPost"
                 },
                 {
-                  "Key": "graphql.document.hash",
-                  "Value": "md5:c52af8760a01da3bb53071ab959ab7de"
-                }
-              ],
-              "event": []
-            },
-            {
-              "OperationName": "GraphQL Operation Planning",
-              "DisplayName": "GraphQL Operation Planning",
-              "Kind": "Internal",
-              "Status": "Ok",
-              "tags": [
+                  "Key": "graphql.schema.name",
+                  "Value": "_Default"
+                },
                 {
                   "Key": "graphql.processing.type",
-                  "Value": "plan"
+                  "Value": "request"
                 },
                 {
-                  "Key": "graphql.document.hash",
-                  "Value": "md5:c52af8760a01da3bb53071ab959ab7de"
-                },
-                {
-                  "Key": "graphql.operation.type",
-                  "Value": "query"
-                },
-                {
-                  "Key": "graphql.operation.name",
-                  "Value": "GetBook"
-                }
-              ],
-              "event": []
-            },
-            {
-              "OperationName": "GraphQL Step Execution",
-              "DisplayName": "GraphQL Step Execution",
-              "Kind": "Internal",
-              "Status": "Ok",
-              "tags": [
-                {
-                  "Key": "graphql.processing.type",
-                  "Value": "step_execute"
+                  "Key": "server.address",
+                  "Value": "localhost"
                 },
                 {
                   "Key": "graphql.operation.type",
@@ -144,69 +114,120 @@
                 {
                   "Key": "graphql.document.hash",
                   "Value": "md5:c52af8760a01da3bb53071ab959ab7de"
-                },
-                {
-                  "Key": "graphql.operation.step.id",
-                  "Value": "1"
-                },
-                {
-                  "Key": "graphql.operation.step.kind",
-                  "Value": "operation"
-                },
-                {
-                  "Key": "graphql.operation.step.plan.id",
-                  "Value": "224bcc8f4412141ac322594743d4b8d3467983499544b2ffcf56a4ef57cbf051"
-                },
-                {
-                  "Key": "graphql.source_schema.name",
-                  "Value": "a"
-                },
-                {
-                  "Key": "graphql.source_schema.operation.name",
-                  "Value": "GetBook_c52af876_1"
-                },
-                {
-                  "Key": "graphql.source_schema.operation.hash",
-                  "Value": "sha256:75c354376b232c4960538b127a15f6239655c10210c36fb8ad7c9d58fb415a3c"
                 }
               ],
-              "event": [],
+              "event": [
+                {
+                  "Name": "AddedOperationPlanToCache",
+                  "Tags": []
+                },
+                {
+                  "Name": "AddedDocumentToCache",
+                  "Tags": []
+                }
+              ],
               "activities": [
                 {
-                  "OperationName": "System.Net.Http.HttpRequestOut",
-                  "DisplayName": "System.Net.Http.HttpRequestOut",
-                  "Kind": "Client",
-                  "Status": "Unset",
+                  "OperationName": "GraphQL Document Validation",
+                  "DisplayName": "GraphQL Document Validation",
+                  "Kind": "Internal",
+                  "Status": "Ok",
                   "tags": [
                     {
-                      "Key": "http.request.method",
-                      "Value": "POST"
+                      "Key": "graphql.processing.type",
+                      "Value": "validate"
                     },
                     {
-                      "Key": "server.address",
-                      "Value": "localhost"
+                      "Key": "graphql.document.hash",
+                      "Value": "md5:c52af8760a01da3bb53071ab959ab7de"
+                    }
+                  ],
+                  "event": []
+                },
+                {
+                  "OperationName": "GraphQL Operation Planning",
+                  "DisplayName": "GraphQL Operation Planning",
+                  "Kind": "Internal",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.processing.type",
+                      "Value": "plan"
                     },
                     {
-                      "Key": "server.port",
-                      "Value": 5000
+                      "Key": "graphql.document.hash",
+                      "Value": "md5:c52af8760a01da3bb53071ab959ab7de"
                     },
                     {
-                      "Key": "url.full",
-                      "Value": "http://localhost:5000/graphql"
+                      "Key": "graphql.operation.type",
+                      "Value": "query"
                     },
                     {
-                      "Key": "http.response.status_code",
-                      "Value": 200
+                      "Key": "graphql.operation.name",
+                      "Value": "GetBook"
+                    }
+                  ],
+                  "event": []
+                },
+                {
+                  "OperationName": "GraphQL Step Execution",
+                  "DisplayName": "GraphQL Step Execution",
+                  "Kind": "Internal",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.processing.type",
+                      "Value": "step_execute"
+                    },
+                    {
+                      "Key": "graphql.operation.type",
+                      "Value": "query"
+                    },
+                    {
+                      "Key": "graphql.operation.name",
+                      "Value": "GetBook"
+                    },
+                    {
+                      "Key": "graphql.document.hash",
+                      "Value": "md5:c52af8760a01da3bb53071ab959ab7de"
+                    },
+                    {
+                      "Key": "graphql.operation.step.id",
+                      "Value": "1"
+                    },
+                    {
+                      "Key": "graphql.operation.step.kind",
+                      "Value": "operation"
+                    },
+                    {
+                      "Key": "graphql.operation.step.plan.id",
+                      "Value": "224bcc8f4412141ac322594743d4b8d3467983499544b2ffcf56a4ef57cbf051"
+                    },
+                    {
+                      "Key": "graphql.source_schema.name",
+                      "Value": "a"
+                    },
+                    {
+                      "Key": "graphql.source_schema.operation.name",
+                      "Value": "GetBook_c52af876_1"
+                    },
+                    {
+                      "Key": "graphql.source_schema.operation.hash",
+                      "Value": "sha256:75c354376b232c4960538b127a15f6239655c10210c36fb8ad7c9d58fb415a3c"
                     }
                   ],
                   "event": [],
                   "activities": [
                     {
-                      "OperationName": "Microsoft.AspNetCore.Hosting.HttpRequestIn",
-                      "DisplayName": "POST /graphql/{**slug}",
-                      "Kind": "Server",
+                      "OperationName": "System.Net.Http.HttpRequestOut",
+                      "DisplayName": "System.Net.Http.HttpRequestOut",
+                      "Kind": "Client",
                       "Status": "Unset",
                       "tags": [
+                        {
+                          "Key": "http.request.method",
+                          "Value": "POST"
+                        },
                         {
                           "Key": "server.address",
                           "Value": "localhost"
@@ -216,31 +237,58 @@
                           "Value": 5000
                         },
                         {
-                          "Key": "http.request.method",
-                          "Value": "POST"
-                        },
-                        {
-                          "Key": "url.scheme",
-                          "Value": "http"
-                        },
-                        {
-                          "Key": "url.path",
-                          "Value": "/graphql"
-                        },
-                        {
-                          "Key": "network.protocol.version",
-                          "Value": "1.1"
-                        },
-                        {
-                          "Key": "http.route",
-                          "Value": "/graphql/{**slug}"
+                          "Key": "url.full",
+                          "Value": "http://localhost:5000/graphql"
                         },
                         {
                           "Key": "http.response.status_code",
                           "Value": 200
                         }
                       ],
-                      "event": []
+                      "event": [],
+                      "activities": [
+                        {
+                          "OperationName": "Microsoft.AspNetCore.Hosting.HttpRequestIn",
+                          "DisplayName": "POST /graphql/{**slug}",
+                          "Kind": "Server",
+                          "Status": "Unset",
+                          "tags": [
+                            {
+                              "Key": "server.address",
+                              "Value": "localhost"
+                            },
+                            {
+                              "Key": "server.port",
+                              "Value": 5000
+                            },
+                            {
+                              "Key": "http.request.method",
+                              "Value": "POST"
+                            },
+                            {
+                              "Key": "url.scheme",
+                              "Value": "http"
+                            },
+                            {
+                              "Key": "url.path",
+                              "Value": "/graphql"
+                            },
+                            {
+                              "Key": "network.protocol.version",
+                              "Value": "1.1"
+                            },
+                            {
+                              "Key": "http.route",
+                              "Value": "/graphql/{**slug}"
+                            },
+                            {
+                              "Key": "http.response.status_code",
+                              "Value": 200
+                            }
+                          ],
+                          "event": []
+                        }
+                      ]
                     }
                   ]
                 }
