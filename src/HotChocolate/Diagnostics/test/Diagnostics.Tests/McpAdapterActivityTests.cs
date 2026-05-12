@@ -143,7 +143,7 @@ public partial class McpAdapterActivityTests
             {
                 services.AddRouting();
                 services
-                    .AddGraphQL()
+                    .AddGraphQLServer()
                     .AddInstrumentation()
                     .AddMcp()
                     .AddMcpStorage(storage)
