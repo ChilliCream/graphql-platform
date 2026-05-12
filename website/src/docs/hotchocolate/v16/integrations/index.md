@@ -1,6 +1,6 @@
 ---
 title: Executable
-description: Learn how to use the IExecutable interface to abstract data sources in Hot Chocolate v16.
+description: Learn how to use the IExecutable interface to abstract data sources in Hot Chocolate.
 ---
 
 The `IExecutable` and `IExecutable<T>` interfaces abstract data sources in Hot Chocolate. Your data or domain layer can wrap a data source in an executable and pass it to the GraphQL layer. A resolver that returns `IExecutable<T>` is recognized as a list.

@@ -82,7 +82,7 @@ The projection middleware creates a `Select` expression for the entire subtree o
 
 # QueryContext&lt;T&gt; Pattern
 
-In v16, `QueryContext<T>` provides an alternative to the `[UseProjection]` middleware. Instead of applying projections as middleware, you return a `QueryContext<T>` from your resolver and Hot Chocolate applies projections, filtering, and sorting at execution time.
+`QueryContext<T>` provides an alternative to the `[UseProjection]` middleware. Instead of applying projections as middleware, you return a `QueryContext<T>` from your resolver and Hot Chocolate applies projections, filtering, and sorting at execution time.
 
 ```csharp
 [QueryType]

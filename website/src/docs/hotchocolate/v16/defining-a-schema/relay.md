@@ -42,7 +42,7 @@ public class OrderItem
 }
 ```
 
-In v16, the generic `[ID<Product>]` form infers the GraphQL type name from the type argument. You can also use `[ID("Product")]` to specify it as a string.
+The generic `[ID<Product>]` form infers the GraphQL type name from the type argument. You can also use `[ID("Product")]` to specify it as a string.
 
 </Implementation>
 <Code>
@@ -338,7 +338,7 @@ builder
     .AddGlobalObjectIdentification();
 ```
 
-In v16, the source generator can produce a `NodeIdValueSerializer` for your custom ID type, reducing the need for manual converter registration.
+The source generator can produce a `NodeIdValueSerializer` for your custom ID type, reducing the need for manual converter registration.
 
 # Query Field in Mutation Payloads
 

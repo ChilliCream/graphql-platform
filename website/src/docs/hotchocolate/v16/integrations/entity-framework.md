@@ -1,6 +1,6 @@
 ---
 title: Entity Framework Core
-description: Learn how to integrate Entity Framework Core with Hot Chocolate v16, including DbContext injection and factory patterns.
+description: Learn how to integrate Entity Framework Core with Hot Chocolate, including DbContext injection and factory patterns.
 ---
 
 [Entity Framework Core](https://docs.microsoft.com/ef/core/) is a powerful object-relational mapping framework that has become a staple when working with SQL-based databases in .NET applications.

@@ -1,6 +1,6 @@
 ---
 title: Spatial Data
-description: Learn how to expose NetTopologySuite spatial types as GeoJSON in Hot Chocolate v16.
+description: Learn how to expose NetTopologySuite spatial types as GeoJSON in Hot Chocolate.
 ---
 
 > Experimental: This feature is community-driven and not yet finalized. The core team has limited experience with spatial data and welcomes your feedback to guide next steps. While we try not to introduce breaking changes, we reserve the possibility to adjust the API in future releases.

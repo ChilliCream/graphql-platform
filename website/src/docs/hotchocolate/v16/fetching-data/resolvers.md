@@ -2,188 +2,325 @@
 title: "Resolvers"
 ---
 
-A resolver is a function that produces the value for a field in your GraphQL schema. Every field, whether it maps to a database column, a computed value, or an API call, is backed by a resolver. In Hot Chocolate v16, the source generator is the primary way to define resolvers. You write plain C# methods and the generator handles schema wiring at build time.
+In the simplest terms, **a resolver is a generic function that produces a value for a particular field.**
 
-# Properties as Resolvers
+You can think of each field in our query as a method of the previous type which returns the next type.
 
-Any public property with a `get` accessor on a type is automatically treated as a resolver that returns its value.
+## Resolver Tree
 
-```csharp
-public class User
-{
-    public int Id { get; set; }
-    public string Name { get; set; }
-    public string Email { get; set; }
+A resolver tree is a projection of a GraphQL operation that is prepared for execution.
+
+For better understanding, let's imagine we have a simple GraphQL query like the following, where we select some fields of the currently logged-in user.
+
+```graphql
+query {
+  me {
+    name
+    company {
+      id
+      name
+    }
+  }
 }
 ```
 
-When `User` is exposed in the schema, the `id`, `name`, and `email` fields each resolve by returning the corresponding property value. No additional configuration is needed.
+In Hot Chocolate, this query results in the following resolver tree.
 
-# Methods as Resolvers
+```mermaid
+graph LR
+  A(query: QueryType) --> B(me: UserType)
+  B --> C(name: StringType)
+  B --> D(company: CompanyType)
+  D --> E(id: IdType)
+  D --> F(name: StringType)
+```
 
-Public methods on your types become resolvers. The source generator strips the `Get` prefix and `Async` suffix when generating the GraphQL field name.
+This tree will be traversed by the execution engine, starting with one or more root resolvers. In the above example the `me` field represents the only root resolver.
+
+Field resolvers that are sub-selections of a field, can only be executed after a value has been resolved for their _parent_ field. In the case of the above example this means that the `name` and `company` resolvers can only run, after the `me` resolver has finished. Resolvers of field sub-selections can and will be executed in parallel.
+
+**Because of this it is important that resolvers, with the exception of top level mutation field resolvers, do not contain side-effects, since their execution order may vary.**
+
+The execution of a request finishes, once each resolver of the selected fields has produced a result.
+
+_This is of course an oversimplification that differs from the actual implementation._
+
+# Defining a Resolver
+
+Resolvers can be defined in a way that should feel very familiar to C# developers, as they either translate to methods or delegates.
 
 <ExampleTabs>
 <Implementation>
 
+In the implementation-first approach, a public method is automatically inferred as a resolver. This means the method defines both the field in your schema and the logic to resolve its value.
+
 ```csharp
 [QueryType]
-public static partial class BookQueries
+public partial class Query
 {
-    public static Book GetBook()
-        => new Book { Title = "C# in depth", Author = "Jon Skeet" };
+    public static string Foo() => "Bar";
 }
 ```
 
-This produces a `book` field on the Query type.
+This generates the following schema:
+
+```sdl
+type Query {
+  foo: String!
+}
+```
+
+Resolvers do not have to be methods. Public properties are also inferred as resolvers and exposed as fields in your schema.
+
+```csharp
+[QueryType]
+public partial class Query
+{
+    public static User User => new User("Ted");
+}
+
+public record User(string Name);
+```
+
+In this case, the property `Name` of the `User` object is also inferred as a resolver.
 
 </Implementation>
 <Code>
 
-```csharp
-public class BookQueries
-{
-    public Book GetBook()
-        => new Book { Title = "C# in depth", Author = "Jon Skeet" };
-}
+In the code-first approach, you define a resolver by assigning a resolver delegate to a field. This delegate contains the logic for resolving the field's value.
 
-public class BookQueriesType : ObjectType<BookQueries>
+```csharp
+public class QueryType : ObjectType
 {
-    protected override void Configure(IObjectTypeDescriptor<BookQueries> descriptor)
+    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
     {
         descriptor
-            .Field(f => f.GetBook())
-            .Type<BookType>();
+            .Field("foo")
+            .Type<NonNullType<StringType>>()
+            .Resolve(ctx => "bar");
     }
 }
 ```
 
-```csharp
-builder
-    .AddGraphQL()
-    .AddQueryType<BookQueriesType>();
-```
-
-You can also provide a resolver delegate using the `Resolve` method:
+You can also use `ObjectType<T>` with a backing POCO. Public methods and properties on the POCO are bound as fields automatically. Use the `Field` method with a lambda expression to configure individual fields.
 
 ```csharp
-descriptor
-    .Field("book")
-    .Resolve(context =>
+public class Query
+{
+    public string Foo() => "Bar";
+}
+
+public class QueryType : ObjectType<Query>
+{
+    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
     {
-        return new Book { Title = "C# in depth", Author = "Jon Skeet" };
-    });
+        descriptor
+            .Field(f => f.Foo())
+            .Type<NonNullType<StringType>>();
+    }
+}
 ```
 
 </Code>
 </ExampleTabs>
 
-# Async Resolvers
+## Async Resolver
 
-Most data fetching operations are asynchronous. Mark your resolver methods as `async` or return `Task<T>` and Hot Chocolate handles the rest.
+Resolvers can be synchronous or asynchronous. Most data fetching operations, such as calling a service or database, are asynchronous.
 
-Add a `CancellationToken` parameter to your resolver and Hot Chocolate automatically cancels it if the request is aborted. This prevents wasted work when clients disconnect.
+The most important aspect of async resolvers is to honor the CancellationToken. This allows execution to be cancelled if the client abandons the request, preventing unnecessary work and resource usage.
 
 <ExampleTabs>
 <Implementation>
 
+When using the implementation-first approach, you can add a `CancellationToken` parameter to your resolver method. The execution engine will automatically inject the request’s cancellation token.
+
 ```csharp
-[QueryType]
-public static partial class BookQueries
+public class Query
 {
-    public static async Task<Book?> GetBookByIdAsync(
-        int id,
-        CatalogContext db,
-        CancellationToken ct)
-        => await db.Books.FindAsync([id], ct);
+    public async Task<Product> GetProductByIdAsync(
+      int id,
+      ProductService productService,
+      CancellationToken cancellationToken)
+      => await productService.GetAsync(cancellationToken);
 }
 ```
 
 </Implementation>
 <Code>
 
-```csharp
-public class BookQueries
-{
-    public async Task<Book?> GetBookByIdAsync(
-        int id,
-        CatalogContext db,
-        CancellationToken ct)
-        => await db.Books.FindAsync([id], ct);
-}
-```
-
-When using a delegate resolver, the `CancellationToken` is passed as the second argument:
+When using the code-first approach, you can access the `CancellationToken` through the `IResolverContext` provided to your resolver.
 
 ```csharp
 descriptor
-    .Field("book")
-    .Resolve(async (context, ct) =>
+    .Field("foo")
+    .Resolve(context =>
     {
-        var db = context.Service<CatalogContext>();
-        var id = context.ArgumentValue<int>("id");
-        return await db.Books.FindAsync([id], ct);
+        CancellationToken ct = context.RequestAborted;
+
+        // Omitted code for brevity
     });
 ```
 
 </Code>
 </ExampleTabs>
 
-# Accessing Parent Values
+# Arguments
 
-When you define a resolver on a type, you often need the value that was resolved for the parent field. For example, a `friends` resolver on a `User` type needs the user's ID to look up their friends.
+In GraphQL, fields are conceptually similar to methods in C#. Just like methods, fields can have arguments, and you can access these argument values directly in your resolvers.
 
 <ExampleTabs>
 <Implementation>
 
-In the implementation-first approach, you can access parent properties through the `this` keyword when the resolver is defined on the type itself:
+When using the implementation-first approach, any parameter in your resolver method that is not a service, a `CancellationToken`, or specially annotated is treated as a GraphQL argument. The execution engine will inject the argument value from the query into these parameters. For example, in the method below, the `id` parameter is recognized as an argument, while `ProductService` is injected as a service from the DI container.
+
+```csharp
+public class Query
+{
+    public async Task<Product> GetProductByIdAsync(
+      int id,
+      ProductService productService,
+      CancellationToken cancellationToken)
+      => await productService.GetAsync(cancellationToken);
+}
+```
+
+</Implementation>
+<Code>
+
+When using the code-first approach, you can access field arguments using the resolver context.
+
+```csharp
+descriptor
+    .Field("foo")
+    .Argument("id", a => a.Type<NonNullType<IntType>>())
+    .Resolve(context =>
+    {
+        var id = context.ArgumentValue<int>("id");
+
+        // Omitted code for brevity
+    });
+```
+
+</Code>
+</ExampleTabs>
+
+[Learn more about arguments](/docs/hotchocolate/v15/defining-a-schema/arguments)
+
+# Injecting Services
+
+Hot Chocolate automatically recognizes types registered in the DI container and injects them into resolver parameters.
+
+```csharp
+public class Query
+{
+    public List<User> GetUsers(UserService userService)
+        => userService.GetUsers();
+}
+```
+
+While you can take attributes to annotate services, you do not have to for non-keyed services.
+
+```csharp
+public class Query
+{
+    public List<User> GetUsers([Service] UserService userService)
+        => userService.GetUsers();
+}
+```
+
+[Learn more about dependency injection](/docs/hotchocolate/v16/fetching-data/dependency-injection)
+
+# Accessing parent values
+
+Each field resolver has access to the value that was resolved for its parent type.
+
+For example, consider the following schema:
+
+```sdl
+type Query {
+  me: User!;
+}
+
+type User {
+  id: ID!;
+  friends: [User!]!;
+}
+```
+
+The `User` schema type is represented by a `User` runtime class. The `id` field is a property on this class.
 
 ```csharp
 public class User
 {
-    public int Id { get; set; }
-    public string Name { get; set; }
+    public string Id { get; set; }
+}
+```
 
-    public async Task<List<User>> GetFriendsAsync(
-        FriendService friendService,
-        CancellationToken ct)
+The `friends` resolver, by contrast, is independent: it is not declared on the `User` type and uses the user's `Id` to compute its result.
+From the `friends` resolver's perspective, the `User` runtime object is its _parent_.
+
+Access the parent value like this:
+
+<ExampleTabs>
+<Implementation>
+
+In the implementation-first approach, the parent object can be injected as a resolver parameter:
+
+```csharp
+[ObjectType<User>]
+public static partial class UserNode
+{
+    public static Task<List<User>> GetFriendsAsync(
+        [Parent] User user,
+        UserService userService,
+        CancellationToken cancellationToken)
     {
-        return await friendService.GetFriendsForUserAsync(this.Id, ct);
+        // Omitted code for brevity
     }
 }
 ```
 
-When the resolver is defined elsewhere (such as in a type extension), use the `[Parent]` attribute to inject the parent value:
+If database projections are enabled, the parent object may only contain the fields requested by the client. To ensure the projections engine also loads properties required by the resolver, declare those requirements on the parent parameter:
 
 ```csharp
-[ExtendObjectType<User>]
-public static partial class UserExtensions
+[ObjectType<User>]
+public static partial class UserNode
 {
-    public static async Task<List<User>> GetFriendsAsync(
-        [Parent] User user,
-        FriendService friendService,
-        CancellationToken ct)
-        => await friendService.GetFriendsForUserAsync(user.Id, ct);
+    public static Task<List<User>> GetFriendsAsync(
+        [Parent(requires: nameof(User.Id))] User user,
+        UserService userService,
+        CancellationToken cancellationToken)
+    {
+        // Omitted code for brevity
+    }
 }
 ```
+
+Use `nameof` to make this requirement refactoring-safe.
 
 </Implementation>
 <Code>
 
-Use the `[Parent]` attribute on a parameter, or access the parent through `IResolverContext`:
+In the code-first approach, the parent object is available via the `IResolverContext`.
 
 ```csharp
+public class User
+{
+    public string Id { get; set; }
+}
+
 public class UserType : ObjectType<User>
 {
     protected override void Configure(IObjectTypeDescriptor<User> descriptor)
     {
         descriptor
             .Field("friends")
-            .Resolve(async context =>
+            .Resolve(context =>
             {
-                var user = context.Parent<User>();
-                var friendService = context.Service<FriendService>();
-                return await friendService.GetFriendsForUserAsync(user.Id);
+                User parent = context.Parent<User>();
+
+                // Omitted code for brevity
             });
     }
 }
@@ -191,130 +328,3 @@ public class UserType : ObjectType<User>
 
 </Code>
 </ExampleTabs>
-
-# Dependency Injection
-
-In Hot Chocolate v16, registered services are automatically recognized as service parameters without needing the `[Service]` attribute. If a parameter type is registered in the DI container, Hot Chocolate injects it.
-
-```csharp
-[QueryType]
-public static partial class BookQueries
-{
-    public static async Task<List<Book>> GetBooksAsync(
-        CatalogService catalogService,
-        CancellationToken ct)
-        => await catalogService.GetAllBooksAsync(ct);
-}
-```
-
-```csharp
-builder.Services.AddScoped<CatalogService>();
-
-builder
-    .AddGraphQL()
-    .AddQueryType<BookQueries>();
-```
-
-Hot Chocolate resolves `CatalogService` from the DI container at execution time. This works for scoped, transient, and singleton services.
-
-[Learn more about dependency injection](/docs/hotchocolate/v16/fetching-data/dependency-injection)
-
-## Accessing the HttpContext
-
-Use `IHttpContextAccessor` when you need access to HTTP-specific details like headers or cookies:
-
-```csharp
-builder.Services.AddHttpContextAccessor();
-```
-
-```csharp
-[QueryType]
-public static partial class BookQueries
-{
-    public static string GetCorrelationId(IHttpContextAccessor httpContextAccessor)
-    {
-        return httpContextAccessor.HttpContext?.Request.Headers["X-Correlation-ID"]
-            .FirstOrDefault() ?? "unknown";
-    }
-}
-```
-
-# Batch Resolvers
-
-Batch resolvers allow you to resolve a field for multiple parent objects in a single call. This is useful when you need to load related data efficiently without a separate DataLoader class.
-
-## The [BatchResolver] Attribute
-
-Mark a static method with `[BatchResolver]` to define an inline batch resolver. The method receives all parent objects at once and returns results keyed by parent.
-
-```csharp
-[ExtendObjectType<User>]
-public static partial class UserExtensions
-{
-    [BatchResolver]
-    public static async Task<Dictionary<int, Address>> GetAddressAsync(
-        IReadOnlyList<User> users,
-        AddressService addressService,
-        CancellationToken ct)
-    {
-        var userIds = users.Select(u => u.Id).ToList();
-        var addresses = await addressService.GetByUserIdsAsync(userIds, ct);
-        return addresses.ToDictionary(a => a.UserId);
-    }
-}
-```
-
-## ResolveBatch and ResolverResult
-
-For more control, use `ResolveBatch()` in code-first to define a batch resolver inline. Use `ResolverResult<T>` when your batch resolver needs to return partial results or errors:
-
-```csharp
-public class UserType : ObjectType<User>
-{
-    protected override void Configure(IObjectTypeDescriptor<User> descriptor)
-    {
-        descriptor
-            .Field("address")
-            .ResolveBatch(async (users, ct) =>
-            {
-                var service = users.First().GetService<AddressService>();
-                var ids = users.Select(u => u.Parent<User>().Id).ToList();
-                var addresses = await service.GetByUserIdsAsync(ids, ct);
-                return addresses.ToDictionary(a => a.UserId);
-            });
-    }
-}
-```
-
-# Conditional Data Fetching with [IsSelected]
-
-The `[IsSelected]` attribute lets you check whether a particular field was requested in the query. Use this to skip expensive data loading when the client does not need certain fields.
-
-```csharp
-[QueryType]
-public static partial class UserQueries
-{
-    public static async Task<User> GetUserByIdAsync(
-        int id,
-        [IsSelected("address")] bool includeAddress,
-        UserService userService,
-        CancellationToken ct)
-    {
-        if (includeAddress)
-        {
-            return await userService.GetUserWithAddressAsync(id, ct);
-        }
-
-        return await userService.GetUserAsync(id, ct);
-    }
-}
-```
-
-When the client query includes the `address` field, `includeAddress` is `true` and the resolver loads the address eagerly. Otherwise, it skips the additional work.
-
-# Next Steps
-
-- **Need to batch data access?** See [DataLoader](/docs/hotchocolate/v16/fetching-data/dataloader).
-- **Need to page through results?** See [Pagination](/docs/hotchocolate/v16/fetching-data/pagination).
-- **Need to filter or sort?** See [Filtering](/docs/hotchocolate/v16/fetching-data/filtering) and [Sorting](/docs/hotchocolate/v16/fetching-data/sorting).
-- **Need to understand type extensions?** See [Extending Types](/docs/hotchocolate/v16/defining-a-schema/extending-types).

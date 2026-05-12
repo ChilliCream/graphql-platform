@@ -577,8 +577,8 @@
                 "title": "Dependency Injection"
               },
               {
-                "path": "dataloader",
-                "title": "DataLoader"
+                "path": "field-middleware",
+                "title": "Field Middleware"
               },
               {
                 "path": "pagination",
@@ -597,40 +597,52 @@
                 "title": "Projections"
               },
               {
-                "path": "fetching-from-databases",
-                "title": "Fetching from Databases"
-              },
-              {
-                "path": "fetching-from-rest",
-                "title": "Fetching from REST"
-              },
-              {
-                "path": "entity-framework",
-                "title": "Entity Framework"
-              },
-              {
-                "path": "mongodb",
-                "title": "MongoDB"
-              },
-              {
                 "path": "spatial-data",
                 "title": "Spatial Data"
               },
               {
-                "path": "marten",
-                "title": "Marten"
+                "path": "batching",
+                "title": "Batching",
+                "items": [
+                  {
+                    "path": "dataloader",
+                    "title": "DataLoader"
+                  },
+                  {
+                    "path": "batch-resolver",
+                    "title": "Batch Resolvers"
+                  }
+                ]
               },
               {
                 "path": "errors",
-                "title": "Error Codes"
+                "title": "Errors"
               },
               {
-                "path": "extending-filtering",
-                "title": "Extending Filtering"
-              },
-              {
-                "path": "executable",
-                "title": "Executable"
+                "path": "integrations",
+                "title": "Integrations",
+                "items": [
+                  {
+                    "path": "index",
+                    "title": "Overview"
+                  },
+                  {
+                    "path": "entity-framework",
+                    "title": "Entity Framework"
+                  },
+                  {
+                    "path": "mongodb",
+                    "title": "MongoDB"
+                  },
+                  {
+                    "path": "marten",
+                    "title": "Marten"
+                  },
+                  {
+                    "path": "extending-filtering",
+                    "title": "Extending Filtering"
+                  }
+                ]
               }
             ]
           },
@@ -677,20 +689,6 @@
               {
                 "path": "federation",
                 "title": "Federation"
-              }
-            ]
-          },
-          {
-            "path": "execution-engine",
-            "title": "Execution Engine",
-            "items": [
-              {
-                "path": "index",
-                "title": "Overview"
-              },
-              {
-                "path": "field-middleware",
-                "title": "Field Middleware"
               }
             ]
           },
@@ -793,24 +791,6 @@
               {
                 "path": "introspection",
                 "title": "Controlling Introspection"
-              }
-            ]
-          },
-          {
-            "path": "api-reference",
-            "title": "API Reference",
-            "items": [
-              {
-                "path": "custom-attributes",
-                "title": "Attributes"
-              },
-              {
-                "path": "language",
-                "title": "Language"
-              },
-              {
-                "path": "visitors",
-                "title": "Visitors"
               }
             ]
           },

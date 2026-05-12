@@ -1,6 +1,6 @@
 ---
 title: Apollo Federation Subgraph Support
-description: Learn how to create Apollo Federated subgraphs using Hot Chocolate v16.
+description: Learn how to create Apollo Federated subgraphs using Hot Chocolate.
 ---
 
 > For more about Apollo Federation concepts, see the [Apollo Federation documentation](https://www.apollographql.com/docs/federation/). Many of the core principles referenced here are documented there.

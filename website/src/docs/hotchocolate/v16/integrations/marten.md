@@ -1,6 +1,6 @@
 ---
 title: Marten
-description: Learn how to integrate Marten with Hot Chocolate v16 for filtering, sorting, projections, and pagination.
+description: Learn how to integrate Marten with Hot Chocolate for filtering, sorting, projections, and pagination.
 ---
 
 The `HotChocolate.Data` package generally works with any LINQ provider that provides an `IQueryable<T>`. However, Marten requires special handling. Pagination and projections work out of the box, but filtering and sorting need LINQ expressions translated into a format that the Marten LINQ provider can process. This integration provides custom configurations for that purpose.

@@ -144,7 +144,7 @@ If you need to upload a list of files, use a `List<IFile>` or `ListType<UploadTy
 
 ### UploadValueNode
 
-In v16, the upload literal node was renamed from `FileValueNode` to `UploadValueNode`. If you reference this type in custom scalar logic or tests, update your code:
+The upload literal node is called `UploadValueNode`. If you reference this type in custom scalar logic or tests, use the following pattern:
 
 ```csharp
 if (valueLiteral is UploadValueNode uploadValue)

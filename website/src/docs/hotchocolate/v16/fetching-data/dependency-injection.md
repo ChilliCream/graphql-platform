@@ -20,7 +20,7 @@ builder.Services
 
 # Implicit Service Injection
 
-In v16, Hot Chocolate automatically recognizes types registered as services in the DI container and injects them into resolver method parameters without requiring any attribute. This works similarly to [Minimal APIs parameter binding](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/minimal-apis/parameter-binding).
+Hot Chocolate automatically recognizes types registered as services in the DI container and injects them into resolver method parameters without requiring any attribute. This works similarly to [Minimal APIs parameter binding](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/minimal-apis/parameter-binding).
 
 When the execution engine encounters a resolver parameter whose type is registered in the DI container, it resolves the service automatically. You do not need to apply the `[Service]` attribute.
 
@@ -239,6 +239,28 @@ Take a look at the implementation-first or code-first example.
 
 </Schema>
 </ExampleTabs>
+
+# Accessing the HttpContext
+
+The [IHttpContextAccessor](https://docs.microsoft.com/dotnet/api/microsoft.aspnetcore.http.ihttpcontextaccessor) allows you to access the [HttpContext](https://docs.microsoft.com/dotnet/api/microsoft.aspnetcore.http.httpcontext) of the current request from within your resolvers. This is useful when you need to read or set a header or cookie.
+
+First register the `IHttpContextAccessor` as a service.
+
+```csharp
+builder.Services.AddHttpContextAccessor();
+```
+
+Then inject it into your resolver.
+
+```csharp
+public string Foo(string id, IHttpContextAccessor httpContextAccessor)
+{
+    if (httpContextAccessor.HttpContext is not null)
+    {
+        // Omitted code for brevity
+    }
+}
+```
 
 # Switching the Service Provider
 

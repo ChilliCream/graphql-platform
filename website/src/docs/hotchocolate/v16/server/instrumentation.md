@@ -368,7 +368,7 @@ builder
 
 You can inherit from `ActivityEnricher` and override enrich methods to add custom data or remove default data from activities.
 
-In v16, the `ActivityEnricher` constructor no longer requires an `ObjectPool<StringBuilder>`:
+The `ActivityEnricher` constructor does not require an `ObjectPool<StringBuilder>`:
 
 ```csharp
 public class CustomActivityEnricher : ActivityEnricher

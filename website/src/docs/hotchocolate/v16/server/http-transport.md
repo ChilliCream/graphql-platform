@@ -226,7 +226,7 @@ If no streaming `Accept` header is provided, the default is `multipart/mixed`.
 
 There are two wire formats for how incremental results are represented in the response payload.
 
-**v0.2 (default in v16)** uses `pending`, `incremental` with `id`, and `completed` to track deferred fragments:
+**v0.2 (default)** uses `pending`, `incremental` with `id`, and `completed` to track deferred fragments:
 
 ```json
 {"data":{"product":{"name":"Abc"}},"pending":[{"id":"2","path":["product"]}],"hasNext":true}
@@ -240,7 +240,7 @@ There are two wire formats for how incremental results are represented in the re
 {"incremental":[{"data":{"description":"Abc desc"},"path":["product"]}],"hasNext":false}
 ```
 
-In v16, the default changed from v0.1 to v0.2. If your clients depend on the legacy format, you have two options: client-driven format selection or changing the server default.
+The default format is v0.2. If your clients depend on the legacy format, you have two options: client-driven format selection or changing the server default.
 
 ### Client-Driven Format Selection
 

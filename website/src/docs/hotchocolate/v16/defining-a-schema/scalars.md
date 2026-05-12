@@ -8,33 +8,33 @@ Every scalar defines how values convert between the GraphQL wire format (JSON) a
 
 Hot Chocolate comes with many more scalars than the GraphQL core scalars, mapping to common .NET primitive types and structs.
 
-| .NET Type               | GraphQL Scalar  | Binding  | Notes                                                                     | Spec                                                                 |
-| ----------------------- | --------------- | -------- | ------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| `string`                | `String`        | Implicit | UTF-8 character sequence                                                  | [Spec](https://spec.graphql.org/draft/#sec-String)                   |
-| `bool`                  | `Boolean`       | Implicit | `true` or `false`                                                         | [Spec](https://spec.graphql.org/draft/#sec-Boolean)                  |
-| `int`                   | `Int`           | Implicit | Signed 32-bit integer                                                     | [Spec](https://spec.graphql.org/draft/#sec-Int)                      |
-| `float`, `double`       | `Float`         | Implicit | IEEE 754 double-precision                                                 | [Spec](https://spec.graphql.org/draft/#sec-Float)                    |
-| `string`, `int`, `Guid` | `ID`            | Explicit | Unique identifier, always serialized as `string`                          | [Spec](https://spec.graphql.org/draft/#sec-ID)                       |
-| `decimal`               | `Decimal`       | Implicit | High-precision decimal (separate from `Float`)                            | [Spec](https://scalars.graphql.org/chillicream/decimal.html)         |
-| `long`                  | `Long`          | Implicit | Signed 64-bit integer                                                     | [Spec](https://scalars.graphql.org/chillicream/long.html)            |
-| `short`                 | `Short`         | Implicit | Signed 16-bit integer                                                     | [Spec](https://scalars.graphql.org/chillicream/short.html)           |
-| `DateTime`              | `DateTime`      | Implicit | Date and time with time zone offset                                       | [Spec](https://scalars.graphql.org/chillicream/date-time.html)       |
-| `DateTimeOffset`        | `DateTime`      | Implicit | Date and time with time zone offset                                       | [Spec](https://scalars.graphql.org/chillicream/date-time.html)       |
-| `DateOnly`              | `LocalDate`     | Implicit | Date without time or time zone                                            | [Spec](https://scalars.graphql.org/chillicream/local-date.html)      |
-| `DateOnly`              | `Date`          | Explicit | Date in UTC                                                               | [Spec](https://scalars.graphql.org/chillicream/date.html)            |
-| `DateTime`              | `LocalDateTime` | Explicit | Date and time without time zone                                           | [Spec](https://scalars.graphql.org/chillicream/local-date-time.html) |
-| `TimeOnly`              | `LocalTime`     | Implicit | Time of day without date or time zone                                     | [Spec](https://scalars.graphql.org/chillicream/local-time.html)      |
-| `TimeSpan`              | `Duration`      | Implicit | Duration of time (renamed from `TimeSpan` in v16)                         | [Spec](https://scalars.graphql.org/chillicream/duration.html)        |
-| `Guid`                  | `UUID`          | Implicit | Universally unique identifier (RFC 9562)                                  | [Spec](https://scalars.graphql.org/chillicream/uuid.html)            |
-| `Uri`                   | `URI`           | Implicit | Uniform resource identifier (new in v16, replaces `URL` for `System.Uri`) | [Spec](https://scalars.graphql.org/chillicream/uri.html)             |
-| `Uri`                   | `URL`           | Explicit | Deprecated, use `URI` instead                                             | [Spec](https://scalars.graphql.org/chillicream/url.html)             |
-| `byte[]`                | `Base64String`  | Implicit | Base64-encoded byte array (new in v16, replaces deprecated `ByteArray`)   | [Spec](https://scalars.graphql.org/chillicream/base64-string.html)   |
-| `byte`                  | `UnsignedByte`  | Implicit | Unsigned 8-bit integer (renamed in v16)                                   | [Spec](https://scalars.graphql.org/chillicream/unsigned-byte.html)   |
-| `sbyte`                 | `Byte`          | Implicit | Signed 8-bit integer (renamed in v16)                                     | [Spec](https://scalars.graphql.org/chillicream/byte.html)            |
-| `ushort`                | `UnsignedShort` | Implicit | Unsigned 16-bit integer (new in v16)                                      | [Spec](https://scalars.graphql.org/chillicream/unsigned-short.html)  |
-| `uint`                  | `UnsignedInt`   | Implicit | Unsigned 32-bit integer (new in v16)                                      | [Spec](https://scalars.graphql.org/chillicream/unsigned-int.html)    |
-| `ulong`                 | `UnsignedLong`  | Implicit | Unsigned 64-bit integer (new in v16)                                      | [Spec](https://scalars.graphql.org/chillicream/unsigned-long.html)   |
-| `JsonElement`           | `Any`           | Implicit | Any valid GraphQL value (v16 merged `Json` into `Any`)                    | [Spec](https://scalars.graphql.org/chillicream/any.html)             |
+| .NET Type               | GraphQL Scalar  | Binding  | Notes                                                         | Spec                                                                 |
+| ----------------------- | --------------- | -------- | ------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `string`                | `String`        | Implicit | UTF-8 character sequence                                      | [Spec](https://spec.graphql.org/draft/#sec-String)                   |
+| `bool`                  | `Boolean`       | Implicit | `true` or `false`                                             | [Spec](https://spec.graphql.org/draft/#sec-Boolean)                  |
+| `int`                   | `Int`           | Implicit | Signed 32-bit integer                                         | [Spec](https://spec.graphql.org/draft/#sec-Int)                      |
+| `float`, `double`       | `Float`         | Implicit | IEEE 754 double-precision                                     | [Spec](https://spec.graphql.org/draft/#sec-Float)                    |
+| `string`, `int`, `Guid` | `ID`            | Explicit | Unique identifier, always serialized as `string`              | [Spec](https://spec.graphql.org/draft/#sec-ID)                       |
+| `decimal`               | `Decimal`       | Implicit | High-precision decimal (separate from `Float`)                | [Spec](https://scalars.graphql.org/chillicream/decimal.html)         |
+| `long`                  | `Long`          | Implicit | Signed 64-bit integer                                         | [Spec](https://scalars.graphql.org/chillicream/long.html)            |
+| `short`                 | `Short`         | Implicit | Signed 16-bit integer                                         | [Spec](https://scalars.graphql.org/chillicream/short.html)           |
+| `DateTime`              | `DateTime`      | Implicit | Date and time with time zone offset                           | [Spec](https://scalars.graphql.org/chillicream/date-time.html)       |
+| `DateTimeOffset`        | `DateTime`      | Implicit | Date and time with time zone offset                           | [Spec](https://scalars.graphql.org/chillicream/date-time.html)       |
+| `DateOnly`              | `LocalDate`     | Implicit | Date without time or time zone                                | [Spec](https://scalars.graphql.org/chillicream/local-date.html)      |
+| `DateOnly`              | `Date`          | Explicit | Date in UTC                                                   | [Spec](https://scalars.graphql.org/chillicream/date.html)            |
+| `DateTime`              | `LocalDateTime` | Explicit | Date and time without time zone                               | [Spec](https://scalars.graphql.org/chillicream/local-date-time.html) |
+| `TimeOnly`              | `LocalTime`     | Implicit | Time of day without date or time zone                         | [Spec](https://scalars.graphql.org/chillicream/local-time.html)      |
+| `TimeSpan`              | `Duration`      | Implicit | Duration of time                                              | [Spec](https://scalars.graphql.org/chillicream/duration.html)        |
+| `Guid`                  | `UUID`          | Implicit | Universally unique identifier (RFC 9562)                      | [Spec](https://scalars.graphql.org/chillicream/uuid.html)            |
+| `Uri`                   | `URI`           | Implicit | Uniform resource identifier (replaces `URL` for `System.Uri`) | [Spec](https://scalars.graphql.org/chillicream/uri.html)             |
+| `Uri`                   | `URL`           | Explicit | Deprecated, use `URI` instead                                 | [Spec](https://scalars.graphql.org/chillicream/url.html)             |
+| `byte[]`                | `Base64String`  | Implicit | Base64-encoded byte array (replaces deprecated `ByteArray`)   | [Spec](https://scalars.graphql.org/chillicream/base64-string.html)   |
+| `byte`                  | `UnsignedByte`  | Implicit | Unsigned 8-bit integer                                        | [Spec](https://scalars.graphql.org/chillicream/unsigned-byte.html)   |
+| `sbyte`                 | `Byte`          | Implicit | Signed 8-bit integer                                          | [Spec](https://scalars.graphql.org/chillicream/byte.html)            |
+| `ushort`                | `UnsignedShort` | Implicit | Unsigned 16-bit integer                                       | [Spec](https://scalars.graphql.org/chillicream/unsigned-short.html)  |
+| `uint`                  | `UnsignedInt`   | Implicit | Unsigned 32-bit integer                                       | [Spec](https://scalars.graphql.org/chillicream/unsigned-int.html)    |
+| `ulong`                 | `UnsignedLong`  | Implicit | Unsigned 64-bit integer                                       | [Spec](https://scalars.graphql.org/chillicream/unsigned-long.html)   |
+| `JsonElement`           | `Any`           | Implicit | Any valid GraphQL value                                       | [Spec](https://scalars.graphql.org/chillicream/any.html)             |
 
 > **Note:** Hot Chocolate only exposes scalars that your schema uses. Unused scalars do not appear in the generated schema.
 

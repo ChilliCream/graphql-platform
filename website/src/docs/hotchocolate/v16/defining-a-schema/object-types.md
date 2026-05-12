@@ -576,7 +576,7 @@ For full details on nullability, see [Non-Null](/docs/hotchocolate/v16/defining-
 
 # Dictionary Support
 
-Hot Chocolate v16 automatically maps `Dictionary<TKey, TValue>` properties to a list of key-value pair objects. This eliminates the need for custom resolvers when exposing dictionary data.
+Hot Chocolate automatically maps `Dictionary<TKey, TValue>` properties to a list of key-value pair objects. This eliminates the need for custom resolvers when exposing dictionary data.
 
 <ExampleTabs>
 <Implementation>

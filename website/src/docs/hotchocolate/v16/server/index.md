@@ -12,7 +12,7 @@ Hot Chocolate provides ASP.NET Core endpoint middleware for accepting HTTP and W
 
 # HTTP Transport
 
-Hot Chocolate implements the GraphQL over HTTP specification. In v16, the default incremental delivery format changed from v0.1 to v0.2, and clients can select the format through the `Accept` header.
+Hot Chocolate implements the GraphQL over HTTP specification. The default incremental delivery format is v0.2, and clients can select the format through the `Accept` header.
 
 [Learn more about the HTTP transport](/docs/hotchocolate/v16/server/http-transport)
 
@@ -32,7 +32,7 @@ For WebSockets, the interceptor also handles lifecycle events such as when a cli
 
 # Dependency Injection
 
-Hot Chocolate recognizes services registered in your DI container and injects them into resolvers automatically. In v16, services are resolved implicitly without requiring the `[Service]` attribute.
+Hot Chocolate recognizes services registered in your DI container and injects them into resolvers automatically. Services are resolved implicitly without requiring the `[Service]` attribute.
 
 [Learn more about dependency injection](/docs/hotchocolate/v16/fetching-data/dependency-injection)
 
@@ -68,7 +68,7 @@ Hot Chocolate exposes diagnostic events across the server, execution engine, and
 
 # Batching
 
-Batching lets you send and execute multiple GraphQL operations in a single request. In v16, batching is disabled by default and you enable it through the `AllowedBatching` flags enum.
+Batching lets you send and execute multiple GraphQL operations in a single request. Batching is disabled by default and you enable it through the `AllowedBatching` flags enum.
 
 [Learn more about batching](/docs/hotchocolate/v16/server/batching)
 
