@@ -202,7 +202,81 @@
                   "Value": "sha256:0dfa0a2d24c8e4422563d556aea9ab42b677dda1a9d54f60176f8fe0b5ffb527"
                 }
               ],
-              "event": []
+              "event": [],
+              "activities": [
+                {
+                  "OperationName": "System.Net.Http.HttpRequestOut",
+                  "DisplayName": "System.Net.Http.HttpRequestOut",
+                  "Kind": "Client",
+                  "Status": "Error",
+                  "tags": [
+                    {
+                      "Key": "http.request.method",
+                      "Value": "POST"
+                    },
+                    {
+                      "Key": "server.address",
+                      "Value": "localhost"
+                    },
+                    {
+                      "Key": "server.port",
+                      "Value": 5000
+                    },
+                    {
+                      "Key": "url.full",
+                      "Value": "http://localhost:5000/graphql"
+                    },
+                    {
+                      "Key": "http.response.status_code",
+                      "Value": 400
+                    }
+                  ],
+                  "event": [],
+                  "activities": [
+                    {
+                      "OperationName": "Microsoft.AspNetCore.Hosting.HttpRequestIn",
+                      "DisplayName": "POST /graphql/{**slug}",
+                      "Kind": "Server",
+                      "Status": "Unset",
+                      "tags": [
+                        {
+                          "Key": "server.address",
+                          "Value": "localhost"
+                        },
+                        {
+                          "Key": "server.port",
+                          "Value": 5000
+                        },
+                        {
+                          "Key": "http.request.method",
+                          "Value": "POST"
+                        },
+                        {
+                          "Key": "url.scheme",
+                          "Value": "http"
+                        },
+                        {
+                          "Key": "url.path",
+                          "Value": "/graphql"
+                        },
+                        {
+                          "Key": "network.protocol.version",
+                          "Value": "1.1"
+                        },
+                        {
+                          "Key": "http.route",
+                          "Value": "/graphql/{**slug}"
+                        },
+                        {
+                          "Key": "http.response.status_code",
+                          "Value": 400
+                        }
+                      ],
+                      "event": []
+                    }
+                  ]
+                }
+              ]
             }
           ]
         }
