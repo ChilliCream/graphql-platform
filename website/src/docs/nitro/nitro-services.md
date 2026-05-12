@@ -14,6 +14,7 @@ To get started, follow these steps:
 
 ```bash
 dotnet add package ChilliCream.Nitro
+dotnet add package ChilliCream.Nitro.HotChocolate
 ```
 
 3. Configure your services as shown in the following code snippet:
@@ -21,16 +22,18 @@ dotnet add package ChilliCream.Nitro
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
 
-builder
-    .AddGraphQL()
-    .AddQueryType<Query>()
-    .AddInstrumentation() // if you want to use telemetry
+builder.Services
     .AddNitro(x =>
     {
         x.ApiId = "VGhpcyBpcyBub3QgYSByZWFsIGFwaSBpZA==";
         x.ApiKey = "Tm9wZSwgdGhpcyBpcyBhbHNvIG5vIHJlYWwga2V5IDspIA==";
         x.Stage = "dev";
-    })
+    });
+
+builder
+    .AddGraphQL()
+    .AddQueryType<Query>()
+    .AddInstrumentation() // if you want to use telemetry
     .UseOnlyPersistedOperationAllowed() // optional
     .UsePersistedOperationPipeline(); // if you want to use persisted operations
 
