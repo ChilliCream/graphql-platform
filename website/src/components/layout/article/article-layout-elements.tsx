@@ -30,6 +30,7 @@ export const LayoutContainer = styled.div`
     padding: 0 ${SIDEBAR_WIDTH_DESKTOP}px;
   `)}
 
+  box-sizing: border-box;
   grid-template-rows: 1fr;
   width: 100%;
   height: 100%;
