@@ -14,32 +14,6 @@ namespace HotChocolate.Fusion.Diagnostics;
 public class FusionOpenApiAdapterActivityTests : FusionTestBase
 {
     [Fact]
-    public async Task Http_Get_OpenApi_Field_Does_Not_Exist()
-    {
-        using (CaptureActivities(out var activities))
-        {
-            // arrange
-            using var server = CreateSourceSchema("a", b => b.AddQueryType<Query>());
-
-            using var gateway = await CreateGatewayAsync(
-                server,
-                """
-                query GetMissing @http(method: GET, route: "/invalid-graphql-query") {
-                  doesNotExist
-                }
-                """);
-            using var client = gateway.CreateClient();
-
-            // act
-            using var response = await client.GetAsync("/invalid-graphql-query");
-            await response.Content.ReadAsStringAsync();
-
-            // assert
-            activities.MatchSnapshot();
-        }
-    }
-
-    [Fact]
     public async Task Http_Get_OpenApi()
     {
         using (CaptureActivities(out var activities))
@@ -60,6 +34,32 @@ public class FusionOpenApiAdapterActivityTests : FusionTestBase
 
             // act
             using var response = await client.GetAsync("/book");
+            await response.Content.ReadAsStringAsync();
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
+    public async Task Http_Get_OpenApi_Field_Does_Not_Exist()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server = CreateSourceSchema("a", b => b.AddQueryType<Query>());
+
+            using var gateway = await CreateGatewayAsync(
+                server,
+                """
+                query GetMissing @http(method: GET, route: "/invalid-graphql-query") {
+                  doesNotExist
+                }
+                """);
+            using var client = gateway.CreateClient();
+
+            // act
+            using var response = await client.GetAsync("/invalid-graphql-query");
             await response.Content.ReadAsStringAsync();
 
             // assert

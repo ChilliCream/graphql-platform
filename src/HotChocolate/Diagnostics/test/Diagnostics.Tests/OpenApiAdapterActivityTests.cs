@@ -15,6 +15,31 @@ namespace HotChocolate.Diagnostics;
 public class OpenApiAdapterActivityTests
 {
     [Fact]
+    public async Task Http_Get_OpenApi()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server = CreateServer(
+                """
+                query GetBook @http(method: GET, route: "/book") {
+                  book {
+                    title
+                  }
+                }
+                """);
+            using var client = server.CreateClient();
+
+            // act
+            using var response = await client.GetAsync("/book");
+            await response.Content.ReadAsStringAsync();
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
     public async Task Http_Get_OpenApi_Field_Does_Not_Exist()
     {
         using (CaptureActivities(out var activities))
@@ -59,31 +84,6 @@ public class OpenApiAdapterActivityTests
 
             // assert
             Assert.Equal(System.Net.HttpStatusCode.NotFound, response.StatusCode);
-            activities.MatchSnapshot();
-        }
-    }
-
-    [Fact]
-    public async Task Http_Get_OpenApi()
-    {
-        using (CaptureActivities(out var activities))
-        {
-            // arrange
-            using var server = CreateServer(
-                """
-                query GetBook @http(method: GET, route: "/book") {
-                  book {
-                    title
-                  }
-                }
-                """);
-            using var client = server.CreateClient();
-
-            // act
-            using var response = await client.GetAsync("/book");
-            await response.Content.ReadAsStringAsync();
-
-            // assert
             activities.MatchSnapshot();
         }
     }

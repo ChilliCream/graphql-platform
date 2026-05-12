@@ -18,6 +18,24 @@ namespace HotChocolate.Fusion.Diagnostics;
 public partial class FusionMcpAdapterActivityTests : FusionTestBase
 {
     [Fact]
+    public async Task Mcp_CallTool()
+    {
+        // arrange
+        using var server = await CreateGatewayAsync("query GetBook { book { title } }");
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+        await mcpClient.ListToolsAsync();
+
+        using (CaptureActivities(out var activities))
+        {
+            // act
+            await mcpClient.CallToolAsync("get_book");
+
+            // assert
+            MatchActivitySnapshot(activities);
+        }
+    }
+
+    [Fact]
     public async Task Mcp_CallTool_Field_Does_Not_Exist()
     {
         // arrange
@@ -47,24 +65,6 @@ public partial class FusionMcpAdapterActivityTests : FusionTestBase
         {
             // act
             await mcpClient.CallToolAsync("does_not_exist");
-
-            // assert
-            MatchActivitySnapshot(activities);
-        }
-    }
-
-    [Fact]
-    public async Task Mcp_CallTool()
-    {
-        // arrange
-        using var server = await CreateGatewayAsync("query GetBook { book { title } }");
-        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
-        await mcpClient.ListToolsAsync();
-
-        using (CaptureActivities(out var activities))
-        {
-            // act
-            await mcpClient.CallToolAsync("get_book");
 
             // assert
             MatchActivitySnapshot(activities);

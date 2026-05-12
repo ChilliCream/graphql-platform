@@ -12,10 +12,12 @@
     <ProjectReference Include="..\..\src\Fusion.Diagnostics\HotChocolate.Fusion.Diagnostics.csproj" />
   </ItemGroup>
 
-  <!-- The Fusion OpenAPI/MCP adapters only support net9.0 and above. -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Adapters\src\Fusion.Adapters.Mcp\HotChocolate.Fusion.Adapters.Mcp.csproj" />
+  </ItemGroup>
+
   <ItemGroup Condition="'$(TargetFramework)' != 'net8.0'">
     <ProjectReference Include="..\..\..\Adapters\src\Fusion.Adapters.OpenApi\HotChocolate.Fusion.Adapters.OpenApi.csproj" />
-    <ProjectReference Include="..\..\..\Adapters\src\Fusion.Adapters.Mcp\HotChocolate.Fusion.Adapters.Mcp.csproj" />
   </ItemGroup>
 
   <ItemGroup>

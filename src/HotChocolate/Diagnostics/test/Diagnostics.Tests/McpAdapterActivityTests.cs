@@ -18,6 +18,24 @@ namespace HotChocolate.Diagnostics;
 public partial class McpAdapterActivityTests
 {
     [Fact]
+    public async Task Mcp_CallTool()
+    {
+        // arrange
+        using var server = CreateServer("query GetBook { book { title } }");
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+        await mcpClient.ListToolsAsync();
+
+        using (CaptureActivities(out var activities))
+        {
+            // act
+            await mcpClient.CallToolAsync("get_book");
+
+            // assert
+            MatchActivitySnapshot(activities);
+        }
+    }
+
+    [Fact]
     public async Task Mcp_CallTool_Field_Does_Not_Exist()
     {
         // arrange
@@ -54,17 +72,17 @@ public partial class McpAdapterActivityTests
     }
 
     [Fact]
-    public async Task Mcp_CallTool()
+    public async Task Mcp_CallTool_GraphQL_Field_Error()
     {
         // arrange
-        using var server = CreateServer("query GetBook { book { title } }");
+        using var server = CreateServer("query GetFaultyBook { faultyBook { title } }");
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
         await mcpClient.ListToolsAsync();
 
         using (CaptureActivities(out var activities))
         {
             // act
-            await mcpClient.CallToolAsync("get_book");
+            await mcpClient.CallToolAsync("get_faulty_book");
 
             // assert
             MatchActivitySnapshot(activities);
@@ -83,24 +101,6 @@ public partial class McpAdapterActivityTests
         {
             // act
             await mcpClient.GetPromptAsync("greeting");
-
-            // assert
-            MatchActivitySnapshot(activities);
-        }
-    }
-
-    [Fact]
-    public async Task Mcp_CallTool_GraphQL_Field_Error()
-    {
-        // arrange
-        using var server = CreateServer("query GetFaultyBook { faultyBook { title } }");
-        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
-        await mcpClient.ListToolsAsync();
-
-        using (CaptureActivities(out var activities))
-        {
-            // act
-            await mcpClient.CallToolAsync("get_faulty_book");
 
             // assert
             MatchActivitySnapshot(activities);
