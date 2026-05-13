@@ -22,6 +22,8 @@ export const LANGUAGES: Record<string, LanguageDescriptor> = {
   sql: { label: "SQL", color: "#b4dce7", shiki: "sql" },
   xml: { label: "XML", color: "#ffffff", shiki: "xml" },
   diff: { label: "Diff", color: "#cccccc", shiki: "diff" },
+  yaml: { label: "YAML", color: "#cb7676", shiki: "yaml" },
+  yml: { label: "YAML", color: "#cb7676", shiki: "yaml" },
 };
 
 export const STEP_PALETTE: Record<

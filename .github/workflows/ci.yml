@@ -24,7 +24,7 @@ jobs:
       src_changes: ${{ steps.check-src.outputs.src_changes }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 2
           show-progress: false
@@ -77,13 +77,13 @@ jobs:
     needs: check-changes
     if: needs.check-changes.outputs.website_changes == 'true' || needs.check-changes.outputs.website_next_changes == 'true'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         name: Check out the code
         with:
           show-progress: false
 
       - name: Install Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version: 24
 
@@ -102,11 +102,11 @@ jobs:
     name: "Markdown linting"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         name: Check out the code
         with:
           show-progress: false
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         name: Setup node
         with:
           node-version: 24
@@ -122,19 +122,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           show-progress: false
 
       - name: Install Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version: 24
           cache: "yarn"
           cache-dependency-path: "website/yarn.lock"
 
       - name: Cache Yarn Packages
-        uses: actions/cache@v5
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
         with:
           path: |
             website/.yarn/cache
@@ -144,7 +144,7 @@ jobs:
             ${{ runner.os }}-yarn-
 
       - name: Cache Optimized Images
-        uses: actions/cache@v5
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
         with:
           path: website/.next/cache/images
           key: ${{ runner.os }}-optimized-images-${{ hashFiles('website/public/images/**', 'website/public/docs/**/*.png', 'website/public/docs/**/*.jpg', 'website/public/docs/**/*.webp') }}
@@ -170,19 +170,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           show-progress: false
 
       - name: Install Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version: 24
           cache: "yarn"
           cache-dependency-path: "website-next/yarn.lock"
 
       - name: Cache Yarn Packages
-        uses: actions/cache@v5
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
         with:
           path: |
             website-next/.yarn/cache
@@ -214,12 +214,12 @@ jobs:
 
     steps:
       - name: Checkout to repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           show-progress: false
 
       - name: Install .NET
-        uses: actions/setup-dotnet@v5
+        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5
         with:
           dotnet-version: 10.x
 
@@ -244,12 +244,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           show-progress: false
 
       - name: Install .NET
-        uses: actions/setup-dotnet@v5
+        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5
         with:
           dotnet-version: |
             8.x
@@ -267,7 +267,7 @@ jobs:
           github.event_name != 'pull_request' ||
           (github.event_name == 'pull_request' &&
            github.event.pull_request.head.repo.full_name == github.repository)
-        uses: docker/login-action@v4
+        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4
         with:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -288,13 +288,13 @@ jobs:
           CI_BUILD: true
 
       - name: Upload Test Results as Artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: test-results-${{ matrix.name }}
           path: ${{ matrix.directoryPath }}/TestResults/*.trx
 
       - name: Upload Coverage File as Artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: coverage-${{ matrix.name }}
           # The * matches a single directory that is named with a GUID.
@@ -303,7 +303,7 @@ jobs:
 
       - name: Upload mismatch files as Artifact
         if: steps.run-tests.outcome == 'failure'
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: mismatch-files-${{ matrix.name }}
           path: ${{ matrix.directoryPath }}/**/__mismatch__/*
@@ -314,13 +314,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download all coverage artifacts
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           path: ./output/download
           pattern: coverage-*
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@75cd11691c0faa626561e295848008c8a7dddffe # v5
         timeout-minutes: 10
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -340,12 +340,12 @@ jobs:
       pull-requests: write
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           show-progress: false
 
       - name: Validate Client
-        uses: ChilliCream/nitro-client-validate@v16.0.0-rc.1.43
+        uses: ChilliCream/nitro-client-validate@30ce13815d90dad9ca50a96e5746a4e5abb11e8f # v16.0.1-p.5
         with:
           client-id: ${{ secrets.NITRO_API_CLIENT_ID }}
           operations-file: src/Nitro/Common/src/ChilliCream.Nitro.Client/persisted/operations.json
@@ -360,12 +360,12 @@ jobs:
     if: needs.check-changes.outputs.src_changes == 'true'
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           show-progress: false
 
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version: 24
 

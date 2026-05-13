@@ -180,7 +180,7 @@ public sealed class CoreIntegrationTests : IntegrationTestBase
 
                     var builder =
                         services
-                            .AddGraphQL()
+                            .AddGraphQLServer()
                             .AddAuthorization()
                             .AddMcp(configureMcpServerOptions, configureMcpServer)
                             .AddMcpStorage(storage)

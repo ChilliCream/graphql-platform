@@ -1,12 +1,13 @@
-"use client";
-
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
 import type { TreeNode } from "@/src/helpers/buildContentTree";
 
-export function Sidebar({ tree }: { tree: TreeNode[] }) {
-  const pathname = usePathname();
+export function Sidebar({
+  tree,
+  currentPath,
+}: {
+  tree: TreeNode[];
+  currentPath: string;
+}) {
   return (
     <nav className="flex flex-col gap-1 px-5 py-6 text-sm">
       <ul className="flex flex-col gap-1">
@@ -15,7 +16,7 @@ export function Sidebar({ tree }: { tree: TreeNode[] }) {
             key={`${node.href ?? node.title}-${i}`}
             node={node}
             depth={0}
-            currentPath={pathname}
+            currentPath={currentPath}
           />
         ))}
       </ul>
@@ -34,61 +35,52 @@ function NodeView({
 }) {
   const hasChildren = node.children.length > 0;
   const containsCurrent = subtreeContains(node, currentPath);
-  const [expanded, setExpanded] = useState(containsCurrent);
-  const [prevContainsCurrent, setPrevContainsCurrent] =
-    useState(containsCurrent);
-  if (prevContainsCurrent !== containsCurrent) {
-    setPrevContainsCurrent(containsCurrent);
-    if (containsCurrent) {
-      setExpanded(true);
-    }
-  }
   const childMatchesCurrent = node.children.some(
     (c) => c.href === currentPath
   );
   const isActive = node.href === currentPath && !childMatchesCurrent;
   const padLeft = `${depth * 0.75 + 0.75}rem`;
 
+  const label = node.href ? (
+    <Link
+      href={node.href}
+      aria-current={isActive ? "page" : undefined}
+      className={`block flex-1 rounded px-3 py-1.5 transition-colors ${
+        isActive
+          ? "bg-emerald-50 font-medium text-emerald-700"
+          : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+      }`}
+      style={{ paddingLeft: padLeft }}
+    >
+      {node.title}
+    </Link>
+  ) : (
+    <span
+      className="block flex-1 cursor-pointer rounded px-3 py-1.5 text-left text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900"
+      style={{ paddingLeft: padLeft }}
+    >
+      {node.title}
+    </span>
+  );
+
+  if (!hasChildren) {
+    return <li>{label}</li>;
+  }
+
   return (
     <li>
-      <div className="flex items-stretch">
-        {node.href ? (
-          <Link
-            href={node.href}
-            aria-current={isActive ? "page" : undefined}
-            className={`block flex-1 rounded px-3 py-1.5 transition-colors ${
-              isActive
-                ? "bg-emerald-50 font-medium text-emerald-700"
-                : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
-            }`}
-            style={{ paddingLeft: padLeft }}
-          >
-            {node.title}
-          </Link>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setExpanded((v) => !v)}
-            className="block flex-1 rounded px-3 py-1.5 text-left text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900"
-            style={{ paddingLeft: padLeft }}
-          >
-            {node.title}
-          </button>
-        )}
-        {hasChildren ? (
-          <button
-            type="button"
-            aria-label={expanded ? "Collapse section" : "Expand section"}
-            aria-expanded={expanded}
-            onClick={() => setExpanded((v) => !v)}
-            className="inline-flex w-7 items-center justify-center rounded text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+      <details open={containsCurrent} className="group">
+        <summary className="flex list-none items-stretch [&::-webkit-details-marker]:hidden">
+          {label}
+          <span
+            aria-hidden="true"
+            className="inline-flex w-7 cursor-pointer items-center justify-center rounded text-slate-500 hover:bg-slate-100 hover:text-slate-900"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 20 20"
               fill="currentColor"
-              className={`h-4 w-4 transition-transform ${expanded ? "rotate-90" : ""}`}
-              aria-hidden="true"
+              className="h-4 w-4 transition-transform group-open:rotate-90"
             >
               <path
                 fillRule="evenodd"
@@ -96,10 +88,8 @@ function NodeView({
                 clipRule="evenodd"
               />
             </svg>
-          </button>
-        ) : null}
-      </div>
-      {hasChildren && expanded ? (
+          </span>
+        </summary>
         <ul className="flex flex-col gap-1">
           {node.children.map((child, i) => (
             <NodeView
@@ -110,7 +100,7 @@ function NodeView({
             />
           ))}
         </ul>
-      ) : null}
+      </details>
     </li>
   );
 }

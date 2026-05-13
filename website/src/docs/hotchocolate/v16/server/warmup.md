@@ -25,7 +25,7 @@ builder
 
 The warmup process is blocking. The server does not start answering requests until both the schema creation and all warmup tasks have finished.
 
-By default, warmup tasks run both at server startup and whenever the schema is rebuilt at runtime (for example, when using [dynamic schemas](/docs/hotchocolate/v16/building-a-schema/dynamic-schemas)). When the request executor changes, warmup tasks execute in the background while requests continue to be handled by the old request executor. Once warmup completes, requests are served by the new and already warmed-up request executor.
+By default, warmup tasks run both at server startup and whenever the schema is rebuilt at runtime (for example, when using [dynamic schemas](/docs/hotchocolate/v16/defining-a-schema/dynamic-schemas)). When the request executor changes, warmup tasks execute in the background while requests continue to be handled by the old request executor. Once warmup completes, requests are served by the new and already warmed-up request executor.
 
 Since the execution of an operation could have side-effects, you might want to warm up the executor but skip the actual execution of the request. Mark an operation as a warmup request for this purpose:
 
@@ -157,5 +157,5 @@ With lazy initialization enabled, the schema is constructed when it is first nee
 # Next Steps
 
 - [Instrumentation](/docs/hotchocolate/v16/server/instrumentation) for monitoring request execution and tracing.
-- [Dynamic Schemas](/docs/hotchocolate/v16/building-a-schema/dynamic-schemas) for schemas that change at runtime.
+- [Dynamic Schemas](/docs/hotchocolate/v16/defining-a-schema/dynamic-schemas) for schemas that change at runtime.
 - [Migrate from v15 to v16](/docs/hotchocolate/v16/migrating/migrate-from-15-to-16#eager-initialization-by-default) for migration details on the `InitializeOnStartup` removal.

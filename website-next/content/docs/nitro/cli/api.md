@@ -1,5 +1,5 @@
 ---
-title: api
+title: api Command
 ---
 
 The `nitro api` commands manage APIs in a workspace.
