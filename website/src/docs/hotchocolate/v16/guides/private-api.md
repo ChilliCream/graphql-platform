@@ -31,6 +31,7 @@ First, add the `ChilliCream.Nitro` package to your project:
 
 ```bash
 dotnet add package ChilliCream.Nitro
+dotnet add package ChilliCream.Nitro.HotChocolate
 ```
 
 Then configure the server:
@@ -38,10 +39,11 @@ Then configure the server:
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddNitro();
+
 builder
     .AddGraphQL()
     .AddQueryType<Query>()
-    .AddNitro()
     .UsePersistedOperationPipeline()
     .ModifyRequestOptions(o =>
     {
@@ -135,10 +137,11 @@ public class DevToolsInterceptor : DefaultHttpRequestInterceptor
 Register the interceptor:
 
 ```csharp
+builder.Services.AddNitro();
+
 builder
     .AddGraphQL()
     .AddQueryType<Query>()
-    .AddNitro()
     .AddHttpRequestInterceptor<DevToolsInterceptor>()
     .UsePersistedOperationPipeline()
     .ModifyRequestOptions(o =>
@@ -169,12 +172,13 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
+builder.Services.AddNitro();
+
 builder
     .AddGraphQL()
     .AddQueryType<Query>()
     .AddMutationType<Mutation>()
     .AddAuthorization()
-    .AddNitro()
     .AddHttpRequestInterceptor<DevToolsInterceptor>()
     .UsePersistedOperationPipeline()
     .ModifyRequestOptions(o =>

@@ -885,6 +885,35 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     }
 
     [Fact]
+    public async Task Duplicated_Routes_FirstInvalidSecondValid_PrefersValid()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query A_InvalidFirst @http(method: GET, route: "/users") {
+              doesNotExist {
+                id
+              }
+            }
+            """,
+            """
+            query B_ValidSecond @http(method: GET, route: "/users") {
+              usersWithoutAuth {
+                id
+              }
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var response = await client.GetAsync("/users");
+
+        // assert
+        response.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task Duplicated_Model_Names()
     {
         // arrange

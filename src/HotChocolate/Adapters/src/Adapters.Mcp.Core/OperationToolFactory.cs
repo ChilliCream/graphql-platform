@@ -17,6 +17,12 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema)
 {
     private static readonly Walker s_walker = new();
 
+    /// <summary>
+    /// Builds an <see cref="OperationTool"/> for a document that has been verified against the
+    /// schema. Calling this with an invalid document throws -- the schema walker will fail on
+    /// the first unresolved field or type reference. For invalid documents, use
+    /// <see cref="CreateInvalidTool"/>.
+    /// </summary>
     public OperationTool CreateTool(OperationToolDefinition toolDefinition)
     {
         var operationNode = toolDefinition.Document.Definitions.OfType<OperationDefinitionNode>().Single();
@@ -70,6 +76,62 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema)
             ViewHtml = toolDefinition.View?.Html
         };
     }
+
+    /// <summary>
+    /// Builds an <see cref="OperationTool"/> shell for a document that failed schema validation.
+    /// The tool is surfaced through <c>tools/list</c> so consumers see it exists, but
+    /// <c>tools/call</c> must reject it because the input/output schemas are permissive
+    /// placeholders rather than schema-derived contracts.
+    /// </summary>
+    public static OperationTool CreateInvalidTool(OperationToolDefinition toolDefinition)
+    {
+        var operationNode = toolDefinition.Document.Definitions.OfType<OperationDefinitionNode>().Single();
+
+        JsonObject? meta = null;
+        Resource? viewResource = null;
+
+        if (toolDefinition.View is { } view)
+        {
+            meta = [];
+            AddViewMetadata(meta, toolDefinition);
+            viewResource = CreateViewResource(view, toolDefinition);
+        }
+
+        var tool = new Tool
+        {
+            Name = toolDefinition.Name,
+            Title = toolDefinition.Title
+                ?? operationNode.Name?.Value.InsertSpaceBeforeUpperCase()
+                ?? toolDefinition.Name,
+            Description = operationNode.Description?.Value,
+            InputSchema = s_permissiveObjectSchema.ToJsonElement(),
+            OutputSchema = s_permissiveObjectSchema.ToJsonElement(),
+            Meta = meta
+        };
+
+        if (toolDefinition.Icons is { } icons)
+        {
+            tool.Icons =
+                icons.Select(
+                    icon => new Icon
+                    {
+                        Source = icon.Source.OriginalString,
+                        MimeType = icon.MimeType,
+                        Sizes = icon.Sizes,
+                        Theme = icon.Theme
+                    }).ToList();
+        }
+
+        return new OperationTool(toolDefinition.Document, tool)
+        {
+            HasValidDocument = false,
+            ViewResource = viewResource,
+            ViewHtml = toolDefinition.View?.Html
+        };
+    }
+
+    private static readonly JsonSchema s_permissiveObjectSchema =
+        new JsonSchemaBuilder().Type(SchemaValueType.Object).Build();
 
     private JsonSchema CreateInputSchema(OperationDefinitionNode operation)
     {

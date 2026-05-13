@@ -241,6 +241,10 @@
             ]
           },
           {
+            "path": "analyzers",
+            "title": "Analyzers"
+          },
+          {
             "path": "settings",
             "title": "Settings",
             "items": [
@@ -255,6 +259,16 @@
               {
                 "path": "key-bindings",
                 "title": "Key Bindings"
+              }
+            ]
+          },
+          {
+            "path": "migration",
+            "title": "Migration",
+            "items": [
+              {
+                "path": "migrate-from-1-to-16",
+                "title": "Migrate from 1 to 16"
               }
             ]
           }
