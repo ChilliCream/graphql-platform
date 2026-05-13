@@ -2,12 +2,13 @@
 title: "Authentication and Authorization"
 ---
 
-The fusion gateway builds on top of the authentication and authorization capabilities of ASP.NET Core. This means that you can use all the features you are used to, such as JWT validation, cookie authentication, open id connect, MTLS and much more.
-Fusion itself does not add any new authentication or authorization mechanisms on top of what ASP.NET core already provides. You have the full power of ASP.NET Core at your disposal, to make authentication and authorization your own while at the same time using a battle tested and security hardened framework.
+The Fusion gateway builds on ASP.NET Core authentication and authorization. You can use the same features you use in any ASP.NET Core service, including JWT validation, cookie authentication, OpenID Connect, and mTLS.
+
+Fusion does not add its own authentication or authorization mechanisms. It relies on ASP.NET Core, so you keep the same configuration model, extension points, and security-hardened framework you already use.
 
 ## Authenticating clients at the gateway
 
-The gateway authenticates incoming requests using the same APIs you would use on any ASP.NET Core service. There is no Fusion-specific configuration shape; you call `AddAuthentication(...)` and `UseAuthentication()`.
+The gateway authenticates incoming requests with the same APIs as any ASP.NET Core service. There is no Fusion-specific configuration; use `AddAuthentication(...)` and `UseAuthentication()` as usual.
 
 A minimal JWT bearer setup for the gateway:
 
@@ -38,9 +39,9 @@ app.MapGraphQL();
 app.Run();
 ```
 
-Everything in the `AddJwtBearer` callback is standard ASP.NET Core. For JWKS rotation, multi-issuer setups, custom audience validation, refresh policies, and clock skew handling, see the Microsoft Learn reference at <https://learn.microsoft.com/aspnet/core/security/authentication/configure-jwt-bearer-authentication>. You do not need to wire any of that yourself.
+Everything in the `AddJwtBearer` callback is standard ASP.NET Core. For details on JWKS rotation, multi-issuer setups, custom audience validation, refresh policies, and clock skew handling, see the [Microsoft Learn reference](https://learn.microsoft.com/aspnet/core/security/authentication/configure-jwt-bearer-authentication). You do not need to implement those features yourself.
 
-The example above does configure your service to validate the JWT access token at the gateway, but it does not restrcts access to anything in case you do not provide a token or you present a invalid token.
+The example above configures your service to validate JWT access tokens at the gateway. It does not reject requests when the token is missing or invalid. To require authentication, add authorization to the GraphQL endpoint.
 
 ### Requiring authentication on the GraphQL endpoint
 
@@ -63,23 +64,23 @@ builder.Services.AddAuthorization(options =>
 app.MapGraphQL().RequireAuthorization("graphql:read");
 ```
 
-Without `RequireAuthorization`, anonymous requests reach the GraphQL pipeline and any field that the subgraphs do not protect is reachable without credentials. Whether you want that depends on the API. A public catalog with a small authenticated checkout flow typically leaves the endpoint open and lets the subgraphs reject the protected fields. An internal back-office gateway typically requires authentication at the edge.
+Without `RequireAuthorization`, anonymous requests reach the GraphQL pipeline, and any field not protected by the subgraphs is accessible without credentials. Whether this is acceptable depends on your API. For example, a public catalog with an authenticated checkout flow may leave the endpoint open and let subgraphs protect sensitive fields. An internal back-office gateway typically requires authentication at the edge.
 
 ### Cookies Authentication & Browser Clients
 
-You can also use cookie authentication at the gateway and servce the UI assets directly from there. If you are interested in doing so, [Cookie Authentication in ASP.NET Core](https://learn.microsoft.com/aspnet/core/security/authentication/cookie) is a great resource to get you started. [UI and SPA considerations](https://learn.microsoft.com/en-us/aspnet/core/client-side/spa/intro?view=aspnetcore-10.0) are especially relevant if you are building a browser-based client application.
+You can also use cookie authentication at the gateway and serve UI assets directly from it. For guidance, see [Cookie Authentication in ASP.NET Core](https://learn.microsoft.com/aspnet/core/security/authentication/cookie). If you are building a browser-based client, review [UI and SPA considerations](https://learn.microsoft.com/en-us/aspnet/core/client-side/spa/intro?view=aspnetcore-10.0).
 
-Generally, we **do NOT recommend** service SPA applications directly from the gateway. Instead, we recommend fronting the gateway with a Backend for Frontend (BFF) (build your own or [use Duende BFF](https://duendesoftware.com/products/bff)) that handles the browser-specific authentication and session management concerns, and then have the BFF call the gateway with a more traditional token-based approach. This allows you to keep the gateway focused on doing one thing right, while the BFF can handle the complexities of browser-based authentication and session management.
+In general, we **do NOT recommend** serving SPA applications directly from the gateway. Instead, put a Backend for Frontend (BFF) in front of the gateway. You can build your own BFF or [use Duende BFF](https://duendesoftware.com/products/bff). The BFF handles browser-specific authentication and session management, then calls the gateway with a token-based approach. This keeps the gateway focused on GraphQL traffic while the BFF manages browser authentication and session concerns.
 
 ## Forwarding identity to subgraphs
 
-By default, the gateway does not forward any headers to the subgraphs. This also means that your subgraph does not receive the access token of the caller or other identity information. As authorization typically is a concern of the subgraph, you most likely want to pass the access token or other identity information to the subgraph so it can make informed decisions about allowing or rejecting the request.
+By default, the gateway does not forward headers to subgraphs. This means subgraphs do not receive the caller's access token or other identity information. Because authorization is usually handled by the subgraph, you typically need to pass the access token or relevant identity data so the subgraph can authorize requests correctly.
 
 ### Header propagation
 
-Most commonly, you just want to forward the `Authorization` header with the access token to the subgraph and do the JWT validation and authorization checks there.
+Most often, you want to forward the `Authorization` header containing the access token to the subgraph. The subgraph can then validate the JWT and run authorization checks.
 
-Fusion uses the offical header propagation mechanism of ASP.NET Core to forward headers to the subgraphs.
+Fusion uses the official ASP.NET Core header propagation mechanism to forward headers to subgraphs:
 
 ```csharp
 builder.Services.AddHeaderPropagation(options =>
@@ -89,9 +90,9 @@ builder.Services.AddHeaderPropagation(options =>
 });
 ```
 
-You can read more about [header propagation in the Microsoft Learn documentation](https://learn.microsoft.com/aspnet/core/fundamentals/http-requests?view=aspnetcore-10.0#header-propagation).
+See the [Microsoft Learn documentation on header propagation](https://learn.microsoft.com/aspnet/core/fundamentals/http-requests?view=aspnetcore-10.0#header-propagation) for more details.
 
-Header propagation must be configured on each http client specificially otherwise it will not have any affect. By default fusion uses a named http client with the name `"fusion"` to call the subgraphs. You can change this name in the `schema-settings.json` of each subgraph, but if you do not change it, you need to configure header propagation on the `"fusion"` client.
+You must configure header propagation on each HTTP client individually. Otherwise, it will not take effect. By default, Fusion uses a named HTTP client called `"fusion"` to call subgraphs. You can change this name in the `schema-settings.json` of each subgraph. If you keep the default, configure header propagation on the `"fusion"` client:
 
 ```json
 {
@@ -104,17 +105,15 @@ Header propagation must be configured on each http client specificially otherwis
 }
 ```
 
-Use `AddHeaderPropagation` on that client.
+Register header propagation for that client:
 
 ```csharp
-
 builder.Services
     .AddHttpClient("fusion")
     .AddHeaderPropagation();
-
 ```
 
-Lastly, you need to add the `UseHeaderPropagation` middleware in the pipeline before the GraphQL middleware to ensure that the headers are actually forwarded to the subgraphs.
+Add the `UseHeaderPropagation` middleware before the GraphQL middleware in your pipeline so headers are forwarded:
 
 ```csharp
 // Later in the pipeline.
@@ -123,11 +122,11 @@ app.UseHeaderPropagation();
 app.MapGraphQL();
 ```
 
-### Authentication Termination
+### Authentication termination
 
-It's farily common in enterprises to not _just_ route the access token through the whole stack. With fusion, you have full control over outgoing requests. This way every authentication scenario you can think of is possible.
+In many enterprise scenarios, you may not want to forward the access token through the entire stack. With Fusion, you have full control over outgoing requests, so you can adapt the gateway to your authentication model and support custom authentication flows.
 
-To intercept outgoing requests, you can add a `DelegatingHandler` to the http client that calls the subgraphs. This allows you to do things like, deriving headers from validated claims, exchanging the incoming token for a new token with the right audience for the subgraph, or even call an external service to get additional information about the caller that you can then forward to the subgraph.
+To intercept outgoing requests, add a `DelegatingHandler` to the HTTP client that calls subgraphs. This lets you derive headers from validated claims, exchange the incoming token for a new token with the correct audience, or call an external service to get additional caller information to forward.
 
 ```csharp
 public sealed class ClaimsHeaderHandler(IHttpContextAccessor httpContextAccessor)
@@ -156,6 +155,8 @@ public sealed class ClaimsHeaderHandler(IHttpContextAccessor httpContextAccessor
 }
 ```
 
+Register the handler and configure the client:
+
 ```csharp
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient<ClaimsHeaderHandler>();
@@ -166,22 +167,23 @@ builder.Services
     .AddHttpMessageHandler<ClaimsHeaderHandler>();
 ```
 
-## Client-to-gateway trust (mtls)
+## Client-to-gateway trust (mTLS)
 
-In some scenarios, you want to ensure that only trusted clients can call your gateway. This is typically done using mutual TLS (mTLS) where the client presents a certificate to the gateway and the gateway validates that certificate against a trusted certificate authority (CA).
+In some scenarios, only trusted clients should be able to call your gateway. Mutual TLS (mTLS) supports this by requiring the client to present a certificate. The gateway validates that certificate against a trusted certificate authority (CA).
 
-This feature is built into Kestrel and can be configured using the `ConfigureKestrel` API. You can find more information about how to do this [in the Microsoft Learn documentation](https://learn.microsoft.com/aspnet/core/security/authentication/certauth)
+Kestrel supports mTLS directly, and you can configure it with the `ConfigureKestrel` API. For details, see the [Microsoft Learn documentation](https://learn.microsoft.com/aspnet/core/security/authentication/certauth).
 
 ## Gateway-to-subgraph trust
 
 ### Keep subgraphs private
 
-Subgraphs should not be public endpoints. GraphQL federation has concepts like `@internal` that assume no public access to the subgraph.
-It generally is a good idea to keep them on a private network (vpc, kuberentes, azure vnet ) that only allows the gateway to call them. This way you can be sure that all requests to the subgraph go through the gateway and are subject to the composition, authentication and authorization policies of the gateway.
+Subgraphs should not be public endpoints. GraphQL federation features like `@internal` assume subgraphs are not publicly accessible.
+
+Place subgraphs on a private network, such as a VPC, Kubernetes cluster, or Azure VNet, that only the gateway can reach. This ensures all subgraph requests pass through the gateway and are subject to the gateway's composition, authentication, and authorization policies.
 
 ### mTLS to subgraphs
 
-If you want to ensure that only the gateway can call the subgraphs, you can also use mutual TLS (mTLS) for the gateway-to-subgraph communication.
+To ensure that only the gateway can call the subgraphs, use mutual TLS (mTLS) for gateway-to-subgraph communication.
 
 Useful links:
 
@@ -190,7 +192,8 @@ Useful links:
 
 ## Authorization
 
-Authorization is generally a cross-cutting concern that affects both the gateway and the subgraphs. In internal, back-office scenarios, you typically want to reject unauthorized requests as early as possible at the gateway, while in public scenarios you might want to let unauthorized requests reach the subgraph and only reject them there.
-In any case, it's the subgraph that will decide whether a request is authorized to access specific data or not. As only the subgraph has the full context about the data and the business rules around it, it is the only one that can make informed decisions about whether a request should be allowed or not.
+Authorization is a cross-cutting concern that involves both the gateway and the subgraphs. In internal or back-office scenarios, you usually want to reject unauthorized requests as early as possible at the gateway. In public scenarios, you may allow unauthorized requests to reach the subgraph and handle rejection there.
 
-For more on subgraph-level authorization, `@authorize`, policies, and claims in Hot Chocolate subgraphs, see [Hot Chocolate authorization](../hotchocolate/securing-your-api/authorization.md).
+The subgraph ultimately decides whether a request can access specific data. Only the subgraph has the full context about the data and its business rules, so it is best suited to make authorization decisions.
+
+For more information on subgraph-level authorization, `@authorize`, policies, and claims in Hot Chocolate subgraphs, see [Hot Chocolate authorization](../hotchocolate/securing-your-api/authorization.md).
