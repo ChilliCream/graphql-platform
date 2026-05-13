@@ -2,255 +2,313 @@
 title: "Authentication and Authorization"
 ---
 
-The mental model for auth in Fusion is straightforward: **authentication terminates at the gateway, authorization is a subgraph concern.**
+If you have configured auth in ASP.NET Core before, the Fusion gateway should feel familiar. The gateway uses the same middleware and options. The Fusion-specific part is how the gateway forwards identity to subgraphs.
 
-The gateway validates tokens, extracts identity, and forwards the relevant information to subgraphs via HTTP headers. Each subgraph then enforces access control on its own fields using its own authorization framework.
+Keep field-level authorization in the subgraph that owns the field. That keeps the rule close to the data it protects.
 
-This page walks through the gateway side of the auth chain: authentication, header propagation, and gateway-to-subgraph trust.
+## Authentication
 
-## Gateway-Level Authentication
+### Built on ASP.NET Core
 
-The gateway is the single entry point for all client requests. It is the right place to validate authentication tokens because:
+Fusion does not define its own auth configuration format. Use the same ASP.NET Core APIs in the gateway that you use for JWT bearer tokens, OAuth, cookies, multiple schemes, and JWKS rotation.
 
-- Clients only talk to the gateway. They never reach subgraphs directly.
-- Token validation happens once, not N times across N subgraphs.
-- Invalid requests are rejected before any subgraph work begins.
+That is the main difference from routers that configure JWT and JWKS in YAML. In Fusion, the auth code lives in `Program.cs`, next to the rest of your ASP.NET Core pipeline.
 
-### JWT Bearer Setup
+Useful links:
 
-The most common pattern is JWT (JSON Web Token) authentication. Configure the gateway to validate tokens against your identity provider:
+- [Authentication overview](https://learn.microsoft.com/aspnet/core/security/authentication/)
+- [Authorization overview](https://learn.microsoft.com/aspnet/core/security/authorization/introduction)
+
+### JWT bearer setup
+
+For JWT bearer auth, configure `AddJwtBearer` with your identity provider's `Authority` and `Audience`.
+
+The Fusion-specific part is the middleware order. Header propagation must run before authentication:
+
+1. `UseHeaderPropagation`
+2. `UseAuthentication`
+3. `UseAuthorization`
+
+That order lets the gateway capture the inbound `Authorization` header before the authentication middleware reads it. Fusion can then forward the same header through the named HTTP client.
 
 ```csharp
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Register header propagation
-builder.Services
-    .AddCors()
-    .AddHeaderPropagation(c =>
-    {
-        c.Headers.Add("GraphQL-Preflight");
-        c.Headers.Add("Authorization");
-    });
+builder.Services.AddHeaderPropagation(options =>
+{
+    options.Headers.Add("Authorization");
+    options.Headers.Add("GraphQL-Preflight");
+});
 
-// 2. Configure the named HTTP client for subgraph communication
 builder.Services
     .AddHttpClient("fusion")
     .AddHeaderPropagation();
 
-// 3. Set up JWT authentication
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        options.Authority = "https://your-identity-provider.com/realms/your-realm";
-        options.Audience = "graphql-api";
-        options.TokenValidationParameters = new()
-        {
-            ValidateAudience = true,
-            ValidateIssuer = true,
-            ValidateLifetime = true
-        };
+        options.Authority = "https://login.example.com/";
+        options.Audience = "https://api.example.com";
     });
 
-// 4. Set up authorization
 builder.Services.AddAuthorization();
 
-// 5. Configure the Fusion gateway
-builder
+builder.Services
     .AddGraphQLGateway()
-    .AddFileSystemConfiguration("./gateway.far");
+    .AddInMemoryConfiguration("./gateway.far");
 
 var app = builder.Build();
 
-app.UseCors(c => c.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
-
-// 6. Middleware order matters
 app.UseHeaderPropagation();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapGraphQL();
+app.MapGraphQL().RequireAuthorization();
+
 app.Run();
 ```
 
-This is standard ASP.NET Core authentication. The only Fusion-specific parts are `AddGraphQLGateway()` and the header propagation setup (covered next).
+Useful links:
 
-The numbered comments highlight the six key pieces:
+- [Configure JWT bearer authentication](https://learn.microsoft.com/aspnet/core/security/authentication/configure-jwt-bearer-authentication)
+- [ASP.NET Core middleware](https://learn.microsoft.com/aspnet/core/fundamentals/middleware/)
+- `JwtBearerOptions` reference for `Authority`, `Audience`, multi-issuer settings, and JWKS settings.
 
-1. **Header propagation registration.** Declares which headers the gateway forwards to subgraphs.
-2. **Named HTTP client `"fusion"`.** This is the client the gateway uses to call subgraphs. Adding `.AddHeaderPropagation()` to it ensures the declared headers are forwarded on every subgraph request.
-3. **JWT authentication.** Standard ASP.NET Core JWT Bearer setup. Configure `Authority` and `Audience` for your identity provider (Keycloak, Auth0, Azure AD, etc.).
-4. **Authorization.** Registers the authorization services.
-5. **Fusion gateway.** Registers the gateway with its configuration source.
-6. **Middleware order.** `UseHeaderPropagation()` must come before `UseAuthentication()` so that the `Authorization` header is captured for propagation before the auth middleware consumes it. Then `UseAuthentication()` must come before `UseAuthorization()`.
+### Anonymous and mixed access
 
-### Allowing Anonymous Access
-
-By default, ASP.NET Core does not require authentication unless you configure a fallback policy. If you want some queries to be accessible without a token (while still validating tokens when present), do not set a restrictive fallback:
+Not every graph is fully private. If the gateway should allow both anonymous and authenticated requests, set `FallbackPolicy = null` and map GraphQL without `RequireAuthorization`.
 
 ```csharp
 builder.Services.AddAuthorization(options =>
 {
-    options.FallbackPolicy = null; // Allow anonymous by default
+    options.FallbackPolicy = null;
 });
+
+app.MapGraphQL();
 ```
 
-With this configuration, unauthenticated requests pass through the gateway to subgraphs. Individual subgraph fields can then enforce their own authorization rules as needed.
+With that setup, subgraphs decide access per field. Use this for graphs with public fields, mixed public and private data, or a gradual migration from anonymous to authenticated traffic.
 
-## Header Propagation
+Useful link:
 
-Header propagation is how authentication context travels from the gateway to subgraphs. When a client sends a request with an `Authorization: Bearer <token>` header, the gateway forwards that header to each subgraph it calls during query execution.
+- [Authorization policies](https://learn.microsoft.com/aspnet/core/security/authorization/policies)
 
-### How It Works
+### Beyond JWT
 
-The setup involves two parts:
+Everything outside the Fusion wiring is standard ASP.NET Core:
 
-**1. Declare which headers to propagate:**
+- Use `AddCookie` for first-party browser clients.
+- Use `AddPolicyScheme` and `ForwardDefaultSelector` for multiple schemes or tenant-based routing.
+- Use `JwtBearerOptions` and `ConfigurationManager` for JWKS rotation, multiple issuers, and audience handling.
 
-```csharp
-builder.Services.AddHeaderPropagation(c =>
-{
-    c.Headers.Add("GraphQL-Preflight");
-    c.Headers.Add("Authorization");
-});
-```
+Useful links:
 
-This tells the header propagation middleware to capture these headers from incoming requests and make them available for outgoing requests.
+- [Cookie authentication](https://learn.microsoft.com/aspnet/core/security/authentication/cookie)
+- [Policy schemes](https://learn.microsoft.com/aspnet/core/security/authentication/policyschemes)
+- [`ConfigurationManager<T>`](https://learn.microsoft.com/dotnet/api/microsoft.identitymodel.protocols.configurationmanager-1)
 
-**2. Attach propagation to the named HTTP client:**
+### WebSocket and subscription auth
+
+Subscriptions use `graphql-ws` or `graphql-sse`. For WebSocket subscriptions, browsers cannot rely on the normal `Authorization` header during the upgrade.
+
+Send the token in the `connection_init` payload instead. Read that payload in HotChocolate's `OnConnect` hook on the gateway. Then apply the same auth rules you use for HTTP requests.
 
 ```csharp
 builder.Services
-    .AddHttpClient("fusion")
-    .AddHeaderPropagation();
+    .AddGraphQLGateway()
+    .AddSocketSessionInterceptor<JwtSocketSessionInterceptor>();
 ```
 
-The name `"fusion"` matters. This is the default named HTTP client that the Fusion gateway uses to communicate with subgraphs. The name must match the `clientName` in your subgraphs' `schema-settings.json` files (which defaults to `"fusion"` if not specified):
+```csharp
+public sealed class JwtSocketSessionInterceptor(ITokenValidator tokens)
+    : DefaultSocketSessionInterceptor
+{
+    public override async ValueTask<ConnectionStatus> OnConnectAsync(
+        ISocketSession session,
+        IOperationMessagePayload connectionInitMessage,
+        CancellationToken cancellationToken = default)
+    {
+        var payload = connectionInitMessage.As<Dictionary<string, string?>>();
+
+        if (payload is null ||
+            !payload.TryGetValue("authorization", out var header) ||
+            string.IsNullOrWhiteSpace(header))
+        {
+            return ConnectionStatus.Reject("missing token");
+        }
+
+        var token = header.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
+            ? header["Bearer ".Length..]
+            : header;
+
+        session.Connection.HttpContext.User =
+            await tokens.ValidateAsync(token, cancellationToken);
+
+        return ConnectionStatus.Accept();
+    }
+}
+
+public interface ITokenValidator
+{
+    ValueTask<ClaimsPrincipal> ValidateAsync(
+        string token,
+        CancellationToken cancellationToken);
+}
+```
+
+`ITokenValidator` is application code. Use the same validation settings you use for HTTP requests.
+
+## Forwarding identity to subgraphs
+
+### Header propagation
+
+Fusion calls subgraphs through a named HTTP client. The default client name is `"fusion"`.
+
+Use `AddHeaderPropagation` on that client. Make sure the `clientName` in each subgraph's `schema-settings.json` matches the client you configured in the gateway.
 
 ```json
 {
-  "name": "products-api",
   "transports": {
     "http": {
-      "clientName": "fusion",
-      "url": "http://localhost:5001/graphql"
+      "url": "http://products:5001/graphql",
+      "clientName": "fusion"
     }
   }
 }
 ```
 
-When the gateway makes HTTP requests to subgraphs, the `"fusion"` client automatically includes the propagated headers.
-
-### Custom Header Injection
-
-Sometimes you need to forward derived information rather than raw headers. For example, after validating a JWT token, you might want to inject the user's ID or tenant ID as custom headers:
+Forward only the headers subgraphs need. Common examples are `Authorization` and `GraphQL-Preflight`.
 
 ```csharp
-builder.Services.AddHeaderPropagation(c =>
+builder.Services.AddHeaderPropagation(options =>
 {
-    c.Headers.Add("Authorization");
-
-    // Inject custom headers derived from the authenticated user
-    c.Headers.Add("X-User-Id", context =>
-    {
-        var userId = context.HttpContext.User.FindFirst("sub")?.Value;
-        return new StringValues(userId);
-    });
-
-    c.Headers.Add("X-Tenant-Id", context =>
-    {
-        var tenantId = context.HttpContext.User.FindFirst("tenant_id")?.Value;
-        return new StringValues(tenantId);
-    });
+    options.Headers.Add("Authorization");
+    options.Headers.Add("GraphQL-Preflight");
 });
+
+builder.Services
+    .AddHttpClient("fusion")
+    .AddHeaderPropagation();
+
+// Later in the pipeline.
+app.UseHeaderPropagation();
 ```
 
-Subgraphs can then read these headers from `HttpContext`:
+### Derive headers from claims
+
+You can also derive headers from validated claims. For example, the gateway can send `X-User-Id` or `X-Tenant-Id` instead of making every subgraph parse the JWT again.
+
+Use this when you want to avoid repeated JWT work or when subgraphs should not need signing-key configuration.
+
+Treat these headers as trusted input only when the gateway-to-subgraph path is protected.
 
 ```csharp
-// In a subgraph resolver
-public static Product? GetProductById(
-    int id,
-    IHttpContextAccessor httpContextAccessor)
+public sealed class ClaimsHeaderHandler(IHttpContextAccessor httpContextAccessor)
+    : DelegatingHandler
 {
-    var tenantId = httpContextAccessor.HttpContext?.Request.Headers["X-Tenant-Id"].ToString();
-    // Use tenantId for data filtering...
+    protected override Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request,
+        CancellationToken cancellationToken)
+    {
+        var user = httpContextAccessor.HttpContext?.User;
+
+        var userId = user?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!string.IsNullOrEmpty(userId))
+        {
+            request.Headers.TryAddWithoutValidation("X-User-Id", userId);
+        }
+
+        var tenantId = user?.FindFirst("tenant_id")?.Value;
+        if (!string.IsNullOrEmpty(tenantId))
+        {
+            request.Headers.TryAddWithoutValidation("X-Tenant-Id", tenantId);
+        }
+
+        return base.SendAsync(request, cancellationToken);
+    }
 }
 ```
 
-This pattern is useful when subgraphs should not parse JWT tokens themselves but still need identity information.
-
-## Gateway-to-Subgraph Trust
-
-In a production deployment, subgraphs should not be publicly accessible. The gateway is the only service clients talk to; subgraphs are internal services.
-
-### Why This Matters
-
-If subgraphs are publicly accessible:
-
-- Clients could bypass the gateway and query subgraphs directly, skipping authentication.
-- Internal lookups (marked `[Internal]`) would be exposed. They are hidden from the composite schema but still exist as real HTTP endpoints on the subgraph.
-- Rate limiting, query complexity analysis, and other gateway-level protections are bypassed.
-
-### Network Isolation Options
-
-**Private network (recommended):** Deploy subgraphs in a private network (VPC, internal Kubernetes service, Azure VNet) that the gateway can reach but external clients cannot. This is the simplest and most secure option.
-
-**Mutual TLS (mTLS):** Configure TLS certificates on both the gateway and subgraphs so they authenticate each other. This adds transport-level security even within a private network.
-
-**Shared secret / API key:** Add a custom header (like `X-Internal-Api-Key`) via header propagation and validate it in subgraph middleware. This is simpler than mTLS but less secure:
-
 ```csharp
-// Gateway: inject a shared secret header
-builder.Services.AddHeaderPropagation(c =>
-{
-    c.Headers.Add("Authorization");
-    c.Headers.Add("X-Internal-Api-Key", _ =>
-        new StringValues("your-shared-secret"));
-});
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddTransient<ClaimsHeaderHandler>();
+
+builder.Services
+    .AddHttpClient("fusion")
+    .AddHeaderPropagation()
+    .AddHttpMessageHandler<ClaimsHeaderHandler>();
 ```
 
+## Gateway-to-subgraph trust
+
+### Keep subgraphs private
+
+Subgraphs should not be public endpoints. If clients can reach a subgraph directly, they can bypass gateway-level rate limits, complexity checks, and any gateway-derived identity headers.
+
+`[Internal]` hides fields from the composite schema. It does not remove the underlying HTTP endpoint from the subgraph.
+
+### Use a private network by default
+
+The default deployment shape is a private network: a VPC, an internal Kubernetes service, or an Azure VNet. Expose the gateway. Keep subgraphs internal.
+
+### Add mTLS for production hardening
+
+Use mTLS when subgraphs must verify that a request came from the gateway. The gateway presents a client certificate, and the subgraph validates it before accepting the request.
+
+Useful links:
+
+- [Certificate authentication](https://learn.microsoft.com/aspnet/core/security/authentication/certauth)
+- [Kestrel client certificates](https://learn.microsoft.com/aspnet/core/fundamentals/servers/kestrel/endpoints#client-certificates)
+
+Do not use a static `X-Internal-Api-Key` header as the trust boundary.
+
+## Authorization
+
+### Keep authorization in subgraphs
+
+Subgraphs own the data and the schema. They should also own the field-level authorization rules.
+
+That keeps the rule for who can see a field close to the field itself.
+
+Fusion does not provide gateway-level `@authenticated` or `@requiresScopes` directives. Put those rules in the subgraph with HotChocolate's `@authorize`.
+
 ```csharp
-// Subgraph: validate the shared secret in middleware
-app.Use(async (context, next) =>
+public sealed class ProductType : ObjectType<Product>
 {
-    var apiKey = context.Request.Headers["X-Internal-Api-Key"].ToString();
-    if (apiKey != "your-shared-secret")
+    protected override void Configure(IObjectTypeDescriptor<Product> descriptor)
     {
-        context.Response.StatusCode = 401;
-        return;
+        descriptor.Field(p => p.Price)
+            .Authorize();
+
+        descriptor.Field(p => p.WholesalePrice)
+            .Authorize(policy: "internal");
     }
-    await next();
-});
+}
 ```
 
-In practice, most teams use private networking and do not need additional subgraph-level authentication for internal traffic. Choose the approach that matches your infrastructure and security requirements.
+The tradeoff is that the gateway cannot reject every unauthorized operation before fanout. Use gateway-level authorization for coarse checks, and use subgraph authorization for field-level checks.
 
-## Subgraph Authorization
+### Return partial results on authorization failure
 
-Authorization is a subgraph concern. Since each subgraph is a standalone GraphQL server, you configure authorization using whatever framework your subgraph is built with. The gateway's role ends at forwarding identity information via headers. How subgraphs enforce access control is up to them.
+GraphQL can return partial data when authorization denies a nullable field. In that case, the denied field is `null`, and the response includes an `errors[]` entry.
 
-For subgraphs built with HotChocolate, see the [HotChocolate Authorization docs](../hotchocolate/securing-your-api/authorization.md) for a complete guide on field-level authorization, policies, and claims-based access control.
-
-### What Happens When Auth Fails Mid-Query
-
-When a query touches multiple subgraphs and authorization fails on one field, the gateway returns a **partial result**. Authorized fields resolve normally, and unauthorized fields return `null` with an error in the `errors` array:
+Make fields nullable when authorization can deny access. Use `AUTH_NOT_AUTHORIZED` for authorization failures.
 
 ```json
 {
   "data": {
-    "productById": {
-      "name": "Table",
-      "price": 899.99,
-      "costBreakdown": null
+    "product": {
+      "id": "1",
+      "wholesalePrice": null
     }
   },
   "errors": [
     {
       "message": "The current user is not authorized to access this resource.",
-      "path": ["productById", "costBreakdown"],
+      "path": ["product", "wholesalePrice"],
       "extensions": {
         "code": "AUTH_NOT_AUTHORIZED"
       }
@@ -259,60 +317,34 @@ When a query touches multiple subgraphs and authorization fails on one field, th
 }
 ```
 
-This is standard GraphQL error behavior. The unauthorized field returns `null`, and the rest of the query succeeds. Design your schema accordingly: fields that might be unauthorized should be nullable so the query can still return useful data even when some fields are denied.
+### Link to subgraph authorization
 
-### The Full Auth Middleware Chain
+For more on `@authorize`, policies, and claims in Hot Chocolate subgraphs, see [Hot Chocolate authorization](../hotchocolate/securing-your-api/authorization.md).
 
-Here is the complete middleware chain for a gateway with JWT authentication and header propagation, annotated with what each step does:
+## Pitfalls and reference
 
-```csharp filename="Gateway/Program.cs"
-var builder = WebApplication.CreateBuilder(args);
+### Full middleware chain
 
-// --- Service Registration ---
+Keep the gateway middleware in this order:
 
-// Propagate headers to subgraphs
-builder.Services
-    .AddHeaderPropagation(c =>
-    {
-        c.Headers.Add("GraphQL-Preflight");
-        c.Headers.Add("Authorization");
-    });
+```csharp
+app.UseHeaderPropagation();
+app.UseAuthentication();
+app.UseAuthorization();
 
-// Named HTTP client for subgraph communication
-builder.Services
-    .AddHttpClient("fusion")
-    .AddHeaderPropagation();
-
-// JWT token validation
-builder.Services
-    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.Authority = "https://your-idp.com/realms/your-realm";
-        options.Audience = "graphql-api";
-    });
-
-// Authorization policies
-builder.Services.AddAuthorization();
-
-// Fusion gateway
-builder
-    .AddGraphQLGateway()
-    .AddFileSystemConfiguration("./gateway.far");
-
-var app = builder.Build();
-
-// --- Middleware Pipeline (order matters!) ---
-
-app.UseHeaderPropagation();  // Capture headers for forwarding
-app.UseAuthentication();      // Validate JWT tokens
-app.UseAuthorization();       // Enforce authorization policies
-app.MapGraphQL();             // Serve the GraphQL endpoint
-app.Run();
+app.MapGraphQL().RequireAuthorization();
 ```
 
-## Next Steps
+### Common pitfalls
 
-- **"I need to set up subgraph authorization."** The [HotChocolate Authorization docs](../hotchocolate/securing-your-api/authorization.md) cover field-level authorization, policies, and claims-based access control for HotChocolate subgraphs.
-- **"I need to deploy this securely."** [Deployment & CI/CD](./deployment-and-ci-cd.md) covers production deployment patterns including network isolation and CI pipeline setup.
-- **"Something is broken."** Check the middleware order section above and ensure `UseHeaderPropagation()` appears before `UseAuthentication()` in the pipeline.
+Check these first when auth does not work:
+
+- `UseAuthentication` runs before `UseHeaderPropagation`.
+- `.AddHeaderPropagation()` is missing on the `"fusion"` client.
+- `clientName` in `schema-settings.json` does not match the gateway client.
+- `IHttpContextAccessor` is used in a static resolver but is not registered.
+
+## Next steps
+
+- [Deployment and CI/CD](./deployment-and-ci-cd.md)
+- [Hot Chocolate subgraph authorization](../hotchocolate/securing-your-api/authorization.md)
