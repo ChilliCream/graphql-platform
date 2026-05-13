@@ -202,7 +202,6 @@ const Pre = styled.pre`
   }
 
   @media only screen and (min-width: 700px) {
-    max-width: 660px;
     border-radius: var(--box-border-radius) !important;
   }
 `;
