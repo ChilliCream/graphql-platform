@@ -262,8 +262,8 @@ public class CustomFilteringConvention : FilterConvention
         descriptor.Provider(
             new QueryableFilterProvider(
                 x => x
-                    .AddDefaultFieldHandlers()
-                    .AddFieldHandler(ctx => new QueryableStringInvariantEqualsHandler(ctx.InputParser))));
+                    .AddFieldHandler(ctx => new QueryableStringInvariantEqualsHandler(ctx.InputParser))
+                    .AddDefaultFieldHandlers()));
     }
 }
 
@@ -271,6 +271,8 @@ builder
     .AddGraphQL()
     .AddFiltering<CustomFilteringConvention>();
 ```
+
+> Warning: Register custom handlers **before** `AddDefaultFieldHandlers()`. If a default handler covers the same operation (for example `eq` on strings), the one registered first wins, and your custom handler will be silently ignored.
 
 You can also use convention and provider extensions instead of creating a custom `FilterConvention`:
 
