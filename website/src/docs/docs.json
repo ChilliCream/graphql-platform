@@ -566,11 +566,7 @@
             "items": [
               {
                 "path": "index",
-                "title": "Overview"
-              },
-              {
-                "path": "resolvers",
-                "title": "Resolvers"
+                "title": "Introduction"
               },
               {
                 "path": "dependency-injection",
@@ -633,10 +629,6 @@
                 "title": "Integrations",
                 "items": [
                   {
-                    "path": "index",
-                    "title": "Overview"
-                  },
-                  {
                     "path": "entity-framework",
                     "title": "Entity Framework"
                   },
@@ -653,52 +645,6 @@
                     "title": "Extending Filtering"
                   }
                 ]
-              }
-            ]
-          },
-          {
-            "path": "guides",
-            "title": "Guides",
-            "items": [
-              {
-                "path": "public-api",
-                "title": "Building a Public API"
-              },
-              {
-                "path": "private-api",
-                "title": "Building a Private API"
-              },
-              {
-                "path": "error-handling",
-                "title": "Error Handling"
-              },
-              {
-                "path": "schema-evolution",
-                "title": "Schema Evolution"
-              },
-              {
-                "path": "testing",
-                "title": "Testing"
-              },
-              {
-                "path": "performance",
-                "title": "Performance"
-              },
-              {
-                "path": "dynamic-schemas",
-                "title": "Dynamic Schemas"
-              },
-              {
-                "path": "mcp-adapter",
-                "title": "MCP Adapter"
-              },
-              {
-                "path": "openapi-adapter",
-                "title": "OpenAPI Adapter"
-              },
-              {
-                "path": "federation",
-                "title": "Federation"
               }
             ]
           },
