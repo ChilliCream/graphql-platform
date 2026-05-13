@@ -83,6 +83,186 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
                     break;
             }
         }
+
+        RemoveSubsumedDeferConditionals(context);
+    }
+
+    /// <summary>
+    /// A field or fragment selection inside a <c>... @defer</c> is subsumed when the same
+    /// selection also appears outside of any @defer at the same level (either unconditionally,
+    /// or under @skip / @include). In that case the deferred version is redundant and removed.
+    /// </summary>
+    private static void RemoveSubsumedDeferConditionals(Context context)
+    {
+        if (context.Conditionals is null)
+        {
+            return;
+        }
+
+        List<Conditional>? deferOnlyKeys = null;
+
+        foreach (var (cond, _) in context.Conditionals)
+        {
+            if (cond.IsDeferOnly)
+            {
+                deferOnlyKeys ??= [];
+                deferOnlyKeys.Add(cond);
+            }
+        }
+
+        if (deferOnlyKeys is null)
+        {
+            return;
+        }
+
+        foreach (var deferKey in deferOnlyKeys)
+        {
+            var deferCtx = context.Conditionals[deferKey];
+
+            if (deferCtx.Fields is not null)
+            {
+                List<FieldNode>? fieldsToRemove = null;
+
+                foreach (var (_, fieldDict) in deferCtx.Fields)
+                {
+                    foreach (var (fieldNode, deferredFieldContext) in fieldDict)
+                    {
+                        if (TrySubsumeFieldIntoNonDeferSibling(
+                            context,
+                            deferKey,
+                            fieldNode,
+                            deferredFieldContext))
+                        {
+                            fieldsToRemove ??= [];
+                            fieldsToRemove.Add(fieldNode);
+                        }
+                    }
+                }
+
+                if (fieldsToRemove is not null)
+                {
+                    foreach (var f in fieldsToRemove)
+                    {
+                        deferCtx.RemoveField(f);
+                    }
+                }
+            }
+
+            if (deferCtx.Fragments is not null)
+            {
+                List<InlineFragmentNode>? fragmentsToRemove = null;
+
+                foreach (var (_, fragmentDict) in deferCtx.Fragments)
+                {
+                    foreach (var (fragmentNode, deferredFragmentContext) in fragmentDict)
+                    {
+                        if (TrySubsumeFragmentIntoNonDeferSibling(
+                            context,
+                            deferKey,
+                            fragmentNode,
+                            deferredFragmentContext))
+                        {
+                            fragmentsToRemove ??= [];
+                            fragmentsToRemove.Add(fragmentNode);
+                        }
+                    }
+                }
+
+                if (fragmentsToRemove is not null)
+                {
+                    foreach (var f in fragmentsToRemove)
+                    {
+                        deferCtx.RemoveFragment(f);
+                    }
+                }
+            }
+
+            if (IsContextEmpty(deferCtx))
+            {
+                context.Conditionals.Remove(deferKey);
+            }
+        }
+    }
+
+    private static bool TrySubsumeFieldIntoNonDeferSibling(
+        Context level,
+        Conditional deferKey,
+        FieldNode fieldNode,
+        Context? deferredFieldContext)
+    {
+        // Subsumption is only safe when the same field is selected unconditionally at
+        // this level. An unconditional selection guarantees the field is always part of
+        // the initial payload, so the deferred occurrence cannot change when the field
+        // is first delivered. A field selected under @skip / @include has a different
+        // delivery condition than a deferred occurrence, so the two cannot be merged
+        // without changing whether or when the field is delivered.
+        if (!level.HasField(fieldNode, out var unconditionalFieldContext))
+        {
+            return false;
+        }
+
+        if (deferredFieldContext is not null && unconditionalFieldContext is not null)
+        {
+            // Composite field: lift the deferred sub-selections under the unconditional
+            // field as a defer sub-conditional. The merge naturally drops any fields
+            // that already exist unconditionally there, leaving only the unique ones
+            // deferred.
+            var subDeferContext = unconditionalFieldContext.GetOrAddConditionalContext(deferKey);
+            MergeContexts(deferredFieldContext, subDeferContext);
+        }
+
+        return true;
+    }
+
+    private static bool TrySubsumeFragmentIntoNonDeferSibling(
+        Context level,
+        Conditional deferKey,
+        InlineFragmentNode fragmentNode,
+        Context deferredFragmentContext)
+    {
+        // Same rule as for fields: only subsume when the same fragment is selected
+        // unconditionally at this level.
+        if (!level.HasFragment(fragmentNode, out var subsumingFragmentContext))
+        {
+            return false;
+        }
+
+        var subDeferContext = subsumingFragmentContext.GetOrAddConditionalContext(deferKey);
+        MergeContexts(deferredFragmentContext, subDeferContext);
+
+        return true;
+    }
+
+    private static bool IsContextEmpty(Context context)
+    {
+        if (context.Fields is not null)
+        {
+            foreach (var (_, dict) in context.Fields)
+            {
+                if (dict.Count > 0)
+                {
+                    return false;
+                }
+            }
+        }
+
+        if (context.Fragments is not null)
+        {
+            foreach (var (_, dict) in context.Fragments)
+            {
+                if (dict.Count > 0)
+                {
+                    return false;
+                }
+            }
+        }
+
+        if (context.Conditionals?.Count > 0)
+        {
+            return false;
+        }
+
+        return true;
     }
 
     private void CollectField(FieldNode fieldNode, Context context)
@@ -448,10 +628,20 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
             if (directive.Name.Value.Equals(DirectiveNames.Defer.Name, StringComparison.Ordinal))
             {
                 var ifArgument = directive.Arguments
-                    .FirstOrDefault(a => a.Name.Value.Equals("if", StringComparison.Ordinal));
+                    .FirstOrDefault(a => a.Name.Value.Equals(
+                        DirectiveNames.Defer.Arguments.If,
+                        StringComparison.Ordinal));
 
                 if (ifArgument?.Value is BooleanValueNode { Value: false })
                 {
+                    continue;
+                }
+
+                if (targetLocation != Types.DirectiveLocation.Field)
+                {
+                    conditional ??= new Conditional();
+                    conditional.Defer = NormalizeDeferDirective(rewrittenDirective);
+
                     continue;
                 }
             }
@@ -519,9 +709,18 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
                     }
                 }
 
-                if (newConditional.Skip is null && newConditional.Include is null)
+                if (parentConditional.Defer is not null
+                    && newConditional.Defer?.Equals(parentConditional.Defer, SyntaxComparison.Syntax) == true)
                 {
-                    // Both of the @skip and @include in the new conditional have already
+                    // If the parent has exactly the same @defer, we can remove the new one.
+                    newConditional.Defer = null;
+                }
+
+                if (newConditional.Skip is null
+                    && newConditional.Include is null
+                    && newConditional.Defer is null)
+                {
+                    // All of the @skip, @include and @defer in the new conditional have already
                     // appeared on a parent, so we can get rid of the entire conditional.
                     newConditional = null;
                     break;
@@ -670,9 +869,11 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
         // If we only have a single selection and this selection does not have directives of its own,
         // we can push the conditional directives down on it.
         // Otherwise we return an inline fragment with all the conditional selections.
+        // @defer is only valid on fragments, so a single field cannot absorb a conditional
+        // that contains @defer.
         return conditionalSelections switch
         {
-            [FieldNode { Directives.Count: 0 } fieldNode] => fieldNode
+            [FieldNode { Directives.Count: 0 } fieldNode] when conditional.Defer is null => fieldNode
                 .WithDirectives([.. fieldNode.Directives, .. conditionalDirectives]),
             [InlineFragmentNode { Directives.Count: 0 } inlineFragmentNode] => inlineFragmentNode
                 .WithDirectives([.. inlineFragmentNode.Directives, .. conditionalDirectives]),
@@ -756,6 +957,53 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
     private static DirectiveNode RewriteDirective(DirectiveNode directive)
     {
         return new DirectiveNode(directive.Name.Value, RewriteArguments(directive.Arguments));
+    }
+
+    /// <summary>
+    /// Drops a literal <c>if: true</c> argument from a @defer directive so that
+    /// <c>@defer</c> and <c>@defer(if: true)</c> share the same identity and can be merged.
+    /// </summary>
+    private static DirectiveNode NormalizeDeferDirective(DirectiveNode deferDirective)
+    {
+        if (deferDirective.Arguments.Count == 0)
+        {
+            return deferDirective;
+        }
+
+        ArgumentNode? ifArgument = null;
+        for (var i = 0; i < deferDirective.Arguments.Count; i++)
+        {
+            var arg = deferDirective.Arguments[i];
+
+            if (arg.Name.Value.Equals(DirectiveNames.Defer.Arguments.If, StringComparison.Ordinal))
+            {
+                ifArgument = arg;
+                break;
+            }
+        }
+
+        if (ifArgument?.Value is not BooleanValueNode { Value: true })
+        {
+            return deferDirective;
+        }
+
+        if (deferDirective.Arguments.Count == 1)
+        {
+            return new DirectiveNode(DirectiveNames.Defer.Name, ImmutableArray<ArgumentNode>.Empty);
+        }
+
+        var remainingArguments = new ArgumentNode[deferDirective.Arguments.Count - 1];
+        var index = 0;
+
+        foreach (var arg in deferDirective.Arguments)
+        {
+            if (!arg.Name.Value.Equals(DirectiveNames.Defer.Arguments.If, StringComparison.Ordinal))
+            {
+                remainingArguments[index++] = arg;
+            }
+        }
+
+        return new DirectiveNode(DirectiveNames.Defer.Name, ImmutableArray.Create(remainingArguments));
     }
 
     private static IReadOnlyList<ArgumentNode> RewriteArguments(IReadOnlyList<ArgumentNode> arguments)
@@ -1048,7 +1296,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
     }
 
     /// <summary>
-    /// Holds a combination of @skip and @include.
+    /// Holds a combination of @skip, @include and @defer.
     /// </summary>
     private sealed class Conditional
     {
@@ -1057,6 +1305,10 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
         public DirectiveNode? Skip { get; set; }
 
         public DirectiveNode? Include { get; set; }
+
+        public DirectiveNode? Defer { get; set; }
+
+        public bool IsDeferOnly => Skip is null && Include is null && Defer is not null;
 
         public IEnumerable<DirectiveNode> ToDirectives()
         {
@@ -1069,6 +1321,11 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
             {
                 yield return Include;
             }
+
+            if (Defer is not null)
+            {
+                yield return Defer;
+            }
         }
 
         public override bool Equals(object? obj)
@@ -1078,35 +1335,48 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
                 return false;
             }
 
-            return s_comparer.Equals(Skip, other.Skip) && s_comparer.Equals(Include, other.Include);
+            return s_comparer.Equals(Skip, other.Skip)
+                && s_comparer.Equals(Include, other.Include)
+                && s_comparer.Equals(Defer, other.Defer);
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(GetDirectiveHashCode(Skip), GetDirectiveHashCode(Include));
+            return HashCode.Combine(
+                GetDirectiveHashCode(Skip),
+                GetDirectiveHashCode(Include),
+                GetDirectiveHashCode(Defer));
         }
 
         public override string ToString()
         {
             var skipDirective = Skip?.ToString();
             var includeDirective = Include?.ToString();
+            var deferDirective = Defer?.ToString();
 
-            if (skipDirective is not null && includeDirective is not null)
-            {
-                return $"{skipDirective} {includeDirective}";
-            }
+            var parts = new List<string>(3);
 
             if (skipDirective is not null)
             {
-                return skipDirective;
+                parts.Add(skipDirective);
             }
 
             if (includeDirective is not null)
             {
-                return includeDirective;
+                parts.Add(includeDirective);
             }
 
-            throw new InvalidOperationException();
+            if (deferDirective is not null)
+            {
+                parts.Add(deferDirective);
+            }
+
+            if (parts.Count == 0)
+            {
+                throw new InvalidOperationException();
+            }
+
+            return string.Join(" ", parts);
         }
 
         private static int GetDirectiveHashCode(DirectiveNode? node)

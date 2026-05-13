@@ -16,6 +16,7 @@ public sealed partial class OperationCompiler
     private readonly Schema _schema;
     private readonly ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>> _fieldsPool;
     private readonly OperationCompilerOptimizers _optimizers;
+    // TODO: Switch this to DocumentRewriter once it's fixed.
     private readonly InlineFragmentOperationRewriter _documentRewriter;
     private readonly InputParser _inputValueParser;
 
