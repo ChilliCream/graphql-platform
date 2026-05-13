@@ -69,10 +69,10 @@ sourceSchemas:
                   ... @skip(if: $skip) {
                     __typename
                   }
-                  title
                   ... @skip(if: $skip) {
                     viewerCanVote
                   }
+                  title
                 }
               }
             }
@@ -97,14 +97,14 @@ operationPlan:
         query testQuery($skip: Boolean!) {
           node(id: "RGlzY3Vzc2lvbjox") {
             __typename @fusion__requirement
-            ... on Discussion {
-              title
-            }
             ... @skip(if: $skip) {
-              __typename
               ... on Votable {
                 viewerCanVote
               }
+              __typename
+            }
+            ... on Discussion {
+              title
             }
           }
         }
@@ -148,10 +148,10 @@ operationPlan:
               ... @skip(if: $skip) {
                 __typename
               }
-              title
               ... @skip(if: $skip) {
                 viewerCanVote
               }
+              title
             }
           }
         }

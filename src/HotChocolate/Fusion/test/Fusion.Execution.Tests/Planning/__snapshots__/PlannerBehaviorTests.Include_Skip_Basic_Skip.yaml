@@ -4,9 +4,9 @@ operation:
         product {
           price
           price @fusion__requirement
+          skip @skip(if: $skip)
           id @fusion__requirement
           isExpensive @fusion__requirement
-          skip @skip(if: $skip)
         }
       }
     hash: 123456789101112
@@ -29,7 +29,7 @@ nodes:
     operation: |
       query Op_123456789101112_3(
         $__fusion_2_isExpensive: Boolean!
-          $__fusion_3_id: ID!
+        $__fusion_3_id: ID!
       ) {
         productById(id: $__fusion_3_id) {
           skip(isExpensive: $__fusion_2_isExpensive)

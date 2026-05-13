@@ -83,9 +83,9 @@ operationPlan:
     - document: |
         query testQuery($skip: Boolean!) {
           productBySlug(slug: "product") {
+            dimension @skip(if: $skip)
             id @fusion__requirement
             size @fusion__requirement
-            dimension @skip(if: $skip)
           }
         }
       name: testQuery

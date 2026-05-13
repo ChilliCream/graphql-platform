@@ -73,10 +73,10 @@ operationPlan:
   operation:
     - document: |
         query testQuery($skip: Boolean!) {
-          viewer {
+          productBySlug(slug: "product") @skip(if: $skip) {
             name
           }
-          productBySlug(slug: "product") @skip(if: $skip) {
+          viewer {
             name
           }
         }

@@ -16,8 +16,7 @@ public sealed partial class OperationCompiler
     private readonly Schema _schema;
     private readonly ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>> _fieldsPool;
     private readonly OperationCompilerOptimizers _optimizers;
-    // TODO: Switch this to DocumentRewriter once it's fixed.
-    private readonly InlineFragmentOperationRewriter _documentRewriter;
+    private readonly DocumentRewriter _documentRewriter;
     private readonly InputParser _inputValueParser;
 
     internal OperationCompiler(
@@ -32,7 +31,7 @@ public sealed partial class OperationCompiler
         _schema = schema;
         _inputValueParser = inputValueParser;
         _fieldsPool = fieldsPool;
-        _documentRewriter = new InlineFragmentOperationRewriter(
+        _documentRewriter = new DocumentRewriter(
             schema,
             removeStaticallyExcludedSelections: true,
             includeTypeNameToEmptySelectionSets: false);

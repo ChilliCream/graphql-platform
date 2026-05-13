@@ -89,8 +89,8 @@ operationPlan:
           productBySlug(slug: "product") {
             name
             review {
-              id @fusion__requirement
               title @skip(if: $skip)
+              id @fusion__requirement
             }
           }
         }

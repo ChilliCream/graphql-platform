@@ -195,11 +195,14 @@ operationPlan:
         query GetUser($shouldDefer: Boolean!) {
           user(id: "1") {
             name
-            id @fusion__requirement
-            reviews @skip(if: $shouldDefer) {
-              title
-              body
+            ... @skip(if: $shouldDefer) {
+              reviews {
+                title
+                body
+              }
+              id @fusion__requirement
             }
+            id @fusion__requirement
           }
         }
       name: GetUser

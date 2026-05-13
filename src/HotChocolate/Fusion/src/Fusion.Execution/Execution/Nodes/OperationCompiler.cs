@@ -42,7 +42,7 @@ public sealed class OperationCompiler
         ArgumentNullException.ThrowIfNull(operationDefinition);
 
         var document = new DocumentNode(new IDefinitionNode[] { operationDefinition });
-        document = _documentRewriter.RewriteDocument(document);
+        document = _documentRewriter.RewriteDocument(document).Document;
         operationDefinition = (OperationDefinitionNode)document.Definitions[0];
 
         var includeConditions = new IncludeConditionCollection();

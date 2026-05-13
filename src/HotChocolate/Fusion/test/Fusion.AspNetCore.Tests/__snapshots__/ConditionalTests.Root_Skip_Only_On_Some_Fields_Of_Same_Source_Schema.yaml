@@ -47,10 +47,10 @@ sourceSchemas:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query testQuery_d58c3d50_1($skip: Boolean!) {
-              viewer {
+              productBySlug(slug: "product") @skip(if: $skip) {
                 name
               }
-              productBySlug(slug: "product") @skip(if: $skip) {
+              viewer {
                 name
               }
             }
@@ -72,10 +72,10 @@ operationPlan:
   operation:
     - document: |
         query testQuery($skip: Boolean!) {
-          viewer {
+          productBySlug(slug: "product") @skip(if: $skip) {
             name
           }
-          productBySlug(slug: "product") @skip(if: $skip) {
+          viewer {
             name
           }
         }
@@ -89,10 +89,10 @@ operationPlan:
       schema: A
       operation: |
         query testQuery_d58c3d50_1($skip: Boolean!) {
-          viewer {
+          productBySlug(slug: "product") @skip(if: $skip) {
             name
           }
-          productBySlug(slug: "product") @skip(if: $skip) {
+          viewer {
             name
           }
         }

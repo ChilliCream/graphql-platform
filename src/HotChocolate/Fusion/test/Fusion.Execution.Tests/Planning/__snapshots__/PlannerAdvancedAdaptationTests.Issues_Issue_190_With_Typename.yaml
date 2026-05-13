@@ -4,10 +4,10 @@ operation:
         recommender @include(if: $included) {
           id
           results {
-            __typename
             ... on Product {
               id
             }
+            __typename
           }
           __typename
         }
@@ -24,10 +24,10 @@ nodes:
         recommender {
           id
           results {
-            __typename
             ... on Product {
               id
             }
+            __typename
           }
           __typename
         }

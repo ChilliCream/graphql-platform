@@ -273,10 +273,10 @@ operationPlan:
             }
             ... @skip(if: $skip1) {
               upvotes
-              id @fusion__requirement
               ... on Author @skip(if: $skip2) {
                 score
               }
+              id @fusion__requirement
             }
           }
         }

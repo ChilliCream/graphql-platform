@@ -193,7 +193,7 @@ public class OperationMergePolicyTests : FusionTestBase
 
         var rewriter = new Rewriters.DocumentRewriter(schema);
         var rewritten = rewriter.RewriteDocument(operationDoc, operationName: null);
-        var operation = rewritten.Definitions.OfType<OperationDefinitionNode>().First();
+        var operation = rewritten.Document.Definitions.OfType<OperationDefinitionNode>().First();
 
         var compiler = new OperationCompiler(schema, pool);
         var planner = new OperationPlanner(

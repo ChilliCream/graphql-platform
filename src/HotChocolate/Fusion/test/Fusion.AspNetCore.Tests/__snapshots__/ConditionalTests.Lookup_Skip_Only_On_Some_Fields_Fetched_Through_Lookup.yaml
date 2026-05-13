@@ -92,8 +92,8 @@ sourceSchemas:
           document: |
             query testQuery_8a7e6c10_2($skip: Boolean!, $__fusion_1_id: ID!) {
               reviewById(id: $__fusion_1_id) {
-                rating
                 title @skip(if: $skip)
+                rating
               }
             }
           variables: |
@@ -118,9 +118,9 @@ operationPlan:
           productBySlug(slug: "product") {
             name
             review {
+              title @skip(if: $skip)
               rating
               id @fusion__requirement
-              title @skip(if: $skip)
             }
           }
         }
@@ -147,8 +147,8 @@ operationPlan:
       operation: |
         query testQuery_8a7e6c10_2($skip: Boolean!, $__fusion_1_id: ID!) {
           reviewById(id: $__fusion_1_id) {
-            rating
             title @skip(if: $skip)
+            rating
           }
         }
       source: $.reviewById

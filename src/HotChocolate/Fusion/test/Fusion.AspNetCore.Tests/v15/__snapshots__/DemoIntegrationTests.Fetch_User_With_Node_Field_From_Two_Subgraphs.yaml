@@ -210,13 +210,13 @@ operationPlan:
         query FetchNode($id: ID!) {
           node(id: $id) {
             __typename @fusion__requirement
-            id @fusion__requirement
             ... on User {
               birthdate
               reviews {
                 body
               }
             }
+            id @fusion__requirement
           }
         }
       name: FetchNode

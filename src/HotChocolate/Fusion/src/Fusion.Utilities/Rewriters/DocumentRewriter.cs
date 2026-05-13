@@ -7,8 +7,13 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Rewriters;
 
-public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStaticallyExcludedSelections = false)
+public sealed class DocumentRewriter(
+    ISchemaDefinition schema,
+    bool removeStaticallyExcludedSelections = false,
+    bool includeTypeNameToEmptySelectionSets = true)
 {
+    private bool _hasIncrementalParts;
+
     private static readonly FieldNode s_typeNameField =
         new FieldNode(
             null,
@@ -18,8 +23,23 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
             ImmutableArray<ArgumentNode>.Empty,
             null);
 
-    public DocumentNode RewriteDocument(DocumentNode document, string? operationName = null)
+    /// <summary>
+    /// Rewrites a GraphQL document by normalizing conditional directives, ordering
+    /// selections by spec-mandated depth-first first-occurrence, and folding adjacent
+    /// same-key conditional/unconditional sibling pairs where safe.
+    /// </summary>
+    /// <param name="document">The GraphQL document to rewrite.</param>
+    /// <param name="operationName">
+    /// The name of the operation to rewrite. If <c>null</c>, the first or only operation in the document is used.
+    /// </param>
+    /// <returns>
+    /// A result containing the rewritten document and a flag indicating whether the document
+    /// contains <c>@defer</c> or <c>@stream</c> directives for incremental delivery.
+    /// </returns>
+    public DocumentRewriterResult RewriteDocument(DocumentNode document, string? operationName = null)
     {
+        _hasIncrementalParts = false;
+
         var operation = document.GetOperation(operationName);
         var operationType = schema.GetOperationType(operation.Operation);
         var fragmentLookup = CreateFragmentLookup(document);
@@ -38,7 +58,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
             RewriteDirectives(operation.Directives),
             newSelectionSet);
 
-        return new DocumentNode([newOperation]);
+        return new DocumentRewriterResult(new DocumentNode([newOperation]), _hasIncrementalParts);
     }
 
     private SelectionSetNode RewriteSelectionSet(
@@ -50,7 +70,8 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
 
         CollectSelections(selectionSetNode, context);
 
-        var newSelections = RewriteSelections(context) ?? [s_typeNameField];
+        var newSelections = RewriteSelections(context)
+            ?? (includeTypeNameToEmptySelectionSets ? [s_typeNameField] : (List<ISelectionNode>)[]);
 
         var newSelectionSetNode = new SelectionSetNode(newSelections);
 
@@ -60,6 +81,21 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
     #region Collecting
 
     private void CollectSelections(SelectionSetNode selectionSet, Context context)
+    {
+        CollectSelectionsCore(selectionSet, context);
+
+        RemoveSubsumedDeferConditionals(context);
+        PruneRedundantConditionalSubFields(context);
+        FoldAdjacentSameKeyConditionals(context);
+    }
+
+    /// <summary>
+    /// Iterates a selection set into <paramref name="context"/> without running the
+    /// post-collection passes. Used for inlined fragments that contribute selections to an
+    /// outer context still being collected, so the post-passes run once after all sibling
+    /// selections have been added rather than mid-iteration.
+    /// </summary>
+    private void CollectSelectionsCore(SelectionSetNode selectionSet, Context context)
     {
         foreach (var selection in selectionSet.Selections)
         {
@@ -83,8 +119,6 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
                     break;
             }
         }
-
-        RemoveSubsumedDeferConditionals(context);
     }
 
     /// <summary>
@@ -201,6 +235,19 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
             return false;
         }
 
+        // The unconditional sibling must appear before the deferred occurrence textually.
+        // If the deferred occurrence appears first, dropping it would change the response
+        // field position from inside the defer payload to the initial payload position
+        // owned by the later unconditional sibling, which is not the spec-mandated order.
+        var responseName = fieldNode.Alias?.Value ?? fieldNode.Name.Value;
+        var unconditionalSlotIndex = level.IndexOfSlot(SlotKind.Field, responseName);
+        var deferSlotIndex = level.IndexOfSlot(SlotKind.Conditional, deferKey);
+
+        if (unconditionalSlotIndex < 0 || deferSlotIndex < 0 || unconditionalSlotIndex > deferSlotIndex)
+        {
+            return false;
+        }
+
         if (deferredFieldContext is not null && unconditionalFieldContext is not null)
         {
             // Composite field: lift the deferred sub-selections under the unconditional
@@ -223,6 +270,14 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
         // Same rule as for fields: only subsume when the same fragment is selected
         // unconditionally at this level.
         if (!level.HasFragment(fragmentNode, out var subsumingFragmentContext))
+        {
+            return false;
+        }
+
+        var unconditionalSlotIndex = level.IndexOfSlot(SlotKind.Fragment, fragmentNode);
+        var deferSlotIndex = level.IndexOfSlot(SlotKind.Conditional, deferKey);
+
+        if (unconditionalSlotIndex < 0 || deferSlotIndex < 0 || unconditionalSlotIndex > deferSlotIndex)
         {
             return false;
         }
@@ -263,6 +318,525 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// When a conditional sibling at a level is wholesale-redundant (every direct selection
+    /// is already delivered by an unconditional sibling, in the same relative textual order)
+    /// the conditional is dropped entirely.
+    /// <br/>
+    /// Partial pruning is not safe: dropping individual overlapping sub-fields shifts the
+    /// remaining sub-fields' first-occurrence positions in the merged response, which
+    /// violates the depth-first first-occurrence ordering mandated by the GraphQL spec
+    /// (Section 6, Execution: <c>CollectFields</c> order is preserved through execution).
+    /// <br/>
+    /// For <c>@defer</c>-only conditionals the cover slots must additionally appear before
+    /// the defer slot. A trailing unconditional sibling at a later position cannot subsume
+    /// the deferred occurrence without changing the response field position from inside the
+    /// deferred patch to the initial payload slot.
+    /// </summary>
+    private static void PruneRedundantConditionalSubFields(Context context)
+    {
+        if (context.Conditionals is null || context.Slots is null)
+        {
+            return;
+        }
+
+        List<Conditional>? conditionalsToRemove = null;
+
+        foreach (var (conditional, conditionalContext) in context.Conditionals)
+        {
+            var coverLimit = GetCoverLimit(context, conditional);
+
+            if (IsCoveredBy(conditionalContext, context, coverLimit))
+            {
+                ClearContext(conditionalContext);
+                conditionalsToRemove ??= [];
+                conditionalsToRemove.Add(conditional);
+            }
+        }
+
+        if (conditionalsToRemove is not null)
+        {
+            foreach (var c in conditionalsToRemove)
+            {
+                context.RemoveConditionalContext(c);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Computes the exclusive upper bound for matching cover slots when wholesale-pruning a
+    /// conditional. The limit is the conditional's own slot index: covers must come from
+    /// earlier (textually preceding) siblings, otherwise dropping the conditional would shift
+    /// the first-occurrence position of its fields to a later slot, violating the spec's
+    /// depth-first first-occurrence response ordering.
+    /// </summary>
+    private static int GetCoverLimit(Context context, Conditional conditional)
+    {
+        if (context.Slots is null)
+        {
+            return 0;
+        }
+
+        for (var i = 0; i < context.Slots.Count; i++)
+        {
+            if (context.Slots[i].Kind == SlotKind.Conditional
+                && ReferenceEquals(context.Slots[i].Key, conditional))
+            {
+                return i;
+            }
+        }
+
+        return 0;
+    }
+
+    /// <summary>
+    /// Returns <c>true</c> when every direct selection in <paramref name="prune"/> is also
+    /// delivered by <paramref name="keep"/> in the same relative textual order, restricted
+    /// to keep-slots with index less than <paramref name="keepSlotLimit"/>. Composite
+    /// selections recurse with no upper bound (the position constraint only applies at the
+    /// outer level where the conditional sits).
+    /// </summary>
+    private static bool IsCoveredBy(Context prune, Context keep, int keepSlotLimit)
+    {
+        if (prune.Slots is null || prune.Slots.Count == 0)
+        {
+            return true;
+        }
+
+        if (keep.Slots is null)
+        {
+            return false;
+        }
+
+        var cap = Math.Min(keepSlotLimit, keep.Slots.Count);
+        var keepIndex = 0;
+
+        foreach (var pruneSlot in prune.Slots)
+        {
+            if (!SlotHasContent(prune, pruneSlot))
+            {
+                continue;
+            }
+
+            var matched = false;
+
+            for (var j = keepIndex; j < cap; j++)
+            {
+                if (SlotIsCovered(prune, pruneSlot, keep, keep.Slots[j]))
+                {
+                    matched = true;
+                    keepIndex = j + 1;
+                    break;
+                }
+            }
+
+            if (!matched)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool SlotHasContent(Context context, SlotKey slot)
+    {
+        switch (slot.Kind)
+        {
+            case SlotKind.Field:
+                return context.Fields is not null
+                    && context.Fields.TryGetValue((string)slot.Key, out var fieldLookup)
+                    && fieldLookup.Count > 0;
+
+            case SlotKind.Fragment:
+                var fragmentNode = (InlineFragmentNode)slot.Key;
+                var typeName = fragmentNode.TypeCondition?.Name.Value ?? string.Empty;
+                return context.Fragments is not null
+                    && context.Fragments.TryGetValue(typeName, out var fragmentLookup)
+                    && fragmentLookup.ContainsKey(fragmentNode);
+
+            case SlotKind.Conditional:
+                return context.Conditionals?.ContainsKey((Conditional)slot.Key) == true;
+
+            default:
+                return false;
+        }
+    }
+
+    private static bool SlotIsCovered(Context prune, SlotKey pruneSlot, Context keep, SlotKey keepSlot)
+    {
+        if (pruneSlot.Kind != keepSlot.Kind)
+        {
+            return false;
+        }
+
+        switch (pruneSlot.Kind)
+        {
+            case SlotKind.Field:
+                return FieldSlotIsCovered(prune, (string)pruneSlot.Key, keep, (string)keepSlot.Key);
+
+            case SlotKind.Fragment:
+                return FragmentSlotIsCovered(
+                    prune,
+                    (InlineFragmentNode)pruneSlot.Key,
+                    keep,
+                    (InlineFragmentNode)keepSlot.Key);
+
+            case SlotKind.Conditional:
+                return ReferenceEquals(pruneSlot.Key, keepSlot.Key)
+                    && prune.Conditionals is not null
+                    && keep.Conditionals is not null
+                    && prune.Conditionals.TryGetValue((Conditional)pruneSlot.Key, out var prunedNested)
+                    && keep.Conditionals.TryGetValue((Conditional)keepSlot.Key, out var keptNested)
+                    && IsCoveredBy(prunedNested, keptNested, int.MaxValue);
+
+            default:
+                return false;
+        }
+    }
+
+    private static bool FieldSlotIsCovered(Context prune, string pruneResponseName, Context keep, string keepResponseName)
+    {
+        if (!string.Equals(pruneResponseName, keepResponseName, StringComparison.Ordinal)
+            || prune.Fields is null
+            || !prune.Fields.TryGetValue(pruneResponseName, out var pruneFieldLookup)
+            || keep.Fields is null
+            || !keep.Fields.TryGetValue(keepResponseName, out var keepFieldLookup))
+        {
+            return false;
+        }
+
+        foreach (var (pruneFieldNode, pruneFieldContext) in pruneFieldLookup)
+        {
+            if (!keepFieldLookup.TryGetValue(pruneFieldNode, out var keepFieldContext))
+            {
+                return false;
+            }
+
+            if (pruneFieldNode.SelectionSet is null)
+            {
+                // Leaf: the keep side delivers the same FieldNode at the same position.
+                continue;
+            }
+
+            if (pruneFieldContext is null || keepFieldContext is null)
+            {
+                return false;
+            }
+
+            if (!IsCoveredBy(pruneFieldContext, keepFieldContext, int.MaxValue))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool FragmentSlotIsCovered(
+        Context prune,
+        InlineFragmentNode pruneFragmentNode,
+        Context keep,
+        InlineFragmentNode keepFragmentNode)
+    {
+        if (!InlineFragmentNodeComparer.Instance.Equals(pruneFragmentNode, keepFragmentNode)
+            || prune.Fragments is null
+            || keep.Fragments is null)
+        {
+            return false;
+        }
+
+        var typeName = pruneFragmentNode.TypeCondition?.Name.Value ?? string.Empty;
+
+        if (!prune.Fragments.TryGetValue(typeName, out var pruneFragmentLookup)
+            || !keep.Fragments.TryGetValue(typeName, out var keepFragmentLookup)
+            || !pruneFragmentLookup.TryGetValue(pruneFragmentNode, out var pruneFragmentContext)
+            || !keepFragmentLookup.TryGetValue(keepFragmentNode, out var keepFragmentContext))
+        {
+            return false;
+        }
+
+        return IsCoveredBy(pruneFragmentContext, keepFragmentContext, int.MaxValue);
+    }
+
+    private static void ClearContext(Context context)
+    {
+        context.Fields?.Clear();
+        context.Fragments?.Clear();
+        context.Conditionals?.Clear();
+        context.Slots?.Clear();
+    }
+
+    /// <summary>
+    /// Folds a conditional sibling whose sole content matches the immediately following
+    /// unconditional sibling into a sub-conditional of that unconditional. This is only safe
+    /// when the two slots are textually adjacent and the conditional wraps a single matching
+    /// selection: the response-name's position is then invariant under the variable and no
+    /// other slot can shift across the fold. <c>@defer</c> is not eligible because it cannot
+    /// be pushed onto a field selection.
+    /// </summary>
+    private static void FoldAdjacentSameKeyConditionals(Context context)
+    {
+        if (context.Slots is null || context.Slots.Count < 2 || context.Conditionals is null)
+        {
+            return;
+        }
+
+        for (var i = context.Slots.Count - 2; i >= 0; i--)
+        {
+            var condSlot = context.Slots[i];
+
+            if (condSlot.Kind != SlotKind.Conditional)
+            {
+                continue;
+            }
+
+            var nextSlot = context.Slots[i + 1];
+
+            if (nextSlot.Kind == SlotKind.Conditional)
+            {
+                continue;
+            }
+
+            var conditional = (Conditional)condSlot.Key;
+
+            if (conditional.IsDeferOnly || conditional.Defer is not null)
+            {
+                continue;
+            }
+
+            if (!context.Conditionals.TryGetValue(conditional, out var conditionalContext))
+            {
+                continue;
+            }
+
+            if (conditionalContext.Slots is null || conditionalContext.Slots.Count != 1)
+            {
+                continue;
+            }
+
+            var innerSlot = conditionalContext.Slots[0];
+
+            if (innerSlot.Kind != nextSlot.Kind)
+            {
+                continue;
+            }
+
+            if (innerSlot.Kind == SlotKind.Field
+                && TryFoldFieldSlot(context, conditional, conditionalContext, (string)innerSlot.Key, (string)nextSlot.Key))
+            {
+                continue;
+            }
+
+            if (innerSlot.Kind == SlotKind.Fragment
+                && TryFoldFragmentSlot(
+                    context,
+                    conditional,
+                    conditionalContext,
+                    (InlineFragmentNode)innerSlot.Key,
+                    (InlineFragmentNode)nextSlot.Key))
+            {
+                continue;
+            }
+        }
+    }
+
+    private static bool TryFoldFieldSlot(
+        Context context,
+        Conditional conditional,
+        Context conditionalContext,
+        string innerResponseName,
+        string nextResponseName)
+    {
+        if (!string.Equals(innerResponseName, nextResponseName, StringComparison.Ordinal)
+            || conditionalContext.Fields is null
+            || !conditionalContext.Fields.TryGetValue(innerResponseName, out var conditionalFieldLookup)
+            || conditionalFieldLookup.Count != 1
+            || context.Fields is null
+            || !context.Fields.TryGetValue(nextResponseName, out var unconditionalFieldLookup))
+        {
+            return false;
+        }
+
+        FieldNode? conditionalFieldNode = null;
+        Context? conditionalFieldContext = null;
+
+        foreach (var (key, value) in conditionalFieldLookup)
+        {
+            conditionalFieldNode = key;
+            conditionalFieldContext = value;
+        }
+
+        if (conditionalFieldNode is null
+            || !unconditionalFieldLookup.TryGetValue(conditionalFieldNode, out var unconditionalFieldContext))
+        {
+            return false;
+        }
+
+        if (unconditionalFieldContext is not null && conditionalFieldContext is not null)
+        {
+            // Skip the fold when the unconditional already carries the same conditional key:
+            // creating a second slot for the same key would leave two incoherent conditional
+            // entries side by side.
+            if (unconditionalFieldContext.Conditionals?.ContainsKey(conditional) == true)
+            {
+                return false;
+            }
+
+            var migratedConditional = unconditionalFieldContext.PrependConditionalContext(conditional);
+            MergeContextsDirect(conditionalFieldContext, migratedConditional);
+
+            // Migrating overlapping content creates a fresh adjacency at the inner level
+            // (e.g. a conditional `dimension { height }` placed before an unconditional
+            // `dimension { width }` inside the same parent). The natural per-level pass on
+            // the unconditional field already ran before the migration, so the cascade has
+            // to be re-triggered explicitly.
+            FoldAdjacentSameKeyConditionals(unconditionalFieldContext);
+        }
+
+        conditionalContext.RemoveField(conditionalFieldNode);
+        context.RemoveConditionalContext(conditional);
+        return true;
+    }
+
+    private static bool TryFoldFragmentSlot(
+        Context context,
+        Conditional conditional,
+        Context conditionalContext,
+        InlineFragmentNode innerFragmentNode,
+        InlineFragmentNode nextFragmentNode)
+    {
+        if (!InlineFragmentNodeComparer.Instance.Equals(innerFragmentNode, nextFragmentNode))
+        {
+            return false;
+        }
+
+        var typeName = innerFragmentNode.TypeCondition?.Name.Value ?? string.Empty;
+
+        if (conditionalContext.Fragments is null
+            || !conditionalContext.Fragments.TryGetValue(typeName, out var conditionalFragmentLookup)
+            || conditionalFragmentLookup.Count != 1
+            || context.Fragments is null
+            || !context.Fragments.TryGetValue(typeName, out var unconditionalFragmentLookup))
+        {
+            return false;
+        }
+
+        InlineFragmentNode? conditionalFragmentNode = null;
+        Context? conditionalFragmentContext = null;
+
+        foreach (var (key, value) in conditionalFragmentLookup)
+        {
+            conditionalFragmentNode = key;
+            conditionalFragmentContext = value;
+        }
+
+        if (conditionalFragmentNode is null
+            || conditionalFragmentContext is null
+            || !unconditionalFragmentLookup.TryGetValue(conditionalFragmentNode, out var unconditionalFragmentContext))
+        {
+            return false;
+        }
+
+        if (unconditionalFragmentContext.Conditionals?.ContainsKey(conditional) == true)
+        {
+            return false;
+        }
+
+        var migratedConditional = unconditionalFragmentContext.PrependConditionalContext(conditional);
+        MergeContextsDirect(conditionalFragmentContext, migratedConditional);
+        FoldAdjacentSameKeyConditionals(unconditionalFragmentContext);
+
+        conditionalContext.RemoveFragment(conditionalFragmentNode);
+        context.RemoveConditionalContext(conditional);
+        return true;
+    }
+
+    /// <summary>
+    /// Walks <paramref name="source"/> in textual slot order and copies each selection into
+    /// <paramref name="target"/> via the low-level <see cref="Context.AddField(FieldNode, Context?)"/>
+    /// / <see cref="Context.AddFragment(InlineFragmentNode, Context)"/> / <see cref="Context.GetOrAddConditionalContext"/>
+    /// methods. Unlike <see cref="MergeContexts"/> this never re-routes a selection through the
+    /// target's unconditional sibling chain: the migrated content is anchored exactly where the
+    /// fold places it, preserving textual order. Sub-contexts are shared by reference because
+    /// the source context is dropped immediately after the migration.
+    /// </summary>
+    private static void MergeContextsDirect(Context source, Context target)
+    {
+        if (source.Slots is null)
+        {
+            return;
+        }
+
+        foreach (var slot in source.Slots)
+        {
+            switch (slot.Kind)
+            {
+                case SlotKind.Field:
+                    MigrateFieldSlot(source, target, (string)slot.Key);
+                    break;
+
+                case SlotKind.Fragment:
+                    MigrateFragmentSlot(source, target, (InlineFragmentNode)slot.Key);
+                    break;
+
+                case SlotKind.Conditional:
+                    MigrateConditionalSlot(source, target, (Conditional)slot.Key);
+                    break;
+            }
+        }
+    }
+
+    private static void MigrateFieldSlot(Context source, Context target, string responseName)
+    {
+        if (source.Fields is null
+            || !source.Fields.TryGetValue(responseName, out var sourceFieldLookup))
+        {
+            return;
+        }
+
+        foreach (var (fieldNode, fieldContext) in sourceFieldLookup)
+        {
+            if (target.HasField(fieldNode, out _))
+            {
+                continue;
+            }
+
+            target.AddField(fieldNode, fieldContext);
+        }
+    }
+
+    private static void MigrateFragmentSlot(Context source, Context target, InlineFragmentNode fragmentNode)
+    {
+        var typeName = fragmentNode.TypeCondition?.Name.Value ?? string.Empty;
+
+        if (source.Fragments is null
+            || !source.Fragments.TryGetValue(typeName, out var sourceFragmentLookup)
+            || !sourceFragmentLookup.TryGetValue(fragmentNode, out var fragmentContext))
+        {
+            return;
+        }
+
+        if (target.HasFragment(fragmentNode, out _))
+        {
+            return;
+        }
+
+        target.AddFragment(fragmentNode, fragmentContext);
+    }
+
+    private static void MigrateConditionalSlot(Context source, Context target, Conditional conditional)
+    {
+        if (source.Conditionals is null
+            || !source.Conditionals.TryGetValue(conditional, out var sourceConditionalContext))
+        {
+            return;
+        }
+
+        var targetConditionalContext = target.GetOrAddConditionalContext(conditional);
+        MergeContextsDirect(sourceConditionalContext, targetConditionalContext);
     }
 
     private void CollectField(FieldNode fieldNode, Context context)
@@ -351,6 +925,8 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
         IReadOnlyList<DirectiveNode>? otherDirectives,
         Context context)
     {
+        var inlinesIntoCallerContext = conditional is null;
+
         if (conditional is not null)
         {
             if (IsStaticallySkipped(conditional, context, out conditional))
@@ -362,11 +938,14 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
             {
                 context = context.GetOrAddConditionalContext(conditional);
             }
+            else
+            {
+                inlinesIntoCallerContext = true;
+            }
         }
 
         var isTypeRefinement = !typeCondition.IsAssignableFrom(context.Type);
 
-        var fragmentContext = context;
         if (isTypeRefinement || otherDirectives is not null)
         {
             var inlineFragment = new InlineFragmentNode(
@@ -377,10 +956,23 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
                 otherDirectives ?? [],
                 selectionSet);
 
-            fragmentContext = GetOrAddContextForFragment(context, inlineFragment, typeCondition);
+            var fragmentContext = GetOrAddContextForFragment(context, inlineFragment, typeCondition);
+            CollectSelections(selectionSet, fragmentContext);
         }
-
-        CollectSelections(selectionSet, fragmentContext);
+        else if (inlinesIntoCallerContext)
+        {
+            // The fragment inlines into the same context that is still being collected.
+            // Skip the post-passes here, the outer CollectSelections will run them once after
+            // all sibling selections have been added.
+            CollectSelectionsCore(selectionSet, context);
+        }
+        else
+        {
+            // A conditional fragment with no type refinement and no other directives:
+            // the fragment's selections land in a fresh conditional sub-context that has its
+            // own post-pass requirements.
+            CollectSelections(selectionSet, context);
+        }
     }
 
     private static Context? GetOrAddContextForField(Context context, FieldNode fieldNode, ITypeDefinition? fieldType)
@@ -389,6 +981,10 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
         {
             var unconditionalContext = context.UnconditionalContext;
 
+            // The unconditional sibling was collected before this conditional occurrence
+            // (otherwise we would be in the other branch). The unconditional slot already
+            // owns the response position, so the conditional occurrence is subsumed and we
+            // hand back the unconditional field context for any deeper merging.
             if (unconditionalContext.HasField(fieldNode, out var unconditionalFieldContext))
             {
                 if (fieldNode.SelectionSet is null)
@@ -410,37 +1006,20 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
             if (!context.HasField(fieldNode, out var fieldContext))
             {
                 fieldContext = context.AddField(fieldNode, fieldType);
-
-                unconditionalContext.RecordReferenceInConditionalContext(fieldNode, context);
             }
 
             return fieldContext;
         }
         else
         {
+            // We are adding the unconditional occurrence now. If a conditional sibling added
+            // the same response name earlier (i.e. textually before this point), keep both:
+            // the runtime response order depends on the variable, so the slots cannot be
+            // folded into a single position. The conditional occurrence stays at its slot,
+            // the unconditional occurrence takes a new slot at the current position.
             if (!context.HasField(fieldNode, out var fieldContext))
             {
                 fieldContext = context.AddField(fieldNode, fieldType);
-            }
-
-            if (context.TryGetConditionalContextsWithReferences(fieldNode, out var conditionalContexts))
-            {
-                foreach (var conditionalContext in conditionalContexts)
-                {
-                    if (fieldContext is not null
-                        && conditionalContext.HasField(fieldNode, out var conditionalFieldContext)
-                        && conditionalFieldContext is not null)
-                    {
-                        var conditionalContextBelowUnconditionalField =
-                            RecreateConditionalContextHierarchy(fieldContext, conditionalContext);
-
-                        MergeContexts(conditionalFieldContext, conditionalContextBelowUnconditionalField);
-                    }
-
-                    conditionalContext.RemoveField(fieldNode);
-                }
-
-                context.RemoveReferenceToConditionalContext(fieldNode);
             }
 
             return fieldContext;
@@ -456,6 +1035,9 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
         {
             var unconditionalContext = context.UnconditionalContext;
 
+            // The unconditional sibling was collected before this conditional occurrence,
+            // so its slot owns the position. Recurse into the unconditional context for
+            // any deeper merging.
             if (unconditionalContext.HasFragment(inlineFragmentNode, out var unconditionalFragmentContext))
             {
                 var conditionalContextBelowUnconditionalFragmentContext =
@@ -467,36 +1049,18 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
             if (!context.HasFragment(inlineFragmentNode, out var fragmentContext))
             {
                 fragmentContext = context.AddFragment(inlineFragmentNode, typeCondition);
-
-                unconditionalContext.RecordReferenceInConditionalContext(inlineFragmentNode, context);
             }
 
             return fragmentContext;
         }
         else
         {
+            // Adding the unconditional occurrence. If a conditional sibling added the same
+            // fragment earlier, keep both: runtime ordering depends on the variable and
+            // the slots cannot be folded.
             if (!context.HasFragment(inlineFragmentNode, out var fragmentContext))
             {
                 fragmentContext = context.AddFragment(inlineFragmentNode, typeCondition);
-            }
-
-            if (context.TryGetConditionalContextsWithReferences(inlineFragmentNode, out var conditionalContexts))
-            {
-                foreach (var conditionalContext in conditionalContexts)
-                {
-                    if (conditionalContext.HasFragment(inlineFragmentNode,
-                        out var conditionalFragmentContext))
-                    {
-                        var conditionalContextBelowUnconditionalFragment =
-                            RecreateConditionalContextHierarchy(fragmentContext, conditionalContext);
-
-                        MergeContexts(conditionalFragmentContext, conditionalContextBelowUnconditionalFragment);
-                    }
-
-                    conditionalContext.RemoveFragment(inlineFragmentNode);
-                }
-
-                context.RemoveReferenceToConditionalContext(inlineFragmentNode);
             }
 
             return fragmentContext;
@@ -641,9 +1205,16 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
                 {
                     conditional ??= new Conditional();
                     conditional.Defer = NormalizeDeferDirective(rewrittenDirective);
+                    _hasIncrementalParts = true;
 
                     continue;
                 }
+            }
+
+            if (directive.Name.Value.Equals(DirectiveNames.Stream.Name, StringComparison.Ordinal)
+                && targetLocation == Types.DirectiveLocation.Field)
+            {
+                _hasIncrementalParts = true;
             }
 
             directives ??= [];
@@ -794,63 +1365,102 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
     {
         List<ISelectionNode>? selections = null;
 
-        if (context.Fields is not null)
+        if (context.Slots is null)
         {
-            foreach (var (_, fieldContextLookup) in context.Fields)
-            {
-                foreach (var (fieldNode, fieldContext) in fieldContextLookup)
-                {
-                    var newFieldNode = RewriteField(fieldNode, fieldContext);
-
-                    if (newFieldNode is null)
-                    {
-                        continue;
-                    }
-
-                    selections ??= [];
-                    selections.Add(newFieldNode);
-                }
-            }
+            return selections;
         }
 
-        if (context.Fragments is not null)
+        foreach (var slot in context.Slots)
         {
-            foreach (var (_, fragmentContextLookup) in context.Fragments)
+            switch (slot.Kind)
             {
-                foreach (var (inlineFragmentNode, fragmentContext) in fragmentContextLookup)
-                {
-                    var newInlineFragmentNode = RewriteInlineFragment(
-                        inlineFragmentNode,
-                        fragmentContext);
+                case SlotKind.Field:
+                    AppendFieldSlot(context, (string)slot.Key, ref selections);
+                    break;
 
-                    if (newInlineFragmentNode is null)
-                    {
-                        continue;
-                    }
+                case SlotKind.Fragment:
+                    AppendFragmentSlot(context, (InlineFragmentNode)slot.Key, ref selections);
+                    break;
 
-                    selections ??= [];
-                    selections.Add(newInlineFragmentNode);
-                }
-            }
-        }
-
-        if (context.Conditionals is not null)
-        {
-            foreach (var (conditional, conditionalContext) in context.Conditionals)
-            {
-                var conditionalSelection = RewriteConditional(conditional, conditionalContext);
-
-                if (conditionalSelection is null)
-                {
-                    continue;
-                }
-
-                selections ??= [];
-                selections.Add(conditionalSelection);
+                case SlotKind.Conditional:
+                    AppendConditionalSlot(context, (Conditional)slot.Key, ref selections);
+                    break;
             }
         }
 
         return selections;
+    }
+
+    private void AppendFieldSlot(
+        Context context,
+        string responseName,
+        ref List<ISelectionNode>? selections)
+    {
+        if (context.Fields is null
+            || !context.Fields.TryGetValue(responseName, out var fieldContextLookup))
+        {
+            return;
+        }
+
+        foreach (var (fieldNode, fieldContext) in fieldContextLookup)
+        {
+            var newFieldNode = RewriteField(fieldNode, fieldContext);
+
+            if (newFieldNode is null)
+            {
+                continue;
+            }
+
+            selections ??= [];
+            selections.Add(newFieldNode);
+        }
+    }
+
+    private void AppendFragmentSlot(
+        Context context,
+        InlineFragmentNode inlineFragmentNode,
+        ref List<ISelectionNode>? selections)
+    {
+        var typeName = inlineFragmentNode.TypeCondition?.Name.Value ?? string.Empty;
+
+        if (context.Fragments is null
+            || !context.Fragments.TryGetValue(typeName, out var fragmentContextLookup)
+            || !fragmentContextLookup.TryGetValue(inlineFragmentNode, out var fragmentContext))
+        {
+            return;
+        }
+
+        var newInlineFragmentNode = RewriteInlineFragment(inlineFragmentNode, fragmentContext);
+
+        if (newInlineFragmentNode is null)
+        {
+            return;
+        }
+
+        selections ??= [];
+        selections.Add(newInlineFragmentNode);
+    }
+
+    private void AppendConditionalSlot(
+        Context context,
+        Conditional conditional,
+        ref List<ISelectionNode>? selections)
+    {
+        if (context.Conditionals is null
+            || !context.Conditionals.TryGetValue(conditional, out var conditionalContext))
+        {
+            return;
+        }
+
+        var conditionalSelection = RewriteConditional(conditional, conditionalContext);
+
+        if (conditionalSelection is null)
+        {
+            return;
+        }
+
+        selections ??= [];
+        selections.Add(conditionalSelection);
     }
 
     private ISelectionNode? RewriteConditional(
@@ -908,7 +1518,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
                 return null;
             }
 
-            fieldSelections = [s_typeNameField];
+            fieldSelections = includeTypeNameToEmptySelectionSets ? [s_typeNameField] : [];
         }
 
         return fieldNode.WithSelectionSet(new SelectionSetNode(fieldSelections));
@@ -927,7 +1537,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
                 return null;
             }
 
-            fragmentSelections = [s_typeNameField];
+            fragmentSelections = includeTypeNameToEmptySelectionSets ? [s_typeNameField] : [];
         }
 
         return inlineFragmentNode.WithSelectionSet(new SelectionSetNode(fragmentSelections));
@@ -1007,25 +1617,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
     }
 
     private static IReadOnlyList<ArgumentNode> RewriteArguments(IReadOnlyList<ArgumentNode> arguments)
-    {
-        if (arguments.Count == 0)
-        {
-            return arguments;
-        }
-
-        if (arguments.Count == 1)
-        {
-            return ImmutableArray<ArgumentNode>.Empty.Add(arguments[0].WithLocation(null));
-        }
-
-        var buffer = new ArgumentNode[arguments.Count];
-        for (var i = 0; i < buffer.Length; i++)
-        {
-            buffer[i] = arguments[i].WithLocation(null);
-        }
-
-        return ImmutableArray.Create(buffer);
-    }
+        => arguments;
 
     #endregion
 
@@ -1070,11 +1662,6 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
         public Dictionary<Conditional, Context>? Conditionals { get; private set; }
 
         /// <summary>
-        /// Provides a way to find all conditional contexts a given selection node is referenced in.
-        /// </summary>
-        private Dictionary<ISelectionNode, List<Context>>? ReferencesInConditionalContexts { get; set; }
-
-        /// <summary>
         /// Provides a fast way to get all FieldNodes for the same response name.
         /// The key is the response name.
         /// </summary>
@@ -1086,6 +1673,13 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
         /// for an inline fragment without type refinement.
         /// </summary>
         public Dictionary<string, Dictionary<InlineFragmentNode, Context>>? Fragments { get; private set; }
+
+        /// <summary>
+        /// Records the textual order in which selections were collected so that emission
+        /// reproduces the spec-mandated depth-first first-occurrence ordering across
+        /// fields, fragments and conditional groups.
+        /// </summary>
+        public List<SlotKey>? Slots { get; private set; }
 
         public FragmentDefinitionNode GetFragmentDefinition(string name)
             => fragmentLookup[name];
@@ -1104,46 +1698,36 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
                     fragmentLookup);
 
                 Conditionals[conditional] = conditionalContext;
+
+                Slots ??= [];
+                Slots.Add(new SlotKey(SlotKind.Conditional, conditional));
             }
 
             return conditionalContext;
         }
 
         /// <summary>
-        /// Records that <paramref name="selectionNode"/> is referenced in <paramref name="conditionalContext"/>,
-        /// so we can later quickly jump there.
+        /// Creates a new conditional context for the given <paramref name="conditional"/> and
+        /// places its slot at index 0 so its content emits before any existing selections at
+        /// this level. The caller is responsible for ensuring no entry with the same key
+        /// exists yet.
         /// </summary>
-        public void RecordReferenceInConditionalContext(ISelectionNode selectionNode, Context conditionalContext)
+        public Context PrependConditionalContext(Conditional conditional)
         {
-            ReferencesInConditionalContexts ??=
-                new Dictionary<ISelectionNode, List<Context>>(SyntaxNodeComparer.Instance);
+            Conditionals ??= [];
+            Slots ??= [];
 
-            if (!ReferencesInConditionalContexts.TryGetValue(selectionNode, out var conditionalContexts))
-            {
-                conditionalContexts = [];
-                ReferencesInConditionalContexts[selectionNode] = conditionalContexts;
-            }
+            var conditionalContext = new Context(
+                this,
+                GetUnconditionalContext(),
+                Type,
+                conditional,
+                fragmentLookup);
 
-            conditionalContexts.Add(conditionalContext);
-        }
+            Conditionals[conditional] = conditionalContext;
+            Slots.Insert(0, new SlotKey(SlotKind.Conditional, conditional));
 
-        public bool TryGetConditionalContextsWithReferences(
-            ISelectionNode selectionNode,
-            [NotNullWhen(true)] out List<Context>? conditionalContexts)
-        {
-            conditionalContexts = null;
-
-            if (ReferencesInConditionalContexts is null)
-            {
-                return false;
-            }
-
-            return ReferencesInConditionalContexts.TryGetValue(selectionNode, out conditionalContexts);
-        }
-
-        public void RemoveReferenceToConditionalContext(ISelectionNode selectionNode)
-        {
-            ReferencesInConditionalContexts?.Remove(selectionNode);
+            return conditionalContext;
         }
 
         public bool HasField(FieldNode fieldNode, out Context? fieldContext)
@@ -1192,8 +1776,11 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
 
             if (!Fields.TryGetValue(responseName, out var existingFieldContextLookup))
             {
-                existingFieldContextLookup = new Dictionary<FieldNode, Context?>(FieldNodeComparer.Instance);
+                existingFieldContextLookup = new(FieldNodeComparer.Instance);
                 Fields[responseName] = existingFieldContextLookup;
+
+                Slots ??= [];
+                Slots.Add(new SlotKey(SlotKind.Field, responseName));
             }
 
             existingFieldContextLookup.Add(fieldNode, fieldContext);
@@ -1259,12 +1846,14 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
 
             if (!Fragments.TryGetValue(typeName, out var existingFragmentContextLookup))
             {
-                existingFragmentContextLookup =
-                    new Dictionary<InlineFragmentNode, Context>(InlineFragmentNodeComparer.Instance);
+                existingFragmentContextLookup = new(InlineFragmentNodeComparer.Instance);
                 Fragments[typeName] = existingFragmentContextLookup;
             }
 
             existingFragmentContextLookup.Add(inlineFragmentNode, fragmentContext);
+
+            Slots ??= [];
+            Slots.Add(new SlotKey(SlotKind.Fragment, inlineFragmentNode));
         }
 
         public void RemoveFragment(InlineFragmentNode inlineFragmentNode)
@@ -1282,6 +1871,72 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
             }
 
             existingFragmentContextLookup.Remove(inlineFragmentNode);
+        }
+
+        /// <summary>
+        /// Removes a conditional context and its slot at this level.
+        /// </summary>
+        public void RemoveConditionalContext(Conditional conditional)
+        {
+            Conditionals?.Remove(conditional);
+
+            if (Slots is null)
+            {
+                return;
+            }
+
+            for (var i = 0; i < Slots.Count; i++)
+            {
+                if (Slots[i].Kind == SlotKind.Conditional
+                    && ReferenceEquals(Slots[i].Key, conditional))
+                {
+                    Slots.RemoveAt(i);
+                    return;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns the slot index of a selection inside this context, or -1 when the
+        /// selection has no slot at this level.
+        /// </summary>
+        public int IndexOfSlot(SlotKind kind, object key)
+        {
+            if (Slots is null)
+            {
+                return -1;
+            }
+
+            for (var i = 0; i < Slots.Count; i++)
+            {
+                var slot = Slots[i];
+
+                if (slot.Kind != kind)
+                {
+                    continue;
+                }
+
+                if (kind == SlotKind.Field)
+                {
+                    if (string.Equals((string)slot.Key, (string)key, StringComparison.Ordinal))
+                    {
+                        return i;
+                    }
+                }
+                else if (kind == SlotKind.Fragment)
+                {
+                    if (InlineFragmentNodeComparer.Instance.Equals((InlineFragmentNode)slot.Key, (InlineFragmentNode)key))
+                    {
+                        return i;
+                    }
+                }
+                else if (ReferenceEquals(slot.Key, key))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
         }
 
         private Context GetUnconditionalContext()
@@ -1385,42 +2040,27 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
         }
     }
 
-    #region Comparers
-
-    private sealed class SyntaxNodeComparer : IEqualityComparer<ISyntaxNode>
+    private enum SlotKind : byte
     {
-        public bool Equals(ISyntaxNode? x, ISyntaxNode? y)
-        {
-            if (x is FieldNode xField && y is FieldNode yField)
-            {
-                return FieldNodeComparer.Instance.Equals(xField, yField);
-            }
-
-            if (x is InlineFragmentNode xFragment && y is InlineFragmentNode yFragment)
-            {
-                return InlineFragmentNodeComparer.Instance.Equals(xFragment, yFragment);
-            }
-
-            return false;
-        }
-
-        public int GetHashCode(ISyntaxNode obj)
-        {
-            if (obj is FieldNode field)
-            {
-                return FieldNodeComparer.Instance.GetHashCode(field);
-            }
-
-            if (obj is InlineFragmentNode inlineFragment)
-            {
-                return InlineFragmentNodeComparer.Instance.GetHashCode(inlineFragment);
-            }
-
-            throw new NotImplementedException();
-        }
-
-        public static SyntaxNodeComparer Instance { get; } = new();
+        Field,
+        Fragment,
+        Conditional
     }
+
+    /// <summary>
+    /// Identifies the textual position of a selection entry inside a <see cref="Context"/>.
+    /// The <see cref="Key"/> is a response name for <see cref="SlotKind.Field"/>, an
+    /// <see cref="InlineFragmentNode"/> for <see cref="SlotKind.Fragment"/>, or a
+    /// <see cref="Conditional"/> for <see cref="SlotKind.Conditional"/>.
+    /// </summary>
+    private readonly struct SlotKey(SlotKind kind, object key)
+    {
+        public SlotKind Kind { get; } = kind;
+
+        public object Key { get; } = key;
+    }
+
+    #region Comparers
 
     private sealed class InlineFragmentNodeComparer : IEqualityComparer<InlineFragmentNode>
     {
@@ -1445,7 +2085,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
                 && Equals(x.Directives, y.Directives);
         }
 
-        private bool Equals(IReadOnlyList<ISyntaxNode> a, IReadOnlyList<ISyntaxNode> b)
+        private static bool Equals(IReadOnlyList<ISyntaxNode> a, IReadOnlyList<ISyntaxNode> b)
         {
             if (a.Count == 0 && b.Count == 0)
             {
@@ -1500,7 +2140,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
                 && Equals(x.Arguments, y.Arguments);
         }
 
-        private bool Equals(IReadOnlyList<ISyntaxNode> a, IReadOnlyList<ISyntaxNode> b)
+        private static bool Equals(IReadOnlyList<ISyntaxNode> a, IReadOnlyList<ISyntaxNode> b)
         {
             if (a.Count == 0 && b.Count == 0)
             {

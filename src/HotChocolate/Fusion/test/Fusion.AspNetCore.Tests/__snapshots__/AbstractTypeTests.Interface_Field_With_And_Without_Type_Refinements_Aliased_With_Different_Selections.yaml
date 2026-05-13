@@ -262,13 +262,13 @@ operationPlan:
           abstractTypes {
             __typename @fusion__requirement
             upvotes
-            id @fusion__requirement
             ... on Discussion {
               score
             }
             ... on Author {
               someId: id
             }
+            id @fusion__requirement
           }
           b: abstractTypes {
             __typename @fusion__requirement

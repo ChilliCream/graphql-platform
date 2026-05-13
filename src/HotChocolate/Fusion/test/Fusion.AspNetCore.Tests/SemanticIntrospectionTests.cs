@@ -710,7 +710,6 @@ public class SemanticIntrospectionTests : FusionTestBase
                   {
                     "coordinate": "Product",
                     "definition": {
-                      "__typename": "__Type",
                       "name": "Product",
                       "kind": "OBJECT",
                       "fields": [
@@ -723,7 +722,8 @@ public class SemanticIntrospectionTests : FusionTestBase
                         {
                           "name": "price"
                         }
-                      ]
+                      ],
+                      "__typename": "__Type"
                     }
                   },
                   {

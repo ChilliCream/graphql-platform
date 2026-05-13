@@ -31,7 +31,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             {
               productById(id: 1) {
@@ -72,7 +72,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             {
               productById(id: 1) {
@@ -107,7 +107,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             {
               productById(id: 1) {
@@ -150,7 +150,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             {
               productById(id: 1) {
@@ -186,7 +186,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             {
               productById(id: 1) {
@@ -222,7 +222,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             {
               productById(id: 1) {
@@ -260,7 +260,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             {
               productById(id: 1) {
@@ -299,7 +299,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             {
               productById(id: 1) {
@@ -334,7 +334,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             {
               productById(id: 1) {
@@ -365,7 +365,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             {
               productById(id: 1) {
@@ -399,12 +399,12 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip: Boolean!) {
               productById(id: 1) {
-                description
                 id @skip(if: $skip)
+                description
               }
             }
             """);
@@ -439,7 +439,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip: Boolean!) {
               productById(id: 1) {
@@ -489,7 +489,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($slug: String!) {
               productBySlug(slug: $slug) {
@@ -534,7 +534,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($slug: String!) {
               productBySlug(slug: $slug) {
@@ -569,7 +569,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip: Boolean!) {
               productById(id: 1) {
@@ -601,7 +601,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip: Boolean!) {
               productBySlug(slug: "a") {
@@ -635,7 +635,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip: Boolean!) {
               productBySlug(slug: "a") {
@@ -669,12 +669,12 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip: Boolean!) {
               productBySlug(slug: "a") {
-                description
                 name @skip(if: $skip)
+                description
               }
             }
             """);
@@ -704,7 +704,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip: Boolean!) {
               productBySlug(slug: "a") {
@@ -743,13 +743,13 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip: Boolean!) {
               productBySlug(slug: "a") {
                 dimension {
-                  width
                   height @skip(if: $skip)
+                  width
                 }
               }
             }
@@ -784,7 +784,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip: Boolean!) {
               productBySlug(slug: "a") {
@@ -825,13 +825,13 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip: Boolean!) {
               productBySlug(slug: "a") {
                 dimension {
-                  width
                   height @skip(if: $skip)
+                  width
                 }
               }
             }
@@ -866,7 +866,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip: Boolean!) {
               productBySlug(slug: "a") {
@@ -900,7 +900,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip: Boolean!) {
               productBySlug(slug: "a") @skip(if: $skip) {
@@ -934,9 +934,12 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip: Boolean!) {
+              productBySlug(slug: "a") @skip(if: $skip) {
+                name
+              }
               productBySlug(slug: "a") {
                 name @skip(if: $skip)
               }
@@ -972,15 +975,15 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip: Boolean!) {
               productBySlug(slug: "a") {
+                dimension @skip(if: $skip) {
+                  height
+                }
                 dimension {
-                  ... @skip(if: $skip) {
-                    height
-                    width
-                  }
+                  width @skip(if: $skip)
                 }
               }
             }
@@ -1011,7 +1014,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip: Boolean!, $include: Boolean!) {
               productBySlug(slug: "a") {
@@ -1049,12 +1052,12 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip: Boolean!) {
               productBySlug(slug: "a") {
-                description
                 name @skip(if: $skip)
+                description
               }
             }
             """);
@@ -1088,12 +1091,12 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip: Boolean!) {
               productBySlug(slug: "a") {
-                name
                 description @skip(if: $skip)
+                name
               }
             }
             """);
@@ -1141,7 +1144,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip: Boolean!) {
               votables {
@@ -1195,7 +1198,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip: Boolean!) {
               votables {
@@ -1250,7 +1253,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip: Boolean!) {
               votables {
@@ -1308,7 +1311,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip: Boolean!) {
               votables {
@@ -1363,7 +1366,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip: Boolean!) {
               votables {
@@ -1417,7 +1420,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip1: Boolean!, $skip2: Boolean!) {
               productBySlug(slug: "a") {
@@ -1476,7 +1479,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip1: Boolean!, $skip2: Boolean!) {
               productBySlug(slug: "a") {
@@ -1522,7 +1525,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip1: Boolean!, $skip2: Boolean!) {
               productBySlug(slug: "a") {
@@ -1575,7 +1578,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip1: Boolean!, $skip2: Boolean!) {
               votables {
@@ -1636,11 +1639,10 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip1: Boolean!, $skip2: Boolean!) {
               votables {
-                voteCount
                 ... on Product @skip(if: $skip1) {
                   voteCount
                 }
@@ -1648,6 +1650,7 @@ public class DocumentRewriterTests
                   voteCount
                   viewerCanVote
                 }
+                voteCount
               }
             }
             """);
@@ -1680,7 +1683,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip: Boolean!, $include: Boolean!) {
               productBySlug(slug: "a") @skip(if: $skip) {
@@ -1721,7 +1724,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip: Boolean!, $include: Boolean!) {
               productBySlug(slug: "a") {
@@ -1785,7 +1788,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip: Boolean!) {
               productBySlug(slug: "a") {
@@ -1824,7 +1827,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip: Boolean!, $include: Boolean!) {
               productBySlug(slug: "a") @skip(if: $skip) {
@@ -1891,7 +1894,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip1: Boolean!, $skip2: Boolean!, $skip3: Boolean!) {
               productBySlug(slug: "a") {
@@ -1957,17 +1960,17 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip: Boolean!) {
               productBySlug(slug: "a") {
+                name @skip(if: $skip)
                 dimension {
                   ... @skip(if: $skip) {
                     width
                     height
                   }
                 }
-                name @skip(if: $skip)
               }
             }
             """);
@@ -2002,7 +2005,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip: Boolean!) {
               productBySlug(slug: "a") {
@@ -2040,12 +2043,12 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip: Boolean!) {
               productBySlug(slug: "a") {
-                secondaryName: name
                 primaryName: name @skip(if: $skip)
+                secondaryName: name
               }
             }
             """);
@@ -2077,10 +2080,14 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip: Boolean!) {
               productBySlug(slug: "a") {
+                ... @skip(if: $skip) {
+                  name
+                  description
+                }
                 name
                 description
               }
@@ -2119,15 +2126,15 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip: Boolean!) {
               productBySlug(slug: "a") {
                 name
+                description @skip(if: $skip)
                 dimension {
                   width
                 }
-                description @skip(if: $skip)
               }
             }
             """);
@@ -2157,7 +2164,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($include: Boolean!) {
               productBySlug(slug: "a") {
@@ -2219,20 +2226,22 @@ public class DocumentRewriterTests
         var rewriter = new DocumentRewriter(schemaDefinition);
         var rewritten = rewriter.RewriteDocument(doc);
 
-        // assert - should merge dimension fields appropriately
-        rewritten.MatchInlineSnapshot(
+        // assert
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip1: Boolean!, $skip2: Boolean!) {
               productBySlug(slug: "a") {
                 name
-                dimension {
-                  depth
-                  ... @skip(if: $skip1) {
+                ... @skip(if: $skip1) {
+                  tags
+                  dimension {
                     width
                     height @skip(if: $skip2)
                   }
                 }
-                tags @skip(if: $skip1)
+                dimension {
+                  depth
+                }
               }
             }
             """);
@@ -2279,15 +2288,15 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip: Boolean!) {
               votables {
                 ... @skip(if: $skip) {
-                  viewerCanVote
                   ... on Product {
                     voteCount
                   }
+                  viewerCanVote
                 }
               }
             }
@@ -2325,7 +2334,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip: Boolean!) {
               productBySlug(slug: "a") {
@@ -2365,7 +2374,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip: Boolean!) {
               product1: productBySlug(slug: "a") {
@@ -2436,7 +2445,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip1: Boolean!, $skip2: Boolean!) {
               productBySlug(slug: "a") {
@@ -2495,7 +2504,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($conditional: Boolean!) {
               productBySlug(slug: "a") @skip(if: $conditional) {
@@ -2544,7 +2553,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($conditional: Boolean!) {
               productBySlug(slug: "a") @include(if: $conditional) {
@@ -2580,7 +2589,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             {
               productBySlug(slug: "a") {
@@ -2619,7 +2628,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             {
               productBySlug(slug: "a") {
@@ -2658,7 +2667,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip: Boolean!) {
               productBySlug(slug: "a") {
@@ -2700,7 +2709,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip: Boolean!) {
               productBySlug(slug: "a") {
@@ -2742,7 +2751,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($include: Boolean!) {
               productBySlug(slug: "a") {
@@ -2781,7 +2790,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             {
               productBySlug(slug: "a") {
@@ -2820,7 +2829,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             {
               productBySlug(slug: "a") {
@@ -2861,7 +2870,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             {
               productBySlug(slug: "a") {
@@ -2900,7 +2909,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($a: Boolean!, $b: Boolean!) {
               productBySlug(slug: "a") {
@@ -2939,7 +2948,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             {
               productBySlug(slug: "a") {
@@ -2976,7 +2985,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             {
               productBySlug(slug: "a") {
@@ -3011,7 +3020,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             {
               productBySlug(slug: "a") {
@@ -3050,7 +3059,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             {
               productBySlug(slug: "a") {
@@ -3089,7 +3098,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             {
               productBySlug(slug: "a") {
@@ -3128,7 +3137,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             {
               productBySlug(slug: "a") {
@@ -3167,7 +3176,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             {
               productBySlug(slug: "a") {
@@ -3203,7 +3212,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             {
               productBySlug(slug: "a") {
@@ -3244,7 +3253,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             {
               productBySlug(slug: "a") {
@@ -3286,7 +3295,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             {
               productBySlug(slug: "a") {
@@ -3323,7 +3332,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip: Boolean!) {
               productBySlug(slug: "a") {
@@ -3377,7 +3386,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             {
               votables {
@@ -3430,7 +3439,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             {
               votables {
@@ -3471,7 +3480,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             {
               productBySlug(slug: "a") {
@@ -3521,7 +3530,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             {
               votables {
@@ -3558,7 +3567,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             {
               productBySlug(slug: "a") {
@@ -3593,7 +3602,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($defer: Boolean!) {
               productBySlug(slug: "a") {
@@ -3632,14 +3641,14 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             {
               productBySlug(slug: "a") {
-                description
                 ... @defer {
                   name
                 }
+                description
               }
             }
             """);
@@ -3669,7 +3678,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             {
               productBySlug(slug: "a") {
@@ -3703,7 +3712,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip: Boolean!) {
               productBySlug(slug: "a") {
@@ -3741,7 +3750,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip: Boolean!) {
               productBySlug(slug: "a") {
@@ -3780,7 +3789,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($include: Boolean!) {
               productBySlug(slug: "a") {
@@ -3824,7 +3833,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             query($skip: Boolean!) {
               productBySlug(slug: "a") {
@@ -3857,7 +3866,7 @@ public class DocumentRewriterTests
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
-        rewritten.MatchInlineSnapshot(
+        rewritten.Document.MatchInlineSnapshot(
             """
             {
               productBySlug(slug: "a") {
@@ -3867,6 +3876,1816 @@ public class DocumentRewriterTests
               }
             }
             """);
+    }
+
+    #endregion
+
+    #region Spec ordering
+
+    [Fact]
+    public void Field_Then_TypeRefinement_Then_Field_Preserves_Order()
+    {
+        // arrange
+        var schemaDefinition = SchemaParser.Parse(
+            """
+            type Query {
+              post: Post
+            }
+
+            interface Post {
+              title: String!
+              commentCount: Int!
+            }
+
+            type Article implements Post {
+              title: String!
+              commentCount: Int!
+              body: String!
+            }
+            """);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+              post {
+                title
+                ... on Article { body }
+                commentCount
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.Document.MatchInlineSnapshot(
+            """
+            {
+              post {
+                title
+                ... on Article {
+                  body
+                }
+                commentCount
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void TypeRefinement_Before_Field_Preserves_Order()
+    {
+        // arrange
+        var schemaDefinition = SchemaParser.Parse(
+            """
+            type Query {
+              post: Post
+            }
+
+            interface Post {
+              title: String!
+            }
+
+            type Article implements Post {
+              title: String!
+              body: String!
+            }
+            """);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+              post {
+                ... on Article { body }
+                title
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.Document.MatchInlineSnapshot(
+            """
+            {
+              post {
+                ... on Article {
+                  body
+                }
+                title
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Field_Between_Two_TypeRefinements_Preserves_Order()
+    {
+        // arrange
+        var schemaDefinition = SchemaParser.Parse(
+            """
+            type Query {
+              post: Post
+            }
+
+            interface Post {
+              title: String!
+            }
+
+            type Article implements Post {
+              title: String!
+              body: String!
+            }
+
+            type Photo implements Post {
+              title: String!
+              pictureUrl: String!
+            }
+            """);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+              post {
+                ... on Article { body }
+                title
+                ... on Photo { pictureUrl }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.Document.MatchInlineSnapshot(
+            """
+            {
+              post {
+                ... on Article {
+                  body
+                }
+                title
+                ... on Photo {
+                  pictureUrl
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Skip_On_Field_Before_Unconditional_Same_Field_Keeps_Both()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($skip: Boolean!) {
+              productBySlug(slug: "a") {
+                name @skip(if: $skip)
+                description
+                name
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.Document.MatchInlineSnapshot(
+            """
+            query($skip: Boolean!) {
+              productBySlug(slug: "a") {
+                name @skip(if: $skip)
+                description
+                name
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Include_On_Field_Before_Unconditional_Same_Field_Keeps_Both()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($include: Boolean!) {
+              productBySlug(slug: "a") {
+                name @include(if: $include)
+                description
+                name
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.Document.MatchInlineSnapshot(
+            """
+            query($include: Boolean!) {
+              productBySlug(slug: "a") {
+                name @include(if: $include)
+                description
+                name
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Defer_Fragment_Before_Unconditional_Same_Field_Keeps_Both()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+              productBySlug(slug: "a") {
+                ... @defer {
+                  name
+                }
+                description
+                name
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.Document.MatchInlineSnapshot(
+            """
+            {
+              productBySlug(slug: "a") {
+                ... @defer {
+                  name
+                }
+                description
+                name
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Skip_On_Composite_Before_Unconditional_Same_Field_Keeps_Both()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($skip: Boolean!) {
+              productBySlug(slug: "a") {
+                dimension @skip(if: $skip) {
+                  height
+                }
+                name
+                dimension {
+                  width
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.Document.MatchInlineSnapshot(
+            """
+            query($skip: Boolean!) {
+              productBySlug(slug: "a") {
+                dimension @skip(if: $skip) {
+                  height
+                }
+                name
+                dimension {
+                  width
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Unconditional_Field_Before_Skipped_Same_Field_Drops_Skipped()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($skip: Boolean!) {
+              productBySlug(slug: "a") {
+                name
+                name @skip(if: $skip)
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.Document.MatchInlineSnapshot(
+            """
+            query($skip: Boolean!) {
+              productBySlug(slug: "a") {
+                name
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Two_Same_Skip_Blocks_Are_Merged_Into_First_Position()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($skip: Boolean!) {
+              productBySlug(slug: "a") {
+                ... @skip(if: $skip) {
+                  name
+                }
+                description
+                ... @skip(if: $skip) {
+                  price
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.Document.MatchInlineSnapshot(
+            """
+            query($skip: Boolean!) {
+              productBySlug(slug: "a") {
+                ... @skip(if: $skip) {
+                  name
+                  price
+                }
+                description
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Aliases_Are_Distinct_Slots()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+              productBySlug(slug: "a") {
+                foo: name
+                description
+                name
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.Document.MatchInlineSnapshot(
+            """
+            {
+              productBySlug(slug: "a") {
+                foo: name
+                description
+                name
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Static_Skip_Shifts_Slots_Left()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+              productBySlug(slug: "a") {
+                name
+                description @skip(if: true)
+                price
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition, removeStaticallyExcludedSelections: true);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.Document.MatchInlineSnapshot(
+            """
+            {
+              productBySlug(slug: "a") {
+                name
+                price
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Multiple_TypeRefinements_With_Interleaved_Fields_Preserves_Order()
+    {
+        // arrange
+        var schemaDefinition = SchemaParser.Parse(
+            """
+            type Query {
+              post: Post
+            }
+
+            interface Post {
+              title: String!
+              commentCount: Int!
+            }
+
+            interface AltTextHaver {
+              altText: String!
+            }
+
+            type Video implements Post {
+              title: String!
+              commentCount: Int!
+              videoUrl: String!
+            }
+
+            type Photo implements Post & AltTextHaver {
+              title: String!
+              commentCount: Int!
+              altText: String!
+              pictureUrl: String!
+            }
+            """);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+              post {
+                title
+                ... on Video { videoUrl }
+                ... on AltTextHaver { altText }
+                ... on Photo { pictureUrl }
+                commentCount
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.Document.MatchInlineSnapshot(
+            """
+            {
+              post {
+                title
+                ... on Video {
+                  videoUrl
+                }
+                ... on AltTextHaver {
+                  altText
+                }
+                ... on Photo {
+                  pictureUrl
+                }
+                commentCount
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Skip_Before_Defer_Before_Unconditional_Same_Field_Keeps_All_Three()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($skip: Boolean!) {
+              productBySlug(slug: "a") {
+                name @skip(if: $skip)
+                ... @defer {
+                  name
+                }
+                description
+                name
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.Document.MatchInlineSnapshot(
+            """
+            query($skip: Boolean!) {
+              productBySlug(slug: "a") {
+                name @skip(if: $skip)
+                ... @defer {
+                  name
+                }
+                description
+                name
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Defer_Before_Skip_Before_Unconditional_Same_Field_Keeps_All_Three()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($skip: Boolean!) {
+              productBySlug(slug: "a") {
+                ... @defer {
+                  name
+                }
+                name @skip(if: $skip)
+                description
+                name
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.Document.MatchInlineSnapshot(
+            """
+            query($skip: Boolean!) {
+              productBySlug(slug: "a") {
+                ... @defer {
+                  name
+                }
+                name @skip(if: $skip)
+                description
+                name
+              }
+            }
+            """);
+    }
+
+    #endregion
+
+    #region Conditional composite sub-pruning
+
+    [Fact]
+    public void Conditional_Composite_Sub_Field_Owned_By_Unconditional_Is_Pruned()
+    {
+        // arrange
+        var schemaDefinition = SchemaParser.Parse(
+            """
+            type Query {
+              post: Post
+            }
+
+            type Post {
+              author: Author
+            }
+
+            type Author {
+              id: ID!
+              name: String!
+            }
+            """);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($skip: Boolean!) {
+              post {
+                ... @skip(if: $skip) {
+                  author {
+                    id
+                    name
+                  }
+                }
+                author {
+                  id
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.Document.MatchInlineSnapshot(
+            """
+            query($skip: Boolean!) {
+              post {
+                author {
+                  ... @skip(if: $skip) {
+                    id
+                    name
+                  }
+                  id
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Conditional_Composite_Sub_Field_Unique_To_Conditional_Survives()
+    {
+        // arrange
+        var schemaDefinition = SchemaParser.Parse(
+            """
+            type Query {
+              post: Post
+            }
+
+            type Post {
+              author: Author
+            }
+
+            type Author {
+              id: ID!
+              name: String!
+              email: String!
+            }
+            """);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($skip: Boolean!) {
+              post {
+                ... @skip(if: $skip) {
+                  author {
+                    id
+                    email
+                  }
+                }
+                author {
+                  id
+                  name
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.Document.MatchInlineSnapshot(
+            """
+            query($skip: Boolean!) {
+              post {
+                author {
+                  ... @skip(if: $skip) {
+                    id
+                    email
+                  }
+                  id
+                  name
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Conditional_Composite_Sub_Field_Pruned_Across_Multiple_Levels()
+    {
+        // arrange
+        var schemaDefinition = SchemaParser.Parse(
+            """
+            type Query {
+              post: Post
+            }
+
+            type Post {
+              author: Author
+            }
+
+            type Author {
+              profile: Profile
+            }
+
+            type Profile {
+              id: ID!
+              name: String!
+            }
+            """);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($skip: Boolean!) {
+              post {
+                ... @skip(if: $skip) {
+                  author {
+                    profile {
+                      id
+                      name
+                    }
+                  }
+                }
+                author {
+                  profile {
+                    id
+                  }
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.Document.MatchInlineSnapshot(
+            """
+            query($skip: Boolean!) {
+              post {
+                author {
+                  profile {
+                    ... @skip(if: $skip) {
+                      id
+                      name
+                    }
+                    id
+                  }
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Conditional_Composite_Fully_Covered_By_Unconditional_Drops_Conditional_Slot()
+    {
+        // arrange
+        var schemaDefinition = SchemaParser.Parse(
+            """
+            type Query {
+              post: Post
+            }
+
+            type Post {
+              author: Author
+            }
+
+            type Author {
+              id: ID!
+              name: String!
+            }
+            """);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($skip: Boolean!) {
+              post {
+                ... @skip(if: $skip) {
+                  author {
+                    id
+                  }
+                }
+                author {
+                  id
+                  name
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.Document.MatchInlineSnapshot(
+            """
+            query($skip: Boolean!) {
+              post {
+                author {
+                  id
+                  name
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Defer_Composite_Sub_Field_Owned_By_Unconditional_Is_Pruned()
+    {
+        // arrange
+        var schemaDefinition = SchemaParser.Parse(
+            """
+            type Query {
+              post: Post
+            }
+
+            type Post {
+              author: Author
+            }
+
+            type Author {
+              id: ID!
+              name: String!
+            }
+            """);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+              post {
+                ... @defer {
+                  author {
+                    id
+                    name
+                  }
+                }
+                author {
+                  id
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.Document.MatchInlineSnapshot(
+            """
+            {
+              post {
+                ... @defer {
+                  author {
+                    id
+                    name
+                  }
+                }
+                author {
+                  id
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Type_Refining_Conditional_Composite_Sub_Field_Owned_By_Unconditional_Is_Pruned()
+    {
+        // arrange
+        var schemaDefinition = SchemaParser.Parse(
+            """
+            type Query {
+              node: Node
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Article implements Node {
+              id: ID!
+              author: Author
+            }
+
+            type Author {
+              id: ID!
+              name: String!
+            }
+            """);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($skip: Boolean!) {
+              node {
+                ... on Article @skip(if: $skip) {
+                  author {
+                    id
+                    name
+                  }
+                }
+                ... on Article {
+                  author {
+                    id
+                  }
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.Document.MatchInlineSnapshot(
+            """
+            query($skip: Boolean!) {
+              node {
+                ... on Article {
+                  author {
+                    ... @skip(if: $skip) {
+                      id
+                      name
+                    }
+                    id
+                  }
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Conditional_Composite_Sub_Field_Pruning_Does_Not_Drop_Direct_Leaf()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($skip: Boolean!) {
+              productBySlug(slug: "a") {
+                ... @skip(if: $skip) {
+                  name
+                  dimension {
+                    width
+                    height
+                  }
+                }
+                name
+                dimension {
+                  width
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.Document.MatchInlineSnapshot(
+            """
+            query($skip: Boolean!) {
+              productBySlug(slug: "a") {
+                ... @skip(if: $skip) {
+                  name
+                  dimension {
+                    width
+                    height
+                  }
+                }
+                name
+                dimension {
+                  width
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Partial_Pruning_Of_Conditional_Subfields_Does_Not_Shift_Order()
+    {
+        // arrange
+        // GraphQL spec, Section 6 (Execution): the depth-first first-occurrence order of
+        // each field set produced by CollectFields is preserved through execution. Removing
+        // a sub-field from a conditional whose unconditional sibling sits later would shift
+        // the surviving sub-fields' positions in the merged response, which violates that
+        // order. The conservative prune drops the conditional only when it is wholesale
+        // covered; partial overlap leaves the conditional intact.
+        var schemaDefinition = SchemaParser.Parse(
+            """
+            type Query {
+              post: Post
+            }
+
+            type Post {
+              author: Author
+            }
+
+            type Author {
+              id: ID!
+              name: String!
+            }
+            """);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($skip: Boolean!) {
+              post {
+                ... @skip(if: $skip) {
+                  author {
+                    id
+                    name
+                  }
+                }
+                author {
+                  id
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        // skip=false runtime: author@0; inside author the depth-first first occurrence
+        // gives id@0 (from the conditional), name@1, then second author merges (id already).
+        // skip=true runtime: only the unconditional sibling contributes, giving author{id}.
+        // The folded output below preserves both orders: with skip=false the @skip block
+        // delivers id, name in that order, then the trailing unconditional `id` is already
+        // at slot 0; with skip=true the inline fragment is dropped, leaving `id` at slot 0.
+        rewritten.Document.MatchInlineSnapshot(
+            """
+            query($skip: Boolean!) {
+              post {
+                author {
+                  ... @skip(if: $skip) {
+                    id
+                    name
+                  }
+                  id
+                }
+              }
+            }
+            """);
+    }
+
+    #endregion
+
+    #region Adjacent same-key fold
+
+    [Fact]
+    public void Conditional_Adjacent_To_Unconditional_Folds()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($skip: Boolean!) {
+              productBySlug(slug: "a") @skip(if: $skip) {
+                name
+              }
+              productBySlug(slug: "a") {
+                description
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.Document.MatchInlineSnapshot(
+            """
+            query($skip: Boolean!) {
+              productBySlug(slug: "a") {
+                name @skip(if: $skip)
+                description
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Conditional_With_Other_Slot_Between_Unconditional_Does_NOT_Fold()
+    {
+        // arrange
+        var schemaDefinition = SchemaParser.Parse(
+            """
+            type Query {
+              post: Post
+              extra: String
+            }
+
+            type Post {
+              title: String
+              body: String
+            }
+            """);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($skip: Boolean!) {
+              post @skip(if: $skip) {
+                title
+              }
+              extra
+              post {
+                body
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.Document.MatchInlineSnapshot(
+            """
+            query($skip: Boolean!) {
+              post @skip(if: $skip) {
+                title
+              }
+              extra
+              post {
+                body
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Conditional_With_Multiple_Slots_Does_NOT_Fold()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($skip: Boolean!) {
+              ... @skip(if: $skip) {
+                productBySlug(slug: "a") {
+                  name
+                }
+                viewer {
+                  displayName
+                }
+              }
+              productBySlug(slug: "a") {
+                description
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.Document.MatchInlineSnapshot(
+            """
+            query($skip: Boolean!) {
+              ... @skip(if: $skip) {
+                productBySlug(slug: "a") {
+                  name
+                }
+                viewer {
+                  displayName
+                }
+              }
+              productBySlug(slug: "a") {
+                description
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Defer_Adjacent_To_Unconditional_Does_NOT_Fold_Via_New_Rule()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+              productBySlug(slug: "a") {
+                ... @defer {
+                  name
+                }
+                description
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.Document.MatchInlineSnapshot(
+            """
+            {
+              productBySlug(slug: "a") {
+                ... @defer {
+                  name
+                }
+                description
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Skip_And_Defer_Combined_Adjacent_To_Unconditional_Does_NOT_Fold()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($skip: Boolean!) {
+              productBySlug(slug: "a") {
+                ... @skip(if: $skip) @defer {
+                  name
+                }
+                description
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.Document.MatchInlineSnapshot(
+            """
+            query($skip: Boolean!) {
+              productBySlug(slug: "a") {
+                ... @skip(if: $skip) @defer {
+                  name
+                }
+                description
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Three_Level_Adjacent_Fold_Cascades()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($skip: Boolean!) {
+              productBySlug(slug: "a") {
+                dimension @skip(if: $skip) {
+                  height
+                }
+                dimension {
+                  width
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.Document.MatchInlineSnapshot(
+            """
+            query($skip: Boolean!) {
+              productBySlug(slug: "a") {
+                dimension {
+                  height @skip(if: $skip)
+                  width
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Type_Refinement_Conditional_Adjacent_To_Type_Refinement_Unconditional_Folds()
+    {
+        // arrange
+        var schemaDefinition = SchemaParser.Parse(
+            """
+            type Query {
+              node: Node
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Article implements Node {
+              id: ID!
+              body: String!
+              title: String!
+            }
+            """);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($skip: Boolean!) {
+              node {
+                ... on Article @skip(if: $skip) {
+                  body
+                }
+                ... on Article {
+                  title
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.Document.MatchInlineSnapshot(
+            """
+            query($skip: Boolean!) {
+              node {
+                ... on Article {
+                  body @skip(if: $skip)
+                  title
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Type_Refinement_Conditional_With_Other_Slot_Between_Does_NOT_Fold()
+    {
+        // arrange
+        var schemaDefinition = SchemaParser.Parse(
+            """
+            type Query {
+              node: Node
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Article implements Node {
+              id: ID!
+              body: String!
+              title: String!
+            }
+            """);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($skip: Boolean!) {
+              node {
+                ... on Article @skip(if: $skip) {
+                  body
+                }
+                id
+                ... on Article {
+                  title
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.Document.MatchInlineSnapshot(
+            """
+            query($skip: Boolean!) {
+              node {
+                ... on Article @skip(if: $skip) {
+                  body
+                }
+                id
+                ... on Article {
+                  title
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Parent_Conditional_Composite_With_Inner_Overlap_Folds_Cascading()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($skip: Boolean!) {
+              productBySlug(slug: "a") @skip(if: $skip) {
+                dimension {
+                  height
+                }
+              }
+              productBySlug(slug: "a") {
+                dimension {
+                  width
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.Document.MatchInlineSnapshot(
+            """
+            query($skip: Boolean!) {
+              productBySlug(slug: "a") {
+                dimension {
+                  height @skip(if: $skip)
+                  width
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Parent_Conditional_Composite_With_Two_Level_Inner_Overlap_Folds_Cascading()
+    {
+        // arrange
+        var schemaDefinition = SchemaParser.Parse(
+            """
+            type Query {
+              post: Post
+            }
+
+            type Post {
+              author: Author
+            }
+
+            type Author {
+              id: ID!
+              name: String!
+            }
+            """);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($skip: Boolean!) {
+              ... @skip(if: $skip) {
+                post {
+                  author {
+                    name
+                  }
+                }
+              }
+              post {
+                author {
+                  id
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.Document.MatchInlineSnapshot(
+            """
+            query($skip: Boolean!) {
+              post {
+                author {
+                  name @skip(if: $skip)
+                  id
+                }
+              }
+            }
+            """);
+    }
+
+    #endregion
+
+    #region HasIncrementalParts
+
+    [Fact]
+    public void HasIncrementalParts_Is_False_Without_Directives()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+              productById(id: 1) {
+                id
+                name
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var result = rewriter.RewriteDocument(doc);
+
+        // assert
+        Assert.False(result.HasIncrementalParts);
+    }
+
+    [Fact]
+    public void HasIncrementalParts_Is_True_For_Defer_On_Inline_Fragment()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+              productById(id: 1) {
+                id
+                ... @defer {
+                  name
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var result = rewriter.RewriteDocument(doc);
+
+        // assert
+        Assert.True(result.HasIncrementalParts);
+    }
+
+    [Fact]
+    public void HasIncrementalParts_Is_True_For_Defer_On_Fragment_Spread()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+              productById(id: 1) {
+                id
+                ... Product @defer
+              }
+            }
+
+            fragment Product on Product {
+              name
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var result = rewriter.RewriteDocument(doc);
+
+        // assert
+        Assert.True(result.HasIncrementalParts);
+    }
+
+    [Fact]
+    public void HasIncrementalParts_Is_False_For_Defer_If_False()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+              productById(id: 1) {
+                id
+                ... @defer(if: false) {
+                  name
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var result = rewriter.RewriteDocument(doc);
+
+        // assert
+        Assert.False(result.HasIncrementalParts);
+    }
+
+    [Fact]
+    public void HasIncrementalParts_Is_True_For_Defer_If_True()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+              productById(id: 1) {
+                id
+                ... @defer(if: true) {
+                  name
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var result = rewriter.RewriteDocument(doc);
+
+        // assert
+        Assert.True(result.HasIncrementalParts);
+    }
+
+    [Fact]
+    public void HasIncrementalParts_Is_True_For_Defer_If_Variable()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($defer: Boolean!) {
+              productById(id: 1) {
+                id
+                ... @defer(if: $defer) {
+                  name
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var result = rewriter.RewriteDocument(doc);
+
+        // assert
+        Assert.True(result.HasIncrementalParts);
+    }
+
+    [Fact]
+    public void HasIncrementalParts_Is_True_For_Stream_On_Field()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+              productById(id: 1) {
+                id
+                reviews @stream {
+                  nodes {
+                    body
+                  }
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var result = rewriter.RewriteDocument(doc);
+
+        // assert
+        Assert.True(result.HasIncrementalParts);
+    }
+
+    [Fact]
+    public void HasIncrementalParts_Is_True_For_Defer_And_Stream_Together()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+              productById(id: 1) {
+                id
+                ... @defer {
+                  name
+                }
+                reviews @stream {
+                  nodes {
+                    body
+                  }
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var result = rewriter.RewriteDocument(doc);
+
+        // assert
+        Assert.True(result.HasIncrementalParts);
+    }
+
+    [Fact]
+    public void HasIncrementalParts_Is_False_For_Skip_And_Include_Only()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($skip: Boolean!, $include: Boolean!) {
+              productById(id: 1) {
+                id
+                name @skip(if: $skip)
+                description @include(if: $include)
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var result = rewriter.RewriteDocument(doc);
+
+        // assert
+        Assert.False(result.HasIncrementalParts);
     }
 
     #endregion

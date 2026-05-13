@@ -505,7 +505,7 @@ public abstract class FusionTestBase : IDisposable
 
         var rewriter = new DocumentRewriter(schema);
         var rewritten = rewriter.RewriteDocument(operationDoc, operationName: null);
-        var operation = rewritten.Definitions.OfType<OperationDefinitionNode>().First();
+        var operation = rewritten.Document.Definitions.OfType<OperationDefinitionNode>().First();
 
         var compiler = new OperationCompiler(schema, pool);
         var planner = options is null

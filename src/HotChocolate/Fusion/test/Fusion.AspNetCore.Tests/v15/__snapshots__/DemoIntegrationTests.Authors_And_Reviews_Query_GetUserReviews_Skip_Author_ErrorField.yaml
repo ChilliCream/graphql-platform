@@ -460,8 +460,8 @@ operationPlan:
               author {
                 name
                 birthdate
-                id @fusion__requirement
                 errorField @skip(if: $skip)
+                id @fusion__requirement
               }
             }
             id @fusion__requirement
