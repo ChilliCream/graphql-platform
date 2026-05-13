@@ -20,7 +20,7 @@ app.MapGraphQL();
 return await app.RunWithGraphQLCommandsAsync(args);
 ```
 
-In v16, `RunWithGraphQLCommandsAsync` returns a `Task<int>` (and the synchronous `RunWithGraphQLCommands` returns `int`). Return this exit code from your `Program.cs` so that command failures signal an error to shell scripts, CI/CD pipelines, and other tools.
+`RunWithGraphQLCommandsAsync` returns a `Task<int>` (and the synchronous `RunWithGraphQLCommands` returns `int`). Return this exit code from your `Program.cs` so that command failures signal an error to shell scripts, CI/CD pipelines, and other tools.
 
 # Commands
 
@@ -36,7 +36,7 @@ dotnet run -- schema export --output schema.graphql
 
 - `--output`: The path to the file where the schema is exported. If no output path is specified, the schema prints to the console.
 - `--schema-name`: The name of the schema to export. If no schema name is specified, the default schema is exported.
-- `--semantic-non-null`: Rewrites the exported schema to strip non-null wrappers from output fields and apply the `@semanticNonNull` directive instead. Useful for clients that still rely on `@semanticNonNull` annotations after the experimental support was removed in v16.
+- `--semantic-non-null`: Rewrites the exported schema to strip non-null wrappers from output fields and apply the `@semanticNonNull` directive instead. Useful for clients that still rely on `@semanticNonNull` annotations.
 
 # Next Steps
 

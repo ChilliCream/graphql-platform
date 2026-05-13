@@ -86,7 +86,7 @@ In code-first, the `Description()` method takes precedence over all other forms 
 
 # Using XML Documentation Comments
 
-Hot Chocolate can generate descriptions from standard C# XML documentation comments. This lets you maintain a single source of documentation for both your C# code and GraphQL schema.
+Hot Chocolate generates descriptions from standard C# XML documentation comments. The source generator extracts them at build time, so your C# code is the single source of documentation for both your code and GraphQL schema.
 
 ```csharp
 /// <summary>
@@ -128,9 +128,59 @@ public static partial class UserQueries
 }
 ```
 
-## Enabling XML Documentation
+## Source Generator (Default)
 
-To make XML docs available at runtime, enable `GenerateDocumentationFile` in your `.csproj`:
+Hot Chocolate's source generator extracts XML documentation comments directly from the source code during compilation. This is the default behavior, no additional project configuration is required.
+
+The source generator reads `<summary>`, `<param>`, `<returns>`, and `<exception>` tags and embeds the extracted text into the generated type configuration. Because this happens at build time, you do not need to ship XML documentation files with your application.
+
+### Supported Tags
+
+| Tag                                 | Usage                                                                |
+| ----------------------------------- | -------------------------------------------------------------------- |
+| `<summary>`                         | Sets the description of the type, field, or enum value.              |
+| `<param name="...">`                | Sets the description of a field argument.                            |
+| `<returns>`                         | Appended to the field description under a **Returns** heading.       |
+| `<exception cref="..." code="...">` | Appended under an **Errors** heading. Requires the `code` attribute. |
+| `<inheritdoc />`                    | Resolves documentation from a base class or interface.               |
+| `<inheritdoc cref="..." />`         | Resolves documentation from a specific member.                       |
+
+### Example with Returns and Errors
+
+```csharp
+[QueryType]
+public static partial class UserQueries
+{
+    /// <summary>
+    /// Finds a user by their unique username.
+    /// </summary>
+    /// <param name="username">The username to search for.</param>
+    /// <returns>The matching user, or null if not found.</returns>
+    /// <exception cref="Exception" code="NOT_AUTHORIZED">
+    /// The caller does not have permission to search users.
+    /// </exception>
+    public static User? GetUser(string username, UserService users)
+        => users.FindByName(username);
+}
+```
+
+This produces a field description that includes the summary, a **Returns** section, and an **Errors** section.
+
+### Disabling Source Generator Documentation
+
+To prevent the source generator from extracting XML documentation, add the `Module` attribute with the `DisableXmlDocumentation` option:
+
+```csharp
+using HotChocolate;
+
+[assembly: Module("MyModule", ModuleOptions.Default | ModuleOptions.DisableXmlDocumentation)]
+```
+
+When `DisableXmlDocumentation` is set, `[GraphQLDescription]` attributes continue to work. Only the automatic extraction of XML comments is suppressed.
+
+## Runtime XML Documentation
+
+If you are not using the source generator or need XML documentation from referenced assemblies outside the source generator's scope, Hot Chocolate can read XML documentation files at runtime. Enable `GenerateDocumentationFile` in your `.csproj`:
 
 ```xml
 <PropertyGroup>
@@ -141,9 +191,9 @@ To make XML docs available at runtime, enable `GenerateDocumentationFile` in you
 
 The `<NoWarn>` element is optional. It suppresses compiler warnings for types without documentation comments.
 
-## Disabling XML Documentation
+### Disabling Runtime XML Documentation
 
-If you do not want XML comments to appear in the schema:
+If you do not want runtime XML comments to appear in the schema:
 
 ```csharp
 builder
@@ -161,7 +211,7 @@ When both `[GraphQLDescription]` and XML documentation are present, they follow 
 
 # Custom Naming Conventions
 
-If you use a custom naming convention and XML documentation, pass an `XmlDocumentationProvider` to the convention so descriptions are preserved:
+If you use a custom naming convention and runtime XML documentation, pass an `XmlDocumentationProvider` to the convention so descriptions are preserved. This does not apply when using the source generator, which handles documentation extraction at build time.
 
 ```csharp
 public class CustomNamingConventions : DefaultNamingConventions

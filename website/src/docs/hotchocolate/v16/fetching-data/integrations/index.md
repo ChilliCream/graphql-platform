@@ -1,6 +1,6 @@
 ---
 title: Executable
-description: Learn how to use the IExecutable interface to abstract data sources in Hot Chocolate v16.
+description: Learn how to use the IExecutable interface to abstract data sources in Hot Chocolate.
 ---
 
 The `IExecutable` and `IExecutable<T>` interfaces abstract data sources in Hot Chocolate. Your data or domain layer can wrap a data source in an executable and pass it to the GraphQL layer. A resolver that returns `IExecutable<T>` is recognized as a list.
@@ -115,6 +115,6 @@ public class EntityFrameworkExecutable<T> : QueryableExecutable<T>
 
 # Next Steps
 
-- [Entity Framework integration](/docs/hotchocolate/v16/fetching-data/entity-framework) for EF Core executables
-- [MongoDB integration](/docs/hotchocolate/v16/fetching-data/mongodb) for MongoDB executables
+- [Entity Framework integration](/docs/hotchocolate/v16/fetching-data/integrations/entity-framework) for EF Core executables
+- [MongoDB integration](/docs/hotchocolate/v16/fetching-data/integrations/mongodb) for MongoDB executables
 - [Filtering](/docs/hotchocolate/v16/fetching-data/filtering) for applying filters to executables

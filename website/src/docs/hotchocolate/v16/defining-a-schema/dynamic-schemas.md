@@ -219,6 +219,6 @@ builder
 
 # Next Steps
 
-- **Need to extend existing types?** See [Extending Types](/docs/hotchocolate/v16/defining-a-schema/extending-types).
+- **Need to extend existing types?** See [Extending Types](/docs/hotchocolate/v16/defining-a-schema/object-types).
 - **Need to define types with the descriptor API?** See [Object Types](/docs/hotchocolate/v16/defining-a-schema/object-types).
 - **Need to understand type modules in depth?** Explore the `ITypeModule` interface in the Hot Chocolate source code under `src/HotChocolate/Core/src/Types/`.

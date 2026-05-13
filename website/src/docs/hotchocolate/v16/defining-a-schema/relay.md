@@ -42,7 +42,7 @@ public class OrderItem
 }
 ```
 
-In v16, the generic `[ID<Product>]` form infers the GraphQL type name from the type argument. You can also use `[ID("Product")]` to specify it as a string.
+The generic `[ID<Product>]` form infers the GraphQL type name from the type argument. You can also use `[ID("Product")]` to specify it as a string.
 
 </Implementation>
 <Code>
@@ -288,7 +288,7 @@ descriptor
 </Code>
 </ExampleTabs>
 
-Node resolvers are ideal places to use [DataLoaders](/docs/hotchocolate/v16/fetching-data/dataloader) for efficient batched fetching.
+Node resolvers are ideal places to use [DataLoaders](/docs/hotchocolate/v16/fetching-data/batching/dataloader) for efficient batched fetching.
 
 ## Node with Type Extensions
 
@@ -338,7 +338,7 @@ builder
     .AddGlobalObjectIdentification();
 ```
 
-In v16, the source generator can produce a `NodeIdValueSerializer` for your custom ID type, reducing the need for manual converter registration.
+The source generator can produce a `NodeIdValueSerializer` for your custom ID type, reducing the need for manual converter registration.
 
 # Query Field in Mutation Payloads
 
@@ -365,7 +365,7 @@ builder
 
 # Next Steps
 
-- **Need to fetch data efficiently?** See [DataLoader](/docs/hotchocolate/v16/fetching-data/dataloader).
+- **Need to fetch data efficiently?** See [DataLoader](/docs/hotchocolate/v16/fetching-data/batching/dataloader).
 - **Need pagination?** See [Pagination](/docs/hotchocolate/v16/fetching-data/pagination).
 - **Need to understand ID types?** See [Scalars](/docs/hotchocolate/v16/defining-a-schema/scalars).
-- **Need to extend types?** See [Extending Types](/docs/hotchocolate/v16/defining-a-schema/extending-types).
+- **Need to extend types?** See [Extending Types](/docs/hotchocolate/v16/defining-a-schema/object-types).

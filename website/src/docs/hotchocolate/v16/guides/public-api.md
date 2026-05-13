@@ -280,7 +280,7 @@ Rate limiting and cost analysis complement each other. Rate limiting caps the nu
 
 Request batching allows a client to send multiple GraphQL operations in a single HTTP request. For internal APIs where you trust the client, this can improve performance. For public APIs, batching lets a client bypass your per-request rate limits by packing many expensive operations into one request.
 
-In Hot Chocolate v16, request batching is disabled by default. If you have explicitly enabled it, disable it for your public API:
+In Hot Chocolate, request batching is disabled by default. If you have explicitly enabled it, disable it for your public API:
 
 ```csharp
 builder

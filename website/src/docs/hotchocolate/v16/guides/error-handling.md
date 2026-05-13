@@ -529,5 +529,5 @@ public class UserByEmailResultType : UnionType
 # Next Steps
 
 - **Need mutation conventions?** See [Mutations](/docs/hotchocolate/v16/defining-a-schema/mutations) for the full pattern including inputs, payloads, and naming customization.
-- **Need to build a schema?** See [Schema Basics](/docs/hotchocolate/v16/defining-a-schema/schema-basics) for an overview of how types, queries, and mutations fit together.
-- **Need to fetch data?** See [DataLoader](/docs/hotchocolate/v16/fetching-data/dataloader) for efficient data fetching patterns.
+- **Need to build a schema?** See [Schema Basics](/docs/hotchocolate/v16/defining-a-schema) for an overview of how types, queries, and mutations fit together.
+- **Need to fetch data?** See [DataLoader](/docs/hotchocolate/v16/fetching-data/batching/dataloader) for efficient data fetching patterns.

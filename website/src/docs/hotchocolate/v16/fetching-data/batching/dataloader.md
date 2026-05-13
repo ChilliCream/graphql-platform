@@ -4,7 +4,7 @@ title: "DataLoader"
 
 DataLoaders solve the N+1 problem in GraphQL. When the execution engine resolves a list of objects and each object needs related data, a naive implementation fires one database query per object. A DataLoader collects all those individual requests, waits for the execution engine to finish the current batch of resolvers, and then sends one query for all requested keys at once.
 
-This page covers the source-generated DataLoader (the recommended approach), manual DataLoader classes, and batch resolvers (a v16 alternative for simpler cases). If you are new to GraphQL data fetching, start with [Resolvers](/docs/hotchocolate/v16/fetching-data/resolvers) first.
+This page covers the source-generated DataLoader (the recommended approach) and manual DataLoader classes. If you are new to GraphQL data fetching, start with [Resolvers](/docs/hotchocolate/v16/resolvers/resolvers) first.
 
 # The N+1 Problem
 
@@ -175,146 +175,6 @@ A DataLoader caches results for the duration of a single GraphQL request. If the
 
 The cache is not shared across requests. Each request gets a fresh DataLoader instance with an empty cache.
 
-# Batch Resolvers
-
-Batch resolvers are an alternative to DataLoaders for cases where you want to resolve a field for multiple parent objects in a single method call without defining a separate DataLoader class. Instead of each resolver running independently and batching through a DataLoader, the execution engine collects all parent objects and calls your resolver once with the full list.
-
-## When to Use Batch Resolvers vs DataLoaders
-
-**Use a DataLoader** when the batched data is reused across multiple fields or resolvers. DataLoaders cache by key, so the same entity fetched in different parts of the query tree is only loaded once.
-
-**Use a batch resolver** when the resolved value is specific to one field and does not benefit from cross-field caching. Common examples: computed values, string formatting, or calling an external service that supports batch requests natively.
-
-## Defining a Batch Resolver
-
-Mark a method with `[BatchResolver]`. The `[Parent]` parameter and all arguments must be list types. The return type must also be a list, with one element per parent.
-
-**C# resolver**
-
-```csharp
-[ObjectType<User>]
-public static partial class UserNode
-{
-    [BatchResolver]
-    public static List<string> GetDisplayName([Parent] List<User> users)
-    {
-        return users.Select(u => $"{u.FirstName} {u.LastName}").ToList();
-    }
-}
-```
-
-The execution engine collects all `User` parent objects being resolved in the current wave and calls `GetDisplayName` once with the full list. The returned list must have the same count and order as the input list.
-
-## Batch Resolvers with Services and Arguments
-
-Batch resolvers support dependency injection and field arguments. Arguments that are list types are collected from each parent context.
-
-```csharp
-[ObjectType<User>]
-public static partial class UserNode
-{
-    [BatchResolver]
-    public static async Task<List<string>> GetGreeting(
-        [Parent] List<User> users,
-        GreetingService greetingService,
-        CancellationToken ct)
-    {
-        return await greetingService.GetGreetingsAsync(
-            users.Select(u => u.Id).ToList(), ct);
-    }
-}
-```
-
-## Handling Errors in Batch Resolvers
-
-Use `ResolverResult` to return per-item errors without failing the entire batch. Each element in the returned list can be either a success or an error.
-
-```csharp
-[ObjectType<User>]
-public static partial class UserNode
-{
-    [BatchResolver]
-    public static List<ResolverResult> GetVerificationStatus([Parent] List<User> users)
-    {
-        return users.Select<User, ResolverResult>(user =>
-        {
-            if (user.Email is null)
-                return ResolverResult.Fail(
-                    ErrorBuilder.New()
-                        .SetMessage("User has no email address.")
-                        .Build());
-
-            return ResolverResult.Ok(user.IsVerified ? "verified" : "pending");
-        }).ToList();
-    }
-}
-```
-
-## Code-First Batch Resolvers
-
-In the code-first approach, use `ResolveBatch` on the field descriptor.
-
-```csharp
-public class UserType : ObjectType<User>
-{
-    protected override void Configure(IObjectTypeDescriptor<User> descriptor)
-    {
-        descriptor
-            .Field("displayName")
-            .Type<StringType>()
-            .ResolveBatch(contexts =>
-            {
-                var results = new ResolverResult[contexts.Count];
-
-                for (var i = 0; i < contexts.Count; i++)
-                {
-                    var user = contexts[i].Parent<User>();
-                    results[i] = ResolverResult.Ok($"{user.FirstName} {user.LastName}");
-                }
-
-                return new ValueTask<IReadOnlyList<ResolverResult>>(results);
-            });
-    }
-}
-```
-
-You can also point to an external method with `ResolveBatchWith<T>`.
-
-```csharp
-descriptor
-    .Field("greeting")
-    .ResolveBatchWith<UserNode>(t => t.GetGreeting(default!));
-```
-
-# Conditional Data Fetching with Field Selection
-
-The `[IsSelected]` attribute lets a resolver check whether specific fields are selected in the query. This is useful for skipping expensive data fetching when the client does not need the result.
-
-```csharp
-[ObjectType<Product>]
-public static partial class ProductNode
-{
-    public static async Task<ProductDetails> GetDetailsAsync(
-        [Parent] Product product,
-        [IsSelected(nameof(ProductDetails.Inventory))] bool inventorySelected,
-        IProductDetailsDataLoader detailsLoader,
-        IInventoryService inventoryService,
-        CancellationToken ct)
-    {
-        var details = await detailsLoader.LoadAsync(product.Id, ct);
-
-        if (inventorySelected)
-        {
-            details.Inventory = await inventoryService.GetStockAsync(product.Id, ct);
-        }
-
-        return details;
-    }
-}
-```
-
-If the client query does not select the `inventory` field, `inventorySelected` is `false` and the inventory service call is skipped.
-
 # Manual DataLoader Classes
 
 You can write DataLoader classes by hand when you need full control over the batching logic. This is rarely needed since the source generator covers most cases.
@@ -351,7 +211,7 @@ public class BrandByIdDataLoader : BatchDataLoader<int, Brand>
 
 # Next Steps
 
-- **Need to understand resolver basics?** See [Resolvers](/docs/hotchocolate/v16/fetching-data/resolvers).
+- **Need simpler batching without caching?** See [Batch Resolvers](/docs/hotchocolate/v16/fetching-data/batching/batch-resolver).
+- **Need to understand resolver basics?** See [Resolvers](/docs/hotchocolate/v16/resolvers/resolvers).
 - **Need pagination?** See [Pagination](/docs/hotchocolate/v16/fetching-data/pagination) for cursor-based connections.
-- **Need to filter or sort data?** See [Filtering](/docs/hotchocolate/v16/fetching-data/filtering) and [Sorting](/docs/hotchocolate/v16/fetching-data/sorting).
-- **Using Entity Framework?** See [Entity Framework](/docs/hotchocolate/v16/fetching-data/entity-framework) for integration patterns with DataLoaders.
+- **Using Entity Framework?** See [Entity Framework](/docs/hotchocolate/v16/fetching-data/integrations/entity-framework) for integration patterns with DataLoaders.

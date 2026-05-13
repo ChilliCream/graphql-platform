@@ -1,6 +1,6 @@
 ---
 title: Options Reference
-description: Comprehensive reference for all configuration options in Hot Chocolate v16, including schema, request, parser, cost, server, socket, subscription, paging, global object identification, and cache control options.
+description: Comprehensive reference for all configuration options in Hot Chocolate, including schema, request, parser, cost, server, socket, subscription, paging, global object identification, and cache control options.
 ---
 
 Hot Chocolate provides several option groups that control different aspects of the GraphQL server. You configure them through methods on the `IRequestExecutorBuilder`.
@@ -92,7 +92,7 @@ Refer to the cost analysis documentation for the full list of configurable prope
 
 # Server Options (ModifyServerOptions)
 
-Server options control HTTP-level behavior such as GET requests, batching, multipart requests, and schema retrieval. This is new in v16. Configure with `ModifyServerOptions`:
+Server options control HTTP-level behavior such as GET requests, batching, multipart requests, and schema retrieval. Configure with `ModifyServerOptions`:
 
 ```csharp
 builder
@@ -264,7 +264,7 @@ builder
 
 # Next Steps
 
-- [Execution engine](/docs/hotchocolate/v16/execution-engine) for pipeline configuration
+- [Field middleware](/docs/hotchocolate/v16/resolvers/field-middleware) for pipeline configuration
 - [Cache Control](/docs/hotchocolate/v16/server/cache-control) for CDN and HTTP caching behavior
 - [Pagination](/docs/hotchocolate/v16/fetching-data/pagination) for paging setup
 - [Persisted operations](/docs/hotchocolate/v16/performance/trusted-documents) for operation caching

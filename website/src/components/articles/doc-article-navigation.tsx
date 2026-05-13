@@ -42,6 +42,10 @@ interface DocArticleNavigationProduct {
       items?: Array<{
         path?: string | null;
         title?: string | null;
+        items?: Array<{
+          path?: string | null;
+          title?: string | null;
+        } | null> | null;
       } | null> | null;
     } | null> | null;
   } | null> | null;
@@ -110,21 +114,28 @@ export const DocArticleNavigation: FC<DocArticleNavigationProps> = ({
   const hasVersions =
     !activeProduct?.versions || activeProduct.versions.length > 1;
 
-  const subItems: Item[] =
-    activeVersion?.items
-      ?.filter((item) => !!item)
-      .map<Item>((item) => ({
-        path: item!.path!,
-        title: item!.title!,
-        items: item!.items
-          ? item?.items
-              .filter((item) => !!item)
-              .map<Item>((item) => ({
-                path: item!.path!,
-                title: item!.title!,
-              }))
-          : undefined,
-      })) ?? [];
+  function mapItems(
+    raw:
+      | Array<{
+          path?: string | null;
+          title?: string | null;
+          items?: any;
+        } | null>
+      | null
+      | undefined
+  ): Item[] {
+    return (
+      raw
+        ?.filter((item) => !!item)
+        .map<Item>((item) => ({
+          path: item!.path!,
+          title: item!.title!,
+          items: item!.items ? mapItems(item!.items) : undefined,
+        })) ?? []
+    );
+  }
+
+  const subItems: Item[] = mapItems(activeVersion?.items);
 
   const basePath = `/docs/${activeProduct!.path!}${
     !!activeVersion?.path?.length ? "/" + activeVersion.path : ""

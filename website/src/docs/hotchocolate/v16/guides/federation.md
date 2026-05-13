@@ -1,6 +1,6 @@
 ---
 title: Apollo Federation Subgraph Support
-description: Learn how to create Apollo Federated subgraphs using Hot Chocolate v16.
+description: Learn how to create Apollo Federated subgraphs using Hot Chocolate.
 ---
 
 > For more about Apollo Federation concepts, see the [Apollo Federation documentation](https://www.apollographql.com/docs/federation/). Many of the core principles referenced here are documented there.
@@ -228,7 +228,7 @@ Key details:
 </Schema>
 </ExampleTabs>
 
-> We recommend using a [DataLoader](/docs/hotchocolate/v16/fetching-data/dataloader) in reference resolvers. This helps avoid [the N+1 problem](https://www.apollographql.com/docs/federation/entities-advanced#handling-the-n1-problem).
+> We recommend using a [DataLoader](/docs/hotchocolate/v16/fetching-data/batching/dataloader) in reference resolvers. This helps avoid [the N+1 problem](https://www.apollographql.com/docs/federation/entities-advanced#handling-the-n1-problem).
 
 ## Register the Entity
 
@@ -416,6 +416,6 @@ For creating a supergraph, see the [Apollo Router documentation](https://www.apo
 
 # Next Steps
 
-- [Resolvers](/docs/hotchocolate/v16/fetching-data/resolvers) for resolver patterns
-- [DataLoader](/docs/hotchocolate/v16/fetching-data/dataloader) for batching in reference resolvers
+- [Resolvers](/docs/hotchocolate/v16/resolvers/resolvers) for resolver patterns
+- [DataLoader](/docs/hotchocolate/v16/fetching-data/batching/dataloader) for batching in reference resolvers
 - [Apollo Federation docs](https://www.apollographql.com/docs/federation/) for supergraph configuration

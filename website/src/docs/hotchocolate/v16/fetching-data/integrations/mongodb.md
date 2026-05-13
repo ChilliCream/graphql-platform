@@ -1,6 +1,6 @@
 ---
 title: MongoDB
-description: Learn how to integrate MongoDB with Hot Chocolate v16, including filtering, sorting, projections, and pagination.
+description: Learn how to integrate MongoDB with Hot Chocolate, including filtering, sorting, projections, and pagination.
 ---
 
 Hot Chocolate has a data integration for MongoDB. With this integration, you can translate paging, filtering, sorting, and projections directly into native MongoDB queries.
@@ -220,6 +220,6 @@ public IExecutable<Person> GetPersonById(
 
 - [Pagination](/docs/hotchocolate/v16/fetching-data/pagination) for pagination setup
 - [Filtering](/docs/hotchocolate/v16/fetching-data/filtering) for filtering concepts
-- [Executable](/docs/hotchocolate/v16/fetching-data/executable) for the `IExecutable` abstraction
+- [Executable](/docs/hotchocolate/v16/fetching-data/integrations) for the `IExecutable` abstraction
 
 <!-- spell-checker:ignore Shorton -->

@@ -575,24 +575,34 @@
             ]
           },
           {
-            "path": "fetching-data",
-            "title": "Resolvers and Data",
+            "path": "resolvers",
+            "title": "Resolvers",
             "items": [
               {
                 "path": "index",
-                "title": "Overview"
-              },
-              {
-                "path": "resolvers",
-                "title": "Resolvers"
+                "title": "Introduction"
               },
               {
                 "path": "dependency-injection",
                 "title": "Dependency Injection"
               },
               {
-                "path": "dataloader",
-                "title": "DataLoader"
+                "path": "errors",
+                "title": "Errors"
+              },
+              {
+                "path": "field-middleware",
+                "title": "Field Middleware"
+              }
+            ]
+          },
+          {
+            "path": "fetching-data",
+            "title": "Fetching Data",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
               },
               {
                 "path": "pagination",
@@ -611,100 +621,44 @@
                 "title": "Projections"
               },
               {
-                "path": "fetching-from-databases",
-                "title": "Fetching from Databases"
-              },
-              {
-                "path": "fetching-from-rest",
-                "title": "Fetching from REST"
-              },
-              {
-                "path": "entity-framework",
-                "title": "Entity Framework"
-              },
-              {
-                "path": "mongodb",
-                "title": "MongoDB"
-              },
-              {
                 "path": "spatial-data",
                 "title": "Spatial Data"
               },
               {
-                "path": "marten",
-                "title": "Marten"
+                "path": "batching",
+                "title": "Batching",
+                "items": [
+                  {
+                    "path": "dataloader",
+                    "title": "DataLoader"
+                  },
+                  {
+                    "path": "batch-resolver",
+                    "title": "Batch Resolvers"
+                  }
+                ]
               },
               {
-                "path": "errors",
-                "title": "Error Codes"
-              },
-              {
-                "path": "extending-filtering",
-                "title": "Extending Filtering"
-              },
-              {
-                "path": "executable",
-                "title": "Executable"
-              }
-            ]
-          },
-          {
-            "path": "guides",
-            "title": "Guides",
-            "items": [
-              {
-                "path": "public-api",
-                "title": "Building a Public API"
-              },
-              {
-                "path": "private-api",
-                "title": "Building a Private API"
-              },
-              {
-                "path": "error-handling",
-                "title": "Error Handling"
-              },
-              {
-                "path": "schema-evolution",
-                "title": "Schema Evolution"
-              },
-              {
-                "path": "testing",
-                "title": "Testing"
-              },
-              {
-                "path": "performance",
-                "title": "Performance"
-              },
-              {
-                "path": "dynamic-schemas",
-                "title": "Dynamic Schemas"
-              },
-              {
-                "path": "mcp-adapter",
-                "title": "MCP Adapter"
-              },
-              {
-                "path": "openapi-adapter",
-                "title": "OpenAPI Adapter"
-              },
-              {
-                "path": "federation",
-                "title": "Federation"
-              }
-            ]
-          },
-          {
-            "path": "execution-engine",
-            "title": "Execution Engine",
-            "items": [
-              {
-                "path": "index",
-                "title": "Overview"
-              },
-              {
-                "path": "field-middleware",
-                "title": "Field Middleware"
+                "path": "integrations",
+                "title": "Integrations",
+                "items": [
+                  {
+                    "path": "entity-framework",
+                    "title": "Entity Framework"
+                  },
+                  {
+                    "path": "mongodb",
+                    "title": "MongoDB"
+                  },
+                  {
+                    "path": "marten",
+                    "title": "Marten"
+                  },
+                  {
+                    "path": "extending-filtering",
+                    "title": "Extending Filtering"
+                  }
+                ]
               }
             ]
           },
@@ -807,24 +761,6 @@
               {
                 "path": "introspection",
                 "title": "Controlling Introspection"
-              }
-            ]
-          },
-          {
-            "path": "api-reference",
-            "title": "API Reference",
-            "items": [
-              {
-                "path": "custom-attributes",
-                "title": "Attributes"
-              },
-              {
-                "path": "language",
-                "title": "Language"
-              },
-              {
-                "path": "visitors",
-                "title": "Visitors"
               }
             ]
           },

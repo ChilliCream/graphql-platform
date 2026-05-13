@@ -576,7 +576,7 @@ For full details on nullability, see [Non-Null](/docs/hotchocolate/v16/defining-
 
 # Dictionary Support
 
-Hot Chocolate v16 automatically maps `Dictionary<TKey, TValue>` properties to a list of key-value pair objects. This eliminates the need for custom resolvers when exposing dictionary data.
+Hot Chocolate automatically maps `Dictionary<TKey, TValue>` properties to a list of key-value pair objects. This eliminates the need for custom resolvers when exposing dictionary data.
 
 <ExampleTabs>
 <Implementation>
@@ -642,7 +642,7 @@ This works with any key and value types. For example, `Dictionary<string, int>` 
 # Next Steps
 
 - **Need to define query entry points?** See [Queries](/docs/hotchocolate/v16/defining-a-schema/queries).
-- **Need to understand resolver patterns?** See [Resolvers](/docs/hotchocolate/v16/fetching-data/resolvers).
-- **Need to compose types from multiple classes?** See [Extending Types](/docs/hotchocolate/v16/defining-a-schema/extending-types).
+- **Need to understand resolver patterns?** See [Resolvers](/docs/hotchocolate/v16/resolvers/resolvers).
+- **Need to compose types from multiple classes?** See [Extending Types](/docs/hotchocolate/v16/defining-a-schema/object-types).
 - **Need to define input for mutations?** See [Input Object Types](/docs/hotchocolate/v16/defining-a-schema/input-object-types).
-- **Need to fetch data efficiently?** See [DataLoader](/docs/hotchocolate/v16/fetching-data/dataloader).
+- **Need to fetch data efficiently?** See [DataLoader](/docs/hotchocolate/v16/fetching-data/batching/dataloader).

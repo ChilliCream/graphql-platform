@@ -177,7 +177,7 @@ Organize your schema for maintainability and support advanced modeling scenarios
 
 | Topic           | Use it for                                                                                               | Learn more                           |
 | --------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------ |
-| Type extensions | Split large object or root type definitions across classes. Extensions are merged into the final schema. | [Extending Types](./extending-types) |
+| Type extensions | Split large object or root type definitions across classes. Extensions are merged into the final schema. | [Object Types](./object-types)       |
 | Relay helpers   | Use stable IDs, global object identification, `node`, `nodes`, `[ID]`, `[Node]`, and `[NodeResolver]`.   | [Relay](./relay)                     |
 | Dynamic schemas | Generate types from CMS, multi-tenant, or configuration-driven metadata with `ITypeModule`.              | [Dynamic Schemas](./dynamic-schemas) |
 
@@ -199,4 +199,4 @@ Use type extensions for static modularity. Choose dynamic schemas only when the 
 - Learn how returned shapes are inferred and configured in [Object Types](./object-types).
 - Add field inputs with [Arguments](./arguments) and [Input Object Types](./input-object-types).
 - Strengthen the contract with [Lists and Non-Null](./lists).
-- Move to runtime behavior with [Resolvers](../fetching-data/resolvers) and [DataLoader](../fetching-data/dataloader) after the schema shape is clear.
+- Move to runtime behavior with [Resolvers](../resolvers/resolvers) and [DataLoader](../fetching-data/batching/dataloader) after the schema shape is clear.

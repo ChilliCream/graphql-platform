@@ -117,7 +117,7 @@ Where you go from here depends on what you need:
 
 - **"I want to understand the schema system."** Read [Defining a Schema](/docs/hotchocolate/v16/defining-a-schema). It covers queries, mutations, subscriptions, and all the GraphQL types.
 
-- **"I need to fetch data efficiently."** Go to [DataLoader](/docs/hotchocolate/v16/fetching-data/dataloader) for batching and caching, or [Resolvers](/docs/hotchocolate/v16/fetching-data/resolvers) for the full resolver API.
+- **"I need to fetch data efficiently."** Go to [DataLoader](/docs/hotchocolate/v16/fetching-data/batching/dataloader) for batching and caching, or [Resolvers](/docs/hotchocolate/v16/resolvers/resolvers) for the full resolver API.
 
 - **"I need to secure my API."** See [Securing Your API](/docs/hotchocolate/v16/security) for authentication, authorization, cost analysis, and trusted documents.
 

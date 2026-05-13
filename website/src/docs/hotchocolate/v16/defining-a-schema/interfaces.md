@@ -366,5 +366,5 @@ Object types can override an inherited resolver by defining their own resolver f
 
 - **Need types without shared fields?** See [Unions](/docs/hotchocolate/v16/defining-a-schema/unions).
 - **Need to define output types?** See [Object Types](/docs/hotchocolate/v16/defining-a-schema/object-types).
-- **Need to extend an existing type?** See [Extending Types](/docs/hotchocolate/v16/defining-a-schema/extending-types).
+- **Need to extend an existing type?** See [Extending Types](/docs/hotchocolate/v16/defining-a-schema/object-types).
 - **Need to document interface fields?** See [Documentation](/docs/hotchocolate/v16/defining-a-schema/documentation).
