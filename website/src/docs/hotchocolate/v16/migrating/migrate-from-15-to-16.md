@@ -1154,8 +1154,8 @@ public class CustomFilteringConvention : FilterConvention
         descriptor.Provider(
             new QueryableFilterProvider(
                 x => x
-                    .AddDefaultFieldHandlers()
-                    .AddFieldHandler<QueryableStringInvariantEqualsHandler>()));
+                    .AddFieldHandler<QueryableStringInvariantEqualsHandler>()
+                    .AddDefaultFieldHandlers()));
     }
 }
 ```
@@ -1171,8 +1171,8 @@ public class CustomFilteringConvention : FilterConvention
         descriptor.Provider(
             new QueryableFilterProvider(
                 x => x
-                    .AddDefaultFieldHandlers()
-                    .AddFieldHandler(ctx => new QueryableStringInvariantEqualsHandler(ctx.InputParser))));
+                    .AddFieldHandler(ctx => new QueryableStringInvariantEqualsHandler(ctx.InputParser))
+                    .AddDefaultFieldHandlers()));
     }
 }
 ```
