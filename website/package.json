@@ -90,6 +90,11 @@
     "@types/react": "^19",
     "@types/react-dom": "^19"
   },
+  "dependenciesMeta": {
+    "sharp": {
+      "built": true
+    }
+  },
   "husky": {
     "hooks": {
       "pre-commit": "pretty-quick --pattern \"./website/**/*\" --staged"

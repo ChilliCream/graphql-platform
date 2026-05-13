@@ -6983,6 +6983,9 @@ __metadata:
     typescript: "npm:^4.3.2"
     typescript-styled-plugin: "npm:^0.18.0"
     yaml: "npm:^2.1.3"
+  dependenciesMeta:
+    sharp:
+      built: true
   languageName: unknown
   linkType: soft
 

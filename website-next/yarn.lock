@@ -8927,6 +8927,13 @@ __metadata:
     tailwindcss: "npm:^4"
     typescript: "npm:^5"
     vite: "npm:^6"
+  dependenciesMeta:
+    esbuild:
+      built: true
+    sharp:
+      built: true
+    unrs-resolver:
+      built: true
   languageName: unknown
   linkType: soft
 
