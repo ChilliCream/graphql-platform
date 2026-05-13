@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
@@ -282,7 +281,7 @@ public sealed class FetchResultStoreTests
 
         // act
         var result = target.CreateVariableValueSetsFromSnapshot(
-            ImmutableArray<VariableValues>.Empty,
+            [],
             ImportedKeys("__fusion_1_id"),
             [],
             [Requirement("__fusion_1_id")]);

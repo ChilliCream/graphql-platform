@@ -40,7 +40,7 @@ public sealed class SchemaFormatterOptions
 
     /// <summary>
     /// Controls whether directive definitions and applied directives whose
-    /// definition has <see cref="HotChocolate.Types.IDirectiveDefinition.IsPublic"/>
+    /// definition has <see cref="Types.IDirectiveDefinition.IsPublic"/>
     /// set to <c>false</c> are included in the output.
     /// Default: <c>true</c>.
     /// </summary>

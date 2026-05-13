@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
@@ -254,7 +253,7 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
                 .BuildServiceProvider();
 
             var executor = await services.GetRequestExecutorAsync();
-            var schema = (HotChocolate.Fusion.Types.FusionSchemaDefinition)executor.Schema;
+            var schema = (Fusion.Types.FusionSchemaDefinition)executor.Schema;
             var operationPlan = PlanOperation(
                 schema,
                 """
@@ -325,7 +324,7 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
             _stores.Add(sourceStore);
 
             var entry = sourceStore.CreateVariableValueSets(CompactPath.Root, fields);
-            context.SetRequirements(ImmutableArray.Create(entry), keys);
+            context.SetRequirements([entry], keys);
         }
 
         public async ValueTask DisposeAsync()
