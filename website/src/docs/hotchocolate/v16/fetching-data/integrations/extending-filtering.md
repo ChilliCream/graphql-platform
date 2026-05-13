@@ -263,7 +263,7 @@ public class CustomFilteringConvention : FilterConvention
             new QueryableFilterProvider(
                 x => x
                     .AddDefaultFieldHandlers()
-                    .AddFieldHandler<QueryableStringInvariantEqualsHandler>()));
+                    .AddFieldHandler(ctx => new QueryableStringInvariantEqualsHandler(ctx.InputParser))));
     }
 }
 
@@ -282,7 +282,7 @@ builder
         new FilterConventionExtension(
             x => x.AddProviderExtension(
                 new QueryableFilterProviderExtension(
-                    y => y.AddFieldHandler<QueryableStringInvariantEqualsHandler>()))));
+                    y => y.AddFieldHandler(ctx => new QueryableStringInvariantEqualsHandler(ctx.InputParser))))));
 ```
 
 # Next Steps

@@ -1130,6 +1130,55 @@ If you're using the schema export command, add the `--semantic-non-null` flag to
 dotnet run -- schema export --output schema.graphql --semantic-non-null
 ```
 
+## Parameterless handler registration on filter, sort, and projection providers removed
+
+The parameterless activator overloads have been removed from the filtering, sorting, and projection provider descriptors. Custom handlers must now be registered either by passing an instance or by passing a factory that receives a provider context. The context exposes `InputParser`, `InputFormatter`, `SchemaServices`, `TypeConverter`, etc.
+
+Affected APIs:
+
+- `IFilterProviderDescriptor<TContext>.AddFieldHandler<T>()` -> `AddFieldHandler(Func<FilterProviderContext, T>)`
+- `ISortProviderDescriptor<TContext>.AddFieldHandler<T>()` -> `AddFieldHandler(Func<SortProviderContext, T>)`
+- `ISortProviderDescriptor<TContext>.AddOperationHandler<T>()` -> `AddOperationHandler(Func<SortProviderContext, T>)`
+- `IProjectionProviderDescriptor.RegisterFieldHandler<T>()` -> `RegisterFieldHandler(Func<ProjectionProviderContext, T>)`
+- `IProjectionProviderDescriptor.RegisterFieldInterceptor<T>()` -> `RegisterFieldInterceptor(Func<ProjectionProviderContext, T>)`
+- `IProjectionProviderDescriptor.RegisterOptimizer<T>()` -> `RegisterOptimizer(Func<ProjectionProviderContext, T>)`
+
+**Before**
+
+```csharp
+public class CustomFilteringConvention : FilterConvention
+{
+    protected override void Configure(IFilterConventionDescriptor descriptor)
+    {
+        descriptor.AddDefaults();
+        descriptor.Provider(
+            new QueryableFilterProvider(
+                x => x
+                    .AddDefaultFieldHandlers()
+                    .AddFieldHandler<QueryableStringInvariantEqualsHandler>()));
+    }
+}
+```
+
+**After**
+
+```csharp
+public class CustomFilteringConvention : FilterConvention
+{
+    protected override void Configure(IFilterConventionDescriptor descriptor)
+    {
+        descriptor.AddDefaults();
+        descriptor.Provider(
+            new QueryableFilterProvider(
+                x => x
+                    .AddDefaultFieldHandlers()
+                    .AddFieldHandler(ctx => new QueryableStringInvariantEqualsHandler(ctx.InputParser))));
+    }
+}
+```
+
+The `CanHandle` signature also changed on the filtering, sorting, and projection handler interfaces. If you have overridden it, re-override against the new signature.
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.
