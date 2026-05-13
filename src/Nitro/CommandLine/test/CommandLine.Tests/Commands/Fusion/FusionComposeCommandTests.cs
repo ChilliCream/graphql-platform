@@ -14,9 +14,6 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
     private static readonly string s_validExample1CompositeSchema =
         File.ReadAllText("__resources__/valid-example-1-result/composite-schema.graphqls");
 
-    private static readonly string s_invalidExample1CompositeSchema =
-        File.ReadAllText("__resources__/invalid-example-1-result/composite-schema.graphqls");
-
     private static readonly string s_validExcludeByTagCompositeSchema =
         File.ReadAllText("__resources__/valid-exclude-by-tag-result/composite-schema.graphqls");
 

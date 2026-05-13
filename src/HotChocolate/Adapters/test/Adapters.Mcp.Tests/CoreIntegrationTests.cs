@@ -1,6 +1,5 @@
 using System.Text.Json;
 using HotChocolate.Adapters.Mcp.Diagnostics;
-using HotChocolate.Adapters.Mcp.Extensions;
 using HotChocolate.Adapters.Mcp.Storage;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;

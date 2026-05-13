@@ -4,7 +4,6 @@ using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Types;
-using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Configuration;
 
