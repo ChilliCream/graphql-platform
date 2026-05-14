@@ -5,6 +5,7 @@
     <AssemblyName>HotChocolate.Types.MongoDb</AssemblyName>
     <RootNamespace>HotChocolate.Types.MongoDb</RootNamespace>
     <Description>Contains common HotChocolate types for MongoDb</Description>
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
   <ItemGroup>
