@@ -354,6 +354,58 @@ public class OperationTests
     }
 
     [Fact]
+    public async Task Subscription_With_Subscribe_With_Excludes_Stream_Method()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            [SubscriptionType]
+            public static partial class Subscription
+            {
+                [Subscribe(With = nameof(SubscribeToOnProductAdded))]
+                public static Task<int> OnProductAdded([EventMessage] int productId)
+                    => Task.FromResult(productId);
+
+                private static async IAsyncEnumerable<int> SubscribeToOnProductAdded(int categoryId)
+                {
+                    await Task.Yield();
+                    yield return categoryId;
+                }
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Subscription_Ignored_Method_Does_Not_Suppress_Public_Resolver()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            [SubscriptionType]
+            public static partial class Subscription
+            {
+                public static int OnFoo() => 42;
+
+                [GraphQLIgnore]
+                [Subscribe(With = nameof(OnFoo))]
+                public static Task<int> NotARealResolver() => Task.FromResult(0);
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
     public async Task Lookup_With_Generic_ID_Attribute()
     {
         await TestHelper.GetGeneratedSourceSnapshot(
