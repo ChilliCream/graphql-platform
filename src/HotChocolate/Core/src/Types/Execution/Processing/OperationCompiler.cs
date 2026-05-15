@@ -291,13 +291,12 @@ public sealed partial class OperationCompiler
         var includeFlags = new List<ulong>();
         var deferUsages = new List<DeferUsage>();
         var selectionSetId = ++lastId;
-        var alwaysIncluded = false;
-
         foreach (var (responseName, nodes) in fieldMap)
         {
             includeFlags.Clear();
             deferUsages.Clear();
 
+            var alwaysIncluded = false;
             var first = nodes[0];
             var isInternal = IsInternal(first.Node);
             var hasNonDeferredNode = first.DeferUsage is null;
