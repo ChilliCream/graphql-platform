@@ -581,6 +581,28 @@ Use `OperationRequestBuilder.From(request)` to create a builder pre-populated fr
 
 The builder now exposes a `Features` property of type `IFeatureCollection` for attaching extensibility features (such as `IFileLookup` for file uploads).
 
+## AllowNonPersistedOperation moved
+
+The `AllowNonPersistedOperation` extension method has moved from `OperationRequestBuilderExtensions` (in `HotChocolate.Abstractions`) to `PersistedOperationRequestOverridesExtensions` (in `HotChocolate.Execution.Abstractions`). The namespace (`HotChocolate.Execution`) and the method signature are unchanged, so normal call sites continue to compile:
+
+```csharp
+builder.AllowNonPersistedOperation();
+```
+
+If you called the method through its declaring type, update the reference:
+
+```diff
+-OperationRequestBuilderExtensions.AllowNonPersistedOperation(builder);
++PersistedOperationRequestOverridesExtensions.AllowNonPersistedOperation(builder);
+```
+
+The method now writes a `PersistedOperationRequestOverrides` feature on the request instead of setting the `HotChocolate.Execution.NonPersistedOperationAllowed` global state entry. The `OnlyAllowPersistedDocuments` middleware only reads the feature in v16. If you previously bypassed the extension method and set the flag through global state, switch to writing the feature:
+
+```diff
+-builder.SetGlobalState("HotChocolate.Execution.NonPersistedOperationAllowed", true);
++builder.Features.Set(new PersistedOperationRequestOverrides(AllowNonPersistedOperation: true));
+```
+
 ## Any and Json scalars merged
 
 The `Json` scalar has been removed and its functionality merged into the `Any` scalar. The `Any` scalar now uses `System.Text.Json.JsonElement` as its .NET runtime type, which was previously the runtime type of the `Json` scalar.
