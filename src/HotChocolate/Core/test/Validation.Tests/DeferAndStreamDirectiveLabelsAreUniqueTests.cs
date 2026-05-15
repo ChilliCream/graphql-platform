@@ -126,6 +126,27 @@ public class DeferAndStreamDirectiveLabelsAreUniqueTests()
     }
 
     [Fact]
+    public void Label_Should_Be_Valid_When_Fragment_Is_Spread_Across_Operations()
+    {
+        ExpectValid(
+            """
+            query A {
+              ...Repeated
+            }
+
+            query B {
+              ...Repeated
+            }
+
+            fragment Repeated on Query {
+              ... @defer(label: "details") {
+                __typename
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public void Label_Duplicate_When_Reused_Fragment_Label_Also_Used_Outside()
     {
         ExpectErrors(
