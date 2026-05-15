@@ -7,6 +7,7 @@ mutation CreateClientCommandMutation($input: CreateClientInput!) {
       ...Error
       ...ApiNotFoundError
       ...UnauthorizedOperation
+      ...DuplicateNameError
     }
   }
 }

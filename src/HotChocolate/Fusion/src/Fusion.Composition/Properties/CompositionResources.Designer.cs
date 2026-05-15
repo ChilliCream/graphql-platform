@@ -1034,6 +1034,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid GraphQL in source schema extensions. Exception message: {0}..
+        /// </summary>
+        internal static string LogEntryHelper_InvalidGraphQLInExtensions {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InvalidGraphQLInExtensions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The field &apos;{0}&apos; in schema &apos;{1}&apos; must not be marked as shareable..
         /// </summary>
         internal static string LogEntryHelper_InvalidShareableUsage {

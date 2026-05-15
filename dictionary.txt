@@ -74,6 +74,7 @@ fricking
 frontends
 Fzzz
 GEOGCS
+geolocation
 Giroux
 GraphiQL
 graphqlconfig
@@ -102,6 +103,7 @@ Leia
 LICEN*
 Linq
 Liquibase
+lscache
 Marek
 matchesBrics
 maxage
@@ -162,7 +164,9 @@ publishaot
 queryables
 quox
 quux
+rafaelstaib
 Rafi
+rearchitected
 reencode
 refetched
 relayjs
@@ -180,6 +184,7 @@ Roslynator
 roundtrips
 RRGGBB
 runbooks
+sandboxed
 Satisfiability
 Senn
 shoooe

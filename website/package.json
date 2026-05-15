@@ -90,10 +90,15 @@
     "@types/react": "^19",
     "@types/react-dom": "^19"
   },
+  "dependenciesMeta": {
+    "sharp": {
+      "built": true
+    }
+  },
   "husky": {
     "hooks": {
       "pre-commit": "pretty-quick --pattern \"./website/**/*\" --staged"
     }
   },
-  "packageManager": "yarn@4.8.1"
+  "packageManager": "yarn@4.14.1"
 }

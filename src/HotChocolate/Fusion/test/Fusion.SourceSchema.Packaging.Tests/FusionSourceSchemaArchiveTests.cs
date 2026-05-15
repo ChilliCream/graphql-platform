@@ -117,6 +117,51 @@ public class FusionSourceSchemaArchiveTests : IDisposable
     }
 
     [Fact]
+    public async Task SetSchemaExtensions_WithValidData_StoresCorrectly()
+    {
+        // arrange
+        await using var stream = CreateStream();
+        var extensions = "extend type Query { hello: String }"u8.ToArray();
+
+        // act
+        using var archive = FusionSourceSchemaArchive.Create(stream, leaveOpen: true);
+        await archive.SetSchemaExtensionsAsync(extensions);
+
+        // assert
+        var retrieved = await archive.TryGetSchemaExtensionsAsync();
+
+        Assert.NotNull(retrieved);
+        Assert.Equal(extensions, retrieved.Value.ToArray());
+    }
+
+    [Fact]
+    public async Task SetSchemaExtensions_WithEmptyExtensions_ThrowsArgumentOutOfRangeException()
+    {
+        // arrange
+        await using var stream = CreateStream();
+        var extensions = ReadOnlyMemory<byte>.Empty;
+
+        // act & assert
+        using var archive = FusionSourceSchemaArchive.Create(stream, leaveOpen: true);
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
+            () => archive.SetSchemaExtensionsAsync(extensions));
+    }
+
+    [Fact]
+    public async Task TryGetSchemaExtensions_WhenNotSet_ReturnsNull()
+    {
+        // arrange
+        await using var stream = CreateStream();
+
+        // act
+        using var archive = FusionSourceSchemaArchive.Create(stream);
+        var result = await archive.TryGetSchemaExtensionsAsync();
+
+        // assert
+        Assert.Null(result);
+    }
+
+    [Fact]
     public async Task SetSettings_WithValidData_StoresCorrectly()
     {
         // arrange

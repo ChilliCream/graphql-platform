@@ -20,7 +20,6 @@ Hot Chocolate generates descriptions from standard C# XML documentation comments
 The `<NoWarn>` element suppresses compiler warnings for types without documentation comments. With this in place, XML `<summary>` tags on your types and properties become GraphQL descriptions automatically.
 
 ```csharp
-// Types/Product.cs
 /// <summary>
 /// A product available in the catalog.
 /// </summary>
@@ -44,7 +43,6 @@ For cases where the C# summary does not work well as a GraphQL description, use 
 <Implementation>
 
 ```csharp
-// Types/Product.cs
 public class Product
 {
     public int Id { get; set; }
@@ -61,7 +59,6 @@ public class Product
 <Code>
 
 ```csharp
-// Types/ProductType.cs
 public class ProductType : ObjectType<Product>
 {
     protected override void Configure(IObjectTypeDescriptor<Product> descriptor)
@@ -84,7 +81,7 @@ public class ProductType : ObjectType<Product>
 
 Descriptions appear in introspection results and in tools like [Nitro](/products/nitro). The more descriptive your schema, the fewer support questions you receive when fields change.
 
-[Learn more about schema documentation](/docs/hotchocolate/v16/building-a-schema/documentation)
+[Learn more about schema documentation](/docs/hotchocolate/v16/defining-a-schema/documentation)
 
 # Deprecate Fields Instead of Removing Them
 
@@ -94,7 +91,6 @@ When a field is no longer the recommended way to access data, deprecate it. Depr
 <Implementation>
 
 ```csharp
-// Types/ProductQueries.cs
 [QueryType]
 public static partial class ProductQueries
 {
@@ -113,7 +109,6 @@ The .NET `[Obsolete("reason")]` attribute works the same way as `[GraphQLDepreca
 <Code>
 
 ```csharp
-// Types/ProductQueriesType.cs
 public class ProductQueriesType : ObjectType
 {
     protected override void Configure(IObjectTypeDescriptor descriptor)
@@ -156,7 +151,7 @@ You can deprecate output fields, input fields, arguments, and enum values. Keep 
 
 > Warning: You cannot deprecate non-null arguments or input fields that have no default value. Deprecating a required field would silently break queries that depend on it. Add a default value first, then apply the deprecation.
 
-[Learn more about deprecation](/docs/hotchocolate/v16/building-a-schema/versioning)
+[Learn more about deprecation](/docs/hotchocolate/v16/defining-a-schema/versioning)
 
 # Opt-In Features with @requiresOptIn
 
@@ -169,7 +164,6 @@ Fields marked with `@requiresOptIn` are hidden from introspection by default. Co
 Opt-in support is disabled by default. Enable it in your schema options:
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .ModifyOptions(o => o.EnableOptInFeatures = true);
@@ -181,7 +175,6 @@ builder
 <Implementation>
 
 ```csharp
-// Types/Product.cs
 public class Product
 {
     public int Id { get; set; }
@@ -197,7 +190,6 @@ public class Product
 <Code>
 
 ```csharp
-// Types/ProductType.cs
 public class ProductType : ObjectType<Product>
 {
     protected override void Configure(IObjectTypeDescriptor<Product> descriptor)
@@ -233,7 +225,6 @@ You can declare the stability level of each opt-in feature so consumers understa
 <Implementation>
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .ModifyOptions(o => o.EnableOptInFeatures = true)
@@ -244,7 +235,6 @@ builder
 <Code>
 
 ```csharp
-// Program.cs
 builder
     .AddGraphQL()
     .ModifyOptions(o => o.EnableOptInFeatures = true)
@@ -268,7 +258,7 @@ Consumers query feature stability through introspection:
 }
 ```
 
-[Learn more about opt-in features](/docs/hotchocolate/v16/building-a-schema/versioning)
+[Learn more about opt-in features](/docs/hotchocolate/v16/defining-a-schema/versioning)
 
 # Additive Changes Are Safe
 
@@ -300,6 +290,6 @@ When you need to make a breaking change, follow this sequence:
 
 # Next Steps
 
-- **Schema documentation reference:** [Documentation](/docs/hotchocolate/v16/building-a-schema/documentation) covers `[GraphQLDescription]`, XML docs, and priority order.
-- **Versioning reference:** [Versioning](/docs/hotchocolate/v16/building-a-schema/versioning) covers `@deprecated`, `@requiresOptIn`, and feature stability in full detail.
+- **Schema documentation reference:** [Documentation](/docs/hotchocolate/v16/defining-a-schema/documentation) covers `[GraphQLDescription]`, XML docs, and priority order.
+- **Versioning reference:** [Versioning](/docs/hotchocolate/v16/defining-a-schema/versioning) covers `@deprecated`, `@requiresOptIn`, and feature stability in full detail.
 - **Building a public API:** [Public API Guide](/docs/hotchocolate/v16/guides/public-api) covers cost analysis, pagination, and authorization for APIs consumed by external developers.

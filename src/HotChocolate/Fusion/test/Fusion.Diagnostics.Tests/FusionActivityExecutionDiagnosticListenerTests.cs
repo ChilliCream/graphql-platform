@@ -1,4 +1,6 @@
+using System.Text.Json;
 using HotChocolate.Execution;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.PersistedOperations;
 using HotChocolate.Resolvers;
@@ -410,6 +412,41 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
     }
 
     [Fact]
+    public async Task VariableCoercion_FailingScalar_RecordsErrorOnCoercionSpan()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b
+                    .AddQueryType<Query>()
+                    .AddType<MoodScalarType>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1)
+            ],
+            configureGatewayBuilder: b => b.AddInstrumentation(o =>
+                o.Scopes = FusionActivityScopes.All));
+
+            var executor = await gateway.Services.GetRequestExecutorAsync();
+
+            var request = OperationRequestBuilder.New()
+                .SetDocument("query($mood: Mood!) { greetMood(mood: $mood) }")
+                .SetVariableValues(
+                    new Dictionary<string, object?> { { "mood", "happy" } })
+                .Build();
+
+            // act
+            await executor.ExecuteAsync(request);
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
     public async Task AllScopes_IncludesAllSpans()
     {
         using (CaptureActivities(out var activities))
@@ -741,6 +778,25 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
                     .Build());
 
         public Deep Deep() => new();
+
+        public string GreetMood([GraphQLType<MoodScalarType>] string mood)
+            => $"Greetings, {mood}!";
+    }
+
+    public sealed class MoodScalarType : StringType
+    {
+        public MoodScalarType()
+            : base("Mood")
+        {
+        }
+
+        protected override string OnCoerceInputLiteral(StringValueNode valueLiteral)
+            => throw new FormatException(
+                $"'{valueLiteral.Value}' is not a recognized mood.");
+
+        protected override string OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+            => throw new FormatException(
+                $"'{inputValue.GetString()}' is not a recognized mood.");
     }
 
     [GraphQLName("Query")]

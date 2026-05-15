@@ -86,6 +86,13 @@ public interface IReadOnlySchemaOptions
     DirectiveVisibility DefaultDirectiveVisibility { get; }
 
     /// <summary>
+    /// Disables the concept of internal directives so that all directives are treated as public.
+    /// When set to <c>true</c>, this overrides any explicit <c>Internal()</c> calls on
+    /// directive types and the <see cref="DefaultDirectiveVisibility"/> setting.
+    /// </summary>
+    bool DisableInternalDirectives { get; }
+
+    /// <summary>
     /// Defines that the default resolver execution strategy.
     /// </summary>
     ExecutionStrategy DefaultResolverStrategy { get; }

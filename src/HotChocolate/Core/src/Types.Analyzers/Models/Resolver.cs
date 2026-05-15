@@ -19,7 +19,8 @@ public sealed class Resolver
         SchemaTypeReference schemaTypeRef,
         ResolverKind kind = ResolverKind.Default,
         FieldFlags flags = FieldFlags.None,
-        bool isConnectionResolver = false)
+        bool isConnectionResolver = false,
+        string? subscribeWith = null)
     {
         TypeName = typeName;
         Member = member;
@@ -33,6 +34,7 @@ public sealed class Resolver
         Kind = kind;
         Flags = flags;
         IsConnectionResolver = isConnectionResolver;
+        SubscribeWith = subscribeWith;
 
         if (description is MethodDescription m && parameters.Length == m.ParameterDescriptions.Length)
         {
@@ -101,6 +103,12 @@ public sealed class Resolver
 
     public ImmutableArray<AttributeData> DescriptorAttributes { get; }
 
+    /// <summary>
+    /// The name of the sibling method that produces the subscription event stream
+    /// when this resolver is annotated with <c>[Subscribe(With = nameof(...))]</c>.
+    /// </summary>
+    public string? SubscribeWith { get; }
+
     public Resolver WithSchemaTypeName(SchemaTypeReference schemaTypeRef)
         => new Resolver(
             TypeName,
@@ -113,5 +121,6 @@ public sealed class Resolver
             schemaTypeRef,
             Kind,
             Flags,
-            IsConnectionResolver);
+            IsConnectionResolver,
+            SubscribeWith);
 }

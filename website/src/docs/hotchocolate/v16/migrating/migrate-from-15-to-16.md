@@ -6,8 +6,6 @@ This guide will walk you through the manual migration steps to update your Hot C
 
 Start by installing the latest `16.x.x` version of **all** of the `HotChocolate.*` packages referenced by your project.
 
-> This guide is still a work in progress with more updates to follow.
-
 # Breaking changes
 
 Things that have been removed or had a change in behavior that may cause your code not to compile or lead to unexpected behavior at runtime if not addressed.
@@ -29,7 +27,7 @@ builder.AddGraphQL()
 +   .AddWarmupTask((executor, ct) => { /* ... */ });
 ```
 
-Warmup tasks registered with `AddWarmupTask` run at startup **and** when the schema is updated at runtime by default. Checkout the [documentation](/docs/hotchocolate/v16/server/warmup), if you need your warmup task to only run at startup.
+Warmup tasks registered with `AddWarmupTask` run at startup **and** when the schema is updated at runtime by default. Check out the [documentation](/docs/hotchocolate/v16/server/warmup), if you need your warmup task to only run at startup.
 
 If you need to preserve lazy initialization for specific scenarios (though this is rarely recommended), you can opt out by setting the `LazyInitialization` option to `true`:
 
@@ -78,6 +76,41 @@ If you need to access the application service provider from within the schema se
 ```csharp
 IServiceProvider applicationServices = schemaServices.GetRootServiceProvider();
 ```
+
+## Internal directives hidden from schema endpoint
+
+Previously, the `/graphql/schema.graphql` endpoint was returning the schema containing internal directives like `@authorize`. Starting with v16 the endpoint no longer includes internal directives by default.
+
+If you need to retain the previous behavior, set `DisableInternalDirectives` to `true` through `ModifyOptions`. This treats every directive as public, even directives that explicitly call `Internal()` and regardless of `DefaultDirectiveVisibility`:
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .ModifyOptions(o => o.DisableInternalDirectives = true);
+```
+
+Be aware that internal directives may carry sensitive information (for example, authorization policies attached via `@authorize`). Only enable this if you understand and accept that risk.
+
+## New analyzers
+
+If you reference the `HotChocolate.Types.Analyzers` package, version 16 ships a number of new analyzers that surface misconfigurations and discouraged patterns at compile time. Several of them report at `Error` severity, so they can break a build that compiled cleanly on version 15. In most cases the fix is exactly what the diagnostic suggests. If you believe a diagnostic is a false positive, please [open an issue](https://github.com/ChilliCream/graphql-platform/issues).
+
+The following new analyzers report at `Error` severity and can fail your build:
+
+| ID     | Title                                              | What it reports                                                                                                                            |
+| ------ | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| HC0094 | Bind member not found                              | The member referenced by `BindMember`/`nameof(...)` does not exist on the target type.                                                     |
+| HC0095 | Bind member type mismatch                          | The type used in a `nameof` expression does not match the `[ObjectType<T>]` type.                                                          |
+| HC0097 | Parent attribute type mismatch                     | A `[Parent]` parameter's type must be the parent runtime type or a base type/interface it implements.                                      |
+| HC0098 | Parent method type mismatch                        | The type argument in `Parent<T>()` must be the parent runtime type or a base type/interface it implements.                                 |
+| HC0099 | QueryContext with UseProjection                    | A resolver with a `QueryContext<T>` parameter cannot also use `[UseProjection]`.                                                           |
+| HC0100 | Data attribute order                               | `[UsePaging]`, `[UseProjection]`, `[UseFiltering]` and `[UseSorting]` must be applied in that order.                                       |
+| HC0101 | QueryContext connection type mismatch              | The `QueryContext<T>` type argument must match the connection's node type.                                                                 |
+| HC0092 | ID attribute redundant on node resolver parameters | `[ID]` is redundant on a `[NodeResolver]` parameter, since the attribute already declares the `id` parameter as an ID type. Remove `[ID]`. |
+| HC0093 | Node resolver must be public                       | A `[NodeResolver]` method must be `public`.                                                                                                |
+| HC0104 | Node resolver `id` parameter                       | The first parameter of a node resolver must be the node ID and must be named `id`.                                                         |
+| HC0105 | ID attribute must target the property              | On a record parameter, the `[ID]` attribute must use the `property:` target specifier (`[property: ID]`).                                  |
+| HC0106 | Microsoft authorization attribute not allowed      | Use the `[Authorize]` attribute from `HotChocolate.Authorization` instead of the one from `Microsoft.AspNetCore.Authorization`.            |
 
 ## Cache size configuration
 
@@ -548,6 +581,28 @@ Use `OperationRequestBuilder.From(request)` to create a builder pre-populated fr
 
 The builder now exposes a `Features` property of type `IFeatureCollection` for attaching extensibility features (such as `IFileLookup` for file uploads).
 
+## AllowNonPersistedOperation moved
+
+The `AllowNonPersistedOperation` extension method has moved from `OperationRequestBuilderExtensions` (in `HotChocolate.Abstractions`) to `PersistedOperationRequestOverridesExtensions` (in `HotChocolate.Execution.Abstractions`). The namespace (`HotChocolate.Execution`) and the method signature are unchanged, so normal call sites continue to compile:
+
+```csharp
+builder.AllowNonPersistedOperation();
+```
+
+If you called the method through its declaring type, update the reference:
+
+```diff
+-OperationRequestBuilderExtensions.AllowNonPersistedOperation(builder);
++PersistedOperationRequestOverridesExtensions.AllowNonPersistedOperation(builder);
+```
+
+The method now writes a `PersistedOperationRequestOverrides` feature on the request instead of setting the `HotChocolate.Execution.NonPersistedOperationAllowed` global state entry. The `OnlyAllowPersistedDocuments` middleware only reads the feature in v16. If you previously bypassed the extension method and set the flag through global state, switch to writing the feature:
+
+```diff
+-builder.SetGlobalState("HotChocolate.Execution.NonPersistedOperationAllowed", true);
++builder.Features.Set(new PersistedOperationRequestOverrides(AllowNonPersistedOperation: true));
+```
+
 ## Any and Json scalars merged
 
 The `Json` scalar has been removed and its functionality merged into the `Any` scalar. The `Any` scalar now uses `System.Text.Json.JsonElement` as its .NET runtime type, which was previously the runtime type of the `Json` scalar.
@@ -722,6 +777,57 @@ The `DefaultHttpMethod` enum has been removed. Use the `UseGet` boolean property
 ```diff
 -o.HttpMethod = DefaultHttpMethod.Get;
 +o.UseGet = true;
+```
+
+## Nitro integration
+
+The Nitro NuGet packages have been restructured in v16. Versions now align with the rest of the platform, so you are migrating from `1.x` to `16.x`. For the full migration guide covering all package renames, API changes, and complete before/after examples, see [Migrating Nitro from 1 to 16](/docs/nitro/migration/migrate-from-1-to-16).
+
+The key changes for HotChocolate projects:
+
+- **Package rename:** The old `ChilliCream.Nitro` package is now `ChilliCream.Nitro.HotChocolate`. A new meta-package takes the old `ChilliCream.Nitro` ID.
+- **Connection settings** are configured once on the service collection via `AddNitro()`.
+- **Per-schema feature options** (persisted operations, metrics, operation reporting) are configured via `ModifyNitroOptions()` on the GraphQL builder.
+- **`AddNitroExporter()`** is replaced by `AddOpenTelemetry()` on the `INitroBuilder`.
+- **Asset cache** is now configured globally on `INitroBuilder` instead of per-schema.
+- **`AddDefaults()`** is a source-generated method that wires up the default integration when the correct packages are referenced.
+
+> Note: If you are self-hosting the Nitro backend, make sure to update it to the latest version as well. `10.1.0` is the minimum version required to work with the `ChilliCream.Nitro.*` packages.
+
+**Before**
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddNitro(o =>
+    {
+        o.ApiId = "...";
+        o.ApiKey = "...";
+        o.Stage = "...";
+        o.EnablePersistedQueries = true;
+        o.Metrics.Enabled = true;
+    });
+```
+
+**After**
+
+```csharp
+builder.Services
+    .AddNitro(o =>
+    {
+        o.ApiId = "...";
+        o.ApiKey = "...";
+        o.Stage = "...";
+    })
+    .AddDefaults();
+
+builder.Services
+    .AddGraphQLServer()
+    .ModifyNitroOptions(o =>
+    {
+        o.PersistedOperations.Enabled = true;
+        o.Metrics.Enabled = true;
+    });
 ```
 
 ## Server options now configured via ModifyServerOptions
@@ -1045,6 +1151,55 @@ If you're using the schema export command, add the `--semantic-non-null` flag to
 ```bash
 dotnet run -- schema export --output schema.graphql --semantic-non-null
 ```
+
+## Parameterless handler registration on filter, sort, and projection providers removed
+
+The parameterless activator overloads have been removed from the filtering, sorting, and projection provider descriptors. Custom handlers must now be registered either by passing an instance or by passing a factory that receives a provider context. The context exposes `InputParser`, `InputFormatter`, `SchemaServices`, `TypeConverter`, etc.
+
+Affected APIs:
+
+- `IFilterProviderDescriptor<TContext>.AddFieldHandler<T>()` -> `AddFieldHandler(Func<FilterProviderContext, T>)`
+- `ISortProviderDescriptor<TContext>.AddFieldHandler<T>()` -> `AddFieldHandler(Func<SortProviderContext, T>)`
+- `ISortProviderDescriptor<TContext>.AddOperationHandler<T>()` -> `AddOperationHandler(Func<SortProviderContext, T>)`
+- `IProjectionProviderDescriptor.RegisterFieldHandler<T>()` -> `RegisterFieldHandler(Func<ProjectionProviderContext, T>)`
+- `IProjectionProviderDescriptor.RegisterFieldInterceptor<T>()` -> `RegisterFieldInterceptor(Func<ProjectionProviderContext, T>)`
+- `IProjectionProviderDescriptor.RegisterOptimizer<T>()` -> `RegisterOptimizer(Func<ProjectionProviderContext, T>)`
+
+**Before**
+
+```csharp
+public class CustomFilteringConvention : FilterConvention
+{
+    protected override void Configure(IFilterConventionDescriptor descriptor)
+    {
+        descriptor.AddDefaults();
+        descriptor.Provider(
+            new QueryableFilterProvider(
+                x => x
+                    .AddFieldHandler<QueryableStringInvariantEqualsHandler>()
+                    .AddDefaultFieldHandlers()));
+    }
+}
+```
+
+**After**
+
+```csharp
+public class CustomFilteringConvention : FilterConvention
+{
+    protected override void Configure(IFilterConventionDescriptor descriptor)
+    {
+        descriptor.AddDefaults();
+        descriptor.Provider(
+            new QueryableFilterProvider(
+                x => x
+                    .AddFieldHandler(ctx => new QueryableStringInvariantEqualsHandler(ctx.InputParser))
+                    .AddDefaultFieldHandlers()));
+    }
+}
+```
+
+The `CanHandle` signature also changed on the filtering, sorting, and projection handler interfaces. If you have overridden it, re-override against the new signature.
 
 # Deprecations
 

@@ -4,65 +4,108 @@
   },
   "activities": [
     {
-      "OperationName": "ExecuteHttpRequest",
-      "DisplayName": "GraphQL HTTP POST",
-      "Kind": "Internal",
-      "Status": "Ok",
+      "OperationName": "Microsoft.AspNetCore.Hosting.HttpRequestIn",
+      "DisplayName": "POST /graphql/{**slug}",
+      "Kind": "Server",
+      "Status": "Unset",
       "tags": [
         {
-          "Key": "graphql.http.kind",
-          "Value": "HttpPost"
+          "Key": "server.address",
+          "Value": "localhost"
         },
         {
-          "Key": "graphql.schema.name",
-          "Value": "_Default"
+          "Key": "server.port",
+          "Value": 5000
+        },
+        {
+          "Key": "http.request.method",
+          "Value": "POST"
+        },
+        {
+          "Key": "url.scheme",
+          "Value": "http"
+        },
+        {
+          "Key": "url.path",
+          "Value": "/graphql"
+        },
+        {
+          "Key": "network.protocol.version",
+          "Value": "1.1"
+        },
+        {
+          "Key": "http.route",
+          "Value": "/graphql/{**slug}"
+        },
+        {
+          "Key": "http.response.status_code",
+          "Value": 400
         }
       ],
       "event": [],
       "activities": [
         {
-          "OperationName": "Parse HTTP Request",
-          "DisplayName": "Parse HTTP Request",
+          "OperationName": "ExecuteHttpRequest",
+          "DisplayName": "GraphQL HTTP POST",
           "Kind": "Internal",
-          "Status": "Error",
+          "Status": "Ok",
           "tags": [
             {
-              "Key": "error.type",
-              "Value": "HC0011"
+              "Key": "graphql.http.kind",
+              "Value": "HttpPost"
+            },
+            {
+              "Key": "graphql.schema.name",
+              "Value": "_Default"
             }
           ],
-          "event": [
+          "event": [],
+          "activities": [
             {
-              "Name": "graphql.error",
-              "Tags": [
+              "OperationName": "Parse HTTP Request",
+              "DisplayName": "Parse HTTP Request",
+              "Kind": "Internal",
+              "Status": "Error",
+              "tags": [
                 {
-                  "Key": "graphql.error.message",
-                  "Value": "Found a NameStart character `n` (110) following a number, which is disallowed."
-                },
-                {
-                  "Key": "graphql.error.code",
+                  "Key": "error.type",
                   "Value": "HC0011"
-                },
+                }
+              ],
+              "event": [
                 {
-                  "Key": "graphql.document.locations",
-                  "Value": [
+                  "Name": "graphql.error",
+                  "Tags": [
                     {
-                      "line": 10,
-                      "column": 37
+                      "Key": "graphql.error.message",
+                      "Value": "Found a NameStart character `n` (110) following a number, which is disallowed."
+                    },
+                    {
+                      "Key": "graphql.error.code",
+                      "Value": "HC0011"
+                    },
+                    {
+                      "Key": "graphql.document.locations",
+                      "Value": [
+                        {
+                          "line": 10,
+                          "column": 37
+                        }
+                      ]
                     }
                   ]
                 }
               ]
+            },
+            {
+              "OperationName": "Format HTTP Response",
+              "DisplayName": "Format HTTP Response",
+              "Kind": "Internal",
+              "Status": "Ok",
+              "tags": [],
+              "event": []
             }
           ]
-        },
-        {
-          "OperationName": "Format HTTP Response",
-          "DisplayName": "Format HTTP Response",
-          "Kind": "Internal",
-          "Status": "Ok",
-          "tags": [],
-          "event": []
         }
       ]
     }

@@ -1,0 +1,116 @@
+{
+  "source": {
+    "name": "Experimental.ModelContextProtocol"
+  },
+  "activities": [
+    {
+      "OperationName": "prompts/get greeting",
+      "DisplayName": "prompts/get greeting",
+      "Kind": "Client",
+      "Status": "Unset",
+      "tags": [
+        {
+          "Key": "mcp.session.id",
+          "Value": "<scrubbed>"
+        },
+        {
+          "Key": "jsonrpc.request.id",
+          "Value": "3"
+        },
+        {
+          "Key": "mcp.method.name",
+          "Value": "prompts/get"
+        },
+        {
+          "Key": "network.transport",
+          "Value": "unknown"
+        },
+        {
+          "Key": "mcp.protocol.version",
+          "Value": "2025-11-25"
+        },
+        {
+          "Key": "gen_ai.prompt.name",
+          "Value": "greeting"
+        }
+      ],
+      "event": [],
+      "activities": [
+        {
+          "OperationName": "prompts/get greeting",
+          "DisplayName": "prompts/get greeting",
+          "Kind": "Server",
+          "Status": "Unset",
+          "tags": [
+            {
+              "Key": "mcp.session.id",
+              "Value": "<scrubbed>"
+            },
+            {
+              "Key": "jsonrpc.request.id",
+              "Value": "3"
+            },
+            {
+              "Key": "mcp.method.name",
+              "Value": "prompts/get"
+            },
+            {
+              "Key": "network.transport",
+              "Value": "tcp"
+            },
+            {
+              "Key": "network.protocol.name",
+              "Value": "http"
+            },
+            {
+              "Key": "mcp.protocol.version",
+              "Value": "2025-11-25"
+            },
+            {
+              "Key": "gen_ai.prompt.name",
+              "Value": "greeting"
+            }
+          ],
+          "event": []
+        }
+      ]
+    },
+    {
+      "OperationName": "Microsoft.AspNetCore.Hosting.HttpRequestIn",
+      "DisplayName": "POST /graphql/mcp/",
+      "Kind": "Server",
+      "Status": "Unset",
+      "tags": [
+        {
+          "Key": "server.address",
+          "Value": "localhost"
+        },
+        {
+          "Key": "http.request.method",
+          "Value": "POST"
+        },
+        {
+          "Key": "url.scheme",
+          "Value": "http"
+        },
+        {
+          "Key": "url.path",
+          "Value": "/graphql/mcp"
+        },
+        {
+          "Key": "network.protocol.version",
+          "Value": "1.1"
+        },
+        {
+          "Key": "http.route",
+          "Value": "/graphql/mcp/"
+        },
+        {
+          "Key": "http.response.status_code",
+          "Value": 200
+        }
+      ],
+      "event": []
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+title: Server
+items:
+  - path: index
+    title: Overview
+  - path: endpoints
+    title: Endpoints
+  - path: http-transport
+    title: Transports
+  - path: cache-control
+    title: Cache Control
+  - path: interceptors
+    title: Interceptors
+  - path: warmup
+    title: Warmup
+  - path: global-state
+    title: Global State
+  - path: files
+    title: File Uploads
+  - path: instrumentation
+    title: Instrumentation
+  - path: batching
+    title: Batching
+  - path: command-line
+    title: CLI Commands

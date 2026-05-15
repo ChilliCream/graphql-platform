@@ -536,10 +536,17 @@ internal static class LogEntryHelper
             .Build();
     }
 
-    public static LogEntry InvalidGraphQL(string exceptionMessage, MutableSchemaDefinition schema)
+    public static LogEntry InvalidGraphQL(
+        string exceptionMessage,
+        MutableSchemaDefinition schema,
+        bool inExtensions = false)
     {
         return LogEntryBuilder.New()
-            .SetMessage(LogEntryHelper_InvalidGraphQL, exceptionMessage)
+            .SetMessage(
+                inExtensions
+                    ? LogEntryHelper_InvalidGraphQLInExtensions
+                    : LogEntryHelper_InvalidGraphQL,
+                exceptionMessage)
             .SetCode(LogEntryCodes.InvalidGraphQL)
             .SetSeverity(LogSeverity.Error)
             .SetSchema(schema)

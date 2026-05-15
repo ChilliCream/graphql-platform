@@ -1,0 +1,132 @@
+{
+  "source": {
+    "name": "Experimental.ModelContextProtocol"
+  },
+  "activities": [
+    {
+      "OperationName": "tools/call does_not_exist",
+      "DisplayName": "tools/call does_not_exist",
+      "Kind": "Client",
+      "Status": "Error",
+      "tags": [
+        {
+          "Key": "mcp.session.id",
+          "Value": "<scrubbed>"
+        },
+        {
+          "Key": "jsonrpc.request.id",
+          "Value": "3"
+        },
+        {
+          "Key": "mcp.method.name",
+          "Value": "tools/call"
+        },
+        {
+          "Key": "network.transport",
+          "Value": "unknown"
+        },
+        {
+          "Key": "mcp.protocol.version",
+          "Value": "2025-11-25"
+        },
+        {
+          "Key": "gen_ai.tool.name",
+          "Value": "does_not_exist"
+        },
+        {
+          "Key": "gen_ai.operation.name",
+          "Value": "execute_tool"
+        },
+        {
+          "Key": "error.type",
+          "Value": "tool_error"
+        }
+      ],
+      "event": [],
+      "activities": [
+        {
+          "OperationName": "tools/call does_not_exist",
+          "DisplayName": "tools/call does_not_exist",
+          "Kind": "Server",
+          "Status": "Error",
+          "tags": [
+            {
+              "Key": "mcp.session.id",
+              "Value": "<scrubbed>"
+            },
+            {
+              "Key": "jsonrpc.request.id",
+              "Value": "3"
+            },
+            {
+              "Key": "mcp.method.name",
+              "Value": "tools/call"
+            },
+            {
+              "Key": "network.transport",
+              "Value": "tcp"
+            },
+            {
+              "Key": "network.protocol.name",
+              "Value": "http"
+            },
+            {
+              "Key": "mcp.protocol.version",
+              "Value": "2025-11-25"
+            },
+            {
+              "Key": "gen_ai.tool.name",
+              "Value": "does_not_exist"
+            },
+            {
+              "Key": "gen_ai.operation.name",
+              "Value": "execute_tool"
+            },
+            {
+              "Key": "error.type",
+              "Value": "tool_error"
+            }
+          ],
+          "event": []
+        }
+      ]
+    },
+    {
+      "OperationName": "Microsoft.AspNetCore.Hosting.HttpRequestIn",
+      "DisplayName": "POST /graphql/mcp/",
+      "Kind": "Server",
+      "Status": "Unset",
+      "tags": [
+        {
+          "Key": "server.address",
+          "Value": "localhost"
+        },
+        {
+          "Key": "http.request.method",
+          "Value": "POST"
+        },
+        {
+          "Key": "url.scheme",
+          "Value": "http"
+        },
+        {
+          "Key": "url.path",
+          "Value": "/graphql/mcp"
+        },
+        {
+          "Key": "network.protocol.version",
+          "Value": "1.1"
+        },
+        {
+          "Key": "http.route",
+          "Value": "/graphql/mcp/"
+        },
+        {
+          "Key": "http.response.status_code",
+          "Value": 200
+        }
+      ],
+      "event": []
+    }
+  ]
+}

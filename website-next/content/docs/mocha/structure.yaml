@@ -1,0 +1,36 @@
+title: Mocha
+items:
+  - path: index
+    title: Introduction
+  - path: quick-start
+    title: Quick Start
+  - path: messages
+    title: Messages
+  - path: messaging-patterns
+    title: Messaging Patterns
+  - path: handlers-and-consumers
+    title: Handlers and Consumers
+  - path: handler-registration
+    title: Handler Registration
+  - path: routing-and-endpoints
+    title: Routing and Endpoints
+  - path: middleware-and-pipelines
+    title: Middleware and Pipelines
+  - path: reliability
+    title: Reliability
+  - path: exception-policies
+    title: Exception Policies
+  - path: scheduling
+    title: Scheduling
+  - path: observability
+    title: Observability
+  - path: sagas
+    title: Sagas
+  - path: transports
+    title: Transports
+  - path: hosting
+    title: Hosting
+  - path: mediator
+    title: Mediator
+  - path: diagnostics
+    title: Diagnostics

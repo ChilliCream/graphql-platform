@@ -6,7 +6,7 @@ internal sealed class SchemaFileOption : Option<string>
     {
         Description = "The path to the graphql file with the schema definition";
         Required = true;
-        this.DefaultFileFromEnvironmentValue("SCHEMA_FILE");
+        this.DefaultFileFromEnvironmentValue(EnvironmentVariables.SchemaFile);
         this.LegalFilePathsOnly();
     }
 }

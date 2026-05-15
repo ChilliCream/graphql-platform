@@ -320,6 +320,9 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : Clie
         var unauthorized = new Mock<ICreateClientCommandMutation_CreateClient_Errors_UnauthorizedOperation>(MockBehavior.Strict);
         unauthorized.As<IUnauthorizedOperation>().SetupGet(x => x.Message).Returns("Unauthorized operation.");
 
+        var duplicateName = new Mock<ICreateClientCommandMutation_CreateClient_Errors_DuplicateNameError>(MockBehavior.Strict);
+        duplicateName.As<IDuplicateNameError>().SetupGet(x => x.Message).Returns("Name already in use.");
+
         var genericError = new Mock<ICreateClientCommandMutation_CreateClient_Errors>(MockBehavior.Strict);
         genericError.As<IError>().SetupGet(x => x.Message).Returns("something bad happened");
 
@@ -327,6 +330,7 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : Clie
         {
             { apiNotFound.Object, "The API was not found." },
             { unauthorized.Object, "Unauthorized operation." },
+            { duplicateName.Object, "The name 'web-client' is already in use by another Client." },
             { genericError.Object, "Unexpected mutation error: something bad happened" }
         };
     }

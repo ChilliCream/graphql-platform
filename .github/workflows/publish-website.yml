@@ -19,26 +19,26 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           show-progress: false
 
       - name: Docker Login
-        uses: docker/login-action@v4
+        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4
         with:
           registry: ${{ secrets.CONTAINER_REG_URL }}
           username: ${{ secrets.CONTAINER_REG_USERNAME }}
           password: ${{ secrets.CONTAINER_REG_PASSWORD }}
 
       - name: Install Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version: 24
           cache: "yarn"
           cache-dependency-path: "website/yarn.lock"
 
       - name: Cache Next.js Build Artifacts
-        uses: actions/cache@v5
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
         with:
           path: |
             website/.next/cache
@@ -71,7 +71,7 @@ jobs:
         working-directory: website
 
       - name: Build WebSite Container
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7
         with:
           context: ./website
           file: .docker/website/dockerfile
@@ -79,7 +79,7 @@ jobs:
           tags: ${{ secrets.CONTAINER_REG_DOMAIN }}/ccc-website-${{ github.ref_name }}:${{ github.run_id }}
 
       - name: Deploy to Azure WebApp
-        uses: azure/webapps-deploy@v3
+        uses: azure/webapps-deploy@02a81bead70021f5284939794bcec79c271ab383 # v3
         with:
           app-name: ccc-p-us1-website
           slot-name: "next"

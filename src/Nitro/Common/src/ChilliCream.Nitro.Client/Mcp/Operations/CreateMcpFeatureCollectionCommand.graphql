@@ -7,6 +7,7 @@ mutation CreateMcpFeatureCollectionCommandMutation($input: CreateMcpFeatureColle
       ...Error
       ...ApiNotFoundError
       ...UnauthorizedOperation
+      ...DuplicateNameError
     }
   }
 }

@@ -70,6 +70,7 @@ internal sealed class CreateClientCommand : Command
                     {
                         ICreateClientCommandMutation_CreateClient_Errors_ApiNotFoundError err => err.Message,
                         ICreateClientCommandMutation_CreateClient_Errors_UnauthorizedOperation err => err.Message,
+                        ICreateClientCommandMutation_CreateClient_Errors_DuplicateNameError => Messages.DuplicateName(name, "Client"),
                         IError err => Messages.UnexpectedMutationError(err),
                         _ => Messages.UnexpectedMutationError()
                     };

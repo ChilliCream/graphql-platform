@@ -1,0 +1,22 @@
+title: Strawberry Shake
+items:
+  - path: index
+    title: Introduction
+  - path: get-started
+    title: Get Started
+  - path: subscriptions
+    title: Subscriptions
+  - path: tooling
+    title: Tooling / CLI
+  - path: configuration
+    title: Configuration
+  - path: caching
+    title: Caching
+  - path: performance
+    title: Performance
+  - path: networking
+    title: Networking
+  - path: scalars
+    title: Scalars
+  - path: migrating
+    title: Migrating

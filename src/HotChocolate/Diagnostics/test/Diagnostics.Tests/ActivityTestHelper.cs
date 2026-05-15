@@ -19,6 +19,9 @@ public static partial class ActivityTestHelper
 
         var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddHotChocolateInstrumentation()
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddSource("Experimental.ModelContextProtocol")
             .SetSampler(new AlwaysOnSampler())
             .AddInMemoryExporter(exported)
             .Build()!;
@@ -102,7 +105,13 @@ public static partial class ActivityTestHelper
         public OrderedDictionary<string, object?> Source
             => new()
             {
-                ["name"] = _exported.FirstOrDefault()?.Source.Name
+                // The first source name in stable (ordinal) order. Using the first exported
+                // activity is not deterministic once nested transport spans are involved,
+                // because the order in which sibling spans complete can vary between runs.
+                ["name"] = _exported
+                    .Select(a => a.Source.Name)
+                    .OrderBy(name => name, StringComparer.Ordinal)
+                    .FirstOrDefault()
             };
 
         [JsonProperty("activities", Order = 1)]

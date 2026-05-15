@@ -25,7 +25,12 @@
       "event": [
         {
           "Name": "DocumentNotFoundInStorage",
-          "Tags": []
+          "Tags": [
+            {
+              "Key": "graphql.document.id",
+              "Value": "a8c5e2f1d3b4a6e7c9d0f1a2b3c4d5e6"
+            }
+          ]
         },
         {
           "Name": "graphql.error",

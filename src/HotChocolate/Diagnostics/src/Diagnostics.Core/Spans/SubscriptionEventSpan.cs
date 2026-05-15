@@ -24,7 +24,7 @@ internal sealed class SubscriptionEventSpan(Activity activity) : SpanBase(activi
             return null;
         }
 
-        activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Execute);
+        activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.SubscriptionEvent);
         activity.EnrichOperation(OperationType.Subscription, operationName);
         activity.EnrichDocumentInfo(context.OperationDocumentInfo);
         activity.SetTag(GraphQL.Subscription.Id, subscriptionId.ToString(CultureInfo.InvariantCulture));

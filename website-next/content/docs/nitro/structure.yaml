@@ -1,0 +1,32 @@
+title: Nitro
+items:
+  - path: index
+    title: Introduction
+  - path: getting-started
+    title: Getting Started
+  - path: explore-the-ui
+    title: Explore the UI
+  - path: documents
+    title: Documents
+  - path: apis
+    title: APIs
+  - path: open-telemetry
+    title: Open Telemetry
+  - path: environments
+    title: Environments
+  - path: organizations
+    title: Organizations
+  - path: workspaces
+    title: Workspaces
+  - path: nitro-services
+    title: Connect your API
+  - path: cli
+    title: CLI
+  - path: subscriptions
+    title: Subscriptions & Billing
+  - path: integrations
+    title: Integrations
+  - path: adapters
+    title: Adapters
+  - path: settings
+    title: Settings

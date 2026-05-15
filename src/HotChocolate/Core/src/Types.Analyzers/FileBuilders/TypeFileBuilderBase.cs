@@ -296,6 +296,14 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
         WriteResolverBindingDescriptor(type, resolver);
 
+        if (resolver.SubscribeWith is not null)
+        {
+            Writer.WriteIndentedLine(
+                "configuration.SubscribeWith = \"{0}\";",
+                GeneratorUtils.EscapeForStringLiteral(resolver.SubscribeWith));
+            Writer.WriteIndentedLine("configuration.SourceType = context.ThisType;");
+        }
+
         if (resolver.Kind is ResolverKind.BatchResolver)
         {
             // For batch resolvers, the return type is a list (e.g. List<string>).

@@ -1,0 +1,20 @@
+title: Guides
+items:
+  - path: public-api
+    title: Building a Public API
+  - path: private-api
+    title: Building a Private API
+  - path: error-handling
+    title: Error Handling
+  - path: schema-evolution
+    title: Schema Evolution
+  - path: testing
+    title: Testing
+  - path: performance
+    title: Performance
+  - path: dynamic-schemas
+    title: Dynamic Schemas
+  - path: mcp-adapter
+    title: MCP Adapter
+  - path: openapi-adapter
+    title: OpenAPI Adapter

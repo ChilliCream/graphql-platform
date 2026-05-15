@@ -1,5 +1,6 @@
 schema {
   query: Query
+  subscription: Subscription
 }
 
 type Query {
@@ -58,6 +59,11 @@ type Query {
   listNullableElementArgumentRef(items: [String]!): String!
   nullableListNullableElementArgumentRef(items: [String]): String!
   issue8057Entity(id: ID!): Issue8057Entity @cost(weight: "10")
+}
+
+type Subscription {
+  onProductAdded(categoryId: Int!): Int! @cost(weight: "10")
+  onProductPriceChanged(productId: Int!): Int! @cost(weight: "10")
 }
 
 type Book implements Product {

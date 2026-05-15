@@ -17,9 +17,15 @@ internal static class Messages
     public static string UnexpectedMutationError(IError error)
         => $"Unexpected mutation error: {error.Message}";
 
+    public static string DuplicateName(string name, string entity)
+        => $"The name '{name.EscapeMarkup()}' is already in use by another {entity}.";
+
     public static string SchemaFileDoesNotExist(string path) => $"Schema file '{path}' does not exist.";
 
     public static string SchemaSettingsFileDoesNotExist(string path) => $"Schema settings file '{path}' does not exist.";
+
+    public static string SchemaExtensionsFileCannotBeUsedAsSchemaFile(string path)
+        => $"Schema extensions file '{path}' cannot be used as a source schema file. Provide the base schema file instead.";
 
     public static string ArchiveFileDoesNotExist(string path) => $"Archive file '{path}' does not exist.";
 
