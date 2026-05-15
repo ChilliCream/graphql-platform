@@ -247,17 +247,10 @@ public sealed class OperationCompiler
 
             var alwaysIncluded = false;
             var first = nodes[0];
-            var isInternal = IsInternal(first.Node);
+            var isInternal = IsInternal(nodes);
             var hasImmediateNode = first.DeliveryGroup is null;
 
-            if (first.PathIncludeFlags == 0)
-            {
-                alwaysIncluded = true;
-            }
-            else
-            {
-                includeFlags.Add(first.PathIncludeFlags);
-            }
+            AddIncludeFlags(first, isInternal, includeFlags, ref alwaysIncluded);
 
             if (first.DeliveryGroup is not null)
             {
@@ -276,18 +269,7 @@ public sealed class OperationCompiler
                             $"The syntax nodes for the response name {responseName} are not all the same.");
                     }
 
-                    if (next.PathIncludeFlags == 0)
-                    {
-                        alwaysIncluded = true;
-                        if (includeFlags.Count > 0)
-                        {
-                            includeFlags.Clear();
-                        }
-                    }
-                    else if (!alwaysIncluded)
-                    {
-                        includeFlags.Add(next.PathIncludeFlags);
-                    }
+                    AddIncludeFlags(next, isInternal, includeFlags, ref alwaysIncluded);
 
                     if (next.DeliveryGroup is null)
                     {
@@ -296,11 +278,6 @@ public sealed class OperationCompiler
                     else if (!hasImmediateNode)
                     {
                         deliveryGroups.Add(next.DeliveryGroup);
-                    }
-
-                    if (isInternal)
-                    {
-                        isInternal = IsInternal(next.Node);
                     }
                 }
             }
@@ -424,6 +401,44 @@ public sealed class OperationCompiler
         {
             includeFlags.RemoveRange(write, includeFlags.Count - write);
         }
+    }
+
+    private static void AddIncludeFlags(
+        FieldSelectionNode node,
+        bool isInternalSelection,
+        List<ulong> includeFlags,
+        ref bool alwaysIncluded)
+    {
+        if (!isInternalSelection && IsInternal(node.Node))
+        {
+            return;
+        }
+
+        if (node.PathIncludeFlags == 0)
+        {
+            alwaysIncluded = true;
+            if (includeFlags.Count > 0)
+            {
+                includeFlags.Clear();
+            }
+        }
+        else if (!alwaysIncluded)
+        {
+            includeFlags.Add(node.PathIncludeFlags);
+        }
+    }
+
+    private static bool IsInternal(List<FieldSelectionNode> nodes)
+    {
+        for (var i = 0; i < nodes.Count; i++)
+        {
+            if (!IsInternal(nodes[i].Node))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private bool DoesTypeApply(NamedTypeNode? typeCondition, IObjectTypeDefinition typeContext)

@@ -234,6 +234,47 @@ public class OperationCompilerTests : FusionTestBase
         Assert.True(name.IsIncluded(flags));
     }
 
+    [Fact]
+    public void Internal_Field_Should_Not_Make_Conditional_User_Field_Always_Included()
+    {
+        // arrange
+        const string sourceText =
+            """
+            query ($skip: Boolean!) {
+                product {
+                    __typename @fusion__requirement
+                    __typename @skip(if: $skip)
+                }
+            }
+            """;
+
+        var document = Utf8GraphQLParser.Parse(sourceText);
+        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().First();
+        var schema = CreateSchema();
+
+        var booleanType = schema.Types.GetType<IScalarTypeDefinition>("Boolean");
+        var nonNullBooleanType = new NonNullType(booleanType);
+
+        var variableValues = new VariableValueCollection(
+            new Dictionary<string, VariableValue>
+            {
+                { "skip", new VariableValue("skip", nonNullBooleanType, BooleanValueNode.True) }
+            });
+
+        // act
+        var compiler = new OperationCompiler(schema, _fieldMapPool);
+        var operation = compiler.Compile("1", "1", operationDefinition);
+        var flags = operation.CreateIncludeFlags(variableValues);
+
+        // assert
+        var product = GetSelection(operation.RootSelectionSet, "product");
+        var productSelectionSet = operation.GetSelectionSet(product);
+        var typeName = GetSelection(productSelectionSet, "__typename");
+
+        Assert.False(typeName.IsInternal);
+        Assert.False(typeName.IsIncluded(flags));
+    }
+
     public static FusionSchemaDefinition CreateSchema()
     {
         const string sourceText =
