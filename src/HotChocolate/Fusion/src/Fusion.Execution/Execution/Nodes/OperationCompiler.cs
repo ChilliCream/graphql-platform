@@ -245,11 +245,16 @@ public sealed class OperationCompiler
             includeFlags.Clear();
             deliveryGroups.Clear();
 
+            var alwaysIncluded = false;
             var first = nodes[0];
             var isInternal = IsInternal(first.Node);
             var hasImmediateNode = first.DeliveryGroup is null;
 
-            if (first.PathIncludeFlags > 0)
+            if (first.PathIncludeFlags == 0)
+            {
+                alwaysIncluded = true;
+            }
+            else
             {
                 includeFlags.Add(first.PathIncludeFlags);
             }
@@ -271,7 +276,15 @@ public sealed class OperationCompiler
                             $"The syntax nodes for the response name {responseName} are not all the same.");
                     }
 
-                    if (next.PathIncludeFlags > 0)
+                    if (next.PathIncludeFlags == 0)
+                    {
+                        alwaysIncluded = true;
+                        if (includeFlags.Count > 0)
+                        {
+                            includeFlags.Clear();
+                        }
+                    }
+                    else if (!alwaysIncluded)
                     {
                         includeFlags.Add(next.PathIncludeFlags);
                     }
