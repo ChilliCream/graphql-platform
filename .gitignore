@@ -331,3 +331,4 @@ Directory.Build.user.props
 
 src/Mocha/benchmarks/Mocha.Mediator.Benchmarks/Generated/
 .work/
+*.lscache
