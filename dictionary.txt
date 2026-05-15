@@ -103,6 +103,7 @@ Leia
 LICEN*
 Linq
 Liquibase
+lscache
 Marek
 matchesBrics
 maxage
