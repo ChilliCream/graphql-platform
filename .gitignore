@@ -45,3 +45,4 @@ src/Mocha/benchmarks/Mocha.Mediator.Benchmarks/Generated/
 .work/
 Directory.Build.user.props
 appsettings.user.json
+.playwright-mcp/
