@@ -69,6 +69,9 @@ jobs:
       - name: Build Website
         run: yarn build
         working-directory: website
+        env:
+          NEXT_PUBLIC_COOKIEBOT_CBID: ${{ secrets.NEXT_PUBLIC_COOKIEBOT_CBID }}
+          NEXT_PUBLIC_GA_MEASUREMENT_ID: ${{ secrets.NEXT_PUBLIC_GA_MEASUREMENT_ID }}
 
       - name: Build WebSite Container
         uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7

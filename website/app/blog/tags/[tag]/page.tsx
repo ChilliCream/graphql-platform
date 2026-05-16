@@ -3,6 +3,7 @@ import React from "react";
 import { getAllTags, getPostsByTag } from "@/lib/blog";
 import { BlogListPage } from "@/lib/blog-list-page";
 import { createMetadata } from "@/lib/metadata";
+import { siteMetadata } from "@/lib/site-config";
 
 interface PageProps {
   params: Promise<{ tag: string }>;
@@ -14,7 +15,12 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps) {
   const { tag } = await params;
-  return createMetadata({ title: `Blog - ${tag}` });
+  const tagUrl = `${siteMetadata.siteUrl}/blog/tags/${tag}/`;
+  return createMetadata({
+    title: `Blog - ${tag}`,
+    pageUrl: tagUrl,
+    canonicalUrl: tagUrl,
+  });
 }
 
 export default async function BlogTagPage({ params }: PageProps) {
