@@ -4,9 +4,7 @@ import {
   closeAside,
   closeTOC,
   hasScrolled,
-  hidePromo,
   setArticleHeight,
-  showPromo,
   toggleAside,
   toggleTOC,
 } from "./common.actions";
@@ -30,16 +28,6 @@ export const commonReducer = createReducer<CommonState>(
   onAction(closeTOC, (state) => ({
     ...state,
     showTOC: false,
-  })),
-
-  onAction(showPromo, (state) => ({
-    ...state,
-    showPromo: true,
-  })),
-
-  onAction(hidePromo, (state) => ({
-    ...state,
-    showPromo: false,
   })),
 
   onAction(toggleAside, (state) => ({
