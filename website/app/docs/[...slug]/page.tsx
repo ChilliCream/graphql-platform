@@ -1,8 +1,14 @@
 import React from "react";
 
-import { getAllDocPages, getDocPageBySlug, getDocsConfig } from "@/lib/docs";
+import {
+  getAllDocPages,
+  getDocPageBySlug,
+  getDocsConfig,
+  getProductInfo,
+} from "@/lib/docs";
 import { compileMdxContent, extractHeadings } from "@/lib/mdx";
 import { createMetadata } from "@/lib/metadata";
+import { siteMetadata } from "@/lib/site-config";
 import { DocPageView } from "@/lib/doc-page-view";
 import { notFound } from "next/navigation";
 
@@ -26,9 +32,30 @@ export async function generateMetadata({ params }: PageProps) {
   const title =
     page?.frontmatter?.title || slug[slug.length - 1] || "Documentation";
 
+  const product = page?.product;
+  const version = page?.version;
+  const productInfo = product ? getProductInfo(product) : undefined;
+  const latestVersion = productInfo?.latestStableVersion;
+  const isLatest = !version || !latestVersion || version === latestVersion;
+
+  const pageUrl = `${siteMetadata.siteUrl}${fullSlug}/`;
+  let canonicalUrl: string;
+
+  if (isLatest) {
+    canonicalUrl = pageUrl;
+  } else {
+    const restOfPath = slug.slice(2).join("/");
+    canonicalUrl = restOfPath
+      ? `${siteMetadata.siteUrl}/docs/${product}/${latestVersion}/${restOfPath}/`
+      : `${siteMetadata.siteUrl}/docs/${product}/${latestVersion}/`;
+  }
+
   return createMetadata({
     title,
     description: page?.frontmatter?.description,
+    canonicalUrl,
+    pageUrl,
+    noIndex: !isLatest,
   });
 }
 
