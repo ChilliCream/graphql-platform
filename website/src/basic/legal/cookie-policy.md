@@ -14,7 +14,7 @@ If you don't wish to accept cookies from us, you should instruct your browser to
 
 # Consent Management
 
-On our Websites (chillicream.com and related marketing pages), we use **Cookiebot** by Usercentrics as our consent management platform. When required by applicable law (for example, in the European Economic Area), Cookiebot displays a consent banner that allows you to accept or reject non-essential cookies before they are set. Your consent preferences are stored in a cookie named `CookieConsent` and are respected on subsequent visits. You can change your preferences at any time by clearing your cookies or using the consent management options on our Websites. Cookiebot is not used on nitro.chillicream.com or any other ChilliCream product or platform.
+On our Websites (chillicream.com and related marketing pages), we use **Cookiebot** by Usercentrics as our consent management platform. When required by applicable law (for example, in the European Economic Area), Cookiebot displays a consent banner that allows you to accept or reject non-essential cookies before they are set. Your consent preferences are stored in a cookie named `CookieConsent` and are respected on subsequent visits. You can change your preferences by clearing your cookies or, where available, using the consent management options on our Websites. Cookiebot is not used on nitro.chillicream.com or any other ChilliCream product or platform.
 
 # What is a cookie?
 

@@ -289,7 +289,7 @@ We utilize a variety of cloud storage providers to manage and process data. Belo
 1. **Stripe**: Stripe is our chosen platform for payment processing. Data related to transactions, including payment details, could be processed and stored on Stripe. For a comprehensive understanding of their data practices, please check the:
    - [Terms of Service](https://stripe.com/legal)
    - [Privacy Policy](https://stripe.com/privacy)
-1. **Google Analytics**: On our Websites only (chillicream.com and related marketing pages, excluding nitro.chillicream.com and other ChilliCream products), we use Google Analytics 4 to collect aggregated, anonymized website usage data such as page views, session duration, and general geographic region. This data is processed by Google and may be stored on Google servers in the United States. For more information:
+1. **Google Analytics**: On our Websites only (chillicream.com and related marketing pages, excluding nitro.chillicream.com and other ChilliCream products), we use Google Analytics 4 to collect aggregated website usage data such as page views, session duration, and general geographic region. This data is processed by Google and may be stored on Google servers in the United States. For more information:
    - [Terms of Service](https://marketingplatform.google.com/about/analytics/terms/us/)
    - [Privacy Policy](https://policies.google.com/privacy)
    - [How Google uses data](https://policies.google.com/technologies/partner-sites)
