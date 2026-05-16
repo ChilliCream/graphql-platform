@@ -33,7 +33,6 @@ export function Providers({ children, latestBlogPost }: ProvidersProps) {
         common: {
           searchQuery: "",
           showAside: false,
-          showPromo: false,
           showTOC: false,
           yScrollPosition: 0,
           articleViewportHeight: "94vh",
