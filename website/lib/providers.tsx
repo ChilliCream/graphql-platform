@@ -6,6 +6,7 @@ import { Provider } from "react-redux";
 import createStore from "@/state";
 import { initialState as workshopsInitialState } from "@/state/workshops/workshops.state";
 import { StyledComponentsRegistry } from "./registry";
+import { AnalyticsClickTracker, AnalyticsContentGroup } from "./analytics";
 
 export interface LatestBlogPost {
   title: string;
@@ -46,6 +47,8 @@ export function Providers({ children, latestBlogPost }: ProvidersProps) {
     <Provider store={store}>
       <LatestBlogPostContext.Provider value={latestBlogPost ?? null}>
         <StyledComponentsRegistry>{children}</StyledComponentsRegistry>
+        <AnalyticsContentGroup />
+        <AnalyticsClickTracker />
       </LatestBlogPostContext.Provider>
     </Provider>
   );
