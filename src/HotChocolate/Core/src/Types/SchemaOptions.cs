@@ -34,6 +34,9 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <inheritdoc cref="IReadOnlySchemaOptions.SortFieldsByName"/>
     public bool SortFieldsByName { get; set; }
 
+    /// <inheritdoc cref="IReadOnlySchemaOptions.SortEnumValuesByName"/>
+    public bool SortEnumValuesByName { get; set; }
+
     /// <inheritdoc cref="IReadOnlySchemaOptions.RemoveUnreachableTypes"/>
     public bool RemoveUnreachableTypes { get; set; }
 
@@ -217,6 +220,7 @@ public class SchemaOptions : IReadOnlySchemaOptions
             RemoveUnreachableTypes = options.RemoveUnreachableTypes,
             RemoveUnusedTypeSystemDirectives = options.RemoveUnusedTypeSystemDirectives,
             SortFieldsByName = options.SortFieldsByName,
+            SortEnumValuesByName = options.SortEnumValuesByName,
             DefaultIsOfTypeCheck = options.DefaultIsOfTypeCheck,
             EnableFlagEnums = options.EnableFlagEnums,
             EnableDefer = options.EnableDefer,

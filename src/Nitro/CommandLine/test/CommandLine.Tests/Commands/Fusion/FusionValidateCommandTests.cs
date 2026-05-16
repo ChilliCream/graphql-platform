@@ -1233,10 +1233,10 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             }
 
             enum CacheControlScope @fusion__type(schema: REVIEWS) {
-              "The value to cache is specific to a single user."
-              PRIVATE @fusion__enumValue(schema: REVIEWS)
               "The value to cache is not tied to a single user."
               PUBLIC @fusion__enumValue(schema: REVIEWS)
+              "The value to cache is specific to a single user."
+              PRIVATE @fusion__enumValue(schema: REVIEWS)
             }
 
             "The fusion__Schema enum is a generated type used within an execution schema document to refer to a source schema in a type-safe manner."
