@@ -8,6 +8,7 @@ import {
   getPostsPerPage,
 } from "@/lib/blog";
 import { compileMdxContent, extractHeadings } from "@/lib/mdx";
+import { createBlogPostJsonLd } from "@/lib/jsonld";
 import { createMetadata } from "@/lib/metadata";
 import { siteMetadata } from "@/lib/site-config";
 import { BlogPostPage } from "@/lib/blog-post-page";
@@ -97,13 +98,29 @@ export default async function BlogCatchAllPage({ params }: PageProps) {
     const headings = extractHeadings(post.content);
     const latestPosts = getLatestPostsForNav();
 
+    const postUrl = `${siteMetadata.siteUrl}${post.slug}/`;
+    const jsonLd = createBlogPostJsonLd({
+      title: post.title,
+      description: post.description,
+      url: postUrl,
+      datePublished: post.date,
+      author: post.author,
+      image: post.featuredImage,
+    });
+
     return (
-      <BlogPostPage
-        post={post}
-        mdxSource={mdxSource}
-        headings={headings}
-        latestPosts={latestPosts}
-      />
+      <>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+        <BlogPostPage
+          post={post}
+          mdxSource={mdxSource}
+          headings={headings}
+          latestPosts={latestPosts}
+        />
+      </>
     );
   }
 

@@ -6,6 +6,7 @@ import {
   getDocsConfig,
   getProductInfo,
 } from "@/lib/docs";
+import { createArticleJsonLd } from "@/lib/jsonld";
 import { compileMdxContent, extractHeadings } from "@/lib/mdx";
 import { createMetadata } from "@/lib/metadata";
 import { siteMetadata } from "@/lib/site-config";
@@ -72,13 +73,43 @@ export default async function DocPage({ params }: PageProps) {
   const docsConfig = getDocsConfig();
   const headings = extractHeadings(page.content);
 
+  const productInfo = page.product ? getProductInfo(page.product) : undefined;
+  const productTitle = productInfo?.title || page.product || "Docs";
+  const versionPath = productInfo?.latestStableVersion
+    ? `/${productInfo.latestStableVersion}`
+    : "";
+  const pageUrl = `${siteMetadata.siteUrl}${fullSlug}/`;
+  const pageTitle =
+    page.frontmatter?.title || slug[slug.length - 1] || "Documentation";
+
+  const jsonLd = createArticleJsonLd({
+    title: pageTitle,
+    description: page.frontmatter?.description,
+    url: pageUrl,
+    dateModified: page.lastUpdatedIso,
+    breadcrumbs: [
+      { name: "Home", url: `${siteMetadata.siteUrl}/` },
+      {
+        name: productTitle,
+        url: `${siteMetadata.siteUrl}/docs/${page.product}${versionPath}/`,
+      },
+      { name: pageTitle },
+    ],
+  });
+
   return (
-    <DocPageView
-      page={page}
-      mdxSource={mdxSource}
-      docsConfig={docsConfig}
-      slug={slug}
-      headings={headings}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <DocPageView
+        page={page}
+        mdxSource={mdxSource}
+        docsConfig={docsConfig}
+        slug={slug}
+        headings={headings}
+      />
+    </>
   );
 }
