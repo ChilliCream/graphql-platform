@@ -57,6 +57,12 @@ public class ObjectTypeInspector : ISyntaxInspector
         Resolver? nodeResolver = null;
         var i = 0;
 
+        CollectSubscribeWithNames(
+            members,
+            includeInternalMembers,
+            out var subscribeSourceNames,
+            out var subscribeWithLookup);
+
         foreach (var member in members)
         {
             if (member.IsIgnored())
@@ -83,13 +89,23 @@ public class ObjectTypeInspector : ISyntaxInspector
                     continue;
                 }
 
+                // Skip methods that are referenced by a sibling [Subscribe(With = nameof(...))] attribute.
+                // These methods produce the event stream and must not be exposed as their own GraphQL fields.
+                if (subscribeSourceNames?.Contains(methodSymbol.Name) == true)
+                {
+                    continue;
+                }
+
                 if (!isOperationType && hasNodeResolverAttribute)
                 {
                     nodeResolver = CreateNodeResolver(context, classSymbol, methodSymbol, ref diagnostics);
                     continue;
                 }
 
-                resolvers[i++] = CreateResolver(context, classSymbol, methodSymbol);
+                string? subscribeWith = null;
+                subscribeWithLookup?.TryGetValue(methodSymbol, out subscribeWith);
+
+                resolvers[i++] = CreateResolver(context, classSymbol, methodSymbol, subscribeWith);
                 continue;
             }
 
@@ -277,14 +293,16 @@ public class ObjectTypeInspector : ISyntaxInspector
     private static Resolver CreateResolver(
         GeneratorSyntaxContext context,
         INamedTypeSymbol resolverType,
-        IMethodSymbol resolverMethod)
-        => CreateResolver(context.SemanticModel.Compilation, resolverType, resolverMethod);
+        IMethodSymbol resolverMethod,
+        string? subscribeWith = null)
+        => CreateResolver(context.SemanticModel.Compilation, resolverType, resolverMethod, subscribeWith: subscribeWith);
 
     public static Resolver CreateResolver(
         Compilation compilation,
         INamedTypeSymbol resolverType,
         IMethodSymbol resolverMethod,
-        string? resolverTypeName = null)
+        string? resolverTypeName = null,
+        string? subscribeWith = null)
     {
         var parameters = resolverMethod.Parameters;
         var buffer = new ResolverParameter[parameters.Length];
@@ -324,7 +342,78 @@ public class ObjectTypeInspector : ISyntaxInspector
                 ? ResolverKind.BatchResolver
                 : compilation.IsConnectionType(resolverMethod.ReturnType)
                     ? ResolverKind.ConnectionResolver
-                    : ResolverKind.Default);
+                    : ResolverKind.Default,
+            subscribeWith: subscribeWith);
+    }
+
+    private static void CollectSubscribeWithNames(
+        ImmutableArray<ISymbol> members,
+        bool includeInternalMembers,
+        out HashSet<string>? subscribeSourceNames,
+        out Dictionary<IMethodSymbol, string>? subscribeWithLookup)
+    {
+        subscribeSourceNames = null;
+        subscribeWithLookup = null;
+
+        foreach (var member in members)
+        {
+            if (member.IsIgnored())
+            {
+                continue;
+            }
+
+            if (member is not IMethodSymbol { MethodKind: MethodKind.Ordinary } method)
+            {
+                continue;
+            }
+
+            if (!IsVisibleResolverMember(method, includeInternalMembers))
+            {
+                continue;
+            }
+
+            if (method.Skip())
+            {
+                continue;
+            }
+
+            if (!TryGetSubscribeWith(method, out var with))
+            {
+                continue;
+            }
+
+            subscribeSourceNames ??= [];
+            subscribeWithLookup ??= new Dictionary<IMethodSymbol, string>(SymbolEqualityComparer.Default);
+            subscribeSourceNames.Add(with);
+            subscribeWithLookup[method] = with;
+        }
+    }
+
+    private static bool TryGetSubscribeWith(
+        IMethodSymbol methodSymbol,
+        [NotNullWhen(true)] out string? with)
+    {
+        foreach (var attribute in methodSymbol.GetAttributes())
+        {
+            if (attribute.AttributeClass?.ToDisplayString() != SubscribeAttribute)
+            {
+                continue;
+            }
+
+            foreach (var namedArg in attribute.NamedArguments)
+            {
+                if (namedArg.Key == "With"
+                    && namedArg.Value.Value is string value
+                    && !string.IsNullOrEmpty(value))
+                {
+                    with = value;
+                    return true;
+                }
+            }
+        }
+
+        with = null;
+        return false;
     }
 
     private static Resolver CreateNodeResolver(

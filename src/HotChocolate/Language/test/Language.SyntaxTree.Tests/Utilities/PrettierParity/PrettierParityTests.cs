@@ -1,5 +1,3 @@
-using CookieCrumble;
-
 namespace HotChocolate.Language.SyntaxTree.Utilities.PrettierParity;
 
 public class PrettierParityTests

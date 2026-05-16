@@ -199,7 +199,7 @@
   </Folder>
   <Folder Name="/HotChocolate/Fusion/" />
   <Folder Name="/HotChocolate/Fusion/benchmarks/">
-    <Project Path="HotChocolate/Fusion/benchmarks/Fusion.Execution.Benchmarks/Fusion.Execution.Benchmarks.csproj" />
+    <Project Path="HotChocolate/Fusion/benchmarks/Fusion.Execution.Benchmarks/HotChocolate.Fusion.Execution.Benchmarks.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/Fusion/benchmarks/k6/">
     <Project Path="HotChocolate/Fusion/benchmarks/k6/eShop.Gateway/eShop.Gateway.csproj" />

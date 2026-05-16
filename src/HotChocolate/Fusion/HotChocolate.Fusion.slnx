@@ -1,6 +1,6 @@
 <Solution>
   <Folder Name="/benchmarks/">
-    <Project Path="benchmarks/Fusion.Execution.Benchmarks/Fusion.Execution.Benchmarks.csproj" />
+    <Project Path="benchmarks/Fusion.Execution.Benchmarks/HotChocolate.Fusion.Execution.Benchmarks.csproj" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/Fusion.Aspire/HotChocolate.Fusion.Aspire.csproj" />

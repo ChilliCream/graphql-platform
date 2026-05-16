@@ -11,12 +11,19 @@ public sealed class SchemaFormatterOptions
     public bool? OrderTypesByName { get; set; }
 
     /// <summary>
-    /// Controls whether fields, input fields, and enum values within a type are
+    /// Controls whether fields and input fields within a type are
     /// emitted in alphabetical order.
     /// When <c>null</c>, the value is resolved from the schema-level
     /// <see cref="SchemaFormatterOptions"/> feature, falling back to <c>true</c>.
     /// </summary>
     public bool? OrderFieldsByName { get; set; }
+
+    /// <summary>
+    /// Controls whether enum values within an enum type are emitted in alphabetical order.
+    /// When <c>null</c>, the value is resolved from the schema-level
+    /// <see cref="SchemaFormatterOptions"/> feature, falling back to <c>false</c>.
+    /// </summary>
+    public bool? OrderEnumValuesByName { get; set; }
 
     /// <summary>
     /// Controls whether the output is indented and pretty-printed.
@@ -40,7 +47,7 @@ public sealed class SchemaFormatterOptions
 
     /// <summary>
     /// Controls whether directive definitions and applied directives whose
-    /// definition has <see cref="HotChocolate.Types.IDirectiveDefinition.IsPublic"/>
+    /// definition has <see cref="Types.IDirectiveDefinition.IsPublic"/>
     /// set to <c>false</c> are included in the output.
     /// Default: <c>true</c>.
     /// </summary>

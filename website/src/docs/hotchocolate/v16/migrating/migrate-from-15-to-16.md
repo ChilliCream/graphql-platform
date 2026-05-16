@@ -581,6 +581,28 @@ Use `OperationRequestBuilder.From(request)` to create a builder pre-populated fr
 
 The builder now exposes a `Features` property of type `IFeatureCollection` for attaching extensibility features (such as `IFileLookup` for file uploads).
 
+## AllowNonPersistedOperation moved
+
+The `AllowNonPersistedOperation` extension method has moved from `OperationRequestBuilderExtensions` (in `HotChocolate.Abstractions`) to `PersistedOperationRequestOverridesExtensions` (in `HotChocolate.Execution.Abstractions`). The namespace (`HotChocolate.Execution`) and the method signature are unchanged, so normal call sites continue to compile:
+
+```csharp
+builder.AllowNonPersistedOperation();
+```
+
+If you called the method through its declaring type, update the reference:
+
+```diff
+-OperationRequestBuilderExtensions.AllowNonPersistedOperation(builder);
++PersistedOperationRequestOverridesExtensions.AllowNonPersistedOperation(builder);
+```
+
+The method now writes a `PersistedOperationRequestOverrides` feature on the request instead of setting the `HotChocolate.Execution.NonPersistedOperationAllowed` global state entry. The `OnlyAllowPersistedDocuments` middleware only reads the feature in v16. If you previously bypassed the extension method and set the flag through global state, switch to writing the feature:
+
+```diff
+-builder.SetGlobalState("HotChocolate.Execution.NonPersistedOperationAllowed", true);
++builder.Features.Set(new PersistedOperationRequestOverrides(AllowNonPersistedOperation: true));
+```
+
 ## Any and Json scalars merged
 
 The `Json` scalar has been removed and its functionality merged into the `Any` scalar. The `Any` scalar now uses `System.Text.Json.JsonElement` as its .NET runtime type, which was previously the runtime type of the `Json` scalar.
@@ -1129,6 +1151,55 @@ If you're using the schema export command, add the `--semantic-non-null` flag to
 ```bash
 dotnet run -- schema export --output schema.graphql --semantic-non-null
 ```
+
+## Parameterless handler registration on filter, sort, and projection providers removed
+
+The parameterless activator overloads have been removed from the filtering, sorting, and projection provider descriptors. Custom handlers must now be registered either by passing an instance or by passing a factory that receives a provider context. The context exposes `InputParser`, `InputFormatter`, `SchemaServices`, `TypeConverter`, etc.
+
+Affected APIs:
+
+- `IFilterProviderDescriptor<TContext>.AddFieldHandler<T>()` -> `AddFieldHandler(Func<FilterProviderContext, T>)`
+- `ISortProviderDescriptor<TContext>.AddFieldHandler<T>()` -> `AddFieldHandler(Func<SortProviderContext, T>)`
+- `ISortProviderDescriptor<TContext>.AddOperationHandler<T>()` -> `AddOperationHandler(Func<SortProviderContext, T>)`
+- `IProjectionProviderDescriptor.RegisterFieldHandler<T>()` -> `RegisterFieldHandler(Func<ProjectionProviderContext, T>)`
+- `IProjectionProviderDescriptor.RegisterFieldInterceptor<T>()` -> `RegisterFieldInterceptor(Func<ProjectionProviderContext, T>)`
+- `IProjectionProviderDescriptor.RegisterOptimizer<T>()` -> `RegisterOptimizer(Func<ProjectionProviderContext, T>)`
+
+**Before**
+
+```csharp
+public class CustomFilteringConvention : FilterConvention
+{
+    protected override void Configure(IFilterConventionDescriptor descriptor)
+    {
+        descriptor.AddDefaults();
+        descriptor.Provider(
+            new QueryableFilterProvider(
+                x => x
+                    .AddFieldHandler<QueryableStringInvariantEqualsHandler>()
+                    .AddDefaultFieldHandlers()));
+    }
+}
+```
+
+**After**
+
+```csharp
+public class CustomFilteringConvention : FilterConvention
+{
+    protected override void Configure(IFilterConventionDescriptor descriptor)
+    {
+        descriptor.AddDefaults();
+        descriptor.Provider(
+            new QueryableFilterProvider(
+                x => x
+                    .AddFieldHandler(ctx => new QueryableStringInvariantEqualsHandler(ctx.InputParser))
+                    .AddDefaultFieldHandlers()));
+    }
+}
+```
+
+The `CanHandle` signature also changed on the filtering, sorting, and projection handler interfaces. If you have overridden it, re-override against the new signature.
 
 # Deprecations
 
