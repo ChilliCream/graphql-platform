@@ -27,7 +27,7 @@ builder.Services.AddAuthorization();
 
 builder.Services
     .AddGraphQLGateway()
-    .AddInMemoryConfiguration("./gateway.far");
+    .AddFileSystemConfiguration("./gateway.far");
 
 var app = builder.Build();
 
