@@ -41,7 +41,7 @@ export const ContactForm: FC<ContactFormProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const updateField = useCallback(
-    (field: keyof ContactFormData, value: string) => {
+    <K extends keyof ContactFormData>(field: K, value: ContactFormData[K]) => {
       setFormData((prev) => ({ ...prev, [field]: value }));
       if (errors[field as keyof ContactFormErrors]) {
         setErrors((prev) => {
@@ -192,7 +192,9 @@ export const ContactForm: FC<ContactFormProps> = ({
               <Select
                 id="subject"
                 value={formData.subject}
-                onChange={(e) => updateField("subject", e.target.value)}
+                onChange={(e) =>
+                  updateField("subject", e.target.value as ContactSubject)
+                }
                 disabled={isSubmitting}
               >
                 {CONTACT_SUBJECTS.map((subject) => (

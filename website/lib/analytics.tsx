@@ -54,7 +54,11 @@ export function AnalyticsClickTracker() {
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      const el = (e.target as HTMLElement).closest<HTMLElement>("[data-track]");
+      if (!(e.target instanceof Element)) {
+        return;
+      }
+
+      const el = e.target.closest<HTMLElement>("[data-track]");
       if (!el || !window.gtag) {
         return;
       }
