@@ -1,6 +1,7 @@
 export * from "./button";
 export * from "./cards";
 export * from "./close";
+export * from "./contact-form";
 export * from "./content-section";
 export * from "./feature-matrix";
 export * from "./hero-elements";
