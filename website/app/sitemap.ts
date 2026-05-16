@@ -9,7 +9,7 @@ import {
   getFilesRecursively,
   readMarkdownFile,
 } from "@/lib/content";
-import { getAllDocPages } from "@/lib/docs";
+import { getAllDocPages, getDocsConfig } from "@/lib/docs";
 import { siteMetadata } from "@/lib/site-config";
 
 export const dynamic = "force-static";
@@ -57,10 +57,12 @@ const STATIC_ROUTES: { route: string; pageFile: string }[] = [
   { route: "/services/training/", pageFile: "app/services/training/page.tsx" },
 ];
 
-const DOCS_DISALLOWED = [
-  /^\/docs\/hotchocolate\/v10(\/|$)/,
-  /^\/docs\/hotchocolate\/v11(\/|$)/,
-];
+const latestVersionByProduct = new Map<string, string>();
+for (const product of getDocsConfig()) {
+  if (product.latestStableVersion) {
+    latestVersionByProduct.set(product.path, product.latestStableVersion);
+  }
+}
 
 const mtimeCache = new Map<string, Date | undefined>();
 
@@ -194,8 +196,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const docPages = getAllDocPages();
   for (const page of docPages) {
+    if (page.product && page.version) {
+      const latest = latestVersionByProduct.get(page.product);
+      if (latest && page.version !== latest) {
+        continue;
+      }
+    }
+
     const docPath = page.slug.endsWith("/") ? page.slug : `${page.slug}/`;
-    if (DOCS_DISALLOWED.some((re) => re.test(docPath))) continue;
 
     entries.push({
       url: `${BASE_URL}${docPath}`,
