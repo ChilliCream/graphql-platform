@@ -116,7 +116,7 @@ You should see `10.0.100` or higher.
 The Nitro CLI is a .NET tool that handles schema composition. Install it globally:
 
 ```bash
-dotnet tool install -g ChilliCream.Nitro.CommandLine --version "16.0.0-p.11.36"
+dotnet tool install -g ChilliCream.Nitro.CommandLine
 ```
 
 Verify the installation:
@@ -127,10 +127,10 @@ nitro version
 
 ### Hot Chocolate Templates
 
-Install the Hot Chocolate templates at the same preview version used in this guide:
+Install the Hot Chocolate templates:
 
 ```bash
-dotnet new install HotChocolate.Templates@16.0.0-p.11.36
+dotnet new install HotChocolate.Templates
 ```
 
 ## Create Your First Subgraph (Products)
@@ -167,9 +167,9 @@ Your `Products/Products.csproj` should now look like this:
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="HotChocolate.AspNetCore" Version="16.0.0-p.11.36" />
-    <PackageReference Include="HotChocolate.AspNetCore.CommandLine" Version="16.0.0-p.11.36" />
-    <PackageReference Include="HotChocolate.Types.Analyzers" Version="16.0.0-p.11.36">
+    <PackageReference Include="HotChocolate.AspNetCore" />
+    <PackageReference Include="HotChocolate.AspNetCore.CommandLine" />
+    <PackageReference Include="HotChocolate.Types.Analyzers">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
@@ -737,7 +737,7 @@ Your `Gateway/Gateway.csproj` should look like this:
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="HotChocolate.Fusion.AspNetCore" Version="16.0.0-p.11.36" />
+    <PackageReference Include="HotChocolate.Fusion.AspNetCore" />
   </ItemGroup>
 
 </Project>
