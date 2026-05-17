@@ -16,6 +16,9 @@ internal sealed class SchemaComposition(
     ILogger<SchemaComposition> logger)
     : IDistributedApplicationEventingSubscriber
 {
+    private readonly TaskCompletionSource _compositionComplete =
+        new(TaskCreationOptions.RunContinuationsAsynchronously);
+
     public Task SubscribeAsync(
         IDistributedApplicationEventing eventing,
         DistributedApplicationExecutionContext executionContext,
@@ -28,18 +31,17 @@ internal sealed class SchemaComposition(
 
             try
             {
-                // Find all resources that need schema composition
                 var compositionResources = model.GetGraphQLCompositionResources().ToList();
 
                 if (compositionResources.Count == 0)
                 {
                     logger.LogDebug("No resources found that need GraphQL schema composition");
+                    _compositionComplete.TrySetResult();
                     return;
                 }
 
                 logger.LogInformation("Starting GraphQL schema composition...");
 
-                // Process each composition resource
                 foreach (var compositionResource in compositionResources)
                 {
                     if (!await ComposeSchemaAsync(compositionResource, model, ct))
@@ -58,6 +60,16 @@ internal sealed class SchemaComposition(
                 logger.LogCritical("GraphQL schema composition failed - stopping application");
                 lifetime.StopApplication();
                 throw new InvalidOperationException("GraphQL schema composition failed");
+            }
+
+            _compositionComplete.TrySetResult();
+        });
+
+        eventing.Subscribe<BeforeResourceStartedEvent>(async (@event, ct) =>
+        {
+            if (@event.Resource.NeedsGraphQLSchemaComposition())
+            {
+                await _compositionComplete.Task.WaitAsync(ct);
             }
         });
 
@@ -82,9 +94,31 @@ internal sealed class SchemaComposition(
 
         try
         {
+            var nitroConfig = compositionResource.Annotations
+                .OfType<NitroConfigurationAnnotation>()
+                .FirstOrDefault();
+
+            string? seedArchivePath = null;
+            if (nitroConfig is not null)
+            {
+                seedArchivePath =
+                    await NitroArchiveDownloader.DownloadOrGetCachedAsync(
+                        nitroConfig,
+                        logger,
+                        cancellationToken);
+
+                if (seedArchivePath is null)
+                {
+                    logger.LogError(
+                        "Failed to obtain Nitro archive for {ResourceName}.",
+                        compositionResource.Name);
+                    return false;
+                }
+            }
+
             var sourceSchemas = await DiscoverReferencedSourceSchemasAsync(compositionResource, appModel, cancellationToken);
 
-            if (sourceSchemas.Count == 0)
+            if (sourceSchemas.Count == 0 && seedArchivePath is null)
             {
                 logger.LogWarning(
                     "{ResourceName} has no source schemas.",
@@ -96,6 +130,12 @@ internal sealed class SchemaComposition(
             {
                 var gatewayDirectory = GetProjectPath(compositionResource)!;
                 var archivePath = IOPath.Combine(IOPath.GetDirectoryName(gatewayDirectory)!, settings.OutputFileName);
+
+                if (seedArchivePath is not null)
+                {
+                    File.Copy(seedArchivePath, archivePath, overwrite: true);
+                }
+
                 return await ComposeSchemaAsync(archivePath, sourceSchemas, settings, cancellationToken);
             }
             finally

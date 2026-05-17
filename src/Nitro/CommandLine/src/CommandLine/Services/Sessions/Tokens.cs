@@ -1,4 +1,8 @@
+#if FUSION_ASPIRE
+namespace HotChocolate.Fusion.Aspire;
+#else
 namespace ChilliCream.Nitro.CommandLine.Services.Sessions;
+#endif
 
 public sealed class Tokens(
     string accessToken,
