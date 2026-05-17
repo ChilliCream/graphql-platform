@@ -190,6 +190,72 @@ public class CacheTests
         Assert.Equal(0, diag.Hits);
     }
 
+    [Fact]
+    public void TryGet_Should_Throw_When_KeyIsNull()
+    {
+        // arrange
+        var cache = new Cache<string>(capacity: 8);
+
+        // act
+        // assert
+        Assert.Throws<ArgumentNullException>(() => cache.TryGet(null!, out _));
+    }
+
+    [Fact]
+    public void TryGet_Should_Throw_When_KeyIsEmpty()
+    {
+        // arrange
+        var cache = new Cache<string>(capacity: 8);
+
+        // act
+        // assert
+        Assert.Throws<ArgumentException>(() => cache.TryGet(string.Empty, out _));
+    }
+
+    [Fact]
+    public void TryAdd_Should_Throw_When_KeyIsNull()
+    {
+        // arrange
+        var cache = new Cache<string>(capacity: 8);
+
+        // act
+        // assert
+        Assert.Throws<ArgumentNullException>(() => cache.TryAdd(null!, "value"));
+    }
+
+    [Fact]
+    public void TryAdd_Should_Throw_When_KeyIsEmpty()
+    {
+        // arrange
+        var cache = new Cache<string>(capacity: 8);
+
+        // act
+        // assert
+        Assert.Throws<ArgumentException>(() => cache.TryAdd(string.Empty, "value"));
+    }
+
+    [Fact]
+    public void GetOrCreate_Should_Throw_When_KeyIsNull()
+    {
+        // arrange
+        var cache = new Cache<string>(capacity: 8);
+
+        // act
+        // assert
+        Assert.Throws<ArgumentNullException>(() => cache.GetOrCreate(null!, _ => "value"));
+    }
+
+    [Fact]
+    public void GetOrCreate_Should_Throw_When_KeyIsEmpty()
+    {
+        // arrange
+        var cache = new Cache<string>(capacity: 8);
+
+        // act
+        // assert
+        Assert.Throws<ArgumentException>(() => cache.GetOrCreate(string.Empty, _ => "value"));
+    }
+
 #if NET9_0_OR_GREATER
     [Fact]
     public void TryGet_Should_ReturnTrue_When_KeyExists_UsingSpan()
@@ -339,6 +405,50 @@ public class CacheTests
         Assert.Equal("a", spanValue);
         Assert.True(stringFoundSpan);
         Assert.Equal("b", stringValue);
+    }
+
+    [Fact]
+    public void TryGet_Should_Throw_When_KeyIsEmpty_UsingSpan()
+    {
+        // arrange
+        var cache = new Cache<string>(capacity: 8);
+
+        // act
+        // assert
+        Assert.Throws<ArgumentException>(() => cache.TryGet(ReadOnlySpan<char>.Empty, out _));
+    }
+
+    [Fact]
+    public void TryAdd_Should_Throw_When_KeyIsEmpty_UsingSpan()
+    {
+        // arrange
+        var cache = new Cache<string>(capacity: 8);
+
+        // act
+        // assert
+        Assert.Throws<ArgumentException>(() => cache.TryAdd(ReadOnlySpan<char>.Empty, "value"));
+    }
+
+    [Fact]
+    public void GetOrCreate_Should_Throw_When_KeyIsEmpty_UsingSpan()
+    {
+        // arrange
+        var cache = new Cache<string>(capacity: 8);
+
+        // act
+        // assert
+        Assert.Throws<ArgumentException>(() => cache.GetOrCreate(ReadOnlySpan<char>.Empty, _ => "value"));
+    }
+
+    [Fact]
+    public void GetOrCreate_WithState_Should_Throw_When_KeyIsEmpty_UsingSpan()
+    {
+        // arrange
+        var cache = new Cache<string>(capacity: 8);
+
+        // act
+        // assert
+        Assert.Throws<ArgumentException>(() => cache.GetOrCreate(ReadOnlySpan<char>.Empty, (k, s) => $"{k}:{s}", 1));
     }
 #endif
 

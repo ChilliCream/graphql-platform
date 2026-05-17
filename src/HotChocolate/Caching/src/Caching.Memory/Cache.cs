@@ -82,6 +82,8 @@ public sealed class Cache<TValue>
     /// </returns>
     public bool TryGet(string key, [NotNullWhen(true)] out TValue? value)
     {
+        ArgumentException.ThrowIfNullOrEmpty(key);
+
         if (_map.TryGetValue(key, out var entry))
         {
             // We mark our entry as used by setting Accessed to 1
@@ -110,6 +112,8 @@ public sealed class Cache<TValue>
     /// </param>
     public void TryAdd(string key, TValue value)
     {
+        ArgumentException.ThrowIfNullOrEmpty(key);
+
         var args = new CacheEntryCreateArgs<TValue>(value, static (_, v) => v, this);
 
         // we use the same mechanism as in GetOrCreate, but we do not
@@ -160,7 +164,7 @@ public sealed class Cache<TValue>
     /// </returns>
     public TValue GetOrCreate<TState>(string key, Func<string, TState, TValue> create, TState state)
     {
-        ArgumentNullException.ThrowIfNull(key);
+        ArgumentException.ThrowIfNullOrEmpty(key);
         ArgumentNullException.ThrowIfNull(create);
 
         // We first check if the entry is already in the map.
@@ -228,6 +232,11 @@ public sealed class Cache<TValue>
     /// </returns>
     public bool TryGet(ReadOnlySpan<char> key, [NotNullWhen(true)] out TValue? value)
     {
+        if (key.IsEmpty)
+        {
+            throw new ArgumentException("The key cannot be empty.", nameof(key));
+        }
+
         if (_spanLookup.TryGetValue(key, out var entry))
         {
             // We mark our entry as used by setting Accessed to 1
@@ -257,6 +266,11 @@ public sealed class Cache<TValue>
     /// </param>
     public void TryAdd(ReadOnlySpan<char> key, TValue value)
     {
+        if (key.IsEmpty)
+        {
+            throw new ArgumentException("The key cannot be empty.", nameof(key));
+        }
+
         if (_spanLookup.ContainsKey(key))
         {
             return;
@@ -279,7 +293,14 @@ public sealed class Cache<TValue>
     /// The value that was found or created.
     /// </returns>
     public TValue GetOrCreate(ReadOnlySpan<char> key, Func<string, TValue> create)
-        => GetOrCreate(key, static (k, f) => f(k), create);
+    {
+        if (key.IsEmpty)
+        {
+            throw new ArgumentException("The key cannot be empty.", nameof(key));
+        }
+
+        return GetOrCreate(key, static (k, f) => f(k), create);
+    }
 
     /// <summary>
     /// Gets a value from the cache or creates it if it does not exist.
@@ -302,6 +323,11 @@ public sealed class Cache<TValue>
     /// </returns>
     public TValue GetOrCreate<TState>(ReadOnlySpan<char> key, Func<string, TState, TValue> create, TState state)
     {
+        if (key.IsEmpty)
+        {
+            throw new ArgumentException("The key cannot be empty.", nameof(key));
+        }
+
         ArgumentNullException.ThrowIfNull(create);
 
         // We first check if the entry is already in the map.
