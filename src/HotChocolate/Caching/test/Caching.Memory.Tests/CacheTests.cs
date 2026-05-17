@@ -261,7 +261,8 @@ public class CacheTests
     public void TryGet_Should_ReturnTrue_When_KeyExists_UsingSpan()
     {
         // arrange
-        var cache = new Cache<string>(capacity: 8);
+        var diag = new TestDiagnostics();
+        var cache = new Cache<string>(capacity: 8, diagnostics: diag);
         cache.TryAdd("key", "value");
 
         // act
@@ -270,6 +271,8 @@ public class CacheTests
         // assert
         Assert.True(found);
         Assert.Equal("value", value);
+        Assert.Equal(1, diag.Hits);
+        Assert.Equal(1, diag.Misses); // from setup TryAdd
     }
 
     [Fact]
@@ -293,7 +296,8 @@ public class CacheTests
     public void TryAdd_Should_AddEntry_When_KeyDoesNotExist_UsingSpan()
     {
         // arrange
-        var cache = new Cache<string>(capacity: 8);
+        var diag = new TestDiagnostics();
+        var cache = new Cache<string>(capacity: 8, diagnostics: diag);
 
         // act
         cache.TryAdd("key".AsSpan(), "value");
@@ -301,13 +305,16 @@ public class CacheTests
         // assert
         Assert.True(cache.TryGet("key", out var value));
         Assert.Equal("value", value);
+        Assert.Equal(1, diag.Misses); // span TryAdd fell through to string TryAdd factory
+        Assert.Equal(1, diag.Hits); // the string TryGet in the assertion
     }
 
     [Fact]
     public void TryAdd_Should_NotOverwrite_When_KeyExists_UsingSpan()
     {
         // arrange
-        var cache = new Cache<string>(capacity: 8);
+        var diag = new TestDiagnostics();
+        var cache = new Cache<string>(capacity: 8, diagnostics: diag);
         cache.TryAdd("key", "original");
 
         // act
@@ -316,13 +323,16 @@ public class CacheTests
         // assert
         Assert.True(cache.TryGet("key", out var value));
         Assert.Equal("original", value);
+        Assert.Equal(1, diag.Misses); // only from setup; span fast path records nothing
+        Assert.Equal(1, diag.Hits); // the string TryGet in the assertion
     }
 
     [Fact]
     public void GetOrCreate_Should_ReturnExisting_When_KeyExists_UsingSpan()
     {
         // arrange
-        var cache = new Cache<string>(capacity: 8);
+        var diag = new TestDiagnostics();
+        var cache = new Cache<string>(capacity: 8, diagnostics: diag);
         cache.TryAdd("key", "existing");
         var factoryInvocations = 0;
 
@@ -338,13 +348,16 @@ public class CacheTests
         // assert
         Assert.Equal("existing", value);
         Assert.Equal(0, factoryInvocations);
+        Assert.Equal(1, diag.Hits);
+        Assert.Equal(1, diag.Misses); // from setup TryAdd
     }
 
     [Fact]
     public void GetOrCreate_Should_InvokeFactory_When_KeyDoesNotExist_UsingSpan()
     {
         // arrange
-        var cache = new Cache<string>(capacity: 8);
+        var diag = new TestDiagnostics();
+        var cache = new Cache<string>(capacity: 8, diagnostics: diag);
         var factoryInvocations = 0;
 
         // act
@@ -361,13 +374,15 @@ public class CacheTests
         Assert.Equal(1, factoryInvocations);
         Assert.True(cache.TryGet("key".AsSpan(), out var stored));
         Assert.Equal("created", stored);
+        $"Hits: {diag.Hits}, Misses: {diag.Misses}".MatchInlineSnapshot("Hits: 1, Misses: 1");
     }
 
     [Fact]
     public void GetOrCreate_WithState_Should_PassStateToFactory_UsingSpan()
     {
         // arrange
-        var cache = new Cache<string>(capacity: 8);
+        var diag = new TestDiagnostics();
+        var cache = new Cache<string>(capacity: 8, diagnostics: diag);
         string? receivedKey = null;
         var receivedState = 0;
 
@@ -386,13 +401,16 @@ public class CacheTests
         Assert.Equal("key:42", value);
         Assert.Equal("key", receivedKey);
         Assert.Equal(42, receivedState);
+        Assert.Equal(1, diag.Misses);
+        Assert.Equal(0, diag.Hits);
     }
 
     [Fact]
     public void SpanAndStringLookups_Should_SeeSameEntries()
     {
         // arrange
-        var cache = new Cache<string>(capacity: 8);
+        var diag = new TestDiagnostics();
+        var cache = new Cache<string>(capacity: 8, diagnostics: diag);
         cache.TryAdd("via-string", "a");
         cache.TryAdd("via-span".AsSpan(), "b");
 
@@ -405,6 +423,7 @@ public class CacheTests
         Assert.Equal("a", spanValue);
         Assert.True(stringFoundSpan);
         Assert.Equal("b", stringValue);
+        $"Hits: {diag.Hits}, Misses: {diag.Misses}".MatchInlineSnapshot("Hits: 2, Misses: 2");
     }
 
     [Fact]
