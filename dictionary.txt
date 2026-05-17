@@ -82,6 +82,7 @@ graphqlconfig
 graphqlrc
 graphqls
 graphyne
+grafbase
 greendonut
 Hasura
 HCXXXX
