@@ -21,6 +21,7 @@ export interface BlogPost {
   content: string;
   readingTime: string;
   path: string;
+  folder: string;
 }
 
 const BLOG_DIR = getContentDir("blog");
@@ -28,14 +29,14 @@ const POSTS_PER_PAGE = 21;
 
 // Use globalThis to persist cache across HMR in development
 const _globalCache = globalThis as typeof globalThis & {
-  __blogPostsCache?: BlogPost[] | null;
+  __blogPostsCacheV2?: BlogPost[] | null;
 };
-if (!_globalCache.__blogPostsCache) {
-  _globalCache.__blogPostsCache = null;
+if (!_globalCache.__blogPostsCacheV2) {
+  _globalCache.__blogPostsCacheV2 = null;
 }
 
 export function getAllBlogPosts(): BlogPost[] {
-  if (_globalCache.__blogPostsCache) return _globalCache.__blogPostsCache;
+  if (_globalCache.__blogPostsCacheV2) return _globalCache.__blogPostsCacheV2;
 
   const files = getFilesRecursively(BLOG_DIR, ".md");
   const posts: BlogPost[] = [];
@@ -71,13 +72,14 @@ export function getAllBlogPosts(): BlogPost[] {
       content,
       readingTime: readingTime(content).text,
       path: frontmatter.path,
+      folder: path.basename(path.dirname(file)),
     });
   }
 
   // Sort by date descending
   posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-  _globalCache.__blogPostsCache = posts;
+  _globalCache.__blogPostsCacheV2 = posts;
   return posts;
 }
 

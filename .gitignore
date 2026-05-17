@@ -13,6 +13,9 @@ lcov.info
 # Tools
 .nuke/
 
+# TypeScript
+*.tsbuildinfo
+
 # IDE (VS Code / Rider / Visual Studio)
 *.DotSettings
 *.DotSettings.user
@@ -45,3 +48,4 @@ src/Mocha/benchmarks/Mocha.Mediator.Benchmarks/Generated/
 .work/
 Directory.Build.user.props
 appsettings.user.json
+.playwright-mcp/
