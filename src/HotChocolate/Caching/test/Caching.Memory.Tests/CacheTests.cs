@@ -190,6 +190,158 @@ public class CacheTests
         Assert.Equal(0, diag.Hits);
     }
 
+#if NET9_0_OR_GREATER
+    [Fact]
+    public void TryGet_Should_ReturnTrue_When_KeyExists_UsingSpan()
+    {
+        // arrange
+        var cache = new Cache<string>(capacity: 8);
+        cache.TryAdd("key", "value");
+
+        // act
+        var found = cache.TryGet("key".AsSpan(), out var value);
+
+        // assert
+        Assert.True(found);
+        Assert.Equal("value", value);
+    }
+
+    [Fact]
+    public void TryGet_Should_ReturnFalse_When_KeyDoesNotExist_UsingSpan()
+    {
+        // arrange
+        var diag = new TestDiagnostics();
+        var cache = new Cache<string>(capacity: 8, diagnostics: diag);
+
+        // act
+        var found = cache.TryGet("missing".AsSpan(), out var value);
+
+        // assert
+        Assert.False(found);
+        Assert.Null(value);
+        Assert.Equal(1, diag.Misses);
+        Assert.Equal(0, diag.Hits);
+    }
+
+    [Fact]
+    public void TryAdd_Should_AddEntry_When_KeyDoesNotExist_UsingSpan()
+    {
+        // arrange
+        var cache = new Cache<string>(capacity: 8);
+
+        // act
+        cache.TryAdd("key".AsSpan(), "value");
+
+        // assert
+        Assert.True(cache.TryGet("key", out var value));
+        Assert.Equal("value", value);
+    }
+
+    [Fact]
+    public void TryAdd_Should_NotOverwrite_When_KeyExists_UsingSpan()
+    {
+        // arrange
+        var cache = new Cache<string>(capacity: 8);
+        cache.TryAdd("key", "original");
+
+        // act
+        cache.TryAdd("key".AsSpan(), "replacement");
+
+        // assert
+        Assert.True(cache.TryGet("key", out var value));
+        Assert.Equal("original", value);
+    }
+
+    [Fact]
+    public void GetOrCreate_Should_ReturnExisting_When_KeyExists_UsingSpan()
+    {
+        // arrange
+        var cache = new Cache<string>(capacity: 8);
+        cache.TryAdd("key", "existing");
+        var factoryInvocations = 0;
+
+        // act
+        var value = cache.GetOrCreate(
+            "key".AsSpan(),
+            _ =>
+            {
+                factoryInvocations++;
+                return "created";
+            });
+
+        // assert
+        Assert.Equal("existing", value);
+        Assert.Equal(0, factoryInvocations);
+    }
+
+    [Fact]
+    public void GetOrCreate_Should_InvokeFactory_When_KeyDoesNotExist_UsingSpan()
+    {
+        // arrange
+        var cache = new Cache<string>(capacity: 8);
+        var factoryInvocations = 0;
+
+        // act
+        var value = cache.GetOrCreate(
+            "key".AsSpan(),
+            _ =>
+            {
+                factoryInvocations++;
+                return "created";
+            });
+
+        // assert
+        Assert.Equal("created", value);
+        Assert.Equal(1, factoryInvocations);
+        Assert.True(cache.TryGet("key".AsSpan(), out var stored));
+        Assert.Equal("created", stored);
+    }
+
+    [Fact]
+    public void GetOrCreate_WithState_Should_PassStateToFactory_UsingSpan()
+    {
+        // arrange
+        var cache = new Cache<string>(capacity: 8);
+        string? receivedKey = null;
+        var receivedState = 0;
+
+        // act
+        var value = cache.GetOrCreate(
+            "key".AsSpan(),
+            (k, s) =>
+            {
+                receivedKey = k;
+                receivedState = s;
+                return $"{k}:{s}";
+            },
+            42);
+
+        // assert
+        Assert.Equal("key:42", value);
+        Assert.Equal("key", receivedKey);
+        Assert.Equal(42, receivedState);
+    }
+
+    [Fact]
+    public void SpanAndStringLookups_Should_SeeSameEntries()
+    {
+        // arrange
+        var cache = new Cache<string>(capacity: 8);
+        cache.TryAdd("via-string", "a");
+        cache.TryAdd("via-span".AsSpan(), "b");
+
+        // act
+        var spanFoundString = cache.TryGet("via-string".AsSpan(), out var spanValue);
+        var stringFoundSpan = cache.TryGet("via-span", out var stringValue);
+
+        // assert
+        Assert.True(spanFoundString);
+        Assert.Equal("a", spanValue);
+        Assert.True(stringFoundSpan);
+        Assert.Equal("b", stringValue);
+    }
+#endif
+
     private sealed class TestDiagnostics : CacheDiagnostics
     {
         public int Hits;
