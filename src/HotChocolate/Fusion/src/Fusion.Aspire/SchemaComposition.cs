@@ -28,10 +28,11 @@ internal sealed class SchemaComposition(
         {
             var model = @event.Services.GetRequiredService<DistributedApplicationModel>();
             var compositionFailed = false;
+            var compositionResources = new List<IResourceWithEndpoints>();
 
             try
             {
-                var compositionResources = model.GetGraphQLCompositionResources().ToList();
+                compositionResources = model.GetGraphQLCompositionResources().ToList();
 
                 if (compositionResources.Count == 0)
                 {
@@ -63,6 +64,11 @@ internal sealed class SchemaComposition(
             }
 
             _compositionComplete.TrySetResult();
+
+            // After composition, check if gateways started successfully.
+            // On a fresh clone the .far file may not exist at build time,
+            // causing the gateway to fail on its first start attempt.
+            await RestartGatewaysIfNeededAsync(compositionResources, @event.Services, ct);
         });
 
         eventing.Subscribe<BeforeResourceStartedEvent>(async (@event, ct) =>
@@ -74,6 +80,55 @@ internal sealed class SchemaComposition(
         });
 
         return Task.CompletedTask;
+    }
+
+    private async Task RestartGatewaysIfNeededAsync(
+        List<IResourceWithEndpoints> resources,
+        IServiceProvider services,
+        CancellationToken cancellationToken)
+    {
+        var notificationService = services.GetRequiredService<ResourceNotificationService>();
+        var commandService = services.GetRequiredService<ResourceCommandService>();
+
+        foreach (var resource in resources)
+        {
+            try
+            {
+                var state = await notificationService.WaitForResourceAsync(
+                    resource.Name,
+                    [KnownResourceStates.Running, KnownResourceStates.FailedToStart, KnownResourceStates.Exited],
+                    cancellationToken);
+
+                if (state == KnownResourceStates.Running)
+                {
+                    logger.LogDebug(
+                        "Gateway {ResourceName} started successfully after composition.",
+                        resource.Name);
+                    continue;
+                }
+
+                logger.LogInformation(
+                    "Restarting {ResourceName} after composition (state: {State}).",
+                    resource.Name,
+                    state);
+
+                await commandService.ExecuteCommandAsync(
+                    resource,
+                    KnownResourceCommands.RestartCommand,
+                    cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                // Shutting down, ignore.
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(
+                    ex,
+                    "Failed to restart {ResourceName} after composition.",
+                    resource.Name);
+            }
+        }
     }
 
     private async Task<bool> ComposeSchemaAsync(
