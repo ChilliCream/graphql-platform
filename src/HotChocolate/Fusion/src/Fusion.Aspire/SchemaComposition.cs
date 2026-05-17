@@ -16,6 +16,9 @@ internal sealed class SchemaComposition(
     ILogger<SchemaComposition> logger)
     : IDistributedApplicationEventingSubscriber
 {
+    private readonly TaskCompletionSource _compositionComplete =
+        new(TaskCreationOptions.RunContinuationsAsynchronously);
+
     public Task SubscribeAsync(
         IDistributedApplicationEventing eventing,
         DistributedApplicationExecutionContext executionContext,
@@ -25,11 +28,11 @@ internal sealed class SchemaComposition(
         {
             var model = @event.Services.GetRequiredService<DistributedApplicationModel>();
             var compositionFailed = false;
+            var compositionResources = new List<IResourceWithEndpoints>();
 
             try
             {
-                // Find all resources that need schema composition
-                var compositionResources = model.GetGraphQLCompositionResources().ToList();
+                compositionResources = model.GetGraphQLCompositionResources().ToList();
 
                 if (compositionResources.Count == 0)
                 {
@@ -39,7 +42,6 @@ internal sealed class SchemaComposition(
 
                 logger.LogInformation("Starting GraphQL schema composition...");
 
-                // Process each composition resource
                 foreach (var compositionResource in compositionResources)
                 {
                     if (!await ComposeSchemaAsync(compositionResource, model, ct))
@@ -52,6 +54,10 @@ internal sealed class SchemaComposition(
             {
                 compositionFailed = true;
             }
+            finally
+            {
+                _compositionComplete.TrySetResult();
+            }
 
             if (compositionFailed)
             {
@@ -59,9 +65,71 @@ internal sealed class SchemaComposition(
                 lifetime.StopApplication();
                 throw new InvalidOperationException("GraphQL schema composition failed");
             }
+
+            // After composition, check if gateways started successfully.
+            // On a fresh clone the .far file may not exist at build time,
+            // causing the gateway to fail on its first start attempt.
+            await RestartGatewaysIfNeededAsync(compositionResources, @event.Services, ct);
+        });
+
+        eventing.Subscribe<BeforeResourceStartedEvent>(async (@event, ct) =>
+        {
+            if (@event.Resource.NeedsGraphQLSchemaComposition())
+            {
+                await _compositionComplete.Task.WaitAsync(ct);
+            }
         });
 
         return Task.CompletedTask;
+    }
+
+    private async Task RestartGatewaysIfNeededAsync(
+        List<IResourceWithEndpoints> resources,
+        IServiceProvider services,
+        CancellationToken cancellationToken)
+    {
+        var notificationService = services.GetRequiredService<ResourceNotificationService>();
+        var commandService = services.GetRequiredService<ResourceCommandService>();
+
+        foreach (var resource in resources)
+        {
+            try
+            {
+                var state = await notificationService.WaitForResourceAsync(
+                    resource.Name,
+                    [KnownResourceStates.Running, KnownResourceStates.FailedToStart, KnownResourceStates.Exited],
+                    cancellationToken);
+
+                if (state == KnownResourceStates.Running)
+                {
+                    logger.LogDebug(
+                        "Gateway {ResourceName} started successfully after composition.",
+                        resource.Name);
+                    continue;
+                }
+
+                logger.LogInformation(
+                    "Restarting {ResourceName} after composition (state: {State}).",
+                    resource.Name,
+                    state);
+
+                await commandService.ExecuteCommandAsync(
+                    resource,
+                    KnownResourceCommands.RestartCommand,
+                    cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                // Shutting down, ignore.
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(
+                    ex,
+                    "Failed to restart {ResourceName} after composition.",
+                    resource.Name);
+            }
+        }
     }
 
     private async Task<bool> ComposeSchemaAsync(
@@ -82,9 +150,31 @@ internal sealed class SchemaComposition(
 
         try
         {
+            var nitroConfig = compositionResource.Annotations
+                .OfType<NitroConfigurationAnnotation>()
+                .FirstOrDefault();
+
+            string? seedArchivePath = null;
+            if (nitroConfig is not null)
+            {
+                seedArchivePath =
+                    await NitroArchiveDownloader.DownloadOrGetCachedAsync(
+                        nitroConfig,
+                        logger,
+                        cancellationToken);
+
+                if (seedArchivePath is null)
+                {
+                    logger.LogError(
+                        "Failed to obtain Nitro archive for {ResourceName}.",
+                        compositionResource.Name);
+                    return false;
+                }
+            }
+
             var sourceSchemas = await DiscoverReferencedSourceSchemasAsync(compositionResource, appModel, cancellationToken);
 
-            if (sourceSchemas.Count == 0)
+            if (sourceSchemas.Count == 0 && seedArchivePath is null)
             {
                 logger.LogWarning(
                     "{ResourceName} has no source schemas.",
@@ -96,6 +186,12 @@ internal sealed class SchemaComposition(
             {
                 var gatewayDirectory = GetProjectPath(compositionResource)!;
                 var archivePath = IOPath.Combine(IOPath.GetDirectoryName(gatewayDirectory)!, settings.OutputFileName);
+
+                if (seedArchivePath is not null)
+                {
+                    File.Copy(seedArchivePath, archivePath, overwrite: true);
+                }
+
                 return await ComposeSchemaAsync(archivePath, sourceSchemas, settings, cancellationToken);
             }
             finally
