@@ -1,7 +1,13 @@
+#if !FUSION_ASPIRE
 using System.Text.Json.Serialization.Metadata;
 using ChilliCream.Nitro.CommandLine.Services.Configuration;
+#endif
 
+#if FUSION_ASPIRE
+namespace HotChocolate.Fusion.Aspire;
+#else
 namespace ChilliCream.Nitro.CommandLine.Services.Sessions;
+#endif
 
 internal class Session(
     string sessionId,
@@ -11,13 +17,18 @@ internal class Session(
     string apiUrl,
     string email,
     Tokens? tokens,
-    Workspace? workspace) : IConfigurationFile
+    Workspace? workspace)
+#if !FUSION_ASPIRE
+    : IConfigurationFile
+#endif
 {
+#if !FUSION_ASPIRE
     public static string FileName => "session.json";
 
     public static object? Default { get; }
 
     public static JsonTypeInfo TypeInfo => NitroCLIJsonContext.Default.Session;
+#endif
 
     public string SessionId { get; set; } = sessionId;
 
