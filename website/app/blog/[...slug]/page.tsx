@@ -89,7 +89,11 @@ export default async function BlogCatchAllPage({ params }: PageProps) {
       return notFound();
     }
 
-    const { mdxSource } = await compileMdxContent(post.content);
+    const { mdxSource } = await compileMdxContent(
+      post.content,
+      "",
+      `/images/blog/${post.folder}/`
+    );
     const headings = extractHeadings(post.content);
     const latestPosts = getLatestPostsForNav();
 
