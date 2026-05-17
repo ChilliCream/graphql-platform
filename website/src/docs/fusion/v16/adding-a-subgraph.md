@@ -64,9 +64,9 @@ Your `Shipping/Shipping.csproj` should look like this:
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="HotChocolate.AspNetCore" Version="16.0.0-p.11.36" />
-    <PackageReference Include="HotChocolate.AspNetCore.CommandLine" Version="16.0.0-p.11.36" />
-    <PackageReference Include="HotChocolate.Types.Analyzers" Version="16.0.0-p.11.36">
+    <PackageReference Include="HotChocolate.AspNetCore" />
+    <PackageReference Include="HotChocolate.AspNetCore.CommandLine" />
+    <PackageReference Include="HotChocolate.Types.Analyzers">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
