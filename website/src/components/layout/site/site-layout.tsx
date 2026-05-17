@@ -1,6 +1,5 @@
 import { FC, ReactElement, ReactNode, useLayoutEffect, useRef } from "react";
 
-import { CookieConsent, Promo } from "@/components/misc";
 import { GlobalStyle } from "@/style";
 import { Main } from "./main";
 
@@ -14,8 +13,6 @@ export const SiteLayout: FC<SiteLayoutProps> = ({ children, disableStars }) => {
     <>
       <GlobalStyle />
       <Main>{children}</Main>
-      <CookieConsent />
-      <Promo />
       {!disableStars && <Stars />}
     </>
   );

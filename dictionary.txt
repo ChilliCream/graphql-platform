@@ -44,6 +44,7 @@ combinators
 contentfiles
 Contoso
 conv
+Cookiebot
 CQRS
 creds
 csclient
@@ -234,6 +235,7 @@ uppercased
 Upsert
 upvote
 URQL
+Usercentrics
 uuuu
 vnext
 vsix
