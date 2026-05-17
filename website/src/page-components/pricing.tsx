@@ -259,14 +259,14 @@ const PricingPage: FC<PricingPageProps> = ({ recentPosts }) => {
             <OpenSourceButton
               href="https://github.com/ChilliCream/graphql-platform"
               target="_blank"
-              rel="noopener noreferrer"
+              rel="noopener noreferrer nofollow"
             >
               View on GitHub
             </OpenSourceButton>
             <OpenSourceButton
               href="https://github.com/ChilliCream/graphql-platform/blob/main/LICENSE"
               target="_blank"
-              rel="noopener noreferrer"
+              rel="noopener noreferrer nofollow"
             >
               MIT License
             </OpenSourceButton>
