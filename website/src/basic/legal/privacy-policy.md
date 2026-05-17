@@ -4,7 +4,7 @@ title: "Privacy Policy"
 
 This policy is effective as of 26 August 2021.
 
-Last updated: 1 October 2024
+Last updated: 16 May 2026
 
 Your privacy is important to us. It is ChilliCream Inc.&#39;s policy to respect your privacy and comply with any applicable law and regulation regarding any personal information we may collect about you, including across our "Services", which refers collectively to: (1) [https://chillicream.com](https://chillicream.com) and any other websites we operate and that link to this policy (collectively, "Websites"), and (2) all versions of ChilliCream software, platforms or services (including but not limited to Nitro).
 
@@ -289,6 +289,10 @@ We utilize a variety of cloud storage providers to manage and process data. Belo
 1. **Stripe**: Stripe is our chosen platform for payment processing. Data related to transactions, including payment details, could be processed and stored on Stripe. For a comprehensive understanding of their data practices, please check the:
    - [Terms of Service](https://stripe.com/legal)
    - [Privacy Policy](https://stripe.com/privacy)
+1. **Google Analytics**: On our Websites only (chillicream.com and related marketing pages, excluding nitro.chillicream.com and other ChilliCream products), we use Google Analytics 4 to collect aggregated website usage data such as page views, session duration, and general geographic region. This data is processed by Google and may be stored on Google servers in the United States. For more information:
+   - [Terms of Service](https://marketingplatform.google.com/about/analytics/terms/us/)
+   - [Privacy Policy](https://policies.google.com/privacy)
+   - [How Google uses data](https://policies.google.com/technologies/partner-sites)
 
 It's important to note that while we choose our storage providers with careful consideration, all data storage carries inherent risks. We work with our partners to maintain the integrity of our services. Any updates or changes to our storage providers will be reflected in this section, and we'll notify our users as outlined in our 'Changes to This Policy' section. Should you have questions about our data storage practices, please reach out to us at [contact@chillicream.com](mailto:contact@chillicream.com).
 

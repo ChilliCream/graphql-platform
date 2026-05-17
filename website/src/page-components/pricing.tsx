@@ -53,6 +53,7 @@ const PricingPage: FC<PricingPageProps> = ({ recentPosts }) => {
               ],
               ctaText: "Start for Free",
               ctaLink: "https://nitro.chillicream.com",
+              ctaTrack: "start_free_click",
             },
             {
               title: "Scale",
@@ -72,7 +73,8 @@ const PricingPage: FC<PricingPageProps> = ({ recentPosts }) => {
                 "BYOC*",
               ],
               ctaText: "Contact Sales",
-              ctaLink: "mailto:contact@chillicream.com?subject=Scale%20Plan",
+              ctaTrack: "contact_sales_click",
+              ctaLink: "/services/support/contact?subject=Pricing+%26+Plans",
             },
             {
               title: "Enterprise",
@@ -86,8 +88,8 @@ const PricingPage: FC<PricingPageProps> = ({ recentPosts }) => {
                 "24/7 Support",
               ],
               ctaText: "Contact Sales",
-              ctaLink:
-                "mailto:contact@chillicream.com?subject=Enterprise%20Plan",
+              ctaTrack: "contact_sales_click",
+              ctaLink: "/services/support/contact?subject=Pricing+%26+Plans",
             },
           ]}
         />
@@ -118,8 +120,8 @@ const PricingPage: FC<PricingPageProps> = ({ recentPosts }) => {
                 "Access to expert engineers",
               ],
               ctaText: "Contact Sales",
-              ctaLink:
-                "mailto:contact@chillicream.com?subject=Professional%20Support",
+              ctaTrack: "contact_sales_click",
+              ctaLink: "/services/support/contact?subject=Pricing+%26+Plans",
             },
             {
               title: "Business",
@@ -137,8 +139,8 @@ const PricingPage: FC<PricingPageProps> = ({ recentPosts }) => {
                 "Email Support",
               ],
               ctaText: "Contact Sales",
-              ctaLink:
-                "mailto:contact@chillicream.com?subject=Business%20Support",
+              ctaTrack: "contact_sales_click",
+              ctaLink: "/services/support/contact?subject=Pricing+%26+Plans",
             },
             {
               title: "Enterprise",
@@ -159,8 +161,8 @@ const PricingPage: FC<PricingPageProps> = ({ recentPosts }) => {
                 "Nitro License included",
               ],
               ctaText: "Contact Sales",
-              ctaLink:
-                "mailto:contact@chillicream.com?subject=Enterprise%20Support",
+              ctaTrack: "contact_sales_click",
+              ctaLink: "/services/support/contact?subject=Pricing+%26+Plans",
             },
           ]}
         />
@@ -184,8 +186,8 @@ const PricingPage: FC<PricingPageProps> = ({ recentPosts }) => {
                 "Custom solution design",
               ],
               ctaText: "Contact Sales",
-              ctaLink:
-                "mailto:contact@chillicream.com?subject=Advisory%20Services",
+              ctaTrack: "contact_sales_click",
+              ctaLink: "/services/support/contact?subject=Pricing+%26+Plans",
             },
             {
               title: "Private Workshops",
@@ -201,8 +203,8 @@ const PricingPage: FC<PricingPageProps> = ({ recentPosts }) => {
                 "Materials included",
               ],
               ctaText: "Contact Sales",
-              ctaLink:
-                "mailto:contact@chillicream.com?subject=Private%20Workshops",
+              ctaTrack: "contact_sales_click",
+              ctaLink: "/services/support/contact?subject=Pricing+%26+Plans",
             },
             {
               title: "Monthly Sessions",
@@ -219,8 +221,8 @@ const PricingPage: FC<PricingPageProps> = ({ recentPosts }) => {
                 "Knowledge transfer",
               ],
               ctaText: "Contact Sales",
-              ctaLink:
-                "mailto:contact@chillicream.com?subject=Monthly%20Collaboration%20Sessions",
+              ctaTrack: "contact_sales_click",
+              ctaLink: "/services/support/contact?subject=Pricing+%26+Plans",
             },
           ]}
         />
@@ -257,14 +259,14 @@ const PricingPage: FC<PricingPageProps> = ({ recentPosts }) => {
             <OpenSourceButton
               href="https://github.com/ChilliCream/graphql-platform"
               target="_blank"
-              rel="noopener noreferrer"
+              rel="noopener noreferrer nofollow"
             >
               View on GitHub
             </OpenSourceButton>
             <OpenSourceButton
               href="https://github.com/ChilliCream/graphql-platform/blob/main/LICENSE"
               target="_blank"
-              rel="noopener noreferrer"
+              rel="noopener noreferrer nofollow"
             >
               MIT License
             </OpenSourceButton>

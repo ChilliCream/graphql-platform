@@ -239,7 +239,7 @@ const rehypePlugins = [
     rehypeExternalLinks,
     {
       target: "_blank",
-      rel: ["noopener", "noreferrer"],
+      rel: ["noopener", "noreferrer", "nofollow"],
     },
   ],
 ] as any;
