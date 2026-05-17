@@ -37,7 +37,6 @@ internal sealed class SchemaComposition(
                 if (compositionResources.Count == 0)
                 {
                     logger.LogDebug("No resources found that need GraphQL schema composition");
-                    _compositionComplete.TrySetResult();
                     return;
                 }
 
@@ -55,6 +54,10 @@ internal sealed class SchemaComposition(
             {
                 compositionFailed = true;
             }
+            finally
+            {
+                _compositionComplete.TrySetResult();
+            }
 
             if (compositionFailed)
             {
@@ -62,8 +65,6 @@ internal sealed class SchemaComposition(
                 lifetime.StopApplication();
                 throw new InvalidOperationException("GraphQL schema composition failed");
             }
-
-            _compositionComplete.TrySetResult();
 
             // After composition, check if gateways started successfully.
             // On a fresh clone the .far file may not exist at build time,
