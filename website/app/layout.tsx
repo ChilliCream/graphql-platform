@@ -2,7 +2,6 @@ import React from "react";
 import type { Metadata } from "next";
 import { Radio_Canada } from "next/font/google";
 import Script from "next/script";
-import { GoogleAnalytics } from "@next/third-parties/google";
 
 import { Providers } from "@/lib/providers";
 import { siteMetadata } from "@/lib/site-config";
@@ -36,7 +35,7 @@ export default function RootLayout({
 
   return (
     <html lang="en" className={radioCanada.variable}>
-      <body>
+      <head>
         {process.env.NEXT_PUBLIC_COOKIEBOT_CBID && (
           <>
             <Script
@@ -65,11 +64,37 @@ export default function RootLayout({
             />
           </>
         )}
-        <Providers latestBlogPost={latestBlogPost}>{children}</Providers>
         {process.env.NEXT_PUBLIC_COOKIEBOT_CBID &&
-          process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
-            <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
+          process.env.NEXT_PUBLIC_GTM_ID && (
+            <Script
+              id="gtm-script"
+              strategy="beforeInteractive"
+              dangerouslySetInnerHTML={{
+                __html: `
+                window.dataLayer = window.dataLayer || [];
+                (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+                new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+                j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+                'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+                })(window,document,'script','dataLayer','${process.env.NEXT_PUBLIC_GTM_ID}');
+              `,
+              }}
+            />
           )}
+      </head>
+      <body>
+        {process.env.NEXT_PUBLIC_COOKIEBOT_CBID &&
+          process.env.NEXT_PUBLIC_GTM_ID && (
+            <noscript>
+              <iframe
+                src={`https://www.googletagmanager.com/ns.html?id=${process.env.NEXT_PUBLIC_GTM_ID}`}
+                height="0"
+                width="0"
+                style={{ display: "none", visibility: "hidden" }}
+              />
+            </noscript>
+          )}
+        <Providers latestBlogPost={latestBlogPost}>{children}</Providers>
       </body>
     </html>
   );
