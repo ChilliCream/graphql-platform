@@ -19,6 +19,18 @@ public class IntegrationTests
     }
 
     [Fact]
+    public async Task Schema_Snapshot_Without_ConnectionName_Inference()
+    {
+        await new ServiceCollection()
+            .AddGraphQLServer(disableDefaultSecurity: true)
+            .AddIntegrationTestTypes()
+            .AddGlobalObjectIdentification()
+            .ModifyPagingOptions(o => o.InferConnectionNameFromField = false)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
     public async Task Subscription_With_Subscribe_With_Delivers_Message_From_Stream()
     {
         // arrange

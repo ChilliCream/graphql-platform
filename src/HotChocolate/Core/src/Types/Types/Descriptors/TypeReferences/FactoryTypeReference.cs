@@ -131,5 +131,8 @@ public sealed class FactoryTypeReference : TypeReference
     }
 
     public override int GetHashCode()
-        => HashCode.Combine(base.GetHashCode(), TypeStructure, TypeDefinition);
+        => HashCode.Combine(
+            base.GetHashCode(),
+            SyntaxComparer.BySyntax.GetHashCode(TypeStructure),
+            TypeDefinition);
 }
