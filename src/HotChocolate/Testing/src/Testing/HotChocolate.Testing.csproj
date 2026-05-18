@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Testing</PackageId>
+    <AssemblyName>HotChocolate.Testing</AssemblyName>
+    <RootNamespace>HotChocolate.Testing</RootNamespace>
+    <Description>Testing helpers for Hot Chocolate.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore.Pipeline\HotChocolate.AspNetCore.Pipeline.csproj" />
+  </ItemGroup>
+
+</Project>
