@@ -656,19 +656,23 @@ query {
 
 ### Runtime objects passed as variables to OperationRequestBuilder are now serialized as JSON
 
-Passing CLR objects via `OperationRequestBuilder.SetVariableValues(Dictionary<string, object?>)` now serializes the values as JSON.
+CLR objects passed via `OperationRequestBuilder.SetVariableValues(Dictionary<string, object?>)` are now serialized to JSON before being coerced into GraphQL values. Previously, runtime values were handed to scalar coercion directly, so any CLR representation a scalar accepted would work.
 
-You may prefer providing variables directly as JSON:
+As a result, the JSON shape of a value must match what the target scalar expects:
 
-```csharp
-var requestBuilder = new OperationRequestBuilder();
-requestBuilder.SetVariableValues("""{ "id": 42 }""");
-```
+- `DateTime` no longer fits a `Date` scalar, since its JSON form does not match the required `yyyy-MM-dd`.
+- Enums must be passed as their GraphQL name (`"VALUE"`) rather than the CLR member (`MyEnum.Value`).
 
-Note that this can lead to errors if the emitted JSON for a type is not valid for the corresponding GraphQL scalar, f. e. du to format restrictions.
-For example, a `DateTime` value can no longer be used to fill a `Date` scalar since the JSON format does not match the expected yyyy-MM-dd format.
+If you hit a mismatch, you have two options:
 
-You can also bypass this by annotating your types with custom JsonConverters.
+1. Provide variables as raw JSON, bypassing CLR serialization entirely:
+
+   ```csharp
+   var requestBuilder = new OperationRequestBuilder();
+   requestBuilder.SetVariableValues("""{ "id": 42 }""");
+   ```
+
+2. Register a custom `JsonConverter` for the affected type so the emitted JSON matches the scalar's expected format.
 
 If you need to pass an Upload scalar value, you can do the following:
 
