@@ -23,7 +23,11 @@ response:
   body: |
     {
       "data": {
-        "node": {}
+        "node": {
+          "author": {
+            "rating": 123
+          }
+        }
       }
     }
 sourceSchemas:

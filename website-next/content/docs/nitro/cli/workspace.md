@@ -1,5 +1,5 @@
 ---
-title: workspace
+title: workspace Command
 ---
 
 The `nitro workspace` commands manage workspaces. A workspace is the top-level container in Nitro, every API, environment, and API key belongs to exactly one workspace.

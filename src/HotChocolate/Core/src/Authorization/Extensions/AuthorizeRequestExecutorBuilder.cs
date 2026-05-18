@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate;
 using HotChocolate.Authorization;
 using HotChocolate.Authorization.Pipeline;
@@ -88,7 +89,8 @@ public static class AuthorizeRequestExecutorBuilder
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/> for chaining in more configurations.
     /// </returns>
-    public static IRequestExecutorBuilder AddAuthorizationHandler<T>(
+    public static IRequestExecutorBuilder AddAuthorizationHandler<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IRequestExecutorBuilder builder)
         where T : class, IAuthorizationHandler
     {

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.AspNetCore;
@@ -28,7 +29,8 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// If your <typeparamref name="T"/> needs to access application services you need to
     /// make the services available in the schema services via <see cref="RequestExecutorBuilderExtensions.AddApplicationService"/>.
     /// </remarks>
-    public static IRequestExecutorBuilder AddHttpRequestInterceptor<T>(
+    public static IRequestExecutorBuilder AddHttpRequestInterceptor<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IRequestExecutorBuilder builder)
         where T : class, IHttpRequestInterceptor
     {
@@ -191,7 +193,8 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// <returns>
     /// Returns the <see cref="IServiceCollection"/> so that configuration can be chained.
     /// </returns>
-    public static IRequestExecutorBuilder AddHttpResponseFormatter<T>(
+    public static IRequestExecutorBuilder AddHttpResponseFormatter<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IRequestExecutorBuilder builder)
         where T : class, IHttpResponseFormatter
     {

@@ -1,6 +1,3 @@
-#if !NET9_0_OR_GREATER
-using System.Diagnostics.CodeAnalysis;
-#endif
 using System.IO.Pipelines;
 using System.Net;
 using HotChocolate.AspNetCore.Formatters;
@@ -82,10 +79,6 @@ public sealed class ExecutorSession
         CancellationToken cancellationToken)
         => _requestInterceptor.OnCreateAsync(context, requestExecutor, requestBuilder, cancellationToken);
 
-#if !NET9_0_OR_GREATER
-    [RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
-    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
-#endif
     public async Task<IExecutionResult> ExecuteSingleAsync(
         HttpContext context,
         GraphQLRequest request,
@@ -122,10 +115,6 @@ public sealed class ExecutorSession
         return await _executor.ExecuteAsync(operationRequest, context.RequestAborted);
     }
 
-#if !NET9_0_OR_GREATER
-    [RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
-    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
-#endif
     public async Task<IResponseStream> ExecuteOperationBatchAsync(
         HttpContext context,
         GraphQLRequest request,
@@ -153,10 +142,6 @@ public sealed class ExecutorSession
             cancellationToken: context.RequestAborted);
     }
 
-#if !NET9_0_OR_GREATER
-    [RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
-    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
-#endif
     public async Task<IResponseStream> ExecuteBatchAsync(
         HttpContext context,
         GraphQLRequest[] requests,

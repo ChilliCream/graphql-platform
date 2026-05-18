@@ -41,8 +41,7 @@ internal abstract class ExecuteRequestSpanBase(
         EnrichServerAttributes();
 
         string? operationTypeValue = null;
-        string? operationName = null;
-        if (TryGetOperationInfo(out var operationType, out operationName))
+        if (TryGetOperationInfo(out var operationType, out var operationName))
         {
             operationTypeValue = GraphQL.Operation.TypeValues[operationType];
             Activity.DisplayName = operationTypeValue;
@@ -103,18 +102,18 @@ internal abstract class ExecuteRequestSpanBase(
         }
 
         if (!string.IsNullOrEmpty(request.Host.Host)
-            && Activity.GetTagItem(SemanticConventions.Server.Address) is null)
+            && Activity.GetTagItem(Server.Address) is null)
         {
-            Activity.SetTag(SemanticConventions.Server.Address, request.Host.Host);
+            Activity.SetTag(Server.Address, request.Host.Host);
         }
 
         if (request.Host.Port is { } port
-            && Activity.GetTagItem(SemanticConventions.Server.Port) is null)
+            && Activity.GetTagItem(Server.Port) is null)
         {
             var defaultPort = request.IsHttps ? 443 : 80;
             if (port != defaultPort)
             {
-                Activity.SetTag(SemanticConventions.Server.Port, port);
+                Activity.SetTag(Server.Port, port);
             }
         }
     }

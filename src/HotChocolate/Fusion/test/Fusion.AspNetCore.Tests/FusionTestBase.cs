@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http.Headers;
@@ -391,7 +392,14 @@ public abstract partial class FusionTestBase : IDisposable
                 }
                 else
                 {
-                    client = registration.Server.CreateClient();
+                    client = new HttpClient(
+                        new TraceContextPropagationHandler
+                        {
+                            InnerHandler = registration.Server.CreateHandler()
+                        })
+                    {
+                        BaseAddress = registration.Server.BaseAddress
+                    };
                 }
 
                 registration.Options.ConfigureHttpClient?.Invoke(client);
@@ -432,6 +440,58 @@ public abstract partial class FusionTestBase : IDisposable
                 HttpRequestMessage request,
                 CancellationToken cancellationToken)
                 => handler(request);
+        }
+
+        // The Fusion test harness routes gateway -> subgraph calls through the in-memory
+        // TestServer handler, which bypasses .NET's HttpClient diagnostics. This handler
+        // emits a client-kind HTTP span and forwards the W3C trace context to the subgraph
+        // host so the subgraph request continues the trace.
+        private sealed class TraceContextPropagationHandler : DelegatingHandler
+        {
+            private static readonly ActivitySource s_httpClientActivitySource = new("System.Net.Http");
+
+            protected override async Task<HttpResponseMessage> SendAsync(
+                HttpRequestMessage request,
+                CancellationToken cancellationToken)
+            {
+                var activity = s_httpClientActivitySource.StartActivity(
+                    "System.Net.Http.HttpRequestOut",
+                    ActivityKind.Client);
+
+                activity?.SetTag("http.request.method", request.Method.Method);
+                activity?.SetTag("server.address", request.RequestUri?.Host);
+                activity?.SetTag("server.port", request.RequestUri?.Port);
+                activity?.SetTag("url.full", request.RequestUri?.ToString());
+
+                DistributedContextPropagator.Current.Inject(
+                    activity,
+                    request,
+                    static (carrier, key, value) =>
+                        ((HttpRequestMessage)carrier!).Headers.TryAddWithoutValidation(key, value));
+
+                try
+                {
+                    var response = await base.SendAsync(request, cancellationToken);
+
+                    activity?.SetTag("http.response.status_code", (int)response.StatusCode);
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        activity?.SetStatus(ActivityStatusCode.Error);
+                    }
+
+                    return response;
+                }
+                catch
+                {
+                    activity?.SetStatus(ActivityStatusCode.Error);
+                    throw;
+                }
+                finally
+                {
+                    activity?.Dispose();
+                }
+            }
         }
     }
 

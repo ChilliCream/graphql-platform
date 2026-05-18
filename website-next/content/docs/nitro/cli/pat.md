@@ -1,5 +1,5 @@
 ---
-title: pat
+title: pat Command
 ---
 
 The `nitro pat` commands manage Personal Access Tokens (PATs). A PAT is bound to your user account and acts on your behalf, so it inherits your access across every workspace and API you are a member of. PATs are intended for personal automation, scripts on your machine, and bootstrapping operations that need broader permissions than an [API key](./api-key.md) provides (for example creating workspaces or managing members).

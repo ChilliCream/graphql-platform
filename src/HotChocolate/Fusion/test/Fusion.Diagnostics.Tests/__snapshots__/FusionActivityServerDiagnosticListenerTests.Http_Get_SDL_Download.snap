@@ -4,21 +4,68 @@
   },
   "activities": [
     {
-      "OperationName": "ExecuteHttpRequest",
-      "DisplayName": "GraphQL HTTP GET SDL",
-      "Kind": "Internal",
-      "Status": "Ok",
+      "OperationName": "Microsoft.AspNetCore.Hosting.HttpRequestIn",
+      "DisplayName": "GET /graphql/{**slug}",
+      "Kind": "Server",
+      "Status": "Unset",
       "tags": [
         {
-          "Key": "graphql.http.kind",
-          "Value": "HttpGetSchema"
+          "Key": "server.address",
+          "Value": "localhost"
         },
         {
-          "Key": "graphql.schema.name",
-          "Value": "_Default"
+          "Key": "server.port",
+          "Value": 5000
+        },
+        {
+          "Key": "url.query",
+          "Value": "?sdl"
+        },
+        {
+          "Key": "http.request.method",
+          "Value": "GET"
+        },
+        {
+          "Key": "url.scheme",
+          "Value": "http"
+        },
+        {
+          "Key": "url.path",
+          "Value": "/graphql"
+        },
+        {
+          "Key": "network.protocol.version",
+          "Value": "1.1"
+        },
+        {
+          "Key": "http.route",
+          "Value": "/graphql/{**slug}"
+        },
+        {
+          "Key": "http.response.status_code",
+          "Value": 200
         }
       ],
-      "event": []
+      "event": [],
+      "activities": [
+        {
+          "OperationName": "ExecuteHttpRequest",
+          "DisplayName": "GraphQL HTTP GET SDL",
+          "Kind": "Internal",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.http.kind",
+              "Value": "HttpGetSchema"
+            },
+            {
+              "Key": "graphql.schema.name",
+              "Value": "_Default"
+            }
+          ],
+          "event": []
+        }
+      ]
     }
   ]
 }

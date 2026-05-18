@@ -1,5 +1,5 @@
 ---
-title: api-key
+title: api-key Command
 ---
 
 The `nitro api-key` commands manage API keys. API keys authenticate non-interactive use of the CLI and the Nitro server, and are intended for CI/CD pipelines, deployments, and telemetry reporting from your GraphQL server.

@@ -11,6 +11,7 @@ import { Quote } from "@/src/design-system/Quote";
 import { Tab, Tabs } from "@/src/design-system/Tabs";
 import { ApiChoiceTabs } from "@/src/design-system/ApiChoiceTabs";
 import { InputChoiceTabs } from "@/src/design-system/InputChoiceTabs";
+import { PipelineChoiceTabs } from "@/src/design-system/PipelineChoiceTabs";
 import {
   Code,
   ExampleCode,
@@ -76,6 +77,7 @@ const components: MDXComponents = {
   Video,
   ApiChoiceTabs,
   InputChoiceTabs,
+  PipelineChoiceTabs,
   ExampleTabs,
   Implementation,
   Code,

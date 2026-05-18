@@ -4,13 +4,17 @@ title: "Cookie Policy"
 
 This policy is effective as of 26 August 2021.
 
-Last updated: 11 September 2023
+Last updated: 16 May 2026
 
 We use cookies to help improve your experience of our Websites, which refers to [https://chillicream.com](https://chillicream.com) as well as other websites operated by ChilliCream Inc. and that link to this policy. This cookie policy is part of ChilliCream Inc.&#39;s privacy policy. It covers the use of cookies between your device and our site.
 
 We also provide basic information on third-party services we may use, who may also use cookies as part of their service. This policy does not cover their cookies.
 
 If you don't wish to accept cookies from us, you should instruct your browser to refuse cookies from [https://chillicream.com](https://chillicream.com) or the relevant domain operated by us. In such a case, we may be unable to provide you with some of your desired content and services.
+
+# Consent Management
+
+On our Websites (chillicream.com and related marketing pages), we use **Cookiebot** by Usercentrics as our consent management platform. When required by applicable law (for example, in the European Economic Area), Cookiebot displays a consent banner that allows you to accept or reject non-essential cookies before they are set. Your consent preferences are stored in a cookie named `CookieConsent` and are respected on subsequent visits. You can change your preferences by clearing your cookies or, where available, using the consent management options on our Websites. Cookiebot is not used on nitro.chillicream.com or any other ChilliCream product or platform.
 
 # What is a cookie?
 
@@ -34,7 +38,7 @@ We use essential cookies to enable certain functions on our website.
 
 Performance cookies track how you use a website during your visit. Typically, this information is anonymous and aggregated, with information tracked across all site users. They help companies understand visitor usage patterns, identify and diagnose problems or errors their users may encounter, and make better strategic decisions in improving their audience's overall website experience. These cookies may be set by the website you're visiting (first-party) or by third-party services. They do not collect personal information about you.
 
-We use performance cookies on our site.
+We use performance cookies on our Websites (chillicream.com and related marketing pages). Specifically, we use **Google Analytics 4** to collect aggregated usage data such as page views, session duration, and general geographic region. Google Analytics sets cookies including `_ga` and `_ga_*` to distinguish unique visitors. This data is processed by Google in accordance with their [Privacy Policy](https://policies.google.com/privacy). Google Analytics is not used on nitro.chillicream.com or any other ChilliCream product or platform.
 
 ## Functionality cookies
 
