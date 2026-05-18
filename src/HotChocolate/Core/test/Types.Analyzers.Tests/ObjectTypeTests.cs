@@ -541,6 +541,79 @@ public class ObjectTypeTests
     }
 
     [Fact]
+    public async Task CustomAttribute_With_Enum_And_Flags_Arguments_On_Parameter_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            public enum Visibility
+            {
+                Public = 0,
+                Internal = 1,
+                Private = 2
+            }
+
+            [Flags]
+            public enum Access
+            {
+                None = 0,
+                Read = 1,
+                Write = 2,
+                Execute = 4
+            }
+
+            public sealed class FooAttribute : Attribute
+            {
+                public FooAttribute(Visibility visibility)
+                {
+                    Visibility = visibility;
+                }
+
+                public Visibility Visibility { get; }
+
+                public Visibility NamedVisibility { get; set; }
+
+                public Access AccessFlags { get; set; }
+            }
+
+            public sealed class Author
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            public sealed class Book
+            {
+                public int Id { get; set; }
+                public string Title { get; set; }
+                public int AuthorId { get; set; }
+            }
+
+            [ObjectType<Book>]
+            internal static partial class BookNode
+            {
+                [BindMember(nameof(Book.AuthorId))]
+                public static Task<Author?> GetAuthorAsync(
+                    [Parent] Book book,
+                    [Foo(
+                        Visibility.Internal,
+                        NamedVisibility = Visibility.Private,
+                        AccessFlags = Access.Read | Access.Write)] int version,
+                    CancellationToken cancellationToken)
+                    => default;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
     public async Task GraphQLType_On_Parameter_MatchesSnapshot()
     {
         await TestHelper.GetGeneratedSourceSnapshot(

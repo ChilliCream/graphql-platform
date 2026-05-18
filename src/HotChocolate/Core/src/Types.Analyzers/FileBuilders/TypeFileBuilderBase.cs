@@ -1978,8 +1978,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                 return FormatPrimitive(constant.Value);
 
             case TypedConstantKind.Enum:
-                var enumType = constant.Type?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-                return $"{enumType}.{constant.Value}";
+                return FormatEnumConstant(constant);
 
             case TypedConstantKind.Type:
                 var typeArg = ((ITypeSymbol)constant.Value!).ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
@@ -2021,6 +2020,25 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             ulong ul => $"{ul}UL",
             _ => value.ToString() ?? "null"
         };
+    }
+
+    private static string FormatEnumConstant(TypedConstant constant)
+    {
+        var enumType = constant.Type?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+
+        if (constant.Type is INamedTypeSymbol enumSymbol && constant.Value is not null)
+        {
+            foreach (var member in enumSymbol.GetMembers())
+            {
+                if (member is IFieldSymbol { HasConstantValue: true } field
+                    && Equals(field.ConstantValue, constant.Value))
+                {
+                    return $"{enumType}.{field.Name}";
+                }
+            }
+        }
+
+        return $"({enumType}){constant.Value}";
     }
 
     private static string EscapeString(string s)
