@@ -155,10 +155,6 @@ jobs:
         run: yarn --immutable --network-timeout 100000
         working-directory: website
 
-      - name: Optimize Images
-        run: yarn optimize-images
-        working-directory: website
-
       - name: Build Website
         run: yarn build
         working-directory: website

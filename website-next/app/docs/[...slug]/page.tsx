@@ -12,7 +12,7 @@ const CONTENT_ROOT = path.join(process.cwd(), "content/docs");
 export const dynamicParams = false;
 
 export function generateStaticParams(): { slug: string[] }[] {
-  return walk(CONTENT_ROOT)
+  const params = walk(CONTENT_ROOT)
     .filter((f) => /\.mdx?$/.test(f))
     .map((f) => path.relative(CONTENT_ROOT, f).replace(/\.mdx?$/, ""))
     .map((rel) => rel.split(path.sep))
@@ -21,6 +21,10 @@ export function generateStaticParams(): { slug: string[] }[] {
     )
     .filter((slug) => slug.length > 0)
     .map((slug) => ({ slug }));
+
+  // output: export requires at least one prerendered path; placeholder
+  // renders 404 via notFound() when no content is present.
+  return params.length > 0 ? params : [{ slug: ["__empty__"] }];
 }
 
 export async function generateMetadata({
