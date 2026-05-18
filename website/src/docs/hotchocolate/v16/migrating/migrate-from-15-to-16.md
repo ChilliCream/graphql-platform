@@ -553,7 +553,9 @@ var request = OperationRequestBuilder.New()
 
 **Variable values are now JSON-based**
 
-`SetVariableValues` now accepts JSON strings, `JsonDocument`, `IEnumerable<KeyValuePair<string, JsonElement>>`, or `IReadOnlyDictionary<string, object?>`. When you pass a dictionary of CLR objects, values are serialized to JSON internally. You can also pass variables directly as a JSON string:
+`SetVariableValues` now accepts JSON strings, `JsonDocument`, `IEnumerable<KeyValuePair<string, JsonElement>>`, or `IReadOnlyDictionary<string, object?>`.
+
+The preferred way to provide variables now is as a JSON string.
 
 ```csharp
 var request = OperationRequestBuilder.New()
@@ -561,6 +563,43 @@ var request = OperationRequestBuilder.New()
     .SetVariableValues("""{ "id": "42" }""")
     .Build();
 ```
+
+CLR objects passed via `SetVariableValues(Dictionary<string, object?>)` are now serialized to JSON internally.
+
+As a result, the JSON shape of a value must match what the target scalar expects. Some examples:
+
+- `DateTime` no longer fits a `Date` scalar, since its JSON form does not match the required `yyyy-MM-dd`.
+- Enums must be passed as their GraphQL name (`"VALUE"`) rather than the CLR member (`MyEnum.Value`).
+
+If you hit a mismatch, you have two options:
+
+1. Provide variables as raw JSON through `SetVariableValues(string)`, bypassing CLR serialization entirely.
+2. Register a custom `JsonConverter` for the affected type so the emitted JSON matches the scalar's expected format.
+
+If you need to pass an Upload scalar value, you can do the following:
+
+```csharp
+var requestBuilder = new OperationRequestBuilder();
+requestBuilder.SetVariableValues("""{ "file" : "yourKey" }""");
+requestBuilder.Features.Set<IFileLookup>(fileLookup);
+
+public class FileLookup : IFileLookup
+{
+    public bool TryGetFile(string name, [NotNullWhen(true)] out IFile? file)
+    {
+        if (name == "yourKey")
+        {
+            file = new StreamFile("Foo.txt", () => new MemoryStream());
+            return true;
+        }
+
+        file = null;
+        return false;
+    }
+}
+```
+
+`yourKey` in this case is just a marker you choose for the file.
 
 **Global state methods**
 
@@ -580,6 +619,21 @@ Use `OperationRequestBuilder.From(request)` to create a builder pre-populated fr
 **Features collection**
 
 The builder now exposes a `Features` property of type `IFeatureCollection` for attaching extensibility features (such as `IFileLookup` for file uploads).
+
+## Snapshot matching on IExecutionResult
+
+The internal layout of `IExecutionResult` implementations has changed and is no longer compatible with general-purpose object serializers used by snapshot libraries like `Snapshooter` or `Verify`. Snapshotting the result instance directly will either fail or produce unstable output.
+
+Serialize the result to JSON first and snapshot that instead:
+
+```diff
+var result = await executor.ExecuteAsync("{ example }");
+
+- result.MatchSnapshot();
++ result.ToJson().MatchSnapshot();
+```
+
+If you're using **CookieCrumble**, you don't need to convert manually: it has native snapshot support for `IExecutionResult` and serializes it correctly out of the box.
 
 ## AllowNonPersistedOperation moved
 
@@ -651,49 +705,6 @@ query {
   foo(input: { key: "value" })
   # Now returns: "JsonElement"
   # Previously (v15): "Dictionary`2"
-}
-```
-
-### Runtime objects passed as variables to OperationRequestBuilder are now serialized as JSON
-
-CLR objects passed via `OperationRequestBuilder.SetVariableValues(Dictionary<string, object?>)` are now serialized to JSON before being coerced into GraphQL values. Previously, runtime values were handed to scalar coercion directly, so any CLR representation a scalar accepted would work.
-
-As a result, the JSON shape of a value must match what the target scalar expects:
-
-- `DateTime` no longer fits a `Date` scalar, since its JSON form does not match the required `yyyy-MM-dd`.
-- Enums must be passed as their GraphQL name (`"VALUE"`) rather than the CLR member (`MyEnum.Value`).
-
-If you hit a mismatch, you have two options:
-
-1. Provide variables as raw JSON, bypassing CLR serialization entirely:
-
-   ```csharp
-   var requestBuilder = new OperationRequestBuilder();
-   requestBuilder.SetVariableValues("""{ "id": 42 }""");
-   ```
-
-2. Register a custom `JsonConverter` for the affected type so the emitted JSON matches the scalar's expected format.
-
-If you need to pass an Upload scalar value, you can do the following:
-
-```csharp
-var requestBuilder = new OperationRequestBuilder();
-requestBuilder.SetVariableValues("""{ "file" : "yourKey" }""");
-requestBuilder.Features.Set<IFileLookup>(fileLookup);
-
-public class FileLookup : IFileLookup
-{
-    public bool TryGetFile(string name, [NotNullWhen(true)] out IFile? file)
-    {
-        if (name == "yourKey")
-        {
-            file = new StreamFile("Foo.txt", () => new MemoryStream());
-            return true;
-        }
-
-        file = null;
-        return false;
-    }
 }
 ```
 
@@ -925,10 +936,6 @@ builder
         new HttpResponseFormatterOptions { /* ... */ },
         incrementalDeliveryFormat: IncrementalDeliveryFormat.Version_0_1);
 ```
-
-## OperationRequestBuilder.AddVariableValues renamed to SetVariableValues
-
-`OperationRequestBuilder.AddVariableValues` has been renamed to `SetVariableValues`.
 
 ## TimeSpan scalar renamed to Duration
 
