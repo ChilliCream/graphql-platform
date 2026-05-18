@@ -176,9 +176,10 @@ public override ValueTask<ConnectionStatus> OnConnectAsync(
     ISocketSession session, IOperationMessagePayload connectionInitMessage,
     CancellationToken cancellationToken)
 {
-    if (connectionInitMessage.As<Dictionary<string, object?>>()
-        ?.TryGetValue("authToken", out var token) == true)
+    if (connectionInitMessage.Payload?.TryGetProperty("authToken", out var token) == true
+        && token.ValueKind == JsonValueKind.String)
     {
+        var authToken = token.GetString();
         // Validate token ...
     }
 
