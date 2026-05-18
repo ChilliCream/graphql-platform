@@ -1108,36 +1108,6 @@ We removed the following methods from the `IExecutionDiagnosticEventListener` si
 
 Some other methods also had a change in their signature - simply override them again to fix any compilation issues.
 
-## IOperationMessagePayload exposes raw JSON
-
-The `IOperationMessagePayload` interface, used by `ISocketSessionInterceptor` hooks (`OnConnectAsync`, `OnPingAsync`, `OnPongAsync`), no longer exposes the `As<T>()` deserialization helper. It now provides direct access to the raw `JsonElement?` through a `Payload` property:
-
-```diff
--public interface IOperationMessagePayload
--{
--    T? As<T>() where T : class;
--}
-+public interface IOperationMessagePayload
-+{
-+    JsonElement? Payload { get; }
-+}
-```
-
-If you were calling `.As<T>()` to deserialize the payload, switch to `Payload?.Deserialize<T>()`:
-
-```diff
-public override ValueTask<ConnectionStatus> OnConnectAsync(
-    ISocketSession session,
-    IOperationMessagePayload connectionInitMessage,
-    CancellationToken cancellationToken = default)
-{
--   var payload = connectionInitMessage.As<MyConnectPayload>();
-+   var payload = connectionInitMessage.Payload?.Deserialize<MyConnectPayload>();
-
-    // ...
-}
-```
-
 ## Experimental @semanticNonNull support removed
 
 Hot Chocolate v15 included experimental support for the `@semanticNonNull` directive, which let you mark fields as semantically non-null while still returning `null` (rather than propagating to the parent) when a resolver errored. We've removed this feature in v16 in favor of the [`onError` proposal](https://github.com/graphql/graphql-spec/pull/1163).
