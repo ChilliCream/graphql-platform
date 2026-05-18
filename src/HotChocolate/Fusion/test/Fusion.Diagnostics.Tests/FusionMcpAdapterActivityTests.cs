@@ -10,6 +10,7 @@ using ModelContextProtocol.Client;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
+using static CookieCrumble.TestEnvironment;
 using static HotChocolate.Fusion.Diagnostics.ActivityTestHelper;
 
 namespace HotChocolate.Fusion.Diagnostics;
@@ -31,7 +32,7 @@ public partial class FusionMcpAdapterActivityTests : FusionTestBase
             await mcpClient.CallToolAsync("get_book");
 
             // assert
-            MatchActivitySnapshot(activities);
+            MatchActivitySnapshot(activities, Postfix([NET11_0]));
         }
     }
 
@@ -85,7 +86,7 @@ public partial class FusionMcpAdapterActivityTests : FusionTestBase
             await mcpClient.CallToolAsync("get_faulty_book");
 
             // assert
-            MatchActivitySnapshot(activities);
+            MatchActivitySnapshot(activities, Postfix([NET11_0]));
         }
     }
 
@@ -110,7 +111,7 @@ public partial class FusionMcpAdapterActivityTests : FusionTestBase
     [GeneratedRegex("""("Key": "mcp\.session\.id",\s*"Value": ")[^"]*(")""")]
     private static partial Regex SessionIdRegex();
 
-    private static void MatchActivitySnapshot(object activities)
+    private static void MatchActivitySnapshot(object activities, string? postfix = null)
     {
         var serializer = JsonSerializer.Create(
             new JsonSerializerSettings { Converters = { new StringEnumConverter() } });
@@ -136,7 +137,7 @@ public partial class FusionMcpAdapterActivityTests : FusionTestBase
 
         // The MCP session id is randomly generated per run, scrub it so the snapshot is stable.
         json = SessionIdRegex().Replace(json, "$1<scrubbed>$2");
-        json.MatchSnapshot();
+        json.MatchSnapshot(postfix);
     }
 
     private static PromptDefinition CreateGreetingPrompt()

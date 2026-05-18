@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using ModelContextProtocol.Client;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using static CookieCrumble.TestEnvironment;
 using static HotChocolate.Diagnostics.ActivityTestHelper;
 
 namespace HotChocolate.Diagnostics;
@@ -118,7 +119,7 @@ public partial class McpAdapterActivityTests
             Formatting.Indented,
             new StringEnumConverter());
         json = SessionIdRegex().Replace(json, "$1<scrubbed>$2");
-        json.MatchSnapshot();
+        json.MatchSnapshot(Postfix([NET11_0]));
     }
 
     private static PromptDefinition CreateGreetingPrompt()

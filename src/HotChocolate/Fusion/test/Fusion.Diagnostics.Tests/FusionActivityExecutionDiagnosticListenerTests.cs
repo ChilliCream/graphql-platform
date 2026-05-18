@@ -41,7 +41,7 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             await executor.ExecuteAsync(request);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -75,7 +75,7 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             await executor.ExecuteAsync(request);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -143,7 +143,7 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             await executor.ExecuteAsync(request);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -214,7 +214,7 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             await executor.ExecuteAsync(request);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -247,7 +247,7 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             await executor.ExecuteAsync(OperationRequest.FromId("say-hello-persisted-id"));
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -408,7 +408,7 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             await executor.ExecuteAsync(request);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -443,7 +443,7 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             await executor.ExecuteAsync(request);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -474,7 +474,7 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             await executor.ExecuteAsync(request);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -506,7 +506,7 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             await executor.ExecuteAsync(request);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -595,7 +595,7 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             await executor.ExecuteAsync(request);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -629,7 +629,7 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             await executor.ExecuteAsync(request);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -672,7 +672,7 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             }
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 

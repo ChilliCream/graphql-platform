@@ -6,6 +6,7 @@ using HotChocolate.Resolvers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using static CookieCrumble.TestEnvironment;
 using static HotChocolate.Fusion.Diagnostics.ActivityTestHelper;
 
 namespace HotChocolate.Fusion.Diagnostics;
@@ -37,7 +38,7 @@ public class FusionOpenApiAdapterActivityTests : FusionTestBase
             await response.Content.ReadAsStringAsync();
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -63,7 +64,7 @@ public class FusionOpenApiAdapterActivityTests : FusionTestBase
             await response.Content.ReadAsStringAsync();
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -91,7 +92,7 @@ public class FusionOpenApiAdapterActivityTests : FusionTestBase
             await response.Content.ReadAsStringAsync();
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -119,7 +120,7 @@ public class FusionOpenApiAdapterActivityTests : FusionTestBase
             await response.Content.ReadAsStringAsync();
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
