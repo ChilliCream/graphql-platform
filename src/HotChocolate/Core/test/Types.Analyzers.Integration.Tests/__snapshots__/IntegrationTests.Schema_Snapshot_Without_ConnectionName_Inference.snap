@@ -4,6 +4,10 @@ schema {
 }
 
 type Query {
+  "Fetches an object given its ID."
+  node("ID of the object." id: ID!): Node
+  "Lookup nodes by a list of IDs."
+  nodes("The list of node IDs." ids: [ID!]!): [Node]!
   isSelectedTest: IsSelectedNode!
   """
   Gets the product.
@@ -22,14 +26,7 @@ type Query {
     last: Int
     "Returns the elements in the list that come before the specified cursor."
     before: String
-  ): BooksConnection
-    @listSize(
-      assumedSize: 50
-      slicingArguments: ["first", "last"]
-      slicingArgumentDefaultValue: 10
-      sizedFields: ["edges", "nodes"]
-      requireOneSlicingArgument: false
-    )
+  ): BookConnection
   favoriteBooks(
     "Returns the first _n_ elements from the list."
     first: Int
@@ -39,14 +36,7 @@ type Query {
     last: Int
     "Returns the elements in the list that come before the specified cursor."
     before: String
-  ): FavoriteBooksConnection
-    @listSize(
-      assumedSize: 50
-      slicingArguments: ["first", "last"]
-      slicingArgumentDefaultValue: 10
-      sizedFields: ["edges", "nodes"]
-      requireOneSlicingArgument: false
-    )
+  ): BookConnection
   ints(
     "Returns the first _n_ elements from the list."
     first: Int
@@ -56,14 +46,7 @@ type Query {
     last: Int
     "Returns the elements in the list that come before the specified cursor."
     before: String
-  ): IntsConnection
-    @listSize(
-      assumedSize: 50
-      slicingArguments: ["first", "last"]
-      slicingArgumentDefaultValue: 10
-      sizedFields: ["edges", "nodes"]
-      requireOneSlicingArgument: false
-    )
+  ): IntConnection
   products(
     "Returns the elements in the list that come after the specified cursor."
     after: Version2
@@ -73,15 +56,7 @@ type Query {
     last: Int
     "Returns the elements in the list that come before the specified cursor."
     before: String
-  ): ProductsConnection
-    @listSize(
-      assumedSize: 50
-      slicingArguments: ["first", "last"]
-      slicingArgumentDefaultValue: 10
-      sizedFields: ["edges", "nodes"]
-      requireOneSlicingArgument: false
-    )
-    @cost(weight: "10")
+  ): ProductConnection
   argumentWithExplicitType(arg: Version2): String!
   nullableArgumentWithExplicitType(arg: Version2): String!
   nullableArrayArgumentRef(items: [String!]): String!
@@ -92,12 +67,12 @@ type Query {
   listArgumentRef(items: [String!]!): String!
   listNullableElementArgumentRef(items: [String]!): String!
   nullableListNullableElementArgumentRef(items: [String]): String!
-  issue8057Entity(id: ID!): Issue8057Entity @cost(weight: "10")
+  issue8057Entity(id: ID!): Issue8057Entity
 }
 
 type Subscription {
-  onProductAdded(categoryId: Int!): Int! @cost(weight: "10")
-  onProductPriceChanged(productId: Int!): Int! @cost(weight: "10")
+  onProductAdded(categoryId: Int!): Int!
+  onProductPriceChanged(productId: Int!): Int!
 }
 
 type Book implements Product {
@@ -107,17 +82,17 @@ type Book implements Product {
 }
 
 "A connection to a list of items."
-type BooksConnection {
+type BookConnection {
   "Information to aid in pagination."
   pageInfo: PageInfo!
   "A list of edges."
-  edges: [BooksEdge!]
+  edges: [BookEdge!]
   "A flattened list of the nodes."
   nodes: [Book!]
 }
 
 "An edge in a connection."
-type BooksEdge {
+type BookEdge {
   "A cursor for use in pagination."
   cursor: String!
   "The item at the end of the edge."
@@ -125,35 +100,17 @@ type BooksEdge {
 }
 
 "A connection to a list of items."
-type FavoriteBooksConnection {
+type IntConnection {
   "Information to aid in pagination."
   pageInfo: PageInfo!
   "A list of edges."
-  edges: [FavoriteBooksEdge!]
-  "A flattened list of the nodes."
-  nodes: [Book!]
-}
-
-"An edge in a connection."
-type FavoriteBooksEdge {
-  "A cursor for use in pagination."
-  cursor: String!
-  "The item at the end of the edge."
-  node: Book!
-}
-
-"A connection to a list of items."
-type IntsConnection {
-  "Information to aid in pagination."
-  pageInfo: PageInfo!
-  "A list of edges."
-  edges: [IntsEdge!]
+  edges: [IntEdge!]
   "A flattened list of the nodes."
   nodes: [Int!]
 }
 
 "An edge in a connection."
-type IntsEdge {
+type IntEdge {
   "A cursor for use in pagination."
   cursor: String!
   "The item at the end of the edge."
@@ -184,17 +141,17 @@ type PageInfo {
 }
 
 "A connection to a list of items."
-type ProductsConnection {
+type ProductConnection {
   "Information to aid in pagination."
   pageInfo: PageInfo!
   "A list of edges."
-  edges: [ProductsEdge!]
+  edges: [ProductEdge!]
   "A flattened list of the nodes."
   nodes: [Product!]
 }
 
 "An edge in a connection."
-type ProductsEdge {
+type ProductEdge {
   "A cursor for use in pagination."
   cursor: String!
   "The item at the end of the edge."
@@ -221,29 +178,3 @@ interface Product {
 scalar Version
 
 scalar Version2
-
-"The purpose of the `cost` directive is to define a `weight` for GraphQL types, fields, and arguments. Static analysis can use these weights when calculating the overall cost of a query or response."
-directive @cost(
-  "The `weight` argument defines what value to add to the overall cost for every appearance, or possible appearance, of a type, field, argument, etc."
-  weight: String!
-) on
-  | SCALAR
-  | OBJECT
-  | FIELD_DEFINITION
-  | ARGUMENT_DEFINITION
-  | ENUM
-  | INPUT_FIELD_DEFINITION
-
-"The purpose of the `@listSize` directive is to either inform the static analysis about the size of returned lists (if that information is statically available), or to point the analysis to where to find that information."
-directive @listSize(
-  "The `assumedSize` argument can be used to statically define the maximum length of a list returned by a field."
-  assumedSize: Int
-  "The `slicingArguments` argument can be used to define which of the field's arguments with numeric type are slicing arguments, so that their value determines the size of the list returned by that field. It may specify a list of multiple slicing arguments."
-  slicingArguments: [String!]
-  "The `slicingArgumentDefaultValue` argument can be used to define a default value for a slicing argument, which is used if the argument is not present in a query."
-  slicingArgumentDefaultValue: Int
-  "The `sizedFields` argument can be used to define that the value of the `assumedSize` argument or of a slicing argument does not affect the size of a list returned by a field itself, but that of a list returned by one of its sub-fields."
-  sizedFields: [String!]
-  "The `requireOneSlicingArgument` argument can be used to inform the static analysis that it should expect that exactly one of the defined slicing arguments is present in a query. If that is not the case (i.e., if none or multiple slicing arguments are present), the static analysis may throw an error."
-  requireOneSlicingArgument: Boolean = true
-) on FIELD_DEFINITION
