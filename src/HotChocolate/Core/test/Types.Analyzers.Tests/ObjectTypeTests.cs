@@ -541,7 +541,7 @@ public class ObjectTypeTests
     }
 
     [Fact]
-    public async Task CustomAttribute_With_Enum_And_Flags_Arguments_On_Parameter_MatchesSnapshot()
+    public async Task CustomAttribute_With_Enum_And_Composite_Enum_Arguments_On_Parameter_MatchesSnapshot()
     {
         await TestHelper.GetGeneratedSourceSnapshot(
             """

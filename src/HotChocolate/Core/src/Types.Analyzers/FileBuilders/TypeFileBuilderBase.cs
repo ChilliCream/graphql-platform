@@ -2024,9 +2024,14 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
     private static string FormatEnumConstant(TypedConstant constant)
     {
-        var enumType = constant.Type?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        if (constant.Type is not INamedTypeSymbol enumSymbol)
+        {
+            return FormatPrimitive(constant.Value);
+        }
 
-        if (constant.Type is INamedTypeSymbol enumSymbol && constant.Value is not null)
+        var enumType = enumSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+
+        if (constant.Value is not null)
         {
             foreach (var member in enumSymbol.GetMembers())
             {

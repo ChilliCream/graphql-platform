@@ -1,4 +1,4 @@
-# CustomAttribute_With_Enum_And_Flags_Arguments_On_Parameter_MatchesSnapshot
+# CustomAttribute_With_Enum_And_Composite_Enum_Arguments_On_Parameter_MatchesSnapshot
 
 ## BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs
 
