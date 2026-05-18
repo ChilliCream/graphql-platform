@@ -217,14 +217,8 @@ internal sealed class ValueCompletion
 
             if (parentResult.ValueKind is JsonValueKind.Undefined)
             {
-                var parentSelection = parentResult.Selection;
                 var promotedError = ErrorBuilder.FromError(error)
                     .SetPath(parentPath);
-
-                if (parentSelection is not null)
-                {
-                    promotedError = promotedError.AddLocation(parentSelection.SyntaxNodes[0].Node);
-                }
 
                 _store.AddError(_errorHandler.Handle(promotedError.Build()));
                 parentResult.SetNullValue();
@@ -431,7 +425,6 @@ internal sealed class ValueCompletion
     {
         var errorWithPath = ErrorBuilder.FromError(error)
             .SetPath(path)
-            .AddLocation(selection.SyntaxNodes[0].Node)
             .Build();
         errorWithPath = _errorHandler.Handle(errorWithPath);
 
@@ -498,7 +491,6 @@ internal sealed class ValueCompletion
                     var path = target.CompactPath.ToPath(target.Operation);
                     error = ErrorBuilder.FromError(errorFromPath)
                         .SetPath(path)
-                        .AddLocation(selection.SyntaxNodes[0].Node)
                         .Build();
                 }
                 else
@@ -508,7 +500,6 @@ internal sealed class ValueCompletion
                         .SetMessage("Cannot return null for non-nullable field.")
                         .SetCode(ErrorCodes.Execution.NonNullViolation)
                         .SetPath(path)
-                        .AddLocation(selection.SyntaxNodes[0].Node)
                         .Build();
                 }
 
@@ -545,7 +536,6 @@ internal sealed class ValueCompletion
             {
                 var errorWithPath = ErrorBuilder.FromError(errorFromPath)
                     .SetPath(target.Path)
-                    .AddLocation(selection.SyntaxNodes[0].Node)
                     .Build();
                 errorWithPath = _errorHandler.Handle(errorWithPath);
 
@@ -636,7 +626,6 @@ internal sealed class ValueCompletion
             {
                 var errorWithPath = ErrorBuilder.FromError(error)
                     .SetPath(target.CompactPath.ToPath(target.Operation, i))
-                    .AddLocation(selection.SyntaxNodes[0].Node)
                     .Build();
                 errorWithPath = _errorHandler.Handle(errorWithPath);
 
