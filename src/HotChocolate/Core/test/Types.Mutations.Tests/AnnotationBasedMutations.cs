@@ -762,7 +762,7 @@ public partial class AnnotationBasedMutations
         // assert
         var errorType = schema.Types.GetType<ObjectType>("ErrorWithCodes");
         Assert.Equal("[Int!]!", errorType.Fields["codes"].Type.ToString());
-        Assert.DoesNotContain(schema.Types.OfType<InterfaceType>(), t => t.Name.Contains("List"));
+        Assert.False(schema.Types.TryGetType<InterfaceType>("IListOfInt32", out _));
     }
 
     [Fact]

@@ -719,10 +719,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         // which would otherwise misclassify them as a GraphQL interface here.
         while (runtimeTypeReference.Type is { IsArrayOrList: true, ElementType: { } element })
         {
-            runtimeTypeReference = _context.TypeInspector.GetTypeRef(
-                element.Type,
-                runtimeTypeReference.Context,
-                runtimeTypeReference.Scope);
+            runtimeTypeReference = runtimeTypeReference.WithType(element);
         }
 
         if (_typeRegistry.TryGetTypeRef(runtimeTypeReference, out var existingTypeReference)
