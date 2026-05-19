@@ -44,6 +44,7 @@ combinators
 contentfiles
 Contoso
 conv
+Cookiebot
 CQRS
 creds
 csclient
@@ -81,6 +82,7 @@ graphqlconfig
 graphqlrc
 graphqls
 graphyne
+grafbase
 greendonut
 Hasura
 HCXXXX
@@ -103,6 +105,7 @@ Leia
 LICEN*
 Linq
 Liquibase
+lscache
 Marek
 matchesBrics
 maxage
@@ -233,6 +236,7 @@ uppercased
 Upsert
 upvote
 URQL
+Usercentrics
 uuuu
 vnext
 vsix

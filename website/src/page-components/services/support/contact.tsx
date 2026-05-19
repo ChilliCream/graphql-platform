@@ -1,40 +1,28 @@
 "use client";
 
 import { SiteLayout } from "@/components/layout";
-import { ContentSection, SEO, SupportForm } from "@/components/misc";
-import {
-  MostRecentBlogPostsSection,
-  NewsletterSection,
-} from "@/components/widgets";
-import { RecentBlogPost } from "@/components/widgets/most-recent-blog-posts-section";
-import { SUPPORT_PLANS, SupportPlan } from "@/types/support";
+import { ContactForm } from "@/components/misc/contact-form";
+import { SEO } from "@/components/misc";
+import { CONTACT_SUBJECTS, ContactSubject } from "@/types/support";
 import { getValidatedQueryParam } from "@/utils/url-helpers";
 import React, { FC, useEffect, useState } from "react";
 
-interface SupportContactPageProps {
-  recentPosts?: RecentBlogPost[];
-}
-
-const SupportContactPage: FC<SupportContactPageProps> = ({ recentPosts }) => {
-  const [selectedPlan, setSelectedPlan] = useState<SupportPlan>("Startup");
+const ContactPage: FC = () => {
+  const [subject, setSubject] = useState<ContactSubject>("Schedule a Demo");
 
   useEffect(() => {
-    const planFromUrl = getValidatedQueryParam("plan", SUPPORT_PLANS);
-    if (planFromUrl) {
-      setSelectedPlan(planFromUrl);
+    const subjectFromUrl = getValidatedQueryParam("subject", CONTACT_SUBJECTS);
+    if (subjectFromUrl) {
+      setSubject(subjectFromUrl);
     }
   }, []);
 
   return (
     <SiteLayout>
-      <SEO title="Contact Support" />
-      <ContentSection noBackground titleSpace="small">
-        <SupportForm initialPlan={selectedPlan} />
-      </ContentSection>
-      <NewsletterSection />
-      <MostRecentBlogPostsSection posts={recentPosts} />
+      <SEO title="Contact Us" />
+      <ContactForm initialSubject={subject} />
     </SiteLayout>
   );
 };
 
-export default SupportContactPage;
+export default ContactPage;

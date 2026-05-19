@@ -553,7 +553,9 @@ var request = OperationRequestBuilder.New()
 
 **Variable values are now JSON-based**
 
-`SetVariableValues` now accepts JSON strings, `JsonDocument`, `IEnumerable<KeyValuePair<string, JsonElement>>`, or `IReadOnlyDictionary<string, object?>`. When you pass a dictionary of CLR objects, values are serialized to JSON internally. You can also pass variables directly as a JSON string:
+`SetVariableValues` now accepts JSON strings, `JsonDocument`, `IEnumerable<KeyValuePair<string, JsonElement>>`, or `IReadOnlyDictionary<string, object?>`.
+
+The preferred way to provide variables now is as a JSON string.
 
 ```csharp
 var request = OperationRequestBuilder.New()
@@ -561,6 +563,43 @@ var request = OperationRequestBuilder.New()
     .SetVariableValues("""{ "id": "42" }""")
     .Build();
 ```
+
+CLR objects passed via `SetVariableValues(Dictionary<string, object?>)` are now serialized to JSON internally.
+
+As a result, the JSON shape of a value must match what the target scalar expects. Some examples:
+
+- `DateTime` no longer fits a `Date` scalar, since its JSON form does not match the required `yyyy-MM-dd`.
+- Enums must be passed as their GraphQL name (`"VALUE"`) rather than the CLR member (`MyEnum.Value`).
+
+If you hit a mismatch, you have two options:
+
+1. Provide variables as raw JSON through `SetVariableValues(string)`, bypassing CLR serialization entirely.
+2. Register a custom `JsonConverter` for the affected type so the emitted JSON matches the scalar's expected format.
+
+If you need to pass an Upload scalar value, you can do the following:
+
+```csharp
+var requestBuilder = new OperationRequestBuilder();
+requestBuilder.SetVariableValues("""{ "file" : "yourKey" }""");
+requestBuilder.Features.Set<IFileLookup>(fileLookup);
+
+public class FileLookup : IFileLookup
+{
+    public bool TryGetFile(string name, [NotNullWhen(true)] out IFile? file)
+    {
+        if (name == "yourKey")
+        {
+            file = new StreamFile("Foo.txt", () => new MemoryStream());
+            return true;
+        }
+
+        file = null;
+        return false;
+    }
+}
+```
+
+`yourKey` in this case is just a marker you choose for the file.
 
 **Global state methods**
 
@@ -580,6 +619,21 @@ Use `OperationRequestBuilder.From(request)` to create a builder pre-populated fr
 **Features collection**
 
 The builder now exposes a `Features` property of type `IFeatureCollection` for attaching extensibility features (such as `IFileLookup` for file uploads).
+
+## Snapshot matching on IExecutionResult
+
+The internal layout of `IExecutionResult` implementations has changed and is no longer compatible with general-purpose object serializers used by snapshot libraries like `Snapshooter` or `Verify`. Snapshotting the result instance directly will either fail or produce unstable output.
+
+Serialize the result to JSON first and snapshot that instead:
+
+```diff
+var result = await executor.ExecuteAsync("{ example }");
+
+- result.MatchSnapshot();
++ result.ToJson().MatchSnapshot();
+```
+
+If you're using **CookieCrumble**, you don't need to convert manually: it has native snapshot support for `IExecutionResult` and serializes it correctly out of the box.
 
 ## AllowNonPersistedOperation moved
 
@@ -651,45 +705,6 @@ query {
   foo(input: { key: "value" })
   # Now returns: "JsonElement"
   # Previously (v15): "Dictionary`2"
-}
-```
-
-### Runtime objects passed as variables to OperationRequestBuilder are now serialized as JSON
-
-Passing CLR objects via `OperationRequestBuilder.SetVariableValues(Dictionary<string, object?>)` now serializes the values as JSON.
-
-You may prefer providing variables directly as JSON:
-
-```csharp
-var requestBuilder = new OperationRequestBuilder();
-requestBuilder.SetVariableValues("""{ "id": 42 }""");
-```
-
-Note that this can lead to errors if the emitted JSON for a type is not valid for the corresponding GraphQL scalar, f. e. du to format restrictions.
-For example, a `DateTime` value can no longer be used to fill a `Date` scalar since the JSON format does not match the expected yyyy-MM-dd format.
-
-You can also bypass this by annotating your types with custom JsonConverters.
-
-If you need to pass an Upload scalar value, you can do the following:
-
-```csharp
-var requestBuilder = new OperationRequestBuilder();
-requestBuilder.SetVariableValues("""{ "file" : "yourKey" }""");
-requestBuilder.Features.Set<IFileLookup>(fileLookup);
-
-public class FileLookup : IFileLookup
-{
-    public bool TryGetFile(string name, [NotNullWhen(true)] out IFile? file)
-    {
-        if (name == "yourKey")
-        {
-            file = new StreamFile("Foo.txt", () => new MemoryStream());
-            return true;
-        }
-
-        file = null;
-        return false;
-    }
 }
 ```
 
@@ -922,10 +937,6 @@ builder
         incrementalDeliveryFormat: IncrementalDeliveryFormat.Version_0_1);
 ```
 
-## OperationRequestBuilder.AddVariableValues renamed to SetVariableValues
-
-`OperationRequestBuilder.AddVariableValues` has been renamed to `SetVariableValues`.
-
 ## TimeSpan scalar renamed to Duration
 
 The `TimeSpan` scalar has been renamed to `Duration` to better reflect the underlying specification (ISO 8601), and move away from .NET-oriented naming.
@@ -1085,6 +1096,36 @@ We removed the following methods from the `IExecutionDiagnosticEventListener` si
 - `SubscriptionEventResult`
 
 Some other methods also had a change in their signature - simply override them again to fix any compilation issues.
+
+## IOperationMessagePayload exposes raw JSON
+
+The `IOperationMessagePayload` interface, used by `ISocketSessionInterceptor` hooks (`OnConnectAsync`, `OnPingAsync`, `OnPongAsync`), no longer exposes the `As<T>()` deserialization helper. It now provides direct access to the raw `JsonElement?` through a `Payload` property:
+
+```diff
+-public interface IOperationMessagePayload
+-{
+-    T? As<T>() where T : class;
+-}
++public interface IOperationMessagePayload
++{
++    JsonElement? Payload { get; }
++}
+```
+
+If you were calling `.As<T>()` to deserialize the payload, switch to `Payload?.Deserialize<T>()`:
+
+```diff
+public override ValueTask<ConnectionStatus> OnConnectAsync(
+    ISocketSession session,
+    IOperationMessagePayload connectionInitMessage,
+    CancellationToken cancellationToken = default)
+{
+-   var payload = connectionInitMessage.As<MyConnectPayload>();
++   var payload = connectionInitMessage.Payload?.Deserialize<MyConnectPayload>();
+
+    // ...
+}
+```
 
 ## Experimental @semanticNonNull support removed
 

@@ -61,6 +61,12 @@ public static partial class Query
         => new Book { Id = "1", Title = "GraphQL in Action" };
 
     [UsePaging]
+    public static IEnumerable<Book> GetBooks() => [];
+
+    [UsePaging]
+    public static IEnumerable<Book> GetFavoriteBooks() => [];
+
+    [UsePaging]
     public static IEnumerable<int> GetInts(PagingArguments pagingArguments)
     {
         PagingArguments = pagingArguments;

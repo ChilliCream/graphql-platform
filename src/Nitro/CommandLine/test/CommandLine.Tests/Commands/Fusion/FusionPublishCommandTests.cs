@@ -35,7 +35,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               --force                                        Skip confirmation prompts for deletes and overwrites
               --wait-for-approval                            Wait for the deployment to be approved before completing [env: NITRO_WAIT_FOR_APPROVAL]
               -w, --working-directory <working-directory>    Set the working directory for the command
-              --cloud-url <cloud-url>                        The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
+              --cloud-url <cloud-url>                        The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
               --api-key <api-key>                            The API key used for authentication [env: NITRO_API_KEY]
               --output <json>                                The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                                 Show help and usage information
@@ -4780,10 +4780,10 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             }
 
             enum CacheControlScope @fusion__type(schema: REVIEWS) {
-              "The value to cache is specific to a single user."
-              PRIVATE @fusion__enumValue(schema: REVIEWS)
               "The value to cache is not tied to a single user."
               PUBLIC @fusion__enumValue(schema: REVIEWS)
+              "The value to cache is specific to a single user."
+              PRIVATE @fusion__enumValue(schema: REVIEWS)
             }
 
             "The fusion__Schema enum is a generated type used within an execution schema document to refer to a source schema in a type-safe manner."

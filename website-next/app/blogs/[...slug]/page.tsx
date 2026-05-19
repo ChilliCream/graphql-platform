@@ -26,9 +26,13 @@ type BlogFrontmatter = {
 export const dynamicParams = false;
 
 export function generateStaticParams(): { slug: string[] }[] {
-  return listBlogPosts().map(({ parsed }) => ({
+  const params = listBlogPosts().map(({ parsed }) => ({
     slug: [parsed.year, parsed.month, parsed.day, parsed.slug],
   }));
+
+  // output: export requires at least one prerendered path; placeholder
+  // renders 404 via notFound() when no content is present.
+  return params.length > 0 ? params : [{ slug: ["__empty__"] }];
 }
 
 export async function generateMetadata({
