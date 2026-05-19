@@ -44,9 +44,7 @@ public class ObjectTypeInspector : ISyntaxInspector
                     Location.Create(possibleType.SyntaxTree, possibleType.Span)));
         }
 
-        // Root types may be instance classes (e.g. a non-static `[QueryType] partial class Query`).
-        // Instance method resolvers go through `context.Parent<T>()` at runtime, so a static class
-        // is not required. The static keyword is still required for object type extensions.
+        // Root types may be instance classes; the static requirement applies only to object type extensions.
         if (!isOperationType
             && !possibleType.Modifiers.Any(m => m.IsKind(SyntaxKind.StaticKeyword)))
         {

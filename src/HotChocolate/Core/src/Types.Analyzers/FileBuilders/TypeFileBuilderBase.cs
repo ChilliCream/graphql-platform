@@ -50,8 +50,6 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
     /// <summary>
     /// Builds the C# expression that yields the receiver for an instance resolver call.
-    /// For object type extensions the parent value is the runtime instance, so the
-    /// default expands to <c>{contextExpression}.Parent&lt;T&gt;()</c>.
     /// </summary>
     /// <param name="fullyQualifiedTypeName">
     /// The fully qualified type name of the resolver class (already prefixed with <c>global::</c>).
