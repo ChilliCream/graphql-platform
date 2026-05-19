@@ -28,7 +28,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
               --tag <tag> (REQUIRED)                                              The tag of the schema version to deploy [env: NITRO_TAG]
               -p, --prompt-pattern <prompt-pattern>                               One or more file patterns to locate MCP prompt definition files (*.json)
               -t, --tool-pattern <tool-pattern>                                   One or more file patterns to locate MCP tool definition files (*.graphql)
-              --cloud-url <cloud-url>                                             The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
+              --cloud-url <cloud-url>                                             The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
               --api-key <api-key>                                                 The API key used for authentication [env: NITRO_API_KEY]
               --output <json>                                                     The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                                                      Show help and usage information

@@ -118,6 +118,18 @@ public class GlobalOptionsTests
         Assert.False(client.DefaultRequestHeaders.Contains("Authorization"));
     }
 
+    [Fact]
+    public async Task ExecuteAsync_Should_NotSetAuth_When_NoAuthAvailable()
+    {
+        // act
+        await using var provider = await BuildAndExecuteAsync([]);
+        using var client = CreateApiClient(provider);
+
+        // assert
+        Assert.False(client.DefaultRequestHeaders.Contains("CCC-api-key"));
+        Assert.False(client.DefaultRequestHeaders.Contains("Authorization"));
+    }
+
     [Theory]
     [InlineData("custom.host.com", "https://custom.host.com/graphql")]
     [InlineData("https://custom.host.com", "https://custom.host.com/graphql")]
@@ -155,6 +167,96 @@ public class GlobalOptionsTests
     }
 
     [Fact]
+    public async Task ExecuteAsync_Should_UseExplicitCloudUrl_Over_SessionUrl()
+    {
+        // arrange
+        var session = CreateSessionWithTokens(apiUrl: "session-api.chillicream.com");
+
+        // act
+        await using var provider = await BuildAndExecuteAsync(
+            ["--cloud-url", "cli-api.chillicream.com"], session);
+        using var client = CreateApiClient(provider);
+
+        // assert
+        Assert.Equal(
+            new Uri("https://cli-api.chillicream.com/graphql"),
+            client.BaseAddress);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_UseEnvCloudUrl_When_NoExplicitUrl()
+    {
+        // arrange
+        var envProvider = CreateEnvironmentProvider(cloudUrl: "env-api.chillicream.com");
+
+        // act
+        await using var provider = await BuildAndExecuteAsync(
+            ["--api-key", "x"], environmentVariables: envProvider);
+        using var client = CreateApiClient(provider);
+
+        // assert
+        Assert.Equal(
+            new Uri("https://env-api.chillicream.com/graphql"),
+            client.BaseAddress);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_PreferEnvCloudUrl_Over_SessionUrl()
+    {
+        // arrange
+        var session = CreateSessionWithTokens(apiUrl: "session-api.chillicream.com");
+        var envProvider = CreateEnvironmentProvider(cloudUrl: "env-api.chillicream.com");
+
+        // act
+        await using var provider = await BuildAndExecuteAsync(
+            [], session, environmentVariables: envProvider);
+        using var client = CreateApiClient(provider);
+
+        // assert
+        Assert.Equal(
+            new Uri("https://env-api.chillicream.com/graphql"),
+            client.BaseAddress);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_PreferExplicitCloudUrl_Over_EnvCloudUrl()
+    {
+        // arrange
+        var envProvider = CreateEnvironmentProvider(cloudUrl: "env-api.chillicream.com");
+
+        // act
+        await using var provider = await BuildAndExecuteAsync(
+            ["--api-key", "x", "--cloud-url", "cli-api.chillicream.com"],
+            environmentVariables: envProvider);
+        using var client = CreateApiClient(provider);
+
+        // assert
+        Assert.Equal(
+            new Uri("https://cli-api.chillicream.com/graphql"),
+            client.BaseAddress);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_PreferExplicitCloudUrl_Over_EnvAndSession()
+    {
+        // arrange
+        var session = CreateSessionWithTokens(apiUrl: "session-api.chillicream.com");
+        var envProvider = CreateEnvironmentProvider(cloudUrl: "env-api.chillicream.com");
+
+        // act
+        await using var provider = await BuildAndExecuteAsync(
+            ["--cloud-url", "cli-api.chillicream.com"],
+            session,
+            environmentVariables: envProvider);
+        using var client = CreateApiClient(provider);
+
+        // assert
+        Assert.Equal(
+            new Uri("https://cli-api.chillicream.com/graphql"),
+            client.BaseAddress);
+    }
+
+    [Fact]
     public async Task ExecuteAsync_Should_UseDefaultUrl_When_NoSessionAndNoExplicitUrl()
     {
         // act
@@ -165,18 +267,6 @@ public class GlobalOptionsTests
         Assert.Equal(
             new Uri("https://api.chillicream.com/graphql"),
             client.BaseAddress);
-    }
-
-    [Fact]
-    public async Task ExecuteAsync_Should_NotSetAuth_When_NoAuthAvailable()
-    {
-        // act
-        await using var provider = await BuildAndExecuteAsync([]);
-        using var client = CreateApiClient(provider);
-
-        // assert
-        Assert.False(client.DefaultRequestHeaders.Contains("CCC-api-key"));
-        Assert.False(client.DefaultRequestHeaders.Contains("Authorization"));
     }
 
     [Theory]
@@ -290,10 +380,13 @@ public class GlobalOptionsTests
         return factory.CreateClient(ApiClient.ClientName);
     }
 
-    private static IEnvironmentVariableProvider CreateEnvironmentProvider(string? apiKey = null)
+    private static IEnvironmentVariableProvider CreateEnvironmentProvider(
+        string? apiKey = null,
+        string? cloudUrl = null)
     {
         var mock = new Mock<IEnvironmentVariableProvider>();
         mock.Setup(x => x.GetEnvironmentVariable("NITRO_API_KEY")).Returns(apiKey);
+        mock.Setup(x => x.GetEnvironmentVariable("NITRO_CLOUD_URL")).Returns(cloudUrl);
         return mock.Object;
     }
 
