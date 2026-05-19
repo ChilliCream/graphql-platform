@@ -5,7 +5,6 @@
     <RootNamespace>HotChocolate.Fusion.Aspire</RootNamespace>
     <TargetFrameworks>net10.0; net9.0</TargetFrameworks>
     <IsAotCompatible>false</IsAotCompatible>
-    <DefineConstants>$(DefineConstants);FUSION_ASPIRE</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,18 +15,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Fusion.Composition\HotChocolate.Fusion.Composition.csproj" />
     <ProjectReference Include="..\Fusion.Packaging\HotChocolate.Fusion.Packaging.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="..\..\..\..\Nitro\CommandLine\src\CommandLine\Services\Sessions\Session.cs">
-      <Link>Nitro\Session.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\Nitro\CommandLine\src\CommandLine\Services\Sessions\Tokens.cs">
-      <Link>Nitro\Tokens.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\Nitro\CommandLine\src\CommandLine\Services\Sessions\Workspace.cs">
-      <Link>Nitro\Workspace.cs</Link>
-    </Compile>
   </ItemGroup>
 
   <ItemGroup>
