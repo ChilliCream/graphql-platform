@@ -5,4 +5,6 @@ public interface INitroClientContextProvider
     Uri Url { get; }
 
     INitroClientAuthorization? Authorization { get; }
+
+    string? ClientId { get; }
 }
