@@ -33,9 +33,10 @@ public abstract class QueryableProjectionHandlerBase
             return true;
         }
 
-        // Explicit member replacements must keep projecting the underlying member
-        // so custom resolvers can access the shadowed data on projected parents.
-        if ((selection.Field.Flags & CoreFieldFlags.MemberReplacement) == CoreFieldFlags.MemberReplacement)
+        // Explicit member replacements (e.g. fluent ResolveWith on a shadowed property)
+        // must keep projecting the underlying member so custom resolvers
+        // can access the shadowed data on projected parents.
+        if (selection.Field.Flags.HasFlag(CoreFieldFlags.MemberReplacement))
         {
             return true;
         }

@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Data;
 
-public class Issue9741Tests
+public class ResolveWithProjectionTests
 {
     [Fact]
     public async Task ResolveWith_Should_Project_Member_When_UseProjection_Is_Applied_On_Parent()

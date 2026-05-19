@@ -298,32 +298,28 @@ internal sealed class SelectionExpressionBuilder
         Selection selection,
         TypeNode parent)
     {
-        var namedType = selection.Field.Type.NamedType();
+        var field = selection.Field;
+        var namedType = field.Type.NamedType();
 
-        var isMemberReplacement =
-            (selection.Field.Flags & CoreFieldFlags.MemberReplacement) == CoreFieldFlags.MemberReplacement;
+        // A field is projectable if its resolver is the underlying member (a pure resolver
+        // declared on the parent runtime type) or if it explicitly replaces that member
+        // (fluent ResolveWith / [BindMember]).
+        var isPureMemberResolver = field.PureResolver is not null
+            && field.ResolverMember?.ReflectedType == field.DeclaringType.RuntimeType;
+        var isMemberReplacement = field.Flags.HasFlag(CoreFieldFlags.MemberReplacement);
 
-        // Member replacements (e.g. fluent ResolveWith on a shadowed property) must keep
-        // projecting the underlying member so the resolver can read it from the projected
-        // parent. The pure-resolver gate does not apply here because such resolvers are
-        // typically non-pure (IQueryable, async, services).
-        if (!isMemberReplacement)
-        {
-            if (selection.Field.PureResolver is null
-                || selection.Field.ResolverMember?.ReflectedType != selection.Field.DeclaringType.RuntimeType)
-            {
-                return;
-            }
-        }
-
-        if (selection.Field.Member is not PropertyInfo { CanRead: true, CanWrite: true } property)
+        if (!isPureMemberResolver && !isMemberReplacement)
         {
             return;
         }
 
-        var flags = selection.Field.Flags;
-        if ((flags & CoreFieldFlags.Connection) == CoreFieldFlags.Connection
-            || (flags & CoreFieldFlags.CollectionSegment) == CoreFieldFlags.CollectionSegment)
+        if (field.Member is not PropertyInfo { CanRead: true, CanWrite: true } property)
+        {
+            return;
+        }
+
+        if (field.Flags.HasFlag(CoreFieldFlags.Connection)
+            || field.Flags.HasFlag(CoreFieldFlags.CollectionSegment))
         {
             return;
         }
