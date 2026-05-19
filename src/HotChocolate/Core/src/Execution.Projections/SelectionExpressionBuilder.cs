@@ -300,10 +300,20 @@ internal sealed class SelectionExpressionBuilder
     {
         var namedType = selection.Field.Type.NamedType();
 
-        if (selection.Field.PureResolver is null
-            || selection.Field.ResolverMember?.ReflectedType != selection.Field.DeclaringType.RuntimeType)
+        var isMemberReplacement =
+            (selection.Field.Flags & CoreFieldFlags.MemberReplacement) == CoreFieldFlags.MemberReplacement;
+
+        // Member replacements (e.g. fluent ResolveWith on a shadowed property) must keep
+        // projecting the underlying member so the resolver can read it from the projected
+        // parent. The pure-resolver gate does not apply here because such resolvers are
+        // typically non-pure (IQueryable, async, services).
+        if (!isMemberReplacement)
         {
-            return;
+            if (selection.Field.PureResolver is null
+                || selection.Field.ResolverMember?.ReflectedType != selection.Field.DeclaringType.RuntimeType)
+            {
+                return;
+            }
         }
 
         if (selection.Field.Member is not PropertyInfo { CanRead: true, CanWrite: true } property)
