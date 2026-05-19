@@ -435,6 +435,11 @@ public class ObjectFieldDescriptor
             Configuration.Resolver = null;
             Configuration.ResultType = propertyOrMethod.GetReturnType();
 
+            if (Configuration.Member is not null)
+            {
+                Configuration.Flags |= CoreFieldFlags.MemberReplacement;
+            }
+
             if (propertyOrMethod is MethodInfo m)
             {
                 _parameterInfos = Context.TypeInspector.GetParameters(m);
