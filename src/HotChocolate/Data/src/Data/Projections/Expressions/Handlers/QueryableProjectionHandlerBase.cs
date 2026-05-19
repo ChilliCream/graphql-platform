@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Data.Projections.Expressions.Handlers;
 
@@ -32,7 +33,13 @@ public abstract class QueryableProjectionHandlerBase
             return true;
         }
 
-        // When a member is explicitly bound we keep projecting it.
+        // Explicit member replacements must keep projecting the underlying member
+        // so custom resolvers can access the shadowed data on projected parents.
+        if ((selection.Field.Flags & CoreFieldFlags.MemberReplacement) == CoreFieldFlags.MemberReplacement)
+        {
+            return true;
+        }
+
         return resolverMember.IsDefined(typeof(BindMemberAttribute), inherit: true);
     }
 
