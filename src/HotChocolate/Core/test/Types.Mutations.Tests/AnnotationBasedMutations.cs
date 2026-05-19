@@ -748,6 +748,24 @@ public partial class AnnotationBasedMutations
     }
 
     [Fact]
+    public async Task Error_Type_With_IList_Property_Should_Be_Treated_As_List()
+    {
+        // arrange & act
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<MutationWithIListError>()
+                .AddMutationConventions()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .BuildSchemaAsync();
+
+        // assert
+        var errorType = schema.Types.GetType<ObjectType>("ErrorWithCodes");
+        Assert.Equal("[Int!]!", errorType.Fields["codes"].Type.ToString());
+        Assert.False(schema.Types.TryGetType<InterfaceType>("IListOfInt32", out _));
+    }
+
+    [Fact]
     public async Task Union_Result_3()
     {
         var result =
@@ -1744,6 +1762,17 @@ public partial class AnnotationBasedMutations
         }
 
         public string Message { get; }
+    }
+
+    public class MutationWithIListError
+    {
+        public FieldResult<string, ErrorWithCodes> DoSomething(int[] codes)
+            => new ErrorWithCodes(codes);
+    }
+
+    public record ErrorWithCodes(IList<int> Codes)
+    {
+        public string Message => $"Codes {string.Join(", ", Codes)} not found.";
     }
 
     public class MutationWithPayloadOverride
