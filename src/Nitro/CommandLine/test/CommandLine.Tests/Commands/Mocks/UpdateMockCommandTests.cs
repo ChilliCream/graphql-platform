@@ -30,7 +30,7 @@ public sealed class UpdateMockCommandTests(NitroCommandFixture fixture) : MocksC
               --schema <schema>        The path to the graphql file with the schema [env: NITRO_SCHEMA_FILE]
               --url <url>              The URL of the downstream service [env: NITRO_DOWNSTREAM_URL]
               --name <name>            The name of the mock schema [env: NITRO_MOCK_SCHEMA_NAME]
-              --cloud-url <cloud-url>  The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
+              --cloud-url <cloud-url>  The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
               --api-key <api-key>      The API key used for authentication [env: NITRO_API_KEY]
               --output <json>          The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help           Show help and usage information
