@@ -67,6 +67,57 @@ public class GlobalOptionsTests
         Assert.False(client.DefaultRequestHeaders.Contains("Authorization"));
     }
 
+    [Fact]
+    public async Task ExecuteAsync_Should_ConfigureApiKeyAuth_When_EnvApiKeySet()
+    {
+        // arrange
+        var envProvider = CreateEnvironmentProvider(apiKey: "env-key");
+
+        // act
+        await using var provider = await BuildAndExecuteAsync([], environmentVariables: envProvider);
+        using var client = CreateApiClient(provider);
+
+        // assert
+        var apiKeyHeader = Assert.Single(client.DefaultRequestHeaders.GetValues("CCC-api-key"));
+        Assert.Equal("env-key", apiKeyHeader);
+        Assert.False(client.DefaultRequestHeaders.Contains("Authorization"));
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_PreferEnvApiKey_Over_SessionToken()
+    {
+        // arrange
+        var session = CreateSessionWithTokens(accessToken: "session-token");
+        var envProvider = CreateEnvironmentProvider(apiKey: "env-key");
+
+        // act
+        await using var provider = await BuildAndExecuteAsync(
+            [], session, environmentVariables: envProvider);
+        using var client = CreateApiClient(provider);
+
+        // assert
+        var apiKeyHeader = Assert.Single(client.DefaultRequestHeaders.GetValues("CCC-api-key"));
+        Assert.Equal("env-key", apiKeyHeader);
+        Assert.False(client.DefaultRequestHeaders.Contains("Authorization"));
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_PreferExplicitApiKey_Over_EnvApiKey()
+    {
+        // arrange
+        var envProvider = CreateEnvironmentProvider(apiKey: "env-key");
+
+        // act
+        await using var provider = await BuildAndExecuteAsync(
+            ["--api-key", "cli-key"], environmentVariables: envProvider);
+        using var client = CreateApiClient(provider);
+
+        // assert
+        var apiKeyHeader = Assert.Single(client.DefaultRequestHeaders.GetValues("CCC-api-key"));
+        Assert.Equal("cli-key", apiKeyHeader);
+        Assert.False(client.DefaultRequestHeaders.Contains("Authorization"));
+    }
+
     [Theory]
     [InlineData("custom.host.com", "https://custom.host.com/graphql")]
     [InlineData("https://custom.host.com", "https://custom.host.com/graphql")]
@@ -237,6 +288,13 @@ public class GlobalOptionsTests
     {
         var factory = provider.GetRequiredService<IHttpClientFactory>();
         return factory.CreateClient(ApiClient.ClientName);
+    }
+
+    private static IEnvironmentVariableProvider CreateEnvironmentProvider(string? apiKey = null)
+    {
+        var mock = new Mock<IEnvironmentVariableProvider>();
+        mock.Setup(x => x.GetEnvironmentVariable("NITRO_API_KEY")).Returns(apiKey);
+        return mock.Object;
     }
 
     private static Session CreateSessionWithTokens(
