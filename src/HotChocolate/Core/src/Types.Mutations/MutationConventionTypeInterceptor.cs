@@ -713,13 +713,25 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
             return;
         }
 
+        // Unwrap arrays and collection-interface wrappers (IList<T>, ICollection<T>,
+        // IEnumerable<T>, IReadOnlyList<T>, ...). The wrapper itself is not a named
+        // schema type, and CLR collection interfaces carry TypeAttributes.Interface
+        // which would otherwise misclassify them as a GraphQL interface here.
+        while (runtimeTypeReference.Type is { IsArrayOrList: true, ElementType: { } element })
+        {
+            runtimeTypeReference = _context.TypeInspector.GetTypeRef(
+                element.Type,
+                runtimeTypeReference.Context,
+                runtimeTypeReference.Scope);
+        }
+
         if (_typeRegistry.TryGetTypeRef(runtimeTypeReference, out var existingTypeReference)
             && _typeRegistry.IsRegistered(existingTypeReference))
         {
             return;
         }
 
-        if (!_context.TryInferSchemaType(typeReference, out var schemaTypeReferences))
+        if (!_context.TryInferSchemaType(runtimeTypeReference, out var schemaTypeReferences))
         {
             return;
         }
