@@ -8,6 +8,36 @@ type Query {
   node("ID of the object." id: ID!): Node
   "Lookup nodes by a list of IDs."
   nodes("The list of node IDs." ids: [ID!]!): [Node]!
+  someBooks(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+  ): BookConnection
+  authors(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+  ): AuthorConnection
+  publishers(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+  ): PublisherConnection
   isSelectedTest: IsSelectedNode!
   """
   Gets the product.
@@ -73,6 +103,39 @@ type Query {
 type Subscription {
   onProductAdded(categoryId: Int!): Int!
   onProductPriceChanged(productId: Int!): Int!
+}
+
+type Author {
+  books(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+  ): BookConnection
+  id: String!
+  name: String!
+}
+
+"A connection to a list of items."
+type AuthorConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [AuthorEdge!]
+  "A flattened list of the nodes."
+  nodes: [Author!]
+}
+
+"An edge in a connection."
+type AuthorEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: Author!
 }
 
 type Book implements Product {
@@ -156,6 +219,39 @@ type ProductEdge {
   cursor: String!
   "The item at the end of the edge."
   node: Product!
+}
+
+type Publisher {
+  books(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+  ): BookConnection
+  id: String!
+  name: String!
+}
+
+"A connection to a list of items."
+type PublisherConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [PublisherEdge!]
+  "A flattened list of the nodes."
+  nodes: [Publisher!]
+}
+
+"An edge in a connection."
+type PublisherEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: Publisher!
 }
 
 type Television implements Product {

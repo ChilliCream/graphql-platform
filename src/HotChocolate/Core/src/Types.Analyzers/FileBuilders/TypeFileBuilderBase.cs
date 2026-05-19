@@ -48,6 +48,23 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         Writer.IncreaseIndent();
     }
 
+    /// <summary>
+    /// Builds the C# expression that yields the receiver for an instance resolver call.
+    /// For object type extensions the parent value is the runtime instance, so the
+    /// default expands to <c>{contextExpression}.Parent&lt;T&gt;()</c>.
+    /// </summary>
+    /// <param name="fullyQualifiedTypeName">
+    /// The fully qualified type name of the resolver class (already prefixed with <c>global::</c>).
+    /// </param>
+    /// <param name="contextExpression">
+    /// The C# expression that yields the resolver context (e.g. <c>"context"</c> for
+    /// single resolvers, <c>"contexts[0]"</c> for batch resolvers).
+    /// </param>
+    protected virtual string GetInstanceReceiver(
+        string fullyQualifiedTypeName,
+        string contextExpression = "context")
+        => $"{contextExpression}.Parent<{fullyQualifiedTypeName}>()";
+
     public void WriteEndClass()
     {
         Writer.DecreaseIndent();
@@ -920,13 +937,14 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         {
             WriteResolverArguments(resolver, resolverMethod, typeLookup);
 
+            var typeName = resolver.Member.ContainingType.ToFullyQualified();
+            var receiver = resolver.IsStatic ? typeName : GetInstanceReceiver(typeName);
+
             if (async)
             {
                 Writer.WriteIndentedLine(
-                    resolver.IsStatic
-                        ? "var result = await {0}.{1}({2});"
-                        : "var result = await context.Parent<{0}>().{1}({2});",
-                    resolver.Member.ContainingType.ToFullyQualified(),
+                    "var result = await {0}.{1}({2});",
+                    receiver,
                     resolver.Member.Name,
                     GetResolverArgumentAssignments(resolver.Parameters.Length));
 
@@ -935,10 +953,8 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             else
             {
                 Writer.WriteIndentedLine(
-                    resolver.IsStatic
-                        ? "var result = {0}.{1}({2});"
-                        : "var result = context.Parent<{0}>().{1}({2});",
-                    resolver.Member.ContainingType.ToFullyQualified(),
+                    "var result = {0}.{1}({2});",
+                    receiver,
                     resolver.Member.Name,
                     GetResolverArgumentAssignments(resolver.Parameters.Length));
 
@@ -1022,11 +1038,12 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         {
             WriteResolverArguments(resolver, resolverMethod, typeLookup);
 
+            var typeName = resolver.Member.ContainingType.ToFullyQualified();
+            var receiver = resolver.IsStatic ? typeName : GetInstanceReceiver(typeName);
+
             Writer.WriteIndentedLine(
-                resolver.IsStatic
-                    ? "var result = {0}.{1}({2});"
-                    : "var result = context.Parent<{0}>().{1}({2});",
-                resolver.Member.ContainingType.ToFullyQualified(),
+                "var result = {0}.{1}({2});",
+                receiver,
                 resolver.Member.Name,
                 GetResolverArgumentAssignments(resolver.Parameters.Length));
 
@@ -1253,12 +1270,17 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
             Writer.WriteLine();
 
-            // Call the user's batch resolver method
+            // Call the user's batch resolver method.
+            var batchTypeName = resolver.Member.ContainingType.ToFullyQualified();
+            var batchReceiver = resolver.IsStatic
+                ? batchTypeName
+                : GetInstanceReceiver(batchTypeName, "contexts[0]");
+
             if (isAsync)
             {
                 Writer.WriteIndentedLine(
                     "var result = await {0}.{1}({2});",
-                    resolver.Member.ContainingType.ToFullyQualified(),
+                    batchReceiver,
                     resolver.Member.Name,
                     GetResolverArgumentAssignments(resolver.Parameters.Length));
 
@@ -1283,7 +1305,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             {
                 Writer.WriteIndentedLine(
                     "var result = {0}.{1}({2});",
-                    resolver.Member.ContainingType.ToFullyQualified(),
+                    batchReceiver,
                     resolver.Member.Name,
                     GetResolverArgumentAssignments(resolver.Parameters.Length));
 
@@ -1347,11 +1369,12 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         Writer.WriteIndentedLine("{");
         using (Writer.IncreaseIndent())
         {
+            var typeName = resolver.Member.ContainingType.ToFullyQualified();
+            var receiver = resolver.IsStatic ? typeName : GetInstanceReceiver(typeName);
+
             Writer.WriteIndentedLine(
-                resolver.IsStatic
-                    ? "var result = {0}.{1};"
-                    : "var result = context.Parent<{0}>().{1};",
-                resolver.Member.ContainingType.ToFullyQualified(),
+                "var result = {0}.{1};",
+                receiver,
                 resolver.Member.Name);
 
             Writer.WriteIndentedLine("return result;");
