@@ -736,7 +736,20 @@ Note that this option is likely to be removed in a later release, so it's recomm
 
 ## DateTime scalar serialization
 
-The `DateTime` scalar now serializes with up to 7 fractional seconds (`FFFFFFF`) as opposed to exactly 3 (`fff`).
+The `DateTime` scalar now serializes with up to 7 fractional seconds (`FFFFFFF`) as opposed to exactly 3 (`fff`). Trailing zeros are stripped, and the fractional component is omitted entirely when zero, so `2023-12-24T15:30:00.5000000Z` is now emitted as `2023-12-24T15:30:00.5Z` and `2023-12-24T15:30:00.0000000Z` is emitted as `2023-12-24T15:30:00Z`.
+
+If you need fractional seconds to always be present in the output (for example, to preserve a fixed-width format your clients depend on), set `AlwaysOutputFractionalSeconds = true` on `DateTimeOptions`. You can also tune the precision via `OutputPrecision`. To restore the exact v15 behavior of always emitting three fractional digits, combine both:
+
+```csharp
+builder.AddGraphQL()
+    .AddType(new DateTimeType(new DateTimeOptions
+    {
+        OutputPrecision = 3,
+        AlwaysOutputFractionalSeconds = true
+    }));
+```
+
+The same options apply to the `LocalDateTime` and `LocalTime` scalars (and to their counterparts in `HotChocolate.Types.NodaTime`, which expose a matching `DateTimeOptions` struct).
 
 ## IHasRuntimeType is now IRuntimeTypeProvider
 
