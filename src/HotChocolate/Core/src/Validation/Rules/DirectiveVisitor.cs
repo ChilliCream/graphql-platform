@@ -171,11 +171,12 @@ internal sealed class DirectiveVisitor()
                 context.ReportError(context.DirectiveMustBeUniqueInLocation(directive));
             }
 
-            // Defer And Stream Directive Labels Are Unique
-            // The spec iterates over every directive in the document. Because the
-            // document walker descends into fragment definitions once per spread,
-            // the same lexical @defer/@stream directive may be visited multiple
-            // times. Track the processed directive nodes so each is counted once.
+            // Defer And Stream Directive Labels Are Unique.
+            // The rule is document-scoped: a label must be unique across all @defer and
+            // @stream directives in the document. The same lexical directive can be
+            // reached from multiple operations (each operation re-walks its spread fragments
+            // independently), so we must track the directive nodes already counted to avoid
+            // colliding a label with itself when revisited.
             if (node.Kind is Field or InlineFragment or FragmentSpread
                 && (directive.Name.Value.Equals(DirectiveNames.Defer.Name, StringComparison.Ordinal)
                 || directive.Name.Value.Equals(DirectiveNames.Stream.Name, StringComparison.Ordinal))

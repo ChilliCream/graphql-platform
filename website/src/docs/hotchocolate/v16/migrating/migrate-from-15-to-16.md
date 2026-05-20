@@ -1263,6 +1263,29 @@ Things that will continue to function this release, but we encourage you to move
 
 The GraphQL `ByteArray` type has been deprecated. Use the `Base64String` type instead.
 
+## DocumentValidatorContext.FragmentContext.Leave
+
+Both `Leave(FragmentSpreadNode)` and `Leave(FragmentDefinitionNode)` on `DocumentValidatorContext.FragmentContext` are now marked `[Obsolete]`. Calls to them have no effect and can be removed.
+
+Fragment visit tracking is now operation-scoped: the visited-fragments set is cleared by `Reset()` on operation leave, and entries are not removed during traversal. This means each fragment is walked at most once per operation, regardless of how many times it is spread.
+
+If you implemented a custom `DocumentValidatorVisitor` that called `context.Fragments.Leave(...)`, you can delete the call:
+
+```diff
+if (context.Fragments.TryEnter(node, out var fragment))
+{
+    var result = Visit(fragment, node, context);
+-   context.Fragments.Leave(fragment);
+
+    if (result.IsBreak())
+    {
+        return Break;
+    }
+}
+```
+
+Some queries that previously failed validation with false-positive errors now validate cleanly. For example, a `@defer` directive with a label inside a fragment spread twice was reported as a duplicate label collision against itself; that case (and similar over-counted errors for argument names, variable usage, input fields, and fragment spread possibility) now behaves correctly. Queries that should fail still fail, with no duplicates per spread.
+
 # Noteworthy changes
 
 ## RunWithGraphQLCommandsAsync returns exit code

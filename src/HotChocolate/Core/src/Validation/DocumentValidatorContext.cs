@@ -289,11 +289,23 @@ public sealed class DocumentValidatorContext : IFeatureProvider
             return false;
         }
 
+        // Fragment visit tracking is operation-scoped: _visited is cleared by Reset() on
+        // operation leave, and entries are not removed during traversal. This ensures each
+        // fragment is walked at most once per operation, regardless of how many times it is
+        // spread. Cycle detection is handled separately via context.Path.Contains in
+        // FragmentVisitor. The two Leave overloads below remain as no-ops to preserve the
+        // public API surface for any custom DocumentValidatorVisitor that calls them.
+        [Obsolete("Has no effect; fragment visit tracking is operation-scoped. Safe to remove the call.")]
         public void Leave(FragmentSpreadNode spread)
-            => _visited.Remove(spread.Name.Value);
+        {
+            _ = spread;
+        }
 
+        [Obsolete("Has no effect; fragment visit tracking is operation-scoped. Safe to remove the call.")]
         public void Leave(FragmentDefinitionNode fragment)
-            => _visited.Remove(fragment.Name.Value);
+        {
+            _ = fragment;
+        }
 
         public bool Exists(FragmentSpreadNode spread)
             => _fragments.ContainsKey(spread.Name.Value);

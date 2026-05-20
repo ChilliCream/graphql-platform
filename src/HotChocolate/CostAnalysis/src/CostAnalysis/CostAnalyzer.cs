@@ -193,7 +193,6 @@ internal sealed class CostAnalyzer(RequestCostOptions options) : TypeDocumentVal
         if (context.Fragments.TryEnter(node, out var fragment))
         {
             var result = Visit(fragment, node, context);
-            context.Fragments.Leave(fragment);
 
             if (result.IsBreak())
             {

@@ -2,8 +2,8 @@
   "message": "The parent type does not match the type condition on the fragment.",
   "locations": [
     {
-      "line": 10,
-      "column": 1
+      "line": 9,
+      "column": 47
     }
   ],
   "path": [
