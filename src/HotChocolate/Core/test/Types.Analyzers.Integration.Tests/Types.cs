@@ -222,3 +222,33 @@ public sealed class RewriteAfterToVersionAttribute
             });
     }
 }
+
+public class DescriptorAttributeProbe
+{
+    public string Name { get; set; } = "default";
+}
+
+[ObjectType<DescriptorAttributeProbe>]
+[PrefixTypeName("renamed")]
+public static partial class DescriptorAttributeProbeType;
+
+public sealed class PrefixTypeNameAttribute(string prefix) : ObjectTypeDescriptorAttribute
+{
+    public string Prefix { get; } = prefix;
+
+    protected override void OnConfigure(
+        IDescriptorContext context,
+        IObjectTypeDescriptor descriptor,
+        Type? type)
+    {
+        if (type is null)
+        {
+            return;
+        }
+
+        var capturedPrefix = Prefix;
+        descriptor
+            .Extend()
+            .OnBeforeCreate((_, cfg) => cfg.Name = $"{capturedPrefix}_{cfg.Name}");
+    }
+}

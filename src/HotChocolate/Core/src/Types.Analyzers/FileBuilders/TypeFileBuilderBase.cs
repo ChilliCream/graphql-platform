@@ -95,7 +95,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             {
                 Writer.WriteIndentedLine("extension.Context,");
                 Writer.WriteIndentedLine("descriptor,");
-                Writer.WriteIndentedLine("null,");
+                Writer.WriteIndentedLine("typeof(global::{0}),", schemaFullTypeName);
 
                 var first = true;
                 foreach (var attribute in attributes)
