@@ -44,7 +44,12 @@ public sealed class FactoryTypeReference : TypeReference
     {
         get
         {
-            field ??= TypeStructure.ToString(indented: false);
+            if (field is null)
+            {
+                var structure = TypeStructure.ToString(indented: false);
+                field = Context == TypeContext.None ? structure : $"{structure}_{Context}";
+            }
+
             return field;
         }
     }

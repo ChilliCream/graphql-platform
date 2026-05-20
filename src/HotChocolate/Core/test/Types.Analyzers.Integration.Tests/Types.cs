@@ -109,6 +109,24 @@ public static partial class Query
 
     public static string NullableListNullableElementArgumentRef(List<string?>? items)
         => throw new Exception();
+
+    // Covers a regression where the same POCO used in both an output position
+    // (resolver return) and an input position (mutation argument) emitted two
+    // distinct GraphQL types but the FactoryTypeReference cache keyed only on
+    // the syntactic structure, so one position reused the IType of the other.
+    public static IReadOnlyCollection<Shape> GetShapes() => [];
+}
+
+public class Shape
+{
+    public required string Key { get; set; }
+    public required string Name { get; set; }
+}
+
+[MutationType]
+public static partial class Mutation
+{
+    public static bool SaveShapes(IReadOnlyList<Shape> shapes) => true;
 }
 
 public class IsSelectedNode
