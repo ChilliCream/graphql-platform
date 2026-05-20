@@ -207,6 +207,10 @@ type ProductsEdge {
   node: Product!
 }
 
+type renamed_DescriptorAttributeProbe {
+  name: String!
+}
+
 type Shape {
   key: String!
   name: String!
