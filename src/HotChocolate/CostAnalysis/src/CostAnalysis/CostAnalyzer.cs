@@ -193,6 +193,9 @@ internal sealed class CostAnalyzer(RequestCostOptions options) : TypeDocumentVal
         if (context.Fragments.TryEnter(node, out var fragment))
         {
             var result = Visit(fragment, node, context);
+            // Re-enable per-spread re-walks of the fragment body so each spread's outer
+            // selection set collects its own field set, which is how cost is accumulated.
+            context.Fragments.Leave(fragment);
 
             if (result.IsBreak())
             {

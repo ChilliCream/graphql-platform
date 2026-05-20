@@ -1263,19 +1263,25 @@ Things that will continue to function this release, but we encourage you to move
 
 The GraphQL `ByteArray` type has been deprecated. Use the `Base64String` type instead.
 
-## DocumentValidatorContext.FragmentContext.Leave
+# Noteworthy changes
 
-Both `Leave(FragmentSpreadNode)` and `Leave(FragmentDefinitionNode)` on `DocumentValidatorContext.FragmentContext` are now marked `[Obsolete]`. Calls to them have no effect and can be removed.
+## Validation walker is now operation-scoped for fragment visits by default
 
-Fragment visit tracking is now operation-scoped: the visited-fragments set is cleared by `Reset()` on operation leave, and entries are not removed during traversal. This means each fragment is walked at most once per operation, regardless of how many times it is spread.
+The base `DocumentValidatorVisitor` no longer re-walks a fragment definition on every sibling spread within an operation. Each fragment is now visited at most once per operation. Cycle detection continues to work via `context.Path.Contains(fragment)` in `FragmentVisitor`.
 
-If you implemented a custom `DocumentValidatorVisitor` that called `context.Fragments.Leave(...)`, you can delete the call:
+User-visible effect: some queries that previously failed validation with false-positive errors now validate cleanly. For example, a `@defer` directive with a label inside a fragment spread twice was reported as a duplicate label collision against itself; that case (and similar over-counted errors for argument names, variable usage, input fields, and fragment spread possibility) now behaves correctly. Queries that should fail still fail, with no duplicates per spread.
+
+If you wrote a custom `DocumentValidatorVisitor` that called `context.Fragments.Leave(...)`, you have two options:
+
+1. **Match the new default (operation-scoped):** remove the `Leave` call. Each fragment is walked at most once per operation; sibling spreads short-circuit.
+2. **Opt back into per-spread re-walks:** keep the `Leave` call. This is what `CostAnalyzer` does, because per-spread re-walks are required to correctly accumulate cost across reused fragments.
 
 ```diff
 if (context.Fragments.TryEnter(node, out var fragment))
 {
     var result = Visit(fragment, node, context);
--   context.Fragments.Leave(fragment);
+-   context.Fragments.Leave(fragment); // remove for operation-scoped (recommended for validation rules)
+    // keep the Leave(...) call if your rule needs per-spread re-walks (e.g. cost analysis)
 
     if (result.IsBreak())
     {
@@ -1283,10 +1289,6 @@ if (context.Fragments.TryEnter(node, out var fragment))
     }
 }
 ```
-
-Some queries that previously failed validation with false-positive errors now validate cleanly. For example, a `@defer` directive with a label inside a fragment spread twice was reported as a duplicate label collision against itself; that case (and similar over-counted errors for argument names, variable usage, input fields, and fragment spread possibility) now behaves correctly. Queries that should fail still fail, with no duplicates per spread.
-
-# Noteworthy changes
 
 ## RunWithGraphQLCommandsAsync returns exit code
 
