@@ -152,6 +152,29 @@ public class LocalTimeTypeTests
     }
 
     [Fact]
+    public void CoerceOutputValue_AlwaysOutputFractionalSeconds_PadsAtDefaultPrecision()
+    {
+        // arrange
+        // exercises the bypass of the `LocalFormat` const-string shortcut at default precision
+        var type = new LocalTimeType(
+            new DateTimeOptions
+            {
+                OutputPrecision = DateTimeOptions.DefaultOutputPrecision,
+                AlwaysOutputFractionalSeconds = true
+            });
+        var timeOnly = new TimeOnly(8, 46, 14);
+
+        // act
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        type.CoerceOutputValue(timeOnly, resultValue);
+
+        // assert
+        resultValue.MatchInlineSnapshot("\"08:46:14.0000000\"");
+    }
+
+    [Fact]
     public void CoerceOutputValue()
     {
         // arrange
