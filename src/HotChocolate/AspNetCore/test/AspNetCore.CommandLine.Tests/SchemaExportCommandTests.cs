@@ -144,6 +144,62 @@ public class SchemaExportCommandTests : IDisposable
     }
 
     [Fact]
+    public async Task App_Should_PreserveUnescapedAngleBrackets_When_UpdatingExistingSettingsFile()
+    {
+        // arrange
+        var services = new ServiceCollection();
+        services.AddGraphQL()
+            .AddQueryType(x => x.Name("Query").Field("foo").Resolve("bar"));
+
+        var hostMock = new Mock<IHost>();
+        hostMock
+            .Setup(x => x.Services)
+            .Returns(services.BuildServiceProvider());
+
+        var host = hostMock.Object;
+        var output = new StringWriter();
+        var app = new App(host);
+        var tempFile = CreateSchemaFileName();
+        var settingsFile = tempFile + "-settings.json";
+
+        const string existingSettings =
+            """
+            {
+              "name": "default",
+              "satisfiability": {
+                "ignoredNonAccessibleFields": {
+                  "Foo.bar": [
+                    "Schema1:Query.foo<Bar>"
+                  ]
+                }
+              }
+            }
+            """;
+
+        await File.WriteAllTextAsync(settingsFile, existingSettings);
+
+        // act
+        await app.InvokeAsync($"schema export --output {tempFile}", output);
+
+        // assert
+        var actual = await File.ReadAllTextAsync(settingsFile);
+        actual.ReplaceLineEndings("\n").MatchInlineSnapshot(
+            """
+            {
+              "name": "_Default",
+              "satisfiability": {
+                "ignoredNonAccessibleFields": {
+                  "Foo.bar": [
+                    "Schema1:Query.foo<Bar>"
+                  ]
+                }
+              }
+            }
+
+            """);
+    }
+
+    [Fact]
     public async Task App_Should_Return_ExitCode_1_If_Schema_Is_Invalid()
     {
         // arrange
