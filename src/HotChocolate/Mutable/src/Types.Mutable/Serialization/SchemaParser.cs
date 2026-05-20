@@ -451,13 +451,15 @@ public static class SchemaParser
 
             var builtFieldType = schema.Types.BuildType(fieldNode.Type);
 
-            if (builtFieldType is not IOutputType fieldType)
+            if (!builtFieldType.IsOutputType())
             {
                 throw new SchemaInitializationException(
                     string.Format(
                         SchemaParser_InvalidFieldType,
                         $"{type.Name}.{fieldNode.Name.Value}"));
             }
+
+            var fieldType = (IOutputType)builtFieldType;
 
             var field = new MutableOutputFieldDefinition(fieldNode.Name.Value)
             {
@@ -499,13 +501,15 @@ public static class SchemaParser
     {
         var builtArgumentType = schema.Types.BuildType(argumentNode.Type);
 
-        if (builtArgumentType is not IInputType argumentType)
+        if (!builtArgumentType.IsInputType())
         {
             throw new SchemaInitializationException(
                 string.Format(
                     SchemaParser_InvalidArgumentType,
                     $"{field.DeclaringMember?.Name}.{field.Name}({argumentNode.Name.Value}:)"));
         }
+
+        var argumentType = (IInputType)builtArgumentType;
 
         var argument = new MutableInputFieldDefinition(argumentNode.Name.Value)
         {
@@ -534,13 +538,15 @@ public static class SchemaParser
     {
         var builtFieldType = schema.Types.BuildType(fieldNode.Type);
 
-        if (builtFieldType is not IOutputType fieldType)
+        if (!builtFieldType.IsOutputType())
         {
             throw new SchemaInitializationException(
                 string.Format(
                     SchemaParser_InvalidFieldType,
                     $"{type.Name}.{fieldNode.Name.Value}"));
         }
+
+        var fieldType = (IOutputType)builtFieldType;
 
         if (!existingField.Type.Equals(fieldType, TypeComparison.Structural))
         {
@@ -608,13 +614,15 @@ public static class SchemaParser
     {
         var builtArgumentType = schema.Types.BuildType(argumentNode.Type);
 
-        if (builtArgumentType is not IInputType argumentType)
+        if (!builtArgumentType.IsInputType())
         {
             throw new SchemaInitializationException(
                 string.Format(
                     SchemaParser_InvalidArgumentType,
                     $"{field.DeclaringMember?.Name}.{field.Name}({argumentNode.Name.Value}:)"));
         }
+
+        var argumentType = (IInputType)builtArgumentType;
 
         if (!existingArg.Type.Equals(argumentType, TypeComparison.Structural))
         {
@@ -691,13 +699,15 @@ public static class SchemaParser
 
             var builtFieldType = schema.Types.BuildType(fieldNode.Type);
 
-            if (builtFieldType is not IInputType fieldType)
+            if (!builtFieldType.IsInputType())
             {
                 throw new SchemaInitializationException(
                     string.Format(
                         SchemaParser_InvalidInputObjectFieldType,
                         $"{type.Name}.{fieldNode.Name.Value}"));
             }
+
+            var fieldType = (IInputType)builtFieldType;
 
             var field = new MutableInputFieldDefinition(fieldNode.Name.Value)
             {
@@ -887,13 +897,15 @@ public static class SchemaParser
         {
             var builtArgumentType = schema.Types.BuildType(argumentNode.Type);
 
-            if (builtArgumentType is not IInputType argumentType)
+            if (!builtArgumentType.IsInputType())
             {
                 throw new SchemaInitializationException(
                     string.Format(
                         SchemaParser_InvalidArgumentType,
                         $"@{type.Name}({argumentNode.Name.Value}:)"));
             }
+
+            var argumentType = (IInputType)builtArgumentType;
 
             var argument = new MutableInputFieldDefinition(argumentNode.Name.Value)
             {
