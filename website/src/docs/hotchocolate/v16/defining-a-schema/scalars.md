@@ -112,11 +112,11 @@ You can use `HotChocolate.Types.DateTimeOptions` to configure the built-in BCL-b
 - Set how many fractional second digits are accepted during parsing (`InputPrecision`, up to 9)
 - Control how many fractional second digits are written during serialization (`OutputPrecision`, up to 7)
 - Require input to match the expected scalar format before parsing (`ValidateInputFormat`)
-- Always emit fractional seconds in serialized output, padded with trailing zeros up to `OutputPrecision` (`AlwaysOutputFractionalSeconds`)
+- Always emit fractional seconds in serialized output (when `OutputPrecision > 0`), padded with trailing zeros up to `OutputPrecision` (`AlwaysOutputFractionalSeconds`)
 
 Although the built-in scalars can parse up to 9 fractional second digits, the underlying BCL types only preserve up to 7 digits (100-nanosecond precision), so additional digits are rounded during parsing.
 
-By default, trailing zeros are stripped from the fractional component and the fractional component is omitted entirely when zero (for example, `2023-12-24T15:30:00.5000000Z` is emitted as `2023-12-24T15:30:00.5Z`). Set `AlwaysOutputFractionalSeconds = true` to keep a fixed-width representation regardless of value.
+By default, trailing zeros are stripped from the fractional component and the fractional component is omitted entirely when zero (for example, `2023-12-24T15:30:00.5000000Z` is emitted as `2023-12-24T15:30:00.5Z`). Set `AlwaysOutputFractionalSeconds = true` to keep a fixed-width representation regardless of value. The option has no effect when `OutputPrecision` is `0`, since there are no fractional second digits to emit.
 
 To customize the built-in scalars, register configured scalar instances explicitly:
 
@@ -351,6 +351,7 @@ builder
 
 - `InputPrecision` controls how many fractional second digits are accepted during parsing, up to `9`.
 - `OutputPrecision` controls how many fractional second digits are written during serialization, up to `9`.
+- `AlwaysOutputFractionalSeconds` always emits fractional seconds in serialized output when `OutputPrecision > 0`, padded with trailing zeros up to `OutputPrecision`. By default, trailing zeros are stripped and the fractional component is omitted entirely when zero. The option has no effect when `OutputPrecision` is `0`.
 
 Unlike the built-in BCL-backed scalars, the NodaTime implementations preserve up to 9 fractional second digits (nanosecond precision).
 
@@ -366,15 +367,18 @@ builder
     .AddGraphQL()
     .AddType(new NodaTimeDateTimeType(new NodaTimeDateTimeOptions
     {
-        OutputPrecision = 3
+        OutputPrecision = 3,
+        AlwaysOutputFractionalSeconds = true
     }))
     .AddType(new NodaTimeLocalDateTimeType(new NodaTimeDateTimeOptions
     {
-        OutputPrecision = 3
+        OutputPrecision = 3,
+        AlwaysOutputFractionalSeconds = true
     }))
     .AddType(new NodaTimeLocalTimeType(new NodaTimeDateTimeOptions
     {
-        OutputPrecision = 3
+        OutputPrecision = 3,
+        AlwaysOutputFractionalSeconds = true
     }));
 ```
 
