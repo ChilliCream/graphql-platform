@@ -64,7 +64,6 @@ If you're using any of the following configuration APIs, ensure that the applica
 - `AddErrorFilter`
 - `AddDiagnosticEventListener`
 - `AddOperationCompilerOptimizer`
-- `AddTransactionScopeHandler`
 - `AddRedisOperationDocumentStorage`
 - `AddAzureBlobStorageOperationDocumentStorage`
 - `AddInstrumentation` with a custom `ActivityEnricher`
@@ -1254,6 +1253,25 @@ public class CustomFilteringConvention : FilterConvention
 ```
 
 The `CanHandle` signature also changed on the filtering, sorting, and projection handler interfaces. If you have overridden it, re-override against the new signature.
+
+## Transaction scope handlers removed
+
+`AddTransactionScopeHandler` and `AddDefaultTransactionScopeHandler` have been removed. The `ITransactionScopeHandler` abstraction wrapped an entire mutation operation in a single transaction and rolled back all root field results when any root field errored. This violates the GraphQL specification, which defines mutation root fields as independent: each field's result must be observable regardless of whether subsequent fields succeed or fail.
+
+If you relied on transaction handlers to keep multiple mutation fields consistent, model that coupling explicitly in the schema. Replace fine-grained root fields with a single coarse-grained mutation that accepts a composite input and performs the work as one unit:
+
+```graphql
+mutation {
+  # Before: separate fields, transactionality was implicit and spec-violating
+  addProducts(productIds: [...]) { ... }
+  removeProducts(productIds: [...]) { ... }
+
+  # After: one mutation that answers the client use case
+  updateCart(input: { productsToAdd: [...], productsToRemove: [...] }) { ... }
+}
+```
+
+The transaction boundary now lives inside the resolver for the coarse-grained mutation, where you control it directly with your data access layer.
 
 # Deprecations
 
