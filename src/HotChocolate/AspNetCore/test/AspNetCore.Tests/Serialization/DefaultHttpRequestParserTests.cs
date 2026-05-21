@@ -198,6 +198,7 @@ public sealed class DefaultHttpRequestParserTests
         // does not throw "Reading is already in progress".
         var result = await pipe.Reader.ReadAsync();
         Assert.True(result.IsCompleted);
+        pipe.Reader.AdvanceTo(result.Buffer.End);
     }
 
     [Fact]
@@ -227,6 +228,7 @@ public sealed class DefaultHttpRequestParserTests
         await pipe.Writer.CompleteAsync();
         var result = await pipe.Reader.ReadAsync();
         Assert.True(result.IsCompleted);
+        pipe.Reader.AdvanceTo(result.Buffer.End);
     }
 
     [Fact]
@@ -255,6 +257,7 @@ public sealed class DefaultHttpRequestParserTests
         // assert
         var result = await pipe.Reader.ReadAsync();
         Assert.True(result.IsCompleted);
+        pipe.Reader.AdvanceTo(result.Buffer.End);
     }
 
     public sealed class MockQueryParams(string id) : IQueryCollection
