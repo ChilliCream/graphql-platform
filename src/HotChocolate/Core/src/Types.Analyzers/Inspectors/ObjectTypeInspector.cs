@@ -44,7 +44,9 @@ public class ObjectTypeInspector : ISyntaxInspector
                     Location.Create(possibleType.SyntaxTree, possibleType.Span)));
         }
 
-        if (!possibleType.Modifiers.Any(m => m.IsKind(SyntaxKind.StaticKeyword)))
+        // Root types may be instance classes; the static requirement applies only to object type extensions.
+        if (!isOperationType
+            && !possibleType.Modifiers.Any(m => m.IsKind(SyntaxKind.StaticKeyword)))
         {
             diagnostics = diagnostics.Add(
                 Diagnostic.Create(

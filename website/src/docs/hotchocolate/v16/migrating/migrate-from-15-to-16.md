@@ -64,7 +64,6 @@ If you're using any of the following configuration APIs, ensure that the applica
 - `AddErrorFilter`
 - `AddDiagnosticEventListener`
 - `AddOperationCompilerOptimizer`
-- `AddTransactionScopeHandler`
 - `AddRedisOperationDocumentStorage`
 - `AddAzureBlobStorageOperationDocumentStorage`
 - `AddInstrumentation` with a custom `ActivityEnricher`
@@ -236,6 +235,60 @@ public class CustomRequestMiddleware
     }
 }
 ```
+
+## IRequestExecutorResolver split into provider, events, and manager
+
+The single `IRequestExecutorResolver` interface from v15 has been removed and its responsibilities split across three more focused abstractions in `HotChocolate.Execution.Abstractions`:
+
+| v15 (`IRequestExecutorResolver`)      | v16                                                                            |
+| ------------------------------------- | ------------------------------------------------------------------------------ |
+| `GetRequestExecutorAsync(schemaName)` | `IRequestExecutorProvider.GetExecutorAsync(schemaName)`                        |
+| `Events` (`IObservable<…>`)           | `IRequestExecutorEvents` (which itself is `IObservable<RequestExecutorEvent>`) |
+| `EvictRequestExecutor(schemaName)`    | `IRequestExecutorManager.EvictExecutor(schemaName)`                            |
+
+`IRequestExecutorManager` derives from `IRequestExecutorProvider`, so inject the manager when you need both lookup and eviction, the provider when you only need lookup, and `IRequestExecutorEvents` when you only need to react to executor lifecycle events:
+
+```diff
+-public class MyService(IRequestExecutorResolver resolver)
++public class MyService(
++    IRequestExecutorManager executors,
++    IRequestExecutorEvents events)
+ {
+-    public ValueTask<IRequestExecutor> GetExecutorAsync(CancellationToken ct)
+-        => resolver.GetRequestExecutorAsync(cancellationToken: ct);
++    public ValueTask<IRequestExecutor> GetExecutorAsync(CancellationToken ct)
++        => executors.GetExecutorAsync(cancellationToken: ct);
+
+-    public void EvictDefault() => resolver.EvictRequestExecutor();
++    public void EvictDefault() => executors.EvictExecutor();
+
+-    public IDisposable Subscribe(IObserver<RequestExecutorEvent> observer)
+-        => resolver.Events.Subscribe(observer);
++    public IDisposable Subscribe(IObserver<RequestExecutorEvent> observer)
++        => events.Subscribe(observer);
+ }
+```
+
+The `IServiceProvider.GetRequestExecutorAsync(...)` extension method has been kept as a convenience and now resolves `IRequestExecutorProvider` from the container internally, so call sites such as `services.GetRequestExecutorAsync()` continue to compile unchanged.
+
+The legacy `RequestExecutorEvicted` event (already marked obsolete in v15) has been removed; subscribe to `IRequestExecutorEvents` and filter on `RequestExecutorEventType.Evicted` instead.
+
+## RequestExecutorProxy
+
+`RequestExecutorProxy` still exists and serves the same purpose, giving you a long-lived handle to the executor for a particular schema that is hot-swapped automatically when the schema is rebuilt. Two things have changed:
+
+**Constructor signature.** The proxy no longer takes an `IRequestExecutorResolver`; it now takes the new provider and events abstractions explicitly:
+
+```diff
+-var proxy = new RequestExecutorProxy(resolver, "Schema");
++var proxy = new RequestExecutorProxy(executorProvider, executorEvents, "Schema");
+```
+
+**The proxy now implements `IRequestExecutor`.** You can pass a `RequestExecutorProxy` directly anywhere an `IRequestExecutor` is expected, without first calling `GetRequestExecutorAsync()`. `ExecuteAsync` and `ExecuteBatchAsync` resolve the current executor internally.
+
+The CLR events `ExecutorUpdated` and `ExecutorEvicted` have been removed. If you need to react to swaps, derive from `RequestExecutorProxy` and override `OnConfigureRequestExecutor(newExecutor, oldExecutor)` (runs under the proxy's lock, before `CurrentExecutor` is replaced) or `OnAfterRequestExecutorSwapped(newExecutor, oldExecutor)` (runs after the swap, outside the lock).
+
+The separate `AutoUpdateRequestExecutorProxy` helper has been removed; the base `RequestExecutorProxy` now subscribes to executor events on construction and updates `CurrentExecutor` automatically.
 
 ## Schema.DefaultName moved to ISchemaDefinition.DefaultName
 
@@ -1254,6 +1307,25 @@ public class CustomFilteringConvention : FilterConvention
 ```
 
 The `CanHandle` signature also changed on the filtering, sorting, and projection handler interfaces. If you have overridden it, re-override against the new signature.
+
+## Transaction scope handlers removed
+
+`AddTransactionScopeHandler` and `AddDefaultTransactionScopeHandler` have been removed. The `ITransactionScopeHandler` abstraction wrapped an entire mutation operation in a single transaction and rolled back all root field results when any root field errored. This violates the GraphQL specification, which defines mutation root fields as independent: each field's result must be observable regardless of whether subsequent fields succeed or fail.
+
+If you relied on transaction handlers to keep multiple mutation fields consistent, model that coupling explicitly in the schema. Replace fine-grained root fields with a single coarse-grained mutation that accepts a composite input and performs the work as one unit:
+
+```graphql
+mutation {
+  # Before: separate fields, transactionality was implicit and spec-violating
+  addProducts(productIds: [...]) { ... }
+  removeProducts(productIds: [...]) { ... }
+
+  # After: one mutation that answers the client use case
+  updateCart(input: { productsToAdd: [...], productsToRemove: [...] }) { ... }
+}
+```
+
+The transaction boundary now lives inside the resolver for the coarse-grained mutation, where you control it directly with your data access layer.
 
 # Deprecations
 

@@ -1029,7 +1029,7 @@ Once the gateway has been [cut over to v16](#upgrade-the-gateway) and every subg
 
 Since `dotnet fusion` is no longer used, you can remove any reference to the `HotChocolate.Fusion.CommandLine` package from your pipelines and from `./.config/dotnet-tools.json`.
 
-You can also fully replace `ChilliCream.Nitro.CLI` with [`ChilliCream.Nitro.CommandLine`](/docs/nitro/cli/installation.md).
+You can also fully replace `ChilliCream.Nitro.CLI` with [`ChilliCream.Nitro.CommandLine`](/docs/nitro/cli/installation).
 
 > Note: Hold off until the v16 gateway has been running in production long enough that a rollback to v15 is off the table. Once the v15 compose step is gone the `.fgp` is no longer refreshed, and a rollback would mean restoring these steps first. Cleanup is independent per subgraph, so there is no need to do all repositories at once.
 
