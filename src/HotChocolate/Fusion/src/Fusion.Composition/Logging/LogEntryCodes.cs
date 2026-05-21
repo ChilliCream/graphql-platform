@@ -44,6 +44,7 @@ public static class LogEntryCodes
     public const string KeyInvalidFields = "KEY_INVALID_FIELDS";
     public const string KeyInvalidFieldsType = "KEY_INVALID_FIELDS_TYPE";
     public const string KeyInvalidSyntax = "KEY_INVALID_SYNTAX";
+    public const string LookupMustHaveArguments = "LOOKUP_MUST_HAVE_ARGUMENTS";
     public const string LookupReturnsList = "LOOKUP_RETURNS_LIST";
     public const string LookupReturnsNonNullableType = "LOOKUP_RETURNS_NON_NULLABLE_TYPE";
     public const string NonNullInputFieldIsInaccessible = "NON_NULL_INPUT_FIELD_IS_INACCESSIBLE";

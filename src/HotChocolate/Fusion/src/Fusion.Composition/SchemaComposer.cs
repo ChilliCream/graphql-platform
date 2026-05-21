@@ -145,6 +145,7 @@ public sealed class SchemaComposer
         new KeyFieldsSelectInvalidTypeRule(),
         new KeyInvalidFieldsTypeRule(),
         new KeyInvalidSyntaxRule(),
+        new LookupMustHaveArgumentsRule(),
         new LookupReturnsListRule(),
         new LookupReturnsNonNullableTypeRule(),
         new OverrideFromSelfRule(),

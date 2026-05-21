@@ -6,6 +6,42 @@ namespace HotChocolate.Fusion;
 public sealed class SchemaComposerTests
 {
     [Fact]
+    public void Compose_LookupFieldWithoutArguments_FailsWithLookupMustHaveArgumentsError()
+    {
+        // arrange
+        var log = new CompositionLog();
+        var schemaComposer = new SchemaComposer(
+            [
+                new SourceSchemaText(
+                    "A",
+                    """
+                    type Query {
+                        product: Product @lookup @internal
+                    }
+
+                    type Product {
+                        id: ID!
+                        name: String
+                    }
+                    """)
+            ],
+            new SchemaComposerOptions { Merger = { AddFusionDefinitions = false } },
+            log);
+
+        // act
+        var result = schemaComposer.Compose();
+
+        // assert
+        Assert.True(result.IsFailure);
+        var entry = Assert.Single(log);
+        Assert.Equal(LogEntryCodes.LookupMustHaveArguments, entry.Code);
+        Assert.Equal(LogSeverity.Error, entry.Severity);
+        Assert.Equal(
+            "The lookup field 'Query.product' in schema 'A' must declare at least one argument.",
+            entry.Message);
+    }
+
+    [Fact]
     public void Compose_WithExtensions_AppliesExtensions()
     {
         // arrange
