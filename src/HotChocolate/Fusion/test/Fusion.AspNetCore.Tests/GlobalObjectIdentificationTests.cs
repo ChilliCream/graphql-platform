@@ -3,8 +3,6 @@ using HotChocolate.Transport.Http;
 
 namespace HotChocolate.Fusion;
 
-// TODO:
-// - Selections on interface, all types of interfaces are on same subgraph and there's only node lookup
 public class GlobalObjectIdentificationTests : FusionTestBase
 {
     [Fact]
@@ -1467,6 +1465,65 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             }
             """,
             variables: new Dictionary<string, object?> { ["id"] = /* Discussion:1 */ "RGlzY3Vzc2lvbjox" });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Node_Field_Interface_Selection_All_Implementations_In_Same_Subgraph_Only_Node_Lookup()
+    {
+        // arrange
+        using var serverA = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              node(id: ID!): Node @lookup
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            interface IOrder {
+              id: ID!
+              name: String!
+            }
+
+            type Order1 implements Node & IOrder {
+              id: ID!
+              name: String!
+            }
+
+            type Order2 implements Node & IOrder {
+              id: ID!
+              name: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", serverA)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              # Order1:1
+              node(id: "T3JkZXIxOjE=") {
+                ... on IOrder {
+                  name
+                }
+              }
+            }
+            """);
 
         using var result = await client.PostAsync(
             request,
