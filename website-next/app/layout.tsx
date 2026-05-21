@@ -1,8 +1,15 @@
 import "./globals.css";
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import Footer from "@/src/components/Footer";
 import Header from "@/src/components/Header";
 import { SITE_URL } from "@/src/helpers/siteUrl";
+
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter",
+});
 
 const TITLE = "ChilliCream GraphQL Platform";
 const DESCRIPTION =
@@ -37,7 +44,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${inter.variable} font-sans`}>
       <body>
         <Header />
         <main>{children}</main>
