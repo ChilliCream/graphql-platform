@@ -5,9 +5,6 @@ namespace HotChocolate.Fusion;
 
 public sealed class SchemaComposerTests
 {
-    // Regression: a @lookup field with no arguments used to crash composition with an
-    // IndexOutOfRangeException deep inside the selection-set rewriter. It must now fail with a
-    // proper LOOKUP_MUST_HAVE_ARGUMENTS composition error instead.
     [Fact]
     public void Compose_LookupFieldWithoutArguments_FailsWithLookupMustHaveArgumentsError()
     {
