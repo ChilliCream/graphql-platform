@@ -28,6 +28,24 @@ const loadManifest = unstable_cache(
   { revalidate: false },
 );
 
+/**
+ * Returns the raw last-commit date for a file, or `undefined` if git has no
+ * record of it. Used by callers (e.g. sitemap generation) that want to fall
+ * back to filesystem mtime when git attribution is unavailable.
+ */
+export async function getLastModifiedFromGit(
+  absoluteFilePath: string,
+): Promise<Date | undefined> {
+  const manifest = await loadManifest();
+  const key = path.relative(WEBSITE_ROOT, absoluteFilePath);
+  const entry = manifest[key];
+  if (!entry) {
+    return undefined;
+  }
+  const date = new Date(entry.date);
+  return Number.isNaN(date.getTime()) ? undefined : date;
+}
+
 export async function getGitMetadata(
   absoluteFilePath: string,
 ): Promise<GitMetadata> {
