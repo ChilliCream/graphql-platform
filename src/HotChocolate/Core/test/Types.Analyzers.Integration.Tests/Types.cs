@@ -109,6 +109,24 @@ public static partial class Query
 
     public static string NullableListNullableElementArgumentRef(List<string?>? items)
         => throw new Exception();
+
+    // Covers a regression where the same POCO used in both an output position
+    // (resolver return) and an input position (mutation argument) emitted two
+    // distinct GraphQL types but the FactoryTypeReference cache keyed only on
+    // the syntactic structure, so one position reused the IType of the other.
+    public static IReadOnlyCollection<Shape> GetShapes() => [];
+}
+
+public class Shape
+{
+    public required string Key { get; set; }
+    public required string Name { get; set; }
+}
+
+[MutationType]
+public static partial class Mutation
+{
+    public static bool SaveShapes(IReadOnlyList<Shape> shapes) => true;
 }
 
 public class IsSelectedNode
@@ -202,5 +220,35 @@ public sealed class RewriteAfterToVersionAttribute
                 var argument = field.Arguments.First(arg => arg.Name == "after");
                 argument.Type = context.TypeInspector.GetTypeRef(typeof(Version2Type), TypeContext.Input);
             });
+    }
+}
+
+public class DescriptorAttributeProbe
+{
+    public string Name { get; set; } = "default";
+}
+
+[ObjectType<DescriptorAttributeProbe>]
+[PrefixTypeName("renamed")]
+public static partial class DescriptorAttributeProbeType;
+
+public sealed class PrefixTypeNameAttribute(string prefix) : ObjectTypeDescriptorAttribute
+{
+    public string Prefix { get; } = prefix;
+
+    protected override void OnConfigure(
+        IDescriptorContext context,
+        IObjectTypeDescriptor descriptor,
+        Type? type)
+    {
+        if (type is null)
+        {
+            return;
+        }
+
+        var capturedPrefix = Prefix;
+        descriptor
+            .Extend()
+            .OnBeforeCreate((_, cfg) => cfg.Name = $"{capturedPrefix}_{cfg.Name}");
     }
 }

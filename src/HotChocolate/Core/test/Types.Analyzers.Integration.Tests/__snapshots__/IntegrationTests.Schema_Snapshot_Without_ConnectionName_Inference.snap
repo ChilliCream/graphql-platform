@@ -1,5 +1,6 @@
 schema {
   query: Query
+  mutation: Mutation
   subscription: Subscription
 }
 
@@ -41,8 +42,8 @@ type Query {
   isSelectedTest: IsSelectedNode!
   """
   Gets the product.
-  
-  
+
+
   **Returns:**
   The only product.
   """
@@ -97,7 +98,12 @@ type Query {
   listArgumentRef(items: [String!]!): String!
   listNullableElementArgumentRef(items: [String]!): String!
   nullableListNullableElementArgumentRef(items: [String]): String!
+  shapes: [Shape!]!
   issue8057Entity(id: ID!): Issue8057Entity
+}
+
+type Mutation {
+  saveShapes(shapes: [ShapeInput!]!): Boolean!
 }
 
 type Subscription {
@@ -254,6 +260,15 @@ type PublisherEdge {
   node: Publisher!
 }
 
+type renamed_DescriptorAttributeProbe {
+  name: String!
+}
+
+type Shape {
+  key: String!
+  name: String!
+}
+
 type Television implements Product {
   argumentWithExplicitType(arg: Version!): String!
   nullableArgumentWithExplicitType(arg: Version): String!
@@ -269,6 +284,11 @@ interface Node {
 interface Product {
   kind: String!
   id: String!
+}
+
+input ShapeInput {
+  key: String!
+  name: String!
 }
 
 scalar Version

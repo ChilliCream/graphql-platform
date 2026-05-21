@@ -1,5 +1,6 @@
 schema {
   query: Query
+  mutation: Mutation
   subscription: Subscription
 }
 
@@ -146,7 +147,12 @@ type Query {
   listArgumentRef(items: [String!]!): String!
   listNullableElementArgumentRef(items: [String]!): String!
   nullableListNullableElementArgumentRef(items: [String]): String!
+  shapes: [Shape!]!
   issue8057Entity(id: ID!): Issue8057Entity @cost(weight: "10")
+}
+
+type Mutation {
+  saveShapes(shapes: [ShapeInput!]!): Boolean!
 }
 
 type Subscription {
@@ -337,6 +343,15 @@ type PublishersEdge {
   node: Publisher!
 }
 
+type renamed_DescriptorAttributeProbe {
+  name: String!
+}
+
+type Shape {
+  key: String!
+  name: String!
+}
+
 "A connection to a list of items."
 type SomeBooksConnection {
   "Information to aid in pagination."
@@ -370,6 +385,11 @@ interface Node {
 interface Product {
   kind: String!
   id: String!
+}
+
+input ShapeInput {
+  key: String!
+  name: String!
 }
 
 scalar Version

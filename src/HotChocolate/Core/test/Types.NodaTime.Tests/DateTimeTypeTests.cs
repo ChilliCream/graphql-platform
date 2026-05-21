@@ -160,6 +160,80 @@ public sealed class DateTimeTypeTests
         resultValue.MatchInlineSnapshot($"\"{result}\"");
     }
 
+    [Theory]
+    [InlineData(9, "2023-12-24T15:30:00.123456789Z")]
+    [InlineData(3, "2023-12-24T15:30:00.123Z")]
+    public void CoerceOutputValue_AlwaysOutputFractionalSeconds_Pads(byte precision, string expected)
+    {
+        // arrange
+        var type = new DateTimeType(
+            new DateTimeOptions
+            {
+                OutputPrecision = precision,
+                AlwaysOutputFractionalSeconds = true
+            });
+        var dateTime = new OffsetDateTime(
+            new LocalDateTime(2023, 12, 24, 15, 30, 0, 123),
+            Offset.Zero).PlusNanoseconds(456_789);
+
+        // act
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        type.CoerceOutputValue(dateTime, resultValue);
+
+        // assert
+        resultValue.MatchInlineSnapshot($"\"{expected}\"");
+    }
+
+    [Fact]
+    public void CoerceOutputValue_AlwaysOutputFractionalSeconds_EmitsZerosForWholeSecond()
+    {
+        // arrange
+        var type = new DateTimeType(
+            new DateTimeOptions
+            {
+                OutputPrecision = 3,
+                AlwaysOutputFractionalSeconds = true
+            });
+        var dateTime = new OffsetDateTime(
+            new LocalDateTime(2023, 12, 24, 15, 30, 0),
+            Offset.Zero);
+
+        // act
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        type.CoerceOutputValue(dateTime, resultValue);
+
+        // assert
+        resultValue.MatchInlineSnapshot("\"2023-12-24T15:30:00.000Z\"");
+    }
+
+    [Fact]
+    public void CoerceOutputValue_AlwaysOutputFractionalSeconds_NoOpWhenPrecisionZero()
+    {
+        // arrange
+        var type = new DateTimeType(
+            new DateTimeOptions
+            {
+                OutputPrecision = 0,
+                AlwaysOutputFractionalSeconds = true
+            });
+        var dateTime = new OffsetDateTime(
+            new LocalDateTime(2023, 12, 24, 15, 30, 0, 123),
+            Offset.Zero);
+
+        // act
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        type.CoerceOutputValue(dateTime, resultValue);
+
+        // assert
+        resultValue.MatchInlineSnapshot("\"2023-12-24T15:30:00Z\"");
+    }
+
     [Fact]
     public void CoerceOutputValue_OffsetDateTime()
     {

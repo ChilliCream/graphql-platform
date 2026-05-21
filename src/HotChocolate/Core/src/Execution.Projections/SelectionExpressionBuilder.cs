@@ -298,22 +298,28 @@ internal sealed class SelectionExpressionBuilder
         Selection selection,
         TypeNode parent)
     {
-        var namedType = selection.Field.Type.NamedType();
+        var field = selection.Field;
+        var namedType = field.Type.NamedType();
 
-        if (selection.Field.PureResolver is null
-            || selection.Field.ResolverMember?.ReflectedType != selection.Field.DeclaringType.RuntimeType)
+        // A field is projectable if its resolver is the underlying member (a pure resolver
+        // declared on the parent runtime type) or if it explicitly replaces that member
+        // (fluent ResolveWith / [BindMember]).
+        var isPureMemberResolver = field.PureResolver is not null
+            && field.ResolverMember?.ReflectedType == field.DeclaringType.RuntimeType;
+        var isMemberReplacement = field.Flags.HasFlag(CoreFieldFlags.MemberReplacement);
+
+        if (!isPureMemberResolver && !isMemberReplacement)
         {
             return;
         }
 
-        if (selection.Field.Member is not PropertyInfo { CanRead: true, CanWrite: true } property)
+        if (field.Member is not PropertyInfo { CanRead: true, CanWrite: true } property)
         {
             return;
         }
 
-        var flags = selection.Field.Flags;
-        if ((flags & CoreFieldFlags.Connection) == CoreFieldFlags.Connection
-            || (flags & CoreFieldFlags.CollectionSegment) == CoreFieldFlags.CollectionSegment)
+        if (field.Flags.HasFlag(CoreFieldFlags.Connection)
+            || field.Flags.HasFlag(CoreFieldFlags.CollectionSegment))
         {
             return;
         }

@@ -278,6 +278,8 @@ public abstract partial class FusionTestBase : IDisposable
     {
         public HttpClient CreateClient() => testServer.CreateClient();
 
+        public WebSocketClient CreateWebSocketClient() => testServer.CreateWebSocketClient();
+
         public IServiceProvider Services => testServer.Services;
 
         public List<SourceSchemaText> SourceSchemas => sourceSchemas;

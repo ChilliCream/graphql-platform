@@ -76,6 +76,23 @@ public class IntegrationTests
     }
 
     [Fact]
+    public async Task ObjectTypeDescriptorAttribute_Should_Receive_NonNull_Type_When_Applied_To_StaticPartial_TypeExtension()
+    {
+        // arrange
+        var schema = await new ServiceCollection()
+            .AddGraphQLServer()
+            .AddIntegrationTestTypes()
+            .AddPagingArguments()
+            .BuildSchemaAsync();
+
+        // act
+        var renamedType = schema.Types.GetType<ObjectType>("renamed_DescriptorAttributeProbe");
+
+        // assert
+        Assert.NotNull(renamedType);
+    }
+
+    [Fact]
     public async Task Maps_NullOrdering_From_PagingOptions_To_PagingArguments()
     {
         // arrange
