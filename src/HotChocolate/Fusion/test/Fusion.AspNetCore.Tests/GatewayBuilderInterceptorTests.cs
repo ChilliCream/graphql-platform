@@ -46,14 +46,7 @@ public class GatewayBuilderInterceptorTests : FusionTestBase
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchInlineSnapshot(
-            """
-            {
-              "extensions": {
-                "captured": "from-http-interceptor"
-              }
-            }
-            """);
+        Assert.Equal("from-http-interceptor", response.Extensions.GetProperty(ExtensionKey).GetString());
     }
 
     [Fact]
@@ -81,14 +74,7 @@ public class GatewayBuilderInterceptorTests : FusionTestBase
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchInlineSnapshot(
-            """
-            {
-              "extensions": {
-                "captured": "from-http-interceptor"
-              }
-            }
-            """);
+        Assert.Equal("from-http-interceptor", response.Extensions.GetProperty(ExtensionKey).GetString());
         Assert.True(factoryInvoked);
     }
 
@@ -248,17 +234,20 @@ public class GatewayBuilderInterceptorTests : FusionTestBase
 
     private static async Task<JsonElement> SubscribeOverWebSocketAsync(Gateway gateway)
     {
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        var ct = cts.Token;
+
         var webSocketClient = gateway.CreateWebSocketClient();
         webSocketClient.ConfigureRequest = r => r.Headers.SecWebSocketProtocol = WellKnownProtocols.GraphQL_Transport_WS;
 
         using var webSocket = await webSocketClient.ConnectAsync(
             new Uri("ws://localhost:5000/graphql"),
-            CancellationToken.None);
+            ct);
 
-        await using var client = await SocketClient.ConnectAsync(webSocket);
-        using var result = await client.ExecuteAsync(new TransportOperationRequest("{ field }"));
+        await using var client = await SocketClient.ConnectAsync(webSocket, ct);
+        using var result = await client.ExecuteAsync(new TransportOperationRequest("{ field }"), ct);
 
-        await foreach (var operationResult in result.ReadResultsAsync())
+        await foreach (var operationResult in result.ReadResultsAsync().WithCancellation(ct))
         {
             using (operationResult)
             {
