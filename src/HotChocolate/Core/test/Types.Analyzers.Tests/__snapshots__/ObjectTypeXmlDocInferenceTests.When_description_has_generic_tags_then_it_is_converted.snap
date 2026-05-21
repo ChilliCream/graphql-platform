@@ -60,11 +60,14 @@ namespace TestNamespace
             var bindingResolver = extension.Context.ParameterBindingResolver;
             var resolvers = new __Resolvers();
 
-            HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
-                extension.Context,
-                descriptor,
-                typeof(global::TestNamespace.Query),
-                new global::HotChocolate.Types.QueryTypeAttribute());
+            if (configuration.AppliedDescriptorAttributes.Add("new global::HotChocolate.Types.QueryTypeAttribute()"))
+            {
+                HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
+                    extension.Context,
+                    descriptor,
+                    typeof(global::TestNamespace.Query),
+                    new global::HotChocolate.Types.QueryTypeAttribute());
+            }
             configuration.ConfigurationsAreApplied = true;
 
             var naming = descriptor.Extend().Context.Naming;
@@ -164,7 +167,7 @@ Assembly Emit Diagnostics
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "Query.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (69,37)-(69,74)",
+    "Location": "Query.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (72,37)-(72,74)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0718)",
     "MessageFormat": "'{0}': static types cannot be used as type arguments",
     "Message": "'Query': static types cannot be used as type arguments",

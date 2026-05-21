@@ -65,11 +65,14 @@ namespace TestNamespace
             var bindingResolver = extension.Context.ParameterBindingResolver;
             var resolvers = new __Resolvers(bindingResolver);
 
-            HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
-                extension.Context,
-                descriptor,
-                typeof(global::TestNamespace.Query),
-                new global::HotChocolate.Types.QueryTypeAttribute());
+            if (configuration.AppliedDescriptorAttributes.Add("new global::HotChocolate.Types.QueryTypeAttribute()"))
+            {
+                HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
+                    extension.Context,
+                    descriptor,
+                    typeof(global::TestNamespace.Query),
+                    new global::HotChocolate.Types.QueryTypeAttribute());
+            }
             configuration.ConfigurationsAreApplied = true;
 
             descriptor.Directive(global::HotChocolate.Types.Composite.Shareable.Instance);

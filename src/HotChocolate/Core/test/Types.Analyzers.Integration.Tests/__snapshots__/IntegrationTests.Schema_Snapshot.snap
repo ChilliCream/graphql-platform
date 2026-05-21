@@ -225,6 +225,14 @@ type BooksEdge {
   node: Book!
 }
 
+type dup_Issue9760Probe {
+  fieldOne: String!
+  configuredOne: String! @cost(weight: "10")
+  fieldTwo: String!
+  configuredTwo: String! @cost(weight: "10")
+  id: String!
+}
+
 "A connection to a list of items."
 type FavoriteBooksConnection {
   "Information to aid in pagination."
@@ -345,6 +353,12 @@ type PublishersEdge {
 
 type renamed_DescriptorAttributeProbe {
   name: String!
+}
+
+type second_first_Issue9760MultiValueProbe {
+  fieldOne: String!
+  fieldTwo: String!
+  id: String!
 }
 
 type Shape {

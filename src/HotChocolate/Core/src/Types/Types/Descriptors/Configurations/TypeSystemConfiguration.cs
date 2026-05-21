@@ -12,6 +12,7 @@ public abstract class TypeSystemConfiguration : ITypeSystemConfiguration
     private List<TypeDependency>? _dependencies;
     private List<ITypeSystemConfigurationTask>? _tasks;
     private IFeatureCollection? _features;
+    private HashSet<string>? _appliedDescriptorAttributes;
 
     /// <summary>
     /// Gets or sets the name of the type system member.
@@ -36,6 +37,16 @@ public abstract class TypeSystemConfiguration : ITypeSystemConfiguration
     /// Defines whether the <see cref="Configurations"/>> have been applied or not.
     /// </summary>
     public bool ConfigurationsAreApplied { get; set; }
+
+    /// <summary>
+    /// Tracks the descriptor attribute identities that have already been applied to this
+    /// configuration. The source generator uses it to dedupe class-level descriptor
+    /// attributes contributed by multiple static partial classes targeting the same type,
+    /// so that an attribute appearing on N partials applies once while attributes with
+    /// distinct argument values each still apply.
+    /// </summary>
+    public ISet<string> AppliedDescriptorAttributes
+        => _appliedDescriptorAttributes ??= new HashSet<string>(StringComparer.Ordinal);
 
     /// <summary>
     /// Get access to context data that are copied to the type

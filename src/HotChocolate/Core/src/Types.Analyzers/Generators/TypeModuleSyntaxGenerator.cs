@@ -55,8 +55,8 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
 
         var operations = OperationType.No;
         var hasConfigurations = false;
-        List<string>? objectTypeExtensions = null;
-        List<string>? interfaceTypeExtensions = null;
+        HashSet<string>? objectTypeExtensions = null;
+        HashSet<string>? interfaceTypeExtensions = null;
 
         if (syntaxInfos.Any(t => t is RootTypeInfo { SourceSchemaDetected: true }))
         {

@@ -168,6 +168,14 @@ type BookEdge {
   node: Book!
 }
 
+type dup_Issue9760Probe {
+  fieldOne: String!
+  configuredOne: String!
+  fieldTwo: String!
+  configuredTwo: String!
+  id: String!
+}
+
 "A connection to a list of items."
 type IntConnection {
   "Information to aid in pagination."
@@ -262,6 +270,12 @@ type PublisherEdge {
 
 type renamed_DescriptorAttributeProbe {
   name: String!
+}
+
+type second_first_Issue9760MultiValueProbe {
+  fieldOne: String!
+  fieldTwo: String!
+  id: String!
 }
 
 type Shape {

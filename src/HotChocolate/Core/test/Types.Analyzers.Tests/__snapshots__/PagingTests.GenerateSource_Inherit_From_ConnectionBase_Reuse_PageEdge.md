@@ -301,11 +301,14 @@ namespace TestNamespace.Types.Root
             var bindingResolver = extension.Context.ParameterBindingResolver;
             var resolvers = new __Resolvers();
 
-            HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
-                extension.Context,
-                descriptor,
-                typeof(global::TestNamespace.Types.Root.AuthorQueries),
-                new global::HotChocolate.Types.QueryTypeAttribute());
+            if (configuration.AppliedDescriptorAttributes.Add("new global::HotChocolate.Types.QueryTypeAttribute()"))
+            {
+                HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
+                    extension.Context,
+                    descriptor,
+                    typeof(global::TestNamespace.Types.Root.AuthorQueries),
+                    new global::HotChocolate.Types.QueryTypeAttribute());
+            }
             configuration.ConfigurationsAreApplied = true;
 
             var naming = descriptor.Extend().Context.Naming;

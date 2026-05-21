@@ -103,29 +103,39 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         if (attributes.Length > 0)
         {
             Writer.WriteLine();
-            Writer.WriteIndentedLine(
-                "{0}.ApplyConfiguration(",
-                WellKnownTypes.ConfigurationHelper);
-            using (Writer.IncreaseIndent())
+
+            // Multiple static partials targeting the same runtime type all run Initialize
+            // on the same canonical descriptor. Dedupe descriptor attributes by their
+            // constructor identity so that the same attribute repeated across partials is
+            // only applied once; distinct argument tuples remain independent and each
+            // apply.
+            foreach (var attribute in attributes)
             {
-                Writer.WriteIndentedLine("extension.Context,");
-                Writer.WriteIndentedLine("descriptor,");
-                Writer.WriteIndentedLine("typeof(global::{0}),", schemaFullTypeName);
+                var instantiation = GenerateAttributeInstantiation(attribute);
+                var key = GeneratorUtils.EscapeForStringLiteral(instantiation);
 
-                var first = true;
-                foreach (var attribute in attributes)
+                Writer.WriteIndentedLine(
+                    "if (configuration.{0}.Add(\"{1}\"))",
+                    WellKnownTypes.AppliedDescriptorAttributesProperty,
+                    key);
+                Writer.WriteIndentedLine("{");
+                using (Writer.IncreaseIndent())
                 {
-                    if (!first)
+                    Writer.WriteIndentedLine(
+                        "{0}.ApplyConfiguration(",
+                        WellKnownTypes.ConfigurationHelper);
+                    using (Writer.IncreaseIndent())
                     {
-                        Writer.WriteLine(',');
+                        Writer.WriteIndentedLine("extension.Context,");
+                        Writer.WriteIndentedLine("descriptor,");
+                        Writer.WriteIndentedLine("typeof(global::{0}),", schemaFullTypeName);
+                        Writer.WriteIndent();
+                        Writer.Write(instantiation);
+                        Writer.WriteLine([')', ';']);
                     }
-
-                    Writer.WriteIndent();
-                    Writer.Write(GenerateAttributeInstantiation(attribute));
-                    first = false;
                 }
 
-                Writer.WriteLine([')', ';']);
+                Writer.WriteIndentedLine("}");
             }
 
             Writer.WriteIndentedLine("configuration.ConfigurationsAreApplied = true;");

@@ -101,6 +101,7 @@ public static class WellKnownTypes
     public const string ParameterDescriptor = "HotChocolate.Internal.ParameterDescriptor";
     public const string TypeContext = "HotChocolate.Types.TypeContext";
     public const string ConfigurationHelper = "HotChocolate.Internal.ConfigurationHelper";
+    public const string AppliedDescriptorAttributesProperty = "AppliedDescriptorAttributes";
     public const string InterfaceFieldDescriptor = "HotChocolate.Types.Descriptors.InterfaceFieldDescriptor";
     public const string ObjectFieldDescriptor = "HotChocolate.Types.Descriptors.ObjectFieldDescriptor";
     public const string NonNullTypeNode = "HotChocolate.Language.NonNullTypeNode";

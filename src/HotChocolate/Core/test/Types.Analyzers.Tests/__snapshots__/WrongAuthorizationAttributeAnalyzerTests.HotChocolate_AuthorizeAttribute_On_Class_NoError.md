@@ -59,11 +59,14 @@ namespace TestNamespace
             var bindingResolver = extension.Context.ParameterBindingResolver;
             var resolvers = new __Resolvers();
 
-            HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
-                extension.Context,
-                descriptor,
-                typeof(global::TestNamespace.ProductQueries),
-                new global::HotChocolate.Authorization.AuthorizeAttribute());
+            if (configuration.AppliedDescriptorAttributes.Add("new global::HotChocolate.Authorization.AuthorizeAttribute()"))
+            {
+                HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
+                    extension.Context,
+                    descriptor,
+                    typeof(global::TestNamespace.ProductQueries),
+                    new global::HotChocolate.Authorization.AuthorizeAttribute());
+            }
             configuration.ConfigurationsAreApplied = true;
 
             var naming = descriptor.Extend().Context.Naming;

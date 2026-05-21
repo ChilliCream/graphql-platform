@@ -61,11 +61,14 @@ namespace TestNamespace
             var extension = descriptor.Extend();
             var configuration = extension.Configuration;
 
-            HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
-                extension.Context,
-                descriptor,
-                typeof(global::TestNamespace.Query),
-                new global::HotChocolate.Types.QueryTypeAttribute());
+            if (configuration.AppliedDescriptorAttributes.Add("new global::HotChocolate.Types.QueryTypeAttribute()"))
+            {
+                HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
+                    extension.Context,
+                    descriptor,
+                    typeof(global::TestNamespace.Query),
+                    new global::HotChocolate.Types.QueryTypeAttribute());
+            }
             configuration.ConfigurationsAreApplied = true;
 
             Configure(descriptor);

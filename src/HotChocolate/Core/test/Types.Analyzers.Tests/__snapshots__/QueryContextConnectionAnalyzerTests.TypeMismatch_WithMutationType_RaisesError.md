@@ -66,11 +66,14 @@ namespace TestNamespace
             var bindingResolver = extension.Context.ParameterBindingResolver;
             var resolvers = new __Resolvers(bindingResolver);
 
-            HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
-                extension.Context,
-                descriptor,
-                typeof(global::TestNamespace.Mutation),
-                new global::HotChocolate.Types.MutationTypeAttribute());
+            if (configuration.AppliedDescriptorAttributes.Add("new global::HotChocolate.Types.MutationTypeAttribute()"))
+            {
+                HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
+                    extension.Context,
+                    descriptor,
+                    typeof(global::TestNamespace.Mutation),
+                    new global::HotChocolate.Types.MutationTypeAttribute());
+            }
             configuration.ConfigurationsAreApplied = true;
 
             var naming = descriptor.Extend().Context.Naming;
