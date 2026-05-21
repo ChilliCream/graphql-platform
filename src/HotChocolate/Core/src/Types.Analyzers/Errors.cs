@@ -63,7 +63,7 @@ public static class Errors
         new(
             id: "HC0091",
             title: "Partial Keyword Missing",
-            messageFormat: "A static root type class should be declared as partial to allow source generation",
+            messageFormat: "A root type class should be declared as partial to allow source generation",
             category: "TypeSystem",
             DiagnosticSeverity.Info,
             isEnabledByDefault: true);

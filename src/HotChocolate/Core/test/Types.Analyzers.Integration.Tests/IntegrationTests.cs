@@ -111,4 +111,25 @@ public class IntegrationTests
         Assert.Empty(operationResult.Errors);
         Assert.Equal(NullOrdering.NativeNullsFirst, Query.PagingArguments.NullOrdering);
     }
+
+    [Fact]
+    public async Task Resolves_Instance_Method_On_NonStatic_QueryType()
+    {
+        // arrange
+        // NonStaticPagedQuery.SomeBooks returns a Book whose title is the resolver
+        // instance's InstanceId (a 32-char hex GUID).
+        var executor = await new ServiceCollection()
+            .AddGraphQLServer()
+            .AddIntegrationTestTypes()
+            .AddPagingArguments()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync("{ someBooks { nodes { title } } }");
+
+        // assert
+        var json = result.ToJson();
+        Assert.DoesNotContain("\"errors\"", json);
+        Assert.Matches("\"title\": \"[0-9a-f]{32}\"", json);
+    }
 }
