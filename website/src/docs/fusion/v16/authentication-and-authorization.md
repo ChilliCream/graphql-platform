@@ -196,4 +196,4 @@ Authorization is a cross-cutting concern that involves both the gateway and the 
 
 The subgraph ultimately decides whether a request can access specific data. Only the subgraph has the full context about the data and its business rules, so it is best suited to make authorization decisions.
 
-For more information on subgraph-level authorization, `@authorize`, policies, and claims in Hot Chocolate subgraphs, see [Hot Chocolate authorization](../hotchocolate/securing-your-api/authorization.md).
+For more information on subgraph-level authorization, `@authorize`, policies, and claims in Hot Chocolate subgraphs, see [Hot Chocolate authorization](/docs/hotchocolate/v16/securing-your-api/authorization).
