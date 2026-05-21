@@ -64,7 +64,6 @@ If you're using any of the following configuration APIs, ensure that the applica
 - `AddErrorFilter`
 - `AddDiagnosticEventListener`
 - `AddOperationCompilerOptimizer`
-- `AddTransactionScopeHandler`
 - `AddRedisOperationDocumentStorage`
 - `AddAzureBlobStorageOperationDocumentStorage`
 - `AddInstrumentation` with a custom `ActivityEnricher`
@@ -790,7 +789,20 @@ Note that this option is likely to be removed in a later release, so it's recomm
 
 ## DateTime scalar serialization
 
-The `DateTime` scalar now serializes with up to 7 fractional seconds (`FFFFFFF`) as opposed to exactly 3 (`fff`).
+The `DateTime` scalar now serializes with up to 7 fractional seconds (`FFFFFFF`) as opposed to exactly 3 (`fff`). Trailing zeros are stripped, and the fractional component is omitted entirely when zero, so `2023-12-24T15:30:00.5000000Z` is now emitted as `2023-12-24T15:30:00.5Z` and `2023-12-24T15:30:00.0000000Z` is emitted as `2023-12-24T15:30:00Z`.
+
+If you need fractional seconds to always be present in the output (for example, to preserve a fixed-width format your clients depend on), set `AlwaysOutputFractionalSeconds = true` on `DateTimeOptions`. You can also tune the precision via `OutputPrecision`. To restore the exact v15 behavior of always emitting three fractional digits, combine both:
+
+```csharp
+builder.AddGraphQL()
+    .AddType(new DateTimeType(new DateTimeOptions
+    {
+        OutputPrecision = 3,
+        AlwaysOutputFractionalSeconds = true
+    }));
+```
+
+The same options apply to the `LocalDateTime` and `LocalTime` scalars (and to their counterparts in `HotChocolate.Types.NodaTime`, which expose a matching `DateTimeOptions` struct).
 
 ## IHasRuntimeType is now IRuntimeTypeProvider
 
@@ -1295,6 +1307,25 @@ public class CustomFilteringConvention : FilterConvention
 ```
 
 The `CanHandle` signature also changed on the filtering, sorting, and projection handler interfaces. If you have overridden it, re-override against the new signature.
+
+## Transaction scope handlers removed
+
+`AddTransactionScopeHandler` and `AddDefaultTransactionScopeHandler` have been removed. The `ITransactionScopeHandler` abstraction wrapped an entire mutation operation in a single transaction and rolled back all root field results when any root field errored. This violates the GraphQL specification, which defines mutation root fields as independent: each field's result must be observable regardless of whether subsequent fields succeed or fail.
+
+If you relied on transaction handlers to keep multiple mutation fields consistent, model that coupling explicitly in the schema. Replace fine-grained root fields with a single coarse-grained mutation that accepts a composite input and performs the work as one unit:
+
+```graphql
+mutation {
+  # Before: separate fields, transactionality was implicit and spec-violating
+  addProducts(productIds: [...]) { ... }
+  removeProducts(productIds: [...]) { ... }
+
+  # After: one mutation that answers the client use case
+  updateCart(input: { productsToAdd: [...], productsToRemove: [...] }) { ... }
+}
+```
+
+The transaction boundary now lives inside the resolver for the coarse-grained mutation, where you control it directly with your data access layer.
 
 # Deprecations
 

@@ -222,6 +222,11 @@ internal sealed partial class SourceSchemaPreprocessor(
         {
             foreach (var type in schema.Types.OfType<MutableObjectTypeDefinition>())
             {
+                if (type == schema.SubscriptionType)
+                {
+                    continue;
+                }
+
                 if (!sourceSchema.Types.TryGetType<MutableObjectTypeDefinition>(type.Name, out var otherType))
                 {
                     continue;

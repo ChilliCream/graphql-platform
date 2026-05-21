@@ -225,6 +225,7 @@ Touchpoint
 TOWGS
 traceparent
 tracestate
+transactionality
 Trimmable
 Tzdb
 unittests

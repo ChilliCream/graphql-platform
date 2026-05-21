@@ -172,9 +172,14 @@ internal sealed class DirectiveVisitor()
             }
 
             // Defer And Stream Directive Labels Are Unique
+            // The spec iterates over every directive in the document. Because the
+            // document walker descends into fragment definitions once per spread,
+            // the same lexical @defer/@stream directive may be visited multiple
+            // times. Track the processed directive nodes so each is counted once.
             if (node.Kind is Field or InlineFragment or FragmentSpread
                 && (directive.Name.Value.Equals(DirectiveNames.Defer.Name, StringComparison.Ordinal)
-                || directive.Name.Value.Equals(DirectiveNames.Stream.Name, StringComparison.Ordinal)))
+                || directive.Name.Value.Equals(DirectiveNames.Stream.Name, StringComparison.Ordinal))
+                && feature.ProcessedLabelDirectives.Add(directive))
             {
                 switch (directive.GetArgumentValue(DirectiveNames.Defer.Arguments.Label))
                 {
@@ -249,10 +254,13 @@ internal sealed class DirectiveVisitor()
 
         public HashSet<string> Labels { get; } = [];
 
+        public HashSet<DirectiveNode> ProcessedLabelDirectives { get; } = [];
+
         protected internal override void Reset()
         {
             DirectiveNames.Clear();
             Labels.Clear();
+            ProcessedLabelDirectives.Clear();
         }
     }
 }
