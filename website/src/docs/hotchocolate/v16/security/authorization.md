@@ -274,7 +274,7 @@ public class MinimumAgeHandler
 
 Use `[AllowAnonymous]` to bypass authorization on specific fields. This is useful for registration or public content endpoints.
 
-> **Use `HotChocolate.AspNetCore.Authorization.AllowAnonymousAttribute`**, not `Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute`.
+> **Use `HotChocolate.Authorization.AllowAnonymousAttribute`**, not `Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute`.
 
 ```csharp
 [MutationType]
