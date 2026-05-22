@@ -130,24 +130,6 @@ erDiagram
   }
 ```
 
-# Gantt
-
-```mermaid
-gantt
-  title Fusion v2 Migration
-  dateFormat YYYY-MM-DD
-  axisFormat %b %d
-  section Subgraphs
-    Inventory      :a1, 2026-01-06, 14d
-    Orders         :a2, after a1, 10d
-    Users          :a3, 2026-01-20, 7d
-  section Gateway
-    Dual-publish   :b1, 2026-02-01, 5d
-    Cut over       :crit, b2, after b1, 3d
-  section Cleanup
-    Remove v1 step :c1, after b2, 7d
-```
-
 # Git Graph
 
 ```mermaid
