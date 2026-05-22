@@ -387,7 +387,7 @@ public class DefaultGraphQLClientConfigurationParserTests : FusionTestBase
 
         // assert
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(Act);
-        Assert.Equal("No parser claimed source schema 'a'.", exception.Message);
+        Assert.Equal("The source schema configuration of 'a' could not be parsed.", exception.Message);
     }
 
     [Fact]
