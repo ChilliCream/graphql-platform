@@ -191,6 +191,10 @@ jobs:
         run: yarn --immutable --network-timeout 100000
         working-directory: website-next
 
+      - name: Install Playwright Chromium
+        run: yarn playwright install --with-deps chromium
+        working-directory: website-next
+
       - name: Lint
         run: yarn lint
         working-directory: website-next
