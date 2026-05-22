@@ -2,15 +2,20 @@
 # install the website's yarn dependencies.
 
 $ErrorActionPreference = 'Stop'
-$scriptDir = Split-Path -Parent $PSCommandPath
 
-& dotnet restore (Join-Path $scriptDir 'src/All.slnx')
-if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
-Push-Location (Join-Path $scriptDir 'website')
+Push-Location (Split-Path -Parent $PSCommandPath)
 try {
-    & yarn
+    & dotnet restore src/All.slnx
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+    Push-Location website
+    try {
+        & yarn
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    }
+    finally {
+        Pop-Location
+    }
 }
 finally {
     Pop-Location
