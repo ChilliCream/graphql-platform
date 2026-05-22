@@ -57,6 +57,21 @@ builder.AddGraphQL()
 public class MyDiagnosticEventListener(MyService service) : ExecutionDiagnosticEventListener;
 ```
 
+Sometimes the registration of required services is not as obvious. For example, the types for logging are registered in framework code.
+
+```diff
+builder.Services.AddLogging();
+builder.AddGraphQL()
++   .AddApplicationService<ILogger<MyLoggingDiagnosticEventListener>>()
+
+    // either
+    .AddDiagnosticEventListener<MyLoggingDiagnosticEventListener>();
+    // or
+    .AddDiagnosticEventListener(sp => new MyLoggingDiagnosticEventListener(sp.GetRequiredService<ILogger<MyLoggingDiagnosticEventListener>>()));
+
+public class MyLoggingDiagnosticEventListener(ILogger<MyLoggingDiagnosticEventListener> logger) : ExecutionDiagnosticEventListener;
+```
+
 Services registered via `AddApplicationService<T>()` are resolved once during schema initialization from the application service provider and registered as singletons in the schema service provider.
 
 If you're using any of the following configuration APIs, ensure that the application services required for their activation are registered via `AddApplicationService<T>()`:
