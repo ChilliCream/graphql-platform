@@ -4,6 +4,8 @@ import { unstable_cache } from "next/cache";
 
 const WEBSITE_ROOT = process.cwd();
 const DOCS_DIR = path.join(WEBSITE_ROOT, "content", "docs");
+const BLOGS_DIR = path.join(WEBSITE_ROOT, "content", "blogs");
+const APP_CONTENT_DIR = path.join(WEBSITE_ROOT, "app", "(content)");
 const HEADER = "@@COMMIT@@";
 
 export interface GitMetadata {
@@ -76,7 +78,10 @@ function buildManifest(): Record<string, Entry> {
   }
   warnIfShallow(repoRoot);
 
-  const docsRel = path.relative(repoRoot, DOCS_DIR);
+  const trackedPaths = [DOCS_DIR, BLOGS_DIR, APP_CONTENT_DIR].map((p) =>
+    path.relative(repoRoot, p),
+  );
+
   let stdout: string;
   try {
     stdout = execFileSync(
@@ -90,7 +95,7 @@ function buildManifest(): Record<string, Entry> {
         "--diff-filter=AMR",
         `--format=${HEADER}%aI%x09%an`,
         "--",
-        docsRel,
+        ...trackedPaths,
       ],
       {
         cwd: repoRoot,
@@ -118,7 +123,7 @@ function buildManifest(): Record<string, Entry> {
       currentAuthor = tab === -1 ? "" : rest.slice(tab + 1);
       continue;
     }
-    if (currentDate === null || !/\.mdx?$/.test(line)) {
+    if (currentDate === null || !isTrackedFile(line)) {
       continue;
     }
     const abs = path.join(repoRoot, line);
@@ -130,6 +135,13 @@ function buildManifest(): Record<string, Entry> {
   }
 
   return out;
+}
+
+function isTrackedFile(repoRelativeFile: string): boolean {
+  if (/\.mdx?$/.test(repoRelativeFile)) {
+    return true;
+  }
+  return path.basename(repoRelativeFile) === "page.tsx";
 }
 
 function tryGitRoot(): string | null {

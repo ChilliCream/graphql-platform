@@ -20,24 +20,31 @@ const DOCS_CONTENT_ROOT = path.join(process.cwd(), "content", "docs");
 const EXCLUDED_PATHS = new Set(["/services/support/thank-you"]);
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  return [...staticPages(), ...(await docsPages()), ...blogPosts()];
+  return [
+    ...(await staticPages()),
+    ...(await docsPages()),
+    ...(await blogPosts()),
+  ];
 }
 
-function staticPages(): MetadataRoute.Sitemap {
-  return walk(CONTENT_PAGES_ROOT)
-    .filter((file) => path.basename(file) === "page.tsx")
-    .map((file) => {
-      const rel = path.relative(CONTENT_PAGES_ROOT, path.dirname(file));
-      const urlPath = rel === "" ? "/" : `/${rel.split(path.sep).join("/")}`;
-      return { file, urlPath };
-    })
-    .filter(({ urlPath }) => !EXCLUDED_PATHS.has(urlPath))
-    .map(({ file, urlPath }) => ({
-      url: `${SITE_URL}${urlPath}`,
-      lastModified: fs.statSync(file).mtime,
-      changeFrequency: "monthly",
-      priority: urlPath === "/" ? 1 : 0.7,
-    }));
+async function staticPages(): Promise<MetadataRoute.Sitemap> {
+  return Promise.all(
+    walk(CONTENT_PAGES_ROOT)
+      .filter((file) => path.basename(file) === "page.tsx")
+      .map((file) => {
+        const rel = path.relative(CONTENT_PAGES_ROOT, path.dirname(file));
+        const urlPath = rel === "" ? "/" : `/${rel.split(path.sep).join("/")}`;
+        return { file, urlPath };
+      })
+      .filter(({ urlPath }) => !EXCLUDED_PATHS.has(urlPath))
+      .map(async ({ file, urlPath }) => ({
+        url: `${SITE_URL}${urlPath}`,
+        lastModified:
+          (await getLastModifiedFromGit(file)) ?? fs.statSync(file).mtime,
+        changeFrequency: "monthly" as const,
+        priority: urlPath === "/" ? 1 : 0.7,
+      })),
+  );
 }
 
 async function docsPages(): Promise<MetadataRoute.Sitemap> {
@@ -56,22 +63,27 @@ async function docsPages(): Promise<MetadataRoute.Sitemap> {
       .filter(({ slug }) => slug.length > 0)
       .map(async ({ file, slug }) => ({
         url: `${SITE_URL}/docs/${slug.join("/")}`,
-        // Git-based attribution gives an accurate last-modified date even when
-        // the file's filesystem mtime is just the checkout time on a CI runner.
-        lastModified: (await getLastModifiedFromGit(file)) ?? fs.statSync(file).mtime,
+        lastModified:
+          (await getLastModifiedFromGit(file)) ?? fs.statSync(file).mtime,
         changeFrequency: "weekly" as const,
         priority: 0.5,
       })),
   );
 }
 
-function blogPosts(): MetadataRoute.Sitemap {
-  return listBlogPosts().map(({ parsed, rel }) => ({
-    url: `${SITE_URL}${blogUrlForStem(parsed)}`,
-    lastModified: fs.statSync(path.join(BLOG_ROOT, rel)).mtime,
-    changeFrequency: "yearly",
-    priority: 0.5,
-  }));
+async function blogPosts(): Promise<MetadataRoute.Sitemap> {
+  return Promise.all(
+    listBlogPosts().map(async ({ parsed, rel }) => {
+      const file = path.join(BLOG_ROOT, rel);
+      return {
+        url: `${SITE_URL}${blogUrlForStem(parsed)}`,
+        lastModified:
+          (await getLastModifiedFromGit(file)) ?? fs.statSync(file).mtime,
+        changeFrequency: "yearly" as const,
+        priority: 0.5,
+      };
+    }),
+  );
 }
 
 function walk(dir: string): string[] {
