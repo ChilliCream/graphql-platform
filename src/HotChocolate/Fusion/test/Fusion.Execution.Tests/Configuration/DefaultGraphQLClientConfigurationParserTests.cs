@@ -387,7 +387,55 @@ public class DefaultGraphQLClientConfigurationParserTests : FusionTestBase
 
         // assert
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(Act);
-        Assert.Equal("The source schema configuration of 'a' could not be parsed.", exception.Message);
+        Assert.Equal(
+            "The source schema configuration of 'a' could not be parsed and no client "
+            + "configuration was registered for it in code.",
+            exception.Message);
+    }
+
+    [Fact]
+    public async Task CreateClientConfigurations_Should_Not_Throw_When_Modifier_Provides_Missing_Configuration()
+    {
+        // arrange
+        // settings carry only a non-http transport, but a client configuration for "a"
+        // is supplied in code via AddHttpClientConfiguration.
+        var config = CreateConfigurationWithSettings(
+            """
+            {
+                "sourceSchemas": {
+                    "a": {
+                        "transports": {
+                            "xyz": { "url": "xyz://localhost" }
+                        }
+                    }
+                }
+            }
+            """);
+
+        var configProvider = new TestFusionConfigurationProvider(config);
+
+        var services =
+            new ServiceCollection()
+                .AddGraphQLGateway()
+                .AddConfigurationProvider(_ => configProvider)
+                .AddHttpClientConfiguration(
+                    new HttpSourceSchemaClientConfiguration(
+                        name: "a",
+                        httpClientName: HttpSourceSchemaClientConfiguration.DefaultClientName,
+                        baseAddress: new Uri("http://localhost:5000/graphql")))
+                .Services
+                .BuildServiceProvider();
+
+        var manager = services.GetRequiredService<FusionRequestExecutorManager>();
+
+        // act
+        var executor = await manager.GetExecutorAsync();
+
+        // assert
+        var clientConfigs = executor.Schema.Features.GetRequired<SourceSchemaClientConfigurations>();
+        Assert.True(clientConfigs.TryGet("a", OperationType.Query, out var queryConfig));
+        var http = Assert.IsType<HttpSourceSchemaClientConfiguration>(queryConfig);
+        Assert.Equal(new Uri("http://localhost:5000/graphql"), http.BaseAddress);
     }
 
     [Fact]

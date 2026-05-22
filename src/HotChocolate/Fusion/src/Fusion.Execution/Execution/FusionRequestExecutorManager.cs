@@ -863,24 +863,45 @@ internal sealed class FusionRequestExecutorManager
             JsonElement settings)
         {
             var configurations = new List<ISourceSchemaClientConfiguration>();
+            List<string>? unclaimedSourceSchemas = null;
 
             if (settings.TryGetProperty("sourceSchemas", out var sourceSchemas))
             {
                 foreach (var sourceSchema in sourceSchemas.EnumerateObject())
                 {
-                    if (!TryClaimSourceSchema(schema, sourceSchema, setup, out var sourceConfigurations))
+                    if (TryClaimSourceSchema(schema, sourceSchema, setup, out var sourceConfigurations))
                     {
-                        throw new InvalidOperationException(
-                            $"The source schema configuration of '{sourceSchema.Name}' could not be parsed.");
+                        configurations.AddRange(sourceConfigurations);
                     }
-
-                    configurations.AddRange(sourceConfigurations);
+                    else
+                    {
+                        (unclaimedSourceSchemas ??= []).Add(sourceSchema.Name);
+                    }
                 }
             }
 
             foreach (var configure in setup.ClientConfigurationModifiers)
             {
                 configurations.Add(configure.Invoke(applicationServices));
+            }
+
+            if (unclaimedSourceSchemas is not null)
+            {
+                var configuredNames = new HashSet<string>(StringComparer.Ordinal);
+                foreach (var configuration in configurations)
+                {
+                    configuredNames.Add(configuration.Name);
+                }
+
+                foreach (var name in unclaimedSourceSchemas)
+                {
+                    if (!configuredNames.Contains(name))
+                    {
+                        throw new InvalidOperationException(
+                            $"The source schema configuration of '{name}' could not be parsed "
+                            + "and no client configuration was registered for it in code.");
+                    }
+                }
             }
 
             // Register configurations that need post-Seal projection. The
