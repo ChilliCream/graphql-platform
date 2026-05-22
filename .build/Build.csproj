@@ -20,7 +20,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageDownload Include="NuGet.CommandLine" Version="[6.5.0]" />
     <PackageDownload Include="dotnet-sonarscanner" Version="[5.13.0]" />
     <PackageDownload Include="OpenCover" Version="[4.7.1221]" />
     <PackageDownload Include="ReportGenerator" Version="[5.1.20]" />

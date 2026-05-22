@@ -19,7 +19,7 @@ partial class Build
     AbsolutePath CoverageReportDirectory => OutputDirectory / "coverage-reports";
     AbsolutePath PackageDirectory => OutputDirectory / "packages";
     AbsolutePath HotChocolateDirectoryBuildProps => SourceDirectory / "HotChocolate" / "Directory.Build.Props";
-    AbsolutePath TemplatesNuSpec => RootDirectory / "templates" / "HotChocolate.Templates.nuspec";
+    AbsolutePath TemplatesProj => RootDirectory / "templates" / "HotChocolate.Templates.csproj";
     AbsolutePath EmptyServer12Proj => RootDirectory / "templates" / "server" / "HotChocolate.Template.Server.csproj";
     AbsolutePath EmptyAzf12Proj => RootDirectory / "templates" / "azure-function" / "HotChocolate.Template.AzureFunctions.csproj";
     AbsolutePath Gateway13Proj => RootDirectory / "templates" / "gateway" / "HotChocolate.Template.Gateway.csproj";
