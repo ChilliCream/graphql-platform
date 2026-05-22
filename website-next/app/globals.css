@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans:
+    var(--font-inter), ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    "Noto Sans", sans-serif;
+}
+
 html:has(:target) {
   scroll-behavior: smooth;
 }

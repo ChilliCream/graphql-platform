@@ -2,22 +2,32 @@ import fs from "node:fs";
 import path from "node:path";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { DocPageMeta } from "@/src/design-system/DocPageMeta";
 import { TableOfContents } from "@/src/design-system/TableOfContents";
 import { Typography } from "@/src/design-system/Typography";
 import { compileDoc } from "@/src/helpers/compileDoc";
+import { getGitMetadata } from "@/src/helpers/gitMetadata";
 import { readFrontmatter } from "@/src/helpers/readFrontmatter";
 
 const CONTENT_ROOT = path.join(process.cwd(), "content/docs");
 
+type Params = {
+  slug: string[];
+};
+
+type PageProps = {
+  params: Promise<Params>;
+};
+
 export const dynamicParams = false;
 
-export function generateStaticParams(): { slug: string[] }[] {
+export function generateStaticParams(): Params[] {
   const params = walk(CONTENT_ROOT)
     .filter((f) => /\.mdx?$/.test(f))
     .map((f) => path.relative(CONTENT_ROOT, f).replace(/\.mdx?$/, ""))
     .map((rel) => rel.split(path.sep))
     .map((parts) =>
-      parts[parts.length - 1] === "index" ? parts.slice(0, -1) : parts
+      parts[parts.length - 1] === "index" ? parts.slice(0, -1) : parts,
     )
     .filter((slug) => slug.length > 0)
     .map((slug) => ({ slug }));
@@ -29,9 +39,7 @@ export function generateStaticParams(): { slug: string[] }[] {
 
 export async function generateMetadata({
   params,
-}: {
-  params: Promise<{ slug: string[] }>;
-}): Promise<Metadata> {
+}: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const rel = resolveFile(slug);
   if (rel === null) {
@@ -44,11 +52,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function DocPage({
-  params,
-}: {
-  params: Promise<{ slug: string[] }>;
-}) {
+export default async function DocPage({ params }: PageProps) {
   const { slug } = await params;
   const rel = resolveFile(slug);
 
@@ -56,9 +60,9 @@ export default async function DocPage({
     notFound();
   }
 
-  const { content, frontmatter, toc } = await compileDoc(
-    path.join(CONTENT_ROOT, rel)
-  );
+  const absolutePath = path.join(CONTENT_ROOT, rel);
+  const { content, frontmatter, toc } = await compileDoc(absolutePath);
+  const gitMeta = await getGitMetadata(absolutePath);
 
   return (
     <div className="grid grid-cols-1 2xl:grid-cols-[1fr_20rem]">
@@ -67,7 +71,14 @@ export default async function DocPage({
           {frontmatter.title ? (
             <Typography variant="h1">{frontmatter.title}</Typography>
           ) : null}
+
           {content}
+
+          <DocPageMeta
+            isoDate={gitMeta.isoDate}
+            displayDate={gitMeta.displayDate}
+            author={gitMeta.author}
+          />
         </article>
       </main>
       <TableOfContents items={toc} />
