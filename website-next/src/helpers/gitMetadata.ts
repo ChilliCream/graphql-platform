@@ -1,6 +1,5 @@
 import { execFileSync, spawnSync } from "node:child_process";
 import path from "node:path";
-import { unstable_cache } from "next/cache";
 
 const WEBSITE_ROOT = process.cwd();
 const DOCS_DIR = path.join(WEBSITE_ROOT, "content", "docs");
@@ -19,16 +18,19 @@ export interface GitMetadata {
 
 type Entry = { date: string; author: string };
 
-// HEAD SHA participates in the cache key so the manifest is reused while the
-// commit hash is stable and rebuilt as soon as a new commit lands. Resolved
-// once at module load (a cheap `git rev-parse`).
-const HEAD_SHA = resolveHeadSha();
+const REPO_ROOT = tryGitRoot();
+if (REPO_ROOT !== null) {
+  warnIfShallow(REPO_ROOT);
+}
 
-const loadManifest = unstable_cache(
-  (): Promise<Record<string, Entry>> => Promise.resolve(buildManifest()),
-  ["docs-git-metadata", HEAD_SHA],
-  { revalidate: false },
-);
+let manifestPromise: Promise<Record<string, Entry>> | undefined;
+
+function loadManifest(): Promise<Record<string, Entry>> {
+  if (!manifestPromise) {
+    manifestPromise = Promise.resolve(buildManifest());
+  }
+  return manifestPromise;
+}
 
 /**
  * Returns the raw last-commit date for a file, or `undefined` if git has no
@@ -72,11 +74,10 @@ export async function getGitMetadata(
 }
 
 function buildManifest(): Record<string, Entry> {
-  const repoRoot = tryGitRoot();
-  if (!repoRoot) {
+  if (REPO_ROOT === null) {
     return {};
   }
-  warnIfShallow(repoRoot);
+  const repoRoot = REPO_ROOT;
 
   const trackedPaths = [DOCS_DIR, BLOGS_DIR, APP_CONTENT_DIR].map((p) =>
     path.relative(repoRoot, p),
@@ -150,14 +151,6 @@ function tryGitRoot(): string | null {
     encoding: "utf-8",
   });
   return res.status === 0 ? res.stdout.trim() : null;
-}
-
-function resolveHeadSha(): string {
-  const res = spawnSync("git", ["rev-parse", "HEAD"], {
-    cwd: WEBSITE_ROOT,
-    encoding: "utf-8",
-  });
-  return res.status === 0 ? res.stdout.trim() : "no-git";
 }
 
 function warnIfShallow(repoRoot: string): void {
