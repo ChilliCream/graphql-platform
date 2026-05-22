@@ -93,7 +93,43 @@ public static class ExpressionHasherTests
         var hash = hasher.Add(selector).Compute();
 
         // assert
-        Assert.Equal("76892c282824bfdfe59e135a298c926e", hash);
+        Assert.Equal("c813ce43dee13611a2ea72f044810ec0", hash);
+    }
+
+    [Fact]
+    public static void Predicate_With_Different_Constants_Hashes_Differently()
+    {
+        // arrange
+        Expression<Func<Entity1, bool>> p1 = x => x.Name == "abc";
+        Expression<Func<Entity1, bool>> p2 = x => x.Name == "xyz";
+
+        // act
+        var hash1 = new ExpressionHasher().Add(p1).Compute();
+        var hash2 = new ExpressionHasher().Add(p2).Compute();
+
+        // assert
+        Assert.NotEqual(hash1, hash2);
+    }
+
+    [Fact]
+    public static void Predicate_With_Captured_Variable_Hashes_By_Value()
+    {
+        // arrange
+        // Captured locals become ConstantExpression instances wrapping a compiler-generated
+        // closure; the hash must reflect the captured value, not just the closure type.
+
+        // act
+        var hash1 = HashWithCapturedName("abc");
+        var hash2 = HashWithCapturedName("xyz");
+
+        // assert
+        Assert.NotEqual(hash1, hash2);
+    }
+
+    private static string HashWithCapturedName(string name)
+    {
+        Expression<Func<Entity1, bool>> predicate = x => x.Name == name;
+        return new ExpressionHasher().Add(predicate).Compute();
     }
 
     [Fact]
@@ -150,14 +186,14 @@ public static class ExpressionHasherTests
         // arrange
         var hasher = new ExpressionHasher();
         var initialBufferSize = hasher.InitialBufferSize;
-        var expression = Expression.Lambda<Func<Entity1>>(Expression.Constant(new Entity1())); // translated to 8 bytes
+        var expression = Expression.Lambda<Func<int>>(Expression.Constant(0)); // translated to 31 bytes
 
         // act
         var length = 0;
         while (length < initialBufferSize + 1)
         {
             hasher.Add(expression);
-            length += 8;
+            length += 31;
         }
 
         // assert
