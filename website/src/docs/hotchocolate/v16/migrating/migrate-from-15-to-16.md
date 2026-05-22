@@ -48,9 +48,9 @@ Starting with v16, we're introducing a more explicit model where Hot Chocolate c
 builder.Services.AddSingleton<MyService>();
 builder.AddGraphQL()
 +   .AddApplicationService<MyService>()
-    .AddDiagnosticEventListener<MyDiagnosticEventListener>()
+    .AddDiagnosticEventListener<MyDiagnosticEventListener>();
     // or
-    .AddDiagnosticEventListener(sp => new MyService(sp.GetRequiredService<MyService>()));
+    .AddDiagnosticEventListener(sp => new MyDiagnosticEventListener(sp.GetRequiredService<MyService>()));
 
 public class MyDiagnosticEventListener(MyService service) : ExecutionDiagnosticEventListener;
 ```
