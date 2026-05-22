@@ -29,20 +29,9 @@ jobs:
         with:
           show-progress: false
 
-      - name: Install .NET
-        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5
-        with:
-          dotnet-version: |
-            8.x
-            9.x
-            10.x
-
       - name: Generate Test Matrix
-        run: dotnet run --project ./.build -- GenerateMatrix
-
-      - name: Export Test Matrix
         id: set-matrix
-        run: echo "matrix=$(jq -c . < ./matrix.json)" >> $GITHUB_OUTPUT
+        uses: ./.github/actions/generate-test-matrix
 
   library-tests:
     name: Run ${{ matrix.name }}
