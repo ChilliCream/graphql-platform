@@ -80,9 +80,14 @@ public sealed class SchemaComposer
 
         // Prune unreachable definitions from each source schema before validation, so types
         // stripped by @excludeByTag (or otherwise unreferenced) are not validated or merged.
-        foreach (var schema in schemas)
+        if (_schemaComposerOptions.Merger.RemoveUnreferencedDefinitions)
         {
-            schema.RemoveUnreferencedDefinitions(schemas);
+            var preservedTypeNames = MutableSchemaDefinitionExtensions.GetPreservedTypeNames(schemas);
+
+            foreach (var schema in schemas)
+            {
+                schema.RemoveUnreferencedDefinitions(preservedTypeNames);
+            }
         }
 
         // Validate Source Schemas
