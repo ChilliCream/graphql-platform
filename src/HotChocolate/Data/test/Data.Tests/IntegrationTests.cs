@@ -4,6 +4,8 @@
 // ReSharper disable MemberCanBePrivate.Global
 // ReSharper disable MoveLocalFunctionAfterJumpStatement
 
+using System.Collections.Immutable;
+using GreenDonut;
 using GreenDonut.Data;
 using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
@@ -1101,6 +1103,70 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
     }
 
     [Fact]
+    public async Task AliasedFilters_OnPagedDataLoader_DoNotCollideOnHash()
+    {
+        // arrange
+        // Three books on one author; the two aliased queries below differ only in the
+        // string constant inside `where`. Before VisitConstant was overridden the
+        // QueryContext branch key was identical, so the second LoadAsync returned the
+        // first call's predicate and both aliases produced the same data.
+        var books = new List<Book>
+        {
+            new() { Id = 1, AuthorId = 1, Title = "alpha" },
+            new() { Id = 2, AuthorId = 1, Title = "beta" },
+            new() { Id = 3, AuthorId = 1, Title = "gamma" }
+        };
+
+        var executor = await new ServiceCollection()
+            .AddSingleton<IReadOnlyList<Book>>(books)
+            .AddGraphQL()
+            .AddFiltering()
+            .AddSorting()
+            .AddPagingArguments()
+            .AddDataLoader<BooksByAuthorPagedDataLoader>()
+            .AddQueryType<AliasedFilterQuery>()
+            .AddTypeExtension<AliasedFilterAuthorExtension>()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                author {
+                    alphaOnly: books(where: { title: { eq: "alpha" } }) { nodes { title } }
+                    betaOnly:  books(where: { title: { eq: "beta" } })  { nodes { title } }
+                }
+            }
+            """);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "author": {
+                  "alphaOnly": {
+                    "nodes": [
+                      {
+                        "title": "alpha"
+                      }
+                    ]
+                  },
+                  "betaOnly": {
+                    "nodes": [
+                      {
+                        "title": "beta"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task QueryContext_Selector_Projects_Nested_Fields_When_Static_Include_Is_True()
     {
         // arrange
@@ -1765,6 +1831,61 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 .Type<CustomSortMetadataInputType>()
                 .Extend()
                 .OnBeforeCreate(d => d.Handler = new CustomSortFieldHandler());
+        }
+    }
+
+    public class AliasedFilterQuery
+    {
+        public Author GetAuthor() => new() { Id = 1, Name = "Author1" };
+    }
+
+    [ExtendObjectType<Author>]
+    public class AliasedFilterAuthorExtension
+    {
+        [UsePaging]
+        [UseFiltering]
+        public async Task<Connection<Book>> GetBooks(
+            [Parent] Author author,
+            PagingArguments pagingArguments,
+            QueryContext<Book>? queryContext,
+            BooksByAuthorPagedDataLoader loader,
+            CancellationToken ct)
+            => await loader
+                .With(pagingArguments, queryContext)
+                .LoadAsync(author.Id, ct)
+                .ToConnectionAsync();
+    }
+
+    public sealed class BooksByAuthorPagedDataLoader(
+        IBatchScheduler scheduler,
+        DataLoaderOptions options,
+        IReadOnlyList<Book> source)
+        : StatefulBatchDataLoader<int, Page<Book>>(scheduler, options)
+    {
+        protected override Task<IReadOnlyDictionary<int, Page<Book>>> LoadBatchAsync(
+            IReadOnlyList<int> keys,
+            DataLoaderFetchContext<Page<Book>> context,
+            CancellationToken cancellationToken)
+        {
+            var query = context.GetQueryContext<Page<Book>, Book>();
+
+            IEnumerable<Book> matched = source.Where(b => keys.Contains(b.AuthorId));
+            if (query.Predicate is not null)
+            {
+                matched = matched.AsQueryable().Where(query.Predicate);
+            }
+
+            var result = matched
+                .GroupBy(b => b.AuthorId)
+                .ToDictionary(
+                    g => g.Key,
+                    g => Page<Book>.Create(
+                        g.OrderBy(b => b.Id).ToImmutableArray(),
+                        hasNextPage: false,
+                        hasPreviousPage: false,
+                        createCursor: b => b.Id.ToString()));
+
+            return Task.FromResult<IReadOnlyDictionary<int, Page<Book>>>(result);
         }
     }
 }

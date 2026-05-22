@@ -211,7 +211,7 @@ internal sealed class ExpressionHasher : ExpressionVisitor
 
         // Closure / wrapper objects (e.g. ExpressionParameter<T> emitted by HotChocolate's
         // filter framework, or C# compiler-generated closures from captured variables) hold
-        // the actual filter value as an instance field. Hash public fields so different
+        // the actual filter value as an instance field or property. Hash both so different
         // captured values produce different hashes; otherwise two predicates that differ
         // only in their captured constant collide.
         Append('{');
@@ -220,6 +220,17 @@ internal sealed class ExpressionHasher : ExpressionVisitor
             Append(field.Name);
             Append('=');
             AppendValue(field.GetValue(value));
+            Append(';');
+        }
+        foreach (var property in type.GetProperties(BindingFlags.Instance | BindingFlags.Public))
+        {
+            if (property.GetIndexParameters().Length > 0 || !property.CanRead)
+            {
+                continue;
+            }
+            Append(property.Name);
+            Append('=');
+            AppendValue(property.GetValue(value));
             Append(';');
         }
         Append('}');
