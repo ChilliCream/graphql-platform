@@ -4,10 +4,8 @@ using Nuke.Common;
 using Nuke.Common.IO;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
-using Nuke.Common.Tools.NuGet;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Helpers;
-using static Nuke.Common.Tools.NuGet.NuGetTasks;
 
 partial class Build
 {
@@ -68,14 +66,14 @@ partial class Build
         .Produces(PackageDirectory / "*.snupkg")
         .Executes(() =>
         {
-            var projFile = File.ReadAllText(EmptyServer12Proj);
-            File.WriteAllText(EmptyServer12Proj, projFile.Replace("14.0.0-preview.build.0", SemVersion));
-
-            projFile = File.ReadAllText(EmptyAzf12Proj);
-            File.WriteAllText(EmptyAzf12Proj, projFile.Replace("14.0.0-preview.build.0", SemVersion));
+            var projFile = File.ReadAllText(EmptyAzf12Proj);
+            File.WriteAllText(EmptyAzf12Proj, projFile.Replace("0.0.0-placeholder", SemVersion));
 
             projFile = File.ReadAllText(Gateway13Proj);
-            File.WriteAllText(Gateway13Proj, projFile.Replace("14.0.0-preview.build.0", SemVersion));
+            File.WriteAllText(Gateway13Proj, projFile.Replace("0.0.0-placeholder", SemVersion));
+
+            projFile = File.ReadAllText(EmptyServer12Proj);
+            File.WriteAllText(EmptyServer12Proj, projFile.Replace("0.0.0-placeholder", SemVersion));
 
             DotNetBuildSonarSolution(
                 PackSolutionFile,
@@ -108,11 +106,11 @@ partial class Build
                 .SetAssemblyVersion(Version)
                 .SetVersion(SemVersion));
 
-            NuGetPack(c => c
-                .SetVersion(SemVersion)
-                .SetOutputDirectory(PackageDirectory)
+            DotNetPack(c => c
+                .SetProject(TemplatesProj)
                 .SetConfiguration(Configuration)
-                .CombineWith(t => t.SetTargetPath(TemplatesNuSpec)));
+                .SetOutputDirectory(PackageDirectory)
+                .SetVersion(SemVersion));
         });
 
     Target Publish => _ => _
