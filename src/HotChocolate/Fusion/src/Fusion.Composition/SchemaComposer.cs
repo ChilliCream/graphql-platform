@@ -78,6 +78,13 @@ public sealed class SchemaComposer
             return enrichmentResult.Errors;
         }
 
+        // Prune unreachable definitions from each source schema before validation, so types
+        // stripped by @excludeByTag (or otherwise unreferenced) are not validated or merged.
+        foreach (var schema in schemas)
+        {
+            schema.RemoveUnreferencedDefinitions(schemas);
+        }
+
         // Validate Source Schemas
         var validationResult =
             new SourceSchemaValidator(schemas, s_sourceSchemaRules, _log).Validate();
