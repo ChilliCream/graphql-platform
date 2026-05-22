@@ -35,12 +35,47 @@ export const remarkPlugins: Pluggable[] = remarkPipeline.map((p) => p.plugin);
 /**
  * Build-time mermaid rendering. Runs headless Chromium via playwright to
  * produce inline SVG, so no mermaid runtime ships to the client.
+ *
+ * `themeVariables` need real color values: mermaid parses them through a
+ * color library at build time, so CSS `var(...)` references would fail.
+ * Values mirror the Tailwind v4 palette. `themeCSS` is appended raw to the
+ * SVG's <style> block, so CSS variables there resolve in the browser and
+ * can be used for runtime overrides (e.g. theme switching).
  */
 const mermaidOptions = {
   strategy: "inline-svg",
   mermaidConfig: {
-    theme: "default",
+    theme: "base",
     securityLevel: "strict",
+    themeVariables: {
+      background: "transparent",
+      // Node fills (emerald-50, slate-100, slate-50).
+      primaryColor: "#ecfdf5",
+      secondaryColor: "#f1f5f9",
+      tertiaryColor: "#f8fafc",
+      // Node and label text (slate-900).
+      primaryTextColor: "#0f172a",
+      secondaryTextColor: "#0f172a",
+      tertiaryTextColor: "#0f172a",
+      textColor: "#0f172a",
+      // Node borders (emerald-700, slate-300, slate-200).
+      primaryBorderColor: "#047857",
+      secondaryBorderColor: "#cbd5e1",
+      tertiaryBorderColor: "#e2e8f0",
+      // Edges between nodes (slate-500).
+      lineColor: "#64748b",
+      // Notes (amber-50, slate-900, amber-300).
+      noteBkgColor: "#fffbeb",
+      noteTextColor: "#0f172a",
+      noteBorderColor: "#fcd34d",
+    },
+    // Note: do not override `font-family` here. Mermaid runs in headless
+    // Chromium at build time to size each node, so changing the font after
+    // measurement (or to a font not loaded in the headless browser) clips
+    // the text in the live page.
+    themeCSS: `
+      .edgePath .path { stroke-width: 1.5px; }
+    `,
   },
 } as const;
 
