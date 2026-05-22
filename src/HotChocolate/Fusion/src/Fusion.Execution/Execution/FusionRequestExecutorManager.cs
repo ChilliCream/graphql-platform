@@ -871,7 +871,7 @@ internal sealed class FusionRequestExecutorManager
                     if (!TryClaimSourceSchema(schema, sourceSchema, setup, out var sourceConfigurations))
                     {
                         throw new InvalidOperationException(
-                            $"No parser claimed source schema '{sourceSchema.Name}'.");
+                            $"The source schema configuration of '{sourceSchema.Name}' could not be parsed.");
                     }
 
                     configurations.AddRange(sourceConfigurations);
