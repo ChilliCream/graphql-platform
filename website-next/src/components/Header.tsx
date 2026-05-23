@@ -5,11 +5,11 @@ import { ChevronDownIcon } from "@/src/icons/ChevronDown";
 import { ChilliCream } from "@/src/icons/ChilliCream";
 import { GitHubIcon } from "@/src/icons/GitHub";
 import { LinkedInIcon } from "@/src/icons/LinkedIn";
-import { SearchIcon } from "@/src/icons/Search";
 import { SlackIcon } from "@/src/icons/Slack";
 import { XIcon } from "@/src/icons/X";
 import { YouTubeIcon } from "@/src/icons/YouTube";
 import { MobileNav } from "./MobileNav";
+import { Search } from "./Search";
 
 const TOOLS = {
   blog: "/blog",
@@ -208,13 +208,10 @@ export default function Header() {
           >
             Launch
           </a>
-          <button
-            type="button"
-            aria-label="Search"
-            className="flex h-full items-center text-stone-700 transition-colors hover:text-primary-700"
-          >
-            <SearchIcon className="h-5 w-5 fill-current" />
-          </button>
+          <Search
+            ariaLabel="Search"
+            className="flex h-full cursor-pointer items-center text-stone-700 transition-colors hover:text-primary-700"
+          />
         </div>
 
         <MobileNav

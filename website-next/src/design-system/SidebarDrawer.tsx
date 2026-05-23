@@ -92,9 +92,10 @@ export function SidebarDrawer({ children }: { children: ReactNode }) {
         </div>
       </div>
 
-      <aside className="sticky top-[72px] hidden h-[calc(100vh-72px)] flex-col self-start border-r border-slate-200 lg:flex">
+      <aside className="hidden lg:block" aria-hidden="true" />
+      <div className="fixed bottom-0 left-0 top-[72px] z-10 hidden w-80 flex-col border-r border-slate-200 bg-white lg:flex">
         {children}
-      </aside>
+      </div>
     </>
   );
 }

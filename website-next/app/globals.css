@@ -38,6 +38,46 @@ html:has(:target) {
   scroll-behavior: smooth;
 }
 
+/* Algolia DocSearch — re-skin the modal to match the site palette. The
+   variables are declared by DocSearch on `:root` (its stylesheet loads
+   after this one, so a `:root` override here loses the cascade). Scoping
+   to `.DocSearch-Container` beats that with higher specificity and lets
+   descendants inherit via `var()`. Full token list:
+   https://docsearch.algolia.com/docs/styling */
+.DocSearch-Container {
+  --docsearch-primary-color: var(--color-primary-700);
+  --docsearch-highlight-color: var(--color-primary-700);
+  --docsearch-text-color: var(--color-slate-900);
+  --docsearch-muted-color: var(--color-slate-500);
+  --docsearch-container-background: rgb(15 23 42 / 0.6); /* slate-900 / 60% */
+  --docsearch-modal-background: white;
+  --docsearch-modal-shadow:
+    inset 1px 1px 0 0 rgb(255 255 255 / 0.5),
+    0 3px 8px 0 rgb(15 23 42 / 0.15);
+  --docsearch-searchbox-background: var(--color-slate-100);
+  --docsearch-searchbox-focus-background: white;
+  --docsearch-searchbox-shadow:
+    inset 0 0 0 2px var(--color-primary-700);
+  --docsearch-hit-color: var(--color-slate-700);
+  --docsearch-hit-active-color: white;
+  --docsearch-hit-background: white;
+  --docsearch-hit-shadow: 0 1px 3px 0 rgb(15 23 42 / 0.08);
+  --docsearch-key-gradient: linear-gradient(
+    -225deg,
+    var(--color-slate-200),
+    var(--color-slate-100)
+  );
+  --docsearch-key-shadow:
+    inset 0 -2px 0 0 var(--color-slate-300),
+    inset 0 0 1px 1px white,
+    0 1px 2px 1px rgb(15 23 42 / 0.08);
+  --docsearch-footer-background: white;
+  --docsearch-footer-shadow:
+    0 -1px 0 0 var(--color-slate-200),
+    0 -3px 6px 0 rgb(15 23 42 / 0.04);
+  --docsearch-logo-color: var(--color-slate-400);
+}
+
 :where(h1, h2, h3, h4, h5, h6)[id] {
   scroll-margin-top: 7.5rem;
 }

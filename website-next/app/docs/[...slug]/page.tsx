@@ -3,10 +3,12 @@ import path from "node:path";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { DocPageMeta } from "@/src/design-system/DocPageMeta";
+import { EditOnGitHub } from "@/src/design-system/EditOnGitHub";
 import { TableOfContents } from "@/src/design-system/TableOfContents";
 import { Typography } from "@/src/design-system/Typography";
 import { compileDoc } from "@/src/helpers/compileDoc";
 import { getGitMetadata } from "@/src/helpers/gitMetadata";
+import { githubEditUrl } from "@/src/helpers/githubEditUrl";
 import { readFrontmatter } from "@/src/helpers/readFrontmatter";
 
 const CONTENT_ROOT = path.join(process.cwd(), "content/docs");
@@ -65,7 +67,7 @@ export default async function DocPage({ params }: PageProps) {
   const gitMeta = await getGitMetadata(absolutePath);
 
   return (
-    <div className="grid grid-cols-1 2xl:grid-cols-[1fr_20rem]">
+    <div className="grid min-h-[calc(100vh-72px)] grid-cols-1 2xl:grid-cols-[1fr_20rem]">
       <main className="min-w-0 px-5 py-8 sm:px-12">
         <article className="mx-auto max-w-5xl">
           {frontmatter.title ? (
@@ -73,6 +75,8 @@ export default async function DocPage({ params }: PageProps) {
           ) : null}
 
           {content}
+
+          <EditOnGitHub href={githubEditUrl(`content/docs/${rel}`)} />
 
           <DocPageMeta
             isoDate={gitMeta.isoDate}
