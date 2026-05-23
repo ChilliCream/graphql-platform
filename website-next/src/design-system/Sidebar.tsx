@@ -53,7 +53,7 @@ function NodeView({
       aria-current={isActive ? "page" : undefined}
       className={`block flex-1 rounded px-3 py-1.5 transition-colors ${
         isActive
-          ? "bg-emerald-50 font-medium text-emerald-700"
+          ? "bg-primary-50 font-medium text-primary-700"
           : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
       }`}
       style={{ paddingLeft: padLeft }}

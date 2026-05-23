@@ -24,7 +24,7 @@ export function Dropdown({
           "rounded-md border border-slate-200 bg-white px-3 py-2",
           "text-left text-sm text-slate-800 transition-colors",
           "hover:border-slate-300 hover:bg-slate-50",
-          "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600",
+          "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600",
           "[&::-webkit-details-marker]:hidden",
         ].join(" ")}
       >

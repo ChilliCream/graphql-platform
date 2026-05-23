@@ -41,8 +41,8 @@ const config: Record<
   },
   tip: {
     label: "Tip",
-    containerClass: "bg-emerald-50 ring-1 ring-emerald-200 text-emerald-950",
-    labelClass: "text-emerald-700",
+    containerClass: "bg-primary-50 ring-1 ring-primary-200 text-primary-950",
+    labelClass: "text-primary-700",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"

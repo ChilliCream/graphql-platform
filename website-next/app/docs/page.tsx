@@ -27,7 +27,7 @@ export default function DocsIndex() {
             <li key={p.slug}>
               <Link
                 href={`/docs/${p.slug}`}
-                className="block rounded-md border border-stone-200 p-4 text-stone-800 no-underline transition-colors hover:border-fuchsia-700 hover:text-fuchsia-700"
+                className="block rounded-md border border-stone-200 p-4 text-stone-800 no-underline transition-colors hover:border-secondary-700 hover:text-secondary-700"
               >
                 <div className="font-medium">{p.label}</div>
                 <div className="text-sm text-stone-500">

@@ -35,7 +35,7 @@ export function ProductSelector({ activeSlug }: ProductSelectorProps) {
                 className={[
                   "block rounded px-3 py-2 no-underline transition-colors",
                   isActive
-                    ? "bg-emerald-50 text-emerald-700"
+                    ? "bg-primary-50 text-primary-700"
                     : "text-slate-800 hover:bg-slate-50",
                 ].join(" ")}
               >
@@ -43,7 +43,7 @@ export function ProductSelector({ activeSlug }: ProductSelectorProps) {
                 <div
                   className={[
                     "text-xs",
-                    isActive ? "text-emerald-700/80" : "text-slate-500",
+                    isActive ? "text-primary-700/80" : "text-slate-500",
                   ].join(" ")}
                 >
                   {product.description}

@@ -12,7 +12,7 @@ import { YouTubeIcon } from "@/src/icons/YouTube";
 import { MobileNav } from "./MobileNav";
 
 const TOOLS = {
-  blog: "/blogs",
+  blog: "/blog",
   github: "https://github.com/ChilliCream/graphql-platform",
   linkedIn: "https://www.linkedin.com/company/chillicream",
   nitro: "https://nitro.chillicream.com",
@@ -176,7 +176,7 @@ export default function Header() {
         <Link
           href="/"
           aria-label="ChilliCream Home"
-          className="flex h-full flex-none items-center text-stone-900 transition-colors hover:text-fuchsia-700"
+          className="flex h-full flex-none items-center text-stone-900 transition-colors hover:text-primary-700"
         >
           <ChilliCream className="h-8 w-8 fill-current" />
         </Link>
@@ -196,7 +196,7 @@ export default function Header() {
         <div className="hidden flex-none items-center gap-6 lg:flex">
           <a
             href={DEMO_HREF}
-            className="text-sm font-medium text-stone-700 no-underline transition-colors hover:text-fuchsia-700"
+            className="text-sm font-medium text-stone-700 no-underline transition-colors hover:text-primary-700"
           >
             Request a Demo
           </a>
@@ -204,14 +204,14 @@ export default function Header() {
             href={TOOLS.nitro}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex h-[38px] items-center rounded-md border-2 border-fuchsia-700 bg-fuchsia-700 px-7 text-sm font-medium text-white no-underline transition-colors hover:bg-fuchsia-800"
+            className="inline-flex h-[38px] items-center rounded-md border-2 border-secondary-700 bg-secondary-700 px-7 text-sm font-medium text-white no-underline transition-colors hover:bg-secondary-800"
           >
             Launch
           </a>
           <button
             type="button"
             aria-label="Search"
-            className="flex h-full items-center text-stone-700 transition-colors hover:text-fuchsia-700"
+            className="flex h-full items-center text-stone-700 transition-colors hover:text-primary-700"
           >
             <SearchIcon className="h-5 w-5 fill-current" />
           </button>
@@ -232,7 +232,7 @@ function NavSimple({ item }: { item: NavItem }) {
     <li className="flex items-stretch">
       <Link
         href={item.href}
-        className="flex items-center px-4 text-sm font-medium text-stone-700 no-underline transition-colors hover:text-fuchsia-700"
+        className="flex items-center px-4 text-sm font-medium text-stone-700 no-underline transition-colors hover:text-primary-700"
       >
         {item.label}
       </Link>
@@ -245,7 +245,7 @@ function NavWithSubmenu({ item }: { item: NavItem }) {
     <li className="group/nav flex items-stretch">
       <Link
         href={item.href}
-        className="flex items-center gap-1.5 px-4 text-sm font-medium text-stone-700 no-underline transition-colors hover:text-fuchsia-700 group-hover/nav:text-fuchsia-700 group-focus-within/nav:text-fuchsia-700"
+        className="flex items-center gap-1.5 px-4 text-sm font-medium text-stone-700 no-underline transition-colors hover:text-primary-700 group-hover/nav:text-primary-700 group-focus-within/nav:text-primary-700"
       >
         {item.label}
         <ChevronDownIcon className="h-3 w-3 fill-current transition-transform duration-200 group-hover/nav:rotate-180 group-focus-within/nav:rotate-180" />
@@ -319,7 +319,7 @@ function SubLinkRow({ link }: { link: SubLink }): ReactNode {
     <Link
       href={link.href}
       {...linkProps}
-      className="flex items-start gap-3 rounded-md px-2 py-2 text-stone-700 no-underline transition-colors hover:bg-stone-50 hover:text-fuchsia-700"
+      className="flex items-start gap-3 rounded-md px-2 py-2 text-stone-700 no-underline transition-colors hover:bg-stone-50 hover:text-primary-700"
     >
       {Icon && (
         <Icon className="mt-0.5 h-4 w-4 flex-none fill-current text-stone-500" />

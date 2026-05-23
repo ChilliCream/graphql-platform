@@ -3,6 +3,7 @@ type BlogMetadataProps = {
   authorUrl?: string;
   authorImageUrl?: string;
   date?: string;
+  readingTime?: string;
 };
 
 export function BlogMetadata({
@@ -10,17 +11,23 @@ export function BlogMetadata({
   authorUrl,
   authorImageUrl,
   date,
+  readingTime,
 }: BlogMetadataProps) {
-  if (!author && !date) {
+  if (!author && !date && !readingTime) {
     return null;
   }
 
+  const parts = [
+    date ? <span key="date">{date}</span> : null,
+    readingTime ? <span key="rt">{readingTime}</span> : null,
+  ].filter(Boolean);
+
   return (
-    <div className="flex flex-row items-center text-sm text-slate-600">
+    <div className="flex flex-row items-center gap-2 text-sm text-slate-600">
       {author ? (
         <a
           href={authorUrl || "#"}
-          className="flex items-center text-slate-700 hover:text-emerald-700 no-underline"
+          className="flex items-center text-slate-700 hover:text-primary-700 no-underline"
           target={authorUrl?.startsWith("http") ? "_blank" : undefined}
           rel={authorUrl?.startsWith("http") ? "noopener noreferrer" : undefined}
         >
@@ -39,7 +46,12 @@ export function BlogMetadata({
           <span>{author}</span>
         </a>
       ) : null}
-      {date ? <span>{author ? " ・ " : ""}{date}</span> : null}
+      {parts.map((part, i) => (
+        <span key={i} className="flex items-center gap-2">
+          {(author || i > 0) ? <span aria-hidden="true">·</span> : null}
+          {part}
+        </span>
+      ))}
     </div>
   );
 }
