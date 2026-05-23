@@ -64,22 +64,24 @@ export function Search({
     return <Link href={to}>{children}</Link>;
   }
 
-  if (!IS_CONFIGURED) {
-    return null;
-  }
-
   return (
     <>
       <button
         ref={searchButtonRef}
         type="button"
         aria-label={ariaLabel}
-        onClick={onOpen}
+        onClick={IS_CONFIGURED ? onOpen : undefined}
+        aria-disabled={IS_CONFIGURED ? undefined : true}
+        title={
+          IS_CONFIGURED
+            ? undefined
+            : "Search is unavailable — Algolia credentials are not configured"
+        }
         className={className}
       >
         <SearchIcon className="h-5 w-5 fill-current" aria-hidden="true" />
       </button>
-      {open && typeof document !== "undefined"
+      {IS_CONFIGURED && open && typeof document !== "undefined"
         ? createPortal(
             <DocSearchModal
               appId={APP_ID!}

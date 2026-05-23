@@ -149,3 +149,15 @@ figure.code-step-dim .shiki-wrapper .line > span {
 figure.code-step-dim .shiki-wrapper .line > span:has(.code-step-active) {
   opacity: 1;
 }
+
+/* Mermaid charts: inline SVGs are huge (each runs to ~30 KB of nodes).
+   `content-visibility: auto` lets the browser skip layout/paint while a
+   chart is off-screen and only render it as it scrolls into view, which
+   dramatically shortens initial render on docs pages with several diagrams.
+   `contain-intrinsic-size` reserves a placeholder height so nothing jumps
+   when the real chart paints. rehype-mermaid emits the SVGs as bare
+   `<svg id="mermaid-N" role="graphics-document">`, hence the selector. */
+svg[role="graphics-document"][id^="mermaid-"] {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 32rem;
+}
