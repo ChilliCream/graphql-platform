@@ -12,7 +12,13 @@ html:has(:target) {
 }
 
 :where(h1, h2, h3, h4, h5, h6)[id] {
-  scroll-margin-top: 5rem;
+  scroll-margin-top: 7.5rem;
+}
+
+@media (min-width: 96rem) {
+  :where(h1, h2, h3, h4, h5, h6)[id] {
+    scroll-margin-top: 6.5rem;
+  }
 }
 
 .heading-anchor {

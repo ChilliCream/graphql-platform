@@ -1,26 +1,32 @@
 import Link from "next/link";
+import { ProductSelector } from "@/src/components/ProductSelector";
 import type { TreeNode } from "@/src/helpers/buildContentTree";
 
 export function Sidebar({
   tree,
   currentPath,
+  activeProduct,
 }: {
   tree: TreeNode[];
   currentPath: string;
+  activeProduct: string;
 }) {
   return (
-    <nav className="flex flex-col gap-1 px-5 py-6 text-sm">
-      <ul className="flex flex-col gap-1">
-        {tree.map((node, i) => (
-          <NodeView
-            key={`${node.href ?? node.title}-${i}`}
-            node={node}
-            depth={0}
-            currentPath={currentPath}
-          />
-        ))}
-      </ul>
-    </nav>
+    <div className="flex min-h-0 flex-1 flex-col gap-2 px-5 py-6 text-sm">
+      <ProductSelector key={currentPath} activeSlug={activeProduct} />
+      <nav className="min-h-0 flex-1 overflow-y-auto">
+        <ul className="flex flex-col gap-1">
+          {tree.map((node, i) => (
+            <NodeView
+              key={`${node.href ?? node.title}-${i}`}
+              node={node}
+              depth={0}
+              currentPath={currentPath}
+            />
+          ))}
+        </ul>
+      </nav>
+    </div>
   );
 }
 

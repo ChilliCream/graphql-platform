@@ -1,14 +1,15 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, type MouseEvent, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 
-
+export const SIDEBAR_OPEN_EVENT = "docs:open-sidebar";
 
 /**
  * Wraps the sidebar to provide:
  * - Desktop (lg+): visible inline, sticky.
- * - Mobile (<lg): hidden behind an off-canvas drawer with a hamburger trigger.
+ * - Mobile (<lg): hidden behind an off-canvas drawer opened via the
+ *   `docs:open-sidebar` window event (dispatched by DocsToolbar).
  *   Body scroll is locked while the drawer is open. The drawer auto-closes
  *   on route change.
  */
@@ -19,6 +20,19 @@ export function SidebarDrawer({ children }: { children: ReactNode }) {
   if (prevPathname !== pathname) {
     setPrevPathname(pathname);
     if (open) {
+      setOpen(false);
+    }
+  }
+
+  useEffect(() => {
+    const handler = () => setOpen(true);
+    window.addEventListener(SIDEBAR_OPEN_EVENT, handler);
+    return () => window.removeEventListener(SIDEBAR_OPEN_EVENT, handler);
+  }, []);
+
+  function handleContentClick(event: MouseEvent<HTMLDivElement>) {
+    const target = event.target as HTMLElement;
+    if (target.closest("a")) {
       setOpen(false);
     }
   }
@@ -36,32 +50,6 @@ export function SidebarDrawer({ children }: { children: ReactNode }) {
 
   return (
     <>
-      {/* Mobile trigger — hidden on lg+ */}
-      <button
-        type="button"
-        aria-label="Open documentation menu"
-        aria-expanded={open}
-        onClick={() => setOpen(true)}
-        className="fixed bottom-4 left-4 z-30 inline-flex h-12 w-12 items-center justify-center rounded-full bg-slate-900 text-white shadow-lg lg:hidden"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="h-6 w-6"
-          aria-hidden="true"
-        >
-          <line x1="4" y1="6" x2="20" y2="6" />
-          <line x1="4" y1="12" x2="20" y2="12" />
-          <line x1="4" y1="18" x2="20" y2="18" />
-        </svg>
-      </button>
-
-      {/* Mobile overlay + drawer */}
       <div
         className={`fixed inset-0 z-40 lg:hidden ${open ? "" : "pointer-events-none"}`}
         aria-hidden={!open}
@@ -77,7 +65,7 @@ export function SidebarDrawer({ children }: { children: ReactNode }) {
             open ? "translate-x-0" : "-translate-x-full"
           }`}
         >
-          <div className="flex items-center justify-end px-3 py-2 border-b border-slate-200">
+          <div className="flex items-center justify-end border-b border-slate-200 px-3 py-2">
             <button
               type="button"
               aria-label="Close documentation menu"
@@ -100,12 +88,11 @@ export function SidebarDrawer({ children }: { children: ReactNode }) {
               </svg>
             </button>
           </div>
-          {children}
+          <div onClick={handleContentClick}>{children}</div>
         </div>
       </div>
 
-      {/* Desktop sidebar — sticky inline */}
-      <aside className="hidden lg:block sticky top-0 self-start max-h-[calc(100vh-4rem)] overflow-y-auto border-r border-slate-200">
+      <aside className="sticky top-[72px] hidden h-[calc(100vh-72px)] flex-col self-start border-r border-slate-200 lg:flex">
         {children}
       </aside>
     </>

@@ -21,17 +21,3 @@ export const Default: Story = {
     ],
   },
 };
-
-export const Empty: Story = {
-  args: { items: [] },
-};
-
-export const Flat: Story = {
-  args: {
-    items: [
-      { id: "overview", text: "Overview", depth: 2 },
-      { id: "api", text: "API", depth: 2 },
-      { id: "faq", text: "FAQ", depth: 2 },
-    ],
-  },
-};
