@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { DocsToolbar } from "@/src/design-system/DocsToolbar";
 import { Sidebar } from "@/src/design-system/Sidebar";
 import { SidebarDrawer } from "@/src/design-system/SidebarDrawer";
 import { buildContentTree } from "@/src/helpers/buildContentTree";
@@ -16,11 +17,18 @@ export default async function DocsLayout({
   const currentPath = `/docs/${slug.join("/")}`;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[20rem_1fr]">
+    <div className="grid min-h-[calc(100vh-72px)] grid-cols-1 lg:grid-cols-[20rem_1fr]">
       <SidebarDrawer>
-        <Sidebar tree={tree} currentPath={currentPath} />
+        <Sidebar
+          tree={tree}
+          currentPath={currentPath}
+          activeProduct={product}
+        />
       </SidebarDrawer>
-      {children}
+      <div className="min-w-0">
+        <DocsToolbar />
+        {children}
+      </div>
     </div>
   );
 }

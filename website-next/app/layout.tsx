@@ -36,6 +36,13 @@ export const metadata: Metadata = {
     title: TITLE,
     description: DESCRIPTION,
   },
+  alternates: {
+    types: {
+      "application/rss+xml": [
+        { url: "/blog/rss.xml", title: "ChilliCream Blog" },
+      ],
+    },
+  },
 };
 
 export default function RootLayout({

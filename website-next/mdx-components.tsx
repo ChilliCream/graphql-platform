@@ -33,12 +33,12 @@ import {
 import { Typography } from "@/src/design-system/Typography";
 
 const components: MDXComponents = {
-  h1: (props) => <Typography variant="h1" {...props} />,
-  h2: (props) => <Typography variant="h2" {...props} />,
-  h3: (props) => <Typography variant="h3" {...props} />,
-  h4: (props) => <Typography variant="h4" {...props} />,
-  h5: (props) => <Typography variant="h5" {...props} />,
-  h6: (props) => <Typography variant="h6" {...props} />,
+  h1: (props) => <Typography variant="h1" anchor {...props} />,
+  h2: (props) => <Typography variant="h2" anchor {...props} />,
+  h3: (props) => <Typography variant="h3" anchor {...props} />,
+  h4: (props) => <Typography variant="h4" anchor {...props} />,
+  h5: (props) => <Typography variant="h5" anchor {...props} />,
+  h6: (props) => <Typography variant="h6" anchor {...props} />,
 
   p: (props) => <Typography variant="body" {...props} />,
   strong: (props) => <Typography variant="strong" {...props} />,

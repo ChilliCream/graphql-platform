@@ -2,9 +2,23 @@
 
 import { useEffect } from "react";
 
-export function TocActive({ ids }: { ids: string[] }) {
+type SectionDescriptor = {
+  id: string;
+  childIds: string[];
+};
+
+export function TocActive({ sections }: { sections: SectionDescriptor[] }) {
   useEffect(() => {
-    const headings = ids
+    const allIds = sections.flatMap((s) => [s.id, ...s.childIds]);
+    const sectionOf = new Map<string, string>();
+    for (const section of sections) {
+      sectionOf.set(section.id, section.id);
+      for (const childId of section.childIds) {
+        sectionOf.set(childId, section.id);
+      }
+    }
+
+    const headings = allIds
       .map((id) => document.getElementById(id))
       .filter((el): el is HTMLElement => el !== null);
     if (headings.length === 0) {
@@ -13,21 +27,36 @@ export function TocActive({ ids }: { ids: string[] }) {
 
     const visible = new Set<string>();
 
-    function setActive(id: string | null) {
-      for (const link of document.querySelectorAll<HTMLElement>("[data-toc-link]")) {
-        if (link.dataset.tocLink === id) {
+    function applyActive(activeId: string | null) {
+      const activeSection = activeId ? sectionOf.get(activeId) ?? null : null;
+
+      for (const link of document.querySelectorAll<HTMLElement>(
+        "[data-toc-link]"
+      )) {
+        if (link.dataset.tocLink === activeId) {
           link.dataset.active = "true";
         } else {
           delete link.dataset.active;
         }
       }
+
+      for (const sectionEl of document.querySelectorAll<HTMLElement>(
+        "[data-toc-section]"
+      )) {
+        if (sectionEl.dataset.tocSection === activeSection) {
+          sectionEl.dataset.sectionActive = "true";
+        } else {
+          delete sectionEl.dataset.sectionActive;
+        }
+      }
     }
 
     function recompute() {
-      // Pick the topmost visible heading; otherwise the last heading scrolled past.
-      const ordered = ids.filter((id) => visible.has(id));
+      // Prefer the topmost in-viewport heading; otherwise the last heading
+      // we've scrolled past (covers long sections without a sub-heading yet).
+      const ordered = allIds.filter((id) => visible.has(id));
       if (ordered.length > 0) {
-        setActive(ordered[0]);
+        applyActive(ordered[0]);
         return;
       }
       const scrollY = window.scrollY;
@@ -37,7 +66,7 @@ export function TocActive({ ids }: { ids: string[] }) {
           last = heading.id;
         }
       }
-      setActive(last);
+      applyActive(last);
     }
 
     const observer = new IntersectionObserver(
@@ -61,7 +90,7 @@ export function TocActive({ ids }: { ids: string[] }) {
     recompute();
 
     return () => observer.disconnect();
-  }, [ids]);
+  }, [sections]);
 
   return null;
 }
