@@ -4,3 +4,4 @@
 - Re-add home page
 - Image optimizations
 - Switch to proper theme
+- Tracking
