@@ -280,7 +280,7 @@ public class EnumTypeTests : TypeTestBase
         void Action() => SchemaBuilder.New()
             .AddQueryType<Bar>()
             .AddType(new EnumType(d => d.Name("Foo")
-                .Value<string>(null)))
+                .Value<string>(null!)))
             .Create();
 
         // assert
@@ -305,7 +305,7 @@ public class EnumTypeTests : TypeTestBase
             .Errors.Single().Message.MatchInlineSnapshot(
                 """
                 `SÆT` is not a valid GraphQL name.
-                https://spec.graphql.org/October2021/#sec-Names
+                https://spec.graphql.org/September2025/#sec-Names
                  (Parameter 'value')
                 """);
     }
@@ -646,7 +646,7 @@ public class EnumTypeTests : TypeTestBase
 
         // assert
         var type = schema.Types.GetType<EnumType>("Foo");
-        Assert.True(type.IsInstanceOfType(new EnumValueNode("baz")));
+        Assert.True(type.TryGetValue("baz", out _));
     }
 
     [Fact]
@@ -668,7 +668,7 @@ public class EnumTypeTests : TypeTestBase
 
         // assert
         var type = schema.Types.GetType<EnumType>("Foo");
-        Assert.True(type.IsInstanceOfType("ANYTHING WILL DO"));
+        Assert.True(type.ValueLookup.ContainsKey("ANYTHING_WILL_DO"));
     }
 
     [Fact]
@@ -703,6 +703,127 @@ public class EnumTypeTests : TypeTestBase
             }
             """);
 
+        result.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task SortFieldsByName_Should_NotSortEnumValues()
+    {
+        // arrange & act
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryWithEnum>()
+                .ModifyOptions(o => o.SortFieldsByName = true)
+                .BuildSchemaAsync();
+
+        // assert
+        schema.ToString().MatchInlineSnapshot(
+            """
+            schema {
+              query: QueryWithEnum
+            }
+
+            type QueryWithEnum {
+              criticalityLevel: CriticalityLevel!
+            }
+
+            enum CriticalityLevel {
+              INFO
+              WARNING
+              CRITICAL
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task SortEnumValuesByName_Should_SortEnumValues()
+    {
+        // arrange & act
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryWithEnum>()
+                .ModifyOptions(o => o.SortEnumValuesByName = true)
+                .BuildSchemaAsync();
+
+        // assert
+        schema.ToString().MatchInlineSnapshot(
+            """
+            schema {
+              query: QueryWithEnum
+            }
+
+            type QueryWithEnum {
+              criticalityLevel: CriticalityLevel!
+            }
+
+            enum CriticalityLevel {
+              CRITICAL
+              INFO
+              WARNING
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task SortFieldsByName_And_SortEnumValuesByName_Should_SortBoth()
+    {
+        // arrange & act
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryWithEnum>()
+                .ModifyOptions(o =>
+                {
+                    o.SortFieldsByName = true;
+                    o.SortEnumValuesByName = true;
+                })
+                .BuildSchemaAsync();
+
+        // assert
+        schema.ToString().MatchInlineSnapshot(
+            """
+            schema {
+              query: QueryWithEnum
+            }
+
+            type QueryWithEnum {
+              criticalityLevel: CriticalityLevel!
+            }
+
+            enum CriticalityLevel {
+              CRITICAL
+              INFO
+              WARNING
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task SortEnumValuesByName_Should_SortIntrospectionResult()
+    {
+        // arrange
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryWithEnum>()
+                .ModifyOptions(o => o.SortEnumValuesByName = true)
+                .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                __type(name: "CriticalityLevel") {
+                    enumValues {
+                        name
+                    }
+                }
+            }
+            """);
+
+        // assert
         result.MatchMarkdownSnapshot();
     }
 
@@ -810,7 +931,7 @@ public class EnumTypeTests : TypeTestBase
 
     public class ValueComparer : IEqualityComparer<object>
     {
-        bool IEqualityComparer<object>.Equals(object x, object y)
+        bool IEqualityComparer<object>.Equals(object? x, object? y)
         {
             return true;
         }

@@ -28,4 +28,4 @@ The status bar is a visual component located at the bottom of the application in
    ![Status Bar](./images/status-3.webp)
 
 10. **Version Information:** This section displays relevant information about the version of the application you are currently using. It helps you identify the installed version and keep track of updates or changes that may be available.
-   ![Status Bar](./images/status-4.webp)
+    ![Status Bar](./images/status-4.webp)

@@ -21,6 +21,9 @@ public class MongoDbComparableNotGreaterThanHandler
     /// <inheritdoc />
     protected override int Operation => DefaultFilterOperations.NotGreaterThan;
 
+    public static MongoDbComparableNotGreaterThanHandler Create(FilterProviderContext context)
+        => new(context.InputParser);
+
     /// <inheritdoc />
     public override MongoDbFilterDefinition HandleOperation(
         MongoDbFilterVisitorContext context,

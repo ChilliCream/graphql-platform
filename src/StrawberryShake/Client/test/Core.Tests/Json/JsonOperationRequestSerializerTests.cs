@@ -139,7 +139,7 @@ public class JsonOperationRequestSerializerTests
     {
         public OperationKind Kind => OperationKind.Query;
 
-        public ReadOnlySpan<byte> Body => Encoding.UTF8.GetBytes("{ __typename }");
+        public ReadOnlySpan<byte> Body => "{ __typename }"u8;
 
         public DocumentHash Hash { get; } = new("MD5", "ABCDEF");
     }

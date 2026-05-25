@@ -128,15 +128,15 @@ Now you should be seeing an editor like the one pictured below. If your GraphQL 
 The view is split into five panes.
 
 1. `Builder`
-    - This is where you build operations with a visual editor.
+   - This is where you build operations with a visual editor.
 1. `Request`
-    - This is where you enter operations that you wish to send to the GraphQL server.
+   - This is where you enter operations that you wish to send to the GraphQL server.
 1. `Response`
-    - This is where results will be displayed.
+   - This is where results will be displayed.
 1. `GraphQL Variables / HTTP Headers`
-    - This is where you modify variables and headers.
+   - This is where you modify variables and headers.
 1. `Responses`
-    - This is where you view recent queries.
+   - This is where you view recent queries.
 
 Let's send a query to your GraphQL server. Paste the below query into the `Request` pane of the editor:
 

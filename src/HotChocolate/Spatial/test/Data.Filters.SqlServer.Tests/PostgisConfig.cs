@@ -9,7 +9,7 @@ public class PostgisConfig : PostgreSqlDefaultOptions
         builder
             .WaitTimeout(120)
             .Name("postgis")
-            .Image("postgis/postgis:latest")
+            .Image("postgis/postgis:16-3.4-alpine")
             .Username("postgis")
             .Password(Guid.NewGuid().ToString("N")[12..])
             .InternalPort(5432);

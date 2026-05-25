@@ -1,14 +1,25 @@
+#if FUSION
+using System.Collections.Immutable;
+using HotChocolate.Language;
+using HotChocolate.Text.Json;
+using HotChocolate.Fusion.Execution;
+using HotChocolate.Fusion.Transport.Serialization;
+
+namespace HotChocolate.Fusion.Transport;
+#else
 using System.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Transport.Serialization;
 
 namespace HotChocolate.Transport;
+#endif
 
 /// <summary>
 /// Represents a GraphQL operation request that can be sent over a WebSocket connection.
 /// </summary>
 public sealed class VariableBatchRequest : IOperationRequest, IEquatable<VariableBatchRequest>
 {
+#if FUSION
     /// <summary>
     /// Initializes a new instance of the <see cref="OperationRequest"/> struct.
     /// </summary>
@@ -20,6 +31,9 @@ public sealed class VariableBatchRequest : IOperationRequest, IEquatable<Variabl
     /// </param>
     /// <param name="operationName">
     /// The name of the operation to execute.
+    /// </param>
+    /// <param name="onError">
+    /// The requested error handling mode.
     /// </param>
     /// <param name="variables">
     /// A list of dictionaries representing the sets of variable values to use when executing the operation.
@@ -34,12 +48,54 @@ public sealed class VariableBatchRequest : IOperationRequest, IEquatable<Variabl
         string? query,
         string? id,
         string? operationName,
+        ErrorHandlingMode? onError,
+        ImmutableArray<VariableValues> variables,
+        JsonSegment extensions)
+    {
+        Query = query;
+        Id = id;
+        OperationName = operationName;
+        OnError = onError;
+        Variables = variables;
+        Extensions = extensions;
+    }
+#else
+    /// <summary>
+    /// Initializes a new instance of the <see cref="OperationRequest"/> struct.
+    /// </summary>
+    /// <param name="query">
+    /// The query document containing the operation to execute.
+    /// </param>
+    /// <param name="id">
+    /// The ID of a previously persisted operation that should be executed.
+    /// </param>
+    /// <param name="operationName">
+    /// The name of the operation to execute.
+    /// </param>
+    /// <param name="onError">
+    /// The requested error handling mode.
+    /// </param>
+    /// <param name="variables">
+    /// A list of dictionaries representing the sets of variable values to use when executing the operation.
+    /// </param>
+    /// <param name="extensions">
+    /// A dictionary containing extension values to include with the operation.
+    /// </param>
+    /// <exception cref="ArgumentException">
+    /// Thrown if the query, ID, and extensions parameters are all null.
+    /// </exception>
+    public VariableBatchRequest(
+        string? query,
+        string? id,
+        string? operationName,
+        ErrorHandlingMode? onError,
         IReadOnlyList<ObjectValueNode>? variables,
         ObjectValueNode? extensions)
     {
         Query = query;
         Id = id;
         OperationName = operationName;
+        OnError = onError;
         VariablesNode = variables;
         ExtensionsNode = extensions;
     }
@@ -56,6 +112,9 @@ public sealed class VariableBatchRequest : IOperationRequest, IEquatable<Variabl
     /// <param name="operationName">
     /// The name of the operation to execute.
     /// </param>
+    /// <param name="onError">
+    /// The requested error handling mode.
+    /// </param>
     /// <param name="variables">
     /// A list of dictionaries representing the sets of variable values to use when executing the operation.
     /// </param>
@@ -69,20 +128,18 @@ public sealed class VariableBatchRequest : IOperationRequest, IEquatable<Variabl
         string? query = null,
         string? id = null,
         string? operationName = null,
+        ErrorHandlingMode? onError = null,
         IReadOnlyList<IReadOnlyDictionary<string, object?>>? variables = null,
         IReadOnlyDictionary<string, object?>? extensions = null)
     {
         Query = query;
         Id = id;
         OperationName = operationName;
+        OnError = onError;
         Variables = variables;
         Extensions = extensions;
     }
-
-    /// <summary>
-    /// Empty Operation Request.
-    /// </summary>
-    public static OperationRequest Empty { get; } = new();
+#endif
 
     /// <summary>
     /// Gets the ID of a previously persisted operation that should be executed.
@@ -99,6 +156,22 @@ public sealed class VariableBatchRequest : IOperationRequest, IEquatable<Variabl
     /// </summary>
     public string? OperationName { get; }
 
+    /// <summary>
+    /// Gets the requested error handling mode.
+    /// </summary>
+    public ErrorHandlingMode? OnError { get; }
+
+#if FUSION
+    /// <summary>
+    /// Gets a list of dictionaries representing the sets of variable values to use when executing the operation.
+    /// </summary>
+    public ImmutableArray<VariableValues> Variables { get; }
+
+    /// <summary>
+    /// Gets a dictionary containing extension values to include with the operation.
+    /// </summary>
+    public JsonSegment Extensions { get; }
+#else
     /// <summary>
     /// Gets a list of dictionaries representing the sets of variable values to use when executing the operation.
     /// </summary>
@@ -120,18 +193,23 @@ public sealed class VariableBatchRequest : IOperationRequest, IEquatable<Variabl
     /// operation.
     /// </summary>
     public ObjectValueNode? ExtensionsNode { get; }
+#endif
 
     /// <summary>
-    /// Writes a serialized version of this request to a <see cref="Utf8JsonWriter"/>.
+    /// Writes a serialized version of this request to a JSON writer.
     /// </summary>
     /// <param name="writer">
     /// The JSON writer.
     /// </param>
+#if FUSION
+    public void WriteTo(JsonWriter writer)
+#else
     public void WriteTo(Utf8JsonWriter writer)
+#endif
     {
         ArgumentNullException.ThrowIfNull(writer);
 
-        Utf8JsonWriterHelper.WriteOperationRequest(writer, this);
+        Utf8JsonWriterHelper.WriteVariableBatchRequest(writer, this);
     }
 
     /// <summary>
@@ -143,6 +221,28 @@ public sealed class VariableBatchRequest : IOperationRequest, IEquatable<Variabl
     /// <returns>
     /// <see langword="true"/> if the two objects are equal; otherwise, <see langword="false"/>.
     /// </returns>
+#if FUSION
+    public bool Equals(VariableBatchRequest? other)
+    {
+        if (other is null)
+        {
+            return false;
+        }
+
+        return Id == other.Id
+            && Query == other.Query
+            && Variables.Equals(other.Variables)
+            && Extensions.Equals(other.Extensions);
+    }
+
+    /// <inheritdoc/>
+    public override bool Equals(object? obj)
+        => obj is VariableBatchRequest other && Equals(other);
+
+    /// <inheritdoc/>
+    public override int GetHashCode()
+        => HashCode.Combine(Id, Query, Variables, Extensions);
+#else
     public bool Equals(VariableBatchRequest? other)
     {
         if (other is null)
@@ -160,11 +260,12 @@ public sealed class VariableBatchRequest : IOperationRequest, IEquatable<Variabl
 
     /// <inheritdoc/>
     public override bool Equals(object? obj)
-        => obj is OperationRequest other && Equals(other);
+        => obj is VariableBatchRequest other && Equals(other);
 
     /// <inheritdoc/>
     public override int GetHashCode()
         => HashCode.Combine(Id, Query, Variables, Extensions, VariablesNode, ExtensionsNode);
+#endif
 
     /// <summary>
     /// Determines whether two <see cref="OperationRequest"/> objects are equal.

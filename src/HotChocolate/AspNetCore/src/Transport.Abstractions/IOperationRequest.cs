@@ -1,6 +1,10 @@
 using HotChocolate.Language;
 
+#if FUSION
+namespace HotChocolate.Fusion.Transport;
+#else
 namespace HotChocolate.Transport;
+#endif
 
 public interface IOperationRequest : IRequestBody
 {
@@ -20,6 +24,18 @@ public interface IOperationRequest : IRequestBody
     string? OperationName { get; }
 
     /// <summary>
+    /// Gets the requested error handling mode.
+    /// </summary>
+    ErrorHandlingMode? OnError { get; }
+
+#if FUSION
+    /// <summary>
+    /// Gets an <see cref="JsonSegment"/> representing the extension values to include with the
+    /// operation.
+    /// </summary>
+    JsonSegment Extensions { get; }
+#else
+    /// <summary>
     /// Gets a dictionary containing extension values to include with the operation.
     /// </summary>
     IReadOnlyDictionary<string, object?>? Extensions { get; }
@@ -29,4 +45,5 @@ public interface IOperationRequest : IRequestBody
     /// operation.
     /// </summary>
     ObjectValueNode? ExtensionsNode { get; }
+#endif
 }

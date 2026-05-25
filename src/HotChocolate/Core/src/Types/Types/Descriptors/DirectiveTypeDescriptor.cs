@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -51,13 +52,14 @@ public class DirectiveTypeDescriptor
     {
         Context.Descriptors.Push(this);
 
-        if (!Configuration.AttributesAreApplied && Configuration.RuntimeType != typeof(object))
+        if (!Configuration.ConfigurationsAreApplied)
         {
-            Context.TypeInspector.ApplyAttributes(
+            DescriptorAttributeHelper.ApplyConfiguration(
                 Context,
                 this,
                 Configuration.RuntimeType);
-            Configuration.AttributesAreApplied = true;
+
+            Configuration.ConfigurationsAreApplied = true;
         }
 
         var arguments = new Dictionary<string, DirectiveArgumentConfiguration>(StringComparer.Ordinal);
@@ -124,13 +126,13 @@ public class DirectiveTypeDescriptor
         return this;
     }
 
-    public IDirectiveTypeDescriptor Use<TMiddleware>()
+    public IDirectiveTypeDescriptor Use<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)] TMiddleware>()
         where TMiddleware : class
     {
         return Use(DirectiveClassMiddlewareFactory.Create<TMiddleware>());
     }
 
-    public IDirectiveTypeDescriptor Use<TMiddleware>(
+    public IDirectiveTypeDescriptor Use<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)] TMiddleware>(
         Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
         where TMiddleware : class
     {

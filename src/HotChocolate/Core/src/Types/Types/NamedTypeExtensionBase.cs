@@ -29,6 +29,8 @@ public abstract class NamedTypeExtensionBase<TConfiguration>
     SchemaCoordinate ISchemaCoordinateProvider.Coordinate
         => throw new NotSupportedException();
 
+    public Type RuntimeType => ExtendsType ?? typeof(object);
+
     protected abstract void Merge(
         ITypeCompletionContext context,
         ITypeDefinition type);

@@ -25,12 +25,12 @@
           "Directives": [],
           "SyntaxNode": null,
           "Name": "String",
-          "Description": "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
+          "Description": "The `String` scalar type represents textual data, represented as a sequence of Unicode code points."
         },
         "ClrType": "System.Collections.Generic.List`1[[System.String, System.Private.CoreLib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], System.Private.CoreLib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e"
       },
       "locationType": "String",
-      "specifiedBy": "https://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
+      "specifiedBy": "https://spec.graphql.org/September2025/#sec-Values-of-Correct-Type"
     }
   }
 ]

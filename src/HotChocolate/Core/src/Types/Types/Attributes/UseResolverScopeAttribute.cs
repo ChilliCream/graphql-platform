@@ -12,6 +12,6 @@ public class UseResolverScopeAttribute : ObjectFieldDescriptorAttribute
     protected override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
-        MemberInfo member)
+        MemberInfo? member)
         => descriptor.UseResolverScope();
 }

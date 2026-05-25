@@ -7,7 +7,7 @@ namespace HotChocolate.Types.Descriptors.Configurations;
 /// </summary>
 public interface ITypeConfiguration
     : ITypeSystemConfiguration
-    , IHasRuntimeType
+    , IRuntimeTypeProvider
     , IDirectiveConfigurationProvider
     , IExtendsTypeConfiguration
 {

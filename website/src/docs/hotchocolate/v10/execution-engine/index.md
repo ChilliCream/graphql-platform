@@ -116,7 +116,7 @@ Services with a scoped lifetime should be injected as method parameters.
 public class MyMiddleware
 {
     private readonly FieldDelegate _next;
-    private readonly  IMySingletonService _singletonService;
+    private readonly IMySingletonService _singletonService;
 
     public MyMiddleware(FieldDelegate next, IMySingletonService singletonService)
     {

@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <NoWarn>$(NoWarn);NU1605;NU1608</NoWarn>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="$(CompilerGeneratedFilesOutputPath)/**/*.cs" />
+    <None Include="$(CompilerGeneratedFilesOutputPath)/**/*.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" />
+    <PackageReference Include="MediatR" VersionOverride="12.4.1" />
+    <PackageReference Include="Mediator.Abstractions" VersionOverride="3.0.1" />
+    <PackageReference Include="Mediator.SourceGenerator" VersionOverride="3.0.1" />
+    <PackageReference Include="MassTransit" VersionOverride="8.5.8" />
+    <PackageReference Include="Immediate.Handlers" VersionOverride="3.3.0" />
+    <PackageReference Include="Mediator.Switch" VersionOverride="3.1.0" />
+    <PackageReference Include="Mediator.Switch.SourceGenerator" VersionOverride="3.1.0" />
+    <PackageReference Include="Mediator.Switch.Extensions.Microsoft.DependencyInjection" VersionOverride="3.1.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" VersionOverride="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.ObjectPool" VersionOverride="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" VersionOverride="10.0.0" />
+    <PackageReference Include="WolverineFx" VersionOverride="5.17.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Mocha.Mediator\Mocha.Mediator.csproj" />
+    <ProjectReference
+      Include="..\..\src\Mocha.Analyzers\Mocha.Analyzers.csproj"
+      OutputItemType="Analyzer"
+      ReferenceOutputAssembly="false"
+    />
+  </ItemGroup>
+</Project>

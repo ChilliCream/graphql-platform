@@ -1,12 +1,23 @@
-using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Text.Json;
+using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types;
 
+/// <summary>
+/// The <c>URL</c> scalar type represents a Uniform Resource Locator (URL) as defined by RFC 3986.
+/// It is intended for scenarios where a field must contain a valid URL, such as links to external
+/// resources, API endpoints, image sources, or any web-accessible resource.
+/// </summary>
+/// <seealso href="https://scalars.graphql.org/chillicream/url.html">Specification</seealso>
 public class UrlType : ScalarType<Uri, StringValueNode>
 {
-    private const string SpecifiedByUri = "https://tools.ietf.org/html/rfc3986";
+    private const string SpecifiedByUri = "https://scalars.graphql.org/chillicream/url.html";
+    // TODO: This is for backwards compatibility. The UriType should be used for relative URIs.
+    private readonly bool _allowRelativeUris;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UrlType"/> class.
@@ -14,122 +25,89 @@ public class UrlType : ScalarType<Uri, StringValueNode>
     public UrlType(
         string name,
         string? description = null,
-        BindingBehavior bind = BindingBehavior.Explicit)
+        BindingBehavior bind = BindingBehavior.Explicit,
+        bool allowRelativeUris = false)
         : base(name, bind)
     {
         Description = description;
+        SpecifiedBy = new Uri(SpecifiedByUri);
+        _allowRelativeUris = allowRelativeUris;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UrlType"/> class.
+    /// </summary>
+    public UrlType(bool allowRelativeUris = false) : this(ScalarNames.URL, TypeResources.UrlType_Description)
+    {
+        _allowRelativeUris = allowRelativeUris;
     }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UrlType"/> class.
     /// </summary>
     [ActivatorUtilitiesConstructor]
-    public UrlType()
-        : this(ScalarNames.URL, bind: BindingBehavior.Implicit)
+    public UrlType() : this(ScalarNames.URL, TypeResources.UrlType_Description)
     {
-        SpecifiedBy = new Uri(SpecifiedByUri);
     }
 
-    protected override bool IsInstanceOfType(StringValueNode valueSyntax)
+    /// <inheritdoc />
+    protected override Uri OnCoerceInputLiteral(StringValueNode valueLiteral)
     {
-        return TryParseUri(valueSyntax.Value, out _);
+        if (TryParseUri(valueLiteral.Value, out var value))
+        {
+            return value;
+        }
+
+        throw Scalar_Cannot_CoerceInputLiteral(this, valueLiteral);
     }
 
-    protected override Uri ParseLiteral(StringValueNode valueSyntax)
+    /// <inheritdoc />
+    protected override Uri OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
-        if (TryParseUri(valueSyntax.Value, out var uri))
+        if (TryParseUri(inputValue.GetString()!, out var value))
         {
-            return uri;
+            return value;
         }
 
-        throw new SerializationException(
-            TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, valueSyntax.GetType()),
-            this);
+        throw Scalar_Cannot_CoerceInputValue(this, inputValue);
     }
 
-    protected override StringValueNode ParseValue(Uri runtimeValue)
+    /// <inheritdoc />
+    protected override void OnCoerceOutputValue(Uri runtimeValue, ResultElement resultValue)
     {
-        return new(runtimeValue.AbsoluteUri);
+        var serialized = runtimeValue.IsAbsoluteUri
+            ? runtimeValue.AbsoluteUri
+            : runtimeValue.ToString();
+        resultValue.SetStringValue(serialized);
     }
 
-    public override IValueNode ParseResult(object? resultValue)
+    /// <inheritdoc />
+    protected override StringValueNode OnValueToLiteral(Uri runtimeValue)
     {
-        if (resultValue is null)
-        {
-            return NullValueNode.Default;
-        }
-
-        if (resultValue is string s)
-        {
-            return new StringValueNode(s);
-        }
-
-        if (resultValue is Uri uri)
-        {
-            return ParseValue(uri);
-        }
-
-        throw new SerializationException(
-            TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()),
-            this);
+        var value = runtimeValue.IsAbsoluteUri
+            ? runtimeValue.AbsoluteUri
+            : runtimeValue.ToString();
+        return new StringValueNode(value);
     }
 
-    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+    private bool TryParseUri(string value, out Uri uri)
     {
-        if (runtimeValue is null)
+        var uriKind = _allowRelativeUris ? UriKind.RelativeOrAbsolute : UriKind.Absolute;
+
+        if (!Uri.TryCreate(value, uriKind, out var parsedUri))
         {
-            resultValue = null;
-            return true;
-        }
-
-        if (runtimeValue is Uri uri)
-        {
-            resultValue = uri.IsAbsoluteUri ? uri.AbsoluteUri : uri.ToString();
-            return true;
-        }
-
-        resultValue = null;
-        return false;
-    }
-
-    public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
-    {
-        if (resultValue is null)
-        {
-            runtimeValue = null;
-            return true;
-        }
-
-        if (resultValue is string s && TryParseUri(s, out var uri))
-        {
-            runtimeValue = uri;
-            return true;
-        }
-
-        if (resultValue is Uri u)
-        {
-            runtimeValue = u;
-            return true;
-        }
-
-        runtimeValue = null;
-        return false;
-    }
-
-    private bool TryParseUri(string value, [NotNullWhen(true)] out Uri? uri)
-    {
-        if (!Uri.TryCreate(value, UriKind.RelativeOrAbsolute, out uri))
-        {
+            uri = null!;
             return false;
         }
 
         // Don't accept a relative URI that does not start with '/'
-        if (!uri.IsAbsoluteUri && !uri.OriginalString.StartsWith("/"))
+        if (!parsedUri.IsAbsoluteUri && !parsedUri.OriginalString.StartsWith('/'))
         {
-            uri = null;
+            uri = null!;
             return false;
         }
 
+        uri = parsedUri;
         return true;
     }
 }

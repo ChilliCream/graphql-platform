@@ -60,7 +60,7 @@ public class QueryableFilterVisitorWithinTests : SchemaCache
                                                 [20 20],
                                                 [140 20],
                                                 [120 100],
-                                                [20 100 ],
+                                                [20 100],
                                                 [20 20]
                                             ]
                                         ]
@@ -87,7 +87,7 @@ public class QueryableFilterVisitorWithinTests : SchemaCache
                                                 [20 20],
                                                 [140 20],
                                                 [120 100],
-                                                [20 100 ],
+                                                [20 100],
                                                 [20 20]
                                             ]
                                         ]

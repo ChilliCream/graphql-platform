@@ -4,7 +4,6 @@ using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Inspectors;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 using static HotChocolate.Types.Analyzers.Helpers.GeneratorUtils;
 
 namespace HotChocolate.Types.Analyzers.FileBuilders;
@@ -677,9 +676,6 @@ public sealed class DataLoaderFileBuilder : IDisposable
 
     public override string ToString()
         => _sb.ToString();
-
-    public SourceText ToSourceText()
-        => SourceText.From(ToString(), Encoding.UTF8);
 
     public void Dispose()
     {

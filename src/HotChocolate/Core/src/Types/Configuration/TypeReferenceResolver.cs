@@ -9,6 +9,7 @@ namespace HotChocolate.Configuration;
 internal sealed class TypeReferenceResolver
 {
     private readonly Dictionary<TypeId, IType> _typeCache = [];
+    private readonly Dictionary<string, IType> _factoryCache = [];
     private readonly ITypeInspector _typeInspector;
     private readonly TypeRegistry _typeRegistry;
     private readonly TypeLookup _typeLookup;
@@ -18,12 +19,13 @@ internal sealed class TypeReferenceResolver
         TypeRegistry typeRegistry,
         TypeLookup typeLookup)
     {
-        _typeInspector = typeInspector ??
-            throw new ArgumentNullException(nameof(typeInspector));
-        _typeRegistry = typeRegistry ??
-            throw new ArgumentNullException(nameof(typeRegistry));
-        _typeLookup = typeLookup ??
-            throw new ArgumentNullException(nameof(typeLookup));
+        ArgumentNullException.ThrowIfNull(typeInspector);
+        ArgumentNullException.ThrowIfNull(typeRegistry);
+        ArgumentNullException.ThrowIfNull(typeLookup);
+
+        _typeInspector = typeInspector;
+        _typeRegistry = typeRegistry;
+        _typeLookup = typeLookup;
     }
 
     public IEnumerable<T> GetTypes<T>() =>
@@ -54,6 +56,25 @@ internal sealed class TypeReferenceResolver
             return true;
         }
 
+        if (typeRef is FactoryTypeReference factoryTypeRef)
+        {
+            if (!_factoryCache.TryGetValue(factoryTypeRef.Key, out type))
+            {
+                if (_typeLookup.TryNormalizeReference(factoryTypeRef.TypeDefinition, out var typeDefRef)
+                    && TryGetType(typeDefRef, out var typeDef))
+                {
+                    type = factoryTypeRef.Create((ITypeDefinition)typeDef);
+                    _factoryCache[factoryTypeRef.Key] = type;
+                    return true;
+                }
+
+                type = null;
+                return false;
+            }
+
+            return true;
+        }
+
         if (!_typeLookup.TryNormalizeReference(typeRef, out var namedTypeRef))
         {
             type = null;
@@ -76,8 +97,17 @@ internal sealed class TypeReferenceResolver
         switch (typeRef)
         {
             case ExtendedTypeReference r:
-                var typeFactory = _typeInspector.CreateTypeFactory(r.Type);
-                type = typeFactory.CreateType(typeDefinition);
+                if (_typeRegistry.IsExplicitBinding(r)
+                    && RuntimeTypeBindingHelper.RequiresExactBinding(r.Type))
+                {
+                    type = CreateExplicitBoundType(typeDefinition, r.Type);
+                }
+                else
+                {
+                    var typeFactory = _typeInspector.CreateTypeFactory(r.Type);
+                    type = typeFactory.CreateType(typeDefinition);
+                }
+
                 _typeCache[typeId] = type;
                 return true;
 
@@ -132,6 +162,18 @@ internal sealed class TypeReferenceResolver
         }
 
         return namedType;
+    }
+
+    private static IType CreateExplicitBoundType(ITypeDefinition typeDefinition, IExtendedType runtimeType)
+    {
+        IType type = typeDefinition;
+
+        if (!runtimeType.IsNullable && typeDefinition.Kind is not TypeKind.NonNull)
+        {
+            type = new NonNullType(typeDefinition);
+        }
+
+        return type;
     }
 
     private TypeId CreateId(TypeReference typeRef, TypeReference namedTypeRef)

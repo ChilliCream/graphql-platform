@@ -17,7 +17,7 @@ public class UploadScalarInMemoryTest : ServerTestBase
     {
         // arrange
         var client = CreateClient();
-        using var data = CreateStream("a");
+        await using var data = CreateStream("a");
 
         // act
         var result = await client.TestUpload.ExecuteAsync(
@@ -40,8 +40,8 @@ public class UploadScalarInMemoryTest : ServerTestBase
     {
         // arrange
         var client = CreateClient();
-        using var dataA = CreateStream("a");
-        using var dataB = CreateStream("b");
+        await using var dataA = CreateStream("a");
+        await using var dataB = CreateStream("b");
 
         // act
         var result = await client.TestUpload.ExecuteAsync(
@@ -64,8 +64,8 @@ public class UploadScalarInMemoryTest : ServerTestBase
     {
         // arrange
         var client = CreateClient();
-        using var dataA = CreateStream("a");
-        using var dataB = CreateStream("b");
+        await using var dataA = CreateStream("a");
+        await using var dataB = CreateStream("b");
 
         // act
         var result = await client.TestUpload.ExecuteAsync(
@@ -88,7 +88,7 @@ public class UploadScalarInMemoryTest : ServerTestBase
     {
         // arrange
         var client = CreateClient();
-        using var data = CreateStream("a");
+        await using var data = CreateStream("a");
 
         // act
         var result = await client.TestUpload.ExecuteAsync(
@@ -96,11 +96,11 @@ public class UploadScalarInMemoryTest : ServerTestBase
             null,
             null,
             null,
-            new TestInput()
+            new TestInput
             {
-                Bar = new BarInput()
+                Bar = new BarInput
                 {
-                    Baz = new BazInput() { File = new Upload(data, "test-file", contentType) }
+                    Baz = new BazInput { File = new Upload(data, "test-file", contentType) }
                 }
             },
             null,
@@ -117,8 +117,8 @@ public class UploadScalarInMemoryTest : ServerTestBase
     {
         // arrange
         var client = CreateClient();
-        using var dataA = CreateStream("a");
-        using var dataB = CreateStream("b");
+        await using var dataA = CreateStream("a");
+        await using var dataB = CreateStream("b");
         // act
         var result = await client.TestUpload.ExecuteAsync(
             "foo",
@@ -128,18 +128,18 @@ public class UploadScalarInMemoryTest : ServerTestBase
             null,
             new[]
             {
-                new TestInput()
+                new TestInput
                 {
-                    Bar = new BarInput()
+                    Bar = new BarInput
                     {
-                        Baz = new BazInput() { File = new Upload(dataA, "A", contentType) }
+                        Baz = new BazInput { File = new Upload(dataA, "A", contentType) }
                     }
                 },
-                new TestInput()
+                new TestInput
                 {
-                    Bar = new BarInput()
+                    Bar = new BarInput
                     {
-                        Baz = new BazInput() { File = new Upload(dataB, "B", contentType) }
+                        Baz = new BazInput { File = new Upload(dataB, "B", contentType) }
                     }
                 }
             },
@@ -156,8 +156,8 @@ public class UploadScalarInMemoryTest : ServerTestBase
     {
         // arrange
         var client = CreateClient();
-        using var dataA = CreateStream("a");
-        using var dataB = CreateStream("b");
+        await using var dataA = CreateStream("a");
+        await using var dataB = CreateStream("b");
 
         // act
         var result = await client.TestUpload.ExecuteAsync(
@@ -171,18 +171,18 @@ public class UploadScalarInMemoryTest : ServerTestBase
             {
                 new[]
                 {
-                    new TestInput()
+                    new TestInput
                     {
-                        Bar = new BarInput()
+                        Bar = new BarInput
                         {
-                            Baz = new BazInput() { File = new Upload(dataA, "A", contentType) }
+                            Baz = new BazInput { File = new Upload(dataA, "A", contentType) }
                         }
                     },
-                    new TestInput()
+                    new TestInput
                     {
-                        Bar = new BarInput()
+                        Bar = new BarInput
                         {
-                            Baz = new BazInput() { File = new Upload(dataB, "B", contentType) }
+                            Baz = new BazInput { File = new Upload(dataB, "B", contentType) }
                         }
                     }
                 }

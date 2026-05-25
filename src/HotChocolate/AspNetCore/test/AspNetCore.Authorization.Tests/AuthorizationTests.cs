@@ -141,12 +141,6 @@ public class AuthorizationTests(TestServerFactory serverFactory) : ServerTestBas
               "Errors": [
                 {
                   "message": "The `HasAgeDefined` authorization policy does not exist.",
-                  "locations": [
-                    {
-                      "line": 1,
-                      "column": 3
-                    }
-                  ],
                   "path": [
                     "age"
                   ],
@@ -400,7 +394,7 @@ public class AuthorizationTests(TestServerFactory serverFactory) : ServerTestBas
     [Theory]
     [ClassData(typeof(AuthorizationTestData))]
     [ClassData(typeof(AuthorizationAttributeTestData))]
-    public async Task Roles_And_Policy_UserMatchesPolicyButIsntInOneOfTheRoles_NotAuthorized(
+    public async Task Roles_And_Policy_UserMatchesPolicyButIsNotInOneOfTheRoles_NotAuthorized(
         Action<IRequestExecutorBuilder> configure)
     {
         // arrange

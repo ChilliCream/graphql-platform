@@ -55,10 +55,10 @@ public class ExpressionUtilsTests
 
 public class ExpressionUtilsTestDummy
 {
-    public string Field;
-    public string this[int index] { get => null; }
-    public string Property { get; private set; }
-    internal string InternalProperty { get; private set; }
-    public string Method() => Property;
-    internal string InternalMethod() => InternalProperty;
+    public string? Field;
+    public string? this[int index] { get => null; }
+    public string? Property { get; private set; }
+    internal string? InternalProperty { get; private set; }
+    public string? Method() => Property;
+    internal string? InternalMethod() => InternalProperty;
 }

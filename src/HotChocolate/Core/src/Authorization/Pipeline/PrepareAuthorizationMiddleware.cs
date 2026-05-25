@@ -17,5 +17,5 @@ internal sealed class PrepareAuthorizationMiddleware(RequestDelegate next)
                 var middleware = new PrepareAuthorizationMiddleware(next);
                 return middleware.InvokeAsync;
             },
-            "HotChocolate.Authorization.Pipeline.PrepareAuthorization");
+            WellKnownRequestMiddleware.PrepareAuthorizationMiddleware);
 }

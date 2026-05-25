@@ -59,13 +59,15 @@ public class DeferTests
 
         // act
         var result = await executor.ExecuteAsync(
-            @"{
-                ... @defer(label: ""abc"") {
-                    person(id: ""UGVyc29uOjE="") {
+            """
+            {
+                ... @defer(label: "abc") {
+                    person(id: "UGVyc29uOjE=") {
                         id
                     }
                 }
-            }");
+            }
+            """);
 
         Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
     }

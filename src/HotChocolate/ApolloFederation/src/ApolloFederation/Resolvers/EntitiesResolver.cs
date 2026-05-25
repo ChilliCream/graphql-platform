@@ -1,4 +1,5 @@
 using System.Buffers;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using static HotChocolate.ApolloFederation.FederationContextData;
 
@@ -33,7 +34,7 @@ internal static class EntitiesResolver
                 entityContext.SetLocalState(TypeField, objectType);
                 entityContext.SetLocalState(DataField, current.Data);
 
-                tasks[i] = entity.Resolver.Invoke(entityContext).AsTask();
+                tasks[i] = ResolveEntityAsync(entity.Resolver, entityContext, objectType, current.Data);
                 continue;
             }
 
@@ -87,6 +88,30 @@ internal static class EntitiesResolver
 
         ArrayPool<Task<object?>>.Shared.Return(tasks, true);
         return result;
+    }
+
+    private static Task<object?> ResolveEntityAsync(
+        FieldResolverDelegate resolver,
+        IResolverContext context,
+        ObjectType type,
+        IValueNode representation)
+        => ResolveEntityInternalAsync(resolver, context, type, representation).AsTask();
+
+    private static async ValueTask<object?> ResolveEntityInternalAsync(
+        FieldResolverDelegate resolver,
+        IResolverContext context,
+        ObjectType type,
+        IValueNode representation)
+    {
+        var entity = await resolver(context);
+
+        if (entity is not null
+            && type.Features.TryGet(out ExternalSetter? externalSetter))
+        {
+            externalSetter.Invoke(type, representation, entity);
+        }
+
+        return entity;
     }
 
     private static void ReportError(IResolverContext context, int item, Exception ex)

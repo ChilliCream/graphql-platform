@@ -15,6 +15,9 @@ public class RavenStringContainsHandler : QueryableStringOperationHandler
 
     protected override int Operation => DefaultFilterOperations.Contains;
 
+    public static RavenStringContainsHandler Create(FilterProviderContext context)
+        => new(context.InputParser);
+
     public override Expression HandleOperation(
         QueryableFilterContext context,
         IFilterOperationField field,

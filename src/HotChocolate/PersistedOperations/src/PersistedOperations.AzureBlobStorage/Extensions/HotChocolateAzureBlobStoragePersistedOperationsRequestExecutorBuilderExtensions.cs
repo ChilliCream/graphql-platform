@@ -27,7 +27,6 @@ public static class HotChocolateAzureBlobStoragePersistedOperationsRequestExecut
         ArgumentNullException.ThrowIfNull(containerClientFactory);
 
         return builder.ConfigureSchemaServices(
-            s => s.AddAzureBlobStorageOperationDocumentStorage(
-                sp => containerClientFactory(sp.GetCombinedServices())));
+            s => s.AddAzureBlobStorageOperationDocumentStorage(containerClientFactory));
     }
 }

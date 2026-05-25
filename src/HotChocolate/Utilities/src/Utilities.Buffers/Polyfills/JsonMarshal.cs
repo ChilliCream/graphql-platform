@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace System.Runtime.InteropServices;
 
-public static class JsonMarshal
+internal static class JsonMarshal
 {
     public static ReadOnlySpan<byte> GetRawUtf8Value(JsonElement value)
     {

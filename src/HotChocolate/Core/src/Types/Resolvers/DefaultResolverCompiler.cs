@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
@@ -30,6 +31,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
     private static readonly MethodInfo s_resolver =
         typeof(IResolverContext).GetMethod(nameof(IResolverContext.Resolver))!;
 
+    private readonly ITypeInspector _typeInspector;
     private readonly Dictionary<ParameterInfo, IParameterExpressionBuilder> _cache = [];
     private readonly List<IParameterExpressionBuilder> _parameterExpressionBuilders;
     private readonly List<IParameterExpressionBuilder> _defaultParameterExpressionBuilders;
@@ -40,9 +42,12 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         new Dictionary<ParameterInfo, string>();
 
     public DefaultResolverCompiler(
+        ITypeInspector typeInspector,
         IServiceProvider schemaServiceProvider,
         IEnumerable<IParameterExpressionBuilder>? customParameterExpressionBuilders)
     {
+        _typeInspector = typeInspector;
+
         var appServiceProvider = schemaServiceProvider.GetService<IRootServiceProviderAccessor>()?.ServiceProvider;
         var serviceInspector = appServiceProvider?.GetService<IServiceProviderIsService>();
 
@@ -82,7 +87,6 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         expressionBuilders.Add(new ResolverContextParameterExpressionBuilder());
         expressionBuilders.Add(new SchemaParameterExpressionBuilder());
         expressionBuilders.Add(new SelectionParameterExpressionBuilder());
-        expressionBuilders.Add(new FieldSyntaxParameterExpressionBuilder());
         expressionBuilders.Add(new ObjectTypeParameterExpressionBuilder());
         expressionBuilders.Add(new OperationDefinitionParameterExpressionBuilder());
         expressionBuilders.Add(new OperationParameterExpressionBuilder());
@@ -251,9 +255,10 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         {
             if (method.IsStatic)
             {
+                var parameters = _typeInspector.GetParameters(method);
                 var parameterExpr = CreateParameters(
                     s_context,
-                    method.GetParameters(),
+                    parameters,
                     argumentNames,
                     parameterExpressionBuilders);
                 Expression subscribeResolver = Call(method, parameterExpr);
@@ -262,7 +267,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
             }
             else
             {
-                var parameters = method.GetParameters();
+                var parameters = _typeInspector.GetParameters(method);
                 var owner = CreateResolverOwner(s_context, sourceType, resolverType);
                 var parameterExpr = CreateParameters(
                     s_context,
@@ -278,6 +283,27 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         throw new ArgumentException(
             DefaultResolverCompilerService_CompileSubscribe_OnlyMethodsAllowed,
             nameof(member));
+    }
+
+    /// <inheritdoc />
+    public BatchFieldDelegate CompileBatchResolve(
+        MethodInfo method,
+        Type? sourceType = null,
+        Type? resolverType = null,
+        IReadOnlyDictionary<ParameterInfo, string>? argumentNames = null,
+        IReadOnlyList<IParameterExpressionBuilder>? parameterExpressionBuilders = null)
+    {
+        ArgumentNullException.ThrowIfNull(method);
+
+        argumentNames ??= _emptyLookup;
+        parameterExpressionBuilders ??= s_empty;
+
+        return BatchResolverCompiler.Compile(
+            method,
+            sourceType,
+            resolverType,
+            argumentNames,
+            p => GetParameterExpressionBuilder(p, parameterExpressionBuilders));
     }
 
     /// <inheritdoc />
@@ -326,12 +352,13 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         IReadOnlyDictionary<ParameterInfo, string> argumentNames,
         IReadOnlyList<IParameterExpressionBuilder> fieldParameterExpressionBuilders)
     {
-        var parameters = CreateParameters(
+        var parameters = _typeInspector.GetParameters(method);
+        var parameterExpr = CreateParameters(
             s_context,
-            method.GetParameters(),
+            parameters,
             argumentNames,
             fieldParameterExpressionBuilders);
-        Expression resolver = Call(method, parameters);
+        Expression resolver = Call(method, parameterExpr);
         resolver = EnsureResolveResult(resolver, method.ReturnType);
         return Lambda<FieldResolverDelegate>(resolver, s_context).Compile();
     }
@@ -353,7 +380,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
 
         if (member is MethodInfo method)
         {
-            var parameters = method.GetParameters();
+            var parameters = _typeInspector.GetParameters(method);
             var owner = CreateResolverOwner(s_context, source, resolverType);
             var parameterExpr = CreateParameters(
                 s_context,
@@ -391,7 +418,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
 
         if (member is MethodInfo method)
         {
-            var parameters = method.GetParameters();
+            var parameters = _typeInspector.GetParameters(method);
 
             if (IsPureResolver(method, parameters, fieldParameterExpressionBuilders))
             {
@@ -432,6 +459,16 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
 
             if (!builder.IsPure)
             {
+                // We allow scoped state getters to be considered pure because
+                // PureResolverContext can read ScopedContextData (it delegates
+                // to its parent). Setters and local state remain not pure.
+                if (builder is ScopedStateParameterExpressionBuilder
+                    and not LocalStateParameterExpressionBuilder
+                    && !ParameterExpressionBuilderHelpers.IsStateSetter(parameter.ParameterType))
+                {
+                    continue;
+                }
+
                 return false;
             }
         }
@@ -468,6 +505,17 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
     }
 
     // Create an expression to get the resolver class instance.
+    [UnconditionalSuppressMessage(
+        "ReflectionAnalysis",
+        "IL2060",
+        Justification =
+            "The Parent<T> and Resolver<T> methods have no trimming constraints on their type parameters.")]
+    [UnconditionalSuppressMessage(
+        "AOT",
+        "IL3050",
+        Justification =
+            "This method builds expression trees at schema initialization time and is only used in JIT-compatible "
+            + "environments.")]
     private static Expression CreateResolverOwner(
         ParameterExpression context,
         Type source,

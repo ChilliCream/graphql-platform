@@ -63,18 +63,18 @@ public class ReflectionUtilsTests
             typeName);
     }
 
-    public class GenericNestedFoo<T>
+    public class GenericNestedFoo<T>(T value)
     {
-        public T Value { get; }
+        public T Value { get; } = value;
     }
 
-    public class Foo
+    public class Foo(string value)
     {
-        public string Value { get; }
+        public string Value { get; } = value;
     }
 }
 
-public class GenericNonNestedFoo<T>
+public class GenericNonNestedFoo<T>(T value)
 {
-    public T Value { get; }
+    public T Value { get; } = value;
 }

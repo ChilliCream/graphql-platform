@@ -25,15 +25,13 @@
 
 12and13 SQL:
 ---------------
-.param set @p '[12,13]'
+.param set @p1 12
+.param set @p2 13
 
 SELECT "d"."Id", "d"."FooId"
 FROM "Data" AS "d"
 LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
-WHERE "f"."BarShort" IN (
-    SELECT "p"."value"
-    FROM json_each(@p) AS "p"
-)
+WHERE "f"."BarShort" IN (@p1, @p2)
 ---------------
 
 13and14 Result:
@@ -63,15 +61,13 @@ WHERE "f"."BarShort" IN (
 
 13and14 SQL:
 ---------------
-.param set @p '[13,14]'
+.param set @p1 13
+.param set @p2 14
 
 SELECT "d"."Id", "d"."FooId"
 FROM "Data" AS "d"
 LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
-WHERE "f"."BarShort" IN (
-    SELECT "p"."value"
-    FROM json_each(@p) AS "p"
-)
+WHERE "f"."BarShort" IN (@p1, @p2)
 ---------------
 
 13andNull Result:
@@ -101,13 +97,10 @@ WHERE "f"."BarShort" IN (
 
 13andNull SQL:
 ---------------
-.param set @p_without_nulls '[13]'
+.param set @p1 13
 
 SELECT "d"."Id", "d"."FooId"
 FROM "Data" AS "d"
 LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
-WHERE "f"."BarShort" IN (
-    SELECT "p"."value"
-    FROM json_each(@p_without_nulls) AS "p"
-) OR "f"."BarShort" IS NULL
+WHERE "f"."BarShort" IS NULL OR "f"."BarShort" = @p1
 ---------------

@@ -19,6 +19,11 @@ public class DefaultHttpRequestInterceptor : IHttpRequestInterceptor
     {
         var userState = new UserState(context.User);
 
+        if (context.Features.Get<IFileLookup>() is { } featureLookup)
+        {
+            requestBuilder.Features.Set(featureLookup);
+        }
+
         requestBuilder.Features.Set(userState);
         requestBuilder.Features.Set(context);
         requestBuilder.Features.Set(context.User);
@@ -27,9 +32,9 @@ public class DefaultHttpRequestInterceptor : IHttpRequestInterceptor
         requestBuilder.TryAddGlobalState(nameof(HttpContext), context);
         requestBuilder.TryAddGlobalState(nameof(ClaimsPrincipal), userState.User);
 
-        if (context.IncludeQueryPlan())
+        if (context.IncludeOperationPlan())
         {
-            requestBuilder.TryAddGlobalState(IncludeQueryPlan, true);
+            requestBuilder.TryAddGlobalState(IncludeOperationPlan, true);
         }
 
         if (context.TryGetCostSwitch() is { } costSwitch)

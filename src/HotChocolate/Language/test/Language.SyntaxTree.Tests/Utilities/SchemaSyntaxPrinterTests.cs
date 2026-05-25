@@ -798,4 +798,259 @@ public class SchemaSyntaxPrinterTests
         // assert
         Assert.Equal(schema, result);
     }
+
+    [Fact]
+    public void Format_Should_Inline_Short_List_Default_In_Directive_Definition()
+    {
+        // arrange
+        const string sdl = "directive @semanticNonNull(levels: [Int!] = [0]) on FIELD_DEFINITION";
+        var document = Utf8GraphQLParser.Parse(sdl);
+
+        // act
+        var actual = document.ToString(indented: true);
+
+        // assert
+        Assert.Equal(sdl, actual);
+    }
+
+    [Fact]
+    public void Format_Should_Break_Directive_Arguments_When_Too_Long()
+    {
+        // arrange
+        const string sdl = "type Foo @veryLongDirectiveName(firstArgumentName: \"firstValue\", "
+            + "secondArgumentName: \"secondValue\", thirdArgumentName: \"thirdValue\") { id: ID }";
+        var document = Utf8GraphQLParser.Parse(sdl);
+
+        // act
+        var actual = document.ToString(indented: true);
+
+        // assert
+        actual.MatchInlineSnapshot(
+            """
+            type Foo
+              @veryLongDirectiveName(
+                firstArgumentName: "firstValue"
+                secondArgumentName: "secondValue"
+                thirdArgumentName: "thirdValue"
+              ) {
+              id: ID
+            }
+            """);
+    }
+
+    [Fact]
+    public void Serialize_SingleLineBlockString_ExpandsToThreeLines()
+    {
+        // arrange
+        const string sdl = "\"\"\"foo\"\"\" type Foo { bar: String }";
+        var document = Utf8GraphQLParser.Parse(sdl);
+
+        // act
+        var actual = document.ToString(indented: true);
+
+        // assert
+        actual.MatchInlineSnapshot(
+            """"
+            """
+            foo
+            """
+            type Foo {
+              bar: String
+            }
+            """");
+    }
+
+    [Fact]
+    public void Serialize_SingleLineBlockString_TrimsLeadingAndTrailingWhitespace()
+    {
+        // arrange
+        const string sdl = "\"\"\" Customer \"\"\" type Foo { bar: String }";
+        var document = Utf8GraphQLParser.Parse(sdl);
+
+        // act
+        var actual = document.ToString(indented: true);
+
+        // assert
+        actual.MatchInlineSnapshot(
+            """"
+            """
+            Customer
+            """
+            type Foo {
+              bar: String
+            }
+            """");
+    }
+
+    [Fact]
+    public void Serialize_MultiLineBlockString_RemainsMultiLine()
+    {
+        // arrange
+        const string sdl = "\"\"\"\nfoo\nbar\n\"\"\" type Foo { bar: String }";
+        var document = Utf8GraphQLParser.Parse(sdl);
+
+        // act
+        var actual = document.ToString(indented: true);
+
+        // assert
+        actual.MatchInlineSnapshot(
+            "\"\"\"\nfoo\nbar\n\"\"\"\ntype Foo {\n  bar: String\n}");
+    }
+
+    [Fact]
+    public void Serialize_EmptyBlockString_ExpandsToThreeLines()
+    {
+        // arrange
+        const string sdl = "\"\"\"\"\"\" type Foo { bar: String }";
+        var document = Utf8GraphQLParser.Parse(sdl);
+
+        // act
+        var actual = document.ToString(indented: true);
+
+        // assert
+        actual.MatchInlineSnapshot(
+            "\"\"\"\n\n\"\"\"\ntype Foo {\n  bar: String\n}");
+    }
+
+    [Fact]
+    public void Format_Should_Break_Implements_List_When_Too_Long()
+    {
+        // arrange
+        const string sdl = "type Foo implements InterfaceOne & InterfaceTwo & InterfaceThree "
+            + "& InterfaceFour & InterfaceFive & InterfaceSix { id: ID! }";
+        var document = Utf8GraphQLParser.Parse(sdl);
+
+        // act
+        var actual = document.ToString(indented: true);
+
+        // assert
+        actual.MatchInlineSnapshot(
+            """
+            type Foo implements InterfaceOne &
+              InterfaceTwo &
+              InterfaceThree &
+              InterfaceFour &
+              InterfaceFive &
+              InterfaceSix {
+              id: ID!
+            }
+            """);
+    }
+
+    [Fact]
+    public void Format_Should_Break_Union_Members_When_Too_Long()
+    {
+        // arrange
+        const string sdl = "union LongUnion = MemberOne | MemberTwo | MemberThree "
+            + "| MemberFour | MemberFive | MemberSix | MemberSeven | MemberEight";
+        var document = Utf8GraphQLParser.Parse(sdl);
+
+        // act
+        var actual = document.ToString(indented: true);
+
+        // assert
+        actual.MatchInlineSnapshot(
+            """
+            union LongUnion =
+              | MemberOne
+              | MemberTwo
+              | MemberThree
+              | MemberFour
+              | MemberFive
+              | MemberSix
+              | MemberSeven
+              | MemberEight
+            """);
+    }
+
+    [Fact]
+    public void Serialize_BlankLineOnlyBlockString_ExpandsToThreeLines()
+    {
+        // arrange
+        const string sdl = "\"\"\"\n\n\"\"\" type Foo { bar: String }";
+        var document = Utf8GraphQLParser.Parse(sdl);
+
+        // act
+        var actual = document.ToString(indented: true);
+
+        // assert
+        actual.MatchInlineSnapshot(
+            "\"\"\"\n\n\"\"\"\ntype Foo {\n  bar: String\n}");
+    }
+
+    [Fact]
+    public void Format_Should_Break_Standalone_Directive_When_Too_Long()
+    {
+        // arrange
+        var directive = new DirectiveNode(
+            "veryLongDirectiveName",
+            new ArgumentNode("firstArgumentName", "firstValue"),
+            new ArgumentNode("secondArgumentName", "secondValue"),
+            new ArgumentNode("thirdArgumentName", "thirdValue"));
+
+        // act
+        var actual = directive.ToString(indented: true);
+
+        // assert
+        actual.MatchInlineSnapshot(
+            """
+            @veryLongDirectiveName(
+              firstArgumentName: "firstValue"
+              secondArgumentName: "secondValue"
+              thirdArgumentName: "thirdValue"
+            )
+            """);
+    }
+
+    [Fact]
+    public void Format_Should_Break_Standalone_Argument_List_Value_When_Too_Long()
+    {
+        // arrange
+        var argument = new ArgumentNode(
+            new NameNode("items"),
+            new ListValueNode(
+                new StringValueNode("firstReallyLongStringValue"),
+                new StringValueNode("secondReallyLongStringValue"),
+                new StringValueNode("thirdReallyLongStringValue")));
+
+        // act
+        var actual = argument.ToString(indented: true);
+
+        // assert
+        actual.MatchInlineSnapshot(
+            """
+            items: [
+              "firstReallyLongStringValue"
+              "secondReallyLongStringValue"
+              "thirdReallyLongStringValue"
+            ]
+            """);
+    }
+
+    [Fact]
+    public void Format_Should_Break_Directive_Locations_When_Too_Long()
+    {
+        // arrange
+        const string sdl = "directive @manyLocations on QUERY | MUTATION | SUBSCRIPTION "
+            + "| FIELD | FRAGMENT_DEFINITION | FRAGMENT_SPREAD | INLINE_FRAGMENT "
+            + "| VARIABLE_DEFINITION";
+        var document = Utf8GraphQLParser.Parse(sdl);
+
+        // act
+        var actual = document.ToString(indented: true);
+
+        // assert
+        actual.MatchInlineSnapshot(
+            """
+            directive @manyLocations on
+              | QUERY
+              | MUTATION
+              | SUBSCRIPTION
+              | FIELD
+              | FRAGMENT_DEFINITION
+              | FRAGMENT_SPREAD
+              | INLINE_FRAGMENT
+              | VARIABLE_DEFINITION
+            """);
+    }
 }

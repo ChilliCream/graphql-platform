@@ -54,7 +54,18 @@ public class DefaultNamingConventions
     {
         ArgumentNullException.ThrowIfNull(type);
 
-        var name = type.GetGraphQLName();
+        string? name;
+
+        if (kind is TypeKind.Object && type.IsDefined(typeof(ExtendObjectTypeAttribute), false))
+        {
+            name = type.GetCustomAttribute<ExtendObjectTypeAttribute>()?.Name;
+            if (!string.IsNullOrEmpty(name))
+            {
+                return name;
+            }
+        }
+
+        name = type.GetGraphQLName();
 
         if (_formatInterfaceName
             && kind == TypeKind.Interface
@@ -240,9 +251,11 @@ public class DefaultNamingConventions
 
         if (enumType.IsEnum)
         {
+#pragma warning disable IL2075 // 'this' argument does not satisfy 'DynamicallyAccessedMembersAttribute' - enumType is obtained from GetType() which cannot be statically annotated.
             var enumMember = enumType
                 .GetMember(value.ToString()!)
                 .FirstOrDefault();
+#pragma warning restore IL2075
 
             if (enumMember?.IsDefined(typeof(GraphQLNameAttribute)) == true)
             {
@@ -342,9 +355,11 @@ public class DefaultNamingConventions
 
         if (enumType.IsEnum)
         {
+#pragma warning disable IL2075 // 'this' argument does not satisfy 'DynamicallyAccessedMembersAttribute' - enumType is obtained from GetType() which cannot be statically annotated.
             var enumMember = enumType
                 .GetMember(value.ToString()!)
                 .FirstOrDefault();
+#pragma warning restore IL2075
 
             if (enumMember != null)
             {
@@ -375,9 +390,11 @@ public class DefaultNamingConventions
 
         if (enumType.IsEnum)
         {
+#pragma warning disable IL2075 // 'this' argument does not satisfy 'DynamicallyAccessedMembersAttribute' - enumType is obtained from GetType() which cannot be statically annotated.
             var enumMember = enumType
                 .GetMember(value.ToString()!)
                 .FirstOrDefault();
+#pragma warning restore IL2075
 
             if (enumMember != null)
             {

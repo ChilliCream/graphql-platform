@@ -1,20 +1,15 @@
-[
-  {
-    "Message": "More than one argument with the same name in an argument set is ambiguous and invalid.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 2,
-        "Column": 31
-      }
-    ],
-    "Extensions": {
-      "type": "Query",
-      "field": "fieldWithArg",
-      "argument": "arg1",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Argument-Uniqueness"
-    },
-    "Exception": null
+{
+  "message": "More than one argument with the same name in an argument set is ambiguous and invalid.",
+  "locations": [
+    {
+      "line": 2,
+      "column": 31
+    }
+  ],
+  "extensions": {
+    "type": "Query",
+    "field": "fieldWithArg",
+    "argument": "arg1",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Argument-Uniqueness"
   }
-]
+}

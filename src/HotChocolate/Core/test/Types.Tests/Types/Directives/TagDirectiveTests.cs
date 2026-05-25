@@ -135,13 +135,13 @@ public class TagDirectiveTests
     public class FooInput
     {
         [Tag("OnInputObjectField")]
-        public string Bar { get; set; }
+        public required string Bar { get; set; }
     }
 
     [DirectiveType(DirectiveLocation.Query)]
     public class FooDirective
     {
         [Tag("OnDirectiveArgument")]
-        public string Arg { get; set; }
+        public required string Arg { get; set; }
     }
 }

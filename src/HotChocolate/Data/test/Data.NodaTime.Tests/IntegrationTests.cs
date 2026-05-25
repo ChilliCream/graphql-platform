@@ -61,20 +61,22 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
                 """));
 
         // assert
-        result.ExpectOperationResult().Data.MatchInlineSnapshot(
+        result.ExpectOperationResult().MatchInlineSnapshot(
             """
             {
-                "books": {
+                "data": {
+                  "books": {
                     "nodes": [
-                        {
-                            "title": "Book2",
-                            "publishedDate": "2008-01-17"
-                        },
-                        {
-                            "title": "Book1",
-                            "publishedDate": "2008-01-16"
-                        }
+                    {
+                        "title": "Book2",
+                        "publishedDate": "2008-01-17"
+                    },
+                    {
+                        "title": "Book1",
+                        "publishedDate": "2008-01-16"
+                    }
                     ]
+                  }
                 }
             }
             """);

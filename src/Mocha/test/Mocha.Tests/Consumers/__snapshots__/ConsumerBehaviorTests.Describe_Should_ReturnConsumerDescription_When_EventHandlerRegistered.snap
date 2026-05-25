@@ -1,0 +1,7 @@
+{
+  "Name": "OrderCreatedHandler",
+  "IdentityType": "OrderCreatedHandler",
+  "IdentityTypeFullName": "Mocha.Tests.Consumers.ConsumerBehaviorTests+OrderCreatedHandler",
+  "SagaName": null,
+  "IsBatch": false
+}

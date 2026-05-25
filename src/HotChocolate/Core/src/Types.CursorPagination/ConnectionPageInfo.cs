@@ -9,10 +9,10 @@ public class ConnectionPageInfo : IPageInfo
     /// <summary>
     /// Initializes <see cref="ConnectionPageInfo" />.
     /// </summary>
-    /// <param name="hasNextPage"></param>
-    /// <param name="hasPreviousPage"></param>
-    /// <param name="startCursor"></param>
-    /// <param name="endCursor"></param>
+    /// <param name="hasNextPage">Indicates whether more items exist after the current page.</param>
+    /// <param name="hasPreviousPage">Indicates whether more items exist before the current page.</param>
+    /// <param name="startCursor">The cursor of the first item in the current page.</param>
+    /// <param name="endCursor">The cursor of the last item in the current page.</param>
     public ConnectionPageInfo(
         bool hasNextPage,
         bool hasPreviousPage,

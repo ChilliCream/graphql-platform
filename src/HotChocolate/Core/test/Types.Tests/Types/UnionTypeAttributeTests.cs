@@ -1,7 +1,5 @@
 using HotChocolate.Types.Descriptors;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 public class UnionTypeAttributeTests
@@ -44,7 +42,7 @@ public class UnionTypeAttributeTests
         protected override void OnConfigure(
             IDescriptorContext context,
             IUnionTypeDescriptor descriptor,
-            Type type)
+            Type? type)
         {
             descriptor.Name("Abc");
         }

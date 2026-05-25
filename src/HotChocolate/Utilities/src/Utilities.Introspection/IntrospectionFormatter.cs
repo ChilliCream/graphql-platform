@@ -1,5 +1,7 @@
 using HotChocolate.Language;
+using HotChocolate.Types;
 using HotChocolate.Utilities.Introspection.Properties;
+using DirectiveLocation = HotChocolate.Language.DirectiveLocation;
 
 namespace HotChocolate.Utilities.Introspection;
 
@@ -317,18 +319,26 @@ internal static class IntrospectionFormatter
     }
 
     private static IReadOnlyList<DirectiveNode> CreateDeprecatedDirective(
-        bool isDeprecated, string deprecationReason)
+        bool isDeprecated,
+        string deprecationReason)
     {
+        const string defaultReason = "No longer supported.";
+
+        if (string.IsNullOrEmpty(deprecationReason))
+        {
+            deprecationReason = defaultReason;
+        }
+
         if (isDeprecated)
         {
             return new List<DirectiveNode>
             {
                 new DirectiveNode
                 (
-                    WellKnownDirectives.Deprecated,
+                    DirectiveNames.Deprecated.Name,
                     new ArgumentNode
                     (
-                        WellKnownDirectives.DeprecationReasonArgument,
+                        DirectiveNames.Deprecated.Arguments.Reason,
                         new StringValueNode(deprecationReason)
                     )
                 )

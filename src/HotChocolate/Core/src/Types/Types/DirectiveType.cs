@@ -18,7 +18,7 @@ namespace HotChocolate.Types;
 public partial class DirectiveType
     : TypeSystemObject<DirectiveTypeConfiguration>
     , IDirectiveDefinition
-    , IHasRuntimeType
+    , IRuntimeTypeProvider
     , ITypeIdentityProvider
 {
     private Action<IDirectiveTypeDescriptor>? _configure;
@@ -126,7 +126,7 @@ public partial class DirectiveType
     /// <summary>
     /// Defines if instances of this directive type are publicly visible through introspection.
     /// </summary>
-    internal bool IsPublic { get; private set; }
+    public bool IsPublic { get; private set; }
 
     private Type? TypeIdentity { get; set; }
 

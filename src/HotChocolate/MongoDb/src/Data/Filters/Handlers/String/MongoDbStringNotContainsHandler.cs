@@ -17,6 +17,9 @@ public class MongoDbStringNotContainsHandler
 
     protected override int Operation => DefaultFilterOperations.NotContains;
 
+    public static MongoDbStringNotContainsHandler Create(FilterProviderContext context)
+        => new(context.InputParser);
+
     public override MongoDbFilterDefinition HandleOperation(
         MongoDbFilterVisitorContext context,
         IFilterOperationField field,

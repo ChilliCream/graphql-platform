@@ -10,7 +10,7 @@
     <ProjectReference Include="..\..\..\..\GreenDonut\src\GreenDonut.Data.Abstractions\GreenDonut.Data.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\..\GreenDonut\src\GreenDonut.Data.Primitives\GreenDonut.Data.Primitives.csproj" />
     <ProjectReference Include="..\..\..\..\GreenDonut\src\GreenDonut.Data\GreenDonut.Data.csproj" />
-    <ProjectReference Include="..\Execution\HotChocolate.Execution.csproj" />
+    <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
   </ItemGroup>
 
 </Project>

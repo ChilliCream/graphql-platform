@@ -109,21 +109,15 @@ public class QueryableFilterVisitorListTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    @"{
-                        root(where: {
-                            fooNested: {
-                                some: {
-                                    bar: {
-                                        eq: ""a""
-                                    }
-                                }
-                            }
-                        }){
+                    """
+                    {
+                        root(where: { fooNested: { some: { bar: { eq: "a" } } } }) {
                             fooNested {
                                 bar
                             }
                         }
-                    }")
+                    }
+                    """)
                 .Build());
 
         var res2 = await tester.ExecuteAsync(

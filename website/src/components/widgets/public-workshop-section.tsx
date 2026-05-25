@@ -55,7 +55,8 @@ const Space = styled.div`
   justify-content: space-between;
 `;
 
-const Title = styled.h5`
+const Title = styled.div`
+  font-weight: 700;
   margin-bottom: 28px;
 `;
 

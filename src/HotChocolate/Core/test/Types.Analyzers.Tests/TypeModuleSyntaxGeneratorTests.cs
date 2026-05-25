@@ -173,4 +173,103 @@ public class TypeModuleSyntaxGeneratorTests
             """
         ], assemblyName: "Custom-Module").MatchMarkdownAsync();
     }
+
+    [Fact]
+    public async Task DetectSourceSchemaDefaults_From_Shareable()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+        [
+            """
+            using HotChocolate.Types;
+            using HotChocolate.Types.Composite;
+
+            namespace TestNamespace;
+
+            [Shareable]
+            [QueryType]
+            internal static partial class RootType
+            {
+                public static int Value => throw new System.NotImplementedException();
+            }
+            """
+        ]).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task DetectSourceSchemaDefaults_From_Shareable_On_Field()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+        [
+            """
+            using HotChocolate.Types;
+            using HotChocolate.Types.Composite;
+
+            namespace TestNamespace;
+
+            [QueryType]
+            internal static partial class RootType
+            {
+                [Shareable]
+                public static int Value => throw new System.NotImplementedException();
+            }
+            """
+        ]).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task DetectSourceSchemaDefaults_From_Lookup()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+        [
+            """
+            using HotChocolate.Types;
+            using HotChocolate.Types.Composite;
+
+            namespace TestNamespace;
+
+            [QueryType]
+            internal static partial class RootType
+            {
+                [Lookup]
+                public static int Value => throw new System.NotImplementedException();
+            }
+            """
+        ]).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task GenerateSource_Interface_Inheritance_Registers_Derived_Implementations()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+        [
+            """
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            [InterfaceType]
+            public abstract class StatementTransaction
+            {
+                public int Id { get; set; }
+            }
+
+            public sealed class DepositStatementTransaction : StatementTransaction
+            {
+                public decimal CollectionAmount { get; init; }
+            }
+
+            public sealed class BillingStatementTransaction : StatementTransaction
+            {
+                public decimal FeeAndChargeAmount { get; init; }
+            }
+
+            [QueryType]
+            public static partial class Query
+            {
+                public static StatementTransaction GetStatementTransaction()
+                    => new DepositStatementTransaction { Id = 1, CollectionAmount = 42m };
+            }
+            """
+        ]).MatchMarkdownAsync();
+    }
 }

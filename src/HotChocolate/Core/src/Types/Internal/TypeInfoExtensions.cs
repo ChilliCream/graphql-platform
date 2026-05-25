@@ -33,7 +33,6 @@ public static class TypeInfoExtensions
     /// </summary>
     public static TypeReference CreateTypeReference(this ITypeInfo typeInfo, NamedTypeNode namedType)
     {
-        ArgumentNullException.ThrowIfNull(typeInfo);
         ArgumentNullException.ThrowIfNull(namedType);
 
         ITypeNode type = namedType;

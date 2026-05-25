@@ -56,17 +56,14 @@ public class InputObjectsCanBeVariablesTest
     public async Task EnsureInputObjectsCanBeLiteralsTest()
     {
         await ExpectValid(
-            @"
-                    {
-                        anything(foo: {
-                            a: ""a""
-                            b: ""b""
-                        }) {
-                            a
-                            b
-                        }
-                    }
-                ",
+            """
+            {
+                anything(foo: { a: "a", b: "b" }) {
+                    a
+                    b
+                }
+            }
+            """,
             r => r.AddQueryType<Query>(),
             r => { }
         ).MatchSnapshotAsync();

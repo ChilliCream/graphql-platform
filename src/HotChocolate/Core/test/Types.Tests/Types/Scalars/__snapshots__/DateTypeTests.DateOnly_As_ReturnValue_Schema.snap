@@ -2,13 +2,14 @@ schema {
   query: QueryDate2
 }
 
+type QueryDate2 {
+  bar: Bar!
+}
+
 type Bar {
   date: Date
 }
 
-type QueryDate2 {
-  bar: Bar
-}
-
-"The `Date` scalar represents an ISO-8601 compliant date type."
+"The `Date` scalar type represents a date in UTC."
 scalar Date
+  @specifiedBy(url: "https://scalars.graphql.org/chillicream/date.html")

@@ -394,17 +394,17 @@ public class QueryableFilterVisitorComparableTests
         // act
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { barShort: { in: [ 12, 13 ]}}){ barShort}}")
+                .SetDocument("{ root(where: { barShort: { in: [12, 13]}}){ barShort}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { barShort: { in: [ 13, 14 ]}}){ barShort}}")
+                .SetDocument("{ root(where: { barShort: { in: [13, 14]}}){ barShort}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { barShort: { in: [ null, 14 ]}}){ barShort}}")
+                .SetDocument("{ root(where: { barShort: { in: [null, 14]}}){ barShort}}")
                 .Build());
 
         // assert
@@ -425,17 +425,17 @@ public class QueryableFilterVisitorComparableTests
         // act
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { barShort: { nin: [ 12, 13 ]}}){ barShort}}")
+                .SetDocument("{ root(where: { barShort: { nin: [12, 13]}}){ barShort}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { barShort: { nin: [ 13, 14 ]}}){ barShort}}")
+                .SetDocument("{ root(where: { barShort: { nin: [13, 14]}}){ barShort}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { barShort: { nin: [ null, 14 ]}}){ barShort}}")
+                .SetDocument("{ root(where: { barShort: { nin: [null, 14]}}){ barShort}}")
                 .Build());
 
         // assert
@@ -814,17 +814,17 @@ public class QueryableFilterVisitorComparableTests
         // act
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { barShort: { in: [ 12, 13 ]}}){ barShort}}")
+                .SetDocument("{ root(where: { barShort: { in: [12, 13]}}){ barShort}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { barShort: { in: [ 13, 14 ]}}){ barShort}}")
+                .SetDocument("{ root(where: { barShort: { in: [13, 14]}}){ barShort}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { barShort: { in: [ 13, null ]}}){ barShort}}")
+                .SetDocument("{ root(where: { barShort: { in: [13, null]}}){ barShort}}")
                 .Build());
 
         // assert
@@ -845,17 +845,17 @@ public class QueryableFilterVisitorComparableTests
         // act
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { barShort: { nin: [ 12, 13 ]}}){ barShort}}")
+                .SetDocument("{ root(where: { barShort: { nin: [12, 13]}}){ barShort}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { barShort: { nin: [ 13, 14 ]}}){ barShort}}")
+                .SetDocument("{ root(where: { barShort: { nin: [13, 14]}}){ barShort}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { barShort: { nin: [ 13, null ]}}){ barShort}}")
+                .SetDocument("{ root(where: { barShort: { nin: [13, null]}}){ barShort}}")
                 .Build());
 
         // assert

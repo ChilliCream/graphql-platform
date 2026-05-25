@@ -22,6 +22,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\..\..\HotChocolate\Core\src\Types\Types\Scalars\Iso8601DurationFormatter.cs">
+      <Link>Serialization\Iso8601DurationFormatter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\HotChocolate\Core\src\Types\Types\Scalars\Iso8601DurationParser.cs">
+      <Link>Serialization\Iso8601DurationParser.cs</Link>
+    </Compile>
     <Compile Update="OperationExecutor.Observable.cs">
       <DependentUpon>OperationExecutor.cs</DependentUpon>
     </Compile>

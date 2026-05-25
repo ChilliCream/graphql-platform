@@ -44,7 +44,7 @@ public sealed class CursorKey(
     /// <param name="cursorValue">
     /// The span within the overall cursor that represents the key value.
     /// </param>
-    /// <returns></returns>
+    /// <returns>The parsed key value.</returns>
     public object? Parse(ReadOnlySpan<byte> cursorValue)
         => CursorKeySerializerHelper.Parse(cursorValue, serializer);
 

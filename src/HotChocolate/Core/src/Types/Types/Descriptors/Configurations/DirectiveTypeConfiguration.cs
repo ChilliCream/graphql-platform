@@ -7,7 +7,7 @@ namespace HotChocolate.Types.Descriptors.Configurations;
 /// <summary>
 /// Defines the properties of a GraphQL directive.
 /// </summary>
-public class DirectiveTypeConfiguration : TypeSystemConfiguration, IHasRuntimeType
+public class DirectiveTypeConfiguration : TypeSystemConfiguration, IRuntimeTypeProvider
 {
     private Type _clrType = typeof(object);
     private List<DirectiveMiddleware>? _middlewareComponents;

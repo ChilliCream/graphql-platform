@@ -15,10 +15,8 @@ public static class SelectionFlagsExtensions
     /// <param name="selection">The selection.</param>
     /// <returns>
     /// <c>true</c> if the field has a first or default middleware; otherwise, <c>false</c>.</returns>
-    public static bool IsFirstOrDefault(this ISelection selection)
+    public static bool IsFirstOrDefault(this Selection selection)
     {
-        ArgumentNullException.ThrowIfNull(selection);
-
         var flags = selection.Field.Features.Get<SelectionFlags?>() ?? SelectionFlags.None;
         return (flags & SelectionFlags.FirstOrDefault) == SelectionFlags.FirstOrDefault;
     }
@@ -29,10 +27,8 @@ public static class SelectionFlagsExtensions
     /// <param name="selection">The selection.</param>
     /// <returns>
     /// <c>true</c> if the field has a single or default middleware; otherwise, <c>false</c>.</returns>
-    public static bool IsSingleOrDefault(this ISelection selection)
+    public static bool IsSingleOrDefault(this Selection selection)
     {
-        ArgumentNullException.ThrowIfNull(selection);
-
         var flags = selection.Field.Features.Get<SelectionFlags?>() ?? SelectionFlags.None;
         return (flags & SelectionFlags.SingleOrDefault) == SelectionFlags.SingleOrDefault;
     }
@@ -43,10 +39,8 @@ public static class SelectionFlagsExtensions
     /// <param name="selection">The selection.</param>
     /// <returns>
     /// <c>true</c> if the field is a list; otherwise, <c>false</c>.</returns>
-    public static bool IsMemberIsList(this ISelection selection)
+    public static bool IsMemberIsList(this Selection selection)
     {
-        ArgumentNullException.ThrowIfNull(selection);
-
         var flags = selection.Field.Features.Get<SelectionFlags?>() ?? SelectionFlags.None;
         return (flags & SelectionFlags.MemberIsList) == SelectionFlags.MemberIsList;
     }
@@ -58,10 +52,8 @@ public static class SelectionFlagsExtensions
     /// <param name="flags">The flags.</param>
     /// <returns>
     /// <c>true</c> if the specified <paramref name="flags"/> are set on the field; otherwise, <c>false</c>.</returns>
-    public static bool IsSelectionFlags(this ISelection selection, SelectionFlags flags)
+    public static bool IsSelectionFlags(this Selection selection, SelectionFlags flags)
     {
-        ArgumentNullException.ThrowIfNull(selection);
-
         var actualFlags = selection.Field.Features.Get<SelectionFlags?>() ?? SelectionFlags.None;
         return (actualFlags & flags) == flags;
     }

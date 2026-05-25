@@ -25,12 +25,10 @@ public class IntegrationTests
                 {
                     await n(c);
 
-                    if (c.IsPersistedOperationDocument() && c.Result is IOperationResult r)
+                    if (c.IsPersistedOperationDocument())
                     {
-                        c.Result = OperationResultBuilder
-                            .FromResult(r)
-                            .SetExtension("persistedDocument", true)
-                            .Build();
+                        var result = c.Result.ExpectOperationResult();
+                        result.Extensions = result.Extensions.SetItem("persistedDocument", true);
                     }
                 })
                 .UsePersistedOperationPipeline()
@@ -63,12 +61,10 @@ public class IntegrationTests
                 {
                     await n(c);
 
-                    if (c.IsPersistedOperationDocument() && c.Result is IOperationResult r)
+                    if (c.IsPersistedOperationDocument())
                     {
-                        c.Result = OperationResultBuilder
-                            .FromResult(r)
-                            .SetExtension("persistedDocument", true)
-                            .Build();
+                        var result = c.Result.ExpectOperationResult();
+                        result.Extensions = result.Extensions.SetItem("persistedDocument", true);
                     }
                 })
                 .UsePersistedOperationPipeline()

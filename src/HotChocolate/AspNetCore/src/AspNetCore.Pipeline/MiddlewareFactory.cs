@@ -23,55 +23,71 @@ internal static class MiddlewareFactory
     }
 
     internal static Func<RequestDelegate, RequestDelegate> CreateWebSocketSubscriptionMiddleware(
-        HttpRequestExecutorProxy executor)
+        HttpRequestExecutorProxy executor,
+        GraphQLServerOptions serverOptions)
     {
-        return next => context =>
+        return next =>
         {
-            var middleware = new WebSocketSubscriptionMiddleware(next, executor);
-            return middleware.InvokeAsync(context);
+            var middleware = new WebSocketSubscriptionMiddleware(next, executor, serverOptions);
+            return context => middleware.InvokeAsync(context);
         };
     }
 
     internal static Func<RequestDelegate, RequestDelegate> CreateHttpPostMiddleware(
-        HttpRequestExecutorProxy executor)
+        HttpRequestExecutorProxy executor,
+        GraphQLServerOptions serverOptions)
     {
-        return next => context =>
+        return next =>
         {
-            var middleware = new HttpPostMiddleware(next, executor);
-            return middleware.InvokeAsync(context);
+            var middleware = new HttpPostMiddleware(next, executor, serverOptions);
+            return context => middleware.InvokeAsync(context);
         };
     }
 
     internal static Func<RequestDelegate, RequestDelegate> CreateHttpMultipartMiddleware(
         HttpRequestExecutorProxy executor,
+        GraphQLServerOptions serverOptions,
         IOptions<FormOptions> formOptions)
     {
-        return next => context =>
+        return next =>
         {
-            var middleware = new HttpMultipartMiddleware(next, executor, formOptions);
-            return middleware.InvokeAsync(context);
+            var middleware = new HttpMultipartMiddleware(next, executor, serverOptions, formOptions);
+            return context => middleware.InvokeAsync(context);
         };
     }
 
     internal static Func<RequestDelegate, RequestDelegate> CreateHttpGetMiddleware(
-        HttpRequestExecutorProxy executor)
+        HttpRequestExecutorProxy executor,
+        GraphQLServerOptions serverOptions)
     {
-        return next => context =>
+        return next =>
         {
-            var middleware = new HttpGetMiddleware(next, executor);
-            return middleware.InvokeAsync(context);
+            var middleware = new HttpGetMiddleware(next, executor, serverOptions);
+            return context => middleware.InvokeAsync(context);
         };
     }
 
     internal static Func<RequestDelegate, RequestDelegate> CreateHttpGetSchemaMiddleware(
         HttpRequestExecutorProxy executor,
+        GraphQLServerOptions serverOptions,
         PathString path,
         MiddlewareRoutingType routingType)
     {
-        return next => context =>
+        return next =>
         {
-            var middleware = new HttpGetSchemaMiddleware(next, executor, path, routingType);
-            return middleware.InvokeAsync(context);
+            var middleware = new HttpGetSchemaMiddleware(next, executor, serverOptions, path, routingType);
+            return context => middleware.InvokeAsync(context);
+        };
+    }
+
+    internal static Func<RequestDelegate, RequestDelegate> CreateHttpGetSemanticNonNullSchemaMiddleware(
+        HttpRequestExecutorProxy executor,
+        GraphQLServerOptions serverOptions)
+    {
+        return next =>
+        {
+            var middleware = new HttpGetSemanticNonNullSchemaMiddleware(next, executor, serverOptions);
+            return context => middleware.InvokeAsync(context);
         };
     }
 }

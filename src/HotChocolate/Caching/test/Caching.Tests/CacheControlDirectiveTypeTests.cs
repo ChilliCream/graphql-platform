@@ -428,7 +428,7 @@ public class CacheControlDirectiveTypeTests
     public interface IInterfaceType
     {
         [CacheControl(500, Scope = CacheControlScope.Private, InheritMaxAge = true)]
-        public string? Field { get; set; }
+        string? Field { get; set; }
     }
 
     public class InterfaceObjectType : IInterfaceType

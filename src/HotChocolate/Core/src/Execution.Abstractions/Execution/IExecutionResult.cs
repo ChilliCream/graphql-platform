@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Features;
 
 namespace HotChocolate.Execution;
@@ -21,7 +22,55 @@ public interface IExecutionResult : IFeatureProvider, IAsyncDisposable
     /// Gets the result context data which represent additional
     /// properties that are NOT written to the transport.
     /// </summary>
-    IReadOnlyDictionary<string, object?>? ContextData { get; }
+    ImmutableDictionary<string, object?> ContextData
+    {
+        get => Features.Get<ImmutableDictionary<string, object?>>() ?? ImmutableDictionary<string, object?>.Empty;
+        set => Features.Set(value);
+    }
+
+    /// <summary>
+    /// Registers a resource that needs to be disposed when the result is being disposed.
+    /// </summary>
+    /// <param name="disposable">
+    /// The resource that needs to be disposed.
+    /// </param>
+    void RegisterForCleanup(IDisposable disposable)
+    {
+        ArgumentNullException.ThrowIfNull(disposable);
+        RegisterForCleanup(() =>
+        {
+            disposable.Dispose();
+            return default;
+        });
+    }
+
+    /// <summary>
+    /// Registers a cleanup action to be executed when the result is disposed.
+    /// </summary>
+    /// <param name="clean">
+    /// A cleanup action that will be executed when this result is disposed.
+    /// </param>
+    void RegisterForCleanup(Action clean)
+    {
+        ArgumentNullException.ThrowIfNull(clean);
+        RegisterForCleanup(() =>
+        {
+            clean();
+            return default;
+        });
+    }
+
+    /// <summary>
+    /// Registers a resource that needs to be disposed asynchronously when the result is being disposed.
+    /// </summary>
+    /// <param name="disposable">
+    /// The resource that needs to be disposed.
+    /// </param>
+    void RegisterForCleanup(IAsyncDisposable disposable)
+    {
+        ArgumentNullException.ThrowIfNull(disposable);
+        RegisterForCleanup(disposable.DisposeAsync);
+    }
 
     /// <summary>
     /// Registers a cleanup task for execution resources bound to this execution result.

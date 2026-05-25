@@ -69,7 +69,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
     }
 
     [Fact]
-    public async Task AddIntrospectionAllowedRule_IntegrationTest_NotAllowed()
+    public async Task DisableIntrospection_NotAllowed()
     {
         await new ServiceCollection()
             .AddGraphQLServer()
@@ -84,37 +84,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
     }
 
     [Fact]
-    public async Task AllowIntrospection_IntegrationTest_NotAllowed()
-    {
-        await new ServiceCollection()
-            .AddGraphQLServer()
-            .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
-            .DisableIntrospection(disable: true)
-            .ExecuteRequestAsync(
-                OperationRequestBuilder
-                    .New()
-                    .SetDocument("{ __schema { description } }")
-                    .Build())
-            .MatchSnapshotAsync();
-    }
-
-    [Fact]
-    public async Task AllowIntrospection_IntegrationTest_Allowed()
-    {
-        await new ServiceCollection()
-            .AddGraphQLServer()
-            .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
-            .DisableIntrospection(disable: false)
-            .ExecuteRequestAsync(
-                OperationRequestBuilder
-                    .New()
-                    .SetDocument("{ __schema { description } }")
-                    .Build())
-            .MatchSnapshotAsync();
-    }
-
-    [Fact]
-    public async Task AllowIntrospection_IntegrationTest_NotAllowed_CustomMessage()
+    public async Task DisableIntrospection_NotAllowed_CustomMessage()
     {
         await new ServiceCollection()
             .AddGraphQLServer()
@@ -130,23 +100,37 @@ public class RequestExecutorBuilderExtensionsValidationTests
     }
 
     [Fact]
-    public async Task AddIntrospectionAllowedRule_IntegrationTest_NotAllowed_CustomMessage()
+    public async Task DisableIntrospection_True_NotAllowed()
     {
         await new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
-            .DisableIntrospection()
+            .DisableIntrospection(disable: true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder
                     .New()
                     .SetDocument("{ __schema { description } }")
-                    .SetIntrospectionNotAllowedMessage("Baz")
                     .Build())
             .MatchSnapshotAsync();
     }
 
     [Fact]
-    public async Task AddIntrospectionAllowedRule_IntegrationTest_Allowed()
+    public async Task DisableIntrospection_False_Allowed()
+    {
+        await new ServiceCollection()
+            .AddGraphQLServer()
+            .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
+            .DisableIntrospection(disable: false)
+            .ExecuteRequestAsync(
+                OperationRequestBuilder
+                    .New()
+                    .SetDocument("{ __schema { description } }")
+                    .Build())
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task DisableIntrospection_Request_AllowIntrospection_Is_Allowed()
     {
         var executor =
             await new ServiceCollection()

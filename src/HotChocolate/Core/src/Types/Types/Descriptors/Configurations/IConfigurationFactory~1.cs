@@ -11,6 +11,6 @@ public interface IConfigurationFactory<out T> : IConfigurationFactory where T : 
     /// <summary>
     /// Creates a new type system configuration.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The created type system configuration.</returns>
     new T CreateConfiguration();
 }

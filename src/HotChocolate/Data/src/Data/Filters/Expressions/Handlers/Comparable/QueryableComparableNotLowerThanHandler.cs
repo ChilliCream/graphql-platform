@@ -34,4 +34,7 @@ public class QueryableComparableNotLowerThanHandler : QueryableComparableOperati
         return FilterExpressionBuilder.Not(
             FilterExpressionBuilder.LowerThan(property, parsedValue));
     }
+
+    public static QueryableComparableNotLowerThanHandler Create(FilterProviderContext context)
+        => new(context.TypeConverter, context.InputParser);
 }

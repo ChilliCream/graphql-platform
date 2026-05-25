@@ -49,7 +49,6 @@ public static class ErrorCodes
         public const string OneSlicingArgumentRequired = "HC0082";
 
         public const string NonNullViolation = "HC0018";
-        public const string SemanticNonNullViolation = "HC0088";
         public const string MustBeInputType = "HC0017";
         public const string InvalidType = "HC0016";
         public const string OperationDocumentNotFound = "HC0015";
@@ -75,28 +74,28 @@ public static class ErrorCodes
         public const string CannotCastParent = "HC0053";
 
         /// <summary>
-        /// The Oneof Input Objects `{0}` require that exactly one field must be supplied and that
-        /// field must not be `null`. Oneof Input Objects are a special variant of Input Objects
+        /// The OneOf Input Objects `{0}` require that exactly one field must be supplied and that
+        /// field must not be `null`. OneOf Input Objects are a special variant of Input Objects
         /// where the type system asserts that exactly one of the fields must be set and non-null.
         /// </summary>
         public const string OneOfNoFieldSet = "HC0054";
 
         /// <summary>
-        /// More than one field of the Oneof Input Object `{0}` is set. Oneof Input Objects
+        /// More than one field of the OneOf Input Object `{0}` is set. OneOf Input Objects
         /// are a special variant of Input Objects where the type system asserts that exactly
         /// one of the fields must be set and non-null.
         /// </summary>
         public const string OneOfMoreThanOneFieldSet = "HC0055";
 
         /// <summary>
-        /// `null` was set to the field `{0}`of the Oneof Input Object `{1}`. Oneof Input Objects
+        /// `null` was set to the field `{0}`of the OneOf Input Object `{1}`. OneOf Input Objects
         /// are a special variant of Input Objects where the type system asserts that exactly
         /// one of the fields must be set and non-null.
         /// </summary>
         public const string OneOfFieldIsNull = "HC0056";
 
         /// <summary>
-        /// Value for oneof field {field.FieldName} must be non-null.
+        /// Value for OneOf field {field.FieldName} must be non-null.
         /// </summary>
         public const string OneOfFieldMustBeNonNull = "HC0057";
 
@@ -253,6 +252,11 @@ public static class ErrorCodes
         /// The specified directive argument does not exist.
         /// </summary>
         public const string UnknownDirectiveArgument = "HC0072";
+
+        /// <summary>
+        /// A mutation field must return a value.
+        /// </summary>
+        public const string MutationMustReturnValue = "HC0089";
     }
 
     public static class Scalars
@@ -322,6 +326,11 @@ public static class ErrorCodes
         /// The maximum allowed coordinate cycle depth was exceeded.
         /// </summary>
         public const string MaxCoordinateCycleDepthOverflow = "HC0087";
+
+        /// <summary>
+        /// The field merge validation budget was exhausted.
+        /// </summary>
+        public const string BudgetExceeded = "HC0107";
     }
 
     /// <summary>
@@ -353,6 +362,11 @@ public static class ErrorCodes
         /// You must provide a `first` or `last` value to properly paginate the connection.
         /// </summary>
         public const string NoPagingBoundaries = "HC0052";
+
+        /// <summary>
+        /// You must provide a `first` value to properly paginate the connection.
+        /// </summary>
+        public const string FirstValueNotSet = "HC0090";
 
         /// <summary>
         /// The requested number of values per page must be at least 0.

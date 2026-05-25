@@ -1,3 +1,5 @@
+"use client";
+
 import React, { FC, useState } from "react";
 import styled from "styled-components";
 
@@ -90,7 +92,9 @@ const ToastContainer = styled.div`
   }
 `;
 
-const CopyIconButton = styled.button`
+const CopyIconButton = styled.button.attrs({
+  "aria-label": "Copy code to clipboard",
+})`
   display: flex;
   align-items: center;
   justify-content: center;

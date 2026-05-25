@@ -86,6 +86,38 @@ public sealed class ErrorBuilder
     }
 
     /// <summary>
+    /// Adds a GraphQL operation document location to the error, if the error does not already have a location.
+    /// </summary>
+    /// <param name="location">The location of the error.</param>
+    /// <returns>The error builder.</returns>
+    public ErrorBuilder TryAddLocation(Location location)
+    {
+        if (_locations == null || _locations.Count == 0)
+        {
+            _locations ??= [];
+            _locations.Add(location);
+        }
+
+        return this;
+    }
+
+    /// <summary>
+    /// Adds a GraphQL operation document location to the error.
+    /// </summary>
+    /// <param name="location">The location of the error.</param>
+    /// <returns>The error builder.</returns>
+    public ErrorBuilder TryAddLocation(Language.Location? location)
+    {
+        if (location != null && (_locations == null || _locations.Count == 0))
+        {
+            _locations ??= [];
+            _locations.Add(new Location(location.Line, location.Column));
+        }
+
+        return this;
+    }
+
+    /// <summary>
     /// Clears the locations of the error.
     /// </summary>
     /// <returns>The error builder.</returns>

@@ -2,70 +2,60 @@
 title: "Arguments"
 ---
 
-GraphQL allows us to specify arguments on a field and access their values in the field's resolver.
+GraphQL arguments let clients pass values to individual fields. In Hot Chocolate, each parameter on a resolver method becomes a field argument in the schema, unless it is a recognized service type (like `CancellationToken` or a registered service).
 
-```sdl
+**GraphQL schema**
+
+```graphql
 type Query {
   user(id: ID!): User
+  users(role: UserRole, limit: Int = 10): [User!]!
 }
 ```
 
-Clients can specify arguments like the following.
+**Client query**
 
 ```graphql
 {
-  user(id: "123") {
-    username
+  user(id: "UHJvZHVjdAppMQ==") {
+    name
   }
 }
 ```
 
-Often times arguments will be specified using variables.
+Arguments are frequently provided through variables, which separate the static query structure from the dynamic runtime values:
 
 ```graphql
 query ($userId: ID!) {
   user(id: $userId) {
-    username
+    name
   }
 }
 ```
 
-Learn more about arguments [here](https://graphql.org/learn/schema/#arguments) and variables [here](https://graphql.org/learn/queries/#variables).
+# Defining Arguments
 
-# Usage
-
-Arguments can be defined like the following.
+Method parameters on a resolver become GraphQL arguments.
 
 <ExampleTabs>
 <Implementation>
 
 ```csharp
-public class Query
+[QueryType]
+public static partial class UserQueries
 {
-    public User GetUser(string username)
-    {
-        // Omitted code for brevity
-    }
+    public static User? GetUser(string username, UserService users)
+        => users.FindByName(username);
 }
 ```
 
-We can also change the name of the argument used in the schema.
-
-```csharp
-public class Query
-{
-    public User GetUser([GraphQLName("name")] string username)
-    {
-        // Omitted code for brevity
-    }
-}
-```
+The `username` parameter becomes a `username: String!` argument. The `UserService` parameter is recognized as a service and is not exposed in the schema.
 
 </Implementation>
 <Code>
 
 ```csharp
-public class QueryType : ObjectType
+public class UserQueriesType : ObjectType
 {
     protected override void Configure(IObjectTypeDescriptor descriptor)
     {
@@ -77,46 +67,156 @@ public class QueryType : ObjectType
             .Resolve(context =>
             {
                 var username = context.ArgumentValue<string>("username");
-
-                // Omitted code for brevity
+                // ...
             });
     }
 }
 ```
 
-We can also access nullable values through an `Optional<T>`.
+</Code>
+</ExampleTabs>
+
+# Renaming Arguments
+
+Use `[GraphQLName]` to change the argument name in the schema while keeping the C# parameter name unchanged.
 
 ```csharp
-var username = context.ArgumentOptional<string>("username");
-
-if (username.HasValue)
+[QueryType]
+public static partial class UserQueries
 {
-    // use username.Value
+    public static User? GetUser(
+        [GraphQLName("name")] string username,
+        UserService users)
+        => users.FindByName(username);
 }
 ```
 
-</Code>
-<Schema>
+This produces `user(name: String!): User` in the schema.
+
+# Optional Arguments
+
+An argument is required when its C# type is non-nullable. Make an argument optional by using a nullable type.
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
-    .AddDocumentFromString(@"
-        type Query {
-          user(username: String!): User
-        }
-    ")
-    .AddResolver("Query", "user", (context) =>
+[QueryType]
+public static partial class ProductQueries
+{
+    public static List<Product> GetProducts(string? category, int? limit)
     {
-        var username = context.ArgumentValue<string>("username");
-
-        // Omitted code for brevity
-    });
+        // Both arguments are optional
+        // ...
+    }
+}
 ```
 
-</Schema>
-</ExampleTabs>
+This produces:
 
-Arguments can be made required by using the non-null type. Learn more about [non-null](/docs/hotchocolate/v16/defining-a-schema/non-null)
+```graphql
+type Query {
+  products(category: String, limit: Int): [Product!]!
+}
+```
 
-If we need to provide complex objects as arguments, we can use [input object types](/docs/hotchocolate/v16/defining-a-schema/input-object-types).
+When using nullable reference types (recommended), `string` maps to `String!` and `string?` maps to `String`. See [Non-Null](/docs/hotchocolate/v16/defining-a-schema/non-null) for details.
+
+# Default Values
+
+Use `[DefaultValue]` to assign a default to an argument. The default appears in the schema and is used when the client omits the argument.
+
+```csharp
+[QueryType]
+public static partial class ProductQueries
+{
+    public static List<Product> GetProducts(
+        [DefaultValue(10)] int limit)
+    {
+        // ...
+    }
+}
+```
+
+This produces `products(limit: Int! = 10): [Product!]!`.
+
+C# default parameter values also work:
+
+```csharp
+public static List<Product> GetProducts(int limit = 10)
+```
+
+For complex default values that cannot be expressed as C# constants (such as input objects), use `[DefaultValueSyntax]` with GraphQL value syntax:
+
+```csharp
+[QueryType]
+public static partial class ProductQueries
+{
+    public static List<Product> GetProducts(
+        [DefaultValueSyntax("{ title: null, year: 2024 }")] BookFilterInput filter)
+    {
+        // ...
+    }
+}
+```
+
+This produces `products(filter: BookFilterInput! = { title: null, year: 2024 }): [Product!]!`. The string is parsed as a GraphQL value literal at schema build time.
+
+# The ID Attribute
+
+The `[ID]` attribute marks a parameter as a GraphQL `ID` scalar. When combined with [global object identification](/docs/hotchocolate/v16/defining-a-schema/relay), it also deserializes the opaque global ID back to the underlying value.
+
+```csharp
+[QueryType]
+public static partial class ProductQueries
+{
+    public static Product? GetProduct([ID] int id, CatalogContext db)
+        => db.Products.Find(id);
+}
+```
+
+To restrict the ID to a specific type (ensuring only IDs serialized for `Product` are accepted):
+
+```csharp
+public static Product? GetProduct(
+    [ID(nameof(Product))] int id,
+    CatalogContext db)
+    => db.Products.Find(id);
+```
+
+You can also use the generic form `[ID<Product>]` which infers the type name automatically.
+
+# Complex Arguments
+
+When an argument needs multiple fields, use an [input object type](/docs/hotchocolate/v16/defining-a-schema/input-object-types) instead of multiple scalar arguments.
+
+```csharp
+public record BookFilterInput(string? Title, string? Author, int? Year);
+
+[QueryType]
+public static partial class BookQueries
+{
+    public static List<Book> GetBooks(BookFilterInput filter, CatalogContext db)
+    {
+        // ...
+    }
+}
+```
+
+This produces:
+
+```graphql
+input BookFilterInput {
+  title: String
+  author: String
+  year: Int
+}
+
+type Query {
+  books(filter: BookFilterInput!): [Book!]!
+}
+```
+
+# Next Steps
+
+- **Need structured input?** See [Input Object Types](/docs/hotchocolate/v16/defining-a-schema/input-object-types).
+- **Need to understand nullability?** See [Non-Null](/docs/hotchocolate/v16/defining-a-schema/non-null).
+- **Need global IDs?** See [Relay](/docs/hotchocolate/v16/defining-a-schema/relay).
+- **Need to set up resolvers?** See [Resolvers](/docs/hotchocolate/v16/resolvers/resolvers).

@@ -2,11 +2,21 @@
 title: "Directives"
 ---
 
-Directives provide a way to add metadata for client tools such as code generators and IDEs or alternate a GraphQL server's runtime execution and type validation behavior.
+Directives let you add metadata for client tools (such as code generators and IDEs) or modify a GraphQL server’s runtime execution and type validation behavior.
 
-There are two kinds of directives, executable directives to annotate executable parts of GraphQL documents and type-system directives to annotate SDL types.
+There are two kinds of directives: executable directives, which annotate parts of GraphQL documents, and type-system directives, which annotate SDL types.
 
-Typically, any GraphQL server implementation should provide the following directives `@skip`, `@include`, and `@deprecated`. `@skip` and `@include`, for example, are executable directives used in GraphQL documents to exclude or include fields, whereas `@deprecated` is a type-system directive used in SDL types to inform client tools that a particular part such as a field is deprecated.
+The GraphQL specification defines five built-in directives that every server must support:
+
+| Directive      | Kind        | SDL                                                                                                                                                 |
+| -------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@skip`        | Executable  | `directive @skip(if: Boolean!) on FIELD \| FRAGMENT_SPREAD \| INLINE_FRAGMENT`                                                                      |
+| `@include`     | Executable  | `directive @include(if: Boolean!) on FIELD \| FRAGMENT_SPREAD \| INLINE_FRAGMENT`                                                                   |
+| `@deprecated`  | Type-system | `directive @deprecated(reason: String! = "No longer supported") on FIELD_DEFINITION \| ARGUMENT_DEFINITION \| INPUT_FIELD_DEFINITION \| ENUM_VALUE` |
+| `@specifiedBy` | Type-system | `directive @specifiedBy(url: String!) on SCALAR`                                                                                                    |
+| `@oneOf`       | Type-system | `directive @oneOf on INPUT_OBJECT`                                                                                                                  |
+
+`@skip` and `@include` are executable directives used in queries to conditionally exclude or include fields. `@deprecated` marks schema elements as deprecated. `@specifiedBy` provides a URL pointing to the specification of a custom scalar type. `@oneOf` marks an input object as requiring exactly one of its fields to be set.
 
 # Structure
 
@@ -87,7 +97,30 @@ Now that we have a basic understanding of what directives are, how they work, an
 
 # Custom Directives
 
-To create a directive, we need to create a new class that inherits from `DirectiveType` and also to override the `Configure` method.
+To create a custom directive we need to define its name, location, and optionally its arguments. We also have to register the directive explicitly.
+
+<ExampleTabs>
+<Implementation>
+
+Annotate a C# class with the `[DirectiveType]` attribute. The directive name is inferred from the class name (minus the "Directive" suffix if present). Public properties automatically become directive arguments.
+
+```csharp
+[DirectiveType(DirectiveLocation.Field)]
+public class MyDirective
+{
+}
+```
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddDirectiveType<MyDirective>();
+```
+
+</Implementation>
+<Code>
+
+Create a class that inherits from `DirectiveType` and override the `Configure` method.
 
 ```csharp
 public class MyDirectiveType : DirectiveType
@@ -100,17 +133,18 @@ public class MyDirectiveType : DirectiveType
 }
 ```
 
-[Learn more about Locations](#locations)
-
-We also have to register the directive explicitly.
-
 ```csharp
 builder.Services
     .AddGraphQLServer()
     .AddDirectiveType<MyDirectiveType>();
 ```
 
-Let's recap! We have registered a new directive named `my` without any arguments and limited the usage to fields only. A GraphQL query request with our new directive could look like this.
+</Code>
+</ExampleTabs>
+
+[Learn more about Locations](#locations)
+
+We have registered a new directive named `my` without any arguments and limited the usage to fields only. A GraphQL query request with our new directive could look like this.
 
 ```graphql
 query foo {
@@ -132,6 +166,23 @@ query foo {
 
 We can enable repeatability like the following.
 
+<ExampleTabs>
+<Implementation>
+
+Set `IsRepeatable = true` on the attribute.
+
+```csharp
+[DirectiveType(DirectiveLocation.Field, IsRepeatable = true)]
+public class MyDirective
+{
+}
+```
+
+</Implementation>
+<Code>
+
+Call `Repeatable()` on the descriptor.
+
 ```csharp
 public class MyDirectiveType : DirectiveType
 {
@@ -144,6 +195,9 @@ public class MyDirectiveType : DirectiveType
 }
 ```
 
+</Code>
+</ExampleTabs>
+
 This configuration will translate into the following SDL.
 
 ```sdl
@@ -152,10 +206,25 @@ directive @my repeatable on FIELD
 
 ## Arguments
 
-A directive can provide additional information through arguments.
-They might also come in handy, in combination with repeatable directives, for reusability purposes.
+A directive can provide additional information through arguments. They might also come in handy, in combination with repeatable directives, for reusability purposes.
 
-We can add an argument like the following.
+<ExampleTabs>
+<Implementation>
+
+Any public property on the class becomes a directive argument automatically.
+
+```csharp
+[DirectiveType(DirectiveLocation.FieldDefinition)]
+public class MyDirective
+{
+    public string Name { get; set; }
+}
+```
+
+</Implementation>
+<Code>
+
+Use a backing POCO with `DirectiveType<T>`. Public properties on the POCO are included as arguments implicitly.
 
 ```csharp
 public class MyDirective
@@ -170,19 +239,11 @@ public class MyDirectiveType : DirectiveType<MyDirective>
     {
         descriptor.Name("my");
         descriptor.Location(DirectiveLocation.FieldDefinition);
-
-        // The 'Name' property is included as an argument implicitly
-
-        // descriptor
-        //     .Argument(f => f.ChangeMe)
-        //     .Type<NonNullType<StringType>>()
-        //     .Name("differentName");
-        // descriptor.Ignore(f => f.IgnoreMe);
     }
 }
 ```
 
-If we prefer to not use a backing POCO (`<T>`) we an also use the `Argument()` method on the `descriptor`.
+If we prefer to not use a backing POCO we can also use the `Argument()` method on the descriptor.
 
 ```csharp
 public class MyDirectiveType : DirectiveType
@@ -198,6 +259,9 @@ public class MyDirectiveType : DirectiveType
     }
 }
 ```
+
+</Code>
+</ExampleTabs>
 
 This configuration will translate into the following SDL.
 

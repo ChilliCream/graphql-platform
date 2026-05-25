@@ -2,13 +2,14 @@ schema {
   query: QueryDateTime2
 }
 
+type QueryDateTime2 {
+  bar: Bar!
+}
+
 type Bar {
   time: LocalTime!
 }
 
-type QueryDateTime2 {
-  bar: Bar
-}
-
-"The LocalTime scalar type is a local time string (i.e., with no associated timezone) in 24-hr HH:mm:ss."
+"The `LocalTime` scalar type represents a time of day without date or time zone information."
 scalar LocalTime
+  @specifiedBy(url: "https://scalars.graphql.org/chillicream/local-time.html")

@@ -28,4 +28,6 @@ public class QueryableStringNotStartsWithHandler : QueryableStringOperationHandl
         return FilterExpressionBuilder.Not(
             FilterExpressionBuilder.StartsWith(property, parsedValue));
     }
+
+    public static QueryableStringNotStartsWithHandler Create(FilterProviderContext context) => new(context.InputParser);
 }

@@ -83,12 +83,12 @@ public class NamingConventionTests
 
     public class InputObjectNamingConvention
     {
-        public string InputField { get; set; }
+        public required string InputField { get; set; }
     }
 
     public class ObjectNamingConvention
     {
-        public string OutputField { get; set; }
+        public required string OutputField { get; set; }
     }
 
     public class MutationNamingConvention

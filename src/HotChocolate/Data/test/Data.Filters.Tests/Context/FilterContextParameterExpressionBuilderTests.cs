@@ -16,13 +16,15 @@ public class FilterContextParameterExpressionBuilderTests
             .BuildRequestExecutorAsync();
 
         // act
-        const string query = @"
+        const string query =
+            // lang=graphql
+            """
             {
-                books(where: { title: { eq: ""test"" } }) {
+                books(where: { title: { eq: "test" } }) {
                     title
                 }
             }
-        ";
+            """;
 
         await executor.ExecuteAsync(query);
 

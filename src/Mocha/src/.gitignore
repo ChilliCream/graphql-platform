@@ -1,0 +1,5 @@
+# mocha-visualizer: only track built output
+mocha-visualizer/*
+!mocha-visualizer/package.json
+!mocha-visualizer/README.md
+!mocha-visualizer/dist/

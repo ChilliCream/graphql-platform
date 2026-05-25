@@ -6,7 +6,6 @@ using HotChocolate.Transport.Sockets;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using static System.Net.WebSockets.WebSocketMessageType;
 using static HotChocolate.Transport.Sockets.SocketDefaults;
 using static HotChocolate.Transport.Sockets.WellKnownProtocols;
 
@@ -80,7 +79,7 @@ internal sealed class WebSocketConnection : ISocketConnection
             return default;
         }
 
-        return webSocket.SendAsync(message, Text, true, cancellationToken);
+        return webSocket.SendAsync(message, WebSocketMessageType.Text, true, cancellationToken);
     }
 
     public async Task<bool> ReadMessageAsync(

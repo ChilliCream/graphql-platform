@@ -56,11 +56,8 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
     [Fact]
     public void InferFieldsFromType()
     {
-        // arrange
+        // arrange & act
         var descriptor = new ObjectTypeDescriptor<Foo>(Context);
-
-        // act
-        IObjectTypeDescriptor<Foo> desc = descriptor;
 
         // assert
         Assert.Collection(
@@ -183,13 +180,32 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
         result.ToJson().MatchSnapshot();
     }
 
+    [Fact]
+    public void Field_ArrayLengthExpression_Uses_ExpressionConfiguration()
+    {
+        // arrange
+        var descriptor = new ObjectTypeDescriptor<ArrayHolder>(Context);
+
+        // act
+        IObjectTypeDescriptor<ArrayHolder> desc = descriptor;
+        desc.BindFieldsExplicitly();
+        desc.Field(t => t.Buffer.Length).Name("bufferLength");
+
+        var field = descriptor.CreateConfiguration().Fields.Single(t => t.Name == "bufferLength");
+
+        // assert
+        Assert.Null(field.Member);
+        Assert.NotNull(field.Expression);
+        Assert.Equal(typeof(int), field.ResultType);
+    }
+
     public class Foo : FooBase
     {
-        public string A { get; set; }
-        public override string B { get; set; }
-        public string C { get; set; }
+        public required string A { get; set; }
+        public override required string B { get; set; }
+        public required string C { get; set; }
 
-        public override bool Equals(object obj) => true;
+        public override bool Equals(object? obj) => true;
 
         public override int GetHashCode() => 0;
     }
@@ -199,7 +215,12 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
 
     public class FooBase
     {
-        public virtual string B { get; set; }
+        public virtual required string B { get; set; }
+    }
+
+    public class ArrayHolder
+    {
+        public byte[] Buffer { get; set; } = [];
     }
 
     public class BarType : ObjectType

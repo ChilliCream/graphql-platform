@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Descriptors;
 public class InterfaceTypeDescriptor<T>
     : InterfaceTypeDescriptor
     , IInterfaceTypeDescriptor<T>
-    , IHasRuntimeType
+    , IRuntimeTypeProvider
 {
     protected internal InterfaceTypeDescriptor(IDescriptorContext context)
         : base(context, typeof(T))
@@ -26,7 +26,7 @@ public class InterfaceTypeDescriptor<T>
     {
     }
 
-    Type IHasRuntimeType.RuntimeType => Configuration.RuntimeType;
+    Type IRuntimeTypeProvider.RuntimeType => Configuration.RuntimeType;
 
     protected override void OnCompleteFields(
         IDictionary<string, InterfaceFieldConfiguration> fields,

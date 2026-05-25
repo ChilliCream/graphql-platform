@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
 using static StrawberryShake.Properties.Resources;
 using static StrawberryShake.Transport.Http.ResponseEnumerable;
@@ -93,13 +94,13 @@ public class HttpConnection : IHttpConnection
 
         if (strategy == RequestStrategy.PersistedOperation)
         {
-            operation = new HotChocolate.Transport.OperationRequest(null, id, name, variables, extensions);
+            operation = new HotChocolate.Transport.OperationRequest(null, id, name, onError: null, variables, extensions);
         }
         else
         {
             var body = Encoding.UTF8.GetString(document.Body);
 
-            operation = new HotChocolate.Transport.OperationRequest(body, null, name, variables, extensions);
+            operation = new HotChocolate.Transport.OperationRequest(body, null, name, onError: null, variables, extensions);
         }
 
         return new GraphQLHttpRequest(operation) { EnableFileUploads = hasFiles };
@@ -151,10 +152,7 @@ public class HttpConnection : IHttpConnection
                 MapVariables(list);
             }
 
-            if (copy is not null)
-            {
-                copy[variable.Key] = value;
-            }
+            copy?[variable.Key] = value;
         }
 
         return copy ?? variables;

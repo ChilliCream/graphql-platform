@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using HotChocolate.Configuration;
 using HotChocolate.Data;
 using HotChocolate.Data.Projections;
@@ -194,19 +193,14 @@ public static class ProjectionObjectFieldDescriptorExtensions
     private static IQueryBuilder CreateMiddleware<TEntity>(IProjectionConvention convention)
         => new ProjectionQueryBuilder(convention.CreateBuilder<TEntity>());
 
-    private static Selection UnwrapMutationPayloadSelection(ISelectionSet selectionSet, ObjectField field)
+    private static Selection UnwrapMutationPayloadSelection(SelectionSet selectionSet, ObjectField field)
     {
-        ref var selection = ref Unsafe.As<SelectionSet>(selectionSet).GetSelectionsReference();
-        ref var end = ref Unsafe.Add(ref selection, selectionSet.Selections.Count);
-
-        while (Unsafe.IsAddressLessThan(ref selection, ref end))
+        foreach (var selection in selectionSet.Selections)
         {
             if (ReferenceEquals(selection.Field, field))
             {
                 return selection;
             }
-
-            selection = ref Unsafe.Add(ref selection, 1)!;
         }
 
         throw new InvalidOperationException(
@@ -226,12 +220,12 @@ public static class ProjectionObjectFieldDescriptorExtensions
                 && objectType.RuntimeType != typeof(object))
             {
                 var fieldProxy = new ObjectField(context.Selection.Field, objectType);
-                var selection = CreateProxySelection(context.Selection, fieldProxy);
+                var selection = context.Selection.WithField(fieldProxy);
                 context = new MiddlewareContextProxy(context, selection, objectType);
             }
 
             //for use case when projection is used with Mutation Conventions
-            else if (context.Operation.Type is OperationType.Mutation
+            else if (context.Operation.Kind is OperationType.Mutation
                 && context.Selection.Type.NamedType() is ObjectType mutationPayloadType
                 && mutationPayloadType.Features.TryGet(out MutationPayloadInfo? mutationInfo))
             {
@@ -254,7 +248,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
     private sealed class MiddlewareContextProxy(
         IMiddlewareContext context,
-        ISelection selection,
+        Selection selection,
         ObjectType objectType)
         : IMiddlewareContext
     {
@@ -266,15 +260,17 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
         public ObjectType ObjectType { get; } = objectType;
 
-        public IOperation Operation => _context.Operation;
+        public Operation Operation => _context.Operation;
 
         public IOperationResultBuilder OperationResult => _context.OperationResult;
 
-        public ISelection Selection { get; } = selection;
+        public Selection Selection { get; } = selection;
 
         public IVariableValueCollection Variables => _context.Variables;
 
         public Path Path => _context.Path;
+
+        public ulong IncludeFlags => _context.IncludeFlags;
 
         public IServiceProvider RequestServices => _context.RequestServices;
 
@@ -308,7 +304,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
         public CancellationToken RequestAborted => _context.RequestAborted;
 
-        public IFeatureCollection Features => throw new NotImplementedException();
+        public IFeatureCollection Features => _context.Features;
 
         public T Parent<T>() => _context.Parent<T>();
 
@@ -336,9 +332,9 @@ public static class ProjectionObjectFieldDescriptorExtensions
         public void ReportError(Exception exception, Action<ErrorBuilder>? configure = null)
             => _context.ReportError(exception, configure);
 
-        public IReadOnlyList<ISelection> GetSelections(
+        public SelectionEnumerator GetSelections(
             ObjectType typeContext,
-            ISelection? selection = null,
+            Selection? selection = null,
             bool allowInternals = false)
             => _context.GetSelections(typeContext, selection, allowInternals);
 
@@ -371,28 +367,5 @@ public static class ProjectionObjectFieldDescriptorExtensions
             => _context.ReplaceArgument(argumentName, newArgumentValue);
 
         IResolverContext IResolverContext.Clone() => _context.Clone();
-    }
-
-    private static Selection.Sealed CreateProxySelection(ISelection selection, ObjectField field)
-    {
-        var includeConditionsSource = ((Selection)selection).IncludeConditions;
-        var includeConditions = new long[includeConditionsSource.Length];
-        includeConditionsSource.CopyTo(includeConditions);
-
-        var proxy = new Selection.Sealed(selection.Id,
-            selection.DeclaringType,
-            field,
-            field.Type,
-            selection.SyntaxNode,
-            selection.ResponseName,
-            selection.Arguments,
-            includeConditions,
-            selection.IsInternal,
-            selection.Strategy != SelectionExecutionStrategy.Serial,
-            selection.ResolverPipeline,
-            selection.PureResolver);
-        proxy.SetSelectionSetId(((Selection)selection).SelectionSetId);
-        proxy.Seal(selection.DeclaringOperation, selection.DeclaringSelectionSet);
-        return proxy;
     }
 }

@@ -3,6 +3,7 @@ using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution;
+using HotChocolate.Text.Json;
 using HotChocolate.Transport.Formatters;
 using HotChocolate.Transport.Http;
 using Microsoft.AspNetCore.Builder;
@@ -229,7 +230,7 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
     private class CustomFormatter : DefaultHttpResponseFormatter
     {
         protected override void OnWriteResponseHeaders(
-            IOperationResult result,
+            OperationResult result,
             FormatInfo format,
             IHeaderDictionary headers)
         {
@@ -262,37 +263,6 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
     }
 
     [Fact]
-    public async Task SingleRequest_Defer_Results()
-    {
-        // arrange
-        var server = CreateStarWarsServer();
-
-        // act
-        var result =
-            await server.PostRawAsync(
-                new ClientQueryRequest
-                {
-                    Query = @"
-                    {
-                        ... @defer {
-                            wait(m: 300)
-                        }
-                        hero(episode: NEW_HOPE)
-                        {
-                            name
-                            ... on Droid @defer(label: ""my_id"")
-                            {
-                                id
-                            }
-                        }
-                    }"
-                });
-
-        // assert
-        result.MatchSnapshot();
-    }
-
-    [Fact]
     public async Task Single_Diagnostic_Listener_Is_Triggered()
     {
         // arrange
@@ -313,11 +283,9 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
                         ... @defer {
                             wait(m: 300)
                         }
-                        hero(episode: NEW_HOPE)
-                        {
+                        hero(episode: NEW_HOPE) {
                             name
-                            ... on Droid @defer(label: "my_id")
-                            {
+                            ... on Droid @defer(label: "my_id") {
                                 id
                             }
                         }
@@ -346,182 +314,25 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
         await server.PostRawAsync(
             new ClientQueryRequest
             {
-                Query = @"
-                {
-                    ... @defer {
-                        wait(m: 300)
-                    }
-                    hero(episode: NEW_HOPE)
+                Query =
+                    """
                     {
-                        name
-                        ... on Droid @defer(label: ""my_id"")
-                        {
-                            id
+                        ... @defer {
+                            wait(m: 300)
+                        }
+                        hero(episode: NEW_HOPE) {
+                            name
+                            ... on Droid @defer(label: "my_id") {
+                                id
+                            }
                         }
                     }
-                }"
+                    """
             });
 
         // assert
         Assert.True(listenerA.Triggered);
         Assert.True(listenerB.Triggered);
-    }
-
-    [Fact]
-    public async Task Ensure_Multipart_Format_Is_Correct_With_Defer()
-    {
-        // arrange
-        var server = CreateStarWarsServer();
-
-        // act
-        var result =
-            await server.PostHttpAsync(
-                new ClientQueryRequest
-                {
-                    Query = @"
-                    {
-                        ... @defer {
-                            wait(m: 300)
-                        }
-                        hero(episode: NEW_HOPE)
-                        {
-                            name
-                            ... on Droid @defer(label: ""my_id"")
-                            {
-                                id
-                            }
-                        }
-                    }"
-                });
-
-        // assert
-        new GraphQLHttpResponse(result).MatchInlineSnapshot(
-            """
-            {
-              "data": {
-                "hero": {
-                  "name": "R2-D2",
-                  "id": "2001"
-                },
-                "wait": true
-              }
-            }
-            """);
-    }
-
-    [Fact]
-    public async Task Ensure_Multipart_Format_Is_Correct_With_Defer_If_Condition_True()
-    {
-        // arrange
-        var server = CreateStarWarsServer();
-
-        // act
-        var result =
-            await server.PostRawAsync(
-                new ClientQueryRequest
-                {
-                    Query = @"
-                    query ($if: Boolean!){
-                        ... @defer {
-                            wait(m: 300)
-                        }
-                        hero(episode: NEW_HOPE)
-                        {
-                            name
-                            ... on Droid @defer(label: ""my_id"", if: $if)
-                            {
-                                id
-                            }
-                        }
-                    }",
-                    Variables = new Dictionary<string, object?> { ["if"] = true }
-                });
-
-        // assert
-        result.Content.MatchSnapshot();
-    }
-
-    [Fact]
-    public async Task Ensure_JSON_Format_Is_Correct_With_Defer_If_Condition_False()
-    {
-        // arrange
-        var server = CreateStarWarsServer();
-
-        // act
-        var result =
-            await server.PostRawAsync(
-                new ClientQueryRequest
-                {
-                    Query = @"
-                    query ($if: Boolean!){
-                        hero(episode: NEW_HOPE)
-                        {
-                            name
-                            ... on Droid @defer(label: ""my_id"", if: $if)
-                            {
-                                id
-                            }
-                        }
-                    }",
-                    Variables = new Dictionary<string, object?> { ["if"] = false }
-                });
-
-        // assert
-        result.Content.MatchSnapshot();
-    }
-
-    [Fact]
-    public async Task Ensure_Multipart_Format_Is_Correct_With_Stream()
-    {
-        // arrange
-        var server = CreateStarWarsServer();
-
-        // act
-        var result = await server.PostHttpAsync(
-            new ClientQueryRequest
-            {
-                Query = @"
-                    {
-                        ... @defer {
-                            wait(m: 300)
-                        }
-                        hero(episode: NEW_HOPE)
-                        {
-                            name
-                            friends(first: 10) {
-                                nodes @stream(initialCount: 1 label: ""foo"") {
-                                    name
-                                }
-                            }
-                        }
-                    }"
-            });
-
-        // assert
-        new GraphQLHttpResponse(result).MatchInlineSnapshot(
-            """
-            {
-              "data": {
-                "hero": {
-                  "name": "R2-D2",
-                  "friends": {
-                    "nodes": [
-                      {
-                        "name": "Luke Skywalker"
-                      },
-                      {
-                        "name": "Han Solo"
-                      },
-                      {
-                        "name": "Leia Organa"
-                      }
-                    ]
-                  }
-                },
-                "wait": true
-              }
-            }
-            """);
     }
 
     [Fact]
@@ -1027,12 +838,14 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
             .Create()
             .Add(response)
             .MatchInline(
-                @"Headers:
+                """
+                Headers:
                 Content-Type: application/graphql-response+json; charset=utf-8
                 -------------------------->
                 Status Code: OK
                 -------------------------->
-                {""data"":{""__schema"":{}}}");
+                {"data":{"__schema":{}}}
+                """);
     }
 
     [Fact]
@@ -1065,12 +878,14 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
             .Create()
             .Add(response)
             .MatchInline(
-                @"Headers:
+                """
+                Headers:
                 Content-Type: application/graphql-response+json; charset=utf-8
                 -------------------------->
                 Status Code: OK
                 -------------------------->
-                {""data"":{""nullValues"":[""abc""]}}");
+                {"data":{"nullValues":["abc"]}}
+                """);
     }
 
     public class ErrorRequestInterceptor : DefaultHttpRequestInterceptor

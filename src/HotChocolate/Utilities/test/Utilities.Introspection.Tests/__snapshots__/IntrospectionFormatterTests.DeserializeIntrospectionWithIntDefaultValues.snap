@@ -1,4 +1,4 @@
-﻿schema {
+schema {
   query: Query
 }
 
@@ -32,7 +32,7 @@ type __Field {
 }
 
 type Query {
-  Questions(skip: Int = 0 first: Int = 10): [Question]
+  Questions(skip: Int = 0, first: Int = 10): [Question]
 }
 
 "A GraphQL Introspection defines the capabilities of a GraphQL server. It exposes all available types and directives on the server, the entry points for query, mutation, and subscription operations."
@@ -53,10 +53,10 @@ type __Type {
   kind: __TypeKind!
   name: String
   description: String
-  fields(includeDeprecated: Boolean = false): [__Field!]
+  fields(includeDeprecated: Boolean! = false): [__Field!]
   interfaces: [__Type!]
   possibleTypes: [__Type!]
-  enumValues(includeDeprecated: Boolean = false): [__EnumValue!]
+  enumValues(includeDeprecated: Boolean! = false): [__EnumValue!]
   inputFields: [__InputValue!]
   ofType: __Type
 }

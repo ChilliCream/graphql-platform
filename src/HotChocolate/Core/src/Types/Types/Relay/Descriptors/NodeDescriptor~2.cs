@@ -99,13 +99,23 @@ public class NodeDescriptor<TNode, TId> : INodeDescriptor<TNode, TId>
         return _configureNodeField();
     }
 
-    public IObjectFieldDescriptor ResolveNodeWith<TResolver>() =>
-        ResolveNodeWith(Context.TypeInspector.GetNodeResolverMethod(
+    public IObjectFieldDescriptor ResolveNodeWith<TResolver>()
+    {
+#pragma warning disable IL2087 // 'TNode'/'TResolver' does not satisfy DAM requirements
+        return ResolveNodeWith(Context.TypeInspector.GetNodeResolverMethod(
             typeof(TNode),
             typeof(TResolver))!);
+#pragma warning restore IL2087
+    }
 
-    public IObjectFieldDescriptor ResolveNodeWith(Type type) =>
-        ResolveNodeWith(Context.TypeInspector.GetNodeResolverMethod(
+    public IObjectFieldDescriptor ResolveNodeWith(Type type)
+    {
+#pragma warning disable IL2087 // 'TNode' does not satisfy DAM requirements
+#pragma warning disable IL2067 // 'type' does not satisfy DAM requirements
+        return ResolveNodeWith(Context.TypeInspector.GetNodeResolverMethod(
             typeof(TNode),
             type)!);
+#pragma warning restore IL2067
+#pragma warning restore IL2087
+    }
 }

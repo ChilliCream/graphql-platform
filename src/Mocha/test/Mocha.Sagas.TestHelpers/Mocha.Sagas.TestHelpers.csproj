@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>Mocha.Sagas.TestHelpers</AssemblyName>
+    <RootNamespace>Mocha.Sagas.TestHelpers</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Npgsql" />
+    <PackageReference Include="Squadron.PostgreSql" />
+    <PackageReference Include="xunit.assert" />
+    <PackageReference Include="xunit.extensibility.core" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Mocha\Mocha.csproj" />
+    <ProjectReference Include="..\..\src\Mocha.Outbox\Mocha.Outbox.csproj" />
+    <ProjectReference Include="..\..\src\Mocha.Transport.InMemory\Mocha.Transport.InMemory.csproj" />
+  </ItemGroup>
+</Project>

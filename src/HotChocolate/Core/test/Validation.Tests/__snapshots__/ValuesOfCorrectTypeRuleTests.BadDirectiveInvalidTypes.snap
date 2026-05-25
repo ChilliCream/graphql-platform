@@ -1,61 +1,42 @@
-[
-  {
-    "Message": "The specified argument value does not match the argument type.",
-    "Code": null,
-    "Path": {
-      "Name": "dog",
-      "Parent": {
-        "Parent": null,
-        "Length": 0,
-        "IsRoot": true
-      },
-      "Length": 1,
-      "IsRoot": false
-    },
-    "Locations": [
-      {
-        "Line": 2,
-        "Column": 22
-      }
-    ],
-    "Extensions": {
-      "argument": "if",
-      "argumentValue": "\"yes\"",
-      "locationType": "Boolean!",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
-    },
-    "Exception": null
-  },
-  {
-    "Message": "The specified argument value does not match the argument type.",
-    "Code": null,
-    "Path": {
-      "Name": "name",
-      "Parent": {
-        "Name": "dog",
-        "Parent": {
-          "Parent": null,
-          "Length": 0,
-          "IsRoot": true
-        },
-        "Length": 1,
-        "IsRoot": false
-      },
-      "Length": 2,
-      "IsRoot": false
-    },
-    "Locations": [
-      {
-        "Line": 3,
-        "Column": 24
-      }
-    ],
-    "Extensions": {
-      "argument": "if",
-      "argumentValue": "ENUM",
-      "locationType": "Boolean!",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
-    },
-    "Exception": null
+---------------
+{
+  "message": "The specified argument value does not match the argument type.",
+  "locations": [
+    {
+      "line": 2,
+      "column": 22
+    }
+  ],
+  "path": [
+    "dog"
+  ],
+  "extensions": {
+    "argument": "if",
+    "argumentValue": "\u0022yes\u0022",
+    "locationType": "Boolean!",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Values-of-Correct-Type"
   }
-]
+}
+---------------
+
+---------------
+{
+  "message": "The specified argument value does not match the argument type.",
+  "locations": [
+    {
+      "line": 3,
+      "column": 24
+    }
+  ],
+  "path": [
+    "dog",
+    "name"
+  ],
+  "extensions": {
+    "argument": "if",
+    "argumentValue": "ENUM",
+    "locationType": "Boolean!",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Values-of-Correct-Type"
+  }
+}
+---------------

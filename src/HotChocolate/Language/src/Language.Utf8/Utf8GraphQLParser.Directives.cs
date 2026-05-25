@@ -1,3 +1,5 @@
+using static HotChocolate.Language.Properties.LangUtf8Resources;
+
 namespace HotChocolate.Language;
 
 public ref partial struct Utf8GraphQLParser
@@ -62,7 +64,7 @@ public ref partial struct Utf8GraphQLParser
         throw Unexpected(kind);
     }
 
-    private List<DirectiveNode> ParseDirectives(bool isConstant)
+    private List<DirectiveNode> ParseDirectives(bool isConstant, bool isQueryLocation = false)
     {
         if (_reader.Kind == TokenKind.At)
         {
@@ -71,6 +73,15 @@ public ref partial struct Utf8GraphQLParser
             while (_reader.Kind == TokenKind.At)
             {
                 list.Add(ParseDirective(isConstant));
+
+                if (isQueryLocation && list.Count > _maxAllowedDirectives)
+                {
+                    throw new SyntaxException(
+                        _reader,
+                        string.Format(
+                            Utf8GraphQLParser_ParseDirective_MaxAllowedDirectivesReached,
+                            _maxAllowedDirectives));
+                }
             }
 
             return list;

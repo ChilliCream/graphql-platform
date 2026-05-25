@@ -1,20 +1,47 @@
+"use client";
+
 import Highlight, { Language } from "prism-react-renderer";
 import Prism from "prismjs";
+
+// Load additional Prism language components
+// Must set Prism globally first - language components modify the global Prism
+(typeof globalThis !== "undefined" ? globalThis : window).Prism = Prism;
+import "prismjs/components/prism-csharp";
+import "prismjs/components/prism-graphql";
+import "prismjs/components/prism-json";
+import "prismjs/components/prism-bash";
+import "prismjs/components/prism-sql";
+import "prismjs/components/prism-diff";
+import "prismjs/components/prism-yaml";
+
+// Import Prism syntax highlighting theme
+import "@/style/prism-theme.css";
+
 import React, { FC } from "react";
 import styled, { css } from "styled-components";
 
 import { FONT_FAMILY_CODE, THEME_COLORS } from "@/style";
 import { Copy } from "./copy";
+import { MermaidDiagram } from "./mermaid-diagram";
 
 export interface CodeBlockProps {
   readonly children: any;
+  readonly className?: string;
   readonly language?: Language;
 }
 
 export const CodeBlock: FC<CodeBlockProps> = ({
   children,
+  className,
   language: fallbackLanguage,
 }) => {
+  // rehype-mermaid with pre-mermaid strategy outputs <pre class="mermaid">code</pre>
+  // without a <code> wrapper. Detect this and render client-side.
+  if (className === "mermaid") {
+    const code = typeof children === "string" ? children : String(children);
+    return <MermaidDiagram code={code.trim()} />;
+  }
+
   const language =
     (children.props?.className?.replace(/language-/, "") as Language) ||
     fallbackLanguage;
@@ -35,18 +62,25 @@ export const CodeBlock: FC<CodeBlockProps> = ({
       >
         {({ className, style, tokens, getLineProps, getTokenProps }) => (
           <Pre className={className} style={style}>
-            {tokens.map((line, i) => (
-              <Line
-                highlight={shouldHighlightLine(i)}
-                {...getLineProps({ line, key: i })}
-              >
-                <LineContent>
-                  {line.map((token, key) => (
-                    <span key={key} {...getTokenProps({ token, key })} />
-                  ))}
-                </LineContent>
-              </Line>
-            ))}
+            {tokens.map((line, i) => {
+              const { key: lineKey, ...lineProps } = getLineProps({
+                line,
+                key: i,
+              });
+              return (
+                <Line key={i} highlight={shouldHighlightLine(i)} {...lineProps}>
+                  <LineContent>
+                    {line.map((token, j) => {
+                      const { key: tokenKey, ...tokenProps } = getTokenProps({
+                        token,
+                        key: j,
+                      });
+                      return <span key={j} {...tokenProps} />;
+                    })}
+                  </LineContent>
+                </Line>
+              );
+            })}
           </Pre>
         )}
       </Highlight>
@@ -111,6 +145,10 @@ const codeLanguages: Record<
     content: "XML",
     color: "#ffffff",
   },
+  yaml: {
+    content: "YAML",
+    color: "#cb7676",
+  },
 };
 
 const IndicatorContent = styled.div`
@@ -164,7 +202,6 @@ const Pre = styled.pre`
   }
 
   @media only screen and (min-width: 700px) {
-    max-width: 660px;
     border-radius: var(--box-border-radius) !important;
   }
 `;

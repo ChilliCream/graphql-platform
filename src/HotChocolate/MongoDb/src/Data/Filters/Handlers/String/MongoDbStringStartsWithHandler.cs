@@ -17,6 +17,9 @@ public class MongoDbStringStartsWithHandler
 
     protected override int Operation => DefaultFilterOperations.StartsWith;
 
+    public static MongoDbStringStartsWithHandler Create(FilterProviderContext context)
+        => new(context.InputParser);
+
     public override MongoDbFilterDefinition HandleOperation(
         MongoDbFilterVisitorContext context,
         IFilterOperationField field,

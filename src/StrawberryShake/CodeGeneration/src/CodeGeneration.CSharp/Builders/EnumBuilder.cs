@@ -92,7 +92,7 @@ public class EnumBuilder : ITypeBuilder
 
                 if (i + 1 < _elements.Count)
                 {
-                    writer.Write($",");
+                    writer.Write(",");
                 }
 
                 writer.WriteLine();

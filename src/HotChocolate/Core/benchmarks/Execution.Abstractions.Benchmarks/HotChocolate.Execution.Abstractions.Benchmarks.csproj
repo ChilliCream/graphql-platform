@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ServerGarbageCollection>true</ServerGarbageCollection>
+    <LangVersion>Preview</LangVersion>
+    <AssemblyName>HotChocolate.Execution.Abstractions.Benchmarks</AssemblyName>
+    <RootNamespace>HotChocolate.Execution.Abstractions.Benchmarks</RootNamespace>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Execution.Abstractions\HotChocolate.Execution.Abstractions.csproj" />
+  </ItemGroup>
+
+</Project>

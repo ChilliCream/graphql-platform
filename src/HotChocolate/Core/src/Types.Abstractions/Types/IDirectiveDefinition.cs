@@ -1,3 +1,4 @@
+using HotChocolate.Features;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types;
@@ -15,6 +16,7 @@ namespace HotChocolate.Types;
 public interface IDirectiveDefinition
     : INameProvider
     , IDescriptionProvider
+    , IFeatureProvider
     , ISyntaxNodeProvider<DirectiveDefinitionNode>
     , ISchemaCoordinateProvider
     , IRuntimeTypeProvider
@@ -26,6 +28,13 @@ public interface IDirectiveDefinition
     /// schema extension via a directive
     /// </summary>
     bool IsRepeatable { get; }
+
+    /// <summary>
+    /// Defines if this directive is publicly visible through introspection
+    /// and external SDL output. Internal directives are part of the type system
+    /// but hidden from external observers.
+    /// </summary>
+    bool IsPublic => true;
 
     /// <summary>
     /// Gets the directive arguments.

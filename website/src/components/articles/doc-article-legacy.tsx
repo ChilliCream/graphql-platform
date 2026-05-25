@@ -32,7 +32,7 @@ export const DocArticleLegacy: FC = () => {
       aria-live="polite"
       aria-label="legacydoc"
       aria-describedby="legacydoc:desc"
-      show
+      $show
     >
       <Container>
         <Message id="legacydoc:desc">
@@ -52,8 +52,8 @@ export const DocArticleLegacy: FC = () => {
   ) : null;
 };
 
-const Dialog = styled.div<{ show: boolean }>`
-  display: ${({ show }) => (show ? "initial" : "none")};
+const Dialog = styled.div<{ $show: boolean }>`
+  display: ${({ $show }) => ($show ? "initial" : "none")};
   background-color: #ffb806;
 
   @media only screen and (min-width: 860px) {

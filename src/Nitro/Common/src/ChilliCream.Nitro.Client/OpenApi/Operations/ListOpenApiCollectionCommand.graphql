@@ -1,0 +1,27 @@
+query ListOpenApiCollectionCommandQuery($apiId: ID!, $after: String, $first: Int) {
+  node(id: $apiId) {
+    ... on Api {
+      openApiCollections(first: $first, after: $after) {
+        edges {
+          ...ListOpenApiCollectionCommandQuery_OpenApiCollectionEdge
+        }
+        pageInfo {
+          ...PageInfo
+        }
+      }
+    }
+  }
+}
+
+fragment ListOpenApiCollectionCommandQuery_OpenApiCollectionEdge on ApiOpenApiCollectionsEdge {
+  cursor
+  node {
+    ...ListOpenApiCollectionCommandQuery_OpenApiCollection
+  }
+}
+
+fragment ListOpenApiCollectionCommandQuery_OpenApiCollection on OpenApiCollection {
+  id
+  name
+  ...OpenApiCollectionDetailPrompt_OpenApiCollection
+}

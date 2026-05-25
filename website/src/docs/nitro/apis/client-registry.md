@@ -90,7 +90,7 @@ After installing the package, you need to configure the services in your startup
 public void ConfigureServices(IServiceCollection services)
 {
     services
-        .AddGraphQLServer()
+        .AddGraphQL()
         .AddQueryType<Query>()
         .AddNitro(x => // Connect to the client registry
         {
@@ -114,7 +114,7 @@ public void ConfigureServices(IServiceCollection services)
 > public void ConfigureServices(IServiceCollection services)
 > {
 >     services
->         .AddGraphQLServer()
+>         .AddGraphQL()
 >         .AddQueryType<Query>()
 >         .AddNitro() // Connect to the client registry
 >         .UsePersistedOperationPipeline(); // Enable the persisted operation pipeline
@@ -132,7 +132,7 @@ This can be done by setting the `PersistedOperations.OnlyAllowPersistedDocuments
 public void ConfigureServices(IServiceCollection services)
 {
     services
-        .AddGraphQLServer()
+        .AddGraphQL()
         .AddQueryType<Query>()
         .AddNitro() // Connect to the client registry
         .ModifyRequestOptions(x => x.PersistedOperations.OnlyAllowPersistedDocuments = true)
@@ -146,7 +146,7 @@ You can also customize the error message that is returned when an ad-hoc operati
 public void ConfigureServices(IServiceCollection services)
 {
     services
-        .AddGraphQLServer()
+        .AddGraphQL()
         .AddQueryType<Query>()
         .AddNitro() // Connect to the client registry
         .ModifyRequestOptions(x =>

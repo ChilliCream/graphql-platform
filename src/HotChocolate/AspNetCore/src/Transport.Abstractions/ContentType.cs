@@ -1,4 +1,8 @@
+#if FUSION
+namespace HotChocolate.Fusion.Transport;
+#else
 namespace HotChocolate.Transport;
+#endif
 
 /// <summary>
 /// This class provides the default content types for GraphQL requests and responses.
@@ -24,4 +28,9 @@ public static class ContentType
     /// Gets the application/graphql-response+jsonl content type.
     /// </summary>
     public const string GraphQLJsonLine = "application/graphql-response+jsonl";
+
+    /// <summary>
+    /// Gets the application/jsonl content type.
+    /// </summary>
+    public const string JsonLine = "application/jsonl";
 }

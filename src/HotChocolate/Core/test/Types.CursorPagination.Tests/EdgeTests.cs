@@ -44,6 +44,17 @@ public class EdgeTests
     }
 
     [Fact]
+    public void CreateEdge_ResolveCursorByIndex_ArgumentNullException()
+    {
+        // arrange
+        // act
+        void Action() => new Edge<string>("abc", 1, default!);
+
+        // assert
+        Assert.Throws<ArgumentNullException>(Action);
+    }
+
+    [Fact]
     public void CreateEdge_CursorIsEmpty_ArgumentException()
     {
         // arrange
@@ -52,6 +63,18 @@ public class EdgeTests
 
         // assert
         Assert.Throws<ArgumentException>(Action);
+    }
+
+    [Fact]
+    public void CreateEdge_ResolveCursorByIndex_UsesIndex()
+    {
+        // arrange
+        // act
+        var edge = new Edge<string>("abc", 2, index => $"cursor:{index}");
+
+        // assert
+        Assert.Equal("abc", edge.Node);
+        Assert.Equal("cursor:2", edge.Cursor);
     }
 
     [Fact]

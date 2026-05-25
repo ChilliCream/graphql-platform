@@ -185,6 +185,34 @@
           "fields": [
             {
               "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            }
+          ]
+        },
+        {
+          "fields": null
+        },
+        {
+          "fields": null
+        },
+        {
+          "fields": null
+        },
+        {
+          "fields": [
+            {
+              "appliedDirectives": []
             }
           ]
         },

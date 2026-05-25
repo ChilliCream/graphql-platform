@@ -67,8 +67,8 @@ const ResponsiveMenuWrapper = styled.div`
 const ResponsiveMenu = styled.div`
   position: fixed;
   top: 71px;
-  right: 16px;
-  left: 16px;
+  right: 10px;
+  left: 0px;
   z-index: 3;
   display: flex;
   flex-direction: row;
@@ -113,6 +113,8 @@ const Button = styled.button`
   flex-direction: row;
   align-items: center;
   gap: 8px;
+  min-height: 44px;
+  padding: 0 12px;
   font-size: 0.875rem;
   color: ${THEME_COLORS.link};
   transition: color 0.2s ease-in-out;

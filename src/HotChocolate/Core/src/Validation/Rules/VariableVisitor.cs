@@ -10,14 +10,14 @@ namespace HotChocolate.Validation.Rules;
 /// it is ambiguous and invalid. It is invalid even if the type of the
 /// duplicate variable is the same.
 ///
-/// https://spec.graphql.org/June2018/#sec-Validation.Variables
+/// https://spec.graphql.org/September2025/#sec-Validation.Variables
 ///
 /// AND
 ///
 /// Variables can only be input types. Objects,
 /// unions, and interfaces cannot be used as inputs.
 ///
-/// https://spec.graphql.org/June2018/#sec-Variables-Are-Input-Types
+/// https://spec.graphql.org/September2025/#sec-Variables-Are-Input-Types
 ///
 /// AND
 ///
@@ -26,7 +26,7 @@ namespace HotChocolate.Validation.Rules;
 ///
 /// Unused variables cause a validation error.
 ///
-/// https://spec.graphql.org/June2018/#sec-All-Variables-Used
+/// https://spec.graphql.org/September2025/#sec-All-Variables-Used
 ///
 /// AND
 ///
@@ -34,7 +34,7 @@ namespace HotChocolate.Validation.Rules;
 /// any variable used within the context of an operation must be defined
 /// at the top level of that operation
 ///
-/// https://spec.graphql.org/June2018/#sec-All-Variable-Uses-Defined
+/// https://spec.graphql.org/September2025/#sec-All-Variable-Uses-Defined
 ///
 /// AND
 ///
@@ -45,7 +45,7 @@ namespace HotChocolate.Validation.Rules;
 /// of types that are complete mismatches, or if a nullable type in a
 ///  variable is passed to a non‐null argument type.
 ///
-/// https://spec.graphql.org/June2018/#sec-All-Variable-Usages-are-Allowed
+/// https://spec.graphql.org/September2025/#sec-All-Variable-Usages-Are-Allowed
 /// </summary>
 internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
 {
@@ -259,12 +259,22 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
             _ => null
         };
 
-        if (context.Variables.TryGetValue(
-                node.Name.Value,
-                out var variableDefinition)
-            && !IsVariableUsageAllowed(variableDefinition, context.Types.Peek(), defaultValue))
+        var isOneOfVariable =
+            parent is ObjectFieldNode
+            && context.Types[^2].NullableType() is IInputObjectTypeDefinition inputObjectType
+            && inputObjectType.Directives.ContainsName(DirectiveNames.OneOf.Name);
+
+        if (context.Variables.TryGetValue(node.Name.Value, out var variableDefinition)
+            && !IsVariableUsageAllowed(
+                variableDefinition,
+                context.Types.Peek(),
+                isOneOfVariable,
+                defaultValue))
         {
-            context.ReportError(context.VariableIsNotCompatible(node, variableDefinition));
+            context.ReportError(
+                isOneOfVariable
+                    ? context.OneOfVariableIsNotCompatible(node, variableDefinition)
+                    : context.VariableIsNotCompatible(node, variableDefinition));
         }
 
         return Skip;
@@ -294,9 +304,10 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
     private bool IsVariableUsageAllowed(
         VariableDefinitionNode variableDefinition,
         IType locationType,
+        bool isOneOfVariable,
         IValueNode? locationDefault)
     {
-        if (locationType.IsNonNullType()
+        if (IsNonNullPosition(locationType, isOneOfVariable)
             && !variableDefinition.Type.IsNonNullType())
         {
             if (variableDefinition.DefaultValue.IsNull()
@@ -313,6 +324,11 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
         return AreTypesCompatible(
             variableDefinition.Type,
             locationType);
+    }
+
+    private static bool IsNonNullPosition(IType locationType, bool isOneOfVariable)
+    {
+        return locationType.IsNonNullType() || isOneOfVariable;
     }
 
     // http://facebook.github.io/graphql/June2018/#AreTypesCompatible()

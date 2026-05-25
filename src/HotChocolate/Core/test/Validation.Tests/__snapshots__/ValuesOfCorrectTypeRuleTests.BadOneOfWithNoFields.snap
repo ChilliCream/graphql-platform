@@ -1,0 +1,16 @@
+{
+  "message": "The OneOf Input Object \u0060PetInput\u0060 requires that exactly one field must be supplied and that field must not be \u0060null\u0060.",
+  "locations": [
+    {
+      "line": 2,
+      "column": 17
+    }
+  ],
+  "path": [
+    "addPet"
+  ],
+  "extensions": {
+    "type": "PetInput",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-All-Variable-Usages-Are-Allowed"
+  }
+}

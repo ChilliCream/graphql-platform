@@ -1,20 +1,20 @@
 import styled from "styled-components";
 import { Link } from "./link";
 
-export const Dialog = styled.div<{ show: boolean }>`
+export const Dialog = styled.div<{ $show: boolean }>`
   position: fixed;
   bottom: 0;
-  z-index: 30;
+  z-index: 20;
   width: 100vw;
   background-color: #aba0ff;
-  display: ${({ show }) => (show ? "visible" : "none")};
+  display: ${({ $show }) => ($show ? "visible" : "none")};
 `;
 
 export const DialogButton = styled.button`
   border-radius: var(--border-radius);
   max-width: 160px;
   padding: 10px;
-  height: 40px;
+  height: 44px;
   font-size: var(--font-size);
   color: #e9e7f4;
   background-color: #2e2857;
@@ -34,7 +34,7 @@ export const DialogLinkButton = styled(Link)`
   justify-content: center;
   border-radius: var(--button-border-radius);
   max-width: 140px;
-  height: 20px;
+  height: 24px;
   padding: 10px;
   color: #e9e7f4;
   background-color: #2e2857;

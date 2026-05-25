@@ -13,12 +13,13 @@ public class CacheControlTypeInterceptorTests
     {
         await new ServiceCollection()
             .AddGraphQL()
-            .AddDocumentFromString(@"
+            .AddDocumentFromString(
+                """
                 type Query {
-                    field1: String
-                    field2: String @cacheControl(maxAge: 200)
+                   field1: String
+                   field2: String @cacheControl(maxAge: 200)
                 }
-            ")
+                """)
             .UseField(_ => _)
             .AddCacheControl()
             .BuildSchemaAsync()

@@ -6,6 +6,10 @@
     <RootNamespace>HotChocolate.Execution</RootNamespace>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Abstractions\HotChocolate.Abstractions.csproj" />
   </ItemGroup>

@@ -1,0 +1,13 @@
+{
+  "message": "A union type cannot declare a field directly. Use inline fragments or fragments instead.",
+  "locations": [
+    {
+      "line": 1,
+      "column": 50
+    }
+  ],
+  "extensions": {
+    "type": "CatOrDog",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selections"
+  }
+}

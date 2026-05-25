@@ -1,3 +1,4 @@
+using HotChocolate.Buffers;
 using HotChocolate.Language;
 
 namespace HotChocolate.Execution;
@@ -29,9 +30,14 @@ public interface IOperationRequest : IExecutionRequest
     string? OperationName { get; }
 
     /// <summary>
+    /// Gets the requested error handling mode.
+    /// </summary>
+    ErrorHandlingMode? ErrorHandlingMode { get; }
+
+    /// <summary>
     /// Gets the GraphQL request extension data.
     /// </summary>
-    IReadOnlyDictionary<string, object?>? Extensions { get; }
+    JsonDocumentOwner? Extensions { get; }
 
     /// <summary>
     /// GraphQL request flags allow limiting the GraphQL executor capabilities.

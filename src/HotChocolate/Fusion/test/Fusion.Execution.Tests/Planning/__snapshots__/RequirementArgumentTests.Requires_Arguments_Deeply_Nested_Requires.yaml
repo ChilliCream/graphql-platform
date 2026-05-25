@@ -1,0 +1,60 @@
+operation:
+  - document: |
+      {
+        feed {
+          author {
+            id
+          }
+          comments(limit: 1) {
+            id
+          }
+          comments @fusion__requirement {
+            authorId
+          }
+          id @fusion__requirement
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 2
+nodes:
+  - id: 1
+    type: Operation
+    schema: c
+    operation: |
+      query Op_123456789101112_1 {
+        feed {
+          comments(limit: 1) {
+            id
+          }
+          comments {
+            authorId
+          }
+          id
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: d
+    operation: |
+      query Op_123456789101112_2(
+        $__fusion_1_id: ID!
+          $__fusion_2_commentAuthorIds: [ID]
+      ) {
+        postById(id: $__fusion_1_id) {
+          author(commentAuthorIds: $__fusion_2_commentAuthorIds) {
+            id
+          }
+        }
+      }
+    source: $.postById
+    target: $.feed
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+      - name: __fusion_2_commentAuthorIds
+        selectionMap: >-
+          comments[authorId]
+    dependencies:
+      - id: 1

@@ -32,7 +32,6 @@ The following `.graphqlrc.json` can be copied into our getting started example a
       "name": "ConferenceClient",
       "namespace": "Demo.GraphQL",
       "url": "http://localhost:5050/graphql",
-      "dependencyInjection": true,
       "transportProfiles": [
         {
           "name": "Default",

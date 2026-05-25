@@ -43,42 +43,14 @@ public static class HotChocolatePaginationResultExtensions
     /// The page result.
     /// </param>
     /// <param name="createEdge">
-    /// A factory to create an edge from a source entity.
+    /// A factory that receives the source item and its cursor, and returns the edge.
     /// </param>
     /// <returns>
     ///  Returns a relay connection.
     /// </returns>
     public static async Task<Connection<TTarget>> ToConnectionAsync<TSource, TTarget>(
         this Task<Page<TSource>> resultPromise,
-        Func<TSource, string, Edge<TTarget>> createEdge)
-        where TTarget : class
-        where TSource : class
-    {
-        var result = await resultPromise;
-        return CreateConnection(result, createEdge);
-    }
-
-    /// <summary>
-    /// Converts a <see cref="Page{TSource}"/> to a <see cref="Connection{TTarget}"/>.
-    /// </summary>
-    /// <typeparam name="TSource">
-    /// The source entity type.
-    /// </typeparam>
-    /// <typeparam name="TTarget">
-    /// The target entity type.
-    /// </typeparam>
-    /// <param name="resultPromise">
-    /// The page result.
-    /// </param>
-    /// <param name="createEdge">
-    /// A factory to create an edge from a source entity.
-    /// </param>
-    /// <returns>
-    ///  Returns a relay connection.
-    /// </returns>
-    public static async Task<Connection<TTarget>> ToConnectionAsync<TSource, TTarget>(
-        this Task<Page<TSource>> resultPromise,
-        Func<TSource, Page<TSource>, Edge<TTarget>> createEdge)
+        Func<Page<TSource>, PageEntry<TSource>, IEdge<TTarget>> createEdge)
         where TTarget : class
         where TSource : class
     {
@@ -119,42 +91,14 @@ public static class HotChocolatePaginationResultExtensions
     /// The page result.
     /// </param>
     /// <param name="createEdge">
-    /// A factory to create an edge from a source entity.
+    /// A factory that receives the source item and its cursor, and returns the edge.
     /// </param>
     /// <returns>
     ///  Returns a relay connection.
     /// </returns>
     public static async ValueTask<Connection<TTarget>> ToConnectionAsync<TSource, TTarget>(
         this ValueTask<Page<TSource>> resultPromise,
-        Func<TSource, string, Edge<TTarget>> createEdge)
-        where TTarget : class
-        where TSource : class
-    {
-        var result = await resultPromise;
-        return CreateConnection(result, createEdge);
-    }
-
-    /// <summary>
-    /// Converts a <see cref="Page{TSource}"/> to a <see cref="Connection{TTarget}"/>.
-    /// </summary>
-    /// <typeparam name="TSource">
-    /// The source entity type.
-    /// </typeparam>
-    /// <typeparam name="TTarget">
-    /// The target entity type.
-    /// </typeparam>
-    /// <param name="resultPromise">
-    /// The page result.
-    /// </param>
-    /// <param name="createEdge">
-    /// A factory to create an edge from a source entity.
-    /// </param>
-    /// <returns>
-    ///  Returns a relay connection.
-    /// </returns>
-    public static async ValueTask<Connection<TTarget>> ToConnectionAsync<TSource, TTarget>(
-        this ValueTask<Page<TSource>> resultPromise,
-        Func<TSource, Page<TSource>, Edge<TTarget>> createEdge)
+        Func<Page<TSource>, PageEntry<TSource>, IEdge<TTarget>> createEdge)
         where TTarget : class
         where TSource : class
     {
@@ -183,53 +127,48 @@ public static class HotChocolatePaginationResultExtensions
     private static Connection<T> CreateConnection<T>(Page<T>? page) where T : class
     {
         page ??= Page<T>.Empty;
+        var entries = page.Entries;
+        var edges = new PageEdge<T>[entries.Length];
+
+        for (var i = 0; i < entries.Length; i++)
+        {
+            edges[i] = new PageEdge<T>(page, entries[i]);
+        }
 
         return new Connection<T>(
-            page.Items.Select(t => new Edge<T>(t, page.CreateCursor)).ToArray(),
+            edges,
             new ConnectionPageInfo(
                 page.HasNextPage,
                 page.HasPreviousPage,
-                CreateCursor(page.First, page.CreateCursor),
-                CreateCursor(page.Last, page.CreateCursor)),
+                page.CreateStartCursor(),
+                page.CreateEndCursor()),
             page.TotalCount ?? 0);
     }
 
     private static Connection<TTarget> CreateConnection<TSource, TTarget>(
         Page<TSource>? page,
-        Func<TSource, string, Edge<TTarget>> createEdge)
+        Func<Page<TSource>, PageEntry<TSource>, IEdge<TTarget>> createEdge)
         where TTarget : class
-        where TSource : class
     {
         page ??= Page<TSource>.Empty;
+        var entries = page.Entries;
+        var edges = entries.IsEmpty ? [] : new IEdge<TTarget>[entries.Length];
+
+        if (!entries.IsEmpty)
+        {
+            for (var i = 0; i < entries.Length; i++)
+            {
+                edges[i] = createEdge(page, entries[i]);
+            }
+        }
 
         return new Connection<TTarget>(
-            page.Items.Select(t => createEdge(t, page.CreateCursor(t))).ToArray(),
+            edges,
             new ConnectionPageInfo(
                 page.HasNextPage,
                 page.HasPreviousPage,
-                CreateCursor(page.First, page.CreateCursor),
-                CreateCursor(page.Last, page.CreateCursor)),
+                page.CreateStartCursor(),
+                page.CreateEndCursor()),
             page.TotalCount ?? 0);
     }
-
-    private static Connection<TTarget> CreateConnection<TSource, TTarget>(
-        Page<TSource>? page,
-        Func<TSource, Page<TSource>, Edge<TTarget>> createEdge)
-        where TTarget : class
-        where TSource : class
-    {
-        page ??= Page<TSource>.Empty;
-
-        return new Connection<TTarget>(
-            page.Items.Select(t => createEdge(t, page)).ToArray(),
-            new ConnectionPageInfo(
-                page.HasNextPage,
-                page.HasPreviousPage,
-                CreateCursor(page.First, page.CreateCursor),
-                CreateCursor(page.Last, page.CreateCursor)),
-            page.TotalCount ?? 0);
-    }
-
-    private static string? CreateCursor<T>(T? item, Func<T, string> createCursor) where T : class
-        => item is null ? null : createCursor(item);
 }

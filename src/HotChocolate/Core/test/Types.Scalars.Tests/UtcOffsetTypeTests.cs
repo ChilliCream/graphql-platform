@@ -1,6 +1,7 @@
-using HotChocolate.Execution;
+using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
-using Microsoft.Extensions.DependencyInjection;
+using Moq;
 
 namespace HotChocolate.Types;
 
@@ -36,7 +37,7 @@ public class UtcOffsetTypeTests : ScalarTypeTestBase
         var valueSyntax = new StringValueNode("+12:00");
 
         // act
-        var result = scalar.IsInstanceOfType(valueSyntax);
+        var result = scalar.IsValueCompatible(valueSyntax);
 
         // assert
         Assert.True(result);
@@ -50,7 +51,7 @@ public class UtcOffsetTypeTests : ScalarTypeTestBase
         var valueSyntax = new StringValueNode("-12:00");
 
         // act
-        var result = scalar.IsInstanceOfType(valueSyntax);
+        var result = scalar.IsValueCompatible(valueSyntax);
 
         // assert
         Assert.True(result);
@@ -64,28 +65,14 @@ public class UtcOffsetTypeTests : ScalarTypeTestBase
         var valueSyntax = new StringValueNode("-00:00");
 
         // act
-        var result = scalar.IsInstanceOfType(valueSyntax);
+        var result = scalar.IsValueCompatible(valueSyntax);
 
         // assert
         Assert.True(result);
     }
 
     [Fact]
-    protected void UtcOffset_ExpectIsUtcOffsetToMatch()
-    {
-        // arrange
-        var scalar = CreateType<UtcOffsetType>();
-        var valueSyntax = TimeSpan.FromHours(12);
-
-        // act
-        var result = scalar.IsInstanceOfType(valueSyntax);
-
-        // assert
-        Assert.True(result);
-    }
-
-    [Fact]
-    protected void UtcOffset_ExpectParseLiteralToMatch()
+    protected void UtcOffset_ExpectCoerceInputLiteralToMatch()
     {
         // arrange
         var scalar = CreateType<UtcOffsetType>();
@@ -93,250 +80,102 @@ public class UtcOffsetTypeTests : ScalarTypeTestBase
         var expectedResult = new TimeSpan(-12, 0, 0);
 
         // act
-        object result = (TimeSpan)scalar.ParseLiteral(valueSyntax)!;
+        object result = (TimeSpan)scalar.CoerceInputLiteral(valueSyntax)!;
 
         // assert
         Assert.Equal(expectedResult, result);
     }
 
     [Fact]
-    protected void UtcOffset_ExpectParseLiteralToThrowSerializationException()
+    protected void UtcOffset_ExpectCoerceInputLiteralToThrowSerializationException()
     {
         // arrange
         var scalar = CreateType<UtcOffsetType>();
         var valueSyntax = new StringValueNode("+17:00");
 
         // act
-        var result = Record.Exception(() => scalar.ParseLiteral(valueSyntax));
+        var result = Record.Exception(() => scalar.CoerceInputLiteral(valueSyntax));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     [Fact]
-    protected void UtcOffset_ExpectParseValueToMatchTimeSpan()
+    protected void UtcOffset_ExpectValueToLiteralToMatchTimeSpan()
     {
         // arrange
         var scalar = CreateType<UtcOffsetType>();
         var valueSyntax = new TimeSpan(0, 0, 0);
 
         // act
-        var result = scalar.ParseValue(valueSyntax);
+        var result = scalar.ValueToLiteral(valueSyntax);
 
         // assert
         Assert.Equal(typeof(StringValueNode), result.GetType());
     }
 
     [Fact]
-    protected void UtcOffset_ExpectParseValueToThrowSerializationException()
+    protected void UtcOffset_ExpectValueToLiteralToThrowSerializationException()
     {
         // arrange
         var scalar = CreateType<UtcOffsetType>();
         var runtimeValue = new StringValueNode("foo");
 
         // act
-        var result = Record.Exception(() => scalar.ParseValue(runtimeValue));
+        var result = Record.Exception(() => scalar.ValueToLiteral(runtimeValue));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     [Fact]
-    protected void UtcOffset_ExpectSerializeToMatch()
+    protected void UtcOffset_ExpectCoerceOutputValueToMatch()
     {
         // arrange
-        ScalarType scalar = new UtcOffsetType();
-        var dateTime = new TimeSpan(10, 0, 0);
-
-        const string expectedValue = "+10:00";
-
         // act
-        var serializedValue = (string)scalar.Serialize(dateTime)!;
-
         // assert
-        Assert.Equal(expectedValue, serializedValue);
+        ExpectCoerceOutputValueToMatch<UtcOffsetType>(new TimeSpan(10, 0, 0));
     }
 
     [Fact]
-    protected void UtcOffset_ExpectDeserializeNullToMatch()
-    {
-        // arrange
-        ScalarType scalar = new UtcOffsetType();
-
-        // act
-        var success = scalar.TryDeserialize(null, out var deserialized);
-
-        // assert
-        Assert.True(success);
-        Assert.Null(deserialized);
-    }
-
-    [Fact]
-    public void UtcOffset_ExpectDeserializeNullableTimeSpanToTimeSpan()
-    {
-        // arrange
-        ScalarType scalar = new UtcOffsetType();
-        TimeSpan? time = null;
-
-        // act
-        var success = scalar.TryDeserialize(time, out var deserialized);
-
-        // assert
-        Assert.True(success);
-        Assert.Null(deserialized);
-    }
-
-    [Fact]
-    protected void UtcOffset_ExpectDeserializeStringToMatch()
+    protected void UtcOffset_ExpectCoerceInputValueStringToMatch()
     {
         // arrange
         var scalar = CreateType<UtcOffsetType>();
         var runtimeValue = new TimeSpan(4, 0, 0);
+        using var doc = JsonDocument.Parse("\"+04:00\"");
+        var context = new Mock<IFeatureProvider>();
+        context.Setup(t => t.Features).Returns(FeatureCollection.Empty);
 
         // act
-        var deserializedValue = (TimeSpan)scalar
-            .Deserialize("+04:00")!;
+        var deserializedValue = (TimeSpan)scalar.CoerceInputValue(doc.RootElement, context.Object)!;
 
         // assert
         Assert.Equal(runtimeValue, deserializedValue);
     }
 
     [Fact]
-    protected void UtcOffset_ExpectDeserializeTimeSpanToMatch()
+    public void UtcOffset_ExpectCoerceInputValueInvalidStringToThrow()
     {
         // arrange
         var scalar = CreateType<UtcOffsetType>();
-        object resultValue = new TimeSpan(4, 0, 0);
-        object runtimeValue = new TimeSpan(4, 0, 0);
+        using var doc = JsonDocument.Parse("\"abc\"");
+        var context = new Mock<IFeatureProvider>();
+        context.Setup(t => t.Features).Returns(FeatureCollection.Empty);
 
         // act
-        var result = scalar.Deserialize(resultValue);
+        var result = Record.Exception(() => scalar.CoerceInputValue(doc.RootElement, context.Object));
 
         // assert
-        Assert.Equal(result, runtimeValue);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     [Fact]
-    public void UtcOffset_ExpectDeserializeInvalidStringToTimeSpan()
+    protected void UtcOffset_ExpectCoerceOutputValueToThrowSerializationException()
     {
         // arrange
-        ScalarType scalar = new UtcOffsetType();
-
         // act
-        var success = scalar.TryDeserialize("abc", out var _);
-
         // assert
-        Assert.False(success);
-    }
-
-    [Fact]
-    public void UtcOffset_ExpectDeserializeNullToNull()
-    {
-        // arrange
-        ScalarType scalar = new UtcOffsetType();
-
-        // act
-        var success = scalar.TryDeserialize(null, out var deserialized);
-
-        // assert
-        Assert.True(success);
-        Assert.Null(deserialized);
-    }
-
-    [Fact]
-    protected void UtcOffset_ExpectSerializeToThrowSerializationException()
-    {
-        // arrange
-        var scalar = CreateType<UtcOffsetType>();
-
-        // act
-        var result = Record.Exception(() => scalar.Serialize("foo"));
-
-        // assert
-        Assert.IsType<SerializationException>(result);
-    }
-
-    [Fact]
-    protected void UtcOffset_ExpectDeserializeToThrowSerializationException()
-    {
-        // arrange
-        var scalar = CreateType<UtcOffsetType>();
-        object runtimeValue = new IntValueNode(1);
-
-        // act
-        var result = Record.Exception(() => scalar.Deserialize(runtimeValue));
-
-        // assert
-        Assert.IsType<SerializationException>(result);
-    }
-
-    [Fact]
-    protected void UtcOffset_ExpectParseResultToMatchNull()
-    {
-        // arrange
-        ScalarType scalar = new UtcOffsetType();
-
-        // act
-        var result = scalar.ParseResult(null);
-
-        // assert
-        Assert.Equal(typeof(NullValueNode), result.GetType());
-    }
-
-    [Fact]
-    protected void UtcOffset_ExpectParseResultToMatchStringValue()
-    {
-        // arrange
-        ScalarType scalar = new UtcOffsetType();
-        const string valueSyntax = "-02:00";
-
-        // act
-        var result = scalar.ParseResult(valueSyntax);
-
-        // assert
-        Assert.Equal(typeof(StringValueNode), result.GetType());
-    }
-
-    [Fact]
-    protected void UtcOffset_ExpectParseResultToThrowSerializationException()
-    {
-        // arrange
-        ScalarType scalar = new UtcOffsetType();
-        IValueNode runtimeValue = new IntValueNode(1);
-
-        // act
-        var result = Record.Exception(() => scalar.ParseResult(runtimeValue));
-
-        // assert
-        Assert.IsType<SerializationException>(result);
-    }
-
-    [Fact]
-    public async Task Integration_DefaultUtcOffset()
-    {
-        // arrange
-        var executor = await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType<DefaultUtcOffsetType>()
-            .BuildRequestExecutorAsync();
-
-        // act
-        var res = await executor.ExecuteAsync("{ test }");
-
-        // assert
-        res.ToJson().MatchSnapshot();
-    }
-
-    public class DefaultUtcOffset
-    {
-        public TimeSpan Test => TimeSpan.Zero;
-    }
-
-    public class DefaultUtcOffsetType : ObjectType<DefaultUtcOffset>
-    {
-        protected override void Configure(IObjectTypeDescriptor<DefaultUtcOffset> descriptor)
-        {
-            descriptor.Field(x => x.Test).Type<UtcOffsetType>();
-        }
+        ExpectCoerceOutputValueToThrow<UtcOffsetType>("foo");
     }
 }

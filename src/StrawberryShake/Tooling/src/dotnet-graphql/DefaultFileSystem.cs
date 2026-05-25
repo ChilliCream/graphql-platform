@@ -76,7 +76,7 @@ public class DefaultFileSystem : IFileSystem
             File.Delete(fileName);
         }
 
-        using (var stream = File.Create(fileName))
+        await using (var stream = File.Create(fileName))
         {
             await write(stream).ConfigureAwait(false);
         }

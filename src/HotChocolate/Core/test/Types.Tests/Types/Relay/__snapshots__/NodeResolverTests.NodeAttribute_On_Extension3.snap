@@ -1,23 +1,23 @@
-﻿schema {
+schema {
   query: Query
+}
+
+type Query {
+  entity(name: String!): Entity!
+  entity2(name: String!): Entity2!
+}
+
+type Entity implements Node {
+  id: ID!
+  name: String!
+}
+
+type Entity2 {
+  id: String!
+  name: String!
 }
 
 "The node interface is implemented by entities that have a global unique identifier."
 interface Node {
   id: ID!
-}
-
-type Entity implements Node {
-  id: ID!
-  name: String
-}
-
-type Entity2 {
-  id: String
-  name: String
-}
-
-type Query {
-  entity(name: String): Entity
-  entity2(name: String): Entity2
 }

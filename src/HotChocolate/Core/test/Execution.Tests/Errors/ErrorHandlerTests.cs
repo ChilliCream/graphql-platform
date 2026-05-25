@@ -127,6 +127,7 @@ public class ErrorHandlerTests
             // general graphql configuration
             .AddGraphQL()
             .AddQueryType<Query>()
+            .AddApplicationService<SomeService>()
 
             // error filter configuration
             .AddErrorFilter<DummyErrorFilterWithDependency>()

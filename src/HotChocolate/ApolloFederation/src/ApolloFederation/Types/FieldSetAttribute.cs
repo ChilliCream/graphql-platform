@@ -8,6 +8,6 @@ internal sealed class FieldSetAttribute : DirectiveArgumentDescriptorAttribute
     protected override void OnConfigure(
         IDescriptorContext context,
         IDirectiveArgumentDescriptor descriptor,
-        PropertyInfo property)
+        PropertyInfo? property)
         => descriptor.Type<NonNullType<FieldSetType>>();
 }

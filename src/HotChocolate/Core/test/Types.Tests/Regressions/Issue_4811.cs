@@ -1,5 +1,3 @@
-#nullable enable
-
 using System.ComponentModel.DataAnnotations;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,20 +23,20 @@ public class Issue_4811
               mutation: Mutation
             }
 
-            type ADDBookResponse {
-              title: String!
-            }
-
-            type Book {
-              title: String!
+            type Query {
+              book: Book!
             }
 
             type Mutation {
               addBook(input: CreateCnaeInput!): ADDBookResponse!
             }
 
-            type Query {
-              book: Book!
+            type ADDBookResponse {
+              title: String!
+            }
+
+            type Book {
+              title: String!
             }
 
             input CNAEMutationInput {

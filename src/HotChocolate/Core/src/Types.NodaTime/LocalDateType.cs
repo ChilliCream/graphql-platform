@@ -1,66 +1,97 @@
-using System.Diagnostics.CodeAnalysis;
-using HotChocolate.Types.NodaTime.Properties;
+using System.Globalization;
+using System.Text.Json;
+using HotChocolate.Features;
+using HotChocolate.Language;
+using HotChocolate.Properties;
+using HotChocolate.Text.Json;
 using NodaTime;
 using NodaTime.Text;
+using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types.NodaTime;
 
 /// <summary>
-/// LocalDate is an immutable struct representing a date within the calendar,
-/// with no reference to a particular time zone or time of day.
+/// The <c>LocalDate</c> scalar type represents a date without time or time zone information. It is
+/// intended for scenarios where only the calendar date matters in a local context, such as contract
+/// effective dates, publication dates, or recurring events (e.g., "New Year's Day is January 1st"),
+/// where the specific time of day and time zone are irrelevant or managed separately.
 /// </summary>
-public class LocalDateType : StringToStructBaseType<LocalDate>
+/// <seealso href="https://scalars.graphql.org/chillicream/local-date.html">Specification</seealso>
+public class LocalDateType : ScalarType<LocalDate, StringValueNode>
 {
-    private readonly IPattern<LocalDate>[] _allowedPatterns;
-    private readonly IPattern<LocalDate> _serializationPattern;
+    private const string LocalFormat = "uuuu-MM-dd";
+    private const string SpecifiedByUri = "https://scalars.graphql.org/chillicream/local-date.html";
+
+    private readonly LocalDatePattern _inputPattern;
 
     /// <summary>
-    /// Initializes a new instance of <see cref="LocalDateType"/>.
+    /// Initializes a new instance of the <see cref="LocalDateType"/> class.
     /// </summary>
-    public LocalDateType(params IPattern<LocalDate>[] allowedPatterns) : base("LocalDate")
+    public LocalDateType(
+        string name,
+        string? description = null,
+        BindingBehavior bind = BindingBehavior.Explicit)
+        : base(name, bind)
     {
-        if (allowedPatterns.Length == 0)
-        {
-            throw ThrowHelper.PatternCannotBeEmpty(this);
-        }
-
-        _allowedPatterns = allowedPatterns;
-        _serializationPattern = allowedPatterns[0];
-
-        Description = CreateDescription(
-            allowedPatterns,
-            NodaTimeResources.LocalDateType_Description,
-            NodaTimeResources.LocalDateType_Description_Extended);
+        Description = description;
+        Pattern = @"^\d{4}-\d{2}-\d{2}$";
+        SpecifiedBy = new Uri(SpecifiedByUri);
+        _inputPattern = LocalDatePattern.CreateWithInvariantCulture(LocalFormat);
     }
 
     /// <summary>
-    /// Initializes a new instance of <see cref="LocalDateType"/>.
+    /// Initializes a new instance of the <see cref="LocalDateType"/> class.
     /// </summary>
     [ActivatorUtilitiesConstructor]
-    public LocalDateType() : this(LocalDatePattern.Iso)
+    public LocalDateType()
+        : this(
+            ScalarNames.LocalDate,
+            TypeResources.LocalDateType_Description,
+            BindingBehavior.Implicit)
     {
     }
 
     /// <inheritdoc />
-    protected override string Serialize(LocalDate runtimeValue)
-        => _serializationPattern
-            .Format(runtimeValue);
+    protected override LocalDate OnCoerceInputLiteral(StringValueNode valueLiteral)
+    {
+        if (TryParseStringValue(valueLiteral.Value, out var value))
+        {
+            return value;
+        }
+
+        throw Scalar_Cannot_CoerceInputLiteral(this, valueLiteral);
+    }
 
     /// <inheritdoc />
-    protected override bool TryDeserialize(
-        string resultValue,
-        [NotNullWhen(true)] out LocalDate? runtimeValue)
-        => _allowedPatterns.TryParse(resultValue, out runtimeValue);
-
-    protected override Dictionary<IPattern<LocalDate>, string> PatternMap => new()
+    protected override LocalDate OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
-        { LocalDatePattern.Iso, "YYYY-MM-DD" },
-        { LocalDatePattern.FullRoundtrip, "YYYY-MM-DD (calendar)" }
-    };
+        if (TryParseStringValue(inputValue.GetString()!, out var value))
+        {
+            return value;
+        }
 
-    protected override Dictionary<IPattern<LocalDate>, string> ExampleMap => new()
+        throw Scalar_Cannot_CoerceInputValue(this, inputValue);
+    }
+
+    /// <inheritdoc />
+    protected override void OnCoerceOutputValue(LocalDate runtimeValue, ResultElement resultValue)
+        => resultValue.SetStringValue(runtimeValue.ToString(LocalFormat, CultureInfo.InvariantCulture));
+
+    /// <inheritdoc />
+    protected override StringValueNode OnValueToLiteral(LocalDate runtimeValue)
+        => new StringValueNode(runtimeValue.ToString(LocalFormat, CultureInfo.InvariantCulture));
+
+    private bool TryParseStringValue(string serialized, out LocalDate value)
     {
-        { LocalDatePattern.Iso, "2000-01-01" },
-        { LocalDatePattern.FullRoundtrip, "2000-01-01 (ISO)" }
-    };
+        var result = _inputPattern.Parse(serialized);
+
+        if (result.Success)
+        {
+            value = result.Value;
+            return true;
+        }
+
+        value = default;
+        return false;
+    }
 }

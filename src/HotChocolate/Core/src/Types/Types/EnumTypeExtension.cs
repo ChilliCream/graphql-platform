@@ -139,9 +139,22 @@ public class EnumTypeExtension : NamedTypeExtensionBase<EnumTypeConfiguration>
                 }
                 else
                 {
+                    existingValue.Name = enumValue.Name;
+
+                    if (enumValue.Description is not null)
+                    {
+                        existingValue.Description = enumValue.Description;
+                    }
+
+                    if (enumValue.IsDeprecated)
+                    {
+                        existingValue.DeprecationReason = enumValue.DeprecationReason;
+                    }
+
                     existingValue.Ignore = enumValue.Ignore;
 
                     TypeExtensionHelper.MergeFeatures(enumValue, existingValue);
+                    TypeExtensionHelper.MergeConfigurations(enumValue.Tasks, existingValue.Tasks);
 
                     TypeExtensionHelper.MergeDirectives(
                         context,

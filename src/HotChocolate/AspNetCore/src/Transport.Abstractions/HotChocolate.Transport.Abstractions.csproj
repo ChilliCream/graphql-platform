@@ -15,10 +15,12 @@
     <InternalsVisibleTo Include="HotChocolate.Transport.Http" />
     <InternalsVisibleTo Include="HotChocolate.Transport.Sockets" />
     <InternalsVisibleTo Include="HotChocolate.Transport.Sockets.Client" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Execution" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Language\src\Language.SyntaxTree\HotChocolate.Language.SyntaxTree.csproj" />
+    <ProjectReference Include="..\..\..\Language\src\Language.Web\HotChocolate.Language.Web.csproj" />
     <ProjectReference Include="..\..\..\Utilities\src\Utilities.Buffers\HotChocolate.Utilities.Buffers.csproj" />
   </ItemGroup>
 

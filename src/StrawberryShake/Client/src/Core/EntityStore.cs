@@ -7,7 +7,11 @@ namespace StrawberryShake;
 /// </summary>
 public sealed partial class EntityStore : IEntityStore
 {
+#if NET9_0_OR_GREATER
+    private readonly Lock _sync = new();
+#else
     private readonly object _sync = new();
+#endif
     private readonly CancellationTokenSource _cts = new();
     private readonly Channel<EntityUpdate> _updates = Channel.CreateUnbounded<EntityUpdate>();
     private readonly EntityUpdateObservable _entityUpdateObservable = new();

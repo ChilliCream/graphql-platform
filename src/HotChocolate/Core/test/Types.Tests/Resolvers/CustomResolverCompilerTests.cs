@@ -4,8 +4,6 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Tests;
 
-#nullable enable
-
 namespace HotChocolate.Resolvers;
 
 public class CustomResolverCompilerTests

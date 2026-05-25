@@ -1,0 +1,9 @@
+﻿{
+  "message": "Required input field DeprecatedNonNullInput.obsoleteWithReason cannot be deprecated.",
+  "type": "DeprecatedNonNullInput",
+  "extensions": {
+    "field": "obsoleteWithReason",
+    "rfc": "https://github.com/graphql/graphql-spec/pull/805",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Input-Objects.Type-Validation"
+  }
+}

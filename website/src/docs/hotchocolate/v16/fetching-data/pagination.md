@@ -2,21 +2,19 @@
 title: "Pagination"
 ---
 
-Pagination is one of the most common problems that we have to solve when implementing our backend. Often, sets of data are too large to pass them directly to the consumer of our service.
+When a dataset is too large to return in a single response, you need pagination. Hot Chocolate implements cursor-based connection pagination following the [GraphQL Cursor Connections Specification](https://relay.dev/graphql/connections.htm). Connections give clients a standardized way to traverse pages using opaque cursors.
 
-Pagination solves this problem by giving the consumer the ability to fetch a set in chunks.
+GraphQL models data as a graph of related entities. When one entity relates to a list of other entities, that relationship is called a _connection_. A `UsersConnection` for instance represents the connection between `Query` and `User`. Each _edge_ in that connection links one `User` to the parent, and carries a cursor that marks the user's position in the list.
 
-# Connections
+This is more than just naming. Traditional offset pagination (`skip: 20, take: 10`) breaks when data changes between pages: inserts and deletes shift items, causing duplicates or gaps. Cursors avoid this because they point to a stable position rather than a numeric offset. The database can seek directly to the cursor position, which also means pagination performance stays constant regardless of how deep into the list the client navigates.
 
-_Connections_ are a standardized way to expose pagination to clients.
+# How Connections Work
 
-Instead of returning a list of entries, we return a _Connection_.
+Instead of returning a flat list, a paginated field returns a Connection. The connection wraps the data with page metadata, cursors for navigation and optionally aggregations.
 
-<Video videoId="8TQ2oDUQ1ng" />
-
-```sdl
+```graphql
 type Query {
-  users(first: Int after: String last: Int before: String): UsersConnection
+  users(first: Int, after: String, last: Int, before: String): UsersConnection
 }
 
 type UsersConnection {
@@ -38,750 +36,89 @@ type PageInfo {
 }
 ```
 
-You can learn more about this in the [GraphQL Cursor Connections Specification](https://relay.dev/graphql/connections.htm).
+Clients use `first`/`after` to page forward and `last`/`before` to page backward. Each edge carries a cursor that points to its position in the dataset.
 
-> Note: _Connections_ are often associated with _cursor-based_ pagination, due to the use of a _cursor_. Nonetheless, since the specification describes the _cursor_ as opaque, it can be used to facilitate an _offset_ as well.
-
-## Definition
-
-Adding pagination capabilities to our fields is a breeze. All we have to do is add the `UsePaging` middleware.
+# Adding Pagination
 
 <ExampleTabs>
 <Implementation>
 
+To use pagination register the paging arguments with the GraphQL builder.
+
 ```csharp
-public class Query
+builder
+    .AddGraphQL()
+    .AddPagingArguments();
+```
+
+Hot Chocolate by default builds on top of the `Page<T>` which describes a single page in a dataset. A page can be used to construct a `PageConnection<T>`.
+
+```csharp
+[QueryType]
+public static partial class UserQueries
 {
-    [UsePaging]
-    public IEnumerable<User> GetUsers(IUserRepository repository)
-        => repository.GetUsers();
+    public static async Task<PageConnection<User>> GetUsersAsync(
+        PagingArguments pagingArgs,
+        CatalogContext db,
+        CancellationToken cancellationToken)
+        => await db.Users.OrderBy(u => u.Id).ToPageAsync(pagingArgs, cancellationToken);
 }
 ```
 
 </Implementation>
 <Code>
 
+To use connection-based pagination with code-first, use the `ToPageAsync` extension and map the resulting page to a `Connection<T>`.
+
 ```csharp
-public class QueryType : ObjectType
+public class UserQueriesType : ObjectType
 {
     protected override void Configure(IObjectTypeDescriptor descriptor)
     {
         descriptor
             .Field("users")
             .UsePaging()
-            .Resolve(context =>
+            .Resolve(async context =>
             {
-                var repository = context.Service<IUserRepository>();
-
-                return repository.GetUsers();
+                var db = context.Service<CatalogContext>();
+                return await db.Users.OrderBy(u => u.Id)
+                  .ToPageAsync(pagingArgs, context.RequestAborted)
+                  .ToConnectionAsync();
             });
     }
 }
 ```
 
 </Code>
-<Schema>
-
-In the schema-first approach we define the resolver in the same way we would in the implementation-first approach.
-
-To make our life easier, we do not have to write out the _Connection_ types in our schema, we can simply return a list of our type, e.g. `[User]`. If the resolver for this field is annotated to use pagination, Hot Chocolate will automatically rewrite the field to return a proper _Connection_ type.
-
-```csharp
-public class Query
-{
-    [UsePaging]
-    public IEnumerable<User> GetUsers(IUserRepository repository)
-        => repository.GetUsers();
-}
-```
-
-```csharp
-builder.Services
-    .AddGraphQLServer()
-    .AddDocumentFromString(@"
-        type Query {
-            users : [User!]!
-        }
-    ")
-    .AddResolver<Query>();
-```
-
-</Schema>
 </ExampleTabs>
 
-For the `UsePaging` middleware to work, our resolver needs to return an `IEnumerable<T>` or an `IQueryable<T>`. The middleware will then apply the pagination arguments to what we have returned. In the case of an `IQueryable<T>` this means that the pagination operations can be directly translated to native database queries.
+The `ToPageAsync` extension method is located in one of the following packages:
 
-We also offer pagination integrations for some database technologies that do not use `IQueryable`.
+- GreenDonut.Data.EntityFramework
+- GreenDonut.Data.Raven
+- GreenDonut.Data.Marten
+- GreenDonut.Data.Mongo
 
-[Learn more about pagination providers](#providers)
+# Pagination Options
 
-## Naming
+You can configure pagination behavior per field or globally.
 
-The name of the _Connection_ and Edge type is automatically inferred from the field name. If our field is called `users`, a `UsersConnection` and `UsersEdge` type is automatically generated.
-
-We can also specify a custom name for our _Connection_ like the following.
+## Per-Field Options
 
 <ExampleTabs>
 <Implementation>
 
 ```csharp
-public class Query
+[QueryType]
+public static partial class UserQueries
 {
-    [UsePaging(ConnectionName = "CustomUsers")]
-    public IEnumerable<User> GetUsers(IUserRepository repository)
-    {
-        // Omitted code for brevity
-    }
+    [UseConnection(MaxPageSize = 100, DefaultPageSize = 25, IncludeTotalCount = true)]
+    public static async Task<PageConnection<User>> GetUsersAsync(
+        PagingArguments pagingArgs,
+        CatalogContext db,
+        CancellationToken cancellationToken)
+        => await db.Users.OrderBy(u => u.Id).ToPageAsync(pagingArgs, cancellationToken);
 }
-```
-
-</Implementation>
-<Code>
-
-```csharp
-public class QueryType : ObjectType
-{
-    protected override void Configure(IObjectTypeDescriptor descriptor)
-    {
-        descriptor
-            .Field("users")
-            .UsePaging(connectionName: "CustomUsers")
-            .Resolve(context =>
-            {
-                // Omitted code for brevity
-            });
-    }
-}
-```
-
-</Code>
-<Schema>
-
-Take a look at the implementation-first or code-first example.
-
-</Schema>
-</ExampleTabs>
-
-The strings `Connection` and `Edge` are automatically appended to this user specified value to form the names of the _Connection_ and Edge types.
-
-## Options
-
-We can define a number of options on a per-field basis.
-
-<ExampleTabs>
-<Implementation>
-
-In the implementation-first approach we can define these options using properties on the `[UsePaging]` attribute.
-
-```csharp
-[UsePaging(MaxPageSize = 100)]
-```
-
-</Implementation>
-<Code>
-
-In the code-first approach we can pass an instance of `PagingOptions` to the `UsePaging` middleware.
-
-```csharp
-descriptor.Field("users").UsePaging(options: new PagingOptions
-{
-    MaxPageSize = 100
-});
-```
-
-</Code>
-<Schema>
-
-Take a look at the implementation-first or code-first example.
-
-</Schema>
-</ExampleTabs>
-
-[Learn more about the possible PagingOptions](#pagingoptions)
-
-## Changing the node type
-
-Lets say we are returning a collection of `string` from our pagination resolver, but we want these `string` to be represented in the schema using the `ID` scalar.
-
-For this we can specifically tell the `UsePaging` middleware, which type to use in the schema for representation of the returned CLR type.
-
-<ExampleTabs>
-<Implementation>
-
-```csharp
-public class Query
-{
-    [UsePaging(typeof(IdType))]
-    public IEnumerable<string> GetIds()
-    {
-        // Omitted code for brevity
-    }
-}
-```
-
-</Implementation>
-<Code>
-
-```csharp
-public class QueryType : ObjectType
-{
-    protected override void Configure(IObjectTypeDescriptor descriptor)
-    {
-        descriptor
-            .Field("ids")
-            .UsePaging<IdType>()
-            .Resolve(context =>
-            {
-                // Omitted code for brevity
-            });
-    }
-}
-```
-
-</Code>
-<Schema>
-
-Take a look at the implementation-first or code-first example..
-
-</Schema>
-</ExampleTabs>
-
-The same applies of course, if we are returning a collection of `User` from our pagination resolver, but we want to use the `UserType` for representation in the schema.
-
-## Custom pagination logic
-
-If we need more control over the pagination process we can do so, by returning a `Connection<T>`.
-
-<ExampleTabs>
-<Implementation>
-
-```csharp
-public class Query
-{
-    [UsePaging]
-    public Connection<User> GetUsers(string? after, int? first, string sortBy)
-    {
-        // get users using the above arguments
-        IEnumerable<User> users = null;
-
-        var edges = users.Select(user => new Edge<User>(user, user.Id))
-                            .ToList();
-        var pageInfo = new ConnectionPageInfo(false, false, null, null);
-
-        var connection = new Connection<User>(edges, pageInfo,
-                            ct => ValueTask.FromResult(0));
-
-        return connection;
-    }
-}
-```
-
-</Implementation>
-<Code>
-
-```csharp
-public class QueryType : ObjectType
-{
-    protected override void Configure(IObjectTypeDescriptor descriptor)
-    {
-        descriptor
-            .Field("users")
-            .UsePaging()
-            .Argument("sortBy", a => a.Type<NonNullType<StringType>>())
-            .Resolve(context =>
-            {
-                var after = context.ArgumentValue<string?>("after");
-                var first = context.ArgumentValue<int?>("first");
-                var sortBy = context.ArgumentValue<string>("sortBy");
-
-                // get users using the above arguments
-                IEnumerable<User> users = null;
-
-                var edges = users.Select(user => new Edge<User>(user, user.Id))
-                                    .ToList();
-                var pageInfo = new ConnectionPageInfo(false, false, null, null);
-
-                var connection = new Connection<User>(edges, pageInfo,
-                                    ct => ValueTask.FromResult(0));
-
-                return connection;
-            });
-    }
-}
-```
-
-</Code>
-<Schema>
-
-Take a look at the implementation-first or code-first example.
-
-</Schema>
-</ExampleTabs>
-
-## Adding fields to an Edge
-
-We can add new fields to an Edge type, by creating a type extension that targets the Edge type by its name.
-
-If our Edge is named `UsersEdge`, we can add a new field to it like the following.
-
-```csharp
-[ExtendObjectType("UsersEdge")]
-public class UsersEdge
-{
-    public string NewField([Parent] Edge<User> edge)
-    {
-        var cursor = edge.Cursor;
-        var user = edge.Node;
-
-        // Omitted code for brevity
-    }
-}
-```
-
-[Learn more about extending types](/docs/hotchocolate/v16/defining-a-schema/extending-types)
-
-## Adding fields to a Connection
-
-We can add new fields to a _Connection_ type, by creating a type extension that targets the _Connection_ type by its name.
-
-If our _Connection_ is named `UsersConnection`, we can add a new field to it like the following.
-
-```csharp
-[ExtendObjectType("UsersConnection")]
-public class UsersConnectionExtension
-{
-    public string NewField()
-    {
-        // Omitted code for brevity
-    }
-}
-```
-
-[Learn more about extending types](/docs/hotchocolate/v16/defining-a-schema/extending-types)
-
-These additional fields are great to perform aggregations either on the entire dataset, by for example issuing a second database call, or on top of the paginated result.
-
-We can access the pagination result like the following:
-
-```csharp
-[ExtendObjectType("UsersConnection")]
-public class UsersConnectionExtension
-{
-    public string NewField([Parent] Connection<User> connection)
-    {
-        var result = connection.Edges.Sum(e => e.Node.SomeField);
-
-        // Omitted code for brevity
-    }
-}
-```
-
-> Note: If you are using [Projections](/docs/hotchocolate/v16/fetching-data/projections), be aware that some properties on your model might not be set, depending on what the user queried for.
-
-## Total count
-
-Sometimes we might want to return the total number of pageable entries.
-
-For this to work we need to enable the `IncludeTotalCount` flag on the `UsePaging` middleware.
-
-<ExampleTabs>
-<Implementation>
-
-```csharp
-[UsePaging(IncludeTotalCount = true)]
-```
-
-</Implementation>
-<Code>
-
-```csharp
-descriptor.UsePaging(options: new PagingOptions
-{
-    IncludeTotalCount = true
-});
-```
-
-</Code>
-<Schema>
-
-Take a look at the implementation-first or code-first example.
-
-</Schema>
-</ExampleTabs>
-
-This will add a new field called `totalCount` to our _Connection_.
-
-```sdl
-type UsersConnection {
-  pageInfo: PageInfo!
-  edges: [UsersEdge!]
-  nodes: [User!]
-  totalCount: Int!
-}
-```
-
-If our resolver returns an `IEnumerable<T>` or an `IQueryable<T>` the `totalCount` will be automatically computed, if it has been specified as a subfield in the query.
-
-If we have customized our pagination and our resolver now returns a `Connection<T>`, we have to explicitly declare how the `totalCount` value is computed.
-
-```csharp
-var connection = new Connection<User>(
-    edges,
-    pageInfo,
-    getTotalCount: cancellationToken => ValueTask.FromResult(0));
-```
-
-# Offset Pagination
-
-> Note: While we support _offset-based_ pagination, we highly encourage the use of [_Connections_](#connections) instead. _Connections_ provide an abstraction which makes it easier to switch to another pagination mechanism later on.
-
-Besides _Connections_ we can also expose a more traditional _offset-based_ pagination.
-
-```sdl
-type Query {
-  users(skip: Int take: Int): UserCollectionSegment
-}
-
-type UserCollectionSegment {
-  items: [User!]
-  pageInfo: CollectionSegmentInfo!
-}
-
-type CollectionSegmentInfo {
-  hasNextPage: Boolean!
-  hasPreviousPage: Boolean!
-}
-```
-
-## Definition
-
-To add _offset-based_ pagination capabilities to our fields we have to add the `UseOffsetPaging` middleware.
-
-<ExampleTabs>
-<Implementation>
-
-```csharp
-public class Query
-{
-    [UseOffsetPaging]
-    public IEnumerable<User> GetUsers(IUserRepository repository)
-        => repository.GetUsers();
-}
-```
-
-</Implementation>
-<Code>
-
-```csharp
-public class QueryType : ObjectType
-{
-    protected override void Configure(IObjectTypeDescriptor descriptor)
-    {
-        descriptor
-            .Field("users")
-            .UseOffsetPaging()
-            .Resolve(context =>
-            {
-                var repository = context.Service<IUserRepository>();
-
-                return repository.GetUsers();
-            });
-    }
-}
-```
-
-</Code>
-<Schema>
-
-Take a look at the implementation-first or code-first example.
-
-</Schema>
-</ExampleTabs>
-
-For the `UseOffsetPaging` middleware to work, our resolver needs to return an `IEnumerable<T>` or an `IQueryable<T>`. The middleware will then apply the pagination arguments to what we have returned. In the case of an `IQueryable<T>` this means that the pagination operations can be directly translated to native database queries.
-
-We also offer pagination integrations for some database technologies that do not use `IQueryable`.
-
-[Learn more about pagination providers](#providers)
-
-## Naming
-
-The name of the CollectionSegment type is inferred from the item type name. If our field returns a collection of `UserType` and the name of this type is `User`, the CollectionSegment will be called `UserCollectionSegment`.
-
-## Options
-
-We can define a number of options on a per-field basis.
-
-<ExampleTabs>
-<Implementation>
-
-In the implementation-first approach we can define these options using properties on the `[UseOffsetPaging]` attribute.
-
-```csharp
-[UseOffsetPaging(MaxPageSize = 100)]
-```
-
-</Implementation>
-<Code>
-
-In the code-first approach we can pass an instance of `PagingOptions` to the `UseOffsetPaging` middleware.
-
-```csharp
-descriptor.Field("users").UseOffsetPaging(options: new PagingOptions
-{
-    MaxPageSize = 100
-});
-```
-
-</Code>
-<Schema>
-
-Take a look at the implementation-first or code-first example.
-
-</Schema>
-</ExampleTabs>
-
-[Learn more about the possible PagingOptions](#pagingoptions)
-
-## Changing the item type
-
-Lets say we are returning a collection of `string` from our pagination resolver, but we want these `string` to be represented in the schema using the `ID` scalar.
-
-For this we can specifically tell the `UseOffsetPaging` middleware, which type to use in the schema for representation of the returned CLR type.
-
-<ExampleTabs>
-<Implementation>
-
-```csharp
-public class Query
-{
-    [UseOffsetPaging(typeof(IdType))]
-    public IEnumerable<string> GetIds()
-    {
-        // Omitted code for brevity
-    }
-}
-```
-
-</Implementation>
-<Code>
-
-```csharp
-public class QueryType : ObjectType
-{
-    protected override void Configure(IObjectTypeDescriptor descriptor)
-    {
-        descriptor
-            .Field("ids")
-            .UseOffsetPaging<IdType>()
-            .Resolve(context =>
-            {
-                // Omitted code for brevity
-            });
-    }
-}
-```
-
-</Code>
-<Schema>
-
-Take a look at the implementation-first or code-first example..
-
-</Schema>
-</ExampleTabs>
-
-The same applies of course, if we are returning a collection of `User` from our pagination resolver, but we want to use the `UserType` for representation in the schema.
-
-## Custom pagination logic
-
-If we need more control over the pagination process we can do so, by returning a `CollectionSegment<T>`.
-
-<ExampleTabs>
-<Implementation>
-
-```csharp
-public class Query
-{
-    [UseOffsetPaging]
-    public CollectionSegment<User> GetUsers(int? skip, int? take, string sortBy)
-    {
-        /// get users using the above arguments
-        IEnumerable<User> users = null;
-
-        var pageInfo = new CollectionSegmentInfo(false, false);
-
-        var collectionSegment = new CollectionSegment<User>(
-            users,
-            pageInfo,
-            ct => ValueTask.FromResult(0));
-
-        return collectionSegment;
-    }
-}
-```
-
-</Implementation>
-<Code>
-
-```csharp
-public class QueryType : ObjectType
-{
-    protected override void Configure(IObjectTypeDescriptor descriptor)
-    {
-        descriptor
-            .Field("users")
-            .UseOffsetPaging()
-            .Argument("sortBy", a => a.Type<NonNullType<StringType>>())
-            .Resolve(context =>
-            {
-                var skip = context.ArgumentValue<int?>("skip");
-                var take = context.ArgumentValue<int?>("take");
-                var sortBy = context.ArgumentValue<string>("sortBy");
-
-                // get users using the above arguments
-                IEnumerable<User> users = null;
-
-                var pageInfo = new CollectionSegmentInfo(false, false);
-
-                var collectionSegment = new CollectionSegment<User>(
-                    users,
-                    pageInfo,
-                    ct => ValueTask.FromResult(0));
-
-                return collectionSegment;
-            });
-    }
-}
-```
-
-</Code>
-<Schema>
-
-Take a look at the implementation-first or code-first example..
-
-</Schema>
-</ExampleTabs>
-
-## Adding fields to a CollectionSegment
-
-We can add new fields to a CollectionSegment type, by creating a type extension that targets the CollectionSegment by its name.
-
-If our CollectionSegment is named `UserCollectionSegment`, we can add a new field to it like the following.
-
-```csharp
-[ExtendObjectType("UserCollectionSegment")]
-public class UserCollectionSegmentExtension
-{
-    public string NewField()
-    {
-        // Omitted code for brevity
-    }
-}
-```
-
-[Learn more about extending types](/docs/hotchocolate/v16/defining-a-schema/extending-types)
-
-These additional fields are great to perform aggregations either on the entire dataset, by for example issuing a second database call, or on top of the paginated result.
-
-We can access the pagination result like the following:
-
-```csharp
-[ExtendObjectType("UserCollectionSegment")]
-public class UserCollectionSegmentExtension
-{
-    public string NewField([Parent] CollectionSegment<User> collectionSegment)
-    {
-        var result = collectionSegment.Items.Sum(i => i.SomeField);
-
-        // Omitted code for brevity
-    }
-}
-```
-
-> Note: If you are using [Projections](/docs/hotchocolate/v16/fetching-data/projections), be aware that some properties on your model might not be set, depending on what the user queried for.
-
-## Total count
-
-Sometimes we might want to return the total number of pageable entries.
-
-For this to work we need to enable the `IncludeTotalCount` flag on the `UseOffsetPaging` middleware.
-
-<ExampleTabs>
-<Implementation>
-
-```csharp
-[UseOffsetPaging(IncludeTotalCount = true)]
-```
-
-</Implementation>
-<Code>
-
-```csharp
-descriptor.UseOffsetPaging(options: new PagingOptions
-{
-    IncludeTotalCount = true
-});
-```
-
-</Code>
-<Schema>
-
-Take a look at the implementation-first or code-first example.
-
-</Schema>
-</ExampleTabs>
-
-This will add a new field called `totalCount` to our _CollectionSegment_.
-
-```sdl
-type UserCollectionSegment {
-  pageInfo: CollectionSegmentInfo!
-  items: [User!]
-  totalCount: Int!
-}
-```
-
-If our resolver returns an `IEnumerable<T>` or an `IQueryable<T>` the `totalCount` will be automatically computed, if it has been specified as a subfield in the query.
-
-If we have customized our pagination and our resolver now returns a `CollectionSegment<T>`, we have to explicitly declare how the `totalCount` value is computed.
-
-```csharp
-var collectionSegment = new CollectionSegment<User>(
-    items,
-    pageInfo,
-    getTotalCount: cancellationToken => ValueTask.FromResult(0));
-```
-
-# Providers
-
-The `UsePaging` and `UseOffsetPaging` middleware provide a unified way of applying pagination to our resolvers. Depending on the data source used within the resolver the pagination mechanism needs to be different though. Hot Chocolate includes so called paging providers that allow us to use the same API, e.g. `UsePaging`, but for different data sources, e.g. MongoDB and SQL.
-
-Paging providers can be registered using various methods on the `IRequestExecutorBuilder`. For example the MongoDB paging provider can be registered like the following.
-
-```csharp
-builder.Services
-    .AddGraphQLServer()
-    .AddMongoDbPagingProviders();
-```
-
-[Consult the specific integration documentation for more details](/docs/hotchocolate/v16/integrations)
-
-When registering paging providers we can name them to be able to explicitly reference them.
-
-```csharp
-builder.Services
-    .AddGraphQLServer()
-    .AddMongoDbPagingProviders(providerName: "MongoDB");
-```
-
-They can then be referenced like the following.
-
-<ExampleTabs>
-<Implementation>
-
-```csharp
-[UsePaging(ProviderName = "MongoDB")]
-public IEnumerable<User> GetUsers()
 ```
 
 </Implementation>
@@ -790,131 +127,427 @@ public IEnumerable<User> GetUsers()
 ```csharp
 descriptor
     .Field("users")
-    .UsePaging(options: new PagingOptions
+    .UsePaging(new PagingOptions
     {
-        ProviderName = "MongoDB"
-    })
+        MaxPageSize = 100,
+        DefaultPageSize = 25,
+        IncludeTotalCount = true
+    });
 ```
 
 </Code>
-<Schema>
-
-Take a look at the implementation-first or code-first example.
-
-</Schema>
 </ExampleTabs>
 
-If no `ProviderName` is specified, the correct provider is selected based on the return type of the resolver. If the provider to use can't be inferred from the return type, the first (default) provider is used automatically. If needed we can mark a paging provider as the explicit default.
+## Global Defaults
+
+Apply consistent pagination settings across your entire schema:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
-    .AddMongoDbPagingProviders(defaultProvider: true);
+builder
+    .AddGraphQL()
+    .ModifyPagingOptions(opt =>
+    {
+        opt.MaxPageSize = 100;
+        opt.DefaultPageSize = 25;
+        opt.IncludeTotalCount = true;
+    });
 ```
 
-If no paging providers have been registered, a default paging provider capable of handling `IEnumerable<T>` and `IQueryable<T>` is used.
+## All PagingOptions
 
-# PagingOptions
+| Property                       | Default       | Description                                                                           |
+| ------------------------------ | ------------- | ------------------------------------------------------------------------------------- |
+| `MaxPageSize`                  | `50`          | Maximum number of items a client can request via `first` or `last`.                   |
+| `DefaultPageSize`              | `10`          | Number of items returned if the client does not specify `first` or `last`.            |
+| `IncludeTotalCount`            | `false`       | Adds a `totalCount` field to the Connection.                                          |
+| `AllowBackwardPagination`      | `true`        | Includes `before` and `last` arguments on the Connection.                             |
+| `RequirePagingBoundaries`      | `false`       | Requires the client to specify `first` or `last`.                                     |
+| `InferConnectionNameFromField` | `true`        | Infers the Connection name from the field name instead of the return type.            |
+| `ProviderName`                 | `null`        | Name of the pagination provider to use.                                               |
+| `NullOrdering`                 | `Unspecified` | Controls how `null` values are ordered when a nullable field is used as a cursor key. |
 
-`PagingOptions` can either be defined on a per-field basis or [globally](#pagination-defaults).
+# MaxPageSize and Cost Analysis
 
-The following options can be configured.
+The `MaxPageSize` setting works together with [cost analysis](/docs/hotchocolate/v16/security/cost-analysis) to protect your API. Cost analysis uses the `MaxPageSize` as the assumed list size when calculating the cost of a paginated field. If you increase `MaxPageSize`, the cost of queries against that field increases proportionally.
 
-| Property                       | Default | Description                                                                         |
-| ------------------------------ | ------- | ----------------------------------------------------------------------------------- |
-| `MaxPageSize`                  | `50`    | Maximum number of items a client can request via `first`, `last` or `take`.         |
-| `DefaultPageSize`              | `10`    | The default number of items, if a client does not specify`first`, `last` or `take`. |
-| `IncludeTotalCount`            | `false` | Add a `totalCount` field for clients to request the total number of items.          |
-| `AllowBackwardPagination`      | `true`  | Include `before` and `last` arguments on the _Connection_.                          |
-| `RequirePagingBoundaries`      | `false` | Clients need to specify either `first`, `last` or `take`.                           |
-| `InferConnectionNameFromField` | `true`  | Infer the name of the _Connection_ from the field name rather than its type.        |
-| `ProviderName`                 | `null`  | The name of the pagination provider to use.                                         |
+For public APIs, keep `MaxPageSize` conservative and use `RequirePagingBoundaries = true` to force clients to declare how many items they want.
 
-# Pagination defaults
+# Connection Naming
 
-If we want to enforce consistent pagination defaults throughout our app, we can do so by modifying the global `PagingOptions`.
+The Connection and Edge type names are inferred from the field name by default. A field called `users` generates `UsersConnection` and `UsersEdge`.
+
+Override the name with `ConnectionName`:
+
+<ExampleTabs>
+<Implementation>
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
-    .ModifyPagingOptions(opt => opt.MaxPageSize = 100);
+[QueryType]
+public static partial class UserQueries
+{
+    [UseConnection(ConnectionName = "TeamMembers")]
+    public static async Task<PageConnection<User>> GetUsersAsync(
+        PagingArguments pagingArgs,
+        CatalogContext db,
+        CancellationToken cancellationToken)
+        => await db.Users.OrderBy(u => u.Id).ToPageAsync(pagingArgs, cancellationToken);
+}
 ```
 
-[Learn more about possible PagingOptions](#pagingoptions)
+This produces `TeamMembersConnection` and `TeamMembersEdge`.
 
-# Types of pagination
+</Implementation>
+<Code>
 
-In this section we will look at the most common pagination approaches and their downsides. There are mainly two concepts we find today: _offset-based_ and _cursor-based_ pagination.
-
-> Note: This section is intended as a brief overview and should not be treated as a definitive guide or recommendation.
-
-## Offset Pagination
-
-_Offset-based_ pagination is found in many server implementations whether the backend is implemented in SOAP, REST or GraphQL.
-
-It is so common, since it is the simplest form of pagination we can implement. All it requires is an `offset` (start index) and a `limit` (number of entries) argument.
-
-```sql
-SELECT * FROM Users
-ORDER BY Id
-LIMIT %limit OFFSET %offset
+```csharp
+descriptor
+    .Field("users")
+    .UsePaging(connectionName: "TeamMembers");
 ```
 
-### Problems
+</Code>
+</ExampleTabs>
 
-But whilst _offset-based_ pagination is simple to implement and works relatively well, there are also some problems:
+# Total Count
 
-- Using `OFFSET` on the database-side does not scale well for large datasets. Most databases work with an index instead of numbered rows. This means the database always has to count _offset + limit_ rows, before discarding the _offset_ and only returning the requested number of rows.
+Enable the `totalCount` field to let clients request the total number of items in the dataset:
 
-- If new entries are written to or removed from our database at high frequency, the _offset_ becomes unreliable, potentially skipping or returning duplicate entries.
+<ExampleTabs>
+<Implementation>
 
-## Cursor Pagination
-
-Contrary to the _offset-based_ pagination, where we identify the position of an entry using an _offset_, _cursor-based_ pagination works by returning the pointer to the next entry in our pagination.
-
-To understand this concept better, let's look at an example: We want to paginate over the users in our application.
-
-First we execute the following to receive our first page:
-
-```sql
-SELECT * FROM Users
-ORDER BY Id
-LIMIT %limit
+```csharp
+[QueryType]
+public static partial class UserQueries
+{
+    [UseConnection(IncludeTotalCount = true)]
+    public static async Task<PageConnection<User>> GetUsersAsync(
+        PagingArguments pagingArgs,
+        CatalogContext db,
+        CancellationToken cancellationToken)
+        => await db.Users.OrderBy(u => u.Id).ToPageAsync(pagingArgs, cancellationToken);
+}
 ```
 
-`%limit` is actually `limit + 1`. We are doing this to know wether there are more entries in our dataset and to receive the _cursor_ of the next entry (in this case its `Id`). This additional entry will not be returned to the consumer of our pagination.
+</Implementation>
+<Code>
 
-To now receive the second page, we execute:
-
-```sql
-SELECT * FROM Users
-WHERE Id >= %cursor
-ORDER BY Id
-LIMIT %limit
+```csharp
+descriptor
+    .Field("users")
+    .UsePaging(options: new PagingOptions { IncludeTotalCount = true });
 ```
 
-Using `WHERE` instead of `OFFSET` is great, since now we can leverage the index of the `Id` field and the database does not have to compute an _offset_.
+</Code>
+</ExampleTabs>
 
-For this to work though, our _cursor_ needs to be **unique** and **sequential**. Most of the time the _Id_ field will be the best fit.
+# Relative Cursors
 
-But what if we need to sort by a field that does not have the aforementioned properties? We can simply combine the field with another field, which has the needed properties (like `Id`), to form a _cursor_.
+Cursor-based pagination is great for infinite scrolling, but many applications need a traditional page bar that lets users jump to a specific page (e.g. "1 2 3 ... 10"). Relative cursors bridge this gap. They let you request cursors for surrounding pages so the frontend can render a page bar while still using cursor-based navigation under the hood.
 
-Let's look at another example: We want to paginate over the users sorted by their birthday.
-
-After receiving the first page, we create a combined _cursor_, like `"1435+2020-12-31"` (`Id` + `Birthday`), of the next entry. To receive the second page, we convert the _cursor_ to its original values (`Id` + `Birthday`) and use them in our query:
-
-```sql
-SELECT * FROM Users
-WHERE (Birthday >= %cursorBirthday
-OR (Birthday = %cursorBirthday AND Id >= %cursorId))
-ORDER BY Birthday, Id
-LIMIT %limit
+```text
+  [1]  2  3  4  5  ...  10
+       ↑  ↑  ↑  ↑
+       forward cursors
 ```
 
-### Problems
+When a client requests `forwardCursors` or `backwardCursors` inside `pageInfo`, Hot Chocolate returns a list of `PageCursor` objects, each containing a `page` number and the opaque `cursor` to navigate there. The frontend can render these directly as page links.
 
-Even though _cursor-based_ pagination can be more performant than _offset-based_ pagination, it comes with some downsides as well:
+Enable relative cursors on a field with `EnableRelativeCursors`:
 
-- When using `WHERE` and `ORDER BY` on a field without an index, it can be slower than using `ORDER BY` with `OFFSET`.
+```csharp
+[QueryType]
+public static partial class UserQueries
+{
+    [UseConnection(EnableRelativeCursors = true)]
+    public static async Task<PageConnection<User>> GetUsersAsync(
+        PagingArguments pagingArgs,
+        CatalogContext db,
+        CancellationToken cancellationToken)
+        => await db.Users.OrderBy(u => u.Id).ToPageAsync(pagingArgs, cancellationToken);
+}
+```
 
-- Since we now only know of the next entry, there is no more concept of pages. If we have a feed or only _Next_ and _Previous_ buttons, this works great, but if we depend on page numbers, we are in a tight spot.
+Clients can then query the relative cursors:
+
+```graphql
+query {
+  users(first: 10) {
+    nodes {
+      id
+      name
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      forwardCursors {
+        page
+        cursor
+      }
+      backwardCursors {
+        page
+        cursor
+      }
+    }
+  }
+}
+```
+
+The response includes cursors for surrounding pages:
+
+```json
+{
+  "data": {
+    "users": {
+      "nodes": [ ... ],
+      "pageInfo": {
+        "hasNextPage": true,
+        "hasPreviousPage": false,
+        "forwardCursors": [
+          { "page": 2, "cursor": "ezB8MXw2fTIz" },
+          { "page": 3, "cursor": "ezF8MXw2fTIz" },
+          { "page": 4, "cursor": "ezJ8MXw2fTIz" }
+        ],
+        "backwardCursors": []
+      }
+    }
+  }
+}
+```
+
+To navigate to page 3, the client sends `users(first: 10, after: "ezF8MXw2fTIz")`. By default, up to 5 cursors are returned per direction.
+
+You can also enable relative cursors globally:
+
+```csharp
+builder
+    .AddGraphQL()
+    .ModifyPagingOptions(opt =>
+    {
+        opt.EnableRelativeCursors = true;
+    });
+```
+
+> Relative cursors are only available with the implementation-first approach.
+
+# Custom Connection Types
+
+## Extending PageConnection
+
+The simplest way to add fields to a connection is to inherit from `PageConnection<T>`. Any public property or method you add becomes a GraphQL field on the connection type.
+
+```csharp
+public class ProductConnection : PageConnection<Product>
+{
+    private readonly Page<Product> _page;
+
+    public ProductConnection(Page<Product> page) : base(page)
+    {
+        _page = page;
+    }
+
+    public decimal AveragePrice => _page.Average(p => p.Price);
+}
+```
+
+Return the custom connection from your resolver instead of `PageConnection<T>`:
+
+```csharp
+[QueryType]
+public static partial class ProductQueries
+{
+    [UseConnection(IncludeTotalCount = true)]
+    public static async Task<ProductConnection> GetProductsAsync(
+        PagingArguments pagingArgs,
+        CatalogContext db,
+        CancellationToken cancellationToken)
+    {
+        var page = await db.Products
+            .OrderBy(p => p.Id)
+            .ToPageAsync(pagingArgs, cancellationToken);
+
+        return new ProductConnection(page);
+    }
+}
+```
+
+## ConnectionBase for Full Control
+
+When you need custom edge types or want to control how edges and page info are constructed, inherit from `ConnectionBase<TNode, TEdge, TPageInfo>` directly.
+
+Start by defining a custom edge. An edge implements `IEdge<T>` and pairs a node with its cursor.
+
+```csharp
+public class ProductsEdge(Page<Product> page, PageEntry<Product> entry) : IEdge<Product>
+{
+    public Product Node => entry.Item;
+
+    object? IEdge.Node => Node;
+
+    public string Cursor => page.CreateCursor(entry);
+}
+```
+
+Then build the connection around it:
+
+```csharp
+public class ProductConnection : ConnectionBase<Product, ProductsEdge, ConnectionPageInfo>
+{
+    private readonly Page<Product> _page;
+    private ConnectionPageInfo? _pageInfo;
+    private ProductsEdge[]? _edges;
+
+    public ProductConnection(Page<Product> page)
+    {
+        _page = page;
+    }
+
+    public override IReadOnlyList<ProductsEdge>? Edges
+    {
+        get
+        {
+            if (_edges is null)
+            {
+                var entries = _page.Entries;
+                var edges = new ProductsEdge[entries.Length];
+
+                for (var i = 0; i < entries.Length; i++)
+                {
+                    edges[i] = new ProductsEdge(_page, entries[i]);
+                }
+
+                _edges = edges;
+            }
+
+            return _edges;
+        }
+    }
+
+    public IReadOnlyList<Product>? Nodes => _page;
+
+    public override ConnectionPageInfo PageInfo
+    {
+        get
+        {
+            if (_pageInfo is null)
+            {
+                var startCursor = _page.CreateStartCursor();
+                var endCursor = _page.CreateEndCursor();
+
+                _pageInfo = new ConnectionPageInfo(
+                    _page.HasNextPage, _page.HasPreviousPage,
+                    startCursor, endCursor);
+            }
+
+            return _pageInfo;
+        }
+    }
+
+    public int TotalCount => _page.TotalCount ?? 0;
+}
+```
+
+## Reusable Generic Connection
+
+If multiple entities share the same connection structure, define a generic connection and edge. Use the `[GraphQLName("{0}Connection")]` attribute so Hot Chocolate replaces `{0}` with the entity name (e.g. `CatalogConnection<Brand>` becomes `BrandConnection`).
+
+```csharp
+[GraphQLName("{0}Edge")]
+public class CatalogEdge<TEntity>(
+    Page<TEntity> page,
+    PageEntry<TEntity> entry) : IEdge<TEntity>
+{
+    public TEntity Node => entry.Item;
+
+    object? IEdge.Node => Node;
+
+    public string Cursor => page.CreateCursor(entry);
+}
+```
+
+```csharp
+[GraphQLName("{0}Connection")]
+public class CatalogConnection<TEntity>
+    : ConnectionBase<TEntity, CatalogEdge<TEntity>, ConnectionPageInfo>
+{
+    private readonly Page<TEntity> _page;
+    private ConnectionPageInfo? _pageInfo;
+    private CatalogEdge<TEntity>[]? _edges;
+
+    public CatalogConnection(Page<TEntity> page)
+    {
+        _page = page;
+    }
+
+    public override IReadOnlyList<CatalogEdge<TEntity>> Edges
+    {
+        get
+        {
+            if (_edges is null)
+            {
+                var entries = _page.Entries;
+                var edges = new CatalogEdge<TEntity>[entries.Length];
+
+                for (var i = 0; i < entries.Length; i++)
+                {
+                    edges[i] = new CatalogEdge<TEntity>(_page, entries[i]);
+                }
+
+                _edges = edges;
+            }
+
+            return _edges;
+        }
+    }
+
+    public IReadOnlyList<TEntity> Nodes => _page;
+
+    public override ConnectionPageInfo PageInfo
+    {
+        get
+        {
+            if (_pageInfo is null)
+            {
+                var startCursor = _page.CreateStartCursor();
+                var endCursor = _page.CreateEndCursor();
+
+                _pageInfo = new ConnectionPageInfo(
+                    _page.HasNextPage, _page.HasPreviousPage,
+                    startCursor, endCursor);
+            }
+
+            return _pageInfo;
+        }
+    }
+
+    public int TotalCount => _page.TotalCount ?? 0;
+}
+```
+
+# Nullable Cursor Keys
+
+When your cursor key field can be `null`, you must tell Hot Chocolate how the database orders null values so that cursor-based pagination produces correct results across pages.
+
+Set `NullOrdering` on `PagingOptions` to match your database:
+
+| Value              | When to use                                                                    |
+| ------------------ | ------------------------------------------------------------------------------ |
+| `Unspecified`      | Default. The EF Core paging handler auto-detects ordering for known providers. |
+| `NativeNullsFirst` | Nulls sort before non-null values (SQL Server, SQLite, in-memory LINQ).        |
+| `NativeNullsLast`  | Nulls sort after non-null values (PostgreSQL default).                         |
+
+```csharp
+builder
+    .AddGraphQL()
+    .ModifyPagingOptions(opt => opt.NullOrdering = NullOrdering.NativeNullsLast);
+```
+
+When `NullOrdering` is `Unspecified` and the EF Core paging handler is used, ordering is detected automatically for PostgreSQL (`NativeNullsLast`) and SQL Server, SQLite, and in-memory (`NativeNullsFirst`). For unrecognized providers, an error is thrown when nullable cursor keys are present. Set `NullOrdering` explicitly to resolve it.
+
+[Learn more about database integrations](/docs/hotchocolate/v16/fetching-data/integrations)
+
+# Next Steps
+
+- **Need to filter results?** See [Filtering](/docs/hotchocolate/v16/fetching-data/filtering).
+- **Need to sort results?** See [Sorting](/docs/hotchocolate/v16/fetching-data/sorting).
+- **Need to optimize database queries?** See [Projections](/docs/hotchocolate/v16/fetching-data/projections).
+- **Need to protect against expensive queries?** See [Cost Analysis](/docs/hotchocolate/v16/security/cost-analysis).

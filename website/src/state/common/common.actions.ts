@@ -8,10 +8,6 @@ export const closeAside = createAction("[Common] Close aside pane");
 
 export const closeTOC = createAction("[Common] Close table of contents pane");
 
-export const showPromo = createAction("[Common] Show promo message");
-
-export const hidePromo = createAction("[Common] Hide promo message");
-
 export const toggleAside = createAction("[Common] Toggle aside pane");
 
 export const toggleTOC = createAction("[Common] Toggle table of contents pane");

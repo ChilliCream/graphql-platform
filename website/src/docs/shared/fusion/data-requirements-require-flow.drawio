@@ -1,0 +1,61 @@
+<mxGraphModel>
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+
+    <!-- Client -->
+    <mxCell id="client" value="Client" style="rounded=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=13;verticalAlign=middle;" vertex="1" parent="1">
+      <mxGeometry x="20" y="150" width="110" height="44" as="geometry"/>
+    </mxCell>
+
+    <!-- Gateway -->
+    <mxCell id="gw" value="Gateway" style="rounded=1;whiteSpace=wrap;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=13;verticalAlign=middle;" vertex="1" parent="1">
+      <mxGeometry x="240" y="150" width="110" height="44" as="geometry"/>
+    </mxCell>
+
+    <!-- Products Subgraph -->
+    <mxCell id="products" value="Products Subgraph" style="rounded=1;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=12;verticalAlign=middle;" vertex="1" parent="1">
+      <mxGeometry x="480" y="60" width="150" height="44" as="geometry"/>
+    </mxCell>
+
+    <!-- Shipping Subgraph -->
+    <mxCell id="shipping" value="Shipping Subgraph" style="rounded=1;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=12;verticalAlign=middle;" vertex="1" parent="1">
+      <mxGeometry x="480" y="240" width="150" height="44" as="geometry"/>
+    </mxCell>
+
+    <!-- Client to Gateway -->
+    <mxCell id="e1" value="query" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#6c8ebf;strokeWidth=1.5;fontSize=10;fontColor=#6c8ebf;exitX=1;exitY=0.5;entryX=0;entryY=0.5;labelPosition=center;verticalLabelPosition=top;align=center;verticalAlign=bottom;" edge="1" parent="1" source="client" target="gw">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- Step 1: Gateway to Products -->
+    <mxCell id="e2" value="&#10102; fetch weight, dimensions" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#82b366;strokeWidth=1.5;fontSize=10;fontColor=#82b366;fontStyle=1;exitX=1;exitY=0.25;entryX=0;entryY=0.5;labelPosition=center;verticalLabelPosition=top;align=center;verticalAlign=bottom;" edge="1" parent="1" source="gw" target="products">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="420" y="161"/>
+          <mxPoint x="420" y="82"/>
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- Step 2: Gateway to Shipping -->
+    <mxCell id="e4" value="&#10103; pass zip + resolved weight, dimensions" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#82b366;strokeWidth=1.5;fontSize=10;fontColor=#82b366;fontStyle=1;exitX=1;exitY=0.75;entryX=0;entryY=0.5;labelPosition=center;verticalLabelPosition=top;align=center;verticalAlign=bottom;" edge="1" parent="1" source="gw" target="shipping">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="420" y="183"/>
+          <mxPoint x="420" y="262"/>
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- Response: Gateway to Client -->
+    <mxCell id="e6" value="response" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#6c8ebf;strokeWidth=1.5;dashed=1;dashPattern=6 3;fontSize=10;fontColor=#6c8ebf;exitX=0;exitY=0.5;entryX=1;entryY=0.5;labelPosition=center;verticalLabelPosition=bottom;align=center;verticalAlign=top;" edge="1" parent="1" source="gw" target="client">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="180" y="172"/>
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+  </root>
+</mxGraphModel>

@@ -47,7 +47,7 @@ public sealed class RequiresScopesAttribute(string[] scopes) : DescriptorAttribu
     protected internal override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element)
+        ICustomAttributeProvider? attributeProvider)
     {
         switch (descriptor)
         {

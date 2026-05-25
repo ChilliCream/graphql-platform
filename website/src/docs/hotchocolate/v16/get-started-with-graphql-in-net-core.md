@@ -1,25 +1,23 @@
 ---
 title: "Getting started with GraphQL in .NET Core"
-description: "In this tutorial, we will walk you through the basics of creating a GraphQL server with Hot Chocolate."
+description: "In this tutorial, you will walk through the basics of creating a GraphQL server with Hot Chocolate."
 ---
 
 import { InputChoiceTabs } from "../../../components/mdx/input-choice-tabs"
 
-# Setup
+By the end of this guide, you will have a running GraphQL server that responds to queries. You will use the Hot Chocolate project template, explore the generated code, and execute your first query in the Nitro GraphQL IDE.
 
-## Install the Hot Chocolate templates
+**Prerequisites:** [.NET 8 SDK](https://dotnet.microsoft.com/download) or later.
 
-Hot Chocolate provides a set of templates that can be used to quickly get started. Run the following command to install the templates:
+# Create the Project
+
+Install the Hot Chocolate templates.
 
 ```bash
 dotnet new install HotChocolate.Templates
 ```
 
-These templates are kept up to date with the latest .NET and Hot Chocolate features.
-
-## Create a new Hot Chocolate GraphQL server project
-
-Once you have installed the templates you can use them to bootstrap your next ASP.NET Core project with Hot Chocolate.
+Create a new project from the template.
 
 <InputChoiceTabs>
 <InputChoiceTabs.CLI>
@@ -28,25 +26,23 @@ Once you have installed the templates you can use them to bootstrap your next AS
 dotnet new graphql --name GettingStarted
 ```
 
-This will create a new directory named `GettingStarted` containing your project's files. You can open the directory or the `GettingStarted.csproj` file in your favorite code editor.
+This creates a `GettingStarted` directory with the project files. Open it in your editor.
 
 </InputChoiceTabs.CLI>
 <InputChoiceTabs.VisualStudio>
 
-Create a new project from within Visual Studio using the `GraphQL Server` template.
+Create a new project from within Visual Studio using the **GraphQL Server** template.
 
-[Learn how you can create a new project within Visual Studio](https://docs.microsoft.com/visualstudio/ide/create-new-project)
+[Learn how to create a new project in Visual Studio](https://docs.microsoft.com/visualstudio/ide/create-new-project)
 
 </InputChoiceTabs.VisualStudio>
 </InputChoiceTabs>
 
-# Exploring the template files
+# Explore the Generated Code
 
-## Types
+## Domain Types
 
-The `Types` directory defines the types that our GraphQL schema should contain. These types and their fields define what consumers can query from our GraphQL API.
-
-We define two object types that we want to expose through our schema.
+The `Types` directory contains two record types that represent the domain model.
 
 ```csharp
 public record Author(string Name);
@@ -56,89 +52,91 @@ public record Author(string Name);
 public record Book(string Title, Author Author);
 ```
 
-> Note: Regular classes may also be used to define object types.
+These are regular C# types. Hot Chocolate infers the GraphQL schema from them.
 
-We also define a `Query` type that exposes the types above through a field.
+## Query Type
+
+The `Query` class defines the root type for read operations. Each public method becomes a field that clients can query.
 
 ```csharp
 [QueryType]
-public static class Query
+public static partial class Query
 {
     public static Book GetBook()
         => new Book("C# in depth.", new Author("Jon Skeet"));
 }
 ```
 
-The field in question is named `GetBook`, but the name will be shortened to just `book` in the resulting schema.
+The `[QueryType]` attribute tells the source generator to register this class as part of the GraphQL Query type. The class must be `partial` so the source generator can add the registration code at build time.
 
-The `QueryType` attribute marks a class as an extension of the `query` operation type.
+The method `GetBook` becomes a field named `book` in the schema. Hot Chocolate strips the `Get` prefix by convention.
 
-## Program
+## Program.cs
 
-In the `Program.cs` file, we start by adding the services required by Hot Chocolate to our dependency injection container.
+The generated `Program.cs` sets up the server.
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder.AddGraphQL()
 ```
 
-`AddGraphQLServer` returns an `IRequestExecutorBuilder`, which has many extension methods, similar to an `IServiceCollection`, that can be used to configure the GraphQL server.
+`AddGraphQL` returns an `IRequestExecutorBuilder` for configuring the GraphQL server. The template also calls a source-generated `AddTypes` method that registers all types decorated with attributes like `[QueryType]` in the current assembly.
 
-We then call `AddTypes`, a source-generated extension method that automatically registers all types in the assembly.
+```csharp
+app.MapGraphQL()
+```
 
-> Note: The name of the `AddTypes` method is based on the assembly name by default, but can be set using the `[Module]` assembly attribute, as seen in `ModuleInfo.cs`.
+`MapGraphQL` exposes the GraphQL endpoint at `/graphql`. This is where clients send queries and where Nitro (the built-in GraphQL IDE) is served.
 
-Next, we call `app.MapGraphQL()` to expose our GraphQL server at an endpoint with the default path `/graphql`. Hot Chocolate comes with an ASP.NET Core middleware that is used to serve up the GraphQL server.
+```csharp
+app.RunWithGraphQLCommands(args)
+```
 
-Finally, we call `app.RunWithGraphQLCommands(args)` to start the server.
+`RunWithGraphQLCommands` works like `Run()` but adds developer commands. For example, you can export the schema as SDL.
 
-And that is it – you have successfully set up a Hot Chocolate GraphQL server! 🚀
+```bash
+dotnet run -- schema export
+```
 
-# Executing a query
+This writes a `schema.graphqls` file to your project directory.
 
-First off we have to run the project.
+# Run the Server
 
 <InputChoiceTabs>
 <InputChoiceTabs.CLI>
 
 ```bash
-dotnet run --no-hot-reload
+dotnet run
 ```
 
 </InputChoiceTabs.CLI>
 <InputChoiceTabs.VisualStudio>
 
-The project can be started by either pressing `Ctrl + F5` or clicking the green `Debug` button in the Visual Studio toolbar.
+Press `Ctrl + F5` or click the green **Debug** button in the toolbar.
 
 </InputChoiceTabs.VisualStudio>
 </InputChoiceTabs>
 
-If you have set everything up correctly, you should be able to open <a href="http://localhost:5095/graphql" target="_blank" rel="noopener noreferrer">http://localhost:5095/graphql</a> in your browser and be greeted by our GraphQL IDE [Nitro](/products/nitro).
+If everything worked, the terminal output includes a line like this:
+
+```text
+Now listening on: http://localhost:5095
+```
+
+Open <a href="http://localhost:5095/graphql" target="_blank" rel="noopener noreferrer">http://localhost:5095/graphql</a> in your browser. You should see the Nitro GraphQL IDE.
 
 ![GraphQL IDE](../../../images/getting-started-nitro.webp)
 
-Next, click on `Create Document`. You will be presented with a settings dialog for this new tab, pictured below. Make sure the `HTTP Endpoint` input field has the correct URL under which your GraphQL endpoint is available. If it is correct you can just go ahead and click the `Apply` button.
+Click **Create Document**, verify the HTTP Endpoint matches your server URL, and click **Apply**.
 
 ![GraphQL IDE: Setup](../../../images/getting-started-nitro-setup.webp)
 
-Now you should be seeing an editor like the one pictured below. If your GraphQL server has been correctly set up you should see `Schema available` at the bottom right of the editor.
+You should see the editor with **Schema available** at the bottom right.
 
 ![GraphQL IDE: Editor](../../../images/getting-started-nitro-editor.webp)
 
-The view is split into five panes.
+# Execute a Query
 
-1. `Builder`
-    - This is where you build operations with a visual editor.
-1. `Request`
-    - This is where you enter operations that you wish to send to the GraphQL server.
-1. `Response`
-    - This is where results will be displayed.
-1. `GraphQL Variables / HTTP Headers`
-    - This is where you modify variables and headers.
-1. `Responses`
-    - This is where you view recent queries.
-
-Let's send a query to your GraphQL server. Paste the below query into the `Request` pane of the editor:
+Paste the following query into the **Request** pane.
 
 ```graphql
 {
@@ -151,24 +149,35 @@ Let's send a query to your GraphQL server. Paste the below query into the `Reque
 }
 ```
 
-To execute the query, simply press the `Run` button. The result should be displayed as JSON in the `Response` pane as shown below:
+Click **Run**. The **Response** pane should show:
+
+```json
+{
+  "data": {
+    "book": {
+      "title": "C# in depth.",
+      "author": {
+        "name": "Jon Skeet"
+      }
+    }
+  }
+}
+```
 
 ![GraphQL IDE: Executing a query](../../../images/getting-started-nitro-query.webp)
 
-You can also view and browse the schema from within Nitro. Click on the `Schema Reference` tab next to `Operation` in order to browse the schema. There's also a `Schema Definition` tab, pictured below, which shows the schema using the raw SDL (Schema Definition Language).
+You can browse the schema by clicking the **Schema** tab next to **Operation**. The **Schema Definition** tab shows the raw SDL.
 
 ![GraphQL IDE: Schema](../../../images/getting-started-nitro-schema.webp)
 
-Congratulations, you've built your first Hot Chocolate GraphQL server and sent a query using the Nitro GraphQL IDE. 🎉🚀
+Your GraphQL server is running and responding to queries.
 
-# Additional resources
+# Next Steps
 
-Now that you've set up a basic GraphQL server, what should your next steps be?
+- **"I want to learn about the type system."** See [Defining a Schema](/docs/hotchocolate/v16/defining-a-schema) for queries, mutations, subscriptions, and all the GraphQL types.
 
-If this is your first time using GraphQL, we recommend [this guide](https://graphql.org/learn/) that walks you through the basic concepts of GraphQL.
+- **"I want to fetch data from a database."** See [DataLoader](/docs/hotchocolate/v16/fetching-data/batching/dataloader) for batched data fetching, or [Entity Framework](/docs/hotchocolate/v16/fetching-data/integrations/entity-framework) for EF Core integration.
 
-If you want to get an overview of Hot Chocolate's features, we recommend reading the _Overview_ pages in each section of the documentation. They can be found in the sidebar to your left.
+- **"I want a deeper tutorial."** Check out the [GraphQL Workshop](https://github.com/ChilliCream/graphql-workshop) for a hands-on walkthrough covering types, resolvers, DataLoaders, filtering, and more.
 
-For a guided tutorial that explains how you can set up your GraphQL server beyond this basic example, check out [our workshop](https://github.com/ChilliCream/graphql-workshop). Here we will dive deeper into several topics around Hot Chocolate and GraphQL in general.
-
-You can also jump straight into our documentation and learn more about [Defining a GraphQL schema](/docs/hotchocolate/v16/defining-a-schema).
+- **"I'm new to GraphQL."** Read the [official GraphQL introduction](https://graphql.org/learn/) to understand the concepts before diving deeper into Hot Chocolate.

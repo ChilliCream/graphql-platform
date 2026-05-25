@@ -2,395 +2,374 @@
 title: "Subscriptions"
 ---
 
-<Video videoId="wHC9gOk__y0" />
+GraphQL subscriptions allow clients to receive real-time updates from the server. A client opens a persistent connection (over WebSocket or SSE) and asks for specific events. When those events occur, the server pushes the data to the client immediately.
 
-GraphQL subscriptions provide real-time functionality to applications by allowing clients to subscribe to specific events. When these events trigger, the server immediately sends updates to the subscribed clients.
+Subscriptions differ from queries and mutations in one key way: the client receives a stream of results rather than a single response. Each result has the same shape as a query response.
 
-# Transport Mechanisms for GraphQL Subscriptions
+**GraphQL schema**
 
-The method of how these updates are delivered is determined by the transport mechanism. In this section, we will discuss two popular transport mechanisms: GraphQL over WebSockets and GraphQL over Server-Sent Events (SSE).
-
-## GraphQL over WebSockets
-
-WebSockets provide a full-duplex communication channel over a single TCP connection. This means data can be sent and received simultaneously. With GraphQL, this means both queries/mutations and subscription operations can be sent over the same connection.
-
-WebSockets are widely supported in browsers and have been the de facto standard for real-time data transport in GraphQL. There are two popular protocols for GraphQL over WebSockets: [graphql-ws](https://github.com/enisdenjo/graphql-ws) and [subscription-transport-ws](https://github.com/apollographql/subscriptions-transport-ws).
-Hot Chocolate, supports both protocols.
-
-In terms of specific protocols, the recommendation is to use graphql-ws or graphql-sse over the legacy subscription-transport-ws.
-
-**Key Features:**
-
-- Full-duplex: Both the client and server can initiate communication, allowing real-time bidirectional communication.
-- Persistent connection: The connection between client and server remains open, allowing for real-time data transfer.
-- Well-supported: There are several libraries available for managing WebSocket connections and GraphQL subscriptions.
-
-## GraphQL over Server-Sent Events (SSE)
-
-Server-Sent Events (SSE) is a standard that allows a server to push real-time updates to clients over HTTP. Unlike WebSockets, SSE is a half-duplex communication channel, which means the server can send messages to the client, but not the other way around. This makes it a good fit for one-way real-time data like updates or notifications.
-
-With GraphQL, you can send regular queries and mutations over HTTP/2 and subscription updates over SSE. This combination leverages the strengths of both HTTP/2 (efficient for request-response communication) and SSE (efficient for server-to-client streaming).
-
-Another advantage of SSE is its better compatibility with firewalls compared to WebSockets. However, if you're using HTTP/1, keep in mind that SSE inherits its limitations, such as supporting no more than 7 parallel requests in the browser.
-
-[graphql-sse](https://github.com/enisdenjo/graphql-sse) is a popular library for GraphQL over SSE.
-
-**Key Features:**
-
-- Efficient for one-way real-time data: The server can push updates to the client as soon as they occur.
-- Built on HTTP: SSE is built on HTTP, simplifying handling and compatibility. It benefits from HTTP features such as automatic reconnection, HTTP/2 multiplexing, and headers/cookies support.
-- Less Complex: SSE is less complex than WebSockets as it only allows for one-way communication.
-- Better Firewall Compatibility: SSE generally encounters fewer issues with firewalls.
-
-Choosing between GraphQL over WebSockets and GraphQL over SSE depends on the specific needs of your application. If you need full-duplex, real-time communication, WebSockets may be the best choice. If you only need server-to-client real-time communication and want to take advantage of existing HTTP infrastructure, SSE could be a better option.
-
-Special thanks to Denis Badurina, @enisdenjo on [Twitter](https://twitter.com/enisdenjo) and [GitHub](https://github.com/enisdenjo). He is the creator of [graphql-http](https://github.com/enisdenjo/graphql-http), [graphql-ws](https://github.com/enisdenjo/graphql-ws) and [graphql-sse](https://github.com/enisdenjo/graphql-sse).
-
-# Usage
-
-Subscribing to an event is like writing a standard query. The only difference is the operation keyword and that we are only allowed to have one root field.
-
-```sdl
+```graphql
 type Subscription {
+  orderStatusChanged(orderId: ID!): Order!
   bookAdded: Book!
-  bookPublished(author: String!): Book!
 }
 ```
+
+**Client subscription**
 
 ```graphql
 subscription {
   bookAdded {
     title
+    author
   }
 }
 ```
 
-A subscription type can be defined like the following.
+The client stays connected and receives a new `bookAdded` result each time the server publishes that event.
+
+# Defining a Subscription Type
+
+Mark a class with `[SubscriptionType]` and the source generator registers it as part of the Subscription type. The class must be `partial` so the source generator can add code at build time.
+
+Each subscription field uses two attributes:
+
+- `[Subscribe]` tells Hot Chocolate this field represents a subscription and should be backed by a topic from the pub/sub system.
+- `[EventMessage]` marks the parameter that receives the event payload when a message arrives on the topic.
 
 <ExampleTabs>
 <Implementation>
 
 ```csharp
-public class Subscription
+[SubscriptionType]
+public static partial class BookSubscriptions
 {
     [Subscribe]
-    public Book BookAdded([EventMessage] Book book) => book;
+    public static Book OnBookAdded([EventMessage] Book book)
+        => book;
 }
 ```
 
-```csharp
-builder.Services
-    .AddGraphQLServer()
-    .AddSubscriptionType<Subscription>();
-```
+The source generator wires up the Subscription type automatically. No additional registration call is needed beyond the source generator's `AddTypes`.
 
 </Implementation>
 <Code>
 
 ```csharp
-public class SubscriptionType : ObjectType
+public class BookSubscriptions
 {
-    protected override void Configure(IObjectTypeDescriptor descriptor)
+    [Subscribe]
+    public Book OnBookAdded([EventMessage] Book book)
+        => book;
+}
+```
+
+```csharp
+builder
+    .AddGraphQL()
+    .AddSubscriptionType<BookSubscriptions>();
+```
+
+</Code>
+</ExampleTabs>
+
+The method body returns the event payload. Hot Chocolate calls this method each time a message arrives, so you can transform or filter the payload before it reaches the client.
+
+# Publishing Events with ITopicEventSender
+
+To trigger a subscription, you publish an event using `ITopicEventSender`. This abstraction works with any configured subscription provider (in-memory, Redis, NATS, or Postgres), so you can switch providers without changing your publishing code.
+
+You typically publish events from mutations after a successful write. Inject `ITopicEventSender` as a method parameter, the same way you inject any other service.
+
+```csharp
+[MutationType]
+public static partial class BookMutations
+{
+    public static async Task<Book> AddBookAsync(
+        string title,
+        string author,
+        CatalogContext db,
+        ITopicEventSender sender,
+        CancellationToken ct)
     {
-        descriptor
-            .Field("bookAdded")
-            .Type<BookType>()
-            .Resolve(context => context.GetEventMessage<Book>())
-            .Subscribe(async context =>
-            {
-                var receiver = context.Service<ITopicEventReceiver>();
+        var book = new Book { Title = title, Author = author };
+        db.Books.Add(book);
+        await db.SaveChangesAsync(ct);
 
-                ISourceStream stream =
-                    await receiver.SubscribeAsync<Book>("bookAdded");
+        await sender.SendAsync(nameof(BookSubscriptions.OnBookAdded), book, ct);
 
-                return stream;
-            });
+        return book;
     }
 }
 ```
 
-```csharp
-builder.Services
-    .AddGraphQLServer()
-    .AddSubscriptionType<SubscriptionType>();
-```
+The first argument to `SendAsync` is the topic name. By default, Hot Chocolate maps the topic to the subscription field by method name. Using `nameof` keeps the topic and the subscription field in sync at compile time.
 
-</Code>
-<Schema>
+You can also publish events from anywhere you have access to `ITopicEventSender` through dependency injection, not only from mutations.
+
+# Topic Filtering with Dynamic Topics
+
+By default, every subscriber to a field receives every event published to that topic. When you need subscribers to receive events for a specific resource, use the `[Topic]` attribute with argument placeholders to create dynamic topics.
 
 ```csharp
-public class Subscription
+[SubscriptionType]
+public static partial class OrderSubscriptions
 {
     [Subscribe]
-    public Book BookAdded([EventMessage] Book book) => book;
+    [Topic($"{{{nameof(orderId)}}}")]
+    public static Order OnOrderStatusChanged(
+        [ID] string orderId,
+        [EventMessage] Order order)
+        => order;
 }
 ```
 
-```csharp
-builder.Services
-    .AddGraphQLServer()
-    .AddDocumentFromString(@"
-        type Subscription {
-          bookAdded: Book!
-        }
+The `{orderId}` placeholder is replaced with the actual argument value at subscription time. A client subscribing with `orderId: "order-42"` only receives events published to the topic `"order-42"`.
 
-        type Book {
-          title: String
-          author: String
-        }
-    ")
-    .BindRuntimeType<Subscription>();
+Publish to the matching topic from your mutation:
+
+```csharp
+[MutationType]
+public static partial class OrderMutations
+{
+    public static async Task<Order> UpdateOrderStatusAsync(
+        [ID] string orderId,
+        OrderStatus newStatus,
+        OrderService orders,
+        ITopicEventSender sender,
+        CancellationToken ct)
+    {
+        var order = await orders.UpdateStatusAsync(orderId, newStatus, ct);
+
+        await sender.SendAsync(orderId, order, ct);
+
+        return order;
+    }
+}
 ```
 
-</Schema>
-</ExampleTabs>
+You can combine multiple arguments in a single topic pattern. Each placeholder uses the format `{argumentName}`:
 
-> Warning: Only **one** subscription type can be registered using `AddSubscriptionType()`. If we want to split up our subscription type into multiple classes, we can do so using type extensions.
->
-> [Learn more about extending types](/docs/hotchocolate/v16/defining-a-schema/extending-types)
+```csharp
+[Subscribe]
+[Topic("OnMessage_{arg1}_{arg2}")]
+public static string OnMessage(string arg1, string arg2, [EventMessage] string message)
+    => message;
+```
 
-A subscription type is just a regular object type, so everything that applies to an object type also applies to the subscription type (this is true for all all root types).
+# Static Topics
 
-[Learn more about object types](/docs/hotchocolate/v16/defining-a-schema/object-types)
+If you want to decouple the topic name from the method name, use `[Topic]` with a fixed string.
 
-# Transport
+```csharp
+[SubscriptionType]
+public static partial class BookSubscriptions
+{
+    [Subscribe]
+    [Topic("NewBookAvailable")]
+    public static Book OnBookAdded([EventMessage] Book book)
+        => book;
+}
+```
 
-After defining the subscription type, we need to add the WebSockets middleware to our request pipeline.
+Publish to the same static topic string:
+
+```csharp
+await sender.SendAsync("NewBookAvailable", book, ct);
+```
+
+# Custom Subscribe Resolvers
+
+If you need more control over how a subscription connects to the pub/sub system, use `[Subscribe(With = ...)]` to point to a custom subscribe resolver method.
+
+```csharp
+[SubscriptionType]
+public static partial class BookSubscriptions
+{
+    public static ValueTask<ISourceStream<Book>> SubscribeToBooks(
+        ITopicEventReceiver receiver)
+        => receiver.SubscribeAsync<Book>("CustomBookTopic");
+
+    [Subscribe(With = nameof(SubscribeToBooks))]
+    public static Book OnBookAdded([EventMessage] Book book)
+        => book;
+}
+```
+
+The `With` parameter names a method on the same class that returns a `ValueTask<ISourceStream<T>>`. Hot Chocolate calls this method when a client subscribes. This is useful when the topic name depends on runtime logic that goes beyond argument placeholders.
+
+# Transport Mechanisms
+
+Subscriptions require a persistent connection between the client and server. Hot Chocolate supports two transport mechanisms.
+
+## WebSocket (graphql-ws protocol)
+
+WebSocket provides a full-duplex channel over a single TCP connection. Both the client and server can send messages at any time. This is the most widely supported option for GraphQL subscriptions.
+
+Hot Chocolate supports both the modern [graphql-ws](https://github.com/enisdenjo/graphql-ws) protocol and the legacy [subscriptions-transport-ws](https://github.com/apollographql/subscriptions-transport-ws) protocol. Use graphql-ws for new projects.
+
+Add the WebSocket middleware to your request pipeline:
 
 ```csharp
 app.UseRouting();
 
 app.UseWebSockets();
 
-app.UseEndpoints(endpoints =>
-{
-    endpoints.MapGraphQL();
-});
+app.MapGraphQL();
 ```
 
-To make pub/sub work, we also have to register a subscription provider. A subscription provider represents a pub/sub implementation used to handle events. Out of the box we support two subscription providers.
+## Server-Sent Events (graphql-sse)
 
-## In-Memory Provider
+Server-Sent Events (SSE) is a one-way channel where the server pushes updates to the client over HTTP. SSE works well with HTTP/2 and has better firewall compatibility than WebSocket. The trade-off is that SSE only supports server-to-client communication.
 
-The In-Memory subscription provider does not need any configuration and is easily setup.
+Hot Chocolate supports the [graphql-sse](https://github.com/enisdenjo/graphql-sse) protocol. SSE works out of the box when you map the GraphQL endpoint. No additional middleware is needed.
+
+Choose WebSocket when you need bidirectional communication or broad client library support. Choose SSE when you want to leverage HTTP/2 multiplexing and avoid WebSocket-related firewall issues.
+
+# Subscription Providers
+
+A subscription provider is the pub/sub backend that delivers events between your mutation (the publisher) and the subscription (the subscriber). You must register exactly one provider.
+
+## In-Memory (default)
+
+The in-memory provider works without any external infrastructure. It is suitable for single-server deployments and local development.
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddInMemorySubscriptions();
 ```
 
-## Redis Provider
+Events are lost if the server restarts, and they are not shared across multiple server instances.
 
-The Redis subscription provider enables us to run multiple instances of our Hot Chocolate GraphQL server and handle subscription events reliably.
+## Redis
 
-In order to use the Redis provider we have to add the `HotChocolate.Subscriptions.Redis` package.
+The Redis provider supports multi-instance deployments. Events published on one server instance are delivered to subscribers connected to any instance.
+
+Install the package:
 
 <PackageInstallation packageName="HotChocolate.Subscriptions.Redis" />
 
-After we have added the package we can setup the Redis subscription provider.
+```csharp
+builder
+    .AddGraphQL()
+    .AddRedisSubscriptions(
+        _ => ConnectionMultiplexer.Connect("localhost:6379"));
+```
+
+The Redis provider uses [StackExchange.Redis](https://github.com/StackExchange/StackExchange.Redis) under the hood.
+
+## NATS
+
+The NATS provider supports multi-instance deployments, similar to Redis. NATS uses core publish/subscribe. JetStream is not required.
+
+Install the packages:
+
+<PackageInstallation packageName="HotChocolate.Subscriptions.Nats" />
+
+<PackageInstallation packageName="NATS.Extensions.Microsoft.DependencyInjection" external />
 
 ```csharp
+using NATS.Extensions.Microsoft.DependencyInjection;
+
 builder.Services
-    .AddGraphQLServer()
-    .AddRedisSubscriptions((sp) => ConnectionMultiplexer.Connect("host:port"));
+    .AddNatsClient(
+        nats => nats.ConfigureOptions(
+            options => options.Configure(
+                opts => opts.Opts = opts.Opts with
+                {
+                    Url = "nats://localhost:4222"
+                })));
+
+builder
+    .AddGraphQL()
+    .AddSubscriptionType<BookSubscriptions>()
+    .AddNatsSubscriptions();
 ```
 
-Our Redis subscription provider uses the [StackExchange.Redis](https://github.com/StackExchange/StackExchange.Redis) Redis client underneath.
-
-## Postgres Provider
-
-The PostgreSQL Subscription Provider enables your GraphQL server to provide real-time updates to your clients using PostgreSQL's native `LISTEN/NOTIFY` mechanism. This provider is ideal for applications that already use PostgreSQL and want to avoid the overhead of running a separate pub/sub service.
-
-In order to use the PostgreSQL provider we have to add the `HotChocolate.Subscriptions.Postgres` package.
-
-```bash
-dotnet add package HotChocolate.Subscriptions.Postgres
-```
-
-To enable Postgres subscriptions with your HotChocolate server, add `AddPostgresSubscriptions` to your GraphQL server configuration:
+If multiple GraphQL servers share the same NATS broker, set a `TopicPrefix` to isolate their topics:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
-    .AddQueryType<Query>() // every GraphQL server needs a query
-    .AddSubscriptionType<Subscriptions>()
-    .AddPostgresSubscriptions((sp, options) => options.ConnectionFactory = ct => /*create your connection*/);
+using HotChocolate.Subscriptions;
+
+builder
+    .AddGraphQL()
+    .AddSubscriptionType<BookSubscriptions>()
+    .AddNatsSubscriptions(
+        new SubscriptionOptions
+        {
+            TopicPrefix = "orders-service-dev"
+        });
 ```
 
-### Options
+## Postgres
 
-`PostgresSubscriptionOptions` encapsulates options for configuring the Postgres subscription provider. The properties included in this class are:
+The Postgres provider uses PostgreSQL's native `LISTEN/NOTIFY` mechanism. This is a good choice when you already run PostgreSQL and want to avoid adding a separate pub/sub service.
 
-1. `ConnectionFactory`: A function used to create a new, long-lived connection. The connection should have the following configuration to work optimally:
+Install the package:
 
-   - `KeepAlive=30`: Sets a keep alive interval to keep the connection alive
-   - `Pooling=false`: Disables pooling as it is not needed
-   - `Enlist=false`: Ensures subscriptions run in the background and are not enlisted into any transaction
-
-2. `ChannelName`: Specifies the name of the Postgres channel used to send/receive messages. The default value is "hotchocolate_subscriptions".
-3. `MaxSendBatchSize`: Sets the maximum number of messages sent in one batch. The default value is 256.
-4. `MaxSendQueueSize`: Determines the maximum number of messages that can be queued for sending. If the queue is full, the subscription will wait until there is available space. The default value is 2048.
-5. `SubscriptionOptions`: Options used to configure the subscriptions.
-
-Here's an example of creating a connection factory suitable for long-lived connections:
+<PackageInstallation packageName="HotChocolate.Subscriptions.Postgres" />
 
 ```csharp
-var builder = new NpgsqlDataSourceBuilder(connectionString);
-
-// we do not need pooling for long running connections
-builder.ConnectionStringBuilder.Pooling = false;
-// we set the keep alive to 30 seconds
-builder.ConnectionStringBuilder.KeepAlive = 30;
-// as these tasks often run in the background we do not want to enlist them so they do not
-// interfere with the main transaction
-builder.ConnectionStringBuilder.Enlist = false;
-
-var dataSource = builder.Build();
+builder
+    .AddGraphQL()
+    .AddSubscriptionType<BookSubscriptions>()
+    .AddPostgresSubscriptions(options =>
+        options.ConnectionFactory = ct => /* create your NpgsqlConnection */);
 ```
 
-# Publishing Events
-
-To publish events and trigger subscriptions, we can use the `ITopicEventSender`. The `ITopicEventSender` is an abstraction for the registered event publishing provider. Using this abstraction allows us to seamlessly switch between subscription providers, when necessary.
-
-Most of the time we will be publishing events for successful mutations. Therefore we can simply inject the `ITopicEventSender` into our mutations like we would with every other `Service`. Of course we can not only publish events from mutations, but everywhere we have access to the `ITopicEventSender` through the DI Container.
+For the connection factory, configure a long-lived connection with pooling disabled:
 
 ```csharp
-public class Mutation
-{
-    public async Book AddBook(Book book, ITopicEventSender sender)
-    {
-        await sender.SendAsync("BookAdded", book);
+var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+dataSourceBuilder.ConnectionStringBuilder.Pooling = false;
+dataSourceBuilder.ConnectionStringBuilder.KeepAlive = 30;
+dataSourceBuilder.ConnectionStringBuilder.Enlist = false;
 
-        // Omitted code for brevity
-    }
-}
+var dataSource = dataSourceBuilder.Build();
 ```
 
-In the example the `"BookAdded"` is the topic we want to publish to, and `book` is our payload. Even though we have used a string as the topic, we do not have to. Any other type works just fine.
+# Splitting Across Multiple Classes
 
-But where is the connection between `"BookAdded"` as a topic and the subscription type? By default, Hot Chocolate will try to map the topic to a field of the subscription type. If we want to make this binding less error-prone, we could do the following.
-
-```csharp
-await sender.SendAsync(nameof(Subscription.BookAdded), book);
-```
-
-If we do not want to use the method name, we could use the `Topic` attribute.
+GraphQL allows only one Subscription type per schema, but you can split your subscription fields across multiple classes. With the source generator, annotate each class with `[SubscriptionType]`. The source generator merges them into one Subscription type.
 
 ```csharp
-public class Subscription
+[SubscriptionType]
+public static partial class BookSubscriptions
 {
     [Subscribe]
-    [Topic("ExampleTopic")]
-    public Book BookAdded([EventMessage] Book book) => book;
-}
-
-public async Book AddBook(Book book, ITopicEventSender sender)
-{
-    await sender.SendAsync("ExampleTopic", book);
-
-    // Omitted code for brevity
-}
-```
-
-## Dynamic Topics
-
-We can even use the `Topic` attribute on dynamic arguments of the subscription field.
-
-```csharp
-public class Subscription
-{
-    [Subscribe]
-    // The topic argument must be in the format "{argument}"
-    // Using string interpolation and nameof is a good way to reference the argument name properly
-    [Topic($"{{{nameof(author)}}}")]
-    public Book BookPublished(string author, [EventMessage] Book book)
-        => book;
-}
-
-public async Book PublishBook(Book book, ITopicEventSender sender)
-{
-    await sender.SendAsync(book.Author, book);
-
-    // Omitted code for brevity
-}
-```
-
-## ITopicEventReceiver
-
-If more complex topics are required, we can use the `ITopicEventReceiver`.
-
-```csharp
-public class Subscription
-{
-    public ValueTask<ISourceStream<Book>> SubscribeToBooks(ITopicEventReceiver receiver)
-        => receiver.SubscribeAsync<Book>("ExampleTopic");
-
-    [Subscribe(With = nameof(SubscribeToBooks))]
-    public Book BookAdded([EventMessage] Book book)
+    public static Book OnBookAdded([EventMessage] Book book)
         => book;
 }
 ```
 
-# Websocket Authentication
+```csharp
+[SubscriptionType]
+public static partial class OrderSubscriptions
+{
+    [Subscribe]
+    [Topic($"{{{nameof(orderId)}}}")]
+    public static Order OnOrderStatusChanged(
+        [ID] string orderId,
+        [EventMessage] Order order)
+        => order;
+}
+```
 
-When working with GraphQL subscriptions over WebSockets, you may want to authenticate incoming WebSocket connections using JSON Web Tokens. Normally, HTTP headers are sent with each request for standard APIs, but WebSockets behave differently. After a successful HTTP handshake, the protocol is "upgraded" to WebSockets, and additional headers cannot be easily injected for subsequent messages.
+This produces a schema with both fields on the Subscription type:
 
-Instead, the recommended approach is to send your token via the `connection_init` message when the WebSocket connection is first established. Hot Chocolate allows you to intercept this initial message, extract the token, and then authenticate the user in a way similar to standard HTTP requests.
+```graphql
+type Subscription {
+  onBookAdded: Book!
+  onOrderStatusChanged(orderId: ID!): Order!
+}
+```
 
-An example implementation of this approach can be found in the [Hot Chocolate Examples repository](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/WebsocketAuthentication).
+Group your subscription classes by domain area, the same way you would split queries and mutations.
 
-## Why a Special Approach for WebSockets
+# Next Steps
 
-- **Single HTTP Handshake**: A WebSocket connection is established once. After that, you cannot update HTTP headers on the same connection.
-- **`connection_init` Payload**: GraphQL subscription clients send a `connection_init` message when establishing the subscription. This payload can include extra properties (e.g., `authorization`), which Hot Chocolate can use for authentication.
-- **Long-Lived Connections**: Because WebSockets are persistent, tokens might remain valid for the entire duration of the connection. It is advisable to ensure that you handle token expiration appropriately—often by closing the connection if security policies require it.
-
-## Core Concepts
-
-1. **Stub (or "Skip") Authentication Scheme**
-
-   The initial WebSocket upgrade request is directed to a "stub" authentication scheme that simply indicates "no authentication result" for upgrade requests. This prevents the request from failing before you can intercept and handle the token manually.
-
-2. **Forwarding the Default Scheme**
-
-   In standard HTTP scenarios, the default scheme (e.g., JWT bearer) is used to authenticate. However, if the request is recognized as a WebSocket upgrade, the framework forwards it to the "stub" scheme first. That way, you don’t attempt to validate a token at the moment of the upgrade handshake.
-
-3. **Intercepting `connection_init`**
-
-   Once the WebSocket is established, the client sends `connection_init` containing authentication data. A custom `SocketSessionInterceptor` (or similar) reads the token from `connection_init` (e.g., under a key like `authorization`), stores it in the `HttpContext`, and triggers a fresh authentication attempt—this time using the real JWT bearer scheme.
-
-4. **Hot Chocolate Integration**
-
-   Hot Chocolate's subscription middleware allows you to plug into the subscription lifecycle. By customizing the session interceptor (`OnConnectAsync`), you can decide whether to accept or reject the connection based on successful authentication.
-
-## Testing the Flow
-
-1. **Open Nitro**
-
-   Use a local instance of Nitro (e.g., `https://localhost:5095/graphql`) to send GraphQL queries and subscriptions.
-
-2. **Retrieve an Access Token**
-
-   Request a token from your `/token` endpoint. This endpoint should return a valid JWT that is trusted by your API.
-
-3. **Configure Nitro**
-
-   - In Nitro, open the **Settings** of your document / API.
-   - Under **Authentication**, choose **Bearer Token** and paste your JWT.
-   - Nitro will automatically include the token in the `connection_init` message under an `authorization` parameter when opening a WebSocket connection.
-
-4. **Run Your Subscription**
-
-   Execute the subscription query of your choice. For example:
-
-   ```graphql
-   subscription {
-     onTimedEvent {
-       count
-       isAuthenticated
-     }
-   }
-   ```
-
-   The server-side resolver can check `isAuthenticated` to demonstrate whether the current user is authenticated (based on the token you provided).
+- **Need to read data?** See [Queries](/docs/hotchocolate/v16/defining-a-schema/queries).
+- **Need to write data?** See [Mutations](/docs/hotchocolate/v16/defining-a-schema/mutations).
+- **Need to understand how types map to the schema?** See [Object Types](/docs/hotchocolate/v16/defining-a-schema/object-types).
+- **Need to authenticate WebSocket connections?** See the [WebSocket authentication example](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/WebsocketAuthentication).

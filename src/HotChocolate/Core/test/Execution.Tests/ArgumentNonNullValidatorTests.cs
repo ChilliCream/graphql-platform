@@ -11,15 +11,16 @@ public class ArgumentNonNullValidatorTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddDocumentFromString(@"
-                    type Query {
-                        test(bar: Bar): String
-                    }
+            .AddDocumentFromString(
+                """
+                type Query {
+                    test(bar: Bar): String
+                }
 
-                    input Bar {
-                        a: String! = ""bar""
-                    }
-                ")
+                input Bar {
+                    a: String! = "bar"
+                }
+                """)
             .Use(_ => _ => default)
             .Create();
 
@@ -61,6 +62,6 @@ public class ArgumentNonNullValidatorTests
 
         // assert
         Assert.True(report.HasErrors);
-        Assert.Equal("/root/a", report.Path.ToString());
+        Assert.Equal("root.a", report.Path.ToString());
     }
 }

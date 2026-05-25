@@ -26,4 +26,6 @@ public class QueryableStringNotInHandler : QueryableStringOperationHandler
                 context.RuntimeTypes.Peek().Source,
                 parsedValue));
     }
+
+    public static QueryableStringNotInHandler Create(FilterProviderContext context) => new(context.InputParser);
 }

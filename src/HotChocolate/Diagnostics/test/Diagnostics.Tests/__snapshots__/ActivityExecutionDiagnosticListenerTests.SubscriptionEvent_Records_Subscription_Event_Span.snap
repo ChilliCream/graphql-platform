@@ -1,0 +1,189 @@
+{
+  "source": {
+    "name": "HotChocolate.Diagnostics"
+  },
+  "activities": [
+    {
+      "OperationName": "GraphQL Operation",
+      "DisplayName": "subscription",
+      "Kind": "Internal",
+      "Status": "Ok",
+      "tags": [
+        {
+          "Key": "graphql.processing.type",
+          "Value": "request"
+        },
+        {
+          "Key": "graphql.operation.type",
+          "Value": "subscription"
+        },
+        {
+          "Key": "graphql.operation.name",
+          "Value": "OnMessageSubscription"
+        },
+        {
+          "Key": "graphql.document.hash",
+          "Value": "md5:ef859b98c9d8c17038c8fd9aeecdb1e2"
+        }
+      ],
+      "event": [
+        {
+          "Name": "AddedOperationToCache",
+          "Tags": []
+        },
+        {
+          "Name": "AddedDocumentToCache",
+          "Tags": []
+        }
+      ],
+      "activities": [
+        {
+          "OperationName": "GraphQL Document Parsing",
+          "DisplayName": "GraphQL Document Parsing",
+          "Kind": "Internal",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:ef859b98c9d8c17038c8fd9aeecdb1e2"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Document Validation",
+          "DisplayName": "GraphQL Document Validation",
+          "Kind": "Internal",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "validate"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:ef859b98c9d8c17038c8fd9aeecdb1e2"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Operation Planning",
+          "DisplayName": "GraphQL Operation Planning",
+          "Kind": "Internal",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "plan"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:ef859b98c9d8c17038c8fd9aeecdb1e2"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "subscription"
+            },
+            {
+              "Key": "graphql.operation.name",
+              "Value": "OnMessageSubscription"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Operation Execution",
+          "DisplayName": "GraphQL Operation Execution",
+          "Kind": "Internal",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "execute"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "subscription"
+            },
+            {
+              "Key": "graphql.operation.name",
+              "Value": "OnMessageSubscription"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:ef859b98c9d8c17038c8fd9aeecdb1e2"
+            }
+          ],
+          "event": [],
+          "activities": [
+            {
+              "OperationName": "GraphQL Subscription Event",
+              "DisplayName": "GraphQL Subscription Event",
+              "Kind": "Internal",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "graphql.processing.type",
+                  "Value": "subscription_event"
+                },
+                {
+                  "Key": "graphql.operation.type",
+                  "Value": "subscription"
+                },
+                {
+                  "Key": "graphql.operation.name",
+                  "Value": "OnMessageSubscription"
+                },
+                {
+                  "Key": "graphql.document.hash",
+                  "Value": "md5:ef859b98c9d8c17038c8fd9aeecdb1e2"
+                },
+                {
+                  "Key": "graphql.subscription.id",
+                  "Value": "1"
+                }
+              ],
+              "event": [],
+              "activities": [
+                {
+                  "OperationName": "SimpleSubscription.onMessage",
+                  "DisplayName": "SimpleSubscription.onMessage",
+                  "Kind": "Internal",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.processing.type",
+                      "Value": "resolve"
+                    },
+                    {
+                      "Key": "graphql.field.alias",
+                      "Value": "onMessage"
+                    },
+                    {
+                      "Key": "graphql.field.path",
+                      "Value": "onMessage"
+                    },
+                    {
+                      "Key": "graphql.field.name",
+                      "Value": "onMessage"
+                    },
+                    {
+                      "Key": "graphql.field.schema_coordinate",
+                      "Value": "SimpleSubscription.onMessage"
+                    },
+                    {
+                      "Key": "graphql.field.parent_type",
+                      "Value": "SimpleSubscription"
+                    }
+                  ],
+                  "event": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

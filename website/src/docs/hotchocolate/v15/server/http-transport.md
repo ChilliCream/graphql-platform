@@ -144,7 +144,7 @@ You can use a custom formatter to alter the HTTP status code in certain conditio
 public class CustomHttpResponseFormatter : DefaultHttpResponseFormatter
 {
     protected override HttpStatusCode OnDetermineStatusCode(
-        IQueryResult result, FormatInfo format,
+        IOperationResult result, FormatInfo format,
         HttpStatusCode? proposedStatusCode)
     {
         if (result.Errors?.Count > 0 &&

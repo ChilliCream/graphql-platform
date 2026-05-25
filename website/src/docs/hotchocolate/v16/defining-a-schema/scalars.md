@@ -2,91 +2,62 @@
 title: "Scalars"
 ---
 
-Scalar types are the primitives of our schema and can hold a specific type of data. They are leaf types, meaning we cannot use e.g. `{ fieldName }` to further drill down into the type. The main purpose of a scalar is to define how a value is serialized and deserialized.
+Scalars are the leaf types in a GraphQL schema. They represent concrete values like strings, numbers, and dates. Unlike object types, scalars cannot be decomposed further. They are where the query ends and actual data is returned.
 
-Besides basic scalars like `String` and `Int`, we can also create custom scalars like `CreditCardNumber` or `SocialSecurityNumber`. These custom scalars can greatly enhance the expressiveness of our schema and help new developers to get a grasp of our API.
+Every scalar defines how values convert between the GraphQL wire format (JSON) and the .NET runtime representation. The GraphQL specification specifies five core scalars (`String`, `Int`, `Float`, `Boolean`, and `ID`), which form the foundation of every GraphQL server.
 
-# GraphQL scalars
+Hot Chocolate comes with many more scalars than the GraphQL core scalars, mapping to common .NET primitive types and structs.
 
-The GraphQL specification defines the following scalars.
+| .NET Type               | GraphQL Scalar  | Binding  | Notes                                                         | Spec                                                                 |
+| ----------------------- | --------------- | -------- | ------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `string`                | `String`        | Implicit | UTF-8 character sequence                                      | [Spec](https://spec.graphql.org/draft/#sec-String)                   |
+| `bool`                  | `Boolean`       | Implicit | `true` or `false`                                             | [Spec](https://spec.graphql.org/draft/#sec-Boolean)                  |
+| `int`                   | `Int`           | Implicit | Signed 32-bit integer                                         | [Spec](https://spec.graphql.org/draft/#sec-Int)                      |
+| `float`, `double`       | `Float`         | Implicit | IEEE 754 double-precision                                     | [Spec](https://spec.graphql.org/draft/#sec-Float)                    |
+| `string`, `int`, `Guid` | `ID`            | Explicit | Unique identifier, always serialized as `string`              | [Spec](https://spec.graphql.org/draft/#sec-ID)                       |
+| `decimal`               | `Decimal`       | Implicit | High-precision decimal (separate from `Float`)                | [Spec](https://scalars.graphql.org/chillicream/decimal.html)         |
+| `long`                  | `Long`          | Implicit | Signed 64-bit integer                                         | [Spec](https://scalars.graphql.org/chillicream/long.html)            |
+| `short`                 | `Short`         | Implicit | Signed 16-bit integer                                         | [Spec](https://scalars.graphql.org/chillicream/short.html)           |
+| `DateTime`              | `DateTime`      | Implicit | Date and time with time zone offset                           | [Spec](https://scalars.graphql.org/chillicream/date-time.html)       |
+| `DateTimeOffset`        | `DateTime`      | Implicit | Date and time with time zone offset                           | [Spec](https://scalars.graphql.org/chillicream/date-time.html)       |
+| `DateOnly`              | `LocalDate`     | Implicit | Date without time or time zone                                | [Spec](https://scalars.graphql.org/chillicream/local-date.html)      |
+| `DateOnly`              | `Date`          | Explicit | Date in UTC                                                   | [Spec](https://scalars.graphql.org/chillicream/date.html)            |
+| `DateTime`              | `LocalDateTime` | Explicit | Date and time without time zone                               | [Spec](https://scalars.graphql.org/chillicream/local-date-time.html) |
+| `TimeOnly`              | `LocalTime`     | Implicit | Time of day without date or time zone                         | [Spec](https://scalars.graphql.org/chillicream/local-time.html)      |
+| `TimeSpan`              | `Duration`      | Implicit | Duration of time                                              | [Spec](https://scalars.graphql.org/chillicream/duration.html)        |
+| `Guid`                  | `UUID`          | Implicit | Universally unique identifier (RFC 9562)                      | [Spec](https://scalars.graphql.org/chillicream/uuid.html)            |
+| `Uri`                   | `URI`           | Implicit | Uniform resource identifier (replaces `URL` for `System.Uri`) | [Spec](https://scalars.graphql.org/chillicream/uri.html)             |
+| `Uri`                   | `URL`           | Explicit | Deprecated, use `URI` instead                                 | [Spec](https://scalars.graphql.org/chillicream/url.html)             |
+| `byte[]`                | `Base64String`  | Implicit | Base64-encoded byte array (replaces deprecated `ByteArray`)   | [Spec](https://scalars.graphql.org/chillicream/base64-string.html)   |
+| `byte`                  | `UnsignedByte`  | Implicit | Unsigned 8-bit integer                                        | [Spec](https://scalars.graphql.org/chillicream/unsigned-byte.html)   |
+| `sbyte`                 | `Byte`          | Implicit | Signed 8-bit integer                                          | [Spec](https://scalars.graphql.org/chillicream/byte.html)            |
+| `ushort`                | `UnsignedShort` | Implicit | Unsigned 16-bit integer                                       | [Spec](https://scalars.graphql.org/chillicream/unsigned-short.html)  |
+| `uint`                  | `UnsignedInt`   | Implicit | Unsigned 32-bit integer                                       | [Spec](https://scalars.graphql.org/chillicream/unsigned-int.html)    |
+| `ulong`                 | `UnsignedLong`  | Implicit | Unsigned 64-bit integer                                       | [Spec](https://scalars.graphql.org/chillicream/unsigned-long.html)   |
+| `JsonElement`           | `Any`           | Implicit | Any valid GraphQL value                                       | [Spec](https://scalars.graphql.org/chillicream/any.html)             |
 
-## String
-
-```sdl
-type Product {
-  description: String;
-}
-```
-
-This scalar represents a UTF-8 character sequence.
-
-It is automatically inferred from the usage of the .NET [string type](https://docs.microsoft.com/dotnet/csharp/language-reference/builtin-types/reference-types#the-string-type).
-
-## Boolean
-
-```sdl
-type Product {
-  purchasable: Boolean;
-}
-```
-
-This scalar represents a Boolean value, which can be either `true` or `false`.
-
-It is automatically inferred from the usage of the .NET [bool type](https://docs.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool).
-
-## Int
-
-```sdl
-type Product {
-  quantity: Int;
-}
-```
-
-This scalar represents a signed 32-bit numeric non-fractional value.
-
-It is automatically inferred from the usage of the .NET [int type](https://docs.microsoft.com/dotnet/api/system.int32).
-
-## Float
-
-```sdl
-type Product {
-  price: Float;
-}
-```
-
-This scalar represents double-precision fractional values, as specified by IEEE 754.
-
-It is automatically inferred from the usage of the .NET [float](https://docs.microsoft.com/dotnet/api/system.single) or [double type](https://docs.microsoft.com/dotnet/api/system.double).
-
-> Note: We introduced a separate `Decimal` scalar to handle `decimal` values.
+> **Note:** Hot Chocolate only exposes scalars that your schema uses. Unused scalars do not appear in the generated schema.
 
 ## ID
 
-```sdl
-type Product {
-  id: ID!;
-}
-```
+The GraphQL `ID` scalar is not automatically mapped to a .NET type because it is a semantic type representing a unique identifier. You must annotate fields explicitly to use `ID`.
 
-This scalar is used to facilitate technology-specific Ids, like `int`, `string` or `Guid`.
-
-It is **not** automatically inferred and the `IdType` needs to be [explicitly specified](/docs/hotchocolate/v16/defining-a-schema/object-types#explicit-types).
-
-`ID` values are always represented as a [String](#string) in client-server communication, but can be coerced to their expected type on the server.
+`ID` values are always serialized as strings in responses, but clients can provide `int` or `string` values as variables or GraphQL literals. On the server side, you can use `string`, `int`, or `Guid` as the runtime type for `ID` fields.
 
 <ExampleTabs>
 <Implementation>
 
 ```csharp
-public class Product
+public sealed class Product
 {
-    [GraphQLType(typeof(IdType))]
+    [ID]
     public int Id { get; set; }
 }
 
-public class Query
+[QueryType]
+public static partial class ProductQueries
 {
-    public Product GetProduct([GraphQLType(typeof(IdType))] int id)
+    public static Product GetProduct([ID] int id)
     {
         // Omitted code for brevity
     }
@@ -97,22 +68,21 @@ public class Query
 <Code>
 
 ```csharp
-public class Product
+public sealed class Product
 {
     public int Id { get; set; }
 }
 
-public class ProductType : ObjectType<Product>
+public sealed class ProductType : ObjectType<Product>
 {
     protected override void Configure(IObjectTypeDescriptor<Product> descriptor)
     {
         descriptor.Name("Product");
-
-        descriptor.Field(f => f.Id).Type<IdType>();
+        descriptor.Field(f => f.Id).ID();
     }
 }
 
-public class QueryType : ObjectType
+public sealed class QueryType : ObjectType
 {
     protected override void Configure(IObjectTypeDescriptor descriptor)
     {
@@ -120,7 +90,7 @@ public class QueryType : ObjectType
 
         descriptor
             .Field("product")
-            .Argument("id", a => a.Type<IdType>())
+            .Argument("id", a => a.ID())
             .Type<ProductType>()
             .Resolve(context =>
             {
@@ -133,88 +103,48 @@ public class QueryType : ObjectType
 ```
 
 </Code>
-<Schema>
-
-```csharp
-public class Product
-{
-    public int Id { get; set; }
-}
-```
-
-```csharp
-builder.Services
-    .AddGraphQLServer()
-    .AddDocumentFromString(@"
-        type Query {
-          product(id: ID): Product
-        }
-
-        type Product {
-          id: ID
-        }
-    ")
-    .BindRuntimeType<Product>()
-    .AddResolver("Query", "product", context =>
-    {
-        var id = context.ArgumentValue<int>("id");
-
-        // Omitted code for brevity
-    });
-```
-
-</Schema>
 </ExampleTabs>
 
-Notice how our code uses `int` for the `Id`, but in a request / response it would be serialized as a `string`. This allows us to switch the CLR type of our `Id`, without affecting the schema and our clients.
+## DateTime Scalars
 
-# GraphQL Community Scalars
+You can use `HotChocolate.Types.DateTimeOptions` to configure the built-in BCL-backed `DateTime`, `LocalDateTime`, and `LocalTime` scalars. With these options, you can:
 
-The website <https://www.graphql-scalars.com/> hosts specifications for GraphQL scalars defined by the community. The community scalars use the `@specifiedBy` directive to point to the spec that is implemented.
+- Set how many fractional second digits are accepted during parsing (`InputPrecision`, up to 9)
+- Control how many fractional second digits are written during serialization (`OutputPrecision`, up to 7)
+- Require input to match the expected scalar format before parsing (`ValidateInputFormat`)
+- Always emit fractional seconds in serialized output (when `OutputPrecision > 0`), padded with trailing zeros up to `OutputPrecision` (`AlwaysOutputFractionalSeconds`)
 
-```sdl
-scalar UUID @specifiedBy(url: "https://tools.ietf.org/html/rfc4122")
+Although the built-in scalars can parse up to 9 fractional second digits, the underlying BCL types only preserve up to 7 digits (100-nanosecond precision), so additional digits are rounded during parsing.
+
+By default, trailing zeros are stripped from the fractional component and the fractional component is omitted entirely when zero (for example, `2023-12-24T15:30:00.5000000Z` is emitted as `2023-12-24T15:30:00.5Z`). Set `AlwaysOutputFractionalSeconds = true` to keep a fixed-width representation regardless of value. The option has no effect when `OutputPrecision` is `0`, since there are no fractional second digits to emit.
+
+To customize the built-in scalars, register configured scalar instances explicitly:
+
+```csharp
+builder
+    .AddGraphQL()
+    .AddType(new DateTimeType(new DateTimeOptions
+    {
+        OutputPrecision = 3,
+        AlwaysOutputFractionalSeconds = true
+    }))
+    .AddType(new LocalDateTimeType(new DateTimeOptions
+    {
+        OutputPrecision = 3,
+        AlwaysOutputFractionalSeconds = true
+    }))
+    .AddType(new LocalTimeType(new DateTimeOptions
+    {
+        OutputPrecision = 3,
+        AlwaysOutputFractionalSeconds = true
+    }));
 ```
-
-## DateTime Type
-
-A custom GraphQL scalar which represents an exact point in time. This point in time is specified by having an offset to UTC and does not use time zone.
-
-The DateTime scalar is based on [RFC 3339](https://datatracker.ietf.org/doc/html/rfc3339).
-
-```sdl
-scalar DateTime @specifiedBy(url: "https://www.graphql-scalars.com/date-time/")
-```
-
-> Note: The Hot Chocolate implementation diverges slightly from the DateTime Scalar specification, and allows fractional seconds of 0-7 digits, as opposed to exactly 3.
 
 <Video videoId="gO3bNKBmXZM" />
 
-# .NET Scalars
+## UUID Format
 
-In addition to the scalars defined by the specification, Hot Chocolate also supports the following set of scalar types:
-
-| Type            | Description                                                                                      |
-| --------------- | ------------------------------------------------------------------------------------------------ |
-| `Byte`          | Byte                                                                                             |
-| `ByteArray`     | Base64 encoded array of bytes                                                                    |
-| `Short`         | Signed 16-bit numeric non-fractional value                                                       |
-| `Long`          | Signed 64-bit numeric non-fractional value                                                       |
-| `Decimal`       | .NET Floating Point Type                                                                         |
-| `Url`           | Url                                                                                              |
-| `Date`          | ISO-8601 date                                                                                    |
-| `LocalDate`     | ISO date string, represented as UTF-8 character sequences YYYY-MM-DD, as defined in [RFC3339][1] |
-| `LocalDateTime` | Local date/time string (i.e., with no associated timezone) with the format `YYYY-MM-DDThh:mm:ss` |
-| `LocalTime`     | Local time string (i.e., with no associated timezone) in 24-hr `HH:mm:ss`                        |
-| `TimeSpan`      | ISO-8601 duration                                                                                |
-| `Uuid`          | GUID                                                                                             |
-| `Any`           | This type can be anything, string, int, list or object, etc.                                     |
-
-[1]: https://tools.ietf.org/html/rfc3339
-
-## Uuid Type
-
-The `Uuid` scalar supports the following serialization formats.
+The `UUID` scalar supports multiple serialization formats:
 
 | Specifier   | Format                                                               |
 | ----------- | -------------------------------------------------------------------- |
@@ -224,60 +154,66 @@ The `Uuid` scalar supports the following serialization formats.
 | P           | (00000000-0000-0000-0000-000000000000)                               |
 | X           | {0x00000000,0x0000,0x0000,{0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00}} |
 
-The `UuidType` will always return the value in the specified format. In case it is used as an input type, it will first try to parse the result in the specified format. If the parsing does not succeed, it will try to parse the value in other formats.
+The `UuidType` always returns values in the specified format. When parsing input, it tries the specified format first, then falls back to other formats.
 
-To change the default format we have to register the `UuidType` with the specifier on the schema:
+To change the default format:
 
 ```csharp
-builder.Services
-   .AddGraphQLServer()
-   .AddType(new UuidType('D'));
+builder
+    .AddGraphQL()
+    .AddType(new UuidType('N'));
 ```
 
-## Any Type
+## Any Scalar
 
-The `Any` scalar is a special type that can be compared to `object` in C#.
-`Any` allows us to specify any literal or return any output type.
-
-Consider the following type:
+The `Any` scalar is comparable to `object` in C#. It accepts any literal and can return any output type.
 
 ```sdl
 type Query {
-  foo(bar: Any): String
+  metadata(filter: Any): Any
 }
 ```
 
-Since our field `foo` specifies an argument `bar` of type `Any` all of the following queries would be valid:
+All of the following queries are valid against an `Any` argument:
 
 ```graphql
 {
-  a: foo(bar: 1)
-  b: foo(bar: [1, 2, 3, 4, 5])
-  a: foo(bar: "abcdef")
-  a: foo(bar: true)
-  a: foo(bar: { a: "foo", b: { c: 1 } })
-  a: foo(bar: [{ a: "foo", b: { c: 1 } }, { a: "foo", b: { c: 1 } }])
+  a: metadata(filter: 1)
+  b: metadata(filter: [1, 2, 3])
+  c: metadata(filter: "text")
+  d: metadata(filter: true)
+  e: metadata(filter: { key: "value", nested: { count: 1 } })
 }
 ```
 
-The same goes for the output side. `Any` can return a structure of data although it is a scalar type.
+### Runtime type
 
-If we want to access the data we can either fetch data as an object or you can ask the context to provide it as a specific object.
+The `Any` scalar uses `System.Text.Json.JsonElement` as its .NET runtime type. Fields annotated with `Any` expect resolvers to return a `JsonElement`.
 
-```csharp
-object foo = context.ArgumentValue<object>("bar");
-Foo foo = context.ArgumentValue<Foo>("bar");
-```
-
-We can also ask the context which kind the current argument is:
+To access an argument dynamically:
 
 ```csharp
-ValueKind kind = context.ArgumentKind("bar");
+JsonElement value = context.ArgumentValue<JsonElement>("filter");
+
+if (value.ValueKind == JsonValueKind.Object)
+{
+    string? name = value.GetProperty("name").GetString();
+}
 ```
 
-The value kind will tell us by which kind of literal the argument is represented.
+To deserialize into a strongly typed model:
 
-> An integer literal can still contain a long value and a float literal could be a decimal but it also could just be a float.
+```csharp
+MyFilter filter = context.ArgumentValue<MyFilter>("filter");
+```
+
+You can also inspect the value kind to determine how the argument was provided:
+
+```csharp
+ValueKind kind = context.ArgumentKind("filter");
+```
+
+The `ValueKind` enum tells you which kind of literal represents the argument:
 
 ```csharp
 public enum ValueKind
@@ -292,140 +228,184 @@ public enum ValueKind
 }
 ```
 
-If we want to access an object dynamically without serializing it to a strongly typed model we can get it as `IReadOnlyDictionary<string, object>` or as `ObjectValueNode`.
+> An integer literal can contain a long value, and a float literal can be a decimal or a float.
 
-Lists can be accessed generically by getting them as `IReadOnlyList<object>` or as `ListValueNode`.
+### Returning dictionaries and arbitrary .NET types
 
-# Additional Scalars
+By default, `Any` expects a `JsonElement`. To return common .NET types such as `Dictionary<string, object>` or `ExpandoObject`, register the JSON type converter:
 
-We also offer a separate package with scalars for more specific use cases.
+```csharp
+builder
+    .AddGraphQL()
+    .AddJsonTypeConverter();
+```
 
-To use these scalars we have to add the `HotChocolate.Types.Scalars` package.
+With the converter registered, resolvers can return dictionaries or any JSON-serializable object:
+
+```csharp
+[GraphQLType<AnyType>]
+public object GetData() => new Dictionary<string, object>
+{
+    { "name", "John" },
+    { "age", 30 }
+};
+```
+
+### Custom type serialization
+
+For custom reference types, register a dedicated converter to control serialization. For example, to serialize `TimeZoneInfo` as its string ID instead of a full JSON object:
+
+```csharp
+builder
+    .AddGraphQL()
+    .AddTypeConverter<TimeZoneInfo, JsonElement>(
+        value => JsonSerializer.SerializeToElement(value.Id));
+```
+
+The resolver can then return the type directly:
+
+```csharp
+[GraphQLType<AnyType>]
+public TimeZoneInfo GetTimezone() => TimeZoneInfo.Utc; // serializes as "UTC"
+```
+
+# Additional Scalars Package
+
+For more specific use cases, install the `HotChocolate.Types.Scalars` package:
 
 <PackageInstallation packageName="HotChocolate.Types.Scalars" />
 
-**Available Scalars:**
+| Type         | Description                                                                                                       |
+| ------------ | ----------------------------------------------------------------------------------------------------------------- |
+| EmailAddress | Email address as defined in [RFC 5322](https://tools.ietf.org/html/rfc5322)                                       |
+| HexColor     | HEX color code                                                                                                    |
+| Hsl          | CSS HSL color as defined [here][20]                                                                               |
+| Hsla         | CSS HSLA color as defined [here][20]                                                                              |
+| IPv4         | IPv4 address as defined [here](https://en.wikipedia.org/wiki/IPv4)                                                |
+| IPv6         | IPv6 address as defined in [RFC 8064](https://tools.ietf.org/html/rfc8064)                                        |
+| Isbn         | ISBN-10 or ISBN-13 number as defined [here](https://en.wikipedia.org/wiki/International_Standard_Book_Number)     |
+| Latitude     | Decimal degrees latitude number                                                                                   |
+| Longitude    | Decimal degrees longitude number                                                                                  |
+| MacAddress   | IEEE 802 48-bit (MAC-48/EUI-48) and 64-bit (EUI-64) Mac addresses as defined in [RFC 7042][21] and [RFC 7043][22] |
+| PhoneNumber  | E.164 format phone number as defined [here](https://en.wikipedia.org/wiki/E.164)                                  |
+| Rgb          | CSS RGB color as defined [here](https://developer.mozilla.org/docs/Web/CSS/color_value#rgb_colors)                |
+| Rgba         | CSS RGBA color as defined [here](https://developer.mozilla.org/docs/Web/CSS/color_value#rgb_colors)               |
+| UtcOffset    | A value of format `±hh:mm`                                                                                        |
 
-| Type             | Description                                                                                                                                              |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| EmailAddress     | Email address, represented as UTF-8 character sequences, as defined in [RFC5322](https://tools.ietf.org/html/rfc5322)                                    |
-| HexColor         | HEX color code                                                                                                                                           |
-| Hsl              | CSS HSL color as defined [here][2]                                                                                                                       |
-| Hsla             | CSS HSLA color as defined [here][2]                                                                                                                      |
-| IPv4             | IPv4 address as defined [here](https://en.wikipedia.org/wiki/IPv4)                                                                                       |
-| IPv6             | IPv6 address as defined in [RFC8064](https://tools.ietf.org/html/rfc8064)                                                                                |
-| Isbn             | ISBN-10 or ISBN-13 number as defined [here](https://en.wikipedia.org/wiki/International_Standard_Book_Number)                                            |
-| Latitude         | Decimal degrees latitude number                                                                                                                          |
-| Longitude        | Decimal degrees longitude number                                                                                                                         |
-| LocalCurrency    | Currency string                                                                                                                                          |
-| MacAddress       | IEEE 802 48-bit (MAC-48/EUI-48) and 64-bit (EUI-64) Mac addresses, represented as UTF-8 character sequences, as defined in [RFC7042][3] and [RFC7043][4] |
-| NegativeFloat    | Double‐precision fractional value less than 0                                                                                                            |
-| NegativeInt      | Signed 32-bit numeric non-fractional with a maximum of -1                                                                                                |
-| NonEmptyString   | Non empty textual data, represented as UTF‐8 character sequences with at least one character                                                             |
-| NonNegativeFloat | Double‐precision fractional value greater than or equal to 0                                                                                             |
-| NonNegativeInt   | Unsigned 32-bit numeric non-fractional value greater than or equal to 0                                                                                  |
-| NonPositiveFloat | Double‐precision fractional value less than or equal to 0                                                                                                |
-| NonPositiveInt   | Signed 32-bit numeric non-fractional value less than or equal to 0                                                                                       |
-| PhoneNumber      | A value that conforms to the standard E.164 format as defined [here](https://en.wikipedia.org/wiki/E.164)                                                |
-| PositiveInt      | Signed 32‐bit numeric non‐fractional value of at least the value 1                                                                                       |
-| PostalCode       | Postal code                                                                                                                                              |
-| Port             | TCP port within the range of 0 to 65535                                                                                                                  |
-| Rgb              | CSS RGB color as defined [here](https://developer.mozilla.org/docs/Web/CSS/color_value#rgb_colors)                                                       |
-| Rgba             | CSS RGBA color as defined [here](https://developer.mozilla.org/docs/Web/CSS/color_value#rgb_colors)                                                      |
-| SignedByte       | Signed 8-bit numeric non‐fractional value greater than or equal to -127 and smaller than or equal to 128.                                                |
-| UnsignedInt      | Unsigned 32‐bit numeric non‐fractional value greater than or equal to 0                                                                                  |
-| UnsignedLong     | Unsigned 64‐bit numeric non‐fractional value greater than or equal to 0                                                                                  |
-| UnsignedShort    | Unsigned 16‐bit numeric non‐fractional value greater than or equal to 0 and smaller or equal to 65535.                                                   |
-| UtcOffset        | A value of format `±hh:mm`                                                                                                                               |
+[20]: https://developer.mozilla.org/docs/Web/CSS/color_value#hsl_colors
+[21]: https://tools.ietf.org/html/rfc7042#page-19
+[22]: https://tools.ietf.org/html/rfc7043
 
-[2]: https://developer.mozilla.org/docs/Web/CSS/color_value#hsl_colors
-[3]: https://tools.ietf.org/html/rfc7042#page-19
-[4]: https://tools.ietf.org/html/rfc7043
-
-Most of these scalars are built on top of native .NET types. An Email Address for example is represented as a `string`, but just returning a `string` from our resolver would result in Hot Chocolate interpreting it as a `StringType`. We need to explicitly specify that the returned type (`string`) should be treated as an `EmailAddressType`.
+Many of these scalars are built on native .NET types. An email address, for example, is represented as a `string`, but returning a `string` from your resolver causes Hot Chocolate to interpret it as a `StringType`. You need to specify the scalar type explicitly:
 
 ```csharp
-[GraphQLType(typeof(EmailAddressType))]
+[GraphQLType<EmailAddressType>]
 public string GetEmail() => "test@example.com";
 ```
 
-[Learn more about explicitly specifying GraphQL types](/docs/hotchocolate/v16/defining-a-schema/object-types#explicit-types)
+[Learn more about explicit types](/docs/hotchocolate/v16/defining-a-schema/object-types#explicit-types)
 
-## NodaTime
+# NodaTime Scalars
 
-We also offer a package specifically for [NodaTime](https://github.com/nodatime/nodatime).
-
-It can be installed like the following.
+For [NodaTime](https://github.com/nodatime/nodatime) types, install the dedicated package:
 
 <PackageInstallation packageName="HotChocolate.Types.NodaTime" />
 
-**Available Scalars:**
+`HotChocolate.Types.NodaTime` provides alternative implementations of the same five built-in date and time scalars defined by the specifications on [scalars.graphql.org](https://scalars.graphql.org/):
 
-| Type           | Description                                                                               | Example                                       |
-| -------------- | ----------------------------------------------------------------------------------------- | --------------------------------------------- |
-| DateTimeZone   | A [NodaTime DateTimeZone](https://nodatime.org/TimeZones)                                 | `"Europe/Rome"`                               |
-| Duration       | A [NodaTime Duration](https://nodatime.org/3.0.x/userguide/duration-patterns)             | `"-123:07:53:10.019"`                         |
-| Instant        | A [NodaTime Instant](https://nodatime.org/3.0.x/userguide/instant-patterns)               | `"2020-02-20T17:42:59Z"`                      |
-| IsoDayOfWeek   | A [NodaTime IsoDayOfWeek](https://nodatime.org/3.0.x/api/NodaTime.IsoDayOfWeek.html)      | `7`                                           |
-| LocalDate      | A [NodaTime LocalDate](https://nodatime.org/3.0.x/userguide/localdate-patterns)           | `"2020-12-25"`                                |
-| LocalDateTime  | A [NodaTime LocalDateTime](https://nodatime.org/3.0.x/userguide/localdatetime-patterns)   | `"2020-12-25T13:46:78"`                       |
-| LocalTime      | A [NodaTime LocalTime](https://nodatime.org/3.0.x/userguide/localtime-patterns)           | `"12:42:13.03101"`                            |
-| OffsetDateTime | A [NodaTime OffsetDateTime](https://nodatime.org/3.0.x/userguide/offsetdatetime-patterns) | `"2020-12-25T13:46:78+02:35"`                 |
-| OffsetDate     | A [NodaTime OffsetDate](https://nodatime.org/3.0.x/userguide/offsetdate-patterns)         | `"2020-12-25+02:35"`                          |
-| OffsetTime     | A [NodaTime OffsetTime](https://nodatime.org/3.0.x/userguide/offsettime-patterns)         | `"13:46:78+02:35"`                            |
-| Offset         | A [NodeTime Offset](https://nodatime.org/3.0.x/userguide/offset-patterns)                 | `"+02:35"`                                    |
-| Period         | A [NodeTime Period](https://nodatime.org/3.0.x/userguide/period-patterns)                 | `"P-3W3DT139t"`                               |
-| ZonedDateTime  | A [NodaTime ZonedDateTime](https://nodatime.org/3.0.x/userguide/zoneddatetime-patterns)   | `"2020-12-31T19:40:13 Asia/Kathmandu +05:45"` |
+| GraphQL Scalar                                                                | NodaTime Runtime Type                                                         | Replaces Built-in Mapping       |
+| ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ------------------------------- |
+| [DateTime](https://scalars.graphql.org/chillicream/date-time.html)            | [OffsetDateTime](https://nodatime.org/3.2.x/api/NodaTime.OffsetDateTime.html) | `DateTimeOffset`                |
+| [Duration](https://scalars.graphql.org/chillicream/duration.html)             | [Duration](https://nodatime.org/3.2.x/api/NodaTime.Duration.html)             | (see note below for `TimeSpan`) |
+| [LocalDate](https://scalars.graphql.org/chillicream/local-date.html)          | [LocalDate](https://nodatime.org/3.2.x/api/NodaTime.LocalDate.html)           | `DateOnly`                      |
+| [LocalDateTime](https://scalars.graphql.org/chillicream/local-date-time.html) | [LocalDateTime](https://nodatime.org/3.2.x/api/NodaTime.LocalDateTime.html)   | `DateTime`                      |
+| [LocalTime](https://scalars.graphql.org/chillicream/local-time.html)          | [LocalTime](https://nodatime.org/3.2.x/api/NodaTime.LocalTime.html)           | `TimeOnly`                      |
 
-When returning a NodaTime type from one of our resolvers, for example a `NodaTime.Duration`, we also need to explicitly register the corresponding scalar type. In the case of a `NodaTime.Duration` this would be the `DurationType` scalar.
+> **Note:** The `Duration` scalar uses `NodaTime.Duration` as its runtime type. Calling `AddNodaTime()` does **not** automatically bind `System.TimeSpan` to `DurationType` or register `TimeSpan`↔`NodaTime.Duration` converters, as the runtime types are not compatible.
+
+These NodaTime scalars expose the same `@specifiedBy` URLs and implement the same GraphQL scalar specifications as the built-in versions, but they use NodaTime runtime types and may differ subtly in behavior. For example, the NodaTime implementations support up to 9 fractional second digits (nanosecond precision), whereas the equivalent BCL types only support up to 7 fractional second digits (100-nanosecond precision).
+
+Register them with `AddNodaTime()`:
 
 ```csharp
-public class Query
-{
-    public Duration GetDuration() => Duration.FromMinutes(3);
-}
+builder
+    .AddGraphQL()
+    .AddNodaTime();
 ```
 
+`AddNodaTime()` registers the five scalar types above and configures the related CLR bindings and converters automatically.
+
+If you prefer, you can still register individual scalar types explicitly. For example:
+
 ```csharp
-builder.Services
-    .AddGraphQLServer()
-    .AddQueryType<Query>()
-    .AddType<DurationType>();
+using NodaTimeDurationType = HotChocolate.Types.NodaTime.DurationType;
+
+builder
+    .AddGraphQL()
+    .AddType<NodaTimeDurationType>();
 ```
 
-This package was originally developed by [@shoooe](https://github.com/shoooe).
+## NodaTime scalar options
 
-# Binding behavior
+`HotChocolate.Types.NodaTime.DateTimeOptions` configures the NodaTime-backed `DateTime`, `LocalDateTime`, and `LocalTime` scalars:
 
-Hot Chocolate binds most of the native .NET types automatically.
-A `System.String` is for example automatically mapped to a `StringType` in the schema.
+- `InputPrecision` controls how many fractional second digits are accepted during parsing, up to `9`.
+- `OutputPrecision` controls how many fractional second digits are written during serialization, up to `9`.
+- `AlwaysOutputFractionalSeconds` always emits fractional seconds in serialized output when `OutputPrecision > 0`, padded with trailing zeros up to `OutputPrecision`. By default, trailing zeros are stripped and the fractional component is omitted entirely when zero. The option has no effect when `OutputPrecision` is `0`.
 
-We can override these mappings by explicitly specifying type bindings.
+Unlike the built-in BCL-backed scalars, the NodaTime implementations preserve up to 9 fractional second digits (nanosecond precision).
+
+If you need non-default NodaTime precision settings, register those scalar types individually instead of using `AddNodaTime()`:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+using NodaTimeDateTimeOptions = HotChocolate.Types.NodaTime.DateTimeOptions;
+using NodaTimeDateTimeType = HotChocolate.Types.NodaTime.DateTimeType;
+using NodaTimeLocalDateTimeType = HotChocolate.Types.NodaTime.LocalDateTimeType;
+using NodaTimeLocalTimeType = HotChocolate.Types.NodaTime.LocalTimeType;
+
+builder
+    .AddGraphQL()
+    .AddType(new NodaTimeDateTimeType(new NodaTimeDateTimeOptions
+    {
+        OutputPrecision = 3,
+        AlwaysOutputFractionalSeconds = true
+    }))
+    .AddType(new NodaTimeLocalDateTimeType(new NodaTimeDateTimeOptions
+    {
+        OutputPrecision = 3,
+        AlwaysOutputFractionalSeconds = true
+    }))
+    .AddType(new NodaTimeLocalTimeType(new NodaTimeDateTimeOptions
+    {
+        OutputPrecision = 3,
+        AlwaysOutputFractionalSeconds = true
+    }));
+```
+
+# Binding Behavior
+
+You can override the default .NET-to-scalar mappings by specifying type bindings explicitly:
+
+```csharp
+builder
+    .AddGraphQL()
     .BindRuntimeType<string, StringType>();
 ```
 
-Furthermore, we can also bind scalars to arrays or type structures:
+You can also bind scalars to arrays or complex types:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
-    .BindRuntimeType<byte[], ByteArrayType>();
+builder
+    .AddGraphQL()
+    .BindRuntimeType<byte[], Base64StringType>();
 ```
-
-Hot Chocolate only exposes the used scalars in the generated schema, keeping it simple and clean.
 
 # Custom Converters
 
-We can reuse existing scalar types and bind them to different runtime types by specifying converters.
-
-We could for example register converters between [NodaTime](https://nodatime.org/)'s `OffsetDateTime` and .NET's `DateTimeOffset` to reuse the existing `DateTimeType`.
+You can reuse existing scalar types with different runtime types by registering converters. For example, to map NodaTime's `OffsetDateTime` to the existing `DateTimeType`:
 
 ```csharp
-public class Query
+public sealed class ScheduleQueries
 {
     public OffsetDateTime GetDateTime(OffsetDateTime offsetDateTime)
     {
@@ -435,9 +415,9 @@ public class Query
 ```
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
-    .AddQueryType<Query>()
+builder
+    .AddGraphQL()
+    .AddQueryType<ScheduleQueries>()
     .BindRuntimeType<OffsetDateTime, DateTimeType>()
     .AddTypeConverter<OffsetDateTime, DateTimeOffset>(
         x => x.ToDateTimeOffset())
@@ -445,190 +425,155 @@ builder.Services
         x => OffsetDateTime.FromDateTimeOffset(x));
 ```
 
-# Scalar Options
-
-Some scalars like `TimeSpan` or `Uuid` have options like their serialization format.
-
-We can specify these options by registering the scalar explicitly.
-
-```csharp
-builder.Services
-    .AddGraphQLServer()
-    .AddType(new UuidType('D'));
-```
-
 # Custom Scalars
 
-All scalars in Hot Chocolate are defined through a `ScalarType`.
-The easiest way to create a custom scalar is to extend `ScalarType<TRuntimeType, TLiteral>`.
-This base class already includes basic serialization and parsing logic.
+A custom scalar converts values between the GraphQL wire format and a .NET runtime type. Each custom scalar handles four conversion scenarios:
+
+| Method                 | Direction               | Purpose                                                           |
+| ---------------------- | ----------------------- | ----------------------------------------------------------------- |
+| `OnCoerceInputLiteral` | GraphQL literal to .NET | Parses values embedded in a query, e.g. `{ field(arg: "value") }` |
+| `OnCoerceInputValue`   | JSON to .NET            | Parses values provided as variables in the request                |
+| `OnCoerceOutputValue`  | .NET to JSON            | Writes resolver results to the response                           |
+| `OnValueToLiteral`     | .NET to GraphQL literal | Converts default values for schema introspection                  |
+
+Extend `ScalarType<TRuntimeType, TLiteral>` to create a custom scalar:
 
 ```csharp
 public sealed class CreditCardNumberType : ScalarType<string, StringValueNode>
 {
     private readonly ICreditCardValidator _validator;
 
-    // we can inject services that have been registered
-    // with the DI container
+    // You can inject services registered with the DI container
     public CreditCardNumberType(ICreditCardValidator validator)
         : base("CreditCardNumber")
     {
         _validator = validator;
-
         Description = "Represents a credit card number";
     }
 
-    // is another StringValueNode an instance of this scalar
-    protected override bool IsInstanceOfType(StringValueNode valueSyntax)
-        => IsInstanceOfType(valueSyntax.Value);
-
-    // is another string .NET type an instance of this scalar
-    protected override bool IsInstanceOfType(string runtimeValue)
-        => _validator.ValidateCreditCard(runtimeValue);
-
-    public override IValueNode ParseResult(object? resultValue)
-        => ParseValue(resultValue);
-
-    // define how a value node is parsed to the string .NET type
-    protected override string ParseLiteral(StringValueNode valueSyntax)
-        => valueSyntax.Value;
-
-    // define how the string .NET type is parsed to a value node
-    protected override StringValueNode ParseValue(string runtimeValue)
-        => new StringValueNode(runtimeValue);
-
-    public override bool TryDeserialize(object? resultValue,
-        out object? runtimeValue)
+    protected override string OnCoerceInputLiteral(StringValueNode valueLiteral)
     {
-        runtimeValue = null;
-
-        if (resultValue is string s && _validator.ValidateCreditCard(s))
-        {
-            runtimeValue = s;
-            return true;
-        }
-
-        return false;
+        AssertCreditCardNumberFormat(valueLiteral.Value);
+        return valueLiteral.Value;
     }
 
-    public override bool TrySerialize(object? runtimeValue,
-        out object? resultValue)
+    protected override string OnCoerceInputValue(
+        JsonElement inputValue,
+        IFeatureProvider context)
     {
-        resultValue = null;
+        var value = inputValue.GetString()!;
+        AssertCreditCardNumberFormat(value);
+        return value;
+    }
 
-        if (runtimeValue is string s && _validator.ValidateCreditCard(s))
+    protected override void OnCoerceOutputValue(
+        string runtimeValue,
+        ResultElement resultValue)
+    {
+        AssertCreditCardNumberFormat(runtimeValue);
+        resultValue.SetStringValue(runtimeValue);
+    }
+
+    protected override StringValueNode OnValueToLiteral(string runtimeValue)
+    {
+        AssertCreditCardNumberFormat(runtimeValue);
+        return new StringValueNode(runtimeValue);
+    }
+
+    private void AssertCreditCardNumberFormat(string value)
+    {
+        if (!_validator.ValidateCreditCard(value))
         {
-            resultValue = s;
-            return true;
+            throw new LeafCoercionException(
+                "The specified value is not a valid credit card number.",
+                this);
         }
-
-        return false;
     }
 }
 ```
 
-By extending `ScalarType` we have full control over serialization and parsing.
+## Specialized Base Classes
+
+Hot Chocolate provides specialized base classes for common scalar patterns.
+
+### Integer scalars
+
+Use `IntegerTypeBase<T>` for numeric scalars with min/max constraints. The base class handles parsing, validation, and range checking automatically.
 
 ```csharp
-public class CreditCardNumberType : ScalarType
+public sealed class TcpPortType : IntegerTypeBase<int>
 {
-    private readonly ICreditCardValidator _validator;
-
-    public CreditCardNumberType(ICreditCardValidator validator)
-        : base("CreditCardNumber")
+    public TcpPortType()
+        : base("TcpPort", min: 1, max: 65535)
     {
-        _validator = validator;
-
-        Description = "Represents a credit card number";
+        Description = "A valid TCP port number (1-65535)";
     }
 
-    // define which .NET type represents your type
-    public override Type RuntimeType { get; } = typeof(string);
+    protected override int OnCoerceInputLiteral(IntValueNode valueLiteral)
+        => valueLiteral.ToInt32();
 
-    // define which value nodes this type can be parsed from
-    public override bool IsInstanceOfType(IValueNode valueSyntax)
+    protected override int OnCoerceInputValue(JsonElement inputValue)
+        => inputValue.GetInt32();
+
+    protected override void OnCoerceOutputValue(int runtimeValue, ResultElement resultValue)
+        => resultValue.SetNumberValue(runtimeValue);
+
+    protected override IValueNode OnValueToLiteral(int runtimeValue)
+        => new IntValueNode(runtimeValue);
+}
+```
+
+`IntegerTypeBase` validates that values fall within the specified range and throws a `LeafCoercionException` if they do not. To customize the error message, override `FormatError`:
+
+```csharp
+protected override LeafCoercionException FormatError(int runtimeValue)
+    => new LeafCoercionException(
+        $"The value '{runtimeValue}' is not a valid TCP port. Must be between 1 and 65535.",
+        this);
+```
+
+Hot Chocolate also provides `FloatTypeBase<T>` for floating-point scalars (`float`, `double`, `decimal`) that need min/max range validation.
+
+### Regex-based scalars
+
+Use `RegexType` for string scalars that must match a specific pattern. This works well for formats like phone numbers, postal codes, or identifiers.
+
+```csharp
+public sealed class HexColorType : RegexType
+{
+    public HexColorType()
+        : base(
+            "HexColor",
+            "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$",
+            "A hex color code, e.g. #FF5733 or #F53")
     {
-        ArgumentNullException.ThrowIfNull(valueSyntax);
-
-        return valueSyntax is StringValueNode stringValueNode &&
-            _validator.ValidateCreditCard(stringValueNode.Value);
-    }
-
-    // define how a value node is parsed to the native .NET type
-    public override object ParseLiteral(IValueNode valueSyntax,
-        bool withDefaults = true)
-    {
-        if (valueSyntax is StringValueNode stringLiteral &&
-            _validator.ValidateCreditCard(stringLiteral.Value))
-        {
-            return stringLiteral.Value;
-        }
-
-        throw new SerializationException(
-            "The specified value has to be a credit card number in the format "
-                + "XXXX XXXX XXXX XXXX",
-            this);
-    }
-
-    // define how the .NET type is parsed to a value node
-    public override IValueNode ParseValue(object? runtimeValue)
-    {
-        if (runtimeValue is string s &&
-            _validator.ValidateCreditCard(s))
-        {
-            return new StringValueNode(null, s, false);
-        }
-
-        throw new SerializationException(
-            "The specified value has to be a credit card number in the format "
-                + "XXXX XXXX XXXX XXXX",
-            this);
-    }
-
-    public override IValueNode ParseResult(object? resultValue)
-    {
-        if (resultValue is string s &&
-            _validator.ValidateCreditCard(s))
-        {
-            return new StringValueNode(null, s, false);
-        }
-
-        throw new SerializationException(
-            "The specified value has to be a credit card number in the format "
-                + "XXXX XXXX XXXX XXXX",
-            this);
-    }
-
-    public override bool TrySerialize(object? runtimeValue,
-        out object? resultValue)
-    {
-        resultValue = null;
-
-        if (runtimeValue is string s &&
-            _validator.ValidateCreditCard(s))
-        {
-            resultValue = s;
-            return true;
-        }
-
-        return false;
-    }
-
-    public override bool TryDeserialize(object? resultValue,
-        out object? runtimeValue)
-    {
-        runtimeValue = null;
-
-        if (resultValue is string s &&
-            _validator.ValidateCreditCard(s))
-        {
-            runtimeValue = s;
-            return true;
-        }
-
-        return false;
     }
 }
 ```
 
-The implementation of [Hot Chocolate's own scalars](https://github.com/ChilliCream/graphql-platform/tree/main/src/HotChocolate/Core/src/Types.Scalars) can be used as a reference for writing custom scalars.
+You can also instantiate `RegexType` directly when registering scalars:
+
+```csharp
+builder
+    .AddGraphQL()
+    .AddType(new RegexType(
+        "PostalCode",
+        @"^\d{5}(-\d{4})?$",
+        "US postal code in format 12345 or 12345-6789"));
+```
+
+To customize the error message for pattern validation failures, override `FormatException`:
+
+```csharp
+protected override LeafCoercionException FormatException(string runtimeValue)
+    => new LeafCoercionException(
+        $"'{runtimeValue}' is not a valid hex color. Expected format: #RGB or #RRGGBB.",
+        this);
+```
+
+# Next Steps
+
+- **Need to define object types?** See [Object Types](/docs/hotchocolate/v16/defining-a-schema/object-types).
+- **Need to accept complex inputs?** See [Input Object Types](/docs/hotchocolate/v16/defining-a-schema/input-object-types).
+- **Need to define enums?** See [Enums](/docs/hotchocolate/v16/defining-a-schema/enums).
+- **Need to add custom validation logic?** See [Directives](/docs/hotchocolate/v16/defining-a-schema/directives).

@@ -291,7 +291,13 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .SetVariableValues(new Dictionary<string, object?> { { "skip", true }, { "include", true } })
+                        .SetVariableValues(
+                            """
+                            {
+                              "skip": true,
+                              "include": true
+                            }
+                            """)
                         .Build());
 
         result.MatchInlineSnapshot(
@@ -325,7 +331,12 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .SetVariableValues(new Dictionary<string, object?> { { "shouldSkip", true } })
+                        .SetVariableValues(
+                            """
+                            {
+                              "shouldSkip": true
+                            }
+                            """)
                         .Build());
 
         result.MatchInlineSnapshot(
@@ -359,7 +370,12 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .SetVariableValues(new Dictionary<string, object?> { { "shouldSkip", false } })
+                        .SetVariableValues(
+                            """
+                            {
+                              "shouldSkip": false
+                            }
+                            """)
                         .Build());
 
         result.MatchInlineSnapshot(
@@ -393,7 +409,13 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .SetVariableValues(new Dictionary<string, object?> { { "skip", true }, { "include", true } })
+                        .SetVariableValues(
+                            """
+                            {
+                              "skip": true,
+                              "include": true
+                            }
+                            """)
                         .Build());
 
         result.MatchInlineSnapshot(
@@ -421,7 +443,6 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .SetVariableValues(new Dictionary<string, object?> { { "skip", true }, { "include", true } })
                         .Build());
 
         result.MatchInlineSnapshot(
@@ -449,7 +470,13 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .SetVariableValues(new Dictionary<string, object?> { { "skip", true }, { "include", false } })
+                        .SetVariableValues(
+                            """
+                            {
+                              "skip": true,
+                              "include": false
+                            }
+                            """)
                         .Build());
 
         result.MatchInlineSnapshot(
@@ -504,7 +531,13 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .SetVariableValues(new Dictionary<string, object?> { { "skip", false }, { "include", false } })
+                        .SetVariableValues(
+                            """
+                            {
+                              "skip": false,
+                              "include": false
+                            }
+                            """)
                         .Build());
 
         result.MatchInlineSnapshot(
@@ -563,7 +596,13 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .SetVariableValues(new Dictionary<string, object?> { { "skip", false }, { "include", true } })
+                        .SetVariableValues(
+                            """
+                            {
+                              "skip": false,
+                              "include": true
+                            }
+                            """)
                         .Build());
 
         result.MatchInlineSnapshot(
@@ -622,7 +661,12 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .SetVariableValues(new Dictionary<string, object?> { { "skip", true } })
+                        .SetVariableValues(
+                            """
+                            {
+                              "skip": true
+                            }
+                            """)
                         .Build());
 
         result.MatchInlineSnapshot(
@@ -693,7 +737,12 @@ public class SelectionIncludeConditionTests
                                 __typename
                             }
                             """)
-                        .SetVariableValues(new Dictionary<string, object?> { { "permission", false } })
+                        .SetVariableValues(
+                            """
+                            {
+                              "permission": false
+                            }
+                            """)
                         .Build());
 
         result.MatchInlineSnapshot(
@@ -709,12 +758,134 @@ public class SelectionIncludeConditionTests
             """);
     }
 
+    [Fact]
+    public async Task Complementary_Fragment_Spreads_Should_Use_Full_Fragment_When_Minimal_Is_False()
+    {
+        // arrange
+        var result = await ExecuteComplementaryFragmentQueryAsync(minimal: false);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "series": [
+                  {
+                    "streams": [
+                      {
+                        "__typename": "Stream",
+                        "id": "stream-1",
+                        "hasDrm": true,
+                        "title": "Stream One",
+                        "publishedAt": "2026-01-01"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Complementary_Fragment_Spreads_Should_Use_Minimal_Fragment_When_Minimal_Is_True()
+    {
+        // arrange
+        var result = await ExecuteComplementaryFragmentQueryAsync(minimal: true);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "series": [
+                  {
+                    "streams": [
+                      {
+                        "__typename": "Stream",
+                        "id": "stream-1",
+                        "hasDrm": true
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    private static async Task<IExecutionResult> ExecuteComplementaryFragmentQueryAsync(bool minimal)
+    {
+        var schema = SchemaBuilder.New()
+            .AddDocumentFromString(
+                """
+                type Query {
+                  series: [Series!]!
+                }
+
+                type Series {
+                  id: ID!
+                  streams: [Stream!]!
+                }
+
+                type Stream {
+                  id: ID!
+                  title: String
+                  hasDrm: Boolean
+                  publishedAt: String
+                }
+                """)
+            .AddResolver<Query>()
+            .Create();
+
+        return await schema.MakeExecutable().ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(
+                    """
+                    query TestQuery($minimal: Boolean = false) {
+                      series {
+                        streams {
+                          __typename
+                          ...streamFields
+                        }
+                      }
+                    }
+
+                    fragment streamFields on Stream {
+                      __typename
+                      ...MinimalStream @include(if: $minimal)
+                      ...FullStream @skip(if: $minimal)
+                    }
+
+                    fragment MinimalStream on Stream {
+                      id
+                      hasDrm
+                    }
+
+                    fragment FullStream on Stream {
+                      id
+                      title
+                      hasDrm
+                      publishedAt
+                    }
+                    """)
+                .SetVariableValues(
+                    $$"""
+                    {
+                      "minimal": {{minimal.ToString().ToLowerInvariant()}}
+                    }
+                    """)
+                .Build());
+    }
+
     public sealed class Query
     {
         public Person Person() => new Person();
 
         [UsePaging]
         public Person[] Persons() => [new Person()];
+
+        public Series[] Series() => [new Series()];
     }
 
     public sealed class Person
@@ -722,5 +893,23 @@ public class SelectionIncludeConditionTests
         public string Name { get; } = "hello";
 
         public string Address { get; } = "world";
+    }
+
+    public sealed class Series
+    {
+        public string Id { get; } = "series-1";
+
+        public Stream[] Streams() => [new Stream()];
+    }
+
+    public sealed class Stream
+    {
+        public string Id { get; } = "stream-1";
+
+        public string Title { get; } = "Stream One";
+
+        public bool HasDrm { get; } = true;
+
+        public string PublishedAt { get; } = "2026-01-01";
     }
 }

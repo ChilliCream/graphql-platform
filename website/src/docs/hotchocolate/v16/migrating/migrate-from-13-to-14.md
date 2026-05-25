@@ -78,7 +78,7 @@ For more information, see the [Dependency Injection](/docs/hotchocolate/v14/serv
 - The `RegisterDbContext` method is no longer required, and has therefore been removed, along with the `DbContextKind` enum.
 - Use `RegisterDbContextFactory` to register a DbContext factory.
 
-For more information, see the [Entity Framework integration](/docs/hotchocolate/v14/integrations/entity-framework) documentation.
+For more information, see the [Entity Framework integration](/docs/hotchocolate/v14/fetching-data/entity-framework) documentation.
 
 ## New GID format
 
@@ -170,6 +170,14 @@ Please see the [documentation](/docs/hotchocolate/v14/security/cost-analysis) fo
 The `DateTime` scalar will now enforce a specific format. The time and offset are now required, and fractional seconds are limited to 7. This aligns it with the DateTime Scalar spec (<https://www.graphql-scalars.com/date-time/>), with the one difference being that fractions of a second are optional, and 0-7 digits may be specified.
 
 Please ensure that your clients are sending date/time strings in the correct format to avoid errors.
+
+You can opt out of the format check with the following code:
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddType(new DateTimeType(disableFormatCheck: true));
+```
 
 ## Persisted Queries renamed to Persisted Operations
 

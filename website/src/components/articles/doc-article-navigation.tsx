@@ -1,4 +1,3 @@
-import { graphql } from "gatsby";
 import React, {
   FC,
   MouseEvent,
@@ -13,7 +12,6 @@ import styled, { css } from "styled-components";
 import { ScrollContainer } from "@/components/article-elements";
 import { IconContainer, Link } from "@/components/misc";
 import { Icon } from "@/components/sprites";
-import { DocArticleNavigationFragment } from "@/graphql-types";
 import { closeTOC } from "@/state/common";
 import { FONT_FAMILY_HEADING, THEME_COLORS } from "@/style";
 import {
@@ -30,8 +28,38 @@ import ChevronDownIconSvg from "@/images/icons/chevron-down.svg";
 import ChevronUpIconSvg from "@/images/icons/chevron-up.svg";
 import Grid2IconSvg from "@/images/icons/grid-2.svg";
 
+interface DocArticleNavigationProduct {
+  path?: string | null;
+  title?: string | null;
+  description?: string | null;
+  latestStableVersion?: string | null;
+  versions?: Array<{
+    path?: string | null;
+    title?: string | null;
+    items?: Array<{
+      path?: string | null;
+      title?: string | null;
+      items?: Array<{
+        path?: string | null;
+        title?: string | null;
+        items?: Array<{
+          path?: string | null;
+          title?: string | null;
+        } | null> | null;
+      } | null> | null;
+    } | null> | null;
+  } | null> | null;
+}
+
+interface DocArticleNavigationData {
+  config?: {
+    products?: Array<DocArticleNavigationProduct | null> | null;
+  } | null;
+  [key: string]: any;
+}
+
 export interface DocArticleNavigationProps {
-  readonly data: DocArticleNavigationFragment;
+  readonly data: DocArticleNavigationData;
   readonly selectedPath: string;
   readonly selectedProduct: string;
   readonly selectedVersion: string;
@@ -86,21 +114,28 @@ export const DocArticleNavigation: FC<DocArticleNavigationProps> = ({
   const hasVersions =
     !activeProduct?.versions || activeProduct.versions.length > 1;
 
-  const subItems: Item[] =
-    activeVersion?.items
-      ?.filter((item) => !!item)
-      .map<Item>((item) => ({
-        path: item!.path!,
-        title: item!.title!,
-        items: item!.items
-          ? item?.items
-              .filter((item) => !!item)
-              .map<Item>((item) => ({
-                path: item!.path!,
-                title: item!.title!,
-              }))
-          : undefined,
-      })) ?? [];
+  function mapItems(
+    raw:
+      | Array<{
+          path?: string | null;
+          title?: string | null;
+          items?: any;
+        } | null>
+      | null
+      | undefined
+  ): Item[] {
+    return (
+      raw
+        ?.filter((item) => !!item)
+        .map<Item>((item) => ({
+          path: item!.path!,
+          title: item!.title!,
+          items: item!.items ? mapItems(item!.items) : undefined,
+        })) ?? []
+    );
+  }
+
+  const subItems: Item[] = mapItems(activeVersion?.items);
 
   const basePath = `/docs/${activeProduct!.path!}${
     !!activeVersion?.path?.length ? "/" + activeVersion.path : ""
@@ -113,14 +148,14 @@ export const DocArticleNavigation: FC<DocArticleNavigationProps> = ({
           fullWidth={!hasVersions}
           onClick={toggleProductSwitcher}
         >
-          {activeProduct?.title}
+          <ProductSwitcherLabel>{activeProduct?.title}</ProductSwitcherLabel>
           <IconContainer $size={14}>
             <Icon {...Grid2IconSvg} />
           </IconContainer>
         </ProductSwitcherButton>
         {hasVersions && (
           <ProductSwitcherButton onClick={toggleVersionSwitcher}>
-            {activeVersion?.title}
+            <ProductSwitcherLabel>{activeVersion?.title}</ProductSwitcherLabel>
             <IconContainer $size={14}>
               {versionSwitcherOpen ? (
                 <Icon {...ChevronUpIconSvg} />
@@ -285,34 +320,6 @@ function containsActiveItem(selectedPath: string, itemPath: string) {
   return (selectedPath + "/").startsWith(itemPath + "/");
 }
 
-export const DocArticleNavigationGraphQLFragment = graphql`
-  fragment DocArticleNavigation on Query {
-    config: file(
-      sourceInstanceName: { eq: "docs" }
-      relativePath: { eq: "docs.json" }
-    ) {
-      products: childrenDocsJson {
-        path
-        title
-        description
-        latestStableVersion
-        versions {
-          path
-          title
-          items {
-            path
-            title
-            items {
-              path
-              title
-            }
-          }
-        }
-      }
-    }
-  }
-`;
-
 interface Item {
   path: string;
   title: string;
@@ -323,6 +330,14 @@ type EnhancedItem = Item & {
   fullpath: string;
 };
 
+const ProductSwitcherLabel = styled.span`
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
 const ProductSwitcherButton = styled.button<{ readonly fullWidth?: boolean }>`
   display: flex;
   flex: 0 0 auto;
@@ -332,7 +347,7 @@ const ProductSwitcherButton = styled.button<{ readonly fullWidth?: boolean }>`
   box-sizing: border-box;
   border-radius: var(--button-border-radius);
   border: 2px solid ${THEME_COLORS.primaryButtonBorder};
-  min-width: 62px;
+  min-width: 0;
   height: 38px;
   padding-right: 8px;
   padding-left: 8px;
@@ -428,7 +443,8 @@ const ProductVersionDialog = styled.div<{
   border: 1px solid ${THEME_COLORS.boxBorder};
   border-radius: var(--button-border-radius);
   padding: 2px;
-  width: 59px;
+  width: max-content;
+  min-width: 59px;
   backdrop-filter: blur(2px);
   background-image: linear-gradient(
     to right bottom,
@@ -487,6 +503,7 @@ const VersionLink = styled(Link).withConfig<LinkProps>({
   color: ${THEME_COLORS.text};
   border-radius: var(--button-border-radius);
   padding: 6px 9px;
+  white-space: nowrap;
   cursor: pointer;
   transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
 

@@ -2,86 +2,89 @@
 title: "Non-Null"
 ---
 
-Per default all fields on an object type can be either `null` or the specified type.
+By default, every GraphQL field can return either its declared type or `null`. The non-null modifier (`!`) tells clients that a field will never be `null`. If a resolver returns `null` for a non-null field, the execution engine raises an error rather than sending unexpected null values to clients.
 
-```sdl
-type User {
-  name: String
-}
-```
-
-In the above example `name` can either be `null` or a `String`.
-
-Being nullable does not make sense for every field though. Maybe we have some database constraint which enforces the `name` to never be `null`.
-GraphQL allows us to be specific about this, by marking a field as non-null.
-
-```sdl
+```graphql
 type User {
   name: String!
+  bio: String
 }
 ```
 
-The exclamation mark (`!`) denotes that the field can never be `null`.
-This is also enforced by the execution engine. If we were to return a `null` value in the `name` resolver, the execution engine would throw an error. This prevents unexpected `null` values from causing issues in the consuming applications.
+In this schema, `name` always has a value. The `bio` field may be `null`.
 
-<Video videoId="Zx0nvTUfjn4" />
+# Implicit Nullability from C# Types
 
-# Implicit nullability
+Hot Chocolate infers nullability from your C# types. When [nullable reference types](https://docs.microsoft.com/dotnet/csharp/nullable-references) (NRT) are enabled in your project, the mapping is straightforward.
 
-Hot Chocolate automatically infers the nullability of the schema type from the nullability of the used CLR type.
+## Value Types
 
-[Value types](https://docs.microsoft.com/dotnet/csharp/language-reference/builtin-types/value-types) are non-null per default, unless they have been marked as nullable.
+Value types are non-null by default. Use `?` to make them nullable.
 
-| CLR Type                | Schema Type |
-| ----------------------- | ----------- |
-| int                     | Int!        |
-| int?                    | Int         |
-| Nullable&#x3C;int&#x3E; | Int         |
+| C# type | GraphQL type |
+| ------- | ------------ |
+| `int`   | `Int!`       |
+| `int?`  | `Int`        |
+| `bool`  | `Boolean!`   |
+| `bool?` | `Boolean`    |
 
-[Reference types](https://docs.microsoft.com/dotnet/csharp/language-reference/keywords/reference-types) are always nullable, unless we have enabled [nullable reference types](https://docs.microsoft.com/dotnet/csharp/nullable-references). With nullable reference types enabled all fields are non-null per default.
+## Reference Types (NRT Enabled)
 
-We strongly encourage the use of nullable reference types.
+With NRT enabled (recommended), non-nullable references map to non-null GraphQL types.
 
-# Explicit nullability
+| C# type   | GraphQL type |
+| --------- | ------------ |
+| `string`  | `String!`    |
+| `string?` | `String`     |
+| `User`    | `User!`      |
+| `User?`   | `User`       |
 
-We can also be explicit about the nullability of our fields.
+## Reference Types (NRT Disabled)
+
+Without NRT, all reference types are nullable by default. Hot Chocolate cannot distinguish `string` from `string?` because the compiler treats them identically.
+
+| C# type  | GraphQL type |
+| -------- | ------------ |
+| `string` | `String`     |
+| `User`   | `User`       |
+
+We strongly recommend enabling NRT. It provides accurate schema nullability without extra attributes and catches null-related bugs at compile time.
+
+# Enabling Nullable Reference Types
+
+Add the following to your `.csproj` file to enable NRT across the project:
+
+```xml
+<PropertyGroup>
+    <Nullable>enable</Nullable>
+</PropertyGroup>
+```
+
+You can also enable it per file with `#nullable enable` at the top of the file.
+
+# Explicit Nullability
+
+When you need to override the inferred nullability, use attributes or the descriptor API.
 
 <ExampleTabs>
 <Implementation>
 
 ```csharp
-public class Query
-{
-    [GraphQLNonNullType]
-    public Book GetBook()
-    {
-        return new Book { Title  = "C# in depth", Author = "Jon Skeet" };
-    }
-}
-
 public class Book
 {
     [GraphQLNonNullType]
     public string Title { get; set; }
 
-    public string Author { get; set; }
+    public string? Author { get; set; }
 }
 ```
+
+`[GraphQLNonNullType]` forces the field to be non-null in the schema regardless of the C# nullability.
 
 </Implementation>
 <Code>
 
 ```csharp
-public class QueryType : ObjectType<Query>
-{
-    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
-    {
-        descriptor
-            .Field(f => f.GetBook())
-            .Type<NonNullType<BookType>>();
-    }
-}
-
 public class BookType : ObjectType<Book>
 {
     protected override void Configure(IObjectTypeDescriptor<Book> descriptor)
@@ -98,19 +101,20 @@ public class BookType : ObjectType<Book>
 ```
 
 </Code>
-<Schema>
-
-```sdl
-type Book {
-  title: String!
-  nullableTitle: String
-}
-```
-
-</Schema>
 </ExampleTabs>
 
-The inner type of a list can be made non-null like the following.
+# Non-Null List Items
+
+Lists have two layers of nullability: the list itself and its items. With NRT enabled:
+
+| C# type          | GraphQL type |
+| ---------------- | ------------ |
+| `List<string>`   | `[String!]!` |
+| `List<string>?`  | `[String!]`  |
+| `List<string?>`  | `[String]!`  |
+| `List<string?>?` | `[String]`   |
+
+To override nullability on list items explicitly:
 
 <ExampleTabs>
 <Implementation>
@@ -139,13 +143,13 @@ public class BookType : ObjectType<Book>
 ```
 
 </Code>
-<Schema>
-
-```sdl
-type Book {
-  genres: [String!]
-}
-```
-
-</Schema>
 </ExampleTabs>
+
+Both produce `genres: [String!]` in the schema.
+
+# Next Steps
+
+- **Need to define lists?** See [Lists](/docs/hotchocolate/v16/defining-a-schema/lists).
+- **Need to understand arguments?** See [Arguments](/docs/hotchocolate/v16/defining-a-schema/arguments).
+- **Need input types?** See [Input Object Types](/docs/hotchocolate/v16/defining-a-schema/input-object-types).
+- **Need to learn about scalars?** See [Scalars](/docs/hotchocolate/v16/defining-a-schema/scalars).

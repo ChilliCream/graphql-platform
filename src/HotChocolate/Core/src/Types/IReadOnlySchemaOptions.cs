@@ -48,6 +48,12 @@ public interface IReadOnlySchemaOptions
     bool SortFieldsByName { get; }
 
     /// <summary>
+    /// Defines if enum values shall be sorted by name.
+    /// Default: <c>false</c>
+    /// </summary>
+    bool SortEnumValuesByName { get; }
+
+    /// <summary>
     /// Defines if types shall be removed from the schema that are
     /// unreachable from the root types.
     /// </summary>
@@ -86,6 +92,13 @@ public interface IReadOnlySchemaOptions
     DirectiveVisibility DefaultDirectiveVisibility { get; }
 
     /// <summary>
+    /// Disables the concept of internal directives so that all directives are treated as public.
+    /// When set to <c>true</c>, this overrides any explicit <c>Internal()</c> calls on
+    /// directive types and the <see cref="DefaultDirectiveVisibility"/> setting.
+    /// </summary>
+    bool DisableInternalDirectives { get; }
+
+    /// <summary>
     /// Defines that the default resolver execution strategy.
     /// </summary>
     ExecutionStrategy DefaultResolverStrategy { get; }
@@ -105,11 +118,6 @@ public interface IReadOnlySchemaOptions
     /// is an instance of an <see cref="ObjectType{T}"/>.
     /// </summary>
     IsOfTypeFallback? DefaultIsOfTypeCheck { get; }
-
-    /// <summary>
-    /// Defines if the OneOf spec RFC is enabled. This feature is experimental.
-    /// </summary>
-    bool EnableOneOf { get; }
 
     /// <summary>
     /// Defines if flag enums should be inferred as object value nodes
@@ -159,13 +167,6 @@ public interface IReadOnlySchemaOptions
     bool EnableStream { get; }
 
     /// <summary>
-    /// Enables the @semanticNonNull directive and rewrites Non-Null types to nullable types
-    /// with this directive attached to indicate semantic non-nullability.
-    /// This feature is experimental and might be changed or removed in the future.
-    /// </summary>
-    bool EnableSemanticNonNull { get; }
-
-    /// <summary>
     /// Specified if the leading I shall be stripped from the interface name.
     /// </summary>
     bool StripLeadingIFromInterface { get; }
@@ -176,18 +177,71 @@ public interface IReadOnlySchemaOptions
     bool EnableTag { get; }
 
     /// <summary>
+    /// Enables opt-in features functionality, including the <c>@requiresOptIn</c> and
+    /// <c>@optInFeatureStability</c> directives. When enabled, schema elements can be marked as
+    /// requiring explicit opt-in, and introspection queries can filter results based on opted-in
+    /// features.
+    /// </summary>
+    bool EnableOptInFeatures { get; }
+
+    /// <summary>
+    /// Enables semantic introspection, including the <c>__search</c> and <c>__definitions</c>
+    /// introspection fields for AI-driven schema discovery.
+    /// When core introspection is disabled, semantic introspection is also disabled
+    /// regardless of this setting.
+    /// </summary>
+    bool EnableSemanticIntrospection { get; }
+
+    /// <summary>
     /// Specifies the default dependency injection scope for query fields.
     /// </summary>
-    public DependencyInjectionScope DefaultQueryDependencyInjectionScope { get; }
+    DependencyInjectionScope DefaultQueryDependencyInjectionScope { get; }
 
     /// <summary>
     /// Specifies the default dependency injection scope for mutation fields.
     /// </summary>
-    public DependencyInjectionScope DefaultMutationDependencyInjectionScope { get; }
+    DependencyInjectionScope DefaultMutationDependencyInjectionScope { get; }
 
     /// <summary>
     /// Specifies if the elements of paginated root fields should be published
     /// to the DataLoader promise cache.
     /// </summary>
     bool PublishRootFieldPagesToPromiseCache { get; }
+
+    /// <summary>
+    /// Specifies that the <see cref="IRequestExecutor"/> should be constructed
+    /// lazily.
+    /// </summary>
+    bool LazyInitialization { get; }
+
+    /// <summary>
+    /// Specifies the size of the prepared operation cache.
+    /// </summary>
+    int PreparedOperationCacheSize { get; }
+
+    /// <summary>
+    /// Specifies the size of the operation document cache.
+    /// </summary>
+    int OperationDocumentCacheSize { get; }
+
+    /// <summary>
+    /// Applies the @sharable directive to the PageInfo type.
+    /// </summary>
+    bool ApplyShareableToPageInfo { get; }
+
+    /// <summary>
+    /// Applies the @sharable directive to all connection and edge types.
+    /// </summary>
+    bool ApplyShareableToConnections { get; }
+
+    /// <summary>
+    /// Applies the @sharable directive to the `node(id)` and `nodes(id)`
+    /// field when Global Object Identification is turned on.
+    /// </summary>
+    bool ApplyShareableToNodeFields { get; }
+
+    /// <summary>
+    /// Applies the @serializeAs directive to scalar types that specify a serialization format.
+    /// </summary>
+    bool ApplySerializeAsToScalars { get; }
 }

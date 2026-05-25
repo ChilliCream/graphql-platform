@@ -125,16 +125,16 @@ public class QueryableProjectionExtensionsTests
         protected override void OnConfigure(
             IDescriptorContext context,
             IObjectFieldDescriptor descriptor,
-            MemberInfo member)
+            MemberInfo? member)
         {
-            descriptor.Use(next => context =>
+            descriptor.Use(static next => ctx =>
             {
-                context.LocalContextData =
-                    context.LocalContextData.SetItem(
+                ctx.LocalContextData =
+                    ctx.LocalContextData.SetItem(
                         QueryableProjectionProvider.ContextApplyProjectionKey,
                         CreateApplicatorAsync<Foo>());
 
-                return next(context);
+                return next(ctx);
             });
         }
 

@@ -1,4 +1,4 @@
-﻿schema {
+schema {
   query: Resolvers
 }
 
@@ -19,7 +19,6 @@ type Resolvers {
   resolverWithCancellationToken: String!
   resolverWithDocument: Boolean!
   resolverWithFieldSelection: Boolean!
-  resolverWithFieldSyntax: Boolean!
   resolverWithObjectField: Boolean!
   resolverWithObjectType: Boolean!
   resolverWithOperationDefinition: Boolean!

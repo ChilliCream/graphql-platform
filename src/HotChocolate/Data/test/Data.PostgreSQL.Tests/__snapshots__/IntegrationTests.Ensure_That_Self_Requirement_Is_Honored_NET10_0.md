@@ -23,4 +23,3 @@
 SELECT s."Id"
 FROM "SingleProperties" AS s
 ```
-

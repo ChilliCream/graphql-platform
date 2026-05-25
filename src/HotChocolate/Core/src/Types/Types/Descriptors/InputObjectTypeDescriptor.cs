@@ -1,4 +1,6 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
@@ -54,13 +56,14 @@ public class InputObjectTypeDescriptor
     {
         Context.Descriptors.Push(this);
 
-        if (!Configuration.AttributesAreApplied && Configuration.RuntimeType != typeof(object))
+        if (!Configuration.ConfigurationsAreApplied)
         {
-            Context.TypeInspector.ApplyAttributes(
+            DescriptorAttributeHelper.ApplyConfiguration(
                 Context,
                 this,
                 Configuration.RuntimeType);
-            Configuration.AttributesAreApplied = true;
+
+            Configuration.ConfigurationsAreApplied = true;
         }
 
         var fields = TypeMemHelper.RentInputFieldConfigurationMap();
@@ -94,6 +97,20 @@ public class InputObjectTypeDescriptor
         Context.Descriptors.Pop();
     }
 
+    internal void InferFieldsFromFieldBindingType()
+    {
+        var fields = TypeMemHelper.RentInputFieldConfigurationMap();
+        var handledMembers = TypeMemHelper.RentMemberSet();
+
+        InferFieldsFromFieldBindingType(fields, handledMembers);
+
+        Configuration.Fields.Clear();
+        Configuration.Fields.AddRange(fields.Values);
+
+        TypeMemHelper.Return(fields);
+        TypeMemHelper.Return(handledMembers);
+    }
+
     protected void InferFieldsFromFieldBindingType(
         IDictionary<string, InputFieldConfiguration> fields,
         ISet<MemberInfo> handledMembers)
@@ -108,7 +125,9 @@ public class InputObjectTypeDescriptor
             foreach (var member in members)
             {
                 if (member is PropertyInfo propertyInfo
+#pragma warning disable IL2072 // 'type' argument does not satisfy 'DynamicallyAccessedMembersAttribute' - type comes from runtime configuration which cannot be statically annotated.
                     && (propertyInfo.CanWrite || HasConstructorParameter(type, propertyInfo)))
+#pragma warning restore IL2072
                 {
                     var name = naming.GetMemberName(propertyInfo, MemberKind.InputObjectField);
 
@@ -218,7 +237,12 @@ public class InputObjectTypeDescriptor
     /// <returns>
     /// <c>true</c> if a matching constructor parameter exists; otherwise, <c>false</c>.
     /// </returns>
-    private static bool HasConstructorParameter(Type type, PropertyInfo property)
+    private static bool HasConstructorParameter(
+        [DynamicallyAccessedMembers(
+            DynamicallyAccessedMemberTypes.PublicConstructors
+            | DynamicallyAccessedMemberTypes.NonPublicConstructors)]
+        Type type,
+        PropertyInfo property)
     {
         return type.GetConstructors(NonPublic | Public | Instance).Any(
             c => c.GetParameters().Any(

@@ -2,18 +2,13 @@ schema {
   query: Query
 }
 
-interface GeoJSONInterface {
-  "The geometry type of the GeoJson object"
-  type: GeoJSONGeometryType!
-  "The minimum bounding box around the geometry object"
-  bbox: [Float]
-  "The coordinate reference system integer identifier"
-  crs: Int
+type Query {
+  test: GeoJSONMultiLineStringType
 }
 
 type GeoJSONMultiLineStringType implements GeoJSONInterface {
   "The \"coordinates\" field is an array of LineString coordinate arrays."
-  coordinates: [Position]
+  coordinates: [[Position]]
   "The geometry type of the GeoJson object"
   type: GeoJSONGeometryType!
   "The minimum bounding box around the geometry object"
@@ -22,8 +17,13 @@ type GeoJSONMultiLineStringType implements GeoJSONInterface {
   crs: Int!
 }
 
-type Query {
-  test: GeoJSONMultiLineStringType
+interface GeoJSONInterface {
+  "The geometry type of the GeoJson object"
+  type: GeoJSONGeometryType!
+  "The minimum bounding box around the geometry object"
+  bbox: [Float]
+  "The coordinate reference system integer identifier"
+  crs: Int
 }
 
 enum GeoJSONGeometryType {

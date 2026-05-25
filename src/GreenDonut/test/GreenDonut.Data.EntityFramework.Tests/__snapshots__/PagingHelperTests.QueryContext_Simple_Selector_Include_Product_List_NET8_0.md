@@ -20,4 +20,3 @@ ORDER BY t."Id"
 ```text
 [Microsoft.EntityFrameworkCore.Query.EntityQueryRootExpression].OrderBy(t => t.Id).Select(root => new Brand() {Id = root.Id, Name = root.Name, Products = root.Products.Select(p => new Product() {Id = p.Id, Name = p.Name}).ToList()}).Take(3)
 ```
-

@@ -62,7 +62,7 @@ GROUP BY p."BrandId"
 
 ```sql
 -- @__brandIds_0={ '11' } (DbType = Object)
-SELECT t."BrandId", t0."Name", t0."Id", t0."BrandId"
+SELECT t."BrandId", t0."Name", t0."Id"
 FROM (
     SELECT p."BrandId"
     FROM "Products" AS p
@@ -80,4 +80,3 @@ LEFT JOIN (
 ) AS t0 ON t."BrandId" = t0."BrandId"
 ORDER BY t."BrandId", t0."BrandId", t0."Id"
 ```
-

@@ -4,15 +4,9 @@
   "Data": null,
   "Errors": [
     {
-      "message": "Expected a `String`-token, but found a `EndOfFile`-token.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 15
-        }
-      ],
+      "message": "Invalid JSON document.",
       "extensions": {
-        "code": "HC0011"
+        "code": "HC0012"
       }
     }
   ],

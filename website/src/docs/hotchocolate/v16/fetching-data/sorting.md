@@ -2,81 +2,34 @@
 title: Sorting
 ---
 
-# What is sorting
+Hot Chocolate generates sort input types from your .NET models, allowing clients to order results by one or more fields. The default implementation translates sort operations to expression trees applied to `IQueryable`, producing native database queries. For models with nested objects, sorting extends across relationships.
 
-Ordering results of a query dynamically is a common case. With Hot Chocolate sorting, you can expose a sorting argument that abstracts the complexity of ordering logic.
-With little configuration, your GraphQL API has sorting capabilities, which translates to native database queries.
-The default sort implementation translates sorting statements to expression trees that are applied to `IQueryable`.
-Hot Chocolate by default will inspect your .NET model and infer the possible sorting operations from it.
-Sorting uses `IQueryable` (`IEnumerable`) by default, but you can also easily customize them to use other interfaces.
-
-The following type would yield the following sorting operation
-
-```csharp
-    public class User
-    {
-        public string Name { get; set; }
-
-        public Address Address { get; set; }
-    }
-
-    public class Address
-    {
-        public string Street { get; set; }
-    }
-```
-
-```sdl
-type Query {
-  users(order: [UserSortInput]): [User]
-}
-
-type User {
-  name: String!
-  address: Address!
-}
-
-input AddressSortInput {
-  street: SortEnumType
-}
-
-input UserSortInput {
-  name: SortEnumType
-  address: AddressSortInput
-}
-
-enum SortEnumType {
-  ASC
-  DESC
-}
-```
-
-# Getting started
+# Getting Started
 
 Sorting is part of the `HotChocolate.Data` package.
 
 <PackageInstallation packageName="HotChocolate.Data" />
 
-To use sorting you need to register it on the schema:
+Register sorting on the schema:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
-    // Your schema configuration
+builder
+    .AddGraphQL()
     .AddSorting();
 ```
 
-Hot Chocolate will infer the sorting types directly from your .Net Model and then use a Middleware to apply the order to `IQueryable<T>` or `IEnumerable<T>` on execution.
+Apply the `[UseSorting]` attribute to a resolver that returns `IQueryable<T>` or `IEnumerable<T>`:
 
 <ExampleTabs>
 <Implementation>
 
 ```csharp
-public class Query
+[QueryType]
+public static partial class UserQueries
 {
     [UseSorting]
-    public IQueryable<User> GetUsers(IUserRepository repository)
-        => repository.GetUsers();
+    public static IQueryable<User> GetUsers(CatalogContext db)
+        => db.Users;
 }
 ```
 
@@ -84,79 +37,86 @@ public class Query
 <Code>
 
 ```csharp
-public class QueryType : ObjectType<Query>
+public class UserQueries
 {
-    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
-    {
-        descriptor.Field(f => f.GetUsers(default)).UseSorting();
-    }
+    public IQueryable<User> GetUsers(CatalogContext db)
+        => db.Users;
 }
 
-public class Query
+public class UserQueriesType : ObjectType<UserQueries>
 {
-    public IQueryable<User> GetUsers(IUserRepository repository)
-        => repository.GetUsers();
+    protected override void Configure(IObjectTypeDescriptor<UserQueries> descriptor)
+    {
+        descriptor.Field(f => f.GetUsers(default!)).UseSorting();
+    }
 }
 ```
 
 </Code>
-<Schema>
-
-⚠️ Schema-first does currently not support sorting!
-
-</Schema>
 </ExampleTabs>
 
-> ⚠️ **Note:** If you use more than one middleware, keep in mind that **ORDER MATTERS**. The correct order is UsePaging > UseProjections > UseFiltering > UseSorting
-
-The type can be sorted using the `order` field in the query:
+Clients use the `order` argument to sort results:
 
 ```graphql
 query {
   users(order: [{ name: ASC }]) {
     name
-    address {
-      street
-    }
+    email
   }
 }
 ```
 
-Properties of nested objects can be sorted as well:
+> **Middleware order matters.** When combining multiple middleware, apply them in this order: `UsePaging` > `UseProjection` > `UseFiltering` > `UseSorting`.
+
+# Sorting on Nested Fields
+
+Sorting extends to properties of nested objects:
 
 ```graphql
 query {
-  users(order: [{ address: { street: ASC } }]) {
+  users(order: [{ address: { city: ASC } }]) {
     name
     address {
-      street
+      city
     }
   }
 }
 ```
 
-Note that it is possible to sort on a field and then by another field:
+# Multi-Field Sorting
+
+Pass multiple sort conditions as an array. The database applies them in order:
 
 ```graphql
 query {
-  users(order: [{ name: ASC }, { address: { street: DESC } }]) {
+  users(order: [{ name: ASC }, { address: { city: DESC } }]) {
     name
     address {
-      street
+      city
     }
   }
 }
 ```
 
-# Customization
+# NullOrdering Enum
 
-Under the hood, sorting is based on top of normal Hot Chocolate input types. You can easily customize them with a very familiar fluent interface. The sorting input types follow the same `descriptor` scheme as you are used to from the normal input types. Just extend the base class `SortInputType<T>` and override the descriptor method.
+The `NullOrdering` enum controls how `null` values sort relative to non-null values. This is relevant when sorting on nullable fields. Set this through `PagingOptions` at the global level:
 
-`ISortInputTypeDescriptor<T>` supports most of the methods of `IInputTypeDescriptor<T>`. By default, operations are generated for all fields of the type.
-Members that are collections are skipped because you cannot order based on lists.
-If you do want to specify the sorting types by yourself, you can change this behavior with `BindFields`, `BindFieldsExplicitly`, or `BindFieldsImplicitly`.
-When fields are bound implicitly, meaning sorting is added for all valid properties, you may want to hide a few fields. You can do this with `Ignore(x => Bar)`.
-It is also possible to customize the GraphQL field of the operation further. You can change the name or add a description or directive.
+```csharp
+builder
+    .AddGraphQL()
+    .ModifyPagingOptions(opt => opt.NullOrdering = NullOrdering.NativeNullsLast);
+```
+
+| Value              | When to use                                                             |
+| ------------------ | ----------------------------------------------------------------------- |
+| `Unspecified`      | Default. Auto-detected for known EF Core providers.                     |
+| `NativeNullsFirst` | Nulls sort before non-null values (SQL Server, SQLite, in-memory LINQ). |
+| `NativeNullsLast`  | Nulls sort after non-null values (PostgreSQL default).                  |
+
+# Custom Sort Types
+
+Customize which fields are sortable by extending `SortInputType<T>`:
 
 ```csharp
 public class UserSortType : SortInputType<User>
@@ -164,23 +124,15 @@ public class UserSortType : SortInputType<User>
     protected override void Configure(ISortInputTypeDescriptor<User> descriptor)
     {
         descriptor.BindFieldsExplicitly();
-        descriptor.Field(f => f.Name).Name("custom_name");
+        descriptor.Field(f => f.Name);
+        descriptor.Field(f => f.CreatedAt);
     }
 }
 ```
 
-If you want to change the sorting operations on a field, you need to declare your own operation enum type.
+Restrict sort directions on a field by providing a custom enum type:
 
-```csharp {7}
-public class UserSortType : SortInputType<User>
-{
-    protected override void Configure(ISortInputTypeDescriptor<User> descriptor)
-    {
-        descriptor.BindFieldsExplicitly();
-        descriptor.Field(f => f.Name).Type<AscOnlySortEnumType>();
-    }
-}
-
+```csharp
 public class AscOnlySortEnumType : DefaultSortEnumType
 {
     protected override void Configure(ISortEnumTypeDescriptor descriptor)
@@ -190,36 +142,29 @@ public class AscOnlySortEnumType : DefaultSortEnumType
 }
 ```
 
-```sdl
-type Query {
-  users(order: [UserSortInput]): [User]
-}
-
-type User {
-  name: String!
-  address: Address!
-}
-
-input UserSortInput {
-  name: AscOnlySortEnumType
-}
-
-enum AscOnlySortEnumType {
-  ASC
+```csharp
+public class UserSortType : SortInputType<User>
+{
+    protected override void Configure(ISortInputTypeDescriptor<User> descriptor)
+    {
+        descriptor.BindFieldsExplicitly();
+        descriptor.Field(f => f.Name).Type<AscOnlySortEnumType>();
+    }
 }
 ```
 
-To apply this sorting type, we just have to provide it to the `UseSorting` extension method as the generic type argument.
+Apply the custom sort type:
 
 <ExampleTabs>
 <Implementation>
 
 ```csharp
-public class Query
+[QueryType]
+public static partial class UserQueries
 {
     [UseSorting(typeof(UserSortType))]
-    public IQueryable<User> GetUsers(IUserRepository repository)
-        => repository.GetUsers();
+    public static IQueryable<User> GetUsers(CatalogContext db)
+        => db.Users;
 }
 ```
 
@@ -227,217 +172,82 @@ public class Query
 <Code>
 
 ```csharp
-public class QueryType : ObjectType<Query>
+public class UserQueriesType : ObjectType<UserQueries>
 {
-    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
+    protected override void Configure(IObjectTypeDescriptor<UserQueries> descriptor)
     {
-        descriptor.Field(f => f.GetUsers(default)).UseSorting<UserSortType>();
+        descriptor.Field(f => f.GetUsers(default!)).UseSorting<UserSortType>();
     }
-}
-
-public class Query
-{
-    public IQueryable<User> GetUsers(IUserRepository repository)
-        => repository.GetUsers();
 }
 ```
 
 </Code>
-<Schema>
-
-⚠️ Schema-first does currently not support sorting!
-
-</Schema>
 </ExampleTabs>
 
-# Sorting Conventions
+# Sort Conventions
 
-If you want to change the behavior of sorting globally, you want to create a convention for sorting. The sorting convention comes with a fluent interface that is close to a type descriptor.
+Sort conventions let you change sorting behavior globally across your schema.
 
-## Get Started
+## Setting Up a Convention
 
-To use a sort convention, you have to extend `SortConvention` and override the `Configure` method. Alternatively, you can directly configure the convention over the constructor argument.
-You then have to register your custom convention on the schema builder with `AddConvention`.
-By default, a new convention is empty. To add the default behavior, you have to add `AddDefaults`.
+Extend `SortConvention` and override `Configure`:
 
 ```csharp
-public class CustomConvention : SortConvention
+public class CustomSortConvention : SortConvention
 {
     protected override void Configure(ISortConventionDescriptor descriptor)
     {
         descriptor.AddDefaults();
+        descriptor.ArgumentName("sortBy");
     }
 }
-
-builder.Services
-    .AddGraphQLServer()
-    .AddConvention<ISortConvention, CustomConvention>();
-// or
-builder.Services
-    .AddGraphQLServer()
-    .AddConvention<ISortConvention>(new Convention(x =>
-        x.AddDefaults()))
 ```
 
-Often you just want to extend the default behavior of sorting. If this is the case, you can also use `SortConventionExtension`
+```csharp
+builder
+    .AddGraphQL()
+    .AddConvention<ISortConvention, CustomSortConvention>();
+```
+
+To extend the default behavior without replacing it, use `SortConventionExtension`:
 
 ```csharp
-public class CustomConventionExtension : SortConventionExtension
+public class CustomSortConventionExtension : SortConventionExtension
 {
     protected override void Configure(ISortConventionDescriptor descriptor)
     {
-        // config
+        descriptor.Configure<DefaultSortEnumType>(
+            x => x.Operation(DefaultSortOperations.Ascending).Description("Sort ascending"));
     }
 }
-
-builder.Services
-    .AddGraphQLServer()
-    .AddConvention<ISortConvention, CustomConventionExtension>();
-// or
-builder.Services
-    .AddGraphQLServer()
-    .AddConvention<ISortConvention>(new SortConventionExtension(x =>
-    {
-        // config
-    }))
 ```
 
-## Argument Name
+## Binding Sort Types Globally
 
-With the convention descriptor, you can easily change the argument name of the `SortInputType`.
-
-**Configuration**
+Bind custom sort types to .NET types through the convention:
 
 ```csharp
-descriptor.ArgumentName("example_argument_name");
-```
-
-**Result**
-
-```sdl
-type Query {
-  users(example_argument_name: [UserSortInput]): [User]
-}
-```
-
-## Binding of SortTypes
-
-`SortInputType`'s **cannot** just be registered on the schema. You have to bind them to the runtime type on the convention.
-
-### SortInputType bindings
-
-By default, only the `string` type is bound explicitly. If you want to configure sorting globally, you are free to bind additional types.
-
-**Configuration**
-
-```csharp
-public class CustomSortInputType : SortInputType<User>
-{
-    protected override void Configure(ISortInputTypeDescriptor<User> descriptor)
-    {
-        descriptor.Name("CustomSortInputType");
-    }
-}
-
-public class CustomConvention : SortConvention
+public class CustomSortConvention : SortConvention
 {
     protected override void Configure(ISortConventionDescriptor descriptor)
     {
-        descriptor.AddDefaults().BindRuntimeType<User, CustomSortInputType>();
+        descriptor.AddDefaults();
+        descriptor.BindRuntimeType<User, UserSortType>();
     }
 }
 ```
 
-**Result**
+## Default Binding
 
-```sdl
-type Query {
-  users(order: [CustomSortInputType!]): [User]
-}
-
-type User {
-  name: String!
-}
-
-input CustomSortInputType {
-  name: SortEnumType
-}
-
-enum SortEnumType {
-  ASC
-  DESC
-}
-```
-
-### Default bindings
-
-For fields all fields where no explicit binding is found, a default is applied. This default is `DefaultSortEnumType`.
-This can be configured with the method `DefaultBinding`.
-
-**Configuration**
+For fields where no explicit binding exists, `DefaultSortEnumType` (with `ASC` and `DESC`) is used. Override this with `DefaultBinding`:
 
 ```csharp
-public class CustomConvention : SortConvention
-{
-    protected override void Configure(ISortConventionDescriptor descriptor)
-    {
-        descriptor.AddDefaults().DefaultBinding<AscOnlySortEnumType>();
-    }
-}
+descriptor.AddDefaults().DefaultBinding<AscOnlySortEnumType>();
 ```
 
-**Result**
+# Next Steps
 
-```sdl
-type Query {
-  users(order: [UserSortInput]): [User]
-}
-
-type User {
-  logonCount: Int!
-}
-
-input UserSortInput {
-  logonCount: AscOnlySortEnumType
-}
-
-enum AscOnlySortEnumType {
-  ASC
-}
-```
-
-## Extend Types
-
-### SortEnumType
-
-When you build extensions for sorting, you may want to modify or extend the `DefaultSortEnumType`.
-
-```csharp
-descriptor.ConfigureEnum<DefaultSortEnumType>(
-    x => x.Operation(CustomOperations.NULL_FIRST).Name("NULL_FIRST));
-```
-
-```sdl
-enum SortEnumType {
-  ASC
-  DESC
-  NULL_FIRST
-}
-```
-
-### SortType
-
-In case you want to change a specific sort type, you can do this too.
-You can use `Configure<TSortType>()` to alter the configuration of a type.
-
-```csharp
-descriptor.Configure<CustomSortInputType>(
-    x => x.Description("This is my custom description"));
-```
-
-```sdl
-"This is my custom description"
-input CustomSortInputType {
-  name: SortEnumType
-}
-```
+- **Need to filter results?** See [Filtering](/docs/hotchocolate/v16/fetching-data/filtering).
+- **Need to page through results?** See [Pagination](/docs/hotchocolate/v16/fetching-data/pagination).
+- **Need to optimize database queries?** See [Projections](/docs/hotchocolate/v16/fetching-data/projections).
+- **Need to protect against expensive queries?** See [Cost Analysis](/docs/hotchocolate/v16/security/cost-analysis).

@@ -471,9 +471,9 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
             x.AddProviderExtension(
                 new MockProviderExtension(y =>
                 {
-                    y.AddFieldHandler<ComplexOrderSumHandler>();
-                    y.AddFieldHandler<ComplexOrderSumFieldsHandler>();
-                    y.AddFieldHandler<ComplexOrderSumSortHandler>();
+                    y.AddFieldHandler(ComplexOrderSumHandler.Create);
+                    y.AddFieldHandler(ComplexOrderSumFieldsHandler.Create);
+                    y.AddFieldHandler(ComplexOrderSumSortHandler.Create);
                 }));
         });
         var tester = _cache.CreateSchema<Bar, ComplexBarSortType>(
@@ -614,12 +614,15 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
         QUX
     }
 
-    class ComplexOrderSumHandler(ISortConvention convention, InputParser inputParser)
+    public class ComplexOrderSumHandler(ISortConvention convention, InputParser inputParser)
         : SortFieldHandler<QueryableSortContext, QueryableSortOperation>
     {
         private readonly Dictionary<string, PropertyInfo> _fieldMap = typeof(Foo)
             .GetProperties()
             .ToDictionary(convention.GetFieldName);
+
+        public static ComplexOrderSumHandler Create(SortProviderContext context) =>
+            new(context.SortConvention, context.InputParser);
 
         public override bool CanHandle(
             ITypeCompletionContext context,
@@ -674,9 +677,11 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
         }
     }
 
-    class ComplexOrderSumFieldsHandler
+    public class ComplexOrderSumFieldsHandler
         : SortFieldHandler<QueryableSortContext, QueryableSortOperation>
     {
+        public static ComplexOrderSumFieldsHandler Create(SortProviderContext context) => new();
+
         public override bool CanHandle(
             ITypeCompletionContext context,
             ISortInputTypeConfiguration typeConfiguration,
@@ -686,9 +691,11 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
         }
     }
 
-    class ComplexOrderSumSortHandler
+    public class ComplexOrderSumSortHandler
         : SortFieldHandler<QueryableSortContext, QueryableSortOperation>
     {
+        public static ComplexOrderSumSortHandler Create(SortProviderContext context) => new();
+
         public override bool CanHandle(
             ITypeCompletionContext context,
             ISortInputTypeConfiguration typeConfiguration,
@@ -708,6 +715,6 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
         }
     }
 
-    class MockProviderExtension(Action<ISortProviderDescriptor<QueryableSortContext>> configure)
+    public class MockProviderExtension(Action<ISortProviderDescriptor<QueryableSortContext>> configure)
         : SortProviderExtensions<QueryableSortContext>(configure);
 }

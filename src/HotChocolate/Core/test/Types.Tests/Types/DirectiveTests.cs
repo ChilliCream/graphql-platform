@@ -152,7 +152,7 @@ public class DirectiveTests : TypeTestBase
                     .Name("Query")
                     .Field("abc")
                     .Resolve("def")
-                    .Directive(new FooDirective()))
+                    .Directive(new FooDirective { Bar = "123", Child = new FooChild { Bar = "456" } }))
             .Create()
             .ToString()
             .MatchSnapshot();
@@ -202,18 +202,18 @@ public class DirectiveTests : TypeTestBase
 
     public class FooDirective
     {
-        public string Bar { get; set; }
+        public required string Bar { get; set; }
 
-        public FooChild Child { get; set; }
+        public required FooChild Child { get; set; }
     }
 
     public class FooChild
     {
-        public string Bar { get; set; }
+        public required string Bar { get; set; }
     }
 
     public class FooChild2
     {
-        public string Bar { get; set; }
+        public required string Bar { get; set; }
     }
 }

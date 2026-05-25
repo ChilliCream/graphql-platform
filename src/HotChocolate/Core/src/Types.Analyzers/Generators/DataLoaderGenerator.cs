@@ -4,7 +4,6 @@ using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Inspectors;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 
 namespace HotChocolate.Types.Analyzers.Generators;
 
@@ -14,7 +13,7 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
         SourceProductionContext context,
         string assemblyName,
         ImmutableArray<SyntaxInfo> syntaxInfos,
-        Action<string, SourceText> addSource)
+        Action<string, string> addSource)
     {
         var dataLoaderDefaults = syntaxInfos.GetDataLoaderDefaults();
         WriteDataLoader(syntaxInfos, dataLoaderDefaults, addSource);
@@ -23,7 +22,7 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
     private static void WriteDataLoader(
         ImmutableArray<SyntaxInfo> syntaxInfos,
         DataLoaderDefaultsInfo defaults,
-        Action<string, SourceText> addSource)
+        Action<string, string> addSource)
     {
         var dataLoaders = new List<DataLoaderInfo>();
 
@@ -124,7 +123,7 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
 
         if (hasDataLoaders)
         {
-            addSource(WellKnownFileNames.DataLoaderFile, generator.ToSourceText());
+            addSource(WellKnownFileNames.DataLoaderFile, generator.ToString());
         }
     }
 

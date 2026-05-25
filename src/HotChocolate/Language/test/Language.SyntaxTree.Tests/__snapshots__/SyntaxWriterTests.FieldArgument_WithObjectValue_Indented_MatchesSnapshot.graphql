@@ -1,0 +1,3 @@
+{
+  user(filter: { name: "John", age: 30, active: true })
+}

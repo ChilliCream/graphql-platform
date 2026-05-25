@@ -1,15 +1,15 @@
-﻿schema {
+schema {
   query: Query
 }
 
-interface Interface {
-  bar(a: String @deprecated(reason: "reason")): Int!
+type Query {
+  foo: Int!
 }
 
 type Foo implements Interface {
   bar(a: String @deprecated(reason: "reason")): Int!
 }
 
-type Query {
-  foo: Int!
+interface Interface {
+  bar(a: String @deprecated(reason: "reason")): Int!
 }

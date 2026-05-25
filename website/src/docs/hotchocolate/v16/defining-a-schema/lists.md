@@ -2,15 +2,17 @@
 title: "Lists"
 ---
 
-GraphQL allows us to return lists of elements from our fields.
+GraphQL lists represent ordered collections of elements. When a resolver returns any .NET collection type, Hot Chocolate exposes it as a list in the schema.
 
-```sdl
+**GraphQL schema**
+
+```graphql
 type Query {
-  users: [User]
+  users: [User!]!
 }
 ```
 
-Clients can query list fields like any other field.
+**Client query**
 
 ```graphql
 {
@@ -21,59 +23,45 @@ Clients can query list fields like any other field.
 }
 ```
 
-Querying a list field will result in an ordered list containing elements with the specified sub-selection of fields.
+The response contains an ordered array of objects matching the requested fields.
 
-Learn more about lists [here](https://graphql.org/learn/schema/#lists-and-non-null).
+# Supported Collection Types
 
-# Usage
+Hot Chocolate recognizes common .NET collection types and maps them to GraphQL lists.
 
-Lists can be defined like the following.
+| C# return type        | GraphQL type (NRT enabled) |
+| --------------------- | -------------------------- |
+| `List<User>`          | `[User!]!`                 |
+| `User[]`              | `[User!]!`                 |
+| `IEnumerable<User>`   | `[User!]!`                 |
+| `IReadOnlyList<User>` | `[User!]!`                 |
+| `IQueryable<User>`    | `[User!]!`                 |
+| `List<User?>`         | `[User]!`                  |
+| `List<User>?`         | `[User!]`                  |
+
+Any type implementing `IEnumerable<T>` is treated as a list.
+
+# Defining List Fields
 
 <ExampleTabs>
 <Implementation>
 
-If our field resolver returns a list type, e.g. `IEnumerable<T>` or `IQueryable<T>`, it will automatically be treated as a list type in the schema.
-
 ```csharp
-public class Query
+[QueryType]
+public static partial class UserQueries
 {
-    public List<User> GetUsers()
-    {
-        // Omitted code for brevity
-    }
+    public static List<User> GetUsers(CatalogContext db)
+        => db.Users.ToList();
 }
 ```
+
+The return type `List<User>` is automatically mapped to `[User!]!` when NRT is enabled.
 
 </Implementation>
 <Code>
 
-If our field resolver returns a list type, e.g. `IEnumerable<T>` or `IQueryable<T>`, it will automatically be treated as a list type in the schema.
-
 ```csharp
-public class QueryType : ObjectType
-{
-    protected override void Configure(IObjectTypeDescriptor descriptor)
-    {
-        descriptor.Name(OperationTypeNames.Query);
-
-        descriptor
-            .Field("users")
-            .Resolve(context =>
-            {
-                List<User> users = null;
-
-                // Omitted code for brevity
-
-                return users;
-            });
-    }
-}
-```
-
-We can also be more explicit by specifying a `ListType<Type>` as the return type.
-
-```csharp
-public class QueryType : ObjectType
+public class UserQueriesType : ObjectType
 {
     protected override void Configure(IObjectTypeDescriptor descriptor)
     {
@@ -84,20 +72,53 @@ public class QueryType : ObjectType
             .Type<ListType<UserType>>()
             .Resolve(context =>
             {
-                // Omitted code for brevity
+                // ...
             });
     }
 }
 ```
 
-</Code>
-<Schema>
+Using `ListType<T>` makes the list type explicit in the descriptor.
 
-```sdl
-type Query {
-  users: [User]
+</Code>
+</ExampleTabs>
+
+# List Nullability
+
+Lists have two layers of nullability: the list itself and its items. With [nullable reference types](/docs/hotchocolate/v16/defining-a-schema/non-null) enabled, Hot Chocolate infers both layers from your C# types.
+
+| C# type          | GraphQL type | Meaning                                     |
+| ---------------- | ------------ | ------------------------------------------- |
+| `List<string>`   | `[String!]!` | Non-null list of non-null items             |
+| `List<string?>`  | `[String]!`  | Non-null list, items can be null            |
+| `List<string>?`  | `[String!]`  | List itself can be null, items are non-null |
+| `List<string?>?` | `[String]`   | Both list and items can be null             |
+
+If you need to override the inferred nullability, use `[GraphQLType]` or the descriptor API:
+
+```csharp
+// Override to allow null items
+[GraphQLType(typeof(ListType<StringType>))]
+public List<string> Tags { get; set; }
+```
+
+# Nested Lists
+
+Hot Chocolate supports nested lists (lists of lists). This pattern is useful for representing matrix-like data.
+
+```csharp
+[QueryType]
+public static partial class GridQueries
+{
+    public static List<List<int>> GetMatrix()
+        => [[1, 2], [3, 4]];
 }
 ```
 
-</Schema>
-</ExampleTabs>
+This produces `matrix: [[Int!]!]!` in the schema.
+
+# Next Steps
+
+- **Need to control nullability?** See [Non-Null](/docs/hotchocolate/v16/defining-a-schema/non-null).
+- **Need pagination instead of full lists?** See [Pagination](/docs/hotchocolate/v16/fetching-data/pagination).
+- **Need to filter or sort lists?** See [Filtering](/docs/hotchocolate/v16/fetching-data/filtering) and [Sorting](/docs/hotchocolate/v16/fetching-data/sorting).

@@ -32,20 +32,20 @@ internal sealed class ExceptionMiddleware
         catch (OperationCanceledException ex)
         {
             var error = _errorHandler.Handle(ErrorHelper.OperationCanceled(ex));
-            context.Result = OperationResultBuilder.CreateError(error);
-            _diagnosticEvents.ExecutionError(context, ErrorKind.RequestError, [error]);
+            context.Result = OperationResult.FromError(error);
+            _diagnosticEvents.RequestError(context, ex);
         }
         catch (GraphQLException ex)
         {
             var errors = _errorHandler.Handle(ex.Errors);
-            context.Result = OperationResultBuilder.CreateError(errors);
-            _diagnosticEvents.ExecutionError(context, ErrorKind.RequestError, errors);
+            context.Result = OperationResult.FromError([.. errors]);
+            _diagnosticEvents.RequestError(context, ex);
         }
         catch (Exception ex)
         {
             var error = _errorHandler.Handle(ErrorBuilder.FromException(ex).Build());
-            context.Result = OperationResultBuilder.CreateError(error);
-            _diagnosticEvents.ExecutionError(context, ErrorKind.RequestError, [error]);
+            context.Result = OperationResult.FromError(error);
+            _diagnosticEvents.RequestError(context, ex);
         }
     }
 
@@ -58,7 +58,7 @@ internal sealed class ExceptionMiddleware
                 var middleware = Create(next, diagnosticEvents, errorHandler);
                 return context => middleware.InvokeAsync(context);
             },
-            nameof(ExceptionMiddleware));
+            WellKnownRequestMiddleware.ExceptionMiddleware);
 
     internal static ExceptionMiddleware Create(
         RequestDelegate next,

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Properties;
@@ -11,7 +12,7 @@ namespace HotChocolate.Types.Descriptors;
 public class DirectiveTypeDescriptor<T>
     : DirectiveTypeDescriptor
     , IDirectiveTypeDescriptor<T>
-    , IHasRuntimeType
+    , IRuntimeTypeProvider
 {
     protected internal DirectiveTypeDescriptor(IDescriptorContext context)
         : base(context, typeof(T))
@@ -27,7 +28,7 @@ public class DirectiveTypeDescriptor<T>
         Configuration = definition;
     }
 
-    Type IHasRuntimeType.RuntimeType => Configuration.RuntimeType;
+    Type IRuntimeTypeProvider.RuntimeType => Configuration.RuntimeType;
 
     protected override void OnCompleteArguments(
         IDictionary<string, DirectiveArgumentConfiguration> arguments,
@@ -110,14 +111,14 @@ public class DirectiveTypeDescriptor<T>
         return this;
     }
 
-    public new IDirectiveTypeDescriptor<T> Use<TMiddleware>()
+    public new IDirectiveTypeDescriptor<T> Use<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)] TMiddleware>()
         where TMiddleware : class
     {
         base.Use<TMiddleware>();
         return this;
     }
 
-    public new IDirectiveTypeDescriptor<T> Use<TMiddleware>(
+    public new IDirectiveTypeDescriptor<T> Use<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)] TMiddleware>(
         Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
         where TMiddleware : class
     {

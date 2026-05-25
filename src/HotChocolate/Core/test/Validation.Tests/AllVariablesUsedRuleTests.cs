@@ -177,7 +177,7 @@ public class AllVariablesUsedRuleTests
             """
             query queryWithListInput($value: Boolean!)
             {
-              booleanList(booleanListArg: [ $value ])
+              booleanList(booleanListArg: [$value])
             }
             """);
     }

@@ -29,6 +29,7 @@ public abstract class DefaultPubSub : ITopicEventReceiver, ITopicEventSender, ID
     }
 
     protected ISubscriptionDiagnosticEvents DiagnosticEvents => _diagnosticEvents;
+    protected bool IsDisposed => _disposed;
 
     public ValueTask<ISourceStream<TMessage>> SubscribeAsync<TMessage>(
         string topicName,
@@ -155,7 +156,7 @@ public abstract class DefaultPubSub : ITopicEventReceiver, ITopicEventSender, ID
         var eventTopic = OnCreateTopic<TMessage>(formattedTopic, bufferCapacity, bufferFullMode);
 
         eventTopic.Closed +=
-            (sender, __) => _topics.TryRemove(((DefaultTopic<TMessage>)sender!).Name, out _);
+            (_, _) => _topics.TryRemove(formattedTopic, out _);
 
         DiagnosticEvents.Created(formattedTopic);
 

@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Xunit2.Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
+
+  <PropertyGroup>
+    <RootNamespace>ChilliCream.Nitro.Adapters.OpenApi.Packaging</RootNamespace>
+    <PackageId>ChilliCream.Nitro.Adapters.OpenApi.Packaging.Tests</PackageId>
+    <TargetFrameworks>$(OpenApiTargetFrameworks)</TargetFrameworks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\HotChocolate\Adapters\src\Adapters.OpenApi.Core\HotChocolate.Adapters.OpenApi.Core.csproj" />
+    <ProjectReference Include="..\..\src\ChilliCream.Nitro.Adapters.OpenApi.Packaging\ChilliCream.Nitro.Adapters.OpenApi.Packaging.csproj" />
+    <ProjectReference Include="..\..\src\ChilliCream.Nitro.Adapters.OpenApi\ChilliCream.Nitro.Adapters.OpenApi.csproj" />
+  </ItemGroup>
+
+</Project>

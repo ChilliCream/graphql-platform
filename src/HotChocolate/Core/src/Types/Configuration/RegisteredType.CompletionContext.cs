@@ -13,13 +13,10 @@ internal sealed partial class RegisteredType : ITypeCompletionContext
 
     public TypeStatus Status { get; set; } = TypeStatus.Initialized;
 
-    /// <inheritdoc />
     public bool? IsQueryType { get; set; }
 
-    /// <inheritdoc />
     public bool? IsMutationType { get; set; }
 
-    /// <inheritdoc />
     public bool? IsSubscriptionType { get; set; }
 
     /// <summary>
@@ -79,33 +76,6 @@ internal sealed partial class RegisteredType : ITypeCompletionContext
         }
 
         return type;
-    }
-
-    /// <inheritdoc />
-    public TypeReference GetNamedTypeReference(TypeReference typeRef)
-    {
-        if (_typeReferenceResolver is null)
-        {
-            throw new InvalidOperationException(RegisteredType_Completion_NotYetReady);
-        }
-
-        return _typeReferenceResolver.GetNamedTypeReference(typeRef);
-    }
-
-    /// <inheritdoc />
-    public IEnumerable<T> GetTypes<T>() where T : IType
-    {
-        if (_typeReferenceResolver is null)
-        {
-            throw new InvalidOperationException(RegisteredType_Completion_NotYetReady);
-        }
-
-        if (Status == TypeStatus.Initialized)
-        {
-            throw new NotSupportedException();
-        }
-
-        return _typeReferenceResolver.GetTypes<T>();
     }
 
     /// <inheritdoc />

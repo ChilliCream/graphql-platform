@@ -28,4 +28,6 @@ public class QueryableStringEndsWithHandler : QueryableStringOperationHandler
 
         return FilterExpressionBuilder.EndsWith(property, parsedValue);
     }
+
+    public static QueryableStringEndsWithHandler Create(FilterProviderContext context) => new(context.InputParser);
 }

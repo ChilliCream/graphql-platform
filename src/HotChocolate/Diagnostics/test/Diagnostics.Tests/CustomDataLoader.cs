@@ -2,7 +2,7 @@ using GreenDonut;
 
 namespace HotChocolate.Diagnostics;
 
-public partial class QueryInstrumentationTests
+public partial class ActivityExecutionDiagnosticListenerTests
 {
     public class CustomDataLoader(IBatchScheduler batchScheduler, DataLoaderOptions options)
         : BatchDataLoader<string, string>(batchScheduler, options)

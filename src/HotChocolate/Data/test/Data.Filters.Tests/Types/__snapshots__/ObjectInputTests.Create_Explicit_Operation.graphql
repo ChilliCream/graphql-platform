@@ -40,5 +40,6 @@ input ShortOperationFilterInput {
   nlte: Short
 }
 
-"The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1."
+"The `Short` scalar type represents a signed 16-bit integer."
 scalar Short
+  @specifiedBy(url: "https://scalars.graphql.org/chillicream/short.html")

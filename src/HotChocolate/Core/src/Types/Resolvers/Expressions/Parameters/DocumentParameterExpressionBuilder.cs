@@ -1,13 +1,13 @@
+using System.Diagnostics;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
 internal sealed class DocumentParameterExpressionBuilder()
-    : LambdaParameterExpressionBuilder<DocumentNode>(
-        ctx => ctx.Operation.Document,
-        isPure: true)
+    : LambdaParameterExpressionBuilder<DocumentNode>(ctx => ctx.Operation.Document, isPure: true)
     , IParameterBindingFactory
     , IParameterBinding
 {
@@ -16,9 +16,16 @@ internal sealed class DocumentParameterExpressionBuilder()
     public override bool CanHandle(ParameterInfo parameter)
         => typeof(DocumentNode) == parameter.ParameterType;
 
-    public IParameterBinding Create(ParameterBindingContext context)
+    public bool CanHandle(ParameterDescriptor parameter)
+        => typeof(DocumentNode) == parameter.Type;
+
+    public IParameterBinding Create(ParameterDescriptor parameter)
         => this;
 
     public T Execute<T>(IResolverContext context)
-        => (T)(object)context.Operation.Document;
+    {
+        Debug.Assert(typeof(T) == typeof(DocumentNode));
+        var document = context.Operation.Document;
+        return Unsafe.As<DocumentNode, T>(ref document);
+    }
 }

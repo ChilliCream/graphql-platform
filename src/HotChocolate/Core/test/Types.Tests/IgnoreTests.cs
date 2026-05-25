@@ -3,8 +3,6 @@ using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
-#nullable enable
-
 namespace HotChocolate;
 
 public class IgnoreTests

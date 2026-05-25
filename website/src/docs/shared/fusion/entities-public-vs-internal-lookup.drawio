@@ -1,0 +1,50 @@
+<mxfile>
+  <diagram name="Public vs Internal Lookup Visibility">
+    <mxGraphModel dx="0" dy="0" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" background="none">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- Client -->
+        <mxCell id="10" value="Client" style="rounded=1;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="220" y="0" width="160" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- Public Lookup -->
+        <mxCell id="20" value="Public Lookup&#10;&#10;productById(id): Product&#10;@lookup" style="rounded=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;fontSize=12;align=center;" vertex="1" parent="1">
+          <mxGeometry x="20" y="130" width="240" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- Internal Lookup -->
+        <mxCell id="30" value="Internal Lookup&#10;&#10;productById(id): Product&#10;@lookup @internal" style="rounded=1;whiteSpace=wrap;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=2;fontSize=12;align=center;" vertex="1" parent="1">
+          <mxGeometry x="340" y="130" width="240" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- Gateway -->
+        <mxCell id="40" value="Fusion Gateway" style="rounded=1;whiteSpace=wrap;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="220" y="290" width="160" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- Client to Public Lookup (green, allowed) -->
+        <mxCell id="50" value="can call" style="rounded=1;strokeWidth=2;strokeColor=#82b366;fontColor=#82b366;fontStyle=1;fontSize=11;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" source="10" target="20" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Client to Internal Lookup (red, blocked) -->
+        <mxCell id="51" value="cannot call" style="rounded=1;strokeWidth=2;strokeColor=#b85450;fontColor=#b85450;fontStyle=1;dashed=1;dashPattern=8 4;fontSize=11;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=0;" edge="1" source="10" target="30" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Gateway to Public Lookup (green, allowed) -->
+        <mxCell id="52" value="can call" style="rounded=1;strokeWidth=2;strokeColor=#82b366;fontColor=#82b366;fontStyle=1;fontSize=11;exitX=0.25;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" source="40" target="20" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Gateway to Internal Lookup (green, allowed) -->
+        <mxCell id="53" value="can call" style="rounded=1;strokeWidth=2;strokeColor=#82b366;fontColor=#82b366;fontStyle=1;fontSize=11;exitX=0.75;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" source="40" target="30" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

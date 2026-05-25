@@ -29,7 +29,7 @@ dotnet new tool-manifest
 2. Install the Strawberry Shake tools.
 
 ```bash
-dotnet tool install StrawberryShake.Tools
+dotnet tool install StrawberryShake.Tools --local
 ```
 
 # Step 2: Create a Blazor WebAssembly project
@@ -39,13 +39,13 @@ Next, we will create our Blazor project so that we have a little playground.
 1. First, a new solution called `Demo.sln`.
 
 ```bash
-dotnet new sln -n Demo
+dotnet new sln --name Demo
 ```
 
 2. Create a new Blazor for WebAssembly application.
 
 ```bash
-dotnet new blazorwasm -n Demo
+dotnet new blazorwasm --name Demo
 ```
 
 3. Add the project to the solution `Demo.sln`.
@@ -66,19 +66,19 @@ dotnet add Demo package StrawberryShake.Blazor
 
 # Step 4: Add a GraphQL client to your project using the CLI tools
 
-To add a client to your project, you need to run `dotnet graphql init {{ServerUrl}} -n {{ClientName}}`.
+To add a client to your project, you need to run `dotnet graphql init {{ServerUrl}} --clientName {{ClientName}}`.
 
-In this tutorial we will use our ChilliCream demo project to create a list of crypto currencies that we will add to our Blazor application.
+In this tutorial we will use our ChilliCream demo project to create a list of cryptocurrencies that we will add to our Blazor application.
 
 > If you want to have a look at our demo GraphQL server head over [here](https://demo.chillicream.com/graphql).
 
 1. Add the crypto client to your Blazor application.
 
 ```bash
-dotnet graphql init https://demo.chillicream.com/graphql/ -n CryptoClient -p ./Demo
+dotnet graphql init https://demo.chillicream.com/graphql/ --clientName CryptoClient --Path ./Demo
 ```
 
-2. Customize the namespace of the generated client to be `Demo.GraphQL`. For this head over to the `.graphqlrc.json` and insert a namespace property to the `StrawberryShake` section.
+2. Customize the namespace of the generated client to be `Demo.GraphQL`. For this head over to the `.graphqlrc.json` and insert a namespace property in the `StrawberryShake` section.
 
 ```json
 {
@@ -137,7 +137,7 @@ dotnet build
 
 With the project compiled the strawberry shake generator produced a client but also components that we can use in Blazor.
 
-![Visual Studio code showing the generator output on the console.](../../../shared/berry_generated.png)
+![Visual Studio Code showing the generator output on the console.](../../../shared/berry_generated.png)
 
 1. Head over to the `Program.cs` and add the new `CryptoClient` to the dependency injection.
 

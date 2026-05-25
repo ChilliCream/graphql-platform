@@ -361,6 +361,28 @@ public class AllVariableUsagesAreAllowedRuleTests
         );
     }
 
+    // The rule must fire once per lexical variable usage, not once per fragment spread.
+    [Fact]
+    public void IntNullableToIntWithinReusedFragment()
+    {
+        ExpectErrors(
+            """
+            fragment nonNullIntArgFieldFrag on Arguments {
+              nonNullIntArgField(intArg: $intArg)
+            }
+
+            query Query($intArg: Int) {
+              arguments {
+                ...nonNullIntArgFieldFrag
+                ...nonNullIntArgFieldFrag
+              }
+            }
+            """,
+            t => Assert.Equal(
+                "The variable `intArg` is not compatible with the type of the current location.",
+                t.Message));
+    }
+
     [Fact]
     public void IntNullableToIntWithinNestedFragment()
     {
@@ -499,6 +521,48 @@ public class AllVariableUsagesAreAllowedRuleTests
             """
             query Query($boolVar: Boolean = false) {
               dog @include(if: $boolVar)
+            }
+            """
+        );
+    }
+
+    [Fact]
+    public void VariablesUsedForOneOfInputObjectFieldsMustBeNonNullable1_Valid()
+    {
+        ExpectValid(
+            """
+            mutation addCat($cat: CatInput!) {
+              addPet(pet: { cat: $cat }) {
+                name
+              }
+            }
+            """
+        );
+    }
+
+    [Fact]
+    public void VariablesUsedForOneOfInputObjectFieldsMustBeNonNullable2_Valid()
+    {
+        ExpectValid(
+            """
+            mutation addCatWithDefault($cat: CatInput! = { name: "Brontie" }) {
+              addPet(pet: { cat: $cat }) {
+                name
+              }
+            }
+            """
+        );
+    }
+
+    [Fact]
+    public void VariablesUsedForOneOfInputObjectFieldsMustBeNonNullable1_Error()
+    {
+        ExpectErrors(
+            """
+            mutation addNullableCat($cat: CatInput) {
+              addPet(pet: { cat: $cat }) {
+                name
+              }
             }
             """
         );

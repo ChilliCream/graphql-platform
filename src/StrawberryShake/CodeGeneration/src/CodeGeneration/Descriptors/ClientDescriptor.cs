@@ -22,7 +22,6 @@ public sealed class ClientDescriptor : ICodeDescriptor
     /// <summary>
     /// Gets the client name
     /// </summary>
-    /// <value></value>
     public string Name => RuntimeType.Name;
 
     /// <summary>

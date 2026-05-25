@@ -28,9 +28,8 @@ public class SourceObjectConversionTests
         var result = await executor.ExecuteAsync("{ foo { qux } }");
 
         // assert
-        Assert.True(
-            Assert.IsType<OperationResult>(result).Errors is null,
-            "There should be no errors.");
+        var operationResult = Assert.IsType<OperationResult>(result);
+        Assert.True(operationResult.Errors.IsEmpty, "There should be no errors.");
         Assert.True(
             conversionTriggered,
             "The custom converter should have been hit.");

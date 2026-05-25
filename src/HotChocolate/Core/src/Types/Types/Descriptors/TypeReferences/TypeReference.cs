@@ -101,6 +101,7 @@ public abstract class TypeReference : IEquatable<TypeReference>
         ITypeSystemMember type,
         string? scope = null)
     {
+        // ReSharper disable once SuspiciousTypeConversion.Global
         if (scope is null && type is IHasScope { Scope: not null } withScope)
         {
             scope = withScope.Scope;
@@ -152,4 +153,9 @@ public abstract class TypeReference : IEquatable<TypeReference>
 
         return new ExtendedTypeReference(type, context, scope);
     }
+
+    public static FactoryTypeReference Create(
+        ExtendedTypeReference typeDefinition,
+        ITypeNode typeStructure)
+        => new(typeDefinition, typeStructure);
 }

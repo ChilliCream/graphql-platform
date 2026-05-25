@@ -20,45 +20,17 @@ export const ArticleHeader = styled.header`
   }
 `;
 
-export interface ArticleVideoProps {
-  readonly videoId: string;
-}
-
-export const ArticleVideo = styled.iframe.attrs<ArticleVideoProps>(
-  ({ videoId }) => ({
-    src: `https://www.youtube.com/embed/${videoId}`,
-    frameBorder: 0,
-    allowFullScreen: true,
-  })
-)<ArticleVideoProps>`
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-`;
-
 export const ArticleHeaderVideoContainer = styled.div`
-  position: relative;
-  padding-top: 56.22%;
   margin-bottom: 36px;
   overflow: hidden;
 
   @media only screen and (min-width: 700px) {
     border-radius: var(--border-radius) var(--border-radius) 0 0;
-
-    > ${ArticleVideo} {
-      border-radius: var(--border-radius) var(--border-radius) 0 0;
-    }
   }
 `;
 
 export const ArticleContentVideoContainer = styled.div`
-  position: relative;
   margin-bottom: 16px;
-  padding-top: 56.22%;
   overflow: hidden;
 `;
 
@@ -66,7 +38,8 @@ export const ArticleTitle = styled.h1`
   margin-right: 16px;
   margin-bottom: 24px;
   margin-left: 16px;
-  font-size: 3rem;
+  font-size: 2.5rem;
+  line-height: 1.2em;
 
   @media only screen and (min-width: 860px) {
     margin-right: 0;
@@ -75,9 +48,21 @@ export const ArticleTitle = styled.h1`
 `;
 
 export const ArticleContent = styled.div`
+  overflow: visible;
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  a:not(.anchor) {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
   > * {
-    font-size: 1.125rem;
-    line-height: 1.6em;
+    font-size: 1.0625rem;
+    line-height: 1.7em;
   }
 
   > h1,
@@ -86,43 +71,33 @@ export const ArticleContent = styled.div`
   > h4,
   > h5,
   > h6 {
-    line-height: 1.12em;
-    margin: 48px 16px 24px;
+    position: relative;
+    line-height: 1.25em;
+    margin: 56px 16px 20px;
   }
 
   > h1 {
-    font-size: 2.5rem;
-  }
-
-  > h2 {
     font-size: 2.25rem;
   }
 
-  > h3 {
-    font-size: 2rem;
-  }
-
-  > h4 {
+  > h2 {
     font-size: 1.875rem;
   }
 
-  > h5 {
+  > h3 {
     font-size: 1.5rem;
   }
 
-  > h5 {
-    font-size: 1.375rem;
+  > h4 {
+    font-size: 1.25rem;
   }
 
-  > h1 > a.anchor.before,
-  > h2 > a.anchor.before,
-  > h3 > a.anchor.before,
-  > h4 > a.anchor.before,
-  > h5 > a.anchor.before,
-  > h6 > a.anchor.before {
-    display: none;
-    padding-right: 4px;
-    transform: translateX(0px);
+  > h5 {
+    font-size: 1.125rem;
+  }
+
+  > h6 {
+    font-size: 1rem;
   }
 
   > blockquote {
@@ -133,7 +108,7 @@ export const ArticleContent = styled.div`
   > p,
   > ol > li,
   > ul > li {
-    text-align: justify;
+    text-align: left;
   }
 
   > p,
@@ -165,15 +140,10 @@ export const ArticleContent = styled.div`
       line-height: 1.12em;
       margin-right: 0;
       margin-left: 0;
-    }
-
-    > h1 > a.anchor.before,
-    > h2 > a.anchor.before,
-    > h3 > a.anchor.before,
-    > h4 > a.anchor.before,
-    > h5 > a.anchor.before,
-    > h6 > a.anchor.before {
-      transform: translateX(30px);
+      a.anchor {
+        left: -1.5rem;
+        width: 1.5rem;
+      }
     }
 
     > blockquote {

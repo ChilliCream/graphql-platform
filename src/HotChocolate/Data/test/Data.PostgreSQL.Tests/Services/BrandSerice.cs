@@ -18,7 +18,7 @@ public class BrandService(CatalogContext context, IBrandByIdDataLoader brandById
         int id,
         QueryContext<Brand>? query = null,
         CancellationToken cancellationToken = default)
-        => await brandById.LoadAsync(id, cancellationToken);
+        => await brandById.With(query).LoadAsync(id, cancellationToken);
 
     private static SortDefinition<Brand> DefaultOrder(SortDefinition<Brand> sort)
         => sort.IfEmpty(o => o.AddDescending(t => t.Name)).AddAscending(t => t.Id);

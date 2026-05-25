@@ -28,4 +28,3 @@ FROM "Products" AS p
 ORDER BY p."Name" DESC, p."Id"
 LIMIT @p
 ```
-

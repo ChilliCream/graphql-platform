@@ -1,17 +1,13 @@
-[
-  {
-    "Message": "The defer and stream directives are not allowed to be used on root fields of the mutation or subscription type.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 2,
-        "Column": 3
-      }
-    ],
-    "Extensions": {
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Defer-And-Stream-Directives-Are-Used-On-Valid-Root-Field"
-    },
-    "Exception": null
+{
+  "message": "The defer and stream directives are not allowed to be used on root fields of the mutation or subscription type.",
+  "locations": [
+    {
+      "line": 2,
+      "column": 3
+    }
+  ],
+  "extensions": {
+    "specifiedBy": "https://spec.graphql.org/draft/#sec-Defer-And-Stream-Directives-Are-Used-On-Valid-Root-Field",
+    "rfc": "https://github.com/graphql/graphql-spec/pull/1110"
   }
-]
+}

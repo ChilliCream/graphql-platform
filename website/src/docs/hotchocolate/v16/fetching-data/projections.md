@@ -2,14 +2,7 @@
 title: Projections
 ---
 
-Every GraphQL request specifies exactly what data should be returned. Over or under fetching can be reduced
-or even eliminated. Hot Chocolate projections leverage this concept and directly projects incoming queries
-to the database.
-
-Projections operate on `IQueryable` by default, but it is possible to create custom providers for projections
-to support a specific database driver.
-
-> ⚠️ **Note:** Projections currently need a public setter on fields they operate on in order to function correctly. Otherwise the default constructed value will be returned upon query.
+GraphQL clients specify which fields they need. Projections take advantage of this by translating the requested fields directly into optimized database queries. If a client requests only `name` and `email`, Hot Chocolate queries only those columns from the database.
 
 ```graphql
 {
@@ -28,283 +21,318 @@ FROM "Users" AS "u"
 LEFT JOIN "Address" AS "a" ON "u"."AddressId" = "a"."Id"
 ```
 
+In Hot Chocolate v16, `QueryContext<T>` is the recommended way to apply projections. It combines projection, filtering, and sorting into a single parameter that Hot Chocolate injects into your resolver automatically. You apply it to your `IQueryable` with the `.With()` extension method, giving you full control over your data pipeline.
+
 # Getting Started
 
-Filtering is part of the `HotChocolate.Data` package.
+Projections are part of the `HotChocolate.Data` package.
 
 <PackageInstallation packageName="HotChocolate.Data" />
 
-To use projections with your GraphQL endpoint you have to register projections on the schema:
+Register filtering and sorting on the schema. This also registers `QueryContext<T>` support automatically:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
-    // Your schema configuration
-    .AddProjections();
+builder
+    .AddGraphQL()
+    .AddFiltering()
+    .AddSorting();
 ```
 
-Projections can be registered on a field. A middleware will apply the selected fields on the result.
-Support for `IQueryable` comes out of the box.
-The projection middleware will create a projection for the whole subtree of its field. Only fields that
-are members of a type will be projected. Fields that define a custom resolver cannot be projected
-to the database. If the middleware encounters a field that specifies `UseProjection()` this field will be skipped.
-
-<ExampleTabs>
-<Implementation>
+Add a `QueryContext<T>` parameter to your resolver. Hot Chocolate constructs it at runtime from the GraphQL selection set, filter arguments, and sort arguments:
 
 ```csharp
-public class Query
+[QueryType]
+public static partial class ProductQueries
 {
-    [UseProjection]
-    public IQueryable<User> GetUsers(IUserRepository repository)
-        => repository.GetUsers();
+    [UseFiltering]
+    [UseSorting]
+    public static async Task<Page<Product>> GetProductsAsync(
+        PagingArguments pagingArgs,
+        QueryContext<Product> query,
+        CatalogContext db,
+        CancellationToken cancellationToken)
+        => await db.Products
+            .With(query)
+            .ToPageAsync(pagingArgs, cancellationToken);
 }
 ```
 
-</Implementation>
-<Code>
+The `[UseFiltering]` and `[UseSorting]` attributes generate the `where` and `order` arguments in the schema. The `QueryContext<Product>` parameter receives the projection selector (from the GraphQL selection set), the filter predicate, and the sort definition. Calling `.With(query)` applies all three to the `IQueryable` in the correct order: filter, sort, then project.
+
+# How QueryContext Works
+
+`QueryContext<T>` is a simple record with three properties:
+
+| Property    | Type                         | Source                                |
+| ----------- | ---------------------------- | ------------------------------------- |
+| `Selector`  | `Expression<Func<T, T>>?`    | Built from the GraphQL selection set  |
+| `Predicate` | `Expression<Func<T, bool>>?` | Built from `[UseFiltering]` arguments |
+| `Sorting`   | `SortDefinition<T>?`         | Built from `[UseSorting]` arguments   |
+
+When you call `.With(queryContext)` on an `IQueryable<T>`, it applies these in order:
+
+1. **Filter** the data with `Where(predicate)`
+2. **Sort** the results with `OrderBy(sorting)`
+3. **Project** only the requested columns with `Select(selector)`
+
+This order is important for query efficiency. Filtering first reduces the dataset, sorting arranges the filtered results, and projecting last ensures only the needed columns are selected.
+
+# Default Sort Order
+
+When users don't provide explicit sort arguments, you often want a stable default order (for example, for pagination). The `.With()` method accepts an optional sort modifier:
 
 ```csharp
-public class QueryType : ObjectType<Query>
+public async Task<Page<Product>> GetProductsAsync(
+    PagingArguments pagingArgs,
+    QueryContext<Product>? query = null,
+    CancellationToken cancellationToken = default)
+    => await context.Products
+        .With(query, DefaultOrder)
+        .ToPageAsync(pagingArgs, cancellationToken);
+
+private static SortDefinition<Product> DefaultOrder(SortDefinition<Product> sort)
+    => sort.IfEmpty(o => o.AddDescending(t => t.Name)).AddAscending(t => t.Id);
+```
+
+The `IfEmpty` method applies the default sort only when the client did not provide a sort argument. The `AddAscending(t => t.Id)` call always appends a tiebreaker to ensure stable cursor-based pagination.
+
+# Using QueryContext with Services
+
+A common pattern is to pass `QueryContext<T>` from your resolver into a service layer. This keeps your resolvers thin and your data access logic reusable:
+
+```csharp
+[QueryType]
+public static partial class ProductQueries
 {
-    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
+    [UseConnection(IncludeTotalCount = true, EnableRelativeCursors = true)]
+    [UseFiltering]
+    [UseSorting]
+    public static async Task<ProductConnection> GetProductsAsync(
+        PagingArguments pagingArgs,
+        QueryContext<Product> query,
+        ProductService productService,
+        CancellationToken cancellationToken)
     {
-        descriptor.Field(t => t.GetUsers(default)).UseProjection();
+        var page = await productService.GetProductsAsync(
+            pagingArgs, query, cancellationToken);
+        return new ProductConnection(page);
     }
 }
+```
 
-public class Query
+The service applies `QueryContext<T>` to the EF Core `DbSet`:
+
+```csharp
+public class ProductService(CatalogContext context)
 {
-    public IQueryable<User> GetUsers(IUserRepository repository)
-        => repository.GetUsers();
+    public async Task<Page<Product>> GetProductsAsync(
+        PagingArguments pagingArgs,
+        QueryContext<Product>? query = null,
+        CancellationToken cancellationToken = default)
+        => await context.Products
+            .With(query, DefaultOrder)
+            .ToPageAsync(pagingArgs, cancellationToken);
+
+    private static SortDefinition<Product> DefaultOrder(
+        SortDefinition<Product> sort)
+        => sort
+            .IfEmpty(o => o.AddDescending(t => t.Name))
+            .AddAscending(t => t.Id);
 }
 ```
 
-</Code>
-<Schema>
+Making the `QueryContext<T>` parameter nullable with a default of `null` allows you to call the service from places that don't have a GraphQL context, such as background jobs or unit tests.
 
-⚠️ Schema-first does currently not support projections!
+# Using QueryContext with DataLoaders
 
-</Schema>
-</ExampleTabs>
-
-> ⚠️ **Note:** If you use more than one middleware, keep in mind that **ORDER MATTERS**. The correct order is UsePaging > UseProjection > UseFiltering > UseSorting
-
-# FirstOrDefault / SingleOrDefault
-
-If you want to limit the response to a single result, you would have to declare a resolver.
-Without returning an `IQueryable<>` you lose the ability to use filtering.
-
-There are two extensions you can use to leverage `collection.FirstOrDefault()` and `collection.SingleOrDefault()` to
-the GraphQL layer. The extensions will rewrite the response type to the element type of the collection apply the behavior.
+`QueryContext<T>` integrates with GreenDonut DataLoaders to enable batched data fetching with projections. Use `.With(query)` on a DataLoader to branch it with the current query context:
 
 ```csharp
-    public class Query
+public class ProductService(
+    CatalogContext context,
+    IProductBatchingContext batchingContext)
+{
+    public async Task<Product?> GetProductByIdAsync(
+        int id,
+        QueryContext<Product>? query = null,
+        CancellationToken cancellationToken = default)
+        => await batchingContext.ProductById
+            .With(query)
+            .LoadAsync(id, cancellationToken);
+}
+```
+
+The DataLoader itself receives `QueryContext<T>` and applies it to the batch query:
+
+```csharp
+[DataLoaderGroup("ProductBatchingContext")]
+internal static class ProductDataLoader
+{
+    [DataLoader]
+    public static async Task<Dictionary<int, Product>> GetProductByIdAsync(
+        IReadOnlyList<int> ids,
+        QueryContext<Product> query,
+        CatalogContext context,
+        CancellationToken cancellationToken)
     {
-        [UseFirstOrDefault]
-        [UseProjection]
-        [UseFiltering]
-        public IQueryable<User> GetUsers([ScopedService] SomeDbContext someDbContext)
-        {
-            return someDbContext.Users;
-        }
+        ids = ids.EnsureOrdered();
+        return await context.Products
+            .Where(t => ids.Contains(t.Id))
+            .With(query)
+            .ToDictionaryAsync(t => t.Id, cancellationToken);
     }
-```
-
-```sdl
-type Query {
-  users(where: UserFilterInput): User
-}
-
-type User {
-  id: Int!
-  name: String!
-  email: String!
 }
 ```
 
-# Sorting Filtering and Paging
-
-Projections can be used together with sorting, filtering and paging. The order of the middlewares must be correct.
-Make sure to have the following order: UsePaging > UseProjection > UseFiltering > UseSorting
-
-Filtering and sorting can be projected over relations. Projections **cannot** project paging over relations.
+For batched collection DataLoaders (for example, loading products by brand), you can combine `QueryContext<T>` with pagination:
 
 ```csharp
-public class Query
+[DataLoader]
+public static async Task<Dictionary<int, Page<Product>>>
+    GetProductsByBrandAsync(
+        IReadOnlyList<int> brandIds,
+        PagingArguments pagingArgs,
+        QueryContext<Product> query,
+        CatalogContext context,
+        CancellationToken cancellationToken)
+{
+    brandIds = brandIds.EnsureOrdered();
+    return await context.Products
+        .Where(t => brandIds.Contains(t.BrandId))
+        .With(query, s => s.AddAscending(t => t.Id))
+        .ToBatchPageAsync(
+            t => t.BrandId,
+            pagingArgs,
+            cancellationToken);
+}
+```
+
+# Nested Resolvers
+
+In object type resolvers, `QueryContext<T>` is typed to the entity being resolved, not the parent. This means each resolver gets the projection, filter, and sort context for its own return type:
+
+```csharp
+[ObjectType<Product>]
+public static partial class ProductNode
+{
+    [BindMember(nameof(Product.BrandId))]
+    public static async Task<Brand?> GetBrandAsync(
+        [Parent(requires: nameof(Product.BrandId))] Product product,
+        QueryContext<Brand> query,
+        BrandService brandService,
+        CancellationToken cancellationToken)
+        => await brandService.GetBrandByIdAsync(
+            product.BrandId, query, cancellationToken);
+}
+```
+
+For nested connection fields, combine `QueryContext<T>` with `[UseConnection]`, `[UseFiltering]`, and `[UseSorting]`:
+
+```csharp
+[ObjectType<Brand>]
+public static partial class BrandNode
+{
+    [UseConnection(EnableRelativeCursors = true)]
+    [UseFiltering]
+    [UseSorting]
+    public static async Task<PageConnection<Product>> GetProductsAsync(
+        [Parent(requires: nameof(Brand.Id))] Brand brand,
+        PagingArguments pagingArgs,
+        QueryContext<Product> query,
+        ProductService productService,
+        CancellationToken cancellationToken)
+    {
+        var page = await productService.GetProductsByBrandAsync(
+            brand.Id, pagingArgs, query, cancellationToken);
+        return new PageConnection<Product>(page);
+    }
+}
+```
+
+# Including Additional Fields
+
+Sometimes a DataLoader or batch resolver needs a field that the client didn't request (for example, the `Id` for dictionary keying). Use `.Include()` to ensure specific properties are always projected:
+
+```csharp
+[BatchResolver]
+public static async Task<List<Supplier?>> GetSupplierAsync(
+    [Parent(requires: nameof(Brand.SupplierId))] List<Brand> brands,
+    QueryContext<Supplier> query,
+    CatalogContext context,
+    CancellationToken cancellationToken)
+{
+    var supplierIds = brands
+        .Select(b => b.SupplierId)
+        .Distinct()
+        .ToList();
+
+    var suppliers = await context.Suppliers
+        .Where(s => supplierIds.Contains(s.Id))
+        .With(query.Include(s => s.Id))
+        .ToDictionaryAsync(s => s.Id, cancellationToken);
+
+    return brands
+        .Select(b => suppliers.GetValueOrDefault(b.SupplierId))
+        .ToList();
+}
+```
+
+The `.Include(s => s.Id)` call adds the `Id` property to the projection selector so it is always available for the dictionary key, even if the client did not request it.
+
+# Migrating from UseProjection
+
+If you are migrating from the `[UseProjection]` attribute approach, the key changes are:
+
+**Before (attribute-based):**
+
+```csharp
+[QueryType]
+public static partial class ProductQueries
 {
     [UsePaging]
     [UseProjection]
     [UseFiltering]
     [UseSorting]
-    public IQueryable<User> GetUsers([ScopedService] SomeDbContext someDbContext)
-    {
-        return someDbContext.Users;
-    }
+    public static IQueryable<Product> GetProducts(CatalogContext db)
+        => db.Products;
 }
+```
 
-public class User
+**After (QueryContext):**
+
+```csharp
+[QueryType]
+public static partial class ProductQueries
 {
-    public int Id { get; set; }
-
-    public string Name { get; set; }
-
-    public string Email { get; set; }
-
+    [UseConnection]
     [UseFiltering]
     [UseSorting]
-    public ICollection<Address> Addresses { get; set; }
-}
-```
-
-```graphql
-{
-  users(
-    where: { name: { eq: "ChilliCream" } }
-    order: [{ name: DESC }, { email: DESC }]
-  ) {
-    nodes {
-      email
-      addresses(where: { street: { eq: "Sesame Street" } }) {
-        street
-      }
-    }
-    pageInfo {
-      endCursor
-      hasNextPage
-      hasPreviousPage
-      startCursor
-    }
-  }
-}
-```
-
-```sql
-SELECT "t"."Email", "t"."Id", "a"."Street", "a"."Id"
-FROM (
-    SELECT "u"."Email", "u"."Id", "u"."Name"
-    FROM "Users" AS "u"
-    WHERE "u"."Name" = @__p_0
-    ORDER BY "u"."Name" DESC, "u"."Email" DESC
-    LIMIT @__p_1
-) AS "t"
-LEFT JOIN "Address" AS "a" ON "t"."Id" = "a"."UserId"
-ORDER BY "t"."Name" DESC, "t"."Email" DESC, "t"."Id", "a"."Id"
-```
-
-# Always Project Fields
-
-Resolvers on types often access data of the parent, e.g. uses the `Email` member of the parent to fetch some
-related data from another service. With projections, this resolver could only work when the user also queries
-for the `email` field. To ensure a field is always projected you have to use `IsProjected(true)`.
-
-<ExampleTabs>
-<Implementation>
-
-```csharp
-public class User
-{
-    public int Id { get; set; }
-    public string Name { get; set; }
-    [IsProjected(true)]
-    public string Email { get; set; }
-    public Address Address { get; set; }
-}
-```
-
-</Implementation>
-<Code>
-
-```csharp
-public class UserType : ObjectType<User>
-{
-    protected override void Configure(
-        IObjectTypeDescriptor<User> descriptor)
+    public static async Task<ProductConnection> GetProductsAsync(
+        PagingArguments pagingArgs,
+        QueryContext<Product> query,
+        CatalogContext db,
+        CancellationToken cancellationToken)
     {
-        descriptor.Field(f => f.Email).IsProjected(true);
+        var page = await db.Products
+            .With(query)
+            .ToPageAsync(pagingArgs, cancellationToken);
+        return new ProductConnection(page);
     }
 }
 ```
 
-</Code>
-<Schema>
+The main differences:
 
-⚠️ Schema-first does currently not support projections!
+- **No `[UseProjection]` attribute.** `QueryContext<T>` handles projections via the `Selector` it receives from the GraphQL selection set.
+- **Explicit data pipeline.** You control when and how filtering, sorting, and projection are applied to your query through the `.With()` call.
+- **Service layer friendly.** You can pass `QueryContext<T>` into services and DataLoaders, making your data access logic reusable and testable.
+- **No middleware ordering concerns.** With `[UseProjection]`, you had to maintain a strict attribute order (`UsePaging` > `UseProjection` > `UseFiltering` > `UseSorting`). With `QueryContext<T>`, the `.With()` method applies operations in the correct order automatically.
 
-</Schema>
-</ExampleTabs>
+> Do not combine `QueryContext<T>` with `[UseProjection]` on the same field. Each applies its own `Select` expression, leading to unexpected behavior. The HC0099 analyzer warns when both are present.
 
-```graphql
-{
-  users {
-    address {
-      street
-    }
-  }
-}
-```
+# Next Steps
 
-```sql
-SELECT "u"."Email", "a"."Id" IS NOT NULL, "a"."Street"
-FROM "Users" AS "u"
-LEFT JOIN "Address" AS "a" ON "u"."AddressId" = "a"."Id"
-```
-
-# Exclude fields
-
-If a projected field is requested, the whole subtree is processed. Sometimes you want to opt out of projections.
-The projections middleware skips a field in two cases. Either the visitor encounters a field that is a `UseProjection` field
-itself, or it defines `IsProjected(false)`.
-
-<ExampleTabs>
-<Implementation>
-
-```csharp
-public class User
-{
-    public int Id { get; set; }
-    public string Name { get; set; }
-    [IsProjected(false)]
-    public string Email { get; set; }
-    public Address Address { get; set; }
-}
-```
-
-</Implementation>
-<Code>
-
-```csharp
-public class UserType : ObjectType<User>
-{
-    protected override void Configure(
-        IObjectTypeDescriptor<User> descriptor)
-    {
-        descriptor.Field(f => f.Email).IsProjected(false);
-    }
-}
-```
-
-</Code>
-<Schema>
-
-⚠️ Schema-first does currently not support projections!
-
-</Schema>
-</ExampleTabs>
-
-```graphql
-{
-  users {
-    email
-    address {
-      street
-    }
-  }
-}
-```
-
-```sql
-SELECT "a"."Id" IS NOT NULL, "a"."Street"
-FROM "Users" AS "u"
-LEFT JOIN "Address" AS "a" ON "u"."AddressId" = "a"."Id"
-```
+- **Need to filter results?** See [Filtering](/docs/hotchocolate/v16/fetching-data/filtering).
+- **Need to sort results?** See [Sorting](/docs/hotchocolate/v16/fetching-data/sorting).
+- **Need to page through results?** See [Pagination](/docs/hotchocolate/v16/fetching-data/pagination).
+- **Need to integrate with Entity Framework?** See [Entity Framework Integration](/docs/hotchocolate/v16/fetching-data/integrations/entity-framework).

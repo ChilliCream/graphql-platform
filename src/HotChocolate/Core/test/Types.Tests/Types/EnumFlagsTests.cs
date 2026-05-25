@@ -59,14 +59,14 @@ public class EnumFlagsTests
               query: Query
             }
 
+            type Query {
+              foo(input: FooBarBazFlagsInput!): FooBarBazFlags!
+            }
+
             type FooBarBazFlags {
               isFoo: Boolean!
               isBar: Boolean!
               isBaz: Boolean!
-            }
-
-            type Query {
-              foo(input: FooBarBazFlagsInput!): FooBarBazFlags!
             }
 
             input FooBarBazFlagsInput {

@@ -27,12 +27,10 @@ public class IntegrationTests
                 {
                     await n(c);
 
-                    if (c.IsPersistedOperationDocument() && c.Result is IOperationResult r)
+                    if (c.IsPersistedOperationDocument())
                     {
-                        c.Result = OperationResultBuilder
-                            .FromResult(r)
-                            .SetExtension("persistedDocument", true)
-                            .Build();
+                        var result = c.Result.ExpectOperationResult();
+                        result.Extensions = result.Extensions.SetItem("persistedDocument", true);
                     }
                 })
                 .UsePersistedOperationPipeline()
@@ -65,12 +63,10 @@ public class IntegrationTests
                 {
                     await n(c);
 
-                    if (c.IsPersistedOperationDocument() && c.Result is IOperationResult r)
+                    if (c.IsPersistedOperationDocument())
                     {
-                        c.Result = OperationResultBuilder
-                            .FromResult(r)
-                            .SetExtension("persistedDocument", true)
-                            .Build();
+                        var result = c.Result.ExpectOperationResult();
+                        result.Extensions = result.Extensions.SetItem("persistedDocument", true);
                     }
                 })
                 .UsePersistedOperationPipeline()
@@ -100,12 +96,10 @@ public class IntegrationTests
                 {
                     await n(c);
 
-                    if (c.IsPersistedOperationDocument() && c.Result is IOperationResult r)
+                    if (c.IsPersistedOperationDocument())
                     {
-                        c.Result = OperationResultBuilder
-                            .FromResult(r)
-                            .SetExtension("persistedDocument", true)
-                            .Build();
+                        var result = c.Result.ExpectOperationResult();
+                        result.Extensions = result.Extensions.SetItem("persistedDocument", true);
                     }
                 })
                 .UseAutomaticPersistedOperationPipeline()
@@ -113,11 +107,11 @@ public class IntegrationTests
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequest
-                .FromId(documentHash)
-                .WithDocument(new OperationDocument(Utf8GraphQLParser.Parse("{ __typename }")))
-                .WithDocumentHash(new OperationDocumentHash(documentHash, "MD5", HashFormat.Base64))
-                .WithExtensions(new Dictionary<string, object?>
+            OperationRequestBuilder.New()
+                .SetDocumentId(documentHash)
+                .SetDocument(Utf8GraphQLParser.Parse("{ __typename }"))
+                .SetDocumentHash(new OperationDocumentHash(documentHash, "MD5", HashFormat.Base64))
+                .SetExtensions(new Dictionary<string, object?>
                 {
                     {
                         "persistedQuery",
@@ -127,7 +121,8 @@ public class IntegrationTests
                             { "md5Hash", documentHash }
                         }
                     }
-                }));
+                })
+                .Build());
 
         File.Delete(IO.Path.Combine(cacheDirectory, documentHash + ".graphql"));
 

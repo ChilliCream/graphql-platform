@@ -15,7 +15,7 @@ public static class FilterFeatureExtensions
     /// <c>true</c> if the selection has a filtering enabled;
     /// otherwise, <c>false</c>.
     /// </returns>
-    public static bool HasFilterFeature(this ISelection selection)
+    public static bool HasFilterFeature(this Selection selection)
     {
         ArgumentNullException.ThrowIfNull(selection);
 
@@ -30,7 +30,7 @@ public static class FilterFeatureExtensions
     /// The filter feature from the selection;
     /// otherwise, <c>null</c>.
     /// </returns>
-    public static FilterFeature? GetFilterFeature(this ISelection selection)
+    public static FilterFeature? GetFilterFeature(this Selection selection)
     {
         ArgumentNullException.ThrowIfNull(selection);
 

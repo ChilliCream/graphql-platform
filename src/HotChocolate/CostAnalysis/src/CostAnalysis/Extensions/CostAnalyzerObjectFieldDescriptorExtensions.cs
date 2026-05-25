@@ -71,7 +71,7 @@ public static class CostAnalyzerObjectFieldDescriptorExtensions
         int? assumedSize = null,
         ImmutableArray<string>? slicingArguments = null,
         ImmutableArray<string>? sizedFields = null,
-        bool requireOneSlicingArgument = true,
+        bool? requireOneSlicingArgument = null,
         int? slicingArgumentDefaultValue = null)
     {
         ArgumentNullException.ThrowIfNull(descriptor);

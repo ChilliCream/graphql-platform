@@ -36,6 +36,11 @@ public readonly struct OperationDocumentId : IEquatable<OperationDocumentId>
     public bool IsEmpty => string.IsNullOrEmpty(Value);
 
     /// <summary>
+    /// Gets a value indicating whether the GraphQL operation document id has a non-empty value.
+    /// </summary>
+    public bool HasValue => !string.IsNullOrEmpty(Value);
+
+    /// <summary>
     /// Gets the GraphQL operation document id.
     /// </summary>
     public string Value { get; }

@@ -1,26 +1,36 @@
 {
   "compilerOptions": {
     "baseUrl": ".",
-    "target": "ESNext",
+    "target": "ES2017",
     "module": "ESNext",
-    "lib": ["dom", "es2019.array"],
-    "jsx": "react",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "jsx": "preserve",
     "moduleResolution": "node",
     "allowJs": true,
     "outDir": "./build",
     "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "noUnusedLocals": false,
     "skipLibCheck": true,
     "strict": true,
+    "noEmit": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "incremental": true,
     "paths": {
       "@/package": ["package.json"],
       "@/*": ["src/*", "./*"]
     },
     "plugins": [
       {
+        "name": "next"
+      },
+      {
         "name": "typescript-styled-plugin"
       }
     ]
-  }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
 }

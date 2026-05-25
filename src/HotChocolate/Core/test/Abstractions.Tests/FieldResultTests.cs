@@ -187,7 +187,7 @@ public class FieldResultTests
     {
         void Error()
         {
-            FieldResult<string, ErrorObj1> result = default(ErrorObj1)!;
+            FieldResult<string, ErrorObj1> _ = default(ErrorObj1)!;
         }
 
         Assert.Throws<ArgumentNullException>(Error);
@@ -426,7 +426,7 @@ public class FieldResultTests
     {
         void Error()
         {
-            FieldResult<string, ErrorObj1, ErrorObj2> result = default(ErrorObj1)!;
+            FieldResult<string, ErrorObj1, ErrorObj2> _ = default(ErrorObj1)!;
         }
 
         Assert.Throws<ArgumentNullException>(Error);
@@ -545,7 +545,7 @@ public class FieldResultTests
     {
         void Error()
         {
-            FieldResult<string, ErrorObj1, ErrorObj2> result = default(ErrorObj2)!;
+            FieldResult<string, ErrorObj1, ErrorObj2> _ = default(ErrorObj2)!;
         }
 
         Assert.Throws<ArgumentNullException>(Error);
@@ -798,7 +798,7 @@ public class FieldResultTests
     {
         void Error()
         {
-            FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3> result = default(ErrorObj1)!;
+            FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3> _ = default(ErrorObj1)!;
         }
 
         Assert.Throws<ArgumentNullException>(Error);
@@ -926,7 +926,7 @@ public class FieldResultTests
     {
         void Error()
         {
-            FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3> result = default(ErrorObj2)!;
+            FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3> _ = default(ErrorObj2)!;
         }
 
         Assert.Throws<ArgumentNullException>(Error);
@@ -1054,7 +1054,7 @@ public class FieldResultTests
     {
         void Error()
         {
-            FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3> result = default(ErrorObj3)!;
+            FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3> _ = default(ErrorObj3)!;
         }
 
         Assert.Throws<ArgumentNullException>(Error);
@@ -1323,8 +1323,7 @@ public class FieldResultTests
     {
         void Error()
         {
-            FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4> result =
-                default(ErrorObj1)!;
+            FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4> _ = default(ErrorObj1)!;
         }
 
         Assert.Throws<ArgumentNullException>(Error);
@@ -1456,8 +1455,7 @@ public class FieldResultTests
     {
         void Error()
         {
-            FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4> result =
-                default(ErrorObj2)!;
+            FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4> _ = default(ErrorObj2)!;
         }
 
         Assert.Throws<ArgumentNullException>(Error);
@@ -1589,8 +1587,7 @@ public class FieldResultTests
     {
         void Error()
         {
-            FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4> result =
-                default(ErrorObj3)!;
+            FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4> _ = default(ErrorObj3)!;
         }
 
         Assert.Throws<ArgumentNullException>(Error);
@@ -1722,8 +1719,7 @@ public class FieldResultTests
     {
         void Error()
         {
-            FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4> result =
-                default(ErrorObj4)!;
+            FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4> _ = default(ErrorObj4)!;
         }
 
         Assert.Throws<ArgumentNullException>(Error);
@@ -2007,7 +2003,7 @@ public class FieldResultTests
     {
         void Error()
         {
-            FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4, ErrorObj5> result =
+            FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4, ErrorObj5> _ =
                 default(ErrorObj1)!;
         }
 
@@ -2146,7 +2142,7 @@ public class FieldResultTests
     {
         void Error()
         {
-            FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4, ErrorObj5> result =
+            FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4, ErrorObj5> _ =
                 default(ErrorObj2)!;
         }
 
@@ -2285,7 +2281,7 @@ public class FieldResultTests
     {
         void Error()
         {
-            FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4, ErrorObj5> result =
+            FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4, ErrorObj5> _ =
                 default(ErrorObj3)!;
         }
 
@@ -2424,7 +2420,7 @@ public class FieldResultTests
     {
         void Error()
         {
-            FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4, ErrorObj5> result =
+            FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4, ErrorObj5> _ =
                 default(ErrorObj4)!;
         }
 
@@ -2563,7 +2559,7 @@ public class FieldResultTests
     {
         void Error()
         {
-            FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4, ErrorObj5> result =
+            FieldResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4, ErrorObj5> _ =
                 default(ErrorObj5)!;
         }
 

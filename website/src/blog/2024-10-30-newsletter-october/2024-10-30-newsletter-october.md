@@ -3,7 +3,8 @@ path: "/blog/2024/10/30/newsletter-october"
 date: "2024-10-30"
 title: "Newsletter October"
 description: "Hot Chocolate 14 is released, BCP is now Nitro and there is a new DDD Workshop"
-tags: ["bananacakepop", "graphql", "hotchocolate", "workshops", "cloud", "release"]
+tags:
+  ["bananacakepop", "graphql", "hotchocolate", "workshops", "cloud", "release"]
 featuredImage: "header.png"
 author: Pascal Senn
 authorUrl: https://github.com/pascalsenn
@@ -79,7 +80,7 @@ While our telemetry integration was previously focused only on GraphQL operation
 
 ![image](./img1.png)
 
-# Get Hands-On with DDD and GraphQL in Our One-Day Workshop  
+# Get Hands-On with DDD and GraphQL in Our One-Day Workshop
 
 Join us for a focused, one-day workshop on Domain-Driven Design with GraphQL, where we’ll guide you through practical DDD concepts and their implementation in .NET 9, ASP.NET Core 9, Aspire, Hot Chocolate and Fusion. Learn how CQRS and Domain Events work with GraphQL, and how to manage complex application domains with clean architecture practices. This session is ideal for developers who want to deepen their understanding of DDD principles and see them in action in a GraphQL environment.
 

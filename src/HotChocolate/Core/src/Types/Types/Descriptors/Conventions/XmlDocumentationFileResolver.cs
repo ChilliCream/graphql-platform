@@ -12,7 +12,7 @@ public class XmlDocumentationFileResolver : IXmlDocumentationFileResolver
 
     private readonly Func<Assembly, string>? _resolveXmlDocumentationFileName;
 
-    private readonly ConcurrentDictionary<string, XDocument> _cache =
+    private readonly ConcurrentDictionary<string, XDocument?> _cache =
         new(StringComparer.OrdinalIgnoreCase);
 
     public XmlDocumentationFileResolver()
@@ -38,8 +38,9 @@ public class XmlDocumentationFileResolver : IXmlDocumentationFileResolver
             if (xmlDocumentFileName is not null && File.Exists(xmlDocumentFileName))
             {
                 doc = XDocument.Load(xmlDocumentFileName, LoadOptions.PreserveWhitespace);
-                _cache[fullName] = doc;
             }
+
+            _cache[fullName] = doc;
         }
 
         document = doc;
@@ -71,9 +72,11 @@ public class XmlDocumentationFileResolver : IXmlDocumentationFileResolver
                 : _resolveXmlDocumentationFileName(assembly);
 
             string path;
+#pragma warning disable IL3000 // Accessing Assembly.Location can return an empty string for assemblies embedded in a single-file app.
             if (!string.IsNullOrEmpty(assembly.Location))
             {
                 var assemblyDirectory = IOPath.GetDirectoryName(assembly.Location);
+#pragma warning restore IL3000
                 path = IOPath.Combine(assemblyDirectory!, expectedDocFile);
                 if (File.Exists(path))
                 {
@@ -82,7 +85,9 @@ public class XmlDocumentationFileResolver : IXmlDocumentationFileResolver
             }
 
 #pragma warning disable SYSLIB0012
+#pragma warning disable IL3002 // Accessing Assembly.CodeBase can cause issues in single-file and AOT publishing.
             var codeBase = assembly.CodeBase;
+#pragma warning restore IL3002
 #pragma warning restore SYSLIB0012
             if (!string.IsNullOrEmpty(codeBase))
             {

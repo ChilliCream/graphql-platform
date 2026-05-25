@@ -2,12 +2,12 @@ schema {
   mutation: SimpleMutationAttribute
 }
 
-type PayloadTypeName {
-  payloadFieldName: String
-}
-
 type SimpleMutationAttribute {
   doSomething(inputArgumentName: InputTypeName!): PayloadTypeName!
+}
+
+type PayloadTypeName {
+  payloadFieldName: String
 }
 
 input InputTypeName {

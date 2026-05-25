@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Reflection;
 using HotChocolate.Properties;
+using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Utilities;
 
@@ -40,18 +41,18 @@ internal class ObjectToDictionaryConverter
 
         switch (obj)
         {
-            case string _:
-            case short _:
-            case ushort _:
-            case int _:
-            case uint _:
-            case long _:
-            case ulong _:
-            case float _:
-            case double _:
-            case decimal _:
-            case bool _:
-            case sbyte _:
+            case string:
+            case short:
+            case ushort:
+            case int:
+            case uint:
+            case long:
+            case ulong:
+            case float:
+            case double:
+            case decimal:
+            case bool:
+            case sbyte:
                 setValue(obj);
                 return;
         }
@@ -59,7 +60,7 @@ internal class ObjectToDictionaryConverter
         var type = obj.GetType();
 
         if (type.IsValueType
-            && _converter.TryConvert(type, typeof(string), obj, out var converted)
+            && _converter.TryConvert(type, typeof(string), obj, out var converted, out _)
             && converted is string s)
         {
             setValue(s);

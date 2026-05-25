@@ -80,7 +80,7 @@ public class PostgresChannelWriterTests
     {
         // Arrange
         var connected = false;
-        var options = new PostgresSubscriptionOptions()
+        var options = new PostgresSubscriptionOptions
         {
             ConnectionFactory = async ct =>
             {
@@ -137,7 +137,7 @@ public class PostgresChannelWriterTests
     {
         // Arrange
         NpgsqlConnection? connection = null;
-        var options = new PostgresSubscriptionOptions()
+        var options = new PostgresSubscriptionOptions
         {
             ConnectionFactory = async ct =>
             {

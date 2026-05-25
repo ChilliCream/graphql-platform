@@ -9,7 +9,6 @@ namespace HotChocolate.AspNetCore.Subscriptions;
 
 internal sealed class WebSocketSession : ISocketSession
 {
-    private static readonly GraphQLSocketOptions s_defaultOptions = new();
     private bool _disposed;
 
     private WebSocketSession(
@@ -40,20 +39,21 @@ internal sealed class WebSocketSession : ISocketSession
 
     public static async Task AcceptAsync(
         HttpContext context,
-        ExecutorSession executorSession)
+        ExecutorSession executorSession,
+        GraphQLServerOptions serverOptions)
     {
         using var connection = new WebSocketConnection(context, executorSession);
+        connection.Features.Set(serverOptions);
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(
             context.RequestAborted,
             connection.ApplicationStopping);
         var ct = cts.Token;
         var protocol = await connection.TryAcceptConnection();
-        var interceptor = executorSession.SocketSessionInterceptor;
 
         if (protocol is not null)
         {
             using var session = new WebSocketSession(connection, protocol, executorSession);
-            var options = context.GetGraphQLSocketOptions() ?? s_defaultOptions;
+            var options = serverOptions.Sockets;
 
             try
             {

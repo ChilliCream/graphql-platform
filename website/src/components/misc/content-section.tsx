@@ -242,6 +242,7 @@ const VisibleArea = styled.div`
   flex-direction: column;
   align-items: center;
   gap: 36px;
+  width: 100%;
   max-width: ${MAX_CONTENT_WIDTH}px;
   perspective: 1px;
   overflow: visible;

@@ -2,11 +2,11 @@
   "errors": [
     {
       "message": "The required input field `name` is missing.",
-      "path": [
-        "user",
-        "name"
-      ],
       "extensions": {
+        "inputPath": [
+          "user",
+          "name"
+        ],
         "field": "UserInput.name"
       }
     }

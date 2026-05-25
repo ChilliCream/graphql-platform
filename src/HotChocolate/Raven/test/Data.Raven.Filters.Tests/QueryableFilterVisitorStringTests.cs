@@ -97,7 +97,7 @@ public class QueryableFilterVisitorStringTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { bar: { in: [ \"testatest\"  \"testbtest\" ]}}){ bar}}")
+                    "{ root(where: { bar: { in: [\"testatest\"  \"testbtest\"]}}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
@@ -107,7 +107,7 @@ public class QueryableFilterVisitorStringTests
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { bar: { in: [ \"testatest\" ]}}){ bar}}")
+                .SetDocument("{ root(where: { bar: { in: [\"testatest\"]}}){ bar}}")
                 .Build());
 
         // assert
@@ -129,7 +129,7 @@ public class QueryableFilterVisitorStringTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { bar: { nin: [ \"testatest\"  \"testbtest\" ]}}){ bar}}")
+                    "{ root(where: { bar: { nin: [\"testatest\"  \"testbtest\"]}}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
@@ -139,7 +139,7 @@ public class QueryableFilterVisitorStringTests
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { bar: { nin: [ \"testatest\" ]}}){ bar}}")
+                .SetDocument("{ root(where: { bar: { nin: [\"testatest\"]}}){ bar}}")
                 .Build());
 
         // assert
@@ -411,7 +411,7 @@ public class QueryableFilterVisitorStringTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { bar: { in: [ \"testatest\"  \"testbtest\" ]}}){ bar}}")
+                    "{ root(where: { bar: { in: [\"testatest\"  \"testbtest\"]}}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
@@ -421,7 +421,7 @@ public class QueryableFilterVisitorStringTests
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { bar: { in: [ \"testatest\" ]}}){ bar}}")
+                .SetDocument("{ root(where: { bar: { in: [\"testatest\"]}}){ bar}}")
                 .Build());
 
         // assert
@@ -444,7 +444,7 @@ public class QueryableFilterVisitorStringTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { bar: { nin: [ \"testatest\"  \"testbtest\" ]}}){ bar}}")
+                    "{ root(where: { bar: { nin: [\"testatest\"  \"testbtest\"]}}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
@@ -454,7 +454,7 @@ public class QueryableFilterVisitorStringTests
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { bar: { nin: [ \"testatest\" ]}}){ bar}}")
+                .SetDocument("{ root(where: { bar: { nin: [\"testatest\"]}}){ bar}}")
                 .Build());
 
         // assert

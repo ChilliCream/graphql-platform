@@ -1,14 +1,52 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Types;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Data.Projections.Expressions.Handlers;
 
 public abstract class QueryableProjectionHandlerBase
     : ProjectionFieldHandler<QueryableProjectionContext>
 {
+    protected static bool CanProjectMember(Selection selection)
+    {
+        if (selection.Field.Member is null)
+        {
+            return false;
+        }
+
+        // Explicit opt-in should always project regardless of resolver source.
+        if (selection.Field.IsAlwaysProjected())
+        {
+            return true;
+        }
+
+        var resolverMember = selection.Field.ResolverMember;
+
+        if (resolverMember is null)
+        {
+            return true;
+        }
+
+        if (resolverMember.ReflectedType == selection.Field.DeclaringType.RuntimeType)
+        {
+            return true;
+        }
+
+        // Explicit member replacements (e.g. fluent ResolveWith on a shadowed property)
+        // must keep projecting the underlying member so custom resolvers
+        // can access the shadowed data on projected parents.
+        if (selection.Field.Flags.HasFlag(CoreFieldFlags.MemberReplacement))
+        {
+            return true;
+        }
+
+        return resolverMember.IsDefined(typeof(BindMemberAttribute), inherit: true);
+    }
+
     public override bool TryHandleEnter(
         QueryableProjectionContext context,
-        ISelection selection,
+        Selection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
         action = SelectionVisitor.Continue;
@@ -17,7 +55,7 @@ public abstract class QueryableProjectionHandlerBase
 
     public override bool TryHandleLeave(
         QueryableProjectionContext context,
-        ISelection selection,
+        Selection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
         action = SelectionVisitor.Continue;

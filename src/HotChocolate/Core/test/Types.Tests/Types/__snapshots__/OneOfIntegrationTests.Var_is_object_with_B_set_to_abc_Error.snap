@@ -1,0 +1,15 @@
+{
+  "errors": [
+    {
+      "message": "Int cannot coerce the given value JSON element of type `String` to a runtime value.",
+      "extensions": {
+        "inputPath": [
+          "var",
+          "b"
+        ],
+        "coordinate": "ExampleInput.b",
+        "fieldType": "Int"
+      }
+    }
+  ]
+}

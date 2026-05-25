@@ -1,7 +1,7 @@
 {
   "errors": [
     {
-      "message": "Variable `var` is required.",
+      "message": "Variable `b` is required.",
       "locations": [
         {
           "line": 1,
@@ -10,7 +10,7 @@
       ],
       "extensions": {
         "code": "HC0018",
-        "variable": "var"
+        "variable": "b"
       }
     }
   ]

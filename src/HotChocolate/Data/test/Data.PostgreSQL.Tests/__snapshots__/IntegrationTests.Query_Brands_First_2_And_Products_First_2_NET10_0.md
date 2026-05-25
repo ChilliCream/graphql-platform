@@ -59,7 +59,7 @@ LIMIT @p
 
 ```sql
 -- @brandIds={ '11', '13' } (DbType = Object)
-SELECT p1."BrandId", p3."Id", p3."Name", p3."BrandId"
+SELECT p1."BrandId", p3."Id", p3."Name"
 FROM (
     SELECT p."BrandId"
     FROM "Products" AS p
@@ -77,4 +77,3 @@ LEFT JOIN (
 ) AS p3 ON p1."BrandId" = p3."BrandId"
 ORDER BY p1."BrandId", p3."BrandId", p3."Id"
 ```
-

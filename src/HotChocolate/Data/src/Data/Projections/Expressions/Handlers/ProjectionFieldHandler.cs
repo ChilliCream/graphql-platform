@@ -4,7 +4,7 @@ using HotChocolate.Execution.Processing;
 namespace HotChocolate.Data.Projections.Expressions.Handlers;
 
 /// <summary>
-/// A handler that can intersect a <see cref="ISelection"/> and optimize the selection set for
+/// A handler that can intersect a <see cref="Selection"/> and optimize the selection set for
 /// projections.
 /// </summary>
 public abstract class ProjectionFieldHandler<T>
@@ -23,35 +23,35 @@ public abstract class ProjectionFieldHandler<T>
     }
 
     /// <inheritdoc/>
-    public abstract bool CanHandle(ISelection selection);
+    public abstract bool CanHandle(Selection selection);
 
     /// <inheritdoc/>
-    public virtual T OnBeforeEnter(T context, ISelection selection) => context;
+    public virtual T OnBeforeEnter(T context, Selection selection) => context;
 
     /// <inheritdoc/>
     public abstract bool TryHandleEnter(
         T context,
-        ISelection selection,
+        Selection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action);
 
     /// <inheritdoc/>
     public virtual T OnAfterEnter(
         T context,
-        ISelection selection,
+        Selection selection,
         ISelectionVisitorAction action) => context;
 
     /// <inheritdoc/>
-    public virtual T OnBeforeLeave(T context, ISelection selection) => context;
+    public virtual T OnBeforeLeave(T context, Selection selection) => context;
 
     /// <inheritdoc/>
     public abstract bool TryHandleLeave(
         T context,
-        ISelection selection,
+        Selection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action);
 
     /// <inheritdoc/>
     public virtual T OnAfterLeave(
         T context,
-        ISelection selection,
+        Selection selection,
         ISelectionVisitorAction action) => context;
 }

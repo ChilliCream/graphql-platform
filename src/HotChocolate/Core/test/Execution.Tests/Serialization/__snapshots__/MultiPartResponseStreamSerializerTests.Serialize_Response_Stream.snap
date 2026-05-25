@@ -1,10 +1,10 @@
-﻿
+
 ---
 Content-Type: application/json; charset=utf-8
 
-{"data":{"hero":{"id":"2001"}},"hasNext":true}
+{"data":{"hero":{"id":"2001"}},"pending":[{"id":"2","path":["hero"],"label":"friends"}],"hasNext":true}
 ---
 Content-Type: application/json; charset=utf-8
 
-{"incremental":[{"data":{"friends":{"nodes":[{"id":"1000","name":"Luke Skywalker"},{"id":"1002","name":"Han Solo"},{"id":"1003","name":"Leia Organa"}]}},"label":"friends","path":["hero"]}],"hasNext":false}
+{"incremental":[{"id":"2","data":{"friends":{"nodes":[{"id":"1000","name":"Luke Skywalker"},{"id":"1002","name":"Han Solo"},{"id":"1003","name":"Leia Organa"}]}}}],"completed":[{"id":"2"}],"hasNext":false}
 -----

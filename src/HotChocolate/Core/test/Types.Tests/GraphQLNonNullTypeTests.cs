@@ -1,4 +1,3 @@
-#nullable enable
 using System.ComponentModel.DataAnnotations;
 using HotChocolate.Execution;
 using HotChocolate.Tests;

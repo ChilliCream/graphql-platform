@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using TypeThrowHelper = HotChocolate.Utilities.ThrowHelper;
@@ -43,9 +44,6 @@ public static class SchemaExtensions
     /// <c>true</c> if a type system member was found with the given
     /// <paramref name="coordinateString"/>; otherwise, <c>false</c>.
     /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="schema"/> is <c>null</c>.
-    /// </exception>
     public static bool TryGetMember(
         this Schema schema,
         string coordinateString,
@@ -76,16 +74,11 @@ public static class SchemaExtensions
     /// <c>true</c> if a type system member was found with the given
     /// <paramref name="coordinate"/>; otherwise, <c>false</c>.
     /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="schema"/> is <c>null</c>.
-    /// </exception>
     public static bool TryGetMember(
         this Schema schema,
         SchemaCoordinate coordinate,
         [NotNullWhen(true)] out ITypeSystemMember? member)
     {
-        ArgumentNullException.ThrowIfNull(schema);
-
         if (coordinate.OfDirective)
         {
             if (schema.DirectiveTypes.TryGetDirective(coordinate.Name, out var directive))
@@ -177,9 +170,6 @@ public static class SchemaExtensions
     /// <returns>
     /// Returns the resolved type system member.
     /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="schema"/> is <c>null</c>.
-    /// </exception>
     /// <exception cref="SyntaxException">
     /// The <paramref name="coordinateString"/> has invalid syntax.
     /// </exception>
@@ -204,9 +194,6 @@ public static class SchemaExtensions
     /// <returns>
     /// Returns the resolved type system member.
     /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="schema"/> is <c>null</c>.
-    /// </exception>
     /// <exception cref="InvalidSchemaCoordinateException">
     /// Unable to resolve a type system member with the
     /// specified <paramref name="coordinate"/>.
@@ -215,8 +202,6 @@ public static class SchemaExtensions
         this Schema schema,
         SchemaCoordinate coordinate)
     {
-        ArgumentNullException.ThrowIfNull(schema);
-
         if (coordinate.OfDirective)
         {
             if (schema.DirectiveTypes.TryGetDirective(coordinate.Name, out var directive))
@@ -294,5 +279,19 @@ public static class SchemaExtensions
         }
 
         throw TypeThrowHelper.Schema_GetMember_TypeNotFound(coordinate);
+    }
+
+    /// <summary>
+    /// Gets the <see cref="IReadOnlySchemaOptions"/> of the <paramref name="schema"/>.
+    /// </summary>
+    /// <param name="schema">
+    /// The schema to get the options for.
+    /// </param>
+    /// <returns>
+    /// The schema options.
+    /// </returns>
+    internal static IReadOnlySchemaOptions GetOptions(this ISchemaDefinition schema)
+    {
+        return schema.Features.GetRequired<IReadOnlySchemaOptions>();
     }
 }

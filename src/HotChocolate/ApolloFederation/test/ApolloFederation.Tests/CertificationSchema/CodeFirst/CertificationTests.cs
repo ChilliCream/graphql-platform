@@ -1,6 +1,4 @@
 using HotChocolate.Execution;
-using HotChocolate.Execution.Processing;
-using HotChocolate.Language;
 
 namespace HotChocolate.ApolloFederation.CertificationSchema.CodeFirst;
 
@@ -20,20 +18,28 @@ public class CertificationTests
         var executor = await SchemaSetup.CreateAsync();
 
         // act
-        var result = await executor.ExecuteAsync(
-            """
-            {
-                _service {
+        var request = OperationRequestBuilder
+            .New()
+            .SetDocument(
+                """
+                {
+                  _service {
                     sdl
+                  }
                 }
-            }
-            """);
+                """)
+            .Build();
+
+        var result = await executor.ExecuteAsync(request);
 
         // assert
-        var queryResult = Assert.IsType<OperationResult>(result);
-        var data = Assert.IsType<ObjectResult>(queryResult.Data);
-        var service = Assert.IsType<ObjectResult>(data.GetValueOrDefault("_service"));
-        service.GetValueOrDefault("sdl").MatchSnapshot();
+        result
+            .ExpectOperationResult()
+            .UnwrapData()
+            .GetProperty("_service")
+            .GetProperty("sdl")
+            .GetString()
+            .MatchSnapshot();
     }
 
     [Fact]
@@ -43,25 +49,32 @@ public class CertificationTests
         var executor = await SchemaSetup.CreateAsync();
 
         // act
-        var result = await executor.ExecuteAsync(
-            """
-            query ($representations: [_Any!]!) {
-                _entities(representations: $representations) {
+        var request = OperationRequestBuilder
+            .New()
+            .SetDocument(
+                """
+                query ($representations: [_Any!]!) {
+                  _entities(representations: $representations) {
                     ... on Product {
-                        sku
+                      sku
                     }
+                  }
                 }
-            }
-            """,
-            new Dictionary<string, object?>
-            {
-                ["representations"] = new List<object?>
+                """)
+            .SetVariableValues(
+                """
                 {
-                    new ObjectValueNode(
-                        new ObjectFieldNode("__typename", "Product"),
-                        new ObjectFieldNode("id", "apollo-federation"))
+                  "representations": [
+                    {
+                      "__typename": "Product",
+                      "id": "apollo-federation"
+                    }
+                  ]
                 }
-            });
+                """)
+            .Build();
+
+        var result = await executor.ExecuteAsync(request);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -74,26 +87,33 @@ public class CertificationTests
         var executor = await SchemaSetup.CreateAsync();
 
         // act
-        var result = await executor.ExecuteAsync(
-            """
-            query ($representations: [_Any!]!) {
-                _entities(representations: $representations) {
+        var request = OperationRequestBuilder
+            .New()
+            .SetDocument(
+                """
+                query ($representations: [_Any!]!) {
+                  _entities(representations: $representations) {
                     ... on Product {
-                        sku
+                      sku
                     }
+                  }
                 }
-            }
-            """,
-            new Dictionary<string, object?>
-            {
-                ["representations"] = new List<object?>
+                """)
+            .SetVariableValues(
+                """
                 {
-                    new ObjectValueNode(
-                        new ObjectFieldNode("__typename", "Product"),
-                        new ObjectFieldNode("sku", "federation"),
-                        new ObjectFieldNode("package", "@apollo/federation"))
+                  "representations": [
+                    {
+                      "__typename": "Product",
+                      "sku": "federation",
+                      "package": "@apollo/federation"
+                    }
+                  ]
                 }
-            });
+                """)
+            .Build();
+
+        var result = await executor.ExecuteAsync(request);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -106,28 +126,35 @@ public class CertificationTests
         var executor = await SchemaSetup.CreateAsync();
 
         // act
-        var result = await executor.ExecuteAsync(
-            """
-            query ($representations: [_Any!]!) {
-                _entities(representations: $representations) {
+        var request = OperationRequestBuilder
+            .New()
+            .SetDocument(
+                """
+                query ($representations: [_Any!]!) {
+                  _entities(representations: $representations) {
                     ... on Product {
-                        sku
+                      sku
                     }
+                  }
                 }
-            }
-            """,
-            new Dictionary<string, object?>
-            {
-                ["representations"] = new List<object?>
+                """)
+            .SetVariableValues(
+                """
                 {
-                    new ObjectValueNode(
-                        new ObjectFieldNode("__typename", "Product"),
-                        new ObjectFieldNode("sku", "federation"),
-                        new ObjectFieldNode("variation",
-                            new ObjectValueNode(
-                                new ObjectFieldNode("id", "OSS"))))
+                  "representations": [
+                    {
+                      "__typename": "Product",
+                      "sku": "federation",
+                      "variation": {
+                        "id": "OSS"
+                      }
+                    }
+                  ]
                 }
-            });
+                """)
+            .Build();
+
+        var result = await executor.ExecuteAsync(request);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -140,18 +167,25 @@ public class CertificationTests
         var executor = await SchemaSetup.CreateAsync();
 
         // act
-        var result = await executor.ExecuteAsync(
-            """
-            query ($id: ID!) {
-                product(id: $id) {
+        var request = OperationRequestBuilder
+            .New()
+            .SetDocument(
+                """
+                query ($id: ID!) {
+                  product(id: $id) {
                     createdBy { email totalProductsCreated }
+                  }
                 }
-            }
-            """,
-            new Dictionary<string, object?>
-            {
-                ["id"] = "apollo-federation"
-            });
+                """)
+            .SetVariableValues(
+                """
+                {
+                  "id": "apollo-federation"
+                }
+                """)
+            .Build();
+
+        var result = await executor.ExecuteAsync(request);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -164,18 +198,25 @@ public class CertificationTests
         var executor = await SchemaSetup.CreateAsync();
 
         // act
-        var result = await executor.ExecuteAsync(
-            """
-            query ($id: ID!) {
-                product(id: $id) {
+        var request = OperationRequestBuilder
+            .New()
+            .SetDocument(
+                """
+                query ($id: ID!) {
+                  product(id: $id) {
                     dimensions { size weight }
+                  }
                 }
-            }
-            """,
-            new Dictionary<string, object?>
-            {
-                ["id"] = "apollo-federation"
-            });
+                """)
+            .SetVariableValues(
+                """
+                {
+                  "id": "apollo-federation"
+                }
+                """)
+            .Build();
+
+        var result = await executor.ExecuteAsync(request);
 
         // assert
         result.ToJson().MatchSnapshot();

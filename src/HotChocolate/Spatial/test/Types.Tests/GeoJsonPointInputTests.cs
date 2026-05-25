@@ -42,7 +42,7 @@ public class GeoJsonPointInputTests
         var type = CreateScalarType();
 
         // act
-        var result = type.ParseLiteral(
+        var result = type.CoerceInputLiteral(
             new ObjectValueNode(
                 new ObjectFieldNode(
                     "type",
@@ -121,7 +121,7 @@ public class GeoJsonPointInputTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => inputParser.ParseLiteral(new ListValueNode(), type));
     }
 
@@ -134,7 +134,7 @@ public class GeoJsonPointInputTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => inputParser.ParseLiteral(
                 new ObjectValueNode(
                     new ObjectFieldNode("missingType", new StringValueNode("ignored")),
@@ -151,7 +151,7 @@ public class GeoJsonPointInputTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => inputParser.ParseLiteral(
                 new ObjectValueNode(
                     new ObjectFieldNode("type", new EnumValueNode(GeoJsonGeometryType.Point)),
@@ -168,7 +168,7 @@ public class GeoJsonPointInputTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => inputParser.ParseLiteral(
                 new ObjectValueNode(
                     new ObjectFieldNode("type", new EnumValueNode(GeoJsonGeometryType.Polygon)),

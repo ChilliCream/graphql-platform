@@ -39,6 +39,8 @@ public class MutableEnumTypeDefinition
     /// <inheritdoc cref="IMutableTypeDefinition.Description" />
     public string? Description { get; set; }
 
+    Type IRuntimeTypeProvider.RuntimeType => typeof(object);
+
     public DirectiveCollection Directives
         => _directives ??= [];
 
@@ -63,6 +65,9 @@ public class MutableEnumTypeDefinition
 
     public SchemaCoordinate Coordinate
         => new(Name, ofDirective: false);
+
+    /// <inheritdoc cref="IMutableTypeDefinition.IsIntrospectionType" />
+    public bool IsIntrospectionType { get; set; }
 
     /// <summary>
     /// Gets the string representation of this instance.

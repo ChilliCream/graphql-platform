@@ -1,27 +1,15 @@
 {
-  "Message": "The field `nickname` does not exist on the type `Pet`.",
-  "Code": null,
-  "Path": {
-    "Name": "dog",
-    "Parent": {
-      "Parent": null,
-      "Length": 0,
-      "IsRoot": true
-    },
-    "Length": 1,
-    "IsRoot": false
-  },
-  "Locations": [
+  "message": "The field \u0060nickname\u0060 does not exist on the type \u0060Pet\u0060.",
+  "locations": [
     {
-      "Line": 8,
-      "Column": 5
+      "line": 8,
+      "column": 5
     }
   ],
-  "Extensions": {
+  "extensions": {
     "type": "Pet",
     "field": "nickname",
     "responseName": "nickname",
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
-  },
-  "Exception": null
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selections"
+  }
 }

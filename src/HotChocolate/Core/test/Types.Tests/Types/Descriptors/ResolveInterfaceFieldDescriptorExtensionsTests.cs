@@ -1,4 +1,3 @@
-#nullable enable
 using HotChocolate.Resolvers;
 using Moq;
 

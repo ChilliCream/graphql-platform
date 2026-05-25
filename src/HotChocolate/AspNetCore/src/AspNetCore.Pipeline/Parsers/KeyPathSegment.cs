@@ -11,4 +11,6 @@ internal class KeyPathSegment : IVariablePathSegment
     public string Value { get; }
 
     public IVariablePathSegment? Next { get; }
+
+    public override string ToString() => Value;
 }

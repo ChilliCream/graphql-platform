@@ -13,41 +13,52 @@ public ref partial struct Utf8GraphQLParser
 
         MoveNext();
 
-        if (_reader.Kind == TokenKind.Name)
+        if (_reader.Kind == TokenKind.Name && _reader.Value.Length > 0)
         {
-            if (_reader.Value.SequenceEqual(GraphQLKeywords.Schema))
+            switch (_reader.Value[0])
             {
-                return ParseSchemaExtension(in start);
-            }
+                case (byte)'s':
+                    if (_reader.Value.SequenceEqual(GraphQLKeywords.Schema))
+                    {
+                        return ParseSchemaExtension(in start);
+                    }
+                    if (_reader.Value.SequenceEqual(GraphQLKeywords.Scalar))
+                    {
+                        return ParseScalarTypeExtension(in start);
+                    }
+                    break;
 
-            if (_reader.Value.SequenceEqual(GraphQLKeywords.Scalar))
-            {
-                return ParseScalarTypeExtension(in start);
-            }
+                case (byte)'t':
+                    if (_reader.Value.SequenceEqual(GraphQLKeywords.Type))
+                    {
+                        return ParseObjectTypeExtension(in start);
+                    }
+                    break;
 
-            if (_reader.Value.SequenceEqual(GraphQLKeywords.Type))
-            {
-                return ParseObjectTypeExtension(in start);
-            }
+                case (byte)'i':
+                    if (_reader.Value.SequenceEqual(GraphQLKeywords.Interface))
+                    {
+                        return ParseInterfaceTypeExtension(in start);
+                    }
+                    if (_reader.Value.SequenceEqual(GraphQLKeywords.Input))
+                    {
+                        return ParseInputObjectTypeExtension(in start);
+                    }
+                    break;
 
-            if (_reader.Value.SequenceEqual(GraphQLKeywords.Interface))
-            {
-                return ParseInterfaceTypeExtension(in start);
-            }
+                case (byte)'u':
+                    if (_reader.Value.SequenceEqual(GraphQLKeywords.Union))
+                    {
+                        return ParseUnionTypeExtension(in start);
+                    }
+                    break;
 
-            if (_reader.Value.SequenceEqual(GraphQLKeywords.Union))
-            {
-                return ParseUnionTypeExtension(in start);
-            }
-
-            if (_reader.Value.SequenceEqual(GraphQLKeywords.Enum))
-            {
-                return ParseEnumTypeExtension(in start);
-            }
-
-            if (_reader.Value.SequenceEqual(GraphQLKeywords.Input))
-            {
-                return ParseInputObjectTypeExtension(in start);
+                case (byte)'e':
+                    if (_reader.Value.SequenceEqual(GraphQLKeywords.Enum))
+                    {
+                        return ParseEnumTypeExtension(in start);
+                    }
+                    break;
             }
         }
 

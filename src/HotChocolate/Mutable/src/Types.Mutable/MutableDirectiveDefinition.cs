@@ -55,6 +55,13 @@ public class MutableDirectiveDefinition
     public bool IsRepeatable { get; set; }
 
     /// <summary>
+    /// Defines if this directive is publicly visible through introspection
+    /// and external SDL output. Internal directives are part of the type system
+    /// but hidden from external observers.
+    /// </summary>
+    public bool IsPublic { get; set; } = true;
+
+    /// <summary>
     /// Gets the arguments that are defined on this directive.
     /// </summary>
     public InputFieldDefinitionCollection Arguments

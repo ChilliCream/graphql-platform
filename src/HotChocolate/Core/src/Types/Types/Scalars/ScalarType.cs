@@ -1,7 +1,11 @@
+using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Text.Json;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
+using static HotChocolate.Utilities.ThrowHelper;
 using static HotChocolate.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Types;
@@ -15,10 +19,7 @@ public abstract partial class ScalarType
     : TypeSystemObject<ScalarTypeConfiguration>
     , IScalarTypeDefinition
     , ILeafType
-    , IHasRuntimeType
 {
-    private Uri? _specifiedBy;
-
     /// <summary>
     /// Gets the type kind.
     /// </summary>
@@ -45,15 +46,33 @@ public abstract partial class ScalarType
     /// </summary>
     public Uri? SpecifiedBy
     {
-        get => _specifiedBy;
+        get;
         protected set
         {
-            if (IsCompleted)
+            if (IsExecutable)
             {
                 throw new InvalidOperationException(
-                    TypeResources.TypeSystemObject_DescriptionImmutable);
+                    TypeResources.TypeSystem_Immutable);
             }
-            _specifiedBy = value;
+            field = value;
+        }
+    }
+
+    /// <inheritdoc />
+    public abstract ScalarSerializationType SerializationType { get; }
+
+    /// <inheritdoc />
+    public string? Pattern
+    {
+        get;
+        protected set
+        {
+            if (IsExecutable)
+            {
+                throw new InvalidOperationException(
+                    TypeResources.TypeSystem_Immutable);
+            }
+            field = value;
         }
     }
 
@@ -71,6 +90,11 @@ public abstract partial class ScalarType
     protected ITypeConverter Converter => _converter;
 
     /// <summary>
+    /// Gets a value indicating whether the <c>@serializeAs</c> directive should be applied to this scalar type.
+    /// </summary>
+    protected virtual bool ApplySerializeAsToScalars => true;
+
+    /// <summary>
     /// Defines if the specified <paramref name="type"/> is assignable from the current <see cref="ScalarType"/>.
     /// </summary>
     /// <param name="type">
@@ -83,190 +107,181 @@ public abstract partial class ScalarType
     public bool IsAssignableFrom(ITypeDefinition type)
         => ReferenceEquals(type, this);
 
+    /// <summary>
+    /// Defines if the specified <paramref name="other"/> is equal to the current <see cref="ScalarType"/>.
+    /// </summary>
+    /// <param name="other">
+    /// The other scalar type.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the specified <paramref name="other"/> is equal to the current <see cref="ScalarType"/>;
+    /// otherwise, <c>false</c>.
+    /// </returns>
     public bool Equals(IType? other) => ReferenceEquals(other, this);
 
-    /// <summary>
-    /// Defines if the specified <paramref name="valueSyntax" />
-    /// can be parsed by this scalar.
-    /// </summary>
-    /// <param name="valueSyntax">
-    /// The literal that shall be checked.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the literal can be parsed by this scalar;
-    /// otherwise, <c>false</c>.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="valueSyntax" /> is <c>null</c>.
-    /// </exception>
-    public abstract bool IsInstanceOfType(IValueNode valueSyntax);
-
-    /// <summary>
-    /// Defines if the specified <paramref name="runtimeValue" />
-    /// is an instance of this type.
-    /// </summary>
-    /// <param name="runtimeValue">
-    /// A value representation of this type.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the value is a value of this type;
-    /// otherwise, <c>false</c>.
-    /// </returns>
-    public virtual bool IsInstanceOfType(object? runtimeValue)
+    /// <inheritdoc cref="IScalarTypeDefinition.IsValueCompatible" />
+    public virtual bool IsValueCompatible(IValueNode valueLiteral)
     {
-        if (runtimeValue is null)
+        ArgumentNullException.ThrowIfNull(valueLiteral);
+
+        if ((SerializationType & ScalarSerializationType.String) == ScalarSerializationType.String
+            && valueLiteral is { Kind: SyntaxKind.StringValue })
         {
             return true;
         }
 
-        return RuntimeType.IsInstanceOfType(runtimeValue);
-    }
-
-    /// <summary>
-    /// Parses the specified <paramref name="valueSyntax" />
-    /// to the .NET representation of this type.
-    /// </summary>
-    /// <param name="valueSyntax">
-    ///     The literal that shall be parsed.
-    /// </param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="valueSyntax" /> is <c>null</c>.
-    /// </exception>
-    /// <exception cref="SerializationException">
-    /// The specified <paramref name="valueSyntax" /> cannot be parsed
-    /// by this scalar.
-    /// </exception>
-    public abstract object? ParseLiteral(IValueNode valueSyntax);
-
-    /// <summary>
-    /// Parses the .NET value representation to a value literal.
-    /// </summary>
-    /// <param name="runtimeValue">
-    /// The .NET value representation.
-    /// </param>
-    /// <returns>
-    /// Returns a GraphQL literal representing the .NET value.
-    /// </returns>
-    /// <exception cref="SerializationException">
-    /// The specified <paramref name="runtimeValue" /> cannot be parsed
-    /// by this scalar.
-    /// </exception>
-    public abstract IValueNode ParseValue(object? runtimeValue);
-
-    /// <summary>
-    /// Parses a result value of this scalar into a GraphQL value syntax representation.
-    /// </summary>
-    /// <param name="resultValue">
-    /// A result value representation of this type.
-    /// </param>
-    /// <returns>
-    /// Returns a GraphQL value syntax representation of the <paramref name="resultValue"/>.
-    /// </returns>
-    /// <exception cref="SerializationException">
-    /// Unable to parse the given <paramref name="resultValue"/>
-    /// into a GraphQL value syntax representation of this type.
-    /// </exception>
-    public abstract IValueNode ParseResult(object? resultValue);
-
-    /// <summary>
-    /// Serializes the .NET value representation.
-    /// </summary>
-    /// <param name="runtimeValue">
-    /// The .NET value representation.
-    /// </param>
-    /// <returns>
-    /// Returns the serialized value.
-    /// </returns>
-    /// <exception cref="SerializationException">
-    /// The specified <paramref name="runtimeValue" /> cannot be serialized
-    /// by this scalar.
-    /// </exception>
-    public virtual object? Serialize(object? runtimeValue)
-    {
-        if (TrySerialize(runtimeValue, out var s))
+        if ((SerializationType & ScalarSerializationType.Int) == ScalarSerializationType.Int
+            && valueLiteral is { Kind: SyntaxKind.IntValue })
         {
-            return s;
-        }
-
-        throw new SerializationException(
-            ErrorBuilder.New()
-                .SetMessage(TypeResourceHelper.Scalar_Cannot_Serialize(Name))
-                .SetExtension("actualValue", runtimeValue?.ToString() ?? "null")
-                .SetExtension("actualType", runtimeValue?.GetType().FullName ?? "null")
-                .Build(),
-            this);
-    }
-
-    /// <summary>
-    /// Tries to serializes the .NET value representation to the output format.
-    /// </summary>
-    /// <param name="runtimeValue">
-    /// The .NET value representation.
-    /// </param>
-    /// <param name="resultValue">
-    /// The serialized value.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the value was correctly serialized; otherwise, <c>false</c>.
-    /// </returns>
-    public abstract bool TrySerialize(object? runtimeValue, out object? resultValue);
-
-    /// <summary>
-    /// Deserializes the serialized value to it`s .NET value representation.
-    /// </summary>
-    /// <param name="resultValue">
-    /// The serialized value representation.
-    /// </param>
-    /// <returns>
-    /// Returns the .NET value representation.
-    /// </returns>
-    /// <exception cref="SerializationException">
-    /// The specified <paramref name="resultValue" /> cannot be deserialized
-    /// by this scalar.
-    /// </exception>
-    public virtual object? Deserialize(object? resultValue)
-    {
-        if (TryDeserialize(resultValue, out var v))
-        {
-            return v;
-        }
-
-        throw new SerializationException(
-            TypeResourceHelper.Scalar_Cannot_Deserialize(Name),
-            this);
-    }
-
-    /// <summary>
-    /// Tries to deserializes the value from the output format to the .NET value representation.
-    /// </summary>
-    /// <param name="resultValue">
-    /// The serialized value.
-    /// </param>
-    /// <param name="runtimeValue">
-    /// The .NET value representation.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the serialized value was correctly deserialized; otherwise, <c>false</c>.
-    /// </returns>
-    public abstract bool TryDeserialize(object? resultValue, out object? runtimeValue);
-
-    protected bool TryConvertSerialized<T>(
-        object serialized,
-        ValueKind expectedKind,
-        out T value)
-    {
-        if (Scalars.TryGetKind(serialized, out var kind)
-            && kind == expectedKind
-            && _converter.TryConvert(serialized, out T c))
-        {
-            value = c;
             return true;
         }
 
-        value = default!;
+        if ((SerializationType & ScalarSerializationType.Float) == ScalarSerializationType.Float
+            && valueLiteral is { Kind: SyntaxKind.FloatValue })
+        {
+            return true;
+        }
+
+        if ((SerializationType & ScalarSerializationType.Boolean) == ScalarSerializationType.Boolean
+            && valueLiteral is { Kind: SyntaxKind.BooleanValue })
+        {
+            return true;
+        }
+
+        if ((SerializationType & ScalarSerializationType.List) == ScalarSerializationType.List
+            && valueLiteral is { Kind: SyntaxKind.ListValue })
+        {
+            return true;
+        }
+
+        if ((SerializationType & ScalarSerializationType.Object) == ScalarSerializationType.Object
+            && valueLiteral is { Kind: SyntaxKind.ObjectValue })
+        {
+            return true;
+        }
+
         return false;
     }
+
+    /// <inheritdoc />
+    public virtual bool IsValueCompatible(JsonElement inputValue)
+    {
+        if (inputValue.ValueKind is JsonValueKind.Undefined)
+        {
+            throw new ArgumentException("Undefined JSON value kind.", nameof(inputValue));
+        }
+
+        if ((SerializationType & ScalarSerializationType.String) == ScalarSerializationType.String
+            && inputValue.ValueKind == JsonValueKind.String)
+        {
+            return true;
+        }
+
+        if ((SerializationType & ScalarSerializationType.Int) == ScalarSerializationType.Int
+            && inputValue.ValueKind == JsonValueKind.Number)
+        {
+            return true;
+        }
+
+        if ((SerializationType & ScalarSerializationType.Float) == ScalarSerializationType.Float
+            && inputValue.ValueKind == JsonValueKind.Number)
+        {
+            return true;
+        }
+
+        if ((SerializationType & ScalarSerializationType.Boolean) == ScalarSerializationType.Boolean
+            && (inputValue.ValueKind == JsonValueKind.True || inputValue.ValueKind == JsonValueKind.False))
+        {
+            return true;
+        }
+
+        if ((SerializationType & ScalarSerializationType.List) == ScalarSerializationType.List
+            && inputValue.ValueKind == JsonValueKind.Array)
+        {
+            return true;
+        }
+
+        if ((SerializationType & ScalarSerializationType.Object) == ScalarSerializationType.Object
+            && inputValue.ValueKind == JsonValueKind.Object)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <inheritdoc />
+    public abstract object CoerceInputLiteral(IValueNode valueLiteral);
+
+    /// <inheritdoc />
+    public abstract object CoerceInputValue(JsonElement inputValue, IFeatureProvider context);
+
+    /// <inheritdoc />
+    public abstract void CoerceOutputValue(object runtimeValue, ResultElement resultValue);
+
+    /// <inheritdoc />
+    public abstract IValueNode ValueToLiteral(object runtimeValue);
+
+    /// <summary>
+    /// Converts a JSON input value into a GraphQL literal (AST value node).
+    /// </summary>
+    /// <param name="inputValue">
+    /// The JSON input value to convert.
+    /// </param>
+    /// <param name="context">
+    /// Provides access to the coercion context, including features like memory builders
+    /// for efficient JSON parsing.
+    /// </param>
+    /// <returns>
+    /// Returns a GraphQL literal representation (AST value node) of the input value.
+    /// </returns>
+    /// <exception cref="LeafCoercionException">
+    /// Unable to convert the given <paramref name="inputValue"/> into a literal.
+    /// </exception>
+    public virtual IValueNode InputValueToLiteral(JsonElement inputValue, IFeatureProvider context)
+    {
+        if (!IsValueCompatible(inputValue))
+        {
+            throw CreateInputValueToLiteralError(inputValue, context);
+        }
+
+        // We try to get a memory builder from the context and assign it to our JsonValueParser
+        // which rewrites the json into a GraphQL value node.
+        // The memory builder allows us to store the actual values as UTF-8 string.
+        var utf8MemoryBuilder = context.Features.Get<Utf8MemoryBuilder>();
+        var builderExistedBeforeParsing = utf8MemoryBuilder is not null;
+
+        var parser = new JsonValueParser(doNotSeal: true) { _memory = utf8MemoryBuilder };
+        var literal = parser.Parse(inputValue);
+
+        // If no builder existed so far but we now created one by rewriting the JSON value,
+        // then we store the JSON builder on the context so that it can be picked up and reused by other values
+        // in the current coercion of input values.
+        if (!builderExistedBeforeParsing && utf8MemoryBuilder is not null)
+        {
+            context.Features.Set(utf8MemoryBuilder);
+        }
+
+        return literal;
+    }
+
+    /// <summary>
+    /// Creates the exception to throw when <see cref="InputValueToLiteral"/>
+    /// encounters an incompatible input value.
+    /// </summary>
+    /// <param name="inputValue">
+    /// The incompatible input value.
+    /// </param>
+    /// <param name="context">
+    /// The coercion context.
+    /// </param>
+    /// <returns>
+    /// A <see cref="LeafCoercionException"/> describing the coercion failure.
+    /// </returns>
+    protected virtual LeafCoercionException CreateInputValueToLiteralError(
+        JsonElement inputValue,
+        IFeatureProvider context)
+        => Scalar_Cannot_ConvertValueToLiteral(this, inputValue);
 
     /// <summary>
     /// Returns a string that represents the current <see cref="ScalarType"/>.

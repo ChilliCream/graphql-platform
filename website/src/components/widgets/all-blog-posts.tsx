@@ -1,13 +1,34 @@
-import { graphql } from "gatsby";
 import React, { FC } from "react";
 
 import { ContentSection, Pagination } from "@/components/misc";
-import { AllBlogPostsFragment } from "@/graphql-types";
 import { BlogArticleTeaser } from "./blog-article-teaser";
 import { Boxes } from "./box-elements";
 
+interface BlogPostNode {
+  id: string;
+  frontmatter?: {
+    featuredImage?: string;
+    path?: string;
+    title?: string;
+    author?: string;
+    authorImageUrl?: string;
+    date?: string;
+  };
+  fields?: {
+    readingTime?: {
+      text?: string;
+    };
+  };
+}
+
+interface AllBlogPostsData {
+  edges: Array<{
+    node: BlogPostNode;
+  }>;
+}
+
 export interface AllBlogPostsProps {
-  readonly data: AllBlogPostsFragment;
+  readonly data: AllBlogPostsData;
   readonly description: string;
   readonly currentPage: number;
   readonly totalPages: number;
@@ -38,14 +59,3 @@ export const AllBlogPosts: FC<AllBlogPostsProps> = ({
     </>
   );
 };
-
-export const BlogArticlesGraphQLFragment = graphql`
-  fragment AllBlogPosts on MdxConnection {
-    edges {
-      node {
-        id
-        ...BlogArticleTeaser
-      }
-    }
-  }
-`;

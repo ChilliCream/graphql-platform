@@ -6,7 +6,7 @@ namespace HotChocolate.Language;
 /// A GraphQL schema describes directives which are used to annotate various parts of a
 /// GraphQL document as an indicator that they should be evaluated differently
 /// by a validator, executor, or client tool such as a code generator.
-/// https://spec.graphql.org/October2021/#sec-Type-System.Directives
+/// https://spec.graphql.org/September2025/#sec-Type-System.Directives
 /// </summary>
 public sealed class DirectiveDefinitionNode : ITypeSystemDefinitionNode, IHasName
 {

@@ -10,6 +10,6 @@ public static class MockConventionExtensions
         return descriptor.AddDefaults().Provider(
             new QueryableFilterProvider(x => x
                 .AddDefaultFieldHandlers()
-                .AddFieldHandler<MatchAnyQueryableFieldHandler>()));
+                .AddFieldHandler(MatchAnyQueryableFieldHandler.Create)));
     }
 }

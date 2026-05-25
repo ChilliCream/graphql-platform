@@ -111,17 +111,19 @@ public class QueryableProjectionFilterTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    @"{
+                    """
+                    {
                         root {
                             foo {
                                 objectArray(
                                     where: {
                                         foo: {
                                             barString: {
-                                                eq: ""a""
+                                                eq: "a"
                                             }
                                         }
-                                    }) {
+                                    }
+                                ) {
                                     foo {
                                         barString
                                         barShort
@@ -129,7 +131,8 @@ public class QueryableProjectionFilterTests
                                 }
                             }
                         }
-                    }")
+                    }
+                    """)
                 .Build());
 
         // assert
@@ -149,27 +152,29 @@ public class QueryableProjectionFilterTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    @"
-                        {
-                            root {
-                                foo {
-                                    barString
-                                    objectArray(
-                                        where: {
-                                            foo: {
-                                                barString: {
-                                                    eq: ""a""
-                                                }
+                    """
+                    {
+                        root {
+                            foo {
+                                barString
+                                objectArray(
+                                    where: {
+                                        foo: {
+                                            barString: {
+                                                eq: "a"
                                             }
-                                        }) {
-                                        foo {
-                                            barString
-                                            barShort
                                         }
+                                    }
+                                ) {
+                                    foo {
+                                        barString
+                                        barShort
                                     }
                                 }
                             }
-                        }")
+                        }
+                    }
+                    """)
                 .Build());
 
         // assert
@@ -189,17 +194,19 @@ public class QueryableProjectionFilterTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    @"{
+                    """
+                    {
                         root {
                             foo {
                                 objectArray(
                                     where: {
                                         foo: {
                                             barString: {
-                                                eq: ""a""
+                                                eq: "a"
                                             }
                                         }
-                                    }) {
+                                    }
+                                ) {
                                     foo {
                                         barString
                                         barShort
@@ -207,7 +214,8 @@ public class QueryableProjectionFilterTests
                                 }
                             }
                         }
-                    }")
+                    }
+                    """)
                 .Build());
 
         // assert
@@ -227,7 +235,8 @@ public class QueryableProjectionFilterTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    @"{
+                    """
+                    {
                         root {
                             foo {
                                 barString
@@ -235,10 +244,11 @@ public class QueryableProjectionFilterTests
                                     where: {
                                         foo: {
                                             barString: {
-                                                eq: ""a""
+                                                eq: "a"
                                             }
                                         }
-                                    }) {
+                                    }
+                                ) {
                                     foo {
                                         barString
                                         barShort
@@ -246,7 +256,8 @@ public class QueryableProjectionFilterTests
                                 }
                             }
                         }
-                    }")
+                    }
+                    """)
                 .Build());
 
         // assert

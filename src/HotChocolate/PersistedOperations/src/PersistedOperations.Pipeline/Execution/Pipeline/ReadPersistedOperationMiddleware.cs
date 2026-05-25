@@ -86,13 +86,13 @@ internal sealed class ReadPersistedOperationMiddleware
     private OperationDocumentHash GetDocumentHash(IOperationDocument document)
     {
         if (document is IOperationDocumentHashProvider hashProvider
-            && _documentHashAlgorithm.Name.Equals(hashProvider.Hash.AlgorithmName)
+            && _documentHashAlgorithm.AlgorithmName.Equals(hashProvider.Hash.AlgorithmName)
             && _documentHashAlgorithm.Format.Equals(hashProvider.Hash.Format))
         {
             return hashProvider.Hash;
         }
 
-        return OperationDocumentHash.Empty;
+        return _documentHashAlgorithm.ComputeHash(document.AsSpan());
     }
 
     public static RequestMiddlewareConfiguration Create()
@@ -102,7 +102,7 @@ internal sealed class ReadPersistedOperationMiddleware
                 var diagnosticEvents = core.SchemaServices.GetRequiredService<ICoreExecutionDiagnosticEvents>();
                 var store = core.SchemaServices.GetRequiredService<IOperationDocumentStorage>();
                 var options = core.SchemaServices.GetRequiredService<PersistedOperationOptions>();
-                var hashAlgorithm = core.Services.GetRequiredService<IDocumentHashProvider>();
+                var hashAlgorithm = core.SchemaServices.GetRequiredService<IDocumentHashProvider>();
                 var middleware = new ReadPersistedOperationMiddleware(
                     next,
                     diagnosticEvents,
@@ -111,5 +111,5 @@ internal sealed class ReadPersistedOperationMiddleware
                     options);
                 return context => middleware.InvokeAsync(context);
             },
-            nameof(ReadPersistedOperationMiddleware));
+            WellKnownRequestMiddleware.ReadPersistedOperationMiddleware);
 }

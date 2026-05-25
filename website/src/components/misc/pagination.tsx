@@ -1,4 +1,4 @@
-import { Link } from "gatsby";
+import NextLink from "next/link";
 import React, { FC } from "react";
 import styled from "styled-components";
 
@@ -29,7 +29,7 @@ export const Pagination: FC<PaginationProps> = ({
       {items.map((item) => (
         <Page key={`page-${item.page}`}>
           <PageLink
-            to={item.link}
+            href={item.link}
             className={item.page === currentPage ? "active" : undefined}
           >
             {item.page}
@@ -54,14 +54,14 @@ const Page = styled.li`
   padding: 0;
 `;
 
-const PageLink = styled(Link)`
+const PageLink = styled(NextLink)`
   display: flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  width: 30px;
-  height: 30px;
-  line-height: 30px;
+  min-width: 44px;
+  min-height: 44px;
+  line-height: 44px;
   border: 2px solid ${THEME_COLORS.primaryButtonBorder};
   border-radius: var(--button-border-radius);
   font-family: ${FONT_FAMILY_HEADING};

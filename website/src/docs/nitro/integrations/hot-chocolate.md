@@ -1,5 +1,5 @@
 ---
-title: ".Net  Middleware"
+title: ".Net Middleware"
 ---
 
 By default, when you map your GraphQL endpoints using `MapGraphQL()`, Nitro is automatically served at the `/graphql` endpoint.
@@ -32,14 +32,7 @@ In some scenarios, you may not want to serve Nitro, e.g., in a production enviro
 ```csharp
 endpoints
   .MapGraphQL()
-  .WithOptions(
-    new GraphQLServerOptions
-    {
-      Tool =
-      {
-        Enable = false
-      }
-    });
+  .WithOptions(o => o.Enable = false);
 ```
 
 # Serve Modes
@@ -57,40 +50,37 @@ Depending on your environment or preferences, you can choose the appropriate mod
 ```csharp
 endpoints
   .MapNitroApp()
-  .WithOptions(new GraphQLToolOptions
-  {
-      ServeMode = GraphQLToolServeMode.Embedded
-  });
+  .WithOptions(o => o.ServeMode = ServeMode.Embedded);
 ```
 
 # Configuration Options
 
-You can tailor Nitro to your needs by setting various options via the `GraphQLToolOptions` class. You can specify these options using the `WithOptions()` method in both `MapGraphQL()` and `MapNitroApp()` methods.
+You can tailor Nitro to your needs by setting various options via `NitroAppOptions`. You can specify these options using the `WithOptions()` method in both `MapGraphQL()` and `MapNitroApp()` methods.
 
-| Property                       | Type                   | Description                                                                                                                                       |
-| ------------------------------ | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Enable                         | `bool`                 | If `false`, disables the Nitro tool.                                                                                                              |
-| ServeMode                      | `GraphQLToolServeMode` | Defines how Nitro is served. Options include `Latest` (default), `Insider`, `Embedded`, and `Version(string version)`.                            |
-| Title                          | `string`               | Specifies the title of the Nitro page.                                                                                                            |
-| Document                       | `string`               | Specifies the default document content.                                                                                                           |
-| IncludeCookies                 | `bool`                 | If `true`, includes cookies in the HTTP call to the GraphQL backend.                                                                              |
-| HttpHeaders                    | `IHeaderDictionary`    | Specifies the default HTTP headers for Nitro.                                                                                                     |
-| HttpMethod                     | `DefaultHttpMethod`    | Specifies the default HTTP method to use.                                                                                                         |
-| GraphQLEndpoint                | `string`               | Specifies the GraphQL endpoint. If `UseBrowserUrlAsGraphQLEndpoint` is `true`, it must be a relative path; otherwise, it must be an absolute URL. |
-| UseBrowserUrlAsGraphQLEndpoint | `bool`                 | If `true`, the schema endpoint URL is inferred from the browser URL.                                                                              |
+| Property                       | Type                | Description                                                                                                                                       |
+| ------------------------------ | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Enable                         | `bool`              | If `false`, disables the Nitro tool.                                                                                                              |
+| ServeMode                      | `ServeMode`         | Defines how Nitro is served. Options include `Latest` (default), `Insider`, `Embedded`, and `Version(string version)`.                            |
+| Title                          | `string`            | Specifies the title of the Nitro page.                                                                                                            |
+| Document                       | `string`            | Specifies the default document content.                                                                                                           |
+| IncludeCookies                 | `bool?`             | If `true`, includes cookies in the HTTP call to the GraphQL backend.                                                                              |
+| HttpHeaders                    | `IHeaderDictionary` | Specifies the default HTTP headers for Nitro.                                                                                                     |
+| UseGet                         | `bool`              | If `true`, uses HTTP GET as the default request method.                                                                                           |
+| GraphQLEndpoint                | `string`            | Specifies the GraphQL endpoint. If `UseBrowserUrlAsGraphQLEndpoint` is `true`, it must be a relative path; otherwise, it must be an absolute URL. |
+| UseBrowserUrlAsGraphQLEndpoint | `bool`              | If `true`, the schema endpoint URL is inferred from the browser URL.                                                                              |
 
 Here is an example of how to set these options:
 
 ```csharp
 endpoints
   .MapNitroApp()
-  .WithOptions(new GraphQLToolOptions
+  .WithOptions(o =>
   {
-      ServeMode = GraphQLToolServeMode.Insider,
-      Title = "My GraphQL API",
-      Document = "Query { hello }",
-      GraphQLEndpoint = "/api/graphql",
-      IncludeCookies = true,
-      Enable = true
+      o.ServeMode = ServeMode.Insider;
+      o.Title = "My GraphQL API";
+      o.Document = "Query { hello }";
+      o.GraphQLEndpoint = "/api/graphql";
+      o.IncludeCookies = true;
+      o.Enable = true;
   });
 ```

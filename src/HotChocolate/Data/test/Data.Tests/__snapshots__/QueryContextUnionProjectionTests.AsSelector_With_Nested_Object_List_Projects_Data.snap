@@ -1,0 +1,16 @@
+{
+  "data": {
+    "inspectionTemplates": [
+      {
+        "fields": [
+          {
+            "key": "field-1"
+          },
+          {
+            "key": "field-2"
+          }
+        ]
+      }
+    ]
+  }
+}
