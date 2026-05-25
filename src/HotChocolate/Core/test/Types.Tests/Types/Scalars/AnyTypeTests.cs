@@ -167,7 +167,7 @@ public class AnyTypeTests
                         .Name("Query")
                         .Field("foo")
                         .Type<AnyType>()
-                        .Resolve(_ => new Dictionary<string, object?> { [""] = 1 }))
+                        .Resolve(_ => new Dictionary<string, object?> { [""] = null }))
                 .AddJsonTypeConverter()
                 .BuildRequestExecutorAsync();
 
@@ -181,7 +181,7 @@ public class AnyTypeTests
             {
               "data": {
                 "foo": {
-                  "": 1
+                  "": null
                 }
               }
             }

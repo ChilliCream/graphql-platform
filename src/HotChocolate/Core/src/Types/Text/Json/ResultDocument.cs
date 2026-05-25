@@ -448,6 +448,11 @@ public sealed partial class ResultDocument : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private ReadOnlySpan<byte> ReadLocalData(int location, int size)
     {
+        if (size == 0)
+        {
+            return [];
+        }
+
         var startChunkIndex = location / JsonMemory.BufferSize;
         var offsetInStartChunk = location % JsonMemory.BufferSize;
 
