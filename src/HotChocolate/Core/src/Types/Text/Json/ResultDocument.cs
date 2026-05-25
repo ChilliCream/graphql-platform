@@ -725,6 +725,11 @@ public sealed partial class ResultDocument : IDisposable
 
     private void WriteDataCore(int position, ReadOnlySpan<byte> data)
     {
+        if (data.Length == 0)
+        {
+            return;
+        }
+
         var chunkIndex = position / JsonMemory.BufferSize;
         var offset = position % JsonMemory.BufferSize;
         var availableInChunk = JsonMemory.BufferSize - offset;
