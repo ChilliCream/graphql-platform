@@ -42,10 +42,15 @@ public static class OperationRequestBuilderExtensions
     /// The same <paramref name="builder"/> for configuration chaining.
     /// </returns>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="builder"/> or <paramref name="file"/> is <c>null</c>.
+    /// <paramref name="builder"/>, <paramref name="name"/>, or <paramref name="file"/>
+    /// is <c>null</c>.
     /// </exception>
     /// <exception cref="ArgumentException">
-    /// <paramref name="name"/> is <c>null</c> or empty.
+    /// <paramref name="name"/> is empty.
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    /// An <see cref="IFileLookup"/> feature has already been set on the builder
+    /// and cannot be extended.
     /// </exception>
     public static OperationRequestBuilder AddFile(
         this OperationRequestBuilder builder,

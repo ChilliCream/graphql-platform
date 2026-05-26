@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Features;
 using HotChocolate.Types;
 
@@ -126,6 +127,29 @@ public class OperationRequestBuilderExtensionsTests
 
         // assert
         Assert.Throws<ArgumentException>(Act);
+    }
+
+    [Fact]
+    public void AddFile_Should_Throw_When_DifferentFileLookupAlreadySet()
+    {
+        // arrange
+        var builder = OperationRequestBuilder.New().SetDocument("{ foo }");
+        builder.Features.Set<IFileLookup>(new ForeignFileLookup());
+
+        // act
+        void Act() => builder.AddFile("file", new TestFile("a.txt"));
+
+        // assert
+        Assert.Throws<InvalidOperationException>(Act);
+    }
+
+    private sealed class ForeignFileLookup : IFileLookup
+    {
+        public bool TryGetFile(string name, [NotNullWhen(true)] out IFile? file)
+        {
+            file = null;
+            return false;
+        }
     }
 
     private sealed class TestFile(string name) : IFile
