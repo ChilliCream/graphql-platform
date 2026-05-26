@@ -156,6 +156,39 @@ public class AnyTypeTests
     }
 
     [Fact]
+    public async Task Output_Return_Dictionary_With_Empty_Key()
+    {
+        // arrange
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Resolve(_ => new Dictionary<string, object?> { [""] = null }))
+                .AddJsonTypeConverter()
+                .BuildRequestExecutorAsync();
+
+        // act
+        var result = (await executor.ExecuteAsync("{ foo }")).ExpectOperationResult();
+
+        // assert
+        Assert.Empty(result.Errors);
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "foo": {
+                  "": null
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task Output_Return_DateTime()
     {
         // arrange
