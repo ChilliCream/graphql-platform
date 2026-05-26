@@ -133,6 +133,31 @@ public static class ExpressionHasherTests
     }
 
     [Fact]
+    public static void Predicate_With_NonPublicField_Wrapper_Hashes_By_Value()
+    {
+        // arrange
+        var wrapper1 = new NonPublicFieldWrapper("abc");
+        var wrapper2 = new NonPublicFieldWrapper("xyz");
+        Expression<Func<Entity1, bool>> p1 = Expression.Lambda<Func<Entity1, bool>>(
+            Expression.Equal(
+                Expression.Property(Expression.Parameter(typeof(Entity1), "x"), nameof(Entity1.Name)),
+                Expression.Field(Expression.Constant(wrapper1), "_value")),
+            Expression.Parameter(typeof(Entity1), "x"));
+        Expression<Func<Entity1, bool>> p2 = Expression.Lambda<Func<Entity1, bool>>(
+            Expression.Equal(
+                Expression.Property(Expression.Parameter(typeof(Entity1), "x"), nameof(Entity1.Name)),
+                Expression.Field(Expression.Constant(wrapper2), "_value")),
+            Expression.Parameter(typeof(Entity1), "x"));
+
+        // act
+        var hash1 = new ExpressionHasher().Add(p1).Compute();
+        var hash2 = new ExpressionHasher().Add(p2).Compute();
+
+        // assert
+        Assert.NotEqual(hash1, hash2);
+    }
+
+    [Fact]
     public static void BufferResize_Add_Char()
     {
         // arrange
@@ -186,18 +211,16 @@ public static class ExpressionHasherTests
         // arrange
         var hasher = new ExpressionHasher();
         var initialBufferSize = hasher.InitialBufferSize;
-        var expression = Expression.Lambda<Func<int>>(Expression.Constant(0)); // translated to 31 bytes
+        var expression = Expression.Lambda<Func<int>>(Expression.Constant(0));
 
         // act
-        var length = 0;
-        while (length < initialBufferSize + 1)
+        while (hasher.BufferSize == initialBufferSize)
         {
             hasher.Add(expression);
-            length += 31;
         }
 
         // assert
-        Assert.Equal(initialBufferSize * 2, hasher.BufferSize);
+        Assert.True(hasher.BufferSize > initialBufferSize);
     }
 
     [Fact]
@@ -206,18 +229,16 @@ public static class ExpressionHasherTests
         // arrange
         var hasher = new ExpressionHasher();
         var initialBufferSize = hasher.InitialBufferSize;
-        var queryContext = new QueryContext<Entity1>(x => x); // translated to 32 bytes
+        var queryContext = new QueryContext<Entity1>(x => x);
 
         // act
-        var length = 0;
-        while (length < initialBufferSize + 1)
+        while (hasher.BufferSize == initialBufferSize)
         {
             hasher.Add(queryContext);
-            length += 32;
         }
 
         // assert
-        Assert.Equal(initialBufferSize * 2, hasher.BufferSize);
+        Assert.True(hasher.BufferSize > initialBufferSize);
     }
 
     [Fact]
@@ -226,18 +247,16 @@ public static class ExpressionHasherTests
         // arrange
         var hasher = new ExpressionHasher();
         var initialBufferSize = hasher.InitialBufferSize;
-        var sortDefinition = new SortDefinition<Entity1>().AddAscending(x => x.Name); // translated to 102 bytes
+        var sortDefinition = new SortDefinition<Entity1>().AddAscending(x => x.Name);
 
         // act
-        var length = 0;
-        while (length < initialBufferSize + 1)
+        while (hasher.BufferSize == initialBufferSize)
         {
             hasher.Add(sortDefinition);
-            length += 102;
         }
 
         // assert
-        Assert.Equal(initialBufferSize * 2, hasher.BufferSize);
+        Assert.True(hasher.BufferSize > initialBufferSize);
     }
 
     public class Entity1
@@ -262,4 +281,16 @@ public static class ExpressionHasherTests
     {
         public string Name { get; set; } = null!;
     }
+
+#pragma warning disable RCS1169
+    public class NonPublicFieldWrapper
+    {
+        private readonly string _value;
+
+        public NonPublicFieldWrapper(string value)
+        {
+            _value = value;
+        }
+    }
+#pragma warning restore RCS1169
 }

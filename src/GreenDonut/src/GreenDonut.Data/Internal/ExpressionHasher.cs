@@ -121,7 +121,22 @@ internal sealed class ExpressionHasher : ExpressionVisitor
         Append(Member);
         Append(node.Member);
         Append('|');
-        Visit(node.Expression);
+
+        if (node.Expression is ConstantExpression { Value: not null } constant)
+        {
+            var value = node.Member switch
+            {
+                FieldInfo f => f.GetValue(constant.Value),
+                PropertyInfo p => p.GetValue(constant.Value),
+                _ => null
+            };
+            AppendValue(value);
+        }
+        else
+        {
+            Visit(node.Expression);
+        }
+
         return node;
     }
 
@@ -215,19 +230,18 @@ internal sealed class ExpressionHasher : ExpressionVisitor
         // captured values produce different hashes; otherwise two predicates that differ
         // only in their captured constant collide.
         Append('{');
-        foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.Public))
+        foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.Public)
+                     .OrderBy(f => f.Name, StringComparer.Ordinal))
         {
             Append(field.Name);
             Append('=');
             AppendValue(field.GetValue(value));
             Append(';');
         }
-        foreach (var property in type.GetProperties(BindingFlags.Instance | BindingFlags.Public))
+        foreach (var property in type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                     .Where(p => p.GetIndexParameters().Length == 0 && p.CanRead)
+                     .OrderBy(p => p.Name, StringComparer.Ordinal))
         {
-            if (property.GetIndexParameters().Length > 0 || !property.CanRead)
-            {
-                continue;
-            }
             Append(property.Name);
             Append('=');
             AppendValue(property.GetValue(value));
