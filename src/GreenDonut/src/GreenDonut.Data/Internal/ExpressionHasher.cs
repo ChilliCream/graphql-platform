@@ -210,6 +210,22 @@ internal sealed class ExpressionHasher : ExpressionVisitor
             return;
         }
 
+        switch (value)
+        {
+            case float f:
+                Append(f.ToString("R", CultureInfo.InvariantCulture));
+                return;
+            case double d:
+                Append(d.ToString("R", CultureInfo.InvariantCulture));
+                return;
+            case DateTime dt:
+                Append(dt.ToString("O", CultureInfo.InvariantCulture));
+                return;
+            case DateTimeOffset dto:
+                Append(dto.ToString("O", CultureInfo.InvariantCulture));
+                return;
+        }
+
         var type = value.GetType();
 
         if (type.IsPrimitive || type.IsEnum || value is string)
@@ -218,7 +234,7 @@ internal sealed class ExpressionHasher : ExpressionVisitor
             return;
         }
 
-        if (value is decimal or DateTime or DateTimeOffset or TimeSpan or Guid)
+        if (value is decimal or TimeSpan or Guid)
         {
             Append(Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty);
             return;
