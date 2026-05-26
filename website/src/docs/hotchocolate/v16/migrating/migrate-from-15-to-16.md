@@ -1333,6 +1333,25 @@ mutation {
 
 The transaction boundary now lives inside the resolver for the coarse-grained mutation, where you control it directly with your data access layer.
 
+## Marten nullable boolean `neq` filter now includes null rows
+
+`HotChocolate.Data.Marten` has been updated to Marten 8.37.0 (from 8.0.0) to address the critical advisory [GHSA-vmw2-qwm8-x84c](https://github.com/advisories/GHSA-vmw2-qwm8-x84c). This change lands in **16.0.10**.
+
+Filtering a nullable `bool` property with `neq` now also returns rows where the value is `null`. Marten 8.10.1 changed the SQL it emits for `!=` predicates on nullable boolean JSON properties ([JasperFx/marten#3953](https://github.com/JasperFx/marten/issues/3953)): the `WHERE` clause now includes an `IS NULL OR ...` branch. Other nullable property types (numeric, string, enum) are unaffected.
+
+For a query against a nullable `Bar` column:
+
+```graphql
+{
+  root(where: { bar: { neq: true } }) {
+    bar
+  }
+}
+```
+
+- Previously: only rows where `Bar = false` were returned.
+- Now: rows where `Bar = false` and rows where `Bar IS NULL` are returned.
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.
