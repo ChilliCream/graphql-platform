@@ -29,7 +29,7 @@ Validating Fusion configuration of API 'QXBpCmcwMTlkMmIzMGUzNGY3YzQ2OTBjNTgxOTNk
 
 ❌ [ERR] Unable to access the field 'Review.productVariant'.
      Unable to transition between schemas 'REVIEWS' and 'PRODUCTS' for access to field 'PRODUCTS:Review.productVariant<Product>'.
-       No lookups found for type 'Review' in schema 'PRODUCTS'. (UNSATISFIABLE)
+       No lookups found for type 'Review' in schema 'PRODUCTS'. (UNSATISFIABLE_QUERY_PATH)
 Satisfiability validation failed.
 
  -->
@@ -410,7 +410,7 @@ public static class Query
 }
 ```
 
-Missing `@lookup` annotations will usually manifest as `UNSATISFIABLE` errors in the composition. See [Entities and lookups](/docs/fusion/v16/entities-and-lookups) for details.
+Missing `@lookup` annotations will usually manifest as `UNSATISFIABLE_QUERY_PATH` errors in the composition. See [Entities and lookups](/docs/fusion/v16/entities-and-lookups) for details.
 
 If your graph has overlapping fields, i.e. multiple subgraphs providing the same field, you now also have to explicitly mark those fields as shareable from both sides.
 
