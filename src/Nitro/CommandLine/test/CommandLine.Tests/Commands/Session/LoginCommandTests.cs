@@ -99,7 +99,7 @@ public sealed class LoginCommandTests(NitroCommandFixture fixture) : SessionComm
         result.AssertSuccess(
             """
             ✓ Logging in via browser
-            ├── Browser opened at identity.chillicream.com. Continue login there.
+            ├── Browser opened at https://identity.chillicream.com. Continue login there.
             ├── ! You do not have any workspaces. Run `nitro launch` and create one.
             └── ✓ Logged in as user@test.com
             """);
@@ -123,7 +123,7 @@ public sealed class LoginCommandTests(NitroCommandFixture fixture) : SessionComm
         result.AssertSuccess(
             """
             ✓ Logging in via browser
-            ├── Browser opened at identity.chillicream.com. Continue login there.
+            ├── Browser opened at https://identity.chillicream.com. Continue login there.
             └── ✓ Logged in as user@test.com (Workspace: my-workspace)
             """);
 
@@ -171,11 +171,30 @@ public sealed class LoginCommandTests(NitroCommandFixture fixture) : SessionComm
     }
 
     [Fact]
+    public async Task UrlArgument_StripsPathAndQuery_ReturnsSuccess()
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupLogin("https://custom.server.com");
+        SetupSelectWorkspaces(CreateWorkspaceNode("ws-1", "my-workspace"));
+        SetupSelectWorkspaceAny();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "login",
+            "https://user:pw@custom.server.com/graphql?foo=bar#frag");
+
+        // assert
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
+    }
+
+    [Fact]
     public async Task UrlOption_ReturnsSuccess()
     {
         // arrange
         SetupInteractionMode(InteractionMode.Interactive);
-        SetupLogin("custom.server.com");
+        SetupLogin("https://custom.server.com");
         SetupSelectWorkspaces(CreateWorkspaceNode("ws-1", "my-workspace"));
         SetupSelectWorkspaceAny();
 
