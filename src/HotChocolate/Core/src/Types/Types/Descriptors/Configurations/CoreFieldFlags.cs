@@ -46,5 +46,6 @@ internal enum CoreFieldFlags : long
     WithRequirements = 1 << 30,
     UsesProjections = 1L << 31,
     ImplicitField = 1L << 32,
-    BatchResolver = 1L << 33
+    BatchResolver = 1L << 33,
+    MemberReplacement = 1L << 34
 }

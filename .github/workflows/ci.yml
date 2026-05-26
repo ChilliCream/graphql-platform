@@ -155,10 +155,6 @@ jobs:
         run: yarn --immutable --network-timeout 100000
         working-directory: website
 
-      - name: Optimize Images
-        run: yarn optimize-images
-        working-directory: website
-
       - name: Build Website
         run: yarn build
         working-directory: website
@@ -195,6 +191,10 @@ jobs:
         run: yarn --immutable --network-timeout 100000
         working-directory: website-next
 
+      - name: Install Playwright Chromium
+        run: yarn playwright install --with-deps chromium
+        working-directory: website-next
+
       - name: Lint
         run: yarn lint
         working-directory: website-next
@@ -218,17 +218,9 @@ jobs:
         with:
           show-progress: false
 
-      - name: Install .NET
-        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5
-        with:
-          dotnet-version: 11.x
-
       - name: Generate Test Matrix
-        run: dotnet run --project ./.build -- GenerateMatrix
-
-      - name: Export Test Matrix
         id: set-matrix
-        run: echo "matrix=$(jq -c . < ./matrix.json)" >> $GITHUB_OUTPUT
+        uses: ./.github/actions/generate-test-matrix
 
   library-tests:
     name: Run ${{ matrix.name }}

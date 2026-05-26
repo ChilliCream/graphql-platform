@@ -165,12 +165,15 @@ public partial class LocalDateTimeType : ScalarType<DateTime, StringValueNode>
             : @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1," + _options.InputPrecision + "})?$";
 
     private string GetLocalFormat()
-        => _options.OutputPrecision switch
+    {
+        var pad = _options.AlwaysOutputFractionalSeconds;
+        return _options.OutputPrecision switch
         {
-            DateTimeOptions.DefaultOutputPrecision => LocalFormat,
+            DateTimeOptions.DefaultOutputPrecision when !pad => LocalFormat,
             0 => @"yyyy-MM-ddTHH\:mm\:ss",
-            _ => @$"yyyy-MM-ddTHH\:mm\:ss.{new string('F', _options.OutputPrecision)}"
+            _ => @$"yyyy-MM-ddTHH\:mm\:ss.{new string(pad ? 'f' : 'F', _options.OutputPrecision)}"
         };
+    }
 
     private Regex GetLocalDateTimeRegex()
         => _options.InputPrecision switch

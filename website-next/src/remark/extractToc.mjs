@@ -21,7 +21,7 @@ export default function remarkExtractToc() {
       node.data ??= {};
       node.data.hProperties ??= {};
       node.data.hProperties.id = id;
-      if (node.depth === 2 || node.depth === 3) {
+      if (node.depth >= 2 && node.depth <= 4) {
         toc.push({ id, text, depth: node.depth });
       }
     });

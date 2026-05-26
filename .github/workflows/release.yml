@@ -127,9 +127,29 @@ jobs:
             10.x
             11.x
 
-      - name: 📦 Build NuGet Packages
+      - name: 🖍️ Stamp template PackageReference versions
+        shell: bash
         run: |
-          ./build.sh pack --SemVersion ${{ env.GIT_TAG }} --Configuration Release
+          sed -i "s|0\.0\.0-placeholder|${GIT_TAG}|g" \
+            templates/azure-function/HotChocolate.Template.AzureFunctions.csproj \
+            templates/gateway/HotChocolate.Template.Gateway.csproj \
+            templates/server/HotChocolate.Template.Server.csproj
+
+      - name: 📦 Build NuGet Packages
+        shell: bash
+        run: |
+          dotnet pack src/Build.Pack.slnx \
+            -c Release \
+            -o output/packages \
+            -p:Version=${GIT_TAG} \
+            -p:NitroApiClientId="${NitroApiClientId}" \
+            -p:NitroIdentityClientId="${NitroIdentityClientId}" \
+            -p:NitroIdentityScopes="${NitroIdentityScopes}"
+
+          dotnet pack templates/HotChocolate.Templates.csproj \
+            -c Release \
+            -o output/packages \
+            -p:Version=${GIT_TAG}
         env:
           NitroApiClientId: ${{ secrets.NITRO_API_CLIENT_ID }}
           NitroIdentityClientId: ${{ secrets.NITRO_IDENTITY_CLIENT_ID }}
@@ -168,10 +188,16 @@ jobs:
           user: ${{ secrets.NUGET_USERNAME }}
 
       - name: 🚀 Push Packages to NuGet
+        shell: bash
         run: |
-          ./build.sh publish --skip
+          for nupkg in output/packages/*.nupkg; do
+            dotnet nuget push "$nupkg" \
+              --source https://api.nuget.org/v3/index.json \
+              --api-key "${NUGET_API_KEY}" \
+              --skip-duplicate
+          done
         env:
-          NuGetApiKey: ${{ steps.login.outputs.NUGET_API_KEY }}
+          NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
 
       - name: 📤 Attach .nupkg assets to GitHub release
         shell: bash
@@ -222,21 +248,22 @@ jobs:
         with:
           dotnet-version: 11.x
 
-      - name: 📦 Publish binary (Windows)
-        if: runner.os == 'Windows'
-        run: |
-          ./build.ps1 publishaot --SemVersion $env:GIT_TAG --RuntimeIdentifier ${{ matrix.rid }} --Configuration Release
-        shell: pwsh
-        env:
-          NitroApiClientId: ${{ secrets.NITRO_API_CLIENT_ID }}
-          NitroIdentityClientId: ${{ secrets.NITRO_IDENTITY_CLIENT_ID }}
-          NitroIdentityScopes: ${{ secrets.NITRO_IDENTITY_SCOPES }}
-
-      - name: 📦 Publish binary (Unix)
-        if: runner.os != 'Windows'
+      - name: 📦 Publish binary
         shell: bash
         run: |
-          ./build.sh publishaot --SemVersion $GIT_TAG --RuntimeIdentifier ${{ matrix.rid }} --Configuration Release
+          dotnet publish src/Nitro/CommandLine/src/CommandLine \
+            -c Release \
+            -r ${{ matrix.rid }} \
+            -f net10.0 \
+            -o publish \
+            --self-contained \
+            -p:PublishAot=true \
+            -p:TargetFrameworks=net10.0 \
+            -p:RuntimeIdentifiers=${{ matrix.rid }} \
+            -p:Version=${GIT_TAG} \
+            -p:NitroApiClientId="${NitroApiClientId}" \
+            -p:NitroIdentityClientId="${NitroIdentityClientId}" \
+            -p:NitroIdentityScopes="${NitroIdentityScopes}"
         env:
           NitroApiClientId: ${{ secrets.NITRO_API_CLIENT_ID }}
           NitroIdentityClientId: ${{ secrets.NITRO_IDENTITY_CLIENT_ID }}

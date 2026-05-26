@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-export const BLOG_ROOT = path.join(process.cwd(), "content/blogs");
+export const BLOG_ROOT = path.join(process.cwd(), "content/blog");
 const STEM_RE = /^(\d{4})-(\d{2})-(\d{2})-(.+)$/;
 
 export type BlogStem = {
@@ -81,7 +81,7 @@ export function listBlogPosts(): {
 
 /** Build the canonical URL for a blog post stem. */
 export function blogUrlForStem(parsed: BlogStem): string {
-  return `/blogs/${parsed.year}/${parsed.month}/${parsed.day}/${parsed.slug}`;
+  return `/blog/${parsed.year}/${parsed.month}/${parsed.day}/${parsed.slug}`;
 }
 
 /** Reverse the catch-all slug (e.g. ['2019','06','05','hot-chocolate-9.0.0'])

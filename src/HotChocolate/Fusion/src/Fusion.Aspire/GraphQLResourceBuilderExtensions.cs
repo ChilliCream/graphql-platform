@@ -81,37 +81,6 @@ public static class GraphQLResourceBuilderExtensions
         return builder;
     }
 
-    /// <summary>
-    /// Configures the gateway resource to download a Nitro fusion archive as a seed
-    /// for schema composition. External subgraphs from the Nitro platform are merged
-    /// with any locally referenced Aspire subgraphs during composition.
-    /// </summary>
-    /// <param name="builder">The resource builder.</param>
-    /// <param name="apiId">The Nitro API identifier.</param>
-    /// <param name="stage">The deployment stage to download the configuration for.</param>
-    /// <param name="alwaysDownload">
-    /// When <c>true</c>, bypasses the local cache and downloads a fresh archive on every
-    /// composition. Defaults to <c>false</c>, which uses a cached archive when available.
-    /// </param>
-    /// <returns>The resource builder for chaining.</returns>
-    public static IResourceBuilder<T> WithNitroConfiguration<T>(
-        this IResourceBuilder<T> builder,
-        string apiId,
-        string stage,
-        bool alwaysDownload = false)
-        where T : IResourceWithEndpoints
-    {
-        builder.WithAnnotation(
-            new NitroConfigurationAnnotation
-            {
-                ApiId = apiId,
-                Stage = stage,
-                AlwaysDownload = alwaysDownload
-            });
-
-        return builder;
-    }
-
     internal static string? GetGraphQLSourceSchemaName(this IResource resource)
     {
         var annotation = resource.Annotations.OfType<GraphQLSourceSchemaAnnotation>().FirstOrDefault();

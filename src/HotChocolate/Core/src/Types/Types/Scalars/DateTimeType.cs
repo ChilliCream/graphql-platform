@@ -177,20 +177,26 @@ public partial class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
                 + @"})?(?:[Zz]|[+-]\d{2}:\d{2})$";
 
     private string GetUtcFormat()
-        => _options.OutputPrecision switch
+    {
+        var pad = _options.AlwaysOutputFractionalSeconds;
+        return _options.OutputPrecision switch
         {
-            DateTimeOptions.DefaultOutputPrecision => UtcFormat,
+            DateTimeOptions.DefaultOutputPrecision when !pad => UtcFormat,
             0 => @"yyyy-MM-ddTHH\:mm\:ssZ",
-            _ => @$"yyyy-MM-ddTHH\:mm\:ss.{new string('F', _options.OutputPrecision)}Z"
+            _ => @$"yyyy-MM-ddTHH\:mm\:ss.{new string(pad ? 'f' : 'F', _options.OutputPrecision)}Z"
         };
+    }
 
     private string GetLocalFormat()
-        => _options.OutputPrecision switch
+    {
+        var pad = _options.AlwaysOutputFractionalSeconds;
+        return _options.OutputPrecision switch
         {
-            DateTimeOptions.DefaultOutputPrecision => LocalFormat,
+            DateTimeOptions.DefaultOutputPrecision when !pad => LocalFormat,
             0 => @"yyyy-MM-ddTHH\:mm\:sszzz",
-            _ => @$"yyyy-MM-ddTHH\:mm\:ss.{new string('F', _options.OutputPrecision)}zzz"
+            _ => @$"yyyy-MM-ddTHH\:mm\:ss.{new string(pad ? 'f' : 'F', _options.OutputPrecision)}zzz"
         };
+    }
 
     private Regex GetDateTimeRegex()
         => _options.InputPrecision switch

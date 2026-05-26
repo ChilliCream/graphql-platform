@@ -48,11 +48,28 @@ Starting with v16, we're introducing a more explicit model where Hot Chocolate c
 builder.Services.AddSingleton<MyService>();
 builder.AddGraphQL()
 +   .AddApplicationService<MyService>()
-    .AddDiagnosticEventListener<MyDiagnosticEventListener>()
+
+    // either
+    .AddDiagnosticEventListener<MyDiagnosticEventListener>();
     // or
-    .AddDiagnosticEventListener(sp => new MyService(sp.GetRequiredService<MyService>()));
+    .AddDiagnosticEventListener(sp => new MyDiagnosticEventListener(sp.GetRequiredService<MyService>()));
 
 public class MyDiagnosticEventListener(MyService service) : ExecutionDiagnosticEventListener;
+```
+
+Sometimes the registration of required services is not as obvious. For example, the types for logging are registered in framework code.
+
+```diff
+builder.Services.AddLogging();
+builder.AddGraphQL()
++   .AddApplicationService<ILogger<MyLoggingDiagnosticEventListener>>()
+
+    // either
+    .AddDiagnosticEventListener<MyLoggingDiagnosticEventListener>();
+    // or
+    .AddDiagnosticEventListener(sp => new MyLoggingDiagnosticEventListener(sp.GetRequiredService<ILogger<MyLoggingDiagnosticEventListener>>()));
+
+public class MyLoggingDiagnosticEventListener(ILogger<MyLoggingDiagnosticEventListener> logger) : ExecutionDiagnosticEventListener;
 ```
 
 Services registered via `AddApplicationService<T>()` are resolved once during schema initialization from the application service provider and registered as singletons in the schema service provider.
@@ -64,7 +81,6 @@ If you're using any of the following configuration APIs, ensure that the applica
 - `AddErrorFilter`
 - `AddDiagnosticEventListener`
 - `AddOperationCompilerOptimizer`
-- `AddTransactionScopeHandler`
 - `AddRedisOperationDocumentStorage`
 - `AddAzureBlobStorageOperationDocumentStorage`
 - `AddInstrumentation` with a custom `ActivityEnricher`
@@ -236,6 +252,60 @@ public class CustomRequestMiddleware
     }
 }
 ```
+
+## IRequestExecutorResolver split into provider, events, and manager
+
+The single `IRequestExecutorResolver` interface from v15 has been removed and its responsibilities split across three more focused abstractions in `HotChocolate.Execution.Abstractions`:
+
+| v15 (`IRequestExecutorResolver`)      | v16                                                                            |
+| ------------------------------------- | ------------------------------------------------------------------------------ |
+| `GetRequestExecutorAsync(schemaName)` | `IRequestExecutorProvider.GetExecutorAsync(schemaName)`                        |
+| `Events` (`IObservable<…>`)           | `IRequestExecutorEvents` (which itself is `IObservable<RequestExecutorEvent>`) |
+| `EvictRequestExecutor(schemaName)`    | `IRequestExecutorManager.EvictExecutor(schemaName)`                            |
+
+`IRequestExecutorManager` derives from `IRequestExecutorProvider`, so inject the manager when you need both lookup and eviction, the provider when you only need lookup, and `IRequestExecutorEvents` when you only need to react to executor lifecycle events:
+
+```diff
+-public class MyService(IRequestExecutorResolver resolver)
++public class MyService(
++    IRequestExecutorManager executors,
++    IRequestExecutorEvents events)
+ {
+-    public ValueTask<IRequestExecutor> GetExecutorAsync(CancellationToken ct)
+-        => resolver.GetRequestExecutorAsync(cancellationToken: ct);
++    public ValueTask<IRequestExecutor> GetExecutorAsync(CancellationToken ct)
++        => executors.GetExecutorAsync(cancellationToken: ct);
+
+-    public void EvictDefault() => resolver.EvictRequestExecutor();
++    public void EvictDefault() => executors.EvictExecutor();
+
+-    public IDisposable Subscribe(IObserver<RequestExecutorEvent> observer)
+-        => resolver.Events.Subscribe(observer);
++    public IDisposable Subscribe(IObserver<RequestExecutorEvent> observer)
++        => events.Subscribe(observer);
+ }
+```
+
+The `IServiceProvider.GetRequestExecutorAsync(...)` extension method has been kept as a convenience and now resolves `IRequestExecutorProvider` from the container internally, so call sites such as `services.GetRequestExecutorAsync()` continue to compile unchanged.
+
+The legacy `RequestExecutorEvicted` event (already marked obsolete in v15) has been removed; subscribe to `IRequestExecutorEvents` and filter on `RequestExecutorEventType.Evicted` instead.
+
+## RequestExecutorProxy
+
+`RequestExecutorProxy` still exists and serves the same purpose, giving you a long-lived handle to the executor for a particular schema that is hot-swapped automatically when the schema is rebuilt. Two things have changed:
+
+**Constructor signature.** The proxy no longer takes an `IRequestExecutorResolver`; it now takes the new provider and events abstractions explicitly:
+
+```diff
+-var proxy = new RequestExecutorProxy(resolver, "Schema");
++var proxy = new RequestExecutorProxy(executorProvider, executorEvents, "Schema");
+```
+
+**The proxy now implements `IRequestExecutor`.** You can pass a `RequestExecutorProxy` directly anywhere an `IRequestExecutor` is expected, without first calling `GetRequestExecutorAsync()`. `ExecuteAsync` and `ExecuteBatchAsync` resolve the current executor internally.
+
+The CLR events `ExecutorUpdated` and `ExecutorEvicted` have been removed. If you need to react to swaps, derive from `RequestExecutorProxy` and override `OnConfigureRequestExecutor(newExecutor, oldExecutor)` (runs under the proxy's lock, before `CurrentExecutor` is replaced) or `OnAfterRequestExecutorSwapped(newExecutor, oldExecutor)` (runs after the swap, outside the lock).
+
+The separate `AutoUpdateRequestExecutorProxy` helper has been removed; the base `RequestExecutorProxy` now subscribes to executor events on construction and updates `CurrentExecutor` automatically.
 
 ## Schema.DefaultName moved to ISchemaDefinition.DefaultName
 
@@ -553,7 +623,9 @@ var request = OperationRequestBuilder.New()
 
 **Variable values are now JSON-based**
 
-`SetVariableValues` now accepts JSON strings, `JsonDocument`, `IEnumerable<KeyValuePair<string, JsonElement>>`, or `IReadOnlyDictionary<string, object?>`. When you pass a dictionary of CLR objects, values are serialized to JSON internally. You can also pass variables directly as a JSON string:
+`SetVariableValues` now accepts JSON strings, `JsonDocument`, `IEnumerable<KeyValuePair<string, JsonElement>>`, or `IReadOnlyDictionary<string, object?>`.
+
+The preferred way to provide variables now is as a JSON string.
 
 ```csharp
 var request = OperationRequestBuilder.New()
@@ -561,6 +633,43 @@ var request = OperationRequestBuilder.New()
     .SetVariableValues("""{ "id": "42" }""")
     .Build();
 ```
+
+CLR objects passed via `SetVariableValues(Dictionary<string, object?>)` are now serialized to JSON internally.
+
+As a result, the JSON shape of a value must match what the target scalar expects. Some examples:
+
+- `DateTime` no longer fits a `Date` scalar, since its JSON form does not match the required `yyyy-MM-dd`.
+- Enums must be passed as their GraphQL name (`"VALUE"`) rather than the CLR member (`MyEnum.Value`).
+
+If you hit a mismatch, you have two options:
+
+1. Provide variables as raw JSON through `SetVariableValues(string)`, bypassing CLR serialization entirely.
+2. Register a custom `JsonConverter` for the affected type so the emitted JSON matches the scalar's expected format.
+
+If you need to pass an Upload scalar value, you can do the following:
+
+```csharp
+var requestBuilder = new OperationRequestBuilder();
+requestBuilder.SetVariableValues("""{ "file" : "yourKey" }""");
+requestBuilder.Features.Set<IFileLookup>(fileLookup);
+
+public class FileLookup : IFileLookup
+{
+    public bool TryGetFile(string name, [NotNullWhen(true)] out IFile? file)
+    {
+        if (name == "yourKey")
+        {
+            file = new StreamFile("Foo.txt", () => new MemoryStream());
+            return true;
+        }
+
+        file = null;
+        return false;
+    }
+}
+```
+
+`yourKey` in this case is just a marker you choose for the file.
 
 **Global state methods**
 
@@ -580,6 +689,21 @@ Use `OperationRequestBuilder.From(request)` to create a builder pre-populated fr
 **Features collection**
 
 The builder now exposes a `Features` property of type `IFeatureCollection` for attaching extensibility features (such as `IFileLookup` for file uploads).
+
+## Snapshot matching on IExecutionResult
+
+The internal layout of `IExecutionResult` implementations has changed and is no longer compatible with general-purpose object serializers used by snapshot libraries like `Snapshooter` or `Verify`. Snapshotting the result instance directly will either fail or produce unstable output.
+
+Serialize the result to JSON first and snapshot that instead:
+
+```diff
+var result = await executor.ExecuteAsync("{ example }");
+
+- result.MatchSnapshot();
++ result.ToJson().MatchSnapshot();
+```
+
+If you're using **CookieCrumble**, you don't need to convert manually: it has native snapshot support for `IExecutionResult` and serializes it correctly out of the box.
 
 ## AllowNonPersistedOperation moved
 
@@ -654,45 +778,6 @@ query {
 }
 ```
 
-### Runtime objects passed as variables to OperationRequestBuilder are now serialized as JSON
-
-Passing CLR objects via `OperationRequestBuilder.SetVariableValues(Dictionary<string, object?>)` now serializes the values as JSON.
-
-You may prefer providing variables directly as JSON:
-
-```csharp
-var requestBuilder = new OperationRequestBuilder();
-requestBuilder.SetVariableValues("""{ "id": 42 }""");
-```
-
-Note that this can lead to errors if the emitted JSON for a type is not valid for the corresponding GraphQL scalar, f. e. du to format restrictions.
-For example, a `DateTime` value can no longer be used to fill a `Date` scalar since the JSON format does not match the expected yyyy-MM-dd format.
-
-You can also bypass this by annotating your types with custom JsonConverters.
-
-If you need to pass an Upload scalar value, you can do the following:
-
-```csharp
-var requestBuilder = new OperationRequestBuilder();
-requestBuilder.SetVariableValues("""{ "file" : "yourKey" }""");
-requestBuilder.Features.Set<IFileLookup>(fileLookup);
-
-public class FileLookup : IFileLookup
-{
-    public bool TryGetFile(string name, [NotNullWhen(true)] out IFile? file)
-    {
-        if (name == "yourKey")
-        {
-            file = new StreamFile("Foo.txt", () => new MemoryStream());
-            return true;
-        }
-
-        file = null;
-        return false;
-    }
-}
-```
-
 ## Byte and SignedByte types renamed
 
 - The GraphQL type `Byte` has been renamed to `UnsignedByte` (CLR type: `byte`).
@@ -721,7 +806,20 @@ Note that this option is likely to be removed in a later release, so it's recomm
 
 ## DateTime scalar serialization
 
-The `DateTime` scalar now serializes with up to 7 fractional seconds (`FFFFFFF`) as opposed to exactly 3 (`fff`).
+The `DateTime` scalar now serializes with up to 7 fractional seconds (`FFFFFFF`) as opposed to exactly 3 (`fff`). Trailing zeros are stripped, and the fractional component is omitted entirely when zero, so `2023-12-24T15:30:00.5000000Z` is now emitted as `2023-12-24T15:30:00.5Z` and `2023-12-24T15:30:00.0000000Z` is emitted as `2023-12-24T15:30:00Z`.
+
+If you need fractional seconds to always be present in the output (for example, to preserve a fixed-width format your clients depend on), set `AlwaysOutputFractionalSeconds = true` on `DateTimeOptions`. You can also tune the precision via `OutputPrecision`. To restore the exact v15 behavior of always emitting three fractional digits, combine both:
+
+```csharp
+builder.AddGraphQL()
+    .AddType(new DateTimeType(new DateTimeOptions
+    {
+        OutputPrecision = 3,
+        AlwaysOutputFractionalSeconds = true
+    }));
+```
+
+The same options apply to the `LocalDateTime` and `LocalTime` scalars (and to their counterparts in `HotChocolate.Types.NodaTime`, which expose a matching `DateTimeOptions` struct).
 
 ## IHasRuntimeType is now IRuntimeTypeProvider
 
@@ -922,10 +1020,6 @@ builder
         incrementalDeliveryFormat: IncrementalDeliveryFormat.Version_0_1);
 ```
 
-## OperationRequestBuilder.AddVariableValues renamed to SetVariableValues
-
-`OperationRequestBuilder.AddVariableValues` has been renamed to `SetVariableValues`.
-
 ## TimeSpan scalar renamed to Duration
 
 The `TimeSpan` scalar has been renamed to `Duration` to better reflect the underlying specification (ISO 8601), and move away from .NET-oriented naming.
@@ -1086,6 +1180,36 @@ We removed the following methods from the `IExecutionDiagnosticEventListener` si
 
 Some other methods also had a change in their signature - simply override them again to fix any compilation issues.
 
+## IOperationMessagePayload exposes raw JSON
+
+The `IOperationMessagePayload` interface, used by `ISocketSessionInterceptor` hooks (`OnConnectAsync`, `OnPingAsync`, `OnPongAsync`), no longer exposes the `As<T>()` deserialization helper. It now provides direct access to the raw `JsonElement?` through a `Payload` property:
+
+```diff
+-public interface IOperationMessagePayload
+-{
+-    T? As<T>() where T : class;
+-}
++public interface IOperationMessagePayload
++{
++    JsonElement? Payload { get; }
++}
+```
+
+If you were calling `.As<T>()` to deserialize the payload, switch to `Payload?.Deserialize<T>()`:
+
+```diff
+public override ValueTask<ConnectionStatus> OnConnectAsync(
+    ISocketSession session,
+    IOperationMessagePayload connectionInitMessage,
+    CancellationToken cancellationToken = default)
+{
+-   var payload = connectionInitMessage.As<MyConnectPayload>();
++   var payload = connectionInitMessage.Payload?.Deserialize<MyConnectPayload>();
+
+    // ...
+}
+```
+
 ## Experimental @semanticNonNull support removed
 
 Hot Chocolate v15 included experimental support for the `@semanticNonNull` directive, which let you mark fields as semantically non-null while still returning `null` (rather than propagating to the parent) when a resolver errored. We've removed this feature in v16 in favor of the [`onError` proposal](https://github.com/graphql/graphql-spec/pull/1163).
@@ -1201,6 +1325,25 @@ public class CustomFilteringConvention : FilterConvention
 
 The `CanHandle` signature also changed on the filtering, sorting, and projection handler interfaces. If you have overridden it, re-override against the new signature.
 
+## Transaction scope handlers removed
+
+`AddTransactionScopeHandler` and `AddDefaultTransactionScopeHandler` have been removed. The `ITransactionScopeHandler` abstraction wrapped an entire mutation operation in a single transaction and rolled back all root field results when any root field errored. This violates the GraphQL specification, which defines mutation root fields as independent: each field's result must be observable regardless of whether subsequent fields succeed or fail.
+
+If you relied on transaction handlers to keep multiple mutation fields consistent, model that coupling explicitly in the schema. Replace fine-grained root fields with a single coarse-grained mutation that accepts a composite input and performs the work as one unit:
+
+```graphql
+mutation {
+  # Before: separate fields, transactionality was implicit and spec-violating
+  addProducts(productIds: [...]) { ... }
+  removeProducts(productIds: [...]) { ... }
+
+  # After: one mutation that answers the client use case
+  updateCart(input: { productsToAdd: [...], productsToRemove: [...] }) { ... }
+}
+```
+
+The transaction boundary now lives inside the resolver for the coarse-grained mutation, where you control it directly with your data access layer.
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.
@@ -1210,6 +1353,31 @@ Things that will continue to function this release, but we encourage you to move
 The GraphQL `ByteArray` type has been deprecated. Use the `Base64String` type instead.
 
 # Noteworthy changes
+
+## Validation walker is now operation-scoped for fragment visits by default
+
+The base `DocumentValidatorVisitor` no longer re-walks a fragment definition on every sibling spread within an operation. Each fragment is now visited at most once per operation. Cycle detection continues to work via `context.Path.Contains(fragment)` in `FragmentVisitor`.
+
+User-visible effect: some queries that previously failed validation with false-positive errors now validate cleanly. For example, a `@defer` directive with a label inside a fragment spread twice was reported as a duplicate label collision against itself; that case (and similar over-counted errors for argument names, variable usage, input fields, and fragment spread possibility) now behaves correctly. Queries that should fail still fail, with no duplicates per spread.
+
+If you wrote a custom `DocumentValidatorVisitor` that called `context.Fragments.Leave(...)`, you have two options:
+
+1. **Match the new default (operation-scoped):** remove the `Leave` call. Each fragment is walked at most once per operation; sibling spreads short-circuit.
+2. **Opt back into per-spread re-walks:** keep the `Leave` call. This is what `CostAnalyzer` does, because per-spread re-walks are required to correctly accumulate cost across reused fragments.
+
+```diff
+if (context.Fragments.TryEnter(node, out var fragment))
+{
+    var result = Visit(fragment, node, context);
+-   context.Fragments.Leave(fragment); // remove for operation-scoped (recommended for validation rules)
+    // keep the Leave(...) call if your rule needs per-spread re-walks (e.g. cost analysis)
+
+    if (result.IsBreak())
+    {
+        return Break;
+    }
+}
+```
 
 ## RunWithGraphQLCommandsAsync returns exit code
 

@@ -24,7 +24,7 @@ export function MobileNav({ items, demoHref, nitroHref }: MobileNavProps) {
         <button
           type="button"
           aria-label="Search"
-          className="flex h-full items-center px-2 text-stone-700 transition-colors hover:text-fuchsia-700"
+          className="flex h-full items-center px-2 text-stone-700 transition-colors hover:text-primary-700"
         >
           <SearchIcon className="h-5 w-5 fill-current" />
         </button>
@@ -32,7 +32,7 @@ export function MobileNav({ items, demoHref, nitroHref }: MobileNavProps) {
           type="button"
           aria-label="Open navigation menu"
           onClick={() => setOpen(true)}
-          className="flex h-full items-center px-2 text-stone-700 transition-colors hover:text-fuchsia-700"
+          className="flex h-full items-center px-2 text-stone-700 transition-colors hover:text-primary-700"
         >
           <BarsIcon className="h-5 w-5 fill-current" />
         </button>
@@ -64,7 +64,7 @@ export function MobileNav({ items, demoHref, nitroHref }: MobileNavProps) {
                 <Link
                   href={item.href}
                   onClick={() => setOpen(false)}
-                  className="flex h-[72px] w-full items-center border-b border-stone-200 px-6 text-lg font-medium text-stone-700 hover:text-fuchsia-700"
+                  className="flex h-[72px] w-full items-center border-b border-stone-200 px-6 text-lg font-medium text-stone-700 hover:text-primary-700"
                 >
                   {item.label}
                 </Link>
@@ -74,7 +74,7 @@ export function MobileNav({ items, demoHref, nitroHref }: MobileNavProps) {
               <a
                 href={demoHref}
                 onClick={() => setOpen(false)}
-                className="text-sm font-medium text-stone-700 hover:text-fuchsia-700"
+                className="text-sm font-medium text-stone-700 hover:text-primary-700"
               >
                 Request a Demo
               </a>
@@ -83,7 +83,7 @@ export function MobileNav({ items, demoHref, nitroHref }: MobileNavProps) {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setOpen(false)}
-                className="inline-flex h-[38px] items-center rounded-md border-2 border-fuchsia-700 bg-fuchsia-700 px-7 text-sm font-medium text-white hover:bg-fuchsia-800"
+                className="inline-flex h-[38px] items-center rounded-md border-2 border-secondary-700 bg-secondary-700 px-7 text-sm font-medium text-white hover:bg-secondary-800"
               >
                 Launch
               </a>

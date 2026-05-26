@@ -163,12 +163,15 @@ public partial class LocalTimeType : ScalarType<TimeOnly, StringValueNode>
             : @"^\d{2}:\d{2}:\d{2}(?:\.\d{1," + _options.InputPrecision + "})?$";
 
     private string GetLocalFormat()
-        => _options.OutputPrecision switch
+    {
+        var pad = _options.AlwaysOutputFractionalSeconds;
+        return _options.OutputPrecision switch
         {
-            DateTimeOptions.DefaultOutputPrecision => LocalFormat,
+            DateTimeOptions.DefaultOutputPrecision when !pad => LocalFormat,
             0 => "HH:mm:ss",
-            _ => $"HH:mm:ss.{new string('F', _options.OutputPrecision)}"
+            _ => $"HH:mm:ss.{new string(pad ? 'f' : 'F', _options.OutputPrecision)}"
         };
+    }
 
     private Regex GetLocalTimeRegex()
         => _options.InputPrecision switch

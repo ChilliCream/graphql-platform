@@ -27,7 +27,7 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
               --openapi-collection-id <openapi-collection-id> (REQUIRED)  The ID of the OpenAPI collection [env: NITRO_OPENAPI_COLLECTION_ID]
               --stage <stage> (REQUIRED)                                  The name of the stage [env: NITRO_STAGE]
               -p, --pattern <pattern> (REQUIRED)                          One or more glob patterns for selecting OpenAPI document files
-              --cloud-url <cloud-url>                                     The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
+              --cloud-url <cloud-url>                                     The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
               --api-key <api-key>                                         The API key used for authentication [env: NITRO_API_KEY]
               --output <json>                                             The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                                              Show help and usage information

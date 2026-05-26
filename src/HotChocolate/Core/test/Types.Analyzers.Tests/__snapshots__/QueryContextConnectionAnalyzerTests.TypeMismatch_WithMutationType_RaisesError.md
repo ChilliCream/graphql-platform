@@ -69,7 +69,7 @@ namespace TestNamespace
             HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
                 extension.Context,
                 descriptor,
-                null,
+                typeof(global::TestNamespace.Mutation),
                 new global::HotChocolate.Types.MutationTypeAttribute());
             configuration.ConfigurationsAreApplied = true;
 

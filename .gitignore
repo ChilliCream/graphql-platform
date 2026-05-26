@@ -10,9 +10,6 @@ coverage.json
 coverage.opencover.xml
 lcov.info
 
-# Tools
-.nuke/
-
 # TypeScript
 *.tsbuildinfo
 
@@ -34,10 +31,6 @@ packages.lock.json
 # Repo-specific build helpers
 output/
 publish/
-src/All.sln
-src/Build.CheckApi.sln
-src/Build.Pack.sln
-src/Build.Test.sln
 
 # Roslyn source-generator output (EmitCompilerGeneratedFiles=true)
 .generated/
