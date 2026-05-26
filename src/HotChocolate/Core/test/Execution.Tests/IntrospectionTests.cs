@@ -356,6 +356,60 @@ public class IntrospectionTests
         result.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task DirectiveIntrospection_AllDirectives_Public_When_DisableInternalDirectives_Is_True()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddDocumentFromString(
+                    """
+                    type Query {
+                        foo: String
+                            @foo
+                            @bar(baz: "ABC")
+                            @bar(baz: null)
+                            @bar(quox: { a: "ABC" })
+                            @bar(quox: { a: "DEF" })
+                            @bar
+                    }
+
+                    input SomeInput {
+                        a: String!
+                    }
+
+                    directive @bar(baz: String, quox: SomeInput) repeatable on FIELD_DEFINITION
+                    """)
+                .UseField(next => next)
+                .ModifyOptions(o => o.EnableDirectiveIntrospection = true)
+                .ModifyOptions(o => o.DefaultDirectiveVisibility = DirectiveVisibility.Internal)
+                .ModifyOptions(o => o.DisableInternalDirectives = true)
+                .AddDirectiveType(new DirectiveType(d =>
+                {
+                    d.Name("foo");
+                    d.Location(DirectiveLocation.FieldDefinition);
+                    d.Internal();
+                }))
+                .ExecuteRequestAsync(
+                    @"{
+                        __schema {
+                            types {
+                                fields {
+                                    appliedDirectives {
+                                        name
+                                        args {
+                                            name
+                                            value
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }");
+
+        result.MatchSnapshot();
+    }
+
     private static Schema CreateSchema()
     {
         return SchemaBuilder.New()

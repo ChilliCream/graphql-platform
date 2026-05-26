@@ -78,6 +78,18 @@ public sealed class SchemaComposer
             return enrichmentResult.Errors;
         }
 
+        // Prune unreachable definitions from each source schema before validation, so types
+        // stripped by @excludeByTag (or otherwise unreferenced) are not validated or merged.
+        if (_schemaComposerOptions.Merger.RemoveUnreferencedDefinitions)
+        {
+            var preservedTypeNames = MutableSchemaDefinitionExtensions.GetPreservedTypeNames(schemas);
+
+            foreach (var schema in schemas)
+            {
+                schema.RemoveUnreferencedDefinitions(preservedTypeNames);
+            }
+        }
+
         // Validate Source Schemas
         var validationResult =
             new SourceSchemaValidator(schemas, s_sourceSchemaRules, _log).Validate();
@@ -145,6 +157,7 @@ public sealed class SchemaComposer
         new KeyFieldsSelectInvalidTypeRule(),
         new KeyInvalidFieldsTypeRule(),
         new KeyInvalidSyntaxRule(),
+        new LookupMustHaveArgumentsRule(),
         new LookupReturnsListRule(),
         new LookupReturnsNonNullableTypeRule(),
         new OverrideFromSelfRule(),

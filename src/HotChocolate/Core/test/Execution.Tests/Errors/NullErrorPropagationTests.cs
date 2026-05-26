@@ -250,7 +250,7 @@ public class NullErrorPropagationTests
     }
 
     [Fact]
-    public async Task DefaultErrorHandlingMode_AppliesFromSchemaOptions()
+    public async Task DefaultErrorHandlingMode_AppliesFromRequestExecutorOptions()
     {
         // arrange
         using var snapshot = SnapshotHelpers.StartResultSnapshot();
@@ -258,7 +258,7 @@ public class NullErrorPropagationTests
         var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddDocumentFromString(SchemaText)
-            .ModifyOptions(o => o.DefaultErrorHandlingMode = ErrorHandlingMode.Null)
+            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = ErrorHandlingMode.Null)
             .AddResolver("Query", "foo", _ => new(new object()))
             .AddResolver("Foo", "nullable_list_nullable_element", _ => new(new[] { new object() }))
             .AddResolver("Foo", "nonnull_list_nullable_element", _ => new(new[] { new object() }))
@@ -285,13 +285,50 @@ public class NullErrorPropagationTests
     }
 
     [Fact]
-    public async Task PerRequestOverride_OverridesSchemaDefault()
+    public async Task PerRequestOverride_OverridesDefaultErrorHandlingMode()
     {
         // arrange
         using var snapshot = SnapshotHelpers.StartResultSnapshot();
 
-        // Server configured with Propagate (default), but request specifies Null
+        // Request executor options use Propagate (default), but the request specifies Null.
         var executor = await CreateExecutorAsync();
+
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument("{ foo { nonnull_prop { b } } }")
+                .AddGlobalState("b", null)
+                .SetErrorHandlingMode(ErrorHandlingMode.Null)
+                .Build();
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        snapshot.Add(result);
+    }
+
+    [Fact]
+    public async Task PerRequestOverride_IsIgnored_When_AllowErrorHandlingModeOverride_IsDisabled()
+    {
+        // arrange
+        using var snapshot = SnapshotHelpers.StartResultSnapshot();
+
+        // Request executor options use Propagate (default) and override disabled (default).
+        // Even though the request asks for Null, the configured DefaultErrorHandlingMode must win.
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(SchemaText)
+            .AddResolver("Query", "foo", _ => new(new object()))
+            .AddResolver("Foo", "nullable_list_nullable_element", _ => new(new[] { new object() }))
+            .AddResolver("Foo", "nonnull_list_nullable_element", _ => new(new[] { new object() }))
+            .AddResolver("Foo", "nullable_list_nonnull_element", _ => new(new[] { new object() }))
+            .AddResolver("Foo", "nonnull_list_nonnull_element", _ => new(new[] { new object() }))
+            .AddResolver("Foo", "nonnull_prop", _ => new(new object()))
+            .AddResolver("Foo", "nullable_prop", _ => new(new object()))
+            .AddResolver("Bar", "a", c => new(c.GetGlobalStateOrDefault<string>("a")))
+            .AddResolver("Bar", "b", c => new(c.GetGlobalStateOrDefault<string>("b")))
+            .AddResolver("Bar", "c", _ => throw new GraphQLException("ERROR"))
+            .BuildRequestExecutorAsync();
 
         var request =
             OperationRequestBuilder.New()
@@ -334,6 +371,7 @@ public class NullErrorPropagationTests
         return await new ServiceCollection()
             .AddGraphQL()
             .AddDocumentFromString(SchemaText)
+            .ModifyRequestOptions(o => o.AllowErrorHandlingModeOverride = true)
             .AddResolver("Query", "foo", _ => new(new object()))
             .AddResolver("Foo", "nullable_list_nullable_element", _ => new(new[] { new object() }))
             .AddResolver("Foo", "nonnull_list_nullable_element", _ => new(new[] { new object() }))

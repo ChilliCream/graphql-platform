@@ -68,7 +68,8 @@ public partial class DirectiveType
 
         Locations = configuration.Locations;
         Arguments = OnCompleteFields(context, configuration);
-        IsPublic = configuration.IsPublic;
+        IsPublic = configuration.IsPublic
+            || context.DescriptorContext.Options.DisableInternalDirectives;
         Middleware = OnCompleteMiddleware(context, configuration);
 
         _createInstance = OnCompleteCreateInstance(context, configuration);

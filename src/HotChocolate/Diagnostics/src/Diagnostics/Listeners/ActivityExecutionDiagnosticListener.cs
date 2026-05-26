@@ -17,7 +17,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
     private static readonly AsyncLocal<SubscriptionEventSpan?> s_currentSubscriptionEventSpan =
         new();
 
-    public override bool EnableResolveFieldValue => true;
+    public override bool EnableResolveFieldValue => options.EnableResolveFieldValue;
 
     public override IDisposable ExecuteRequest(RequestContext context)
     {
@@ -267,7 +267,9 @@ internal sealed class ActivityExecutionDiagnosticListener(
                 error,
                 operationType: SemanticConventions.GraphQL.Operation.TypeValues[
                     context.Operation.Definition.Operation],
-                operationName: context.Operation.Name);
+                operationName: context.Operation.Name,
+                schemaCoordinate: context.Selection.Field.Coordinate.ToString(),
+                documentInfo: context.Features.Get<OperationDocumentInfo>());
         }
     }
 
@@ -351,7 +353,14 @@ internal sealed class ActivityExecutionDiagnosticListener(
     {
         if (context.Features.TryGet<ExecuteRequestSpan>(out var span))
         {
-            span.Activity.AddEvent(new(nameof(DocumentNotFoundInStorage)));
+            var tags = new ActivityTagsCollection();
+
+            if (documentId.HasValue)
+            {
+                tags[SemanticConventions.GraphQL.Document.Id] = documentId.Value;
+            }
+
+            span.Activity.AddEvent(new ActivityEvent(nameof(DocumentNotFoundInStorage), default, tags));
             enricher.EnrichDocumentNotFoundInStorage(context, documentId, span.Activity);
         }
     }

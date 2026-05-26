@@ -2,8 +2,8 @@
 enum fusion__Schema {
   EXAMPLE_FOUR_FIVE @fusion__schema_metadata(name: "ExampleFourFive")
   EXAMPLE_ONE @fusion__schema_metadata(name: "ExampleOne")
-  EXAMPLE_THREE @fusion__schema_metadata(name: "Example__Three")
   EXAMPLE_TWO @fusion__schema_metadata(name: "Example_Two")
+  EXAMPLE_THREE @fusion__schema_metadata(name: "Example__Three")
 }
 
 "The fusion__FieldDefinition scalar is used to represent a GraphQL field definition specified in the GraphQL spec."

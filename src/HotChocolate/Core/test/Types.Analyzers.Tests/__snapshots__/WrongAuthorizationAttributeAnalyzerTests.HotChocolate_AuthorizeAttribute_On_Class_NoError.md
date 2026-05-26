@@ -62,7 +62,7 @@ namespace TestNamespace
             HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
                 extension.Context,
                 descriptor,
-                null,
+                typeof(global::TestNamespace.ProductQueries),
                 new global::HotChocolate.Authorization.AuthorizeAttribute());
             configuration.ConfigurationsAreApplied = true;
 

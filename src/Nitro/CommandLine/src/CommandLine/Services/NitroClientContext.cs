@@ -16,6 +16,8 @@ internal sealed class NitroClientContext : INitroClientContextProvider
 
     public INitroClientAuthorization? Authorization { get; private set; }
 
+    public string? ClientId => BuildSecrets.NitroApiClientId;
+
     public void Configure(string? apiUrl, INitroClientAuthorization? authorization)
     {
         if (string.IsNullOrWhiteSpace(apiUrl))

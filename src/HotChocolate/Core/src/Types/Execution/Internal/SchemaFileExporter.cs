@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using HotChocolate.Serialization;
@@ -7,6 +8,12 @@ namespace HotChocolate.Execution.Internal;
 
 internal static class SchemaFileExporter
 {
+    private static readonly JsonWriterOptions s_writerOptions = new()
+    {
+        Indented = true,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+    };
+
     public static async Task<SchemaFileInfo> Export(
         string schemaFileName,
         IRequestExecutor executor,
@@ -84,7 +91,7 @@ internal static class SchemaFileExporter
                 obj["name"] = schemaName;
 
                 await using var writeStream = File.Create(fileName);
-                await using var writer = new Utf8JsonWriter(writeStream, new JsonWriterOptions { Indented = true });
+                await using var writer = new Utf8JsonWriter(writeStream, s_writerOptions);
                 root.WriteTo(writer);
                 await writer.FlushAsync(cancellationToken);
                 await writeStream.WriteAsync(Encoding.UTF8.GetBytes(Environment.NewLine), cancellationToken);
@@ -105,7 +112,7 @@ internal static class SchemaFileExporter
         CancellationToken cancellationToken)
     {
         await using var settingsFileStream = File.Create(fileName);
-        await using var jsonWriter = new Utf8JsonWriter(settingsFileStream, new JsonWriterOptions { Indented = true });
+        await using var jsonWriter = new Utf8JsonWriter(settingsFileStream, s_writerOptions);
 
         jsonWriter.WriteStartObject();
 

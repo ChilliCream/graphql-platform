@@ -1,11 +1,13 @@
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Adapters.Mcp;
 using HotChocolate.Adapters.Mcp.Configuration;
+using HotChocolate.Adapters.Mcp.Extensions;
 using HotChocolate.Adapters.Mcp.Storage;
 using HotChocolate.Fusion.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using ModelContextProtocol.Server;
 
-namespace HotChocolate.Adapters.Mcp.Extensions;
+// ReSharper disable once CheckNamespace
+namespace Microsoft.Extensions.DependencyInjection;
 
 #if !NET9_0_OR_GREATER
 [RequiresDynamicCode(

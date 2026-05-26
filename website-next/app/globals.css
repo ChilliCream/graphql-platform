@@ -1,0 +1,163 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans:
+    var(--font-inter), ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    "Noto Sans", sans-serif;
+
+  /* Brand colors. Re-point the right-hand side of each line to swap the
+     whole site's accent (e.g. `var(--color-sky-700)`). Mermaid diagrams
+     bake their palette at build time from hardcoded hex values, so update
+     `src/mdx-plugins.ts` to match when switching the primary color:
+     ../src/mdx-plugins.ts */
+  --color-primary-50: var(--color-purple-50);
+  --color-primary-100: var(--color-purple-100);
+  --color-primary-200: var(--color-purple-200);
+  --color-primary-300: var(--color-purple-300);
+  --color-primary-400: var(--color-purple-400);
+  --color-primary-500: var(--color-purple-500);
+  --color-primary-600: var(--color-purple-600);
+  --color-primary-700: var(--color-purple-700);
+  --color-primary-800: var(--color-purple-800);
+  --color-primary-900: var(--color-purple-900);
+
+  --color-secondary-50: var(--color-fuchsia-50);
+  --color-secondary-100: var(--color-fuchsia-100);
+  --color-secondary-200: var(--color-fuchsia-200);
+  --color-secondary-300: var(--color-fuchsia-300);
+  --color-secondary-400: var(--color-fuchsia-400);
+  --color-secondary-500: var(--color-fuchsia-500);
+  --color-secondary-600: var(--color-fuchsia-600);
+  --color-secondary-700: var(--color-fuchsia-700);
+  --color-secondary-800: var(--color-fuchsia-800);
+  --color-secondary-900: var(--color-fuchsia-900);
+}
+
+html:has(:target) {
+  scroll-behavior: smooth;
+}
+
+/* Algolia DocSearch — re-skin the modal to match the site palette. The
+   variables are declared by DocSearch on `:root` (its stylesheet loads
+   after this one, so a `:root` override here loses the cascade). Scoping
+   to `.DocSearch-Container` beats that with higher specificity and lets
+   descendants inherit via `var()`. Full token list:
+   https://docsearch.algolia.com/docs/styling */
+.DocSearch-Container {
+  --docsearch-primary-color: var(--color-primary-700);
+  --docsearch-highlight-color: var(--color-primary-700);
+  --docsearch-text-color: var(--color-slate-900);
+  --docsearch-muted-color: var(--color-slate-500);
+  --docsearch-container-background: rgb(15 23 42 / 0.6); /* slate-900 / 60% */
+  --docsearch-modal-background: white;
+  --docsearch-modal-shadow:
+    inset 1px 1px 0 0 rgb(255 255 255 / 0.5),
+    0 3px 8px 0 rgb(15 23 42 / 0.15);
+  --docsearch-searchbox-background: var(--color-slate-100);
+  --docsearch-searchbox-focus-background: white;
+  --docsearch-searchbox-shadow:
+    inset 0 0 0 2px var(--color-primary-700);
+  --docsearch-hit-color: var(--color-slate-700);
+  --docsearch-hit-active-color: white;
+  --docsearch-hit-background: white;
+  --docsearch-hit-shadow: 0 1px 3px 0 rgb(15 23 42 / 0.08);
+  --docsearch-key-gradient: linear-gradient(
+    -225deg,
+    var(--color-slate-200),
+    var(--color-slate-100)
+  );
+  --docsearch-key-shadow:
+    inset 0 -2px 0 0 var(--color-slate-300),
+    inset 0 0 1px 1px white,
+    0 1px 2px 1px rgb(15 23 42 / 0.08);
+  --docsearch-footer-background: white;
+  --docsearch-footer-shadow:
+    0 -1px 0 0 var(--color-slate-200),
+    0 -3px 6px 0 rgb(15 23 42 / 0.04);
+  --docsearch-logo-color: var(--color-slate-400);
+}
+
+:where(h1, h2, h3, h4, h5, h6)[id] {
+  scroll-margin-top: 7.5rem;
+}
+
+@media (min-width: 96rem) {
+  :where(h1, h2, h3, h4, h5, h6)[id] {
+    scroll-margin-top: 6.5rem;
+  }
+}
+
+.heading-anchor {
+  margin-left: 0.4rem;
+  color: rgb(100 116 139);
+  opacity: 0;
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+}
+
+:where(h1, h2, h3, h4, h5, h6):hover .heading-anchor,
+.heading-anchor:focus {
+  opacity: 1;
+}
+
+[data-toc-link][data-active="true"] {
+  color: var(--color-primary-700);
+  font-weight: 600;
+  border-left-color: var(--color-primary-700);
+}
+
+/* Shiki output styling — neutralize default <pre> background so the figure
+   chrome owns the visuals; wrap each line so highlights span full width. */
+.shiki-wrapper pre {
+  margin: 0;
+  padding: 1rem 0;
+  background: transparent !important;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+}
+
+.shiki-wrapper code {
+  display: block;
+  width: max-content;
+  min-width: 100%;
+}
+
+.shiki-wrapper .line {
+  display: inline-block;
+  width: 100%;
+  padding: 0 1rem;
+}
+
+.shiki-wrapper .line.line-highlighted {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 3px 0 0 var(--color-primary-500);
+}
+
+/* Hovering a CodeStep in prose dims only the code block that contains
+   a matching step, keeping the matching highlighted token fully visible.
+   Activation is driven by JS (CodeStep) which toggles these classes. */
+.shiki-wrapper .line > span {
+  transition: opacity 0.15s ease;
+}
+
+figure.code-step-dim .shiki-wrapper .line > span {
+  opacity: 0.5;
+}
+
+figure.code-step-dim .shiki-wrapper .line > span:has(.code-step-active) {
+  opacity: 1;
+}
+
+/* Mermaid charts: inline SVGs are huge (each runs to ~30 KB of nodes).
+   `content-visibility: auto` lets the browser skip layout/paint while a
+   chart is off-screen and only render it as it scrolls into view, which
+   dramatically shortens initial render on docs pages with several diagrams.
+   `contain-intrinsic-size` reserves a placeholder height so nothing jumps
+   when the real chart paints. rehype-mermaid emits the SVGs as bare
+   `<svg id="mermaid-N" role="graphics-document">`, hence the selector. */
+svg[role="graphics-document"][id^="mermaid-"] {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 32rem;
+}

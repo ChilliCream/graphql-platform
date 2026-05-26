@@ -58,104 +58,106 @@ internal sealed class McpStorageObserver : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        if (_promptsSubscription is not null || _toolsSubscription is not null)
-        {
-            return;
-        }
-
         await _semaphore.WaitAsync(cancellationToken);
-
-        _promptsSubscription = _storage
-            .Buffer<PromptStorageEventArgs>(TimeSpan.FromMilliseconds(500), 10)
-            .Where(batch => batch.Count > 0)
-            .Subscribe(onNext: ProcessBatch);
-
-        _toolsSubscription = _storage
-            .Buffer<OperationToolStorageEventArgs>(TimeSpan.FromMilliseconds(500), 10)
-            .Where(batch => batch.Count > 0)
-            .Subscribe(onNext: ProcessBatch);
 
         try
         {
+            // Re-check inside the lock so a concurrent StartAsync call can't pass the
+            // outside check and then overwrite this caller's subscriptions.
+            if (_promptsSubscription is not null || _toolsSubscription is not null)
+            {
+                return;
+            }
+
+            _promptsSubscription = _storage
+                .Buffer<PromptStorageEventArgs>(TimeSpan.FromMilliseconds(500), 10)
+                .Where(batch => batch.Count > 0)
+                .Subscribe(_ => HandlePromptsChangedAsync().FireAndForget());
+
+            _toolsSubscription = _storage
+                .Buffer<OperationToolStorageEventArgs>(TimeSpan.FromMilliseconds(500), 10)
+                .Where(batch => batch.Count > 0)
+                .Subscribe(_ => HandleToolsChangedAsync().FireAndForget());
+
             await Task.WhenAll(
                 InitializePromptsAsync(cancellationToken),
                 InitializeToolsAsync(cancellationToken));
         }
         finally
         {
-            _semaphore.Release();
+            try
+            {
+                _semaphore.Release();
+            }
+            catch (ObjectDisposedException)
+            {
+                // Dispose() may have raced ahead and disposed the semaphore.
+            }
         }
     }
 
     private async Task InitializePromptsAsync(CancellationToken cancellationToken)
     {
-        var prompts = ImmutableDictionary.CreateBuilder<string, (Prompt, ImmutableArray<PromptMessage>)>();
         using var scope = _diagnosticEvents.InitializePrompts();
-
-        foreach (var promptDefinition in await _storage.GetPromptDefinitionsAsync(cancellationToken))
-        {
-            var prompt = PromptFactory.CreatePrompt(promptDefinition);
-            prompts.Add(promptDefinition.Name, prompt);
-        }
-
-        _prompts = prompts.ToImmutable();
-        _registry.UpdatePrompts(_prompts);
+        await RebuildPromptsAsync(cancellationToken);
     }
 
     private async Task InitializeToolsAsync(CancellationToken cancellationToken)
     {
-        var tools = ImmutableDictionary.CreateBuilder<string, OperationTool>();
         using var scope = _diagnosticEvents.InitializeTools();
-
-        foreach (var toolDefinition in await _storage.GetOperationToolDefinitionsAsync(cancellationToken))
-        {
-            var validationResult = s_documentValidator.Validate(_schema, toolDefinition.Document);
-
-            if (validationResult.HasErrors)
-            {
-                _diagnosticEvents.ValidationErrors(validationResult.Errors);
-                continue;
-            }
-
-            tools.Add(toolDefinition.Name, _toolFactory.CreateTool(toolDefinition));
-        }
-
-        _tools = tools.ToImmutable();
-        _registry.UpdateTools(_tools);
+        await RebuildToolsAsync(cancellationToken);
     }
 
-    private void ProcessBatch(IList<PromptStorageEventArgs> eventArgs)
+    private async Task HandlePromptsChangedAsync()
     {
-        _semaphore.Wait(_ct);
+        if (_disposed)
+        {
+            return;
+        }
 
         try
         {
-            foreach (var eventArg in eventArgs)
+            await _semaphore.WaitAsync(_ct);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+        catch (ObjectDisposedException)
+        {
+            return;
+        }
+
+        var rebuildSucceeded = false;
+        try
+        {
+            if (_disposed)
             {
-                switch (eventArg.Type)
-                {
-                    case PromptStorageEventType.Updated:
-                        using (_diagnosticEvents.UpdatePrompts())
-                        {
-                            var prompt = PromptFactory.CreatePrompt(eventArg.PromptDefinition!);
-                            _prompts = _prompts.SetItem(eventArg.Name, prompt);
-                            break;
-                        }
-
-                    case PromptStorageEventType.Removed:
-                        _prompts = _prompts.Remove(eventArg.Name);
-                        break;
-
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
+                return;
             }
 
-            _registry.UpdatePrompts(_prompts);
+            using var scope = _diagnosticEvents.UpdatePrompts();
+            await RebuildPromptsAsync(_ct);
+            rebuildSucceeded = true;
+        }
+        catch
+        {
+            // Ignore unexpected exceptions while processing updates.
         }
         finally
         {
-            _semaphore.Release();
+            try
+            {
+                _semaphore.Release();
+            }
+            catch (ObjectDisposedException)
+            {
+            }
+        }
+
+        if (!rebuildSucceeded)
+        {
+            return;
         }
 
         foreach (var mcpServer in _mcpServers.Values)
@@ -164,53 +166,126 @@ internal sealed class McpStorageObserver : IDisposable
         }
     }
 
-    private void ProcessBatch(IList<OperationToolStorageEventArgs> eventArgs)
+    private async Task HandleToolsChangedAsync()
     {
-        _semaphore.Wait(_ct);
+        if (_disposed)
+        {
+            return;
+        }
 
         try
         {
-            foreach (var eventArg in eventArgs)
+            await _semaphore.WaitAsync(_ct);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+        catch (ObjectDisposedException)
+        {
+            return;
+        }
+
+        var rebuildSucceeded = false;
+        try
+        {
+            if (_disposed)
             {
-                switch (eventArg.Type)
-                {
-                    case OperationToolStorageEventType.Updated:
-                        using (_diagnosticEvents.UpdateTools())
-                        {
-                            var validationResult =
-                                s_documentValidator.Validate(_schema, eventArg.ToolDefinition!.Document);
-
-                            if (validationResult.HasErrors)
-                            {
-                                _diagnosticEvents.ValidationErrors(validationResult.Errors);
-                                continue;
-                            }
-
-                            var tool = _toolFactory.CreateTool(eventArg.ToolDefinition!);
-                            _tools = _tools.SetItem(eventArg.Name, tool);
-                            break;
-                        }
-
-                    case OperationToolStorageEventType.Removed:
-                        _tools = _tools.Remove(eventArg.Name);
-                        break;
-
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
+                return;
             }
 
-            _registry.UpdateTools(_tools);
+            using var scope = _diagnosticEvents.UpdateTools();
+            await RebuildToolsAsync(_ct);
+            rebuildSucceeded = true;
+        }
+        catch
+        {
+            // Ignore unexpected exceptions while processing updates.
         }
         finally
         {
-            _semaphore.Release();
+            try
+            {
+                _semaphore.Release();
+            }
+            catch (ObjectDisposedException)
+            {
+            }
+        }
+
+        if (!rebuildSucceeded)
+        {
+            return;
         }
 
         foreach (var mcpServer in _mcpServers.Values)
         {
             mcpServer.SendNotificationAsync(ToolListChangedNotification, cancellationToken: _ct).FireAndForget();
         }
+    }
+
+    private async Task RebuildPromptsAsync(CancellationToken cancellationToken)
+    {
+        var prompts = ImmutableDictionary.CreateBuilder<string, (Prompt, ImmutableArray<PromptMessage>)>();
+
+        foreach (var promptDefinition in await _storage.GetPromptDefinitionsAsync(cancellationToken))
+        {
+            // When multiple definitions share a name (e.g. across collections published to the
+            // same stage), the first one wins in storage iteration order.
+            if (prompts.ContainsKey(promptDefinition.Name))
+            {
+                continue;
+            }
+
+            var prompt = PromptFactory.CreatePrompt(promptDefinition);
+            prompts.Add(promptDefinition.Name, prompt);
+        }
+
+        _prompts = prompts.ToImmutable();
+        _registry.UpdatePrompts(_prompts);
+    }
+
+    private async Task RebuildToolsAsync(CancellationToken cancellationToken)
+    {
+        var tools = ImmutableDictionary.CreateBuilder<string, OperationTool>();
+        var invalidFallbacks = new Dictionary<string, OperationToolDefinition>(StringComparer.Ordinal);
+
+        foreach (var toolDefinition in await _storage.GetOperationToolDefinitionsAsync(cancellationToken))
+        {
+            // When multiple definitions share a name (e.g. across collections published to
+            // the same stage), the first valid one wins. A later valid duplicate is skipped
+            // here; an earlier invalid duplicate is overridden once the valid one arrives.
+            if (tools.ContainsKey(toolDefinition.Name))
+            {
+                continue;
+            }
+
+            var validationResult = s_documentValidator.Validate(_schema, toolDefinition.Document);
+
+            if (validationResult.HasErrors)
+            {
+                _diagnosticEvents.ValidationErrors(validationResult.Errors);
+                // Remember the first invalid definition per name as a fallback. It is only
+                // surfaced if no valid duplicate exists.
+                invalidFallbacks.TryAdd(toolDefinition.Name, toolDefinition);
+                continue;
+            }
+
+            tools.Add(toolDefinition.Name, _toolFactory.CreateTool(toolDefinition));
+        }
+
+        // For names with no valid definition at all, surface the first invalid one so calls
+        // to it return the "unavailable" error rather than tool-not-found.
+        foreach (var (name, definition) in invalidFallbacks)
+        {
+            if (!tools.ContainsKey(name))
+            {
+                tools.Add(name, OperationToolFactory.CreateInvalidTool(definition));
+            }
+        }
+
+        _tools = tools.ToImmutable();
+        _registry.UpdateTools(_tools);
     }
 
     public void Dispose()

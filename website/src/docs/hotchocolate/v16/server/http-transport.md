@@ -226,7 +226,7 @@ If no streaming `Accept` header is provided, the default is `multipart/mixed`.
 
 There are two wire formats for how incremental results are represented in the response payload.
 
-**v0.2 (default in v16)** uses `pending`, `incremental` with `id`, and `completed` to track deferred fragments:
+**v0.2 (default)** uses `pending`, `incremental` with `id`, and `completed` to track deferred fragments:
 
 ```json
 {"data":{"product":{"name":"Abc"}},"pending":[{"id":"2","path":["product"]}],"hasNext":true}
@@ -240,7 +240,7 @@ There are two wire formats for how incremental results are represented in the re
 {"incremental":[{"data":{"description":"Abc desc"},"path":["product"]}],"hasNext":false}
 ```
 
-In v16, the default changed from v0.1 to v0.2. If your clients depend on the legacy format, you have two options: client-driven format selection or changing the server default.
+The default format is v0.2. If your clients depend on the legacy format, you have two options: client-driven format selection or changing the server default.
 
 ### Client-Driven Format Selection
 
@@ -359,7 +359,6 @@ The client selects its preferred sub-protocol via the standard WebSocket `Sec-We
 You must register the ASP.NET Core WebSocket middleware before calling `MapGraphQL()`. Without this, WebSocket upgrade requests are not handled.
 
 ```csharp
-// Program.cs
 var builder = WebApplication.CreateBuilder(args);
 
 builder
@@ -489,7 +488,7 @@ If a request is rejected because it lacks the required preflight header, the ser
 
 - [Endpoints](/docs/hotchocolate/v16/server/endpoints) for configuring the GraphQL middleware and per-endpoint options.
 - [Batching](/docs/hotchocolate/v16/server/batching) for details on variable batching and request batching.
-- [Subscriptions](/docs/hotchocolate/v16/building-a-schema/subscriptions) for defining subscription types and event publishing.
+- [Subscriptions](/docs/hotchocolate/v16/defining-a-schema/subscriptions) for defining subscription types and event publishing.
 - [Interceptors](/docs/hotchocolate/v16/server/interceptors) for hooking into WebSocket and HTTP request processing.
 - [Migrate from v15 to v16](/docs/hotchocolate/v16/migrating/migrate-from-15-to-16#new-default-incremental-delivery-format-for-defer-and-stream) for the incremental delivery migration details.
 

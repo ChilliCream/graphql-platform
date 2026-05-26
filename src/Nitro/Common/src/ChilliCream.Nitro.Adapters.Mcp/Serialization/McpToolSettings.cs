@@ -47,7 +47,7 @@ public sealed record McpToolSettingsMcpAppView
     public bool? PrefersBorder { get; init; }
 }
 
-public class McpToolSettingsPermissions
+public sealed record McpToolSettingsPermissions
 {
     public bool? Camera { get; init; }
 

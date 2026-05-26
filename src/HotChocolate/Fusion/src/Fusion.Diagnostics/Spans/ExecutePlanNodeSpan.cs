@@ -31,7 +31,12 @@ internal sealed class ExecutePlanNodeSpan(
         string? schemaName,
         FusionActivityEnricher enricher)
     {
-        var activity = source.StartActivity("GraphQL Step Execution");
+        var activity = context.RequestContext.Features.TryGet<ExecuteOperationSpan>(out var executeOperationSpan)
+            ? source.StartActivity(
+                "GraphQL Step Execution",
+                ActivityKind.Internal,
+                executeOperationSpan.Activity.Context)
+            : source.StartActivity("GraphQL Step Execution");
 
         if (activity is null)
         {

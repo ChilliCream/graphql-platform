@@ -275,7 +275,7 @@ public sealed class MessageBusChangeTokenSourceTests
         topology.Dispose();
 
         // act & assert
-        Assert.Throws<ObjectDisposedException>(() => topology.GetChangeToken());
+        Assert.Throws<ObjectDisposedException>(topology.GetChangeToken);
     }
 
     [Fact]
@@ -304,7 +304,7 @@ public sealed class MessageBusChangeTokenSourceTests
 
         // act
         topology.Dispose();
-        var exception = Record.Exception(() => topology.Dispose());
+        var exception = Record.Exception(topology.Dispose);
 
         // assert
         Assert.Null(exception);

@@ -150,8 +150,9 @@ function getTocItemsFromHeadings(
 
   const slugger = new GithubSlugger();
 
-  // this represents a path to the current item
-  const parents: TableOfContentItem[] = [];
+  // this represents a path to the current item, alongside each ancestor's
+  // heading depth, so siblings are detected by depth rather than by stack size
+  const parents: Array<{ item: TableOfContentItem; depth: number }> = [];
 
   for (const heading of headings) {
     if (!heading?.value) {
@@ -170,15 +171,18 @@ function getTocItemsFromHeadings(
       continue;
     }
 
-    // we went up in depth, so lets remove parents until we find the parent
-    // directly above us
-    while (parents.length >= headingDepth) {
+    // pop ancestors that are at the same or deeper level than the current
+    // heading, so the new item becomes a sibling rather than a child
+    while (
+      parents.length > 0 &&
+      parents[parents.length - 1].depth >= headingDepth
+    ) {
       parents.pop();
     }
 
-    const parent = parents[parents.length - 1];
+    const parent = parents[parents.length - 1]?.item;
 
-    parents.push(item);
+    parents.push({ item, depth: headingDepth });
 
     if (parent?.items) {
       parent.items.push(item);

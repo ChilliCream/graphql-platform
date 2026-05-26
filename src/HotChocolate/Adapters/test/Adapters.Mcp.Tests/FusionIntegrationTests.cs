@@ -1,7 +1,6 @@
 using System.Buffers;
 using System.Text.Json;
 using HotChocolate.Adapters.Mcp.Diagnostics;
-using HotChocolate.Adapters.Mcp.Extensions;
 using HotChocolate.Adapters.Mcp.Storage;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;

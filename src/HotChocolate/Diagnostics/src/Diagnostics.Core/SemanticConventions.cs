@@ -7,6 +7,12 @@ internal static class SemanticConventions
 {
     public const string ErrorType = "error.type";
 
+    public static class Server
+    {
+        public const string Address = "server.address";
+        public const string Port = "server.port";
+    }
+
     public static class GraphQL
     {
         public static class Document
@@ -81,6 +87,7 @@ internal static class SemanticConventions
                 public const string Resolve = "resolve";
                 public const string DataLoaderDispatch = "dataloader_dispatch";
                 public const string DataLoaderBatch = "dataloader_batch";
+                public const string SubscriptionEvent = "subscription_event";
             }
         }
 
@@ -90,7 +97,6 @@ internal static class SemanticConventions
             public const string Path = "graphql.field.path";
             public const string Name = "graphql.field.name";
             public const string ParentType = "graphql.field.parent_type";
-            public const string Coordinate = "graphql.field.coordinate";
             public const string SchemaCoordinate = "graphql.field.schema_coordinate";
         }
 
