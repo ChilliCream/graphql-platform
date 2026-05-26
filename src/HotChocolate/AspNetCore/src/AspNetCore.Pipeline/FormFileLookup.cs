@@ -9,7 +9,7 @@ internal sealed class FormFileLookup : IFileLookup
 {
     private readonly Dictionary<string, IFile> _fileMap;
 
-    public FormFileLookup(Dictionary<string, IFile> fileMap)
+    private FormFileLookup(Dictionary<string, IFile> fileMap)
     {
         _fileMap = fileMap;
     }

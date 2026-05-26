@@ -333,10 +333,6 @@
     <Project Path="HotChocolate/Spatial/test/Data.Tests/HotChocolate.Data.Spatial.Tests.csproj" />
     <Project Path="HotChocolate/Spatial/test/Types.Tests/HotChocolate.Types.Spatial.Tests.csproj" />
   </Folder>
-  <Folder Name="/HotChocolate/Testing/" />
-  <Folder Name="/HotChocolate/Testing/src/">
-    <Project Path="HotChocolate/Testing/src/Testing/HotChocolate.Testing.csproj" />
-  </Folder>
   <Folder Name="/HotChocolate/Utilities/" />
   <Folder Name="/HotChocolate/Utilities/src/">
     <Project Path="HotChocolate/Utilities/src/Utilities.Base36/HotChocolate.Utilities.Base36.csproj" />
