@@ -166,8 +166,7 @@ public sealed class LoginCommandTests(NitroCommandFixture fixture) : SessionComm
         var result = await ExecuteCommandAsync("login", "https://custom.server.com");
 
         // assert
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccess();
     }
 
     [Fact]
@@ -175,18 +174,22 @@ public sealed class LoginCommandTests(NitroCommandFixture fixture) : SessionComm
     {
         // arrange
         SetupInteractionMode(InteractionMode.Interactive);
-        SetupLogin("https://custom.server.com");
+        SetupLogin("http://custom.server.com");
         SetupSelectWorkspaces(CreateWorkspaceNode("ws-1", "my-workspace"));
         SetupSelectWorkspaceAny();
 
         // act
         var result = await ExecuteCommandAsync(
             "login",
-            "https://user:pw@custom.server.com/graphql?foo=bar#frag");
+            "http://user:pw@custom.server.com/graphql?foo=bar#frag");
 
         // assert
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccess(
+            """
+            ✓ Logging in via browser
+            ├── Browser opened at http://custom.server.com. Continue login there.
+            └── ✓ Logged in as user@test.com (Workspace: my-workspace)
+            """);
     }
 
     [Fact]
@@ -204,5 +207,29 @@ public sealed class LoginCommandTests(NitroCommandFixture fixture) : SessionComm
         // assert
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task UrlOption_StripsPathAndQuery_ReturnsSuccess()
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupLogin("http://custom.server.com");
+        SetupSelectWorkspaces(CreateWorkspaceNode("ws-1", "my-workspace"));
+        SetupSelectWorkspaceAny();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "login",
+            "--cloud-url",
+            "http://user:pw@custom.server.com/graphql?foo=bar#frag");
+
+        // assert
+        result.AssertSuccess(
+            """
+            ✓ Logging in via browser
+            ├── Browser opened at http://custom.server.com. Continue login there.
+            └── ✓ Logged in as user@test.com (Workspace: my-workspace)
+            """);
     }
 }

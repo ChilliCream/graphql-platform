@@ -42,7 +42,7 @@ internal sealed class LoginCommand : Command
         var url = parseResult.GetValue(Opt<IdentityCloudUrlArgument>.Instance);
 
         url ??= cloudUrl;
-        url = NormalizeAuthorityUrl(url);
+        url = NormalizeIdentityUrl(url);
 
         await using (var activity = console.StartActivity("Logging in via browser", "Failed to log in."))
         {
@@ -105,7 +105,7 @@ internal sealed class LoginCommand : Command
         return ExitCodes.Success;
     }
 
-    private static string? NormalizeAuthorityUrl(string? url)
+    private static string? NormalizeIdentityUrl(string? url)
     {
         if (string.IsNullOrWhiteSpace(url))
         {
