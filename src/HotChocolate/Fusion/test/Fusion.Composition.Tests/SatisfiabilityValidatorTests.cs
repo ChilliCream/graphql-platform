@@ -1794,7 +1794,7 @@ public sealed class SatisfiabilityValidatorTests
         Assert.True(result.IsSuccess);
     }
 
-    [Fact(Skip = "Circular @requires whose intermediate field is owned by the "
+    [Fact(Skip = "Circular @require whose intermediate field is owned by the "
         + "requiring schema is not yet satisfiable. The validator evaluates the "
         + "requirement from the entity's origin path and does not hop into the "
         + "requiring schema to gather its locally-owned field first. Enable once "
