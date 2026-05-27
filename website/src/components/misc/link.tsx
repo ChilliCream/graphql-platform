@@ -27,7 +27,7 @@ export const Link: FC<{
       </NextLink>
     )
   ) : (
-    <a href={to} target="_blank" rel="noopener noreferrer nofollow" {...rest}>
+    <a href={to} target="_blank" rel="noopener noreferrer" {...rest}>
       {children}
     </a>
   );

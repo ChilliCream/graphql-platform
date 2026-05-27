@@ -12,7 +12,6 @@ import "prismjs/components/prism-json";
 import "prismjs/components/prism-bash";
 import "prismjs/components/prism-sql";
 import "prismjs/components/prism-diff";
-import "prismjs/components/prism-yaml";
 
 // Import Prism syntax highlighting theme
 import "@/style/prism-theme.css";
@@ -145,10 +144,6 @@ const codeLanguages: Record<
     content: "XML",
     color: "#ffffff",
   },
-  yaml: {
-    content: "YAML",
-    color: "#cb7676",
-  },
 };
 
 const IndicatorContent = styled.div`
@@ -202,6 +197,7 @@ const Pre = styled.pre`
   }
 
   @media only screen and (min-width: 700px) {
+    max-width: 660px;
     border-radius: var(--box-border-radius) !important;
   }
 `;

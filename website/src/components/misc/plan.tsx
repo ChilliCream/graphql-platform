@@ -32,7 +32,6 @@ export interface PlanProps {
   readonly features: readonly string[];
   readonly ctaText: string;
   readonly ctaLink: string;
-  readonly ctaTrack?: string;
 }
 
 function Plan({
@@ -44,7 +43,6 @@ function Plan({
   features,
   ctaText,
   ctaLink,
-  ctaTrack,
 }: PlanProps): ReactElement {
   return (
     <>
@@ -78,9 +76,7 @@ function Plan({
         ))}
       </PlanFeatures>
       <PlanFooter>
-        <LinkButton to={ctaLink} data-track={ctaTrack}>
-          {ctaText}
-        </LinkButton>
+        <LinkButton to={ctaLink}>{ctaText}</LinkButton>
       </PlanFooter>
     </>
   );
