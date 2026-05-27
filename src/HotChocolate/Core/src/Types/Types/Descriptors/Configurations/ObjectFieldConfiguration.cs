@@ -209,6 +209,26 @@ public class ObjectFieldConfiguration : OutputFieldConfiguration
     }
 
     /// <summary>
+    /// If this field is a mutation to which mutation conventions are applied,
+    /// this flag indicates that the field name should not be reformatted.
+    /// </summary>
+    public bool DisableMutationReformatting
+    {
+        get => (Flags & CoreFieldFlags.DisableMutationReformatting) == CoreFieldFlags.DisableMutationReformatting;
+        set
+        {
+            if (value)
+            {
+                Flags |= CoreFieldFlags.DisableMutationReformatting;
+            }
+            else
+            {
+                Flags &= ~CoreFieldFlags.DisableMutationReformatting;
+            }
+        }
+    }
+
+    /// <summary>
     /// Defines in which DI scope this field is executed.
     /// </summary>
     public DependencyInjectionScope? DependencyInjectionScope { get; set; }
