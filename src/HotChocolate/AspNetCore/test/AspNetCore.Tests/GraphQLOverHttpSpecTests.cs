@@ -121,7 +121,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [InlineData("*/*", Legacy, OK, ContentType.Json)]
     [InlineData("application/*", Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData("application/*", Legacy, OK, ContentType.Json)]
-    [InlineData(ContentType.Json, Latest, OK, ContentType.Json)]
+    [InlineData(ContentType.Json, Latest, BadRequest, ContentType.Json)]
     [InlineData(ContentType.Json, Legacy, OK, ContentType.Json)]
     [InlineData(ContentType.GraphQLResponse, Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData(ContentType.GraphQLResponse, Legacy, BadRequest, ContentType.GraphQLResponse)]

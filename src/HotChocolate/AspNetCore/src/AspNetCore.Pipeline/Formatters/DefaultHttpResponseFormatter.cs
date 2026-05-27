@@ -34,6 +34,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     private readonly FormatInfo _eventStreamFormat;
     private readonly FormatInfo _jsonLinesFormat;
     private readonly FormatInfo _legacyFormat;
+    private readonly bool _isLegacyTransport;
     private readonly IncrementalDeliveryFormat _incrementalDeliveryDefaultFormat;
 
     /// <summary>
@@ -122,7 +123,8 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             ContentType.JsonLines,
             ResponseContentType.JsonLines,
             jsonLinesResultFormatter);
-        _defaultFormat = options.HttpTransportVersion is HttpTransportVersion.Legacy
+        _isLegacyTransport = options.HttpTransportVersion is HttpTransportVersion.Legacy;
+        _defaultFormat = _isLegacyTransport
             ? _legacyFormat
             : _graphqlResponseFormat;
 
@@ -400,11 +402,22 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         FormatInfo format,
         HttpStatusCode? proposedStatusCode)
     {
-        // the current spec proposal strongly recommends to always return OK
-        // when using the legacy application/json response content-type.
         if (format.Kind is ResponseContentType.Json)
         {
-            return HttpStatusCode.OK;
+            // the legacy transport preserves the pre-spec behavior of always returning
+            // 200 for the application/json response content-type.
+            if (_isLegacyTransport)
+            {
+                return HttpStatusCode.OK;
+            }
+
+            // for the application/json response content-type the GraphQL-over-HTTP spec
+            // recommends 200 for document parsing, validation, and variable coercion
+            // failures, but a 4xx for requests the server cannot interpret (e.g. JSON
+            // parsing failures). the middleware only proposes a status code for
+            // pre-execution failures, so honoring it here applies the 4xx exclusively to
+            // those cases.
+            return proposedStatusCode ?? HttpStatusCode.OK;
         }
 
         // if we are sending a single result with the multipart/mixed header or

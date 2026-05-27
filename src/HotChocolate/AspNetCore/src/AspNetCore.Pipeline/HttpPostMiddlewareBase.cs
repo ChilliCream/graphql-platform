@@ -97,11 +97,13 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
             }
             catch (GraphQLRequestException ex)
             {
-                // A GraphQL request exception is thrown if the HTTP request body couldn't be
-                // parsed. In this case we will return HTTP status code 400 and return a
-                // GraphQL error result.
-                statusCode = HttpStatusCode.BadRequest;
+                // request-interpretation failures (invalid JSON, missing query, etc.) propose
+                // 400 per graphql-over-http §6.4.1.1.1. GraphQL document syntax errors
+                // are document-parsing failures and leave the proposed status unset so the
+                // formatter applies the per-content-type rule (200 for application/json
+                // per §6.4.1.1.3, 400 for application/graphql-response+json).
                 var errors = session.Handle(ex.Errors);
+                statusCode = IsDocumentSyntaxError(errors) ? null : HttpStatusCode.BadRequest;
                 result = OperationResult.FromError([.. errors]);
                 session.DiagnosticEvents.ParserErrors(context, errors);
                 goto HANDLE_RESULT;
@@ -259,6 +261,24 @@ HANDLE_RESULT:
         }
 
         return requests;
+    }
+
+    private static bool IsDocumentSyntaxError(IReadOnlyList<IError> errors)
+    {
+        if (errors.Count == 0)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < errors.Count; i++)
+        {
+            if (!string.Equals(errors[i].Code, ErrorCodes.Server.SyntaxError, StringComparison.Ordinal))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private static bool TryParseOperations(
