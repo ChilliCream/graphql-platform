@@ -62,6 +62,7 @@ public sealed class SatisfiabilityValidatorTests
 
         // assert
         Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
         string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
             """
             Unable to access the field 'User.membershipStatus' on path 'A:Query.profileById<Profile> -> A:Profile.user<User>'.
@@ -119,6 +120,7 @@ public sealed class SatisfiabilityValidatorTests
 
         // assert
         Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
         string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
             """
             Unable to access the field 'Product.sku' on path 'B:Query.productById<Product>'.
@@ -179,6 +181,7 @@ public sealed class SatisfiabilityValidatorTests
 
         // assert
         Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
         string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
             """
             Unable to access the field 'Product.sku' on path 'A:Query.productById<Product>'.
@@ -319,6 +322,7 @@ public sealed class SatisfiabilityValidatorTests
 
         // assert
         Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
         string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
             """
             Unable to access the field 'Address.country' on path 'A:Query.userById<User> -> A:User.address<Address>'.
@@ -375,6 +379,7 @@ public sealed class SatisfiabilityValidatorTests
 
         // assert
         Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
         string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
             """
             Unable to access the field 'Category.name' on path 'B:Query.categoryById<Category>'.
@@ -1470,6 +1475,7 @@ public sealed class SatisfiabilityValidatorTests
 
         // assert
         Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
         string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
             """
             Unable to access the field 'Product.sku' on path 'A:Query.productById<Product>'.
@@ -1632,6 +1638,7 @@ public sealed class SatisfiabilityValidatorTests
 
         // assert
         Assert.False(result.IsSuccess);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
         string.Join("\n\n", log.Select(e => e.Message))
             .MatchInlineSnapshot(
                 """
@@ -1980,6 +1987,7 @@ public sealed class SatisfiabilityValidatorTests
 
         // assert
         Assert.False(result.IsSuccess);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
         string.Join("\n\n", log.Select(e => e.Message))
             .MatchInlineSnapshot(
                 """
@@ -2032,6 +2040,7 @@ public sealed class SatisfiabilityValidatorTests
 
         // assert
         Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
         string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
             """
             Unable to access the field 'Product.title' on path 'A:Query.productById<Product>'.
@@ -2120,6 +2129,7 @@ public sealed class SatisfiabilityValidatorTests
 
         // assert
         Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
         string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
             """
             Unable to access the field 'Product.title' on path 'A:Query.productById<Product>'.
@@ -2300,6 +2310,7 @@ public sealed class SatisfiabilityValidatorTests
 
         // assert
         Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
         string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
             """
             Unable to access the field 'Viewer.lastName' on path 'A:Query.viewer<Viewer>'.
@@ -2360,6 +2371,7 @@ public sealed class SatisfiabilityValidatorTests
 
         // assert
         Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
         string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
             """
             Unable to access the field 'Viewer.fullName' on path 'A:Query.viewer<Viewer>'.
@@ -2529,6 +2541,7 @@ public sealed class SatisfiabilityValidatorTests
 
         // assert
         Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
         string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
             """
             Unable to access the field 'Category.name' on path 'A:Query.productById<Product> -> B:Product.category<Category>'.

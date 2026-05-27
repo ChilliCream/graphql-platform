@@ -238,7 +238,7 @@ internal sealed class SatisfiabilityValidator
             _log.Write(
                 LogEntryBuilder.New()
                     .SetMessage(error.ToString())
-                    .SetCode(LogEntryCodes.Unsatisfiable)
+                    .SetCode(LogEntryCodes.UnsatisfiableQueryPath)
                     .SetSeverity(LogSeverity.Error)
                     .SetExtension("error", error)
                     .Build());
@@ -297,7 +297,7 @@ internal sealed class SatisfiabilityValidator
                 _log.Write(
                     LogEntryBuilder.New()
                         .SetMessage(error.ToString())
-                        .SetCode(LogEntryCodes.Unsatisfiable)
+                        .SetCode(LogEntryCodes.UnsatisfiableQueryPath)
                         .SetSeverity(LogSeverity.Error)
                         .SetExtension("error", error)
                         .Build());
