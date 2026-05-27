@@ -102,8 +102,12 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
                 // are document-parsing failures and leave the proposed status unset so the
                 // formatter applies the per-content-type rule (200 for application/json
                 // per §6.4.1.1.3, 400 for application/graphql-response+json).
+                //
+                // classification uses the original parser errors: error filters run by
+                // session.Handle can rewrite the error code and would otherwise misclassify
+                // the failure. the handled errors are used only for the response body.
+                statusCode = IsDocumentSyntaxError(ex.Errors) ? null : HttpStatusCode.BadRequest;
                 var errors = session.Handle(ex.Errors);
-                statusCode = IsDocumentSyntaxError(errors) ? null : HttpStatusCode.BadRequest;
                 result = OperationResult.FromError([.. errors]);
                 session.DiagnosticEvents.ParserErrors(context, errors);
                 goto HANDLE_RESULT;
