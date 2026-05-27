@@ -411,14 +411,14 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 return HttpStatusCode.OK;
             }
 
-            // for the application/json response content-type the GraphQL-over-HTTP spec
-            // recommends 200 for document parsing, validation, and variable coercion
-            // failures, but a 4xx for requests the server cannot interpret (e.g. JSON
-            // parsing failures). those 200 cases leave the proposed status unset, so
-            // defaulting to 200 here honors them while still surfacing any status the
-            // middleware did propose (400 for unparseable requests, 500 for unexpected
-            // errors).
-            return proposedStatusCode ?? HttpStatusCode.OK;
+            // per graphql-over-http §6.4.1, the application/json response content-type
+            // should return 200 for every well-formed request regardless of errors
+            // raised. the only 4xx is 400 for requests the server cannot interpret
+            // (§6.4.1.1.1 JSON parse, §6.4.1.1.2 invalid parameters). honor a proposed
+            // 400; everything else, including an unexpected 500, stays 200.
+            return proposedStatusCode is HttpStatusCode.BadRequest
+                ? HttpStatusCode.BadRequest
+                : HttpStatusCode.OK;
         }
 
         // if we are sending a single result with the multipart/mixed header or
