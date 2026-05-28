@@ -1,6 +1,6 @@
 ---
-path: "/blog/2026/05/11/mcp-hotchocolate-fusion"
-date: "2026-05-11"
+path: "/blog/2026/05/28/mcp-hotchocolate-fusion"
+date: "2026-05-28"
 title: "From GraphQL to MCP in Two Lines"
 description: "Hot Chocolate and Fusion now ship an MCP adapter. Add two lines, author tools and prompts on disk, publish them with Nitro, and connect any MCP host to your GraphQL API."
 tags: ["hotchocolate", "fusion", "nitro", "mcp", "ai", "llm"]
