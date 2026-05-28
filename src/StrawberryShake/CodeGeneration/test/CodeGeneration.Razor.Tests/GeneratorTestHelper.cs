@@ -226,6 +226,7 @@ public static class GeneratorTestHelper
 
         if (!File.Exists(snapshotFile))
         {
+            CheckStrictMode();
             File.WriteAllText(snapshotFile, content);
             return;
         }
@@ -243,6 +244,20 @@ public static class GeneratorTestHelper
         File.WriteAllText(mismatchFile, content);
 
         Assert.Fail($"Snapshot mismatch. Mismatch file written to {mismatchFile}");
+    }
+
+    private static void CheckStrictMode()
+    {
+        var value = Environment.GetEnvironmentVariable("COOKIE_CRUMBLE_STRICT_MODE");
+
+        if (string.Equals(value, "on", StringComparison.Ordinal)
+            || (bool.TryParse(value, out var b) && b))
+        {
+            Assert.Fail(
+                "Strict mode is enabled and no snapshot has been found "
+                + "for the current test. Create a new snapshot locally and "
+                + "rerun your tests.");
+        }
     }
 
     private static ClientModel CreateClientModel(
