@@ -3,5 +3,5 @@
 - Re-add promotional pages
 - Re-add home page
 - Image optimizations
-- Blog/Tag explore pages
 - Switch to proper theme
+- Tracking

@@ -3,6 +3,16 @@ User-agent: *
 Allow: /
 Disallow: /docs/hotchocolate/v10/
 Disallow: /docs/hotchocolate/v11/
+Disallow: /docs/hotchocolate/v12/
+Disallow: /docs/hotchocolate/v13/
+Disallow: /docs/hotchocolate/v14/
+Disallow: /docs/hotchocolate/v15/
+Disallow: /docs/fusion/v14/
+Disallow: /docs/fusion/v15/
+Disallow: /docs/strawberryshake/v12/
+Disallow: /docs/strawberryshake/v13/
+Disallow: /docs/strawberryshake/v14/
+Disallow: /docs/strawberryshake/v15/
 
 # Algolia Crawler
 User-agent: Algolia Crawler

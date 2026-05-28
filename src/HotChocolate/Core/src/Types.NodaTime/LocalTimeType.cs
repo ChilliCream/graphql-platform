@@ -39,8 +39,9 @@ public class LocalTimeType : ScalarType<LocalTime, StringValueNode>
         Description = description;
         Pattern = GetPattern();
         SpecifiedBy = new Uri(SpecifiedByUri);
-        _inputPattern = LocalTimePattern.CreateWithInvariantCulture(GetFormat(_options.InputPrecision));
-        _outputFormat = GetFormat(_options.OutputPrecision);
+        _inputPattern = LocalTimePattern.CreateWithInvariantCulture(
+            GetFormat(_options.InputPrecision, padFractionalSeconds: false));
+        _outputFormat = GetFormat(_options.OutputPrecision, _options.AlwaysOutputFractionalSeconds);
     }
 
     /// <summary>
@@ -116,8 +117,8 @@ public class LocalTimeType : ScalarType<LocalTime, StringValueNode>
             ? @"^\d{2}:\d{2}:\d{2}$"
             : @"^\d{2}:\d{2}:\d{2}(?:\.\d{1," + _options.InputPrecision + "})?$";
 
-    private static string GetFormat(byte precision)
+    private static string GetFormat(byte precision, bool padFractionalSeconds)
         => precision == 0
             ? "HH:mm:ss"
-            : $"HH:mm:ss.{new string('F', precision)}";
+            : $"HH:mm:ss.{new string(padFractionalSeconds ? 'f' : 'F', precision)}";
 }

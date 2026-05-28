@@ -18,6 +18,7 @@ import { Video } from "@/components/mdx/video";
 import { Warning } from "@/components/mdx/warning";
 import { ApiChoiceTabs } from "@/components/mdx/api-choice-tabs";
 import { InputChoiceTabs } from "@/components/mdx/input-choice-tabs";
+import { PipelineChoiceTabs } from "@/components/mdx/pipeline-choice-tabs";
 import { List, Panel, Tab, Tabs } from "@/components/mdx/tabs";
 import { TopologyVisualization } from "@/components/mdx/topology-visualization";
 
@@ -35,6 +36,7 @@ const mdxComponents = {
   Warning,
   ApiChoiceTabs,
   InputChoiceTabs,
+  PipelineChoiceTabs,
   Tabs,
   Tab,
   List,
@@ -45,6 +47,8 @@ const mdxComponents = {
   "InputChoiceTabs-VisualStudio": InputChoiceTabs.VisualStudio,
   "ApiChoiceTabs-MinimalApis": ApiChoiceTabs.MinimalApis,
   "ApiChoiceTabs-Regular": ApiChoiceTabs.Regular,
+  "PipelineChoiceTabs-GitHubAction": PipelineChoiceTabs.GitHubAction,
+  "PipelineChoiceTabs-CLI": PipelineChoiceTabs.CLI,
   // Lowercase aliases: rehype-raw (used with format:"md") lowercases all HTML
   // tag names per the HTML spec, so <Video> becomes <video>, etc.
   video: Video,
@@ -56,6 +60,7 @@ const mdxComponents = {
   warning: Warning,
   apichoicetabs: ApiChoiceTabs,
   inputchoicetabs: InputChoiceTabs,
+  pipelinechoicetabs: PipelineChoiceTabs,
   tabs: Tabs,
   tab: Tab,
   list: List,
@@ -64,6 +69,8 @@ const mdxComponents = {
   "inputchoicetabs-visualstudio": InputChoiceTabs.VisualStudio,
   "apichoicetabs-minimalapis": ApiChoiceTabs.MinimalApis,
   "apichoicetabs-regular": ApiChoiceTabs.Regular,
+  "pipelinechoicetabs-githubaction": PipelineChoiceTabs.GitHubAction,
+  "pipelinechoicetabs-cli": PipelineChoiceTabs.CLI,
   topologyvisualization: TopologyVisualization,
 };
 

@@ -44,6 +44,7 @@ combinators
 contentfiles
 Contoso
 conv
+Cookiebot
 CQRS
 creds
 csclient
@@ -61,6 +62,7 @@ drawio
 enisdenjo
 entityframework
 EPSG
+esac
 esque
 evolvability
 Expando
@@ -75,7 +77,9 @@ frontends
 Fzzz
 GEOGCS
 geolocation
+GHSA
 Giroux
+grafbase
 GraphiQL
 graphqlconfig
 graphqlrc
@@ -103,6 +107,7 @@ Leia
 LICEN*
 Linq
 Liquibase
+lscache
 Marek
 matchesBrics
 maxage
@@ -163,8 +168,9 @@ publishaot
 queryables
 quox
 quux
-Rafi
 rafaelstaib
+Rafi
+rearchitected
 reencode
 refetched
 relayjs
@@ -190,6 +196,7 @@ SHORTSHA
 Silmarillion
 skybridge
 Skywalker
+slnx
 snapshooter
 snupkg
 sortings
@@ -216,11 +223,13 @@ Tarkin
 Tatooine
 Tengler
 Testcontainers
+tonumber
 Toub
 Touchpoint
 TOWGS
 traceparent
 tracestate
+transactionality
 Trimmable
 Tzdb
 unittests
@@ -232,10 +241,12 @@ uppercased
 Upsert
 upvote
 URQL
+Usercentrics
 uuuu
 vnext
 vsix
 VXNlcjox
+webp
 websockets
 Wilhuff
 worklist

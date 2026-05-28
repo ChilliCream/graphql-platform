@@ -2,7 +2,6 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
-using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Planning.Partitioners;
@@ -145,40 +144,50 @@ internal sealed class SelectionSetByTypePartitioner(FusionSchemaDefinition schem
 
         if (cloneSelectionSets)
         {
-            var rewrittenSelections = new List<ISelectionNode>(selections.Count);
-
             foreach (var selection in selections)
             {
-                var rewrittenSelection = SyntaxRewriter.Create(
-                    node =>
-                    {
-                        if (node is SelectionSetNode selectionSetNode)
-                        {
-                            var newSelectionSet = new SelectionSetNode(selectionSetNode.Selections);
-
-                            // Since we're cloning the selection set,
-                            // we also need to keep track of the original
-                            // selection set the cloned one belongs to,
-                            // so we can later insert requirements in the original one.
-                            context.SelectionSetIndexBuilder.RegisterCloned(
-                                selectionSetNode,
-                                newSelectionSet);
-
-                            return newSelectionSet;
-                        }
-
-                        return node;
-                    }).Rewrite(selection)!;
-
-                rewrittenSelections.Add(rewrittenSelection);
+                typeSelections.Add(CloneSelection(selection, context.SelectionSetIndexBuilder));
             }
-
-            typeSelections.AddRange(rewrittenSelections);
         }
         else
         {
             typeSelections.AddRange(selections);
         }
+    }
+
+    // Walks the selection top-down, cloning every nested SelectionSetNode so that
+    // each clone can be registered against its original in the index. We can't use
+    // the bottom-up SyntaxRewriter for this, because by the time it reaches an outer
+    // SelectionSetNode its children have already been replaced, leaving the rewriter
+    // with a freshly allocated node that isn't tracked in the index.
+    private static ISelectionNode CloneSelection(
+        ISelectionNode selection,
+        SelectionSetIndexBuilder indexBuilder)
+    {
+        return selection switch
+        {
+            FieldNode field when field.SelectionSet is not null
+                => field.WithSelectionSet(CloneSelectionSet(field.SelectionSet, indexBuilder)),
+            InlineFragmentNode fragment
+                => fragment.WithSelectionSet(CloneSelectionSet(fragment.SelectionSet, indexBuilder)),
+            _ => selection
+        };
+    }
+
+    private static SelectionSetNode CloneSelectionSet(
+        SelectionSetNode original,
+        SelectionSetIndexBuilder indexBuilder)
+    {
+        var clonedSelections = new ISelectionNode[original.Selections.Count];
+
+        for (var i = 0; i < original.Selections.Count; i++)
+        {
+            clonedSelections[i] = CloneSelection(original.Selections[i], indexBuilder);
+        }
+
+        var cloned = new SelectionSetNode(clonedSelections);
+        indexBuilder.RegisterCloned(original, cloned);
+        return cloned;
     }
 
     private static List<ISelectionNode> GetSelectionsWithPath(

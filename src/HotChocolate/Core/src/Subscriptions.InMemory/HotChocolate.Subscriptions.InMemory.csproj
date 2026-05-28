@@ -5,6 +5,7 @@
     <AssemblyName>HotChocolate.Subscriptions.InMemory</AssemblyName>
     <RootNamespace>HotChocolate.Subscriptions.InMemory</RootNamespace>
     <Description>Contains an in-memory implementation for a Hot Chocolate GraphQL subscription provider.</Description>
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
   <ItemGroup>

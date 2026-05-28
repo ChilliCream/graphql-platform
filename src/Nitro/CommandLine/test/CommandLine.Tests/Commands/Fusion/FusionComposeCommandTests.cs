@@ -14,9 +14,6 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
     private static readonly string s_validExample1CompositeSchema =
         File.ReadAllText("__resources__/valid-example-1-result/composite-schema.graphqls");
 
-    private static readonly string s_invalidExample1CompositeSchema =
-        File.ReadAllText("__resources__/invalid-example-1-result/composite-schema.graphqls");
-
     private static readonly string s_validExcludeByTagCompositeSchema =
         File.ReadAllText("__resources__/valid-exclude-by-tag-result/composite-schema.graphqls");
 
@@ -50,7 +47,7 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
               --watch                                        Watch for file changes and recompose automatically
               -w, --working-directory <working-directory>    Set the working directory for the command
               --exclude-by-tag <exclude-by-tag>              One or more tags to exclude from the composition
-              --cloud-url <cloud-url>                        The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
+              --cloud-url <cloud-url>                        The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
               --api-key <api-key>                            The API key used for authentication [env: NITRO_API_KEY]
               --output <json>                                The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                                 Show help and usage information

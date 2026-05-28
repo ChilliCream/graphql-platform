@@ -1,5 +1,5 @@
 ---
-title: mcp
+title: mcp Command
 ---
 
 The `nitro mcp` commands manage MCP feature collections. An MCP feature collection bundles a versioned set of prompt and tool definitions that HotChocolate (Fusion) serves to MCP clients on a given stage.

@@ -387,7 +387,7 @@ You only need to do this once per machine. CI environments authenticate with `--
 
 ## 2. Create a feature collection
 
-A collection is the named container for all your tools and prompts. Create one per API.
+A collection is a named container for your tools and prompts. Create one for your API.
 
 ```shell
 nitro mcp create \

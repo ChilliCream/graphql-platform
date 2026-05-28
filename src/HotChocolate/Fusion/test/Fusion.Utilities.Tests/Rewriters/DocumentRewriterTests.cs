@@ -2553,4 +2553,1020 @@ public class DocumentRewriterTests
             }
             """);
     }
+
+    [Fact]
+    public void Defer_Stripped_When_Field_Also_Selected_Outside_Defer()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+              productBySlug(slug: "a") {
+                ... @defer {
+                  name
+                }
+                name
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            {
+              productBySlug(slug: "a") {
+                name
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Defer_Moves_Down_To_Children_When_Parent_Field_Selected_Outside_Defer()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+              productBySlug(slug: "a") {
+                ... @defer {
+                  dimension {
+                    height
+                  }
+                }
+                dimension {
+                  width
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            {
+              productBySlug(slug: "a") {
+                dimension {
+                  width
+                  ... @defer {
+                    height
+                  }
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Defer_Preserved_When_Field_Only_In_Defer()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+              productBySlug(slug: "a") {
+                description
+                ... @defer {
+                  name
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            {
+              productBySlug(slug: "a") {
+                description
+                ... @defer {
+                  name
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Defer_With_If_False_Is_Statically_Removed()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+              productBySlug(slug: "a") {
+                ... @defer(if: false) {
+                  name
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            {
+              productBySlug(slug: "a") {
+                name
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Defer_With_If_True_Is_Canonicalized_To_No_If_But_Not_Merged()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+              productBySlug(slug: "a") {
+                ... @defer {
+                  name
+                }
+                ... @defer(if: true) {
+                  description
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            {
+              productBySlug(slug: "a") {
+                ... @defer {
+                  name
+                }
+                ... @defer {
+                  description
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Defer_With_Different_Labels_Not_Merged()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+              productBySlug(slug: "a") {
+                ... @defer(label: "a") {
+                  name
+                }
+                ... @defer(label: "b") {
+                  description
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            {
+              productBySlug(slug: "a") {
+                ... @defer(label: "a") {
+                  name
+                }
+                ... @defer(label: "b") {
+                  description
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Defer_With_Same_Label_Not_Merged()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+              productBySlug(slug: "a") {
+                ... @defer(label: "a") {
+                  name
+                }
+                ... @defer(label: "a") {
+                  description
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            {
+              productBySlug(slug: "a") {
+                ... @defer(label: "a") {
+                  name
+                }
+                ... @defer(label: "a") {
+                  description
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Defer_With_Different_If_Variables_Not_Merged()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($a: Boolean!, $b: Boolean!) {
+              productBySlug(slug: "a") {
+                ... @defer(if: $a) {
+                  name
+                }
+                ... @defer(if: $b) {
+                  description
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            query($a: Boolean!, $b: Boolean!) {
+              productBySlug(slug: "a") {
+                ... @defer(if: $a) {
+                  name
+                }
+                ... @defer(if: $b) {
+                  description
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Defer_With_Same_If_Variable_Not_Merged()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($a: Boolean!) {
+              productBySlug(slug: "a") {
+                ... @defer(if: $a) {
+                  name
+                }
+                ... @defer(if: $a) {
+                  description
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            query($a: Boolean!) {
+              productBySlug(slug: "a") {
+                ... @defer(if: $a) {
+                  name
+                }
+                ... @defer(if: $a) {
+                  description
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Nested_Defer_Field_Pulled_Out_When_Selected_Outside()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+              productBySlug(slug: "a") {
+                ... @defer {
+                  dimension {
+                    height
+                    width
+                  }
+                }
+                dimension {
+                  height
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            {
+              productBySlug(slug: "a") {
+                dimension {
+                  height
+                  ... @defer {
+                    width
+                  }
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Defer_Inside_Conditional_Pulled_To_Conditional_When_Same_Field_Outside_Defer()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($skip: Boolean!) {
+              productBySlug(slug: "a") {
+                ... @skip(if: $skip) {
+                  ... @defer {
+                    name
+                  }
+                }
+                ... @skip(if: $skip) {
+                  name
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            query($skip: Boolean!) {
+              productBySlug(slug: "a") {
+                name @skip(if: $skip)
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Defer_Inside_Conditional_Kept_When_Field_Not_Selected_Outside_Defer()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($skip: Boolean!) {
+              productBySlug(slug: "a") {
+                ... @skip(if: $skip) {
+                  ... @defer {
+                    name
+                  }
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            query($skip: Boolean!) {
+              productBySlug(slug: "a") {
+                ... @skip(if: $skip) {
+                  ... @defer {
+                    name
+                  }
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Defer_With_Multiple_Children_Only_Overlapping_Pulled_Out()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+              productBySlug(slug: "a") {
+                ... @defer {
+                  name
+                  description
+                  price
+                }
+                name
+                price
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            {
+              productBySlug(slug: "a") {
+                name
+                price
+                ... @defer {
+                  description
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Defer_FragmentSpread_Stripped_When_Field_Also_Selected_Outside()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+              productBySlug(slug: "a") {
+                ...ProductFields @defer
+                name
+              }
+            }
+
+            fragment ProductFields on Product {
+              name
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            {
+              productBySlug(slug: "a") {
+                name
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Defer_On_TypedInlineFragment_Pushed_Down_When_Field_Selected_Outside()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+              productBySlug(slug: "a") {
+                ... on Product @defer {
+                  dimension {
+                    height
+                  }
+                }
+                dimension {
+                  width
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            {
+              productBySlug(slug: "a") {
+                dimension {
+                  width
+                  ... @defer {
+                    height
+                  }
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Defer_On_TypedInlineFragment_With_Refinement_Preserved_When_No_Overlap()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+              reviewById(id: 1) {
+                id
+                ... on Review @defer {
+                  body
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            {
+              reviewById(id: 1) {
+                id
+                ... @defer {
+                  body
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Defer_On_TypedInlineFragment_With_Refinement_Stays_On_InlineFragment()
+    {
+        // arrange
+        var schemaDefinition = SchemaParser.Parse(
+            """
+            type Query {
+              votables: [Votable!]!
+            }
+
+            interface Votable {
+              viewerCanVote: Boolean!
+              voteCount: Int
+            }
+
+            type Product implements Votable {
+              id: ID!
+              viewerCanVote: Boolean!
+              voteCount: Int
+            }
+            """);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+              votables {
+                ... on Product @defer {
+                  voteCount
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            {
+              votables {
+                ... on Product @defer {
+                  voteCount
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Defer_On_TypedInlineFragment_With_Refinement_Moves_Down_When_Sibling_Without_Defer()
+    {
+        // arrange
+        var schemaDefinition = SchemaParser.Parse(
+            """
+            type Query {
+              votables: [Votable!]!
+            }
+
+            interface Votable {
+              viewerCanVote: Boolean!
+              voteCount: Int
+            }
+
+            type Product implements Votable {
+              id: ID!
+              viewerCanVote: Boolean!
+              voteCount: Int
+            }
+            """);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+              votables {
+                ... on Product @defer {
+                  voteCount
+                }
+                ... on Product {
+                  viewerCanVote
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            {
+              votables {
+                ... on Product {
+                  viewerCanVote
+                  ... @defer {
+                    voteCount
+                  }
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Defer_Nested_Inside_Defer_Field_Pulled_Out_When_Selected_Outside_Outer_Defer()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+              productBySlug(slug: "a") {
+                ... @defer(label: "outer") {
+                  ... @defer(label: "inner") {
+                    name
+                  }
+                }
+                name
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            {
+              productBySlug(slug: "a") {
+                name
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Nested_Defer_With_Same_Identity_Kept_Intact()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+              productBySlug(slug: "a") {
+                ... @defer {
+                  ... @defer {
+                    name
+                  }
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            {
+              productBySlug(slug: "a") {
+                ... @defer {
+                  ... @defer {
+                    name
+                  }
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Nested_Defer_With_Same_Label_Kept_Intact()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+              productBySlug(slug: "a") {
+                ... @defer(label: "a") {
+                  ... @defer(label: "a") {
+                    name
+                  }
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            {
+              productBySlug(slug: "a") {
+                ... @defer(label: "a") {
+                  ... @defer(label: "a") {
+                    name
+                  }
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Nested_Defer_With_Different_Labels_Kept_Intact()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+              productBySlug(slug: "a") {
+                ... @defer(label: "outer") {
+                  ... @defer(label: "inner") {
+                    name
+                  }
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            {
+              productBySlug(slug: "a") {
+                ... @defer(label: "outer") {
+                  ... @defer(label: "inner") {
+                    name
+                  }
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Nested_Defer_With_Field_Already_In_Parent_Defer_Is_Stripped()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+              productBySlug(slug: "a") {
+                ... @defer {
+                  name
+                  ... @defer {
+                    name
+                  }
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            {
+              productBySlug(slug: "a") {
+                ... @defer {
+                  name
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Nested_Defer_With_Some_Fields_Already_In_Parent_Defer_Moves_Down()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+              productBySlug(slug: "a") {
+                ... @defer {
+                  name
+                  ... @defer {
+                    name
+                    description
+                  }
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            {
+              productBySlug(slug: "a") {
+                ... @defer {
+                  name
+                  ... @defer {
+                    description
+                  }
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Nested_Defer_With_Parent_Composite_Pushed_Down()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+              productBySlug(slug: "a") {
+                ... @defer {
+                  dimension {
+                    height
+                  }
+                  ... @defer {
+                    dimension {
+                      width
+                    }
+                  }
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            {
+              productBySlug(slug: "a") {
+                ... @defer {
+                  dimension {
+                    height
+                    ... @defer {
+                      width
+                    }
+                  }
+                }
+              }
+            }
+            """);
+    }
 }

@@ -361,6 +361,28 @@ public class AllVariableUsagesAreAllowedRuleTests
         );
     }
 
+    // The rule must fire once per lexical variable usage, not once per fragment spread.
+    [Fact]
+    public void IntNullableToIntWithinReusedFragment()
+    {
+        ExpectErrors(
+            """
+            fragment nonNullIntArgFieldFrag on Arguments {
+              nonNullIntArgField(intArg: $intArg)
+            }
+
+            query Query($intArg: Int) {
+              arguments {
+                ...nonNullIntArgFieldFrag
+                ...nonNullIntArgFieldFrag
+              }
+            }
+            """,
+            t => Assert.Equal(
+                "The variable `intArg` is not compatible with the type of the current location.",
+                t.Message));
+    }
+
     [Fact]
     public void IntNullableToIntWithinNestedFragment()
     {

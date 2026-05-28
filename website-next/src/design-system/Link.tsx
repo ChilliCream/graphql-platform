@@ -8,7 +8,7 @@ export function Link({
   ...props
 }: ComponentPropsWithoutRef<"a">) {
   const styles =
-    "text-emerald-700 underline decoration-emerald-700/30 underline-offset-2 hover:decoration-emerald-700";
+    "text-primary-700 underline decoration-primary-700/30 underline-offset-2 hover:decoration-primary-700";
   const merged = `${styles} ${className}`.trim();
 
   if (href.startsWith("/")) {

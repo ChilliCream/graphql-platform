@@ -22,6 +22,8 @@ To install the Nitro services, run the following commands in your project's root
 
 ```bash
 dotnet add package ChilliCream.Nitro
+dotnet add package ChilliCream.Nitro.HotChocolate
+dotnet add package ChilliCream.Nitro.OpenTelemetry
 dotnet add package OpenTelemetry.Extensions.Hosting
 dotnet add package OpenTelemetry.Instrumentation.AspNetCore
 ```
@@ -32,14 +34,17 @@ After installing the package, you need to configure the services in your startup
 public void ConfigureServices(IServiceCollection services)
 {
     services
-        .AddGraphQL()
-        .AddQueryType<Query>()
         .AddNitro(x =>
         {
             x.ApiKey = "<<your-api-key>>";
             x.ApiId = "QXBpCmc5NGYwZTIzNDZhZjQ0NjBmYTljNDNhZDA2ZmRkZDA2Ng==";
             x.Stage = "dev";
         })
+        .AddOpenTelemetry();
+
+    services
+        .AddGraphQL()
+        .AddQueryType<Query>()
         .AddInstrumentation(); // Enable the graphql telemetry
 
     services
@@ -47,7 +52,6 @@ public void ConfigureServices(IServiceCollection services)
         .WithTracing(x =>
         {
             x.AddAspNetCoreInstrumentation();
-            x.AddNitroExporter();
         });
 }
 ```
@@ -64,9 +68,12 @@ public void ConfigureServices(IServiceCollection services)
 > public void ConfigureServices(IServiceCollection services)
 > {
 >     services
+>         .AddNitro()
+>         .AddOpenTelemetry();
+>
+>     services
 >         .AddGraphQL()
 >         .AddQueryType<Query>()
->         .AddNitro()
 >         .AddInstrumentation(); // Enable the graphql telemetry
 >
 >     services
@@ -74,7 +81,6 @@ public void ConfigureServices(IServiceCollection services)
 >         .WithTracing(x =>
 >         {
 >             x.AddAspNetCoreInstrumentation();
->             x.AddNitroExporter();
 >         });
 > }
 > ```

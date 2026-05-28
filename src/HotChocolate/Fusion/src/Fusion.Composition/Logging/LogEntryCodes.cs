@@ -44,6 +44,7 @@ public static class LogEntryCodes
     public const string KeyInvalidFields = "KEY_INVALID_FIELDS";
     public const string KeyInvalidFieldsType = "KEY_INVALID_FIELDS_TYPE";
     public const string KeyInvalidSyntax = "KEY_INVALID_SYNTAX";
+    public const string LookupMustHaveArguments = "LOOKUP_MUST_HAVE_ARGUMENTS";
     public const string LookupReturnsList = "LOOKUP_RETURNS_LIST";
     public const string LookupReturnsNonNullableType = "LOOKUP_RETURNS_NON_NULLABLE_TYPE";
     public const string NonNullInputFieldIsInaccessible = "NON_NULL_INPUT_FIELD_IS_INACCESSIBLE";
@@ -69,5 +70,5 @@ public static class LogEntryCodes
     public const string RootSubscriptionUsed = "ROOT_SUBSCRIPTION_USED";
     public const string SpecifiedByUrlMismatch = "SPECIFIED_BY_URL_MISMATCH";
     public const string TypeKindMismatch = "TYPE_KIND_MISMATCH";
-    public const string Unsatisfiable = "UNSATISFIABLE";
+    public const string UnsatisfiableQueryPath = "UNSATISFIABLE_QUERY_PATH";
 }

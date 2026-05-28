@@ -73,6 +73,12 @@ type TypographyProps = {
   variant: TypographyVariant;
   component?: ElementType;
   children?: ReactNode;
+  /**
+   * Render a `#` permalink anchor next to heading variants. Opt-in because
+   * this only makes sense for prose-style headings inside MDX content, not
+   * for static page titles.
+   */
+  anchor?: boolean;
 } & Omit<ComponentPropsWithoutRef<"div">, "children">;
 
 export function Typography({
@@ -81,12 +87,13 @@ export function Typography({
   id,
   className = "",
   children,
+  anchor = false,
   ...rest
 }: TypographyProps) {
   const config = variantConfig[variant];
   const Tag = component ?? config.tag;
   const isHeading = HEADING_VARIANTS.has(variant);
-  const resolvedId = id ?? (isHeading ? slugify(children) : undefined);
+  const resolvedId = id ?? (isHeading && anchor ? slugify(children) : undefined);
 
   return (
     <Tag
@@ -95,7 +102,7 @@ export function Typography({
       {...rest}
     >
       {children}
-      {isHeading && resolvedId ? (
+      {isHeading && anchor && resolvedId ? (
         <a
           href={`#${resolvedId}`}
           className="heading-anchor"

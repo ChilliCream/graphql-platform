@@ -78,7 +78,7 @@ public static class HotChocolateExecutionSelectionExtensions
         this Selection selection,
         ulong includeFlags)
     {
-        var isConditional = selection.DeclaringOperation.RootSelectionSet.IsConditional;
+        var isConditional = selection.IsConditional;
 
         // we first check if we already have an expression for this selection,
         // this would be the cheapest way to get the expression.

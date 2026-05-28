@@ -753,6 +753,22 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry LookupMustHaveArguments(
+        MutableOutputFieldDefinition field,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_LookupMustHaveArguments,
+                field.Coordinate.ToString(),
+                schema.Name)
+            .SetCode(LogEntryCodes.LookupMustHaveArguments)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(field)
+            .SetSchema(schema)
+            .Build();
+    }
+
     public static LogEntry LookupReturnsList(
         MutableOutputFieldDefinition field,
         MutableSchemaDefinition schema)

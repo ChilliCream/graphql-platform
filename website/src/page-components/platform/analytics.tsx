@@ -108,10 +108,12 @@ const AnalyticsPage: FC<AnalyticsPageProps> = ({ recentPosts }) => {
             now and transform your API experience.
           </>
         }
-        primaryLink="mailto:contact@chillicream.com?subject=Demo"
+        primaryLink="/services/support/contact?subject=Schedule+a+Demo"
         primaryLinkText="Book a Demo"
+        primaryTrack="book_demo_click"
         secondaryLink="https://nitro.chillicream.com"
         secondaryLinkText="Launch"
+        secondaryTrack="launch_click"
       />
       <NewsletterSection />
       <MostRecentBlogPostsSection posts={recentPosts} />

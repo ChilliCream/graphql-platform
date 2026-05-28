@@ -171,29 +171,75 @@ internal sealed class OpenApiDefinitionRegistry : IDisposable
 
         var modelsByName = CreateModelsByNameLookup(models);
 
-        _transformer.AddDefinitions(endpoints, models, modelsByName, schema);
-
-        // Update endpoints
-        var httpEndpoints = new List<Endpoint>();
-        var processedEndpoints = new HashSet<(string, string)>();
+        // When multiple endpoints share (method, route): a descriptor with a valid document
+        // wins. If no duplicate produces a valid descriptor, the first one whose document
+        // failed validation is kept so the route is still registered (the middleware returns
+        // HTTP 500 on call). Descriptors that fail to construct outright are skipped.
+        // Track the chosen definitions in parallel with the descriptors so the same selection
+        // feeds both the runtime endpoints and the OpenAPI document generation.
+        var chosenDefinitions = new List<OpenApiEndpointDefinition>();
+        var chosenDescriptors = new List<OpenApiEndpointDescriptor>();
+        var keyToIndex = new Dictionary<(string, string), int>();
+        var keyHasValid = new HashSet<(string, string)>();
 
         foreach (var endpoint in endpoints)
         {
             var key = (endpoint.HttpMethod, endpoint.Route);
 
-            if (!processedEndpoints.Add(key))
+            if (keyHasValid.Contains(key))
             {
                 continue;
             }
 
+            OpenApiEndpointDescriptor descriptor;
+
             try
             {
-                var httpEndpoint = OpenApiEndpointFactory.Create(endpoint, modelsByName, schema);
-                httpEndpoints.Add(httpEndpoint);
+                descriptor = OpenApiEndpointFactory.CreateEndpointDescriptor(endpoint, modelsByName, schema);
             }
             catch
             {
-                // If the construction of an endpoint fails, we just skip over it.
+                continue;
+            }
+
+            if (descriptor.HasValidDocument)
+            {
+                if (keyToIndex.TryGetValue(key, out var existingIndex))
+                {
+                    // Promote: an earlier invalid descriptor is being replaced by a valid one.
+                    chosenDefinitions[existingIndex] = endpoint;
+                    chosenDescriptors[existingIndex] = descriptor;
+                }
+                else
+                {
+                    keyToIndex[key] = chosenDescriptors.Count;
+                    chosenDefinitions.Add(endpoint);
+                    chosenDescriptors.Add(descriptor);
+                }
+
+                keyHasValid.Add(key);
+            }
+            else if (!keyToIndex.ContainsKey(key))
+            {
+                keyToIndex[key] = chosenDescriptors.Count;
+                chosenDefinitions.Add(endpoint);
+                chosenDescriptors.Add(descriptor);
+            }
+        }
+
+        _transformer.AddDefinitions(chosenDefinitions.ToArray(), models, modelsByName, schema);
+
+        var httpEndpoints = new List<Endpoint>();
+
+        foreach (var descriptor in chosenDescriptors)
+        {
+            try
+            {
+                httpEndpoints.Add(OpenApiEndpointFactory.CreateEndpoint(schema.Name, descriptor));
+            }
+            catch
+            {
+                // If wrapping the descriptor in an ASP.NET endpoint fails, we just skip over it.
             }
         }
 
