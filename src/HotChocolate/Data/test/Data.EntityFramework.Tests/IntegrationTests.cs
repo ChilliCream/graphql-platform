@@ -1,9 +1,11 @@
+using System.Data.Common;
+using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
-using System.Text.Json;
 
 namespace HotChocolate.Data;
 
@@ -18,6 +20,91 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         _authors = authorFixture.Context.Authors;
         _zeroAuthors = authorFixture.Context.ZeroAuthors;
         _singleOrDefaultAuthors = authorFixture.Context.SingleOrDefaultAuthors;
+    }
+
+    [Fact]
+    public async Task Projection_Should_ProjectRequiredNavigation_When_ParentRequiresObject()
+    {
+        // arrange
+        var fileName = Guid.NewGuid().ToString("N") + ".db";
+        var connectionString = "Data Source=" + fileName;
+        var sql = new List<string>();
+
+        try
+        {
+            await using (var seed = new BookContext(
+                new DbContextOptionsBuilder<BookContext>().UseSqlite(connectionString).Options))
+            {
+                await seed.Database.EnsureCreatedAsync();
+                seed.Authors.Add(
+                    new Author { Id = 1, Name = "Foo", Books = { new Book { Id = 1, Title = "Foo1" } } });
+                await seed.SaveChangesAsync();
+            }
+
+            var result = await new ServiceCollection()
+                .AddDbContext<BookContext>(
+                    b => b
+                        .UseSqlite(connectionString)
+                        .AddInterceptors(new SqlCapturingInterceptor(sql)))
+                .AddGraphQL()
+                .AddProjections()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("books")
+                        .Resolve(ctx => ctx.Service<BookContext>().Books)
+                        .UseProjection())
+                .AddObjectType<Book>(
+                    d =>
+                    {
+                        d.Field(b => b.Title);
+                        d.Field("authorInfo")
+                            .Type<ObjectType<Author>>()
+                            .Resolve(ctx => ctx.Parent<Book>().Author)
+                            .ParentRequires<Book>(b => b.Author!);
+                    })
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .ExecuteRequestAsync("{ books { title authorInfo { name } } }");
+
+            // assert
+            // The SQL must join and select the Authors columns, proving the required navigation
+            // is projected from the database rather than relying on an in-memory object graph.
+            Snapshot
+                .Create(
+                    postFix: TestEnvironment.TargetFramework == "NET10_0"
+                        ? TestEnvironment.TargetFramework
+                        : null)
+                .Add(string.Join("\n", sql), "SQL")
+                .Add(result, "Result")
+                .MatchMarkdownSnapshot();
+        }
+        finally
+        {
+            Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
+            File.Delete(fileName);
+        }
+    }
+
+    private sealed class SqlCapturingInterceptor(List<string> queries) : DbCommandInterceptor
+    {
+        public override InterceptionResult<DbDataReader> ReaderExecuting(
+            DbCommand command,
+            CommandEventData eventData,
+            InterceptionResult<DbDataReader> result)
+        {
+            queries.Add(command.CommandText);
+            return base.ReaderExecuting(command, eventData, result);
+        }
+
+        public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(
+            DbCommand command,
+            CommandEventData eventData,
+            InterceptionResult<DbDataReader> result,
+            CancellationToken cancellationToken = default)
+        {
+            queries.Add(command.CommandText);
+            return base.ReaderExecutingAsync(command, eventData, result, cancellationToken);
+        }
     }
 
     [Fact]
