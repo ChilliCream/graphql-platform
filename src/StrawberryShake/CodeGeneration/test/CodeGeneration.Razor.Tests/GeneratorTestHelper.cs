@@ -192,7 +192,13 @@ public static class GeneratorTestHelper
         [CallerMemberName] string? testName = null,
         [CallerFilePath] string? callerFilePath = null)
     {
-        var folder = System.IO.Path.GetDirectoryName(callerFilePath)!;
+        ArgumentException.ThrowIfNullOrEmpty(testName);
+        ArgumentException.ThrowIfNullOrEmpty(callerFilePath);
+
+        var folder = System.IO.Path.GetDirectoryName(callerFilePath)
+            ?? throw new ArgumentException(
+                $"Could not determine directory from caller file path '{callerFilePath}'.",
+                nameof(callerFilePath));
         var testFile = System.IO.Path.Combine(folder, testName + "Test.cs");
         var ns = "StrawberryShake.CodeGeneration.CSharp.Integration." + testName;
 
@@ -207,7 +213,7 @@ public static class GeneratorTestHelper
 
         return new AssertSettings
         {
-            ClientName = testName! + "Client",
+            ClientName = testName + "Client",
             Namespace = ns,
             StrictValidation = true,
             SnapshotFile = System.IO.Path.Combine(folder, testName + "Test.Client.cs"),
