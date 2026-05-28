@@ -3,7 +3,6 @@ using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.StarWars;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace StrawberryShake.CodeGeneration.Utilities;
 

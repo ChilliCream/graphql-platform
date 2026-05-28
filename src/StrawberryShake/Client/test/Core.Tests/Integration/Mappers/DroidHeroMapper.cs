@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using ChilliCream.Testing;
+using CookieCrumble;
 
 namespace StrawberryShake.Integration.Mappers
 {
