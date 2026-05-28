@@ -5,7 +5,6 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Properties.CompositionResources;
-using static HotChocolate.Language.Utf8GraphQLParser.Syntax;
 
 namespace HotChocolate.Fusion.Satisfiability;
 
@@ -289,94 +288,20 @@ internal sealed class RequirementsValidator(
         RequirementsValidatorContext context,
         string transitionToSchemaName)
     {
-        var errors = new List<SatisfiabilityError>();
-
-        var lookupDirectives =
-            schema.GetPossibleFusionLookupDirectives(type, transitionToSchemaName);
-
-        if (!lookupDirectives.Any() && !CanTransitionToSchemaThroughPath(context.Path, transitionToSchemaName))
-        {
-            errors.Add(
-                new SatisfiabilityError(
-                    string.Format(
-                        RequirementsValidator_NoLookupsFoundForType,
-                        type.Name,
-                        transitionToSchemaName)));
-
-            return [.. errors];
-        }
-
-        foreach (var lookupDirective in lookupDirectives)
-        {
-            var lookupKeyArg = (string)lookupDirective.Arguments["key"].Value!;
-            var lookupFieldArg = (string)lookupDirective.Arguments["field"].Value!;
-            var lookupPathArg = (string?)lookupDirective.Arguments["path"].Value;
-
-            var lookupRequirements = ParseSelectionSet($"{{ {lookupKeyArg} }}");
-            var lookupFieldName = ParseFieldDefinition(lookupFieldArg).Name.Value;
-
-            // Ensure that lookup requirements are satisfied.
-            var requirementErrors =
+        return SourceSchemaTransitionHelper.ValidateSourceSchemaTransition(
+            schema,
+            type,
+            transitionToSchemaName,
+            [.. context.Path],
+            (contextType, parentPathItem, lookupRequirements) =>
                 Validate(
                     lookupRequirements,
-                    type,
-                    context.Path.Peek(),
+                    contextType,
+                    parentPathItem,
                     excludeSchemaName: transitionToSchemaName,
-                    context.CycleDetectionPath);
-
-            if (requirementErrors.IsEmpty)
-            {
-                return [];
-            }
-
-            var lookupName = lookupPathArg is null
-                ? lookupFieldName
-                : $"{lookupPathArg}.{lookupFieldName}";
-
-            errors.Add(
-                new SatisfiabilityError(
-                    string.Format(
-                        RequirementsValidator_UnableToSatisfyRequirementForLookup,
-                        lookupRequirements.ToString(indented: false),
-                        lookupName,
-                        transitionToSchemaName),
-                    requirementErrors));
-        }
-
-        return [.. errors];
-    }
-
-    /// <summary>
-    /// We check whether the path we're currently on exists one-to-one
-    /// on the given schema or whether a type on the path has a lookup
-    /// on the given schema.
-    /// </summary>
-    private bool CanTransitionToSchemaThroughPath(
-        SatisfiabilityPath path,
-        string schemaName)
-    {
-        foreach (var pathItem in path)
-        {
-            var lookupDirectives =
-                schema.GetPossibleFusionLookupDirectives(
-                    pathItem.Type,
-                    schemaName);
-
-            var hasLookups = lookupDirectives.Count > 0;
-            var fieldExists = pathItem.Field.ExistsInSchema(schemaName);
-
-            if (hasLookups && fieldExists)
-            {
-                return true;
-            }
-
-            if (!fieldExists)
-            {
-                return false;
-            }
-        }
-
-        return true;
+                    context.CycleDetectionPath),
+            RequirementsValidator_NoLookupsFoundForType,
+            RequirementsValidator_UnableToSatisfyRequirementForLookup);
     }
 }
 
