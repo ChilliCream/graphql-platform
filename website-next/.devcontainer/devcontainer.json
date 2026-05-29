@@ -1,0 +1,43 @@
+{
+  "name": "website-next",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {}
+  },
+  "forwardPorts": [3000, 6006],
+  "portsAttributes": {
+    "3000": {
+      "label": "Next.js dev server",
+      "onAutoForward": "notify"
+    },
+    "6006": {
+      "label": "Storybook",
+      "onAutoForward": "silent"
+    }
+  },
+  "onCreateCommand": "sudo corepack enable",
+  "postCreateCommand": "corepack prepare yarn@4.14.1 --activate && yarn install --immutable && sudo yarn playwright install-deps && yarn playwright install chromium",
+  "containerEnv": {
+    "NEXT_TELEMETRY_DISABLED": "1",
+    "COREPACK_ENABLE_DOWNLOAD_PROMPT": "0"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        "bradlc.vscode-tailwindcss",
+        "unifiedjs.vscode-mdx",
+        "jock.svg",
+        "ms-playwright.playwright"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.codeActionsOnSave": {
+          "source.organizeImports": "explicit"
+        }
+      }
+    }
+  }
+}
