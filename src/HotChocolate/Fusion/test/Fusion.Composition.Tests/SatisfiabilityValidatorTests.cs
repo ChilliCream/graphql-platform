@@ -1790,11 +1790,7 @@ public sealed class SatisfiabilityValidatorTests
         Assert.True(result.IsSuccess);
     }
 
-    [Fact(Skip = "Circular @require whose intermediate field is owned by the "
-        + "requiring schema is not yet satisfiable. The validator evaluates the "
-        + "requirement from the entity's origin path and does not hop into the "
-        + "requiring schema to gather its locally-owned field first. Enable once "
-        + "multi-hop requirement gathering is supported.")]
+    [Fact]
     // https://github.com/graphql-hive/federation-gateway-audit/tree/main/src/test-suites/requires-circular
     public void RequiresCircular()
     {

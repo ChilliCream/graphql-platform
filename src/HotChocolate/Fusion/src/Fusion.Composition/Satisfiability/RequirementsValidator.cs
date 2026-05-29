@@ -138,7 +138,13 @@ internal sealed class RequirementsValidator(
             return [];
         }
 
-        var schemaNames = field.GetSchemaNames().Remove(context.ExcludeSchemaName);
+        // Only leaf fields in the requirement need to be sourced from outside
+        // the excluded schema. Intermediate fields (with a sub-selection) are
+        // navigation steps the gateway can resolve locally in the requiring
+        // schema, so we keep them in scope.
+        var schemaNames = fieldNode.SelectionSet is null
+            ? field.GetSchemaNames().Remove(context.ExcludeSchemaName)
+            : field.GetSchemaNames();
         var fieldType = field.Type.AsTypeDefinition();
 
         foreach (var schemaName in schemaNames)
