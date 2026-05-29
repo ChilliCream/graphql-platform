@@ -17,12 +17,14 @@ internal sealed class RequirementsValidator(
         MutableObjectTypeDefinition contextType,
         SatisfiabilityPathItem? parentPathItem,
         string excludeSchemaName,
+        bool allowIntermediatesFromExcludedSchema = false,
         SatisfiabilityPath? cycleDetectionPath = null)
     {
         var context = new RequirementsValidatorContext(
             contextType,
             parentPathItem,
             excludeSchemaName,
+            allowIntermediatesFromExcludedSchema,
             cycleDetectionPath);
 
         var errors = new List<SatisfiabilityError>();
@@ -138,7 +140,19 @@ internal sealed class RequirementsValidator(
             return [];
         }
 
-        var schemaNames = field.GetSchemaNames().Remove(context.ExcludeSchemaName);
+        // Leaf fields in the requirement must be sourced from outside the
+        // excluded schema. Intermediate fields (with a sub-selection) may also
+        // be sourced from the excluded schema when validating a field-level
+        // @require: those intermediates are navigation steps the gateway can
+        // resolve locally in the requiring schema as part of executing the
+        // requiring field. For lookup-key validation the excluded schema has
+        // not been entered yet, so intermediates must also come from outside
+        // it (default behavior).
+        var schemaNames = field.GetSchemaNames();
+        if (fieldNode.SelectionSet is null || !context.AllowIntermediatesFromExcludedSchema)
+        {
+            schemaNames = schemaNames.Remove(context.ExcludeSchemaName);
+        }
         var fieldType = field.Type.AsTypeDefinition();
 
         foreach (var schemaName in schemaNames)
@@ -202,7 +216,8 @@ internal sealed class RequirementsValidator(
                         type,
                         context.Path.Peek(),
                         excludeSchemaName: schemaName,
-                        context.CycleDetectionPath);
+                        allowIntermediatesFromExcludedSchema: true,
+                        cycleDetectionPath: context.CycleDetectionPath);
 
                 if (requirementErrors.Length != 0)
                 {
@@ -299,7 +314,7 @@ internal sealed class RequirementsValidator(
                     contextType,
                     parentPathItem,
                     excludeSchemaName: transitionToSchemaName,
-                    context.CycleDetectionPath),
+                    cycleDetectionPath: context.CycleDetectionPath),
             RequirementsValidator_NoLookupsFoundForType,
             RequirementsValidator_UnableToSatisfyRequirementForLookup);
     }
@@ -311,6 +326,7 @@ internal sealed class RequirementsValidatorContext
         MutableObjectTypeDefinition contextType,
         SatisfiabilityPathItem? parentPathItem,
         string excludeSchemaName,
+        bool allowIntermediatesFromExcludedSchema = false,
         SatisfiabilityPath? cycleDetectionPath = null)
     {
         TypeContext.Push(contextType);
@@ -321,6 +337,7 @@ internal sealed class RequirementsValidatorContext
         }
 
         ExcludeSchemaName = excludeSchemaName;
+        AllowIntermediatesFromExcludedSchema = allowIntermediatesFromExcludedSchema;
         CycleDetectionPath = cycleDetectionPath ?? [];
     }
 
@@ -329,6 +346,8 @@ internal sealed class RequirementsValidatorContext
     public SatisfiabilityPath Path { get; } = [];
 
     public string ExcludeSchemaName { get; }
+
+    public bool AllowIntermediatesFromExcludedSchema { get; }
 
     public SatisfiabilityPath CycleDetectionPath { get; }
 
