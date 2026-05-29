@@ -168,7 +168,8 @@ internal sealed class SatisfiabilityValidator
                         requirements,
                         type,
                         path?.Item,
-                        excludeSchemaName: schemaName);
+                        excludeSchemaName: schemaName,
+                        allowIntermediatesFromExcludedSchema: true);
 
                 if (requirementErrors.Length != 0)
                 {
