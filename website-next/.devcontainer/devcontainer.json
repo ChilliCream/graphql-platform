@@ -1,8 +1,12 @@
 {
   "name": "website-next",
-  "image": "mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "."
+  },
+  "runArgs": ["--shm-size=512m"],
   "features": {
-    "ghcr.io/devcontainers/features/git:1": {}
+    "ghcr.io/devcontainers/features/github-cli:1": {}
   },
   "forwardPorts": [3000, 6006],
   "portsAttributes": {
@@ -15,11 +19,9 @@
       "onAutoForward": "silent"
     }
   },
-  "onCreateCommand": "sudo corepack enable",
-  "postCreateCommand": "yarn install --immutable && sudo yarn playwright install-deps && yarn playwright install chromium",
+  "postCreateCommand": "yarn install --immutable && yarn playwright install chromium",
   "containerEnv": {
-    "NEXT_TELEMETRY_DISABLED": "1",
-    "COREPACK_ENABLE_DOWNLOAD_PROMPT": "0"
+    "NEXT_TELEMETRY_DISABLED": "1"
   },
   "customizations": {
     "vscode": {
@@ -29,9 +31,14 @@
         "bradlc.vscode-tailwindcss",
         "unifiedjs.vscode-mdx",
         "jock.svg",
-        "ms-playwright.playwright"
+        "ms-playwright.playwright",
+        "anthropic.claude-code",
+        "github.copilot",
+        "github.copilot-chat",
+        "openai.chatgpt"
       ],
       "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh",
         "editor.formatOnSave": true,
         "editor.defaultFormatter": "esbenp.prettier-vscode",
         "editor.codeActionsOnSave": {
