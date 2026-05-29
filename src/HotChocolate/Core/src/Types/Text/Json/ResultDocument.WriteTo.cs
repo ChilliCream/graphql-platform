@@ -15,7 +15,7 @@ public sealed partial class ResultDocument : IRawJsonFormatter
     {
         public void Write()
         {
-            var root = Cursor.Zero;
+            var root = Cursor.CreateZero(document._chunkSize);
             var row = document._metaDb.Get(root);
 
             if (row.TokenType is ElementTokenType.Null

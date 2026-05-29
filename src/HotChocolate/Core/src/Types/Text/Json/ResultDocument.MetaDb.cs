@@ -16,13 +16,15 @@ public sealed partial class ResultDocument
 
         private byte[][] _chunks;
         private byte[][]? _previousChunks;
+        private ChunkSize _chunkSize;
         private Cursor _next;
-        private volatile uint _nextValue;
+        private volatile int _nextValue;
         private bool _disposed;
 
-        internal static MetaDb CreateForEstimatedRows(int estimatedRows)
+        internal static MetaDb CreateForEstimatedRows(ChunkSize chunkSize, int estimatedRows)
         {
-            var chunksNeeded = Math.Max(4, (estimatedRows / Cursor.RowsPerChunk) + 1);
+            var zero = Cursor.CreateZero(chunkSize);
+            var chunksNeeded = Math.Max(4, (estimatedRows / zero.RowsPerChunk) + 1);
             var chunks = s_arrayPool.Rent(chunksNeeded);
             var log = Log;
 
@@ -40,8 +42,9 @@ public sealed partial class ResultDocument
             return new MetaDb
             {
                 _chunks = chunks,
-                _next = Cursor.Zero,
-                _nextValue = Cursor.Zero.Value
+                _chunkSize = chunkSize,
+                _next = zero,
+                _nextValue = zero.Value
             };
         }
 
@@ -51,7 +54,7 @@ public sealed partial class ResultDocument
             get
             {
                 var value = _nextValue;
-                return Unsafe.As<uint, Cursor>(ref value);
+                return Unsafe.As<int, Cursor>(ref value);
             }
         }
 
@@ -60,7 +63,7 @@ public sealed partial class ResultDocument
             ElementTokenType tokenType,
             int location = 0,
             int sizeOrLength = 0,
-            int parentRow = 0,
+            int parent = 0,
             int operationReferenceId = 0,
             OperationReferenceType operationReferenceType = OperationReferenceType.None,
             int numberOfRows = 0,
@@ -74,11 +77,13 @@ public sealed partial class ResultDocument
             var chunks = _chunks.AsSpan();
             var chunksLength = chunks.Length;
 
-            if (byteOffset + DbRow.Size > Cursor.ChunkBytes)
+            var chunkBytes = 1 << (10 + (int)_chunkSize);
+
+            if (byteOffset + DbRow.Size > chunkBytes)
             {
                 chunkIndex++;
                 byteOffset = 0;
-                next = Cursor.FromByteOffset(chunkIndex, byteOffset);
+                next = Cursor.FromByteOffset(_chunkSize, chunkIndex, byteOffset);
             }
 
             // make sure we have enough space for the chunk referenced by the chunkIndex.
@@ -127,7 +132,7 @@ public sealed partial class ResultDocument
                 tokenType,
                 location,
                 sizeOrLength,
-                parentRow,
+                parent,
                 operationReferenceId,
                 operationReferenceType,
                 numberOfRows,
@@ -149,7 +154,7 @@ public sealed partial class ResultDocument
             ElementTokenType tokenType,
             int location = 0,
             int sizeOrLength = 0,
-            int parentRow = 0,
+            int parent = 0,
             int operationReferenceId = 0,
             OperationReferenceType operationReferenceType = OperationReferenceType.None,
             int numberOfRows = 0,
@@ -161,7 +166,7 @@ public sealed partial class ResultDocument
                 tokenType,
                 location,
                 sizeOrLength,
-                parentRow,
+                parent,
                 operationReferenceId,
                 operationReferenceType,
                 numberOfRows,
@@ -194,8 +199,8 @@ public sealed partial class ResultDocument
 
             if (tokenType is ElementTokenType.Reference)
             {
-                var index = MemoryMarshal.Read<int>(span) & 0x07FFFFFF;
-                cursor = Cursor.FromIndex(index);
+                var value = MemoryMarshal.Read<int>(span) & 0x1FFFFFFF;
+                cursor = new Cursor(value);
                 span = chunks[cursor.Chunk].AsSpan(cursor.ByteOffset + TokenTypeOffset);
                 union = MemoryMarshal.Read<uint>(span);
                 tokenType = (ElementTokenType)(union >> 28);
@@ -211,8 +216,8 @@ public sealed partial class ResultDocument
 
             var span = _chunks[cursor.Chunk].AsSpan(cursor.ByteOffset);
 
-            var locationAndOpRefType = MemoryMarshal.Read<int>(span);
-            return locationAndOpRefType & 0x07FFFFFF;
+            var location = MemoryMarshal.Read<int>(span);
+            return location & 0x1FFFFFFF;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -222,8 +227,8 @@ public sealed partial class ResultDocument
 
             var span = _chunks[cursor.Chunk].AsSpan(cursor.ByteOffset);
 
-            var locationAndOpRefType = MemoryMarshal.Read<int>(span);
-            return Cursor.FromIndex(locationAndOpRefType & 0x07FFFFFF);
+            var location = MemoryMarshal.Read<int>(span);
+            return new Cursor(location & 0x1FFFFFFF);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -232,7 +237,7 @@ public sealed partial class ResultDocument
             AssertValidCursor(cursor);
 
             var span = _chunks[cursor.Chunk].AsSpan(cursor.ByteOffset + 12);
-            return MemoryMarshal.Read<int>(span) & 0x07FFFFFF;
+            return MemoryMarshal.Read<int>(span) & 0x1FFFFFFF;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -241,8 +246,8 @@ public sealed partial class ResultDocument
             AssertValidCursor(cursor);
 
             var span = _chunks[cursor.Chunk].AsSpan(cursor.ByteOffset + 12);
-            var index = MemoryMarshal.Read<int>(span) & 0x07FFFFFF;
-            return Cursor.FromIndex(index);
+            var value = MemoryMarshal.Read<int>(span) & 0x1FFFFFFF;
+            return new Cursor(value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -335,8 +340,8 @@ public sealed partial class ResultDocument
 
             if (resolveReferences && tokenType == ElementTokenType.Reference)
             {
-                var idx = GetLocation(cursor);
-                var resolved = Cursor.FromIndex(idx);
+                var value = GetLocation(cursor);
+                var resolved = new Cursor(value);
                 union = MemoryMarshal.Read<uint>(_chunks[resolved.Chunk].AsSpan(resolved.ByteOffset + TokenTypeOffset));
                 tokenType = (ElementTokenType)(union >> 28);
             }
@@ -352,9 +357,9 @@ public sealed partial class ResultDocument
             Debug.Assert(_chunks[cursor.Chunk].Length > 0, "Accessing unallocated chunk");
 
             var value = _nextValue;
-            var maxCursor = Unsafe.As<uint, Cursor>(ref value);
-            var maxExclusive = maxCursor.Chunk * Cursor.RowsPerChunk + maxCursor.Row;
-            var absoluteIndex = (cursor.Chunk * Cursor.RowsPerChunk) + cursor.Row;
+            var maxCursor = Unsafe.As<int, Cursor>(ref value);
+            var maxExclusive = maxCursor.Index;
+            var absoluteIndex = cursor.Index;
 
             Debug.Assert(absoluteIndex >= 0 && absoluteIndex < maxExclusive,
                 $"Cursor points to row {absoluteIndex}, but only {maxExclusive} rows are valid.");

@@ -16,6 +16,7 @@ public sealed partial class ResultDocument : IDisposable
     private readonly Operation _operation;
     private readonly ulong _includeFlags;
     private readonly Path _rootPath = Path.Root;
+    private readonly ChunkSize _chunkSize = ChunkSize.Size128K;
     internal MetaDb _metaDb;
     private int _nextDataIndex;
     private int _rentedDataSize;
@@ -31,11 +32,13 @@ public sealed partial class ResultDocument : IDisposable
     {
         ArgumentNullException.ThrowIfNull(operation);
 
-        _metaDb = MetaDb.CreateForEstimatedRows(Cursor.RowsPerChunk);
+        var zero = Cursor.CreateZero(_chunkSize);
+
+        _metaDb = MetaDb.CreateForEstimatedRows(_chunkSize, zero.RowsPerChunk);
         _operation = operation;
         _includeFlags = includeFlags;
 
-        Data = CreateObject(Cursor.Zero, operation.RootSelectionSet);
+        Data = CreateObject(zero, operation.RootSelectionSet);
     }
 
     public ResultDocument(
@@ -50,12 +53,14 @@ public sealed partial class ResultDocument : IDisposable
         ArgumentNullException.ThrowIfNull(selectionSet);
         ArgumentNullException.ThrowIfNull(deferUsage);
 
-        _metaDb = MetaDb.CreateForEstimatedRows(Cursor.RowsPerChunk);
+        var zero = Cursor.CreateZero(_chunkSize);
+
+        _metaDb = MetaDb.CreateForEstimatedRows(_chunkSize, zero.RowsPerChunk);
         _operation = operation;
         _includeFlags = includeFlags;
         _rootPath = path;
 
-        Data = CreateObject(Cursor.Zero, selectionSet, includeFlags, deferFlags, deferUsage);
+        Data = CreateObject(zero, selectionSet, includeFlags, deferFlags, deferUsage);
     }
 
     public ResultElement Data { get; }
@@ -79,7 +84,7 @@ public sealed partial class ResultDocument : IDisposable
 
     internal Selection? GetSelection(Cursor cursor)
     {
-        if (cursor == Cursor.Zero)
+        if (cursor.IsZero)
         {
             return null;
         }
@@ -160,13 +165,13 @@ public sealed partial class ResultDocument : IDisposable
         {
             chain[written++] = c;
 
-            var parentIndex = _metaDb.GetParent(c);
-            if (parentIndex <= 0)
+            var parent = _metaDb.GetParentCursor(c);
+            if (parent.IsZero)
             {
                 break;
             }
 
-            c = Cursor.FromIndex(parentIndex);
+            c = parent;
 
             if (written >= 64)
             {
@@ -196,9 +201,7 @@ public sealed partial class ResultDocument : IDisposable
                 if (parentTokenType is ElementTokenType.StartArray)
                 {
                     // arrayIndex = abs(child) - (abs(parent) + 1)
-                    var absChild = (c.Chunk * Cursor.RowsPerChunk) + c.Row;
-                    var absParent = (parentCursor.Chunk * Cursor.RowsPerChunk) + parentCursor.Row;
-                    var arrayIndex = absChild - (absParent + 1);
+                    var arrayIndex = c.Index - (parentCursor.Index + 1);
                     path = path.Append(arrayIndex);
                 }
             }
@@ -213,7 +216,7 @@ public sealed partial class ResultDocument : IDisposable
     {
         // The null cursor represents the data object, which is the utmost root.
         // If we have reached that we simply return an undefined element
-        if (current == Cursor.Zero)
+        if (current.IsZero)
         {
             return default;
         }
@@ -230,7 +233,7 @@ public sealed partial class ResultDocument : IDisposable
         // if we have not yet reached the root and the element type of the parent is an object or an array
         // then we need to get still the parent of this row as we want to get the logical parent
         // which is the value level of the property or the element in an array.
-        if (parent != Cursor.Zero
+        if (!parent.IsZero
             && _metaDb.GetElementTokenType(parent) is ElementTokenType.StartObject or ElementTokenType.StartArray)
         {
             parent = _metaDb.GetParentCursor(parent);
@@ -571,8 +574,8 @@ public sealed partial class ResultDocument : IDisposable
         _metaDb.Replace(
             cursor: target.Cursor,
             tokenType: ElementTokenType.Reference,
-            location: value.Cursor.ToIndex(),
-            parentRow: _metaDb.GetParent(target.Cursor));
+            location: value.Cursor.Value,
+            parent: _metaDb.GetParent(target.Cursor));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -587,7 +590,7 @@ public sealed partial class ResultDocument : IDisposable
             tokenType: ElementTokenType.String,
             location: position,
             sizeOrLength: totalSize,
-            parentRow: _metaDb.GetParent(target.Cursor),
+            parent: _metaDb.GetParent(target.Cursor),
             flags: isEncoded ? ElementFlags.IsEncoded : ElementFlags.None);
     }
 
@@ -608,7 +611,7 @@ public sealed partial class ResultDocument : IDisposable
             tokenType: ElementTokenType.PropertyName,
             location: position,
             sizeOrLength: totalSize,
-            parentRow: row.ParentRow);
+            parent: row.Parent);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -622,7 +625,7 @@ public sealed partial class ResultDocument : IDisposable
             tokenType: ElementTokenType.Number,
             location: position,
             sizeOrLength: value.Length,
-            parentRow: _metaDb.GetParent(target.Cursor));
+            parent: _metaDb.GetParent(target.Cursor));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -631,7 +634,7 @@ public sealed partial class ResultDocument : IDisposable
         _metaDb.Replace(
             cursor: target.Cursor,
             tokenType: value ? ElementTokenType.True : ElementTokenType.False,
-            parentRow: _metaDb.GetParent(target.Cursor));
+            parent: _metaDb.GetParent(target.Cursor));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -640,7 +643,7 @@ public sealed partial class ResultDocument : IDisposable
         _metaDb.Replace(
             cursor: target.Cursor,
             tokenType: ElementTokenType.Null,
-            parentRow: _metaDb.GetParent(target.Cursor));
+            parent: _metaDb.GetParent(target.Cursor));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -767,23 +770,13 @@ public sealed partial class ResultDocument : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Cursor WriteStartObject(Cursor parent, int selectionSetId = 0, bool isSelectionSet = true)
     {
-        var flags = ElementFlags.None;
-        var parentRow = ToIndex(parent);
-
-        if (parentRow < 0)
-        {
-            parentRow = 0;
-            flags = ElementFlags.IsRoot;
-        }
-
         return _metaDb.Append(
             ElementTokenType.StartObject,
-            parentRow: parentRow,
+            parent: parent.Value,
             operationReferenceId: selectionSetId,
             operationReferenceType: isSelectionSet
                 ? OperationReferenceType.SelectionSet
-                : OperationReferenceType.None,
-            flags: flags);
+                : OperationReferenceType.None);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -798,21 +791,11 @@ public sealed partial class ResultDocument : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Cursor WriteStartArray(Cursor parent, int length = 0)
     {
-        var flags = ElementFlags.None;
-        var parentRow = ToIndex(parent);
-
-        if (parentRow < 0)
-        {
-            parentRow = 0;
-            flags = ElementFlags.IsRoot;
-        }
-
         return _metaDb.Append(
             ElementTokenType.StartArray,
             sizeOrLength: length,
-            parentRow: parentRow,
-            numberOfRows: length + 1,
-            flags: flags);
+            parent: parent.Value,
+            numberOfRows: length + 1);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -850,14 +833,14 @@ public sealed partial class ResultDocument : IDisposable
 
         var prop = _metaDb.Append(
             ElementTokenType.PropertyName,
-            parentRow: ToIndex(parent),
+            parent: parent.Value,
             operationReferenceId: selection.Id,
             operationReferenceType: OperationReferenceType.Selection,
             flags: flags);
 
         _metaDb.Append(
             ElementTokenType.None,
-            parentRow: ToIndex(prop));
+            parent: prop.Value);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -865,11 +848,11 @@ public sealed partial class ResultDocument : IDisposable
     {
         var prop = _metaDb.Append(
             ElementTokenType.PropertyName,
-            parentRow: ToIndex(parent));
+            parent: parent.Value);
 
         _metaDb.Append(
             ElementTokenType.None,
-            parentRow: ToIndex(prop));
+            parent: prop.Value);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -877,11 +860,8 @@ public sealed partial class ResultDocument : IDisposable
     {
         _metaDb.Append(
             ElementTokenType.None,
-            parentRow: ToIndex(parent));
+            parent: parent.Value);
     }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static int ToIndex(Cursor c) => (c.Chunk * Cursor.RowsPerChunk) + c.Row;
 
     private static void CheckExpectedType(ElementTokenType expected, ElementTokenType actual)
     {

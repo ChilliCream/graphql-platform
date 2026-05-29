@@ -18,13 +18,13 @@ public sealed partial class CompositeResultDocument
         private Cursor _next;
         private bool _disposed;
 
-        internal static MetaDb CreateForEstimatedRows(int estimatedRows)
+        internal static MetaDb Create(Cursor zero)
         {
-            var chunksNeeded = Math.Max(4, (estimatedRows / Cursor.RowsPerChunk) + 1);
+            const int chunksNeeded = 4;
             var chunks = s_arrayPool.Rent(chunksNeeded);
             var log = Log;
 
-            log.MetaDbCreated(2, estimatedRows, 1);
+            log.MetaDbCreated(2, zero.RowsPerChunk, 1);
 
             // Rent the first chunk now to avoid branching on first append
             chunks[0] = JsonMemory.Rent(JsonMemoryKind.Metadata);
@@ -38,7 +38,7 @@ public sealed partial class CompositeResultDocument
             return new MetaDb
             {
                 _chunks = chunks,
-                _next = Cursor.Zero
+                _next = zero
             };
         }
 
@@ -79,16 +79,17 @@ public sealed partial class CompositeResultDocument
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal Cursor AppendNull(int parentRow)
         {
-            Debug.Assert(parentRow is >= 0 and <= 0x0FFFFFFF);
+            Debug.Assert(parentRow is >= 0 and <= 0x1FFFFFFF);
 
             var (chunk, byteOffset, cursor) = ReserveRow();
 
             ref var dest = ref MemoryMarshal.GetArrayDataReference(chunk);
             ref var row = ref Unsafe.Add(ref dest, byteOffset);
 
-            // int 0: TokenType=None(0) + parentRow in high 28 bits
-            Unsafe.WriteUnaligned(ref row, parentRow << 4);
+            // int 0: parent cursor value (TokenType=None lives at off 16 and is zero here)
+            Unsafe.WriteUnaligned(ref row, parentRow);
             // ints 1..4 stamped zero via a single 16-byte vector store
+            // (off 16 = TokenType.None(0) for free)
             Vector128<byte>.Zero.StoreUnsafe(ref Unsafe.Add(ref row, 4));
 
             _next = cursor + 1;
@@ -98,7 +99,7 @@ public sealed partial class CompositeResultDocument
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal Cursor AppendEmptyProperty(int parentRow, int selectionId, ElementFlags flags)
         {
-            Debug.Assert(parentRow is >= 0 and <= 0x0FFFFFFF);
+            Debug.Assert(parentRow is >= 0 and <= 0x1FFFFFFF);
             Debug.Assert(selectionId is >= 0 and <= 0x7FFF);
             Debug.Assert((byte)flags <= 63);
 
@@ -107,10 +108,8 @@ public sealed partial class CompositeResultDocument
             ref var dest = ref MemoryMarshal.GetArrayDataReference(chunk);
             ref var row = ref Unsafe.Add(ref dest, byteOffset);
 
-            // int 0: PropertyName token + parentRow
-            Unsafe.WriteUnaligned(
-                ref row,
-                (int)ElementTokenType.PropertyName | (parentRow << 4));
+            // int 0: parent cursor value
+            Unsafe.WriteUnaligned(ref row, parentRow);
 
             // int 1: selectionId + opRefType=Selection + flags
             Unsafe.WriteUnaligned(
@@ -119,8 +118,13 @@ public sealed partial class CompositeResultDocument
                 | ((int)OperationReferenceType.Selection << 15)
                 | ((int)flags << 17));
 
-            // ints 2..4 must be zero
+            // ints 2..4 must be zero (this clears off 16 too)
             Unsafe.InitBlockUnaligned(ref Unsafe.Add(ref row, 8), 0, 12);
+
+            // int 4: PropertyName token (written AFTER the zero-fill that covers off 16)
+            Unsafe.WriteUnaligned(
+                ref Unsafe.Add(ref row, 16),
+                (int)ElementTokenType.PropertyName << 15);
 
             _next = cursor + 1;
             return cursor;
@@ -129,54 +133,57 @@ public sealed partial class CompositeResultDocument
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal Cursor AppendEmptyPropertyWithNullValue(int parentRow, int selectionId, ElementFlags flags)
         {
-            Debug.Assert(parentRow is >= 0 and <= 0x0FFFFFFF);
+            Debug.Assert(parentRow is >= 0 and <= 0x1FFFFFFF);
             Debug.Assert(selectionId is >= 0 and <= 0x7FFF);
             Debug.Assert((byte)flags <= 63);
 
             var next = _next;
             var byteOffset = next.ByteOffset;
+            var chunkBytes = 1 << (10 + (int)next.ChunkSize);
             var chunks = _chunks;
 
             // Fast path: both rows fit in the current chunk.
-            if (byteOffset + (DbRow.Size * 2) <= Cursor.ChunkBytes
+            if (byteOffset + (DbRow.Size * 2) <= chunkBytes
                 && (uint)next.Chunk < (uint)chunks.Length
                 && chunks[next.Chunk] is { Length: > 0 } chunk)
             {
                 ref var dest = ref MemoryMarshal.GetArrayDataReference(chunk);
                 ref var row0 = ref Unsafe.Add(ref dest, byteOffset);
 
-                // Row 0 — PropertyName
-                Unsafe.WriteUnaligned(
-                    ref row0,
-                    (int)ElementTokenType.PropertyName | (parentRow << 4));
+                // Row 0: PropertyName
+                Unsafe.WriteUnaligned(ref row0, parentRow);
                 Unsafe.WriteUnaligned(
                     ref Unsafe.Add(ref row0, 4),
                     selectionId
                     | ((int)OperationReferenceType.Selection << 15)
                     | ((int)flags << 17));
                 Unsafe.InitBlockUnaligned(ref Unsafe.Add(ref row0, 8), 0, 12);
+                // PropertyName token at off 16, after the zero-fill that covers it.
+                Unsafe.WriteUnaligned(
+                    ref Unsafe.Add(ref row0, 16),
+                    (int)ElementTokenType.PropertyName << 15);
 
-                // Row 1 — None value with parent = index of Row 0 (= next.Index)
+                // Row 1: None value with parent = cursor value of Row 0 (= next.Value)
                 ref var row1 = ref Unsafe.Add(ref row0, DbRow.Size);
-                Unsafe.WriteUnaligned(ref row1, next.Index << 4);
+                Unsafe.WriteUnaligned(ref row1, next.Value);
                 Vector128<byte>.Zero.StoreUnsafe(ref Unsafe.Add(ref row1, 4));
 
                 _next = next + 2;
                 return next;
             }
 
-            // Slow path — crosses chunk boundary or chunk not yet rented
+            // Slow path: crosses chunk boundary or chunk not yet rented
             var propCursor = AppendEmptyProperty(parentRow, selectionId, flags);
-            AppendNull(propCursor.Index);
+            AppendNull(propCursor.Value);
             return propCursor;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal Cursor AppendStartObject(int parentRow, int selectionSetId, int propertyCount, ElementFlags flags)
         {
-            Debug.Assert(parentRow is >= 0 and <= 0x0FFFFFFF);
+            Debug.Assert(parentRow is >= 0 and <= 0x1FFFFFFF);
             Debug.Assert(selectionSetId is >= 0 and <= 0x7FFF);
-            Debug.Assert(propertyCount is >= 0 and <= 0x03FFFFFF); // room for (count*2)+1 in 27 bits
+            Debug.Assert(propertyCount is >= 0 and <= 0x0FFFFFFF); // room for (count*2)+1 in 29 bits
             Debug.Assert((byte)flags <= 63);
 
             var (chunk, byteOffset, cursor) = ReserveRow();
@@ -184,10 +191,8 @@ public sealed partial class CompositeResultDocument
             ref var dest = ref MemoryMarshal.GetArrayDataReference(chunk);
             ref var row = ref Unsafe.Add(ref dest, byteOffset);
 
-            // int 0: token + parent
-            Unsafe.WriteUnaligned(
-                ref row,
-                (int)ElementTokenType.StartObject | (parentRow << 4));
+            // int 0: parent cursor value
+            Unsafe.WriteUnaligned(ref row, parentRow);
 
             // int 1: selectionSetId + SelectionSet + flags
             Unsafe.WriteUnaligned(
@@ -202,10 +207,10 @@ public sealed partial class CompositeResultDocument
             // int 3: numberOfRows = (count * 2) + 1   (1 property = 2 rows: name + value)
             Unsafe.WriteUnaligned(
                 ref Unsafe.Add(ref row, 12),
-                ((propertyCount * 2) + 1) & 0x07FFFFFF);
+                ((propertyCount * 2) + 1) & 0x1FFFFFFF);
 
-            // int 4: zero
-            Unsafe.WriteUnaligned(ref Unsafe.Add(ref row, 16), 0);
+            // int 4: StartObject token (sourceDocumentId = 0)
+            Unsafe.WriteUnaligned(ref Unsafe.Add(ref row, 16), (int)ElementTokenType.StartObject << 15);
 
             _next = cursor + 1;
             return cursor;
@@ -214,7 +219,7 @@ public sealed partial class CompositeResultDocument
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal Cursor AppendStartArray(int parentRow, int length, ElementFlags flags)
         {
-            Debug.Assert(parentRow is >= 0 and <= 0x0FFFFFFF);
+            Debug.Assert(parentRow is >= 0 and <= 0x1FFFFFFF);
             Debug.Assert(length is >= 0 and <= int.MaxValue);
             Debug.Assert((byte)flags <= 63);
 
@@ -223,10 +228,8 @@ public sealed partial class CompositeResultDocument
             ref var dest = ref MemoryMarshal.GetArrayDataReference(chunk);
             ref var row = ref Unsafe.Add(ref dest, byteOffset);
 
-            // int 0: token + parent
-            Unsafe.WriteUnaligned(
-                ref row,
-                (int)ElementTokenType.StartArray | (parentRow << 4));
+            // int 0: parent cursor value
+            Unsafe.WriteUnaligned(ref row, parentRow);
 
             // int 1: flags only (no OpRefId / no OpRefType for arrays)
             Unsafe.WriteUnaligned(
@@ -237,10 +240,10 @@ public sealed partial class CompositeResultDocument
             Unsafe.WriteUnaligned(ref Unsafe.Add(ref row, 8), length);
 
             // int 3: numberOfRows = length + 1
-            Unsafe.WriteUnaligned(ref Unsafe.Add(ref row, 12), (length + 1) & 0x07FFFFFF);
+            Unsafe.WriteUnaligned(ref Unsafe.Add(ref row, 12), (length + 1) & 0x1FFFFFFF);
 
-            // int 4: zero
-            Unsafe.WriteUnaligned(ref Unsafe.Add(ref row, 16), 0);
+            // int 4: StartArray token (sourceDocumentId = 0)
+            Unsafe.WriteUnaligned(ref Unsafe.Add(ref row, 16), (int)ElementTokenType.StartArray << 15);
 
             _next = cursor + 1;
             return cursor;
@@ -254,8 +257,12 @@ public sealed partial class CompositeResultDocument
             ref var dest = ref MemoryMarshal.GetArrayDataReference(chunk);
             ref var row = ref Unsafe.Add(ref dest, byteOffset);
 
-            Unsafe.WriteUnaligned(ref row, (int)ElementTokenType.EndObject);
+            // int 0: no parent
+            Unsafe.WriteUnaligned(ref row, 0);
+            // ints 1..4 zeroed (this clears off 16 too)
             Unsafe.InitBlockUnaligned(ref Unsafe.Add(ref row, 4), 0, 16);
+            // int 4: EndObject token, after the zero-fill that covers off 16
+            Unsafe.WriteUnaligned(ref Unsafe.Add(ref row, 16), (int)ElementTokenType.EndObject << 15);
 
             _next = cursor + 1;
             return cursor;
@@ -269,8 +276,12 @@ public sealed partial class CompositeResultDocument
             ref var dest = ref MemoryMarshal.GetArrayDataReference(chunk);
             ref var row = ref Unsafe.Add(ref dest, byteOffset);
 
-            Unsafe.WriteUnaligned(ref row, (int)ElementTokenType.EndArray);
+            // int 0: no parent
+            Unsafe.WriteUnaligned(ref row, 0);
+            // ints 1..4 zeroed (this clears off 16 too)
             Unsafe.InitBlockUnaligned(ref Unsafe.Add(ref row, 4), 0, 16);
+            // int 4: EndArray token, after the zero-fill that covers off 16
+            Unsafe.WriteUnaligned(ref Unsafe.Add(ref row, 16), (int)ElementTokenType.EndArray << 15);
 
             _next = cursor + 1;
             return cursor;
@@ -279,7 +290,7 @@ public sealed partial class CompositeResultDocument
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void AppendNullRange(int parentRow, int count)
         {
-            Debug.Assert(parentRow is >= 0 and <= 0x0FFFFFFF);
+            Debug.Assert(parentRow is >= 0 and <= 0x1FFFFFFF);
             Debug.Assert(count >= 0);
 
             if (count == 0)
@@ -289,10 +300,11 @@ public sealed partial class CompositeResultDocument
 
             var next = _next;
             var byteOffset = next.ByteOffset;
+            var chunkBytes = 1 << (10 + (int)next.ChunkSize);
             var bytesNeeded = count * DbRow.Size;
 
             // Fast path: all rows fit in the current chunk.
-            if (byteOffset + bytesNeeded <= Cursor.ChunkBytes
+            if (byteOffset + bytesNeeded <= chunkBytes
                 && next.Chunk < _chunks.Length
                 && _chunks[next.Chunk].Length > 0)
             {
@@ -301,15 +313,15 @@ public sealed partial class CompositeResultDocument
                 ref var dest = ref MemoryMarshal.GetArrayDataReference(chunk);
                 ref var region = ref Unsafe.Add(ref dest, byteOffset);
 
-                // Zero the whole range once, then stamp parentRow into int 0 of each row.
+                // Zero the whole range once (off 16 = TokenType.None for free), then
+                // stamp the parent cursor value into int 0 of each row.
                 Unsafe.InitBlockUnaligned(ref region, 0, (uint)bytesNeeded);
 
-                var parentPacked = parentRow << 4;
                 for (var i = 0; i < count; i++)
                 {
                     Unsafe.WriteUnaligned(
                         ref Unsafe.Add(ref region, i * DbRow.Size),
-                        parentPacked);
+                        parentRow);
                 }
 
                 _next = next + count;
@@ -333,12 +345,13 @@ public sealed partial class CompositeResultDocument
             var next = _next;
             var chunkIndex = next.Chunk;
             var byteOffset = next.ByteOffset;
+            var chunkBytes = 1 << (10 + (int)next.ChunkSize);
 
-            if (byteOffset + DbRow.Size > Cursor.ChunkBytes)
+            if (byteOffset + DbRow.Size > chunkBytes)
             {
                 chunkIndex++;
                 byteOffset = 0;
-                next = Cursor.FromByteOffset(chunkIndex, byteOffset);
+                next = next.FromByteOffset(chunkIndex, byteOffset);
             }
 
             var chunks = _chunks.AsSpan();
@@ -424,7 +437,7 @@ public sealed partial class CompositeResultDocument
 
             if (row.TokenType is ElementTokenType.Reference)
             {
-                cursor = Cursor.FromIndex(row.Location);
+                cursor = new Cursor(row.Location);
                 row = Get(cursor);
             }
 
@@ -438,16 +451,16 @@ public sealed partial class CompositeResultDocument
 
             var chunks = _chunks.AsSpan();
             var span = chunks[cursor.Chunk].AsSpan(cursor.ByteOffset);
-            var typeAndParent = MemoryMarshal.Read<int>(span);
-            var tokenType = (ElementTokenType)(typeAndParent & 0x0F);
+            var sourceAndType = MemoryMarshal.Read<int>(span[DbRow.SourceAndTypeOffset..]);
+            var tokenType = (ElementTokenType)((sourceAndType >>> 15) & 0x0F);
 
             if (tokenType is ElementTokenType.Reference)
             {
-                var index = MemoryMarshal.Read<int>(span[DbRow.LocationOrRowsOffset..]) & 0x07FFFFFF;
-                cursor = Cursor.FromIndex(index);
+                var value = MemoryMarshal.Read<int>(span[DbRow.LocationOrRowsOffset..]) & 0x1FFFFFFF;
+                cursor = new Cursor(value);
                 span = chunks[cursor.Chunk].AsSpan(cursor.ByteOffset);
-                typeAndParent = MemoryMarshal.Read<int>(span);
-                tokenType = (ElementTokenType)(typeAndParent & 0x0F);
+                sourceAndType = MemoryMarshal.Read<int>(span[DbRow.SourceAndTypeOffset..]);
+                tokenType = (ElementTokenType)((sourceAndType >>> 15) & 0x0F);
             }
 
             return (cursor, tokenType);
@@ -461,7 +474,7 @@ public sealed partial class CompositeResultDocument
             var span = _chunks[cursor.Chunk].AsSpan(cursor.ByteOffset + DbRow.LocationOrRowsOffset);
 
             var locationOrRows = MemoryMarshal.Read<int>(span);
-            return locationOrRows & 0x07FFFFFF;
+            return locationOrRows & 0x1FFFFFFF;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -472,7 +485,7 @@ public sealed partial class CompositeResultDocument
             var span = _chunks[cursor.Chunk].AsSpan(cursor.ByteOffset + DbRow.LocationOrRowsOffset);
 
             var locationOrRows = MemoryMarshal.Read<int>(span);
-            return Cursor.FromIndex(locationOrRows & 0x07FFFFFF);
+            return new Cursor(locationOrRows & 0x1FFFFFFF);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -482,8 +495,8 @@ public sealed partial class CompositeResultDocument
 
             var span = _chunks[cursor.Chunk].AsSpan(cursor.ByteOffset);
 
-            var typeAndParent = MemoryMarshal.Read<int>(span);
-            return (int)((uint)typeAndParent >> 4);
+            var parent = MemoryMarshal.Read<int>(span);
+            return parent & 0x1FFFFFFF;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -493,10 +506,9 @@ public sealed partial class CompositeResultDocument
 
             var span = _chunks[cursor.Chunk].AsSpan(cursor.ByteOffset);
 
-            var typeAndParent = MemoryMarshal.Read<int>(span);
-            var index = (int)((uint)typeAndParent >> 4);
+            var parent = MemoryMarshal.Read<int>(span) & 0x1FFFFFFF;
 
-            return Cursor.FromIndex(index);
+            return new Cursor(parent);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -508,7 +520,7 @@ public sealed partial class CompositeResultDocument
             var span = _chunks[cursor.Chunk].AsSpan(cursor.ByteOffset + DbRow.LocationOrRowsOffset);
 
             var value = MemoryMarshal.Read<int>(span);
-            return value & 0x07FFFFFF;
+            return value & 0x1FFFFFFF;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -569,15 +581,15 @@ public sealed partial class CompositeResultDocument
         internal void SetNumberOfRows(Cursor cursor, int numberOfRows)
         {
             AssertValidCursor(cursor);
-            Debug.Assert(numberOfRows >= 0 && numberOfRows <= 0x07FFFFFF, "NumberOfRows value exceeds 27-bit limit");
+            Debug.Assert(numberOfRows >= 0 && numberOfRows <= 0x1FFFFFFF, "NumberOfRows value exceeds 29-bit limit");
 
-            // NumberOfRows shares storage with Location in int 3. Preserve the 5 reserved
-            // high bits and write the 27-bit value into the low bits.
+            // NumberOfRows shares storage with Location in int 3. Preserve the 3 reserved
+            // high bits and write the 29-bit value into the low bits.
             var fieldSpan = _chunks[cursor.Chunk].AsSpan(cursor.ByteOffset + DbRow.LocationOrRowsOffset);
             var currentValue = MemoryMarshal.Read<int>(fieldSpan);
 
-            var clearedValue = (int)((uint)currentValue & 0xF8000000u);
-            var newValue = clearedValue | (numberOfRows & 0x07FFFFFF);
+            var clearedValue = (int)((uint)currentValue & 0xE0000000u);
+            var newValue = clearedValue | (numberOfRows & 0x1FFFFFFF);
 
             MemoryMarshal.Write(fieldSpan, newValue);
         }
@@ -587,15 +599,17 @@ public sealed partial class CompositeResultDocument
         {
             AssertValidCursor(cursor);
 
-            var typeAndParent = MemoryMarshal.Read<int>(_chunks[cursor.Chunk].AsSpan(cursor.ByteOffset));
-            var tokenType = (ElementTokenType)(typeAndParent & 0x0F);
+            var sourceAndType = MemoryMarshal.Read<int>(
+                _chunks[cursor.Chunk].AsSpan(cursor.ByteOffset + DbRow.SourceAndTypeOffset));
+            var tokenType = (ElementTokenType)((sourceAndType >>> 15) & 0x0F);
 
             if (resolveReferences && tokenType == ElementTokenType.Reference)
             {
-                var idx = GetLocation(cursor);
-                var resolved = Cursor.FromIndex(idx);
-                typeAndParent = MemoryMarshal.Read<int>(_chunks[resolved.Chunk].AsSpan(resolved.ByteOffset));
-                tokenType = (ElementTokenType)(typeAndParent & 0x0F);
+                var value = GetLocation(cursor);
+                var resolved = new Cursor(value);
+                sourceAndType = MemoryMarshal.Read<int>(
+                    _chunks[resolved.Chunk].AsSpan(resolved.ByteOffset + DbRow.SourceAndTypeOffset));
+                tokenType = (ElementTokenType)((sourceAndType >>> 15) & 0x0F);
             }
 
             return tokenType;
@@ -608,8 +622,8 @@ public sealed partial class CompositeResultDocument
             Debug.Assert(cursor.Chunk < _chunks.Length, "Chunk index out of bounds");
             Debug.Assert(_chunks[cursor.Chunk].Length > 0, "Accessing unallocated chunk");
 
-            var maxExclusive = _next.Chunk * Cursor.RowsPerChunk + _next.Row;
-            var absoluteIndex = (cursor.Chunk * Cursor.RowsPerChunk) + cursor.Row;
+            var maxExclusive = _next.Index;
+            var absoluteIndex = cursor.Index;
 
             Debug.Assert(absoluteIndex >= 0 && absoluteIndex < maxExclusive,
                 $"Cursor points to row {absoluteIndex}, but only {maxExclusive} rows are valid.");

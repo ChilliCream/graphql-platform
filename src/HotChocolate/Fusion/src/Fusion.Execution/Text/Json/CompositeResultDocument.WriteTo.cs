@@ -16,7 +16,7 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
     {
         public void Write()
         {
-            var root = Cursor.Zero;
+            var root = Cursor.CreateZero(document._chunkSize);
             var row = document._metaDb.Get(root);
 
             if (row.TokenType is ElementTokenType.Null
@@ -37,7 +37,7 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
             // Inline reference resolution
             if (tokenType is ElementTokenType.Reference)
             {
-                cursor = Cursor.FromIndex(row.Location);
+                cursor = new Cursor(row.Location);
                 row = document._metaDb.Get(cursor);
                 tokenType = row.TokenType;
             }

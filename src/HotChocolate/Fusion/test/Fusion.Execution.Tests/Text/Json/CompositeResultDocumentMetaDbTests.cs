@@ -4,13 +4,17 @@ namespace HotChocolate.Fusion.Text.Json;
 
 public class CompositeResultDocumentMetaDbTests : IDisposable
 {
-    private MetaDb _metaDb = MetaDb.CreateForEstimatedRows(100);
+    private MetaDb _metaDb = MetaDb.Create(Cursor.CreateZero(ChunkSize.Size128K));
+
+    private static Cursor CreateCursor(int index) => Cursor.CreateZero(ChunkSize.Size128K).AddRows(index);
+
+    private static int TotalBytes(Cursor cursor) => (cursor.Chunk * (1 << (10 + (int)cursor.ChunkSize))) + cursor.ByteOffset;
 
     [Fact]
-    public void CreateForEstimatedRows_WithSmallEstimate_CreatesValidMetaDb()
+    public void Create_CreatesValidMetaDb()
     {
         // Arrange & Act
-        using var metaDb = MetaDb.CreateForEstimatedRows(10);
+        using var metaDb = MetaDb.Create(Cursor.CreateZero(ChunkSize.Size128K));
 
         // Assert
         Assert.Equal(0, metaDb.NextCursor.Index);
@@ -31,7 +35,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
 
         // Assert
         Assert.Equal(0, cursor.Index);
-        Assert.Equal(20, _metaDb.NextCursor.ToTotalBytes());
+        Assert.Equal(20, TotalBytes(_metaDb.NextCursor));
     }
 
     [Fact]
@@ -46,7 +50,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         Assert.Equal(0, index1.Index);
         Assert.Equal(1, index2.Index);
         Assert.Equal(2, index3.Index);
-        Assert.Equal(60, _metaDb.NextCursor.ToTotalBytes());
+        Assert.Equal(60, TotalBytes(_metaDb.NextCursor));
     }
 
     [Fact]
@@ -70,7 +74,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         Assert.Equal(123, row.Location);
         Assert.Equal(456, row.SizeOrLength);
         Assert.Equal(7, row.SourceDocumentId);
-        Assert.Equal(89, row.ParentRow);
+        Assert.Equal(89, row.Parent);
         Assert.Equal(12, row.OperationReferenceId);
         Assert.Equal(ElementFlags.IsNullable | ElementFlags.IsExcluded, row.Flags);
         Assert.False(row.HasComplexChildren);
@@ -145,7 +149,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         Assert.Equal(rowsPerChunk + 10, indices.Count);
 
         // Verify we can read from both chunks
-        var firstRow = _metaDb.Get(Cursor.FromIndex(0));
+        var firstRow = _metaDb.Get(CreateCursor(0));
         var lastRow = _metaDb.Get(indices.Last());
 
         Assert.Equal(0, firstRow.Location);
@@ -178,7 +182,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         Assert.Equal(maxLocation, row.Location);
         Assert.Equal(maxSizeOrLength, row.SizeOrLength);
         Assert.Equal(maxSourceDocumentId, row.SourceDocumentId);
-        Assert.Equal(maxParentRow, row.ParentRow);
+        Assert.Equal(maxParentRow, row.Parent);
         Assert.Equal(maxSelectionSetId, row.OperationReferenceId);
     }
 
@@ -250,7 +254,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
     public void Dispose_WhenCalled_CleansUpResources()
     {
         // Arrange
-        var metaDb = MetaDb.CreateForEstimatedRows(10);
+        var metaDb = MetaDb.Create(Cursor.CreateZero(ChunkSize.Size128K));
         metaDb.Append(ElementTokenType.String);
 
         // Act & Assert - Should not throw
@@ -261,7 +265,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
     public void MultipleDispose_DoesNotThrow()
     {
         // Arrange
-        var metaDb = MetaDb.CreateForEstimatedRows(10);
+        var metaDb = MetaDb.Create(Cursor.CreateZero(ChunkSize.Size128K));
 
         // Act & Assert - Should not throw
         metaDb.Dispose();
@@ -272,7 +276,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
     public void Append_ExceedsInitialChunkCapacity_ExpandsChunkArray()
     {
         // Arrange
-        using var metaDb = MetaDb.CreateForEstimatedRows(4);
+        using var metaDb = MetaDb.Create(Cursor.CreateZero(ChunkSize.Size128K));
 
         const int chunkSize = 128 * 1024;
         const int rowsPerChunk = chunkSize / 20;
@@ -290,12 +294,12 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
 
         // since 20 bytes do not fit perfectly into 128kb buffers we have some
         // extra skip bytes.
-        Assert.Equal((totalRowsToAdd * 20) + 48, metaDb.NextCursor.ToTotalBytes());
+        Assert.Equal((totalRowsToAdd * 20) + 48, TotalBytes(metaDb.NextCursor));
 
         // Verify we can read data from all chunks
-        var firstRow = metaDb.Get(Cursor.FromIndex(0));
-        var middleRow = metaDb.Get(Cursor.FromIndex(totalRowsToAdd / 2));
-        var lastRow = metaDb.Get(Cursor.FromIndex(totalRowsToAdd - 1));
+        var firstRow = metaDb.Get(CreateCursor(0));
+        var middleRow = metaDb.Get(CreateCursor(totalRowsToAdd / 2));
+        var lastRow = metaDb.Get(CreateCursor(totalRowsToAdd - 1));
 
         Assert.Equal(0, firstRow.Location);
         Assert.Equal(totalRowsToAdd / 2, middleRow.Location);
@@ -321,7 +325,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         var row = _metaDb.Get(index);
         Assert.Equal(ElementTokenType.StartObject, row.TokenType);
         Assert.Equal(3, row.SizeOrLength);
-        Assert.Equal(10, row.ParentRow);
+        Assert.Equal(10, row.Parent);
         Assert.Equal(7, row.NumberOfRows);
     }
 
@@ -361,7 +365,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         Assert.Equal(11, row.NumberOfRows);
         Assert.Equal(ElementTokenType.StartObject, row.TokenType);
         Assert.Equal(5, row.SizeOrLength);
-        Assert.Equal(100, row.ParentRow);
+        Assert.Equal(100, row.Parent);
         Assert.Equal(42, row.OperationReferenceId);
         Assert.Equal(ElementFlags.IsRoot, row.Flags);
     }
@@ -384,7 +388,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         var row = _metaDb.Get(index);
         Assert.Equal(ElementFlags.IsNullable | ElementFlags.IsRoot, row.Flags);
         Assert.Equal(ElementTokenType.PropertyName, row.TokenType);
-        Assert.Equal(100, row.ParentRow);
+        Assert.Equal(100, row.Parent);
         Assert.Equal(42, row.OperationReferenceId);
         Assert.Equal(OperationReferenceType.Selection, row.OperationReferenceType);
     }
@@ -406,7 +410,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         var row = _metaDb.Get(index);
         Assert.Equal(15, row.SizeOrLength);
         Assert.Equal(ElementTokenType.StartObject, row.TokenType);
-        Assert.Equal(7, row.ParentRow);
+        Assert.Equal(7, row.Parent);
         Assert.Equal(9, row.NumberOfRows);
     }
 
@@ -419,7 +423,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         // Assert
         var row = _metaDb.Get(cursor);
         Assert.Equal(ElementTokenType.None, row.TokenType);
-        Assert.Equal(42, row.ParentRow);
+        Assert.Equal(42, row.Parent);
         Assert.Equal(0, row.Location);
         Assert.Equal(0, row.SizeOrLength);
         Assert.Equal(0, row.SourceDocumentId);
@@ -440,16 +444,16 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         Assert.Equal(0, c0.Index);
         Assert.Equal(1, c1.Index);
         Assert.Equal(2, c2.Index);
-        Assert.Equal(0, _metaDb.Get(c0).ParentRow);
-        Assert.Equal(c0.Index, _metaDb.Get(c1).ParentRow);
-        Assert.Equal(c1.Index, _metaDb.Get(c2).ParentRow);
+        Assert.Equal(0, _metaDb.Get(c0).Parent);
+        Assert.Equal(c0.Index, _metaDb.Get(c1).Parent);
+        Assert.Equal(c1.Index, _metaDb.Get(c2).Parent);
     }
 
     [Fact]
     public void AppendNull_IsEquivalentToGenericAppend()
     {
         // Arrange — compare specialized vs generic path
-        using var reference = MetaDb.CreateForEstimatedRows(10);
+        using var reference = MetaDb.Create(Cursor.CreateZero(ChunkSize.Size128K));
         var refCursor = reference.Append(ElementTokenType.None, parentRow: 123);
 
         // Act
@@ -460,7 +464,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         var row = _metaDb.Get(cursor);
 
         Assert.Equal(refRow.TokenType, row.TokenType);
-        Assert.Equal(refRow.ParentRow, row.ParentRow);
+        Assert.Equal(refRow.Parent, row.Parent);
         Assert.Equal(refRow.Location, row.Location);
         Assert.Equal(refRow.SizeOrLength, row.SizeOrLength);
         Assert.Equal(refRow.NumberOfRows, row.NumberOfRows);
@@ -482,7 +486,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         // Assert
         var row = _metaDb.Get(cursor);
         Assert.Equal(ElementTokenType.PropertyName, row.TokenType);
-        Assert.Equal(7, row.ParentRow);
+        Assert.Equal(7, row.Parent);
         Assert.Equal(99, row.OperationReferenceId);
         Assert.Equal(OperationReferenceType.Selection, row.OperationReferenceType);
         Assert.Equal(ElementFlags.IsNullable | ElementFlags.IsInternal, row.Flags);
@@ -504,7 +508,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         // Assert
         var row = _metaDb.Get(cursor);
         Assert.Equal(ElementTokenType.PropertyName, row.TokenType);
-        Assert.Equal(0, row.ParentRow);
+        Assert.Equal(0, row.Parent);
         Assert.Equal(1, row.OperationReferenceId);
         Assert.Equal(ElementFlags.None, row.Flags);
     }
@@ -513,7 +517,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
     public void AppendEmptyProperty_IsEquivalentToGenericAppend()
     {
         // Arrange
-        using var reference = MetaDb.CreateForEstimatedRows(10);
+        using var reference = MetaDb.Create(Cursor.CreateZero(ChunkSize.Size128K));
         var refCursor = reference.Append(
             ElementTokenType.PropertyName,
             parentRow: 13,
@@ -532,7 +536,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         var row = _metaDb.Get(cursor);
 
         Assert.Equal(refRow.TokenType, row.TokenType);
-        Assert.Equal(refRow.ParentRow, row.ParentRow);
+        Assert.Equal(refRow.Parent, row.Parent);
         Assert.Equal(refRow.OperationReferenceId, row.OperationReferenceId);
         Assert.Equal(refRow.OperationReferenceType, row.OperationReferenceType);
         Assert.Equal(refRow.Flags, row.Flags);
@@ -553,16 +557,16 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         // Assert — PropertyName row
         var propRow = _metaDb.Get(propCursor);
         Assert.Equal(ElementTokenType.PropertyName, propRow.TokenType);
-        Assert.Equal(5, propRow.ParentRow);
+        Assert.Equal(5, propRow.Parent);
         Assert.Equal(11, propRow.OperationReferenceId);
         Assert.Equal(OperationReferenceType.Selection, propRow.OperationReferenceType);
         Assert.Equal(ElementFlags.IsNullable, propRow.Flags);
 
         // Assert — None value row with parent = PropertyName cursor
-        var valueCursor = Cursor.FromIndex(propCursor.Index + 1);
+        var valueCursor = CreateCursor(propCursor.Index + 1);
         var valueRow = _metaDb.Get(valueCursor);
         Assert.Equal(ElementTokenType.None, valueRow.TokenType);
-        Assert.Equal(propCursor.Index, valueRow.ParentRow);
+        Assert.Equal(propCursor.Value, valueRow.Parent);
         Assert.Equal(0, valueRow.Location);
         Assert.Equal(0, valueRow.OperationReferenceId);
         Assert.Equal(ElementFlags.None, valueRow.Flags);
@@ -575,7 +579,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
     public void AppendEmptyPropertyWithNullValue_IsEquivalentToTwoGenericAppends()
     {
         // Arrange
-        using var reference = MetaDb.CreateForEstimatedRows(10);
+        using var reference = MetaDb.Create(Cursor.CreateZero(ChunkSize.Size128K));
         var refProp = reference.Append(
             ElementTokenType.PropertyName,
             parentRow: 21,
@@ -584,20 +588,20 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
             flags: ElementFlags.IsInternal);
         var refNull = reference.Append(
             ElementTokenType.None,
-            parentRow: refProp.Index);
+            parentRow: refProp.Value);
 
         // Act
         var propCursor = _metaDb.AppendEmptyPropertyWithNullValue(
             parentRow: 21,
             selectionId: 3,
             flags: ElementFlags.IsInternal);
-        var valueCursor = Cursor.FromIndex(propCursor.Index + 1);
+        var valueCursor = CreateCursor(propCursor.Index + 1);
 
         // Assert property rows match byte-for-byte
         var refPropRow = reference.Get(refProp);
         var propRow = _metaDb.Get(propCursor);
         Assert.Equal(refPropRow.TokenType, propRow.TokenType);
-        Assert.Equal(refPropRow.ParentRow, propRow.ParentRow);
+        Assert.Equal(refPropRow.Parent, propRow.Parent);
         Assert.Equal(refPropRow.OperationReferenceId, propRow.OperationReferenceId);
         Assert.Equal(refPropRow.OperationReferenceType, propRow.OperationReferenceType);
         Assert.Equal(refPropRow.Flags, propRow.Flags);
@@ -606,14 +610,14 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         var refNullRow = reference.Get(refNull);
         var valueRow = _metaDb.Get(valueCursor);
         Assert.Equal(refNullRow.TokenType, valueRow.TokenType);
-        Assert.Equal(refNullRow.ParentRow, valueRow.ParentRow);
+        Assert.Equal(refNullRow.Parent, valueRow.Parent);
     }
 
     [Fact]
     public void AppendEmptyPropertyWithNullValue_FallsBackAcrossChunkBoundary()
     {
         // Arrange — fill current chunk so only 1 row fits, forcing slow path.
-        using var metaDb = MetaDb.CreateForEstimatedRows(4);
+        using var metaDb = MetaDb.Create(Cursor.CreateZero(ChunkSize.Size128K));
         const int rowsPerChunk = 128 * 1024 / 20;
 
         // Fill all but one slot in the first chunk
@@ -627,7 +631,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
             parentRow: 0,
             selectionId: 7,
             flags: ElementFlags.None);
-        var valueCursor = Cursor.FromIndex(propCursor.Index + 1);
+        var valueCursor = CreateCursor(propCursor.Index + 1);
 
         // Assert — correctness preserved across boundary
         var propRow = metaDb.Get(propCursor);
@@ -635,14 +639,14 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         Assert.Equal(ElementTokenType.PropertyName, propRow.TokenType);
         Assert.Equal(7, propRow.OperationReferenceId);
         Assert.Equal(ElementTokenType.None, valueRow.TokenType);
-        Assert.Equal(propCursor.Index, valueRow.ParentRow);
+        Assert.Equal(propCursor.Value, valueRow.Parent);
     }
 
     [Fact]
     public void AppendNull_FollowsChunkBoundary()
     {
         // Arrange — fill the first chunk and verify AppendNull keeps advancing into chunk 2.
-        using var metaDb = MetaDb.CreateForEstimatedRows(4);
+        using var metaDb = MetaDb.Create(Cursor.CreateZero(ChunkSize.Size128K));
         const int rowsPerChunk = 128 * 1024 / 20;
 
         for (var i = 0; i < rowsPerChunk + 5; i++)
@@ -653,9 +657,9 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         // Assert — every row readable with expected parent
         for (var i = 0; i < rowsPerChunk + 5; i++)
         {
-            var row = metaDb.Get(Cursor.FromIndex(i));
+            var row = metaDb.Get(CreateCursor(i));
             Assert.Equal(ElementTokenType.None, row.TokenType);
-            Assert.Equal(i, row.ParentRow);
+            Assert.Equal(i, row.Parent);
         }
     }
 
@@ -672,7 +676,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         // Assert
         var row = _metaDb.Get(cursor);
         Assert.Equal(ElementTokenType.StartObject, row.TokenType);
-        Assert.Equal(5, row.ParentRow);
+        Assert.Equal(5, row.Parent);
         Assert.Equal(42, row.OperationReferenceId);
         Assert.Equal(OperationReferenceType.SelectionSet, row.OperationReferenceType);
         Assert.Equal(ElementFlags.IsRoot, row.Flags);
@@ -685,7 +689,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
     public void AppendStartObject_IsEquivalentToGenericAppend()
     {
         // Arrange
-        using var reference = MetaDb.CreateForEstimatedRows(10);
+        using var reference = MetaDb.Create(Cursor.CreateZero(ChunkSize.Size128K));
         var refCursor = reference.Append(
             ElementTokenType.StartObject,
             sizeOrLength: 4,
@@ -706,7 +710,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         var refRow = reference.Get(refCursor);
         var row = _metaDb.Get(cursor);
         Assert.Equal(refRow.TokenType, row.TokenType);
-        Assert.Equal(refRow.ParentRow, row.ParentRow);
+        Assert.Equal(refRow.Parent, row.Parent);
         Assert.Equal(refRow.OperationReferenceId, row.OperationReferenceId);
         Assert.Equal(refRow.OperationReferenceType, row.OperationReferenceType);
         Assert.Equal(refRow.Flags, row.Flags);
@@ -726,7 +730,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         // Assert
         var row = _metaDb.Get(cursor);
         Assert.Equal(ElementTokenType.StartArray, row.TokenType);
-        Assert.Equal(3, row.ParentRow);
+        Assert.Equal(3, row.Parent);
         Assert.Equal(10, row.SizeOrLength);
         Assert.Equal(11, row.NumberOfRows);
         Assert.Equal(ElementFlags.IsNullable, row.Flags);
@@ -738,7 +742,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
     public void AppendStartArray_IsEquivalentToGenericAppend()
     {
         // Arrange
-        using var reference = MetaDb.CreateForEstimatedRows(10);
+        using var reference = MetaDb.Create(Cursor.CreateZero(ChunkSize.Size128K));
         var refCursor = reference.Append(
             ElementTokenType.StartArray,
             sizeOrLength: 7,
@@ -756,7 +760,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         var refRow = reference.Get(refCursor);
         var row = _metaDb.Get(cursor);
         Assert.Equal(refRow.TokenType, row.TokenType);
-        Assert.Equal(refRow.ParentRow, row.ParentRow);
+        Assert.Equal(refRow.Parent, row.Parent);
         Assert.Equal(refRow.SizeOrLength, row.SizeOrLength);
         Assert.Equal(refRow.NumberOfRows, row.NumberOfRows);
         Assert.Equal(refRow.Flags, row.Flags);
@@ -771,7 +775,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         // Assert
         var row = _metaDb.Get(cursor);
         Assert.Equal(ElementTokenType.EndObject, row.TokenType);
-        Assert.Equal(0, row.ParentRow);
+        Assert.Equal(0, row.Parent);
         Assert.Equal(0, row.SizeOrLength);
         Assert.Equal(0, row.NumberOfRows);
         Assert.Equal(0, row.Location);
@@ -789,7 +793,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         // Assert
         var row = _metaDb.Get(cursor);
         Assert.Equal(ElementTokenType.EndArray, row.TokenType);
-        Assert.Equal(0, row.ParentRow);
+        Assert.Equal(0, row.Parent);
         Assert.Equal(0, row.SizeOrLength);
         Assert.Equal(0, row.NumberOfRows);
     }
@@ -814,9 +818,9 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         Assert.Equal(5, _metaDb.NextCursor.Index);
         for (var i = 0; i < 5; i++)
         {
-            var row = _metaDb.Get(Cursor.FromIndex(i));
+            var row = _metaDb.Get(CreateCursor(i));
             Assert.Equal(ElementTokenType.None, row.TokenType);
-            Assert.Equal(9, row.ParentRow);
+            Assert.Equal(9, row.Parent);
             Assert.Equal(0, row.Location);
             Assert.Equal(0, row.SizeOrLength);
             Assert.Equal(ElementFlags.None, row.Flags);
@@ -827,7 +831,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
     public void AppendNullRange_IsEquivalentToLoopOfAppendNull()
     {
         // Arrange
-        using var reference = MetaDb.CreateForEstimatedRows(10);
+        using var reference = MetaDb.Create(Cursor.CreateZero(ChunkSize.Size128K));
         for (var i = 0; i < 7; i++)
         {
             reference.AppendNull(13);
@@ -839,10 +843,10 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         // Assert — rows match index-for-index
         for (var i = 0; i < 7; i++)
         {
-            var refRow = reference.Get(Cursor.FromIndex(i));
-            var row = _metaDb.Get(Cursor.FromIndex(i));
+            var refRow = reference.Get(CreateCursor(i));
+            var row = _metaDb.Get(CreateCursor(i));
             Assert.Equal(refRow.TokenType, row.TokenType);
-            Assert.Equal(refRow.ParentRow, row.ParentRow);
+            Assert.Equal(refRow.Parent, row.Parent);
         }
     }
 
@@ -850,7 +854,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
     public void AppendNullRange_FallsBackAcrossChunkBoundary()
     {
         // Arrange — fill most of the first chunk so the range crosses into chunk 2.
-        using var metaDb = MetaDb.CreateForEstimatedRows(4);
+        using var metaDb = MetaDb.Create(Cursor.CreateZero(ChunkSize.Size128K));
         const int rowsPerChunk = 128 * 1024 / 20;
 
         for (var i = 0; i < rowsPerChunk - 3; i++)
@@ -865,9 +869,9 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         const int firstNullRangeIndex = rowsPerChunk - 3;
         for (var i = 0; i < 10; i++)
         {
-            var row = metaDb.Get(Cursor.FromIndex(firstNullRangeIndex + i));
+            var row = metaDb.Get(CreateCursor(firstNullRangeIndex + i));
             Assert.Equal(ElementTokenType.None, row.TokenType);
-            Assert.Equal(42, row.ParentRow);
+            Assert.Equal(42, row.Parent);
         }
     }
 
