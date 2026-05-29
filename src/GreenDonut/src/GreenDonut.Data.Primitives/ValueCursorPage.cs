@@ -47,7 +47,7 @@ internal sealed class ValueCursorPage<T> : Page<T>
     /// <summary>
     /// An empty page.
     /// </summary>
-    public static new ValueCursorPage<T> Empty { get; } = new([], false, false, _ => string.Empty);
+    public static new ValueCursorPage<T> Empty { get; } = new([], false, false, _ => string.Empty, 0);
 
     protected override string CreateCursor(int index, int offset, int pageIndex, int totalCount)
         => _createCursor(new EdgeEntry<T>(Entries[index].Item, offset, pageIndex, totalCount));
