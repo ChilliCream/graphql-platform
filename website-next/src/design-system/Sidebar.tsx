@@ -12,9 +12,9 @@ export function Sidebar({
   activeProduct: string;
 }) {
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-2 px-5 py-6 text-sm">
+    <div className="px-5 py-6 text-sm">
       <ProductSelector key={currentPath} activeSlug={activeProduct} />
-      <nav className="min-h-0 flex-1 overflow-y-auto">
+      <nav className="mt-4 flex flex-col gap-1">
         <ul className="flex flex-col gap-1">
           {tree.map((node, i) => (
             <NodeView

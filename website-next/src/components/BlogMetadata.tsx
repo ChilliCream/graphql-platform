@@ -23,11 +23,11 @@ export function BlogMetadata({
   ].filter(Boolean);
 
   return (
-    <div className="flex flex-row items-center gap-2 text-sm text-slate-600">
+    <div className="flex flex-row items-center gap-2 text-sm text-[var(--cc-ink-dim)]">
       {author ? (
         <a
           href={authorUrl || "#"}
-          className="flex items-center text-slate-700 hover:text-primary-700 no-underline"
+          className="flex items-center text-slate-300 hover:text-[var(--cc-accent)] no-underline"
           target={authorUrl?.startsWith("http") ? "_blank" : undefined}
           rel={authorUrl?.startsWith("http") ? "noopener noreferrer" : undefined}
         >

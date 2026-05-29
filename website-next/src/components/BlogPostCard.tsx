@@ -6,7 +6,7 @@ export function BlogPostCard({ post }: { post: BlogCard }) {
   return (
     <Link
       href={post.href}
-      className="group flex h-full flex-col overflow-hidden rounded-lg border border-white/10 no-underline transition-colors hover:border-white/30"
+      className="group flex h-full flex-col overflow-hidden rounded-lg border border-white/10 bg-[#0c1322] no-underline transition-colors hover:border-[var(--cc-accent)]"
     >
       {post.featuredImage ? (
         <div className="relative aspect-[16/9] w-full overflow-hidden bg-[#0c1322]">
@@ -19,7 +19,7 @@ export function BlogPostCard({ post }: { post: BlogCard }) {
           />
         </div>
       ) : (
-        <div className="aspect-[16/9] w-full bg-gradient-to-br from-fuchsia-600 via-violet-600 to-indigo-700" />
+        <div className="aspect-[16/9] w-full bg-white/[0.02]" />
       )}
 
       <div className="flex flex-1 flex-col p-5">
@@ -41,7 +41,7 @@ export function BlogPostCard({ post }: { post: BlogCard }) {
           </div>
         ) : null}
 
-        <h2 className="mt-3 text-lg font-semibold leading-snug text-slate-100 group-hover:text-white">
+        <h2 className="mt-3 text-lg font-semibold leading-snug text-slate-100 group-hover:text-[var(--cc-accent)]">
           {post.title}
         </h2>
 

@@ -88,48 +88,32 @@ const computePrice = (rpm: number): CalcResult => {
   };
 };
 
-const SCALE_TICKS = ["1k", "10k", "100k", "1M", "10M", "100M"];
-
 export function PricingCalculator() {
   const [slider, setSlider] = useState<number>(() => rpmToSlider(5_000_000));
   const rpm = useMemo(() => sliderToRpm(slider), [slider]);
   const result = useMemo(() => computePrice(rpm), [rpm]);
 
   return (
-    <div
-      role="group"
-      aria-label="Estimate monthly cost"
-      className="mx-auto max-w-2xl rounded-2xl border border-[var(--cc-card-border)] bg-[var(--cc-card-bg)] p-6 text-left backdrop-blur-sm sm:p-7"
-    >
-      <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <label className="block cursor-pointer" htmlFor="cc-calc-rpm">
-          <span className="mb-1 block font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--cc-ink-dim)]">
-            Requests / month
-          </span>
-          <span className="block text-2xl font-medium tabular-nums text-[var(--cc-ink)] sm:text-3xl">
-            {formatRpm(rpm)}
-          </span>
+    <div className="cc-calc" role="group" aria-label="Estimate monthly cost">
+      <div className="cc-calc-row">
+        <label className="cc-calc-label" htmlFor="cc-calc-rpm">
+          <span className="cc-calc-eyebrow">Requests / month</span>
+          <span className="cc-calc-value">{formatRpm(rpm)}</span>
         </label>
 
-        <div className="text-left sm:text-right" aria-live="polite">
-          <span className="mb-1 block font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--cc-ink-dim)]">
-            Estimated
-          </span>
-          <span className="block text-3xl font-semibold leading-none tabular-nums text-fuchsia-400 sm:text-4xl">
+        <div className="cc-calc-output" aria-live="polite">
+          <span className="cc-calc-eyebrow">Estimated</span>
+          <span className="cc-calc-price">
             {result.priceLabel}
-            <span className="text-base font-normal text-[var(--cc-ink-dim)]">
-              {" "}
-              / mo
-            </span>
+            <span className="cc-calc-price-unit"> / mo</span>
           </span>
-          <span className="mt-1.5 block font-mono text-[11px] uppercase tracking-[0.12em] text-[var(--cc-ink)]">
-            on {result.tierLabel}
-          </span>
+          <span className="cc-calc-tier">on {result.tierLabel}</span>
         </div>
       </div>
 
       <input
         id="cc-calc-rpm"
+        className="cc-calc-slider"
         type="range"
         min={0}
         max={STEPS}
@@ -137,56 +121,18 @@ export function PricingCalculator() {
         value={slider}
         onChange={(e) => setSlider(Number(e.currentTarget.value))}
         aria-valuetext={`${formatRpm(rpm)} requests per month`}
-        className="cc-pricing-slider my-2 h-1.5 w-full cursor-pointer appearance-none rounded-full"
-        style={{
-          background:
-            "linear-gradient(90deg, rgba(217,70,239,0.5), rgba(245,241,234,0.12))",
-        }}
       />
 
-      <div
-        className="flex justify-between font-mono text-[10px] tracking-[0.08em] text-[var(--cc-ink-dim)]"
-        aria-hidden
-      >
-        {SCALE_TICKS.map((tick) => (
-          <span key={tick}>{tick}</span>
-        ))}
+      <div className="cc-calc-scale" aria-hidden>
+        <span>1k</span>
+        <span>10k</span>
+        <span>100k</span>
+        <span>1M</span>
+        <span>10M</span>
+        <span>100M</span>
       </div>
 
-      <p className="mt-3 text-sm leading-relaxed text-[var(--cc-ink-dim)]">
-        {result.note}
-      </p>
-
-      <style>{`
-        .cc-pricing-slider:focus-visible {
-          outline: 2px solid #d946ef;
-          outline-offset: 6px;
-        }
-        .cc-pricing-slider::-webkit-slider-thumb {
-          -webkit-appearance: none;
-          appearance: none;
-          width: 20px;
-          height: 20px;
-          border-radius: 50%;
-          background: #f5f1ea;
-          border: 3px solid #d946ef;
-          cursor: pointer;
-          box-shadow: 0 0 0 6px rgba(217, 70, 239, 0.18);
-          transition: transform 0.15s ease;
-        }
-        .cc-pricing-slider::-webkit-slider-thumb:hover {
-          transform: scale(1.08);
-        }
-        .cc-pricing-slider::-moz-range-thumb {
-          width: 20px;
-          height: 20px;
-          border-radius: 50%;
-          background: #f5f1ea;
-          border: 3px solid #d946ef;
-          cursor: pointer;
-          box-shadow: 0 0 0 6px rgba(217, 70, 239, 0.18);
-        }
-      `}</style>
+      <p className="cc-calc-note">{result.note}</p>
     </div>
   );
 }

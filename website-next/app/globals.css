@@ -51,8 +51,8 @@
     --cc-card-bg: rgba(12, 19, 34, 0.55);
     --cc-card-border: rgba(245, 241, 234, 0.12);
     --cc-card-border-hover: rgba(245, 241, 234, 0.32);
-    --cc-accent: #d946ef;
-    --cc-accent-hover: #c026d3;
+    --cc-accent: oklch(0.74 0.14 220);
+    --cc-accent-hover: oklch(0.80 0.14 220);
     /* Dark starfield surface shared by marketing pages. A few
        radial-gradients layered on the page gradient give a hint of the
        original WebGL nebula without the JS cost, anchored to the viewport

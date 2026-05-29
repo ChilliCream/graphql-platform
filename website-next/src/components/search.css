@@ -8,13 +8,14 @@
  * win via source order.
  *
  * Values mirror the source site's overrides, mapped to this app's palette:
- *   text  #f5f1ea (--cc-ink), modal bg #0c1322, accent #d946ef (--cc-accent).
+ *   text  #f5f1ea (--cc-ink), modal bg #0c1322, accent the landing blue
+ *   (--cc-accent = oklch(0.74 0.14 220)).
  */
 :root {
-  --docsearch-primary-color: #d946ef;
-  --docsearch-highlight-color: #d946ef;
-  --docsearch-logo-color: #d946ef;
-  --docsearch-focus-color: #e879f9;
+  --docsearch-primary-color: oklch(0.74 0.14 220);
+  --docsearch-highlight-color: oklch(0.74 0.14 220);
+  --docsearch-logo-color: oklch(0.74 0.14 220);
+  --docsearch-focus-color: oklch(0.8 0.14 220);
 
   --docsearch-text-color: #f5f1ea;
   --docsearch-secondary-text-color: rgba(245, 241, 234, 0.78);
@@ -47,7 +48,7 @@
   --docsearch-hit-active-color: #ffffff;
   --docsearch-hit-background: rgba(245, 241, 234, 0.04);
   --docsearch-hit-shadow: none;
-  --docsearch-hit-highlight-color: rgba(217, 70, 239, 0.18);
+  --docsearch-hit-highlight-color: color-mix(in oklch, oklch(0.74 0.14 220) 18%, transparent);
 
   /* Keyboard key hints. */
   --docsearch-key-background: rgba(245, 241, 234, 0.08);
@@ -67,9 +68,9 @@
 }
 
 /* When the active hit is highlighted, DocSearch fills the row with the accent;
-   keep its text readable against the fuchsia background. */
+   keep its text readable against the blue background. */
 .DocSearch-Hit[aria-selected="true"] a {
-  background-color: #d946ef;
+  background-color: oklch(0.74 0.14 220);
 }
 
 .DocSearch-Hit[aria-selected="true"] mark {

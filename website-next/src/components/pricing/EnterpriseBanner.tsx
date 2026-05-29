@@ -11,21 +11,20 @@ const BULLETS = [
   "DPA, subprocessor list, security review",
 ];
 
-// Enterprise banner: page accent washes the surface so the band itself
-// carries the differentiation.
+// Enterprise banner lives on an accent band: page accent washes the surface so
+// the band itself carries the differentiation. Layout is edge-to-edge
+// content-on-band, no inner card chrome.
 export function EnterpriseBanner() {
   return (
-    <section className="py-16">
-      <div className="overflow-hidden rounded-2xl border border-fuchsia-400/25 bg-[radial-gradient(60%_80%_at_100%_50%,rgba(217,70,239,0.12),transparent_70%),rgba(217,70,239,0.05)] p-8 backdrop-blur-sm sm:p-12">
-        <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
-          <div>
-            <div className="mb-3 font-mono text-xs font-semibold uppercase tracking-widest text-[var(--cc-ink-dim)]">
-              Enterprise + Support
-            </div>
-            <h2 className="text-3xl font-semibold leading-tight tracking-tight text-[var(--cc-ink)] sm:text-4xl">
+    <div className="cc-enterprise">
+      <div className="cc-enterprise-inner">
+        <div className="cc-enterprise-grid">
+          <div className="cc-enterprise-copy">
+            <div className="eyebrow">Enterprise + Support</div>
+            <h2 className="display">
               Running Fusion in production? Let&apos;s talk.
             </h2>
-            <p className="mt-5 max-w-[50ch] text-base leading-relaxed text-[var(--cc-ink-dim)]">
+            <p>
               Enterprise wraps Nitro Self-Hosted with a dedicated solution
               architect, 24x7 oncall, custom SLA, and procurement-ready
               compliance evidence. We sign your DPA, answer your questionnaire,
@@ -33,26 +32,21 @@ export function EnterpriseBanner() {
             </p>
             <Link
               href="mailto:contact@chillicream.com?subject=Enterprise"
-              className="mt-7 inline-flex items-center justify-center rounded-full bg-[var(--cc-ink)] px-6 py-3 text-sm font-medium text-[#0c1322] no-underline transition-colors hover:bg-white"
+              className="cc-btn cc-btn-primary"
             >
               Talk to sales →
             </Link>
           </div>
-          <ul className="grid gap-x-6 gap-y-4 sm:grid-cols-2">
+          <ul className="cc-enterprise-bullets">
             {BULLETS.map((bullet) => (
-              <li
-                key={bullet}
-                className="flex items-start gap-2.5 text-sm leading-snug text-[var(--cc-ink)]"
-              >
-                <span aria-hidden className="mt-0.5 shrink-0 text-fuchsia-400">
-                  <CheckIcon />
-                </span>
+              <li key={bullet}>
+                <CheckIcon />
                 <span>{bullet}</span>
               </li>
             ))}
           </ul>
         </div>
       </div>
-    </section>
+    </div>
   );
 }

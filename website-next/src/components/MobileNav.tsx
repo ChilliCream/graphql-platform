@@ -63,7 +63,7 @@ export function MobileNav({ items, demoHref, nitroHref }: MobileNavProps) {
             <Link
               href={item.href}
               onClick={() => setOpen(false)}
-              className="flex h-[72px] w-full items-center border-b border-white/10 px-6 text-lg font-medium text-[var(--cc-ink)] no-underline transition-colors hover:text-fuchsia-400"
+              className="flex h-[72px] w-full items-center border-b border-white/10 px-6 text-lg font-medium text-[var(--cc-ink)] no-underline transition-colors hover:text-[var(--cc-accent)]"
             >
               {item.label}
             </Link>

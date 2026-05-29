@@ -92,13 +92,11 @@ export function SidebarDrawer({ children }: { children: ReactNode }) {
         </div>
       </div>
 
-      {/* Desktop sidebar — the empty aside reserves the grid column while the
-          sidebar itself is fixed to the viewport so it doesn't slide with the
-          article content. */}
-      <aside className="hidden lg:block" aria-hidden="true" />
-      <div className="fixed bottom-0 left-0 top-[72px] z-10 hidden w-80 flex-col overflow-y-auto border-r border-white/10 bg-[#0b0f1a] lg:flex">
+      {/* Desktop sidebar — sticky inline so it scrolls with the content and the
+          footer sits cleanly below it. */}
+      <aside className="hidden lg:block sticky top-[72px] self-start h-[calc(100vh-72px)] overflow-y-auto border-r border-white/10">
         {children}
-      </div>
+      </aside>
     </>
   );
 }

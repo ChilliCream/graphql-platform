@@ -43,7 +43,7 @@ export default function Footer() {
             <Link
               href="/"
               aria-label="ChilliCream Home"
-              className="inline-flex leading-none text-[var(--cc-ink)] transition-colors hover:text-fuchsia-400"
+              className="inline-flex leading-none text-[var(--cc-ink)] transition-colors hover:text-[var(--cc-accent)]"
             >
               <ChilliCreamText className="h-[30px] w-auto fill-current" />
             </Link>
@@ -146,7 +146,7 @@ function LinkColumn({
 
 function NavLink({ href, children }: { href: string; children: ReactNode }) {
   const className =
-    "text-[var(--cc-ink-dim)] no-underline transition-colors hover:text-fuchsia-400";
+    "text-[var(--cc-ink-dim)] no-underline transition-colors hover:text-[var(--cc-accent)]";
 
   if (href.startsWith("/")) {
     return (
@@ -186,7 +186,7 @@ function SocialLink({
   children: ReactNode;
 }) {
   const className =
-    "inline-flex items-center justify-center transition-colors hover:text-fuchsia-400";
+    "inline-flex items-center justify-center transition-colors hover:text-[var(--cc-accent)]";
 
   if (href.startsWith("/")) {
     return (

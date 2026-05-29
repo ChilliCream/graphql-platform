@@ -202,12 +202,12 @@ const MOBILE_ITEMS = NAV_ITEMS.map((i) => ({ href: i.href, label: i.label }));
 export default function Header() {
   const latestBlog = getLatestBlogPost();
   return (
-    <header className="sticky top-0 z-30 flex h-[72px] w-full justify-center border-b border-white/10 bg-[#0c1322]/70 backdrop-blur-[18px] backdrop-saturate-150">
+    <header className="sticky top-0 z-30 flex h-[72px] w-full justify-center border-b border-white/10 bg-[#0c1322]/55 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-[18px] backdrop-saturate-150">
       <div className="relative flex h-full w-full max-w-7xl items-center justify-between px-4 lg:gap-8">
         <Link
           href="/"
           aria-label="ChilliCream Home"
-          className="flex h-full flex-none items-center text-[var(--cc-ink)] transition-colors hover:text-fuchsia-400"
+          className="flex h-full flex-none items-center text-[var(--cc-ink)] transition-colors hover:text-[var(--cc-accent)]"
         >
           <ChilliCream className="h-8 w-8 fill-current" />
         </Link>
@@ -425,7 +425,7 @@ function LatestBlogPanel({ post }: { post: LatestBlogPost }) {
           </div>
         )}
         <div className="text-xs text-[var(--cc-ink-dim)]">{post.date}</div>
-        <div className="text-sm font-medium leading-snug text-[var(--cc-ink)] group-hover/blog:text-fuchsia-300">
+        <div className="text-sm font-medium leading-snug text-[var(--cc-ink)] group-hover/blog:text-[var(--cc-accent)]">
           {post.title}
         </div>
       </Link>
