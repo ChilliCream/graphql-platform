@@ -171,12 +171,12 @@ const MOBILE_ITEMS = NAV_ITEMS.map((i) => ({ href: i.href, label: i.label }));
 
 export default function Header() {
   return (
-    <header className="sticky top-0 z-30 flex h-[72px] w-full justify-center border-b border-stone-200 bg-white/80 backdrop-blur-md">
+    <header className="sticky top-0 z-30 flex h-[72px] w-full justify-center border-b border-cc-card-border bg-cc-card-bg backdrop-blur-md">
       <div className="relative flex h-full w-full max-w-7xl items-center justify-between px-4 lg:gap-8">
         <Link
           href="/"
           aria-label="ChilliCream Home"
-          className="flex h-full flex-none items-center text-stone-900 transition-colors hover:text-primary-700"
+          className="flex h-full flex-none items-center text-cc-ink transition-colors hover:text-cc-accent"
         >
           <ChilliCream className="h-8 w-8 fill-current" />
         </Link>
@@ -196,7 +196,7 @@ export default function Header() {
         <div className="hidden flex-none items-center gap-6 lg:flex">
           <a
             href={DEMO_HREF}
-            className="text-sm font-medium text-stone-700 no-underline transition-colors hover:text-primary-700"
+            className="text-sm font-medium text-cc-ink-dim no-underline transition-colors hover:text-cc-accent"
           >
             Request a Demo
           </a>
@@ -204,13 +204,13 @@ export default function Header() {
             href={TOOLS.nitro}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex h-[38px] items-center rounded-md border-2 border-secondary-700 bg-secondary-700 px-7 text-sm font-medium text-white no-underline transition-colors hover:bg-secondary-800"
+            className="inline-flex h-[38px] items-center rounded-md border-2 border-cc-cta bg-cc-cta px-7 text-sm font-medium text-cc-ink no-underline transition-colors hover:bg-cc-cta-hover"
           >
             Launch
           </a>
           <Search
             ariaLabel="Search"
-            className="flex h-full cursor-pointer items-center text-stone-700 transition-colors hover:text-primary-700"
+            className="flex h-full cursor-pointer items-center text-cc-ink-dim transition-colors hover:text-cc-accent"
           />
         </div>
 
@@ -229,7 +229,7 @@ function NavSimple({ item }: { item: NavItem }) {
     <li className="flex items-stretch">
       <Link
         href={item.href}
-        className="flex items-center px-4 text-sm font-medium text-stone-700 no-underline transition-colors hover:text-primary-700"
+        className="flex items-center px-4 text-sm font-medium text-cc-ink-dim no-underline transition-colors hover:text-cc-accent"
       >
         {item.label}
       </Link>
@@ -242,10 +242,10 @@ function NavWithSubmenu({ item }: { item: NavItem }) {
     <li className="group/nav flex items-stretch">
       <Link
         href={item.href}
-        className="flex items-center gap-1.5 px-4 text-sm font-medium text-stone-700 no-underline transition-colors hover:text-primary-700 group-hover/nav:text-primary-700 group-focus-within/nav:text-primary-700"
+        className="flex items-center gap-1.5 px-4 text-sm font-medium text-cc-ink-dim no-underline transition-colors hover:text-cc-accent group-hover/nav:text-cc-accent group-focus-within/nav:text-cc-accent"
       >
         {item.label}
-        <ChevronDownIcon className="h-3 w-3 fill-current transition-transform duration-200 group-hover/nav:rotate-180 group-focus-within/nav:rotate-180" />
+        <ChevronDownIcon className="h-3 w-3 fill-current" />
       </Link>
 
       <SubmenuPanel item={item} />
@@ -264,7 +264,7 @@ function SubmenuPanel({ item }: { item: NavItem }) {
     >
       <div
         className={[
-          "rounded-lg border border-stone-200 bg-white/95 p-6 shadow-lg backdrop-blur-md",
+          "rounded-lg border border-cc-card-border bg-[#0c1322]/95 p-6 shadow-lg backdrop-blur-md",
           item.panelWidth ?? "w-[420px]",
         ].join(" ")}
       >
@@ -290,7 +290,7 @@ function SubGroupBlock({ group }: { group: SubGroup }) {
       <div
         role="heading"
         aria-level={2}
-        className="mb-3 text-xs font-semibold uppercase tracking-wide text-stone-400"
+        className="mb-3 text-xs font-semibold uppercase tracking-wide text-cc-ink-dim"
       >
         {group.title}
       </div>
@@ -316,15 +316,15 @@ function SubLinkRow({ link }: { link: SubLink }): ReactNode {
     <Link
       href={link.href}
       {...linkProps}
-      className="flex items-start gap-3 rounded-md px-2 py-2 text-stone-700 no-underline transition-colors hover:bg-stone-50 hover:text-primary-700"
+      className="flex items-start gap-3 rounded-md px-2 py-2 text-cc-ink-dim no-underline transition-colors hover:bg-cc-ink-faint hover:text-cc-accent"
     >
       {Icon && (
-        <Icon className="mt-0.5 h-4 w-4 flex-none fill-current text-stone-500" />
+        <Icon className="mt-0.5 h-4 w-4 flex-none fill-current text-cc-ink-dim" />
       )}
       <div>
         <div className="text-sm font-medium">{link.label}</div>
         {link.description && (
-          <div className="text-xs font-normal text-stone-500">
+          <div className="text-xs font-normal text-cc-ink-dim">
             {link.description}
           </div>
         )}

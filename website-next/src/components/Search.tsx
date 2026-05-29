@@ -12,9 +12,9 @@ import { useCallback, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { SearchIcon } from "@/src/icons/Search";
 
-const APP_ID = process.env.NEXT_PUBLIC_ALGOLIA_APP_ID;
-const API_KEY = process.env.NEXT_PUBLIC_ALGOLIA_API_KEY;
-const INDEX_NAME = process.env.NEXT_PUBLIC_ALGOLIA_INDEX;
+const APP_ID = "WQ7ZRCU9RS"; //process.env.NEXT_PUBLIC_ALGOLIA_APP_ID;
+const API_KEY = "b40ebfd92eb180185aa52c192e4fbd86"; //process.env.NEXT_PUBLIC_ALGOLIA_API_KEY;
+const INDEX_NAME = "chillicream"; //process.env.NEXT_PUBLIC_ALGOLIA_INDEX;
 const IS_CONFIGURED = Boolean(APP_ID && API_KEY && INDEX_NAME);
 
 type HitProps = {

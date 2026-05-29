@@ -37,7 +37,7 @@ export function Pagination({
           <span
             key={`gap-${i}`}
             aria-hidden="true"
-            className="px-2 text-slate-400"
+            className="px-2 text-cc-ink-dim"
           >
             …
           </span>
@@ -80,7 +80,7 @@ function PageButton({
     return (
       <span
         aria-hidden="true"
-        className={`${baseClasses} cursor-not-allowed border border-slate-200 text-slate-300`}
+        className={`${baseClasses} cursor-not-allowed border border-cc-card-border text-cc-ink-faint`}
       >
         {children}
       </span>
@@ -91,7 +91,7 @@ function PageButton({
       <span
         aria-current="page"
         aria-label={ariaLabel}
-        className={`${baseClasses} border border-primary-600 bg-primary-50 font-semibold text-primary-700`}
+        className={`${baseClasses} border border-cc-accent bg-cc-accent/10 font-semibold text-cc-accent`}
       >
         {children}
       </span>
@@ -101,7 +101,7 @@ function PageButton({
     <Link
       href={href}
       aria-label={ariaLabel}
-      className={`${baseClasses} border border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50`}
+      className={`${baseClasses} border border-cc-card-border text-cc-ink-dim hover:border-cc-card-border-hover hover:bg-cc-ink-faint`}
     >
       {children}
     </Link>

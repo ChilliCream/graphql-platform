@@ -15,7 +15,7 @@ export function Video({ src, playlabel }: VideoProps) {
   }
 
   return (
-    <div className="my-6 overflow-hidden rounded-md ring-1 ring-slate-200">
+    <div className="my-6 overflow-hidden rounded-md ring-1 ring-cc-card-border">
       <VideoFacade videoId={id} playlabel={playlabel} />
     </div>
   );

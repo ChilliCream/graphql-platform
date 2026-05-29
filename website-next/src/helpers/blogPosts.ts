@@ -8,6 +8,7 @@ export type BlogPostSummary = {
   title: string;
   description: string | null;
   date: string;
+  category: string | null;
   tags: string[];
   featuredImage: string | null;
   author: string | null;
@@ -51,6 +52,10 @@ export function listBlogPostSummaries(): BlogPostSummary[] {
           typeof fm.date === "string" && fm.date.length > 0
             ? fm.date
             : `${parsed.year}-${parsed.month}-${parsed.day}`,
+        category:
+          typeof fm.category === "string" && fm.category.length > 0
+            ? fm.category
+            : null,
         tags,
         featuredImage: resolveFeaturedImage(stem, featuredImageRaw),
         author: typeof fm.author === "string" ? fm.author : null,

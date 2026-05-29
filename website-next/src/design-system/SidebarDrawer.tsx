@@ -55,22 +55,22 @@ export function SidebarDrawer({ children }: { children: ReactNode }) {
         aria-hidden={!open}
       >
         <div
-          className={`absolute inset-0 bg-black/40 transition-opacity ${
+          className={`absolute inset-0 bg-[rgba(0,0,0,0.4)] transition-opacity ${
             open ? "opacity-100" : "opacity-0"
           }`}
           onClick={() => setOpen(false)}
         />
         <div
-          className={`absolute inset-y-0 left-0 w-[20rem] max-w-[85vw] overflow-y-auto bg-white shadow-xl transition-transform duration-200 ${
+          className={`absolute inset-y-0 left-0 w-[20rem] max-w-[85vw] overflow-y-auto bg-cc-bg shadow-xl transition-transform duration-200 ${
             open ? "translate-x-0" : "-translate-x-full"
           }`}
         >
-          <div className="flex items-center justify-end border-b border-slate-200 px-3 py-2">
+          <div className="flex items-center justify-end border-b border-cc-card-border px-3 py-2">
             <button
               type="button"
               aria-label="Close documentation menu"
               onClick={() => setOpen(false)}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full text-slate-700 hover:bg-slate-100"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full text-cc-ink-dim hover:bg-cc-ink-faint"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -93,7 +93,7 @@ export function SidebarDrawer({ children }: { children: ReactNode }) {
       </div>
 
       <aside className="hidden lg:block" aria-hidden="true" />
-      <div className="fixed bottom-0 left-0 top-[72px] z-10 hidden w-80 flex-col border-r border-slate-200 bg-white lg:flex">
+      <div className="fixed bottom-0 left-0 top-[72px] z-10 hidden w-80 flex-col border-r border-cc-card-border bg-cc-bg lg:flex">
         {children}
       </div>
     </>

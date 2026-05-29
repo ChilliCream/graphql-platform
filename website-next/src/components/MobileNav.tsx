@@ -24,7 +24,7 @@ export function MobileNav({ items, demoHref, nitroHref }: MobileNavProps) {
         <button
           type="button"
           aria-label="Search"
-          className="flex h-full items-center px-2 text-stone-700 transition-colors hover:text-primary-700"
+          className="flex h-full items-center px-2 text-cc-ink-dim transition-colors hover:text-cc-accent"
         >
           <SearchIcon className="h-5 w-5 fill-current" />
         </button>
@@ -32,20 +32,20 @@ export function MobileNav({ items, demoHref, nitroHref }: MobileNavProps) {
           type="button"
           aria-label="Open navigation menu"
           onClick={() => setOpen(true)}
-          className="flex h-full items-center px-2 text-stone-700 transition-colors hover:text-primary-700"
+          className="flex h-full items-center px-2 text-cc-ink-dim transition-colors hover:text-cc-accent"
         >
           <BarsIcon className="h-5 w-5 fill-current" />
         </button>
       </div>
 
       {open && (
-        <div className="fixed inset-0 z-40 flex flex-col bg-white lg:hidden">
-          <div className="flex h-[72px] flex-none items-center justify-between border-b border-stone-200 px-4">
+        <div className="fixed inset-0 z-40 flex flex-col bg-cc-bg lg:hidden">
+          <div className="flex h-[72px] flex-none items-center justify-between border-b border-cc-card-border px-4">
             <Link
               href="/"
               aria-label="ChilliCream Home"
               onClick={() => setOpen(false)}
-              className="flex h-full items-center text-stone-900"
+              className="flex h-full items-center text-cc-ink"
             >
               <ChilliCream className="h-8 w-8 fill-current" />
             </Link>
@@ -53,7 +53,7 @@ export function MobileNav({ items, demoHref, nitroHref }: MobileNavProps) {
               type="button"
               aria-label="Close navigation menu"
               onClick={() => setOpen(false)}
-              className="flex h-full items-center px-2 text-stone-700"
+              className="flex h-full items-center px-2 text-cc-ink-dim"
             >
               <XmarkIcon className="h-5 w-5 fill-current" />
             </button>
@@ -64,7 +64,7 @@ export function MobileNav({ items, demoHref, nitroHref }: MobileNavProps) {
                 <Link
                   href={item.href}
                   onClick={() => setOpen(false)}
-                  className="flex h-[72px] w-full items-center border-b border-stone-200 px-6 text-lg font-medium text-stone-700 hover:text-primary-700"
+                  className="flex h-[72px] w-full items-center border-b border-cc-card-border px-6 text-lg font-medium text-cc-ink-dim hover:text-cc-accent"
                 >
                   {item.label}
                 </Link>
@@ -74,7 +74,7 @@ export function MobileNav({ items, demoHref, nitroHref }: MobileNavProps) {
               <a
                 href={demoHref}
                 onClick={() => setOpen(false)}
-                className="text-sm font-medium text-stone-700 hover:text-primary-700"
+                className="text-sm font-medium text-cc-ink-dim hover:text-cc-accent"
               >
                 Request a Demo
               </a>
@@ -83,7 +83,7 @@ export function MobileNav({ items, demoHref, nitroHref }: MobileNavProps) {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setOpen(false)}
-                className="inline-flex h-[38px] items-center rounded-md border-2 border-secondary-700 bg-secondary-700 px-7 text-sm font-medium text-white hover:bg-secondary-800"
+                className="inline-flex h-[38px] items-center rounded-md border-2 border-cc-cta bg-cc-cta px-7 text-sm font-medium text-cc-ink hover:bg-cc-cta-hover"
               >
                 Launch
               </a>

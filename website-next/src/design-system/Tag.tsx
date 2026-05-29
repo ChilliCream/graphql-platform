@@ -17,8 +17,8 @@ type StaticTagProps = CommonProps & {
 export type TagProps = LinkTagProps | StaticTagProps;
 
 const BASE_CLASSES =
-  "inline-block rounded-md border border-slate-200 bg-slate-50 px-3 py-1 text-sm text-slate-700 no-underline transition-colors";
-const INTERACTIVE_CLASSES = "hover:border-slate-300 hover:bg-slate-100";
+  "inline-block rounded-md border border-cc-card-border bg-cc-ink-faint px-3 py-1 text-sm text-cc-ink-dim no-underline transition-colors";
+const INTERACTIVE_CLASSES = "hover:border-cc-card-border-hover hover:bg-cc-ink-faint";
 
 export function Tag(props: TagProps) {
   const { children, className } = props;

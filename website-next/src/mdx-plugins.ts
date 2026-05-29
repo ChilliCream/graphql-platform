@@ -47,26 +47,48 @@ const mermaidOptions: RehypeMermaidOptions = {
     // the text in the live page.
     //
     // themeCSS is inlined as a <style> block inside the generated SVG, so
-    // CSS custom properties from `app/globals.css` (`--color-primary-*`,
-    // `--color-slate-*`) resolve in the browser. Mermaid sets fills/strokes
-    // via inline `style=`, which is why every rule needs `!important`.
+    // CSS custom properties from `app/globals.css` (`--color-cc-*`) resolve
+    // in the browser. Mermaid sets fills/strokes via inline `style=`, which
+    // is why every rule needs `!important`.
     themeCSS: `
-      .edgePath .path { stroke-width: 1.5px; }
+      /* Edges read as dim ink lines on the dark surface */
+      .edgePath .path,
+      .flowchart-link {
+        stroke-width: 1.5px;
+        stroke: var(--color-cc-ink-dim) !important;
+      }
+      marker { fill: var(--color-cc-ink-dim) !important; stroke: var(--color-cc-ink-dim) !important; }
 
-      /* Primary nodes */
+      /* All diagram text in cream ink */
+      .nodeLabel,
+      .cluster-label,
+      span.edgeLabel,
+      text {
+        fill: var(--color-cc-ink) !important;
+        color: var(--color-cc-ink) !important;
+      }
+
+      /* Primary nodes: translucent dark fill, accent border */
       .node rect,
       .node circle,
       .node ellipse,
       .node polygon,
       .node path {
-        fill: var(--color-primary-50) !important;
-        stroke: var(--color-primary-700) !important;
+        fill: var(--color-cc-card-bg) !important;
+        stroke: var(--color-cc-accent) !important;
       }
 
-      /* Cluster / subgraph frames pick up the slate scale */
+      /* Edge labels sit on the page background so lines don't bleed through */
+      .edgeLabel,
+      .edgeLabel rect {
+        background-color: var(--color-cc-bg) !important;
+        fill: var(--color-cc-bg) !important;
+      }
+
+      /* Cluster / subgraph frames as faint dark panels */
       .cluster rect {
-        fill: var(--color-slate-50) !important;
-        stroke: var(--color-slate-200) !important;
+        fill: var(--color-cc-ink-faint) !important;
+        stroke: var(--color-cc-card-border) !important;
       }
     `,
   },

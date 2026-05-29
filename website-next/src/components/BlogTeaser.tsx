@@ -5,6 +5,8 @@ export type BlogTeaserData = {
   title: string;
   date: string;
   featuredImage: string | null;
+  category?: string | null;
+  description?: string | null;
   author?: string | null;
   authorImageUrl?: string | null;
 };
@@ -18,9 +20,9 @@ export function BlogTeaser({ post }: BlogTeaserProps) {
     <article className="group/teaser h-full">
       <Link
         href={post.href}
-        className="flex h-full flex-col overflow-hidden rounded-lg border border-slate-200 bg-white text-slate-900 no-underline transition-shadow hover:shadow-md"
+        className="flex h-full flex-col overflow-hidden rounded-2xl border border-cc-ink-faint bg-[rgba(255,255,255,0.025)] no-underline transition-[background-color,border-color,transform] duration-150 hover:-translate-y-0.5 hover:border-cc-card-border-hover hover:bg-[rgba(255,255,255,0.05)]"
       >
-        <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-100">
+        <div className="aspect-[16/9] w-full overflow-hidden border-b border-cc-ink-faint bg-[rgba(255,255,255,0.04)]">
           {post.featuredImage ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -28,35 +30,30 @@ export function BlogTeaser({ post }: BlogTeaserProps) {
               alt=""
               loading="lazy"
               decoding="async"
-              className="h-full w-full object-cover transition-transform duration-300 group-hover/teaser:scale-[1.02]"
+              className="h-full w-full object-cover"
             />
           ) : null}
         </div>
-        <div className="flex flex-1 flex-col gap-3 p-5">
-          <h3 className="m-0 line-clamp-3 text-lg font-semibold leading-snug text-slate-900 group-hover/teaser:text-primary-700">
-            {post.title}
-          </h3>
-          <div className="mt-auto flex items-center gap-2 text-xs text-slate-500">
-            {post.author ? (
-              <span className="flex items-center gap-1.5">
-                {post.authorImageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={post.authorImageUrl}
-                    alt=""
-                    width={20}
-                    height={20}
-                    loading="lazy"
-                    decoding="async"
-                    className="h-5 w-5 rounded-full object-cover"
-                  />
-                ) : null}
-                <span>{post.author}</span>
+        <div className="flex flex-1 flex-col px-[26px] pt-[22px] pb-6">
+          <div className="flex items-center gap-3 text-[11px] uppercase tracking-[0.16em] text-cc-ink-dim">
+            {post.category ? (
+              <span className="rounded-md border border-cc-ink-faint px-2 py-1 text-cc-ink">
+                {post.category}
               </span>
             ) : null}
-            {post.author ? <span aria-hidden="true">·</span> : null}
             <time dateTime={post.date}>{formatDate(post.date)}</time>
           </div>
+          <h3 className="m-0 mt-[18px] mb-3 text-[22px] font-medium leading-[1.25] tracking-[-0.015em] text-cc-ink">
+            {post.title}
+          </h3>
+          {post.description ? (
+            <p className="m-0 mb-[22px] line-clamp-3 text-[15px] leading-[1.55] text-cc-ink-dim">
+              {post.description}
+            </p>
+          ) : null}
+          <span className="mt-auto text-[11px] uppercase tracking-[0.18em] text-cc-ink transition-colors group-hover/teaser:text-cc-accent">
+            Read →
+          </span>
         </div>
       </Link>
     </article>
@@ -68,9 +65,5 @@ function formatDate(iso: string): string {
   if (Number.isNaN(d.getTime())) {
     return iso;
   }
-  return d.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+  return d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
 }
