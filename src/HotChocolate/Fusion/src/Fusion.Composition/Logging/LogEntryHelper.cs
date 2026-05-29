@@ -536,10 +536,17 @@ internal static class LogEntryHelper
             .Build();
     }
 
-    public static LogEntry InvalidGraphQL(string exceptionMessage, MutableSchemaDefinition schema)
+    public static LogEntry InvalidGraphQL(
+        string exceptionMessage,
+        MutableSchemaDefinition schema,
+        bool inExtensions = false)
     {
         return LogEntryBuilder.New()
-            .SetMessage(LogEntryHelper_InvalidGraphQL, exceptionMessage)
+            .SetMessage(
+                inExtensions
+                    ? LogEntryHelper_InvalidGraphQLInExtensions
+                    : LogEntryHelper_InvalidGraphQL,
+                exceptionMessage)
             .SetCode(LogEntryCodes.InvalidGraphQL)
             .SetSeverity(LogSeverity.Error)
             .SetSchema(schema)
@@ -742,6 +749,22 @@ internal static class LogEntryHelper
             .SetSeverity(LogSeverity.Error)
             .SetCoordinate(type.Coordinate)
             .SetTypeSystemMember(keyDirective)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry LookupMustHaveArguments(
+        MutableOutputFieldDefinition field,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_LookupMustHaveArguments,
+                field.Coordinate.ToString(),
+                schema.Name)
+            .SetCode(LogEntryCodes.LookupMustHaveArguments)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(field)
             .SetSchema(schema)
             .Build();
     }

@@ -21,6 +21,7 @@ MD033:
     - List
     - PackageInstallation
     - Panel
+    - PipelineChoiceTabs
     - Schema
     - strong
     - Tab

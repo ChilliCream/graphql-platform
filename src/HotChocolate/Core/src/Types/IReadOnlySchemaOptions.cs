@@ -48,6 +48,12 @@ public interface IReadOnlySchemaOptions
     bool SortFieldsByName { get; }
 
     /// <summary>
+    /// Defines if enum values shall be sorted by name.
+    /// Default: <c>false</c>
+    /// </summary>
+    bool SortEnumValuesByName { get; }
+
+    /// <summary>
     /// Defines if types shall be removed from the schema that are
     /// unreachable from the root types.
     /// </summary>
@@ -84,6 +90,13 @@ public interface IReadOnlySchemaOptions
     /// The default directive visibility when directive introspection is enabled.
     /// </summary>
     DirectiveVisibility DefaultDirectiveVisibility { get; }
+
+    /// <summary>
+    /// Disables the concept of internal directives so that all directives are treated as public.
+    /// When set to <c>true</c>, this overrides any explicit <c>Internal()</c> calls on
+    /// directive types and the <see cref="DefaultDirectiveVisibility"/> setting.
+    /// </summary>
+    bool DisableInternalDirectives { get; }
 
     /// <summary>
     /// Defines that the default resolver execution strategy.

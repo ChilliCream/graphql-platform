@@ -172,6 +172,94 @@ public sealed class DefaultHttpRequestParserTests
         Assert.Equal("The operation id has an invalid format.", ex.Message);
     }
 
+    [Fact]
+    public async Task ParseRequestAsync_Should_AdvancePipe_When_SyntaxError()
+    {
+        // arrange
+        var pipe = new Pipe();
+        await pipe.Writer.WriteAsync(Encoding.UTF8.GetBytes("{ invalid json"));
+        await pipe.Writer.CompleteAsync();
+
+        var parser = new DefaultHttpRequestParser(
+            new DefaultDocumentCache(),
+            new Sha256DocumentHashProvider(),
+            256,
+            ParserOptions.Default);
+
+        // act
+        await Assert.ThrowsAsync<GraphQLRequestException>(async () =>
+            await parser.ParseRequestAsync(
+                pipe.Reader,
+                skipDocumentBody: false,
+                CancellationToken.None));
+
+        // assert
+        // The pipe must be left in a state where a subsequent ReadAsync
+        // does not throw "Reading is already in progress".
+        var result = await pipe.Reader.ReadAsync();
+        Assert.True(result.IsCompleted);
+        pipe.Reader.AdvanceTo(result.Buffer.End);
+    }
+
+    [Fact]
+    public async Task ParseRequestAsync_Should_AdvancePipe_When_PipeCanceled()
+    {
+        // arrange
+        var pipe = new Pipe();
+        await pipe.Writer.WriteAsync(Encoding.UTF8.GetBytes("{ \"id\": \"abc\" }"));
+        pipe.Reader.CancelPendingRead();
+
+        var parser = new DefaultHttpRequestParser(
+            new DefaultDocumentCache(),
+            new Sha256DocumentHashProvider(),
+            256,
+            ParserOptions.Default);
+
+        // act
+        await Assert.ThrowsAsync<OperationCanceledException>(async () =>
+            await parser.ParseRequestAsync(
+                pipe.Reader,
+                skipDocumentBody: false,
+                CancellationToken.None));
+
+        // assert
+        // The pipe must be left in a state where a subsequent ReadAsync
+        // does not throw "Reading is already in progress".
+        await pipe.Writer.CompleteAsync();
+        var result = await pipe.Reader.ReadAsync();
+        Assert.True(result.IsCompleted);
+        pipe.Reader.AdvanceTo(result.Buffer.End);
+    }
+
+    [Fact]
+    public async Task ParsePersistedOperationRequestAsync_Should_AdvancePipe_When_SyntaxError()
+    {
+        // arrange
+        var pipe = new Pipe();
+        await pipe.Writer.WriteAsync(Encoding.UTF8.GetBytes("{ invalid json"));
+        await pipe.Writer.CompleteAsync();
+
+        var parser = new DefaultHttpRequestParser(
+            new DefaultDocumentCache(),
+            new Sha256DocumentHashProvider(),
+            256,
+            ParserOptions.Default);
+
+        // act
+        await Assert.ThrowsAsync<GraphQLRequestException>(async () =>
+            await parser.ParsePersistedOperationRequestAsync(
+                "abc1213_5164-ABC-123",
+                operationName: null,
+                pipe.Reader,
+                skipDocumentBody: false,
+                CancellationToken.None));
+
+        // assert
+        var result = await pipe.Reader.ReadAsync();
+        Assert.True(result.IsCompleted);
+        pipe.Reader.AdvanceTo(result.Buffer.End);
+    }
+
     public sealed class MockQueryParams(string id) : IQueryCollection
     {
         public IEnumerator<KeyValuePair<string, StringValues>> GetEnumerator()

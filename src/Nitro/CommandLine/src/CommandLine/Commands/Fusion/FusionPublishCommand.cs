@@ -251,10 +251,17 @@ internal sealed class FusionPublishCommand : Command
                             $"Archive of source schema '{sourceSchemaVersion.Name}' does not contain a GraphQL schema.");
                     }
 
+                    var schemaExtensions = await archive.TryGetSchemaExtensionsAsync(cancellationToken);
+
                     var schemaName = sourceSchemaVersion.Name;
                     var schemaText = Encoding.UTF8.GetString(schema.Value.Span);
+                    var extensionsText = schemaExtensions.HasValue
+                        ? Encoding.UTF8.GetString(schemaExtensions.Value.Span)
+                        : null;
 
-                    newSourceSchemas.Add(schemaName, (new SourceSchemaText(schemaName, schemaText), settings));
+                    newSourceSchemas.Add(
+                        schemaName,
+                        (new SourceSchemaText(schemaName, schemaText, extensionsText), settings));
                 }
 
                 downloadSourceSchemaActivity.Success($"Downloaded {sourceSchemaVersions.Length} source schema(s).");

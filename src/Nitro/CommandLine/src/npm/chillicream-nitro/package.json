@@ -38,7 +38,7 @@
   "scripts": {
     "build": "tsc"
   },
-  "packageManager": "yarn@4.9.4",
+  "packageManager": "yarn@4.14.1",
   "dependencies": {
     "detect-libc": "^2.0.4"
   },

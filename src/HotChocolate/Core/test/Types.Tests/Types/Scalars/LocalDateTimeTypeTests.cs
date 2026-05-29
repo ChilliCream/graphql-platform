@@ -152,6 +152,29 @@ public class LocalDateTimeTypeTests
     }
 
     [Fact]
+    public void CoerceOutputValue_AlwaysOutputFractionalSeconds_PadsAtDefaultPrecision()
+    {
+        // arrange
+        // exercises the bypass of the `LocalFormat` const-string shortcut at default precision
+        var type = new LocalDateTimeType(
+            new DateTimeOptions
+            {
+                OutputPrecision = DateTimeOptions.DefaultOutputPrecision,
+                AlwaysOutputFractionalSeconds = true
+            });
+        var dateTime = new DateTime(2023, 12, 24, 15, 30, 0);
+
+        // act
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        type.CoerceOutputValue(dateTime, resultValue);
+
+        // assert
+        resultValue.MatchInlineSnapshot("\"2023-12-24T15:30:00.0000000\"");
+    }
+
+    [Fact]
     public void CoerceOutputValue()
     {
         // arrange

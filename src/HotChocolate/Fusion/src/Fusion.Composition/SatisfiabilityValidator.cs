@@ -238,7 +238,7 @@ internal sealed class SatisfiabilityValidator
             _log.Write(
                 LogEntryBuilder.New()
                     .SetMessage(error.ToString())
-                    .SetCode(LogEntryCodes.Unsatisfiable)
+                    .SetCode(LogEntryCodes.UnsatisfiableQueryPath)
                     .SetSeverity(LogSeverity.Error)
                     .SetExtension("error", error)
                     .Build());
@@ -297,7 +297,7 @@ internal sealed class SatisfiabilityValidator
                 _log.Write(
                     LogEntryBuilder.New()
                         .SetMessage(error.ToString())
-                        .SetCode(LogEntryCodes.Unsatisfiable)
+                        .SetCode(LogEntryCodes.UnsatisfiableQueryPath)
                         .SetSeverity(LogSeverity.Error)
                         .SetExtension("error", error)
                         .Build());
@@ -310,93 +310,19 @@ internal sealed class SatisfiabilityValidator
         PathNode? path,
         string transitionToSchemaName)
     {
-        var errors = new List<SatisfiabilityError>();
-
-        var lookupDirectives =
-            _schema.GetPossibleFusionLookupDirectives(type, transitionToSchemaName);
-
-        if (lookupDirectives.Count == 0 && !CanTransitionToSchemaThroughPath(path, transitionToSchemaName))
-        {
-            errors.Add(
-                new SatisfiabilityError(
-                    string.Format(
-                        SatisfiabilityValidator_NoLookupsFoundForType,
-                        type.Name,
-                        transitionToSchemaName)));
-
-            return [.. errors];
-        }
-
-        foreach (var lookupDirective in lookupDirectives)
-        {
-            var lookupKeyArg = (string)lookupDirective.Arguments["key"].Value!;
-            var lookupFieldArg = (string)lookupDirective.Arguments["field"].Value!;
-            var lookupPathArg = (string?)lookupDirective.Arguments["path"].Value;
-
-            var lookupRequirements = ParseSelectionSet($"{{ {lookupKeyArg} }}");
-            var lookupFieldName = ParseFieldDefinition(lookupFieldArg).Name.Value;
-
-            // Ensure that lookup requirements are satisfied.
-            var requirementErrors =
+        return SourceSchemaTransitionHelper.ValidateSourceSchemaTransition(
+            _schema,
+            type,
+            transitionToSchemaName,
+            [.. path.EnumerateFromLeaf()],
+            (contextType, parentPathItem, lookupRequirements) =>
                 _requirementsValidator.Validate(
                     lookupRequirements,
-                    type,
-                    path?.Item,
-                    excludeSchemaName: transitionToSchemaName);
-
-            if (requirementErrors.IsEmpty)
-            {
-                return [];
-            }
-
-            var lookupName = lookupPathArg is null
-                ? lookupFieldName
-                : $"{lookupPathArg}.{lookupFieldName}";
-
-            errors.Add(
-                new SatisfiabilityError(
-                    string.Format(
-                        SatisfiabilityValidator_UnableToSatisfyRequirementForLookup,
-                        lookupRequirements.ToString(indented: false),
-                        lookupName,
-                        transitionToSchemaName),
-                    requirementErrors));
-        }
-
-        return [.. errors];
-    }
-
-    /// <summary>
-    /// We check whether the path we're currently on exists one-to-one
-    /// on the given schema or whether a type on the path has a lookup
-    /// on the given schema.
-    /// </summary>
-    private bool CanTransitionToSchemaThroughPath(
-        PathNode? path,
-        string schemaName)
-    {
-        for (var node = path; node is not null; node = node.Parent)
-        {
-            var lookupDirectives =
-                _schema.GetPossibleFusionLookupDirectives(
-                    node.Item.Type,
-                    schemaName);
-
-            var hasLookups = lookupDirectives.Count > 0;
-            var fieldExists = node.Item.Field.ExistsInSchema(schemaName);
-
-            if (hasLookups && fieldExists)
-            {
-                return true;
-            }
-
-            if (!fieldExists)
-            {
-                return false;
-            }
-        }
-
-        return true;
+                    contextType,
+                    parentPathItem,
+                    excludeSchemaName: transitionToSchemaName),
+            SatisfiabilityValidator_NoLookupsFoundForType,
+            SatisfiabilityValidator_UnableToSatisfyRequirementForLookup);
     }
 
     private static IType CreateType(ITypeNode typeNode, ITypeDefinition namedType)

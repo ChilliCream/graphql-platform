@@ -17,6 +17,17 @@ internal static class FusionCompositionHelpers
             || fileName.EndsWith(".graphqls", StringComparison.OrdinalIgnoreCase);
     }
 
+    public static bool IsExtensionsFile(string? fileName)
+    {
+        if (fileName is null)
+        {
+            return false;
+        }
+
+        var nameWithoutExt = Path.GetFileNameWithoutExtension(fileName);
+        return nameWithoutExt.EndsWith("-extensions", StringComparison.OrdinalIgnoreCase);
+    }
+
     public static async Task<Dictionary<string, (SourceSchemaText, JsonDocument)>> ReadSourceSchemasAsync(
         IFileSystem fileSystem,
         string? workingDirectory,
@@ -59,10 +70,19 @@ internal static class FusionCompositionHelpers
             schemaFilePath =
                 fileSystem
                     .GetFiles(sourceSchemaPath, "*.graphql*", SearchOption.AllDirectories)
-                    .FirstOrDefault(f => IsSchemaFile(Path.GetFileName(f)));
+                    .FirstOrDefault(f =>
+                    {
+                        var name = Path.GetFileName(f);
+                        return IsSchemaFile(name) && !IsExtensionsFile(name);
+                    });
         }
         else if (fileSystem.FileExists(sourceSchemaPath))
         {
+            if (IsExtensionsFile(Path.GetFileName(sourceSchemaPath)))
+            {
+                throw new ExitException(Messages.SchemaExtensionsFileCannotBeUsedAsSchemaFile(sourceSchemaPath));
+            }
+
             schemaFilePath = sourceSchemaPath;
         }
 
@@ -91,6 +111,18 @@ internal static class FusionCompositionHelpers
 
         var sourceText = await fileSystem.ReadAllTextAsync(schemaFilePath, cancellationToken);
 
-        return (schemaName, new SourceSchemaText(schemaName, sourceText), settings);
+        var extensionsFilePath = Path.Combine(
+            Path.GetDirectoryName(schemaFilePath)!,
+            Path.GetFileNameWithoutExtension(schemaFilePath)
+            + "-extensions"
+            + Path.GetExtension(schemaFilePath));
+
+        string? extensionsSourceText = null;
+        if (fileSystem.FileExists(extensionsFilePath))
+        {
+            extensionsSourceText = await fileSystem.ReadAllTextAsync(extensionsFilePath, cancellationToken);
+        }
+
+        return (schemaName, new SourceSchemaText(schemaName, sourceText, extensionsSourceText), settings);
     }
 }

@@ -34,6 +34,9 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <inheritdoc cref="IReadOnlySchemaOptions.SortFieldsByName"/>
     public bool SortFieldsByName { get; set; }
 
+    /// <inheritdoc cref="IReadOnlySchemaOptions.SortEnumValuesByName"/>
+    public bool SortEnumValuesByName { get; set; }
+
     /// <inheritdoc cref="IReadOnlySchemaOptions.RemoveUnreachableTypes"/>
     public bool RemoveUnreachableTypes { get; set; }
 
@@ -80,6 +83,9 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <inheritdoc cref="IReadOnlySchemaOptions.DefaultDirectiveVisibility"/>
     public DirectiveVisibility DefaultDirectiveVisibility { get; set; } =
         DirectiveVisibility.Public;
+
+    /// <inheritdoc cref="IReadOnlySchemaOptions.DisableInternalDirectives"/>
+    public bool DisableInternalDirectives { get; set; }
 
     /// <inheritdoc cref="IReadOnlySchemaOptions.DefaultResolverStrategy"/>
     public ExecutionStrategy DefaultResolverStrategy { get; set; } =
@@ -207,12 +213,14 @@ public class SchemaOptions : IReadOnlySchemaOptions
             DefaultBindingBehavior = options.DefaultBindingBehavior,
             EnableDirectiveIntrospection = options.EnableDirectiveIntrospection,
             DefaultDirectiveVisibility = options.DefaultDirectiveVisibility,
+            DisableInternalDirectives = options.DisableInternalDirectives,
             DefaultResolverStrategy = options.DefaultResolverStrategy,
             ValidatePipelineOrder = options.ValidatePipelineOrder,
             StrictRuntimeTypeValidation = options.StrictRuntimeTypeValidation,
             RemoveUnreachableTypes = options.RemoveUnreachableTypes,
             RemoveUnusedTypeSystemDirectives = options.RemoveUnusedTypeSystemDirectives,
             SortFieldsByName = options.SortFieldsByName,
+            SortEnumValuesByName = options.SortEnumValuesByName,
             DefaultIsOfTypeCheck = options.DefaultIsOfTypeCheck,
             EnableFlagEnums = options.EnableFlagEnums,
             EnableDefer = options.EnableDefer,

@@ -48,6 +48,7 @@ public static class SchemaFormatter
             Schema = schema,
             OrderTypesByName = options.OrderTypesByName ?? schemaDefaults?.OrderTypesByName ?? true,
             OrderFieldsByName = options.OrderFieldsByName ?? schemaDefaults?.OrderFieldsByName ?? true,
+            OrderEnumValuesByName = options.OrderEnumValuesByName ?? schemaDefaults?.OrderEnumValuesByName ?? false,
             PrintSpecScalars = options.PrintSpecScalars,
             PrintSpecDirectives = options.PrintSpecDirectives,
             IncludeInternalDirectives = options.IncludeInternalDirectives
@@ -436,7 +437,7 @@ public static class SchemaFormatter
         {
             var definitionNodes = new List<EnumValueDefinitionNode>();
 
-            foreach (var value in values.AsEnumerable().OrderBy(t => t.Name, context.OrderFieldsByName))
+            foreach (var value in values.AsEnumerable().OrderBy(t => t.Name, context.OrderEnumValuesByName))
             {
                 VisitEnumValue(value, context);
                 definitionNodes.Add((EnumValueDefinitionNode)context.Result!);
@@ -651,6 +652,8 @@ public static class SchemaFormatter
         public required bool OrderTypesByName { get; init; }
 
         public required bool OrderFieldsByName { get; init; }
+
+        public required bool OrderEnumValuesByName { get; init; }
 
         public required bool PrintSpecScalars { get; init; }
 

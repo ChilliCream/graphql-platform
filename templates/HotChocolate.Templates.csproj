@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageType>Template</PackageType>
+    <PackageId>HotChocolate.Templates</PackageId>
+    <Description>Hot Chocolate GraphQL templates.</Description>
+    <Authors>Michael Staib</Authors>
+    <PackageIcon>hotchocolate-signet.png</PackageIcon>
+
+    <TargetFramework>netstandard2.0</TargetFramework>
+
+    <IncludeContentInPack>true</IncludeContentInPack>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <ContentTargetFolders>content</ContentTargetFolders>
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+    <NoDefaultExcludes>true</NoDefaultExcludes>
+
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="**\*" />
+    <Content Include="azure-function\**\*;gateway\**\*;server\**\*"
+             Exclude="**\bin\**;**\obj\**" />
+    <None Include="..\website\static\resources\hotchocolate-signet.png"
+          Pack="true"
+          PackagePath=""
+          Visible="false" />
+  </ItemGroup>
+
+</Project>

@@ -73,4 +73,12 @@ public struct DateTimeOptions
     /// against the expected format. Defaults to <c>true</c>.
     /// </summary>
     public bool ValidateInputFormat { get; init; } = true;
+
+    /// <summary>
+    /// Gets a value indicating whether fractional seconds are always emitted in serialized output,
+    /// padded with trailing zeros up to <see cref="OutputPrecision"/>. When <see langword="false"/>
+    /// (the default), trailing zeros are stripped and the fractional component is omitted entirely
+    /// when zero. Has no effect when <see cref="OutputPrecision"/> is <c>0</c>.
+    /// </summary>
+    public bool AlwaysOutputFractionalSeconds { get; init; }
 }

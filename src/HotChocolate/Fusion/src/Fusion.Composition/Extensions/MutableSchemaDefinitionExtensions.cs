@@ -136,7 +136,7 @@ internal static class MutableSchemaDefinitionExtensions
 
     public static void RemoveUnreferencedDefinitions(
         this MutableSchemaDefinition schema,
-        ImmutableSortedSet<MutableSchemaDefinition> sourceSchemas)
+        IReadOnlySet<string> preservedTypeNames)
     {
         var touchedDefinitions = new HashSet<ITypeSystemMember>();
         var backlog = new Stack<ITypeSystemMember>();
@@ -160,8 +160,6 @@ internal static class MutableSchemaDefinitionExtensions
         {
             backlog.Push(schema.SubscriptionType);
         }
-
-        var preservedTypeNames = GetPreservedTypeNames(sourceSchemas);
 
         foreach (var typeName in preservedTypeNames)
         {
@@ -260,7 +258,8 @@ internal static class MutableSchemaDefinitionExtensions
     /// Returns a list of type names for types that must be preserved in the merged schema
     /// even if they are not directly referenced.
     /// </summary>
-    private static HashSet<string> GetPreservedTypeNames(ImmutableSortedSet<MutableSchemaDefinition> sourceSchemas)
+    public static HashSet<string> GetPreservedTypeNames(
+        ImmutableSortedSet<MutableSchemaDefinition> sourceSchemas)
     {
         var preservedTypeNames = new HashSet<string>();
 

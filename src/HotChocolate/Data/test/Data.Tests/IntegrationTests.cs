@@ -1101,6 +1101,192 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
     }
 
     [Fact]
+    public async Task QueryContext_Selector_Projects_Nested_Fields_When_Static_Include_Is_True()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType<AsPredicateQuery>()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                authorWithBooks {
+                    name
+                    books @include(if: true) {
+                        id
+                        title
+                    }
+                }
+            }
+            """);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "authorWithBooks": {
+                  "name": "Author1",
+                  "books": [
+                    {
+                      "id": 7,
+                      "title": "alpha"
+                    },
+                    {
+                      "id": 13,
+                      "title": "beta"
+                    }
+                  ]
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task QueryContext_Selector_Projects_Nested_Fields_When_Variable_Include_Is_True()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType<AsPredicateQuery>()
+            .BuildRequestExecutorAsync();
+
+        var request = OperationRequestBuilder.New()
+            .SetDocument(
+                """
+                query Repro($includeBooks: Boolean!) {
+                    authorWithBooks {
+                        name
+                        books @include(if: $includeBooks) {
+                            id
+                            title
+                        }
+                    }
+                }
+                """)
+            .SetVariableValues(new Dictionary<string, object?> { ["includeBooks"] = true })
+            .Build();
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "authorWithBooks": {
+                  "name": "Author1",
+                  "books": [
+                    {
+                      "id": 7,
+                      "title": "alpha"
+                    },
+                    {
+                      "id": 13,
+                      "title": "beta"
+                    }
+                  ]
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task QueryContext_Selector_Omits_Nested_Fields_When_Static_Include_Is_False()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType<AsPredicateQuery>()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                authorWithBooks {
+                    name
+                    books @include(if: false) {
+                        id
+                        title
+                    }
+                }
+            }
+            """);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "authorWithBooks": {
+                  "name": "Author1"
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task QueryContext_Selector_Omits_Nested_Fields_When_Variable_Include_Is_False()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType<AsPredicateQuery>()
+            .BuildRequestExecutorAsync();
+
+        var request = OperationRequestBuilder.New()
+            .SetDocument(
+                """
+                query Repro($includeBooks: Boolean!) {
+                    authorWithBooks {
+                        name
+                        books @include(if: $includeBooks) {
+                            id
+                            title
+                        }
+                    }
+                }
+                """)
+            .SetVariableValues(new Dictionary<string, object?> { ["includeBooks"] = false })
+            .Build();
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "authorWithBooks": {
+                  "name": "Author1"
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task QueryContext_Selector_For_Record_With_Init_Properties_Should_Not_Be_Identity()
     {
         // arrange
@@ -1425,6 +1611,21 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                         }
                     ])
                 .AsQueryable()
+                .With(context);
+
+        public AuthorWithBooks GetAuthorWithBooks() => new() { Name = "Author1" };
+    }
+
+    public class AuthorWithBooks
+    {
+        public string? Name { get; set; }
+
+        public IQueryable<Book> GetBooks(QueryContext<Book> context)
+            => new[]
+                {
+                    new Book { Id = 7, Title = "alpha" },
+                    new Book { Id = 13, Title = "beta" }
+                }.AsQueryable()
                 .With(context);
     }
 

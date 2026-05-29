@@ -931,11 +931,6 @@ public readonly partial struct ResultElement
     {
         CheckValidInstance();
 
-        if (propertyName.Length == 0)
-        {
-            throw new ArgumentNullException(nameof(propertyName));
-        }
-
         var encoding = Encoding.UTF8;
         var requiredBytes = encoding.GetByteCount(propertyName);
         byte[]? rented = null;
@@ -960,11 +955,6 @@ public readonly partial struct ResultElement
     public void SetPropertyName(ReadOnlySpan<byte> propertyName)
     {
         CheckValidInstance();
-
-        if (propertyName.Length == 0)
-        {
-            throw new ArgumentNullException(nameof(propertyName));
-        }
 
         _parent.AssignPropertyName(this, propertyName);
     }

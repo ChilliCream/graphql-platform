@@ -1,4 +1,7 @@
 {
+  "source": {
+    "name": "HotChocolate.Diagnostics"
+  },
   "activities": [
     {
       "OperationName": "GraphQL Operation",
@@ -54,6 +57,10 @@
             {
               "Key": "graphql.operation.type",
               "Value": "query"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:6f0e26cc72109e7fbfd007a087361e6b"
             }
           ]
         },
@@ -75,6 +82,10 @@
             {
               "Key": "graphql.operation.type",
               "Value": "query"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:6f0e26cc72109e7fbfd007a087361e6b"
             }
           ]
         }

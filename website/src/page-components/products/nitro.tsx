@@ -460,7 +460,7 @@ const DownloadAppLink: FC<{
 };
 
 const DownloadEditionLink = styled(Link).attrs({
-  rel: "noopener noreferrer",
+  rel: "noopener noreferrer nofollow",
 })`
   display: flex;
   align-items: center;
@@ -573,7 +573,7 @@ const DownloadButtonContainer = styled.div`
 `;
 
 const DownloadLink = styled.a.attrs({
-  rel: "noopener noreferrer",
+  rel: "noopener noreferrer nofollow",
 })`
   display: flex;
   flex: 0 0 auto;
