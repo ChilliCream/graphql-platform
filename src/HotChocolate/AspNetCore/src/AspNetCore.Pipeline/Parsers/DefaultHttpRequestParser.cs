@@ -51,45 +51,37 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
     {
         try
         {
-            ReadResult result;
+            var result = await ReadFullBodyAsync(requestBody, cancellationToken);
 
-            do
+            // After the loop, the final ReadAsync has not yet been advanced. The pipe
+            // contract requires every successful ReadAsync to be followed by an AdvanceTo,
+            // otherwise the next ReadAsync (e.g. Kestrel draining the request body)
+            // throws "Reading is already in progress".
+            try
             {
-                result = await requestBody.ReadAsync(cancellationToken);
-
-                if (result.Buffer.Length > _maxRequestSize)
+                if (result.IsCanceled)
                 {
-                    requestBody.AdvanceTo(result.Buffer.End);
-                    throw new GraphQLRequestException("Request size exceeds maximum allowed size.");
+                    throw new OperationCanceledException();
                 }
 
-                if (!result.IsCompleted && !result.IsCanceled)
-                {
-                    // We tell the pipe that we've examined everything but consumed nothing yet.
-                    requestBody.AdvanceTo(result.Buffer.Start, result.Buffer.End);
-                }
-            }
-            while (result is { IsCompleted: false, IsCanceled: false });
+                var requestParser = new Utf8GraphQLRequestParser(
+                    _parserOptions,
+                    _documentCache,
+                    _documentHashProvider,
+                    skipDocumentBody);
 
-            if (result.IsCanceled)
+                return requestParser.Parse(result.Buffer);
+            }
+            finally
             {
-                throw new OperationCanceledException();
+                requestBody.AdvanceTo(result.Buffer.End);
             }
-
-            var requestParser = new Utf8GraphQLRequestParser(
-                _parserOptions,
-                _documentCache,
-                _documentHashProvider,
-                skipDocumentBody);
-
-            var requests = requestParser.Parse(result.Buffer);
-
-            // Mark all data as consumed
-            requestBody.AdvanceTo(result.Buffer.End);
-
-            return requests;
         }
         catch (GraphQLRequestException)
+        {
+            throw;
+        }
+        catch (OperationCanceledException)
         {
             throw;
         }
@@ -118,45 +110,37 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
 
         try
         {
-            ReadResult result;
+            var result = await ReadFullBodyAsync(requestBody, cancellationToken);
 
-            do
+            // After the loop, the final ReadAsync has not yet been advanced. The pipe
+            // contract requires every successful ReadAsync to be followed by an AdvanceTo,
+            // otherwise the next ReadAsync (e.g. Kestrel draining the request body)
+            // throws "Reading is already in progress".
+            try
             {
-                result = await requestBody.ReadAsync(cancellationToken);
-
-                if (result.Buffer.Length > _maxRequestSize)
+                if (result.IsCanceled)
                 {
-                    requestBody.AdvanceTo(result.Buffer.End);
-                    throw new GraphQLRequestException("Request size exceeds maximum allowed size.");
+                    throw new OperationCanceledException();
                 }
 
-                if (!result.IsCompleted && !result.IsCanceled)
-                {
-                    // We tell the pipe that we've examined everything but consumed nothing yet.
-                    requestBody.AdvanceTo(result.Buffer.Start, result.Buffer.End);
-                }
-            }
-            while (result is { IsCompleted: false, IsCanceled: false });
+                var requestParser = new Utf8GraphQLRequestParser(
+                    _parserOptions,
+                    _documentCache,
+                    _documentHashProvider,
+                    skipDocumentBody);
 
-            if (result.IsCanceled)
+                return requestParser.ParsePersistedOperation(parsedDocumentId, operationName, result.Buffer);
+            }
+            finally
             {
-                throw new OperationCanceledException();
+                requestBody.AdvanceTo(result.Buffer.End);
             }
-
-            var requestParser = new Utf8GraphQLRequestParser(
-                _parserOptions,
-                _documentCache,
-                _documentHashProvider,
-                skipDocumentBody);
-
-            var request = requestParser.ParsePersistedOperation(parsedDocumentId, operationName, result.Buffer);
-
-            // Mark all data as consumed
-            requestBody.AdvanceTo(result.Buffer.End);
-
-            return request;
         }
         catch (GraphQLRequestException)
+        {
+            throw;
+        }
+        catch (OperationCanceledException)
         {
             throw;
         }
@@ -167,6 +151,30 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
         catch (Exception ex)
         {
             throw DefaultHttpRequestParser_UnexpectedError(ex);
+        }
+    }
+
+    private async ValueTask<ReadResult> ReadFullBodyAsync(
+        PipeReader requestBody,
+        CancellationToken cancellationToken)
+    {
+        while (true)
+        {
+            var result = await requestBody.ReadAsync(cancellationToken);
+
+            if (result.Buffer.Length > _maxRequestSize)
+            {
+                requestBody.AdvanceTo(result.Buffer.End);
+                throw new GraphQLRequestException("Request size exceeds maximum allowed size.");
+            }
+
+            if (result.IsCompleted || result.IsCanceled)
+            {
+                return result;
+            }
+
+            // We tell the pipe that we've examined everything but consumed nothing yet.
+            requestBody.AdvanceTo(result.Buffer.Start, result.Buffer.End);
         }
     }
 

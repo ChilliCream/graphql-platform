@@ -62,6 +62,7 @@ drawio
 enisdenjo
 entityframework
 EPSG
+esac
 esque
 evolvability
 Expando
@@ -76,13 +77,14 @@ frontends
 Fzzz
 GEOGCS
 geolocation
+GHSA
 Giroux
+grafbase
 GraphiQL
 graphqlconfig
 graphqlrc
 graphqls
 graphyne
-grafbase
 greendonut
 Hasura
 HCXXXX
@@ -194,6 +196,7 @@ SHORTSHA
 Silmarillion
 skybridge
 Skywalker
+slnx
 snapshooter
 snupkg
 sortings
@@ -220,11 +223,13 @@ Tarkin
 Tatooine
 Tengler
 Testcontainers
+tonumber
 Toub
 Touchpoint
 TOWGS
 traceparent
 tracestate
+transactionality
 Trimmable
 Tzdb
 unittests
@@ -241,6 +246,7 @@ uuuu
 vnext
 vsix
 VXNlcjox
+webp
 websockets
 Wilhuff
 worklist

@@ -62,7 +62,7 @@ internal sealed class SourceSchemaParser(
         }
 
         // Schema validation.
-        if (_options.EnableSchemaValidation)
+        if (_options.EnableSchemaValidation && !log.HasErrors)
         {
             var validationLog = new ValidationLog();
             s_schemaValidator.Validate(schema, validationLog);

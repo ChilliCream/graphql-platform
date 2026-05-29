@@ -2,6 +2,11 @@ import Link from "next/link";
 
 import { PageHero, Section } from "@/src/components/SectionTitle";
 
+export const metadata = {
+  title: "Resources",
+  description: "ChilliCream brand resources and downloads.",
+};
+
 const COMPANY_LINKS = [
   {
     href: "mailto:contact@chillicream.com",

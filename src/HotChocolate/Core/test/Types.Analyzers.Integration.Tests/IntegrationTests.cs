@@ -19,6 +19,18 @@ public class IntegrationTests
     }
 
     [Fact]
+    public async Task Schema_Snapshot_Without_ConnectionName_Inference()
+    {
+        await new ServiceCollection()
+            .AddGraphQLServer(disableDefaultSecurity: true)
+            .AddIntegrationTestTypes()
+            .AddGlobalObjectIdentification()
+            .ModifyPagingOptions(o => o.InferConnectionNameFromField = false)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
     public async Task Subscription_With_Subscribe_With_Delivers_Message_From_Stream()
     {
         // arrange
@@ -64,6 +76,23 @@ public class IntegrationTests
     }
 
     [Fact]
+    public async Task ObjectTypeDescriptorAttribute_Should_Receive_NonNull_Type_When_Applied_To_StaticPartial_TypeExtension()
+    {
+        // arrange
+        var schema = await new ServiceCollection()
+            .AddGraphQLServer()
+            .AddIntegrationTestTypes()
+            .AddPagingArguments()
+            .BuildSchemaAsync();
+
+        // act
+        var renamedType = schema.Types.GetType<ObjectType>("renamed_DescriptorAttributeProbe");
+
+        // assert
+        Assert.NotNull(renamedType);
+    }
+
+    [Fact]
     public async Task Maps_NullOrdering_From_PagingOptions_To_PagingArguments()
     {
         // arrange
@@ -81,5 +110,26 @@ public class IntegrationTests
         // assert
         Assert.Empty(operationResult.Errors);
         Assert.Equal(NullOrdering.NativeNullsFirst, Query.PagingArguments.NullOrdering);
+    }
+
+    [Fact]
+    public async Task Resolves_Instance_Method_On_NonStatic_QueryType()
+    {
+        // arrange
+        // NonStaticPagedQuery.SomeBooks returns a Book whose title is the resolver
+        // instance's InstanceId (a 32-char hex GUID).
+        var executor = await new ServiceCollection()
+            .AddGraphQLServer()
+            .AddIntegrationTestTypes()
+            .AddPagingArguments()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync("{ someBooks { nodes { title } } }");
+
+        // assert
+        var json = result.ToJson();
+        Assert.DoesNotContain("\"errors\"", json);
+        Assert.Matches("\"title\": \"[0-9a-f]{32}\"", json);
     }
 }

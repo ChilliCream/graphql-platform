@@ -2,7 +2,7 @@ import "server-only";
 import fs from "node:fs/promises";
 import { compileMDX } from "next-mdx-remote/rsc";
 import type { VFile } from "vfile";
-import { remarkPlugins } from "@/src/mdx-plugins";
+import { rehypePlugins, remarkPlugins } from "@/src/mdx-plugins";
 import { useMDXComponents as getMDXComponents } from "@/mdx-components";
 import type { HeadingItem } from "@/src/design-system/TableOfContents";
 
@@ -42,6 +42,7 @@ export async function compileDoc<T extends Frontmatter = Frontmatter>(
       blockJS: false,
       mdxOptions: {
         remarkPlugins: [...remarkPlugins, captureToc],
+        rehypePlugins: [...rehypePlugins],
       },
     },
     components: getMDXComponents(),

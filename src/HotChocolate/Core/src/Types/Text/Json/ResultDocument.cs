@@ -448,6 +448,11 @@ public sealed partial class ResultDocument : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private ReadOnlySpan<byte> ReadLocalData(int location, int size)
     {
+        if (size == 0)
+        {
+            return [];
+        }
+
         var startChunkIndex = location / JsonMemory.BufferSize;
         var offsetInStartChunk = location % JsonMemory.BufferSize;
 
@@ -725,6 +730,11 @@ public sealed partial class ResultDocument : IDisposable
 
     private void WriteDataCore(int position, ReadOnlySpan<byte> data)
     {
+        if (data.Length == 0)
+        {
+            return;
+        }
+
         var chunkIndex = position / JsonMemory.BufferSize;
         var offset = position % JsonMemory.BufferSize;
         var availableInChunk = JsonMemory.BufferSize - offset;

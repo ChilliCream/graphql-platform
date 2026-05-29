@@ -1,4 +1,4 @@
-import { YouTubeEmbed } from "@next/third-parties/google";
+import { VideoFacade } from "./VideoFacade";
 import { extractYouTubeId } from "@/src/helpers/extractYouTubeId";
 
 type VideoProps = {
@@ -16,11 +16,7 @@ export function Video({ src, playlabel }: VideoProps) {
 
   return (
     <div className="my-6 overflow-hidden rounded-md ring-1 ring-slate-700">
-      <YouTubeEmbed
-        videoid={id}
-        playlabel={playlabel}
-        style="max-width: 100%;"
-      />
+      <VideoFacade videoId={id} playlabel={playlabel} />
     </div>
   );
 }

@@ -29,7 +29,7 @@ Validating Fusion configuration of API 'QXBpCmcwMTlkMmIzMGUzNGY3YzQ2OTBjNTgxOTNk
 
 ❌ [ERR] Unable to access the field 'Review.productVariant'.
      Unable to transition between schemas 'REVIEWS' and 'PRODUCTS' for access to field 'PRODUCTS:Review.productVariant<Product>'.
-       No lookups found for type 'Review' in schema 'PRODUCTS'. (UNSATISFIABLE)
+       No lookups found for type 'Review' in schema 'PRODUCTS'. (UNSATISFIABLE_QUERY_PATH)
 Satisfiability validation failed.
 
  -->
@@ -124,6 +124,8 @@ Composition resolves the placeholders against a chosen environment. Pass `--envi
 
 ## Update subgraph
 
+### Batch resolvers
+
 The concept of batch resolvers like `productByIds(ids: [ID!]!)` no longer exists in Fusion v2. Batching is done on the transport level through [variable and request batching](https://github.com/graphql/graphql-over-http/blob/fb404ac12dde473f3d9f5a1b1026574c7475e1e4/spec/Appendix%20B%20--%20Variable%20Batching.md). This means singular fields like `Query.productById(id: ID!): Product` are invoked with a list of IDs instead of a plural `Query.productsById(ids: [ID!]!): [Product!]` field. Check out [this GitHub issue](https://github.com/graphql/composite-schemas-spec/issues/25#issue-2173900758) for details on this decision.
 
 Since you don't want multiple invocations of the `Query.productById` field during a single request to hit the database multiple times, you need to ensure your `Query` root fields and `[NodeResolver]` implementations (powering the `Query.node(id: ID!): Node` field) are using [`DataLoader`](/docs/hotchocolate/v16/resolvers-and-data/dataloader). This is a best practice and ensures the performance of your server does not degrade in comparison to the previous batching fields.
@@ -137,12 +139,22 @@ If an entity currently only has batch `Query` root fields in your subgraph, you'
  }
 ```
 
+### Transport batching
+
 Variable and request batching aren't enabled by default, so you also need to update your `Program.cs` to enable it:
 
 ```diff
 - app.MapGraphQL();
 + app.MapGraphQL().WithOptions(new GraphQLServerOptions { EnableBatching = true });
 ```
+
+### GraphQL errors
+
+The v16 gateway only forwards subgraph errors when the associated field is missing or `null` ([spec](https://spec.graphql.org/draft/#sec-Errors.Execution-Errors)). Reporting an error via `IResolverContext.ReportError()` while also returning a non-null value no longer surfaces the error at the gateway.
+
+Throw a `GraphQLException` instead, so the field resolves to `null` and the error is forwarded.
+
+---
 
 If you want to, you can also now [migrate the subgraph to Hot Chocolate v16](#migrate-subgraph-to-v16), but it's not required at this point.
 
@@ -398,7 +410,7 @@ public static class Query
 }
 ```
 
-Missing `@lookup` annotations will usually manifest as `UNSATISFIABLE` errors in the composition. See [Entities and lookups](/docs/fusion/v16/entities-and-lookups) for details.
+Missing `@lookup` annotations will usually manifest as `UNSATISFIABLE_QUERY_PATH` errors in the composition. See [Entities and lookups](/docs/fusion/v16/entities-and-lookups) for details.
 
 If your graph has overlapping fields, i.e. multiple subgraphs providing the same field, you now also have to explicitly mark those fields as shareable from both sides.
 
@@ -795,9 +807,28 @@ To access application services within schema services like diagnostic event list
 builder.Services.AddSingleton<MyService>();
 builder.Services.AddGraphQLGatewayServer()
 +   .AddApplicationService<MyService>()
+
+    // either
     .AddDiagnosticEventListener<MyDiagnosticEventListener>();
+    // or
+    .AddDiagnosticEventListener(sp => new MyDiagnosticEventListener(sp.GetRequiredService<MyService>()));
 
 public class MyDiagnosticEventListener(MyService service) : FusionExecutionDiagnosticEventListener;
+```
+
+Sometimes the registration of required services is not as obvious. For example, the types for logging are registered in framework code.
+
+```diff
+builder.Services.AddLogging();
+builder.Services.AddGraphQLGatewayServer()
++   .AddApplicationService<ILogger<MyLoggingDiagnosticEventListener>>()
+
+    // either
+    .AddDiagnosticEventListener<MyLoggingDiagnosticEventListener>();
+    // or
+    .AddDiagnosticEventListener(sp => new MyLoggingDiagnosticEventListener(sp.GetRequiredService<ILogger<MyLoggingDiagnosticEventListener>>()));
+
+public class MyLoggingDiagnosticEventListener(ILogger<MyLoggingDiagnosticEventListener> logger) : FusionExecutionDiagnosticEventListener;
 ```
 
 If you're using any of the following Fusion configuration APIs, ensure that the application services required for their activation are registered via `AddApplicationService<T>()`:
@@ -865,6 +896,14 @@ If you're using `MapGraphQLSchema()` to expose the gateway schema at `/graphql/s
 app.MapGraphQLSchema();
 app.MapGraphQLSemanticNonNullSchema();
 ```
+
+## Behavioral breaking changes
+
+### Subgraph errors are only forwarded if the associated field is not initialized
+
+The v15 gateway forwarded every subgraph error. The v16 gateway only forwards errors whose associated field is missing or `null`, matching the [GraphQL spec](https://spec.graphql.org/draft/#sec-Errors.Execution-Errors). Errors attached to an initialized (non-null) field are now dropped.
+
+Update affected subgraphs as described in [GraphQL errors](#graphql-errors).
 
 ## Noteworthy changes
 
@@ -1009,7 +1048,7 @@ Once the gateway has been [cut over to v16](#upgrade-the-gateway) and every subg
 
 Since `dotnet fusion` is no longer used, you can remove any reference to the `HotChocolate.Fusion.CommandLine` package from your pipelines and from `./.config/dotnet-tools.json`.
 
-You can also fully replace `ChilliCream.Nitro.CLI` with [`ChilliCream.Nitro.CommandLine`](/docs/nitro/cli/installation.md).
+You can also fully replace `ChilliCream.Nitro.CLI` with [`ChilliCream.Nitro.CommandLine`](/docs/nitro/cli/installation).
 
 > Note: Hold off until the v16 gateway has been running in production long enough that a rollback to v15 is off the table. Once the v15 compose step is gone the `.fgp` is no longer refreshed, and a rollback would mean restoring these steps first. Cleanup is independent per subgraph, so there is no need to do all repositories at once.
 

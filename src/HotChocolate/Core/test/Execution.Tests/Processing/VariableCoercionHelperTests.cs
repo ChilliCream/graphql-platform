@@ -612,6 +612,49 @@ public class VariableCoercionHelperTests
     }
 
     [Fact]
+    public void Error_When_Single_Value_Type_Does_Not_Match_List_Element_Type()
+    {
+        // arrange
+        var schema = SchemaBuilder.New().AddStarWarsTypes().Create();
+
+        var variableDefinitions = new List<VariableDefinitionNode>
+        {
+            new(null,
+                new VariableNode("abc"),
+                description: null,
+                new ListTypeNode(new NamedTypeNode("Int")),
+                null,
+                Array.Empty<DirectiveNode>())
+        };
+
+        var variableValues = JsonDocument.Parse("""{"abc": "xyz"}""");
+        var coercedValues = new Dictionary<string, VariableValue>();
+        var featureProvider = new MockFeatureProvider();
+        var helper = new VariableCoercionHelper(new());
+
+        // act
+        void Action() => helper.CoerceVariableValues(
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider);
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action)
+            .Errors.Select(t => t.WithException(null))
+            .ToList()
+            .MatchInlineSnapshot(
+                """
+                "errors": [
+                  {
+                    "message": "Int cannot coerce the given value JSON element of type `String` to a runtime value.",
+                    "path": [
+                      "abc",
+                      0
+                    ]
+                  }
+                ]
+                """);
+    }
+
+    [Fact]
     public void StringValue_Representing_EnumValue_In_Single_Object_For_List_ShouldBe_Rewritten()
     {
         // arrange

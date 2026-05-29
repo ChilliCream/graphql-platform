@@ -8,7 +8,6 @@ import { ChevronDownIcon } from "@/src/icons/ChevronDown";
 import { ChilliCream } from "@/src/icons/ChilliCream";
 import { GitHubIcon } from "@/src/icons/GitHub";
 import { LinkedInIcon } from "@/src/icons/LinkedIn";
-import { SearchButton } from "./Search";
 import { SlackIcon } from "@/src/icons/Slack";
 import { XIcon } from "@/src/icons/X";
 import { YouTubeIcon } from "@/src/icons/YouTube";
@@ -25,6 +24,7 @@ import {
 
 import { MobileNav } from "./MobileNav";
 import { NavAutoClose } from "./NavAutoClose";
+import { SearchButton } from "./Search";
 
 const TOOLS = {
   blog: "/blog",

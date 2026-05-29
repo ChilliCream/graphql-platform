@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-export const BLOG_ROOT = path.join(process.cwd(), "content/blogs");
+export const BLOG_ROOT = path.join(process.cwd(), "content/blog");
 const STEM_RE = /^(\d{4})-(\d{2})-(\d{2})-(.+)$/;
 
 export type BlogStem = {

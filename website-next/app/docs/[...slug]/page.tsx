@@ -2,33 +2,46 @@ import fs from "node:fs";
 import path from "node:path";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { DocCommunity } from "@/src/design-system/DocCommunity";
+import { DocPageMeta } from "@/src/design-system/DocPageMeta";
+import { EditOnGitHub } from "@/src/design-system/EditOnGitHub";
 import { TableOfContents } from "@/src/design-system/TableOfContents";
 import { Typography } from "@/src/design-system/Typography";
 import { compileDoc } from "@/src/helpers/compileDoc";
+import { getGitMetadata } from "@/src/helpers/gitMetadata";
+import { githubEditUrl } from "@/src/helpers/githubEditUrl";
 import { readFrontmatter } from "@/src/helpers/readFrontmatter";
 
 const CONTENT_ROOT = path.join(process.cwd(), "content/docs");
 
+type Params = {
+  slug: string[];
+};
+
+type PageProps = {
+  params: Promise<Params>;
+};
+
 export const dynamicParams = false;
 
-export function generateStaticParams(): { slug: string[] }[] {
-  return walk(CONTENT_ROOT)
+export function generateStaticParams(): Params[] {
+  const params = walk(CONTENT_ROOT)
     .filter((f) => /\.mdx?$/.test(f))
     .map((f) => path.relative(CONTENT_ROOT, f).replace(/\.mdx?$/, ""))
     .map((rel) => rel.split(path.sep))
     .map((parts) =>
-      parts[parts.length - 1] === "index" ? parts.slice(0, -1) : parts
+      parts[parts.length - 1] === "index" ? parts.slice(0, -1) : parts,
     )
     .filter((slug) => slug.length > 0)
     .map((slug) => ({ slug }));
+
+  // output: export requires at least one prerendered path; placeholder
+  // renders 404 via notFound() when no content is present.
+  return params.length > 0 ? params : [{ slug: ["__empty__"] }];
 }
 
 export async function generateMetadata({
   params,
-}: {
-  params: Promise<{ slug: string[] }>;
-}): Promise<Metadata> {
+}: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const rel = resolveFile(slug);
   if (rel === null) {
@@ -41,11 +54,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function DocPage({
-  params,
-}: {
-  params: Promise<{ slug: string[] }>;
-}) {
+export default async function DocPage({ params }: PageProps) {
   const { slug } = await params;
   const rel = resolveFile(slug);
 
@@ -53,27 +62,30 @@ export default async function DocPage({
     notFound();
   }
 
-  const { content, frontmatter, toc } = await compileDoc(
-    path.join(CONTENT_ROOT, rel)
-  );
-
-  const editUrl = `https://github.com/ChilliCream/graphql-platform/blob/main/website-next/content/docs/${rel}`;
-  const slackUrl = "https://slack.chillicream.com/";
+  const absolutePath = path.join(CONTENT_ROOT, rel);
+  const { content, frontmatter, toc } = await compileDoc(absolutePath);
+  const gitMeta = await getGitMetadata(absolutePath);
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-[1fr_20rem]">
+    <div className="grid min-h-[calc(100vh-72px)] grid-cols-1 2xl:grid-cols-[1fr_20rem]">
       <main className="cc-prose-invert min-w-0 px-5 py-8 sm:px-12">
         <article className="mx-auto max-w-5xl">
           {frontmatter.title ? (
             <Typography variant="h1">{frontmatter.title}</Typography>
           ) : null}
+
           {content}
+
+          <EditOnGitHub href={githubEditUrl(`content/docs/${rel}`)} />
+
+          <DocPageMeta
+            isoDate={gitMeta.isoDate}
+            displayDate={gitMeta.displayDate}
+            author={gitMeta.author}
+          />
         </article>
       </main>
-      <aside className="hidden xl:block sticky top-[72px] self-start h-[calc(100vh-72px)] overflow-y-auto min-w-0">
-        <DocCommunity editUrl={editUrl} slackUrl={slackUrl} />
-        <TableOfContents items={toc} />
-      </aside>
+      <TableOfContents items={toc} />
     </div>
   );
 }

@@ -6,7 +6,6 @@ import {
 } from "react";
 import { codeToHtml } from "shiki";
 import { LANGUAGES, STEP_PALETTE } from "./languages";
-import { MermaidDiagram } from "./MermaidDiagram";
 import { parseCodeBlockMeta } from "@/src/helpers/parseCodeBlockMeta";
 
 const THEME = "github-dark";
@@ -46,10 +45,6 @@ export async function CodeBlock({ children, className = "" }: CodeBlockProps) {
   }
 
   const { code, language, meta } = extracted;
-
-  if (language === "mermaid") {
-    return <MermaidDiagram source={code} />;
-  }
 
   const parsed = parseCodeBlockMeta(meta);
   const descriptor = LANGUAGES[language];
