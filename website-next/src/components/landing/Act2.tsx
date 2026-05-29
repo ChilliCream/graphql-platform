@@ -131,10 +131,11 @@ export const Act2: React.FC<Act2Props> = ({ activeTab, setActiveTab }) => {
       const railX0 = body.getBoundingClientRect().left - rRect.left;
 
       const entryPts: Array<{ x: number; y: number }> = [];
+      // Connector graphics render at full opacity regardless of the active
+      // tab — tab selection drives the panel + tab-bar styling only, not the
+      // diagram lines.
+      const meta = { opacity: 1 };
       [0, 1, 2, 3].forEach((i) => {
-        const isActive =
-          activeTab === "platform" || activeTab === DESKTOP_PRODUCTS[i].key;
-        const meta = { opacity: isActive ? 1 : 0.32 };
         const dotEl = entryRefs.current[i];
         if (!dotEl) {
           return;
@@ -160,9 +161,6 @@ export const Act2: React.FC<Act2Props> = ({ activeTab, setActiveTab }) => {
       }
 
       [0, 1, 2, 3].forEach((i) => {
-        const isActive =
-          activeTab === "platform" || activeTab === DESKTOP_PRODUCTS[i].key;
-        const meta = { opacity: isActive ? 1 : 0.32 };
         const entry = entryPts[i];
         if (!entry || !mergePt) {
           return;
@@ -204,7 +202,7 @@ export const Act2: React.FC<Act2Props> = ({ activeTab, setActiveTab }) => {
       });
     },
     [sectionRef, bodyRef, entryRowRef],
-    [register, activeTab, root]
+    [register, root]
   );
 
   useEffect(
@@ -229,10 +227,6 @@ export const Act2: React.FC<Act2Props> = ({ activeTab, setActiveTab }) => {
       className="cc-act cc-act-build cc-act-spills"
       data-screen-label="02 Building Applications"
     >
-      <div className="cc-act-label">
-        Building Applications
-      </div>
-
       <div className="cc-act2-body" ref={bodyRef}>
         <div className="cc-section-headline-fade cc-act2-headline-wrap">
           <div className="eyebrow">Build</div>

@@ -133,10 +133,6 @@ export const Act5: React.FC = () => {
       className="cc-act cc-act-brew"
       data-screen-label="06 Brew it your way"
     >
-      <div className="cc-act-label">
-        Brew it your way
-      </div>
-
       <div className="cc-brew-inner-d">
         <div className="cc-brew-heading-d">
           <div className="eyebrow">Three ways to deploy</div>

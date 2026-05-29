@@ -5,7 +5,7 @@ export function Table({
   ...props
 }: ComponentPropsWithoutRef<"table">) {
   return (
-    <div className="my-6 overflow-x-auto rounded-md ring-1 ring-slate-200">
+    <div className="my-6 overflow-x-auto rounded-md ring-1 ring-slate-700">
       <table
         className={`w-full border-collapse text-left text-sm ${className}`.trim()}
         {...props}
@@ -32,7 +32,7 @@ export function TableBody({
 }: ComponentPropsWithoutRef<"tbody">) {
   return (
     <tbody
-      className={`divide-y divide-slate-200 ${className}`.trim()}
+      className={`divide-y divide-slate-700/60 ${className}`.trim()}
       {...props}
     />
   );

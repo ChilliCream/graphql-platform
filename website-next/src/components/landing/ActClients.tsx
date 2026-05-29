@@ -198,10 +198,6 @@ export const ActClients: React.FC = () => {
       className="cc-act cc-act-clients cc-act-spills"
       data-screen-label="05 Clients & Surfaces"
     >
-      <div className="cc-act-label">
-        Clients &amp; Surfaces
-      </div>
-
       <div className="cc-actclients-stage" ref={stageRef}>
         <svg
           width={stageW}

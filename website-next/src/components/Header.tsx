@@ -202,7 +202,7 @@ const MOBILE_ITEMS = NAV_ITEMS.map((i) => ({ href: i.href, label: i.label }));
 export default function Header() {
   const latestBlog = getLatestBlogPost();
   return (
-    <header className="sticky top-0 z-30 flex h-[72px] w-full justify-center border-b border-white/10 bg-[#0c1322]/70 backdrop-blur-md">
+    <header className="sticky top-0 z-30 flex h-[72px] w-full justify-center border-b border-white/10 bg-[#0c1322]/70 backdrop-blur-[18px] backdrop-saturate-150">
       <div className="relative flex h-full w-full max-w-7xl items-center justify-between px-4 lg:gap-8">
         <Link
           href="/"

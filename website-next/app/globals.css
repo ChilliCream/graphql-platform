@@ -213,6 +213,21 @@ html:has(:target) {
   border-left-color: #5eead4;
 }
 
+/* Latest Blog Posts rail (LatestBlogPosts.tsx). Scoped under .cc-prose-invert
+   so it beats the generic `.cc-prose-invert a` teal: the list reads as muted
+   nav, with the current post highlighted like the active TOC entry. */
+.cc-prose-invert [data-latest-link] {
+  color: rgba(245, 241, 234, 0.6);
+}
+.cc-prose-invert [data-latest-link]:hover {
+  color: #f5f1ea;
+}
+.cc-prose-invert [data-latest-link][data-active="true"] {
+  color: #5eead4;
+  font-weight: 600;
+  border-left-color: #5eead4;
+}
+
 /* Shiki output styling — neutralize default <pre> background so the figure
    chrome owns the visuals; wrap each line so highlights span full width. */
 .shiki-wrapper pre {

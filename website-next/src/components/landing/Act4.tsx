@@ -185,10 +185,6 @@ export const Act4: React.FC = () => {
       className="cc-act cc-act-adapters cc-act-spills"
       data-screen-label="04 Adapters"
     >
-      <div className="cc-act-label">
-        Adapters
-      </div>
-
       <div className="cc-act4-stage" ref={stageRef}>
         <div
           className="cc-section-headline-fade"

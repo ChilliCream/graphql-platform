@@ -8,9 +8,13 @@ export type HeadingItem = {
 
 type TableOfContentsProps = {
   items: HeadingItem[];
+  label?: string;
 };
 
-export function TableOfContents({ items }: TableOfContentsProps) {
+export function TableOfContents({
+  items,
+  label = "On this page",
+}: TableOfContentsProps) {
   if (items.length === 0) {
     return null;
   }
@@ -18,7 +22,7 @@ export function TableOfContents({ items }: TableOfContentsProps) {
   return (
     <div className="px-5 py-8 max-w-[21rem]">
       <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-3">
-        On this page
+        {label}
       </p>
       <nav>
         <ul className="space-y-1 border-l border-white/10 text-sm">

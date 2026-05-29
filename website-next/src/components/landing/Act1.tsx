@@ -161,10 +161,6 @@ export const Act1: React.FC = () => {
       className="cc-act cc-act-hero"
       data-screen-label="01 Hero"
     >
-      <div className="cc-act-label">
-        Hero
-      </div>
-
       <div className="cc-hero-canvas-wrap" ref={wrapRef}>
         <div className="cc-hero-copy">
           <div className="eyebrow">The API platform</div>

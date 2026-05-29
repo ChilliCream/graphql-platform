@@ -18,7 +18,7 @@ export function BlogTags({ tags }: BlogTagsProps) {
         <li key={tag} className="inline-block">
           <Link
             href={`/blog/tags/${tag}`}
-            className="block rounded-md border border-slate-200 bg-slate-50 px-3 py-1 text-sm text-slate-700 no-underline hover:border-slate-300 hover:bg-slate-100"
+            className="block rounded-md border border-slate-700 bg-slate-50 px-3 py-1 text-sm text-slate-700 no-underline hover:border-slate-700 hover:bg-slate-100"
           >
             {tag}
           </Link>

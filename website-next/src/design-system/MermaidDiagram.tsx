@@ -22,7 +22,32 @@ export function MermaidDiagram({ source }: { source: string }) {
         mermaid.initialize({
           startOnLoad: false,
           securityLevel: "strict",
-          theme: "default",
+          theme: "base",
+          themeVariables: {
+            darkMode: true,
+            background: "#0c1322",
+            // Node fills: dark surface with light, legible text.
+            primaryColor: "#0c1322",
+            primaryTextColor: "#f5f1ea",
+            primaryBorderColor: "rgba(245, 241, 234, 0.32)",
+            secondaryColor: "#141d31",
+            secondaryTextColor: "#f5f1ea",
+            secondaryBorderColor: "rgba(245, 241, 234, 0.32)",
+            tertiaryColor: "#1a2540",
+            tertiaryTextColor: "#f5f1ea",
+            tertiaryBorderColor: "rgba(245, 241, 234, 0.32)",
+            // Edges, lines and general text on the dark page.
+            lineColor: "rgba(245, 241, 234, 0.55)",
+            textColor: "#f5f1ea",
+            mainBkg: "#0c1322",
+            nodeBorder: "rgba(245, 241, 234, 0.32)",
+            clusterBkg: "rgba(12, 19, 34, 0.55)",
+            clusterBorder: "rgba(245, 241, 234, 0.16)",
+            titleColor: "#f5f1ea",
+            edgeLabelBackground: "#0b0f1a",
+            // Accent used for active/special states matches the site accent.
+            nodeTextColor: "#f5f1ea",
+          },
         });
         const { svg } = await mermaid.render(id, source);
         if (!cancelled) {
@@ -41,7 +66,7 @@ export function MermaidDiagram({ source }: { source: string }) {
 
   if (error) {
     return (
-      <pre className="my-6 overflow-x-auto rounded border border-red-300 bg-red-50 p-4 text-sm text-red-800">
+      <pre className="my-6 overflow-x-auto rounded border border-red-500/40 bg-red-950/40 p-4 text-sm text-red-200">
         {`Mermaid render error: ${error}\n\n${source}`}
       </pre>
     );

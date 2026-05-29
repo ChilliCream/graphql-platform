@@ -8,9 +8,6 @@ export const FinalCta: React.FC = () => {
       className="cc-act cc-act-final-cta"
       data-screen-label="07 Pour your platform"
     >
-      <div className="cc-act-label">
-        Fancy a drink?
-      </div>
       <div className="cc-final-cta-inner-d">
         <div className="eyebrow">Ready when you are</div>
         <h2 className="display">Do you fancy a drink?</h2>
@@ -66,9 +63,6 @@ export const Blog: React.FC = () => {
       className="cc-act cc-act-blog"
       data-screen-label="08 From the blog"
     >
-      <div className="cc-act-label">
-        From the blog
-      </div>
       <div className="cc-blog-inner-d">
         <div className="cc-blog-heading-d">
           <div className="eyebrow">From the blog</div>

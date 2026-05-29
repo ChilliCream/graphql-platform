@@ -245,7 +245,6 @@
     border-radius: 14px;
     background: rgba(12, 19, 34, 0.55);
     backdrop-filter: blur(10px) saturate(110%);
-    -webkit-backdrop-filter: blur(10px) saturate(110%);
     border: 1px solid rgba(245, 241, 234, 0.08);
     box-shadow: 0 14px 40px -22px rgba(0, 0, 0, 0.6);
   }
@@ -466,7 +465,6 @@
        lighter than the surrounding navy. */
     background: rgba(12, 19, 34, 0.7);
     backdrop-filter: blur(10px) saturate(110%);
-    -webkit-backdrop-filter: blur(10px) saturate(110%);
     border: 1px solid var(--cc-ink-faint);
     border-radius: 14px;
     margin-bottom: 18px;
@@ -501,7 +499,6 @@
        sits right where the lens glare would otherwise wash through. */
     background: rgba(12, 19, 34, 0.7);
     backdrop-filter: blur(10px) saturate(110%);
-    -webkit-backdrop-filter: blur(10px) saturate(110%);
     border: 1px solid var(--cc-ink-faint);
     border-radius: 14px;
     padding: 32px 36px;

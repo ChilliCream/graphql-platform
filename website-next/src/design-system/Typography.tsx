@@ -27,7 +27,7 @@ const variantConfig: Record<
   h2: {
     tag: "h2",
     className:
-      "mt-12 mb-4 pb-2 text-3xl font-semibold tracking-tight text-slate-900 border-b border-slate-200",
+      "mt-12 mb-4 pb-2 text-3xl font-semibold tracking-tight text-slate-900 border-b border-slate-700",
   },
   h3: {
     tag: "h3",

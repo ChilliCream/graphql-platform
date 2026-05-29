@@ -198,10 +198,6 @@ export const Act3: React.FC<Act3Props> = ({ activeTab, setActiveTab }) => {
       className="cc-act cc-act-fusion cc-act-spills"
       data-screen-label="03 Fusion"
     >
-      <div className="cc-act-label">
-        Fusion
-      </div>
-
       <div className="cc-act3-body" ref={bodyRef}>
         <div className="cc-section-headline-fade cc-act3-headline-wrap">
           <div className="eyebrow">Fusion</div>

@@ -52,10 +52,10 @@ export function Tabs({ children, defaultIndex = 0 }: TabsProps) {
   const current = tabs[active] ?? tabs[0];
 
   return (
-    <div className="my-6 overflow-hidden rounded-md ring-1 ring-slate-200">
+    <div className="my-6 overflow-hidden rounded-md ring-1 ring-slate-700">
       <div
         role="tablist"
-        className="flex flex-wrap border-b border-slate-200 bg-slate-50"
+        className="flex flex-wrap border-b border-slate-700/60 bg-slate-50"
       >
         {tabs.map((tab, i) => {
           const selected = i === active;
