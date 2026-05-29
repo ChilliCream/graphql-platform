@@ -16,7 +16,7 @@
     }
   },
   "onCreateCommand": "sudo corepack enable",
-  "postCreateCommand": "corepack prepare yarn@4.14.1 --activate && yarn install --immutable && sudo yarn playwright install-deps && yarn playwright install chromium",
+  "postCreateCommand": "yarn install --immutable && sudo yarn playwright install-deps && yarn playwright install chromium",
   "containerEnv": {
     "NEXT_TELEMETRY_DISABLED": "1",
     "COREPACK_ENABLE_DOWNLOAD_PROMPT": "0"
