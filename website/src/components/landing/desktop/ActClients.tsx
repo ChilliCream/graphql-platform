@@ -1,9 +1,13 @@
 "use client";
 
-import React, { useLayoutEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import { DESKTOP_ADAPTERS, adapterExitXs } from "./constants";
-import { useAnchorContext } from "./AnchorContext";
+import {
+  useAnchorContext,
+  useLandingRoot,
+  useMeasureEffect,
+} from "./AnchorContext";
 
 interface Client {
   key: string;
@@ -118,16 +122,14 @@ export const ActClients: React.FC = () => {
     h: REF_H,
   });
   const { register, unregister } = useAnchorContext();
+  const root = useLandingRoot();
 
   // Register one anchor per endpoint frame so future connector code can
   // route to them (ConnectorLayer doesn't currently consume these, but the
   // anchors are kept for parity with the rest of the act surface).
-  useLayoutEffect(() => {
-    const measure = () => {
+  useMeasureEffect(
+    () => {
       const stage = stageRef.current;
-      const root = sectionRef.current?.closest(
-        "[data-cc-landing-root]"
-      ) as HTMLElement | null;
       if (!stage || !root) {
         return;
       }
@@ -139,7 +141,7 @@ export const ActClients: React.FC = () => {
           : { w: sRect.width, h: sRect.height }
       );
 
-      CLIENTS.forEach((c, i) => {
+      CLIENTS.forEach((_, i) => {
         const el = endpointRefs.current[i];
         if (!el) {
           return;
@@ -151,34 +153,19 @@ export const ActClients: React.FC = () => {
           kind: "service-entry",
         });
       });
-    };
+    },
+    [stageRef, sectionRef],
+    [register, root]
+  );
 
-    measure();
-    const ro = new ResizeObserver(measure);
-    if (stageRef.current) {
-      ro.observe(stageRef.current);
-    }
-    if (sectionRef.current) {
-      ro.observe(sectionRef.current);
-    }
-    const scrollEl = document.querySelector(
-      ".main__Container-sc-d4365469-0"
-    ) as HTMLElement | null;
-    scrollEl?.addEventListener("scroll", measure, { passive: true });
-    window.addEventListener("scroll", measure, { passive: true });
-    window.addEventListener("resize", measure);
-    const fontShiftTimer = window.setTimeout(measure, 250);
-    return () => {
-      ro.disconnect();
-      scrollEl?.removeEventListener("scroll", measure);
-      window.removeEventListener("scroll", measure);
-      window.removeEventListener("resize", measure);
-      window.clearTimeout(fontShiftTimer);
+  useEffect(
+    () => () => {
       CLIENTS.forEach((_, i) => {
         unregister(`actClients.endpoint-${i}`);
       });
-    };
-  }, [register, unregister]);
+    },
+    [unregister]
+  );
 
   const xPct = (refX: number) => `${(refX / REF_W) * 100}%`;
   const yPct = (refY: number) => `${(refY / REF_H) * 100}%`;

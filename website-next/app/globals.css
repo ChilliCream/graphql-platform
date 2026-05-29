@@ -1,7 +1,193 @@
 @import "tailwindcss";
 
+/* ===== Theme surfaces =====
+   The entire site is dark, so the html/body base paint is the dark bg. This
+   prevents a white flash on first paint before the per-surface starfield
+   (`.cc-content-dark`) renders. The landing page owns its own dark body via
+   `body.cc-landing-body` (see landing-styles.css).
+
+   Wrapped in @layer base because Tailwind v4 strips unscoped declarations
+   that aren't inside a layer. */
+@layer base {
+  :root {
+    --cc-ink: #f5f1ea;
+    --cc-ink-dim: rgba(245, 241, 234, 0.62);
+    --cc-ink-faint: rgba(245, 241, 234, 0.16);
+    --cc-bg: #0b0f1a;
+    --cc-card-bg: rgba(12, 19, 34, 0.55);
+    --cc-card-border: rgba(245, 241, 234, 0.12);
+    --cc-card-border-hover: rgba(245, 241, 234, 0.32);
+    --cc-accent: #d946ef;
+    --cc-accent-hover: #c026d3;
+    /* Dark starfield surface shared by marketing pages. A few
+       radial-gradients layered on the page gradient give a hint of the
+       original WebGL nebula without the JS cost, anchored to the viewport
+       so the pattern doesn't scroll with content. */
+    --cc-dark-surface:
+      radial-gradient(1px 1px at 17% 12%, rgba(255, 255, 255, 0.5), transparent 50%),
+      radial-gradient(1px 1px at 34% 58%, rgba(255, 255, 255, 0.45), transparent 50%),
+      radial-gradient(1.5px 1.5px at 62% 23%, rgba(255, 255, 255, 0.4), transparent 50%),
+      radial-gradient(1px 1px at 82% 71%, rgba(255, 255, 255, 0.6), transparent 50%),
+      radial-gradient(1px 1px at 12% 84%, rgba(255, 255, 255, 0.4), transparent 50%),
+      radial-gradient(1.5px 1.5px at 48% 91%, rgba(255, 255, 255, 0.35), transparent 50%),
+      radial-gradient(1px 1px at 91% 8%, rgba(255, 255, 255, 0.45), transparent 50%),
+      radial-gradient(1px 1px at 27% 31%, rgba(255, 255, 255, 0.4), transparent 50%),
+      radial-gradient(1.2px 1.2px at 73% 49%, rgba(255, 255, 255, 0.5), transparent 50%),
+      radial-gradient(80% 50% at 70% 0%, rgba(80, 60, 200, 0.12), transparent 60%),
+      linear-gradient(
+        180deg,
+        #0c1322 0%,
+        #0c1322 22%,
+        #0b1220 38%,
+        #0a111e 58%,
+        #09101c 78%,
+        #08101a 100%
+      );
+  }
+
+  html {
+    background-color: #0b0f1a;
+    color: #f5f1ea;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: #0b0f1a;
+    color: #f5f1ea;
+    min-height: 100vh;
+  }
+}
+
+/* Marketing surface: dark starfield + cream text. Applied by the
+   `(content)` route group layout. Declaration-only (no nesting) so
+   Lightning CSS keeps every declaration. */
+.cc-content-dark {
+  background-image: var(--cc-dark-surface);
+  background-size: 100vw 100vh, 100vw 100vh, 100vw 100vh, 100vw 100vh,
+    100vw 100vh, 100vw 100vh, 100vw 100vh, 100vw 100vh, 100vw 100vh, auto, auto;
+  background-color: var(--cc-bg);
+  background-attachment: fixed;
+  color: var(--cc-ink);
+  min-height: 100vh;
+}
+
+/* Paint the body dark behind marketing pages so the shared Header/Footer
+   and layout margins sit on the same starfield with no white gaps. The
+   landing page handles its own body via body.cc-landing-body. */
+body:has(.cc-content-dark) {
+  background-image: var(--cc-dark-surface);
+  background-size: 100vw 100vh, 100vw 100vh, 100vw 100vh, 100vw 100vh,
+    100vw 100vh, 100vw 100vh, 100vw 100vh, 100vw 100vh, 100vw 100vh, auto, auto;
+  background-color: var(--cc-bg);
+  background-attachment: fixed;
+  color: var(--cc-ink);
+}
+
+/* Blog dark prose: re-color shared design-system components (which hardcode
+   light text-slate-* utilities) to readable tones on the dark starfield.
+   Scoped to .cc-prose-invert so docs (light) and marketing are unaffected.
+   Element+class selectors (0-1-1) beat single-class utilities (0-1-0). */
+.cc-prose-invert h1,
+.cc-prose-invert h2,
+.cc-prose-invert h3,
+.cc-prose-invert h4,
+.cc-prose-invert h5,
+.cc-prose-invert h6 {
+  color: #f5f1ea;
+  border-color: rgba(245, 241, 234, 0.14);
+}
+.cc-prose-invert p,
+.cc-prose-invert li {
+  color: rgba(245, 241, 234, 0.8);
+}
+.cc-prose-invert strong {
+  color: #f5f1ea;
+}
+.cc-prose-invert ul li::marker,
+.cc-prose-invert ol li::marker {
+  color: rgba(245, 241, 234, 0.4);
+}
+.cc-prose-invert blockquote {
+  border-color: rgba(245, 241, 234, 0.24);
+  color: rgba(245, 241, 234, 0.72);
+}
+.cc-prose-invert hr {
+  border-color: rgba(245, 241, 234, 0.14);
+}
+/* inline code (InlineCode.tsx): light bg/ring -> dark */
+.cc-prose-invert :not(pre) > code {
+  background-color: rgba(245, 241, 234, 0.08);
+  color: #f5f1ea;
+  --tw-ring-color: rgba(245, 241, 234, 0.16);
+}
+/* tables (Table.tsx) */
+.cc-prose-invert thead {
+  background-color: rgba(245, 241, 234, 0.06);
+}
+.cc-prose-invert th {
+  color: #f5f1ea;
+}
+.cc-prose-invert td {
+  color: rgba(245, 241, 234, 0.8);
+}
+.cc-prose-invert table,
+.cc-prose-invert tbody > tr {
+  border-color: rgba(245, 241, 234, 0.14) !important;
+}
+/* links (Link.tsx emerald-700 -> readable light emerald). Author link + body links. */
+.cc-prose-invert a {
+  color: #5eead4;
+  text-decoration-color: rgba(94, 234, 212, 0.4);
+}
+/* blog metadata (BlogMetadata.tsx) date/author muted slate -> dim cream */
+.cc-prose-invert .text-slate-600,
+.cc-prose-invert .text-slate-700 {
+  color: rgba(245, 241, 234, 0.7);
+}
+/* blog tag pills (BlogTags.tsx): light pill -> subtle dark pill */
+.cc-prose-invert .bg-slate-50 {
+  background-color: rgba(245, 241, 234, 0.05);
+  border-color: rgba(245, 241, 234, 0.18);
+  color: rgba(245, 241, 234, 0.8);
+}
+/* TOC dark styling lives in TableOfContents.tsx + the global [data-toc-link][data-active] rule below. */
+
+/* After a client-side navigation the Header persists; if the cursor is still
+   resting on a dropdown trigger (or focus stayed in the nav) the panel would
+   remain open. NavAutoClose tags the nav with data-suppress-hover until the
+   pointer next moves, forcing the panels closed in the meantime. */
+header nav[data-suppress-hover] [data-nav-panel] {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
 html:has(:target) {
   scroll-behavior: smooth;
+}
+
+/* Subtle dark scrollbars — the default light/native ones look harsh against
+   the dark UI (docs sidebar, TOC, and the page itself). */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(245, 241, 234, 0.22) transparent;
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: rgba(245, 241, 234, 0.18);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(245, 241, 234, 0.32);
 }
 
 :where(h1, h2, h3, h4, h5, h6)[id] {
@@ -10,7 +196,7 @@ html:has(:target) {
 
 .heading-anchor {
   margin-left: 0.4rem;
-  color: rgb(100 116 139);
+  color: rgba(245, 241, 234, 0.4);
   opacity: 0;
   text-decoration: none;
   transition: opacity 0.15s ease;
@@ -22,9 +208,9 @@ html:has(:target) {
 }
 
 [data-toc-link][data-active="true"] {
-  color: rgb(4 120 87);
+  color: #5eead4;
   font-weight: 600;
-  border-left-color: rgb(4 120 87);
+  border-left-color: #5eead4;
 }
 
 /* Shiki output styling — neutralize default <pre> background so the figure

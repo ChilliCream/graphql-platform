@@ -1,9 +1,13 @@
 "use client";
 
-import React, { useLayoutEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 
 import { Cup } from "../Cup";
-import { useAnchorContext } from "./AnchorContext";
+import {
+  useAnchorContext,
+  useLandingRoot,
+  useMeasureEffect,
+} from "./AnchorContext";
 
 // Hero layout — coordinates expressed as fractions of the hero wrap so the
 // layout flows naturally with viewport width. The original design (which the
@@ -29,28 +33,28 @@ const CUPS = [
     cupX: 140,
     cupY: 120,
     tilt: 35,
-    exitLanePct: 0.22,
+    exitLanePct: 0.3,
   },
   {
     ...PRODUCTS[1],
     cupX: 220,
     cupY: 460,
     tilt: 40,
-    exitLanePct: 0.4,
+    exitLanePct: 0.5,
   },
   {
     ...PRODUCTS[2],
     cupX: 860,
     cupY: 90,
     tilt: -55,
-    exitLanePct: 0.58,
+    exitLanePct: 0.7,
   },
   {
     ...PRODUCTS[3],
-    cupX: 830,
+    cupX: 950,
     cupY: 470,
     tilt: -50,
-    exitLanePct: 0.76,
+    exitLanePct: 0.9,
   },
 ] as const;
 
@@ -62,29 +66,24 @@ export const Act1: React.FC = () => {
   const sectionRef = useRef<HTMLElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const { register, unregister } = useAnchorContext();
+  const root = useLandingRoot();
 
   // Cup anchors are derived geometrically from the cup wrap's measured rect
-  // plus the cup's tilt. We don't use useMeasuredAnchor here because every
-  // anchor (spout + 5 pour control points) is a derived position computed
-  // off the same wrap rect, so a single measure callback writes them all in
-  // one pass.
-  useLayoutEffect(() => {
-    const measure = () => {
+  // plus the cup's tilt. A single measure callback writes spout + 5 pour
+  // control points per cup in one pass; useMeasuredAnchor would require six
+  // separate refs and re-walk the DOM each time.
+  useMeasureEffect(
+    () => {
       const wrap = wrapRef.current;
-      const root = sectionRef.current?.closest(
-        "[data-cc-landing-root]"
-      ) as HTMLElement | null;
       if (!wrap || !root) {
         return;
       }
       const wRect = wrap.getBoundingClientRect();
       const rRect = root.getBoundingClientRect();
-      const wrapW = wRect.width;
-      const wrapH = wRect.height;
       // Convert wrap-local (in reference units) to landing-root pixel coords.
       const project = (refX: number, refY: number) => ({
-        x: wRect.left - rRect.left + (refX / HERO_REF_W) * wrapW,
-        y: wRect.top - rRect.top + (refY / HERO_REF_H) * wrapH,
+        x: wRect.left - rRect.left + (refX / HERO_REF_W) * wRect.width,
+        y: wRect.top - rRect.top + (refY / HERO_REF_H) * wRect.height,
       });
 
       CUPS.forEach((c, i) => {
@@ -137,29 +136,13 @@ export const Act1: React.FC = () => {
           kind: "pour-exit",
         });
       });
-    };
+    },
+    [sectionRef, wrapRef],
+    [register, root]
+  );
 
-    measure();
-    const ro = new ResizeObserver(measure);
-    if (wrapRef.current) {
-      ro.observe(wrapRef.current);
-    }
-    if (sectionRef.current) {
-      ro.observe(sectionRef.current);
-    }
-    const scrollEl = document.querySelector(
-      ".main__Container-sc-d4365469-0"
-    ) as HTMLElement | null;
-    scrollEl?.addEventListener("scroll", measure, { passive: true });
-    window.addEventListener("scroll", measure, { passive: true });
-    window.addEventListener("resize", measure);
-    const fontShiftTimer = window.setTimeout(measure, 250);
-    return () => {
-      ro.disconnect();
-      scrollEl?.removeEventListener("scroll", measure);
-      window.removeEventListener("scroll", measure);
-      window.removeEventListener("resize", measure);
-      window.clearTimeout(fontShiftTimer);
+  useEffect(
+    () => () => {
       CUPS.forEach((_, i) => {
         unregister(`act1.cup-${i}`);
         unregister(`act1.pour-elbow-${i}`);
@@ -168,8 +151,9 @@ export const Act1: React.FC = () => {
         unregister(`act1.pour-exit-${i}`);
         unregister(`act1.pour-exit-pre-${i}`);
       });
-    };
-  }, [register, unregister]);
+    },
+    [unregister]
+  );
 
   return (
     <section

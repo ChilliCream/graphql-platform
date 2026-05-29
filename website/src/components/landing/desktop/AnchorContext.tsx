@@ -5,12 +5,22 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
   type ReactNode,
   type RefObject,
 } from "react";
+
+// The landing root element (the scroll-relative coordinate origin every Act's
+// anchors are expressed in). Stored as state so a callback-ref assignment
+// re-renders consumers — a plain RefObject wouldn't, leaving Acts stuck with
+// a null root on first render.
+const LandingRootContext = createContext<HTMLElement | null>(null);
+
+export const useLandingRoot = (): HTMLElement | null =>
+  useContext(LandingRootContext);
 
 export type AnchorKind =
   | "pinch"
@@ -54,10 +64,14 @@ const AnchorContext = createContext<AnchorContextValue>({
 });
 
 interface AnchorProviderProps {
+  root: HTMLElement | null;
   children: ReactNode;
 }
 
-export const AnchorProvider: React.FC<AnchorProviderProps> = ({ children }) => {
+export const AnchorProvider: React.FC<AnchorProviderProps> = ({
+  root,
+  children,
+}) => {
   const [anchors, setAnchors] = useState<AnchorMap>({});
 
   const register = useCallback((id: string, anchor: Anchor) => {
@@ -94,7 +108,9 @@ export const AnchorProvider: React.FC<AnchorProviderProps> = ({ children }) => {
   );
 
   return (
-    <AnchorContext.Provider value={value}>{children}</AnchorContext.Provider>
+    <LandingRootContext.Provider value={root}>
+      <AnchorContext.Provider value={value}>{children}</AnchorContext.Provider>
+    </LandingRootContext.Provider>
   );
 };
 
@@ -134,15 +150,70 @@ export interface UseMeasuredAnchorOptions {
   enabled?: boolean;
 }
 
+// useMeasureEffect — runs `measure` once on mount and again whenever the
+// geometry can shift:
+//   - ResizeObserver on each of the supplied refs (and the landing root)
+//   - resize on the window (covers viewport changes ResizeObserver may miss
+//     when the root is full-width and the body shrinks behind a media query)
+//   - one delayed re-measure after mount to absorb font-load shift
+//
+// Note: there is intentionally NO scroll listener. Anchor positions are
+// expressed in landing-root-relative coordinates; scrolling shifts the
+// element and the root by the same delta, so the difference is invariant.
+// The ConnectorLayer's SVG lives inside the same root, so it scrolls along
+// with the anchors and doesn't need to be re-drawn on scroll either.
+//
+// The latest `measure` closure is held in a ref so callers don't need to
+// memoise it; the effect itself re-runs only when `deps` changes.
+export const useMeasureEffect = (
+  measure: () => void,
+  observedRefs: ReadonlyArray<RefObject<Element | null>>,
+  deps: ReadonlyArray<unknown> = []
+) => {
+  const root = useContext(LandingRootContext);
+  const measureRef = useRef(measure);
+  measureRef.current = measure;
+
+  useLayoutEffect(() => {
+    const run = () => measureRef.current();
+    run();
+
+    const observers: ResizeObserver[] = [];
+    if (typeof ResizeObserver !== "undefined") {
+      for (const ref of observedRefs) {
+        const el = ref.current;
+        if (el) {
+          const ro = new ResizeObserver(run);
+          ro.observe(el);
+          observers.push(ro);
+        }
+      }
+      if (root) {
+        const ro = new ResizeObserver(run);
+        ro.observe(root);
+        observers.push(ro);
+      }
+    }
+    window.addEventListener("resize", run);
+    const fontShiftTimer = window.setTimeout(run, 250);
+
+    return () => {
+      for (const ro of observers) {
+        ro.disconnect();
+      }
+      window.removeEventListener("resize", run);
+      window.clearTimeout(fontShiftTimer);
+    };
+    // The provided `deps` plus `root` together control when measurement is
+    // (re)wired up — `root` flips from null to the actual element when its
+    // callback ref runs, so the effect must re-run to register observers.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [root, ...deps]);
+};
+
 // useMeasuredAnchor — measures `ref.current.getBoundingClientRect()` relative
-// to the nearest `[data-cc-landing-root]` ancestor and registers the result
-// under `name`. Re-measures on:
-//   - ResizeObserver on the ref's element
-//   - ResizeObserver on `[data-cc-landing-root]`
-//   - scroll on `.main__Container-sc-d4365469-0`
-//   - scroll/resize on the window
-//   - one delayed re-measure after mount (font-load shift)
-// Unregisters on unmount.
+// to the landing root and registers the result under `name`. Unregisters on
+// unmount.
 export const useMeasuredAnchor = <T extends Element>(
   name: string,
   ref: RefObject<T | null>,
@@ -150,52 +221,20 @@ export const useMeasuredAnchor = <T extends Element>(
   opts?: UseMeasuredAnchorOptions
 ) => {
   const { register, unregister } = useAnchorContext();
-
-  // Latch options into a ref so dep churn on inline `opts` objects doesn't
-  // restart the effect. Geometry (anchorOrigin/offset/meta) reads fresh on
-  // every measure call.
+  const root = useContext(LandingRootContext);
   const optsRef = useRef(opts);
   optsRef.current = opts;
 
-  // Re-run effect on explicit user-supplied deps (e.g. active tab changes
-  // that shift a measured DOM node).
-  const depsKey = (opts?.deps ?? []).join("|");
-  // The kind never changes per call site in practice; include it in deps so
-  // a hot-reload that swaps kinds still re-registers cleanly.
   const enabled = opts?.enabled !== false;
+  const depsKey = (opts?.deps ?? []).join("|");
 
-  useEffect(() => {
-    if (!enabled) {
-      return;
-    }
-    const el = ref.current;
-    if (!el) {
-      return;
-    }
-
-    const findRoot = (): HTMLElement | null => {
-      let node: Element | null = el;
-      while (node && node !== document.documentElement) {
-        if (
-          node instanceof HTMLElement &&
-          node.hasAttribute("data-cc-landing-root")
-        ) {
-          return node;
-        }
-        node = node.parentElement;
-      }
-      return document.querySelector(
-        "[data-cc-landing-root]"
-      ) as HTMLElement | null;
-    };
-
-    const measure = () => {
-      const node = ref.current;
-      if (!node) {
+  useMeasureEffect(
+    () => {
+      if (!enabled) {
         return;
       }
-      const root = findRoot();
-      if (!root) {
+      const node = ref.current;
+      if (!node || !root) {
         return;
       }
       const rRect = root.getBoundingClientRect();
@@ -208,39 +247,10 @@ export const useMeasuredAnchor = <T extends Element>(
       const x = eRect.left - rRect.left + eRect.width * ax + dx;
       const y = eRect.top - rRect.top + eRect.height * ay + dy;
       register(name, { x, y, kind, meta: o?.meta });
-    };
+    },
+    [ref],
+    [name, kind, ref, register, enabled, depsKey]
+  );
 
-    measure();
-
-    const root = findRoot();
-    let elRO: ResizeObserver | null = null;
-    let rootRO: ResizeObserver | null = null;
-    if (typeof ResizeObserver !== "undefined") {
-      elRO = new ResizeObserver(measure);
-      elRO.observe(el);
-      if (root) {
-        rootRO = new ResizeObserver(measure);
-        rootRO.observe(root);
-      }
-    }
-    const scrollEl = document.querySelector(
-      ".main__Container-sc-d4365469-0"
-    ) as HTMLElement | null;
-    scrollEl?.addEventListener("scroll", measure, { passive: true });
-    window.addEventListener("scroll", measure, { passive: true });
-    window.addEventListener("resize", measure);
-    const fontShiftTimer = window.setTimeout(measure, 250);
-
-    return () => {
-      elRO?.disconnect();
-      rootRO?.disconnect();
-      scrollEl?.removeEventListener("scroll", measure);
-      window.removeEventListener("scroll", measure);
-      window.removeEventListener("resize", measure);
-      window.clearTimeout(fontShiftTimer);
-      unregister(name);
-    };
-    // depsKey collapses the user-supplied deps array into a single primitive.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [name, kind, ref, register, unregister, enabled, depsKey]);
+  useEffect(() => () => unregister(name), [name, unregister]);
 };

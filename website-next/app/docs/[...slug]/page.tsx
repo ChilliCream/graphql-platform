@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { DocCommunity } from "@/src/design-system/DocCommunity";
 import { TableOfContents } from "@/src/design-system/TableOfContents";
 import { Typography } from "@/src/design-system/Typography";
 import { compileDoc } from "@/src/helpers/compileDoc";
@@ -56,9 +57,12 @@ export default async function DocPage({
     path.join(CONTENT_ROOT, rel)
   );
 
+  const editUrl = `https://github.com/ChilliCream/graphql-platform/blob/main/website-next/content/docs/${rel}`;
+  const slackUrl = "https://slack.chillicream.com/";
+
   return (
-    <div className="grid grid-cols-1 2xl:grid-cols-[1fr_20rem]">
-      <main className="min-w-0 px-5 py-8 sm:px-12">
+    <div className="grid grid-cols-1 xl:grid-cols-[1fr_20rem]">
+      <main className="cc-prose-invert min-w-0 px-5 py-8 sm:px-12">
         <article className="mx-auto max-w-5xl">
           {frontmatter.title ? (
             <Typography variant="h1">{frontmatter.title}</Typography>
@@ -66,7 +70,10 @@ export default async function DocPage({
           {content}
         </article>
       </main>
-      <TableOfContents items={toc} />
+      <aside className="hidden xl:block sticky top-[72px] self-start h-[calc(100vh-72px)] overflow-y-auto min-w-0">
+        <DocCommunity editUrl={editUrl} slackUrl={slackUrl} />
+        <TableOfContents items={toc} />
+      </aside>
     </div>
   );
 }

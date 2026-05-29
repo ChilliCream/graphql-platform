@@ -1,4 +1,4 @@
-import React, { FC, PropsWithChildren, useEffect, useRef } from "react";
+import React, { FC, PropsWithChildren, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import styled from "styled-components";
 
@@ -6,61 +6,48 @@ import { PageTop } from "@/components/misc";
 import { hasScrolled } from "@/state/common";
 import { Footer } from "./footer";
 import { Header } from "./header";
+import { ScrollRootContext } from "./scroll-root-context";
 
 export const Main: FC<PropsWithChildren<unknown>> = ({ children }) => {
-  const ref = useRef<HTMLDivElement>(null);
+  // Callback-ref into state so the ScrollRootContext re-renders descendants
+  // once the container actually mounts.
+  const [scrollEl, setScrollEl] = useState<HTMLDivElement | null>(null);
   const dispatch = useDispatch();
 
   useEffect(() => {
-    dispatch(
-      hasScrolled({
-        yScrollPosition: 0,
-      })
-    );
-
+    dispatch(hasScrolled({ yScrollPosition: 0 }));
+    if (!scrollEl) {
+      return;
+    }
     const handleScroll = () => {
-      if (!ref.current || ref.current.scrollTop === undefined) {
-        return;
-      }
-
-      dispatch(
-        hasScrolled({
-          yScrollPosition: ref.current.scrollTop,
-        })
-      );
+      dispatch(hasScrolled({ yScrollPosition: scrollEl.scrollTop }));
     };
-
-    ref.current?.addEventListener("scroll", handleScroll, { passive: true });
-
+    scrollEl.addEventListener("scroll", handleScroll, { passive: true });
     return () => {
-      ref.current?.removeEventListener("scroll", handleScroll);
+      scrollEl.removeEventListener("scroll", handleScroll);
     };
-  }, []);
+  }, [scrollEl, dispatch]);
 
   useEffect(() => {
     const { hash } = window.location;
-
     if (hash) {
-      const headlineElement = document.getElementById(hash.substring(1));
-
-      headlineElement?.scrollIntoView();
+      document.getElementById(hash.substring(1))?.scrollIntoView();
     }
   }, []);
 
   const scrollToTop = () => {
-    ref.current?.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
+    scrollEl?.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
-    <Container ref={ref}>
-      <Header />
-      <Content>{children}</Content>
-      <Footer />
-      <PageTop onTopScroll={scrollToTop} />
-    </Container>
+    <ScrollRootContext.Provider value={scrollEl}>
+      <Container ref={setScrollEl}>
+        <Header />
+        <Content>{children}</Content>
+        <Footer />
+        <PageTop onTopScroll={scrollToTop} />
+      </Container>
+    </ScrollRootContext.Provider>
   );
 };
 

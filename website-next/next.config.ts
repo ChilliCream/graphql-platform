@@ -8,6 +8,11 @@ const exportToc = path.resolve(process.cwd(), "src/recma/exportToc.mjs");
 const nextConfig: NextConfig = {
   output: "export",
   pageExtensions: ["ts", "tsx", "md", "mdx"],
+  // Static export can't run the Next image optimizer at request time;
+  // serve images as-is from public/.
+  images: {
+    unoptimized: true,
+  },
 };
 
 const withMDX = createMDX({

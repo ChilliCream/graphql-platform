@@ -265,9 +265,10 @@ export const DesktopLandingRoot = styled.div`
     padding-top: 60px;
     padding-bottom: 60px;
   }
-  /* Act 2 body — normal block flow. No aspect-ratio stage, no transform.
-     The section's left/right padding is the only thing connector geometry
-     reads to position the per-product column rail. */
+  /* Act 2 body — normal block flow. The body's left edge is the coordinate
+     origin connector geometry uses to position the per-product column rail,
+     so the rail stays aligned with the merge stage on big screens where the
+     body is centered inside the section via max-width + margin auto. */
   .cc-act2-body {
     max-width: 1480px;
     margin: 0 auto;
@@ -284,17 +285,20 @@ export const DesktopLandingRoot = styled.div`
     margin: 8px auto;
     max-width: 16ch;
   }
-  /* Product entry row — 4 cells centered horizontally. The cell width is a
-     fraction of the total content width so the entry dot x positions scale
-     proportionally with the section. */
-  .cc-act2-entry-row {
-    position: relative;
-    height: 80px;
+  /* Product entry row — uses the shared 5-col service grid, with the 4
+     product cells in cols 2..5 (matching Act 2's bottom row and Act 3's
+     top row). Each cell stacks the dot on top of the label so the dot
+     x-position is fixed at the cell's horizontal centre regardless of
+     label width, keeping the white pour lanes aligned with the colored
+     service lanes below. */
+  .cc-act2-top-row {
     margin-bottom: clamp(48px, 6vw, 96px);
+    align-items: start;
+  }
+  .cc-act2-top-row > .cc-service-lane-cell:nth-child(1) {
+    grid-column-start: 2;
   }
   .cc-act2-entry-cell {
-    display: flex;
-    align-items: center;
     white-space: nowrap;
   }
   .cc-act2-entry-trigger {
@@ -303,8 +307,9 @@ export const DesktopLandingRoot = styled.div`
     padding: 0;
     cursor: pointer;
     display: inline-flex;
+    flex-direction: column;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     font: inherit;
   }
   .cc-act2-entry-dot {
@@ -325,24 +330,60 @@ export const DesktopLandingRoot = styled.div`
     color: var(--cc-ink);
   }
   .cc-act2-panel-wrap {
-    max-width: 920px;
-    width: 100%;
-    margin: 0 auto;
+    flex: 1 1 auto;
+    min-width: 0;
   }
-  .cc-act2-merge-wrap {
-    position: absolute;
-    left: var(--cc-pad-x);
-    top: 50%;
-    transform: translateY(-50%);
+  /* Content row — side-by-side layout mirroring Act 3: narrow merge stage on
+     the left, tab bar + panel filling the right. */
+  .cc-act2-content-row {
+    display: flex;
+    gap: clamp(24px, 3vw, 48px);
+    align-items: flex-start;
+  }
+  /* Catalog merge sub-stage — the swatch + label sit in a narrow left column,
+     vertically centered within. Mirrors .cc-act3-fusion-stage so the merge
+     and the pinch share the same column geometry. */
+  .cc-act2-merge-stage {
+    position: relative;
+    flex: 0 0 auto;
+    width: clamp(120px, 14vw, 200px);
+    min-height: 300px;
     display: flex;
     align-items: center;
-    gap: 10px;
-    z-index: 3;
+    justify-content: center;
   }
-  .cc-act2-merge-label {
+  /* Act 2 has 4 product columns at offsets [44, 52, 60, 68] — visual center
+     is 56, so the merge swatch anchors there too (Act 3's pinch lives at 60
+     because it has 5 columns centered on 60). */
+  .cc-act2-merge-swatch {
+    position: absolute;
+    left: 56px;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 5;
+  }
+  .cc-act2-merge-callout {
+    position: absolute;
+    left: 84px;
+    top: calc(50% - 14px);
+    font-family: var(--cc-font-mono), monospace;
+    font-size: clamp(11px, 0.88vw, 13px);
+    letter-spacing: 0.16em;
+    font-weight: 500;
     color: var(--cc-ink);
     text-transform: uppercase;
     line-height: 1.2;
+    z-index: 5;
+    pointer-events: none;
+  }
+  @media (max-width: 880px) {
+    .cc-act2-content-row {
+      flex-direction: column;
+    }
+    .cc-act2-merge-stage {
+      width: 100%;
+      min-height: 120px;
+    }
   }
   .cc-act2-bottom-row {
     display: grid;
@@ -370,6 +411,7 @@ export const DesktopLandingRoot = styled.div`
   }
   .cc-service-lane-cell {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 8px;

@@ -1,9 +1,13 @@
 "use client";
 
-import React, { useLayoutEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import { DESKTOP_ADAPTERS, adapterExitXs } from "./constants";
-import { useAnchorContext } from "./AnchorContext";
+import {
+  useAnchorContext,
+  useLandingRoot,
+  useMeasureEffect,
+} from "./AnchorContext";
 
 // Reference geometry — the Adapters act was tuned in a 1480×760 canvas. The
 // `.cc-act4-stage` div carries that aspect ratio so all child positions can
@@ -32,6 +36,7 @@ export const Act4: React.FC = () => {
   const stageRef = useRef<HTMLDivElement>(null);
   const pillRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const { register, unregister } = useAnchorContext();
+  const root = useLandingRoot();
 
   // Per-pill measured center in stage-local pixels — drives the dashed exit
   // fan paths so they align with the rendered pill regardless of viewport.
@@ -44,12 +49,9 @@ export const Act4: React.FC = () => {
     h: REF_H,
   });
 
-  useLayoutEffect(() => {
-    const measure = () => {
+  useMeasureEffect(
+    () => {
       const stage = stageRef.current;
-      const root = sectionRef.current?.closest(
-        "[data-cc-landing-root]"
-      ) as HTMLElement | null;
       if (!stage || !root) {
         return;
       }
@@ -130,37 +132,22 @@ export const Act4: React.FC = () => {
         }
         return prev;
       });
-    };
+    },
+    [stageRef, sectionRef],
+    [register, root]
+  );
 
-    measure();
-    const ro = new ResizeObserver(measure);
-    if (stageRef.current) {
-      ro.observe(stageRef.current);
-    }
-    if (sectionRef.current) {
-      ro.observe(sectionRef.current);
-    }
-    const scrollEl = document.querySelector(
-      ".main__Container-sc-d4365469-0"
-    ) as HTMLElement | null;
-    scrollEl?.addEventListener("scroll", measure, { passive: true });
-    window.addEventListener("scroll", measure, { passive: true });
-    window.addEventListener("resize", measure);
-    const fontShiftTimer = window.setTimeout(measure, 250);
-    return () => {
-      ro.disconnect();
-      scrollEl?.removeEventListener("scroll", measure);
-      window.removeEventListener("scroll", measure);
-      window.removeEventListener("resize", measure);
-      window.clearTimeout(fontShiftTimer);
+  useEffect(
+    () => () => {
       unregister("act4.prism-apex");
       unregister("act4.prism-base-left");
       unregister("act4.prism-base-center");
       unregister("act4.prism-base-right");
       unregister("act4.entry");
       DESKTOP_ADAPTERS.forEach((a) => unregister(`act4.adapter-${a.key}`));
-    };
-  }, [register, unregister]);
+    },
+    [unregister]
+  );
 
   const xPct = (refX: number) => `${(refX / REF_W) * 100}%`;
   const yPct = (refY: number) => `${(refY / REF_H) * 100}%`;

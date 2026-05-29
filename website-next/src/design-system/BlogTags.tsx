@@ -17,7 +17,7 @@ export function BlogTags({ tags }: BlogTagsProps) {
       {visible.map((tag) => (
         <li key={tag} className="inline-block">
           <Link
-            href={`/blogs/tags/${tag}`}
+            href={`/blog/tags/${tag}`}
             className="block rounded-md border border-slate-200 bg-slate-50 px-3 py-1 text-sm text-slate-700 no-underline hover:border-slate-300 hover:bg-slate-100"
           >
             {tag}

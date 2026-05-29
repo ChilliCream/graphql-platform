@@ -1,0 +1,77 @@
+/*
+ * Dark theme override for Algolia DocSearch.
+ *
+ * @docsearch/css ships light defaults on :root and a dark palette only under
+ * html[data-theme="dark"]. This app has no data-theme attribute, so we restate
+ * the relevant --docsearch-* variables on :root to match the dark UI. Because
+ * this file is imported after @docsearch/css, these same-specificity :root rules
+ * win via source order.
+ *
+ * Values mirror the source site's overrides, mapped to this app's palette:
+ *   text  #f5f1ea (--cc-ink), modal bg #0c1322, accent #d946ef (--cc-accent).
+ */
+:root {
+  --docsearch-primary-color: #d946ef;
+  --docsearch-highlight-color: #d946ef;
+  --docsearch-logo-color: #d946ef;
+  --docsearch-focus-color: #e879f9;
+
+  --docsearch-text-color: #f5f1ea;
+  --docsearch-secondary-text-color: rgba(245, 241, 234, 0.78);
+  --docsearch-muted-color: rgba(245, 241, 234, 0.62);
+  --docsearch-icon-color: rgba(245, 241, 234, 0.62);
+
+  --docsearch-spacing: 12px;
+  --docsearch-icon-stroke-width: 1.4;
+
+  /* Backdrop behind the modal: translucent dark. */
+  --docsearch-container-background: rgba(8, 12, 22, 0.8);
+
+  /* Modal shell. */
+  --docsearch-modal-width: 560px;
+  --docsearch-background-color: #0c1322;
+  --docsearch-modal-background: #0c1322;
+  --docsearch-modal-shadow: inset 1px 1px 0 0 rgba(245, 241, 234, 0.06),
+    0 3px 8px 0 #000309;
+
+  /* Search box. */
+  --docsearch-searchbox-height: 56px;
+  --docsearch-searchbox-background: rgba(245, 241, 234, 0.06);
+  --docsearch-searchbox-focus-background: rgba(245, 241, 234, 0.1);
+  --docsearch-search-button-background: #0c1322;
+  --docsearch-search-button-text-color: #f5f1ea;
+
+  /* Hits. */
+  --docsearch-hit-height: 56px;
+  --docsearch-hit-color: #f5f1ea;
+  --docsearch-hit-active-color: #ffffff;
+  --docsearch-hit-background: rgba(245, 241, 234, 0.04);
+  --docsearch-hit-shadow: none;
+  --docsearch-hit-highlight-color: rgba(217, 70, 239, 0.18);
+
+  /* Keyboard key hints. */
+  --docsearch-key-background: rgba(245, 241, 234, 0.08);
+  --docsearch-key-color: rgba(245, 241, 234, 0.78);
+  --docsearch-key-gradient: none;
+  --docsearch-key-shadow: none;
+  --docsearch-key-pressed-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+
+  /* Footer. */
+  --docsearch-footer-height: 44px;
+  --docsearch-footer-background: #0c1322;
+  --docsearch-footer-shadow: inset 0 1px 0 0 rgba(245, 241, 234, 0.12);
+
+  /* Dropdown shell. */
+  --docsearch-dropdown-menu-background: var(--docsearch-modal-background);
+  --docsearch-dropdown-menu-item-hover-background: rgba(245, 241, 234, 0.08);
+}
+
+/* When the active hit is highlighted, DocSearch fills the row with the accent;
+   keep its text readable against the fuchsia background. */
+.DocSearch-Hit[aria-selected="true"] a {
+  background-color: #d946ef;
+}
+
+.DocSearch-Hit[aria-selected="true"] mark {
+  color: #ffffff;
+}

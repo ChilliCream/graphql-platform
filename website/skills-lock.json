@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "webwright": {
+      "source": "microsoft/Webwright",
+      "sourceType": "github",
+      "skillPath": "skills/webwright/SKILL.md",
+      "computedHash": "21060617095c5cab9b93c1429efe59c3d9f624b034c0ec4e62df04deb9c150a1"
+    }
+  }
+}

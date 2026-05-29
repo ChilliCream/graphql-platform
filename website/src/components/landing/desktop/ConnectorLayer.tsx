@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 
-import { useAnchorContext } from "./AnchorContext";
+import { useAnchorContext, useLandingRoot } from "./AnchorContext";
 import { LANES } from "./anchorConfig";
 
 // ConnectorLayer renders ONE absolutely-positioned SVG that spans the full
@@ -14,43 +14,28 @@ import { LANES } from "./anchorConfig";
 // measured root rect (tracked via ResizeObserver). All path-drawing functions
 // consume anchor coordinates directly with no scale projection.
 
-interface ConnectorLayerProps {
-  // Optional pointer to the element whose box defines the SVG size and the
-  // coordinate origin used by every published anchor. If omitted (or its
-  // current is null at measurement time), the SVG falls back to the closest
-  // `[data-cc-landing-root]` ancestor of its own placement.
-  rootRef?: React.RefObject<HTMLElement>;
-}
-
-export const ConnectorLayer: React.FC<ConnectorLayerProps> = ({ rootRef }) => {
+export const ConnectorLayer: React.FC = () => {
   const { anchors } = useAnchorContext();
+  const root = useLandingRoot();
   const [size, setSize] = useState<{ w: number; h: number }>({ w: 0, h: 0 });
   const svgRef = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
-    const resolveRoot = (): HTMLElement | null => {
-      if (rootRef?.current) return rootRef.current;
-      const parent = svgRef.current?.parentElement as HTMLElement | null;
-      if (!parent) return null;
-      if (parent.hasAttribute("data-cc-landing-root")) return parent;
-      return parent.closest("[data-cc-landing-root]") as HTMLElement | null;
-    };
-
+    if (!root) {
+      return;
+    }
     const measure = () => {
-      const node = resolveRoot();
-      if (!node) return;
-      const r = node.getBoundingClientRect();
+      const r = root.getBoundingClientRect();
       if (r.width > 0 && r.height > 0) {
         setSize({ w: r.width, h: r.height });
       }
     };
     measure();
 
-    const node = resolveRoot();
     let ro: ResizeObserver | null = null;
-    if (node && typeof ResizeObserver !== "undefined") {
+    if (typeof ResizeObserver !== "undefined") {
       ro = new ResizeObserver(measure);
-      ro.observe(node);
+      ro.observe(root);
     }
     window.addEventListener("resize", measure);
     // Re-measure shortly after mount in case content (e.g. tab panel) is
@@ -63,7 +48,7 @@ export const ConnectorLayer: React.FC<ConnectorLayerProps> = ({ rootRef }) => {
       window.clearTimeout(t1);
       window.clearTimeout(t2);
     };
-  }, [rootRef]);
+  }, [root]);
 
   const get = (id: string) => anchors[id];
 

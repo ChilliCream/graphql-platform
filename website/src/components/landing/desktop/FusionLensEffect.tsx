@@ -2,7 +2,8 @@
 
 import React, { useEffect, useRef, useState } from "react";
 
-import { useAnchorContext } from "./AnchorContext";
+import { useScrollRoot } from "@/components/layout/site/scroll-root-context";
+import { useAnchorContext, useLandingRoot } from "./AnchorContext";
 
 // FusionLensEffect — lens overlay rendered at Act 3's pinch point. Uses
 // the `subtle` preset with ambient glow disabled (see CONFIG below).
@@ -304,6 +305,8 @@ const smoothstep = (t: number) => t * t * (3 - 2 * t);
 
 export const FusionLensEffect: React.FC = () => {
   const { anchors } = useAnchorContext();
+  const root = useLandingRoot();
+  const scrollEl = useScrollRoot();
   const [state, setState] = useState<State>(INITIAL);
   const config = CONFIG;
   const rafRef = useRef<number | null>(null);
@@ -311,9 +314,6 @@ export const FusionLensEffect: React.FC = () => {
   useEffect(() => {
     const compute = () => {
       const pinchAnchor = anchors["act3.pinch"];
-      const root = document.querySelector(
-        "[data-cc-landing-root]"
-      ) as HTMLElement | null;
       if (!pinchAnchor || !root) {
         setState((s) =>
           s.visible ? { ...s, visible: false, intensity: 0 } : s
@@ -357,9 +357,6 @@ export const FusionLensEffect: React.FC = () => {
     };
 
     compute();
-    const scrollEl = document.querySelector(
-      ".main__Container-sc-d4365469-0"
-    ) as HTMLElement | null;
     scrollEl?.addEventListener("scroll", schedule, { passive: true });
     window.addEventListener("scroll", schedule, { passive: true });
     window.addEventListener("resize", schedule);
@@ -370,7 +367,7 @@ export const FusionLensEffect: React.FC = () => {
       window.removeEventListener("resize", schedule);
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
     };
-  }, [anchors]);
+  }, [anchors, root, scrollEl]);
 
   if (!state.visible) {
     return null;

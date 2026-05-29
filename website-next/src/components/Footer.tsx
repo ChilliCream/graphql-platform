@@ -36,14 +36,14 @@ const basicPages: { path: string; title: string }[] = [
 
 export default function Footer() {
   return (
-    <footer className="mt-10 w-full border-t border-stone-200 bg-white/80 px-4 pt-14 pb-14 text-sm text-stone-600 backdrop-blur-sm lg:pt-36">
+    <footer className="mt-10 w-full border-t border-white/10 bg-[#0c1322]/55 px-4 pt-14 pb-14 text-sm text-[var(--cc-ink-dim)] backdrop-blur-sm lg:pt-36">
       <div className="mx-auto flex max-w-7xl flex-col gap-12 lg:gap-8">
         <Section>
           <div className="flex flex-1 flex-col gap-6">
             <Link
               href="/"
               aria-label="ChilliCream Home"
-              className="inline-flex leading-none text-stone-900 transition-colors hover:text-fuchsia-700"
+              className="inline-flex leading-none text-[var(--cc-ink)] transition-colors hover:text-fuchsia-400"
             >
               <ChilliCreamText className="h-[30px] w-auto fill-current" />
             </Link>
@@ -88,7 +88,7 @@ export default function Footer() {
           </div>
         </Section>
         <Section>
-          <nav className="flex flex-row gap-4 text-stone-500">
+          <nav className="flex flex-row gap-4 text-[var(--cc-ink-dim)]">
             <SocialLink href={tools.blog} label="ChilliCream Blog">
               <BlogIcon className="h-[22px] w-auto fill-current" />
             </SocialLink>
@@ -113,7 +113,7 @@ export default function Footer() {
           </nav>
         </Section>
         <Section>
-          <p className="text-stone-500">
+          <p className="text-[var(--cc-ink-dim)]">
             © {new Date().getFullYear()} ChilliCream, Inc. ・ All Rights
             Reserved
           </p>
@@ -136,7 +136,7 @@ function LinkColumn({
 }) {
   return (
     <div className="flex min-w-[150px] flex-col gap-6">
-      <h3 className="flex h-[30px] items-end text-base font-semibold text-stone-900">
+      <h3 className="flex h-[30px] items-end text-base font-semibold text-[var(--cc-ink)]">
         {title}
       </h3>
       <nav className="flex flex-col gap-2.5">{children}</nav>
@@ -146,7 +146,7 @@ function LinkColumn({
 
 function NavLink({ href, children }: { href: string; children: ReactNode }) {
   const className =
-    "text-stone-600 no-underline transition-colors hover:text-fuchsia-700";
+    "text-[var(--cc-ink-dim)] no-underline transition-colors hover:text-fuchsia-400";
 
   if (href.startsWith("/")) {
     return (
@@ -186,7 +186,7 @@ function SocialLink({
   children: ReactNode;
 }) {
   const className =
-    "inline-flex items-center justify-center transition-colors hover:text-fuchsia-700";
+    "inline-flex items-center justify-center transition-colors hover:text-fuchsia-400";
 
   if (href.startsWith("/")) {
     return (

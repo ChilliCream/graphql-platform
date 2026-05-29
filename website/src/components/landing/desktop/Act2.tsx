@@ -1,9 +1,13 @@
 "use client";
 
-import React, { useLayoutEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 
 import { DESKTOP_PRODUCTS, DESKTOP_SERVICES } from "./constants";
-import { useAnchorContext } from "./AnchorContext";
+import {
+  useAnchorContext,
+  useLandingRoot,
+  useMeasureEffect,
+} from "./AnchorContext";
 import type { LaneKey } from "./anchorConfig";
 
 interface Act2Props {
@@ -25,9 +29,10 @@ const SWATCH_R = 3;
 const ENTRY_DOT_SIZE = 12;
 
 // Left-rail column x positions, expressed as offsets (in pixels) from the
-// section's left padding. The connector layer uses these to draw the
-// per-product column descents that converge into the catalog merge swatch.
-const COL_X_OFFSETS = [0, 8, 16, 24];
+// body's left edge. The connector layer uses these to draw the per-product
+// column descents that converge into the catalog merge swatch. Mirrors
+// Act 3's column spread so the visual rhythm of the two acts matches.
+const COL_X_OFFSETS = [44, 52, 60, 68];
 // The bend lives AT entry.y so the first segment is purely horizontal —
 // the line travels left from the entry dot to the rail at the same Y.
 const BEND_BELOW_ENTRY_PX = 0;
@@ -102,34 +107,28 @@ export const Act2: React.FC<Act2Props> = ({ activeTab, setActiveTab }) => {
   const active = tabs.find((t) => t.key === activeTab) || tabs[0];
 
   const sectionRef = useRef<HTMLElement>(null);
+  const bodyRef = useRef<HTMLDivElement | null>(null);
   const entryRowRef = useRef<HTMLDivElement | null>(null);
   const entryRefs = useRef<Array<HTMLDivElement | null>>([]);
   const mergeSwatchRef = useRef<HTMLDivElement | null>(null);
   const stripeRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const { register, unregister } = useAnchorContext();
+  const root = useLandingRoot();
 
-  // All Act 2 anchors are derived from measured DOM positions of the four
-  // primary anchor elements (entry dots, merge swatch, stripe swatches)
-  // plus the section's left edge for the left-rail column x positions.
-  useLayoutEffect(() => {
-    const measure = () => {
+  useMeasureEffect(
+    () => {
       const section = sectionRef.current;
-      const root = section?.closest(
-        "[data-cc-landing-root]"
-      ) as HTMLElement | null;
-      if (!section || !root) {
+      const body = bodyRef.current;
+      if (!section || !body || !root) {
         return;
       }
-      const secRect = section.getBoundingClientRect();
       const rRect = root.getBoundingClientRect();
-      const sectionLeftPad = parseFloat(
-        getComputedStyle(section).paddingLeft || "0"
-      );
-      // Anchor coords are relative to the landing root.
-      const sectionLeftInRoot = secRect.left - rRect.left;
-      const railX0 = sectionLeftInRoot + sectionLeftPad;
+      // Rail X positions are anchored to the body content edge so the merge
+      // swatch, callout, and connector rails all share a single coordinate
+      // origin — staying aligned on big screens where the body is centered
+      // inside the section via max-width + margin auto.
+      const railX0 = body.getBoundingClientRect().left - rRect.left;
 
-      // Product entries — measured dot centers.
       const entryPts: Array<{ x: number; y: number }> = [];
       [0, 1, 2, 3].forEach((i) => {
         const isActive =
@@ -145,14 +144,9 @@ export const Act2: React.FC<Act2Props> = ({ activeTab, setActiveTab }) => {
           y: dRect.top - rRect.top + dRect.height / 2,
         };
         entryPts[i] = pt;
-        register(`act2.entry-${i}`, {
-          ...pt,
-          kind: "service-entry",
-          meta,
-        });
+        register(`act2.entry-${i}`, { ...pt, kind: "service-entry", meta });
       });
 
-      // Catalog merge swatch — measured.
       let mergePt: { x: number; y: number } | null = null;
       const mergeEl = mergeSwatchRef.current;
       if (mergeEl) {
@@ -164,8 +158,6 @@ export const Act2: React.FC<Act2Props> = ({ activeTab, setActiveTab }) => {
         register(`act2.merge`, { ...mergePt, kind: "merge" });
       }
 
-      // Derived per-product anchors: bend just below the entry dot, and
-      // col-anchor just above the merge swatch (in the left rail).
       [0, 1, 2, 3].forEach((i) => {
         const isActive =
           activeTab === "platform" || activeTab === DESKTOP_PRODUCTS[i].key;
@@ -189,16 +181,11 @@ export const Act2: React.FC<Act2Props> = ({ activeTab, setActiveTab }) => {
         });
       });
 
-      // Per-service bottom-of-Act-2 exits. Catalog exits AT the merge
-      // swatch; the other 4 exit at their measured stripe swatch centers.
       DESKTOP_SERVICES.forEach((s) => {
         const k = s.key as LaneKey;
         if (k === "catalog") {
           if (mergePt) {
-            register(`act2.exit-${k}`, {
-              ...mergePt,
-              kind: "act-bottom",
-            });
+            register(`act2.exit-${k}`, { ...mergePt, kind: "act-bottom" });
           }
           return;
         }
@@ -214,29 +201,13 @@ export const Act2: React.FC<Act2Props> = ({ activeTab, setActiveTab }) => {
         register(`act2.exit-${k}`, { ...pt, kind: "act-bottom" });
         register(`act2.stripe-${s.key}`, { ...pt, kind: "service-exit" });
       });
-    };
+    },
+    [sectionRef, bodyRef, entryRowRef],
+    [register, activeTab, root]
+  );
 
-    measure();
-    const ro = new ResizeObserver(measure);
-    if (sectionRef.current) {
-      ro.observe(sectionRef.current);
-    }
-    if (entryRowRef.current) {
-      ro.observe(entryRowRef.current);
-    }
-    const scrollEl = document.querySelector(
-      ".main__Container-sc-d4365469-0"
-    ) as HTMLElement | null;
-    scrollEl?.addEventListener("scroll", measure, { passive: true });
-    window.addEventListener("scroll", measure, { passive: true });
-    window.addEventListener("resize", measure);
-    const fontShiftTimer = window.setTimeout(measure, 250);
-    return () => {
-      ro.disconnect();
-      scrollEl?.removeEventListener("scroll", measure);
-      window.removeEventListener("scroll", measure);
-      window.removeEventListener("resize", measure);
-      window.clearTimeout(fontShiftTimer);
+  useEffect(
+    () => () => {
       [0, 1, 2, 3].forEach((i) => {
         unregister(`act2.entry-${i}`);
         unregister(`act2.bend-${i}`);
@@ -247,11 +218,9 @@ export const Act2: React.FC<Act2Props> = ({ activeTab, setActiveTab }) => {
         unregister(`act2.exit-${s.key}`);
         unregister(`act2.stripe-${s.key}`);
       });
-    };
-    // activeTab toggles entry-opacity meta; the rest re-runs from measure
-    // anyway. Geometry constants are module-level.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [register, unregister, activeTab]);
+    },
+    [unregister]
+  );
 
   return (
     <section
@@ -263,7 +232,7 @@ export const Act2: React.FC<Act2Props> = ({ activeTab, setActiveTab }) => {
         <span className="num">02</span> Building Applications
       </div>
 
-      <div className="cc-act2-body">
+      <div className="cc-act2-body" ref={bodyRef}>
         <div className="cc-section-headline-fade cc-act2-headline-wrap">
           <div className="eyebrow">Build</div>
           <h2 className="display cc-act2-headline">
@@ -273,26 +242,24 @@ export const Act2: React.FC<Act2Props> = ({ activeTab, setActiveTab }) => {
           </h2>
         </div>
 
-        {/* Product entry row sits BETWEEN the headline and the tab bar.
-            Each entry dot is absolutely positioned at the same horizontal
-            fraction the hero pour exit lands at (HERO_LANES = 22/40/58/76 %),
-            so the cup pour drops vertically into its entry. The vertical
-            stagger (i * 8px) matches the left-rail X spacing so the
+        {/* Product entry row — uses the shared 5-col service grid, with the
+            4 product cells occupying columns 2..5. This guarantees each
+            product (HC, Mitra, Mocha, SS) sits in the same vertical lane as
+            its downstream service (Billing, Ordering, Shipping, Users) in
+            Act 2's bottom row and Act 3's top row. The vertical stagger
+            (i * 8px paddingTop) matches the left-rail X spacing so the
             entry-to-rail diagonals are parallel. */}
-        <div className="cc-act2-entry-row" ref={entryRowRef}>
+        <div
+          className="cc-service-lane-row cc-act2-top-row"
+          ref={entryRowRef}
+        >
           {DESKTOP_PRODUCTS.map((p, i) => {
             const isActive = activeTab === p.key;
-            const HERO_LANES_PCT = [22, 40, 58, 76];
             return (
               <div
                 key={"entry-" + p.key}
-                className="cc-act2-entry-cell"
-                style={{
-                  position: "absolute",
-                  left: `${HERO_LANES_PCT[i]}%`,
-                  top: i * 8,
-                  transform: "translateX(-50%)",
-                }}
+                className="cc-service-lane-cell cc-act2-entry-cell"
+                style={{ paddingTop: i * 8 }}
               >
                 <button
                   type="button"
@@ -326,68 +293,76 @@ export const Act2: React.FC<Act2Props> = ({ activeTab, setActiveTab }) => {
           })}
         </div>
 
-        {/* Tab bar + panel — normal flow; height grows with content. */}
-        <div className="cc-act2-panel-wrap">
-          <div className="cc-tabbar-h" role="tablist">
-            {tabs.map((t) => (
-              <button
-                key={t.key}
-                role="tab"
-                aria-selected={activeTab === t.key}
-                className={
-                  "cc-tabbar-h-tab " + (activeTab === t.key ? "is-active" : "")
-                }
-                onClick={() => setActiveTab(t.key)}
-              >
-                {t.title}
-              </button>
-            ))}
-          </div>
-          <div className="cc-tab-panel-d" role="tabpanel" key={active.key}>
-            <div className="cc-tab-grid">
-              <div className="cc-tab-text">
-                <div className="cc-tab-key">{active.kind}</div>
-                <h3 className="cc-tab-title">{active.title}</h3>
-                <p className="cc-tab-body">{active.body}</p>
-                {active.body2 && <p className="cc-tab-body">{active.body2}</p>}
-              </div>
-              <div className="cc-tab-viz" aria-hidden>
-                <span className="cc-tab-viz-label">Visualization</span>
-              </div>
-            </div>
-            <div className="cc-tab-footer">
-              <ul className="cc-tab-bullets-d">
-                {active.bullets.map((b) => (
-                  <li key={b}>{b}</li>
-                ))}
-              </ul>
-              <div className="cc-tab-meta">
-                <a href="#">↗ Read about {active.title}</a>
-                <a href="#">↗ Examples</a>
-              </div>
+        {/* Content row — mirrors Act 3's layout: narrow merge stage on the
+            left (catalog merge swatch + label), tab bar + panel filling the
+            right. Both columns share the body's coordinate frame so the
+            left-rail descents converge cleanly into the merge. */}
+        <div className="cc-act2-content-row">
+          {/* Catalog merge stage — sits in the left column where the 4
+              product columns converge. Registered as `act2.merge`. */}
+          <div className="cc-act2-merge-stage">
+            <div
+              ref={mergeSwatchRef}
+              className="cc-service-swatch cc-act2-merge-swatch"
+              style={{
+                width: SWATCH,
+                height: SWATCH,
+                borderRadius: SWATCH_R,
+                background: DESKTOP_SERVICES.find((s) => s.key === "catalog")
+                  ?.color,
+              }}
+            />
+            <div className="cc-act2-merge-callout">
+              <div>Catalog</div>
+              <div>Service</div>
             </div>
           </div>
-        </div>
 
-        {/* Catalog merge swatch — sits on the LEFT rail mid-Act2, where
-            the 4 product columns converge. Registered as `act2.merge`. */}
-        <div className="cc-act2-merge-wrap">
-          <div
-            ref={mergeSwatchRef}
-            className="cc-service-swatch cc-act2-merge-swatch"
-            style={{
-              width: SWATCH,
-              height: SWATCH,
-              borderRadius: SWATCH_R,
-              background: DESKTOP_SERVICES.find((s) => s.key === "catalog")
-                ?.color,
-            }}
-          />
-          <span className="cc-service-label cc-act2-merge-label">
-            Catalog
-            <br />
-            Service
-          </span>
+          {/* Tab bar + panel — normal flow; height grows with content. */}
+          <div className="cc-act2-panel-wrap">
+            <div className="cc-tabbar-h" role="tablist">
+              {tabs.map((t) => (
+                <button
+                  key={t.key}
+                  role="tab"
+                  aria-selected={activeTab === t.key}
+                  className={
+                    "cc-tabbar-h-tab " +
+                    (activeTab === t.key ? "is-active" : "")
+                  }
+                  onClick={() => setActiveTab(t.key)}
+                >
+                  {t.title}
+                </button>
+              ))}
+            </div>
+            <div className="cc-tab-panel-d" role="tabpanel" key={active.key}>
+              <div className="cc-tab-grid">
+                <div className="cc-tab-text">
+                  <div className="cc-tab-key">{active.kind}</div>
+                  <h3 className="cc-tab-title">{active.title}</h3>
+                  <p className="cc-tab-body">{active.body}</p>
+                  {active.body2 && (
+                    <p className="cc-tab-body">{active.body2}</p>
+                  )}
+                </div>
+                <div className="cc-tab-viz" aria-hidden>
+                  <span className="cc-tab-viz-label">Visualization</span>
+                </div>
+              </div>
+              <div className="cc-tab-footer">
+                <ul className="cc-tab-bullets-d">
+                  {active.bullets.map((b) => (
+                    <li key={b}>{b}</li>
+                  ))}
+                </ul>
+                <div className="cc-tab-meta">
+                  <a href="#">↗ Read about {active.title}</a>
+                  <a href="#">↗ Examples</a>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Bottom stripe row — 4 stripes (billing/ordering/shipping/users)

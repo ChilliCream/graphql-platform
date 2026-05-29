@@ -19,8 +19,8 @@ const config: Record<
 > = {
   note: {
     label: "Note",
-    containerClass: "bg-sky-50 ring-1 ring-sky-200 text-sky-950",
-    labelClass: "text-sky-700",
+    containerClass: "bg-sky-500/10 ring-1 ring-sky-400/30 text-slate-100",
+    labelClass: "text-sky-300",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -41,8 +41,8 @@ const config: Record<
   },
   tip: {
     label: "Tip",
-    containerClass: "bg-emerald-50 ring-1 ring-emerald-200 text-emerald-950",
-    labelClass: "text-emerald-700",
+    containerClass: "bg-emerald-500/10 ring-1 ring-emerald-400/30 text-slate-100",
+    labelClass: "text-emerald-300",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -63,8 +63,8 @@ const config: Record<
   },
   important: {
     label: "Important",
-    containerClass: "bg-purple-50 ring-1 ring-purple-200 text-purple-950",
-    labelClass: "text-purple-700",
+    containerClass: "bg-purple-500/10 ring-1 ring-purple-400/30 text-slate-100",
+    labelClass: "text-purple-300",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -84,8 +84,8 @@ const config: Record<
   },
   warning: {
     label: "Warning",
-    containerClass: "bg-amber-50 ring-1 ring-amber-200 text-amber-950",
-    labelClass: "text-amber-700",
+    containerClass: "bg-amber-500/10 ring-1 ring-amber-400/30 text-slate-100",
+    labelClass: "text-amber-300",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -106,8 +106,8 @@ const config: Record<
   },
   caution: {
     label: "Caution",
-    containerClass: "bg-red-50 ring-1 ring-red-200 text-red-950",
-    labelClass: "text-red-700",
+    containerClass: "bg-red-500/10 ring-1 ring-red-400/30 text-slate-100",
+    labelClass: "text-red-300",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -128,8 +128,8 @@ const config: Record<
   },
   experimental: {
     label: "Experimental",
-    containerClass: "bg-violet-50 ring-1 ring-violet-200 text-violet-950",
-    labelClass: "text-violet-700",
+    containerClass: "bg-violet-500/10 ring-1 ring-violet-400/30 text-slate-100",
+    labelClass: "text-violet-300",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"

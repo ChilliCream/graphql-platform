@@ -1,9 +1,13 @@
 "use client";
 
-import React, { useLayoutEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 
 import { DESKTOP_SERVICES } from "./constants";
-import { useAnchorContext } from "./AnchorContext";
+import {
+  useAnchorContext,
+  useLandingRoot,
+  useMeasureEffect,
+} from "./AnchorContext";
 import type { LaneKey } from "./anchorConfig";
 
 interface Act3Props {
@@ -31,11 +35,6 @@ const BEND_BELOW_ENTRY_PX = 0;
 // twist-start sits a small fraction up from the pinch so the funnel curve
 // has room to bend.
 const TWIST_START_ABOVE_PINCH_FRACTION = 0.1;
-// Pinch x offset from the section's left padding. Aligns the pinch with the
-// center of the 5-column rail bundle so the descents end straight down at
-// the pinch instead of fanning sideways.
-const PINCH_X_OFFSET = 60;
-
 export const Act3: React.FC<Act3Props> = ({ activeTab, setActiveTab }) => {
   const tabs: Tab[] = [
     {
@@ -104,29 +103,27 @@ export const Act3: React.FC<Act3Props> = ({ activeTab, setActiveTab }) => {
   const active = tabs.find((t) => t.key === activeTab) || tabs[0];
 
   const sectionRef = useRef<HTMLElement>(null);
+  const bodyRef = useRef<HTMLDivElement | null>(null);
   const entryRowRef = useRef<HTMLDivElement | null>(null);
   const entryRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const pinchRef = useRef<HTMLDivElement | null>(null);
   const { register, unregister } = useAnchorContext();
+  const root = useLandingRoot();
 
-  useLayoutEffect(() => {
-    const measure = () => {
+  useMeasureEffect(
+    () => {
       const section = sectionRef.current;
-      const root = section?.closest(
-        "[data-cc-landing-root]"
-      ) as HTMLElement | null;
-      if (!section || !root) {
+      const body = bodyRef.current;
+      if (!section || !body || !root) {
         return;
       }
-      const secRect = section.getBoundingClientRect();
       const rRect = root.getBoundingClientRect();
-      const sectionLeftPad = parseFloat(
-        getComputedStyle(section).paddingLeft || "0"
-      );
-      const sectionLeftInRoot = secRect.left - rRect.left;
-      const railX0 = sectionLeftInRoot + sectionLeftPad;
+      const secRect = section.getBoundingClientRect();
+      // Rail X positions are anchored to the body content edge so they stay
+      // aligned with the pinch on big screens, where the body is centered
+      // inside the section via max-width + margin auto.
+      const railX0 = body.getBoundingClientRect().left - rRect.left;
 
-      // Pinch — measured center.
       let pinchPt: { x: number; y: number } | null = null;
       const pinchEl = pinchRef.current;
       if (pinchEl) {
@@ -138,7 +135,6 @@ export const Act3: React.FC<Act3Props> = ({ activeTab, setActiveTab }) => {
         register(`act3.pinch`, { ...pinchPt, kind: "pinch" });
       }
 
-      // Entry pills + per-service bend + twist-start.
       DESKTOP_SERVICES.forEach((s, i) => {
         const k = s.key as LaneKey;
         const entryEl = entryRefs.current[s.key];
@@ -177,31 +173,13 @@ export const Act3: React.FC<Act3Props> = ({ activeTab, setActiveTab }) => {
           kind: "act-bottom",
         });
       }
-    };
-    measure();
-    const ro = new ResizeObserver(measure);
-    if (sectionRef.current) {
-      ro.observe(sectionRef.current);
-    }
-    if (entryRowRef.current) {
-      ro.observe(entryRowRef.current);
-    }
-    if (pinchRef.current) {
-      ro.observe(pinchRef.current);
-    }
-    const scrollEl = document.querySelector(
-      ".main__Container-sc-d4365469-0"
-    ) as HTMLElement | null;
-    scrollEl?.addEventListener("scroll", measure, { passive: true });
-    window.addEventListener("scroll", measure, { passive: true });
-    window.addEventListener("resize", measure);
-    const fontShiftTimer = window.setTimeout(measure, 250);
-    return () => {
-      ro.disconnect();
-      scrollEl?.removeEventListener("scroll", measure);
-      window.removeEventListener("scroll", measure);
-      window.removeEventListener("resize", measure);
-      window.clearTimeout(fontShiftTimer);
+    },
+    [sectionRef, bodyRef, entryRowRef, pinchRef],
+    [register, root]
+  );
+
+  useEffect(
+    () => () => {
       DESKTOP_SERVICES.forEach((s) => {
         unregister(`act3.entry-${s.key}`);
         unregister(`act3.bend-${s.key}`);
@@ -209,9 +187,9 @@ export const Act3: React.FC<Act3Props> = ({ activeTab, setActiveTab }) => {
       });
       unregister(`act3.pinch`);
       unregister(`act3.exit`);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [register, unregister]);
+    },
+    [unregister]
+  );
 
   return (
     <section
@@ -223,7 +201,7 @@ export const Act3: React.FC<Act3Props> = ({ activeTab, setActiveTab }) => {
         <span className="num">03</span> Fusion
       </div>
 
-      <div className="cc-act3-body">
+      <div className="cc-act3-body" ref={bodyRef}>
         <div className="cc-section-headline-fade cc-act3-headline-wrap">
           <div className="eyebrow">Fusion</div>
           <h2 className="display cc-act3-headline">

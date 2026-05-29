@@ -1,6 +1,6 @@
 "use client";
 
-import React, { FC, useEffect, useRef, useState } from "react";
+import React, { FC, useEffect, useState } from "react";
 
 import { SiteLayout } from "@/components/layout";
 import { SEO } from "@/components/misc";
@@ -20,7 +20,9 @@ import { FusionLensEffect } from "@/components/landing/desktop/FusionLensEffect"
 const LandingDesktopPage: FC = () => {
   const [act2Tab, setAct2Tab] = useState("platform");
   const [act3Tab, setAct3Tab] = useState("fusion-overview");
-  const rootRef = useRef<HTMLDivElement>(null);
+  // Callback-ref into state so the AnchorProvider re-renders the landing
+  // tree once the root element actually mounts (a plain useRef wouldn't).
+  const [root, setRoot] = useState<HTMLDivElement | null>(null);
 
   useEffect(() => {
     document.body.classList.add("cc-landing-body");
@@ -33,10 +35,10 @@ const LandingDesktopPage: FC = () => {
     <SiteLayout disableStars>
       <SEO title="Home" />
       <LandingGlobalStyle />
-      <AnchorProvider>
+      <AnchorProvider root={root}>
         <FusionLensEffect />
-        <DesktopLandingRoot ref={rootRef} data-cc-landing-root>
-          <ConnectorLayer rootRef={rootRef} />
+        <DesktopLandingRoot ref={setRoot}>
+          <ConnectorLayer />
           <Act1 />
           <Act2 activeTab={act2Tab} setActiveTab={setAct2Tab} />
           <Act3 activeTab={act3Tab} setActiveTab={setAct3Tab} />

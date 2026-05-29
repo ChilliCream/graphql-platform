@@ -1,18 +1,33 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { ComponentType, ReactNode, SVGProps } from "react";
+
+import { getLatestBlogPost, type LatestBlogPost } from "@/src/helpers/getLatestBlog";
 import { BlogIcon } from "@/src/icons/Blog";
 import { ChevronDownIcon } from "@/src/icons/ChevronDown";
 import { ChilliCream } from "@/src/icons/ChilliCream";
 import { GitHubIcon } from "@/src/icons/GitHub";
 import { LinkedInIcon } from "@/src/icons/LinkedIn";
-import { SearchIcon } from "@/src/icons/Search";
+import { SearchButton } from "./Search";
 import { SlackIcon } from "@/src/icons/Slack";
 import { XIcon } from "@/src/icons/X";
 import { YouTubeIcon } from "@/src/icons/YouTube";
+import {
+  BuildingIcon,
+  CloudIcon,
+  HandshakeAngleIcon,
+  LollipopIcon,
+  NewspaperIcon,
+  ServerIcon,
+  SparklesIcon,
+  WavePulseIcon,
+} from "@/src/icons/NavIcons";
+
 import { MobileNav } from "./MobileNav";
+import { NavAutoClose } from "./NavAutoClose";
 
 const TOOLS = {
-  blog: "/blogs",
+  blog: "/blog",
   github: "https://github.com/ChilliCream/graphql-platform",
   linkedIn: "https://www.linkedin.com/company/chillicream",
   nitro: "https://nitro.chillicream.com",
@@ -22,7 +37,8 @@ const TOOLS = {
   x: "https://x.com/Chilli_Cream",
 };
 
-const DEMO_HREF = "mailto:contact@chillicream.com?subject=Demo";
+const CONTACT_HREF = "/services/support/contact";
+const GITHUB_REPO_URL = "https://github.com/ChilliCream/graphql-platform";
 
 type Icon = ComponentType<SVGProps<SVGSVGElement>>;
 
@@ -43,13 +59,15 @@ interface NavItem {
   label: string;
   groups?: SubGroup[];
   panelWidth?: string;
+  aside?: "blog" | "get-in-touch";
 }
 
 const NAV_ITEMS: NavItem[] = [
   {
     href: "/platform",
     label: "Platform",
-    panelWidth: "w-[640px]",
+    panelWidth: "w-[820px]",
+    aside: "blog",
     groups: [
       {
         title: "Platform",
@@ -58,16 +76,19 @@ const NAV_ITEMS: NavItem[] = [
             href: "/platform/analytics",
             label: "Analytics",
             description: "Instant Insights. Enhanced Performance.",
+            icon: WavePulseIcon,
           },
           {
             href: "/platform/continuous-integration",
             label: "Continuous Integration",
             description: "Innovate with Confidence. Deliver with Quality.",
+            icon: SparklesIcon,
           },
           {
             href: "/platform/ecosystem",
             label: "Ecosystem",
             description: "An Ecosystem You Trust and Love.",
+            icon: CloudIcon,
           },
         ],
       },
@@ -78,6 +99,7 @@ const NAV_ITEMS: NavItem[] = [
             href: "/products/nitro",
             label: "Nitro",
             description: "GraphQL IDE / API Cockpit",
+            icon: LollipopIcon,
           },
         ],
       },
@@ -86,7 +108,8 @@ const NAV_ITEMS: NavItem[] = [
   {
     href: "/services",
     label: "Services",
-    panelWidth: "w-[420px]",
+    panelWidth: "w-[780px]",
+    aside: "get-in-touch",
     groups: [
       {
         title: "Services",
@@ -95,16 +118,19 @@ const NAV_ITEMS: NavItem[] = [
             href: "/services/advisory",
             label: "Advisory",
             description: "Consulting / Contracting",
+            icon: HandshakeAngleIcon,
           },
           {
             href: "/services/support",
             label: "Support",
             description: "Get Help from Experts",
+            icon: ServerIcon,
           },
           {
             href: "/services/training",
             label: "Training",
             description: "Increase Your Team's Productivity",
+            icon: BuildingIcon,
           },
         ],
       },
@@ -113,16 +139,17 @@ const NAV_ITEMS: NavItem[] = [
   {
     href: "/docs",
     label: "Developers",
-    panelWidth: "w-[640px]",
+    panelWidth: "w-[840px]",
+    aside: "blog",
     groups: [
       {
         title: "Documentation",
         links: [
-          { href: "/docs/hotchocolate", label: "Hot Chocolate" },
-          { href: "/docs/strawberryshake", label: "Strawberry Shake" },
-          { href: "/docs/mocha", label: "Mocha" },
-          { href: "/docs/fusion", label: "Fusion" },
-          { href: "/docs/nitro", label: "Nitro" },
+          { href: "/docs/hotchocolate", label: "Hot Chocolate", icon: LollipopIcon },
+          { href: "/docs/strawberryshake", label: "Strawberry Shake", icon: LollipopIcon },
+          { href: "/docs/mocha", label: "Mocha", icon: LollipopIcon },
+          { href: "/docs/fusion", label: "Fusion", icon: SparklesIcon },
+          { href: "/docs/nitro", label: "Nitro", icon: LollipopIcon },
         ],
       },
       {
@@ -131,8 +158,8 @@ const NAV_ITEMS: NavItem[] = [
           { href: TOOLS.blog, label: "Blog", icon: BlogIcon },
           { href: TOOLS.github, label: "GitHub", icon: GitHubIcon },
           { href: TOOLS.slack, label: "Slack / Community", icon: SlackIcon },
-          { href: TOOLS.youtube, label: "YouTube", icon: YouTubeIcon },
-          { href: TOOLS.x, label: "X", icon: XIcon },
+          { href: TOOLS.youtube, label: "YouTube Channel", icon: YouTubeIcon },
+          { href: TOOLS.x, label: "X (Formerly Twitter)", icon: XIcon },
           { href: TOOLS.linkedIn, label: "LinkedIn", icon: LinkedInIcon },
         ],
       },
@@ -141,23 +168,26 @@ const NAV_ITEMS: NavItem[] = [
   {
     href: "/resources",
     label: "Company",
-    panelWidth: "w-[320px]",
+    panelWidth: "w-[760px]",
+    aside: "get-in-touch",
     groups: [
       {
         title: "Company",
         links: [
-          { href: "mailto:contact@chillicream.com", label: "Contact" },
-          { href: TOOLS.shop, label: "Shop" },
+          { href: "mailto:contact@chillicream.com", label: "Contact", icon: NewspaperIcon },
+          { href: TOOLS.shop, label: "Shop", icon: NewspaperIcon },
           {
             href: "/legal/acceptable-use-policy",
             label: "Acceptable Use Policy",
+            icon: NewspaperIcon,
           },
-          { href: "/legal/cookie-policy", label: "Cookie Policy" },
-          { href: "/legal/privacy-policy", label: "Privacy Policy" },
-          { href: "/legal/terms-of-service", label: "Terms of Service" },
+          { href: "/legal/cookie-policy", label: "Cookie Policy", icon: NewspaperIcon },
+          { href: "/legal/privacy-policy", label: "Privacy Policy", icon: NewspaperIcon },
+          { href: "/legal/terms-of-service", label: "Terms of Service", icon: NewspaperIcon },
           {
             href: "/licensing/chillicream-license",
             label: "ChilliCream License",
+            icon: NewspaperIcon,
           },
         ],
       },
@@ -170,13 +200,14 @@ const NAV_ITEMS: NavItem[] = [
 const MOBILE_ITEMS = NAV_ITEMS.map((i) => ({ href: i.href, label: i.label }));
 
 export default function Header() {
+  const latestBlog = getLatestBlogPost();
   return (
-    <header className="sticky top-0 z-30 flex h-[72px] w-full justify-center border-b border-stone-200 bg-white/80 backdrop-blur-md">
+    <header className="sticky top-0 z-30 flex h-[72px] w-full justify-center border-b border-white/10 bg-[#0c1322]/70 backdrop-blur-md">
       <div className="relative flex h-full w-full max-w-7xl items-center justify-between px-4 lg:gap-8">
         <Link
           href="/"
           aria-label="ChilliCream Home"
-          className="flex h-full flex-none items-center text-stone-900 transition-colors hover:text-fuchsia-700"
+          className="flex h-full flex-none items-center text-[var(--cc-ink)] transition-colors hover:text-fuchsia-400"
         >
           <ChilliCream className="h-8 w-8 fill-current" />
         </Link>
@@ -185,7 +216,11 @@ export default function Header() {
           <ol className="m-0 flex h-full list-none items-stretch p-0">
             {NAV_ITEMS.map((item) =>
               item.groups ? (
-                <NavWithSubmenu key={item.href} item={item} />
+                <NavWithSubmenu
+                  key={item.href}
+                  item={item}
+                  latestBlog={latestBlog}
+                />
               ) : (
                 <NavSimple key={item.href} item={item} />
               ),
@@ -193,35 +228,40 @@ export default function Header() {
           </ol>
         </nav>
 
-        <div className="hidden flex-none items-center gap-6 lg:flex">
+        <div className="hidden flex-none items-center gap-5 lg:flex">
           <a
-            href={DEMO_HREF}
-            className="text-sm font-medium text-stone-700 no-underline transition-colors hover:text-fuchsia-700"
+            href={GITHUB_REPO_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-md border border-[var(--cc-card-border)] bg-white/5 px-2.5 py-1 text-xs font-medium text-[var(--cc-ink)] no-underline transition-colors hover:border-[var(--cc-card-border-hover)]"
+            aria-label="Star ChilliCream on GitHub"
           >
-            Request a Demo
+            <GitHubIcon className="h-3.5 w-3.5 fill-current" />
+            Star
           </a>
+          <Link
+            href={CONTACT_HREF}
+            className="text-sm font-medium text-[var(--cc-ink-dim)] no-underline transition-colors hover:text-[var(--cc-ink)]"
+          >
+            Contact Us
+          </Link>
           <a
             href={TOOLS.nitro}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex h-[38px] items-center rounded-md border-2 border-fuchsia-700 bg-fuchsia-700 px-7 text-sm font-medium text-white no-underline transition-colors hover:bg-fuchsia-800"
+            className="inline-flex h-[38px] items-center rounded-full bg-[var(--cc-ink)] px-7 text-sm font-medium text-[#0c1322] no-underline transition-colors hover:bg-white"
           >
             Launch
           </a>
-          <button
-            type="button"
-            aria-label="Search"
-            className="flex h-full items-center text-stone-700 transition-colors hover:text-fuchsia-700"
-          >
-            <SearchIcon className="h-5 w-5 fill-current" />
-          </button>
+          <SearchButton className="flex h-full items-center text-[var(--cc-ink-dim)] transition-colors hover:text-[var(--cc-ink)]" />
         </div>
 
         <MobileNav
           items={MOBILE_ITEMS}
-          demoHref={DEMO_HREF}
+          demoHref={CONTACT_HREF}
           nitroHref={TOOLS.nitro}
         />
+        <NavAutoClose />
       </div>
     </header>
   );
@@ -232,7 +272,7 @@ function NavSimple({ item }: { item: NavItem }) {
     <li className="flex items-stretch">
       <Link
         href={item.href}
-        className="flex items-center px-4 text-sm font-medium text-stone-700 no-underline transition-colors hover:text-fuchsia-700"
+        className="flex items-center px-4 text-sm font-medium text-[var(--cc-ink-dim)] no-underline transition-colors hover:text-[var(--cc-ink)]"
       >
         {item.label}
       </Link>
@@ -240,25 +280,41 @@ function NavSimple({ item }: { item: NavItem }) {
   );
 }
 
-function NavWithSubmenu({ item }: { item: NavItem }) {
+function NavWithSubmenu({
+  item,
+  latestBlog,
+}: {
+  item: NavItem;
+  latestBlog: LatestBlogPost | null;
+}) {
   return (
     <li className="group/nav flex items-stretch">
       <Link
         href={item.href}
-        className="flex items-center gap-1.5 px-4 text-sm font-medium text-stone-700 no-underline transition-colors hover:text-fuchsia-700 group-hover/nav:text-fuchsia-700 group-focus-within/nav:text-fuchsia-700"
+        className="flex items-center gap-1.5 px-4 text-sm font-medium text-[var(--cc-ink-dim)] no-underline transition-colors hover:text-[var(--cc-ink)] group-hover/nav:text-[var(--cc-ink)] group-focus-within/nav:text-[var(--cc-ink)]"
       >
         {item.label}
         <ChevronDownIcon className="h-3 w-3 fill-current transition-transform duration-200 group-hover/nav:rotate-180 group-focus-within/nav:rotate-180" />
       </Link>
 
-      <SubmenuPanel item={item} />
+      <SubmenuPanel item={item} latestBlog={latestBlog} />
     </li>
   );
 }
 
-function SubmenuPanel({ item }: { item: NavItem }) {
+function SubmenuPanel({
+  item,
+  latestBlog,
+}: {
+  item: NavItem;
+  latestBlog: LatestBlogPost | null;
+}) {
+  const showBlog = item.aside === "blog" && latestBlog;
+  const showGetInTouch = item.aside === "get-in-touch";
+  const showAside = showBlog || showGetInTouch;
   return (
     <div
+      data-nav-panel
       className={[
         "pointer-events-none invisible absolute left-1/2 top-full -translate-x-1/2 pt-2 opacity-0 transition-[opacity,visibility] duration-200",
         "group-hover/nav:pointer-events-auto group-hover/nav:visible group-hover/nav:opacity-100",
@@ -267,8 +323,9 @@ function SubmenuPanel({ item }: { item: NavItem }) {
     >
       <div
         className={[
-          "rounded-lg border border-stone-200 bg-white/95 p-6 shadow-lg backdrop-blur-md",
-          item.panelWidth ?? "w-[420px]",
+          "grid gap-8 rounded-lg border border-white/10 bg-[#0c1322]/95 p-6 shadow-2xl backdrop-blur-md",
+          showAside ? "grid-cols-[1fr_280px]" : "grid-cols-1",
+          item.panelWidth ?? "w-[480px]",
         ].join(" ")}
       >
         <div
@@ -282,6 +339,8 @@ function SubmenuPanel({ item }: { item: NavItem }) {
             <SubGroupBlock key={group.title} group={group} />
           ))}
         </div>
+        {showBlog && <LatestBlogPanel post={latestBlog} />}
+        {showGetInTouch && <GetInTouchPanel />}
       </div>
     </div>
   );
@@ -293,7 +352,7 @@ function SubGroupBlock({ group }: { group: SubGroup }) {
       <div
         role="heading"
         aria-level={2}
-        className="mb-3 text-xs font-semibold uppercase tracking-wide text-stone-400"
+        className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--cc-ink-dim)]"
       >
         {group.title}
       </div>
@@ -319,19 +378,83 @@ function SubLinkRow({ link }: { link: SubLink }): ReactNode {
     <Link
       href={link.href}
       {...linkProps}
-      className="flex items-start gap-3 rounded-md px-2 py-2 text-stone-700 no-underline transition-colors hover:bg-stone-50 hover:text-fuchsia-700"
+      className="group/link flex items-start gap-3 rounded-md px-2 py-2 text-[var(--cc-ink-dim)] no-underline transition-colors hover:bg-white/5"
     >
       {Icon && (
-        <Icon className="mt-0.5 h-4 w-4 flex-none fill-current text-stone-500" />
+        <span className="mt-0.5 flex h-5 w-5 flex-none items-center justify-center text-[var(--cc-ink-dim)] transition-colors group-hover/link:text-[var(--cc-ink)]">
+          <Icon className="h-4 w-4 fill-current" />
+        </span>
       )}
       <div>
-        <div className="text-sm font-medium">{link.label}</div>
+        <div className="text-sm font-medium text-[var(--cc-ink)]">
+          {link.label}
+        </div>
         {link.description && (
-          <div className="text-xs font-normal text-stone-500">
+          <div className="text-xs font-normal text-[var(--cc-ink-dim)]">
             {link.description}
           </div>
         )}
       </div>
     </Link>
+  );
+}
+
+function LatestBlogPanel({ post }: { post: LatestBlogPost }) {
+  return (
+    <div className="flex flex-col gap-3">
+      <div
+        role="heading"
+        aria-level={2}
+        className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--cc-ink-dim)]"
+      >
+        Latest Blog Post
+      </div>
+      <Link
+        href={post.href}
+        className="group/blog flex flex-col gap-2 rounded-md text-[var(--cc-ink)] no-underline"
+      >
+        {post.featuredImage && (
+          <div className="overflow-hidden rounded-md border border-white/10">
+            <Image
+              src={post.featuredImage}
+              alt={post.title}
+              width={320}
+              height={180}
+              className="block h-auto w-full"
+            />
+          </div>
+        )}
+        <div className="text-xs text-[var(--cc-ink-dim)]">{post.date}</div>
+        <div className="text-sm font-medium leading-snug text-[var(--cc-ink)] group-hover/blog:text-fuchsia-300">
+          {post.title}
+        </div>
+      </Link>
+    </div>
+  );
+}
+
+function GetInTouchPanel() {
+  return (
+    <div className="flex flex-col gap-3">
+      <div
+        role="heading"
+        aria-level={2}
+        className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--cc-ink-dim)]"
+      >
+        Get in touch
+      </div>
+      <div className="flex h-[180px] items-center justify-center rounded-md border border-white/10 bg-gradient-to-br from-fuchsia-500/20 via-indigo-500/15 to-sky-500/10">
+        <div className="text-center text-sm font-medium leading-snug text-[var(--cc-ink)]">
+          Your technology journey.
+          <br />
+          Our expertise.
+        </div>
+      </div>
+      <p className="text-xs leading-relaxed text-[var(--cc-ink-dim)]">
+        <span className="font-semibold text-[var(--cc-ink)]">ChilliCream</span>{" "}
+        helps you unlock your full potential, delivering on its promise to
+        transform your business.
+      </p>
+    </div>
   );
 }

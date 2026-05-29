@@ -27,7 +27,7 @@ export default function remarkRewriteMdLinks() {
         return;
       }
 
-      // Root-absolute: check content roots for /docs and /blogs, otherwise
+      // Root-absolute: check content roots for /docs and /blog, otherwise
       // verify a matching literal/dynamic route exists in app/.
       if (node.url.startsWith("/")) {
         const pathPart = node.url.split(/[#?]/, 1)[0];
@@ -53,11 +53,11 @@ export default function remarkRewriteMdLinks() {
           return;
         }
 
-        if (segments[0] === "blogs") {
+        if (segments[0] === "blog") {
           if (!blogsRouteExists(cwd, segments.slice(1))) {
             file.fail(
-              `Broken root-absolute link "${node.url}" — no matching post found under blogs/ ` +
-                `(expected /blogs/YYYY/MM/DD/slug)`,
+              `Broken root-absolute link "${node.url}" — no matching post found under blog/ ` +
+                `(expected /blog/YYYY/MM/DD/slug)`,
               node,
               RULE_ID
             );
@@ -128,7 +128,7 @@ export default function remarkRewriteMdLinks() {
 }
 
 /** Convert a path relative to cwd (without extension) under blogs/ into the
- *  canonical /blogs/YYYY/MM/DD/slug URL, or null if it doesn't match. */
+ *  canonical /blog/YYYY/MM/DD/slug URL, or null if it doesn't match. */
 function blogUrlFromCleanRel(cleanRel) {
   // cleanRel looks like "blogs/2019-06-05-foo" or "blogs/2019-06-05-foo/2019-06-05-foo"
   const segments = cleanRel.split("/");
@@ -144,7 +144,7 @@ function blogUrlFromCleanRel(cleanRel) {
     return null;
   }
   const [, yyyy, mm, dd, slug] = m;
-  return `/blogs/${yyyy}/${mm}/${dd}/${slug}`;
+  return `/blog/${yyyy}/${mm}/${dd}/${slug}`;
 }
 
 function appRouteExists(appDir, segments) {
@@ -217,7 +217,7 @@ function docsFileExists(cwd, subSegments) {
   );
 }
 
-/** Verify that /blogs/YYYY/MM/DD/slug maps to an actual blog file on disk. */
+/** Verify that /blog/YYYY/MM/DD/slug maps to an actual blog file on disk. */
 function blogsRouteExists(cwd, subSegments) {
   if (subSegments.length < 4) {
     return false;

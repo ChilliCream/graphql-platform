@@ -73,16 +73,16 @@ export function SidebarDrawer({ children }: { children: ReactNode }) {
           onClick={() => setOpen(false)}
         />
         <div
-          className={`absolute inset-y-0 left-0 w-[20rem] max-w-[85vw] overflow-y-auto bg-white shadow-xl transition-transform duration-200 ${
+          className={`absolute inset-y-0 left-0 w-[20rem] max-w-[85vw] overflow-y-auto bg-[#0c1322] shadow-xl transition-transform duration-200 ${
             open ? "translate-x-0" : "-translate-x-full"
           }`}
         >
-          <div className="flex items-center justify-end px-3 py-2 border-b border-slate-200">
+          <div className="flex items-center justify-end px-3 py-2 border-b border-white/10">
             <button
               type="button"
               aria-label="Close documentation menu"
               onClick={() => setOpen(false)}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full text-slate-700 hover:bg-slate-100"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full text-slate-300 hover:bg-white/5"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -105,7 +105,7 @@ export function SidebarDrawer({ children }: { children: ReactNode }) {
       </div>
 
       {/* Desktop sidebar — sticky inline */}
-      <aside className="hidden lg:block sticky top-0 self-start max-h-[calc(100vh-4rem)] overflow-y-auto border-r border-slate-200">
+      <aside className="hidden lg:block sticky top-[72px] self-start h-[calc(100vh-72px)] overflow-y-auto border-r border-white/10">
         {children}
       </aside>
     </>

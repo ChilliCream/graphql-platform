@@ -81,7 +81,7 @@ export function listBlogPosts(): {
 
 /** Build the canonical URL for a blog post stem. */
 export function blogUrlForStem(parsed: BlogStem): string {
-  return `/blogs/${parsed.year}/${parsed.month}/${parsed.day}/${parsed.slug}`;
+  return `/blog/${parsed.year}/${parsed.month}/${parsed.day}/${parsed.slug}`;
 }
 
 /** Reverse the catch-all slug (e.g. ['2019','06','05','hot-chocolate-9.0.0'])

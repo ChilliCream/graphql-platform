@@ -8,7 +8,7 @@ authorImageUrl: https://avatars.githubusercontent.com/u/29404920?s=100&v=4
 description: "How cross-references between blog posts are written and resolved on this site."
 ---
 
-This post exists to demonstrate how blog cross-references work in our docs system. The links below are written as plain relative markdown paths — they remain clickable on GitHub or in any raw markdown viewer, and the build-time remark plugin rewrites them to the canonical `/blogs/YYYY/MM/DD/slug` URLs when the page is rendered.
+This post exists to demonstrate how blog cross-references work in our docs system. The links below are written as plain relative markdown paths — they remain clickable on GitHub or in any raw markdown viewer, and the build-time remark plugin rewrites them to the canonical `/blog/YYYY/MM/DD/slug` URLs when the page is rendered.
 
 ## Same-folder reference (loose file)
 
@@ -39,7 +39,7 @@ For each `.md`/`.mdx` link the rewrite plugin:
 1. Resolves the relative path against the current file's directory.
 2. Verifies the target file exists on disk — the build fails with a clear error if it doesn't.
 3. Determines whether the target is under `docs/` or `blogs/`.
-4. Emits the canonical URL (`/docs/...` for docs, `/blogs/YYYY/MM/DD/slug` for blogs).
+4. Emits the canonical URL (`/docs/...` for docs, `/blog/YYYY/MM/DD/slug` for blogs).
 5. Preserves the hash fragment.
 
 The result: GitHub-readable source, validated cross-links, and consistent canonical URLs without any manual maintenance.
