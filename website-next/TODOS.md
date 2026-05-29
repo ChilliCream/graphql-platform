@@ -3,5 +3,5 @@
 - Re-add promotional pages
 - Re-add home page
 - Image optimizations
-- Switch to proper theme
 - Tracking
+- 404 page illustration
