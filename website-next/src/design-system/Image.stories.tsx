@@ -4,6 +4,13 @@ import { Image } from "./Image";
 const meta = {
   title: "Design System/Image",
   component: Image,
+  decorators: [
+    (Story) => (
+      <div style={{ maxWidth: 640 }}>
+        <Story />
+      </div>
+    ),
+  ],
 } satisfies Meta<typeof Image>;
 
 export default meta;
@@ -24,5 +31,18 @@ export const Tall: Story = {
     alt: "Portrait placeholder image",
     width: 400,
     height: 600,
+  },
+};
+
+/**
+ * When the source fails to load, the image swaps in the same broken-link
+ * placeholder used for unavailable videos.
+ */
+export const Broken: Story = {
+  args: {
+    src: "https://example.invalid/missing.png",
+    alt: "An image that fails to load",
+    width: 640,
+    height: 360,
   },
 };

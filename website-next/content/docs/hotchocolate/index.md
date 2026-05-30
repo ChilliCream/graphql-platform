@@ -58,9 +58,6 @@ All six kinds are supported.
 > [!TIP]
 > A small recommendation that improves the result but isn't strictly required.
 
-> [!IMPORTANT]
-> Information the reader will need later in the page or workflow.
-
 > [!WARNING]
 > Something that can fail or behave surprisingly if ignored.
 
@@ -108,7 +105,7 @@ The `[[step, line, token]]` meta annotates a code block with named tokens.
 Hovering a `<CodeStep>` reference dims the surrounding code in the figure that
 declares the matching step.
 
-```ts filename="Resolver.cs" [[1, 4, "GetProductById"], [2, 5, "id"], [3, 6, "ProductRepository"]]
+```csharp filename="Resolver.cs" [[1, 4, "GetProductById"], [2, 5, "id"], [3, 6, "ProductRepository"]]
 public sealed class Query
 {
     [Lookup]
@@ -301,13 +298,7 @@ A plain markdown link to a YouTube video.
 
 [Watch the introduction video](https://www.youtube.com/watch?v=dQw4w9WgXcQ)
 
-# Mermaid diagrams
-
-Mermaid fences are rendered to inline SVG at build time, so no Mermaid
-runtime ships to the browser. The full theme follows the Tailwind palette
-configured in `src/mdx-plugins.ts`.
-
-## Flowchart
+# Mermaid diagram
 
 ```mermaid
 flowchart LR
@@ -324,106 +315,4 @@ flowchart LR
     Compose([fusion compose]) --> Archive[(.far archive)]
     Archive --> Gateway
   end
-```
-
-## Sequence diagram
-
-```mermaid
-sequenceDiagram
-  autonumber
-  participant C as Client
-  participant G as Gateway
-  participant O as Orders
-  participant U as Users
-  participant P as Products
-  C->>G: query { order(id: 1) { items { name }, customer { email } } }
-  par
-    G->>O: fetch order(1)
-    O-->>G: { items: [...], customerId: 7 }
-  and
-    G->>P: fetch products(itemIds)
-    P-->>G: [{ name: "Coffee" }, { name: "Mug" }]
-  end
-  G->>U: fetch user(7)
-  U-->>G: { email: "a@b.c" }
-  G-->>C: composed response
-  Note over G: All hops run inside a single tracing context
-```
-
-## Class diagram
-
-```mermaid
-classDiagram
-  direction LR
-  class Schema {
-    +types: TypeMap
-    +directives: DirectiveMap
-    +query: ObjectType
-    +mutation?: ObjectType
-    +subscription?: ObjectType
-    +validate() ValidationResult
-  }
-  class ObjectType {
-    +name: string
-    +fields: FieldMap
-    +interfaces: InterfaceType[]
-    +resolveType()
-  }
-  Schema "1" o-- "*" ObjectType
-  ObjectType <|-- QueryType
-  ObjectType <|-- MutationType
-  ObjectType <|-- SubscriptionType
-```
-
-## State diagram
-
-```mermaid
-stateDiagram-v2
-  [*] --> Idle
-  Idle --> Resolving: query received
-  Resolving --> Batching: needs dataloader
-  Batching --> Resolving: data ready
-  Resolving --> Streaming: @defer / @stream
-  Streaming --> Resolving: next chunk
-  Resolving --> Responding: result complete
-  Responding --> [*]
-  Resolving --> Error: resolver throws
-  Error --> Responding: error in result
-```
-
-## Entity-relationship diagram
-
-```mermaid
-erDiagram
-  USER ||--o{ ORDER : places
-  ORDER ||--|{ ORDER_ITEM : contains
-  PRODUCT ||--o{ ORDER_ITEM : "appears in"
-  USER {
-    int id PK
-    string email
-    string name
-    datetime createdAt
-  }
-  ORDER {
-    int id PK
-    int userId FK
-    decimal total
-    string status
-  }
-  PRODUCT {
-    int id PK
-    string name
-    decimal price
-    int stock
-  }
-```
-
-## Pie chart
-
-```mermaid
-pie showData
-  title Request mix
-  "queries"        : 78
-  "mutations"      : 14
-  "subscriptions"  :  8
 ```

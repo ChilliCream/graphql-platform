@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { ChevronDownIcon } from "@/src/icons/ChevronDown";
+import { DropdownAutoClose } from "./DropdownAutoClose";
 
 type DropdownProps = {
   trigger: ReactNode;
@@ -23,7 +24,7 @@ export function Dropdown({
           "flex w-full cursor-pointer list-none select-none items-center gap-2",
           "rounded-md border border-cc-card-border bg-cc-bg px-3 py-2",
           "text-left text-sm text-cc-ink transition-colors",
-          "hover:border-cc-card-border-hover hover:bg-cc-ink-faint",
+          "hover:border-cc-card-border-hover hover:bg-cc-hover",
           "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cc-accent",
           "[&::-webkit-details-marker]:hidden",
         ].join(" ")}
@@ -43,6 +44,7 @@ export function Dropdown({
       >
         {children}
       </div>
+      <DropdownAutoClose />
     </details>
   );
 }

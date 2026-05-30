@@ -5,6 +5,8 @@ import Footer from "@/src/components/Footer";
 import Header from "@/src/components/Header";
 import { SITE_URL } from "@/src/helpers/siteUrl";
 
+// TODO: Set up tracking with GA
+
 const inter = Inter({
   subsets: ["latin"],
   display: "swap",

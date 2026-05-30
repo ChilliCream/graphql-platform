@@ -101,7 +101,7 @@ function PageButton({
     <Link
       href={href}
       aria-label={ariaLabel}
-      className={`${baseClasses} border border-cc-card-border text-cc-ink-dim hover:border-cc-card-border-hover hover:bg-cc-ink-faint`}
+      className={`${baseClasses} border border-cc-card-border text-cc-ink-dim hover:border-cc-accent-hover hover:bg-cc-accent/10 hover:text-cc-accent-hover`}
     >
       {children}
     </Link>

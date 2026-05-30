@@ -9,7 +9,7 @@ import {
 import { formatDate } from "@/src/helpers/formatDate";
 import { BlogIcon } from "@/src/icons/Blog";
 import { ChevronDownIcon } from "@/src/icons/ChevronDown";
-import { ChilliCream } from "@/src/icons/ChilliCream";
+import { ChilliCreamWinking } from "@/src/icons/ChilliCreamWinking";
 import { GitHubIcon } from "@/src/icons/GitHub";
 import { LinkedInIcon } from "@/src/icons/LinkedIn";
 import { SlackIcon } from "@/src/icons/Slack";
@@ -234,9 +234,9 @@ export default function Header() {
         <Link
           href="/"
           aria-label="ChilliCream Home"
-          className="flex h-full flex-none items-center text-cc-ink transition-colors hover:text-cc-accent"
+          className="flex h-full flex-none items-center text-cc-ink"
         >
-          <ChilliCream className="h-8 w-8 fill-current" />
+          <ChilliCreamWinking className="h-8 w-8 fill-current" />
         </Link>
 
         <nav className="relative hidden h-full flex-1 min-[1060px]:block">

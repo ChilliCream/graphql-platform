@@ -18,8 +18,8 @@
   --color-cc-card-bg: rgba(12, 19, 34, 0.55);
   --color-cc-card-border: rgba(245, 241, 234, 0.12);
   --color-cc-card-border-hover: rgba(245, 241, 234, 0.32);
-  --color-cc-accent: oklch(0.74 0.14 220);
-  --color-cc-accent-hover: oklch(0.8 0.14 220);
+  --color-cc-accent: #5eead4;
+  --color-cc-accent-hover: #99f6e4;
 
   /* Secondary brand CTA (the "Launch" button). */
   --color-cc-cta: oklch(51.8% 0.253 323.949);
@@ -29,6 +29,7 @@
      `text-cc-danger bg-cc-danger/10 ring-cc-danger/30`. */
   --color-cc-note: oklch(74.6% 0.16 232.661);
   --color-cc-tip: oklch(71.4% 0.203 305.504);
+  --color-cc-success: oklch(76.5% 0.177 163.223);
   --color-cc-warning: oklch(82.8% 0.189 84.429);
   --color-cc-danger: oklch(70.4% 0.191 22.216);
   --color-cc-info: oklch(70.2% 0.183 293.541);
@@ -48,6 +49,10 @@
   /* YouTube brand red (video facade play button). */
   --color-cc-youtube: #ff0000;
   --color-cc-youtube-hover: #cc0000;
+
+  /* Docs sidebar: cool-slate nav text + a dimmer muted section-label tone. */
+  --color-cc-nav-text: #cad5e2;
+  --color-cc-nav-label: #62748e;
 }
 
 @layer base {
@@ -130,6 +135,18 @@
 
     /* Top inner-highlight hairline on the sticky header. */
     --cc-highlight: rgba(255, 255, 255, 0.06);
+
+    /* CodeStep highlight palette, cycling by step (1-4). Each step has a base
+       hue (the chip border/background are derived from it via alpha) and a
+       lighter readable text shade. */
+    --cc-step-1: #14b8a6;
+    --cc-step-1-text: #5eead4;
+    --cc-step-2: #f59e0b;
+    --cc-step-2-text: #fcd34d;
+    --cc-step-3: #38bdf8;
+    --cc-step-3-text: #7dd3fc;
+    --cc-step-4: #8b5cf6;
+    --cc-step-4-text: #c4b5fd;
   }
 
   html {
@@ -143,7 +160,29 @@
     background-color: var(--color-cc-bg);
     color: var(--color-cc-ink);
     min-height: 100vh;
+    /* Dark starfield surface. The 9 star layers are viewport-sized and the
+       nebula + base gradient are auto; everything is anchored to the viewport
+       so the pattern doesn't scroll with content. */
+    background-image: var(--cc-dark-surface);
+    background-size:
+      100vw 100vh, 100vw 100vh, 100vw 100vh, 100vw 100vh, 100vw 100vh,
+      100vw 100vh, 100vw 100vh, 100vw 100vh, 100vw 100vh, auto, auto;
+    background-attachment: fixed;
   }
+}
+
+/* Dark starfield surface applied to in-flow content wrappers (e.g. the docs
+   layout). A body-level background renders faint because `html` carries its
+   own opaque background-color; painting the surface on the actual content box
+   makes the nebula glow read properly (and the sticky header's backdrop-blur
+   then picks it up). Declaration-only so Lightning CSS keeps every layer. */
+.cc-content-dark {
+  background-color: var(--color-cc-bg);
+  background-image: var(--cc-dark-surface);
+  background-size:
+    100vw 100vh, 100vw 100vh, 100vw 100vh, 100vw 100vh, 100vw 100vh,
+    100vw 100vh, 100vw 100vh, 100vw 100vh, 100vw 100vh, auto, auto;
+  background-attachment: fixed;
 }
 
 html:has(:target) {

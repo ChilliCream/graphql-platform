@@ -35,7 +35,7 @@ export function TableOfContents({ items }: TableOfContentsProps) {
           inner grid (otherwise it slides up once the article ends, even
           though the footer is rendered separately below the grid). */}
       <aside className="hidden max-w-[21rem] 2xl:block" aria-hidden="true" />
-      <div className="fixed bottom-0 right-0 top-[72px] z-10 hidden w-[20rem] overflow-y-auto bg-cc-bg px-5 py-8 2xl:block">
+      <div className="fixed bottom-0 right-0 top-[72px] z-10 hidden w-[20rem] overflow-y-auto px-5 py-8 2xl:block">
         <TocHeader />
         <TocNav sections={sections} />
       </div>

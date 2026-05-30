@@ -3,7 +3,6 @@ import type { ReactNode } from "react";
 export type AdmonitionKind =
   | "note"
   | "tip"
-  | "important"
   | "warning"
   | "caution"
   | "experimental";
@@ -41,8 +40,8 @@ const config: Record<
   },
   tip: {
     label: "Tip",
-    containerClass: "bg-cc-accent/10 ring-1 ring-cc-card-border text-cc-ink",
-    labelClass: "text-cc-accent",
+    containerClass: "bg-cc-success/10 ring-1 ring-cc-success/30 text-cc-ink",
+    labelClass: "text-cc-success",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -58,27 +57,6 @@ const config: Record<
         <path d="M9 18h6" />
         <path d="M10 22h4" />
         <path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.2 1 2V18h6v-1.3c0-.8.4-1.5 1-2A7 7 0 0 0 12 2Z" />
-      </svg>
-    ),
-  },
-  important: {
-    label: "Important",
-    containerClass: "bg-cc-tip/10 ring-1 ring-cc-tip/30 text-cc-ink",
-    labelClass: "text-cc-tip",
-    icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="h-5 w-5"
-        aria-hidden="true"
-      >
-        <path d="M3 11v3a1 1 0 0 0 1 1h3l3.6 4.5a1 1 0 0 0 1.8-.6V5.1a1 1 0 0 0-1.8-.6L7 9H4a1 1 0 0 0-1 1v1Z" />
-        <path d="M16 8a5 5 0 0 1 0 8" />
       </svg>
     ),
   },

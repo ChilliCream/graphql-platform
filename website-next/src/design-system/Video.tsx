@@ -1,3 +1,4 @@
+import { BrokenMedia } from "./BrokenMedia";
 import { VideoFacade } from "./VideoFacade";
 import { extractYouTubeId } from "@/src/helpers/extractYouTubeId";
 
@@ -11,7 +12,7 @@ type VideoProps = {
 export function Video({ src, playlabel }: VideoProps) {
   const id = extractYouTubeId(src);
   if (!id) {
-    return null;
+    return <BrokenMedia message="This video couldn't be loaded." />;
   }
 
   return (

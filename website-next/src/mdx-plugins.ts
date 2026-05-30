@@ -41,6 +41,14 @@ const mermaidOptions: RehypeMermaidOptions = {
   mermaidConfig: {
     theme: "base",
     securityLevel: "strict",
+    // Override the "base" theme's light/pink derived defaults at generation
+    // time. themeVariables need literal colors (mermaid does color math on
+    // them), so these mirror the `--color-cc-*` values from globals.css.
+    themeVariables: {
+      // Dark navy behind edge labels (= --color-cc-bg) instead of the pinkish
+      // default; the CSS below covers the foreignObject wrapper too.
+      edgeLabelBackground: "#0b0f1a",
+    },
     // Note: do not override `font-family` here. Mermaid runs in headless
     // Chromium at build time to size each node, so changing the font after
     // measurement (or to a font not loaded in the headless browser) clips
@@ -78,16 +86,22 @@ const mermaidOptions: RehypeMermaidOptions = {
         stroke: var(--color-cc-accent) !important;
       }
 
-      /* Edge labels sit on the page background so lines don't bleed through */
+      /* Edge labels sit on the page background so lines don't bleed through.
+         Mermaid wraps the label text in a foreignObject <div>, so cover that
+         (and any background rect) to kill the base theme's pink default. */
       .edgeLabel,
-      .edgeLabel rect {
+      .edgeLabel rect,
+      .edgeLabel foreignObject div,
+      .edgeLabel .labelBkg,
+      .edgeLabel p {
         background-color: var(--color-cc-bg) !important;
+        background: var(--color-cc-bg) !important;
         fill: var(--color-cc-bg) !important;
       }
 
-      /* Cluster / subgraph frames as faint dark panels */
+      /* Cluster / subgraph frames as a subtle dark card matching the site */
       .cluster rect {
-        fill: var(--color-cc-ink-faint) !important;
+        fill: var(--color-cc-card-bg) !important;
         stroke: var(--color-cc-card-border) !important;
       }
     `,
