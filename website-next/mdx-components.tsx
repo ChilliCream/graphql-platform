@@ -75,6 +75,8 @@ const components: MDXComponents = {
   Tabs,
   Tab,
   Video,
+
+  // TODO: Replace these with proper components
   ApiChoiceTabs,
   InputChoiceTabs,
   PipelineChoiceTabs,

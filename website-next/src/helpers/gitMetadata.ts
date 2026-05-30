@@ -1,5 +1,12 @@
 import { execFileSync, spawnSync } from "node:child_process";
 import path from "node:path";
+import { formatDate } from "./formatDate";
+
+const DISPLAY_DATE_OPTIONS: Intl.DateTimeFormatOptions = {
+  year: "numeric",
+  month: "long",
+  day: "2-digit",
+};
 
 const WEBSITE_ROOT = process.cwd();
 const DOCS_DIR = path.join(WEBSITE_ROOT, "content", "docs");
@@ -68,7 +75,7 @@ export async function getGitMetadata(
 
   return {
     isoDate: date.toISOString(),
-    displayDate: formatDate(date),
+    displayDate: formatDate(date, DISPLAY_DATE_OPTIONS),
     author: entry.author || "Unknown",
   };
 }
@@ -170,15 +177,8 @@ function fallback(): GitMetadata {
   const now = new Date();
   return {
     isoDate: now.toISOString(),
-    displayDate: formatDate(now),
+    displayDate: formatDate(now, DISPLAY_DATE_OPTIONS),
     author: "Unknown",
   };
 }
 
-function formatDate(date: Date): string {
-  return date.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "2-digit",
-  });
-}

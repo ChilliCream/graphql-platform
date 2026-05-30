@@ -22,14 +22,17 @@ export function BlogMetadata({
     readingTime ? <span key="rt">{readingTime}</span> : null,
   ].filter(Boolean);
 
+  // TODO: Fix image and custom link
   return (
-    <div className="flex flex-row items-center gap-2 text-sm text-slate-600">
+    <div className="flex flex-row items-center gap-2 text-sm text-cc-ink-dim">
       {author ? (
         <a
           href={authorUrl || "#"}
-          className="flex items-center text-slate-700 hover:text-primary-700 no-underline"
+          className="flex items-center text-cc-ink hover:text-cc-accent no-underline"
           target={authorUrl?.startsWith("http") ? "_blank" : undefined}
-          rel={authorUrl?.startsWith("http") ? "noopener noreferrer" : undefined}
+          rel={
+            authorUrl?.startsWith("http") ? "noopener noreferrer" : undefined
+          }
         >
           {authorImageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -48,7 +51,7 @@ export function BlogMetadata({
       ) : null}
       {parts.map((part, i) => (
         <span key={i} className="flex items-center gap-2">
-          {(author || i > 0) ? <span aria-hidden="true">·</span> : null}
+          {author || i > 0 ? <span aria-hidden="true">·</span> : null}
           {part}
         </span>
       ))}

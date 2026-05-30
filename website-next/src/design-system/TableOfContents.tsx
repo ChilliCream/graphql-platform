@@ -35,7 +35,7 @@ export function TableOfContents({ items }: TableOfContentsProps) {
           inner grid (otherwise it slides up once the article ends, even
           though the footer is rendered separately below the grid). */}
       <aside className="hidden max-w-[21rem] 2xl:block" aria-hidden="true" />
-      <div className="fixed bottom-0 right-0 top-[72px] z-10 hidden w-[20rem] overflow-y-auto bg-white px-5 py-8 2xl:block">
+      <div className="fixed bottom-0 right-0 top-[72px] z-10 hidden w-[20rem] overflow-y-auto px-5 py-8 2xl:block">
         <TocHeader />
         <TocNav sections={sections} />
       </div>
@@ -50,7 +50,7 @@ export function TableOfContents({ items }: TableOfContentsProps) {
 
 function TocHeader() {
   return (
-    <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-slate-500">
+    <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-cc-ink-dim">
       On this page
     </p>
   );
@@ -59,7 +59,7 @@ function TocHeader() {
 export function TocNav({ sections }: { sections: TocSection[] }) {
   return (
     <nav>
-      <ul className="space-y-1 border-l border-slate-200 text-sm">
+      <ul className="space-y-1 border-l border-cc-card-border text-sm">
         {sections.map((section) => (
           <li
             key={section.h2.id}
@@ -69,7 +69,7 @@ export function TocNav({ sections }: { sections: TocSection[] }) {
             <a
               href={`#${section.h2.id}`}
               data-toc-link={section.h2.id}
-              className="block border-l-2 border-transparent py-1 pl-3 text-slate-600 transition-colors hover:text-slate-900"
+              className="block border-l-2 border-transparent py-1 pl-3 text-cc-ink-dim transition-colors hover:text-cc-ink"
             >
               {section.h2.text}
             </a>
@@ -80,7 +80,7 @@ export function TocNav({ sections }: { sections: TocSection[] }) {
                     <a
                       href={`#${node.h3.id}`}
                       data-toc-link={node.h3.id}
-                      className="block border-l-2 border-transparent py-1 pl-6 text-slate-600 transition-colors hover:text-slate-900"
+                      className="block border-l-2 border-transparent py-1 pl-6 text-cc-ink-dim transition-colors hover:text-cc-ink"
                     >
                       {node.h3.text}
                     </a>
@@ -91,7 +91,7 @@ export function TocNav({ sections }: { sections: TocSection[] }) {
                             <a
                               href={`#${h4.id}`}
                               data-toc-link={h4.id}
-                              className="block border-l-2 border-transparent py-1 pl-9 text-slate-600 transition-colors hover:text-slate-900"
+                              className="block border-l-2 border-transparent py-1 pl-9 text-cc-ink-dim transition-colors hover:text-cc-ink"
                             >
                               {h4.text}
                             </a>

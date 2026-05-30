@@ -5,6 +5,8 @@ import Footer from "@/src/components/Footer";
 import Header from "@/src/components/Header";
 import { SITE_URL } from "@/src/helpers/siteUrl";
 
+// TODO: Set up tracking with GA
+
 const inter = Inter({
   subsets: ["latin"],
   display: "swap",
@@ -17,6 +19,10 @@ const DESCRIPTION =
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
+  // Preview/staging deployments emit `<meta name="robots" content="noindex, nofollow">`.
+  ...(process.env.NEXT_PUBLIC_NOINDEX === "true"
+    ? { robots: { index: false, follow: false } }
+    : {}),
   title: {
     default: TITLE,
     template: "%s - ChilliCream",

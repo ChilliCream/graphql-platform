@@ -10,7 +10,7 @@ import { TOC_OPEN_EVENT } from "./TocDrawer";
  */
 export function DocsToolbar() {
   return (
-    <div className="pointer-events-none fixed inset-x-0 top-[72px] z-20 flex items-start justify-between px-4 py-3 2xl:hidden">
+    <div className="pointer-events-none fixed inset-x-0 top-18 z-20 flex items-start justify-between px-4 py-3 2xl:hidden">
       <PillButton
         ariaLabel="Open documentation menu"
         event={SIDEBAR_OPEN_EVENT}
@@ -82,7 +82,7 @@ function PillButton({
       type="button"
       aria-label={ariaLabel}
       onClick={() => window.dispatchEvent(new CustomEvent(event))}
-      className={`pointer-events-auto inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white/95 px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm backdrop-blur transition-colors hover:bg-white ${className}`}
+      className={`pointer-events-auto inline-flex cursor-pointer items-center gap-2 rounded-md border border-cc-card-border bg-cc-bg/95 px-3 py-1.5 text-xs font-medium text-cc-ink-dim shadow-sm backdrop-blur transition-colors hover:bg-cc-bg ${className}`}
     >
       {iconPosition === "left" && children}
       {label}

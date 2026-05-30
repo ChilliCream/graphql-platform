@@ -53,6 +53,9 @@ jobs:
         run: yarn build
         working-directory: website-next
         env:
+          # TODO: preview deployment only, remove once this targets production.
+          NEXT_PUBLIC_NOINDEX: "true"
+          NEXT_PUBLIC_SITE_URL: "https://next.chillicream.com"
           NEXT_PUBLIC_ALGOLIA_APP_ID: ${{ vars.NEXT_PUBLIC_ALGOLIA_APP_ID }}
           NEXT_PUBLIC_ALGOLIA_API_KEY: ${{ secrets.NEXT_PUBLIC_ALGOLIA_API_KEY }}
           NEXT_PUBLIC_ALGOLIA_INDEX: ${{ vars.NEXT_PUBLIC_ALGOLIA_INDEX }}

@@ -8,7 +8,7 @@ import {
 import type { AdmonitionKind } from "@/src/design-system/Admonition";
 
 const ALERT_REGEX =
-  /^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION|EXPERIMENTAL)\]\s*\n?/;
+  /^\[!(NOTE|TIP|WARNING|CAUTION|EXPERIMENTAL)\]\s*\n?/;
 
 export type AdmonitionMatch = {
   kind: AdmonitionKind;
