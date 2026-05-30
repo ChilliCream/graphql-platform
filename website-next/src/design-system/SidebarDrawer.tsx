@@ -55,7 +55,7 @@ export function SidebarDrawer({ children }: { children: ReactNode }) {
         aria-hidden={!open}
       >
         <div
-          className={`absolute inset-0 bg-[rgba(0,0,0,0.4)] transition-opacity ${
+          className={`absolute inset-0 bg-cc-black/40 transition-opacity ${
             open ? "opacity-100" : "opacity-0"
           }`}
           onClick={() => setOpen(false)}

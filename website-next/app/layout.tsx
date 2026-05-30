@@ -17,6 +17,10 @@ const DESCRIPTION =
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
+  // Preview/staging deployments emit `<meta name="robots" content="noindex, nofollow">`.
+  ...(process.env.NEXT_PUBLIC_NOINDEX === "true"
+    ? { robots: { index: false, follow: false } }
+    : {}),
   title: {
     default: TITLE,
     template: "%s - ChilliCream",

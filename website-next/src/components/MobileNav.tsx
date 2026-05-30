@@ -33,8 +33,8 @@ export function MobileNav({ items, demoHref, nitroHref }: MobileNavProps) {
   // Portal the overlay to <body> so it escapes the Header's
   // `backdrop-filter` containing block (which clips `position: fixed`).
   const overlay = open ? (
-    <div className="fixed inset-0 z-50 flex flex-col bg-[#0c1322] min-[1060px]:hidden">
-      <div className="flex h-18 flex-none items-center justify-between border-b border-[#fff]/10 px-4">
+    <div className="fixed inset-0 z-50 flex flex-col bg-cc-surface min-[1060px]:hidden">
+      <div className="flex h-18 flex-none items-center justify-between border-b border-cc-white/10 px-4">
         <Link
           href="/"
           aria-label="ChilliCream Home"
@@ -58,7 +58,7 @@ export function MobileNav({ items, demoHref, nitroHref }: MobileNavProps) {
             <Link
               href={item.href}
               onClick={() => setOpen(false)}
-              className="flex h-18 w-full items-center border-b border-[#fff]/10 px-6 text-lg font-medium text-cc-ink no-underline transition-colors hover:text-cc-accent"
+              className="flex h-18 w-full items-center border-b border-cc-white/10 px-6 text-lg font-medium text-cc-ink no-underline transition-colors hover:text-cc-accent"
             >
               {item.label}
             </Link>
@@ -77,7 +77,7 @@ export function MobileNav({ items, demoHref, nitroHref }: MobileNavProps) {
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => setOpen(false)}
-            className="inline-flex h-9.5 items-center rounded-full bg-cc-ink px-7 text-sm font-medium text-[#0c1322] no-underline transition-colors hover:bg-[#fff]"
+            className="inline-flex h-9.5 items-center rounded-full bg-cc-ink px-7 text-sm font-medium text-cc-surface no-underline transition-colors hover:bg-cc-white"
           >
             Launch
           </a>

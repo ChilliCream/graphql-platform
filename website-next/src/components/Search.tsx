@@ -1,20 +1,22 @@
 "use client";
 
-import "@docsearch/css";
-import { DocSearchModal, useDocSearchKeyboardEvents } from "@docsearch/react";
 import type {
   InternalDocSearchHit,
   StoredDocSearchHit,
 } from "@docsearch/react";
+import { useDocSearchKeyboardEvents } from "@docsearch/react/useDocSearchKeyboardEvents";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { SearchIcon } from "@/src/icons/Search";
 
-const APP_ID = "WQ7ZRCU9RS"; //process.env.NEXT_PUBLIC_ALGOLIA_APP_ID;
-const API_KEY = "b40ebfd92eb180185aa52c192e4fbd86"; //process.env.NEXT_PUBLIC_ALGOLIA_API_KEY;
-const INDEX_NAME = "chillicream"; //process.env.NEXT_PUBLIC_ALGOLIA_INDEX;
+const SearchModal = dynamic(() => import("./SearchModal"), { ssr: false });
+
+const APP_ID = process.env.NEXT_PUBLIC_ALGOLIA_APP_ID;
+const API_KEY = process.env.NEXT_PUBLIC_ALGOLIA_API_KEY;
+const INDEX_NAME = process.env.NEXT_PUBLIC_ALGOLIA_INDEX;
 const IS_CONFIGURED = Boolean(APP_ID && API_KEY && INDEX_NAME);
 
 type HitProps = {
@@ -83,11 +85,11 @@ export function Search({
       </button>
       {IS_CONFIGURED && open && typeof document !== "undefined"
         ? createPortal(
-            <DocSearchModal
+            <SearchModal
               appId={APP_ID!}
               apiKey={API_KEY!}
               indices={[INDEX_NAME!]}
-              placeholder="Search docs and blog…"
+              placeholder="Search docs and blog..."
               hitComponent={Hit}
               initialScrollY={initialScrollY}
               onClose={onClose}

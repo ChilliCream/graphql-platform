@@ -229,7 +229,7 @@ const MOBILE_ITEMS = NAV_ITEMS.map((i) => ({ href: i.href, label: i.label }));
 export default function Header() {
   const latestBlog = getLatestBlogPost();
   return (
-    <header className="sticky top-0 z-30 flex h-[72px] w-full justify-center border-b border-[#fff]/10 bg-[#0c1322]/55 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-[18px] backdrop-saturate-150">
+    <header className="sticky top-0 z-30 flex h-18 w-full justify-center border-b border-cc-white/10 bg-cc-card-bg shadow-[inset_0_1px_0_var(--cc-highlight)] backdrop-blur-[18px] backdrop-saturate-150">
       <div className="relative flex h-full w-full max-w-7xl items-center justify-between px-4 lg:gap-8">
         <Link
           href="/"
@@ -276,7 +276,7 @@ export default function Header() {
             href={TOOLS.nitro}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex h-[38px] items-center rounded-full bg-cc-ink px-7 text-sm font-medium text-[#0c1322] no-underline transition-colors hover:bg-[#fff]"
+            className="inline-flex h-9.5 items-center rounded-full bg-cc-ink px-7 text-sm font-medium text-cc-surface no-underline transition-colors hover:bg-cc-white"
           >
             Launch
           </a>
@@ -350,7 +350,7 @@ function SubmenuPanel({
     >
       <div
         className={[
-          "grid gap-8 rounded-lg border border-[#fff]/10 bg-[#0c1322]/95 p-6 shadow-2xl backdrop-blur-md",
+          "grid gap-8 rounded-lg border border-cc-white/10 bg-cc-surface/95 p-6 shadow-2xl backdrop-blur-md",
           showAside ? "grid-cols-[1fr_280px]" : "grid-cols-1",
           item.panelWidth ?? "w-120",
         ].join(" ")}
@@ -439,7 +439,7 @@ function LatestBlogPanel({ post }: { post: BlogPostSummary }) {
         className="group/blog flex flex-col gap-2 rounded-md text-cc-ink no-underline"
       >
         {post.featuredImage && (
-          <div className="overflow-hidden rounded-md border border-[#fff]/10">
+          <div className="overflow-hidden rounded-md border border-cc-white/10">
             <Image
               src={post.featuredImage}
               alt={post.title}
@@ -468,7 +468,7 @@ function GetInTouchPanel() {
       >
         Get in touch
       </div>
-      <div className="flex h-[180px] items-center justify-center rounded-md border border-[#fff]/10 bg-gradient-to-br from-fuchsia-500/20 via-indigo-500/15 to-sky-500/10">
+      <div className="flex h-45 items-center justify-center rounded-md border border-cc-white/10 bg-[image:var(--cc-promo-gradient)]">
         <div className="text-center text-sm font-medium leading-snug text-cc-ink">
           Your technology journey.
           <br />

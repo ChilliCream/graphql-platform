@@ -21,9 +21,9 @@ export function BlogTeaser({ post }: BlogTeaserProps) {
     <article className="group/teaser h-full">
       <Link
         href={post.href}
-        className="flex h-full flex-col overflow-hidden rounded-2xl border border-cc-ink-faint bg-[rgba(255,255,255,0.025)] no-underline transition-[background-color,border-color,transform] duration-150 hover:-translate-y-0.5 hover:border-cc-card-border-hover hover:bg-[rgba(255,255,255,0.05)]"
+        className="flex h-full flex-col overflow-hidden rounded-2xl border border-cc-ink-faint bg-cc-white/2.5 no-underline transition-[background-color,border-color,transform] duration-150 hover:-translate-y-0.5 hover:border-cc-card-border-hover hover:bg-cc-white/5"
       >
-        <div className="aspect-[16/9] w-full overflow-hidden border-b border-cc-ink-faint bg-[rgba(255,255,255,0.04)]">
+        <div className="aspect-video w-full overflow-hidden border-b border-cc-ink-faint bg-cc-white/4">
           {post.featuredImage ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -35,7 +35,7 @@ export function BlogTeaser({ post }: BlogTeaserProps) {
             />
           ) : null}
         </div>
-        <div className="flex flex-1 flex-col px-[26px] pt-[22px] pb-6">
+        <div className="flex flex-1 flex-col px-6.5 pt-5.5 pb-6">
           <div className="flex items-center gap-3 text-[11px] uppercase tracking-[0.16em] text-cc-ink-dim">
             {post.category ? (
               <span className="rounded-md border border-cc-ink-faint px-2 py-1 text-cc-ink">
@@ -46,11 +46,11 @@ export function BlogTeaser({ post }: BlogTeaserProps) {
               {formatDate(post.date, { month: "short", year: "numeric" })}
             </time>
           </div>
-          <h3 className="m-0 mt-[18px] mb-3 text-[22px] font-medium leading-[1.25] tracking-[-0.015em] text-cc-ink">
+          <h3 className="m-0 mt-4.5 mb-3 text-[22px] font-medium leading-tight tracking-[-0.015em] text-cc-ink">
             {post.title}
           </h3>
           {post.description ? (
-            <p className="m-0 mb-[22px] line-clamp-3 text-[15px] leading-[1.55] text-cc-ink-dim">
+            <p className="m-0 mb-5.5 line-clamp-3 text-[15px] leading-[1.55] text-cc-ink-dim">
               {post.description}
             </p>
           ) : null}
