@@ -18,6 +18,7 @@ import { findSimilarPosts, listBlogPostSummaries } from "@/src/helpers/blogPosts
 import { compileDoc } from "@/src/helpers/compileDoc";
 import { readFrontmatter } from "@/src/helpers/readFrontmatter";
 import { estimateReadingTime } from "@/src/helpers/readingTime";
+import { toAbsoluteUrl } from "@/src/helpers/siteUrl";
 
 type BlogFrontmatter = {
   title?: string;
@@ -67,9 +68,29 @@ export async function generateMetadata({
     return {};
   }
   const { title, description } = readFrontmatter(path.join(BLOG_ROOT, rel));
+
+  const stem = stemForSlug(slug);
+  const summary = listBlogPostSummaries().find((s) => s.stem === stem);
+  const featuredImageAbs = summary?.featuredImage
+    ? toAbsoluteUrl(summary.featuredImage)
+    : undefined;
+  const images = featuredImageAbs ? [featuredImageAbs] : undefined;
+
   return {
     title,
     description,
+    openGraph: {
+      type: "article",
+      title,
+      description,
+      images,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images,
+    },
   };
 }
 
@@ -93,7 +114,7 @@ export default async function BlogSlugPage({ params }: PageProps) {
   const readingTime = estimateReadingTime(raw).text;
 
   const summaries = listBlogPostSummaries();
-  const stem = `${slug[0]}-${slug[1]}-${slug[2]}-${slug.slice(3).join("/")}`;
+  const stem = stemForSlug(slug);
   const current = summaries.find((s) => s.stem === stem);
   const similar = current ? findSimilarPosts(current, summaries) : [];
   const featuredImage = current?.featuredImage ?? null;
@@ -131,6 +152,10 @@ export default async function BlogSlugPage({ params }: PageProps) {
 
 function isPaginationSlug(slug: string[]): boolean {
   return slug.length === 1 && /^\d+$/.test(slug[0]);
+}
+
+function stemForSlug(slug: string[]): string {
+  return `${slug[0]}-${slug[1]}-${slug[2]}-${slug.slice(3).join("/")}`;
 }
 
 function renderPagination(pageNum: number) {
