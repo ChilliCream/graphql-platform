@@ -1,11 +1,11 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { Analytics } from "@/src/components/Analytics";
+import { AnalyticsScripts } from "@/src/components/AnalyticsScripts";
 import Footer from "@/src/components/Footer";
 import Header from "@/src/components/Header";
 import { SITE_URL } from "@/src/helpers/siteUrl";
-
-// TODO: Set up tracking with GA
 
 const inter = Inter({
   subsets: ["latin"],
@@ -59,9 +59,11 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} font-sans`}>
       <body>
+        <AnalyticsScripts />
         <Header />
         <main>{children}</main>
         <Footer />
+        <Analytics />
       </body>
     </html>
   );
