@@ -18,6 +18,6 @@ export function ListItem({
   ...props
 }: ComponentPropsWithoutRef<"li">) {
   return (
-    <li className={`text-cc-ink-dim leading-7 ${className}`.trim()} {...props} />
+    <li className={`text-cc-prose leading-7 ${className}`.trim()} {...props} />
   );
 }

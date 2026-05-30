@@ -59,6 +59,6 @@ export function TableCell({
   ...props
 }: ComponentPropsWithoutRef<"td">) {
   return (
-    <td className={`px-4 py-2 text-cc-ink-dim ${className}`.trim()} {...props} />
+    <td className={`px-4 py-2 text-cc-prose ${className}`.trim()} {...props} />
   );
 }

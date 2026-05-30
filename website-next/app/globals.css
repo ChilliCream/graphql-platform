@@ -10,6 +10,8 @@
   --color-*: initial;
 
   --color-cc-ink: #f5f1ea;
+  /* Long-form body prose: lighter than `cc-ink-dim` so paragraphs stay readable. */
+  --color-cc-prose: rgba(245, 241, 234, 0.8);
   --color-cc-ink-dim: rgba(245, 241, 234, 0.62);
   --color-cc-ink-faint: rgba(245, 241, 234, 0.16);
   /* Faint light wash for hover/active surfaces (nav links, sidebar items). */

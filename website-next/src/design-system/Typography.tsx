@@ -45,7 +45,7 @@ const variantConfig: Record<
     className:
       "mt-4 mb-2 text-sm font-semibold uppercase tracking-wider text-cc-ink-dim",
   },
-  body: { tag: "p", className: "my-4 text-base leading-7 text-cc-ink-dim" },
+  body: { tag: "p", className: "my-4 text-base leading-7 text-cc-prose" },
   lead: { tag: "p", className: "my-4 text-lg leading-8 text-cc-ink" },
   caption: { tag: "span", className: "text-sm text-cc-ink-dim" },
   strong: {
@@ -55,7 +55,7 @@ const variantConfig: Record<
   em: { tag: "em", className: "italic" },
   del: {
     tag: "del",
-    className: "line-through text-cc-ink-dim",
+    className: "line-through text-cc-prose",
   },
 };
 

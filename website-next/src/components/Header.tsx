@@ -468,7 +468,7 @@ function GetInTouchPanel() {
       >
         Get in touch
       </div>
-      <div className="flex h-45 items-center justify-center rounded-md border border-cc-white/10 bg-[image:var(--cc-promo-gradient)]">
+      <div className="flex h-45 items-center justify-center rounded-md border border-cc-white/10 bg-(image:--cc-promo-gradient)">
         <div className="text-center text-sm font-medium leading-snug text-cc-ink">
           Your technology journey.
           <br />

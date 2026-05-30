@@ -41,23 +41,6 @@ const mermaidOptions: RehypeMermaidOptions = {
   mermaidConfig: {
     theme: "base",
     securityLevel: "strict",
-    // Override the "base" theme's light/pink derived defaults at generation
-    // time. themeVariables need literal colors (mermaid does color math on
-    // them), so these mirror the `--color-cc-*` values from globals.css.
-    themeVariables: {
-      // Dark navy behind edge labels (= --color-cc-bg) instead of the pinkish
-      // default; the CSS below covers the foreignObject wrapper too.
-      edgeLabelBackground: "#0b0f1a",
-    },
-    // Note: do not override `font-family` here. Mermaid runs in headless
-    // Chromium at build time to size each node, so changing the font after
-    // measurement (or to a font not loaded in the headless browser) clips
-    // the text in the live page.
-    //
-    // themeCSS is inlined as a <style> block inside the generated SVG, so
-    // CSS custom properties from `app/globals.css` (`--color-cc-*`) resolve
-    // in the browser. Mermaid sets fills/strokes via inline `style=`, which
-    // is why every rule needs `!important`.
     themeCSS: `
       /* Edges read as dim ink lines on the dark surface */
       .edgePath .path,

@@ -1,6 +1,6 @@
 import { SolidButton } from "@/src/design-system/Button";
 
-import { CheckIcon } from "./pricing/CheckIcon";
+import { CheckIcon } from "./CheckIcon";
 
 export interface Plan {
   title: string;
