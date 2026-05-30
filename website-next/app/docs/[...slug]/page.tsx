@@ -1,4 +1,3 @@
-import fs from "node:fs";
 import path from "node:path";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -7,11 +6,16 @@ import { EditOnGitHub } from "@/src/design-system/EditOnGitHub";
 import { TableOfContents } from "@/src/design-system/TableOfContents";
 import { Typography } from "@/src/design-system/Typography";
 import { compileDoc } from "@/src/helpers/compileDoc";
+import {
+  CONTENT_ROOT,
+  encodeDocId,
+  listDocSlugs,
+  resolveFile,
+} from "@/src/helpers/docsParams";
 import { getGitMetadata } from "@/src/helpers/gitMetadata";
 import { githubEditUrl } from "@/src/helpers/githubEditUrl";
 import { readFrontmatter } from "@/src/helpers/readFrontmatter";
-
-const CONTENT_ROOT = path.join(process.cwd(), "content/docs");
+import { toAbsoluteUrl } from "@/src/helpers/siteUrl";
 
 type Params = {
   slug: string[];
@@ -24,19 +28,7 @@ type PageProps = {
 export const dynamicParams = false;
 
 export function generateStaticParams(): Params[] {
-  const params = walk(CONTENT_ROOT)
-    .filter((f) => /\.mdx?$/.test(f))
-    .map((f) => path.relative(CONTENT_ROOT, f).replace(/\.mdx?$/, ""))
-    .map((rel) => rel.split(path.sep))
-    .map((parts) =>
-      parts[parts.length - 1] === "index" ? parts.slice(0, -1) : parts,
-    )
-    .filter((slug) => slug.length > 0)
-    .map((slug) => ({ slug }));
-
-  // output: export requires at least one prerendered path; placeholder
-  // renders 404 via notFound() when no content is present.
-  return params.length > 0 ? params : [{ slug: ["__empty__"] }];
+  return listDocSlugs().map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({
@@ -48,9 +40,31 @@ export async function generateMetadata({
     return {};
   }
   const { title, description } = readFrontmatter(path.join(CONTENT_ROOT, rel));
+
+  const id = encodeDocId(slug);
+  const ogImage = {
+    url: toAbsoluteUrl(`/docs-og/${id}/opengraph-image`),
+    width: 1200,
+    height: 630,
+    type: "image/png",
+    alt: title ? `${title} documentation` : "ChilliCream documentation",
+  };
+
   return {
     title,
     description,
+    openGraph: {
+      type: "article",
+      title,
+      description,
+      images: [ogImage],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [ogImage],
+    },
   };
 }
 
@@ -88,29 +102,4 @@ export default async function DocPage({ params }: PageProps) {
       <TableOfContents items={toc} />
     </div>
   );
-}
-
-function resolveFile(slug: string[]): string | null {
-  const joined = slug.join("/");
-  const candidates = [
-    `${joined}.md`,
-    `${joined}.mdx`,
-    `${joined}/index.md`,
-    `${joined}/index.mdx`,
-  ];
-
-  for (const c of candidates) {
-    if (fs.existsSync(path.join(CONTENT_ROOT, c))) {
-      return c;
-    }
-  }
-  return null;
-}
-
-function walk(dir: string): string[] {
-  const entries = fs.readdirSync(dir, { withFileTypes: true });
-  return entries.flatMap((e) => {
-    const full = path.join(dir, e.name);
-    return e.isDirectory() ? walk(full) : [full];
-  });
 }
