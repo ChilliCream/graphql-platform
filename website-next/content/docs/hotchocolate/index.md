@@ -50,7 +50,7 @@ Ordered list:
 # Admonitions
 
 GitHub-style alert markers on a blockquote upgrade it to an `Admonition`.
-All six kinds are supported.
+All five kinds are supported.
 
 > [!NOTE]
 > A neutral piece of context the reader should keep in mind.

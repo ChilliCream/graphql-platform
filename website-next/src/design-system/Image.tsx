@@ -6,6 +6,7 @@ import { BrokenMedia } from "./BrokenMedia";
 export function Image({
   alt,
   className = "",
+  onError,
   ...props
 }: ComponentPropsWithoutRef<"img">) {
   const [broken, setBroken] = useState(false);
@@ -20,7 +21,10 @@ export function Image({
       alt={alt ?? ""}
       className={`my-6 max-w-full rounded-md ring-1 ring-cc-card-border ${className}`.trim()}
       {...props}
-      onError={() => setBroken(true)}
+      onError={(event) => {
+        onError?.(event);
+        setBroken(true);
+      }}
     />
   );
 }
