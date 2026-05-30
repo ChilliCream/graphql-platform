@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { formatDate } from "@/src/helpers/formatDate";
 
 export type BlogTeaserData = {
   href: string;
@@ -41,7 +42,9 @@ export function BlogTeaser({ post }: BlogTeaserProps) {
                 {post.category}
               </span>
             ) : null}
-            <time dateTime={post.date}>{formatDate(post.date)}</time>
+            <time dateTime={post.date}>
+              {formatDate(post.date, { month: "short", year: "numeric" })}
+            </time>
           </div>
           <h3 className="m-0 mt-[18px] mb-3 text-[22px] font-medium leading-[1.25] tracking-[-0.015em] text-cc-ink">
             {post.title}
@@ -58,12 +61,4 @@ export function BlogTeaser({ post }: BlogTeaserProps) {
       </Link>
     </article>
   );
-}
-
-function formatDate(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) {
-    return iso;
-  }
-  return d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
 }

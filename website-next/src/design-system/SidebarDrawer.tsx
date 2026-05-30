@@ -93,7 +93,7 @@ export function SidebarDrawer({ children }: { children: ReactNode }) {
       </div>
 
       <aside className="hidden lg:block" aria-hidden="true" />
-      <div className="fixed bottom-0 left-0 top-[72px] z-10 hidden w-80 flex-col border-r border-cc-card-border bg-cc-bg lg:flex">
+      <div className="fixed bottom-0 left-0 top-18 z-10 hidden w-80 flex-col border-r border-cc-card-border bg-cc-bg lg:flex">
         {children}
       </div>
     </>

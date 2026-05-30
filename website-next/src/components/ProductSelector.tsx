@@ -36,7 +36,7 @@ export function ProductSelector({ activeSlug }: ProductSelectorProps) {
                   "block rounded px-3 py-2 no-underline transition-colors",
                   isActive
                     ? "bg-cc-accent/10 text-cc-accent"
-                    : "text-cc-ink hover:bg-cc-ink-faint",
+                    : "text-cc-ink hover:bg-cc-hover",
                 ].join(" ")}
               >
                 <div className="text-sm font-medium">{product.title}</div>

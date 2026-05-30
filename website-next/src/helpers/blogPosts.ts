@@ -69,6 +69,11 @@ export function listBlogPostSummaries(): BlogPostSummary[] {
   return posts;
 }
 
+export function getLatestBlogPost(): BlogPostSummary | null {
+  const posts = listBlogPostSummaries();
+  return posts.find((p) => p.featuredImage) ?? posts[0] ?? null;
+}
+
 function resolveFeaturedImage(stem: string, raw: string | null): string | null {
   if (!raw) {
     return null;

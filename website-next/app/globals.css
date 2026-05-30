@@ -12,6 +12,8 @@
   --color-cc-ink: #f5f1ea;
   --color-cc-ink-dim: rgba(245, 241, 234, 0.62);
   --color-cc-ink-faint: rgba(245, 241, 234, 0.16);
+  /* Faint light wash for hover/active surfaces (nav links, sidebar items). */
+  --color-cc-hover: rgba(245, 241, 234, 0.05);
   --color-cc-bg: #0b0f1a;
   --color-cc-card-bg: rgba(12, 19, 34, 0.55);
   --color-cc-card-border: rgba(245, 241, 234, 0.12);
