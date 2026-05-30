@@ -69,7 +69,7 @@ export function TocNav({ sections }: { sections: TocSection[] }) {
             <a
               href={`#${section.h2.id}`}
               data-toc-link={section.h2.id}
-              className="block border-l-2 border-transparent py-1 pl-3 text-cc-ink-dim transition-colors hover:text-cc-ink"
+              className="block border-l-2 border-transparent py-1 pl-3 text-cc-nav-text transition-colors hover:text-cc-white"
             >
               {section.h2.text}
             </a>
@@ -80,7 +80,7 @@ export function TocNav({ sections }: { sections: TocSection[] }) {
                     <a
                       href={`#${node.h3.id}`}
                       data-toc-link={node.h3.id}
-                      className="block border-l-2 border-transparent py-1 pl-6 text-cc-ink-dim transition-colors hover:text-cc-ink"
+                      className="block border-l-2 border-transparent py-1 pl-6 text-cc-nav-text transition-colors hover:text-cc-white"
                     >
                       {node.h3.text}
                     </a>
@@ -91,7 +91,7 @@ export function TocNav({ sections }: { sections: TocSection[] }) {
                             <a
                               href={`#${h4.id}`}
                               data-toc-link={h4.id}
-                              className="block border-l-2 border-transparent py-1 pl-9 text-cc-ink-dim transition-colors hover:text-cc-ink"
+                              className="block border-l-2 border-transparent py-1 pl-9 text-cc-nav-text transition-colors hover:text-cc-white"
                             >
                               {h4.text}
                             </a>

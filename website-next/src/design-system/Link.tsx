@@ -19,7 +19,11 @@ export function Link({
     );
   }
 
-  if (href.startsWith("#")) {
+  if (
+    href.startsWith("#") ||
+    href.startsWith("mailto:") ||
+    href.startsWith("tel:")
+  ) {
     return (
       <a href={href} className={merged} {...props}>
         {children}
