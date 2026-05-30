@@ -165,8 +165,17 @@
        so the pattern doesn't scroll with content. */
     background-image: var(--cc-dark-surface);
     background-size:
-      100vw 100vh, 100vw 100vh, 100vw 100vh, 100vw 100vh, 100vw 100vh,
-      100vw 100vh, 100vw 100vh, 100vw 100vh, 100vw 100vh, auto, auto;
+      100vw 100vh,
+      100vw 100vh,
+      100vw 100vh,
+      100vw 100vh,
+      100vw 100vh,
+      100vw 100vh,
+      100vw 100vh,
+      100vw 100vh,
+      100vw 100vh,
+      auto,
+      auto;
     background-attachment: fixed;
   }
 }
@@ -180,8 +189,17 @@
   background-color: var(--color-cc-bg);
   background-image: var(--cc-dark-surface);
   background-size:
-    100vw 100vh, 100vw 100vh, 100vw 100vh, 100vw 100vh, 100vw 100vh,
-    100vw 100vh, 100vw 100vh, 100vw 100vh, 100vw 100vh, auto, auto;
+    100vw 100vh,
+    100vw 100vh,
+    100vw 100vh,
+    100vw 100vh,
+    100vw 100vh,
+    100vw 100vh,
+    100vw 100vh,
+    100vw 100vh,
+    100vw 100vh,
+    auto,
+    auto;
   background-attachment: fixed;
 }
 
