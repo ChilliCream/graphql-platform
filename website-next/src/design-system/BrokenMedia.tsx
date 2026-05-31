@@ -12,7 +12,10 @@ type BrokenMediaProps = {
  */
 export function BrokenMedia({ message }: BrokenMediaProps) {
   return (
-    <div className="my-6 flex aspect-video w-full flex-col items-center justify-center gap-3 rounded-md bg-cc-card-bg text-cc-ink-dim ring-1 ring-cc-card-border">
+    // Rendered as <span>s (not <div>/<p>) so it stays valid phrasing content:
+    // markdown wraps a standalone image in a <p>, and a block-level fallback
+    // there would be invalid HTML and trigger a hydration error.
+    <span className="my-6 flex aspect-video w-full flex-col items-center justify-center gap-3 rounded-md bg-cc-card-bg text-cc-ink-dim ring-1 ring-cc-card-border">
       <svg
         viewBox="0 0 24 24"
         fill="none"
@@ -30,7 +33,7 @@ export function BrokenMedia({ message }: BrokenMediaProps) {
         <line x1="16" y1="19" x2="16" y2="22" />
         <line x1="19" y1="16" x2="22" y2="16" />
       </svg>
-      <p className="text-sm font-medium">{message}</p>
-    </div>
+      <span className="text-sm font-medium">{message}</span>
+    </span>
   );
 }
