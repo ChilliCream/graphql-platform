@@ -127,13 +127,6 @@ A rule renders as the `Divider` component.
 
 ---
 
-# Images
-
-Standard markdown images render through the `Image` component, which adds
-a soft ring and rounded corners.
-
-![A small placeholder swatch](https://placehold.co/600x200/ecfdf5/047857?text=Docs+Image)
-
 # Tabs
 
 The generic `Tabs` / `Tab` combo is the lowest-level building block. Other
@@ -291,6 +284,13 @@ A shortcut that renders the install instructions for a NuGet package using
 `InputChoiceTabs` under the hood.
 
 <PackageInstallation packageName="HotChocolate.AspNetCore" />
+
+# Images
+
+Standard markdown images render through the `Image` component, which adds
+a soft ring and rounded corners.
+
+![An image](../../../public/images/analytics/banner.png)
 
 # Video
 

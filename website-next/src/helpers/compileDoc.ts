@@ -35,13 +35,20 @@ export async function compileDoc<T extends Frontmatter = Frontmatter>(
     captured.toc = data.toc ?? [];
   };
 
+  // compileMDX builds the VFile from a raw string, so it has no path. Inject
+  // the real source path up front so link-rewriting plugins can resolve
+  // relative references (./foo.md, ../../../public/img.png) against it.
+  const setSourcePath = () => (_tree: unknown, file: VFile) => {
+    file.path = absPath;
+  };
+
   const { content, frontmatter } = await compileMDX<T>({
     source,
     options: {
       parseFrontmatter: true,
       blockJS: false,
       mdxOptions: {
-        remarkPlugins: [...remarkPlugins, captureToc],
+        remarkPlugins: [setSourcePath, ...remarkPlugins, captureToc],
         rehypePlugins: [...rehypePlugins],
       },
     },
