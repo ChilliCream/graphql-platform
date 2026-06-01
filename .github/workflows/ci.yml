@@ -302,10 +302,13 @@ jobs:
           dotnet run /tmp/readrefs.cs -- "${alldlls[@]}"
           echo "::endgroup::"
 
-          echo "::group::test binding (runtimeconfig + every HotChocolate/GreenDonut deps.json line)"
-          cat "$TDIR"/*.runtimeconfig.json 2>/dev/null || true
-          echo "--- deps.json HotChocolate/GreenDonut entries (case-insensitive) ---"
-          rg -niN "hotchocolate|greendonut" "$TDIR"/*.deps.json 2>/dev/null | head -80 || true
+          echo "::group::test binding (runtimeconfig + deps.json HC/GreenDonut, via grep)"
+          DEPS="$TDIR/HotChocolate.Types.Analyzers.Tests.deps.json"
+          cat "$TDIR"/HotChocolate.Types.Analyzers.Tests.runtimeconfig.json 2>/dev/null || true
+          echo "--- library version keys (project=0.0.0 vs package=16.x) ---"
+          grep -nE '"(HotChocolate|GreenDonut)[A-Za-z.]*/[0-9][^"]*": \{' "$DEPS" 2>/dev/null | head -60 || true
+          echo "--- runtime lib paths for HotChocolate/GreenDonut (net10 vs net11) ---"
+          grep -nE '(lib|runtimes)/[^"]*/(HotChocolate|GreenDonut)[A-Za-z.]*\.dll' "$DEPS" 2>/dev/null | head -60 || true
           echo "::endgroup::"
 
       - name: Log in to Docker Hub
