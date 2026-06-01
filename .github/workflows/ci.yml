@@ -254,6 +254,50 @@ jobs:
         run: dotnet build ${{ matrix.path }} --framework net11.0 --verbosity q
         timeout-minutes: 5
 
+      # TEMPORARY diagnostic for the net10/net11 System.Runtime skew — revert once understood.
+      - name: Diagnose net11 binding
+        if: always() && matrix.name == 'HotChocolate.Types.Analyzers.Tests'
+        run: |
+          echo "::group::dotnet --info (which SDK actually resolved)"
+          dotnet --info
+          dotnet --version
+          echo "--- global.json ---"; cat global.json || true
+          echo "::endgroup::"
+
+          echo "::group::installed Microsoft.NETCore.App.Ref targeting packs"
+          ls -1 "${DOTNET_ROOT:-/usr/share/dotnet}"/packs/Microsoft.NETCore.App.Ref/ 2>/dev/null || true
+          echo "::endgroup::"
+
+          echo "::group::System.Runtime AssemblyRef of every built net11.0 HotChocolate.Types.dll"
+          cat > /tmp/readrefs.cs <<'CS'
+          using System.Reflection.Metadata;
+          using System.Reflection.PortableExecutable;
+          foreach (var path in args)
+          {
+              try
+              {
+                  using var fs = File.OpenRead(path);
+                  using var pe = new PEReader(fs);
+                  var mr = pe.GetMetadataReader();
+                  var def = mr.GetAssemblyDefinition();
+                  Console.WriteLine($"== {path}");
+                  Console.WriteLine($"   {mr.GetString(def.Name)} v{def.Version}");
+                  foreach (var h in mr.AssemblyReferences)
+                  {
+                      var r = mr.GetAssemblyReference(h);
+                      var n = mr.GetString(r.Name);
+                      if (n.StartsWith("System.Runtime"))
+                          Console.WriteLine($"   -> {n} v{r.Version}");
+                  }
+              }
+              catch (Exception ex) { Console.WriteLine($"!! {path}: {ex.Message}"); }
+          }
+          CS
+          mapfile -t dlls < <(find "$PWD" -path '*/bin/Debug/net11.0/HotChocolate.Types.dll')
+          printf 'found: %s\n' "${dlls[@]}"
+          dotnet run /tmp/readrefs.cs -- "${dlls[@]}"
+          echo "::endgroup::"
+
       - name: Log in to Docker Hub
         # Run step only if branch is local (not from a fork).
         if: >
