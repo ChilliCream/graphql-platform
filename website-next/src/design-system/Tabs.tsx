@@ -52,10 +52,10 @@ export function Tabs({ children, defaultIndex = 0 }: TabsProps) {
   const current = tabs[active] ?? tabs[0];
 
   return (
-    <div className="my-6 overflow-hidden rounded-md ring-1 ring-slate-200">
+    <div className="my-6 overflow-hidden rounded-md ring-1 ring-cc-card-border">
       <div
         role="tablist"
-        className="flex flex-wrap border-b border-slate-200 bg-slate-50"
+        className="flex flex-wrap border-b border-cc-card-border bg-cc-ink-faint"
       >
         {tabs.map((tab, i) => {
           const selected = i === active;
@@ -69,8 +69,8 @@ export function Tabs({ children, defaultIndex = 0 }: TabsProps) {
               onClick={() => setActive(i)}
               className={`cursor-pointer px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px ${
                 selected
-                  ? "border-primary-600 text-primary-700"
-                  : "border-transparent text-slate-600 hover:text-slate-900"
+                  ? "border-cc-accent text-cc-accent"
+                  : "border-transparent text-cc-ink-dim hover:text-cc-ink"
               }`}
             >
               {tab.props.label}

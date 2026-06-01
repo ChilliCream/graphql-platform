@@ -24,30 +24,25 @@ export const Closed: Story = {
     trigger: <span className="font-medium">Hot Chocolate</span>,
     children: (
       <ul className="m-0 list-none p-1">
-        <li>
-          <a
-            className="block rounded px-2 py-2 no-underline hover:bg-slate-50"
-            href="#"
-          >
-            Hot Chocolate
-          </a>
-        </li>
-        <li>
-          <a
-            className="block rounded px-2 py-2 no-underline hover:bg-slate-50"
-            href="#"
-          >
-            Fusion
-          </a>
-        </li>
-        <li>
-          <a
-            className="block rounded px-2 py-2 no-underline hover:bg-slate-50"
-            href="#"
-          >
-            Nitro
-          </a>
-        </li>
+        {[
+          { label: "Hot Chocolate", active: true },
+          { label: "Fusion", active: false },
+          { label: "Nitro", active: false },
+        ].map((item) => (
+          <li key={item.label}>
+            <a
+              href="#"
+              aria-current={item.active ? "page" : undefined}
+              className={`block rounded px-2 py-2 no-underline transition-colors ${
+                item.active
+                  ? "bg-cc-accent/10 text-cc-accent"
+                  : "text-cc-ink hover:bg-cc-hover"
+              }`}
+            >
+              {item.label}
+            </a>
+          </li>
+        ))}
       </ul>
     ),
   },
@@ -67,19 +62,40 @@ export const WithDescriptions: Story = {
     children: (
       <ul className="m-0 list-none p-1">
         {[
-          { title: "Hot Chocolate", description: "GraphQL Server / Gateway" },
-          { title: "Fusion", description: "Federated GraphQL Gateway" },
-          { title: "Strawberry Shake", description: "GraphQL Client for .NET" },
+          {
+            title: "Hot Chocolate",
+            description: "GraphQL Server / Gateway",
+            active: true,
+          },
+          {
+            title: "Fusion",
+            description: "Federated GraphQL Gateway",
+            active: false,
+          },
+          {
+            title: "Strawberry Shake",
+            description: "GraphQL Client for .NET",
+            active: false,
+          },
         ].map((p) => (
           <li key={p.title}>
             <a
               href="#"
-              className="block rounded px-3 py-2 no-underline transition-colors hover:bg-slate-50"
+              aria-current={p.active ? "page" : undefined}
+              className={`block rounded px-3 py-2 no-underline transition-colors ${
+                p.active
+                  ? "bg-cc-accent/10 text-cc-accent"
+                  : "text-cc-ink hover:bg-cc-hover"
+              }`}
             >
-              <div className="text-sm font-medium text-slate-900">
-                {p.title}
+              <div className="text-sm font-medium">{p.title}</div>
+              <div
+                className={`text-xs ${
+                  p.active ? "text-cc-accent/80" : "text-cc-ink-dim"
+                }`}
+              >
+                {p.description}
               </div>
-              <div className="text-xs text-slate-500">{p.description}</div>
             </a>
           </li>
         ))}

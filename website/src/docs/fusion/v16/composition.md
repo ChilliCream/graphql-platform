@@ -71,7 +71,7 @@ Validates the merged schema as a whole. The rules here treat the composed schema
 
 ### 8. Validate Satisfiability
 
-Performs reachability analysis. Starting from the root types, the pipeline walks every reachable field in the merged schema and confirms it can be resolved by at least one subgraph given the available `@lookup` and `@key` paths. If a field is reachable from a query but no subgraph can produce it, satisfiability fails with `UNSATISFIABLE`. This is the last line of defense against shapes that look valid statically but cannot actually be served at runtime.
+Performs reachability analysis. Starting from the root types, the pipeline walks every reachable field in the merged schema and confirms it can be resolved by at least one subgraph given the available `@lookup` and `@key` paths. If a field is reachable from a query but no subgraph can produce it, satisfiability fails with `UNSATISFIABLE_QUERY_PATH`. This is the last line of defense against shapes that look valid statically but cannot actually be served at runtime.
 
 ## Common Scenarios
 
@@ -180,7 +180,7 @@ The placeholders `{0}`, `{1}`, etc. in the message column are replaced with the 
 | [ROOT_QUERY_USED](https://graphql.github.io/composite-schemas-spec/draft/#sec-Root-Query-Used)                                                   | The root query type in schema '{0}' must be named 'Query'.                                                                                                            | Fusion requires the root query type to use the canonical name `Query`. Rename the type in the named source schema. A type named `Query` must not exist unless it is the root query type. See [Getting Started](/docs/fusion/v16/getting-started) for the expected schema layout.                                                                            |
 | [ROOT_SUBSCRIPTION_USED](https://graphql.github.io/composite-schemas-spec/draft/#sec-Root-Subscription-Used)                                     | The root subscription type in schema '{0}' must be named 'Subscription'.                                                                                              | Fusion requires the root subscription type to use the canonical name `Subscription`. Rename the type in the named source schema. A type named `Subscription` must not exist unless it is the root subscription type.                                                                                                                                        |
 | [TYPE_KIND_MISMATCH](https://graphql.github.io/composite-schemas-spec/draft/#sec-Type-Kind-Mismatch)                                             | The type '{0}' has a different kind in schema '{1}' ({2}) than it does in schema '{3}' ({4}).                                                                         | The same type name was used for different kinds (for example, an object in one source schema and an interface in another). Decide which kind is correct and update the other source schema, or rename one of the types so they no longer collide.                                                                                                           |
-| `UNSATISFIABLE`                                                                                                                                  | (Message varies. Includes the unreachable field, the path the validator tried, and the lookups it considered.)                                                        | Some reachable field cannot be resolved through the available `@lookup` and `@key` paths. See [Diagnosing UNSATISFIABLE Errors](#diagnosing-unsatisfiable-errors) for how to read the message and fix the underlying gap.                                                                                                                                   |
+| [UNSATISFIABLE_QUERY_PATH](https://graphql.github.io/composite-schemas-spec/draft/#sec-Unsatisfiable-Query-Path)                                 | (Message varies. Includes the unreachable field, the path the validator tried, and the lookups it considered.)                                                        | Some reachable field cannot be resolved through the available `@lookup` and `@key` paths. See [Diagnosing UNSATISFIABLE_QUERY_PATH Errors](#diagnosing-unsatisfiable_query_path-errors) for how to read the message and fix the underlying gap.                                                                                                             |
 
 ### Warnings
 
@@ -189,9 +189,9 @@ The placeholders `{0}`, `{1}`, etc. in the message column are replaced with the 
 | [LOOKUP_RETURNS_NON_NULLABLE_TYPE](https://graphql.github.io/composite-schemas-spec/draft/#sec-Lookup-Returns-Non-Nullable-Type) | The lookup field '{0}' in schema '{1}' should return a nullable type.                                            | Lookups should return nullable entities so the gateway can represent missing keys without throwing. Change the return type of the lookup field to nullable. See [Entities and Lookups](/docs/fusion/v16/entities-and-lookups). |
 | [SPECIFIED_BY_URL_MISMATCH](https://graphql.github.io/composite-schemas-spec/draft/#sec-SpecifiedBy-URL-Mismatch)                | The scalar type '{0}' has a different specified-by URL in schema '{1}' ({2}) than it does in schema '{3}' ({4}). | The same scalar declares conflicting `@specifiedBy(url: ...)` URLs in different source schemas. Align the URL across all source schemas that define the scalar so the composed schema points to a single specification.        |
 
-### Diagnosing UNSATISFIABLE Errors
+### Diagnosing UNSATISFIABLE_QUERY_PATH Errors
 
-Most composition errors point at a single source schema or definition. `UNSATISFIABLE` is different. It is raised by the satisfiability validator (phase 8) and tells you that the merged schema as a whole has at least one reachable field that no source schema can serve through the available `@lookup` and `@key` paths.
+Most composition errors point at a single source schema or definition. `UNSATISFIABLE_QUERY_PATH` is different. It is raised by the satisfiability validator (phase 8) and tells you that the merged schema as a whole has at least one reachable field that no source schema can serve through the available `@lookup` and `@key` paths.
 
 Because the validator weighs every option for reaching a field across every source schema, the diagnostic carries a tree of nested errors that explain why each candidate option failed. Reading that tree from the bottom up is the fastest way to find the gap.
 
@@ -231,7 +231,7 @@ Set the option via the CLI flag during composition:
 nitro fusion compose --include-satisfiability-paths
 ```
 
-Paths add noise to short outputs and pay off on any non-trivial graph. Turn them on whenever an `UNSATISFIABLE` error is hard to triage.
+Paths add noise to short outputs and pay off on any non-trivial graph. Turn them on whenever an `UNSATISFIABLE_QUERY_PATH` error is hard to triage.
 
 #### Common causes and fixes
 
@@ -240,7 +240,7 @@ Paths add noise to short outputs and pay off on any non-trivial graph. Turn them
 - **`@require` reaches for a field that is not on the path.** A `@require(field: "...")` references parent fields that the validator cannot resolve given the path it took. Either expose the required field on the parent type along that path, or rewrite the requirement.
 - **`Node` interface without a node lookup.** A type implements `Node` but no source schema exposes a `node(id: ID!): Node` lookup that returns it. Add one in any source schema that owns the entity.
 
-When you fix the root cause, both the top-level `UNSATISFIABLE` error and its nested children disappear together.
+When you fix the root cause, both the top-level `UNSATISFIABLE_QUERY_PATH` error and its nested children disappear together.
 
 #### Temporarily ignoring a non-accessible field
 

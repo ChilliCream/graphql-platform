@@ -15,10 +15,10 @@ export function ProductSelector({ activeSlug }: ProductSelectorProps) {
       panelClassName="p-1"
       trigger={
         <span className="flex flex-col">
-          <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-cc-nav-label">
             Product
           </span>
-          <span className="text-sm font-semibold text-slate-900">
+          <span className="text-sm font-semibold text-cc-ink">
             {active.title}
           </span>
         </span>
@@ -35,15 +35,15 @@ export function ProductSelector({ activeSlug }: ProductSelectorProps) {
                 className={[
                   "block rounded px-3 py-2 no-underline transition-colors",
                   isActive
-                    ? "bg-primary-50 text-primary-700"
-                    : "text-slate-800 hover:bg-slate-50",
+                    ? "bg-cc-accent/10 text-cc-accent"
+                    : "text-cc-ink hover:bg-cc-hover",
                 ].join(" ")}
               >
                 <div className="text-sm font-medium">{product.title}</div>
                 <div
                   className={[
                     "text-xs",
-                    isActive ? "text-primary-700/80" : "text-slate-500",
+                    isActive ? "text-cc-accent/80" : "text-cc-ink-dim",
                   ].join(" ")}
                 >
                   {product.description}

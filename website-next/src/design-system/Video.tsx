@@ -1,3 +1,4 @@
+import { BrokenMedia } from "./BrokenMedia";
 import { VideoFacade } from "./VideoFacade";
 import { extractYouTubeId } from "@/src/helpers/extractYouTubeId";
 
@@ -11,11 +12,11 @@ type VideoProps = {
 export function Video({ src, playlabel }: VideoProps) {
   const id = extractYouTubeId(src);
   if (!id) {
-    return null;
+    return <BrokenMedia message="This video couldn't be loaded." />;
   }
 
   return (
-    <div className="my-6 overflow-hidden rounded-md ring-1 ring-slate-200">
+    <div className="my-6 overflow-hidden rounded-md ring-1 ring-cc-card-border">
       <VideoFacade videoId={id} playlabel={playlabel} />
     </div>
   );

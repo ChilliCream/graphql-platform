@@ -70,5 +70,5 @@ public static class LogEntryCodes
     public const string RootSubscriptionUsed = "ROOT_SUBSCRIPTION_USED";
     public const string SpecifiedByUrlMismatch = "SPECIFIED_BY_URL_MISMATCH";
     public const string TypeKindMismatch = "TYPE_KIND_MISMATCH";
-    public const string Unsatisfiable = "UNSATISFIABLE";
+    public const string UnsatisfiableQueryPath = "UNSATISFIABLE_QUERY_PATH";
 }

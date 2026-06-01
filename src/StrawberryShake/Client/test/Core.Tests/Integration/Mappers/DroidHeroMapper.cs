@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using ChilliCream.Testing;
 
 namespace StrawberryShake.Integration.Mappers
 {

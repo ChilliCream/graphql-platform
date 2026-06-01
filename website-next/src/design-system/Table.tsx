@@ -5,7 +5,7 @@ export function Table({
   ...props
 }: ComponentPropsWithoutRef<"table">) {
   return (
-    <div className="my-6 overflow-x-auto rounded-md ring-1 ring-slate-200">
+    <div className="my-6 overflow-x-auto rounded-md ring-1 ring-cc-card-border">
       <table
         className={`w-full border-collapse text-left text-sm ${className}`.trim()}
         {...props}
@@ -20,7 +20,7 @@ export function TableHead({
 }: ComponentPropsWithoutRef<"thead">) {
   return (
     <thead
-      className={`bg-slate-50 text-slate-900 ${className}`.trim()}
+      className={`bg-cc-card-bg text-cc-ink ${className}`.trim()}
       {...props}
     />
   );
@@ -32,7 +32,7 @@ export function TableBody({
 }: ComponentPropsWithoutRef<"tbody">) {
   return (
     <tbody
-      className={`divide-y divide-slate-200 ${className}`.trim()}
+      className={`divide-y divide-cc-card-border ${className}`.trim()}
       {...props}
     />
   );
@@ -59,6 +59,6 @@ export function TableCell({
   ...props
 }: ComponentPropsWithoutRef<"td">) {
   return (
-    <td className={`px-4 py-2 text-slate-700 ${className}`.trim()} {...props} />
+    <td className={`px-4 py-2 text-cc-prose ${className}`.trim()} {...props} />
   );
 }

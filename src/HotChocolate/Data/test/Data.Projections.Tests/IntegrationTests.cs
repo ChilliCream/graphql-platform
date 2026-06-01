@@ -34,6 +34,42 @@ public class IntegrationTests
     }
 
     [Fact]
+    public async Task Projection_Should_NotThrow_When_ParentRequiresObjectField()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(q => q
+                .Field("foo")
+                .Resolve(_ => new[] { new RequiresFoo { Bar = new RequiresBar { Baz = "baz" } } }.AsQueryable())
+                .UseProjection())
+            .AddObjectType<RequiresFoo>(c =>
+            {
+                c.Field(f => f.Bar);
+                c.Field("quux")
+                    .Resolve(ctx => ctx.Parent<RequiresFoo>().Bar)
+                    .ParentRequires<RequiresFoo>(f => f.Bar!);
+            })
+            .AddProjections()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            query {
+                foo {
+                    quux {
+                        baz
+                    }
+                }
+            }
+            """);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task Projection_Should_NotBreakProjections_When_ExtensionsListRequested()
     {
         // arrange
@@ -650,6 +686,16 @@ public class Foo
 {
     public string? Bar { get; set; }
     public string FieldOfFoo => "fieldOfFoo";
+}
+
+public class RequiresFoo
+{
+    public RequiresBar? Bar { get; set; }
+}
+
+public class RequiresBar
+{
+    public string? Baz { get; set; }
 }
 
 public class Baz

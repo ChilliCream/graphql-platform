@@ -17,13 +17,41 @@ export default function remarkRewriteMdLinks() {
     const cwd = file.cwd ?? process.cwd();
     const appDir = path.join(cwd, "app");
 
+    const publicDir = path.join(cwd, "public");
+
     walk(tree, (node) => {
-      if (node.type !== "link" || typeof node.url !== "string") {
+      const isLink = node.type === "link";
+      const isImage = node.type === "image";
+      if ((!isLink && !isImage) || typeof node.url !== "string") {
         return;
       }
 
       // Skip absolute URLs, protocol-relative, hash-only.
       if (/^([a-z]+:|\/\/|#)/i.test(node.url)) {
+        return;
+      }
+
+      // Relative reference that resolves into public/ — rewrite to a rooted
+      // URL (e.g. "../../../public/image.png" -> "/image.png"). Applies to both
+      // links and image sources.
+      if (!node.url.startsWith("/")) {
+        const publicUrl = rewritePublicAsset(
+          node.url,
+          sourceDir,
+          publicDir,
+          cwd,
+          file,
+          node
+        );
+        if (publicUrl !== null) {
+          node.url = publicUrl;
+          return;
+        }
+      }
+
+      // Root-absolute asset sources (e.g. an image at "/image.png") are already
+      // rooted; only links get route-existence validation below.
+      if (node.url.startsWith("/") && !isLink) {
         return;
       }
 
@@ -125,6 +153,41 @@ export default function remarkRewriteMdLinks() {
       node.url = `/${urlRel}${hashPart}`;
     });
   };
+}
+
+/**
+ * Resolve a relative URL against the source file and, if it lands inside
+ * public/, return its rooted URL (path relative to public/, with a leading
+ * "/"). Returns null when the target is outside public/ so the caller can fall
+ * through to other handling. Fails the build for a public/ path that doesn't
+ * exist on disk.
+ */
+function rewritePublicAsset(url, sourceDir, publicDir, cwd, file, node) {
+  const m = /^([^#?]+)([#?].*)?$/.exec(url);
+  if (!m) {
+    return null;
+  }
+
+  const [, filePart, suffix = ""] = m;
+  const absResolved = path.resolve(sourceDir, filePart);
+  const relToPublic = path.relative(publicDir, absResolved);
+
+  // Outside public/ (escapes upward or onto another drive) — not our concern.
+  if (relToPublic.startsWith("..") || path.isAbsolute(relToPublic)) {
+    return null;
+  }
+
+  if (!fs.existsSync(absResolved)) {
+    file.fail(
+      `Broken asset link "${url}" — file not found at ${path.relative(cwd, absResolved)}`,
+      node,
+      RULE_ID
+    );
+    return null;
+  }
+
+  const urlPath = relToPublic.split(path.sep).join("/");
+  return `/${urlPath}${suffix}`;
 }
 
 /** Convert a path relative to cwd (without extension) under blogs/ into the

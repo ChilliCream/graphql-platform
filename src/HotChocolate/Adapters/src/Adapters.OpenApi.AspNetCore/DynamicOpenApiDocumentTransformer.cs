@@ -13,6 +13,12 @@ using OpenApiSchemaAbstraction = Microsoft.OpenApi.Models.OpenApiSchema;
 using OperationType = Microsoft.OpenApi.Models.OperationType;
 #endif
 
+// Under non-NET10 targets, OpenApiSchemaAbstraction aliases the same concrete type
+// as OpenApiSchema, causing IDE0001 to flag every direct OpenApiSchema reference as
+// "simplifiable" to the alias. The two-name distinction is required for cross-target
+// abstraction (interface vs class), so the diagnostic is suppressed file-wide.
+#pragma warning disable IDE0001
+
 namespace HotChocolate.Adapters.OpenApi;
 
 internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransformer, IDynamicOpenApiDocumentTransformer
