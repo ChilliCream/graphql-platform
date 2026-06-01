@@ -48,5 +48,5 @@ internal enum CoreFieldFlags : long
     ImplicitField = 1L << 32,
     BatchResolver = 1L << 33,
     MemberReplacement = 1L << 34,
-    DisableMutationReformatting = 1L << 35
+    UseV15MutationFieldNameFormat = 1L << 35
 }

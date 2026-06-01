@@ -210,20 +210,21 @@ public class ObjectFieldConfiguration : OutputFieldConfiguration
 
     /// <summary>
     /// If this field is a mutation to which mutation conventions are applied,
-    /// this flag indicates that the field name should not be reformatted.
+    /// this flag indicates that the field name should be reformatted in
+    /// V15 style which does not remove the underscores from the field name.
     /// </summary>
-    public bool DisableMutationReformatting
+    public bool UseV15MutationFieldNameFormat
     {
-        get => (Flags & CoreFieldFlags.DisableMutationReformatting) == CoreFieldFlags.DisableMutationReformatting;
+        get => (Flags & CoreFieldFlags.UseV15MutationFieldNameFormat) == CoreFieldFlags.UseV15MutationFieldNameFormat;
         set
         {
             if (value)
             {
-                Flags |= CoreFieldFlags.DisableMutationReformatting;
+                Flags |= CoreFieldFlags.UseV15MutationFieldNameFormat;
             }
             else
             {
-                Flags &= ~CoreFieldFlags.DisableMutationReformatting;
+                Flags &= ~CoreFieldFlags.UseV15MutationFieldNameFormat;
             }
         }
     }

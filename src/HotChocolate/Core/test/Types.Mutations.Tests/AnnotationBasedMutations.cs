@@ -1320,12 +1320,12 @@ public partial class AnnotationBasedMutations
     }
 
     [Fact]
-    public async Task MutationConvention_With_DisabledMutationReformatting_Uses_Field_Name()
+    public async Task MutationConvention_With_V15FieldNameFormat_Keeps_Underscores()
     {
         var schema =
             await new ServiceCollection()
                 .AddGraphQL()
-                .AddMutationType<MutationWithDisabledReformatting>()
+                .AddMutationType<MutationWithV15FieldNameFormat>()
                 .AddMutationConventions(
                     new MutationConventionOptions
                     {
@@ -1338,9 +1338,10 @@ public partial class AnnotationBasedMutations
 
         var schemaText = schema.ToString();
 
-        Assert.Contains("ch_myMutation(input: ch_myMutationInputType!): ch_myMutationPayloadType!", schemaText);
-        Assert.Contains("input ch_myMutationInputType {", schemaText);
-        Assert.Contains("type ch_myMutationPayloadType {", schemaText);
+        // V15 style capitalizes the first letter but keeps the underscores intact.
+        Assert.Contains("ch_myMutation(input: Ch_myMutationInputType!): Ch_myMutationPayloadType!", schemaText);
+        Assert.Contains("input Ch_myMutationInputType {", schemaText);
+        Assert.Contains("type Ch_myMutationPayloadType {", schemaText);
         Assert.DoesNotContain("ChMyMutationInputType", schemaText);
         Assert.DoesNotContain("ChMyMutationPayloadType", schemaText);
     }
@@ -1602,7 +1603,7 @@ public partial class AnnotationBasedMutations
     }
 
     [PrefixMutationFields("ch_")]
-    public class MutationWithDisabledReformatting
+    public class MutationWithV15FieldNameFormat
     {
         public string MyMutation(string value) => value;
     }
@@ -2087,7 +2088,7 @@ public partial class AnnotationBasedMutations
                     foreach (var field in definition.Fields)
                     {
                         field.Name = prefix + field.Name;
-                        field.DisableMutationReformatting = true;
+                        field.UseV15MutationFieldNameFormat = true;
                     }
                 });
         }

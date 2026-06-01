@@ -884,9 +884,18 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         {
             ArgumentNullException.ThrowIfNull(mutation);
 
-            return mutation.DisableMutationReformatting
-                ? mutation.Name
+            return mutation.UseV15MutationFieldNameFormat
+                ? FormatMutationNameV15(mutation.Name)
                 : FormatMutationName(mutation.Name);
+        }
+
+        private static string FormatMutationNameV15(string mutationName)
+        {
+            ArgumentException.ThrowIfNullOrEmpty(mutationName);
+
+            // V15 style capitalizes the first letter but keeps the underscores
+            // in the field name intact.
+            return char.ToUpperInvariant(mutationName[0]) + mutationName[1..];
         }
 
         private static string FormatMutationName(string mutationName)
