@@ -268,7 +268,7 @@ jobs:
           ls -1 "${DOTNET_ROOT:-/usr/share/dotnet}"/packs/Microsoft.NETCore.App.Ref/ 2>/dev/null || true
           echo "::endgroup::"
 
-          echo "::group::System.Runtime AssemblyRef of every built net11.0 HotChocolate.Types.dll"
+          echo "::group::System.Runtime AssemblyRef of EVERY HotChocolate.Types.dll on the runner"
           cat > /tmp/readrefs.cs <<'CS'
           using System.Reflection.Metadata;
           using System.Reflection.PortableExecutable;
@@ -280,22 +280,26 @@ jobs:
                   using var pe = new PEReader(fs);
                   var mr = pe.GetMetadataReader();
                   var def = mr.GetAssemblyDefinition();
-                  Console.WriteLine($"== {path}");
-                  Console.WriteLine($"   {mr.GetString(def.Name)} v{def.Version}");
+                  string sr = "?";
                   foreach (var h in mr.AssemblyReferences)
                   {
                       var r = mr.GetAssemblyReference(h);
-                      var n = mr.GetString(r.Name);
-                      if (n.StartsWith("System.Runtime"))
-                          Console.WriteLine($"   -> {n} v{r.Version}");
+                      if (mr.GetString(r.Name) == "System.Runtime") sr = r.Version.ToString();
                   }
+                  Console.WriteLine($"System.Runtime v{sr}  <-  {path}");
               }
               catch (Exception ex) { Console.WriteLine($"!! {path}: {ex.Message}"); }
           }
           CS
-          mapfile -t dlls < <(find "$PWD" -path '*/bin/Debug/net11.0/HotChocolate.Types.dll')
-          printf 'found: %s\n' "${dlls[@]}"
+          mapfile -t dlls < <(find "$PWD" "$HOME/.nuget/packages" /usr/share/dotnet -name 'HotChocolate.Types.dll' 2>/dev/null | sort -u)
           dotnet run /tmp/readrefs.cs -- "${dlls[@]}"
+          echo "::endgroup::"
+
+          echo "::group::what the test actually binds (deps.json + runtimeconfig)"
+          TDIR=src/HotChocolate/Core/test/Types.Analyzers.Tests/bin/Debug/net11.0
+          echo "--- runtimeconfig.json ---"; cat "$TDIR"/*.runtimeconfig.json 2>/dev/null || true
+          echo "--- deps.json: HotChocolate.Types entries ---"
+          rg -n "HotChocolate\.Types[\"/]" "$TDIR"/*.deps.json 2>/dev/null | head -40 || true
           echo "::endgroup::"
 
       - name: Log in to Docker Hub
