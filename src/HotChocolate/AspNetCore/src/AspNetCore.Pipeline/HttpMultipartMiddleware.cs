@@ -340,7 +340,14 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
                 break;
 
             case JsonTokenType.String:
-                writer.WriteStringValue(reader.ValueSpan);
+                if (reader.ValueIsEscaped)
+                {
+                    writer.WriteStringValue(reader.GetString());
+                }
+                else
+                {
+                    writer.WriteStringValue(reader.ValueSpan);
+                }
                 break;
 
             case JsonTokenType.Number:
