@@ -1,0 +1,27 @@
+<Project>
+  <PropertyGroup>
+    <Authors>ChilliCream authors and contributors</Authors>
+    <Company>ChilliCream Inc.</Company>
+    <Copyright>Copyright &#169; 2026 ChilliCream Inc.</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://chillicream.com</PackageProjectUrl>
+    <PackageReleaseNotes>Release notes: https://github.com/ChilliCream/graphql-platform/releases/$(PackageVersion)</PackageReleaseNotes>
+    <PackageTags>GraphQL ChilliCream</PackageTags>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <RepositoryType>GitHub</RepositoryType>
+    <RepositoryUrl>https://github.com/ChilliCream/graphql-platform.git</RepositoryUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)..\website\static\resources\cookiecrumble-icon.png" Pack="true" PackagePath="cookiecrumble-icon.png" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\website\static\resources\fusion-icon.png" Pack="true" PackagePath="fusion-icon.png" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\website\static\resources\greendonut-icon.png" Pack="true" PackagePath="greendonut-icon.png" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\website\static\resources\hotchocolate-icon.png" Pack="true" PackagePath="hotchocolate-icon.png" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\website\static\resources\mocha-icon.png" Pack="true" PackagePath="mocha-icon.png" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\website\static\resources\nitro-icon.png" Pack="true" PackagePath="nitro-icon.png" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\website\static\resources\strawberryshake-icon.png" Pack="true" PackagePath="strawberryshake-icon.png" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\LICEN*" Pack="true" PackagePath="" Visible="false" />
+  </ItemGroup>
+</Project>

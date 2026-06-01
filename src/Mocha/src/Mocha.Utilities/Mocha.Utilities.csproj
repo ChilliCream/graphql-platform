@@ -1,4 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
+
   <PropertyGroup>
     <AssemblyName>Mocha.Utilities</AssemblyName>
     <RootNamespace>Mocha</RootNamespace>

@@ -1,11 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
 
   <PropertyGroup>
     <PackageType>Template</PackageType>
     <PackageId>HotChocolate.Templates</PackageId>
     <Description>Hot Chocolate GraphQL templates.</Description>
-    <Authors>Michael Staib</Authors>
-    <PackageIcon>hotchocolate-signet.png</PackageIcon>
+    <PackageIcon>hotchocolate-icon.png</PackageIcon>
 
     <TargetFramework>netstandard2.0</TargetFramework>
 
@@ -22,10 +22,5 @@
     <Compile Remove="**\*" />
     <Content Include="azure-function\**\*;gateway\**\*;server\**\*"
              Exclude="**\bin\**;**\obj\**" />
-    <None Include="..\website\static\resources\hotchocolate-signet.png"
-          Pack="true"
-          PackagePath=""
-          Visible="false" />
   </ItemGroup>
-
 </Project>
