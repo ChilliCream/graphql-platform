@@ -23,9 +23,30 @@
     <None Include="$(MSBuildThisFileDirectory)..\Common\MSBuild\StrawberryShake.MSBuild.ContentType.xaml" Pack="true" PackagePath="build/StrawberryShake.MSBuild.ContentType.xaml" Visible="false" />
     <None Include="$(MSBuildThisFileDirectory)..\Common\MSBuild\StrawberryShake.MSBuild.xaml" Pack="true" PackagePath="build/StrawberryShake.MSBuild.xaml" Visible="false" />
     <None Include="$(MSBuildThisFileDirectory)..\Common\MSBuild\global.json" Pack="true" PackagePath="build/global.json" Visible="false" />
-    <None Include="$(MSBuildThisFileDirectory)..\..\Tooling\src\dotnet-graphql\bin\$(Configuration)\net8.0\**\*.*" Pack="true" PackagePath="tools/net8" Visible="false" />
-    <None Include="$(MSBuildThisFileDirectory)..\..\Tooling\src\dotnet-graphql\bin\$(Configuration)\net9.0\**\*.*" Pack="true" PackagePath="tools/net9" Visible="false" />
-    <None Include="$(MSBuildThisFileDirectory)..\..\Tooling\src\dotnet-graphql\bin\$(Configuration)\net10.0\**\*.*" Pack="true" PackagePath="tools/net10" Visible="false" />
   </ItemGroup>
+
+  <PropertyGroup>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_AddDotnetGraphqlToolsToPackage</TargetsForTfmSpecificContentInPackage>
+  </PropertyGroup>
+
+  <!-- Package the `dotnet-graphql` tool binaries into tools/net{8,9,10}/.
+       Runs after pack's build phase has populated dotnet-graphql's bin/ for
+       each TFM (the ProjectReference above triggers a build per consumer TFM).
+       This project multi-targets net{8,9,10} via Directory.Build.props, so the
+       target fires once per framework; emit only for net10.0 to avoid the
+       duplicate package-path collision (NU5118). -->
+  <Target Name="_AddDotnetGraphqlToolsToPackage">
+    <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
+      <TfmSpecificPackageFile Include="$(MSBuildThisFileDirectory)..\..\Tooling\src\dotnet-graphql\bin\$(Configuration)\net8.0\**\*.*">
+        <PackagePath>tools/net8</PackagePath>
+      </TfmSpecificPackageFile>
+      <TfmSpecificPackageFile Include="$(MSBuildThisFileDirectory)..\..\Tooling\src\dotnet-graphql\bin\$(Configuration)\net9.0\**\*.*">
+        <PackagePath>tools/net9</PackagePath>
+      </TfmSpecificPackageFile>
+      <TfmSpecificPackageFile Include="$(MSBuildThisFileDirectory)..\..\Tooling\src\dotnet-graphql\bin\$(Configuration)\net10.0\**\*.*">
+        <PackagePath>tools/net10</PackagePath>
+      </TfmSpecificPackageFile>
+    </ItemGroup>
+  </Target>
 
 </Project>
