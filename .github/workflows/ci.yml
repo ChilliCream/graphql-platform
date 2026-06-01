@@ -295,11 +295,17 @@ jobs:
           dotnet run /tmp/readrefs.cs -- "${dlls[@]}"
           echo "::endgroup::"
 
-          echo "::group::what the test actually binds (deps.json + runtimeconfig)"
+          echo "::group::EVERY managed dll in the test run dir + its System.Runtime ref"
           TDIR=src/HotChocolate/Core/test/Types.Analyzers.Tests/bin/Debug/net11.0
-          echo "--- runtimeconfig.json ---"; cat "$TDIR"/*.runtimeconfig.json 2>/dev/null || true
-          echo "--- deps.json: HotChocolate.Types entries ---"
-          rg -n "HotChocolate\.Types[\"/]" "$TDIR"/*.deps.json 2>/dev/null | head -40 || true
+          ls -la "$TDIR" || true
+          mapfile -t alldlls < <(find "$TDIR" -maxdepth 1 -name '*.dll' 2>/dev/null | sort)
+          dotnet run /tmp/readrefs.cs -- "${alldlls[@]}"
+          echo "::endgroup::"
+
+          echo "::group::test binding (runtimeconfig + every HotChocolate/GreenDonut deps.json line)"
+          cat "$TDIR"/*.runtimeconfig.json 2>/dev/null || true
+          echo "--- deps.json HotChocolate/GreenDonut entries (case-insensitive) ---"
+          rg -niN "hotchocolate|greendonut" "$TDIR"/*.deps.json 2>/dev/null | head -80 || true
           echo "::endgroup::"
 
       - name: Log in to Docker Hub
