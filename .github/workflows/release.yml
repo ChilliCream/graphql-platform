@@ -254,11 +254,11 @@ jobs:
           dotnet publish src/Nitro/CommandLine/src/CommandLine \
             -c Release \
             -r ${{ matrix.rid }} \
-            -f net10.0 \
+            -f net11.0 \
             -o publish \
             --self-contained \
             -p:PublishAot=true \
-            -p:TargetFrameworks=net10.0 \
+            -p:TargetFrameworks=net11.0 \
             -p:RuntimeIdentifiers=${{ matrix.rid }} \
             -p:Version=${GIT_TAG} \
             -p:NitroApiClientId="${NitroApiClientId}" \
