@@ -41,10 +41,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)website\static\resources\hotchocolate-icon.png" Pack="true" PackagePath="hotchocolate-icon.png" Visible="false" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)LICEN*" Pack="true" PackagePath="" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\website\static\resources\hotchocolate-icon.png" Pack="true" PackagePath="hotchocolate-icon.png" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\LICEN*" Pack="true" PackagePath="" Visible="false" />
   </ItemGroup>
 </Project>

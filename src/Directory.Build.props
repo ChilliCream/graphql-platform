@@ -51,11 +51,8 @@
   </PropertyGroup>
 
   <ItemGroup Condition="'$(PackageIcon)' != ''">
-    <None Include="$(MSBuildThisFileDirectory)website\static\resources\$(PackageIcon)" Pack="true" PackagePath="$(PackageIcon)" Visible="false" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)LICEN*" Pack="true" PackagePath="" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\website\static\resources\$(PackageIcon)" Pack="true" PackagePath="$(PackageIcon)" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\LICEN*" Pack="true" PackagePath="" Visible="false" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)' == 'debug'">
