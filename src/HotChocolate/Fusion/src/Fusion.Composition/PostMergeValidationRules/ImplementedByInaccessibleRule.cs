@@ -52,10 +52,10 @@ internal sealed class ImplementedByInaccessibleRule
 
             foreach (var interfaceField in accessibleInterfaceFields)
             {
-                // The implementing type may not provide every field of the interface, for example
-                // when two source schemas contribute different fields to the same-named interface.
-                // The unimplemented field is reported by InterfaceFieldNoImplementationRule, so it
-                // is skipped here.
+                // An implementing type can be missing fields that were contributed to a merged
+                // interface by another source schema. That missing-field case is validated
+                // separately (e.g. by InterfaceFieldNoImplementationRule for object types), so we
+                // skip it here to avoid throwing when looking up the field on the implementing type.
                 if (!type.Fields.TryGetField(interfaceField.Name, out var field))
                 {
                     continue;
