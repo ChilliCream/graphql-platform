@@ -1,8 +1,0 @@
-<Project>
-  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
-
-  <PropertyGroup>
-    <Product>Hot Chocolate</Product>
-    <PackageIcon>hotchocolate-icon.png</PackageIcon>
-  </PropertyGroup>
-</Project>

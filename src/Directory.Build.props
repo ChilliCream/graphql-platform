@@ -22,6 +22,18 @@
   </PropertyGroup>
 
   <PropertyGroup>
+    <Authors>ChilliCream authors and contributors</Authors>
+    <Company>ChilliCream Inc.</Company>
+    <Copyright>Copyright &#169; 2018 - present ChilliCream Inc.</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://chillicream.com</PackageProjectUrl>
+    <PackageReleaseNotes>Release notes: https://github.com/ChilliCream/graphql-platform/releases/$(PackageVersion)</PackageReleaseNotes>
+    <PackageTags>GraphQL ChilliCream</PackageTags>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <RepositoryType>GitHub</RepositoryType>
+    <RepositoryUrl>https://github.com/ChilliCream/graphql-platform.git</RepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
@@ -37,6 +49,14 @@
     <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
+
+  <ItemGroup Condition="'$(PackageIcon)' != ''">
+    <None Include="$(MSBuildThisFileDirectory)website\static\resources\$(PackageIcon)" Pack="true" PackagePath="$(PackageIcon)" Visible="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)LICEN*" Pack="true" PackagePath="" Visible="false" />
+  </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)' == 'debug'">
     <PackageReference Include="Roslynator.Analyzers">
