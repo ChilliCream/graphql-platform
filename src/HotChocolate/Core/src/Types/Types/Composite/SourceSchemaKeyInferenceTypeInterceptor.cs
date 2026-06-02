@@ -25,19 +25,9 @@ internal sealed class SourceSchemaKeyInferenceTypeInterceptor : TypeInterceptor
         new(StringComparer.Ordinal);
     private ITypeCompletionContext? _completionContext;
     private TypeReference _entityKeyRef = null!;
-    private TypeRegistry _typeRegistry = null!;
-    private ISchemaDefinition? _schema;
 
     public override bool IsEnabled(IDescriptorContext context)
         => context.Options.InferKeysFromLookups;
-
-    internal override void InitializeContext(
-        IDescriptorContext context,
-        TypeInitializer typeInitializer,
-        TypeRegistry typeRegistry,
-        TypeLookup typeLookup,
-        TypeReferenceResolver typeReferenceResolver)
-        => _typeRegistry = typeRegistry;
 
     public override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
@@ -50,7 +40,7 @@ internal sealed class SourceSchemaKeyInferenceTypeInterceptor : TypeInterceptor
             return;
         }
 
-        if (!HasLookupField((TypeConfiguration)configuration))
+        if (!HasInferableLookupField((TypeConfiguration)configuration))
         {
             return;
         }
@@ -101,20 +91,6 @@ internal sealed class SourceSchemaKeyInferenceTypeInterceptor : TypeInterceptor
 
         var context = _completionContext;
 
-        foreach (var registeredType in _typeRegistry.Types)
-        {
-            if (registeredType.Type is ISchemaDefinition schema)
-            {
-                _schema = schema;
-                break;
-            }
-        }
-
-        if (_schema is null)
-        {
-            return;
-        }
-
         BuildImplementerIndex(context);
 
         foreach (var lookup in _lookups)
@@ -139,7 +115,7 @@ internal sealed class SourceSchemaKeyInferenceTypeInterceptor : TypeInterceptor
                 continue;
             }
 
-            foreach (var keyFields in BuildKeySelectionSets(lookup, namedType))
+            foreach (var keyFields in BuildKeySelectionSets(lookup))
             {
                 foreach (var target in targets)
                 {
@@ -243,34 +219,17 @@ internal sealed class SourceSchemaKeyInferenceTypeInterceptor : TypeInterceptor
         return targets;
     }
 
-    private IEnumerable<SelectionSetNode> BuildKeySelectionSets(
-        LookupInfo lookup,
-        ITypeDefinition namedType)
+    private static IEnumerable<SelectionSetNode> BuildKeySelectionSets(LookupInfo lookup)
     {
+        // We convert the @is value selections into @key selection sets purely syntactically so
+        // that the conversion does not depend on the completed type graph. This lets nested @is
+        // paths (for example "address.id") be turned into nested selection sets ("address { id }")
+        // even though the referenced child type is not yet completed at this phase. Malformed
+        // value selections are filtered out earlier while parsing, so genuine bugs surface here
+        // instead of being silently dropped.
         foreach (var group in GetValueSelectionGroups(lookup.Field))
         {
-            SelectionSetNode? keyFields = null;
-
-            try
-            {
-                var rewriter = new ValueSelectionToSelectionSetRewriter(
-                    _schema!,
-                    ignoreMissingTypeSystemMembers: true);
-
-                keyFields = rewriter.Rewrite(group, namedType);
-            }
-            catch
-            {
-                // Key inference never fails the schema build. If a value selection cannot be
-                // rewritten into a selection set we skip that key silently. This also covers
-                // selections that reference fields on types whose shape is not yet available at
-                // inference time (for example nested @is paths), which simply yield no key.
-            }
-
-            if (keyFields is not null)
-            {
-                yield return keyFields;
-            }
+            yield return ValueSelectionToSelectionSetRewriter.Rewrite(group);
         }
     }
 
@@ -412,14 +371,14 @@ internal sealed class SourceSchemaKeyInferenceTypeInterceptor : TypeInterceptor
         return string.Join(" ", entries);
     }
 
-    private static bool HasLookupField(TypeConfiguration type)
+    private static bool HasInferableLookupField(TypeConfiguration type)
     {
         switch (type)
         {
             case ObjectTypeConfiguration objectType:
                 foreach (var field in objectType.Fields)
                 {
-                    if (HasDirective(field.GetDirectives(), DirectiveNames.Lookup.Name))
+                    if (IsInferableLookup(field))
                     {
                         return true;
                     }
@@ -429,7 +388,7 @@ internal sealed class SourceSchemaKeyInferenceTypeInterceptor : TypeInterceptor
             case InterfaceTypeConfiguration interfaceType:
                 foreach (var field in interfaceType.Fields)
                 {
-                    if (HasDirective(field.GetDirectives(), DirectiveNames.Lookup.Name))
+                    if (IsInferableLookup(field))
                     {
                         return true;
                     }
@@ -439,6 +398,36 @@ internal sealed class SourceSchemaKeyInferenceTypeInterceptor : TypeInterceptor
 
         return false;
     }
+
+    // A lookup can only contribute a key when it is a @lookup field that carries arguments and
+    // resolves a nullable, non-list type, mirroring the eligibility applied while keys are built.
+    // We restrict the @key type dependency to those fields so that schemas whose lookups never
+    // produce a key are not forced to reference the inferred key's scalar.
+    private static bool IsInferableLookup(OutputFieldConfiguration field)
+    {
+        if (field.Type is null
+            || !field.HasArguments
+            || !HasDirective(field.GetDirectives(), DirectiveNames.Lookup.Name))
+        {
+            return false;
+        }
+
+        return IsNullableNonListReturnType(field.Type);
+    }
+
+    private static bool IsNullableNonListReturnType(TypeReference typeReference)
+        => typeReference switch
+        {
+            ExtendedTypeReference extended
+                => extended.Type is { IsNullable: true, IsArrayOrList: false },
+
+            SyntaxTypeReference syntax
+                => syntax.Type is not (NonNullTypeNode or ListTypeNode),
+
+            // For reference kinds whose nullability cannot be inspected at this phase we keep the
+            // dependency so that a key can still be applied later if the resolved type is eligible.
+            _ => true
+        };
 
     private static bool HasDirective(
         IReadOnlyList<DirectiveConfiguration> directives,
