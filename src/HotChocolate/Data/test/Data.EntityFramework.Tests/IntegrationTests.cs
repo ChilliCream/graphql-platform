@@ -1,7 +1,9 @@
 using System.Data.Common;
 using System.Text.Json;
+using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -734,6 +736,256 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         }
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task AsSelector_Should_Project_Conditional_Child_When_Include_Flag_Is_Set(bool include)
+    {
+        // arrange
+        var dbFile = System.IO.Path.Combine(
+            System.IO.Path.GetTempPath(),
+            $"conditional-projection-{Guid.NewGuid():N}.db");
+        var connectionString = $"Data Source={dbFile}";
+
+        try
+        {
+            var sqlCapture = new ConditionalSqlCapture();
+
+            await using var services = new ServiceCollection()
+                .AddSingleton(sqlCapture)
+                .AddDbContext<ConditionalDbContext>(b => b.UseSqlite(connectionString))
+                .AddGraphQL()
+                .AddQueryType<ConditionalQuery>()
+                .AddType<ConditionalTenantType>()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .Services
+                .BuildServiceProvider();
+
+            await using (var scope = services.CreateAsyncScope())
+            {
+                await using var context = scope.ServiceProvider.GetRequiredService<ConditionalDbContext>();
+                await context.Database.EnsureCreatedAsync();
+
+                context.Tenants.Add(
+                    new ConditionalTenant
+                    {
+                        Id = 1,
+                        Name = "Acme",
+                        Workspaces =
+                        [
+                            new ConditionalWorkspace { Id = 1, Name = "Alpha" },
+                            new ConditionalWorkspace { Id = 2, Name = "Beta" }
+                        ]
+                    });
+
+                await context.SaveChangesAsync();
+            }
+
+            var executor = await services
+                .GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
+
+            // act
+            // the workspaces relation carries a variable based @include directive, which makes
+            // the child selection conditional. when included, the relation must be projected and
+            // present in the SQL. when excluded, the relation must not be projected (no over-fetch).
+            var result = await executor.ExecuteAsync(
+                OperationRequestBuilder.New()
+                    .SetDocument(
+                        """
+                        query($if: Boolean!) {
+                          tenants {
+                            id
+                            workspaces @include(if: $if) {
+                              id
+                            }
+                          }
+                        }
+                        """)
+                    .SetVariableValues(new Dictionary<string, object?> { ["if"] = include })
+                    .Build());
+
+            // assert
+            await new Snapshot(postFix: include ? "include_true" : "include_false")
+                .Add(result, "Result")
+                .Add(sqlCapture.Sql ?? "<none>", "SQL")
+                .MatchMarkdownAsync();
+        }
+        finally
+        {
+            if (File.Exists(dbFile))
+            {
+                File.Delete(dbFile);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task AsSelector_Should_Project_Child_When_Parent_Include_Is_True()
+    {
+        // arrange
+        var dbFile = System.IO.Path.Combine(
+            System.IO.Path.GetTempPath(),
+            $"conditional-projection-{Guid.NewGuid():N}.db");
+        var connectionString = $"Data Source={dbFile}";
+
+        try
+        {
+            var sqlCapture = new ConditionalSqlCapture();
+
+            await using var services = new ServiceCollection()
+                .AddSingleton(sqlCapture)
+                .AddDbContext<ConditionalDbContext>(b => b.UseSqlite(connectionString))
+                .AddGraphQL()
+                .AddQueryType<ConditionalQuery>()
+                .AddType<ConditionalTenantType>()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .Services
+                .BuildServiceProvider();
+
+            await using (var scope = services.CreateAsyncScope())
+            {
+                await using var context = scope.ServiceProvider.GetRequiredService<ConditionalDbContext>();
+                await context.Database.EnsureCreatedAsync();
+
+                context.Tenants.Add(
+                    new ConditionalTenant
+                    {
+                        Id = 1,
+                        Name = "Acme",
+                        Workspaces =
+                        [
+                            new ConditionalWorkspace { Id = 1, Name = "Alpha" },
+                            new ConditionalWorkspace { Id = 2, Name = "Beta" }
+                        ]
+                    });
+
+                await context.SaveChangesAsync();
+            }
+
+            var executor = await services
+                .GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
+
+            // act
+            // the parent field carries a variable based @include directive, which makes the
+            // selection conditional. the unconditional workspaces child inherits the parent's
+            // path include-flag and must still be projected (relation present in the SQL).
+            var result = await executor.ExecuteAsync(
+                OperationRequestBuilder.New()
+                    .SetDocument(
+                        """
+                        query($if: Boolean!) {
+                          tenants @include(if: $if) {
+                            id
+                            workspaces {
+                              id
+                            }
+                          }
+                        }
+                        """)
+                    .SetVariableValues(new Dictionary<string, object?> { ["if"] = true })
+                    .Build());
+
+            // assert
+            await new Snapshot()
+                .Add(result, "Result")
+                .Add(sqlCapture.Sql ?? "<none>", "SQL")
+                .MatchMarkdownAsync();
+        }
+        finally
+        {
+            if (File.Exists(dbFile))
+            {
+                File.Delete(dbFile);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task AsSelector_Should_Not_Invoke_Resolver_When_Parent_Include_Is_False()
+    {
+        // arrange
+        var dbFile = System.IO.Path.Combine(
+            System.IO.Path.GetTempPath(),
+            $"conditional-projection-{Guid.NewGuid():N}.db");
+        var connectionString = $"Data Source={dbFile}";
+
+        try
+        {
+            var sqlCapture = new ConditionalSqlCapture();
+
+            await using var services = new ServiceCollection()
+                .AddSingleton(sqlCapture)
+                .AddDbContext<ConditionalDbContext>(b => b.UseSqlite(connectionString))
+                .AddGraphQL()
+                .AddQueryType<ConditionalQuery>()
+                .AddType<ConditionalTenantType>()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .Services
+                .BuildServiceProvider();
+
+            await using (var scope = services.CreateAsyncScope())
+            {
+                await using var context = scope.ServiceProvider.GetRequiredService<ConditionalDbContext>();
+                await context.Database.EnsureCreatedAsync();
+
+                context.Tenants.Add(
+                    new ConditionalTenant
+                    {
+                        Id = 1,
+                        Name = "Acme",
+                        Workspaces =
+                        [
+                            new ConditionalWorkspace { Id = 1, Name = "Alpha" },
+                            new ConditionalWorkspace { Id = 2, Name = "Beta" }
+                        ]
+                    });
+
+                await context.SaveChangesAsync();
+            }
+
+            var executor = await services
+                .GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
+
+            // act
+            // the parent field is excluded at the top level, so the resolver is never invoked
+            // and the tenants field is absent from the result.
+            var result = await executor.ExecuteAsync(
+                OperationRequestBuilder.New()
+                    .SetDocument(
+                        """
+                        query($if: Boolean!) {
+                          tenants @include(if: $if) {
+                            id
+                            workspaces {
+                              id
+                            }
+                          }
+                        }
+                        """)
+                    .SetVariableValues(new Dictionary<string, object?> { ["if"] = false })
+                    .Build());
+
+            // assert
+            var operationResult = result.ExpectOperationResult();
+            using var document = JsonDocument.Parse(operationResult.ToJson());
+            Assert.Empty(operationResult.Errors ?? []);
+            Assert.Null(sqlCapture.Sql);
+            Assert.False(
+                document.RootElement.GetProperty("data").TryGetProperty("tenants", out _),
+                operationResult.ToJson());
+        }
+        finally
+        {
+            if (File.Exists(dbFile))
+            {
+                File.Delete(dbFile);
+            }
+        }
+    }
+
     public class ConstructorInjectionQuery
     {
         [UseProjection]
@@ -796,5 +1048,55 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     public class SingleOrDefaultActiveUser : SingleOrDefaultUser
     {
         public bool IsActive { get; set; }
+    }
+
+    public sealed class ConditionalSqlCapture
+    {
+        public string? Sql { get; set; }
+    }
+
+    public sealed class ConditionalQuery
+    {
+        public IQueryable<ConditionalTenant> GetTenants(
+            ConditionalDbContext database,
+            IResolverContext context,
+            [Service] ConditionalSqlCapture sqlCapture)
+        {
+            var selection = context.Selection;
+            var query = database.Tenants.Select(selection.AsSelector<ConditionalTenant>(context.IncludeFlags));
+            sqlCapture.Sql = query.ToQueryString();
+            return query;
+        }
+    }
+
+    public sealed class ConditionalTenantType : ObjectType<ConditionalTenant>
+    {
+        protected override void Configure(IObjectTypeDescriptor<ConditionalTenant> descriptor)
+        {
+            descriptor.Field(t => t.Name).Ignore();
+        }
+    }
+
+    public sealed class ConditionalDbContext(DbContextOptions<ConditionalDbContext> options) : DbContext(options)
+    {
+        public DbSet<ConditionalTenant> Tenants => Set<ConditionalTenant>();
+
+        public DbSet<ConditionalWorkspace> Workspaces => Set<ConditionalWorkspace>();
+    }
+
+    public sealed class ConditionalTenant
+    {
+        public int Id { get; set; }
+
+        public required string Name { get; set; }
+
+        public List<ConditionalWorkspace> Workspaces { get; set; } = [];
+    }
+
+    public sealed class ConditionalWorkspace
+    {
+        public int Id { get; set; }
+
+        public required string Name { get; set; }
     }
 }

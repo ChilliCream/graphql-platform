@@ -78,7 +78,13 @@ public static class HotChocolateExecutionSelectionExtensions
         this Selection selection,
         ulong includeFlags)
     {
-        var isConditional = selection.IsConditional;
+        // When the operation contains @skip/@include directives, the runtime include flags
+        // are non-zero and the projection can depend on them (either on the selection itself
+        // or on any of its descendants). In that case we must build a fresh expression with
+        // the provided flags and must not reuse the flag-agnostic cached expression.
+        // When no conditional directives are present the flags are zero and the projection
+        // is stable, so we can use the cached expression.
+        var isConditional = includeFlags != 0;
 
         // we first check if we already have an expression for this selection,
         // this would be the cheapest way to get the expression.
