@@ -52,7 +52,14 @@ internal sealed class ImplementedByInaccessibleRule
 
             foreach (var interfaceField in accessibleInterfaceFields)
             {
-                var field = type.Fields[interfaceField.Name];
+                // The implementing type may not provide every field of the interface, for example
+                // when two source schemas contribute different fields to the same-named interface.
+                // The unimplemented field is reported by InterfaceFieldNoImplementationRule, so it
+                // is skipped here.
+                if (!type.Fields.TryGetField(interfaceField.Name, out var field))
+                {
+                    continue;
+                }
 
                 if (field.HasFusionInaccessibleDirective()
                     || type.HasFusionInaccessibleDirective())
