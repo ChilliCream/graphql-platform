@@ -18,7 +18,6 @@
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
   </PropertyGroup>
 
-
   <PropertyGroup>
     <Authors>ChilliCream authors and contributors</Authors>
     <Company>ChilliCream Inc.</Company>
@@ -44,4 +43,5 @@
     <None Include="$(MSBuildThisFileDirectory)..\website\static\resources\hotchocolate-icon.png" Pack="true" PackagePath="hotchocolate-icon.png" Visible="false" />
     <None Include="$(MSBuildThisFileDirectory)..\LICEN*" Pack="true" PackagePath="" Visible="false" />
   </ItemGroup>
+
 </Project>
