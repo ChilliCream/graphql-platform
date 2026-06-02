@@ -244,4 +244,10 @@ public interface IReadOnlySchemaOptions
     /// Applies the @serializeAs directive to scalar types that specify a serialization format.
     /// </summary>
     bool ApplySerializeAsToScalars { get; }
+
+    /// <summary>
+    /// Infers @key directives from the arguments of @lookup fields so that the published
+    /// source schema describes the entity keys that the lookups resolve.
+    /// </summary>
+    bool InferKeysFromLookups { get; }
 }
