@@ -308,3 +308,61 @@ public sealed class TagOwnFieldsAttribute : ObjectTypeDescriptorAttribute
             });
     }
 }
+
+public class PrefixOwnFieldsProbe
+{
+    public required string Id { get; set; }
+}
+
+[ObjectType<PrefixOwnFieldsProbe>]
+[PrefixOwnFields("a_")]
+public static partial class PrefixOwnFieldsProbeTypeA
+{
+    public static string FromPartialA() => "a";
+}
+
+[ObjectType<PrefixOwnFieldsProbe>]
+public static partial class PrefixOwnFieldsProbeTypeB
+{
+    public static string FromPartialB() => "b";
+}
+
+// Renames only the fields that were declared on the partial this attribute sits on.
+// The attribute provider (the type passed to OnConfigure) is the partial itself,
+// so the invariant field.DeclaringType == attributeProvider selects exactly the
+// fields this partial contributed to the merged object type configuration.
+public sealed class PrefixOwnFieldsAttribute(string prefix) : ObjectTypeDescriptorAttribute
+{
+    public string Prefix { get; } = prefix;
+
+    protected override void OnConfigure(
+        IDescriptorContext context,
+        IObjectTypeDescriptor descriptor,
+        Type? type)
+    {
+        if (type is null)
+        {
+            return;
+        }
+
+        var attributeProvider = type;
+        var capturedPrefix = Prefix;
+        descriptor
+            .Extend()
+            .OnBeforeNaming((_, cfg) =>
+            {
+                if (cfg is not ObjectTypeConfiguration objectConfig)
+                {
+                    return;
+                }
+
+                foreach (var field in objectConfig.Fields)
+                {
+                    if (field.DeclaringType == attributeProvider)
+                    {
+                        field.Name = capturedPrefix + field.Name;
+                    }
+                }
+            });
+    }
+}

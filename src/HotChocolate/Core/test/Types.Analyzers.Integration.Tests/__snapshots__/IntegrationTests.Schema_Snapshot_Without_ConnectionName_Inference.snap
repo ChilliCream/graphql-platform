@@ -216,6 +216,12 @@ type PageInfo {
   endCursor: String
 }
 
+type PrefixOwnFieldsProbe {
+  a_fromPartialA: String!
+  fromPartialB: String!
+  id: String!
+}
+
 "A connection to a list of items."
 type ProductConnection {
   "Information to aid in pagination."
