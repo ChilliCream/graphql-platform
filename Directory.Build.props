@@ -14,14 +14,11 @@
     <RepositoryUrl>https://github.com/ChilliCream/graphql-platform.git</RepositoryUrl>
   </PropertyGroup>
 
+  <ItemGroup Condition="'$(PackageIcon)' != ''">
+    <None Include="$(MSBuildThisFileDirectory)website\static\resources\$(PackageIcon)" Pack="true" PackagePath="$(PackageIcon)" Visible="false" />
+  </ItemGroup>
+
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)website\static\resources\cookiecrumble-icon.png" Pack="true" PackagePath="cookiecrumble-icon.png" Visible="false" />
-    <None Include="$(MSBuildThisFileDirectory)website\static\resources\fusion-icon.png" Pack="true" PackagePath="fusion-icon.png" Visible="false" />
-    <None Include="$(MSBuildThisFileDirectory)website\static\resources\greendonut-icon.png" Pack="true" PackagePath="greendonut-icon.png" Visible="false" />
-    <None Include="$(MSBuildThisFileDirectory)website\static\resources\hotchocolate-icon.png" Pack="true" PackagePath="hotchocolate-icon.png" Visible="false" />
-    <None Include="$(MSBuildThisFileDirectory)website\static\resources\mocha-icon.png" Pack="true" PackagePath="mocha-icon.png" Visible="false" />
-    <None Include="$(MSBuildThisFileDirectory)website\static\resources\nitro-icon.png" Pack="true" PackagePath="nitro-icon.png" Visible="false" />
-    <None Include="$(MSBuildThisFileDirectory)website\static\resources\strawberryshake-icon.png" Pack="true" PackagePath="strawberryshake-icon.png" Visible="false" />
     <None Include="$(MSBuildThisFileDirectory)LICEN*" Pack="true" PackagePath="" Visible="false" />
   </ItemGroup>
 </Project>
