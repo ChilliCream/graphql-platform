@@ -22,8 +22,8 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
               nitro fusion settings set <SETTING_NAME> <SETTING_VALUE> [options]
 
             Arguments:
-              <cache-control-merge-behavior|exclude-by-tag|global-object-identification|tag-merge-behavior>  The name of the setting to change
-              <SETTING_VALUE>                                                                                The value to set
+              <cache-control-merge-behavior|disable-shareable-validation|exclude-by-tag|global-object-identification|tag-merge-behavior>  The name of the setting to change
+              <SETTING_VALUE>                                                                                                             The value to set
 
             Options:
               -a, --archive, --configuration <archive> (REQUIRED)  The path to a Fusion archive file (the '--configuration' alias is deprecated) [env: NITRO_FUSION_CONFIG_FILE]
@@ -88,6 +88,7 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
             """
             Argument 'nonexistent-setting' not recognized. Must be one of:
             'cache-control-merge-behavior'
+            'disable-shareable-validation'
             'exclude-by-tag'
             'global-object-identification'
             'tag-merge-behavior'
@@ -196,6 +197,32 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
         result.AssertError(
             """
             Expected a boolean value for setting 'global-object-identification'.
+            """);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task InvalidDisableShareableValidation_ReturnsError(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "settings",
+            "set",
+            "disable-shareable-validation",
+            "not-a-bool",
+            "--archive",
+            ArchiveFile);
+
+        // assert
+        result.AssertError(
+            """
+            Expected a boolean value for setting 'disable-shareable-validation'.
             """);
     }
 }

@@ -47,6 +47,7 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
               --watch                                        Watch for file changes and recompose automatically
               -w, --working-directory <working-directory>    Set the working directory for the command
               --exclude-by-tag <exclude-by-tag>              One or more tags to exclude from the composition
+              --disable-shareable-validation                 Disable shareable validation by automatically marking fields resolvable by multiple source schemas as shareable
               --cloud-url <cloud-url>                        The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
               --api-key <api-key>                            The API key used for authentication [env: NITRO_API_KEY]
               --output <json>                                The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]

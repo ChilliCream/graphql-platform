@@ -27,6 +27,8 @@ internal sealed record CompositionSettings
 
     internal sealed record PreprocessorSettings
     {
+        public bool? DisableShareableValidation { get; set; }
+
         public HashSet<string>? ExcludeByTag { get; set; }
     }
 

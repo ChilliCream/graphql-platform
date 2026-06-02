@@ -30,6 +30,9 @@ internal static class SettingsExtensions
                 },
                 Preprocessor = new CompositionSettings.PreprocessorSettings
                 {
+                    DisableShareableValidation =
+                        compositionSettings.Preprocessor.DisableShareableValidation
+                        ?? settings.Preprocessor.DisableShareableValidation,
                     ExcludeByTag =
                         compositionSettings.Preprocessor.ExcludeByTag
                         ?? settings.Preprocessor.ExcludeByTag
@@ -51,6 +54,11 @@ internal static class SettingsExtensions
             if (preprocessorSettings.ExcludeByTag is { } excludeByTag)
             {
                 preprocessorOptions.ExcludeByTag.UnionWith(excludeByTag);
+            }
+
+            if (preprocessorSettings.DisableShareableValidation is { } disableShareableValidation)
+            {
+                preprocessorOptions.InferShareable = disableShareableValidation;
             }
         }
     }

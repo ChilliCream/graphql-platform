@@ -76,16 +76,17 @@ nitro fusion compose [options]
 
 ## Options
 
-| Option                                        | Description                                     | Default                                                      |
-| --------------------------------------------- | ----------------------------------------------- | ------------------------------------------------------------ |
-| `--source-schema-file <path>` (alias: `-f`)   | Path to a source schema file. Can be repeated.  | Auto-discovers `*.graphql`/`*.graphqls` in working directory |
-| `--archive <path>` (alias: `-a`)              | Output path for the Fusion archive              | `./gateway.far`                                              |
-| `--environment <name>` (alias: `--env`, `-e`) | Environment name for variable substitution      | `ASPNETCORE_ENVIRONMENT` or `Development`                    |
-| `--enable-global-object-identification`       | Enable Relay-style global object identification | `false`                                                      |
-| `--include-satisfiability-paths`              | Include satisfiability diagnostic paths         | `false`                                                      |
-| `--watch`                                     | Recompose on file changes                       | `false`                                                      |
-| `--exclude-by-tag <tag>`                      | Exclude fields/types by tag. Can be repeated.   | --                                                           |
-| `--working-directory <path>` (alias: `-w`)    | Working directory for resolving paths           | Current directory                                            |
+| Option                                        | Description                                                                                                     | Default                                                      |
+| --------------------------------------------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| `--source-schema-file <path>` (alias: `-f`)   | Path to a source schema file. Can be repeated.                                                                  | Auto-discovers `*.graphql`/`*.graphqls` in working directory |
+| `--archive <path>` (alias: `-a`)              | Output path for the Fusion archive                                                                              | `./gateway.far`                                              |
+| `--environment <name>` (alias: `--env`, `-e`) | Environment name for variable substitution                                                                      | `ASPNETCORE_ENVIRONMENT` or `Development`                    |
+| `--enable-global-object-identification`       | Enable Relay-style global object identification                                                                 | `false`                                                      |
+| `--include-satisfiability-paths`              | Include satisfiability diagnostic paths                                                                         | `false`                                                      |
+| `--watch`                                     | Recompose on file changes                                                                                       | `false`                                                      |
+| `--exclude-by-tag <tag>`                      | Exclude fields/types by tag. Can be repeated.                                                                   | --                                                           |
+| `--disable-shareable-validation`              | Skip `@shareable` validation by automatically marking fields resolvable by multiple source schemas as shareable | `false`                                                      |
+| `--working-directory <path>` (alias: `-w`)    | Working directory for resolving paths                                                                           | Current directory                                            |
 
 Each `.graphqls` file must have a companion `-settings.json` file (for example, `schema.graphqls` requires `schema-settings.json`). If no `--source-schema-file` is specified, the CLI scans the working directory for all `.graphql` and `.graphqls` files.
 
@@ -383,12 +384,13 @@ nitro fusion settings set <SETTING_NAME> <SETTING_VALUE> [options]
 
 ## Available Settings
 
-| Setting                        | Values                                 | Description                             |
-| ------------------------------ | -------------------------------------- | --------------------------------------- |
-| `global-object-identification` | `true`, `false`                        | Enable Relay-style node queries         |
-| `cache-control-merge-behavior` | `ignore`, `include`, `include-private` | How to merge `@cacheControl` directives |
-| `tag-merge-behavior`           | `ignore`, `include`, `include-private` | How to merge `@tag` directives          |
-| `exclude-by-tag`               | Comma-separated tags                   | Exclude fields/types by tag             |
+| Setting                        | Values                                 | Description                                                                                                     |
+| ------------------------------ | -------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `global-object-identification` | `true`, `false`                        | Enable Relay-style node queries                                                                                 |
+| `cache-control-merge-behavior` | `ignore`, `include`, `include-private` | How to merge `@cacheControl` directives                                                                         |
+| `tag-merge-behavior`           | `ignore`, `include`, `include-private` | How to merge `@tag` directives                                                                                  |
+| `exclude-by-tag`               | Comma-separated tags                   | Exclude fields/types by tag                                                                                     |
+| `disable-shareable-validation` | `true`, `false`                        | Skip `@shareable` validation by automatically marking fields resolvable by multiple source schemas as shareable |
 
 ## Examples
 
@@ -408,6 +410,12 @@ Exclude tagged fields:
 
 ```shell
 nitro fusion settings set exclude-by-tag experimental,internal-only --archive gateway.far
+```
+
+Disable shareable validation:
+
+```shell
+nitro fusion settings set disable-shareable-validation true --archive gateway.far
 ```
 
 # nitro fusion upload
