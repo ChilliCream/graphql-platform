@@ -9,6 +9,7 @@ namespace HotChocolate.Execution
     internal class BatchOperationHandler
         : IDisposable
     {
+        private readonly object _processSyncLock = new object();
         private readonly SemaphoreSlim _processSync = new SemaphoreSlim(0, 1);
         private readonly SemaphoreSlim _touchedSync = new SemaphoreSlim(1, 1);
         private readonly IBatchOperation[] _batchOperations;
@@ -131,19 +132,25 @@ namespace HotChocolate.Execution
 
         private void ReleaseProcessSyncIfNeeded()
         {
-            try
+            // This can be invoked from task continuations and batch-size
+            // callbacks that run on thread-pool threads after the operation has
+            // completed. Hold _processSyncLock so the semaphore cannot be
+            // disposed mid-release: without this, Dispose() can null the
+            // semaphore's internal lock between SemaphoreSlim's dispose check
+            // and its Monitor.Pulse call, surfacing as an ArgumentNullException
+            // ("obj") on a background thread, which tears down the process on
+            // the .NET Framework.
+            lock (_processSyncLock)
             {
-                lock (_processSync)
+                if (_disposed)
                 {
-                    if (_processSync.CurrentCount == 0)
-                    {
-                        _processSync.Release();
-                    }
+                    return;
                 }
-            }
-            catch (ObjectDisposedException)
-            {
-                // the batch is disposed so we are doing nothing here.
+
+                if (_processSync.CurrentCount == 0)
+                {
+                    _processSync.Release();
+                }
             }
         }
 
@@ -206,20 +213,27 @@ namespace HotChocolate.Execution
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!_disposed)
+            // Take the same lock ReleaseProcessSyncIfNeeded uses and flip
+            // _disposed before disposing the semaphore, so any in-flight or
+            // queued release observes _disposed == true and bails out instead
+            // of racing the disposal of _processSync.
+            lock (_processSyncLock)
             {
-                if (disposing)
+                if (!_disposed)
                 {
-                    _processSync.Dispose();
-                    _touchedSync.Dispose();
-
-                    foreach (IBatchOperation batchOperation in _batchOperations)
+                    if (disposing)
                     {
-                        batchOperation.BufferedRequests -= BatchSizeIncreased;
-                    }
-                }
+                        _processSync.Dispose();
+                        _touchedSync.Dispose();
 
-                _disposed = true;
+                        foreach (IBatchOperation batchOperation in _batchOperations)
+                        {
+                            batchOperation.BufferedRequests -= BatchSizeIncreased;
+                        }
+                    }
+
+                    _disposed = true;
+                }
             }
         }
 
