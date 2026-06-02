@@ -83,6 +83,7 @@ namespace TestNamespace
                         typeInspector.GetTypeRef(typeof(int), HotChocolate.Types.TypeContext.Output),
                         new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("int")));
                     configuration.ResultType = typeof(int);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
 
@@ -201,7 +202,7 @@ Assembly Emit Diagnostics
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "Query.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (106,37)-(106,74)",
+    "Location": "Query.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (107,37)-(107,74)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0718)",
     "MessageFormat": "'{0}': static types cannot be used as type arguments",
     "Message": "'Query': static types cannot be used as type arguments",

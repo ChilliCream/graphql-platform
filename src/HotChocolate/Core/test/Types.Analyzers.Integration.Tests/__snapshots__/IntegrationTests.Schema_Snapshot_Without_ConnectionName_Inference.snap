@@ -42,8 +42,8 @@ type Query {
   isSelectedTest: IsSelectedNode!
   """
   Gets the product.
-
-
+  
+  
   **Returns:**
   The only product.
   """
@@ -166,6 +166,13 @@ type BookEdge {
   cursor: String!
   "The item at the end of the edge."
   node: Book!
+}
+
+type DeclaringTypeProbe {
+  "tagged"
+  fromPartialA: String!
+  fromPartialB: String!
+  id: String!
 }
 
 "A connection to a list of items."

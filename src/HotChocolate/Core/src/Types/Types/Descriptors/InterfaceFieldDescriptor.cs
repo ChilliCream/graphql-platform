@@ -42,6 +42,7 @@ public class InterfaceFieldDescriptor
         var naming = context.Naming;
 
         Configuration.Member = member ?? throw new ArgumentNullException(nameof(member));
+        Configuration.DeclaringType = member.ReflectedType ?? member.DeclaringType;
         Configuration.Name = naming.GetMemberName(member, MemberKind.InterfaceField);
         Configuration.Description = naming.GetMemberDescription(member, MemberKind.InterfaceField);
         Configuration.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
@@ -250,6 +251,7 @@ public class InterfaceFieldDescriptor
 
             Configuration.ResolverType = resolverType;
             Configuration.ResolverMember = propertyOrMethod;
+            Configuration.DeclaringType = propertyOrMethod.ReflectedType ?? propertyOrMethod.DeclaringType;
             Configuration.Resolver = null;
             Configuration.ResultType = propertyOrMethod.GetReturnType();
 
@@ -311,6 +313,7 @@ public class InterfaceFieldDescriptor
             TypeContext.Output);
         Configuration.ResolverType = resolverType;
         Configuration.ResolverMember = propertyOrMethod;
+        Configuration.DeclaringType = propertyOrMethod.ReflectedType ?? propertyOrMethod.DeclaringType;
         Configuration.Resolver = null;
         Configuration.ResultType = elementType;
 

@@ -225,6 +225,13 @@ type BooksEdge {
   node: Book!
 }
 
+type DeclaringTypeProbe {
+  "tagged"
+  fromPartialA: String!
+  fromPartialB: String!
+  id: String!
+}
+
 "A connection to a list of items."
 type FavoriteBooksConnection {
   "Information to aid in pagination."
