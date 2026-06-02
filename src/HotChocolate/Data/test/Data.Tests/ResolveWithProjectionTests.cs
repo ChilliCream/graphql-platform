@@ -96,6 +96,56 @@ public class ResolveWithProjectionTests
             """);
     }
 
+    [Fact]
+    public async Task AsSelector_Should_Project_Child_When_Parent_Has_Variable_Include()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<AsSelectorQuery>()
+            .AddType<TenantType>()
+            .BuildRequestExecutorAsync();
+
+        // act
+        // the parent field carries a variable based @include directive, which makes
+        // the selection conditional. the projected children must still be selected.
+        var result = await executor.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(
+                    """
+                    query($if: Boolean!) {
+                      tenants @include(if: $if) {
+                        workspaces {
+                          id
+                        }
+                      }
+                    }
+                    """)
+                .SetVariableValues(new Dictionary<string, object?> { ["if"] = true })
+                .Build());
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "tenants": [
+                  {
+                    "workspaces": [
+                      {
+                        "id": 2
+                      },
+                      {
+                        "id": 4
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
     public class Query
     {
         [UseProjection]
