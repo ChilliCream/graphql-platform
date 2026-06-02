@@ -33,7 +33,7 @@ sourceSchemas:
         productById(id: Int!): Product @lookup
       }
 
-      type Product {
+      type Product @key(fields: "id") {
         name: String!
         id: Int!
       }
