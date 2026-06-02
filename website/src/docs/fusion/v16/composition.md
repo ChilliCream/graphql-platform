@@ -103,6 +103,8 @@ Composition emits one diagnostic per non-shareable definition, so both source sc
 
 Add `@shareable` to `User.name` in both source schemas that define it. See [Field Ownership](/docs/fusion/v16/field-ownership-and-sharing) for when sharing is appropriate.
 
+If you do not want to mark shared fields manually, you can set the per-source-schema `preprocessor.inferShareable` option in that schema's `schema-settings.json` to `true`. When enabled, the composition automatically marks every field on that source schema that is also exposed by other source schemas as `@shareable`. Only enable `inferShareable`, if there are other processes in place that ensure fields are semantically the same across source schemas.
+
 **`@key` references a field that does not exist on the type.** A `@key(fields: "sku")` on a type that has no `sku` field fails with `KEY_INVALID_FIELDS`. The fix is to either add the missing field to the type or correct the selection set in the `@key` directive. See [Entities and Lookups](/docs/fusion/v16/entities-and-lookups) for the rules around key selection sets.
 
 ## Log Codes Reference
