@@ -98,6 +98,25 @@ public class InterfaceFieldDescriptor
                 _parameterInfos,
                 definition.GetParameterExpressionBuilders(),
                 IsBatchResolver());
+
+            // Mirror ObjectFieldDescriptor so interface-declared [Parent(requires:)] resolvers still register requirements once inherited by the implementing object type.
+            foreach (var parameter in _parameterInfos)
+            {
+                if (!parameter.IsDefined(typeof(ParentAttribute)))
+                {
+                    continue;
+                }
+
+                var requirements = parameter.GetCustomAttribute<ParentAttribute>()?.Requires;
+                if (!(requirements?.Length > 0))
+                {
+                    continue;
+                }
+
+                Configuration.Flags |= CoreFieldFlags.WithRequirements;
+                Configuration.Features.Set(new FieldRequirementFeature(requirements, parameter.ParameterType));
+            }
+
             _argumentsInitialized = true;
         }
     }
