@@ -568,6 +568,12 @@ Per-environment variable substitutions. The active environment is selected via t
 
 When composing with `--environment staging`, all `{{API_URL}}` placeholders resolve to the staging URL.
 
+### `preprocessor.inferShareable`
+
+**Type:** `boolean` (optional, defaults to `false`)
+
+When `true`, composition automatically marks every field on this source schema that is resolvable by multiple source schemas as `@shareable`, skipping `INVALID_FIELD_SHARING` validation. Fields that are part of a `@key`, marked `@internal` or `@inaccessible`, or defined on the subscription type are not marked automatically.
+
 # Environment Variables
 
 The Nitro CLI reads these environment variables as defaults for their corresponding options.
