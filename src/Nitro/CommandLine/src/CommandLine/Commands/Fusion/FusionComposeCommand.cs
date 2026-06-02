@@ -21,7 +21,6 @@ internal sealed class FusionComposeCommand : Command
         Options.Add(Opt<WatchModeOption>.Instance);
         Options.Add(Opt<WorkingDirectoryOption>.Instance);
         Options.Add(Opt<OptionalExcludeTagListOption>.Instance);
-        Options.Add(Opt<DisableShareableValidationOption>.Instance);
 
         this.AddGlobalNitroOptions();
 
@@ -57,8 +56,6 @@ internal sealed class FusionComposeCommand : Command
             Opt<IncludeSatisfiabilityPathsOption>.Instance);
         var watchMode = parseResult.GetValue(Opt<WatchModeOption>.Instance);
         var tagsToExclude = parseResult.GetValue(Opt<OptionalExcludeTagListOption>.Instance);
-        var disableShareableValidation = parseResult.GetValue(
-            Opt<DisableShareableValidationOption>.Instance);
         archiveFile ??= workingDirectory;
 
         if (fileSystem.DirectoryExists(archiveFile))
@@ -101,7 +98,6 @@ internal sealed class FusionComposeCommand : Command
                 enableGlobalObjectIdentification,
                 includeSatisfiabilityPaths,
                 tagsToExclude,
-                disableShareableValidation,
                 cancellationToken);
         }
 
@@ -125,8 +121,7 @@ internal sealed class FusionComposeCommand : Command
                 },
                 Preprocessor = new CompositionSettings.PreprocessorSettings
                 {
-                    ExcludeByTag = tagsToExclude?.ToHashSet(),
-                    DisableShareableValidation = disableShareableValidation
+                    ExcludeByTag = tagsToExclude?.ToHashSet()
                 }
             },
             cancellationToken);
@@ -143,7 +138,6 @@ internal sealed class FusionComposeCommand : Command
         bool? enableGlobalObjectIdentification,
         bool? includeSatisfiabilityPaths,
         List<string>? tagsToExclude,
-        bool? disableShareableValidation,
         CancellationToken cancellationToken)
     {
         console.WriteLine("🔍 Starting watch mode...");
@@ -169,8 +163,7 @@ internal sealed class FusionComposeCommand : Command
                 },
                 Preprocessor = new CompositionSettings.PreprocessorSettings
                 {
-                    ExcludeByTag = tagsToExclude?.ToHashSet(),
-                    DisableShareableValidation = disableShareableValidation
+                    ExcludeByTag = tagsToExclude?.ToHashSet()
                 }
             },
             cancellationToken);
@@ -199,7 +192,6 @@ internal sealed class FusionComposeCommand : Command
             enableGlobalObjectIdentification,
             includeSatisfiabilityPaths,
             tagsToExclude,
-            disableShareableValidation,
             cancellationToken);
 
         var sourceSchemaFileWatchers = new List<FileSystemWatcher>();
@@ -331,7 +323,6 @@ internal sealed class FusionComposeCommand : Command
         bool? enableGlobalObjectIdentification,
         bool? includeSatisfiabilityPaths,
         List<string>? tagsToExclude,
-        bool? disableShareableValidation,
         CancellationToken cancellationToken)
     {
         var lastComposition = DateTime.MinValue;
@@ -377,8 +368,7 @@ internal sealed class FusionComposeCommand : Command
                         },
                         Preprocessor = new CompositionSettings.PreprocessorSettings
                         {
-                            ExcludeByTag = tagsToExclude?.ToHashSet(),
-                            DisableShareableValidation = disableShareableValidation
+                            ExcludeByTag = tagsToExclude?.ToHashSet()
                         }
                     },
                     cancellationToken);

@@ -66,15 +66,6 @@ internal sealed class FusionSettingsSetCommand : Command
                 compositionSettings.Merger.CacheControlMergeBehavior = cacheControlMergeBehavior;
                 break;
 
-            case FusionSettingsNameArgument.DisableShareableValidation:
-                if (!bool.TryParse(settingValue, out var disableShareableValidation))
-                {
-                    throw new ExitException($"Expected a boolean value for setting '{settingName}'.");
-                }
-
-                compositionSettings.Preprocessor.DisableShareableValidation = disableShareableValidation;
-                break;
-
             case FusionSettingsNameArgument.ExcludeByTag:
                 var tags = settingValue
                     .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
