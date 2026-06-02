@@ -1,6 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
-
   <PropertyGroup>
     <AssemblyName>Mocha.Transport.RabbitMQ</AssemblyName>
     <RootNamespace>Mocha.Transport.RabbitMQ</RootNamespace>
