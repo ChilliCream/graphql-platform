@@ -13,9 +13,10 @@ public class FileEntryBuilderTests
     {
         // arrange
         const string original = "q\" b\\ n\n ué";
+        using var writer = new ChunkedArrayWriter();
         var variables = CreateSegment(
-            $$"""{"file":"$.file(1)","text":{{JsonSerializer.Serialize(original)}}}""",
-            out var writer);
+            writer,
+            $$"""{"file":"$.file(1)","text":{{JsonSerializer.Serialize(original)}}}""");
         var fileLookup = new StubFileLookup("1");
 
         // act
@@ -34,9 +35,10 @@ public class FileEntryBuilderTests
         // arrange
         // The JSON key uses a \uXXXX escape sequence (t = 't'), making it an escaped
         // property name that must decode to the plain name "text".
+        using var writer = new ChunkedArrayWriter();
         var variables = CreateSegment(
-            "{\"\\u0074ext\":\"v\",\"file\":\"$.file(1)\"}",
-            out var writer);
+            writer,
+            "{\"\\u0074ext\":\"v\",\"file\":\"$.file(1)\"}");
         var fileLookup = new StubFileLookup("1");
 
         // act
@@ -47,9 +49,8 @@ public class FileEntryBuilderTests
         Assert.Equal("v", doc.RootElement.GetProperty("text").GetString());
     }
 
-    private static JsonSegment CreateSegment(string json, out ChunkedArrayWriter writer)
+    private static JsonSegment CreateSegment(ChunkedArrayWriter writer, string json)
     {
-        writer = new ChunkedArrayWriter();
         var startPosition = writer.Position;
         var bytes = Encoding.UTF8.GetBytes(json);
         var span = writer.GetSpan(bytes.Length);
