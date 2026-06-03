@@ -32,9 +32,18 @@ public static class SchemaHelper
         var globalEntityPatterns = new List<SelectionSetNode>();
         var typeEntityPatterns = new Dictionary<string, SelectionSetNode>(StringComparer.Ordinal);
 
+        // We collect all non-extension definitions into a single merged document
+        // to avoid HC0065 (duplicate type name) errors when the same type appears
+        // in multiple schema files (e.g., when glob patterns pick up overlapping files).
+        var mergedDefinitions = new Dictionary<string, IDefinitionNode>(StringComparer.Ordinal);
+        var nonNamedDefinitions = new List<IDefinitionNode>();
+        var registeredScalars = new HashSet<string>(StringComparer.Ordinal);
+
         foreach (var document in schemaFiles.Select(f => f.Document))
         {
-            if (document.Definitions.Any(t => t is ITypeSystemExtensionNode))
+            var hasExtensions = document.Definitions.Any(t => t is ITypeSystemExtensionNode);
+
+            if (hasExtensions)
             {
                 CollectScalarInfos(
                     document.Definitions.OfType<ScalarTypeExtensionNode>(),
@@ -57,28 +66,70 @@ public static class SchemaHelper
                         typeEntityPatterns);
                 }
             }
-            else
+
+            // Process non-extension type definitions from ALL documents
+            // (including mixed documents that contain both extensions and regular types).
+            foreach (var scalar in document.Definitions.OfType<ScalarTypeDefinitionNode>())
             {
-                foreach (var scalar in document.Definitions.OfType<ScalarTypeDefinitionNode>())
+                if (!BuiltInScalarNames.IsBuiltInScalar(scalar.Name.Value))
                 {
-                    if (!BuiltInScalarNames.IsBuiltInScalar(scalar.Name.Value))
+                    if (registeredScalars.Add(scalar.Name.Value))
                     {
                         builder.AddType(new AnyType(
                             scalar.Name.Value,
                             scalar.Description?.Value));
                     }
-                    else if (scalar.Name.Value == ScalarNames.Any)
-                    {
-                        builder.AddType(new AnyType());
-                    }
-                    else if (scalar.Name.Value == "JSON")
+                }
+                else if (scalar.Name.Value == ScalarNames.Any)
+                {
+                    if (registeredScalars.Add(scalar.Name.Value))
                     {
                         builder.AddType(new AnyType());
                     }
                 }
-
-                builder.AddDocument(document);
+                else if (scalar.Name.Value == "JSON")
+                {
+                    if (registeredScalars.Add(scalar.Name.Value))
+                    {
+                        builder.AddType(new AnyType());
+                    }
+                }
             }
+
+            // Collect non-extension type definitions, deduplicating by name
+            // to prevent HC0065 when the same type appears in multiple files.
+            foreach (var definition in document.Definitions)
+            {
+                if (definition is ITypeSystemExtensionNode)
+                {
+                    // Skip extension nodes - they are handled above
+                    continue;
+                }
+
+                if (definition is ScalarTypeDefinitionNode)
+                {
+                    // Skip scalar definitions - they are handled above via AddType
+                    continue;
+                }
+
+                if (definition is INamedSyntaxNode namedNode)
+                {
+                    // Keep first occurrence of each named type
+                    mergedDefinitions.TryAdd(namedNode.Name.Value, definition);
+                }
+                else
+                {
+                    nonNamedDefinitions.Add(definition);
+                }
+            }
+        }
+
+        // Add the merged document with deduplicated definitions
+        if (mergedDefinitions.Count > 0 || nonNamedDefinitions.Count > 0)
+        {
+            var allDefinitions = new List<IDefinitionNode>(
+                mergedDefinitions.Values.Concat(nonNamedDefinitions));
+            builder.AddDocument(new DocumentNode(allDefinitions));
         }
 
         AddDefaultScalarInfos(builder, leafTypes);
