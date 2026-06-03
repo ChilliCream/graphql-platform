@@ -10,6 +10,9 @@ public class ParentRequiresInterfaceProjectionTests
     [Fact]
     public async Task ParentRequires_Should_ProjectRequiredColumn_When_ResolverDeclaredOnInterface()
     {
+        // arrange
+        // displayName is derived from Name, but the query selects only displayName; Name
+        // must reach the projection via [Parent(requires:)], not through the selection set.
         var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryContext()
@@ -19,8 +22,7 @@ public class ParentRequiresInterfaceProjectionTests
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
             .BuildRequestExecutorAsync();
 
-        // displayName is derived from Name, but the query selects only displayName; Name
-        // must reach the projection via [Parent(requires:)], not through the selection set.
+        // act
         var result = await executor.ExecuteAsync(
             """
             {
@@ -30,6 +32,7 @@ public class ParentRequiresInterfaceProjectionTests
             }
             """);
 
+        // assert
         result.MatchInlineSnapshot(
             """
             {
@@ -47,6 +50,8 @@ public class ParentRequiresInterfaceProjectionTests
     [Fact]
     public async Task ParentRequires_Should_ProjectRequiredColumn_When_ResolverDeclaredOnObjectType()
     {
+        // arrange
+        // Same requirement, but declared directly on the object type (the path that already works).
         var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryContext()
@@ -55,7 +60,7 @@ public class ParentRequiresInterfaceProjectionTests
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
             .BuildRequestExecutorAsync();
 
-        // Same requirement, but declared directly on the object type (the path that already works).
+        // act
         var result = await executor.ExecuteAsync(
             """
             {
@@ -65,6 +70,47 @@ public class ParentRequiresInterfaceProjectionTests
             }
             """);
 
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "brands": [
+                  {
+                    "displayName": "Acme"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ParentRequires_Should_ProjectRequiredColumn_When_ObjectTypeRedeclaresInterfaceField()
+    {
+        // arrange
+        // The object type declares displayName itself but without a resolver, so it inherits the
+        // interface resolver through the field-merge path instead of receiving a copied field.
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryContext()
+            .AddQueryType<Query>()
+            .AddType<BrandInterfaceType>()
+            .AddType<BrandRedeclaredType>()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              brands {
+                displayName
+              }
+            }
+            """);
+
+        // assert
         result.MatchInlineSnapshot(
             """
             {
@@ -113,6 +159,20 @@ public class ParentRequiresInterfaceProjectionTests
         protected override void Configure(IObjectTypeDescriptor<Brand> descriptor)
         {
             descriptor.Implements<BrandInterfaceType>();
+        }
+    }
+
+    public class BrandRedeclaredType : ObjectType<Brand>
+    {
+        protected override void Configure(IObjectTypeDescriptor<Brand> descriptor)
+        {
+            descriptor.Implements<BrandInterfaceType>();
+
+            // displayName is declared here without its own resolver; the interface resolver and its
+            // [Parent(requires:)] requirement must be merged onto this already-declared field.
+            descriptor
+                .Field("displayName")
+                .Type<NonNullType<StringType>>();
         }
     }
 
