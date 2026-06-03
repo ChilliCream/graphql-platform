@@ -716,7 +716,7 @@ internal static class ExpressionHelpers
         public ReadOnlySpan<string> OrderMethods => CollectionsMarshal.AsSpan(orderMethods);
     }
 
-    private sealed class OrderByRemovalRewriter : ExpressionVisitor
+    private sealed class OrderByRemovalRewriter : QueryChainVisitor
     {
         private readonly List<LambdaExpression> _orderExpressions = [];
         private readonly List<string> _orderMethods = [];
@@ -747,11 +747,6 @@ internal static class ExpressionHelpers
 
             return base.VisitMethodCall(node);
         }
-
-        // order operations inside lambda arguments (predicates, projections, key selectors)
-        // belong to their operator and are never pagination orderings, so we do not descend
-        // into lambda bodies.
-        protected override Expression VisitLambda<T>(Expression<T> node) => node;
 
         private static Expression StripQuotes(Expression e)
         {
