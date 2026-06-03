@@ -125,6 +125,46 @@ public class ParentRequiresInterfaceProjectionTests
             """);
     }
 
+    [Fact]
+    public async Task ParentRequires_Should_ProjectRequiredColumn_When_DeclaredViaFluentApiOnInterface()
+    {
+        // arrange
+        // The requirement is declared through the fluent .ParentRequires<Brand>(...) on the interface
+        // field rather than the [Parent(requires:)] attribute; Name must still reach the projection.
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryContext()
+            .AddQueryType<Query>()
+            .AddType<BrandFluentInterfaceType>()
+            .AddType<BrandFluentType>()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              brands {
+                displayName
+              }
+            }
+            """);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "brands": [
+                  {
+                    "displayName": "Acme"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
     public interface IBrand
     {
         int Id { get; }
@@ -151,6 +191,33 @@ public class ParentRequiresInterfaceProjectionTests
                 .Field("displayName")
                 .Type<NonNullType<StringType>>()
                 .ResolveWith<BrandResolvers>(r => r.GetDisplayName(default!));
+        }
+    }
+
+    public class BrandFluentResolvers
+    {
+        public string GetDisplayName([Parent] Brand brand)
+            => brand.Name;
+    }
+
+    public class BrandFluentInterfaceType : InterfaceType<IBrand>
+    {
+        protected override void Configure(IInterfaceTypeDescriptor<IBrand> descriptor)
+        {
+            // The requirement is supplied via the fluent ParentRequires API, not the attribute.
+            descriptor
+                .Field("displayName")
+                .Type<NonNullType<StringType>>()
+                .ParentRequires<Brand>(nameof(Brand.Name))
+                .ResolveWith<BrandFluentResolvers>(r => r.GetDisplayName(default!));
+        }
+    }
+
+    public class BrandFluentType : ObjectType<Brand>
+    {
+        protected override void Configure(IObjectTypeDescriptor<Brand> descriptor)
+        {
+            descriptor.Implements<BrandFluentInterfaceType>();
         }
     }
 

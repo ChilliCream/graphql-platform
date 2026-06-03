@@ -158,8 +158,8 @@ public partial class ObjectType
                     && (interfaceField.Flags & CoreFieldFlags.WithRequirements) == CoreFieldFlags.WithRequirements
                     && (field.Flags & CoreFieldFlags.WithRequirements) != CoreFieldFlags.WithRequirements)
                 {
-                    field.Flags |= CoreFieldFlags.WithRequirements;
-                    field.Features.Set(interfaceField.Features.GetRequired<FieldRequirementFeature>());
+                    var requirements = interfaceField.Features.GetRequired<FieldRequirementFeature>();
+                    field.SetFieldRequirements(requirements.Requirements, requirements.EntityType);
                 }
             }
         }
