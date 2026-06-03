@@ -489,7 +489,7 @@ public class IdAttributeTests
             {
               "errors": [
                 {
-                  "message": "The value of type `System.Guid` could not be formatted into an ID for the type `Thing`.",
+                  "message": "The value could not be formatted into an ID for the type `Thing`.",
                   "path": [
                     "thing",
                     "anotherTypeId"
