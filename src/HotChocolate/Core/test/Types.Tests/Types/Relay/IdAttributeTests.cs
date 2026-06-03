@@ -461,6 +461,138 @@ public class IdAttributeTests
     }
 
     [SuppressMessage("Performance", "CA1822:Mark members as static")]
+    [Fact]
+    public async Task Bare_Id_On_Properties_With_Different_Runtime_Types()
+    {
+        // arrange & act
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<ThingQuery>()
+                .AddGlobalObjectIdentification(false)
+                .ExecuteRequestAsync(
+                    OperationRequestBuilder.New()
+                        .SetDocument(
+                            """
+                            {
+                                thing {
+                                    id
+                                    anotherTypeId
+                                }
+                            }
+                            """)
+                        .Build());
+
+        // assert
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The value of type `System.Guid` could not be formatted into an ID for the type `Thing`.",
+                  "path": [
+                    "thing",
+                    "anotherTypeId"
+                  ],
+                  "extensions": {
+                    "originalValue": "26a2dc8f-4dab-408c-88c6-523a0a89a2b5"
+                  }
+                }
+              ],
+              "data": null
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Invalid_Id_Does_Not_Erase_Sibling_Data()
+    {
+        // arrange & act
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<ProbeQuery>()
+                .AddGlobalObjectIdentification(false)
+                .ExecuteRequestAsync(
+                    """
+                    {
+                      byId(id: "invalid")
+                      unrelated
+                    }
+                    """);
+
+        // assert
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The node ID string has an invalid format.",
+                  "path": [
+                    "byId"
+                  ],
+                  "extensions": {
+                    "originalValue": "invalid"
+                  }
+                }
+              ],
+              "data": {
+                "byId": null,
+                "unrelated": "value"
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Invalid_Id_On_Skipped_Field_Does_Not_Error()
+    {
+        // arrange & act
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<ProbeQuery>()
+                .AddGlobalObjectIdentification(false)
+                .ExecuteRequestAsync(
+                    """
+                    {
+                      byId(id: "invalid") @skip(if: true)
+                      unrelated
+                    }
+                    """);
+
+        // assert
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "unrelated": "value"
+              }
+            }
+            """);
+    }
+
+    public class ProbeQuery
+    {
+        public int? GetById([ID] int id) => id;
+
+        public string GetUnrelated() => "value";
+    }
+
+    public class ThingQuery
+    {
+        public Thing GetThing() => new();
+    }
+
+    public class Thing
+    {
+        [ID]
+        public int Id { get; set; } = 1;
+
+        [ID]
+        public Guid AnotherTypeId { get; set; } = new("26a2dc8f-4dab-408c-88c6-523a0a89a2b5");
+    }
+
     public class Query
     {
         public int IntId([ID] int id) => id;

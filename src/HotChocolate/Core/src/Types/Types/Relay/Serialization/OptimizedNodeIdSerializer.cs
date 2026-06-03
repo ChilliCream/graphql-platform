@@ -433,7 +433,7 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
 
             Clear(rentedBuffer);
 
-            throw new NodeIdInvalidFormatException(value);
+            throw new NodeIdInvalidValueException(typeName, value);
         }
 
         private string FormatBase64(Span<byte> span, int written, bool urlSafeBase64, ref byte[]? rentedBuffer, int capacity)
