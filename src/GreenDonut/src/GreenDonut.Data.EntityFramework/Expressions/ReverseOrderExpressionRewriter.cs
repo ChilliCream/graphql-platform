@@ -52,6 +52,11 @@ public class ReverseOrderExpressionRewriter : ExpressionVisitor
         return base.VisitMethodCall(node);
     }
 
+    // order operations inside lambda arguments (predicates, projections, key selectors)
+    // belong to their operator and must not be reversed for backward pagination, so we
+    // do not descend into lambda bodies.
+    protected override Expression VisitLambda<T>(Expression<T> node) => node;
+
     public static IQueryable<T> Rewrite<T>(IQueryable<T> query)
     {
         var reversedExpression = new ReverseOrderExpressionRewriter().Visit(query.Expression);

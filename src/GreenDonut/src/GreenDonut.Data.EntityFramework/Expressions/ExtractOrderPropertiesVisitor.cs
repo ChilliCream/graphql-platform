@@ -30,6 +30,11 @@ internal sealed class ExtractOrderPropertiesVisitor : ExpressionVisitor
         return base.VisitMethodCall(node);
     }
 
+    // order operations inside lambda arguments (predicates, projections, key selectors)
+    // belong to their operator and are never pagination keys, so we do not descend into
+    // lambda bodies. order key lambdas are inspected explicitly via their body above.
+    protected override Expression VisitLambda<T>(Expression<T> node) => node;
+
     protected override Expression VisitMember(MemberExpression node)
     {
         if (_isOrderScope)

@@ -1,0 +1,22 @@
+# QueryContext_Selector_With_Nested_OrderBy_Does_Not_Hoist_Inner_Order_Properties
+
+## SQL 0
+
+```sql
+-- @p='3'
+SELECT b."Id", b."Name", (
+    SELECT p."Name"
+    FROM "Products" AS p
+    WHERE b."Id" = p."BrandId"
+    ORDER BY p."Price" DESC, p."AvailableStock"
+    LIMIT 1) AS "DisplayName"
+FROM "Brands" AS b
+ORDER BY b."Id"
+LIMIT @p
+```
+
+## Expression 0
+
+```text
+[Microsoft.EntityFrameworkCore.Query.EntityQueryRootExpression].OrderBy(t => t.Id).Select(root => new Brand() {Id = root.Id, Name = root.Name, DisplayName = root.Products.OrderByDescending(p => p.Price).ThenBy(p => p.AvailableStock).FirstOrDefault().Name}).Take(3)
+```
