@@ -274,16 +274,17 @@ public static partial class TypeDescriptorMapper
             return runtimeType;
         }
 
-        runtimeType = new RuntimeTypeInfo(outputType.Name, context.Namespace);
+        var baseName = outputType.Name;
+        runtimeType = new RuntimeTypeInfo(baseName, context.Namespace);
 
         if (!context.Register(outputType.Name, kind, runtimeType))
         {
             // If registration fails due to a name collision (e.g., a schema-defined
             // input type has the same name as an output type we're generating),
-            // try alternative names by appending a suffix.
+            // try alternative names by appending a numeric suffix.
             for (var i = 1; i < 1000; i++)
             {
-                var alternativeName = outputType.Name + "_" + i;
+                var alternativeName = baseName + "_" + i;
                 runtimeType = new RuntimeTypeInfo(alternativeName, context.Namespace);
 
                 if (context.Register(outputType.Name, kind, runtimeType))
@@ -292,7 +293,9 @@ public static partial class TypeDescriptorMapper
                 }
             }
 
-            throw ThrowHelper.TypeNameCollision(runtimeType.Name);
+            // Report the original base name so the diagnostic points to the actual
+            // source of the collision, not the last attempted suffix candidate.
+            throw ThrowHelper.TypeNameCollision(baseName);
         }
 
         return runtimeType;

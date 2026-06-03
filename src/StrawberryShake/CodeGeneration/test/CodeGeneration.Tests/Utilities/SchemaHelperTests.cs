@@ -34,7 +34,7 @@ public class SchemaHelperTests
     }
 
     [Fact]
-    public void Load_DuplicateTypesAcrossFiles_DoesNotThrowHC0065()
+    public void Load_DuplicateTypesAcrossFiles_DeduplicatesByName()
     {
         // arrange - simulates a scenario where the same type definition appears
         // in multiple schema files (e.g., overlapping glob patterns or Hygraph schemas)
@@ -78,7 +78,7 @@ public class SchemaHelperTests
 
         const string extensionsSdl = @"extend schema @key(fields: ""id"")";
 
-        // act - should NOT throw HC0065
+        // act - should load successfully and deduplicate by name (first occurrence wins)
         var schema = SchemaHelper.Load(
             [
                 new("schema1.graphql", Utf8GraphQLParser.Parse(schema1)),
