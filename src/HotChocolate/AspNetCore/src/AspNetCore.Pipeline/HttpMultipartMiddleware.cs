@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Runtime.InteropServices;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -342,7 +343,26 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
             case JsonTokenType.String:
                 if (reader.ValueIsEscaped)
                 {
-                    writer.WriteStringValue(reader.GetString());
+                    byte[]? rented = null;
+                    var length = reader.ValueSpan.Length;
+                    var buffer = length < 256 ? stackalloc byte[256] : rented = ArrayPool<byte>.Shared.Rent(length);
+                    var written = 0;
+
+                    try
+                    {
+                        written = reader.CopyString(buffer);
+                        writer.WriteStringValue(buffer[..written]);
+                    }
+                    finally
+                    {
+                        // The decoded value may carry secrets, so wipe what we wrote before the buffer is reused.
+                        buffer[..written].Clear();
+
+                        if (rented is not null)
+                        {
+                            ArrayPool<byte>.Shared.Return(rented);
+                        }
+                    }
                 }
                 else
                 {

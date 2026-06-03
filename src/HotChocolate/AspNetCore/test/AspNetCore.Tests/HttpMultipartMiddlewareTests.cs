@@ -332,7 +332,7 @@ public class HttpMultipartMiddlewareTests(TestServerFactory serverFactory) : Ser
     }
 
     [Fact]
-    public async Task Upload_File_With_Escaped_String_Variable_Is_Not_Double_Encoded()
+    public async Task Upload_Should_Not_DoubleEncode_When_StringVariableIsEscaped()
     {
         // arrange
         var server = CreateStarWarsServer();
@@ -373,6 +373,55 @@ public class HttpMultipartMiddlewareTests(TestServerFactory serverFactory) : Ser
               "StatusCode": "OK",
               "Data": {
                 "uploadWithText": "test \" test"
+              },
+              "Errors": null,
+              "Extensions": null
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Upload_Should_Not_DoubleEncode_When_StringVariableHasMixedEscapes()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+
+        const string query = @"
+                query ($upload: Upload!, $text: String!) {
+                    uploadWithText(file: $upload, text: $text)
+                }";
+
+        var request = JsonConvert.SerializeObject(
+            new ClientQueryRequest
+            {
+                Query = query,
+                Variables = new Dictionary<string, object?>
+                {
+                    { "upload", null },
+                    { "text", "q\" b\\ n\n ué" }
+                }
+            });
+
+        // act
+        var form = new MultipartFormDataContent
+        {
+            { new StringContent(request), "operations" },
+            { new StringContent("{ \"1\": [\"variables.upload\"] }"), "map" },
+            { new StringContent("abc"), "1", "foo.bar" }
+        };
+
+        form.Headers.Add(HttpHeaderKeys.Preflight, "1");
+
+        var result = await server.PostMultipartAsync(form, path: "/upload");
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "ContentType": "application/graphql-response+json; charset=utf-8",
+              "StatusCode": "OK",
+              "Data": {
+                "uploadWithText": "q\" b\\ n\n ué"
               },
               "Errors": null,
               "Extensions": null
