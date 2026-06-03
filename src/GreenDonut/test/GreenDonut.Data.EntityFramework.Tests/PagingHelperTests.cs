@@ -471,6 +471,76 @@ public class PagingHelperTests(PostgreSqlResource resource)
     }
 
     [Fact]
+    public async Task QueryContext_OrderKey_With_Nested_OrderBy_Forward_Paging()
+    {
+        // Arrange
+        using var interceptor = new CapturePagingQueryInterceptor();
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        // Act
+        // the sort key itself orders a child collection. the key's root member
+        // (Brand.Products) must be hoisted into the selector so cursors can be
+        // created, while the inner key (Product.Price) must not be.
+        var query = new QueryContext<Brand>(
+            Selector: t => new Brand { Id = t.Id, Name = t.Name },
+            Sorting: new SortDefinition<Brand>()
+                .AddAscending(t => t.Products.OrderBy(p => p.Price).First().Price)
+                .AddAscending(t => t.Id));
+
+        var arguments = new PagingArguments(first: 2);
+
+        await using var context = new CatalogContext(connectionString);
+
+        var page = await context.Brands
+            .With(query)
+            .ToPageAsync(arguments);
+
+        // a cursor must be creatable for each edge. this evaluates the computed
+        // order key against the projected Brand and requires Products to be loaded.
+        page.CreateCursor(page.First!.Value);
+
+        // Assert
+        Snapshot
+            .Create(postFix: TestEnvironment.TargetFramework)
+            .AddQueries(interceptor.Queries)
+            .MatchMarkdown();
+    }
+
+    [Fact]
+    public async Task QueryContext_OrderKey_With_Nested_OrderBy_Second_Page()
+    {
+        // Arrange
+        using var interceptor = new CapturePagingQueryInterceptor();
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        var query = new QueryContext<Brand>(
+            Selector: t => new Brand { Id = t.Id, Name = t.Name },
+            Sorting: new SortDefinition<Brand>()
+                .AddAscending(t => t.Products.OrderBy(p => p.Price).First().Price)
+                .AddAscending(t => t.Id));
+
+        await using var context = new CatalogContext(connectionString);
+
+        // -> get first page
+        var arguments = new PagingArguments(first: 2);
+        var page = await context.Brands.With(query).ToPageAsync(arguments);
+
+        // Act
+        // paging to the second page builds a keyset predicate from the computed
+        // order key, which must translate to SQL.
+        arguments = new PagingArguments(first: 2, after: page.CreateEndCursor());
+        page = await context.Brands.With(query).ToPageAsync(arguments);
+
+        // Assert
+        Snapshot
+            .Create(postFix: TestEnvironment.TargetFramework)
+            .AddQueries(interceptor.Queries)
+            .MatchMarkdown();
+    }
+
+    [Fact]
     public async Task Fetch_Last_2_Items_Before_Last_Page()
     {
         // Arrange

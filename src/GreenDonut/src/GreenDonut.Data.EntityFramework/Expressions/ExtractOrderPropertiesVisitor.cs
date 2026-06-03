@@ -8,23 +8,23 @@ internal sealed class ExtractOrderPropertiesVisitor : QueryChainVisitor
     private const string ThenByMethod = "ThenBy";
     private const string OrderByDescendingMethod = "OrderByDescending";
     private const string ThenByDescendingMethod = "ThenByDescending";
-    private bool _isOrderScope;
+    private ParameterExpression? _orderKeyParameter;
 
     public List<MemberExpression> OrderProperties { get; } = [];
 
     protected override Expression VisitMethodCall(MethodCallExpression node)
     {
-        if (node.Method.Name == OrderByMethod
-            || node.Method.Name == ThenByMethod
-            || node.Method.Name == OrderByDescendingMethod
-            || node.Method.Name == ThenByDescendingMethod)
+        if (_orderKeyParameter is null
+            && (node.Method.Name == OrderByMethod
+                || node.Method.Name == ThenByMethod
+                || node.Method.Name == OrderByDescendingMethod
+                || node.Method.Name == ThenByDescendingMethod))
         {
-            _isOrderScope = true;
-
             var lambda = StripQuotes(node.Arguments[1]);
-            Visit(lambda.Body);
 
-            _isOrderScope = false;
+            _orderKeyParameter = lambda.Parameters[0];
+            Visit(lambda.Body);
+            _orderKeyParameter = null;
         }
 
         return base.VisitMethodCall(node);
@@ -32,9 +32,11 @@ internal sealed class ExtractOrderPropertiesVisitor : QueryChainVisitor
 
     protected override Expression VisitMember(MemberExpression node)
     {
-        if (_isOrderScope)
+        // an order key is a lambda. we only collect members rooted at that lambda's own
+        // parameter; members rooted on nested lambdas or intermediate results cannot be
+        // hoisted into the selector.
+        if (_orderKeyParameter is not null && node.Expression == _orderKeyParameter)
         {
-            // we only collect members that are within an order method.
             OrderProperties.Add(node);
         }
 
