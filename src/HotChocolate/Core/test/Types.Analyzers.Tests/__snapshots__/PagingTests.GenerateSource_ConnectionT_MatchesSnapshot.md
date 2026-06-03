@@ -50,6 +50,7 @@ namespace TestNamespace
                         typeInspector.GetTypeRef(typeof(global::TestNamespace.Author), HotChocolate.Types.TypeContext.Output),
                         new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.ListTypeNode(new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__TestNamespace_Author")))));
                     configuration.ResultType = typeof(global::HotChocolate.Types.Pagination.Connection<global::TestNamespace.Author>);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
 
