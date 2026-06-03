@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using HotChocolate.Buffers;
 using HotChocolate.Features;
 using HotChocolate.Fetching;
 using Microsoft.Extensions.ObjectPool;
@@ -125,6 +126,8 @@ internal sealed class DefaultRequestExecutor : IRequestExecutor
 
             _contextAccessor.RequestContext = context;
 
+            context.AttachMemory(new MemoryArena());
+
             await _requestDelegate(context).ConfigureAwait(false);
 
             if (context.Result is null)
@@ -132,6 +135,11 @@ internal sealed class DefaultRequestExecutor : IRequestExecutor
                 throw new InvalidOperationException(
                     "The request pipeline is expected to produce an execution result.");
             }
+
+            // transfer ownership of the request memory to the result so it is disposed when the
+            // result is disposed. On the error path the arena stays attached and the pool reset
+            // disposes it.
+            context.Result.RegisterForCleanup(context.DetachMemory());
 
             if (scope is null)
             {

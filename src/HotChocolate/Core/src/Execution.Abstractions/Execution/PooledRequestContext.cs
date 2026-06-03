@@ -1,3 +1,4 @@
+using HotChocolate.Buffers;
 using HotChocolate.Features;
 using HotChocolate.Language;
 
@@ -14,6 +15,7 @@ public sealed class PooledRequestContext : RequestContext
     private ulong _executorVersion;
     private IOperationRequest _request = null!;
     private int _requestIndex;
+    private MemoryArena? _memory;
 
     /// <summary>
     /// Initializes a new instance of <see cref="PooledRequestContext"/>.
@@ -47,6 +49,32 @@ public sealed class PooledRequestContext : RequestContext
 
     /// <inheritdoc />
     public override IDictionary<string, object?> ContextData { get; } = new RequestContextData();
+
+    /// <summary>
+    /// Gets the memory arena that backs request-scoped allocations, or <c>null</c> when none is attached.
+    /// </summary>
+    internal MemoryArena? Memory => _memory;
+
+    /// <summary>
+    /// Attaches a memory arena to this request. The arena is owned by the request until it is
+    /// detached on success or disposed when the context is reset.
+    /// </summary>
+    internal void AttachMemory(MemoryArena memory)
+    {
+        if (_memory is not null)
+        {
+            throw new InvalidOperationException("A memory arena is already attached to this request.");
+        }
+
+        _memory = memory;
+    }
+
+    /// <summary>
+    /// Detaches the memory arena so its ownership can be transferred to the execution result.
+    /// </summary>
+    internal MemoryArena DetachMemory()
+        => Interlocked.Exchange(ref _memory, null)
+            ?? throw new InvalidOperationException("No memory arena is attached to this request.");
 
     /// <summary>
     /// Initializes the request context after renting it from the pool.
@@ -111,6 +139,8 @@ public sealed class PooledRequestContext : RequestContext
         RequestAborted = CancellationToken.None;
         VariableValues = [];
         Result = null;
+        // dispose the arena if it was never detached (error or zero-event paths).
+        Interlocked.Exchange(ref _memory, null)?.Dispose();
         _features.Reset();
         ContextData.Clear();
     }
