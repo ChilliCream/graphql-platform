@@ -43,6 +43,12 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
             connectionClassLookup ??= [];
             var connectionTypeLookup = new Dictionary<string, IOutputTypeInfo>();
             var connectionNameLookup = new Dictionary<string, string>();
+
+            // Connection and edge types are deduplicated by the resolved GraphQL
+            // schema name so that multiple fields resolving to the same connection
+            // name collapse onto a single registered type, mirroring the runtime
+            // behavior of PagingObjectFieldDescriptorExtensions.CreateConnectionType.
+            var connectionSchemaNameLookup = new Dictionary<string, IOutputTypeInfo>(StringComparer.Ordinal);
             List<SyntaxInfo>? connectionTypeInfos = null;
 
             foreach (var syntaxInfo in syntaxInfos)
@@ -157,22 +163,19 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
                                 connection.Name,
                                 connection.NameFormat ?? connection.Name);
 
-                    var connectionTypeName = GetTypeLookupKey(connectionTypeInfo);
-                    var edgeTypeName = GetTypeLookupKey(edgeTypeInfo);
+                    edgeTypeInfo = RegisterOrReuse(
+                        edgeTypeInfo,
+                        edge.Name,
+                        connectionTypeLookup,
+                        connectionSchemaNameLookup,
+                        ref connectionTypeInfos);
 
-                    if (!connectionTypeLookup.ContainsKey(connectionTypeName))
-                    {
-                        connectionTypeInfos ??= [];
-                        connectionTypeInfos.Add(connectionTypeInfo);
-                        connectionTypeLookup.Add(connectionTypeName, connectionTypeInfo);
-                    }
-
-                    if (!connectionTypeLookup.ContainsKey(edgeTypeName))
-                    {
-                        connectionTypeInfos ??= [];
-                        connectionTypeInfos.Add(edgeTypeInfo);
-                        connectionTypeLookup.Add(edgeTypeName, edgeTypeInfo);
-                    }
+                    connectionTypeInfo = RegisterOrReuse(
+                        connectionTypeInfo,
+                        connection.Name,
+                        connectionTypeLookup,
+                        connectionSchemaNameLookup,
+                        ref connectionTypeInfos);
                 }
                 else
                 {
@@ -236,22 +239,19 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
                                 connectionName,
                                 connectionName);
 
-                    var connectionTypeName = GetTypeLookupKey(connectionTypeInfo);
-                    var edgeTypeName = GetTypeLookupKey(edgeTypeInfo);
+                    edgeTypeInfo = RegisterOrReuse(
+                        edgeTypeInfo,
+                        edgeName ?? edgeType.Name,
+                        connectionTypeLookup,
+                        connectionSchemaNameLookup,
+                        ref connectionTypeInfos);
 
-                    if (!connectionTypeLookup.ContainsKey(connectionTypeName))
-                    {
-                        connectionTypeInfos ??= [];
-                        connectionTypeInfos.Add(connectionTypeInfo);
-                        connectionTypeLookup.Add(connectionTypeName, connectionTypeInfo);
-                    }
-
-                    if (!connectionTypeLookup.ContainsKey(edgeTypeName))
-                    {
-                        connectionTypeInfos ??= [];
-                        connectionTypeInfos.Add(edgeTypeInfo);
-                        connectionTypeLookup.Add(edgeTypeName, edgeTypeInfo);
-                    }
+                    connectionTypeInfo = RegisterOrReuse(
+                        connectionTypeInfo,
+                        connectionName ?? connectionType.Name,
+                        connectionTypeLookup,
+                        connectionSchemaNameLookup,
+                        ref connectionTypeInfos);
                 }
 
                 owner.ReplaceResolver(
@@ -308,6 +308,36 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
 
     private static string GetTypeLookupKey(string typeNamespace, string typeName)
         => $"global::{typeNamespace}.{typeName}";
+
+    private static T RegisterOrReuse<T>(
+        T typeInfo,
+        string schemaName,
+        Dictionary<string, IOutputTypeInfo> connectionTypeLookup,
+        Dictionary<string, IOutputTypeInfo> connectionSchemaNameLookup,
+        ref List<SyntaxInfo>? connectionTypeInfos)
+        where T : SyntaxInfo, IOutputTypeInfo
+    {
+        // If another field already resolved to the same GraphQL schema name we
+        // reuse the type that was emitted first instead of registering a second
+        // type with a colliding name (which would fail the schema build).
+        if (connectionSchemaNameLookup.TryGetValue(schemaName, out var existing)
+            && existing is T existingTypeInfo)
+        {
+            return existingTypeInfo;
+        }
+
+        var typeLookupKey = GetTypeLookupKey(typeInfo);
+
+        if (!connectionTypeLookup.ContainsKey(typeLookupKey))
+        {
+            connectionTypeInfos ??= [];
+            connectionTypeInfos.Add(typeInfo);
+            connectionTypeLookup.Add(typeLookupKey, typeInfo);
+        }
+
+        connectionSchemaNameLookup[schemaName] = typeInfo;
+        return typeInfo;
+    }
 
     private static GenericTypeInfo? CreateGenericTypeInfo(
         INamedTypeSymbol genericType,

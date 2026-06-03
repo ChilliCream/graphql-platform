@@ -34,6 +34,33 @@ public class SourceGeneratorOffsetPagingReproTests
     }
 
     [Fact]
+    public async Task QueryType_SourceGenerator_Path_Works_With_Colliding_Connection_Names()
+    {
+        var assembly = CompileCollidingConnectionNamesReproAssembly();
+
+        var sourceGeneratorException = await BuildSchemaWithSourceGeneratorRegistrationAsync(assembly);
+        var addQueryTypeException = await BuildSchemaWithAddQueryTypeRegistrationAsync(assembly);
+
+        Assert.Null(sourceGeneratorException);
+        Assert.Null(addQueryTypeException);
+    }
+
+    [Fact]
+    public async Task QueryType_SourceGenerator_Path_Works_With_UsePaging_Colliding_Inferred_Names()
+    {
+        // arrange
+        var assembly = CompileUsePagingCollidingInferredNamesReproAssembly();
+
+        // act
+        var sourceGeneratorException = await BuildSchemaWithSourceGeneratorRegistrationAsync(assembly);
+        var addQueryTypeException = await BuildSchemaWithAddQueryTypeRegistrationAsync(assembly);
+
+        // assert
+        Assert.Null(sourceGeneratorException);
+        Assert.Null(addQueryTypeException);
+    }
+
+    [Fact]
     public async Task Module_QueryType_Dictionary_Result_SourceGenerator_Path_Works_Like_AddQueryType_Path()
     {
         var assembly = CompileModuleDictionaryReproAssembly();
@@ -344,6 +371,156 @@ public class SourceGeneratorOffsetPagingReproTests
             """;
 
         return CompileReproAssembly(source, "SourceGeneratorOffsetPagingRepro");
+    }
+
+    private static Assembly CompileCollidingConnectionNamesReproAssembly()
+    {
+        const string source = """
+            using System.Collections.Generic;
+            using System.Linq;
+            using System.Threading.Tasks;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Pagination;
+
+            namespace Repro
+            {
+                public sealed class Appointment
+                {
+                    public int Id { get; set; }
+                }
+            }
+
+            // Two distinct .NET connection types living in different namespaces
+            // that resolve to the same GraphQL connection name "AppointmentConnection".
+            namespace Repro.Planned
+            {
+                using Repro;
+
+                public class AppointmentConnection : ConnectionBase<Appointment, AppointmentEdge, ConnectionPageInfo>
+                {
+                    public override IReadOnlyList<AppointmentEdge> Edges => default!;
+                    public IReadOnlyList<Appointment> Nodes => default!;
+                    public override ConnectionPageInfo PageInfo => default!;
+                    public int TotalCount => 0;
+                }
+
+                public class AppointmentEdge : IEdge<Appointment>
+                {
+                    public Appointment Node => default!;
+                    object? IEdge.Node => Node;
+                    public string Cursor => default!;
+                }
+            }
+
+            namespace Repro.Completed
+            {
+                using Repro;
+
+                public class AppointmentConnection : ConnectionBase<Appointment, AppointmentEdge, ConnectionPageInfo>
+                {
+                    public override IReadOnlyList<AppointmentEdge> Edges => default!;
+                    public IReadOnlyList<Appointment> Nodes => default!;
+                    public override ConnectionPageInfo PageInfo => default!;
+                    public int TotalCount => 0;
+                }
+
+                public class AppointmentEdge : IEdge<Appointment>
+                {
+                    public Appointment Node => default!;
+                    object? IEdge.Node => Node;
+                    public string Cursor => default!;
+                }
+            }
+
+            namespace Repro
+            {
+                [QueryType]
+                public static partial class SourceGeneratedQuery
+                {
+                    public static async Task<Repro.Planned.AppointmentConnection> GetPlannedAppointments()
+                    {
+                        await Task.Yield();
+                        return default!;
+                    }
+
+                    public static async Task<Repro.Completed.AppointmentConnection> GetCompletedAppointments()
+                    {
+                        await Task.Yield();
+                        return default!;
+                    }
+                }
+
+                public class RuntimeQuery
+                {
+                    public async Task<Repro.Planned.AppointmentConnection> GetPlannedAppointments()
+                    {
+                        await Task.Yield();
+                        return default!;
+                    }
+
+                    public async Task<Repro.Completed.AppointmentConnection> GetCompletedAppointments()
+                    {
+                        await Task.Yield();
+                        return default!;
+                    }
+                }
+            }
+            """;
+
+        return CompileReproAssembly(source, "SourceGeneratorCollidingConnectionNamesRepro");
+    }
+
+    private static Assembly CompileUsePagingCollidingInferredNamesReproAssembly()
+    {
+        const string source = """
+            using System.Linq;
+            using System.Threading.Tasks;
+            using HotChocolate.Types;
+
+            namespace Repro;
+
+            public sealed class Appointment
+            {
+                public int Id { get; set; }
+            }
+
+            [QueryType]
+            public static partial class MobileQuery
+            {
+                [UsePaging(MaxPageSize = 20, DefaultPageSize = 20, InferConnectionNameFromField = false)]
+                public static async Task<IQueryable<Appointment>> GetPlannedAppointments()
+                {
+                    await Task.Yield();
+                    return new[] { new Appointment() }.AsQueryable();
+                }
+
+                [UsePaging(MaxPageSize = 20, DefaultPageSize = 20, InferConnectionNameFromField = false)]
+                public static async Task<IQueryable<Appointment>> GetCompletedAppointments()
+                {
+                    await Task.Yield();
+                    return new[] { new Appointment() }.AsQueryable();
+                }
+            }
+
+            public class RuntimeQuery
+            {
+                [UsePaging(MaxPageSize = 20, DefaultPageSize = 20, InferConnectionNameFromField = false)]
+                public async Task<IQueryable<Appointment>> GetPlannedAppointments()
+                {
+                    await Task.Yield();
+                    return new[] { new Appointment() }.AsQueryable();
+                }
+
+                [UsePaging(MaxPageSize = 20, DefaultPageSize = 20, InferConnectionNameFromField = false)]
+                public async Task<IQueryable<Appointment>> GetCompletedAppointments()
+                {
+                    await Task.Yield();
+                    return new[] { new Appointment() }.AsQueryable();
+                }
+            }
+            """;
+
+        return CompileReproAssembly(source, "SourceGeneratorUsePagingCollidingInferredNamesRepro");
     }
 
     private static Assembly CompileModuleDictionaryReproAssembly()
