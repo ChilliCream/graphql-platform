@@ -78,8 +78,8 @@ namespace TestNamespace
     "Severity": "Error",
     "WarningLevel": 0,
     "Location": ": (16,5)-(16,17)",
-    "MessageFormat": "The [ID] attribute on '{0}' maps to the same ID type name as '{1}', but their ID value types differ. An ID type name can only bind to a single value type, so change '{0}' to use the same type as '{1}' ('{2}'), or give it a different type name.",
-    "Message": "The [ID] attribute on 'Other' maps to the same ID type name as 'Id', but their ID value types differ. An ID type name can only bind to a single value type, so change 'Other' to use the same type as 'Id' ('int'), or give it a different type name.",
+    "MessageFormat": "The [ID] attribute on '{0}' maps to the same ID type name as '{1}', but their ID value types differ. An ID type name can only bind to a single value type, so change '{0}' to use the same type as '{1}' ('{2}'), or give it a different type name with [ID<T>] or [ID(\"TypeName\")].",
+    "Message": "The [ID] attribute on 'Other' maps to the same ID type name as 'Id', but their ID value types differ. An ID type name can only bind to a single value type, so change 'Other' to use the same type as 'Id' ('int'), or give it a different type name with [ID<T>] or [ID(\"TypeName\")].",
     "Category": "TypeSystem",
     "CustomTags": []
   }
