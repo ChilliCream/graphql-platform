@@ -33,6 +33,7 @@ public static partial class RequestExecutorBuilderExtensions
             o.ApplyShareableToPageInfo = true;
             o.ApplyShareableToNodeFields = true;
             o.ApplySerializeAsToScalars = true;
+            o.InferKeysFromLookups = true;
         });
     }
 }

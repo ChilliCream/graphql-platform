@@ -120,7 +120,7 @@ public static class LookupTests
             which identifies how to uniquely reference an instance of
             an entity across different source schemas.
             """
-            directive @key("The field selection set syntax." fields: FieldSelectionSet!) on
+            directive @key("The field selection set syntax." fields: FieldSelectionSet!) repeatable on
               | OBJECT
               | INTERFACE
 
@@ -179,7 +179,7 @@ public static class LookupTests
             which identifies how to uniquely reference an instance of
             an entity across different source schemas.
             """
-            directive @key("The field selection set syntax." fields: FieldSelectionSet!) on
+            directive @key("The field selection set syntax." fields: FieldSelectionSet!) repeatable on
               | OBJECT
               | INTERFACE
 
