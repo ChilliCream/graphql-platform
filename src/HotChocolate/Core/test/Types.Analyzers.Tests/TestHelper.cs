@@ -222,7 +222,8 @@ internal static partial class TestHelper
                 new IdAttributeOnRecordParameterAnalyzer(),
                 new WrongAuthorizationAttributeAnalyzer(),
                 new LookupReturnsNonNullableTypeAnalyzer(),
-                new LookupReturnsListTypeAnalyzer());
+                new LookupReturnsListTypeAnalyzer(),
+                new ConflictingIdAttributeAnalyzer());
 
             var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers);
             var analyzerDiagnostics = compilationWithAnalyzers.GetAllDiagnosticsAsync().Result;

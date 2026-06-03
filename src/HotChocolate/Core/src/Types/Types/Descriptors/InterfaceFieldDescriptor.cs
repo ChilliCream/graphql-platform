@@ -98,6 +98,9 @@ public class InterfaceFieldDescriptor
                 _parameterInfos,
                 definition.GetParameterExpressionBuilders(),
                 IsBatchResolver());
+
+            FieldDescriptorUtilities.DiscoverParentRequirements(_parameterInfos, Configuration);
+
             _argumentsInitialized = true;
         }
     }
@@ -350,6 +353,21 @@ public class InterfaceFieldDescriptor
         params ArgumentNode[] arguments)
     {
         base.Directive(name, arguments);
+        return this;
+    }
+
+    public IInterfaceFieldDescriptor ParentRequires<TParent>(Expression<Func<TParent, object>> selector)
+        => ParentRequires<TParent>(ObjectFieldDescriptor.ExpressionSelectionSetFormatter.Format(selector));
+
+    public IInterfaceFieldDescriptor ParentRequires<TParent>(string? requires)
+    {
+        Configuration.SetFieldRequirements(requires, typeof(TParent));
+        return this;
+    }
+
+    public IInterfaceFieldDescriptor ParentRequires(string? requires)
+    {
+        Configuration.SetFieldRequirements(requires, Configuration.SourceType);
         return this;
     }
 
