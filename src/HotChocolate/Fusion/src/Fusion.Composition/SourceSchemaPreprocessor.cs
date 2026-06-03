@@ -65,7 +65,7 @@ internal sealed partial class SourceSchemaPreprocessor(
         }
 
         // We need to run this after keys have been inferred, so we do not attempt to mark them as @shareable.
-        if (fusionV1CompatibilityMode)
+        if (fusionV1CompatibilityMode || _options.InferShareable)
         {
             ApplyShareableDirectives();
         }
