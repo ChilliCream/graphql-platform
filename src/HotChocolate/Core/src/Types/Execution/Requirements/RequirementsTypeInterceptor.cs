@@ -25,7 +25,7 @@ internal sealed class RequirementsTypeInterceptor : TypeInterceptor
         "IL2072",
         Justification =
             "Runtime types come from the schema type model and are statically referenced.")]
-    public override void OnBeforeCompleteType(
+    public override void OnAfterCompleteType(
         ITypeCompletionContext completionContext,
         TypeSystemConfiguration configuration)
     {
