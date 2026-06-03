@@ -85,6 +85,7 @@ namespace TestNamespace
                     configuration.Description = GetDescription("Type description.", true, field.Context.Options.UseXmlDocumentation);
                     configuration.Type = typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(string);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
 
@@ -104,6 +105,7 @@ namespace TestNamespace
                     configuration.Description = GetDescription("Field description.", true, field.Context.Options.UseXmlDocumentation);
                     configuration.Type = typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(string);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
 
@@ -123,6 +125,7 @@ namespace TestNamespace
                     configuration.Description = GetDescription("Property description.", true, field.Context.Options.UseXmlDocumentation);
                     configuration.Type = typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(string);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
 
@@ -142,6 +145,7 @@ namespace TestNamespace
                     configuration.Description = GetDescription("Method description.", true, field.Context.Options.UseXmlDocumentation);
                     configuration.Type = typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(string);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
 
@@ -161,6 +165,7 @@ namespace TestNamespace
                     configuration.Description = GetDescription("Event description.", true, field.Context.Options.UseXmlDocumentation);
                     configuration.Type = typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(string);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
 
@@ -180,6 +185,7 @@ namespace TestNamespace
                     configuration.Description = GetDescription("Nested type instance field description.", true, field.Context.Options.UseXmlDocumentation);
                     configuration.Type = typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(string);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
 
@@ -199,6 +205,7 @@ namespace TestNamespace
                     configuration.Description = GetDescription("Int-overloaded method description.", true, field.Context.Options.UseXmlDocumentation);
                     configuration.Type = typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(string);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
 

@@ -93,6 +93,68 @@ public class IntegrationTests
     }
 
     [Fact]
+    public async Task DeclaringType_Should_Tag_Only_Own_Partial_Fields_When_TypeSplitAcrossPartials()
+    {
+        // arrange
+        var schema = await new ServiceCollection()
+            .AddGraphQLServer()
+            .AddIntegrationTestTypes()
+            .AddPagingArguments()
+            .BuildSchemaAsync();
+
+        // act
+        var type = schema.Types.GetType<ObjectType>("DeclaringTypeProbe");
+
+        // assert
+        // TagOwnFieldsAttribute sits on partial A and tags only the fields whose
+        // DeclaringType is partial A. Partial B's field and the entity property must stay untagged.
+        Snapshot.Create()
+            .Add(type.Fields["fromPartialA"].Description, "fromPartialA")
+            .Add(type.Fields["fromPartialB"].Description, "fromPartialB")
+            .Add(type.Fields["id"].Description, "id")
+            .MatchInline(
+                """
+                fromPartialA
+                ---------------
+                tagged
+                ---------------
+
+                fromPartialB
+                ---------------
+                null
+                ---------------
+
+                id
+                ---------------
+                null
+                ---------------
+
+                """);
+    }
+
+    [Fact]
+    public async Task PrefixOwnFields_Should_Prefix_Only_Own_Partial_Fields_When_TypeSplitAcrossPartials()
+    {
+        // arrange
+        var schema = await new ServiceCollection()
+            .AddGraphQLServer()
+            .AddIntegrationTestTypes()
+            .AddPagingArguments()
+            .BuildSchemaAsync();
+
+        // act
+        var type = schema.Types.GetType<ObjectType>("PrefixOwnFieldsProbe");
+
+        // assert
+        // PrefixOwnFieldsAttribute sits on partial A and renames only the fields whose
+        // DeclaringType is partial A. Partial B's field must keep its original name.
+        Assert.True(type.Fields.ContainsField("a_fromPartialA"));
+        Assert.False(type.Fields.ContainsField("fromPartialA"));
+        Assert.True(type.Fields.ContainsField("fromPartialB"));
+        Assert.False(type.Fields.ContainsField("a_fromPartialB"));
+    }
+
+    [Fact]
     public async Task Maps_NullOrdering_From_PagingOptions_To_PagingArguments()
     {
         // arrange

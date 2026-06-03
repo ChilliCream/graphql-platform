@@ -174,6 +174,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
                     && context.Members.TryGetValue(field.Name, out var member))
                 {
                     field.ResolverMember = member;
+                    field.DeclaringType = member.ReflectedType ?? member.DeclaringType;
 
                     ObjectFieldDescriptor.From(_context, field).CreateConfiguration();
 
@@ -248,6 +249,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
                 && context.Members.TryGetValue(field.Name, out var member))
             {
                 field.Member = member;
+                field.DeclaringType = member.ReflectedType ?? member.DeclaringType;
 
                 TryBindArgumentRuntimeType(field, member);
                 ObjectFieldDescriptor.From(_context, field).CreateConfiguration();
