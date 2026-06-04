@@ -274,28 +274,12 @@ public static partial class TypeDescriptorMapper
             return runtimeType;
         }
 
-        var baseName = outputType.Name;
-        runtimeType = new RuntimeTypeInfo(baseName, context.Namespace);
+        runtimeType = new RuntimeTypeInfo(outputType.Name, context.Namespace);
 
         if (!context.Register(outputType.Name, kind, runtimeType))
         {
-            // If registration fails due to a name collision (e.g., a schema-defined
-            // input type has the same name as an output type we're generating),
-            // try alternative names by appending a numeric suffix.
-            for (var i = 1; i < 1000; i++)
-            {
-                var alternativeName = baseName + "_" + i;
-                runtimeType = new RuntimeTypeInfo(alternativeName, context.Namespace);
 
-                if (context.Register(outputType.Name, kind, runtimeType))
-                {
-                    return runtimeType;
-                }
-            }
-
-            // Report the original base name so the diagnostic points to the actual
-            // source of the collision, not the last attempted suffix candidate.
-            throw ThrowHelper.TypeNameCollision(baseName);
+            throw ThrowHelper.TypeNameCollision(runtimeType.Name);
         }
 
         return runtimeType;
