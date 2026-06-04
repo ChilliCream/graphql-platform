@@ -58,10 +58,25 @@ internal static class ServiceCollectionExtensions
         var mcpManager = applicationServices.GetRequiredService<McpManager>();
         var setup = mcpManager.GetSetup(schemaName);
 
-        services
-            .AddLogging()
-            .TryAddSingleton(
-                static sp => new OperationToolFactory(sp.GetRequiredService<ISchemaDefinition>()));
+        services.AddLogging();
+
+        services.TryAddSingleton(
+            static sp =>
+            {
+                var toolOptions = new McpToolOptions();
+
+                foreach (var configure in sp.GetServices<Action<McpToolOptions>>())
+                {
+                    configure(toolOptions);
+                }
+
+                return toolOptions;
+            });
+
+        services.TryAddSingleton(
+            static sp => new OperationToolFactory(
+                sp.GetRequiredService<ISchemaDefinition>(),
+                sp.GetRequiredService<McpToolOptions>()));
 
         services.TryAddSingleton<IMcpDiagnosticEvents>(sp =>
         {

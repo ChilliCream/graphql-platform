@@ -40,6 +40,36 @@ public static class FusionGatewayBuilderExtensions
     }
 
     /// <summary>
+    /// Modifies the options that control how MCP tools are generated from operations.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IFusionGatewayBuilder"/>.
+    /// </param>
+    /// <param name="configure">
+    /// A delegate to modify the <see cref="McpToolOptions"/>.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IFusionGatewayBuilder"/> so that configuration can be chained.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="builder"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="configure"/> is <c>null</c>.
+    /// </exception>
+    public static IFusionGatewayBuilder ModifyMcpToolOptions(
+        this IFusionGatewayBuilder builder,
+        Action<McpToolOptions> configure)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
+
+        builder.ConfigureSchemaServices((_, services) => services.AddSingleton(configure));
+
+        return builder;
+    }
+
+    /// <summary>
     /// Adds an MCP storage to the gateway.
     /// </summary>
     /// <param name="builder">
