@@ -143,11 +143,9 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
                 continue;
             }
 
-            if (schema.TryGetBestDirectLookup(
-                type,
-                allCandidateSchemas.Remove(toSchema),
-                toSchema,
-                out var bestLookup))
+            var fromSchemas = GetTransitionSourceSchemas(allCandidateSchemas, toSchema, workItem);
+
+            if (schema.TryGetBestDirectLookup(type, fromSchemas, toSchema, out var bestLookup))
             {
                 var lookupWorkItem = workItem with { Lookup = bestLookup };
                 var branchBacklog = backlog.Push(lookupWorkItem);
@@ -242,7 +240,7 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
             }
 
             var branchBacklog = backlog;
-            var fromSchemas = allCandidateSchemas.Remove(toSchema);
+            var fromSchemas = GetTransitionSourceSchemas(allCandidateSchemas, toSchema, workItem);
             var allFound = true;
 
             // for each concrete type that implements the abstract type,
@@ -329,11 +327,10 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
                     continue;
                 }
 
-                if (schema.TryGetBestDirectLookup(
-                        possibleType,
-                        allCandidateSchemas.Remove(candidateSchema),
-                        candidateSchema,
-                        out var directLookup))
+                var fromSchemas =
+                    GetTransitionSourceSchemas(allCandidateSchemas, candidateSchema, workItem);
+
+                if (schema.TryGetBestDirectLookup(possibleType, fromSchemas, candidateSchema, out var directLookup))
                 {
                     concreteLookup = directLookup;
                     lookupSchema = candidateSchema;
@@ -397,6 +394,21 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
             planNodeTemplate.MaxDepth,
             planNodeTemplate.OpsPerLevel,
             branchBacklog.Cost);
+
+    private static ImmutableHashSet<string> GetTransitionSourceSchemas(
+        ImmutableHashSet<string> candidateSchemas,
+        string toSchema,
+        OperationWorkItem workItem)
+    {
+        var fromSchemas = candidateSchemas.Remove(toSchema);
+
+        if (!workItem.Dependents.IsEmpty && !string.IsNullOrEmpty(workItem.FromSchema))
+        {
+            fromSchemas = fromSchemas.Remove(workItem.FromSchema);
+        }
+
+        return fromSchemas;
+    }
 
     private double GetResolutionCost(SelectionSet selectionSet, string schemaName)
     {

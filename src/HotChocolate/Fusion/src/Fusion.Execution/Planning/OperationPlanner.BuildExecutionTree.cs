@@ -412,7 +412,7 @@ public sealed partial class OperationPlanner
                 // Plan steps store which steps they feed into ("dependents").
                 // We invert that here so each step knows which steps it
                 // depends on, which is what the executor needs for scheduling.
-                foreach (var dependent in operationPlanStep.Dependents)
+                foreach (var dependent in operationPlanStep.Dependents.Order())
                 {
                     if (!ctx.DependenciesByStepId.TryGetValue(dependent, out var dependencies))
                     {
@@ -446,7 +446,7 @@ public sealed partial class OperationPlanner
 
                 ctx.BranchesByNodeId.Add(
                     nodePlanStep.Id,
-                    nodePlanStep.Branches.ToDictionary(x => x.Key, x => x.Value.Id));
+                    nodePlanStep.Branches.ToDictionary(static t => t.Key, static t => t.Value.Id));
                 ctx.FallbackByNodeId.Add(nodePlanStep.Id, nodePlanStep.FallbackQuery.Id);
             }
         }
@@ -559,7 +559,7 @@ public sealed partial class OperationPlanner
             operationStep.Conditions,
             requiresFileUpload);
 
-        foreach (var parentDependency in operationStep.ParentDependencies)
+        foreach (var parentDependency in operationStep.ParentDependencies.OrderBy(static t => t.StepId))
         {
             node.AddParentDependency(parentDependency.StepId);
         }
@@ -579,9 +579,9 @@ public sealed partial class OperationPlanner
         // step below will rewrite the dependency lookup as it merges nodes.
         var originalDependencies = new Dictionary<int, int[]>(ctx.DependenciesByStepId.Count);
 
-        foreach (var (nodeId, dependencies) in ctx.DependenciesByStepId)
+        foreach (var (nodeId, dependencies) in ctx.DependenciesByStepId.OrderBy(static t => t.Key))
         {
-            originalDependencies[nodeId] = dependencies.ToArray();
+            originalDependencies[nodeId] = [.. dependencies.Order()];
         }
 
         var perOperationDependencies = GroupBySchemaAndDepthIntoBatches(
@@ -603,7 +603,7 @@ public sealed partial class OperationPlanner
     {
         var candidates = new Dictionary<string, List<OperationExecutionNode>>(StringComparer.Ordinal);
 
-        foreach (var node in ctx.ExecutionNodes.Values.OfType<OperationExecutionNode>())
+        foreach (var node in ctx.ExecutionNodes.Values.OfType<OperationExecutionNode>().OrderBy(static t => t.Id))
         {
             if (node.Operation.Type != OperationType.Query)
             {
@@ -628,7 +628,7 @@ public sealed partial class OperationPlanner
 
         var mergeResults = new Dictionary<int, MergeResult>();
 
-        foreach (var (_, equivalentNodes) in candidates)
+        foreach (var (_, equivalentNodes) in candidates.OrderBy(static t => t.Key, StringComparer.Ordinal))
         {
             if (equivalentNodes.Count <= 1)
             {
@@ -733,8 +733,8 @@ public sealed partial class OperationPlanner
 
         var queryNodes = ctx.ExecutionNodes.Values
             .OfType<OperationExecutionNode>()
-            .Where(n => n.Operation.Type == OperationType.Query)
-            .Where(n => !IsNodeFieldBound(n.Id, ctx, nodeFieldBoundCache))
+            .Where(n => n.Operation.Type == OperationType.Query && !IsNodeFieldBound(n.Id, ctx, nodeFieldBoundCache))
+            .OrderBy(static t => t.Id)
             .ToList();
 
         var depthLookup = new Dictionary<int, int>();
@@ -764,7 +764,9 @@ public sealed partial class OperationPlanner
 
         // Process from shallowest to deepest so that deeper groups
         // reference the already-redirected identifiers from earlier merges.
-        foreach (var (_, groupMembers) in batchGroups.OrderBy(t => t.Key.depth))
+        foreach (var (_, groupMembers) in batchGroups
+            .OrderBy(static t => t.Key.depth)
+            .ThenBy(static t => t.Key.schema, StringComparer.Ordinal))
         {
             if (groupMembers.Count <= 1)
             {
@@ -827,7 +829,7 @@ public sealed partial class OperationPlanner
         Dictionary<OperationBatchExecutionNode, Dictionary<int, int[]>> perOperationDependencies,
         Dictionary<int, int[]> originalDependencies)
     {
-        foreach (var (primaryId, merge) in remainingMerges)
+        foreach (var (primaryId, merge) in remainingMerges.OrderBy(static t => t.Key))
         {
             var operationDefinition = CreateBatchOperationDefinition(merge);
             var standaloneBatchNode = new OperationBatchExecutionNode(primaryId, [operationDefinition]);
@@ -859,7 +861,7 @@ public sealed partial class OperationPlanner
 
         var planNodeById = new Dictionary<int, IOperationPlanNode>();
 
-        foreach (var node in ctx.ExecutionNodes.Values)
+        foreach (var node in ctx.ExecutionNodes.Values.OrderBy(static t => t.Id))
         {
             planNodeById[node.Id] = node;
 
@@ -872,9 +874,9 @@ public sealed partial class OperationPlanner
             }
         }
 
-        foreach (var (_, memberDependencies) in perOperationDependencies)
+        foreach (var (_, memberDependencies) in perOperationDependencies.OrderBy(static t => t.Key.Id))
         {
-            foreach (var (operationId, dependencyIds) in memberDependencies)
+            foreach (var (operationId, dependencyIds) in memberDependencies.OrderBy(static t => t.Key))
             {
                 if (planNodeById.TryGetValue(operationId, out var operationNode)
                     && operationNode is OperationDefinition operationDefinition)
@@ -1059,7 +1061,7 @@ public sealed partial class OperationPlanner
         // inner operation identifier also maps back to the parent batch node.
         var executionNodeById = new Dictionary<int, ExecutionNode>();
 
-        foreach (var node in ctx.ExecutionNodes.Values)
+        foreach (var node in ctx.ExecutionNodes.Values.OrderBy(static t => t.Id))
         {
             executionNodeById[node.Id] = node;
 
@@ -1072,7 +1074,7 @@ public sealed partial class OperationPlanner
             }
         }
 
-        foreach (var (nodeId, stepDependencies) in ctx.DependenciesByStepId)
+        foreach (var (nodeId, stepDependencies) in ctx.DependenciesByStepId.OrderBy(static t => t.Key))
         {
             if (!ctx.ExecutionNodes.TryGetValue(nodeId, out var entry)
                 || entry is not (OperationExecutionNode or OperationBatchExecutionNode))
@@ -1087,7 +1089,7 @@ public sealed partial class OperationPlanner
             }
 
             // For a standalone operation node, attach dependencies directly.
-            foreach (var dependencyId in stepDependencies)
+            foreach (var dependencyId in stepDependencies.Order())
             {
                 if (!ctx.ExecutionNodes.TryGetValue(dependencyId, out var childEntry)
                     || childEntry is not (OperationExecutionNode or OperationBatchExecutionNode or NodeFieldExecutionNode))
@@ -1108,7 +1110,7 @@ public sealed partial class OperationPlanner
     {
         var seenExecutionDependencies = new HashSet<int>();
 
-        foreach (var dependencyId in stepDependencies)
+        foreach (var dependencyId in stepDependencies.Order())
         {
             if (dependencyId == batchEntry.Id)
             {
@@ -1144,7 +1146,7 @@ public sealed partial class OperationPlanner
 
     private static void WireNodeFieldBranchesAndFallbacks(ExecutionPlanBuildContext ctx)
     {
-        foreach (var (nodeId, branches) in ctx.BranchesByNodeId)
+        foreach (var (nodeId, branches) in ctx.BranchesByNodeId.OrderBy(static t => t.Key))
         {
             if (!ctx.ExecutionNodes.TryGetValue(nodeId, out var entry) || entry is not NodeFieldExecutionNode node)
             {
@@ -1160,7 +1162,7 @@ public sealed partial class OperationPlanner
             }
         }
 
-        foreach (var (nodeId, fallbackNodeId) in ctx.FallbackByNodeId)
+        foreach (var (nodeId, fallbackNodeId) in ctx.FallbackByNodeId.OrderBy(static t => t.Key))
         {
             if (!ctx.ExecutionNodes.TryGetValue(nodeId, out var entry) || entry is not NodeFieldExecutionNode node)
             {
@@ -1212,7 +1214,7 @@ public sealed partial class OperationPlanner
         var dependencyDepthLookup = new Dictionary<int, int>();
         var recursionStack = new HashSet<int>();
 
-        foreach (var serviceSteps in queryStepsByService.Values)
+        foreach (var (_, serviceSteps) in queryStepsByService.OrderBy(static t => t.Key, StringComparer.Ordinal))
         {
             foreach (var step in serviceSteps)
             {
@@ -1290,7 +1292,7 @@ public sealed partial class OperationPlanner
 
         var maxDepth = 0;
 
-        foreach (var dependency in directDependencies.OrderBy(t => t))
+        foreach (var dependency in directDependencies)
         {
             var dependencyDepth = GetDependencyDepth(
                 dependency,
