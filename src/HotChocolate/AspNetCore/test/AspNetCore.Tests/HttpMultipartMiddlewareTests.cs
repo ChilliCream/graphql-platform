@@ -614,6 +614,49 @@ public class HttpMultipartMiddlewareTests(TestServerFactory serverFactory) : Ser
     }
 
     [Fact]
+    public async Task Upload_File_In_InputObject_With_NonNull_Placeholder_Should_Be_Rejected()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+
+        const string query = @"
+                query ($input: InputWithFileInput!) {
+                    objectUpload(input: $input)
+                }";
+
+        var request = JsonConvert.SerializeObject(
+            new ClientQueryRequest
+            {
+                Query = query,
+                Variables = new Dictionary<string, object?>
+                {
+                    {
+                        "input",
+                        new Dictionary<string, object?>
+                        {
+                            { "file", new Dictionary<string, object?> { { "path", "./foo.bar" } } }
+                        }
+                    }
+                }
+            });
+
+        // act
+        var form = new MultipartFormDataContent
+            {
+                { new StringContent(request), "operations" },
+                { new StringContent("{ \"1\": [\"variables.input.file\"] }"), "map" },
+                { new StringContent("abc"), "1", "foo.bar" }
+            };
+
+        form.Headers.Add(HttpHeaderKeys.Preflight, "1");
+
+        var result = await server.PostMultipartAsync(form, path: "/upload");
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task Upload_File_Inline_InputObject()
     {
         // arrange

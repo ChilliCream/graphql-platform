@@ -201,6 +201,12 @@ public static class ErrorCodes
         /// Multi-part requests must include a GraphQL preflight header.
         /// </summary>
         public const string MultiPartPreflightRequired = "HC0077";
+
+        /// <summary>
+        /// A multipart file upload variable location held a non-null value while
+        /// null values are enforced.
+        /// </summary>
+        public const string MultiPartFileVariableValueNotNull = "HC0078";
     }
 
     public static class Schema

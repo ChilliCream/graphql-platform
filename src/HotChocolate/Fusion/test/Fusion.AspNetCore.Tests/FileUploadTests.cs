@@ -1,4 +1,6 @@
+using System.Net;
 using System.Text;
+using System.Text.Json;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
 using HotChocolate.Types;
@@ -406,6 +408,214 @@ public class FileUploadTests : FusionTestBase
 
         // assert
         await MatchSnapshotAsync(gateway, operation, result, rawRequest: rawRequest);
+    }
+
+    [Fact]
+    public async Task Upload_File_In_Input_List_With_NonNull_Placeholder_Should_Bind_File()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<SourceSchema1.Query>().AddUploadType());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("A", server1)
+            ],
+            configureGatewayBuilder: b => b.ModifyServerOptions(
+                o => o.EnforceNullVariableValuesForMultipartFileUpload = false));
+
+        const string operations =
+            """
+            {"query":"query ($input: FilesInput!) { multiUploadWithInput(input: $input) { fileName contentType content } }","variables":{"input":{"files":[{"path":"./test.txt","relativePath":"./test.txt","preview":"blob:http://localhost/abc"}]}}}
+            """;
+
+        const string map =
+            """
+            {"variables.input.files.0":["variables.input.files.0"]}
+            """;
+
+        using var form = new MultipartFormDataContent
+        {
+            { new StringContent(operations), "operations" },
+            { new StringContent(map), "map" },
+            { new ByteArrayContent("abc"u8.ToArray()), "variables.input.files.0", "test.txt" }
+        };
+
+        form.Headers.Add("GraphQL-Preflight", "1");
+
+        using var client = gateway.CreateClient();
+
+        // act
+        using var response = await client.PostAsync("graphql", form);
+        var content = await response.Content.ReadAsStringAsync();
+
+        // assert
+        // The file must be bound from the multipart part instead of being rejected because the
+        // placeholder object is not a valid file value.
+        Assert.DoesNotContain("The value is not a valid file.", content);
+        Assert.Contains("test.txt", content);
+        Assert.Contains("abc", content);
+    }
+
+    [Fact]
+    public async Task Upload_File_In_Input_List_With_NonNull_Placeholder_Should_Throw_When_Enforced()
+    {
+        // arrange
+        // Same non-conformant request as above, but with the default strict spec behavior the
+        // non-null placeholder at the file location must be rejected with an explicit error.
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<SourceSchema1.Query>().AddUploadType());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        const string operations =
+            """
+            {"query":"query ($input: FilesInput!) { multiUploadWithInput(input: $input) { fileName contentType content } }","variables":{"input":{"files":[{"path":"./test.txt","relativePath":"./test.txt","preview":"blob:http://localhost/abc"}]}}}
+            """;
+
+        const string map =
+            """
+            {"variables.input.files.0":["variables.input.files.0"]}
+            """;
+
+        using var form = new MultipartFormDataContent
+        {
+            { new StringContent(operations), "operations" },
+            { new StringContent(map), "map" },
+            { new ByteArrayContent("abc"u8.ToArray()), "variables.input.files.0", "test.txt" }
+        };
+
+        form.Headers.Add("GraphQL-Preflight", "1");
+
+        using var client = gateway.CreateClient();
+
+        // act
+        using var response = await client.PostAsync("graphql", form);
+        var content = await response.Content.ReadAsStringAsync();
+
+        // assert
+        // The request is rejected because a non-null value sits at the file's variable location:
+        // the file is not bound, the operation does not execute, and an explicit error is returned.
+        using var document = JsonDocument.Parse(content);
+        var error = document.RootElement.GetProperty("errors")[0];
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(
+            "The file mapped to 'variables.input.files.0' must be referenced by a null value "
+            + "at its variable location, but a non-null value was provided.",
+            error.GetProperty("message").GetString());
+        Assert.Equal("HC0078", error.GetProperty("extensions").GetProperty("code").GetString());
+        Assert.DoesNotContain("multiUploadWithInput", content);
+    }
+
+    [Fact]
+    public async Task Upload_File_In_Input_Object_With_NonNull_Placeholder_Should_Bind_File()
+    {
+        // arrange
+        // A file mapped to an object property (not a list element) with a non-null placeholder
+        // exercises the object-property rewrite branch in lenient mode.
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<SourceSchema1.Query>().AddUploadType());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("A", server1)
+            ],
+            configureGatewayBuilder: b => b.ModifyServerOptions(
+                o => o.EnforceNullVariableValuesForMultipartFileUpload = false));
+
+        const string operations =
+            """
+            {"query":"query ($input: FileInput!) { singleUploadWithInput(input: $input) { fileName contentType content } }","variables":{"input":{"file":{"path":"./test.txt","relativePath":"./test.txt","preview":"blob:http://localhost/abc"}}}}
+            """;
+
+        const string map =
+            """
+            {"variables.input.file":["variables.input.file"]}
+            """;
+
+        using var form = new MultipartFormDataContent
+        {
+            { new StringContent(operations), "operations" },
+            { new StringContent(map), "map" },
+            { new ByteArrayContent("abc"u8.ToArray()), "variables.input.file", "test.txt" }
+        };
+
+        form.Headers.Add("GraphQL-Preflight", "1");
+
+        using var client = gateway.CreateClient();
+
+        // act
+        using var response = await client.PostAsync("graphql", form);
+        var content = await response.Content.ReadAsStringAsync();
+
+        // assert
+        // The file must be bound from the multipart part instead of being rejected because the
+        // placeholder object is not a valid file value.
+        Assert.DoesNotContain("The value is not a valid file.", content);
+        Assert.Contains("test.txt", content);
+        Assert.Contains("abc", content);
+    }
+
+    [Fact]
+    public async Task Upload_File_In_Input_Object_With_NonNull_Placeholder_Should_Throw_When_Enforced()
+    {
+        // arrange
+        // Same object-property request, but with the default strict spec behavior the non-null
+        // placeholder at the file location must be rejected with an explicit error.
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<SourceSchema1.Query>().AddUploadType());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        const string operations =
+            """
+            {"query":"query ($input: FileInput!) { singleUploadWithInput(input: $input) { fileName contentType content } }","variables":{"input":{"file":{"path":"./test.txt","relativePath":"./test.txt","preview":"blob:http://localhost/abc"}}}}
+            """;
+
+        const string map =
+            """
+            {"variables.input.file":["variables.input.file"]}
+            """;
+
+        using var form = new MultipartFormDataContent
+        {
+            { new StringContent(operations), "operations" },
+            { new StringContent(map), "map" },
+            { new ByteArrayContent("abc"u8.ToArray()), "variables.input.file", "test.txt" }
+        };
+
+        form.Headers.Add("GraphQL-Preflight", "1");
+
+        using var client = gateway.CreateClient();
+
+        // act
+        using var response = await client.PostAsync("graphql", form);
+        var content = await response.Content.ReadAsStringAsync();
+
+        // assert
+        // The request is rejected because a non-null value sits at the file's variable location:
+        // the file is not bound, the operation does not execute, and an explicit error is returned.
+        using var document = JsonDocument.Parse(content);
+        var error = document.RootElement.GetProperty("errors")[0];
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(
+            "The file mapped to 'variables.input.file' must be referenced by a null value "
+            + "at its variable location, but a non-null value was provided.",
+            error.GetProperty("message").GetString());
+        Assert.Equal("HC0078", error.GetProperty("extensions").GetProperty("code").GetString());
+        Assert.DoesNotContain("singleUploadWithInput", content);
     }
 
     private static RawRequest GetRawRequest(HttpRequestMessage requestMessage)
