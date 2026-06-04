@@ -6,7 +6,7 @@
     {
       "message": "The file mapped to '1' must be referenced by a null value at its variable location, but a non-null value was provided.",
       "extensions": {
-        "code": "HC0078"
+        "code": "HC0115"
       }
     }
   ],

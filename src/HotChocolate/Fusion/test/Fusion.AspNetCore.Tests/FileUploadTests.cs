@@ -509,7 +509,9 @@ public class FileUploadTests : FusionTestBase
             "The file mapped to 'variables.input.files.0' must be referenced by a null value "
             + "at its variable location, but a non-null value was provided.",
             error.GetProperty("message").GetString());
-        Assert.Equal("HC0078", error.GetProperty("extensions").GetProperty("code").GetString());
+        Assert.Equal(
+            ErrorCodes.Server.MultiPartFileVariableValueNotNull,
+            error.GetProperty("extensions").GetProperty("code").GetString());
         Assert.DoesNotContain("multiUploadWithInput", content);
     }
 
@@ -614,7 +616,9 @@ public class FileUploadTests : FusionTestBase
             "The file mapped to 'variables.input.file' must be referenced by a null value "
             + "at its variable location, but a non-null value was provided.",
             error.GetProperty("message").GetString());
-        Assert.Equal("HC0078", error.GetProperty("extensions").GetProperty("code").GetString());
+        Assert.Equal(
+            ErrorCodes.Server.MultiPartFileVariableValueNotNull,
+            error.GetProperty("extensions").GetProperty("code").GetString());
         Assert.DoesNotContain("singleUploadWithInput", content);
     }
 

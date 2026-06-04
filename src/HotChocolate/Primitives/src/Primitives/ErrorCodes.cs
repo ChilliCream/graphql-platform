@@ -206,7 +206,7 @@ public static class ErrorCodes
         /// A multipart file upload variable location held a non-null value while
         /// null values are enforced.
         /// </summary>
-        public const string MultiPartFileVariableValueNotNull = "HC0078";
+        public const string MultiPartFileVariableValueNotNull = "HC0115";
     }
 
     public static class Schema
