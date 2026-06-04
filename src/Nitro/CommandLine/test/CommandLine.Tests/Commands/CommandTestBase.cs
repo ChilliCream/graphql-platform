@@ -107,6 +107,9 @@ public abstract class CommandTestBase
 
         if (_interactionMode is InteractionMode.JsonOutput)
         {
+            // Simulate a real terminal (TTY): '--output json' must force
+            // non-interactive behavior even when the console is interactive.
+            outConsole.Profile.Capabilities.Interactive = true;
             arguments.AddRange(["--output", "json"]);
         }
         else if (_interactionMode is InteractionMode.NonInteractive)
