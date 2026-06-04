@@ -99,6 +99,8 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
             throw ThrowHelper.HttpMultipartMiddleware_Invalid_Form(exception);
         }
 
+        var options = GetOptions(context);
+
         // Parse the string values of interest from the IFormCollection
         var multipartRequest = ParseMultipartRequest(form);
         var requests = session.ParseRequest(multipartRequest.Operations);
@@ -140,7 +142,11 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
 
             try
             {
-                RewriteVariables(ref variablesReader, variablesWriter, operationRoot);
+                RewriteVariables(
+                    ref variablesReader,
+                    variablesWriter,
+                    operationRoot,
+                    options.EnforceNullVariableValuesForMultipartFileUpload);
                 await variablesWriter.FlushAsync();
 
                 current = current with
@@ -154,6 +160,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
             }
             catch
             {
+                variablesWriter.Reset();
                 bufferWriter.Dispose();
 
                 foreach (var request in requests)
@@ -222,20 +229,22 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
     private void RewriteVariables(
         ref Utf8JsonReader originalVariables,
         Utf8JsonWriter variables,
-        FileMapTrieNode fileMapRoot)
+        FileMapTrieNode fileMapRoot,
+        bool enforceNullValues)
     {
         if (!originalVariables.Read())
         {
             throw new JsonException("The variables JSON payload is empty.");
         }
 
-        RewriteJsonValue(ref originalVariables, variables, fileMapRoot);
+        RewriteJsonValue(ref originalVariables, variables, fileMapRoot, enforceNullValues);
     }
 
     private static void RewriteJsonValue(
         ref Utf8JsonReader reader,
         Utf8JsonWriter writer,
-        FileMapTrieNode currentNode)
+        FileMapTrieNode currentNode,
+        bool enforceNullValues)
     {
         switch (reader.TokenType)
         {
@@ -253,17 +262,30 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
                     // Read the property value
                     reader.Read();
 
-                    // If this is a null, and we have a file key, replace it
-                    if (reader.TokenType is JsonTokenType.Null
-                        && hasChildNode
-                        && childNode!.FileKey is not null)
+                    // If we have a file key, replace it
+                    if (hasChildNode && childNode!.FileKey is not null)
                     {
+                        if (reader.TokenType is not JsonTokenType.Null)
+                        {
+                            if (enforceNullValues)
+                            {
+                                throw ThrowHelper.HttpMultipartMiddleware_FileVariableValueNotNull(
+                                    childNode.FileKey);
+                            }
+
+                            // lenient: discard the structured placeholder the client sent
+                            if (reader.TokenType is JsonTokenType.StartObject or JsonTokenType.StartArray)
+                            {
+                                reader.Skip();
+                            }
+                        }
+
                         writer.WriteStringValue(childNode.FileKey);
                     }
                     else if (hasChildNode)
                     {
                         // Recurse with the child node
-                        RewriteJsonValue(ref reader, writer, childNode!);
+                        RewriteJsonValue(ref reader, writer, childNode!, enforceNullValues);
                     }
                     else
                     {
@@ -283,17 +305,30 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
                     var indexKey = index.ToString();
                     var hasChildNode = currentNode.TryGetNode(indexKey, out var childNode);
 
-                    // If this is a null, and we have a file key, replace it
-                    if (reader.TokenType is JsonTokenType.Null
-                        && hasChildNode
-                        && childNode!.FileKey is not null)
+                    // If we have a file key, replace it
+                    if (hasChildNode && childNode!.FileKey is not null)
                     {
+                        if (reader.TokenType is not JsonTokenType.Null)
+                        {
+                            if (enforceNullValues)
+                            {
+                                throw ThrowHelper.HttpMultipartMiddleware_FileVariableValueNotNull(
+                                    childNode.FileKey);
+                            }
+
+                            // lenient: discard the structured placeholder the client sent
+                            if (reader.TokenType is JsonTokenType.StartObject or JsonTokenType.StartArray)
+                            {
+                                reader.Skip();
+                            }
+                        }
+
                         writer.WriteStringValue(childNode.FileKey);
                     }
                     else if (hasChildNode)
                     {
                         // Recurse with the child node
-                        RewriteJsonValue(ref reader, writer, childNode!);
+                        RewriteJsonValue(ref reader, writer, childNode!, enforceNullValues);
                     }
                     else
                     {
