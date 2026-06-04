@@ -95,7 +95,7 @@ internal sealed class ExecutionState
                 {
                     // we skip root nodes as they are enqueued by the algorithm
                     // one by one.
-                    if (node.Dependencies.Length == 0)
+                    if (node.Dependencies.Length == 0 && node.OptionalDependencies.Length == 0)
                     {
                         continue;
                     }
