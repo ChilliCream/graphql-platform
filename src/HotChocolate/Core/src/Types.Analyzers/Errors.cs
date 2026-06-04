@@ -274,13 +274,4 @@ public static class Errors
             category: "TypeSystem",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
-
-    public static readonly DiagnosticDescriptor ConflictingIdAttribute =
-        new(
-            id: "HC0115",
-            title: "Conflicting [ID] attribute ID types",
-            messageFormat: SourceGenResources.ConflictingIdAttribute,
-            category: "TypeSystem",
-            DiagnosticSeverity.Error,
-            isEnabledByDefault: true);
 }

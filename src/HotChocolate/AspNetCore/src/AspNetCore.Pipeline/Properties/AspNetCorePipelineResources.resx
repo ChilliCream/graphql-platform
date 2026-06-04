@@ -51,6 +51,9 @@
   <data name="ThrowHelper_HttpMultipartMiddleware_FileMissing" xml:space="preserve">
     <value>File of key '{0}' is missing.</value>
   </data>
+  <data name="ThrowHelper_HttpMultipartMiddleware_FileVariableValueNotNull" xml:space="preserve">
+    <value>The file mapped to '{0}' must be referenced by a null value at its variable location, but a non-null value was provided.</value>
+  </data>
   <data name="ThrowHelper_HttpMultipartMiddleware_VariableStructureInvalid" xml:space="preserve">
     <value>The variable structure is invalid.</value>
   </data>

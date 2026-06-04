@@ -60,15 +60,6 @@ namespace HotChocolate.Types.Analyzers.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The [ID] attribute on '{0}' maps to the same ID type name as '{1}', but their ID value types differ. An ID type name can only bind to a single value type, so change '{0}' to use the same type as '{1}' ('{2}'), or give it a different type name with [ID&lt;T&gt;] or [ID("TypeName")].
-        /// </summary>
-        internal static string ConflictingIdAttribute {
-            get {
-                return ResourceManager.GetString("ConflictingIdAttribute", resourceCulture);
-            }
-        }
-
-        /// <summary>
         ///   Looks up a localized string similar to The DataLoader access modifier must be public or internal.
         /// </summary>
         internal static string DataLoader_InvalidAccessModifier {
