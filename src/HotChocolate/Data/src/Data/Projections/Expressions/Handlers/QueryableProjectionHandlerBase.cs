@@ -33,6 +33,14 @@ public abstract class QueryableProjectionHandlerBase
             return true;
         }
 
+        // Fields inherited from an interface carry the interface member as their resolver
+        // member; the runtime type implements that interface, so the member can be projected.
+        if (resolverMember.ReflectedType?.IsAssignableFrom(
+            selection.Field.DeclaringType.RuntimeType) == true)
+        {
+            return true;
+        }
+
         // Explicit member replacements (e.g. fluent ResolveWith on a shadowed property)
         // must keep projecting the underlying member so custom resolvers
         // can access the shadowed data on projected parents.
