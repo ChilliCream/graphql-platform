@@ -297,9 +297,29 @@ public class FilterConvention
             return true;
         }
 
+        // try to match open generic types if runtime type is a generic type
+        if (runtimeType.Source is { IsGenericType: true, IsGenericTypeDefinition: false })
+        {
+            var genericTypeDefinition = runtimeType.Source.GetGenericTypeDefinition();
+            if (_bindings.TryGetValue(genericTypeDefinition, out var genericFilterType))
+            {
+                // if the filter type is a generic type definition, make it concrete
+                if (genericFilterType.IsGenericTypeDefinition)
+                {
+                    var typeArguments = runtimeType.Source.GetGenericArguments();
+                    type = genericFilterType.MakeGenericType(typeArguments);
+                    return true;
+                }
+
+                // use the non-generic filter type directly
+                type = genericFilterType;
+                return true;
+            }
+        }
+
         if (runtimeType.IsArrayOrList)
         {
-            if (runtimeType.ElementType is { }
+            if (runtimeType.ElementType is not null
                 && TryCreateFilterType(runtimeType.ElementType, out var elementType))
             {
                 type = typeof(ListFilterInputType<>).MakeGenericType(elementType);
