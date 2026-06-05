@@ -8,7 +8,7 @@ This page teaches you to scaffold a skill, write a correct `SKILL.md`, add suppo
 
 # Scaffold a skill
 
-> Prerequisites: skillz installed. See [Installing Skills](/docs/skillz/installing-skills) to install the CLI before running the commands below.
+> Prerequisites: skillz installed. See [Getting Started](/docs/skillz/getting-started) to install the CLI before running the commands below.
 
 To create a new skill in its own folder, run `dnx skillz init` with a name.
 

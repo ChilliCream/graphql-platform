@@ -140,9 +140,9 @@ dnx skillz update [skills...] [options]
 
 ### Arguments
 
-| Argument | Arity        | Required | Description                                                                           |
-| -------- | ------------ | -------- | ------------------------------------------------------------------------------------- |
-| `skills` | zero or more | no       | Optional skill names to check. With names and no scope flag, both scopes are checked. |
+| Argument | Arity        | Required | Description                                                                                                        |
+| -------- | ------------ | -------- | ------------------------------------------------------------------------------------------------------------------ |
+| `skills` | zero or more | no       | Optional skill names to check. Scope is resolved the same way with or without names (see the scope options below). |
 
 ### Options
 

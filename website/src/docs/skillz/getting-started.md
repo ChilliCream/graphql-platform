@@ -12,10 +12,10 @@ This page takes you from zero to one working skill. It takes about five minutes.
 
 Before you start, make sure you have the following:
 
-| Requirement                                                   | Why you need it                                                                                                                        |
-| ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| [.NET 10 SDK or newer](https://dotnet.microsoft.com/download) | To run skillz with `dnx`, the way these docs show it. The `dnx` command ships with the .NET 10 SDK.                                    |
-| An AI coding agent                                            | The target for your skill. This guide uses [Claude Code](https://code.claude.com/docs/en/skills). skillz supports more than 50 agents. |
+| Requirement                                                   | Why you need it                                                                                                                                                            |
+| ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [.NET 10 SDK or newer](https://dotnet.microsoft.com/download) | To run skillz with `dnx`, the way these docs show it. The `dnx` command ships with the .NET 10 SDK.                                                                        |
+| An AI coding agent                                            | The target for your skill. This guide uses [Claude Code](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview). skillz supports more than 50 agents. |
 
 These docs run skillz with `dnx`, so there is nothing to install first. If you would rather have `skillz` on your `PATH`, install the global tool instead (it needs only the .NET SDK 8.0 or newer). See [Install as a global tool](#install-as-a-global-tool).
 
@@ -28,7 +28,7 @@ These docs run skillz with `dnx`, which needs no install. You can also install i
 `dnx` ships with the .NET 10 SDK and runs a tool straight from NuGet, the way `npx` runs a package from npm. Nothing is installed up front.
 
 ```bash
-dnx skillz add anthropics/skills
+dnx skillz add anthropics/skills --agent claude-code
 ```
 
 On the first run, `dnx` prompts you to confirm the package download before it proceeds:
@@ -38,12 +38,12 @@ Tool package skillz@<version> will be downloaded from source https://api.nuget.o
 Proceed? [y/n] (y):
 ```
 
-After you confirm, the install proceeds and prints the summary shown in [Add your first skill](/docs/skillz/getting-started#add-your-first-skill). The first run downloads the package into your NuGet cache; later runs reuse it and start immediately. `dnx skillz` is shorthand for `dotnet tool exec skillz`.
+After you confirm, the install proceeds and prints the summary shown in [Add your first skill](#add-your-first-skill). The first run downloads the package into your NuGet cache; later runs reuse it and start immediately. `dnx skillz` is shorthand for `dotnet tool exec skillz`.
 
 To skip the download prompt (for example in CI), pass `--yes`:
 
 ```bash
-dnx --yes skillz add anthropics/skills
+dnx --yes skillz add anthropics/skills --agent claude-code
 ```
 
 You can control which version of skillz `dnx` runs and where it fetches from:
@@ -95,14 +95,17 @@ skillz fetches the source, discovers the skills, installs them, and prints a sum
 
 ```text
 Source: https://github.com/anthropics/skills.git
-Found 1 skill(s)
+Found 2 skill(s)
 
 ┌─Installation Summary─────────────────────────────────────────────────────────┐
-│ Copied:  Claude Code                                                         │
+│ Canonical: /your-project/.agents/skills                                      │
+│ Symlinked:  Claude Code                                                      │
 └──────────────────────────────────────────────────────────────────────────────┘
-┌─Installed 1 skill(s)─────────────────────────────────────────────────────────┐
-│ ✓ alpha                                                                      │
-│   → /your-project/.claude/skills/alpha                                        │
+┌─Installed 2 skill(s)─────────────────────────────────────────────────────────┐
+│ ✓ pdf                                                                        │
+│   → /your-project/.claude/skills/pdf                                         │
+│ ✓ docx                                                                       │
+│   → /your-project/.claude/skills/docx                                        │
 └──────────────────────────────────────────────────────────────────────────────┘
 
 Done!  Review skills before use; they run with full agent permissions.
@@ -112,7 +115,7 @@ Done!  Review skills before use; they run with full agent permissions.
 
 If you omit `--agent`, skillz runs interactively and lets you pick which agents to target from the ones it detects on your machine. To install only specific skills from a multi-skill source, add `--skill <name>` (repeatable). For the full set of source forms, scopes, and flags, see [Installing Skills](/docs/skillz/installing-skills).
 
-**Checkpoint.** If everything worked, you should see the `Installed 1 skill(s)` panel and the `Done!` line, with no error. If you saw an `Invalid agents` panel, you misspelled the agent name (it is case-sensitive). If you saw `No valid skills found`, the source had no `SKILL.md` with both a `name` and a `description`. See [Troubleshooting](/docs/skillz/troubleshooting) for more.
+**Checkpoint.** If everything worked, you should see the `Installed 2 skill(s)` panel and the `Done!` line, with no error. If you saw an `Invalid agents` panel, you misspelled the agent name (it is case-sensitive). If you saw `No valid skills found`, the source had no `SKILL.md` with both a `name` and a `description`. See [Troubleshooting](/docs/skillz/troubleshooting) for more.
 
 # See what is installed
 
@@ -125,8 +128,9 @@ dnx skillz list
 ```text
 Project Skills
 
-Skill  Path                    Agents
-alpha  ./.claude/skills/alpha  Claude Code
+Skill  Path                   Agents
+pdf    ./.claude/skills/pdf   Claude Code
+docx   ./.claude/skills/docx  Claude Code
 ```
 
 The table shows each skill's name, where it lives on disk, and the agents linked to it (shown by their display name, `Claude Code`). To list global skills instead, add `-g`. For machine-readable output, add `--json`.

@@ -12,14 +12,17 @@ dnx skillz add anthropics/skills --agent claude-code
 
 ```text
 Source: https://github.com/anthropics/skills.git
-Found 1 skill(s)
+Found 2 skill(s)
 
 ┌─Installation Summary─────────────────────────────────────────────────────────┐
-│ Copied:  Claude Code                                                         │
+│ Canonical: /your-project/.agents/skills                                      │
+│ Symlinked:  Claude Code                                                      │
 └──────────────────────────────────────────────────────────────────────────────┘
-┌─Installed 1 skill(s)─────────────────────────────────────────────────────────┐
-│ ✓ alpha                                                                      │
-│   → /your-project/.claude/skills/alpha                                        │
+┌─Installed 2 skill(s)─────────────────────────────────────────────────────────┐
+│ ✓ pdf                                                                        │
+│   → /your-project/.claude/skills/pdf                                         │
+│ ✓ docx                                                                       │
+│   → /your-project/.claude/skills/docx                                        │
 └──────────────────────────────────────────────────────────────────────────────┘
 
 Done!  Review skills before use; they run with full agent permissions.
@@ -33,7 +36,7 @@ Need the prerequisites or a step-by-step walkthrough? See [Get started](/docs/sk
 
 # What are Agent Skills
 
-A skill is a folder with a single `SKILL.md` file. That file has YAML frontmatter (a `name` and a `description`) followed by a Markdown body of instructions. Optional subfolders carry supporting material the agent reads only when it needs them.
+A skill is a folder with a single `SKILL.md` file. That file has YAML frontmatter (a `name` and a `description`) followed by a Markdown body of instructions. Optional subfolders carry supporting material the agent reads only when it needs it.
 
 Think of a skill as an onboarding guide for a new team member. You write down a procedure once (how to run your test suite, how your commit messages are formatted, which API your team prefers), and the agent references the relevant section when a task calls for it. A general-purpose agent becomes a specialist in your codebase without bespoke prompt engineering on every request.
 
@@ -49,7 +52,7 @@ Skills stay out of the agent's context window until they are needed. The format 
 | --------------------- | ----------------------------------------------------- | --------------------------------------- | --------------------- |
 | Level 1: Metadata     | The `name` and `description` from the frontmatter     | Always, at startup                      | ~100 tokens per skill |
 | Level 2: Instructions | The `SKILL.md` Markdown body                          | When the skill is triggered             | Keep under ~5k tokens |
-| Level 3: Resources    | Bundled files in `scripts/`, `references/`, `assets/` | On demand, when the body points to them | Effectively unlimited |
+| Level 3: Resources    | Bundled files in `references/`, `scripts/`, `assets/` | On demand, when the body points to them | Effectively unlimited |
 
 At startup the agent loads only each skill's `name` and `description`. The `description` is what the agent matches against your request to decide whether to activate the skill, so write it to describe both what the skill does and when to use it. When a request matches, the agent reads the full body. Bundled resources never enter context until the body references them, which is why supporting material can be effectively unbounded.
 
@@ -81,7 +84,7 @@ When the user asks to roll dice, parse the count and number of sides (default to
 then return each roll and the total.
 ```
 
-The `dnx skillz init` command scaffolds this layout for you; [Authoring skills](/docs/skillz/authoring-skills) walks through it with the generated `SKILL.md` and folder tree. The full field reference, including optional frontmatter, lives in the [open specification](https://agentskills.io/specification) and in [Authoring skills](/docs/skillz/authoring-skills).
+The `dnx skillz init` command scaffolds this layout for you; [Authoring Skills](/docs/skillz/authoring-skills) walks through it with the generated `SKILL.md` and folder tree. The full field reference, including optional frontmatter, lives in the [open specification](https://agentskills.io/specification) and in [Authoring Skills](/docs/skillz/authoring-skills).
 
 # Why skillz
 
@@ -103,7 +106,7 @@ The Agent Skills world has three distinct layers. Knowing which is which helps y
 | Discovery     | A directory of published skills to browse | [skills.sh](https://www.skills.sh/)                                                                               |
 | Installers    | CLIs that fetch and install skills        | skillz (.NET), [npx skills](https://github.com/vercel-labs/skills) (Node)                                         |
 
-skillz brings the [npx skills](https://github.com/vercel-labs/skills) workflow to the .NET SDK via `dnx`, so you can run it without a global install. The command surface deliberately mirrors what Node developers already know. skillz has no registry of its own: you point `dnx skillz add` at any git repository or local folder, and you discover skills to install on directories like [skills.sh](https://www.skills.sh/).
+skillz brings the [npx skills](https://github.com/vercel-labs/skills) workflow to the .NET SDK via `dnx`, so you can run it without a global install. The command surface deliberately mirrors what Node developers already know. skillz has no registry of its own: you point `dnx skillz add` at any git repository or local folder, and you discover skills to install from directories like [skills.sh](https://www.skills.sh/).
 
 # Next steps
 

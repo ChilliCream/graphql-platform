@@ -34,13 +34,13 @@ Read the full post: [What's new for Hot Chocolate 16](/blog/2026/05/11/hot-choco
 
 `skillz` is a .NET CLI for installing, updating, and authoring Agent Skills. You package your team's conventions once as a skill, and any compatible agent loads it when a matching task comes up, so you stop re-explaining the same context every session. It runs one-shot with `dnx`, the way `npx` runs a package from npm.
 
-Alongside the CLI, we are publishing our first skills for the platform: `graphql-schema-design` for schema design and review, `graphql-backend` for Hot Chocolate v16 backend patterns, and `dataloader` for Green Donut DataLoaders.
+Alongside the CLI, we are publishing our first skill for the platform: `graphql-schema-design` for schema design and review. More are on the way, including `graphql-backend` for Hot Chocolate v16 backend patterns and `dataloader` for Green Donut DataLoaders.
 
 ```bash
 dnx skillz add ChilliCream/agent-skills --skill graphql-schema-design
 ```
 
-Read the announcement: [Introducing skillz](/blog/2026/06/05/introducing-skillz). For more on the skills themselves, see [ChilliCream Agent Skills](/blog/2026/05/25/chillicream-agent-skills).
+Read the announcement: [Introducing skillz](/blog/2026/06/05/introducing-skillz).
 
 ## From the community
 
@@ -48,7 +48,7 @@ None of this lands without you. Two major releases in a single cycle meant a lon
 
 It was also great to see so many of you in person at GraphQLConf 2026. Putting faces to GitHub handles and Slack avatars was the best part. Talking through federation, schema evolution, and GraphQL for agents over nitro cold brew is the part no release notes can capture.
 
-We would love to hear what you are building. If you have shipped something with Hot Chocolate, Fusion, Nitro that you are proud of, tell us about it. Come share it, ask questions, and join the conversation with the rest of the community on [Slack](https://slack.chillicream.com).
+We would love to hear what you are building. If you have shipped something with Hot Chocolate, Fusion, or Nitro that you are proud of, tell us about it. Come share it, ask questions, and join the conversation with the rest of the community on [Slack](https://slack.chillicream.com).
 
 ## Thank you
 

@@ -40,29 +40,29 @@ That was my <span class="wow-wobble" aria-label="wow"><em><span>w</span><span>o<
 
 Since then, it's been a bumpy ride. Working with agents can be amazing, but it can also be incredibly frustrating - especially when you spend time explaining exactly what you want, the agent finally gets it, the task wraps up, and then it forgets everything. Next session, you start from scratch.
 
-Anthropic's answer to this is [Skills](https://code.claude.com/docs/en/skills): a way to package your workflows, conventions, and best practices into a format agents can understand and load on demand. Write a skill once, and any compatible agent can pick it up when a matching task comes up. No more re-explaining the same context every session. The concept proved so useful that other coding agents quickly followed suit.
+Anthropic's answer to this is [Skills](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview): a way to package your workflows, conventions, and best practices into a format agents can understand and load on demand. Write a skill once, and any compatible agent can pick it up when a matching task comes up. No more re-explaining the same context every session. The concept proved so useful that other coding agents quickly followed suit.
 
-The catch: every agent looks for skills in its own place. Claude uses `.claude`, Codex uses `.agents`, Cursor uses `.cursor`, and so on. You end up with the same skill files scattered across multiple directories, kept in sync by hand. And since there's a new _"best model yet"_ every other week - promptly followed by everyone switching tools out of FOMO - skills go stale fast and become a genuine pain to maintain.
+The catch: every agent looks for skills in its own place. Claude uses `.claude`, Codex uses `.agents`, Windsurf uses `.windsurf`, and so on. You end up with the same skill files scattered across multiple directories, kept in sync by hand. And since there's a new _"best model yet"_ every other week - promptly followed by everyone switching tools out of FOMO - skills go stale fast and become a genuine pain to maintain.
 
-That's where `dnx skillz` comes in. It's a CLI for installing, updating, and authoring agent skills. You manage skills like any other project dependency, and `skillz` handles putting them where each agent expects to find them. It runs one-shot via `dnx` - the same way `npx` runs packages from npm - so there's nothing to install globally. It also uses symlinks, so you maintain one canonical version of each skill and every agent picks it up from there. [You need .NET 10 for `dnx` installed.](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
+That's where `dnx skillz` comes in. It's a CLI for installing, updating, and authoring Agent Skills. You manage skills like any other project dependency, and `skillz` handles putting them where each agent expects to find them. It runs one-shot via `dnx` - the same way `npx` runs packages from npm - so there's nothing to install globally. It also uses symlinks, so you maintain one canonical version of each skill and every agent picks it up from there. [Install .NET 10 to use `dnx`.](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
 
-`dnx skillz` is heavily inspired by Vercel's `npx skills`, which does the same for JavaScript. They even have a [registry of skills](https://skills.sh) that anyone can publish to. We wanted to bring that same experience to .NET (just without the phoning-home telemetry 🤫), so we built `skillz` as a NuGet package. You can check out [the source code here](https://github.com/ChilliCream/skillz).
+`dnx skillz` is heavily inspired by Vercel's `npx skills`, which does the same for JavaScript. They even have a [registry of skills](https://www.skills.sh/) that anyone can publish to. We wanted to bring that same experience to .NET (just without the phoning-home telemetry 🤫), so we built `skillz` as a NuGet package. You can check out [the source code here](https://github.com/ChilliCream/skillz).
 
-There's now [an official standard for skills](https://agentskills.io) and more agents are adopting it. But `dnx skillz` goes beyond just copying files into the right directory - it also supports installing skills from GitHub, GitLab, local directories, and more. Private repositories work too, as long as your Git credentials can reach them.
+There's now [an official standard for skills](https://agentskills.io) and more agents are adopting it. But `dnx skillz` goes beyond just copying files into the right directory - it also supports installing skills from GitHub, GitLab, local directories, and more. Private repositories work too, as long as your git credentials can reach them.
 
 ```bash
-dnx skillz add chillicream/agent-skills --skill graphql-schema-design
+dnx skillz add ChilliCream/agent-skills --skill graphql-schema-design
 ```
 
 That command pulls the `graphql-schema-design` skill from the `ChilliCream/agent-skills` repository on GitHub, while `skillz` itself is a NuGet package.
 
-If you are working with aspire you can try out their skills too:
+If you are working with Aspire you can try out their skills too:
 
 ```bash
 dnx skillz add microsoft/aspire-skills
 ```
 
-or add the .net specific ones:
+or add the .NET-specific ones:
 
 ```bash
 dnx skillz add dotnet/skills
@@ -76,7 +76,7 @@ There are two ways to run `skillz`:
 # one-shot, no install (needs the .NET 10 SDK)
 dnx skillz add <source>
 
-# persistent global tool (older .NET SDKs)
+# persistent tool on your PATH (.NET SDK 8.0+)
 dotnet tool install -g skillz
 skillz add <source>
 ```
@@ -85,7 +85,7 @@ skillz add <source>
 
 ## What skillz does
 
-`skillz add` installs skills from a source for the agents on your machine. A source can be a GitHub `owner/repo`, a full Git URL, a GitLab project, or a local directory.
+`skillz add` installs skills from a source for the agents on your machine. A source can be a GitHub `owner/repo`, a full git URL, a GitLab project, or a local directory.
 
 ```bash
 dnx skillz add ChilliCream/agent-skills --skill graphql-schema-design
@@ -109,7 +109,7 @@ Common flags:
 ```bash
 dnx skillz add <source> --agent claude-code    # target one agent (repeatable)
 dnx skillz add <source> --skill <name>         # pick a single skill from the source
-dnx skillz add <source> --all --yes            # install everything, no prompts
+dnx skillz add <source> --all                  # install everything, no prompts
 dnx skillz add <source> --copy                 # copy files instead of symlinking
 dnx skillz list --json                         # machine-readable output
 ```
@@ -122,7 +122,7 @@ To package your team's conventions as a skill, start with:
 dnx skillz init my-skill
 ```
 
-That scaffolds a valid `SKILL.md` with the required frontmatter. From there, write the instructions, add references if you need them, and commit the folder. In ChilliCream we have an internal repository on github with skills for our teams to use, and we also publish some of those skills publicly in the `ChilliCream/agent-skills` repository.
+That scaffolds a valid `SKILL.md` with the required frontmatter. From there, write the instructions, add references if you need them, and commit the folder. In ChilliCream we have an internal repository on GitHub with skills for our teams to use, and we also publish some of those skills publicly in the `ChilliCream/agent-skills` repository.
 
 ## graphql-schema-design
 
@@ -130,7 +130,7 @@ The first ChilliCream skill we're shipping is `graphql-schema-design`.
 
 Schema mistakes are cheap to make and expensive to fix once clients depend on them. It's easy to write a GraphQL schema that mirrors your database tables, treats every mutation as a generic update, and returns unbounded arrays instead of connections. That schema looks fine in a diff, but it's harder to evolve and harder for clients to use.
 
-`graphql-schema-design` turns the agent into a schema reviewer rather than a code generator. It helps you design new schemas, evolve existing ones, and review schema diffs. It brings the best practices from the GraphQL ecosystem - the connection specification, mutation payload pattern, error conventions, naming rules, and more - directly to your fingertips via /graphql-schema-design.
+`graphql-schema-design` turns the agent into a schema reviewer rather than a code generator. It helps you design new schemas, evolve existing ones, and review schema diffs. It brings the best practices from the GraphQL ecosystem - the connection specification, mutation payload pattern, error conventions, naming rules, and more - directly to your fingertips via `/graphql-schema-design`.
 
 It focuses on the decisions that are easy to get wrong and costly to walk back:
 

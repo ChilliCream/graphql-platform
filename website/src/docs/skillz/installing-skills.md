@@ -67,10 +67,10 @@ Source: https://github.com/anthropics/skills.git
 Found 2 skill(s)
 
 Available Skills
-  alpha
-    the alpha skill
-  beta
-    the beta skill
+  pdf
+    the pdf skill
+  docx
+    the docx skill
 
 Use --skill <name> to install specific skills
 ```
@@ -146,7 +146,7 @@ These are the headline agent identifiers. Names are case-sensitive.
 | Gemini CLI     | `gemini-cli`         |
 | Windsurf       | `windsurf`           |
 
-skillz supports more than 50 agents in total. For the complete list, plus the exact directory each agent installs into, see the [Reference](/docs/skillz/reference).
+skillz supports more than 50 agents. For the complete list, plus the exact directory each agent installs into, see the [Reference](/docs/skillz/reference).
 
 Because identifiers are case-sensitive, `copilot` and `Claude-Code` are not valid. An invalid value fails fast and lists every valid name so you can copy the right one:
 
@@ -336,7 +336,7 @@ To limit removal to specific agents, add `--agent`. To target your user-level sk
 Run `dnx skillz remove` with no names to remove interactively: skillz shows a multi-select prompt, then a confirmation that defaults to **no**. Declining cancels and removes nothing:
 
 ```text
-$ dnx skillz remove alpha
+$ dnx skillz remove
 
 Removal cancelled
 ```
@@ -350,5 +350,5 @@ No matching skills found for: nope
 # Next steps
 
 - [Authoring Skills](/docs/skillz/authoring-skills): write and publish your own `SKILL.md` with `dnx skillz init`.
-- [Reference](/docs/skillz/reference): every command, flag, the full list of 55+ agents, and per-agent install directories.
+- [Reference](/docs/skillz/reference): every command, flag, the full list of more than 50 agents, and per-agent install directories.
 - [Troubleshooting](/docs/skillz/troubleshooting): clone failures, authentication errors, rate limits, and symlink fallbacks.
