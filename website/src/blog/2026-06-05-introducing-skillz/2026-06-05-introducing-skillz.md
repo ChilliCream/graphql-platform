@@ -112,7 +112,7 @@ dnx skillz add <source> --copy                 # copy files instead of symlinkin
 dnx skillz list --json                         # machine-readable output
 ```
 
-# Authoring your own skills
+## Authoring your own skills
 
 To package your team's conventions as a skill, start with:
 
