@@ -59,13 +59,13 @@ That command pulls the `graphql-schema-design` skill from the `ChilliCream/agent
 If you are working with aspire you can try out their skills too:
 
 ```bash
-dnx skills add microsoft/aspire-skills
+dnx skillz add microsoft/aspire-skills
 ```
 
 or add the .net specific ones:
 
 ```bash
-dnx skills add dotnet/skills
+dnx skillz add dotnet/skills
 ```
 
 ## Installing
