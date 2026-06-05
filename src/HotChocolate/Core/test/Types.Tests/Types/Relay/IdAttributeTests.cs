@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text;
+using System.Text.Json;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Types.Descriptors;
@@ -442,6 +443,221 @@ public class IdAttributeTests
     }
 
     [Fact]
+    public async Task Id_On_Interface_Forwards_TypeName_To_Multiple_Implementers()
+    {
+        // arrange & act
+        // two object types inherit the same default-implementation interface field; both encode
+        // the value with the interface's forwarded type name from the shared serializer.
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<MultiQuery>()
+                .AddType<MultiA>()
+                .AddType<MultiB>()
+                .AddGlobalObjectIdentification(false)
+                .ExecuteRequestAsync(
+                    """
+                    {
+                        a { id }
+                        b { id }
+                    }
+                    """);
+
+        // assert
+        var operationResult = result.ExpectOperationResult();
+        Assert.Empty(operationResult.Errors);
+        using var document = JsonDocument.Parse(operationResult.ToJson());
+        var data = document.RootElement.GetProperty("data");
+        Assert.Equal(
+            "Shared:7",
+            Encoding.UTF8.GetString(
+                Convert.FromBase64String(data.GetProperty("a").GetProperty("id").GetString()!)));
+        Assert.Equal(
+            "Shared:7",
+            Encoding.UTF8.GetString(
+                Convert.FromBase64String(data.GetProperty("b").GetProperty("id").GetString()!)));
+    }
+
+    [Fact]
+    public async Task Id_On_Interface_Override_Uses_Concrete_Name_Inherit_Uses_Interface_Name()
+    {
+        // arrange & act
+        // A overrides the interface member and declares its own [ID("Bar")] (merge path).
+        // B inherits the interface default implementation [ID("Foo")] (copy path).
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<OverrideQuery>()
+                .AddType<OverrideA>()
+                .AddType<OverrideB>()
+                .AddGlobalObjectIdentification(false)
+                .ExecuteRequestAsync(
+                    """
+                    {
+                        a { id }
+                        b { id }
+                    }
+                    """);
+
+        // assert
+        var operationResult = result.ExpectOperationResult();
+        Assert.Empty(operationResult.Errors);
+        using var document = JsonDocument.Parse(operationResult.ToJson());
+        var data = document.RootElement.GetProperty("data");
+        // A encodes with the concrete name "Bar" and is not double-encoded.
+        Assert.Equal(
+            "Bar:1",
+            Encoding.UTF8.GetString(
+                Convert.FromBase64String(data.GetProperty("a").GetProperty("id").GetString()!)));
+        // B encodes with the interface default implementation's name "Foo".
+        Assert.Equal(
+            "Foo:100",
+            Encoding.UTF8.GetString(
+                Convert.FromBase64String(data.GetProperty("b").GetProperty("id").GetString()!)));
+    }
+
+    [Fact]
+    public async Task Id_On_Interface_Forwards_TypeName_To_SDL()
+    {
+        // arrange & act
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<NamedNodeQuery>()
+                .AddType<NamedNode>()
+                .AddType<GenericNamedNode>()
+                .AddGlobalObjectIdentification(false)
+                .BuildSchemaAsync();
+
+        // assert
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Id_On_Interface_With_String_Name_Forwards_TypeName_When_Inherited()
+    {
+        // arrange & act
+        // the implementing object type does not redeclare the id field, so the interface's
+        // forwarded type name must flow through to the object field serializer.
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<NamedNodeQuery>()
+                .AddType<NamedNode>()
+                .AddType<GenericNamedNode>()
+                .AddGlobalObjectIdentification(false)
+                .ExecuteRequestAsync(
+                    """
+                    {
+                        namedNode {
+                            id
+                        }
+                    }
+                    """);
+
+        // assert
+        // the decoded id proves the forwarded type name ("Foo") is used, not the inferred one.
+        Assert.Equal("Foo:1", Encoding.UTF8.GetString(Convert.FromBase64String(GetId(result, "namedNode"))));
+    }
+
+    [Fact]
+    public async Task Id_On_Interface_With_Generic_Name_Forwards_TypeName_When_Inherited()
+    {
+        // arrange & act
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<GenericNamedNodeQuery>()
+                .AddType<GenericNamedNode>()
+                .AddGlobalObjectIdentification(false)
+                .ExecuteRequestAsync(
+                    """
+                    {
+                        genericNamedNode {
+                            id
+                        }
+                    }
+                    """);
+
+        // assert
+        // the decoded id proves the generic type argument's GraphQL name ("Renamed") is used.
+        Assert.Equal(
+            "Renamed:1",
+            Encoding.UTF8.GetString(Convert.FromBase64String(GetId(result, "genericNamedNode"))));
+    }
+
+    [Fact]
+    public async Task Id_On_Abstract_Interface_Member_Does_Not_Encode_Inherited_Value()
+    {
+        // arrange & act
+        // the interface declares an abstract [ID] member, so the implementing type supplies the
+        // value and must opt into the global id encoding itself. The inherited value stays raw.
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<AbstractIdNodeQuery>()
+                .AddType<AbstractIdNodeType>()
+                .AddGlobalObjectIdentification(false)
+                .ExecuteRequestAsync(
+                    """
+                    {
+                        abstractIdNode {
+                            id
+                        }
+                    }
+                    """);
+
+        // assert
+        // the value is the raw "1", not the global id encoded "Foo:1".
+        Assert.Equal("1", GetId(result, "abstractIdNode"));
+    }
+
+    [Fact]
+    public async Task Id_On_Abstract_Interface_Member_Still_Rewrites_Type_To_ID()
+    {
+        // arrange & act
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<AbstractIdNodeQuery>()
+                .AddType<AbstractIdNodeType>()
+                .AddGlobalObjectIdentification(false)
+                .BuildSchemaAsync();
+
+        // assert
+        // the type rewrite is unconditional, only the value serialization is gated off.
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Id_On_Abstract_Interface_Member_Encodes_When_Object_Opts_In()
+    {
+        // arrange & act
+        // the same abstract interface member, but the implementing object declares its own [ID],
+        // so the object opts into the global id encoding.
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<OptInIdNodeQuery>()
+                .AddType<OptInIdNodeType>()
+                .AddGlobalObjectIdentification(false)
+                .ExecuteRequestAsync(
+                    """
+                    {
+                        optInIdNode {
+                            id
+                        }
+                    }
+                    """);
+
+        // assert
+        // the object's own [ID] uses the inferred object type name "OptInIdNode".
+        Assert.Equal(
+            "OptInIdNode:1",
+            Encoding.UTF8.GetString(Convert.FromBase64String(GetId(result, "optInIdNode"))));
+    }
+
+    [Fact]
     public async Task EnsureIdIsOnlyAppliedOnce()
     {
         var inspector = new TestTypeInterceptor();
@@ -868,4 +1084,141 @@ public class IdAttributeTests
         s2.CopyTo(buffer.AsSpan()[s1.Length..]);
         return buffer;
     }
+
+    private static string GetId(IExecutionResult result, string fieldName)
+    {
+        var operationResult = result.ExpectOperationResult();
+        Assert.Empty(operationResult.Errors);
+        using var document = JsonDocument.Parse(operationResult.ToJson());
+        return document.RootElement
+            .GetProperty("data")
+            .GetProperty(fieldName)
+            .GetProperty("id")
+            .GetString()!;
+    }
+
+    public class NamedNodeQuery
+    {
+        public INamedNode GetNamedNode() => new NamedNode();
+
+        public IGenericNamedNode GetGenericNamedNode() => new GenericNamedNode();
+    }
+
+    [InterfaceType("NamedNodeInterface")]
+    public interface INamedNode
+    {
+        [ID("Foo")]
+        int GetId() => 1;
+    }
+
+    public class NamedNode : INamedNode;
+
+    public class GenericNamedNodeQuery
+    {
+        public IGenericNamedNode GetGenericNamedNode() => new GenericNamedNode();
+    }
+
+    [InterfaceType("GenericNamedNodeInterface")]
+    public interface IGenericNamedNode
+    {
+        [ID<RenamedIdTarget>]
+        int GetId() => 1;
+    }
+
+    public class GenericNamedNode : IGenericNamedNode;
+
+    [GraphQLName("Renamed")]
+    public class RenamedIdTarget
+    {
+        public int Id { get; set; } = 1;
+    }
+
+    public class AbstractIdNodeQuery
+    {
+        public IAbstractIdNode GetAbstractIdNode() => new AbstractIdNode();
+    }
+
+    [InterfaceType("AbstractIdNodeInterface")]
+    public interface IAbstractIdNode
+    {
+        [ID("Foo")]
+        int Id { get; }
+    }
+
+    public class AbstractIdNodeType : ObjectType<AbstractIdNode>
+    {
+        protected override void Configure(IObjectTypeDescriptor<AbstractIdNode> descriptor)
+        {
+            descriptor.Name("AbstractIdNode");
+            descriptor.BindFieldsExplicitly();
+            descriptor.Implements<InterfaceType<IAbstractIdNode>>();
+        }
+    }
+
+    public class AbstractIdNode : IAbstractIdNode
+    {
+        public int Id => 1;
+    }
+
+    public class OptInIdNodeQuery
+    {
+        public IAbstractIdNode GetOptInIdNode() => new OptInIdNode();
+    }
+
+    public class OptInIdNodeType : ObjectType<OptInIdNode>
+    {
+        protected override void Configure(IObjectTypeDescriptor<OptInIdNode> descriptor)
+        {
+            descriptor.Name("OptInIdNode");
+            descriptor.Implements<InterfaceType<IAbstractIdNode>>();
+            descriptor.Field(t => t.Id).ID();
+        }
+    }
+
+    public class MultiQuery
+    {
+        public IMultiNode GetA() => new MultiA();
+        public IMultiNode GetB() => new MultiB();
+    }
+
+    [InterfaceType("MultiNode")]
+    public interface IMultiNode
+    {
+        [ID("Shared")]
+        int GetId() => 7;
+    }
+
+    public class MultiA : IMultiNode;
+
+    public class MultiB : IMultiNode;
+
+    public class OptInIdNode : IAbstractIdNode
+    {
+        public int Id => 1;
+    }
+
+    public class OverrideQuery
+    {
+        public IOverrideNode GetA() => new OverrideA();
+        public IOverrideNode GetB() => new OverrideB();
+    }
+
+    [InterfaceType("OverrideNode")]
+    public interface IOverrideNode
+    {
+        [ID("Foo")]
+        int GetId() => 100;
+    }
+
+    // A overrides the member and declares its own [ID("Bar")]: A goes through the merge path
+    // (the object redeclares the field) and must encode with the concrete name "Bar".
+    public class OverrideA : IOverrideNode
+    {
+        [ID("Bar")]
+        public int GetId() => 1;
+    }
+
+    // B inherits the default implementation: B goes through the copy path and must encode with
+    // the interface name "Foo".
+    public class OverrideB : IOverrideNode;
 }

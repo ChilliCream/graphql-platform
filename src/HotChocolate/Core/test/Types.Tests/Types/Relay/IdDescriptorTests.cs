@@ -1,3 +1,5 @@
+using System.Text;
+using System.Text.Json;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -218,6 +220,68 @@ public class IdDescriptorTests
         result.MatchSnapshot(postFix: "InvalidArgs");
     }
 
+    [Fact]
+    public async Task Id_On_Interface_Fluent_Forwards_TypeName_When_Inherited()
+    {
+        // arrange & act
+        // the implementing object type inherits the id field from the interface, so the
+        // fluent .ID("Foo") on the interface must flow through to the object field serializer.
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<NamedNodeQueryType>()
+                .AddType<NamedNodeType>()
+                .AddGlobalObjectIdentification(false)
+                .ExecuteRequestAsync(
+                    """
+                    {
+                        namedNode {
+                            id
+                        }
+                    }
+                    """);
+
+        // assert
+        var id = GetId(result, "namedNode", "id");
+        Assert.Equal("Foo:1", Encoding.UTF8.GetString(Convert.FromBase64String(id)));
+    }
+
+    [Fact]
+    public async Task Id_On_Interface_Fluent_Generic_Forwards_TypeName_When_Inherited()
+    {
+        // arrange & act
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<NamedNodeQueryType>()
+                .AddType<NamedNodeType>()
+                .AddGlobalObjectIdentification(false)
+                .ExecuteRequestAsync(
+                    """
+                    {
+                        namedNode {
+                            anotherId
+                        }
+                    }
+                    """);
+
+        // assert
+        var id = GetId(result, "namedNode", "anotherId");
+        Assert.Equal("Another:1", Encoding.UTF8.GetString(Convert.FromBase64String(id)));
+    }
+
+    private static string GetId(IExecutionResult result, string fieldName, string idFieldName)
+    {
+        var operationResult = result.ExpectOperationResult();
+        Assert.Empty(operationResult.Errors);
+        using var document = JsonDocument.Parse(operationResult.ToJson());
+        return document.RootElement
+            .GetProperty("data")
+            .GetProperty(fieldName)
+            .GetProperty(idFieldName)
+            .GetString()!;
+    }
+
     private static byte[] Combine(ReadOnlySpan<byte> s1, ReadOnlySpan<byte> s2)
     {
         var buffer = new byte[s1.Length + s2.Length];
@@ -225,6 +289,36 @@ public class IdDescriptorTests
         s2.CopyTo(buffer.AsSpan()[s1.Length..]);
         return buffer;
     }
+
+    public class NamedNodeQueryType : ObjectType
+    {
+        protected override void Configure(IObjectTypeDescriptor descriptor)
+        {
+            descriptor.Name("Query");
+            descriptor.Field("namedNode").Type<NamedNodeInterfaceType>().Resolve(_ => new NamedNode());
+        }
+    }
+
+    public class NamedNodeInterfaceType : InterfaceType
+    {
+        protected override void Configure(IInterfaceTypeDescriptor descriptor)
+        {
+            descriptor.Name("NamedNode");
+            descriptor.Field("id").Type<IntType>().Resolve(_ => 1).ID("Foo");
+            descriptor.Field("anotherId").Type<IntType>().Resolve(_ => 1).ID<Another>();
+        }
+    }
+
+    public class NamedNodeType : ObjectType<NamedNode>
+    {
+        protected override void Configure(IObjectTypeDescriptor<NamedNode> descriptor)
+        {
+            descriptor.Name("NamedNodeObject");
+            descriptor.Implements<NamedNodeInterfaceType>();
+        }
+    }
+
+    public class NamedNode;
 
     public class QueryType : ObjectType<Query>
     {
