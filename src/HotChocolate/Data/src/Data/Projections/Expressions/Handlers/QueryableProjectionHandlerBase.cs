@@ -33,9 +33,10 @@ public abstract class QueryableProjectionHandlerBase
             return true;
         }
 
-        // Fields inherited from an interface carry the interface member as their resolver
-        // member; the runtime type implements that interface, so the member can be projected.
-        if (resolverMember.ReflectedType?.IsAssignableFrom(
+        // Fields inherited from an interface or base type carry that type's member as their
+        // resolver member; the runtime type implements or extends it, so the member is part
+        // of the runtime type and can be projected.
+        if (resolverMember.DeclaringType?.IsAssignableFrom(
             selection.Field.DeclaringType.RuntimeType) == true)
         {
             return true;

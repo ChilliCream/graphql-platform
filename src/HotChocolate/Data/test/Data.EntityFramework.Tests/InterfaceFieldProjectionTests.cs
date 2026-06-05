@@ -9,7 +9,9 @@ namespace HotChocolate.Data;
 
 public class InterfaceFieldProjectionTests : IDisposable
 {
-    private readonly string _fileName = Guid.NewGuid().ToString("N") + ".db";
+    private readonly string _fileName = System.IO.Path.Combine(
+        System.IO.Path.GetTempPath(),
+        $"interface-field-projection-{Guid.NewGuid():N}.db");
 
     [Fact]
     public async Task Projection_Should_ProjectInterfaceBoundFields_When_BindingIsExplicit()
