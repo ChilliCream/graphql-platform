@@ -184,35 +184,7 @@
                     "format": "int64"
                   },
                   "object": {
-                    "required": [
-                      "field1A"
-                    ],
-                    "type": "object",
-                    "properties": {
-                      "field1A": {
-                        "required": [
-                          "field1B"
-                        ],
-                        "type": "object",
-                        "properties": {
-                          "field1B": {
-                            "required": [
-                              "field1C"
-                            ],
-                            "type": "object",
-                            "properties": {
-                              "field1C": {
-                                "pattern": "^\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
-                                "type": "string",
-                                "description": "field1C description"
-                              }
-                            },
-                            "description": "field1B description"
-                          }
-                        },
-                        "description": "field1A description"
-                      }
-                    }
+                    "$ref": "#/components/schemas/Object1NonNullableInput"
                   },
                   "short": {
                     "type": "integer",
@@ -1095,6 +1067,41 @@
   },
   "components": {
     "schemas": {
+      "Object1NonNullableInput": {
+        "required": [
+          "field1A"
+        ],
+        "type": "object",
+        "properties": {
+          "field1A": {
+            "$ref": "#/components/schemas/Object2NonNullableInput"
+          }
+        }
+      },
+      "Object2NonNullableInput": {
+        "required": [
+          "field1B"
+        ],
+        "type": "object",
+        "properties": {
+          "field1B": {
+            "$ref": "#/components/schemas/Object3NonNullableInput"
+          }
+        }
+      },
+      "Object3NonNullableInput": {
+        "required": [
+          "field1C"
+        ],
+        "type": "object",
+        "properties": {
+          "field1C": {
+            "pattern": "^\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
+            "type": "string",
+            "description": "field1C description"
+          }
+        }
+      },
       "UserAddress": {
         "required": [
           "street"

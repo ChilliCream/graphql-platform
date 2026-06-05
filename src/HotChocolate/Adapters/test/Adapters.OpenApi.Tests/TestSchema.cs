@@ -101,6 +101,10 @@ public sealed class TestSchema
 
         public string SearchProductsPaginated(string? text, int first)
             => $"Searched for: {text ?? "all"}, first: {first}";
+
+        public TreeNode? GetTree() => null;
+
+        public IndirectParentNode? GetIndirect() => null;
     }
 
     public class Mutation
@@ -116,6 +120,61 @@ public sealed class TestSchema
         }
 
         public DeeplyNested UpdateDeeplyNestedObject(DeeplyNested input) => input;
+
+        public bool SubmitSelfRef(SelfReferencingInput input) => true;
+
+        public bool SubmitIndirect(IndirectParentInput input) => true;
+
+        public bool SubmitTwoChildren(TwoChildrenInput input) => true;
+    }
+
+    public sealed class SelfReferencingInput
+    {
+        public string? Value { get; init; }
+
+        public SelfReferencingInput? Child { get; init; }
+    }
+
+    public sealed class IndirectParentInput
+    {
+        public string? Name { get; init; }
+
+        public IndirectMiddleInput? Middle { get; init; }
+    }
+
+    public sealed class IndirectMiddleInput
+    {
+        public string? Label { get; init; }
+
+        public IndirectParentInput? Parent { get; init; }
+    }
+
+    public sealed class TwoChildrenInput
+    {
+        public SelfReferencingInput? Left { get; init; }
+
+        public SelfReferencingInput? Right { get; init; }
+    }
+
+    public sealed class IndirectParentNode
+    {
+        public required string Value { get; init; }
+
+        public IndirectMiddleNode? Middle { get; init; }
+    }
+
+    public sealed class IndirectMiddleNode
+    {
+        public required string Label { get; init; }
+
+        public IndirectParentNode? Parent { get; init; }
+    }
+
+    public sealed class TreeNode
+    {
+        public required string Value { get; init; }
+
+        public required List<TreeNode> Children { get; init; }
     }
 
     public class DeeplyNested
