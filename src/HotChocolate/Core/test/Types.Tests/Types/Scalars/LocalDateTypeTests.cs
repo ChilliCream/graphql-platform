@@ -107,6 +107,36 @@ public class LocalDateTypeTests
     }
 
     [Fact]
+    public void CoerceInputValue_Relaxed_Format_With_Time_Component()
+    {
+        // arrange
+        const string s = "2011-08-30T08:46:14.116";
+
+        // act
+        var type = new LocalDateType(disableFormatCheck: true);
+        var inputValue = JsonDocument.Parse($"\"{s}\"").RootElement;
+        var result = type.CoerceInputValue(inputValue, null!);
+
+        // assert
+        Assert.Equal(new DateOnly(2011, 8, 30), Assert.IsType<DateOnly>(result));
+    }
+
+    [Fact]
+    public void CoerceInputValue_Relaxed_Format_With_Utc_Z_Suffix()
+    {
+        // arrange
+        const string s = "2020-12-12T00:00:00.000Z";
+
+        // act
+        var type = new LocalDateType(disableFormatCheck: true);
+        var inputValue = JsonDocument.Parse($"\"{s}\"").RootElement;
+        var result = type.CoerceInputValue(inputValue, null!);
+
+        // assert
+        Assert.Equal(new DateOnly(2020, 12, 12), Assert.IsType<DateOnly>(result));
+    }
+
+    [Fact]
     public void CoerceInputValue_Invalid_Format()
     {
         // arrange
