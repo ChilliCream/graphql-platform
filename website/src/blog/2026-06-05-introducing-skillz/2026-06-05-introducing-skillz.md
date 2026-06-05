@@ -10,8 +10,6 @@ authorImageUrl: https://avatars.githubusercontent.com/u/14233220?v=4
 featuredImage: "header.png"
 ---
 
-# Introducing skillz: the .NET CLI for Agent Skills
-
 Over the past year, everyone who has worked with coding agents has probably had their <span class="wow-wobble" aria-label="wow"><em><span>w</span><span>o</span><span>w</span></em></span> moment. Mine came when I pasted an error message (`unterminated string`) from an HTTP response into Codex. We knew the issue had something to do with the parser, but had no idea how it was even possible. Yet five minutes later, Codex pointed me to this code in the HTTP middleware:
 
 ```csharp
@@ -68,7 +66,7 @@ or add the .NET-specific ones:
 dnx skillz add dotnet/skills
 ```
 
-## Installing
+# Installing
 
 There are two ways to run `skillz`:
 
@@ -83,7 +81,7 @@ skillz add <source>
 
 `dnx` ships with the .NET 10 SDK and runs a tool straight from NuGet, the way `npx` runs a package from npm. The first run downloads `skillz` into the NuGet cache, and later runs reuse it. No global install and no PATH entry to manage.
 
-## What skillz does
+# What skillz does
 
 `skillz add` installs skills from a source for the agents on your machine. A source can be a GitHub `owner/repo`, a full git URL, a GitLab project, or a local directory.
 
@@ -114,7 +112,7 @@ dnx skillz add <source> --copy                 # copy files instead of symlinkin
 dnx skillz list --json                         # machine-readable output
 ```
 
-## Authoring your own skills
+# Authoring your own skills
 
 To package your team's conventions as a skill, start with:
 
@@ -124,7 +122,7 @@ dnx skillz init my-skill
 
 That scaffolds a valid `SKILL.md` with the required frontmatter. From there, write the instructions, add references if you need them, and commit the folder. In ChilliCream we have an internal repository on GitHub with skills for our teams to use, and we also publish some of those skills publicly in the `ChilliCream/agent-skills` repository.
 
-## graphql-schema-design
+# graphql-schema-design
 
 The first ChilliCream skill we're shipping is `graphql-schema-design`.
 
