@@ -29,7 +29,7 @@ skillz detects the agents you have installed, then symlinks the skill into each 
 
 These docs show every command as `dnx skillz`. Prefer skillz on your `PATH`? Install the global tool with `dotnet tool install -g skillz`, then drop the `dnx` prefix and run `skillz` directly.
 
-Need the prerequisites or a step-by-step walkthrough? See [Get started](/docs/skillz/getting-started). The source lives at [github.com/PascalSenn/skillz](https://github.com/PascalSenn/skillz), and the package is on [nuget.org](https://www.nuget.org/packages/skillz).
+Need the prerequisites or a step-by-step walkthrough? See [Get started](/docs/skillz/getting-started). The source lives at [github.com/ChilliCream/skillz](https://github.com/ChilliCream/skillz), and the package is on [nuget.org](https://www.nuget.org/packages/skillz).
 
 # What are Agent Skills
 
