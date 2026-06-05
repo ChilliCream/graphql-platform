@@ -81,7 +81,7 @@ skillz add <source>
 
 `dnx` ships with the .NET 10 SDK and runs a tool straight from NuGet, the way `npx` runs a package from npm. The first run downloads `skillz` into the NuGet cache, and later runs reuse it. No global install and no PATH entry to manage.
 
-# What skillz does
+## What skillz does
 
 `skillz add` installs skills from a source for the agents on your machine. A source can be a GitHub `owner/repo`, a full git URL, a GitLab project, or a local directory.
 
@@ -122,7 +122,7 @@ dnx skillz init my-skill
 
 That scaffolds a valid `SKILL.md` with the required frontmatter. From there, write the instructions, add references if you need them, and commit the folder. In ChilliCream we have an internal repository on GitHub with skills for our teams to use, and we also publish some of those skills publicly in the `ChilliCream/agent-skills` repository.
 
-# graphql-schema-design
+## graphql-schema-design
 
 The first ChilliCream skill we're shipping is `graphql-schema-design`.
 
