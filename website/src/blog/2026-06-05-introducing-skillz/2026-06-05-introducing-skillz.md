@@ -12,7 +12,7 @@ featuredImage: "header.png"
 
 # Introducing skillz: the .NET CLI for Agent Skills
 
-Over the past year, everyone who has worked with coding agents has probably had their <span class="wow-fancy" aria-label="wow"><em><span>w</span><span>o</span><span>w</span></em></span> moment. Mine came when I pasted an error message (`unterminated string`) from an HTTP response into Codex. We knew the issue had something to do with the parser, but had no idea how it was even possible. Yet five minutes later, Codex pointed me to this code in the HTTP middleware:
+Over the past year, everyone who has worked with coding agents has probably had their <span class="wow-wobble" aria-label="wow"><em><span>w</span><span>o</span><span>w</span></em></span> moment. Mine came when I pasted an error message (`unterminated string`) from an HTTP response into Codex. We knew the issue had something to do with the parser, but had no idea how it was even possible. Yet five minutes later, Codex pointed me to this code in the HTTP middleware:
 
 ```csharp
 const int bufferSize = 4096;
@@ -36,7 +36,7 @@ Do you see it? The code reads from the stream in a loop until it gets back fewer
 
 Which makes sense! When a client delivers bytes too slowly to fill a whole buffer, `ReadAsync` can return less than the buffer size even if there are more bytes to come. And of course this _never_ happens in a test case - but out in the wild, with real clients and real network conditions, Murphy's law is lurking at every turn.
 
-That was my <span class="wow-fancy" aria-label="wow"><em><span>w</span><span>o</span><span>w</span></em></span> moment. It probably saved us a day of debugging and a lot of head scratching.
+That was my <span class="wow-wobble" aria-label="wow"><em><span>w</span><span>o</span><span>w</span></em></span> moment. It probably saved us a day of debugging and a lot of head scratching.
 
 Since then, it's been a bumpy ride. Working with agents can be amazing, but it can also be incredibly frustrating - especially when you spend time explaining exactly what you want, the agent finally gets it, the task wraps up, and then it forgets everything. Next session, you start from scratch.
 
