@@ -671,6 +671,7 @@ jobs:
           - nitro-openapi-publish
           - nitro-openapi-upload
           - nitro-openapi-validate
+          - nitro-schema-download
           - nitro-schema-publish
           - nitro-schema-upload
           - nitro-schema-validate
