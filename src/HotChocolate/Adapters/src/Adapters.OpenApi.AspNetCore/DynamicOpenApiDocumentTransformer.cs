@@ -25,6 +25,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 {
     private List<EndpointDescriptor> _endpoints = [];
     private List<ModelDescriptor> _models = [];
+    private List<ModelDescriptor> _inputComponents = [];
 
     public Task TransformAsync(
         OpenApiDocument document,
@@ -41,6 +42,11 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
             AddComponent(document, component.SchemaName, component.Schema);
         }
 
+        foreach (var component in _inputComponents)
+        {
+            AddComponent(document, component.SchemaName, component.Schema);
+        }
+
         return Task.CompletedTask;
     }
 
@@ -53,12 +59,18 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
         var endpointDescriptors = new List<EndpointDescriptor>();
         var modelDescriptors = new List<ModelDescriptor>();
         var operationIdUsages = new Dictionary<string, int>();
+        var inputComponentContext = new InputComponentContext(schema);
 
         foreach (var endpoint in endpoints)
         {
             try
             {
-                var endpointDescriptor = CreateEndpointDescriptor(endpoint, schema, modelsByName, operationIdUsages);
+                var endpointDescriptor = CreateEndpointDescriptor(
+                    endpoint,
+                    schema,
+                    modelsByName,
+                    operationIdUsages,
+                    inputComponentContext);
                 endpointDescriptors.Add(endpointDescriptor);
             }
             catch
@@ -71,7 +83,8 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
         {
             try
             {
-                var modelDescriptor = CreateModelDescriptor(model, schema, modelsByName);
+                var modelDescriptor =
+                    CreateModelDescriptor(model, schema, modelsByName, inputComponentContext);
                 modelDescriptors.Add(modelDescriptor);
             }
             catch
@@ -82,6 +95,9 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 
         _endpoints = endpointDescriptors;
         _models = modelDescriptors;
+        _inputComponents = inputComponentContext.Components
+            .Select(kvp => new ModelDescriptor(kvp.Key, kvp.Value))
+            .ToList();
     }
 
     private const string JsonContentType = "application/json";
@@ -90,7 +106,8 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
         OpenApiEndpointDefinition endpoint,
         ISchemaDefinition schema,
         IDictionary<string, OpenApiModelDefinition> modelsByName,
-        IDictionary<string, int> operationIdUsages)
+        IDictionary<string, int> operationIdUsages,
+        InputComponentContext inputComponentContext)
     {
         var operation = new OpenApiOperation
         {
@@ -105,7 +122,12 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 
         foreach (var routeParameter in endpoint.RouteParameters)
         {
-            var parameter = CreateOpenApiParameter(endpoint, routeParameter, ParameterLocation.Path, schema);
+            var parameter = CreateOpenApiParameter(
+                endpoint,
+                routeParameter,
+                ParameterLocation.Path,
+                schema,
+                inputComponentContext);
 
             operation.Parameters.Add(parameter);
 
@@ -117,7 +139,12 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 
         foreach (var queryParameter in endpoint.QueryParameters)
         {
-            var parameter = CreateOpenApiParameter(endpoint, queryParameter, ParameterLocation.Query, schema);
+            var parameter = CreateOpenApiParameter(
+                endpoint,
+                queryParameter,
+                ParameterLocation.Query,
+                schema,
+                inputComponentContext);
 
             operation.Parameters.Add(parameter);
 
@@ -130,7 +157,23 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
         if (bodyVariableName is not null)
         {
             var (graphqlType, _) = GetBodyVariableDetails(endpoint.OperationDefinition, bodyVariableName, schema);
-            var requestBodyType = CreateOpenApiSchemaForType(graphqlType, schema);
+
+            // Expanded inline (not a $ref) so RemovePropertiesFromSchema can strip fields
+            // bound to route or query parameters; a $ref has no inline properties to remove.
+            OpenApiSchemaAbstraction requestBodyType;
+
+            if (graphqlType.NamedType() is IInputObjectTypeDefinition bodyInputObject
+                && !graphqlType.IsListType())
+            {
+                requestBodyType = BuildInputObjectSchema(
+                    bodyInputObject,
+                    inputComponentContext,
+                    bodyVariableTrie);
+            }
+            else
+            {
+                requestBodyType = CreateOpenApiSchemaForType(graphqlType, schema, inputComponentContext);
+            }
 
             RemovePropertiesFromSchema(requestBodyType, bodyVariableTrie);
 
@@ -161,8 +204,9 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                 fieldType,
                 schema,
                 endpoint.LocalFragmentsByName,
-                modelsByName)
-            : CreateOpenApiSchemaForType(fieldType, schema);
+                modelsByName,
+                inputComponentContext)
+            : CreateOpenApiSchemaForType(fieldType, schema, inputComponentContext);
 
         var responseBody = new OpenApiMediaType
         {
@@ -183,7 +227,8 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
     private static ModelDescriptor CreateModelDescriptor(
         OpenApiModelDefinition model,
         ISchemaDefinition schema,
-        IDictionary<string, OpenApiModelDefinition> modelsByName)
+        IDictionary<string, OpenApiModelDefinition> modelsByName,
+        InputComponentContext inputComponentContext)
     {
         if (!schema.Types.TryGetType(model.FragmentDefinition.TypeCondition.Name.Value,
             out var typeCondition))
@@ -196,7 +241,8 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
             (IOutputType)typeCondition,
             schema,
             model.LocalFragmentsByName,
-            modelsByName);
+            modelsByName,
+            inputComponentContext);
 
         componentSchema.Description = model.Description;
 
@@ -279,15 +325,17 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
     }
 #endif
 
-    private static OpenApiSchema CreateOpenApiSchemaForType(
+    private static OpenApiSchemaAbstraction CreateOpenApiSchemaForType(
         IType type,
         ISchemaDefinition schemaDefinition,
+        InputComponentContext inputComponentContext,
         IValueNode? defaultValue = null)
     {
         if (type.IsListType())
         {
             var elementType = type.ElementType();
-            OpenApiSchemaAbstraction itemSchema = CreateOpenApiSchemaForType(elementType, schemaDefinition);
+            var itemSchema =
+                CreateOpenApiSchemaForType(elementType, schemaDefinition, inputComponentContext);
 
             itemSchema = ApplyNullability(itemSchema, elementType);
 
@@ -308,34 +356,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 
         if (namedType is IInputObjectTypeDefinition inputObject)
         {
-            var schema = CreateObjectSchema(defaultValue);
-
-            foreach (var field in inputObject.Fields)
-            {
-                if (field.IsIntrospectionField)
-                {
-                    continue;
-                }
-
-                if (field.Type.IsNonNullType())
-                {
-                    schema.Required!.Add(field.Name);
-                }
-
-                var fieldTypeSchema = CreateOpenApiSchemaForType(field.Type, schemaDefinition);
-                fieldTypeSchema.Deprecated = field.IsDeprecated;
-
-                if (field.Description is not null)
-                {
-                    fieldTypeSchema.Description = field.Description;
-                }
-
-                schema.Properties!.Add(field.Name, fieldTypeSchema);
-            }
-
-            schema.Description = inputObject.Description;
-
-            return schema;
+            return RegisterInputType(inputObject, inputComponentContext);
         }
 
         if (namedType is IObjectTypeDefinition objectType)
@@ -349,13 +370,10 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                     continue;
                 }
 
-                var fieldTypeSchema = CreateOpenApiSchemaForType(field.Type, schemaDefinition);
-                fieldTypeSchema.Deprecated = field.IsDeprecated;
+                var fieldTypeSchema =
+                    CreateOpenApiSchemaForType(field.Type, schemaDefinition, inputComponentContext);
 
-                if (field.Description is not null)
-                {
-                    fieldTypeSchema.Description = field.Description;
-                }
+                fieldTypeSchema = ApplyFieldMetadata(fieldTypeSchema, field.Description, field.IsDeprecated);
 
                 schema.Properties!.Add(field.Name, ApplyNullability(fieldTypeSchema, field.Type));
             }
@@ -372,7 +390,8 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 
             foreach (var possibleType in possibleTypes)
             {
-                var typeSchema = CreateOpenApiSchemaForType(possibleType, schemaDefinition);
+                var typeSchema =
+                    CreateOpenApiSchemaForType(possibleType, schemaDefinition, inputComponentContext);
 
                 items.Add(typeSchema);
             }
@@ -389,7 +408,8 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 
             foreach (var possibleType in unionType.Types)
             {
-                var typeSchema = CreateOpenApiSchemaForType(possibleType, schemaDefinition);
+                var typeSchema =
+                    CreateOpenApiSchemaForType(possibleType, schemaDefinition, inputComponentContext);
 
                 items.Add(typeSchema);
             }
@@ -401,6 +421,117 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
         }
 
         throw new NotSupportedException();
+    }
+
+    private static OpenApiSchemaAbstraction RegisterInputType(
+        IInputObjectTypeDefinition inputObject,
+        InputComponentContext inputComponentContext)
+    {
+        var name = inputObject.Name;
+
+        // Register the name before building so a self- or mutual-reference resolves to a $ref.
+        if (inputComponentContext.RegisteredNames.Add(name))
+        {
+            var componentSchema = BuildInputObjectSchema(inputObject, inputComponentContext, trie: null);
+            inputComponentContext.Components[name] = componentSchema;
+        }
+
+        return CreateSchemaReference(name);
+    }
+
+    private static OpenApiSchema BuildInputObjectSchema(
+        IInputObjectTypeDefinition inputObject,
+        InputComponentContext inputComponentContext,
+        InputObjectPathTrie? trie)
+    {
+        var schema = CreateObjectSchema();
+
+        foreach (var field in inputObject.Fields)
+        {
+            if (field.IsIntrospectionField)
+            {
+                continue;
+            }
+
+            if (field.Type.IsNonNullType())
+            {
+                schema.Required!.Add(field.Name);
+            }
+
+            OpenApiSchemaAbstraction fieldTypeSchema;
+
+            if (trie is not null
+                && trie.TryGetValue(field.Name, out var childTrie)
+                && !childTrie.IsTerminal
+                && field.Type.NamedType() is IInputObjectTypeDefinition nestedInputObject
+                && !field.Type.IsListType())
+            {
+                // A parameter is bound to a value nested in this field, so it must stay inline
+                // (not a shared $ref) so it can be stripped from this endpoint's body only.
+                fieldTypeSchema = BuildInputObjectSchema(nestedInputObject, inputComponentContext, childTrie);
+            }
+            else
+            {
+                fieldTypeSchema = CreateOpenApiSchemaForType(
+                    field.Type,
+                    inputComponentContext.Schema,
+                    inputComponentContext);
+            }
+
+            fieldTypeSchema = ApplyFieldMetadata(fieldTypeSchema, field.Description, field.IsDeprecated);
+
+            schema.Properties!.Add(field.Name, fieldTypeSchema);
+        }
+
+        schema.Description = inputObject.Description;
+
+        return schema;
+    }
+
+    private static OpenApiSchemaAbstraction ApplyFieldMetadata(
+        OpenApiSchemaAbstraction schema,
+        string? description,
+        bool isDeprecated)
+    {
+        // A $ref describes the referenced component, not the field, so it is returned unchanged.
+#if NET10_0_OR_GREATER
+        if (schema is not OpenApiSchema concreteSchema)
+        {
+            return schema;
+        }
+#else
+        if (schema.Reference is not null)
+        {
+            return schema;
+        }
+
+        var concreteSchema = schema;
+#endif
+
+        concreteSchema.Deprecated = isDeprecated;
+
+        if (description is not null)
+        {
+            concreteSchema.Description = description;
+        }
+
+        return concreteSchema;
+    }
+
+    private static OpenApiSchemaAbstraction CreateSchemaReference(string name)
+    {
+#if NET10_0_OR_GREATER
+        return new OpenApiSchemaReference(name);
+#else
+        return new OpenApiSchema
+        {
+            Reference = new OpenApiReference
+            {
+                Type = ReferenceType.Schema,
+                Id = name
+            }
+        };
+#endif
     }
 
     private static OpenApiSchema CreateOneOfSchema(IList<OpenApiSchemaAbstraction> schemas)
@@ -743,6 +874,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
         ISchemaDefinition schemaDefinition,
         IDictionary<string, FragmentDefinitionNode> localFragmentLookup,
         IDictionary<string, OpenApiModelDefinition> modelsByName,
+        InputComponentContext inputComponentContext,
         bool optional = false)
     {
         if (typeDefinition.IsListType())
@@ -754,6 +886,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                 schemaDefinition,
                 localFragmentLookup,
                 modelsByName,
+                inputComponentContext,
                 optional);
 
             itemSchema = ApplyNullability(itemSchema, elementType);
@@ -787,11 +920,12 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                         fieldType,
                         schemaDefinition,
                         localFragmentLookup,
-                        modelsByName);
+                        modelsByName,
+                        inputComponentContext);
                 }
                 else
                 {
-                    typeSchema = CreateOpenApiSchemaForType(fieldType, schemaDefinition);
+                    typeSchema = CreateOpenApiSchemaForType(fieldType, schemaDefinition, inputComponentContext);
                 }
 
                 fieldSchema ??= CreateObjectSchema();
@@ -819,6 +953,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                     schemaDefinition,
                     localFragmentLookup,
                     modelsByName,
+                    inputComponentContext,
                     optional: optional || isDifferentType || isSelectionConditional);
 
                 fragmentSchemasByType ??= [];
@@ -875,6 +1010,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                         schemaDefinition,
                         localFragmentLookup,
                         modelsByName,
+                        inputComponentContext,
                         optional: optional || isDifferentType || isSelectionConditional);
 
                     fragmentSchemasByType ??= [];
@@ -955,7 +1091,8 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
         OpenApiEndpointDefinition endpoint,
         OpenApiEndpointDefinitionParameter parameter,
         ParameterLocation location,
-        ISchemaDefinition schema)
+        ISchemaDefinition schema,
+        InputComponentContext inputComponentContext)
     {
         var (graphqlType, defaultValue) = GetParameterDetails(endpoint.OperationDefinition, parameter, schema);
 
@@ -964,7 +1101,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
             Name = parameter.Key,
             In = location,
             Required = graphqlType.IsNonNullType(),
-            Schema = CreateOpenApiSchemaForType(graphqlType, schema, defaultValue)
+            Schema = CreateOpenApiSchemaForType(graphqlType, schema, inputComponentContext, defaultValue)
         };
     }
 
@@ -1094,6 +1231,16 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
     private sealed record EndpointDescriptor(string Path, string HttpMethod, OpenApiOperation Operation);
 
     private sealed record ModelDescriptor(string SchemaName, OpenApiSchemaAbstraction Schema);
+
+    // Shared across all endpoints so each input type is registered as a component once.
+    private sealed class InputComponentContext(ISchemaDefinition schema)
+    {
+        public ISchemaDefinition Schema { get; } = schema;
+
+        public Dictionary<string, OpenApiSchemaAbstraction> Components { get; } = [];
+
+        public HashSet<string> RegisteredNames { get; } = [];
+    }
 
     private sealed class InputObjectPathTrie : Dictionary<string, InputObjectPathTrie>
     {
