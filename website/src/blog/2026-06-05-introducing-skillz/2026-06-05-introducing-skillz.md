@@ -66,7 +66,7 @@ or add the .NET-specific ones:
 dnx skillz add dotnet/skills
 ```
 
-# Installing
+## Installing
 
 There are two ways to run `skillz`:
 
