@@ -254,6 +254,54 @@ public class CodeFirstAuthorizationTests
     }
 
     [Fact]
+    public async Task Authorize_Field_Validation_NoAccess_When_Type_Not_Authorized()
+    {
+        // arrange
+        // only the field carries a validation policy; the query type itself is not authorized,
+        // so request-level enforcement must be triggered by the field configuration alone.
+        var handler = new AuthHandler(
+            resolver: (_, _) => AuthorizeResult.Allowed,
+            validation: (_, _) => AuthorizeResult.NotAllowed);
+
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("sensitiveData")
+                    .Type<StringType>()
+                    .Resolve("sensitive data")
+                    .Authorize("READ_AUTH", ApplyPolicy.Validation))
+                .AddAuthorizationHandler(_ => handler)
+                .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync("{ sensitiveData }");
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(result)
+            .MatchInline(
+                """
+                {
+                  "errors": [
+                    {
+                      "message": "The current user is not authorized to access this resource.",
+                      "extensions": {
+                        "code": "AUTH_NOT_AUTHORIZED"
+                      }
+                    }
+                  ]
+                }
+                """);
+
+        Assert.NotNull(result.ContextData);
+        Assert.True(result.ContextData.TryGetValue(ExecutionContextData.HttpStatusCode, out var value));
+        Assert.Equal(401, value);
+    }
+
+    [Fact]
     public async Task Authorize_Schema_Field()
     {
         // arrange

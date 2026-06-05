@@ -33,6 +33,7 @@
   </Folder>
   <Folder Name="/HotChocolate/ApolloFederation/test/">
     <Project Path="HotChocolate/ApolloFederation/test/ApolloFederation.Tests/HotChocolate.ApolloFederation.Tests.csproj" />
+    <Project Path="HotChocolate/ApolloFederation/test/ApolloFederation.ImplementationFirst/HotChocolate.ApolloFederation.ImplementationFirst.Tests.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/AspNetCore/" />
   <Folder Name="/HotChocolate/AspNetCore/benchmarks/" />

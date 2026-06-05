@@ -7,14 +7,7 @@ const meta = {
   argTypes: {
     kind: {
       control: "select",
-      options: [
-        "note",
-        "tip",
-        "important",
-        "warning",
-        "caution",
-        "experimental",
-      ],
+      options: ["note", "tip", "warning", "caution", "experimental"],
     },
   },
 } satisfies Meta<typeof Admonition>;
@@ -33,13 +26,6 @@ export const Tip: Story = {
   args: {
     kind: "tip",
     children: "A helpful suggestion to make the user's life easier.",
-  },
-};
-
-export const Important: Story = {
-  args: {
-    kind: "important",
-    children: "Crucial information necessary for users to succeed.",
   },
 };
 
@@ -68,10 +54,9 @@ export const Experimental: Story = {
 export const AllKinds: Story = {
   args: { kind: "note", children: "" },
   render: () => (
-    <div className="flex flex-col gap-2 [&>*]:!my-0">
+    <div className="flex flex-col gap-2 *:my-0!">
       <Admonition kind="note">Useful information.</Admonition>
       <Admonition kind="tip">A helpful suggestion.</Admonition>
-      <Admonition kind="important">Important information.</Admonition>
       <Admonition kind="warning">Warning content.</Admonition>
       <Admonition kind="caution">Cautionary content.</Admonition>
       <Admonition kind="experimental">Experimental content.</Admonition>

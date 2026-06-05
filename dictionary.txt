@@ -91,6 +91,7 @@ frontmatter
 Fzzz
 GEOGCS
 geolocation
+GHSA
 Giroux
 grafbase
 GraphiQL

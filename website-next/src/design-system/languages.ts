@@ -26,14 +26,27 @@ export const LANGUAGES: Record<string, LanguageDescriptor> = {
   yml: { label: "YAML", color: "#cb7676", shiki: "yaml" },
 };
 
+// Colors live in the theme (`--cc-step-*` in globals.css). The chip background
+// and border are derived from each step's base hue via alpha.
+function stepColors(
+  base: string,
+  text: string,
+): { bg: string; border: string; text: string } {
+  return {
+    bg: `color-mix(in srgb, ${base} 18%, transparent)`,
+    border: `color-mix(in srgb, ${base} 55%, transparent)`,
+    text,
+  };
+}
+
 export const STEP_PALETTE: Record<
   number,
   { bg: string; border: string; text: string }
 > = {
-  1: { bg: "rgba(20, 184, 166, 0.18)", border: "rgba(20, 184, 166, 0.55)", text: "#5eead4" },
-  2: { bg: "rgba(245, 158, 11, 0.18)", border: "rgba(245, 158, 11, 0.55)", text: "#fcd34d" },
-  3: { bg: "rgba(168, 85, 247, 0.18)", border: "rgba(168, 85, 247, 0.55)", text: "#c4b5fd" },
-  4: { bg: "rgba(244, 114, 182, 0.18)", border: "rgba(244, 114, 182, 0.55)", text: "#f9a8d4" },
+  1: stepColors("var(--cc-step-1)", "var(--cc-step-1-text)"),
+  2: stepColors("var(--cc-step-2)", "var(--cc-step-2-text)"),
+  3: stepColors("var(--cc-step-3)", "var(--cc-step-3-text)"),
+  4: stepColors("var(--cc-step-4)", "var(--cc-step-4-text)"),
 };
 
 export function stepStyle(step: number): { backgroundColor: string; borderColor: string; color: string } {

@@ -2,28 +2,51 @@
 
 import { useState } from "react";
 
-type VideoFacadeProps = {
-  videoId: string;
+type CommonProps = {
   playlabel?: string;
 };
 
-/**
- * "Facade" YouTube embed: renders the poster image until clicked, then swaps
- * in the iframe with `autoplay=1`. Avoids loading the lite-yt-embed stylesheet
- * (a render-blocking jsdelivr request from `@next/third-parties`), and defers
- * the iframe payload until interaction.
- */
-export function VideoFacade({
-  videoId,
-  playlabel = "Play video",
-}: VideoFacadeProps) {
+type YouTubeFacadeProps = CommonProps & {
+  provider?: "youtube";
+  videoId: string;
+  poster?: never;
+  embedSrc?: never;
+};
+
+type GenericFacadeProps = CommonProps & {
+  provider: "generic";
+  poster: string;
+  embedSrc: string;
+  videoId?: never;
+};
+
+type VideoFacadeProps = YouTubeFacadeProps | GenericFacadeProps;
+
+export function VideoFacade(props: VideoFacadeProps) {
+  const { playlabel = "Play video" } = props;
   const [active, setActive] = useState(false);
+
+  const isGeneric = props.provider === "generic";
+  const posterSrc = isGeneric
+    ? props.poster
+    : `https://i.ytimg.com/vi/${props.videoId}/hqdefault.jpg`;
+  // The responsive YouTube thumbnails only apply when we derive them from an id.
+  const posterSrcSet = isGeneric
+    ? undefined
+    : `https://i.ytimg.com/vi/${props.videoId}/hqdefault.jpg 480w, https://i.ytimg.com/vi/${props.videoId}/maxresdefault.jpg 1280w`;
+  const embedUrl = isGeneric
+    ? props.embedSrc
+    : `https://www.youtube-nocookie.com/embed/${props.videoId}?autoplay=1&rel=0`;
+
+  const playHover = isGeneric
+    ? "group-hover:bg-cc-accent"
+    : "group-hover:bg-cc-youtube";
 
   if (active) {
     return (
-      <div className="relative aspect-video w-full bg-black">
+      <div className="relative aspect-video w-full bg-cc-black">
         <iframe
-          src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`}
+          src={embedUrl}
           title={playlabel}
           allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
@@ -39,14 +62,12 @@ export function VideoFacade({
       type="button"
       onClick={() => setActive(true)}
       aria-label={playlabel}
-      className="group relative block aspect-video w-full cursor-pointer overflow-hidden border-0 bg-black p-0"
+      className="group relative block aspect-video w-full cursor-pointer overflow-hidden border-0 bg-cc-black p-0"
     >
-      {/* Thumbnail via YouTube i.ytimg CDN — `loading=lazy` defers off-screen
-          videos until they're near the viewport. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`}
-        srcSet={`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg 480w, https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg 1280w`}
+        src={posterSrc}
+        srcSet={posterSrcSet}
         sizes="(min-width: 768px) 768px, 100vw"
         alt=""
         loading="lazy"
@@ -57,11 +78,13 @@ export function VideoFacade({
         aria-hidden="true"
         className="absolute inset-0 flex items-center justify-center"
       >
-        <span className="flex h-16 w-24 items-center justify-center rounded-xl bg-black/70 text-white transition-colors group-hover:bg-red-600">
+        <span
+          className={`flex h-12 w-17 items-center justify-center rounded-[14%] bg-cc-black/70 text-cc-white transition-colors ${playHover}`}
+        >
           <svg
             viewBox="0 0 24 24"
             fill="currentColor"
-            className="ml-1 h-8 w-8"
+            className="h-7 w-7"
             aria-hidden="true"
           >
             <path d="M8 5v14l11-7z" />

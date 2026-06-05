@@ -22,7 +22,9 @@ internal static class OperationContextExtensions
             {
                 foreach (var error in ex.Errors)
                 {
-                    context.ReportError(error, resolverContext);
+                    context.ReportError(
+                        error.Path is null ? error.WithPath(path) : error,
+                        resolverContext);
                 }
             }
             else

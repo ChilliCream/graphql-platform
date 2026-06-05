@@ -1320,6 +1320,33 @@ public partial class AnnotationBasedMutations
     }
 
     [Fact]
+    public async Task MutationConvention_With_V15FieldNameFormat_Keeps_Underscores()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<MutationWithV15FieldNameFormat>()
+                .AddMutationConventions(
+                    new MutationConventionOptions
+                    {
+                        ApplyToAllMutations = true,
+                        InputTypeNamePattern = "{MutationName}InputType",
+                        PayloadTypeNamePattern = "{MutationName}PayloadType"
+                    })
+                .ModifyOptions(o => o.StrictValidation = false)
+                .BuildSchemaAsync();
+
+        var schemaText = schema.ToString();
+
+        // V15 style capitalizes the first letter but keeps the underscores intact.
+        Assert.Contains("ch_myMutation(input: Ch_myMutationInputType!): Ch_myMutationPayloadType!", schemaText);
+        Assert.Contains("input Ch_myMutationInputType {", schemaText);
+        Assert.Contains("type Ch_myMutationPayloadType {", schemaText);
+        Assert.DoesNotContain("ChMyMutationInputType", schemaText);
+        Assert.DoesNotContain("ChMyMutationPayloadType", schemaText);
+    }
+
+    [Fact]
     public async Task Mutation_With_ErrorAnnotatedAndCustomInterface_LateAndEarlyRegistration()
     {
         var result =
@@ -1573,6 +1600,12 @@ public partial class AnnotationBasedMutations
         {
             return new User { Name = name };
         }
+    }
+
+    [PrefixMutationFields("ch_")]
+    public class MutationWithV15FieldNameFormat
+    {
+        public string MyMutation(string value) => value;
     }
 
     public class SimpleMutationWithSingleError
@@ -2034,5 +2067,30 @@ public partial class AnnotationBasedMutations
 
         [System.Text.RegularExpressions.GeneratedRegex(@"[A-Z]{2,}(?=[A-Z][a-z]+[0-9]*|\b)|[A-Z]?[a-z]+[0-9]*|[A-Z]|[0-9]+")]
         private static partial System.Text.RegularExpressions.Regex SnakeCasePatternRegex();
+    }
+
+    public sealed class PrefixMutationFieldsAttribute(string prefix) : ObjectTypeDescriptorAttribute
+    {
+        protected override void OnConfigure(
+            IDescriptorContext context,
+            IObjectTypeDescriptor descriptor,
+            Type? type)
+        {
+            if (type is null)
+            {
+                return;
+            }
+
+            descriptor
+                .Extend()
+                .OnBeforeCreate((_, definition) =>
+                {
+                    foreach (var field in definition.Fields)
+                    {
+                        field.Name = prefix + field.Name;
+                        field.UseV15MutationFieldNameFormat = true;
+                    }
+                });
+        }
     }
 }

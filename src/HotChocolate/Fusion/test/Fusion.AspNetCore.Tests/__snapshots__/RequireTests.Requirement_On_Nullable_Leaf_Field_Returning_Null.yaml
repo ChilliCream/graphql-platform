@@ -84,7 +84,7 @@ sourceSchemas:
         productById(id: ID!): Product @lookup
       }
 
-      type Product {
+      type Product @key(fields: "id") {
         fieldWithNullableRequirement(
           nullableArgument: String @require(field: "nullableField")
         ): String!

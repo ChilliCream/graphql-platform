@@ -41,32 +41,51 @@ const mermaidOptions: RehypeMermaidOptions = {
   mermaidConfig: {
     theme: "base",
     securityLevel: "strict",
-    // Note: do not override `font-family` here. Mermaid runs in headless
-    // Chromium at build time to size each node, so changing the font after
-    // measurement (or to a font not loaded in the headless browser) clips
-    // the text in the live page.
-    //
-    // themeCSS is inlined as a <style> block inside the generated SVG, so
-    // CSS custom properties from `app/globals.css` (`--color-primary-*`,
-    // `--color-slate-*`) resolve in the browser. Mermaid sets fills/strokes
-    // via inline `style=`, which is why every rule needs `!important`.
     themeCSS: `
-      .edgePath .path { stroke-width: 1.5px; }
+      /* Edges read as dim ink lines on the dark surface */
+      .edgePath .path,
+      .flowchart-link {
+        stroke-width: 1.5px;
+        stroke: var(--color-cc-ink-dim) !important;
+      }
+      marker { fill: var(--color-cc-ink-dim) !important; stroke: var(--color-cc-ink-dim) !important; }
 
-      /* Primary nodes */
+      /* All diagram text in cream ink */
+      .nodeLabel,
+      .cluster-label,
+      span.edgeLabel,
+      text {
+        fill: var(--color-cc-ink) !important;
+        color: var(--color-cc-ink) !important;
+      }
+
+      /* Primary nodes: translucent dark fill, accent border */
       .node rect,
       .node circle,
       .node ellipse,
       .node polygon,
       .node path {
-        fill: var(--color-primary-50) !important;
-        stroke: var(--color-primary-700) !important;
+        fill: var(--color-cc-card-bg) !important;
+        stroke: var(--color-cc-accent) !important;
       }
 
-      /* Cluster / subgraph frames pick up the slate scale */
+      /* Edge labels sit on the page background so lines don't bleed through.
+         Mermaid wraps the label text in a foreignObject <div>, so cover that
+         (and any background rect) to kill the base theme's pink default. */
+      .edgeLabel,
+      .edgeLabel rect,
+      .edgeLabel foreignObject div,
+      .edgeLabel .labelBkg,
+      .edgeLabel p {
+        background-color: var(--color-cc-bg) !important;
+        background: var(--color-cc-bg) !important;
+        fill: var(--color-cc-bg) !important;
+      }
+
+      /* Cluster / subgraph frames as a subtle dark card matching the site */
       .cluster rect {
-        fill: var(--color-slate-50) !important;
-        stroke: var(--color-slate-200) !important;
+        fill: var(--color-cc-card-bg) !important;
+        stroke: var(--color-cc-card-border) !important;
       }
     `,
   },

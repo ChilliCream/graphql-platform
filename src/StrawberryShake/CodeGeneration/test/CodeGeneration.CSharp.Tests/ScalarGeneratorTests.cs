@@ -1,4 +1,3 @@
-using ChilliCream.Testing;
 using Xunit.Sdk;
 using static StrawberryShake.CodeGeneration.CSharp.GeneratorTestHelper;
 

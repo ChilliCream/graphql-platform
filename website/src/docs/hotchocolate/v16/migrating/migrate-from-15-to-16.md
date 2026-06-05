@@ -646,30 +646,19 @@ If you hit a mismatch, you have two options:
 1. Provide variables as raw JSON through `SetVariableValues(string)`, bypassing CLR serialization entirely.
 2. Register a custom `JsonConverter` for the affected type so the emitted JSON matches the scalar's expected format.
 
-If you need to pass an Upload scalar value, you can do the following:
+If you need to pass an `Upload` scalar value, register the file on the builder via `AddFile` and reference it from your variables by the same key:
 
 ```csharp
-var requestBuilder = new OperationRequestBuilder();
-requestBuilder.SetVariableValues("""{ "file" : "yourKey" }""");
-requestBuilder.Features.Set<IFileLookup>(fileLookup);
+var file = new StreamFile("Foo.txt", () => new MemoryStream(/* your bytes */));
 
-public class FileLookup : IFileLookup
-{
-    public bool TryGetFile(string name, [NotNullWhen(true)] out IFile? file)
-    {
-        if (name == "yourKey")
-        {
-            file = new StreamFile("Foo.txt", () => new MemoryStream());
-            return true;
-        }
-
-        file = null;
-        return false;
-    }
-}
+var request = OperationRequestBuilder.New()
+    .SetDocument("mutation ($file: Upload!) { upload(file: $file) }")
+    .SetVariableValues("""{ "file": "yourKey" }""")
+    .AddFile("yourKey", file)
+    .Build();
 ```
 
-`yourKey` in this case is just a marker you choose for the file.
+`yourKey` is just a marker you choose to correlate the variable value with the file. Call `AddFile` multiple times to register additional files on the same request.
 
 **Global state methods**
 
@@ -688,7 +677,7 @@ Use `OperationRequestBuilder.From(request)` to create a builder pre-populated fr
 
 **Features collection**
 
-The builder now exposes a `Features` property of type `IFeatureCollection` for attaching extensibility features (such as `IFileLookup` for file uploads).
+The builder now exposes a `Features` property of type `IFeatureCollection` for attaching extensibility features.
 
 ## Snapshot matching on IExecutionResult
 
@@ -1343,6 +1332,25 @@ mutation {
 ```
 
 The transaction boundary now lives inside the resolver for the coarse-grained mutation, where you control it directly with your data access layer.
+
+## Marten nullable boolean `neq` filter now includes null rows
+
+`HotChocolate.Data.Marten` has been updated to Marten 8.37.0 (from 8.0.0) to address the critical advisory [GHSA-vmw2-qwm8-x84c](https://github.com/advisories/GHSA-vmw2-qwm8-x84c). This change lands in **16.0.10**.
+
+Filtering a nullable `bool` property with `neq` now also returns rows where the value is `null`. Marten 8.10.1 changed the SQL it emits for `!=` predicates on nullable boolean JSON properties ([JasperFx/marten#3953](https://github.com/JasperFx/marten/issues/3953)): the `WHERE` clause now includes an `IS NULL OR ...` branch. Other nullable property types (numeric, string, enum) are unaffected.
+
+For a query against a nullable `Bar` column:
+
+```graphql
+{
+  root(where: { bar: { neq: true } }) {
+    bar
+  }
+}
+```
+
+- Previously: only rows where `Bar = false` were returned.
+- Now: rows where `Bar = false` and rows where `Bar IS NULL` are returned.
 
 # Deprecations
 

@@ -51,22 +51,22 @@ export function TocDrawer({ children }: { children: ReactNode }) {
       aria-hidden={!open}
     >
       <div
-        className={`absolute inset-0 bg-black/40 transition-opacity ${
+        className={`absolute inset-0 bg-cc-black/40 transition-opacity ${
           open ? "opacity-100" : "opacity-0"
         }`}
         onClick={() => setOpen(false)}
       />
       <div
-        className={`absolute inset-y-0 right-0 flex w-[20rem] max-w-[85vw] flex-col overflow-y-auto bg-white shadow-xl transition-transform duration-200 ${
+        className={`absolute inset-y-0 right-0 flex w-[20rem] max-w-[85vw] flex-col overflow-y-auto bg-cc-bg shadow-xl transition-transform duration-200 ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <div className="flex items-center justify-end border-b border-slate-200 px-3 py-2">
+        <div className="flex items-center justify-end border-b border-cc-card-border px-3 py-2">
           <button
             type="button"
             aria-label="Close table of contents"
             onClick={() => setOpen(false)}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full text-slate-700 hover:bg-slate-100"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full text-cc-ink-dim hover:bg-cc-ink-faint"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

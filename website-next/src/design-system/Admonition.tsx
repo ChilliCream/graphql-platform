@@ -3,7 +3,6 @@ import type { ReactNode } from "react";
 export type AdmonitionKind =
   | "note"
   | "tip"
-  | "important"
   | "warning"
   | "caution"
   | "experimental";
@@ -19,8 +18,8 @@ const config: Record<
 > = {
   note: {
     label: "Note",
-    containerClass: "bg-sky-50 ring-1 ring-sky-200 text-sky-950",
-    labelClass: "text-sky-700",
+    containerClass: "bg-cc-note/10 ring-1 ring-cc-note/30 text-cc-ink",
+    labelClass: "text-cc-note",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -41,8 +40,8 @@ const config: Record<
   },
   tip: {
     label: "Tip",
-    containerClass: "bg-primary-50 ring-1 ring-primary-200 text-primary-950",
-    labelClass: "text-primary-700",
+    containerClass: "bg-cc-success/10 ring-1 ring-cc-success/30 text-cc-ink",
+    labelClass: "text-cc-success",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -61,31 +60,10 @@ const config: Record<
       </svg>
     ),
   },
-  important: {
-    label: "Important",
-    containerClass: "bg-purple-50 ring-1 ring-purple-200 text-purple-950",
-    labelClass: "text-purple-700",
-    icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="h-5 w-5"
-        aria-hidden="true"
-      >
-        <path d="M3 11v3a1 1 0 0 0 1 1h3l3.6 4.5a1 1 0 0 0 1.8-.6V5.1a1 1 0 0 0-1.8-.6L7 9H4a1 1 0 0 0-1 1v1Z" />
-        <path d="M16 8a5 5 0 0 1 0 8" />
-      </svg>
-    ),
-  },
   warning: {
     label: "Warning",
-    containerClass: "bg-amber-50 ring-1 ring-amber-200 text-amber-950",
-    labelClass: "text-amber-700",
+    containerClass: "bg-cc-warning/10 ring-1 ring-cc-warning/30 text-cc-ink",
+    labelClass: "text-cc-warning",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -106,8 +84,8 @@ const config: Record<
   },
   caution: {
     label: "Caution",
-    containerClass: "bg-red-50 ring-1 ring-red-200 text-red-950",
-    labelClass: "text-red-700",
+    containerClass: "bg-cc-danger/10 ring-1 ring-cc-danger/30 text-cc-ink",
+    labelClass: "text-cc-danger",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -128,8 +106,8 @@ const config: Record<
   },
   experimental: {
     label: "Experimental",
-    containerClass: "bg-violet-50 ring-1 ring-violet-200 text-violet-950",
-    labelClass: "text-violet-700",
+    containerClass: "bg-cc-info/10 ring-1 ring-cc-info/30 text-cc-ink",
+    labelClass: "text-cc-info",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"

@@ -42,8 +42,8 @@ type Query {
   isSelectedTest: IsSelectedNode!
   """
   Gets the product.
-
-
+  
+  
   **Returns:**
   The only product.
   """
@@ -168,6 +168,13 @@ type BookEdge {
   node: Book!
 }
 
+type DeclaringTypeProbe {
+  "tagged"
+  fromPartialA: String!
+  fromPartialB: String!
+  id: String!
+}
+
 "A connection to a list of items."
 type IntConnection {
   "Information to aid in pagination."
@@ -207,6 +214,12 @@ type PageInfo {
   startCursor: String
   "When paginating forwards, the cursor to continue."
   endCursor: String
+}
+
+type PrefixOwnFieldsProbe {
+  a_fromPartialA: String!
+  fromPartialB: String!
+  id: String!
 }
 
 "A connection to a list of items."
