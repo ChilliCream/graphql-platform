@@ -27,7 +27,7 @@ Options:
   -y, --yes       Skip prompts (non-interactive)
   --all           Install all skills to all agents
   --copy          Copy instead of symlinking
-  --full-depth    Full-depth clone
+  --full-depth    Scan nested directories for skills
   -l, --list      List available skills without installing
   -?, -h, --help  Show help and usage information
 ```
