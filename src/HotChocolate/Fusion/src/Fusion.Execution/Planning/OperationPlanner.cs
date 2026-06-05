@@ -1090,13 +1090,28 @@ public sealed partial class OperationPlanner
                     new VariableNode(new NameNode($"{requirementKey}_{argument.Name}"))));
         }
 
+        // we partition the requiring field's children against the consumer schema and
+        // only inline the resolvable subset. Unresolvable descendants and nested
+        // fields-with-requirements are pushed onto the backlog so that they are planned
+        // as re-entrant lookups instead of being inlined into a step that cannot resolve
+        // them.
+        var childSelections =
+            ExtractResolvableChildSelections(
+                stepConsumer.StepId,
+                workItem.EstimatedDepth,
+                workItem.Selection,
+                current,
+                index,
+                ref backlog);
+
         var operation =
             InlineSelections(
                 currentStep.Definition,
                 index,
                 currentStep.Type,
                 workItem.Selection.SelectionSetId,
-                new SelectionSetNode([workItem.Selection.Node.WithArguments(arguments)]));
+                new SelectionSetNode(
+                    [workItem.Selection.Node.WithArguments(arguments).WithSelectionSet(childSelections)]));
 
         var requirements = currentStep.Requirements;
 
@@ -1699,11 +1714,18 @@ public sealed partial class OperationPlanner
 
         var selectionSetId = index.GetId(selection.Node.SelectionSet);
         var selectionSetType = selection.Field.Type.AsTypeDefinition();
+
+        // the field's path points at the selection set the field lives in. Its child
+        // selections live one level deeper, so we append the field's response name to
+        // root the partitioned children (and any re-entrant lookups derived from them)
+        // at the correct path.
+        var childPath = selection.Path.AppendField(
+            selection.Node.Alias?.Value ?? selection.Node.Name.Value);
         var selectionSet = new SelectionSet(
             selectionSetId,
             selection.Node.SelectionSet,
             selectionSetType,
-            selection.Path);
+            childPath);
 
         var input = new SelectionSetPartitionerInput
         {
