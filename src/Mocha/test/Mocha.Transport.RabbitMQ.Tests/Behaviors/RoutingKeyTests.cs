@@ -221,6 +221,61 @@ public class RoutingKeyTests
         Assert.Equal("ap.southeast", capturedKey);
     }
 
+    [Fact]
+    public async Task PublishAsync_Should_RouteBothKeysToSingleQueue_When_BindingHasMultipleRoutingKeys()
+    {
+        // arrange
+        var recorder = new MessageRecorder();
+        await using var vhost = await _fixture.CreateVhostAsync();
+        await using var bus = await new ServiceCollection()
+            .AddSingleton(vhost.ConnectionFactory)
+            .AddSingleton(recorder)
+            .AddMessageBus()
+            .AddConsumer<CatchAllConsumer>()
+            .AddMessage<RegionEvent>(m => m.UseRabbitMQRoutingKey<RegionEvent>(msg => msg.Region))
+            .AddRabbitMQ(t =>
+            {
+                t.BindHandlersExplicitly();
+
+                t.DeclareExchange("events-direct").Type(RabbitMQExchangeType.Direct);
+                t.DeclareQueue("order-service-queue");
+                t.DeclareBinding("events-direct", "order-service-queue")
+                    .RoutingKey("event.order.placed")
+                    .RoutingKey("event.order.cancelled");
+
+                t.Endpoint("order-ep").Consumer<CatchAllConsumer>().Queue("order-service-queue");
+                t.DispatchEndpoint("order-dispatch").ToExchange("events-direct").Publish<RegionEvent>();
+            })
+            .BuildTestBusAsync();
+
+        using var scope = bus.Provider.CreateScope();
+        var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        await messageBus.PublishAsync(
+            new RegionEvent { Region = "event.order.placed", Payload = "placed" },
+            CancellationToken.None);
+        await messageBus.PublishAsync(
+            new RegionEvent { Region = "event.order.cancelled", Payload = "cancelled" },
+            CancellationToken.None);
+        await messageBus.PublishAsync(
+            new RegionEvent { Region = "event.order.shipped", Payload = "shipped" },
+            CancellationToken.None);
+
+        // assert
+        Assert.True(
+            await recorder.WaitAsync(s_timeout, expectedCount: 2),
+            "Both bound routing keys should deliver to the single queue");
+
+        var payloads = recorder
+            .Messages.Cast<RegionEvent>()
+            .Select(e => e.Payload)
+            .OrderBy(p => p, StringComparer.Ordinal)
+            .ToList();
+
+        Assert.Equal(["cancelled", "placed"], payloads);
+    }
+
     public sealed class RegionEvent
     {
         public required string Region { get; init; }

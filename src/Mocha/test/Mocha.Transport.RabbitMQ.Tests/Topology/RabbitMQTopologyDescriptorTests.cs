@@ -317,7 +317,76 @@ public class RabbitMQTopologyDescriptorTests
 
         // assert
         var binding = Assert.Single(topology.Bindings);
-        Assert.Equal("my.key", binding.RoutingKey);
+        Assert.Equal(["my.key"], binding.RoutingKeys);
+    }
+
+    [Fact]
+    public void DeclareBinding_Should_AccumulateRoutingKeys_When_RoutingKeyCalledMultipleTimes()
+    {
+        // arrange & act
+        var (_, _, topology) = CreateTopology(t =>
+        {
+            t.DeclareExchange("src-exchange");
+            t.DeclareQueue("dest-queue");
+            t.DeclareBinding("src-exchange", "dest-queue")
+                .RoutingKey("first.key")
+                .RoutingKey("second.key");
+        });
+
+        // assert
+        var binding = Assert.Single(topology.Bindings);
+        Assert.Equal(["first.key", "second.key"], binding.RoutingKeys);
+    }
+
+    [Fact]
+    public void DeclareBinding_Should_AccumulateRoutingKeys_When_DeclaredTwiceForSamePair()
+    {
+        // arrange & act
+        var (_, _, topology) = CreateTopology(t =>
+        {
+            t.DeclareExchange("src-exchange");
+            t.DeclareQueue("dest-queue");
+            t.DeclareBinding("src-exchange", "dest-queue").RoutingKey("first.key");
+            t.DeclareBinding("src-exchange", "dest-queue").RoutingKey("second.key");
+        });
+
+        // assert
+        var binding = Assert.Single(topology.Bindings);
+        Assert.Equal(["first.key", "second.key"], binding.RoutingKeys);
+    }
+
+    [Fact]
+    public void DeclareBinding_Should_SetAllRoutingKeys_When_RoutingKeysCalled()
+    {
+        // arrange & act
+        var (_, _, topology) = CreateTopology(t =>
+        {
+            t.DeclareExchange("src-exchange");
+            t.DeclareQueue("dest-queue");
+            t.DeclareBinding("src-exchange", "dest-queue").RoutingKeys("a.key", "b.key");
+        });
+
+        // assert
+        var binding = Assert.Single(topology.Bindings);
+        Assert.Equal(["a.key", "b.key"], binding.RoutingKeys);
+    }
+
+    [Fact]
+    public void DeclareBinding_Should_DeduplicateRoutingKeys_When_SameKeyAddedTwice()
+    {
+        // arrange & act
+        var (_, _, topology) = CreateTopology(t =>
+        {
+            t.DeclareExchange("src-exchange");
+            t.DeclareQueue("dest-queue");
+            t.DeclareBinding("src-exchange", "dest-queue")
+                .RoutingKey("dup.key")
+                .RoutingKey("dup.key");
+        });
+
+        // assert
+        var binding = Assert.Single(topology.Bindings);
+        Assert.Equal(["dup.key"], binding.RoutingKeys);
     }
 
     [Fact]

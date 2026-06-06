@@ -20,9 +20,10 @@ public abstract class RabbitMQBinding : TopologyResource<RabbitMQBindingConfigur
     public bool? AutoProvision { get; protected set; }
 
     /// <summary>
-    /// Gets the routing key pattern used to filter messages passing through this binding.
+    /// Gets the routing key patterns used to filter messages passing through this binding.
+    /// Each routing key corresponds to a separate broker binding between the source and destination.
     /// </summary>
-    public string RoutingKey { get; protected set; } = null!;
+    public IReadOnlyList<string> RoutingKeys { get; protected set; } = [];
 
     /// <summary>
     /// Gets the additional binding arguments used for advanced routing (e.g., headers exchange matching).
@@ -54,7 +55,7 @@ public sealed class RabbitMQExchangeBinding : RabbitMQBinding
 
     protected override void OnInitialize(RabbitMQBindingConfiguration configuration)
     {
-        RoutingKey = configuration.RoutingKey ?? string.Empty;
+        RoutingKeys = configuration.RoutingKeys.Count == 0 ? [] : [.. configuration.RoutingKeys];
         Arguments = configuration.Arguments?.ToImmutableDictionary(kv => kv.Key, kv => (object?)kv.Value) ?? ImmutableDictionary<string, object?>.Empty;
         AutoProvision = configuration.AutoProvision;
     }
@@ -74,12 +75,17 @@ public sealed class RabbitMQExchangeBinding : RabbitMQBinding
     /// <inheritdoc />
     public override async Task ProvisionAsync(IChannel channel, CancellationToken cancellationToken)
     {
-        await channel.ExchangeBindAsync(
-            Destination.Name,
-            Source.Name,
-            RoutingKey,
-            Arguments,
-            cancellationToken: cancellationToken);
+        var routingKeys = RoutingKeys.Count == 0 ? [string.Empty] : RoutingKeys;
+
+        foreach (var routingKey in routingKeys)
+        {
+            await channel.ExchangeBindAsync(
+                Destination.Name,
+                Source.Name,
+                routingKey,
+                Arguments,
+                cancellationToken: cancellationToken);
+        }
     }
 }
 
@@ -95,7 +101,7 @@ public sealed class RabbitMQQueueBinding : RabbitMQBinding
 
     protected override void OnInitialize(RabbitMQBindingConfiguration configuration)
     {
-        RoutingKey = configuration.RoutingKey ?? string.Empty;
+        RoutingKeys = configuration.RoutingKeys.Count == 0 ? [] : [.. configuration.RoutingKeys];
         Arguments = configuration.Arguments?.ToImmutableDictionary(kv => kv.Key, kv => (object?)kv.Value) ?? ImmutableDictionary<string, object?>.Empty;
         AutoProvision = configuration.AutoProvision;
     }
@@ -115,11 +121,16 @@ public sealed class RabbitMQQueueBinding : RabbitMQBinding
     /// <inheritdoc />
     public override async Task ProvisionAsync(IChannel channel, CancellationToken cancellationToken)
     {
-        await channel.QueueBindAsync(
-            Destination.Name,
-            Source.Name,
-            RoutingKey,
-            Arguments,
-            cancellationToken: cancellationToken);
+        var routingKeys = RoutingKeys.Count == 0 ? [string.Empty] : RoutingKeys;
+
+        foreach (var routingKey in routingKeys)
+        {
+            await channel.QueueBindAsync(
+                Destination.Name,
+                Source.Name,
+                routingKey,
+                Arguments,
+                cancellationToken: cancellationToken);
+        }
     }
 }

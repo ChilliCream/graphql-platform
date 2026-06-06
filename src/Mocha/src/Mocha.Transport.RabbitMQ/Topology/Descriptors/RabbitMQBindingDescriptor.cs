@@ -38,7 +38,23 @@ internal sealed class RabbitMQBindingDescriptor
     /// <inheritdoc />
     public IRabbitMQBindingDescriptor RoutingKey(string routingKey)
     {
-        Configuration.RoutingKey = routingKey;
+        if (!Configuration.RoutingKeys.Contains(routingKey))
+        {
+            Configuration.RoutingKeys.Add(routingKey);
+        }
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IRabbitMQBindingDescriptor RoutingKeys(params string[] routingKeys)
+    {
+        foreach (var routingKey in routingKeys)
+        {
+            if (!Configuration.RoutingKeys.Contains(routingKey))
+            {
+                Configuration.RoutingKeys.Add(routingKey);
+            }
+        }
         return this;
     }
 

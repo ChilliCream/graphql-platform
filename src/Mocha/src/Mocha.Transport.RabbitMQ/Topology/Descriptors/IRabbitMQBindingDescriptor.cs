@@ -20,11 +20,20 @@ public interface IRabbitMQBindingDescriptor : IMessagingDescriptor<RabbitMQBindi
     IRabbitMQBindingDescriptor ToExchange(string exchangeName);
 
     /// <summary>
-    /// Sets the routing key for message routing.
+    /// Adds a routing key for message routing. Calling this multiple times accumulates distinct
+    /// routing keys, each producing a separate broker binding between the source and destination.
     /// </summary>
     /// <param name="routingKey">The routing key pattern used for matching messages.</param>
     /// <returns>The descriptor for method chaining.</returns>
     IRabbitMQBindingDescriptor RoutingKey(string routingKey);
+
+    /// <summary>
+    /// Adds multiple routing keys for message routing. Each distinct key produces a separate broker
+    /// binding between the source and destination.
+    /// </summary>
+    /// <param name="routingKeys">The routing key patterns used for matching messages.</param>
+    /// <returns>The descriptor for method chaining.</returns>
+    IRabbitMQBindingDescriptor RoutingKeys(params string[] routingKeys);
 
     /// <summary>
     /// Adds a custom argument to the binding configuration.
