@@ -31,6 +31,23 @@ public sealed class RabbitMQBindingConfiguration : TopologyConfiguration
     public List<string> RoutingKeys { get; set; } = [];
 
     /// <summary>
+    /// Gets or sets the routing key used for message routing.
+    /// </summary>
+    [Obsolete("Use " + nameof(RoutingKeys) + " instead. This property will be removed in a future release.")]
+    public string? RoutingKey
+    {
+        get => RoutingKeys.Count == 0 ? null : RoutingKeys[0];
+        set
+        {
+            RoutingKeys.Clear();
+            if (value is not null)
+            {
+                RoutingKeys.Add(value);
+            }
+        }
+    }
+
+    /// <summary>
     /// Gets or sets additional binding arguments for advanced routing configuration.
     /// Used for headers exchange routing and other advanced routing scenarios.
     /// </summary>

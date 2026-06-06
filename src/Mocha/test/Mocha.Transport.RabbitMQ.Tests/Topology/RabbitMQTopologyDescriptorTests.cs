@@ -312,7 +312,9 @@ public class RabbitMQTopologyDescriptorTests
         {
             t.DeclareExchange("src-exchange");
             t.DeclareQueue("dest-queue");
+#pragma warning disable CS0618
             t.DeclareBinding("src-exchange", "dest-queue").RoutingKey("my.key");
+#pragma warning restore CS0618
         });
 
         // assert
@@ -328,9 +330,11 @@ public class RabbitMQTopologyDescriptorTests
         {
             t.DeclareExchange("src-exchange");
             t.DeclareQueue("dest-queue");
+#pragma warning disable CS0618
             t.DeclareBinding("src-exchange", "dest-queue")
                 .RoutingKey("first.key")
                 .RoutingKey("second.key");
+#pragma warning restore CS0618
         });
 
         // assert
@@ -346,8 +350,10 @@ public class RabbitMQTopologyDescriptorTests
         {
             t.DeclareExchange("src-exchange");
             t.DeclareQueue("dest-queue");
+#pragma warning disable CS0618
             t.DeclareBinding("src-exchange", "dest-queue").RoutingKey("first.key");
             t.DeclareBinding("src-exchange", "dest-queue").RoutingKey("second.key");
+#pragma warning restore CS0618
         });
 
         // assert
@@ -379,14 +385,71 @@ public class RabbitMQTopologyDescriptorTests
         {
             t.DeclareExchange("src-exchange");
             t.DeclareQueue("dest-queue");
+#pragma warning disable CS0618
             t.DeclareBinding("src-exchange", "dest-queue")
                 .RoutingKey("dup.key")
                 .RoutingKey("dup.key");
+#pragma warning restore CS0618
         });
 
         // assert
         var binding = Assert.Single(topology.Bindings);
         Assert.Equal(["dup.key"], binding.RoutingKeys);
+    }
+
+    [Fact]
+    public void Binding_Should_ReturnFirstRoutingKey_When_ObsoleteRoutingKeyRead()
+    {
+        // arrange & act
+        var (_, _, topology) = CreateTopology(t =>
+        {
+            t.DeclareExchange("src-exchange");
+            t.DeclareQueue("dest-queue");
+#pragma warning disable CS0618
+            t.DeclareBinding("src-exchange", "dest-queue")
+                .RoutingKey("first.key")
+                .RoutingKey("second.key");
+#pragma warning restore CS0618
+        });
+
+        // assert
+        var binding = Assert.Single(topology.Bindings);
+#pragma warning disable CS0618
+        Assert.Equal("first.key", binding.RoutingKey);
+#pragma warning restore CS0618
+    }
+
+    [Fact]
+    public void Configuration_Should_OverwriteRoutingKeys_When_ObsoleteRoutingKeySet()
+    {
+        // arrange
+        var configuration = new RabbitMQBindingConfiguration();
+        configuration.RoutingKeys.Add("existing.key");
+
+        // act
+#pragma warning disable CS0618
+        configuration.RoutingKey = "replacement.key";
+
+        // assert
+        Assert.Equal("replacement.key", configuration.RoutingKey);
+#pragma warning restore CS0618
+        Assert.Equal(["replacement.key"], configuration.RoutingKeys);
+    }
+
+    [Fact]
+    public void Configuration_Should_ClearRoutingKeys_When_ObsoleteRoutingKeySetToNull()
+    {
+        // arrange
+        var configuration = new RabbitMQBindingConfiguration();
+        configuration.RoutingKeys.Add("existing.key");
+
+        // act
+#pragma warning disable CS0618
+        configuration.RoutingKey = null;
+#pragma warning restore CS0618
+
+        // assert
+        Assert.Empty(configuration.RoutingKeys);
     }
 
     [Fact]

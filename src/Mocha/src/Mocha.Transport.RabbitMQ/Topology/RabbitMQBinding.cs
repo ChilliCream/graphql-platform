@@ -26,6 +26,12 @@ public abstract class RabbitMQBinding : TopologyResource<RabbitMQBindingConfigur
     public IReadOnlyList<string> RoutingKeys { get; protected set; } = [];
 
     /// <summary>
+    /// Gets the routing key pattern used to filter messages passing through this binding.
+    /// </summary>
+    [Obsolete("Use " + nameof(RoutingKeys) + " instead. This property will be removed in a future release.")]
+    public string RoutingKey => RoutingKeys.Count == 0 ? string.Empty : RoutingKeys[0];
+
+    /// <summary>
     /// Gets the additional binding arguments used for advanced routing (e.g., headers exchange matching).
     /// </summary>
     public ImmutableDictionary<string, object?> Arguments { get; protected set; } = ImmutableDictionary<string, object?>.Empty;

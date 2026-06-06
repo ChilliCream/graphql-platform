@@ -38,8 +38,8 @@ public class RoutingKeyTests
                 t.DeclareExchange("region-topic").Type(RabbitMQExchangeType.Topic);
                 t.DeclareQueue("us-queue");
                 t.DeclareQueue("eu-queue");
-                t.DeclareBinding("region-topic", "us-queue").RoutingKey("us.*");
-                t.DeclareBinding("region-topic", "eu-queue").RoutingKey("eu.*");
+                t.DeclareBinding("region-topic", "us-queue").RoutingKeys("us.*");
+                t.DeclareBinding("region-topic", "eu-queue").RoutingKeys("eu.*");
 
                 t.Endpoint("us-ep").Consumer<UsRegionConsumer>().Queue("us-queue");
                 t.Endpoint("eu-ep").Consumer<EuRegionConsumer>().Queue("eu-queue");
@@ -86,7 +86,7 @@ public class RoutingKeyTests
 
                 t.DeclareExchange("wildcard-topic").Type(RabbitMQExchangeType.Topic);
                 t.DeclareQueue("catch-all-queue");
-                t.DeclareBinding("wildcard-topic", "catch-all-queue").RoutingKey("#");
+                t.DeclareBinding("wildcard-topic", "catch-all-queue").RoutingKeys("#");
 
                 t.Endpoint("catch-all-ep").Consumer<CatchAllConsumer>().Queue("catch-all-queue");
                 t.DispatchEndpoint("wildcard-dispatch").ToExchange("wildcard-topic").Publish<RegionEvent>();
@@ -141,7 +141,7 @@ public class RoutingKeyTests
 
                 t.DeclareExchange("nomatch-topic").Type(RabbitMQExchangeType.Topic);
                 t.DeclareQueue("nomatch-queue");
-                t.DeclareBinding("nomatch-topic", "nomatch-queue").RoutingKey("eu.*");
+                t.DeclareBinding("nomatch-topic", "nomatch-queue").RoutingKeys("eu.*");
 
                 t.Endpoint("nomatch-ep").Consumer<CatchAllConsumer>().Queue("nomatch-queue");
                 t.DispatchEndpoint("nomatch-dispatch").ToExchange("nomatch-topic").Publish<RegionEvent>();
@@ -183,7 +183,7 @@ public class RoutingKeyTests
 
                 t.DeclareExchange("header-topic").Type(RabbitMQExchangeType.Topic);
                 t.DeclareQueue("header-queue");
-                t.DeclareBinding("header-topic", "header-queue").RoutingKey("#");
+                t.DeclareBinding("header-topic", "header-queue").RoutingKeys("#");
 
                 t.Endpoint("header-ep").Consumer<CatchAllConsumer>().Queue("header-queue");
                 t.DispatchEndpoint("header-dispatch")
@@ -240,8 +240,7 @@ public class RoutingKeyTests
                 t.DeclareExchange("events-direct").Type(RabbitMQExchangeType.Direct);
                 t.DeclareQueue("order-service-queue");
                 t.DeclareBinding("events-direct", "order-service-queue")
-                    .RoutingKey("event.order.placed")
-                    .RoutingKey("event.order.cancelled");
+                    .RoutingKeys("event.order.placed", "event.order.cancelled");
 
                 t.Endpoint("order-ep").Consumer<CatchAllConsumer>().Queue("order-service-queue");
                 t.DispatchEndpoint("order-dispatch").ToExchange("events-direct").Publish<RegionEvent>();
