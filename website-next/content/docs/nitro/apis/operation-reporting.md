@@ -2,7 +2,7 @@
 title: "Operation Reporting"
 ---
 
-![Image](images/operation-reporting-0.webp)
+![Image](../../../../public/images/nitro-docs/apis/operation-reporting-0.webp)
 
 Nitro's Operation Reporting feature provides comprehensive insights into the GraphQL operations executed on your server. This functionality is essential for maintaining visibility over server activities, including both persisted and executed operations. By leveraging Operation Reporting, developers and system administrators can gain a clearer understanding of what operations are executed and available on the server.
 
@@ -65,7 +65,7 @@ public void ConfigureServices(IServiceCollection services)
 
 Once Operation Reporting is enabled and configured, all GraphQL operations processed by your server will be reported to Nitro. These operations can be viewed and analyzed in the `Operations` tab within the Nitro interface.
 
-![Image](images/operation-reporting-1.webp)
+![Image](../../../../public/images/nitro-docs/apis/operation-reporting-1.webp)
 
 1. Click the `Operations` tab in Nitro to view the list of reported operations.
 2. The name of the executed operation. Click to view the operation details.

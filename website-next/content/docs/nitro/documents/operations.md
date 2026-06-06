@@ -4,7 +4,7 @@ title: Operation Pane
 
 The Operation Pane provides a comprehensive interface for writing GraphQL queries, mutations, and subscriptions. It offers several features to enhance your development experience.
 
-![Nitro - Operation Pane](./images/operation-0.webp)
+![Nitro - Operation Pane](../../../../public/images/nitro-docs/documents/operation-0.webp)
 
 # **1. Request Editor**
 

@@ -2,7 +2,7 @@
 title: Explore the UI
 ---
 
-![Image](images/eti-01.webp)
+![Image](../../../../public/images/nitro-docs/explore-the-ui/eti-01.webp)
 
 Let's explore the main components of the Nitro user interface:
 

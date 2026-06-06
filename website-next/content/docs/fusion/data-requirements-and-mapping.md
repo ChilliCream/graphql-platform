@@ -78,7 +78,7 @@ When a resolver declares a data requirement with `@require`, three things happen
 
 The resolver receives the data as if it were a normal argument. It does not know or care where the data came from. Services are not coupled to each other. The contract is between a resolver and the data it needs, not between one service and another.
 
-![The gateway fetches required data from the Products subgraph first, then passes it to the Shipping subgraph as resolved @require arguments](../../shared/fusion/data-requirements-require-flow.png)
+![The gateway fetches required data from the Products subgraph first, then passes it to the Shipping subgraph as resolved @require arguments](../../../public/images/fusion-docs/data-requirements-require-flow.png)
 
 ### Complex Requirements with Input Objects
 

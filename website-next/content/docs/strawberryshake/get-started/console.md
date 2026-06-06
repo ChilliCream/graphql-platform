@@ -131,7 +131,7 @@ dotnet build
 
 With the project compiled, you should now see in the directory `./obj/<configuration>/<target-framework>/berry` the generated code that your applications can leverage. For example, if you've run a Debug build for .NET 10, the path would be `./obj/Debug/net10.0/berry`.
 
-![Visual Studio Code showing the generated directory.](../../../shared/berry_console_generated.webp)
+![Visual Studio Code showing the generated directory.](../../../../public/images/strawberryshake-docs/berry_console_generated.webp)
 
 1. Head over to the `Program.cs` and add the new `ConferenceClient` to the dependency injection.
 
@@ -181,4 +181,4 @@ foreach (var session in result.Data.Sessions.Nodes)
 
 3. Start the console application with `dotnet run --project ./Demo` and see if your code works.
 
-![Started console application that shows a list of sessions](../../../shared/berry_console_session_list.webp)
+![Started console application that shows a list of sessions](../../../../public/images/strawberryshake-docs/berry_console_session_list.webp)

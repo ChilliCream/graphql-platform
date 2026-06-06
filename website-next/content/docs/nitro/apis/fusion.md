@@ -2,7 +2,7 @@
 title: "Fusion"
 ---
 
-![Image](images/fusion-0.webp)
+![Image](../../../../public/images/nitro-docs/apis/fusion-0.webp)
 
 Nitro can be used as your orchestrator for your Fusion gateway. It deeply integrates with your development workflow and allows you to publish, validate, consume and monitor your Fusion gateway.
 
@@ -14,20 +14,20 @@ The Fusion dashboard gives you a quick overview of your gateway and subgraphs. I
 
 ## Topology
 
-![Image](images/fusion-1.webp)
+![Image](../../../../public/images/nitro-docs/apis/fusion-1.webp)
 
 The topology view shows you the connections between your gateway and your subgraphs. You can also see which clients are connected to your gateway and how many operations they are executing.
 
 ## Status
 
-![Image](images/fusion-2.webp)
+![Image](../../../../public/images/nitro-docs/apis/fusion-2.webp)
 The status view shows you a quick overview of the status of your gateway. With the indicators for latency, throughput and errors you see how your gateway statistics developed between the previous and the current time range.
 
 You also see the essential information about your gateway, such as the version, the stage, how many subgraphs are connected and how many clients are connected.
 
 ## Subgraphs
 
-![Image](images/fusion-3.webp)
+![Image](../../../../public/images/nitro-docs/apis/fusion-3.webp)
 The subgraphs view shows you a quick overview over your connected subgraphs. You can see the latency, throughput and error rate of each subgraph.
 
 # Gateway Management
@@ -267,7 +267,7 @@ dotnet nitro fusion-configuration publish commit --configuration ./gateway.fgp -
 
 # Distributed Telemetry
 
-![Image](images/fusion-4.webp)
+![Image](../../../../public/images/nitro-docs/apis/fusion-4.webp)
 Nitro provides a distributed telemetry solution for your Fusion Gateway. It allows you to monitor your gateway and all your subgraphs in one place. You can inspect the traces of your operations on the gateway and see how they are executed on the subgraphs.
 
 To enable telemetry for your gateway and subgraphs, all of them need to be configured to send telemetry data to Nitro. Your subgraphs can be configured to send telemetry data by using the [ChilliCream.Nitro](https://www.nuget.org/packages/ChilliCream.Nitro/) package. You can find more information about how to configure your subgraphs in the [Open Telemetry](../open-telemetry/operation-monitoring.md) guide.

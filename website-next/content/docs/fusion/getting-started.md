@@ -880,7 +880,7 @@ query {
 
 Example in Nitro:
 
-![Cross-subgraph query result in Nitro](../../shared/fusion/getting-started-query-result.png)
+![Cross-subgraph query result in Nitro](../../../public/images/fusion-docs/getting-started-query-result.png)
 
 You should see:
 
@@ -922,11 +922,11 @@ Behind the scenes, the gateway executed a query plan with multiple steps:
 
 To inspect the plan in Nitro, open the **Operation Plan** tab and enable it.
 
-![Enable Fusion operation plan in Nitro](../../shared/fusion/getting-started-enable-query-planner.png)
+![Enable Fusion operation plan in Nitro](../../../public/images/fusion-docs/getting-started-enable-query-planner.png)
 
 With `CollectOperationPlanTelemetry` enabled on the gateway, the plan includes telemetry such as step duration and status:
 
-![Fusion operation plan telemetry for the cross-subgraph query](../../shared/fusion/getting-started-query-planner-telemetry.png)
+![Fusion operation plan telemetry for the cross-subgraph query](../../../public/images/fusion-docs/getting-started-query-planner-telemetry.png)
 
 1. **Fetched the products** from the Products subgraph. This returned `id`, `name`, and `price` for each product.
 2. **Resolved the reviews** from the Reviews subgraph. Using each product's `id`, the gateway called the Reviews subgraph's internal `productById` lookup to get a `Product` stub, then resolved the `reviews` field on each stub.

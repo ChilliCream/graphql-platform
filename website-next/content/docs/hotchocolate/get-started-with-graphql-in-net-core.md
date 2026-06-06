@@ -124,15 +124,15 @@ Now listening on: http://localhost:5095
 
 Open <a href="http://localhost:5095/graphql" target="_blank" rel="noopener noreferrer">http://localhost:5095/graphql</a> in your browser. You should see the Nitro GraphQL IDE.
 
-![GraphQL IDE](../../../images/getting-started-nitro.webp)
+![GraphQL IDE](../../../public/images/hotchocolate-docs/getting-started-nitro.webp)
 
 Click **Create Document**, verify the HTTP Endpoint matches your server URL, and click **Apply**.
 
-![GraphQL IDE: Setup](../../../images/getting-started-nitro-setup.webp)
+![GraphQL IDE: Setup](../../../public/images/hotchocolate-docs/getting-started-nitro-setup.webp)
 
 You should see the editor with **Schema available** at the bottom right.
 
-![GraphQL IDE: Editor](../../../images/getting-started-nitro-editor.webp)
+![GraphQL IDE: Editor](../../../public/images/hotchocolate-docs/getting-started-nitro-editor.webp)
 
 # Execute a Query
 
@@ -164,11 +164,11 @@ Click **Run**. The **Response** pane should show:
 }
 ```
 
-![GraphQL IDE: Executing a query](../../../images/getting-started-nitro-query.webp)
+![GraphQL IDE: Executing a query](../../../public/images/hotchocolate-docs/getting-started-nitro-query.webp)
 
 You can browse the schema by clicking the **Schema** tab next to **Operation**. The **Schema Definition** tab shows the raw SDL.
 
-![GraphQL IDE: Schema](../../../images/getting-started-nitro-schema.webp)
+![GraphQL IDE: Schema](../../../public/images/hotchocolate-docs/getting-started-nitro-schema.webp)
 
 Your GraphQL server is running and responding to queries.
 

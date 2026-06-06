@@ -22,19 +22,19 @@ Upon successful installation, follow the steps in the [Your first Query](#your-f
 Lets guide you through the process of creating your first GraphQL query document using Nitro.
 
 **Step 1:** Start the Nitro application. You should see an interface similar to this:
-![Nitro - Start](./images/getting-started-0.webp)
+![Nitro - Start](../../../public/images/nitro-docs/getting-started-0.webp)
 
 **Step 2:** Click on the "Create Document" button to initiate the creation of your first query document.
 
 **Step 3:** You'll see a new document called 'untitled 1' generated. Simultaneously, the connection settings dialog box will pop up automatically.
 Now, input the following link into the 'HTTP Endpoint' field: [https://workshop.chillicream.com/graphql](https://workshop.chillicream.com/graphql)
 It should resemble this:
-![Nitro - Start](./images/getting-started-1.webp)
+![Nitro - Start](../../../public/images/nitro-docs/getting-started-1.webp)
 
 **Step 4:** Click on the 'Apply' button. This will save your settings and close the dialog box.
 
 **Step 5:** At this point, your screen should look like this:
-![Nitro - Start](./images/getting-started-2.webp)
+![Nitro - Start](../../../public/images/nitro-docs/getting-started-2.webp)
 
 Take note of the following key elements:
 
@@ -62,12 +62,12 @@ Take note of the following key elements:
 **Step 8:**
 Now, let's save your document.
 
-![Nitro - Start](./images/getting-started-3.webp)
+![Nitro - Start](../../../public/images/nitro-docs/getting-started-3.webp)
 Sign in to your account by clicking the 'Sign In' button on the user icon in the bottom left corner of the screen. If you don't have an account, you can create a new one.
 
 **Step 9:** Once you are signed in, save your document by clicking the 'Save' button next to the tabs. Your documents are now synced between your devices.
 
-![Nitro - Start](./images/getting-started-4.webp)
+![Nitro - Start](../../../public/images/nitro-docs/getting-started-4.webp)
 
 **Step 10:** Great job! You've successfully created, executed, and saved your first GraphQL query using Nitro. To learn more about the Nitro User Interface, head over to the [Explore the UI](./explore-the-ui/index.md) guide.
 

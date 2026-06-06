@@ -5,7 +5,7 @@ title: "Key Bindings"
 This document provides a list of useful keyboard shortcuts for performing various actions in the application.
 
 A full list of all available keyboard shortcuts can be found by clicking on the 'Keyboard Shortcuts' button in the status bar.
-![Screenshot showing the keyboard shortcuts button in the status bar](images/key-bindings-0.webp)
+![Screenshot showing the keyboard shortcuts button in the status bar](../../../../public/images/nitro-docs/settings/key-bindings-0.webp)
 
 # Mac
 

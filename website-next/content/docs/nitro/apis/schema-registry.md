@@ -2,15 +2,15 @@
 title: "Schema & Client Registry"
 ---
 
-![Image](images/schema-registry-0.webp)
+![Image](../../../../public/images/nitro-docs/apis/schema-registry-0.webp)
 The schema registries is an essential tool for managing your GraphQL APIs. It provides a centralized location for storing, managing, and distributing your GraphQL schema definitions.
 
 With the schema registry, you can upload and store the schema of your API, making it accessible to your development team and other services.
 
-![Image](images/schema-registry-1.webp)
+![Image](../../../../public/images/nitro-docs/apis/schema-registry-1.webp)
 The schema registry enables you to validate your schemas and clients against previous versions, ensuring that changes to your service do not break existing functionality, deeply integrated into your CI/CD pipeline.
 
-![Image](images/schema-registry-2.webp)
+![Image](../../../../public/images/nitro-docs/apis/schema-registry-2.webp)
 They also maintain a version history, allowing you to track changes over time and revert to previous versions if necessary.
 
 Together with the client registry, you can maintain the integrity of your API and the services that rely on it, ensuring that they can evolve together without breaking.

@@ -7,19 +7,19 @@ This documentation provides guidance on setting up and utilizing logging feature
 
 ## API Logs
 
-![Api Logs](images/logs-0.webp)
+![Api Logs](../../../../public/images/nitro-docs/open-telemetry/logs-0.webp)
 Each API in Nitro features a **Logs** tab, providing a centralized interface for viewing and managing logs associated with your API.
 This unified log view offers insights into your system’s activities, enabling you to monitor and troubleshoot in real-time.
 
 ### Detailed Log Inspection
 
-![API Logs - Expanded](images/logs-1.webp)
+![API Logs - Expanded](../../../../public/images/nitro-docs/open-telemetry/logs-1.webp)
 
 Within the Logs tab, individual log entries can be expanded to reveal additional details such as timestamps, log levels, and message content.
 
 ## Trace Logs
 
-![Trace Logs](images/logs-2.webp)
+![Trace Logs](../../../../public/images/nitro-docs/open-telemetry/logs-2.webp)
 
 Logs can also be inspected within individual traces, providing detailed insights into the correlation between specific traces and their corresponding logs.
 

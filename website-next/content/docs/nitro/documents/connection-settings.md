@@ -4,7 +4,7 @@ title: Connection Settings
 
 The Connection Settings in Nitro allow you to configure various options related to connecting and communicating with your GraphQL server. This section describes the different settings available and their functionalities.
 
-![Connection-Settings](./images/connection-settings-0.webp)
+![Connection-Settings](../../../../public/images/nitro-docs/documents/connection-settings-0.webp)
 
 # HTTP Endpoint
 

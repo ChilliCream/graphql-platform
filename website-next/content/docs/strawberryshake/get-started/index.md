@@ -137,7 +137,7 @@ dotnet build
 
 With the project compiled the strawberry shake generator produced a client but also components that we can use in Blazor.
 
-![Visual Studio Code showing the generator output on the console.](../../../shared/berry_generated.png)
+![Visual Studio Code showing the generator output on the console.](../../../../public/images/strawberryshake-docs/berry_generated.png)
 
 1. Head over to the `Program.cs` and add the new `CryptoClient` to the dependency injection.
 
@@ -238,6 +238,6 @@ In this section we will integrate the Razor component and print a simple list on
 
 5. Start the Blazor application with `dotnet watch --project ./Demo` and see if your code works.
 
-![Started Blazor application in Microsoft Edge](../../../shared/berry_asset_list.png)
+![Started Blazor application in Microsoft Edge](../../../../public/images/strawberryshake-docs/berry_asset_list.png)
 
 Awesome! You have created your first application with Blazor and GraphQL.

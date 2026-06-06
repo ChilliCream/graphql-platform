@@ -6,7 +6,7 @@ The Schema Reference feature allows you to inspect and explore the schema of you
 
 # Explorer View
 
-![Explorer View](./images/reference-0.webp)
+![Explorer View](../../../../public/images/nitro-docs/documents/reference-0.webp)
 
 ## 1. View Switcher
 
@@ -26,6 +26,6 @@ The Filter Bar allows you to search for specific types and fields within the sch
 
 # Column View
 
-![Column View](./images/reference-1.webp)
+![Column View](../../../../public/images/nitro-docs/documents/reference-1.webp)
 
 In the Column View, you start with the root types of the schema, such as Query, Mutation, and Subscription. Clicking on a root type expands it to reveal the available fields associated with that type. By clicking on any field, you can further explore the schema and its nested components. The right side of the interface provides detailed information about the selected field.

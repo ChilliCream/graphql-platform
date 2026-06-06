@@ -10,7 +10,7 @@ Fusion is ChilliCream's API gateway for exposing one GraphQL API over multiple u
 
 The architecture has three parts:
 
-![Fusion Architecture Overview](../../shared/fusion/fusion-overview.png)
+![Fusion Architecture Overview](../../../public/images/fusion-docs/fusion-overview.png)
 
 **Subgraphs** are the upstream services behind the Fusion gateway: GraphQL services, OpenAPI-based REST services, and gRPC services. Each subgraph owns part of the API surface and implementation logic, and can be developed and deployed independently.
 

@@ -303,7 +303,7 @@ app.Run();
 
 When running GraphQL requests, you can inspect in your tracing backend how each request performed and examine the various parts of the execution telemetry.
 
-![Jaeger](../../../shared/jaeger1.png)
+![Jaeger](../../../../public/images/hotchocolate-docs/jaeger1.png)
 
 ## Span Attributes
 
@@ -350,7 +350,7 @@ builder
 > [!WARNING]
 > Adding more instrumentation scopes is not free and adds performance overhead.
 
-![Jaeger](../../../shared/jaeger2.png)
+![Jaeger](../../../../public/images/hotchocolate-docs/jaeger2.png)
 
 You can also include the operation details in the root activity:
 
@@ -364,7 +364,7 @@ builder
     });
 ```
 
-![Jaeger](../../../shared/jaeger3.png)
+![Jaeger](../../../../public/images/hotchocolate-docs/jaeger3.png)
 
 ## Enriching Activities
 
@@ -419,7 +419,7 @@ The following enricher methods are available:
 > [!NOTE]
 > Overriding enricher methods without calling `base` no longer prevents the standard span attributes from being emitted. The semantic convention attributes are applied by the instrumentation itself. Custom enrichers only add extra information.
 
-![Jaeger](../../../shared/jaeger4.png)
+![Jaeger](../../../../public/images/hotchocolate-docs/jaeger4.png)
 
 # Next Steps
 
