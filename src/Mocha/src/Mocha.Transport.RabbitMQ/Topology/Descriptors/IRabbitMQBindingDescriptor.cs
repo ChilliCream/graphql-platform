@@ -20,33 +20,27 @@ public interface IRabbitMQBindingDescriptor : IMessagingDescriptor<RabbitMQBindi
     IRabbitMQBindingDescriptor ToExchange(string exchangeName);
 
     /// <summary>
-    /// Adds one or more routing keys for message routing. Calling this multiple times accumulates
-    /// distinct routing keys, each producing a separate broker binding between the source and
-    /// destination.
+    /// Adds a routing key for message routing. Calling this multiple times accumulates distinct
+    /// routing keys, each producing a separate broker binding between the source and destination.
+    /// </summary>
+    /// <param name="routingKey">The routing key pattern used for matching messages.</param>
+    /// <returns>The descriptor for method chaining.</returns>
+    IRabbitMQBindingDescriptor RoutingKey(string routingKey);
+
+    /// <summary>
+    /// Adds one or more routing keys for message routing. Each distinct key produces a separate
+    /// broker binding between the source and destination.
     /// </summary>
     /// <param name="routingKeys">The routing key patterns used for matching messages.</param>
     /// <returns>The descriptor for method chaining.</returns>
     IRabbitMQBindingDescriptor RoutingKeys(params string[] routingKeys)
     {
         var descriptor = this;
-#pragma warning disable CS0618 // delegates to the obsolete single-key method so existing implementers keep working
         foreach (var routingKey in routingKeys)
         {
             descriptor = descriptor.RoutingKey(routingKey);
         }
-#pragma warning restore CS0618
         return descriptor;
-    }
-
-    /// <summary>
-    /// Adds a routing key for message routing.
-    /// </summary>
-    /// <param name="routingKey">The routing key pattern used for matching messages.</param>
-    /// <returns>The descriptor for method chaining.</returns>
-    [Obsolete("Use " + nameof(RoutingKeys) + " instead. This method will be removed in a future release.")]
-    IRabbitMQBindingDescriptor RoutingKey(string routingKey)
-    {
-        return RoutingKeys(routingKey);
     }
 
     /// <summary>
