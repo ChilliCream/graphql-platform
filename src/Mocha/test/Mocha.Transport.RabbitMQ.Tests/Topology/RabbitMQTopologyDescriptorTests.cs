@@ -312,9 +312,7 @@ public class RabbitMQTopologyDescriptorTests
         {
             t.DeclareExchange("src-exchange");
             t.DeclareQueue("dest-queue");
-#pragma warning disable CS0618
             t.DeclareBinding("src-exchange", "dest-queue").RoutingKey("my.key");
-#pragma warning restore CS0618
         });
 
         // assert
@@ -330,11 +328,9 @@ public class RabbitMQTopologyDescriptorTests
         {
             t.DeclareExchange("src-exchange");
             t.DeclareQueue("dest-queue");
-#pragma warning disable CS0618
             t.DeclareBinding("src-exchange", "dest-queue")
                 .RoutingKey("first.key")
                 .RoutingKey("second.key");
-#pragma warning restore CS0618
         });
 
         // assert
@@ -350,10 +346,8 @@ public class RabbitMQTopologyDescriptorTests
         {
             t.DeclareExchange("src-exchange");
             t.DeclareQueue("dest-queue");
-#pragma warning disable CS0618
             t.DeclareBinding("src-exchange", "dest-queue").RoutingKey("first.key");
             t.DeclareBinding("src-exchange", "dest-queue").RoutingKey("second.key");
-#pragma warning restore CS0618
         });
 
         // assert
@@ -385,11 +379,9 @@ public class RabbitMQTopologyDescriptorTests
         {
             t.DeclareExchange("src-exchange");
             t.DeclareQueue("dest-queue");
-#pragma warning disable CS0618
             t.DeclareBinding("src-exchange", "dest-queue")
                 .RoutingKey("dup.key")
                 .RoutingKey("dup.key");
-#pragma warning restore CS0618
         });
 
         // assert
@@ -405,11 +397,9 @@ public class RabbitMQTopologyDescriptorTests
         {
             t.DeclareExchange("src-exchange");
             t.DeclareQueue("dest-queue");
-#pragma warning disable CS0618
             t.DeclareBinding("src-exchange", "dest-queue")
                 .RoutingKey("first.key")
                 .RoutingKey("second.key");
-#pragma warning restore CS0618
         });
 
         // assert
