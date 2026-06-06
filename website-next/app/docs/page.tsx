@@ -12,6 +12,7 @@ const PRODUCTS = [
   { slug: "strawberryshake", label: "Strawberry Shake" },
   { slug: "nitro", label: "Nitro" },
   { slug: "mocha", label: "Mocha" },
+  { slug: "skillz", label: "Skillz" },
 ];
 
 export default function DocsIndex() {

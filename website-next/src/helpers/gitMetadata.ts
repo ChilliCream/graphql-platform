@@ -10,7 +10,7 @@ const DISPLAY_DATE_OPTIONS: Intl.DateTimeFormatOptions = {
 
 const WEBSITE_ROOT = process.cwd();
 const DOCS_DIR = path.join(WEBSITE_ROOT, "content", "docs");
-const BLOGS_DIR = path.join(WEBSITE_ROOT, "content", "blogs");
+const BLOGS_DIR = path.join(WEBSITE_ROOT, "content", "blog");
 const APP_CONTENT_DIR = path.join(WEBSITE_ROOT, "app", "(content)");
 const HEADER = "@@COMMIT@@";
 
