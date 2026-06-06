@@ -213,7 +213,8 @@ builder
     .AddHttpRequestInterceptor<NoCacheHeaderInterceptor>();
 ```
 
-> **Note:** You can only register a single HttpRequestInterceptor per schema.
+> [!NOTE]
+> You can only register a single HttpRequestInterceptor per schema.
 
 # Putting It Together
 

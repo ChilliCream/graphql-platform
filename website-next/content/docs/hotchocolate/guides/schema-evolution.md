@@ -149,7 +149,8 @@ type Query {
 
 You can deprecate output fields, input fields, arguments, and enum values. Keep deprecated fields for at least one release cycle so consumers have time to migrate. When you are confident no consumers depend on a deprecated field, remove it.
 
-> Warning: You cannot deprecate non-null arguments or input fields that have no default value. Deprecating a required field would silently break queries that depend on it. Add a default value first, then apply the deprecation.
+> [!WARNING]
+> You cannot deprecate non-null arguments or input fields that have no default value. Deprecating a required field would silently break queries that depend on it. Add a default value first, then apply the deprecation.
 
 [Learn more about deprecation](/docs/hotchocolate/v16/defining-a-schema/versioning)
 

@@ -4,7 +4,8 @@ title: "Relay"
 
 The Relay GraphQL Server Specification defines patterns for globally unique identifiers, object refetching, and cursor-based pagination. While these patterns originated in Facebook's Relay client, they improve schema design for any GraphQL client.
 
-> Note: The patterns on this page benefit all GraphQL clients, not only Relay. We recommend them for every Hot Chocolate project.
+> [!NOTE]
+> The patterns on this page benefit all GraphQL clients, not only Relay. We recommend them for every Hot Chocolate project.
 
 # Global Identifiers
 

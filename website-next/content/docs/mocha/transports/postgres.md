@@ -5,7 +5,8 @@ description: "Configure the PostgreSQL transport in Mocha for database-backed me
 
 # PostgreSQL transport
 
-> **Experimental:** The PostgreSQL transport is currently in preview and its API may change in future releases.
+> [!EXPERIMENTAL]
+> The PostgreSQL transport is currently in preview and its API may change in future releases.
 
 The PostgreSQL transport uses your existing database as a message broker. It stores messages, topics, queues, and subscriptions as rows in PostgreSQL tables, delivers messages using `SELECT ... FOR UPDATE SKIP LOCKED`, and signals consumers in real time with `LISTEN/NOTIFY`. When you already run PostgreSQL and want messaging without deploying a separate broker, this is the transport to use.
 
@@ -248,7 +249,8 @@ The transport runs migrations automatically on first use. Migrations are protect
 
 Each migration is tracked in the migrations table and is idempotent - running the same migration twice has no effect. The migration creates the schema if it does not exist, then applies each pending migration in order within a single transaction.
 
-> **Warning:** The advisory lock ID is fixed. If you run multiple independent Mocha transports in the same PostgreSQL cluster with different table prefixes, they share the same advisory lock. This is safe - it serializes migrations but does not block normal message operations.
+> [!WARNING]
+> The advisory lock ID is fixed. If you run multiple independent Mocha transports in the same PostgreSQL cluster with different table prefixes, they share the same advisory lock. This is safe - it serializes migrations but does not block normal message operations.
 
 # Declare custom topology
 

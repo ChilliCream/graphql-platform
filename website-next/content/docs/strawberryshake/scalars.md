@@ -176,7 +176,8 @@ _configuration_
 serviceCollection.AddSerializer<PositiveIntSerializer>();
 ```
 
-> ⚠️ **Note:** When using a value type (struct) with `@serializationType` or `@runtimeType`, you must set `valueType: true` to ensure correct code generation.<br />
+> [!WARNING]
+> When using a value type (struct) with `@serializationType` or `@runtimeType`, you must set `valueType: true` to ensure correct code generation.<br />
 > This is not required for intrinsic primitive value types already supported as built-in scalars by Strawberry Shake (e.g., `int`, `float`, `bool`).<br />
 > Example: `@serializationType(name: "global::System.Numerics.Vector2", valueType: true)`
 
@@ -188,7 +189,8 @@ By default Strawberry Shake will use the built-in `AnySerializer` to represent t
 
 JSON objects are internally handled as `JsonElement` provided by `System.Text.Json`. You can use this to handle serialization by yourself.
 
-> Note: If you want the raw json from the `JsonElement` use `GetRawText`.
+> [!NOTE]
+> If you want the raw json from the `JsonElement` use `GetRawText`.
 > In order to have a custom serializer you need to specify runtime and serialization type.
 
 _schema.extensions.graphql_

@@ -106,7 +106,8 @@ Now, when a resolver throws a `NotFoundException`, the client receives a structu
 }
 ```
 
-> **Note:** Errors are immutable. Methods like `WithMessage`, `WithCode`, and `RemoveExtension` return a new error instance. Use `ErrorBuilder.FromError(error)` to change multiple properties at once.
+> [!NOTE]
+> Errors are immutable. Methods like `WithMessage`, `WithCode`, and `RemoveExtension` return a new error instance. Use `ErrorBuilder.FromError(error)` to change multiple properties at once.
 
 # GraphQLException
 

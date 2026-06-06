@@ -24,7 +24,8 @@ public static async Task<Book> AddBookAsync(
 
 See the [Dependency Injection](/docs/hotchocolate/v16/resolvers/dependency-injection) documentation for more details.
 
-> Warning: Changing the default scope for queries will likely result in the error "A second operation started on this context before a previous operation completed", because Entity Framework Core does not support multiple parallel operations on the same `DbContext` instance.
+> [!WARNING]
+> Changing the default scope for queries will likely result in the error "A second operation started on this context before a previous operation completed", because Entity Framework Core does not support multiple parallel operations on the same `DbContext` instance.
 
 # Using a DbContext Factory
 
@@ -96,7 +97,8 @@ Take a look at the annotation-based or code-first example.
 </Schema>
 </ExampleTabs>
 
-> Warning: You still need to add your `DbContextFactory` to the dependency injection container by calling `AddDbContextFactory<T>` or `AddPooledDbContextFactory<T>`. `RegisterDbContextFactory<T>` on its own is not enough.
+> [!WARNING]
+> You still need to add your `DbContextFactory` to the dependency injection container by calling `AddDbContextFactory<T>` or `AddPooledDbContextFactory<T>`. `RegisterDbContextFactory<T>` on its own is not enough.
 
 # Working with a DbContext Factory
 
@@ -136,7 +138,8 @@ public sealed class BookByIdDataLoader : BatchDataLoader<Guid, Book>
 }
 ```
 
-> Warning: Dispose the `DbContext` after use. The example above uses the `using` statement for this purpose.
+> [!WARNING]
+> Dispose the `DbContext` after use. The example above uses the `using` statement for this purpose.
 
 ## Services
 
@@ -223,7 +226,8 @@ Take a look at the annotation-based or code-first example.
 </Schema>
 </ExampleTabs>
 
-> Warning: Dispose the `DbContext` when the service is disposed. The example above implements `IAsyncDisposable` and disposes the `DbContext` in `DisposeAsync`.
+> [!WARNING]
+> Dispose the `DbContext` when the service is disposed. The example above implements `IAsyncDisposable` and disposes the `DbContext` in `DisposeAsync`.
 
 # Next Steps
 

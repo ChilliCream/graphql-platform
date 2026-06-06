@@ -406,7 +406,8 @@ builder.Services
     .AddCatalog();
 ```
 
-> **Warning:** In concurrent mode, all handler pipelines share the same scoped `IServiceProvider`. Scoped services such as `DbContext` are not thread-safe and must not be used concurrently across handlers. If your notification handlers need scoped services, use `Sequential` mode or create a new scope inside each handler.
+> [!WARNING]
+> In concurrent mode, all handler pipelines share the same scoped `IServiceProvider`. Scoped services such as `DbContext` are not thread-safe and must not be used concurrently across handlers. If your notification handlers need scoped services, use `Sequential` mode or create a new scope inside each handler.
 
 ## Per-handler middleware pipelines
 

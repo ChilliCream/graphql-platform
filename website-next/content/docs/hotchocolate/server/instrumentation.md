@@ -38,7 +38,8 @@ public class MyExecutionEventListener : ExecutionDiagnosticEventListener
 }
 ```
 
-> Warning: Diagnostic event handlers execute synchronously as part of the GraphQL request. Long-running operations inside a handler negatively impact query performance. Enqueue expensive work from within the handler and process it in a background service.
+> [!WARNING]
+> Diagnostic event handlers execute synchronously as part of the GraphQL request. Long-running operations inside a handler negatively impact query performance. Enqueue expensive work from within the handler and process it in a background service.
 
 ## Scopes
 
@@ -346,7 +347,8 @@ builder
     });
 ```
 
-> Warning: Adding more instrumentation scopes is not free and adds performance overhead.
+> [!WARNING]
+> Adding more instrumentation scopes is not free and adds performance overhead.
 
 ![Jaeger](../../../shared/jaeger2.png)
 
@@ -414,7 +416,8 @@ The following enricher methods are available:
 | `EnrichResolverError(IMiddlewareContext, IError, Activity)`               | Enrich when a field resolver error occurs.      |
 | `EnrichExecuteBatch<TKey>(IDataLoader, IReadOnlyList<TKey>, Activity)`    | Enrich a DataLoader batch span.                 |
 
-> Note: Overriding enricher methods without calling `base` no longer prevents the standard span attributes from being emitted. The semantic convention attributes are applied by the instrumentation itself. Custom enrichers only add extra information.
+> [!NOTE]
+> Overriding enricher methods without calling `base` no longer prevents the standard span attributes from being emitted. The semantic convention attributes are applied by the instrumentation itself. Custom enrichers only add extra information.
 
 ![Jaeger](../../../shared/jaeger4.png)
 

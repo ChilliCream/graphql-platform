@@ -67,7 +67,8 @@ public class BookQueriesType : ObjectType
 </Code>
 </ExampleTabs>
 
-> Warning: You cannot deprecate non-null arguments or input fields that have no default value. Deprecating a required field would silently break queries that depend on it.
+> [!WARNING]
+> You cannot deprecate non-null arguments or input fields that have no default value. Deprecating a required field would silently break queries that depend on it.
 
 # Opt-In Features
 
@@ -128,7 +129,8 @@ public class SessionType : ObjectType<Session>
 </Code>
 </ExampleTabs>
 
-> Warning: Like `@deprecated`, you cannot apply `@requiresOptIn` to non-null arguments or input fields without a default value. Hiding a required field would break queries.
+> [!WARNING]
+> Like `@deprecated`, you cannot apply `@requiresOptIn` to non-null arguments or input fields without a default value. Hiding a required field would break queries.
 
 ## Introspection
 

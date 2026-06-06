@@ -134,7 +134,8 @@ Tenant: acme
 
 The bus generates `MessageId`, `CorrelationId`, and `ConversationId` automatically. Your custom headers appear alongside them.
 
-> **Tip:** Use `IEventHandler<T>` when you only need the message payload. Switch to `IConsumer<T>` when you need envelope metadata or custom headers. Both can coexist for the same message type - Mocha routes to all registered handlers and consumers.
+> [!TIP]
+> Use `IEventHandler<T>` when you only need the message payload. Switch to `IConsumer<T>` when you need envelope metadata or custom headers. Both can coexist for the same message type - Mocha routes to all registered handlers and consumers.
 
 # How correlation works
 

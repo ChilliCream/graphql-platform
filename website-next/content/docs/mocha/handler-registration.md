@@ -64,7 +64,8 @@ For a project named `OrderService` with an event handler, a request handler, and
 
 Handlers are grouped by kind and ordered alphabetically within each group. The registration order is: batch handlers, consumers, request handlers, event handlers, sagas.
 
-> **Note:** The generated code is an implementation detail and may change between versions. Do not depend on the shape of the generated output.
+> [!NOTE]
+> The generated code is an implementation detail and may change between versions. Do not depend on the shape of the generated output.
 
 # Manual handler registration
 

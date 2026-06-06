@@ -132,11 +132,8 @@ dnx skillz update [skills...] [options]
 
 > Aliases: `upgrade` and `check`. `dnx skillz upgrade` and `dnx skillz check` are identical to `dnx skillz update`.
 
-<Warning>
-
-**`update` only reports.** It never modifies files or lock files. For each skill that has an update, it prints a `skillz add ...` command you can copy and run to apply it (run it as `dnx skillz add ...` if you use `dnx`). The command always exits 0, even when updates are available. Its output ends with `no updates were applied.`
-
-</Warning>
+> [!WARNING]
+> **`update` only reports.** It never modifies files or lock files. For each skill that has an update, it prints a `skillz add ...` command you can copy and run to apply it (run it as `dnx skillz add ...` if you use `dnx`). The command always exits 0, even when updates are available. Its output ends with `no updates were applied.`
 
 ### Arguments
 

@@ -234,11 +234,8 @@ Tool 'skillz' was successfully updated from version 0.1.1 to version 0.1.2.
 
 If you no longer need the existing lock state and want to start fresh, delete the lock file and re-install your skills. The project lock lives at `skills-lock.json` in your working directory; the global lock lives at `~/.local/share/skillz/.skill-lock.json` (or under `$XDG_DATA_HOME/skillz` if that variable is set).
 
-<Warning>
-
-**Deleting a lock file discards update tracking.** skillz uses the lock file to know what is installed and to check for updates. After deleting it, run `dnx skillz add` again for each skill so skillz can rebuild the lock. The installed skill folders themselves are not removed by deleting the lock.
-
-</Warning>
+> [!WARNING]
+> **Deleting a lock file discards update tracking.** skillz uses the lock file to know what is installed and to check for updates. After deleting it, run `dnx skillz add` again for each skill so skillz can rebuild the lock. The installed skill folders themselves are not removed by deleting the lock.
 
 # Bundled binary assets are missing from a skill
 

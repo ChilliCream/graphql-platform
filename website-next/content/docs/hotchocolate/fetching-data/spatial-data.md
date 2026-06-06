@@ -3,7 +3,8 @@ title: Spatial Data
 description: Learn how to expose NetTopologySuite spatial types as GeoJSON in Hot Chocolate.
 ---
 
-> Experimental: This feature is community-driven and not yet finalized. The core team has limited experience with spatial data and welcomes your feedback to guide next steps. While we try not to introduce breaking changes, we reserve the possibility to adjust the API in future releases.
+> [!EXPERIMENTAL]
+> This feature is community-driven and not yet finalized. The core team has limited experience with spatial data and welcomes your feedback to guide next steps. While we try not to introduce breaking changes, we reserve the possibility to adjust the API in future releases.
 
 Spatial data describes locations or shapes as objects. Many database providers support storing this type of data. APIs often use GeoJSON to send spatial data over the network.
 

@@ -264,4 +264,5 @@ The key is `<TypeName>.<fieldName>`. Each value is a list of paths (matching exa
 
 This setting lives in the per-source-schema settings file (e.g. `accounts-settings.json`), not in the archive-level composition settings.
 
-> Warning: Use this sparingly. It silences a real diagnostic without fixing the underlying gap, so leaving entries in place lets unsatisfiable shapes ship.
+> [!WARNING]
+> Use this sparingly. It silences a real diagnostic without fixing the underlying gap, so leaving entries in place lets unsatisfiable shapes ship.

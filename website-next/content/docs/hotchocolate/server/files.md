@@ -25,7 +25,8 @@ Hot Chocolate implements the [GraphQL multipart request specification](https://g
 
 <Video videoId="XeF3IuGDq4A"></Video>
 
-> Warning: Files cannot yet be uploaded through a gateway to stitched services using the `Upload` scalar.
+> [!WARNING]
+> Files cannot yet be uploaded through a gateway to stitched services using the `Upload` scalar.
 
 ### Usage
 
@@ -37,7 +38,8 @@ builder
     .AddType<UploadType>();
 ```
 
-> Note: The `Upload` scalar can only be used as an input type and does not work on output types.
+> [!NOTE]
+> The `Upload` scalar can only be used as an input type and does not work on output types.
 
 Use the `Upload` scalar as an argument:
 
@@ -185,9 +187,11 @@ curl localhost:5000/graphql \
 
 ```
 
-> Note 1: The `$file` variable is intentionally `null`. Hot Chocolate fills it in on the server.
+> [!NOTE]
+> The `$file` variable is intentionally `null`. Hot Chocolate fills it in on the server.
 
-> Note 2: The `GraphQL-preflight: 1` HTTP header is required since version 13.2 for security reasons.
+> [!NOTE]
+> The `GraphQL-preflight: 1` HTTP header is required since version 13.2 for security reasons.
 
 [More examples can be found here](https://github.com/jaydenseric/graphql-multipart-request-spec#examples)
 

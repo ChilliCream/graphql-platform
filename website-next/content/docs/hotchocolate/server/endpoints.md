@@ -156,7 +156,8 @@ endpoints.MapNitroApp("/ui").WithOptions(o => o.UseBrowserUrlAsGraphQLEndpoint =
 
 If set to `true`, the current browser URL is treated as the GraphQL endpoint when creating new documents within Nitro.
 
-> Warning: [GraphQLEndpoint](#graphqlendpoint) takes precedence over this setting.
+> [!WARNING]
+> [GraphQLEndpoint](#graphqlendpoint) takes precedence over this setting.
 
 ### Document
 
@@ -373,7 +374,8 @@ builder
     .AddCostAnalyzer(); // Opt in to specific features manually
 ```
 
-> Warning: Disabling default security removes important protections. Only do this if you are configuring equivalent protections manually.
+> [!WARNING]
+> Disabling default security removes important protections. Only do this if you are configuring equivalent protections manually.
 
 # GraphQLServerOptions Reference
 

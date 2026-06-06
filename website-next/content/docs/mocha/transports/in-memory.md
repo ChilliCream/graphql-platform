@@ -62,7 +62,8 @@ This model is why swapping `.AddInMemory()` for `.AddRabbitMQ()` requires no app
 
 By default, the InMemory transport processes messages sequentially in the order they are published. Each message is delivered to its handler before the next one is dispatched.
 
-> **Note:** InMemory tests exercise handler logic and message routing, but not RabbitMQ-specific behavior such as topology conflicts, acknowledgement semantics, connection recovery, or quorum queue characteristics. For testing broker-specific behavior, use a real broker in a test container.
+> [!NOTE]
+> InMemory tests exercise handler logic and message routing, but not RabbitMQ-specific behavior such as topology conflicts, acknowledgement semantics, connection recovery, or quorum queue characteristics. For testing broker-specific behavior, use a real broker in a test container.
 
 The following shows the default topology Mocha creates when you register an event handler with the InMemory transport:
 

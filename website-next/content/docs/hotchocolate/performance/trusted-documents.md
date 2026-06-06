@@ -16,7 +16,8 @@ Extracting operations is supported by client libraries like [Relay](https://rela
 - After the server has been deployed, clients execute persisted operations by specifying the operation ID (hash) in their requests.
 - If Hot Chocolate finds an operation that matches the specified hash in the operation document storage, it executes the operation and returns the result to the client.
 
-> Note: There are also [automatic persisted operations](/docs/hotchocolate/v16/performance/automatic-persisted-operations), which let clients persist operation documents at runtime. They might be a better fit if your API is used by many clients with different requirements.
+> [!NOTE]
+> There are also [automatic persisted operations](/docs/hotchocolate/v16/performance/automatic-persisted-operations), which let clients persist operation documents at runtime. They might be a better fit if your API is used by many clients with different requirements.
 
 # Benefits
 
@@ -77,7 +78,8 @@ Example: `0c95d31ca29272475bf837f944f4e513.graphql`
 
 This file is expected to contain the operation document that the hash was generated from.
 
-> Warning: Ensure that the server has access to the directory.
+> [!WARNING]
+> Ensure that the server has access to the directory.
 
 ## Redis
 
@@ -106,7 +108,8 @@ To load persisted operation documents from Azure Blob Storage, add the following
 
 Specify where the persisted operation documents are located. Using `AddAzureBlobStorageOperationDocumentStorage()`, point to a specific Azure Blob Storage container. The blob's name is the hash of the query, and its content is the corresponding GraphQL query.
 
-> Important: The Azure Blob Storage container must already exist when Hot Chocolate uses it for the first time.
+> [!CAUTION]
+> The Azure Blob Storage container must already exist when Hot Chocolate uses it for the first time.
 
 ```csharp
 builder
@@ -167,7 +170,8 @@ AddSha256DocumentHashProvider(HashFormat.Hex)
 AddSha256DocumentHashProvider(HashFormat.Base64)
 ```
 
-> Note: [Relay](https://relay.dev) uses the MD5 hashing algorithm. No additional Hot Chocolate configuration is required.
+> [!NOTE]
+> [Relay](https://relay.dev) uses the MD5 hashing algorithm. No additional Hot Chocolate configuration is required.
 
 # Blocking Regular Operations
 
@@ -237,7 +241,8 @@ A client is expected to send an `id` field containing the operation document has
 }
 ```
 
-> Note: [Relay's persisted queries documentation](https://relay.dev/docs/guides/persisted-queries/#network-layer-changes) uses `doc_id` instead of `id`. Be sure to change it to `id`.
+> [!NOTE]
+> [Relay's persisted queries documentation](https://relay.dev/docs/guides/persisted-queries/#network-layer-changes) uses `doc_id` instead of `id`. Be sure to change it to `id`.
 
 # Next Steps
 

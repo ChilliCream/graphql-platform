@@ -794,7 +794,8 @@ Three things to notice:
 
 You need all three services running at the same time: both subgraphs and the gateway. Open three terminal windows and start the subgraphs first.
 
-**Important:** Start the Products and Reviews subgraphs before the gateway. The gateway connects to each subgraph on startup and may log errors if they are not reachable.
+> [!CAUTION]
+> Start the Products and Reviews subgraphs before the gateway. The gateway connects to each subgraph on startup and may log errors if they are not reachable.
 
 **Terminal 1: Products subgraph**
 

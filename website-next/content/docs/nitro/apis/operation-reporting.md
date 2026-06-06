@@ -37,7 +37,8 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
-> **Tip: Using Environment Variables**
+> [!TIP]
+> **Using Environment Variables**
 >
 > Alternatively, you can set the required values using environment variables. This method allows you to call `AddNitro` without explicitly passing parameters.
 >

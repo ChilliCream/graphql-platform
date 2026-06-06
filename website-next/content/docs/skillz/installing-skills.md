@@ -12,11 +12,8 @@ That single command fetches [Anthropic's reference skills](https://github.com/an
 
 If you have not installed the CLI yet, start with [Getting Started](/docs/skillz/getting-started).
 
-<Warning>
-
-**Skills run with your agent's full permissions.** A skill is executable instructions plus optional scripts that your agent runs on your machine. Install only from sources you trust, and review a skill before you use it. After every successful install, skillz reminds you: `Review skills before use; they run with full agent permissions.`
-
-</Warning>
+> [!WARNING]
+> **Skills run with your agent's full permissions.** A skill is executable instructions plus optional scripts that your agent runs on your machine. Install only from sources you trust, and review a skill before you use it. After every successful install, skillz reminds you: `Review skills before use; they run with full agent permissions.`
 
 # Choose a source
 

@@ -234,7 +234,8 @@ services
 
 If you just want to enable the feature without further configuration, you can omit the `options =>` action.
 
-> Warning: Since `EnableRelaySupport()` previously always implied the usage of Global Object Identification, you might have to enable Global Object Identification separately as well.
+> [!WARNING]
+> Since `EnableRelaySupport()` previously always implied the usage of Global Object Identification, you might have to enable Global Object Identification separately as well.
 
 [Learn more about Query field in Mutation payloads](/docs/hotchocolate/v12/defining-a-schema/relay#query-field-in-mutation-payloads)
 

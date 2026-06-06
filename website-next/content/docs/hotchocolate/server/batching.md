@@ -33,7 +33,8 @@ builder
     .ModifyServerOptions(o => o.Batching = AllowedBatching.All);
 ```
 
-> Note: If your GraphQL server is a Fusion subgraph, both variable batching and request batching are enabled by default. You do not need to configure this explicitly.
+> [!NOTE]
+> If your GraphQL server is a Fusion subgraph, both variable batching and request batching are enabled by default. You do not need to configure this explicitly.
 
 ## Batch Size Limits
 

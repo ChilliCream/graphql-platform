@@ -35,7 +35,8 @@ builder
     .ModifyRequestOptions(opt => opt.IncludeExceptionDetails = true);
 ```
 
-> **Warning:** Do not enable `IncludeExceptionDetails` in production. Exception messages and stack traces can expose sensitive information about your application internals.
+> [!WARNING]
+> Do not enable `IncludeExceptionDetails` in production. Exception messages and stack traces can expose sensitive information about your application internals.
 
 # Error Filters
 

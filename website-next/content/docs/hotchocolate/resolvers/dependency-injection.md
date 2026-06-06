@@ -145,7 +145,8 @@ If you're coming from an ASP.NET core controller-based workflow, you might be us
 - GraphQL type definitions are registered as singletons, so constructor-injected services would also become singletons.
 - Hot Chocolate cannot synchronize access to those services during request execution, which can cause issues with services that are not thread-safe (such as EF Core's DbContext).
 
-> _Note:_ This guidance does not apply to your own application services. For example, `ServiceA` can still inject `ServiceB` via constructor injection.
+> [!NOTE]
+> This guidance does not apply to your own application services. For example, `ServiceA` can still inject `ServiceB` via constructor injection.
 
 # Keyed Services
 

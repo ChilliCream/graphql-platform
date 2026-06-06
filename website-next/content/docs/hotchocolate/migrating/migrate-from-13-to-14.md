@@ -97,7 +97,8 @@ builder.Services
     .AddGlobalObjectIdentification();
 ```
 
-> Note: `AddLegacyNodeIdSerializer()` needs to be called before `AddGlobalObjectIdentification()`.
+> [!NOTE]
+> `AddLegacyNodeIdSerializer()` needs to be called before `AddGlobalObjectIdentification()`.
 
 ### How to adopt incrementally in a distributed system
 
@@ -114,7 +115,8 @@ builder.Services
     .AddGlobalObjectIdentification();
 ```
 
-> Note: `AddDefaultNodeIdSerializer()` needs to be called before `AddGlobalObjectIdentification()`.
+> [!NOTE]
+> `AddDefaultNodeIdSerializer()` needs to be called before `AddGlobalObjectIdentification()`.
 
 Once all of your services have been updated to this, you can start emitting the new format service-by-service, by removing the `AddDefaultNodeIdSerializer()` call and switching to the new default behavior:
 

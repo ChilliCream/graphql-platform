@@ -96,7 +96,8 @@ public class QueryType : ObjectType
 }
 ```
 
-> Warning: If no value exists for the specified `key`, a default value is returned and no exception is thrown.
+> [!WARNING]
+> If no value exists for the specified `key`, a default value is returned and no exception is thrown.
 
 You can also access Global State through the `ContextData` dictionary on the `IResolverContext`:
 

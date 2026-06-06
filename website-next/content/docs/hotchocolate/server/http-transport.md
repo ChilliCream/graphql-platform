@@ -101,7 +101,8 @@ Content-Type: application/json
 }
 ```
 
-> Note: {query} and {operationName} parameters are encoded as raw strings in the query component. Therefore if the query string contained operationName=null then it should be interpreted as the {operationName} being the string "null". If a literal null is desired, the parameter (e.g. {operationName}) should be omitted.
+> [!NOTE]
+> {query} and {operationName} parameters are encoded as raw strings in the query component. Therefore if the query string contained operationName=null then it should be interpreted as the {operationName} being the string "null". If a literal null is desired, the parameter (e.g. {operationName}) should be omitted.
 
 The GraphQL HTTP GET request is specified [here](https://github.com/graphql/graphql-over-http/blob/master/spec/GraphQLOverHTTP.md#get).
 
@@ -144,7 +145,8 @@ public class CustomHttpResponseFormatter : DefaultHttpResponseFormatter
 
 You can use a custom formatter to alter the HTTP status code in certain conditions.
 
-> Warning: Altering status codes can break the assumptions of your server's clients and might lead to issues. Proceed with caution.
+> [!WARNING]
+> Altering status codes can break the assumptions of your server's clients and might lead to issues. Proceed with caution.
 
 ```csharp
 public class CustomHttpResponseFormatter : DefaultHttpResponseFormatter

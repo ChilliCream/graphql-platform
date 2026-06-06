@@ -17,7 +17,8 @@ The packages have been restructured to separate connection settings from feature
 
 `ChilliCream.Nitro.Abstractions` is unchanged.
 
-> **Watch out:** The old `ChilliCream.Nitro` package becomes `ChilliCream.Nitro.HotChocolate`. A new meta-package is published under the old `ChilliCream.Nitro` ID. Don't mix these up when referencing.
+> [!WARNING]
+> The old `ChilliCream.Nitro` package becomes `ChilliCream.Nitro.HotChocolate`. A new meta-package is published under the old `ChilliCream.Nitro` ID. Don't mix these up when referencing.
 
 ## Azure packages consolidated
 

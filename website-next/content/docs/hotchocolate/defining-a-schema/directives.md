@@ -91,7 +91,8 @@ Since we excluded the field `name` in the first place, `@include` does not affec
 }
 ```
 
-> **Note:** We will have a deep dive on directives' order under the [Middleware](#order) section.
+> [!NOTE]
+> We will have a deep dive on directives' order under the [Middleware](#order) section.
 
 Now that we have a basic understanding of what directives are, how they work, and what we can do with them, let's create a custom directive.
 
@@ -284,7 +285,8 @@ public class FooType : ObjectType
 }
 ```
 
-> Note: For this to work the `MyDirectiveType` directive needs to have the appropriate location within the schema. In this example it would be `DirectiveLocation.Object`.
+> [!NOTE]
+> For this to work the `MyDirectiveType` directive needs to have the appropriate location within the schema. In this example it would be `DirectiveLocation.Object`.
 
 Referencing directives using their name is not type-safe and could lead to runtime errors, which are avoidable by using our generic variant of the directive type.
 

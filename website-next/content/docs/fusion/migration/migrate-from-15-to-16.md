@@ -2,7 +2,8 @@
 title: Migrate Hot Chocolate Fusion from 15 to 16
 ---
 
-> Note: While directives and behavior largely mirror v15, v16 is a complete re-implementation of Fusion that not only affects the gateway itself, but also the archive format and composition process. Therefore, you can't simply bump the package versions in the gateway and be done with the update. You'll need a coordinated strategy to incrementally adopt Fusion v2 in Subgraphs and their deployment process, before you can switch the gateway to v16.
+> [!NOTE]
+> While directives and behavior largely mirror v15, v16 is a complete re-implementation of Fusion that not only affects the gateway itself, but also the archive format and composition process. Therefore, you can't simply bump the package versions in the gateway and be done with the update. You'll need a coordinated strategy to incrementally adopt Fusion v2 in Subgraphs and their deployment process, before you can switch the gateway to v16.
 
 # Migration at a glance
 
@@ -44,7 +45,8 @@ You can run the following command in the root of your repository and it will fin
 dnx ChilliCream.Nitro.CommandLine fusion migrate subgraph-config
 ```
 
-> Note: If you can't use .NET 10 / `dnx` you can also install `ChilliCream.Nitro.CommandLine` via `dotnet tool install` and then invoke it via `dotnet nitro ...`.
+> [!NOTE]
+> If you can't use .NET 10 / `dnx` you can also install `ChilliCream.Nitro.CommandLine` via `dotnet tool install` and then invoke it via `dotnet nitro ...`.
 
 If you need to do this conversion manually: Create a `schema-settings.json` file next to each `subgraph-config.json` with the following changes:
 
@@ -64,7 +66,8 @@ If you need to do this conversion manually: Create a `schema-settings.json` file
  }
 ```
 
-> Note: By default the Fusion v2 composition assumes your subgraph is compatible with the latest features. By adding `"version": "1.0.0"` we tell the composition that this is a legacy (Fusion v1) subgraph, which relaxes certain validations like `@shareable` and re-creates inferences that were present in Fusion v1, like fields ending in `ById` being inferred as `@lookup`.
+> [!NOTE]
+> By default the Fusion v2 composition assumes your subgraph is compatible with the latest features. By adding `"version": "1.0.0"` we tell the composition that this is a legacy (Fusion v1) subgraph, which relaxes certain validations like `@shareable` and re-creates inferences that were present in Fusion v1, like fields ending in `ById` being inferred as `@lookup`.
 
 If your subgraph is using a version older than the latest HotChocolate v15 or your subgraph uses an entirely different technology, you also need to disable variable batching in `schema-settings.json`.
 
@@ -162,7 +165,8 @@ If you want to, you can also now [migrate the subgraph to Hot Chocolate v16](#mi
 
 Migrate one subgraph repository at a time. Throughout this stage your gateway stays on v15 and keeps serving traffic; you [cut it over to v16](#upgrade-the-gateway) only after every subgraph publishes a `.far` archive.
 
-> Note: In Fusion v15 a subgraph pipeline composes a Fusion gateway package (`.fgp`) and publishes it to Nitro as the latest archive. In Fusion v16 the equivalent artifact is the Fusion archive (`.far`).
+> [!NOTE]
+> In Fusion v15 a subgraph pipeline composes a Fusion gateway package (`.fgp`) and publishes it to Nitro as the latest archive. In Fusion v16 the equivalent artifact is the Fusion archive (`.far`).
 
 The change to each subgraph pipeline is small: keep the v15 compose step that produces the `.fgp`, but instead of publishing the `.fgp` directly, publish a `.far` with that `.fgp` embedded via `--legacy-v1-archive`. This keeps the `.fgp` fresh for the running v15 gateway and makes the `.far` available for the v16 cut-over.
 
@@ -245,7 +249,8 @@ dotnet nitro fusion upload \
 </PipelineChoiceTabs.CLI>
 </PipelineChoiceTabs>
 
-> Note: The `dotnet fusion subgraph pack` step is still required while the v15 compose step runs in the deploy job, since v15 composition consumes the `.fsp` archive. It can be removed once the subgraph is migrated to v16 and the v15 compose step is dropped (see [Cleanup](#cleanup)).
+> [!NOTE]
+> The `dotnet fusion subgraph pack` step is still required while the v15 compose step runs in the deploy job, since v15 composition consumes the `.fsp` archive. It can be removed once the subgraph is migrated to v16 and the v15 compose step is dropped (see [Cleanup](#cleanup)).
 
 #### Replace `publish commit` with `nitro fusion publish` in the deploy job
 
@@ -295,9 +300,11 @@ dotnet nitro fusion publish \
 </PipelineChoiceTabs.CLI>
 </PipelineChoiceTabs>
 
-> Note: `dotnet nitro fusion publish` should run **after** the subgraph application has been deployed. Once it succeeds, the new archive becomes the latest in Nitro and the gateway will start routing traffic against the new schema, so the subgraph must already be reachable at that URL.
+> [!NOTE]
+> `dotnet nitro fusion publish` should run **after** the subgraph application has been deployed. Once it succeeds, the new archive becomes the latest in Nitro and the gateway will start routing traffic against the new schema, so the subgraph must already be reachable at that URL.
 
-> Note: `--legacy-v1-archive` is only required during the transition. Once every subgraph has been migrated to v16 and the gateway has been cut over to consume `.far` directly, the v15 compose step and the `--legacy-v1-archive` option can be removed (see [Cleanup](#cleanup)).
+> [!NOTE]
+> `--legacy-v1-archive` is only required during the transition. Once every subgraph has been migrated to v16 and the gateway has been cut over to consume `.far` directly, the v15 compose step and the `--legacy-v1-archive` option can be removed (see [Cleanup](#cleanup)).
 
 ### PR validation pipeline
 
@@ -672,7 +679,8 @@ The key changes for Fusion projects:
 - **Asset cache** is now configured globally on `INitroBuilder` instead of per-gateway.
 - **`AddDefaults()`** is a source-generated method that wires up the default integration when the correct packages are referenced.
 
-> Note: If you are self-hosting the Nitro backend, make sure to update it to the latest version as well. `10.1.0` is the minimum version required to work with the `ChilliCream.Nitro.*` packages.
+> [!NOTE]
+> If you are self-hosting the Nitro backend, make sure to update it to the latest version as well. `10.1.0` is the minimum version required to work with the `ChilliCream.Nitro.*` packages.
 
 **Before**
 
@@ -1050,6 +1058,7 @@ Since `dotnet fusion` is no longer used, you can remove any reference to the `Ho
 
 You can also fully replace `ChilliCream.Nitro.CLI` with [`ChilliCream.Nitro.CommandLine`](/docs/nitro/cli/installation).
 
-> Note: Hold off until the v16 gateway has been running in production long enough that a rollback to v15 is off the table. Once the v15 compose step is gone the `.fgp` is no longer refreshed, and a rollback would mean restoring these steps first. Cleanup is independent per subgraph, so there is no need to do all repositories at once.
+> [!NOTE]
+> Hold off until the v16 gateway has been running in production long enough that a rollback to v15 is off the table. Once the v15 compose step is gone the `.fgp` is no longer refreshed, and a rollback would mean restoring these steps first. Cleanup is independent per subgraph, so there is no need to do all repositories at once.
 
 Finally, if you haven't done so already, each subgraph can now independently [switch to Hot Chocolate v16](#migrate-subgraph-to-v16) at its own pace.

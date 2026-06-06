@@ -261,6 +261,7 @@ builder.Services
 
 The factory lambda in `ReceiveMiddlewareConfiguration`, `ConsumerMiddlewareConfiguration`, and `DispatchMiddlewareConfiguration` runs once at startup to build the pipeline delegate. Only the innermost delegate (your middleware's `InvokeAsync`) runs per message. Services resolved inside the innermost delegate come from the request-scoped DI container for that message. You do not want middleware instances created per message if possible - resolve services from `context.Services` inside `InvokeAsync` instead.
 
+> [!WARNING]
 > **Avoid capturing services outside the lambda.** If you resolve a service outside the factory lambda, it is shared across all messages and behaves as a singleton - even if it was registered as scoped. This breaks scoped services like `DbContext`:
 >
 > ```csharp

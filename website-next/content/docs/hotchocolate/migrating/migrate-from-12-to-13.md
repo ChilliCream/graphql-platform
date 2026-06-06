@@ -101,7 +101,8 @@ services.AddGraphQLServer()
     .RegisterDbContext<DbContext>(DbContextKind.Synchronized)
 ```
 
-> Note: Only add this if your application requires it. You're better off with the new default otherwise.
+> [!NOTE]
+> Only add this if your application requires it. You're better off with the new default otherwise.
 
 ## Batching
 
@@ -401,7 +402,8 @@ In order for the server to produce a streamed response, you now need to either
 
 There have also been changes to the response format of streamed responses. You can checkout the currently proposed format [here](https://github.com/graphql/graphql-spec/blob/94363c9d5d8e53e91240ea3eabd32ff522f27a6b/spec/Section%207%20--%20Response.md).
 
-> Warning: The spec of these features is still evolving, so expect more changes on how the incremental payloads are being delivered.
+> [!WARNING]
+> The spec of these features is still evolving, so expect more changes on how the incremental payloads are being delivered.
 
 ## NameString
 

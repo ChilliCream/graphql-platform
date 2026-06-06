@@ -66,6 +66,7 @@ query {
 }
 ```
 
+> [!WARNING]
 > **Middleware order matters.** When combining multiple middleware, apply them in this order: `UsePaging` > `UseProjection` > `UseFiltering` > `UseSorting`.
 
 # Sorting on Nested Fields

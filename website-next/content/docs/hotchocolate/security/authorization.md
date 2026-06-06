@@ -46,6 +46,7 @@ app.UseEndpoints(endpoints =>
 
 The `@authorize` directive can be applied to types and fields. When applied to a type, it applies to every field on that type. A directive on a specific field overrides the one on the type.
 
+> [!WARNING]
 > **Use `HotChocolate.Authorization.AuthorizeAttribute`**, not `Microsoft.AspNetCore.Authorization.AuthorizeAttribute`. The Microsoft attribute does not integrate with the Hot Chocolate authorization pipeline. Using the wrong attribute is a common source of authorization not working.
 
 <ExampleTabs>
@@ -274,6 +275,7 @@ public class MinimumAgeHandler
 
 Use `[AllowAnonymous]` to bypass authorization on specific fields. This is useful for registration or public content endpoints.
 
+> [!WARNING]
 > **Use `HotChocolate.Authorization.AllowAnonymousAttribute`**, not `Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute`.
 
 ```csharp

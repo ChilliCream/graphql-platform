@@ -126,11 +126,8 @@ Add these fields only when you need them. The open spec at [agentskills.io/speci
 
 For the exhaustive list of frontmatter fields and their constraints, see the [Reference](/docs/skillz/reference).
 
-<Warning>
-
-**`allowed-tools` is experimental.** Support varies between agents, and `dnx skillz init` does not emit it. Treat it as a hint that some agents honor and others ignore, not a security boundary.
-
-</Warning>
+> [!WARNING]
+> **`allowed-tools` is experimental.** Support varies between agents, and `dnx skillz init` does not emit it. Treat it as a hint that some agents honor and others ignore, not a security boundary.
 
 ## The instructions body
 

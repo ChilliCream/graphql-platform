@@ -85,7 +85,8 @@ If you're using any of the following configuration APIs, ensure that the applica
 - `AddAzureBlobStorageOperationDocumentStorage`
 - `AddInstrumentation` with a custom `ActivityEnricher`
 
-**Note:** Service injection into resolvers is not affected by this change.
+> [!NOTE]
+> Service injection into resolvers is not affected by this change.
 
 If you need to access the application service provider from within the schema service provider, you can use:
 
@@ -879,7 +880,8 @@ The key changes for HotChocolate projects:
 - **Asset cache** is now configured globally on `INitroBuilder` instead of per-schema.
 - **`AddDefaults()`** is a source-generated method that wires up the default integration when the correct packages are referenced.
 
-> Note: If you are self-hosting the Nitro backend, make sure to update it to the latest version as well. `10.1.0` is the minimum version required to work with the `ChilliCream.Nitro.*` packages.
+> [!NOTE]
+> If you are self-hosting the Nitro backend, make sure to update it to the latest version as well. `10.1.0` is the minimum version required to work with the `ChilliCream.Nitro.*` packages.
 
 **Before**
 
@@ -954,7 +956,8 @@ builder.AddGraphQL()
 
 Additionally, a new `MaxBatchSize` property limits the number of operations in a single batch. The default is **1024**. Set it to `0` for unlimited.
 
-> Note: Fusion subgraphs automatically enable batching via `AddSourceSchemaDefaults()`. No action is needed for subgraphs.
+> [!NOTE]
+> Fusion subgraphs automatically enable batching via `AddSourceSchemaDefaults()`. No action is needed for subgraphs.
 
 For more details, see [Batching](/docs/hotchocolate/v16/server/batching).
 
@@ -1155,7 +1158,8 @@ There have also been some changes to the methods you can override in your enrich
 | `CreateRootActivityName(...)`                                             | Removed.                                                                                                                                                   |
 | `EnrichError(...)`                                                        | Removed.                                                                                                                                                   |
 
-> Note: Overriding enricher methods without calling `base` no longer prevents the standard span attributes from being emitted. The semantic-convention attributes are now applied by the instrumentation itself, and custom enrichers are only intended for adding extra information.
+> [!NOTE]
+> Overriding enricher methods without calling `base` no longer prevents the standard span attributes from being emitted. The semantic-convention attributes are now applied by the instrumentation itself, and custom enrichers are only intended for adding extra information.
 
 ## Diagnostic Listeners
 

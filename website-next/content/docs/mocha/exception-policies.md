@@ -66,7 +66,8 @@ Exception matching respects inheritance. A policy on `NpgsqlException` also matc
 
 `AddResilience` is the single entry point for all exception handling configuration. There is no separate `AddRetry` or `AddRedelivery` call - retry and redelivery settings are configured per-exception within the policy.
 
-> **Note:** Calling `On<T>()` for the same exception type replaces the previous rule for that type - last write wins. If you call `On<HttpRequestException>()` twice without a predicate, the second call overwrites the first. The same applies to `Default()`: calling it again replaces the previous default rule. For example, the parameterless `AddResilience()` registers `Default().Retry().ThenRedeliver()`. If you later call `AddResilience(p => p.Default().Retry(5))`, the new default replaces the one registered by the parameterless overload.
+> [!NOTE]
+> Calling `On<T>()` for the same exception type replaces the previous rule for that type - last write wins. If you call `On<HttpRequestException>()` twice without a predicate, the second call overwrites the first. The same applies to `Default()`: calling it again replaces the previous default rule. For example, the parameterless `AddResilience()` registers `Default().Retry().ThenRedeliver()`. If you later call `AddResilience(p => p.Default().Retry(5))`, the new default replaces the one registered by the parameterless overload.
 
 ## Parameterless defaults
 

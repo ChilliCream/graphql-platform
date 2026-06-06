@@ -36,7 +36,8 @@ Hot Chocolate comes with many more scalars than the GraphQL core scalars, mappin
 | `ulong`                 | `UnsignedLong`  | Implicit | Unsigned 64-bit integer                                       | [Spec](https://scalars.graphql.org/chillicream/unsigned-long.html)   |
 | `JsonElement`           | `Any`           | Implicit | Any valid GraphQL value                                       | [Spec](https://scalars.graphql.org/chillicream/any.html)             |
 
-> **Note:** Hot Chocolate only exposes scalars that your schema uses. Unused scalars do not appear in the generated schema.
+> [!NOTE]
+> Hot Chocolate only exposes scalars that your schema uses. Unused scalars do not appear in the generated schema.
 
 ## ID
 
@@ -321,7 +322,8 @@ For [NodaTime](https://github.com/nodatime/nodatime) types, install the dedicate
 | [LocalDateTime](https://scalars.graphql.org/chillicream/local-date-time.html) | [LocalDateTime](https://nodatime.org/3.2.x/api/NodaTime.LocalDateTime.html)   | `DateTime`                      |
 | [LocalTime](https://scalars.graphql.org/chillicream/local-time.html)          | [LocalTime](https://nodatime.org/3.2.x/api/NodaTime.LocalTime.html)           | `TimeOnly`                      |
 
-> **Note:** The `Duration` scalar uses `NodaTime.Duration` as its runtime type. Calling `AddNodaTime()` does **not** automatically bind `System.TimeSpan` to `DurationType` or register `TimeSpan`↔`NodaTime.Duration` converters, as the runtime types are not compatible.
+> [!NOTE]
+> The `Duration` scalar uses `NodaTime.Duration` as its runtime type. Calling `AddNodaTime()` does **not** automatically bind `System.TimeSpan` to `DurationType` or register `TimeSpan`↔`NodaTime.Duration` converters, as the runtime types are not compatible.
 
 These NodaTime scalars expose the same `@specifiedBy` URLs and implement the same GraphQL scalar specifications as the built-in versions, but they use NodaTime runtime types and may differ subtly in behavior. For example, the NodaTime implementations support up to 9 fractional second digits (nanosecond precision), whereas the equivalent BCL types only support up to 7 fractional second digits (100-nanosecond precision).
 

@@ -69,7 +69,8 @@ public override ValueTask OnCreateAsync(HttpContext context,
 }
 ```
 
-> Warning: Always invoke `base.OnCreateAsync`. The default implementation adds dependency injection services and important global state variables such as the `ClaimsPrincipal`. Skipping this call can lead to unexpected issues.
+> [!WARNING]
+> Always invoke `base.OnCreateAsync`. The default implementation adds dependency injection services and important global state variables such as the `ClaimsPrincipal`. Skipping this call can lead to unexpected issues.
 
 Most of the configuration is done through the `OperationRequestBuilder` injected as an argument to this method.
 
@@ -202,7 +203,8 @@ public override ValueTask OnRequestAsync(ISocketSession session,
 }
 ```
 
-> Warning: Always invoke `base.OnRequestAsync`. The default implementation adds dependency injection services and important global state variables such as the `ClaimsPrincipal`. Skipping this call can lead to unexpected issues.
+> [!WARNING]
+> Always invoke `base.OnRequestAsync`. The default implementation adds dependency injection services and important global state variables such as the `ClaimsPrincipal`. Skipping this call can lead to unexpected issues.
 
 Most of the configuration is done through the `OperationRequestBuilder` injected as an argument to this method.
 
@@ -241,7 +243,8 @@ public override ValueTask OnCompleteAsync(ISocketSession session,
 }
 ```
 
-> Note: The cancellation token may already be canceled if the connection closed unexpectedly. Handle `OperationCanceledException` if your cleanup logic calls async APIs.
+> [!NOTE]
+> The cancellation token may already be canceled if the connection closed unexpectedly. Handle `OperationCanceledException` if your cleanup logic calls async APIs.
 
 ## OnPingAsync
 
@@ -318,7 +321,8 @@ var properties = new Dictionary<string, object>
 requestBuilder.SetProperties(properties);
 ```
 
-> Warning: This overwrites all previous properties. This is especially problematic when called after the default implementation of an interceptor has added properties.
+> [!WARNING]
+> This overwrites all previous properties. This is especially problematic when called after the default implementation of an interceptor has added properties.
 
 ## SetServices
 
