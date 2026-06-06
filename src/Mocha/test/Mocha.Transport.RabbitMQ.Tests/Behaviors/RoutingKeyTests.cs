@@ -222,28 +222,41 @@ public class RoutingKeyTests
     }
 
     [Fact]
-    public async Task PublishAsync_Should_RouteBothKeysToSingleQueue_When_BindingHasMultipleRoutingKeys()
+    public async Task PublishAsync_Should_RouteAllBoundKeys_When_BindingUsesParamsAndChainedRoutingKeys()
     {
         // arrange
-        var recorder = new MessageRecorder();
+        // the us queue declares its keys via the RoutingKeys(params) overload, the eu queue declares
+        // its keys via chained additive RoutingKey() calls; both forms must deliver every bound key.
+        var usRecorder = new MessageRecorder();
+        var euRecorder = new MessageRecorder();
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var bus = await new ServiceCollection()
             .AddSingleton(vhost.ConnectionFactory)
-            .AddSingleton(recorder)
+            .AddKeyedSingleton("us", usRecorder)
+            .AddKeyedSingleton("eu", euRecorder)
             .AddMessageBus()
-            .AddConsumer<CatchAllConsumer>()
+            .AddConsumer<UsRegionConsumer>()
+            .AddConsumer<EuRegionConsumer>()
             .AddMessage<RegionEvent>(m => m.UseRabbitMQRoutingKey<RegionEvent>(msg => msg.Region))
             .AddRabbitMQ(t =>
             {
                 t.BindHandlersExplicitly();
 
-                t.DeclareExchange("events-direct").Type(RabbitMQExchangeType.Direct);
-                t.DeclareQueue("order-service-queue");
-                t.DeclareBinding("events-direct", "order-service-queue")
-                    .RoutingKeys("event.order.placed", "event.order.cancelled");
+                t.DeclareExchange("region-direct").Type(RabbitMQExchangeType.Direct);
+                t.DeclareQueue("us-queue");
+                t.DeclareQueue("eu-queue");
 
-                t.Endpoint("order-ep").Consumer<CatchAllConsumer>().Queue("order-service-queue");
-                t.DispatchEndpoint("order-dispatch").ToExchange("events-direct").Publish<RegionEvent>();
+                // params overload: both keys added in a single call
+                t.DeclareBinding("region-direct", "us-queue").RoutingKeys("us.east", "us.west");
+
+                // chained additive calls: each RoutingKey accumulates a distinct key
+                t.DeclareBinding("region-direct", "eu-queue")
+                    .RoutingKey("eu.north")
+                    .RoutingKey("eu.south");
+
+                t.Endpoint("us-ep").Consumer<UsRegionConsumer>().Queue("us-queue");
+                t.Endpoint("eu-ep").Consumer<EuRegionConsumer>().Queue("eu-queue");
+                t.DispatchEndpoint("region-dispatch").ToExchange("region-direct").Publish<RegionEvent>();
             })
             .BuildTestBusAsync();
 
@@ -252,27 +265,42 @@ public class RoutingKeyTests
 
         // act
         await messageBus.PublishAsync(
-            new RegionEvent { Region = "event.order.placed", Payload = "placed" },
+            new RegionEvent { Region = "us.east", Payload = "us-east" },
             CancellationToken.None);
         await messageBus.PublishAsync(
-            new RegionEvent { Region = "event.order.cancelled", Payload = "cancelled" },
+            new RegionEvent { Region = "us.west", Payload = "us-west" },
             CancellationToken.None);
         await messageBus.PublishAsync(
-            new RegionEvent { Region = "event.order.shipped", Payload = "shipped" },
+            new RegionEvent { Region = "eu.north", Payload = "eu-north" },
+            CancellationToken.None);
+        await messageBus.PublishAsync(
+            new RegionEvent { Region = "eu.south", Payload = "eu-south" },
+            CancellationToken.None);
+        await messageBus.PublishAsync(
+            new RegionEvent { Region = "ap.southeast", Payload = "unmatched" },
             CancellationToken.None);
 
         // assert
         Assert.True(
-            await recorder.WaitAsync(s_timeout, expectedCount: 2),
-            "Both bound routing keys should deliver to the single queue");
+            await usRecorder.WaitAsync(s_timeout, expectedCount: 2),
+            "Both keys from the RoutingKeys(params) binding should deliver to the us queue");
+        Assert.True(
+            await euRecorder.WaitAsync(s_timeout, expectedCount: 2),
+            "Both keys from the chained RoutingKey() binding should deliver to the eu queue");
 
-        var payloads = recorder
+        var usPayloads = usRecorder
+            .Messages.Cast<RegionEvent>()
+            .Select(e => e.Payload)
+            .OrderBy(p => p, StringComparer.Ordinal)
+            .ToList();
+        var euPayloads = euRecorder
             .Messages.Cast<RegionEvent>()
             .Select(e => e.Payload)
             .OrderBy(p => p, StringComparer.Ordinal)
             .ToList();
 
-        Assert.Equal(["cancelled", "placed"], payloads);
+        Assert.Equal(["us-east", "us-west"], usPayloads);
+        Assert.Equal(["eu-north", "eu-south"], euPayloads);
     }
 
     public sealed class RegionEvent
