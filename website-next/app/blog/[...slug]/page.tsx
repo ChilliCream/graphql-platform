@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { BlogMetadata } from "@/src/components/BlogMetadata";
 import { BlogTags } from "@/src/components/BlogTags";
 import { BlogTeaserGrid } from "@/src/components/BlogTeaserGrid";
+import { NotFoundContent } from "@/src/components/NotFoundContent";
 import { Pagination } from "@/src/design-system/Pagination";
 import { SimilarPosts } from "@/src/components/SimilarPosts";
 import { Typography } from "@/src/design-system/Typography";
@@ -35,6 +36,12 @@ type PageProps = { params: Promise<Params> };
 
 export const dynamicParams = false;
 
+/**
+ * Synthetic slug that prerenders the static blog 404 page (`/blog/404`). nginx
+ * serves it for unmatched blog URLs so the "browse the blog" link is in the HTML.
+ */
+const NOT_FOUND_SEGMENT = "404";
+
 export function generateStaticParams(): Params[] {
   const postParams = listBlogPosts().map<Params>(({ stem }) => ({
     slug: [stem],
@@ -50,16 +57,28 @@ export function generateStaticParams(): Params[] {
     pageParams.push({ slug: [String(p)] });
   }
 
-  const params = [...postParams, ...pageParams];
+  const params = [
+    ...postParams,
+    ...pageParams,
+    { slug: [NOT_FOUND_SEGMENT] },
+  ];
   // output: export requires at least one prerendered path; placeholder
   // renders 404 via notFound() when no content is present.
   return params.length > 0 ? params : [{ slug: ["__empty__"] }];
+}
+
+/** True when the slug is the synthetic blog 404 page. */
+function isNotFoundSlug(slug: string[]): boolean {
+  return slug.length === 1 && slug[0] === NOT_FOUND_SEGMENT;
 }
 
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { slug } = await params;
+  if (isNotFoundSlug(slug)) {
+    return { title: "Page not found", robots: { index: false, follow: false } };
+  }
   if (isPaginationSlug(slug)) {
     return { title: "Blog" };
   }
@@ -96,6 +115,12 @@ export async function generateMetadata({
 
 export default async function BlogSlugPage({ params }: PageProps) {
   const { slug } = await params;
+
+  if (isNotFoundSlug(slug)) {
+    return (
+      <NotFoundContent secondary={{ href: "/blog", label: "Browse the blog" }} />
+    );
+  }
 
   if (isPaginationSlug(slug)) {
     return renderPagination(Number(slug[0]));
