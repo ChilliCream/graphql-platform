@@ -3,8 +3,6 @@ title: "PostgreSQL Transport"
 description: "Configure the PostgreSQL transport in Mocha for database-backed messaging with automatic topology provisioning, LISTEN/NOTIFY signaling, and schema multi-tenancy."
 ---
 
-# PostgreSQL transport
-
 > [!EXPERIMENTAL]
 > The PostgreSQL transport is currently in preview and its API may change in future releases.
 

@@ -3,8 +3,6 @@ title: "InMemory Transport"
 description: "Set up the InMemory transport for development, testing, and single-process messaging scenarios in Mocha."
 ---
 
-# InMemory transport
-
 The InMemory transport routes messages through in-process topics and queues without any external broker. Messages never leave the application process and are never persisted to disk.
 
 # Install and register

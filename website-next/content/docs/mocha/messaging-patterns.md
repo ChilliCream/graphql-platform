@@ -3,8 +3,6 @@ title: "Messaging Patterns"
 description: "Learn the three core messaging patterns in Mocha - events (pub/sub), send (fire-and-forget), and request/reply - and when to use each one."
 ---
 
-# Messaging patterns
-
 Every message you send answers one of three questions: "Who needs to know?" - an event, broadcast to anyone who cares. "Who should act?" - a command, directed at a single handler. "What is the result?" - a request that blocks until the handler replies. Choosing the wrong pattern is the most common messaging architecture mistake. This page explains each pattern, when to use it, and the anti-pattern to avoid.
 
 | Pattern             | Bus method     | Handler interface                           | Delivery                                    |

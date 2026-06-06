@@ -3,8 +3,6 @@ title: "Handlers and Consumers"
 description: "Learn how to implement message handlers in Mocha - event handlers, request handlers, send handlers, batch handlers, and the low-level consumer interface. Understand DI scoping, exception behavior, and how to publish from within a handler."
 ---
 
-# Handlers and consumers
-
 You implement a handler interface, and the source generator discovers it at compile time. Mocha routes matching messages to your handler automatically. This page covers every handler type, when to use each one, and the patterns that apply to all of them: DI scoping, exception behavior, and publishing from within a handler.
 
 ## When to use which handler

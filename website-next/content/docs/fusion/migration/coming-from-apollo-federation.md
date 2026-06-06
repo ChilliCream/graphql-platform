@@ -2,8 +2,6 @@
 title: "Coming from Apollo Federation"
 ---
 
-# Coming from Apollo Federation
-
 If you have experience with Apollo Federation, you already understand the core idea behind distributed GraphQL: multiple services contribute types and fields to a single, unified schema, and a gateway coordinates query execution across them. HotChocolate Fusion solves the same problem with a different approach -- one grounded in the open [GraphQL Composite Schemas specification](https://graphql.github.io/composite-schemas-spec/) rather than a proprietary federation spec.
 
 This guide maps Apollo Federation concepts to their Fusion equivalents, explains behavioral differences, and walks you through migrating subgraphs, the gateway, and your CI/CD pipeline. It is self-contained: you can complete a migration by following this guide alone. Links to other Fusion docs pages are provided for deeper dives, not as prerequisites.

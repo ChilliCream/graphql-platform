@@ -9,8 +9,6 @@ builder.Services
     .AddOrderService(); // source-generated from your assembly name
 ```
 
-# Handler registration
-
 That registers the message bus, discovers your handlers and sagas at compile time, and wires up the registration. `.AddOrderService()` is a source-generated extension method - it knows your handler types at compile time and produces direct registration calls with no reflection.
 
 # How the source generator works

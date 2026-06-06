@@ -3,8 +3,6 @@ title: "RabbitMQ Transport"
 description: "Configure the RabbitMQ transport in Mocha for production messaging with automatic topology provisioning, connection management, and prefetch tuning."
 ---
 
-# RabbitMQ transport
-
 The RabbitMQ transport connects Mocha to a RabbitMQ broker for production messaging. It manages connections, provisions exchanges and queues automatically, handles message acknowledgement, and supports request/reply with dedicated reply endpoints. When you need durable, distributed messaging across multiple services, this is the transport to use.
 
 # Set up the RabbitMQ transport

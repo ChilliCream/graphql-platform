@@ -3,8 +3,6 @@ title: "Observability"
 description: "Instrument Mocha with OpenTelemetry for distributed tracing, metrics, and logging across dispatch, receive, and consumer pipelines."
 ---
 
-# Observability
-
 Mocha integrates with OpenTelemetry to give you distributed traces, metrics, and structured logging across every stage of the messaging pipeline. When a message is dispatched, received, or consumed, Mocha emits spans and metrics that let you trace message flows end-to-end across services, measure throughput, and diagnose failures.
 
 Observability is opt-in. Call `.AddInstrumentation()` on the bus builder to activate the built-in `OpenTelemetryDiagnosticObserver`. Without it, Mocha uses a no-op observer that adds zero overhead.
