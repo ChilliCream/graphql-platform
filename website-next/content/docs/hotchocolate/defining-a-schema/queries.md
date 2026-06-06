@@ -162,7 +162,7 @@ public static List<Book> GetBooks() => /* ... */;
 
 # Next Steps
 
-- **Need to write data?** See [Mutations](/docs/hotchocolate/v16/defining-a-schema/mutations).
-- **Need real-time updates?** See [Subscriptions](/docs/hotchocolate/v16/defining-a-schema/subscriptions).
-- **Need to understand how types map to the schema?** See [Object Types](/docs/hotchocolate/v16/defining-a-schema/object-types).
-- **Need to fetch data efficiently?** See [Resolvers](/docs/hotchocolate/v16/resolvers/resolvers) and [DataLoader](/docs/hotchocolate/v16/fetching-data/batching/dataloader).
+- **Need to write data?** See [Mutations](./mutations.md).
+- **Need real-time updates?** See [Subscriptions](./subscriptions.md).
+- **Need to understand how types map to the schema?** See [Object Types](./object-types.md).
+- **Need to fetch data efficiently?** See [Resolvers](../resolvers/index.md) and [DataLoader](../fetching-data/batching/dataloader.md).

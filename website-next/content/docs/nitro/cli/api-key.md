@@ -8,9 +8,9 @@ A key is scoped either to a single API (via `--api-id`) or to an entire workspac
 
 Optionally, an API key can additionally be restricted to a single stage with the `--stage-condition` option. This lets you issue, for example, a `dev`-only key that cannot publish to `prod`.
 
-> If you need broader, user-level access (for example to automate workspace administration), use a [Personal Access Token](/docs/nitro/cli/pat) instead.
+> If you need broader, user-level access (for example to automate workspace administration), use a [Personal Access Token](./pat.md) instead.
 
-All `api-key` commands require authentication. Run `nitro login` first or pass `--api-key` (see [Global Options](/docs/nitro/cli/global-options)).
+All `api-key` commands require authentication. Run `nitro login` first or pass `--api-key` (see [Global Options](./global-options.md)).
 
 # `nitro api-key create`
 

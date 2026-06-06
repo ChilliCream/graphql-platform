@@ -293,7 +293,7 @@ builder
 
 # Next Steps
 
-- **Need to sort results?** See [Sorting](/docs/hotchocolate/v16/fetching-data/sorting).
-- **Need to page through results?** See [Pagination](/docs/hotchocolate/v16/fetching-data/pagination).
-- **Need to optimize database queries?** See [Projections](/docs/hotchocolate/v16/fetching-data/projections).
-- **Need to protect against expensive filter queries?** See [Cost Analysis](/docs/hotchocolate/v16/security/cost-analysis).
+- **Need to sort results?** See [Sorting](./sorting.md).
+- **Need to page through results?** See [Pagination](./pagination.md).
+- **Need to optimize database queries?** See [Projections](./projections.md).
+- **Need to protect against expensive filter queries?** See [Cost Analysis](../security/cost-analysis.md).

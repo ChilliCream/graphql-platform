@@ -388,6 +388,6 @@ If a `@require` argument appears in the composite schema when it should not, che
 
 ## Next Steps
 
-- **Need entity identity and lookup patterns?** See [Entities and Lookups](/docs/fusion/v16/entities-and-lookups) for the full guide to keys, public vs. internal lookups, and composite keys.
-- **Need field ownership contracts?** See [Field Ownership](/docs/fusion/v16/field-ownership-and-sharing).
-- **Need the directive and attribute quick reference?** See the [Attribute and Directive Reference](/docs/fusion/v16/attribute-and-directive-reference).
+- **Need entity identity and lookup patterns?** See [Entities and Lookups](./entities-and-lookups.md) for the full guide to keys, public vs. internal lookups, and composite keys.
+- **Need field ownership contracts?** See [Field Ownership](./field-ownership-and-sharing.md).
+- **Need the directive and attribute quick reference?** See the [Attribute and Directive Reference](./directives-reference.md).

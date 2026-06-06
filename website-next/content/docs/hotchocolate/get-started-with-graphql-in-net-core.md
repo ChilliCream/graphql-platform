@@ -174,9 +174,9 @@ Your GraphQL server is running and responding to queries.
 
 # Next Steps
 
-- **"I want to learn about the type system."** See [Defining a Schema](/docs/hotchocolate/v16/defining-a-schema) for queries, mutations, subscriptions, and all the GraphQL types.
+- **"I want to learn about the type system."** See [Defining a Schema](./defining-a-schema/index.md) for queries, mutations, subscriptions, and all the GraphQL types.
 
-- **"I want to fetch data from a database."** See [DataLoader](/docs/hotchocolate/v16/fetching-data/batching/dataloader) for batched data fetching, or [Entity Framework](/docs/hotchocolate/v16/fetching-data/integrations/entity-framework) for EF Core integration.
+- **"I want to fetch data from a database."** See [DataLoader](./fetching-data/batching/dataloader.md) for batched data fetching, or [Entity Framework](./fetching-data/integrations/entity-framework.md) for EF Core integration.
 
 - **"I want a deeper tutorial."** Check out the [GraphQL Workshop](https://github.com/ChilliCream/graphql-workshop) for a hands-on walkthrough covering types, resolvers, DataLoaders, filtering, and more.
 

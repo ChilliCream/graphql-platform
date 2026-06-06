@@ -6,7 +6,7 @@ Authorization controls what an authenticated user can access. Hot Chocolate prov
 
 Authentication is a prerequisite. You must first validate a user's identity before evaluating their permissions.
 
-[Learn how to set up authentication](/docs/hotchocolate/v16/security/authentication)
+[Learn how to set up authentication](./authentication.md)
 
 # Setup
 
@@ -319,10 +319,10 @@ app.UseEndpoints(endpoints =>
 });
 ```
 
-[Learn more about available middleware](/docs/hotchocolate/v16/server/endpoints)
+[Learn more about available middleware](../server/endpoints.md)
 
 # Next Steps
 
-- **Need to set up authentication first?** See [Authentication](/docs/hotchocolate/v16/security/authentication).
-- **Need to protect against expensive queries?** See [Cost Analysis](/docs/hotchocolate/v16/security/cost-analysis).
-- **Need an overview of security options?** See [Security Overview](/docs/hotchocolate/v16/security).
+- **Need to set up authentication first?** See [Authentication](./authentication.md).
+- **Need to protect against expensive queries?** See [Cost Analysis](./cost-analysis.md).
+- **Need an overview of security options?** See [Security Overview](./index.md).

@@ -239,6 +239,6 @@ builder
 
 # Next Steps
 
-- **Need to deprecate fields?** See [Versioning](/docs/hotchocolate/v16/defining-a-schema/versioning).
-- **Need to define enums?** See [Enums](/docs/hotchocolate/v16/defining-a-schema/enums).
-- **Need to define object types?** See [Object Types](/docs/hotchocolate/v16/defining-a-schema/object-types).
+- **Need to deprecate fields?** See [Versioning](./versioning.md).
+- **Need to define enums?** See [Enums](./enums.md).
+- **Need to define object types?** See [Object Types](./object-types.md).

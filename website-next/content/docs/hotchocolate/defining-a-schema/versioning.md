@@ -202,6 +202,6 @@ Consumers query feature stability through introspection:
 
 # Next Steps
 
-- **Need to add descriptions?** See [Documentation](/docs/hotchocolate/v16/defining-a-schema/documentation).
-- **Need to create custom directives?** See [Directives](/docs/hotchocolate/v16/defining-a-schema/directives).
-- **Need to understand schema evolution?** See [Extending Types](/docs/hotchocolate/v16/defining-a-schema/object-types).
+- **Need to add descriptions?** See [Documentation](./documentation.md).
+- **Need to create custom directives?** See [Directives](./directives.md).
+- **Need to understand schema evolution?** See [Extending Types](./object-types.md).

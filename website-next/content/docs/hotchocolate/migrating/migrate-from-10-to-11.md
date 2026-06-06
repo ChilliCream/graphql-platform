@@ -71,7 +71,7 @@ services
 
 After migrating the schema configuration, the next area that has fundamentally changed is the schema middleware.
 
-Hot Chocolate server now embraces the new endpoint routing API from ASP.NET core and with that brings a lot of new features. Head over [here](/docs/hotchocolate/v11/api-reference/aspnetcore) to read more about the ASP.NET Core integration.
+Hot Chocolate server now embraces the new endpoint routing API from ASP.NET core and with that brings a lot of new features. Head over [here](https://chillicream.com/docs/hotchocolate/v11/api-reference/aspnetcore) to read more about the ASP.NET Core integration.
 
 **Old:**
 
@@ -142,7 +142,7 @@ The serial execution for Entity Framework compatibility is gone. If you use Enti
 
 Another variant here is to use our scoped service feature that scopes services for the resolver pipeline. This is explained in our GraphQL Workshop project.
 
-<https://github.com/ChilliCream/graphql-workshop>
+[https://github.com/ChilliCream/graphql-workshop](https://github.com/ChilliCream/graphql-workshop)
 
 # Schema / Resolvers
 

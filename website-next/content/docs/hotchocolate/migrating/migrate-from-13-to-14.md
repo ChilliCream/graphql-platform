@@ -71,14 +71,14 @@ Things that have been removed or had a change in behavior that may cause your co
   2. On a per-resolver basis, with the `[UseRequestScope]` or `[UseResolverScope]` attribute.
      - Note: The `[UseServiceScope]` attribute has been removed.
 
-For more information, see the [Dependency Injection](/docs/hotchocolate/v14/server/dependency-injection) documentation.
+For more information, see the [Dependency Injection](https://chillicream.com/docs/hotchocolate/v14/server/dependency-injection) documentation.
 
 ## Entity framework integration changes
 
 - The `RegisterDbContext` method is no longer required, and has therefore been removed, along with the `DbContextKind` enum.
 - Use `RegisterDbContextFactory` to register a DbContext factory.
 
-For more information, see the [Entity Framework integration](/docs/hotchocolate/v14/fetching-data/entity-framework) documentation.
+For more information, see the [Entity Framework integration](https://chillicream.com/docs/hotchocolate/v14/fetching-data/entity-framework) documentation.
 
 ## New GID format
 
@@ -165,11 +165,11 @@ The Operation Complexity Analyzer in v13 has been replaced by Cost Analysis in v
 - The `Complexity` property on `RequestExecutorOptions` (accessed via `ModifyRequestOptions`) has been removed.
 - Cost analysis is enabled by default.
 
-Please see the [documentation](/docs/hotchocolate/v14/security/cost-analysis) for further information.
+Please see the [documentation](https://chillicream.com/docs/hotchocolate/v14/security/cost-analysis) for further information.
 
 ## DateTime scalar enforces a specific format
 
-The `DateTime` scalar will now enforce a specific format. The time and offset are now required, and fractional seconds are limited to 7. This aligns it with the DateTime Scalar spec (<https://www.graphql-scalars.com/date-time/>), with the one difference being that fractions of a second are optional, and 0-7 digits may be specified.
+The `DateTime` scalar will now enforce a specific format. The time and offset are now required, and fractional seconds are limited to 7. This aligns it with the DateTime Scalar spec ([https://www.graphql-scalars.com/date-time/](https://www.graphql-scalars.com/date-time/)), with the one difference being that fractions of a second are optional, and 0-7 digits may be specified.
 
 Please ensure that your clients are sending date/time strings in the correct format to avoid errors.
 

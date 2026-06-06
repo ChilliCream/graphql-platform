@@ -372,7 +372,7 @@ All error types must declare the fields required by the interface. They do not n
 
 # Next Steps
 
-- **Need to read data?** See [Queries](/docs/hotchocolate/v16/defining-a-schema/queries).
-- **Need real-time updates?** See [Subscriptions](/docs/hotchocolate/v16/defining-a-schema/subscriptions).
-- **Need to understand input types?** See [Input Object Types](/docs/hotchocolate/v16/defining-a-schema/input-object-types).
-- **Need to fetch data efficiently?** See [DataLoader](/docs/hotchocolate/v16/fetching-data/batching/dataloader).
+- **Need to read data?** See [Queries](./queries.md).
+- **Need real-time updates?** See [Subscriptions](./subscriptions.md).
+- **Need to understand input types?** See [Input Object Types](./input-object-types.md).
+- **Need to fetch data efficiently?** See [DataLoader](../fetching-data/batching/dataloader.md).

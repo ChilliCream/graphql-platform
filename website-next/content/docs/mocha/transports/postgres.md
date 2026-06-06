@@ -439,11 +439,11 @@ All auto-provisioned resources are inserted as rows in the corresponding topolog
 
 # Next steps
 
-- [Transports Overview](/docs/mocha/v16/transports) - Understand the transport abstraction and lifecycle.
-- [Handlers and Consumers](/docs/mocha/v16/handlers-and-consumers) - Learn about handler types and consumer configuration.
-- [Reliability](/docs/mocha/v16/reliability) - Configure dead-letter routing, outbox, inbox, and fault handling.
-- [Middleware and Pipelines](/docs/mocha/v16/middleware-and-pipelines) - Customize the receive and dispatch pipelines.
-- [Routing and Endpoints](/docs/mocha/v16/routing-and-endpoints) - Understand naming conventions and endpoint model.
+- [Transports Overview](./index.md) - Understand the transport abstraction and lifecycle.
+- [Handlers and Consumers](../handlers-and-consumers.md) - Learn about handler types and consumer configuration.
+- [Reliability](../reliability.md) - Configure dead-letter routing, outbox, inbox, and fault handling.
+- [Middleware and Pipelines](../middleware-and-pipelines.md) - Customize the receive and dispatch pipelines.
+- [Routing and Endpoints](../routing-and-endpoints.md) - Understand naming conventions and endpoint model.
 
 > **Runnable example:** [PostgresTransport](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Examples/PostgresTransport)
 >

@@ -199,7 +199,7 @@ If executions routinely time out at the gate, that is a signal to scale out or r
 
 ## Next Steps
 
-- **"I need CDN and HTTP response caching behavior"**: [Cache Control](/docs/fusion/v16/cache-control) covers `@cacheControl`, composition merge behavior, and gateway response headers.
-- **"I need to secure my gateway"**: [Authentication and Authorization](/docs/fusion/v16/authentication-and-authorization) covers JWT validation, header propagation, and subgraph-level authorization.
-- **"I need to deploy this"**: [Deployment & CI/CD](/docs/fusion/v16/deployment-and-ci-cd) covers production deployment patterns and CI pipeline setup.
+- **"I need CDN and HTTP response caching behavior"**: [Cache Control](./cache-control.md) covers `@cacheControl`, composition merge behavior, and gateway response headers.
+- **"I need to secure my gateway"**: [Authentication and Authorization](./authentication-and-authorization.md) covers JWT validation, header propagation, and subgraph-level authorization.
+- **"I need to deploy this"**: [Deployment & CI/CD](./deployment-and-ci-cd.md) covers production deployment patterns and CI pipeline setup.
 - **"I want to monitor performance"**: Observability and distributed tracing will be covered in future documentation.

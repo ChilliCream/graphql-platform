@@ -280,6 +280,6 @@ descriptor
 
 # Next Steps
 
-- Learn more about [resolvers](/docs/hotchocolate/v16/resolvers/resolvers) for field resolution
-- Explore [filtering](/docs/hotchocolate/v16/fetching-data/filtering) and [sorting](/docs/hotchocolate/v16/fetching-data/sorting) middleware
-- Read about [pagination](/docs/hotchocolate/v16/fetching-data/pagination) middleware
+- Learn more about [resolvers](./index.md) for field resolution
+- Explore [filtering](../fetching-data/filtering.md) and [sorting](../fetching-data/sorting.md) middleware
+- Read about [pagination](../fetching-data/pagination.md) middleware

@@ -221,7 +221,7 @@ type Author {
 }
 ```
 
-The naming rules for methods are the same as for [query fields](/docs/hotchocolate/v16/defining-a-schema/queries#naming-conventions): `Get` prefixes and `Async` suffixes are stripped, and the result is camelCased.
+The naming rules for methods are the same as for [query fields](./queries.md#naming-conventions): `Get` prefixes and `Async` suffixes are stripped, and the result is camelCased.
 
 # Field Configuration
 
@@ -572,7 +572,7 @@ public class ProductType : ObjectType<Product>
 </Code>
 </ExampleTabs>
 
-For full details on nullability, see [Non-Null](/docs/hotchocolate/v16/defining-a-schema/non-null).
+For full details on nullability, see [Non-Null](./non-null.md).
 
 # Dictionary Support
 
@@ -641,8 +641,8 @@ This works with any key and value types. For example, `Dictionary<string, int>` 
 
 # Next Steps
 
-- **Need to define query entry points?** See [Queries](/docs/hotchocolate/v16/defining-a-schema/queries).
-- **Need to understand resolver patterns?** See [Resolvers](/docs/hotchocolate/v16/resolvers/resolvers).
-- **Need to compose types from multiple classes?** See [Extending Types](/docs/hotchocolate/v16/defining-a-schema/object-types).
-- **Need to define input for mutations?** See [Input Object Types](/docs/hotchocolate/v16/defining-a-schema/input-object-types).
-- **Need to fetch data efficiently?** See [DataLoader](/docs/hotchocolate/v16/fetching-data/batching/dataloader).
+- **Need to define query entry points?** See [Queries](./queries.md).
+- **Need to understand resolver patterns?** See [Resolvers](../resolvers/index.md).
+- **Need to compose types from multiple classes?** See [Extending Types](./object-types.md).
+- **Need to define input for mutations?** See [Input Object Types](./input-object-types.md).
+- **Need to fetch data efficiently?** See [DataLoader](../fetching-data/batching/dataloader.md).

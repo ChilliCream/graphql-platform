@@ -18,7 +18,7 @@ Combine cost analysis with:
 - **Execution depth limits** to prevent deeply nested queries.
 - **Execution timeouts** to abort long-running queries.
 
-[Learn more about cost analysis](/docs/hotchocolate/v16/security/cost-analysis)
+[Learn more about cost analysis](./cost-analysis.md)
 
 # Private APIs: Trusted Documents
 
@@ -26,7 +26,7 @@ Private APIs serve known clients that you control, such as your own web or mobil
 
 With trusted documents, you extract all GraphQL operations from your client at build time and register them with the server. At runtime, the server only accepts operations it recognizes. This eliminates the risk of arbitrary queries entirely.
 
-[Learn more about trusted documents](/docs/hotchocolate/v16/performance/trusted-documents)
+[Learn more about trusted documents](../performance/trusted-documents.md)
 
 # Defense in Depth
 
@@ -36,25 +36,25 @@ Regardless of whether your API is public or private, apply these additional prot
 
 Authentication determines who is making a request. Hot Chocolate integrates with the ASP.NET Core authentication system, supporting JWT, cookies, and other authentication schemes.
 
-[Learn more about authentication](/docs/hotchocolate/v16/security/authentication)
+[Learn more about authentication](./authentication.md)
 
 ## Authorization
 
 Authorization controls what an authenticated user can access. Hot Chocolate provides the `@authorize` directive for field-level and type-level access control, integrating with ASP.NET Core roles and policies.
 
-[Learn more about authorization](/docs/hotchocolate/v16/security/authorization)
+[Learn more about authorization](./authorization.md)
 
 ## Request Limits
 
 Hot Chocolate enforces limits at every stage of request processing -- parsing, validation, and execution -- to keep resource consumption bounded. This includes limits on fields, directives, nesting depth, execution depth, timeouts, and more.
 
-[Learn more about request limits](/docs/hotchocolate/v16/security/request-limits)
+[Learn more about request limits](./request-limits.md)
 
 ## Introspection
 
 Introspection powers developer tools but can also reveal your schema to attackers. You can restrict or disable introspection in production.
 
-[Learn more about introspection](/docs/hotchocolate/v16/security/introspection#disabling-introspection)
+[Learn more about introspection](./introspection.md#disabling-introspection)
 
 ## FIPS Compliance
 
@@ -66,11 +66,11 @@ builder
     .AddSha256DocumentHashProvider();
 ```
 
-[Learn more about hashing providers](/docs/hotchocolate/v16/performance/trusted-documents#hashing-algorithms)
+[Learn more about hashing providers](../performance/trusted-documents.md#hashing-algorithms)
 
 # Next Steps
 
-- **Building a public API?** Start with [Cost Analysis](/docs/hotchocolate/v16/security/cost-analysis).
-- **Building a private API?** Start with [Trusted Documents](/docs/hotchocolate/v16/performance/trusted-documents).
-- **Need authentication?** See [Authentication](/docs/hotchocolate/v16/security/authentication).
-- **Need authorization?** See [Authorization](/docs/hotchocolate/v16/security/authorization).
+- **Building a public API?** Start with [Cost Analysis](./cost-analysis.md).
+- **Building a private API?** Start with [Trusted Documents](../performance/trusted-documents.md).
+- **Need authentication?** See [Authentication](./authentication.md).
+- **Need authorization?** See [Authorization](./authorization.md).

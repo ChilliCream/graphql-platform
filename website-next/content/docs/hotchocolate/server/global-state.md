@@ -30,7 +30,7 @@ public class HttpRequestInterceptor : DefaultHttpRequestInterceptor
 }
 ```
 
-[Learn more about interceptors](/docs/hotchocolate/v16/server/interceptors)
+[Learn more about interceptors](./interceptors.md)
 
 # Accessing Global State
 
@@ -126,5 +126,5 @@ Take a look at the implementation-first or code-first example.
 
 # Next Steps
 
-- [Interceptors](/docs/hotchocolate/v16/server/interceptors) for initializing state before request execution.
-- [Dependency Injection](/docs/hotchocolate/v16/resolvers/dependency-injection) for injecting services into resolvers.
+- [Interceptors](./interceptors.md) for initializing state before request execution.
+- [Dependency Injection](../resolvers/dependency-injection.md) for injecting services into resolvers.

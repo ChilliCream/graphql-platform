@@ -6,7 +6,7 @@ title: "Introduction"
 
 Nitro is a tool for developers, simplifying API creation, debugging, and collaboration. It enables effortless execution of GraphQL queries and mutations, with visual schema exploration. The platform emphasizes collaboration through seamless team sharing and synchronization. Nitro supports you during the entire API lifecycle with features like the schema and client registry for confident API evolution.
 
-Are you hungry yet? [Let's get started!](/docs/nitro/getting-started)
+Are you hungry yet? [Let's get started!](./getting-started.md)
 
 # Features
 

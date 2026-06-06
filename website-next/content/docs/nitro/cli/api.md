@@ -6,7 +6,7 @@ The `nitro api` commands manage APIs in a workspace.
 
 Each API has a kind that determines how it behaves: `service` for a single GraphQL service, `gateway` for a federated gateway, or `collection` for grouping related APIs together.
 
-All `api` commands require authentication. Run `nitro login` first or pass `--api-key` (see [Global Options](/docs/nitro/cli/global-options)).
+All `api` commands require authentication. Run `nitro login` first or pass `--api-key` (see [Global Options](./global-options.md)).
 
 # `nitro api create`
 

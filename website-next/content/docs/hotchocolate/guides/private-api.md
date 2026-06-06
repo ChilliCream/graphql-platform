@@ -212,6 +212,6 @@ This configuration:
 
 # Next Steps
 
-- **"How do I extract and publish operations from my client?"** See [Client Registry](/docs/nitro/apis/client-registry) for extracting operations, publishing them to Nitro, and managing multiple client versions.
-- **"I need authentication and authorization."** See [Security Overview](/docs/hotchocolate/v16/security) for authentication and authorization configuration.
-- **"I need to protect against complexity attacks on a public API."** See [Public API guide](/docs/hotchocolate/v16/guides/public-api) for cost analysis, depth limits, and introspection controls.
+- **"How do I extract and publish operations from my client?"** See [Client Registry](../../nitro/apis/client-registry.md) for extracting operations, publishing them to Nitro, and managing multiple client versions.
+- **"I need authentication and authorization."** See [Security Overview](../security/index.md) for authentication and authorization configuration.
+- **"I need to protect against complexity attacks on a public API."** See [Public API guide](./public-api.md) for cost analysis, depth limits, and introspection controls.

@@ -25,7 +25,7 @@ builder
 
 `MarkAsWarmupRequest()` populates the document and operation caches without executing the operation, which avoids side effects during startup. Include the operation name in the warmup request because it is part of the cache key.
 
-[Learn more about server warmup](/docs/hotchocolate/v16/server/warmup)
+[Learn more about server warmup](../server/warmup.md)
 
 # Operation Caching
 
@@ -46,7 +46,7 @@ builder
 
 Each cache is scoped to a single schema instance. If your application hosts multiple schemas, each schema maintains its own caches.
 
-For APIs with a known set of operations, consider using [persisted operations](/docs/hotchocolate/v16/performance/trusted-documents) to eliminate parsing and validation entirely.
+For APIs with a known set of operations, consider using [persisted operations](../performance/trusted-documents.md) to eliminate parsing and validation entirely.
 
 # DataLoader Batching
 
@@ -82,7 +82,7 @@ public class ProductByIdDataLoader : BatchDataLoader<int, Product>
 
 For most applications, the source-generated DataLoader approach (using the `[DataLoader]` attribute) is the recommended starting point.
 
-[Learn more about DataLoaders](/docs/hotchocolate/v16/fetching-data/batching/dataloader)
+[Learn more about DataLoaders](../fetching-data/batching/dataloader.md)
 
 # Projections and Database Efficiency
 
@@ -115,7 +115,7 @@ public static partial class UserQueries
 
 Do not combine `QueryContext<T>` with `[UseProjection]` on the same field. The HC0099 analyzer warns when both are present.
 
-[Learn more about projections](/docs/hotchocolate/v16/fetching-data/projections)
+[Learn more about projections](../fetching-data/projections.md)
 
 # Cost Analysis for Resource Protection
 
@@ -134,7 +134,7 @@ builder
 
 Use the `GraphQL-Cost: report` HTTP header to inspect the cost of any operation without changing enforcement. Send your most complex expected operations and verify they fall within your limits.
 
-[Learn more about cost analysis](/docs/hotchocolate/v16/security/cost-analysis)
+[Learn more about cost analysis](../security/cost-analysis.md)
 
 # Reduce Response Size
 
@@ -158,13 +158,13 @@ builder
 
 The default incremental delivery wire format is v0.2, which uses `pending`, `incremental`, and `completed` fields to track deferred fragments.
 
-[Learn more about incremental delivery](/docs/hotchocolate/v16/server/http-transport)
+[Learn more about incremental delivery](../server/http-transport.md)
 
 ## Persisted Operations
 
 Persisted operations reduce request size by replacing the full operation document with a hash. This saves bandwidth on every request and lets the server skip parsing for known operations.
 
-[Learn more about persisted operations](/docs/hotchocolate/v16/performance/trusted-documents)
+[Learn more about persisted operations](../performance/trusted-documents.md)
 
 # Instrumentation for Bottleneck Detection
 
@@ -215,14 +215,14 @@ builder
 
 Diagnostic event handlers execute synchronously as part of the GraphQL request. Enqueue expensive work (such as writing to an external monitoring service) to a background service to avoid adding latency.
 
-[Learn more about instrumentation](/docs/hotchocolate/v16/server/instrumentation)
+[Learn more about instrumentation](../server/instrumentation.md)
 
 # Next Steps
 
-- **Server warmup:** [Warmup](/docs/hotchocolate/v16/server/warmup) covers custom warmup tasks and lazy initialization.
-- **Persisted operations:** [Persisted Operations](/docs/hotchocolate/v16/performance/trusted-documents) covers both pre-stored and automatic persisted operations.
-- **DataLoaders:** [DataLoader](/docs/hotchocolate/v16/fetching-data/batching/dataloader) covers source-generated DataLoaders, manual DataLoader classes, and batch resolvers.
-- **Projections:** [Projections](/docs/hotchocolate/v16/fetching-data/projections) covers the `[UseProjection]` middleware and `QueryContext<T>`.
-- **Cost analysis:** [Cost Analysis](/docs/hotchocolate/v16/security/cost-analysis) covers custom weights, filtering and sorting costs, and the tuning guide.
-- **Instrumentation:** [Instrumentation](/docs/hotchocolate/v16/server/instrumentation) covers diagnostic event listeners and OpenTelemetry integration.
-- **Configuration reference:** [Options](/docs/hotchocolate/v16/server/options) lists all schema, request, and server options with their defaults.
+- **Server warmup:** [Warmup](../server/warmup.md) covers custom warmup tasks and lazy initialization.
+- **Persisted operations:** [Persisted Operations](../performance/trusted-documents.md) covers both pre-stored and automatic persisted operations.
+- **DataLoaders:** [DataLoader](../fetching-data/batching/dataloader.md) covers source-generated DataLoaders, manual DataLoader classes, and batch resolvers.
+- **Projections:** [Projections](../fetching-data/projections.md) covers the `[UseProjection]` middleware and `QueryContext<T>`.
+- **Cost analysis:** [Cost Analysis](../security/cost-analysis.md) covers custom weights, filtering and sorting costs, and the tuning guide.
+- **Instrumentation:** [Instrumentation](../server/instrumentation.md) covers diagnostic event listeners and OpenTelemetry integration.
+- **Configuration reference:** [Options](../server/options.md) lists all schema, request, and server options with their defaults.

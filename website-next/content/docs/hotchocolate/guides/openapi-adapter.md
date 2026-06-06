@@ -271,5 +271,5 @@ The Fusion gateway composes schemas from multiple subgraphs. The OpenAPI adapter
 
 # Next Steps
 
-- [MCP Adapter](/docs/hotchocolate/v16/guides/mcp-adapter) to expose your GraphQL schema as MCP tools for AI agents.
-- [Error Handling](/docs/hotchocolate/v16/guides/error-handling) to customize error responses in generated endpoints.
+- [MCP Adapter](./mcp-adapter.md) to expose your GraphQL schema as MCP tools for AI agents.
+- [Error Handling](./error-handling.md) to customize error responses in generated endpoints.

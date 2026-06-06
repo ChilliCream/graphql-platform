@@ -8,7 +8,7 @@ Show help and usage information for the command. Use this on any subcommand to s
 
 # `--api-key <api-key>`
 
-API key or Personal Access Token used to authenticate non-interactive CLI calls. Pass either an API key created via [`nitro api-key create`](/docs/nitro/cli/api-key) or a PAT created via [`nitro pat create`](/docs/nitro/cli/pat).
+API key or Personal Access Token used to authenticate non-interactive CLI calls. Pass either an API key created via [`nitro api-key create`](./api-key.md) or a PAT created via [`nitro pat create`](./pat.md).
 
 Set via the `NITRO_API_KEY` environment variable. For interactive use, prefer `nitro login` over passing this flag.
 

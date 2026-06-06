@@ -2,15 +2,15 @@
 title: pat Command
 ---
 
-The `nitro pat` commands manage Personal Access Tokens (PATs). A PAT is bound to your user account and acts on your behalf, so it inherits your access across every workspace and API you are a member of. PATs are intended for personal automation, scripts on your machine, and bootstrapping operations that need broader permissions than an [API key](/docs/nitro/cli/api-key) provides (for example creating workspaces or managing members).
+The `nitro pat` commands manage Personal Access Tokens (PATs). A PAT is bound to your user account and acts on your behalf, so it inherits your access across every workspace and API you are a member of. PATs are intended for personal automation, scripts on your machine, and bootstrapping operations that need broader permissions than an [API key](./api-key.md) provides (for example creating workspaces or managing members).
 
-For narrower, non-user-bound automation (CI/CD, deploy pipelines, telemetry from your GraphQL server), prefer an [API key](/docs/nitro/cli/api-key) scoped to a single API or workspace.
+For narrower, non-user-bound automation (CI/CD, deploy pipelines, telemetry from your GraphQL server), prefer an [API key](./api-key.md) scoped to a single API or workspace.
 
 To use a PAT for non-interactive CLI calls, pass it via `--api-key` (or `NITRO_API_KEY`). The Nitro server accepts both PATs and API keys through the same option.
 
 > Treat a PAT like a password. It can do anything you can do, store the secret in a secret manager and revoke it as soon as you no longer need it.
 
-All `pat` commands require authentication. Run `nitro login` first or pass `--api-key` (see [Global Options](/docs/nitro/cli/global-options)).
+All `pat` commands require authentication. Run `nitro login` first or pass `--api-key` (see [Global Options](./global-options.md)).
 
 # `nitro pat create`
 

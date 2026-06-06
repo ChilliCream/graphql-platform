@@ -510,7 +510,7 @@ public static partial class UserNode
 }
 ```
 
-`[Shareable]` tells Fusion: "this field is intentionally defined in multiple subgraphs and they all return the same value." The gateway can resolve it from whichever subgraph is most convenient for a given query. For more on field ownership rules, see [Entities and Lookups](/docs/fusion/v16/entities-and-lookups).
+`[Shareable]` tells Fusion: "this field is intentionally defined in multiple subgraphs and they all return the same value." The gateway can resolve it from whichever subgraph is most convenient for a given query. For more on field ownership rules, see [Entities and Lookups](../entities-and-lookups.md).
 
 ## Migrating CI/CD
 
@@ -537,7 +537,7 @@ Alternatively, for a simpler setup without Nitro cloud:
 3. Deploy the `.far` file alongside the gateway.
 4. The gateway loads the `.far` file on startup via `.AddFileSystemConfiguration("./gateway.far")`.
 
-For a full CI/CD pipeline reference, see [Deployment and CI/CD](/docs/fusion/v16/deployment-and-ci-cd).
+For a full CI/CD pipeline reference, see [Deployment and CI/CD](../deployment-and-ci-cd.md).
 
 ## Summary
 

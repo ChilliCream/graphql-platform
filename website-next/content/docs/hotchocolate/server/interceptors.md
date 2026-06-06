@@ -290,7 +290,7 @@ It has many capabilities, but most are used internally. The following sections c
 
 You can set `Properties`, also called Global State, on the `OperationRequestBuilder`. These can then be referenced in middleware, field resolvers, and other components.
 
-[Learn more about Global State](/docs/hotchocolate/v16/server/global-state)
+[Learn more about Global State](./global-state.md)
 
 ### SetProperty
 
@@ -348,6 +348,6 @@ requestBuilder.AllowIntrospection();
 
 # Next Steps
 
-- [Global State](/docs/hotchocolate/v16/server/global-state) for sharing per-request data between resolvers.
-- [Dependency Injection](/docs/hotchocolate/v16/resolvers/dependency-injection) for details on service injection and switching providers.
-- [Introspection](/docs/hotchocolate/v16/security/introspection) for controlling introspection on a per-request basis.
+- [Global State](./global-state.md) for sharing per-request data between resolvers.
+- [Dependency Injection](../resolvers/dependency-injection.md) for details on service injection and switching providers.
+- [Introspection](../security/introspection.md) for controlling introspection on a per-request basis.

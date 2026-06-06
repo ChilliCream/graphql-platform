@@ -286,4 +286,4 @@ When the Fusion gateway schema changes (for example, a new subgraph is composed)
 
 # Next Steps
 
-- [Error Handling](/docs/hotchocolate/v16/guides/error-handling) to customize how GraphQL errors appear in MCP tool results.
+- [Error Handling](./error-handling.md) to customize how GraphQL errors appear in MCP tool results.

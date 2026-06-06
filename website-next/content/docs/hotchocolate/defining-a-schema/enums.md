@@ -198,7 +198,7 @@ This is useful when enum values come from configuration or a database rather tha
 
 # Next Steps
 
-- **Need to define output types?** See [Object Types](/docs/hotchocolate/v16/defining-a-schema/object-types).
-- **Need nullable or required fields?** See [Non-Null](/docs/hotchocolate/v16/defining-a-schema/non-null).
-- **Need to document enum values?** See [Documentation](/docs/hotchocolate/v16/defining-a-schema/documentation).
-- **Need to deprecate an enum value?** See [Versioning](/docs/hotchocolate/v16/defining-a-schema/versioning).
+- **Need to define output types?** See [Object Types](./object-types.md).
+- **Need nullable or required fields?** See [Non-Null](./non-null.md).
+- **Need to document enum values?** See [Documentation](./documentation.md).
+- **Need to deprecate an enum value?** See [Versioning](./versioning.md).

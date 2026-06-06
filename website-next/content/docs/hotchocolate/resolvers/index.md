@@ -195,7 +195,7 @@ descriptor
 </Code>
 </ExampleTabs>
 
-[Learn more about arguments](/docs/hotchocolate/v16/defining-a-schema/arguments)
+[Learn more about arguments](../defining-a-schema/arguments.md)
 
 # Injecting Services
 
@@ -219,7 +219,7 @@ public class Query
 }
 ```
 
-[Learn more about dependency injection](/docs/hotchocolate/v16/resolvers/dependency-injection)
+[Learn more about dependency injection](./dependency-injection.md)
 
 # Accessing parent values
 
@@ -321,6 +321,6 @@ public class UserType : ObjectType<User>
 
 # What's in This Section
 
-- [Dependency Injection](/docs/hotchocolate/v16/resolvers/dependency-injection) explains how services are injected into resolvers, scoping behavior, keyed services, and switching the service provider.
-- [Errors](/docs/hotchocolate/v16/resolvers/errors) covers how exceptions become GraphQL errors, error filters for mapping domain exceptions, and throwing `GraphQLException` for explicit errors.
-- [Field Middleware](/docs/hotchocolate/v16/resolvers/field-middleware) shows how to build reusable middleware that runs before or after resolvers, including ordering, class-based middleware, and attribute-based middleware.
+- [Dependency Injection](./dependency-injection.md) explains how services are injected into resolvers, scoping behavior, keyed services, and switching the service provider.
+- [Errors](./errors.md) covers how exceptions become GraphQL errors, error filters for mapping domain exceptions, and throwing `GraphQLException` for explicit errors.
+- [Field Middleware](./field-middleware.md) shows how to build reusable middleware that runs before or after resolvers, including ordering, class-based middleware, and attribute-based middleware.

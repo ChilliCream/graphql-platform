@@ -21,7 +21,7 @@ cd AppHost
 dotnet add package HotChocolate.Fusion.Aspire
 ```
 
-Your subgraph projects need the `HotChocolate.AspNetCore.CommandLine` package so the orchestrator can extract their schemas. If you followed the [Getting Started](/docs/fusion/v16/getting-started) tutorial, your subgraphs already have this.
+Your subgraph projects need the `HotChocolate.AspNetCore.CommandLine` package so the orchestrator can extract their schemas. If you followed the [Getting Started](./getting-started.md) tutorial, your subgraphs already have this.
 
 ## Setting Up the AppHost
 
@@ -179,7 +179,7 @@ If composition fails (for example, a field conflict or a missing lookup), the or
 
 ## Next Steps
 
-- **Need to compose without Aspire?** See the Nitro CLI composition workflow in [Adding a Subgraph](/docs/fusion/v16/adding-a-subgraph).
-- **Need entity resolution patterns?** See [Entities and Lookups](/docs/fusion/v16/entities-and-lookups) for public vs. internal lookups, composite keys, and the node pattern.
-- **Need cross-subgraph field dependencies?** See [Data Requirements](/docs/fusion/v16/data-requirements-and-mapping) for `@require` and FieldSelectionMap patterns.
-- **Need visibility controls?** See [Schema Exposure and Evolution](/docs/fusion/v16/schema-exposure-and-evolution) for `@inaccessible`, `@internal`, `@deprecated`, `@requiresOptIn`, and `@override`.
+- **Need to compose without Aspire?** See the Nitro CLI composition workflow in [Adding a Subgraph](./adding-a-subgraph.md).
+- **Need entity resolution patterns?** See [Entities and Lookups](./entities-and-lookups.md) for public vs. internal lookups, composite keys, and the node pattern.
+- **Need cross-subgraph field dependencies?** See [Data Requirements](./data-requirements-and-mapping.md) for `@require` and FieldSelectionMap patterns.
+- **Need visibility controls?** See [Schema Exposure and Evolution](./schema-exposure-and-evolution.md) for `@inaccessible`, `@internal`, `@deprecated`, `@requiresOptIn`, and `@override`.

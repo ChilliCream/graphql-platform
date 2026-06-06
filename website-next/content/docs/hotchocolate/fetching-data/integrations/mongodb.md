@@ -168,7 +168,7 @@ builder
     .AddMongoDbPagingProviders();
 ```
 
-[Learn more about pagination providers](/docs/hotchocolate/v16/fetching-data/pagination#providers)
+[Learn more about pagination providers](../pagination.md#providers)
 
 ## Cursor Pagination
 
@@ -218,8 +218,8 @@ public IExecutable<Person> GetPersonById(
 
 # Next Steps
 
-- [Pagination](/docs/hotchocolate/v16/fetching-data/pagination) for pagination setup
-- [Filtering](/docs/hotchocolate/v16/fetching-data/filtering) for filtering concepts
-- [Executable](/docs/hotchocolate/v16/fetching-data/integrations) for the `IExecutable` abstraction
+- [Pagination](../pagination.md) for pagination setup
+- [Filtering](../filtering.md) for filtering concepts
+- [Executable](./index.md) for the `IExecutable` abstraction
 
 <!-- spell-checker:ignore Shorton -->

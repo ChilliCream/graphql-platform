@@ -6,11 +6,11 @@ The [Model Context Protocol (MCP)](https://modelcontextprotocol.io) is an open s
 
 You wire MCP onto an existing Fusion gateway with two calls: `AddMcp()` during service registration and `MapGraphQLMcp()` during endpoint mapping. The adapter exposes the MCP server over Streamable HTTP at `/graphql/mcp` by default, so any MCP client (Claude Desktop, an editor extension, an agent runtime) can connect directly to the gateway.
 
-This page covers wiring and configuration. For authoring tools and prompts, see the [Nitro MCP](/docs/nitro/adapters/mcp) section.
+This page covers wiring and configuration. For authoring tools and prompts, see the [Nitro MCP](../../nitro/adapters/mcp.md) section.
 
 ## Prerequisites
 
-You need an existing Fusion gateway. If you do not have one yet, follow the [Getting Started](/docs/fusion/v16/getting-started) tutorial first.
+You need an existing Fusion gateway. If you do not have one yet, follow the [Getting Started](../getting-started.md) tutorial first.
 
 Add the adapter package to the gateway project:
 
@@ -158,7 +158,7 @@ With Nitro and MCP both enabled:
 - If Nitro configuration is incomplete (any of `ApiId`, `ApiKey`, or `Stage` not set), MCP integration is disabled with a warning, the storage returns no definitions, and the gateway continues to start.
 - If configuration is set but the API key is rejected, the storage uses the local cache when one is available and logs the sync failure. Without a usable cache, the exception propagates and host startup fails.
 
-For authoring tools and prompts, publishing feature collection versions, and managing stages, see the [Nitro MCP](/docs/nitro/adapters/mcp) section.
+For authoring tools and prompts, publishing feature collection versions, and managing stages, see the [Nitro MCP](../../nitro/adapters/mcp.md) section.
 
 ## Troubleshooting
 
@@ -187,5 +187,5 @@ Storage is registered but returned no definitions. With Nitro, ensure a publishe
 
 ## Next Steps
 
-- Author tools and prompts and publish them to a stage in the [Nitro MCP](/docs/nitro/adapters/mcp) section.
-- Deploy your gateway across stages with [Deployment and CI/CD](/docs/fusion/v16/deployment-and-ci-cd).
+- Author tools and prompts and publish them to a stage in the [Nitro MCP](../../nitro/adapters/mcp.md) section.
+- Deploy your gateway across stages with [Deployment and CI/CD](../deployment-and-ci-cd.md).

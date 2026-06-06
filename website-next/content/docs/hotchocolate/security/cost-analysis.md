@@ -388,7 +388,7 @@ builder
 
 # Next Steps
 
-- **Need to restrict access to fields?** See [Authorization](/docs/hotchocolate/v16/security/authorization).
-- **Building a private API?** See [Trusted Documents](/docs/hotchocolate/v16/performance/trusted-documents).
-- **Need to limit query depth?** See [Request Limits](/docs/hotchocolate/v16/security/request-limits).
-- **Need an overview of security options?** See [Security Overview](/docs/hotchocolate/v16/security).
+- **Need to restrict access to fields?** See [Authorization](./authorization.md).
+- **Building a private API?** See [Trusted Documents](../performance/trusted-documents.md).
+- **Need to limit query depth?** See [Request Limits](./request-limits.md).
+- **Need an overview of security options?** See [Security Overview](./index.md).

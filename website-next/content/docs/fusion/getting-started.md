@@ -11,7 +11,7 @@ By the end, you will have:
 - A Fusion gateway on `http://localhost:5000/graphql`
 - One composed API that clients query through the gateway
 
-If you want the broader conceptual background first, read [Overview](/docs/fusion/v16).
+If you want the broader conceptual background first, read [Overview](./index.md).
 
 ## What Is Fusion and Why Use It?
 
@@ -1076,9 +1076,9 @@ If the fields return **different** data, they should have **different** names (e
 
 You now have a working Fusion setup: two subgraphs contributing to one composed API, served through a single gateway. Here are some directions to explore next based on what you need:
 
-- **I want to add another subgraph to this project**: [Adding a Subgraph](/docs/fusion/v16/adding-a-subgraph)
-- **I want to understand entities more deeply**: [Entities and Lookups](/docs/fusion/v16/entities-and-lookups)
-- **I need cross-subgraph field dependencies (`[Require]`)**: [Entities and Lookups](/docs/fusion/v16/entities-and-lookups)
-- **I need to deploy this**: [Deployment & CI/CD](/docs/fusion/v16/deployment-and-ci-cd)
-- **I need to secure this**: [Authentication and Authorization](/docs/fusion/v16/authentication-and-authorization)
-- **I'm coming from Apollo**: [Coming from Apollo Federation](/docs/fusion/v16/migration/coming-from-apollo-federation)
+- **I want to add another subgraph to this project**: [Adding a Subgraph](./adding-a-subgraph.md)
+- **I want to understand entities more deeply**: [Entities and Lookups](./entities-and-lookups.md)
+- **I need cross-subgraph field dependencies (`[Require]`)**: [Entities and Lookups](./entities-and-lookups.md)
+- **I need to deploy this**: [Deployment & CI/CD](./deployment-and-ci-cd.md)
+- **I need to secure this**: [Authentication and Authorization](./authentication-and-authorization.md)
+- **I'm coming from Apollo**: [Coming from Apollo Federation](./migration/coming-from-apollo-federation.md)

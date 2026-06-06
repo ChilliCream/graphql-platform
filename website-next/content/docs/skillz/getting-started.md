@@ -113,9 +113,9 @@ Done!  Review skills before use; they run with full agent permissions.
 
 > The trailing line is a deliberate safety nudge. A skill can include scripts that the agent runs with your agent's full permissions. Install skills only from sources you trust, and read a new skill before you use it.
 
-If you omit `--agent`, skillz runs interactively and lets you pick which agents to target from the ones it detects on your machine. To install only specific skills from a multi-skill source, add `--skill <name>` (repeatable). For the full set of source forms, scopes, and flags, see [Installing Skills](/docs/skillz/installing-skills).
+If you omit `--agent`, skillz runs interactively and lets you pick which agents to target from the ones it detects on your machine. To install only specific skills from a multi-skill source, add `--skill <name>` (repeatable). For the full set of source forms, scopes, and flags, see [Installing Skills](./installing-skills.md).
 
-**Checkpoint.** If everything worked, you should see the `Installed 2 skill(s)` panel and the `Done!` line, with no error. If you saw an `Invalid agents` panel, you misspelled the agent name (it is case-sensitive). If you saw `No valid skills found`, the source had no `SKILL.md` with both a `name` and a `description`. See [Troubleshooting](/docs/skillz/troubleshooting) for more.
+**Checkpoint.** If everything worked, you should see the `Installed 2 skill(s)` panel and the `Done!` line, with no error. If you saw an `Invalid agents` panel, you misspelled the agent name (it is case-sensitive). If you saw `No valid skills found`, the source had no `SKILL.md` with both a `name` and a `description`. See [Troubleshooting](./troubleshooting.md) for more.
 
 # See what is installed
 
@@ -165,10 +165,10 @@ dotnet tool uninstall -g skillz
 Tool 'skillz' (version '0.1.1') was successfully uninstalled.
 ```
 
-Note that `dotnet tool update` updates the skillz CLI, not your installed skills. To check your skills for updates, use the `dnx skillz update` command, covered in [Installing Skills](/docs/skillz/installing-skills).
+Note that `dotnet tool update` updates the skillz CLI, not your installed skills. To check your skills for updates, use the `dnx skillz update` command, covered in [Installing Skills](./installing-skills.md).
 
 # Next steps
 
-- [Installing Skills](/docs/skillz/installing-skills): every source form, project versus global scope, picking agents and skills, symlink versus copy, and checking for skill updates.
-- [Authoring Skills](/docs/skillz/authoring-skills): scaffold a `SKILL.md` with `dnx skillz init`, write a good description, and publish your skill.
-- [Reference](/docs/skillz/reference): the complete command and flag surface.
+- [Installing Skills](./installing-skills.md): every source form, project versus global scope, picking agents and skills, symlink versus copy, and checking for skill updates.
+- [Authoring Skills](./authoring-skills.md): scaffold a `SKILL.md` with `dnx skillz init`, write a good description, and publish your skill.
+- [Reference](./reference.md): the complete command and flag surface.

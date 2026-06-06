@@ -131,7 +131,7 @@ Composition resolves the placeholders against a chosen environment. Pass `--envi
 
 The concept of batch resolvers like `productByIds(ids: [ID!]!)` no longer exists in Fusion v2. Batching is done on the transport level through [variable and request batching](https://github.com/graphql/graphql-over-http/blob/fb404ac12dde473f3d9f5a1b1026574c7475e1e4/spec/Appendix%20B%20--%20Variable%20Batching.md). This means singular fields like `Query.productById(id: ID!): Product` are invoked with a list of IDs instead of a plural `Query.productsById(ids: [ID!]!): [Product!]` field. Check out [this GitHub issue](https://github.com/graphql/composite-schemas-spec/issues/25#issue-2173900758) for details on this decision.
 
-Since you don't want multiple invocations of the `Query.productById` field during a single request to hit the database multiple times, you need to ensure your `Query` root fields and `[NodeResolver]` implementations (powering the `Query.node(id: ID!): Node` field) are using [`DataLoader`](/docs/hotchocolate/v16/resolvers-and-data/dataloader). This is a best practice and ensures the performance of your server does not degrade in comparison to the previous batching fields.
+Since you don't want multiple invocations of the `Query.productById` field during a single request to hit the database multiple times, you need to ensure your `Query` root fields and `[NodeResolver]` implementations (powering the `Query.node(id: ID!): Node` field) are using [`DataLoader`](../../hotchocolate/fetching-data/batching/dataloader.md). This is a best practice and ensures the performance of your server does not degrade in comparison to the previous batching fields.
 
 If an entity currently only has batch `Query` root fields in your subgraph, you'll also have to add a singular field:
 
@@ -372,7 +372,7 @@ dotnet nitro fusion validate \
 
 Once a subgraph is publishing a `.far`, you can migrate the subgraph project itself to Hot Chocolate v16 at any time. This is optional and independent of the gateway cut-over, but it lets you drop the legacy compatibility mode and use the full Fusion v2 feature set.
 
-Start by working through the [Hot Chocolate 15 to 16 migration guide](/docs/hotchocolate/v16/migrating/migrate-from-15-to-16) for the subgraph project. Once that is done, apply the steps below.
+Start by working through the [Hot Chocolate 15 to 16 migration guide](../../hotchocolate/migrating/migrate-from-15-to-16.md) for the subgraph project. Once that is done, apply the steps below.
 
 ### Apply the source schema defaults
 
@@ -417,7 +417,7 @@ public static class Query
 }
 ```
 
-Missing `@lookup` annotations will usually manifest as `UNSATISFIABLE_QUERY_PATH` errors in the composition. See [Entities and lookups](/docs/fusion/v16/entities-and-lookups) for details.
+Missing `@lookup` annotations will usually manifest as `UNSATISFIABLE_QUERY_PATH` errors in the composition. See [Entities and lookups](../entities-and-lookups.md) for details.
 
 If your graph has overlapping fields, i.e. multiple subgraphs providing the same field, you now also have to explicitly mark those fields as shareable from both sides.
 
@@ -430,9 +430,9 @@ public class Product
 }
 ```
 
-Missing `@shareable` annotations will usually manifest as `INVALID_FIELD_SHARING` errors in the composition. See [Field ownership and sharing](/docs/fusion/v16/field-ownership-and-sharing) for details.
+Missing `@shareable` annotations will usually manifest as `INVALID_FIELD_SHARING` errors in the composition. See [Field ownership and sharing](../field-ownership-and-sharing.md) for details.
 
-See [Composition](/docs/fusion/v16/composition) for guidance on composition behavior and an explanation of any other errors you might encounter, including what they mean and how to fix them.
+See [Composition](../composition.md) for guidance on composition behavior and an explanation of any other errors you might encounter, including what they mean and how to fix them.
 
 # Upgrade the gateway
 
@@ -668,7 +668,7 @@ The `watchFileForUpdates` parameter is gone — file watching is the default beh
 
 ### Nitro integration
 
-The packages have been restructured in v16. Versions now align with the rest of the platform, so you are migrating from `1.x` to `16.x`. For the full migration guide covering all package renames, API changes, and complete before/after examples, see [Migrating Nitro from 1 to 16](/docs/nitro/migration/migrate-from-1-to-16).
+The packages have been restructured in v16. Versions now align with the rest of the platform, so you are migrating from `1.x` to `16.x`. For the full migration guide covering all package renames, API changes, and complete before/after examples, see [Migrating Nitro from 1 to 16](../../nitro/migration/migrate-from-1-to-16.md).
 
 The key changes for Fusion projects:
 
@@ -1056,7 +1056,7 @@ Once the gateway has been [cut over to v16](#upgrade-the-gateway) and every subg
 
 Since `dotnet fusion` is no longer used, you can remove any reference to the `HotChocolate.Fusion.CommandLine` package from your pipelines and from `./.config/dotnet-tools.json`.
 
-You can also fully replace `ChilliCream.Nitro.CLI` with [`ChilliCream.Nitro.CommandLine`](/docs/nitro/cli/installation).
+You can also fully replace `ChilliCream.Nitro.CLI` with [`ChilliCream.Nitro.CommandLine`](../../nitro/cli/installation.md).
 
 > [!NOTE]
 > Hold off until the v16 gateway has been running in production long enough that a rollback to v15 is off the table. Once the v15 compose step is gone the `.fgp` is no longer refreshed, and a rollback would mean restoring these steps first. Cleanup is independent per subgraph, so there is no need to do all repositories at once.

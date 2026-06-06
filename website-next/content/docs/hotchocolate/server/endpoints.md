@@ -94,7 +94,7 @@ endpoints.MapGraphQL().WithOptions(o => o.EnableMultipartRequests = false);
 
 This setting controls whether the GraphQL server handles HTTP multipart forms (file uploads).
 
-[Learn more about uploading files](/docs/hotchocolate/v16/server/files#upload-scalar)
+[Learn more about uploading files](./files.md#upload-scalar)
 
 ### Tool
 
@@ -335,7 +335,7 @@ app.MapGraphQLPersistedOperations(requireOperationName: true);
 
 When enabled, requests to `/{operationId}` without an operation name return a `400 Bad Request` response.
 
-For details on storing and managing persisted operations, see [Trusted Documents](/docs/hotchocolate/v16/performance/trusted-documents).
+For details on storing and managing persisted operations, see [Trusted Documents](../performance/trusted-documents.md).
 
 # AddGraphQL Parameters
 
@@ -458,7 +458,7 @@ Per-endpoint `WithOptions` overrides take precedence over schema-level defaults.
 
 # Next Steps
 
-- [HTTP Transport](/docs/hotchocolate/v16/server/http-transport) for details on request formats, response formats, WebSocket transport, and SSE.
-- [Interceptors](/docs/hotchocolate/v16/server/interceptors) for hooking into request processing.
-- [Trusted Documents](/docs/hotchocolate/v16/performance/trusted-documents) for the full persisted operations workflow.
-- [Cost Analysis](/docs/hotchocolate/v16/security/cost-analysis) for understanding the default security cost analyzer.
+- [HTTP Transport](./http-transport.md) for details on request formats, response formats, WebSocket transport, and SSE.
+- [Interceptors](./interceptors.md) for hooking into request processing.
+- [Trusted Documents](../performance/trusted-documents.md) for the full persisted operations workflow.
+- [Cost Analysis](../security/cost-analysis.md) for understanding the default security cost analyzer.

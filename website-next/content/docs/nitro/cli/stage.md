@@ -6,7 +6,7 @@ The `nitro stage` commands manage the stages of an API. Stages represent deploym
 
 Stages are not created with a dedicated `create` command. Instead, the full set of stages for an API is declared together with `nitro stage edit`, either interactively or by passing a JSON `--configuration`. Conditions on a stage (such as `afterStage`) do not have any effect besides how the UI for the stages is being rendered.
 
-All `stage` commands require authentication. Run `nitro login` first or pass `--api-key` (see [Global Options](/docs/nitro/cli/global-options)).
+All `stage` commands require authentication. Run `nitro login` first or pass `--api-key` (see [Global Options](./global-options.md)).
 
 # `nitro stage edit`
 

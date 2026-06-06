@@ -8,7 +8,7 @@ A typical workflow is: `create` a collection on an API, `upload` a new version o
 
 > Validation runs automatically as part of `nitro openapi publish`. Use `nitro openapi validate` only when you need to gate a deploy step in a separate pipeline job.
 
-All `openapi` commands require authentication. Run `nitro login` first or pass `--api-key` (see [Global Options](/docs/nitro/cli/global-options)).
+All `openapi` commands require authentication. Run `nitro login` first or pass `--api-key` (see [Global Options](./global-options.md)).
 
 # `nitro openapi create`
 

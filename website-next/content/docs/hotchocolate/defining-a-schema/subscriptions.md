@@ -369,7 +369,7 @@ Group your subscription classes by domain area, the same way you would split que
 
 # Next Steps
 
-- **Need to read data?** See [Queries](/docs/hotchocolate/v16/defining-a-schema/queries).
-- **Need to write data?** See [Mutations](/docs/hotchocolate/v16/defining-a-schema/mutations).
-- **Need to understand how types map to the schema?** See [Object Types](/docs/hotchocolate/v16/defining-a-schema/object-types).
+- **Need to read data?** See [Queries](./queries.md).
+- **Need to write data?** See [Mutations](./mutations.md).
+- **Need to understand how types map to the schema?** See [Object Types](./object-types.md).
 - **Need to authenticate WebSocket connections?** See the [WebSocket authentication example](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/WebsocketAuthentication).

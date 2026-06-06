@@ -183,7 +183,7 @@ builder
 
 # Next Steps
 
-- **Need cost analysis?** See [Cost Analysis](/docs/hotchocolate/v16/security/cost-analysis).
-- **Need trusted documents?** See [Trusted Documents](/docs/hotchocolate/v16/performance/trusted-documents).
-- **Need to control introspection?** See [Introspection](/docs/hotchocolate/v16/security/introspection).
-- **Back to overview?** See [Securing Your API](/docs/hotchocolate/v16/security).
+- **Need cost analysis?** See [Cost Analysis](./cost-analysis.md).
+- **Need trusted documents?** See [Trusted Documents](../performance/trusted-documents.md).
+- **Need to control introspection?** See [Introspection](./introspection.md).
+- **Back to overview?** See [Securing Your API](./index.md).

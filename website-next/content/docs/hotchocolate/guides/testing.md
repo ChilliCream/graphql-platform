@@ -93,7 +93,7 @@ public async Task Get_Product_By_Id()
 
 # Snapshot Testing with CookieCrumble
 
-Asserting on individual fields works for small results, but GraphQL responses can be large and nested. Snapshot testing captures the entire response and compares it against a stored baseline. Hot Chocolate uses [CookieCrumble](/docs/hotchocolate/v16/guides/testing) for this.
+Asserting on individual fields works for small results, but GraphQL responses can be large and nested. Snapshot testing captures the entire response and compares it against a stored baseline. Hot Chocolate uses [CookieCrumble](./testing.md) for this.
 
 ## File-Based Snapshots
 
@@ -299,6 +299,6 @@ public async Task Error_Filter_Masks_Internal_Errors()
 
 # Next Steps
 
-- **Error handling reference:** [Error Handling Guide](/docs/hotchocolate/v16/guides/error-handling) covers error types, error filters, and how to structure error responses.
+- **Error handling reference:** [Error Handling Guide](./error-handling.md) covers error types, error filters, and how to structure error responses.
 - **CookieCrumble:** The snapshot testing framework lives in `src/CookieCrumble/` in the repository. Explore the source for advanced snapshot configuration.
-- **Schema evolution:** [Schema Evolution Guide](/docs/hotchocolate/v16/guides/schema-evolution) covers deprecation, opt-in features, and managing schema changes over time.
+- **Schema evolution:** [Schema Evolution Guide](./schema-evolution.md) covers deprecation, opt-in features, and managing schema changes over time.

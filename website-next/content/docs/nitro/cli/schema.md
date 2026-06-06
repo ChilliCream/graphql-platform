@@ -6,9 +6,9 @@ The `nitro schema` commands manage the GraphQL schema (SDL) of an API.
 
 The typical flow is: `upload` a new version, `validate` it against the target stage to detect breaking changes, then `publish` it once the changes are safe. `download` retrieves the schema currently published to a stage, which is useful for code generation and local tooling.
 
-> For HotChocolate Fusion gateways, use the [`nitro fusion`](/docs/nitro/cli/fusion) commands instead.
+> For HotChocolate Fusion gateways, use the [`nitro fusion`](./fusion.md) commands instead.
 
-All `schema` commands require authentication. Run `nitro login` first or pass `--api-key` (see [Global Options](/docs/nitro/cli/global-options)).
+All `schema` commands require authentication. Run `nitro login` first or pass `--api-key` (see [Global Options](./global-options.md)).
 
 # `nitro schema upload`
 

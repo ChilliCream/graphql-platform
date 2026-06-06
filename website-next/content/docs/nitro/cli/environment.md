@@ -4,7 +4,7 @@ title: environment Command
 
 The `nitro environment` commands manage environments. An environment is a workspace-level grouping that holds a list of variables that can be reused across documents in the Nitro UI.
 
-All `environment` commands require authentication. Run `nitro login` first or pass `--api-key` (see [Global Options](/docs/nitro/cli/global-options)).
+All `environment` commands require authentication. Run `nitro login` first or pass `--api-key` (see [Global Options](./global-options.md)).
 
 # `nitro environment create`
 

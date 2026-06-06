@@ -304,7 +304,7 @@ Many of these scalars are built on native .NET types. An email address, for exam
 public string GetEmail() => "test@example.com";
 ```
 
-[Learn more about explicit types](/docs/hotchocolate/v16/defining-a-schema/object-types#explicit-types)
+[Learn more about explicit types](./object-types.md#explicit-types)
 
 # NodaTime Scalars
 
@@ -575,7 +575,7 @@ protected override LeafCoercionException FormatException(string runtimeValue)
 
 # Next Steps
 
-- **Need to define object types?** See [Object Types](/docs/hotchocolate/v16/defining-a-schema/object-types).
-- **Need to accept complex inputs?** See [Input Object Types](/docs/hotchocolate/v16/defining-a-schema/input-object-types).
-- **Need to define enums?** See [Enums](/docs/hotchocolate/v16/defining-a-schema/enums).
-- **Need to add custom validation logic?** See [Directives](/docs/hotchocolate/v16/defining-a-schema/directives).
+- **Need to define object types?** See [Object Types](./object-types.md).
+- **Need to accept complex inputs?** See [Input Object Types](./input-object-types.md).
+- **Need to define enums?** See [Enums](./enums.md).
+- **Need to add custom validation logic?** See [Directives](./directives.md).

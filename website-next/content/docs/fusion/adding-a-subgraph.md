@@ -4,14 +4,14 @@ title: "Adding a Subgraph"
 
 You have an existing Fusion project with a gateway, one or more subgraphs, and a working composition pipeline. Now you need to add a new subgraph. Maybe your team owns a new domain (shipping, billing, inventory), or you are splitting an existing subgraph into smaller services. Either way, the process is the same: create a new Hot Chocolate project, define your types and any entity extensions, export the schema, compose, and verify.
 
-This page walks you through adding a Shipping subgraph to an existing project that already has Products and Reviews subgraphs. If you have not set up a Fusion project yet, start with the [Getting Started](/docs/fusion/v16/getting-started) tutorial first.
+This page walks you through adding a Shipping subgraph to an existing project that already has Products and Reviews subgraphs. If you have not set up a Fusion project yet, start with the [Getting Started](./getting-started.md) tutorial first.
 
 ## Prerequisites
 
 Before you begin, you need:
 
 - An existing Fusion project with at least one subgraph and a gateway
-- The [Nitro CLI](/docs/fusion/v16/nitro-cli-reference) installed (`dotnet tool install -g ChilliCream.Nitro.CommandLine`)
+- The [Nitro CLI](./cli.md) installed (`dotnet tool install -g ChilliCream.Nitro.CommandLine`)
 - The .NET 10 SDK or later
 
 You should be able to compose and run your existing project successfully. If composition is currently broken, fix that first.
@@ -182,7 +182,7 @@ public static partial class ShippingQueries
 - `GetShipmentById` is a **public lookup**. Clients can call it directly, and the gateway uses it for entity resolution.
 - `GetProductById` is an **internal lookup**. It is hidden from the composite schema and exists only for the gateway to enter the Shipping subgraph's `Product` type during entity resolution. It constructs a stub from the ID without checking whether the product exists, which is safe because the gateway only calls internal lookups after another subgraph has already confirmed the entity exists.
 
-For more on public vs. internal lookups and when to use each, see [Entities and Lookups](/docs/fusion/v16/entities-and-lookups).
+For more on public vs. internal lookups and when to use each, see [Entities and Lookups](./entities-and-lookups.md).
 
 ### Replace Foreign Keys with Entity References
 
@@ -326,11 +326,11 @@ If composition fails after adding your new subgraph, the error messages point to
 
 ### Duplicate field without sharing
 
-**"Field X is defined in multiple subgraphs"**. Your new subgraph defines a field that already exists in another subgraph. Key fields (like `id`) are automatically shareable, but all other duplicated fields need `@shareable` on every definition. See [Field Ownership](/docs/fusion/v16/field-ownership-and-sharing) for details.
+**"Field X is defined in multiple subgraphs"**. Your new subgraph defines a field that already exists in another subgraph. Key fields (like `id`) are automatically shareable, but all other duplicated fields need `@shareable` on every definition. See [Field Ownership](./field-ownership-and-sharing.md) for details.
 
 ### Missing lookup
 
-**"No lookup found for entity X"**. Your subgraph references an entity type but no subgraph provides a lookup for it. Add a lookup resolver (public or internal) for that entity. See [Entities and Lookups](/docs/fusion/v16/entities-and-lookups).
+**"No lookup found for entity X"**. Your subgraph references an entity type but no subgraph provides a lookup for it. Add a lookup resolver (public or internal) for that entity. See [Entities and Lookups](./entities-and-lookups.md).
 
 ### Incompatible field types
 
@@ -338,7 +338,7 @@ If composition fails after adding your new subgraph, the error messages point to
 
 ## Next Steps
 
-- **Need cross-subgraph field dependencies?** See [Data Requirements](/docs/fusion/v16/data-requirements-and-mapping) for the full range of `@require` patterns and FieldSelectionMap syntax.
-- **Composition failed?** See [Composition](/docs/fusion/v16/composition) for the full merging rules, common errors, and fixes.
-- **Want to understand entities more deeply?** See [Entities and Lookups](/docs/fusion/v16/entities-and-lookups) for the complete guide to entity stubs, public vs. internal lookups, and composite keys.
-- **Ready to deploy?** See [Deployment and CI/CD](/docs/fusion/v16/deployment-and-ci-cd) for setting up independent subgraph deployments with the Nitro CLI.
+- **Need cross-subgraph field dependencies?** See [Data Requirements](./data-requirements-and-mapping.md) for the full range of `@require` patterns and FieldSelectionMap syntax.
+- **Composition failed?** See [Composition](./composition.md) for the full merging rules, common errors, and fixes.
+- **Want to understand entities more deeply?** See [Entities and Lookups](./entities-and-lookups.md) for the complete guide to entity stubs, public vs. internal lookups, and composite keys.
+- **Ready to deploy?** See [Deployment and CI/CD](./deployment-and-ci-cd.md) for setting up independent subgraph deployments with the Nitro CLI.

@@ -85,7 +85,7 @@ When your handler throws an exception, Mocha's fault middleware catches it and t
 
 The fault middleware marks the message as consumed after handling, which prevents the dead-letter middleware from re-forwarding it.
 
-The fault handler is implemented as the `Fault` middleware in the receive pipeline. See [Middleware and Pipelines](/docs/mocha/v16/middleware-and-pipelines) for positioning and customization.
+The fault handler is implemented as the `Fault` middleware in the receive pipeline. See [Middleware and Pipelines](./middleware-and-pipelines.md) for positioning and customization.
 
 ## Verify fault behavior
 
@@ -238,11 +238,11 @@ builder.Services
 
 Exception matching respects inheritance. `On<DbException>()` also matches `NpgsqlException` and any other `DbException` subclass. When multiple rules match, the most specific type wins - the same precedence as C# `catch` blocks.
 
-For the full API including predicates, conditional policies, and escalation chains, see [Exception Policies](/docs/mocha/v16/exception-policies).
+For the full API including predicates, conditional policies, and escalation chains, see [Exception Policies](./exception-policies.md).
 
 ## Override retry per consumer
 
-The bus-level exception policy applies to all consumers. Override it for specific consumers that need different behavior. See [Handlers and Consumers](/docs/mocha/v16/handlers-and-consumers) for the full consumer configuration API.
+The bus-level exception policy applies to all consumers. Override it for specific consumers that need different behavior. See [Handlers and Consumers](./handlers-and-consumers.md) for the full consumer configuration API.
 
 ```csharp
 builder.Services
@@ -298,7 +298,7 @@ Redelivery lives in the **receive pipeline**, not the consumer pipeline. This ma
 1. **Single decision point.** When an endpoint has multiple consumers, you want one redelivery decision per message, not one per consumer.
 2. **Releases the concurrency slot.** Retry holds the slot while waiting. Redelivery returns the message to the transport and frees the slot for other messages.
 
-Redelivery uses Mocha's [scheduling infrastructure](/docs/mocha/v16/scheduling) to schedule the message for future delivery. The message re-enters the full receive pipeline when it arrives - fresh routing, fresh consumer invocations, fresh retry attempts.
+Redelivery uses Mocha's [scheduling infrastructure](./scheduling.md) to schedule the message for future delivery. The message re-enters the full receive pipeline when it arrives - fresh routing, fresh consumer invocations, fresh retry attempts.
 
 ```text
 Receive pipeline:
@@ -524,7 +524,7 @@ public class PaymentConsumer(ILogger<PaymentConsumer> logger) : IConsumer<Proces
 
 ## Retry and sagas
 
-[Sagas](/docs/mocha/v16/sagas) are consumers, so retry and redelivery apply automatically - no special configuration needed. Each saga handler invocation runs inside a saga transaction. If the handler throws, the transaction is never committed and all state changes are discarded. On the next retry attempt, the saga state is loaded fresh from the store.
+[Sagas](./sagas.md) are consumers, so retry and redelivery apply automatically - no special configuration needed. Each saga handler invocation runs inside a saga transaction. If the handler throws, the transaction is never committed and all state changes are discarded. On the next retry attempt, the saga state is loaded fresh from the store.
 
 This means retry is safe for sagas by default. You do not need to worry about partial state mutations leaking between retry attempts.
 
@@ -542,7 +542,7 @@ Check both retry and redelivery. With both configured, the total handler invocat
 
 ## "Redelivery fails at startup"
 
-Redelivery uses Mocha's [scheduling infrastructure](/docs/mocha/v16/scheduling). If your transport does not support scheduling or the scheduling store is not configured, redelivery cannot schedule messages for later delivery. Check that your transport is configured with scheduling support.
+Redelivery uses Mocha's [scheduling infrastructure](./scheduling.md). If your transport does not support scheduling or the scheduling store is not configured, redelivery cannot schedule messages for later delivery. Check that your transport is configured with scheduling support.
 
 ## "Validation exceptions are being retried"
 
@@ -560,7 +560,7 @@ builder.Services
     .AddRabbitMQ();
 ```
 
-See [Exception Policies](/docs/mocha/v16/exception-policies) for the full per-exception configuration API, including predicates, terminal actions, and escalation chains.
+See [Exception Policies](./exception-policies.md) for the full per-exception configuration API, including predicates, terminal actions, and escalation chains.
 
 ## "Request/reply messages are not redelivered"
 
@@ -619,7 +619,7 @@ builder.Services
 
 The circuit breaker middleware stops processing messages when the failure rate exceeds a threshold. It uses [Polly](https://github.com/App-vNext/Polly) internally and follows the standard circuit breaker pattern: **closed** (normal), **open** (rejecting), **half-open** (testing recovery).
 
-The circuit breaker is implemented as the `CircuitBreaker` middleware in the receive pipeline. See [Middleware and Pipelines](/docs/mocha/v16/middleware-and-pipelines) for positioning and customization.
+The circuit breaker is implemented as the `CircuitBreaker` middleware in the receive pipeline. See [Middleware and Pipelines](./middleware-and-pipelines.md) for positioning and customization.
 
 ```csharp
 builder.Services
@@ -970,14 +970,14 @@ The inbox cleanup worker is a background hosted service (`IHostedService`). It r
 
 # Next steps
 
-Your messaging pipeline now handles exceptions per-type with retry and redelivery policies, limits concurrency, breaks circuits on repeated failures, guarantees delivery through the outbox, and deduplicates messages through the inbox. To monitor your messaging system, see [Observability](/docs/mocha/v16/observability).
+Your messaging pipeline now handles exceptions per-type with retry and redelivery policies, limits concurrency, breaks circuits on repeated failures, guarantees delivery through the outbox, and deduplicates messages through the inbox. To monitor your messaging system, see [Observability](./observability.md).
 
-- [**Exception Policies**](/docs/mocha/v16/exception-policies) - Configure per-exception handling with composable retry, redelivery, and terminal actions.
-- [**Handlers and Consumers**](/docs/mocha/v16/handlers-and-consumers) - Configure per-consumer exception policy overrides and understand handler exception behavior.
-- [**Scheduling**](/docs/mocha/v16/scheduling) - Configure the scheduling infrastructure that redelivery uses for delayed message delivery.
-- [**Middleware and Pipelines**](/docs/mocha/v16/middleware-and-pipelines) - Write custom middleware, control pipeline ordering, and understand the three pipeline stages.
-- [**Sagas**](/docs/mocha/v16/sagas) - Coordinate multi-step workflows with state machine sagas that use compensation when steps fail.
-- [**Observability**](/docs/mocha/v16/observability) - Trace message flows across services and monitor pipeline health with OpenTelemetry.
+- [**Exception Policies**](./exception-policies.md) - Configure per-exception handling with composable retry, redelivery, and terminal actions.
+- [**Handlers and Consumers**](./handlers-and-consumers.md) - Configure per-consumer exception policy overrides and understand handler exception behavior.
+- [**Scheduling**](./scheduling.md) - Configure the scheduling infrastructure that redelivery uses for delayed message delivery.
+- [**Middleware and Pipelines**](./middleware-and-pipelines.md) - Write custom middleware, control pipeline ordering, and understand the three pipeline stages.
+- [**Sagas**](./sagas.md) - Coordinate multi-step workflows with state machine sagas that use compensation when steps fail.
+- [**Observability**](./observability.md) - Trace message flows across services and monitor pipeline health with OpenTelemetry.
 
 > **Runnable examples:** [OutboxInbox](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Examples/Reliability/OutboxInbox), [CircuitBreaker](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Examples/Reliability/CircuitBreaker)
 >

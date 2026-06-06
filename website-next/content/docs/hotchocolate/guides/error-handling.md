@@ -134,7 +134,7 @@ Domain errors are the primary mechanism for communicating business logic failure
 
 This keeps domain errors separate from request errors: they appear on the payload, not in the top-level `errors` array, and clients can query them with specific fields and types.
 
-For mutation conventions setup, see [Mutations](/docs/hotchocolate/v16/defining-a-schema/mutations#mutation-conventions).
+For mutation conventions setup, see [Mutations](../defining-a-schema/mutations.md#mutation-conventions).
 
 ## Map Exceptions Directly
 
@@ -529,6 +529,6 @@ public class UserByEmailResultType : UnionType
 
 # Next Steps
 
-- **Need mutation conventions?** See [Mutations](/docs/hotchocolate/v16/defining-a-schema/mutations) for the full pattern including inputs, payloads, and naming customization.
-- **Need to build a schema?** See [Schema Basics](/docs/hotchocolate/v16/defining-a-schema) for an overview of how types, queries, and mutations fit together.
-- **Need to fetch data?** See [DataLoader](/docs/hotchocolate/v16/fetching-data/batching/dataloader) for efficient data fetching patterns.
+- **Need mutation conventions?** See [Mutations](../defining-a-schema/mutations.md) for the full pattern including inputs, payloads, and naming customization.
+- **Need to build a schema?** See [Schema Basics](../defining-a-schema/index.md) for an overview of how types, queries, and mutations fit together.
+- **Need to fetch data?** See [DataLoader](../fetching-data/batching/dataloader.md) for efficient data fetching patterns.

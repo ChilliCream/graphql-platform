@@ -81,7 +81,7 @@ type Product @key(fields: "id sku") {
 }
 ```
 
-> **In C#:** `[EntityKey("id")]` attribute. See [Entities and Lookups](/docs/fusion/v16/entities-and-lookups).
+> **In C#:** `[EntityKey("id")]` attribute. See [Entities and Lookups](./entities-and-lookups.md).
 
 ---
 
@@ -123,7 +123,7 @@ type Product {
 }
 ```
 
-> **In C#:** `[Lookup]` attribute. See [Entities and Lookups](/docs/fusion/v16/entities-and-lookups).
+> **In C#:** `[Lookup]` attribute. See [Entities and Lookups](./entities-and-lookups.md).
 
 ---
 
@@ -176,7 +176,7 @@ type Query {
 }
 ```
 
-> **In C#:** The `@is` mapping is inferred automatically from the argument name. When it does not match, use the field parameter convention described in [Entities and Lookups](/docs/fusion/v16/entities-and-lookups).
+> **In C#:** The `@is` mapping is inferred automatically from the argument name. When it does not match, use the field parameter convention described in [Entities and Lookups](./entities-and-lookups.md).
 
 ---
 
@@ -225,7 +225,7 @@ type Product {
 }
 ```
 
-> **In C#:** `[Require]` attribute on method parameters. See [Data Requirements](/docs/fusion/v16/data-requirements-and-mapping).
+> **In C#:** `[Require]` attribute on method parameters. See [Data Requirements](./data-requirements-and-mapping.md).
 
 ---
 
@@ -271,7 +271,7 @@ type Product {
 }
 ```
 
-> **In C#:** `[Shareable]` attribute. See [Field Ownership](/docs/fusion/v16/field-ownership-and-sharing).
+> **In C#:** `[Shareable]` attribute. See [Field Ownership](./field-ownership-and-sharing.md).
 
 ---
 
@@ -319,7 +319,7 @@ type User {
 }
 ```
 
-> **In C#:** `[Provides("email")]` attribute. See [Field Ownership](/docs/fusion/v16/field-ownership-and-sharing).
+> **In C#:** `[Provides("email")]` attribute. See [Field Ownership](./field-ownership-and-sharing.md).
 
 ---
 
@@ -362,7 +362,7 @@ type Query {
 }
 ```
 
-> **In C#:** `[External]` attribute (from `HotChocolate.ApolloFederation.Types`). See [Field Ownership](/docs/fusion/v16/field-ownership-and-sharing).
+> **In C#:** `[External]` attribute (from `HotChocolate.ApolloFederation.Types`). See [Field Ownership](./field-ownership-and-sharing.md).
 
 ---
 
@@ -410,7 +410,7 @@ type Product {
 }
 ```
 
-> **In C#:** `[Override("Catalog")]` attribute (from `HotChocolate.ApolloFederation.Types`). See [Schema Exposure and Evolution](/docs/fusion/v16/schema-exposure-and-evolution).
+> **In C#:** `[Override("Catalog")]` attribute (from `HotChocolate.ApolloFederation.Types`). See [Schema Exposure and Evolution](./schema-exposure-and-evolution.md).
 
 ---
 
@@ -455,7 +455,7 @@ type Product {
 }
 ```
 
-> **In C#:** `[Internal]` attribute. See [Schema Exposure and Evolution](/docs/fusion/v16/schema-exposure-and-evolution).
+> **In C#:** `[Internal]` attribute. See [Schema Exposure and Evolution](./schema-exposure-and-evolution.md).
 
 ---
 
@@ -497,7 +497,7 @@ type Product {
 }
 ```
 
-> **In C#:** `[Inaccessible]` attribute. See [Schema Exposure and Evolution](/docs/fusion/v16/schema-exposure-and-evolution).
+> **In C#:** `[Inaccessible]` attribute. See [Schema Exposure and Evolution](./schema-exposure-and-evolution.md).
 
 ---
 
@@ -519,10 +519,10 @@ Use `@internal` when a field or type exists solely for the gateway's entity reso
 # See Also
 
 - [GraphQL Composite Schemas Specification](https://graphql.github.io/composite-schemas-spec/draft/) -- The specification that defines these directives
-- [Getting Started](/docs/fusion/v16/getting-started) -- Introduction to Fusion in practice
-- [Entities and Lookups](/docs/fusion/v16/entities-and-lookups) -- Entity resolution patterns with `@key`, `@lookup`, and `@is`
-- [Field Ownership](/docs/fusion/v16/field-ownership-and-sharing) -- Ownership model with `@shareable`, `@external`, and `@provides`
-- [Data Requirements](/docs/fusion/v16/data-requirements-and-mapping) -- Cross-subgraph data dependencies with `@require`
-- [Schema Exposure and Evolution](/docs/fusion/v16/schema-exposure-and-evolution) -- Visibility control with `@internal`, `@inaccessible`, and `@override`
-- [Cache Control](/docs/fusion/v16/cache-control) -- CDN and HTTP caching behavior
-- [Composition](/docs/fusion/v16/composition) -- How directives affect schema merging
+- [Getting Started](./getting-started.md) -- Introduction to Fusion in practice
+- [Entities and Lookups](./entities-and-lookups.md) -- Entity resolution patterns with `@key`, `@lookup`, and `@is`
+- [Field Ownership](./field-ownership-and-sharing.md) -- Ownership model with `@shareable`, `@external`, and `@provides`
+- [Data Requirements](./data-requirements-and-mapping.md) -- Cross-subgraph data dependencies with `@require`
+- [Schema Exposure and Evolution](./schema-exposure-and-evolution.md) -- Visibility control with `@internal`, `@inaccessible`, and `@override`
+- [Cache Control](./cache-control.md) -- CDN and HTTP caching behavior
+- [Composition](./composition.md) -- How directives affect schema merging

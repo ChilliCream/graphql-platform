@@ -47,7 +47,7 @@ A filter convention is a .NET class that implements `IFilterConvention`. Instead
 
 ## Descriptor
 
-Most descriptor capabilities are documented under [Filtering](/docs/hotchocolate/v16/fetching-data/filtering). Read the parts about `FilterConventions` there first.
+Most descriptor capabilities are documented under [Filtering](../filtering.md). Read the parts about `FilterConventions` there first.
 
 Two features on the descriptor are specific to extensibility:
 
@@ -290,5 +290,5 @@ builder
 
 # Next Steps
 
-- [Filtering](/docs/hotchocolate/v16/fetching-data/filtering) for using built-in filtering
-- [MongoDB integration](/docs/hotchocolate/v16/fetching-data/integrations/mongodb) for MongoDB-specific filtering
+- [Filtering](../filtering.md) for using built-in filtering
+- [MongoDB integration](./mongodb.md) for MongoDB-specific filtering

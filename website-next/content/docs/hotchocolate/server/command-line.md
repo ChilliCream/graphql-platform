@@ -40,5 +40,5 @@ dotnet run -- schema export --output schema.graphql
 
 # Next Steps
 
-- [Warmup](/docs/hotchocolate/v16/server/warmup) for details on startup behavior and schema initialization.
-- [Migrate from v15 to v16](/docs/hotchocolate/v16/migrating/migrate-from-15-to-16#noteworthy-changes) for the full list of changes to `RunWithGraphQLCommandsAsync`.
+- [Warmup](./warmup.md) for details on startup behavior and schema initialization.
+- [Migrate from v15 to v16](../migrating/migrate-from-15-to-16.md#noteworthy-changes) for the full list of changes to `RunWithGraphQLCommandsAsync`.

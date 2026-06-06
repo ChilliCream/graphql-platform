@@ -6,7 +6,7 @@ The `nitro workspace` commands manage workspaces. A workspace is the top-level c
 
 The CLI tracks a default workspace per session so most other commands can omit `--workspace-id`. Use `nitro workspace set-default` to change it and `nitro workspace current` to see what is selected.
 
-All `workspace` commands require authentication. Run `nitro login` first or pass `--api-key` (see [Global Options](/docs/nitro/cli/global-options)).
+All `workspace` commands require authentication. Run `nitro login` first or pass `--api-key` (see [Global Options](./global-options.md)).
 
 # `nitro workspace create`
 

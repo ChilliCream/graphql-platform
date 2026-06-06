@@ -4,7 +4,7 @@ title: "Schema Exposure and Evolution"
 
 Not everything in your source schema should be visible to clients, and not everything should stay the same forever. As your distributed graph grows, you need control over two things: what clients can see today, and how the schema changes over time.
 
-This page covers five directives that handle exposure and evolution. `@inaccessible` and `@internal` control visibility in the composite schema. `@deprecated` and `@requiresOptIn` manage the lifecycle of fields and values. `@override` migrates field ownership between subgraphs. If you have completed the [Getting Started](/docs/fusion/v16/getting-started) tutorial and worked through [Entities and Lookups](/docs/fusion/v16/entities-and-lookups), you already used `@internal` on lookup fields. Here, you will see the full picture of visibility control and schema evolution.
+This page covers five directives that handle exposure and evolution. `@inaccessible` and `@internal` control visibility in the composite schema. `@deprecated` and `@requiresOptIn` manage the lifecycle of fields and values. `@override` migrates field ownership between subgraphs. If you have completed the [Getting Started](./getting-started.md) tutorial and worked through [Entities and Lookups](./entities-and-lookups.md), you already used `@internal` on lookup fields. Here, you will see the full picture of visibility control and schema evolution.
 
 ## Controlling Client Visibility
 
@@ -126,7 +126,7 @@ public partial class InternalLookups
 }
 ```
 
-For a deeper look at internal vs. public lookups, composite keys, and the node pattern, see [Entities and Lookups](/docs/fusion/v16/entities-and-lookups).
+For a deeper look at internal vs. public lookups, composite keys, and the node pattern, see [Entities and Lookups](./entities-and-lookups.md).
 
 ### Choosing Between Hidden and Internal
 
@@ -396,7 +396,7 @@ The old resolver stays in place during the transition. Both subgraphs can define
 
 ## Next Steps
 
-- **Need entity resolution patterns?** See [Entities and Lookups](/docs/fusion/v16/entities-and-lookups) for public vs. internal lookups, composite keys, and the node pattern.
-- **Need cross-subgraph field dependencies?** See [Data Requirements](/docs/fusion/v16/data-requirements-and-mapping) for `@require`, `@is`, and FieldSelectionMap patterns.
-- **Need field sharing and ownership rules?** See [Field Ownership](/docs/fusion/v16/field-ownership-and-sharing) for `@shareable`, `@external`, and `@provides` patterns.
-- **Adding a new subgraph?** See [Adding a Subgraph](/docs/fusion/v16/adding-a-subgraph) for the full walkthrough of creating and composing a new subgraph.
+- **Need entity resolution patterns?** See [Entities and Lookups](./entities-and-lookups.md) for public vs. internal lookups, composite keys, and the node pattern.
+- **Need cross-subgraph field dependencies?** See [Data Requirements](./data-requirements-and-mapping.md) for `@require`, `@is`, and FieldSelectionMap patterns.
+- **Need field sharing and ownership rules?** See [Field Ownership](./field-ownership-and-sharing.md) for `@shareable`, `@external`, and `@provides` patterns.
+- **Adding a new subgraph?** See [Adding a Subgraph](./adding-a-subgraph.md) for the full walkthrough of creating and composing a new subgraph.

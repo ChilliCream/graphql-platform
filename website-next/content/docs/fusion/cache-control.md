@@ -52,7 +52,7 @@ In real requests, these values are URL-encoded, and for larger operations the qu
 
 In large first-party GraphQL APIs, a common approach used by companies such as Netflix, Meta, and X is to rely on trusted documents. Client operations are stored in an operation store, and clients send a stable operation identifier instead of the full query text.
 
-> You can read more in the [First-Party API guide](/docs/fusion/v16/guides/first-party-api).
+> You can read more in the [First-Party API guide](./guides/first-party-api.md).
 
 With trusted documents in place, persisted-operation routes become short and stable.
 

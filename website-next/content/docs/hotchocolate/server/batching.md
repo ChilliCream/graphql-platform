@@ -162,12 +162,12 @@ If you are using a JavaScript client, consider:
 - [meros](https://github.com/maraisr/meros) for handling `multipart/mixed` responses
 - [graphql-sse](https://github.com/enisdenjo/graphql-sse) for handling `text/event-stream` responses
 
-For more details about streaming transports, see [HTTP Transport](/docs/hotchocolate/v16/server/http-transport#streaming-transports).
+For more details about streaming transports, see [HTTP Transport](./http-transport.md#streaming-transports).
 
 # Next Steps
 
-- [HTTP Transport](/docs/hotchocolate/v16/server/http-transport) for details on streaming transports and incremental delivery.
-- [Persisted Operations](/docs/hotchocolate/v16/performance/trusted-documents) for reducing request payload size.
-- [Migrate from v15 to v16](/docs/hotchocolate/v16/migrating/migrate-from-15-to-16#batching-is-now-disabled-by-default) for the batching migration details.
+- [HTTP Transport](./http-transport.md) for details on streaming transports and incremental delivery.
+- [Persisted Operations](../performance/trusted-documents.md) for reducing request payload size.
+- [Migrate from v15 to v16](../migrating/migrate-from-15-to-16.md#batching-is-now-disabled-by-default) for the batching migration details.
 
 <!-- spell-checker:ignore Cbnia, Yero -->

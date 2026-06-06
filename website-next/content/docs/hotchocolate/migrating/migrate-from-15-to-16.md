@@ -27,7 +27,7 @@ builder.AddGraphQL()
 +   .AddWarmupTask((executor, ct) => { /* ... */ });
 ```
 
-Warmup tasks registered with `AddWarmupTask` run at startup **and** when the schema is updated at runtime by default. Check out the [documentation](/docs/hotchocolate/v16/server/warmup), if you need your warmup task to only run at startup.
+Warmup tasks registered with `AddWarmupTask` run at startup **and** when the schema is updated at runtime by default. Check out the [documentation](../server/warmup.md), if you need your warmup task to only run at startup.
 
 If you need to preserve lazy initialization for specific scenarios (though this is rarely recommended), you can opt out by setting the `LazyInitialization` option to `true`:
 
@@ -869,7 +869,7 @@ The `DefaultHttpMethod` enum has been removed. Use the `UseGet` boolean property
 
 ## Nitro integration
 
-The Nitro NuGet packages have been restructured in v16. Versions now align with the rest of the platform, so you are migrating from `1.x` to `16.x`. For the full migration guide covering all package renames, API changes, and complete before/after examples, see [Migrating Nitro from 1 to 16](/docs/nitro/migration/migrate-from-1-to-16).
+The Nitro NuGet packages have been restructured in v16. Versions now align with the rest of the platform, so you are migrating from `1.x` to `16.x`. For the full migration guide covering all package renames, API changes, and complete before/after examples, see [Migrating Nitro from 1 to 16](../../nitro/migration/migrate-from-1-to-16.md).
 
 The key changes for HotChocolate projects:
 
@@ -959,7 +959,7 @@ Additionally, a new `MaxBatchSize` property limits the number of operations in a
 > [!NOTE]
 > Fusion subgraphs automatically enable batching via `AddSourceSchemaDefaults()`. No action is needed for subgraphs.
 
-For more details, see [Batching](/docs/hotchocolate/v16/server/batching).
+For more details, see [Batching](../server/batching.md).
 
 ## New default incremental delivery format for @defer and @stream
 

@@ -208,7 +208,7 @@ While Hot Chocolate's internals rely on Microsoft's dependency injection contain
 
 You can switch out the service provider used for GraphQL requests, as long as your DI container implements the [`IServiceProvider`](https://docs.microsoft.com/dotnet/api/system.iserviceprovider) interface and supports scoping.
 
-To switch the service provider, call [`SetServices`](/docs/hotchocolate/v16/server/interceptors#setservices) on the [`OperationRequestBuilder`](/docs/hotchocolate/v16/server/interceptors#operationrequestbuilder) in both the [`IHttpRequestInterceptor`](/docs/hotchocolate/v16/server/interceptors#ihttprequestinterceptor) and the [`ISocketSessionInterceptor`](/docs/hotchocolate/v16/server/interceptors#isocketsessioninterceptor).
+To switch the service provider, call [`SetServices`](../server/interceptors.md#setservices) on the [`OperationRequestBuilder`](../server/interceptors.md#operationrequestbuilder) in both the [`IHttpRequestInterceptor`](../server/interceptors.md#ihttprequestinterceptor) and the [`ISocketSessionInterceptor`](../server/interceptors.md#isocketsessioninterceptor).
 
 ```csharp
 public sealed class HttpRequestInterceptor
@@ -259,10 +259,10 @@ builder
     .AddSocketSessionInterceptor<SocketSessionInterceptor>();
 ```
 
-[Learn more about interceptors](/docs/hotchocolate/v16/server/interceptors)
+[Learn more about interceptors](../server/interceptors.md)
 
 # Next Steps
 
-- [Interceptors](/docs/hotchocolate/v16/server/interceptors) for setting request-scoped state and services.
-- [Global State](/docs/hotchocolate/v16/server/global-state) for sharing per-request data between resolvers.
-- [Migrate from v15 to v16](/docs/hotchocolate/v16/migrating/migrate-from-15-to-16#clearer-separation-between-schema-and-application-services) for the full migration details on schema vs application services.
+- [Interceptors](../server/interceptors.md) for setting request-scoped state and services.
+- [Global State](../server/global-state.md) for sharing per-request data between resolvers.
+- [Migrate from v15 to v16](../migrating/migrate-from-15-to-16.md#clearer-separation-between-schema-and-application-services) for the full migration details on schema vs application services.

@@ -282,7 +282,7 @@ builder.Services
     });
 ```
 
-This approach sits between implicit and explicit binding: you keep automatic endpoint naming but gain per-handler configuration. See the [RabbitMQ](/docs/mocha/v16/transports/rabbitmq), [PostgreSQL](/docs/mocha/v16/transports/postgres), and [InMemory](/docs/mocha/v16/transports/in-memory) transport pages for the full set of transport-specific endpoint settings.
+This approach sits between implicit and explicit binding: you keep automatic endpoint naming but gain per-handler configuration. See the [RabbitMQ](./transports/rabbitmq.md), [PostgreSQL](./transports/postgres.md), and [InMemory](./transports/in-memory.md) transport pages for the full set of transport-specific endpoint settings.
 
 ## Explicit binding
 
@@ -407,6 +407,6 @@ The middleware pipeline is compiled per-endpoint from the same three layers: bus
 
 Your routing and endpoint configuration is set. From here:
 
-- [**Middleware and Pipelines**](/docs/mocha/v16/middleware-and-pipelines) - Write custom middleware, control pipeline ordering, and understand how the three pipeline stages interact. Want to customize the processing pipeline? That's the next page.
-- [**Reliability**](/docs/mocha/v16/reliability) - Configure fault handling, circuit breakers, concurrency limits, the transactional outbox, and the idempotent inbox.
-- [**Transports**](/docs/mocha/v16/transports) - Dive into transport-specific configuration for RabbitMQ and InMemory.
+- [**Middleware and Pipelines**](./middleware-and-pipelines.md) - Write custom middleware, control pipeline ordering, and understand how the three pipeline stages interact. Want to customize the processing pipeline? That's the next page.
+- [**Reliability**](./reliability.md) - Configure fault handling, circuit breakers, concurrency limits, the transactional outbox, and the idempotent inbox.
+- [**Transports**](./transports/index.md) - Dive into transport-specific configuration for RabbitMQ and InMemory.

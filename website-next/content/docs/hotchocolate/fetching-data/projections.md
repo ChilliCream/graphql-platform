@@ -332,7 +332,7 @@ The main differences:
 
 # Next Steps
 
-- **Need to filter results?** See [Filtering](/docs/hotchocolate/v16/fetching-data/filtering).
-- **Need to sort results?** See [Sorting](/docs/hotchocolate/v16/fetching-data/sorting).
-- **Need to page through results?** See [Pagination](/docs/hotchocolate/v16/fetching-data/pagination).
-- **Need to integrate with Entity Framework?** See [Entity Framework Integration](/docs/hotchocolate/v16/fetching-data/integrations/entity-framework).
+- **Need to filter results?** See [Filtering](./filtering.md).
+- **Need to sort results?** See [Sorting](./sorting.md).
+- **Need to page through results?** See [Pagination](./pagination.md).
+- **Need to integrate with Entity Framework?** See [Entity Framework Integration](./integrations/entity-framework.md).

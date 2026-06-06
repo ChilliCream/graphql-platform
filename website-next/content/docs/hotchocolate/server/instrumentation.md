@@ -423,6 +423,6 @@ The following enricher methods are available:
 
 # Next Steps
 
-- [HTTP Transport](/docs/hotchocolate/v16/server/http-transport) for details on streaming transports and response formatting.
-- [Warmup](/docs/hotchocolate/v16/server/warmup) for pre-populating caches at startup.
-- [Migrate from v15 to v16](/docs/hotchocolate/v16/migrating/migrate-from-15-to-16) for the full list of renamed and removed instrumentation attributes.
+- [HTTP Transport](./http-transport.md) for details on streaming transports and response formatting.
+- [Warmup](./warmup.md) for pre-populating caches at startup.
+- [Migrate from v15 to v16](../migrating/migrate-from-15-to-16.md) for the full list of renamed and removed instrumentation attributes.

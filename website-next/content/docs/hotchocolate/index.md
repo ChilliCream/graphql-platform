@@ -8,7 +8,7 @@ Hot Chocolate is an open-source [GraphQL](https://graphql.org/) server for .NET.
 
 Hot Chocolate is a GraphQL server framework that runs on [ASP.NET Core](https://learn.microsoft.com/aspnet/core). You write C# types and resolvers. Hot Chocolate turns them into a GraphQL schema, validates incoming operations against that schema, executes them, and returns results over HTTP, WebSocket, or Server-Sent Events.
 
-Hot Chocolate implements the [GraphQL 2025 specification](https://spec.graphql.org/) and several draft features including `@defer`, `@stream`, and `@requiresOptIn`. It implements the [GraphQL over HTTP specification](https://graphql.github.io/graphql-over-http/) for transport. It is compatible with all spec-compliant clients, including [Strawberry Shake](/docs/strawberryshake/v16), [Relay](https://relay.dev/), and [Apollo Client](https://www.apollographql.com/docs/react/).
+Hot Chocolate implements the [GraphQL 2025 specification](https://spec.graphql.org/) and several draft features including `@defer`, `@stream`, and `@requiresOptIn`. It implements the [GraphQL over HTTP specification](https://graphql.github.io/graphql-over-http/) for transport. It is compatible with all spec-compliant clients, including [Strawberry Shake](../strawberryshake/index.md), [Relay](https://relay.dev/), and [Apollo Client](https://www.apollographql.com/docs/react/).
 
 # How You Build a Schema
 
@@ -72,8 +72,8 @@ A first-party API is consumed exclusively by your own applications. This is how 
 
 Hot Chocolate supports this scenario with **trusted documents**. You extract all operations from your client applications during their build process, register them with the server, and the server only accepts pre-registered operations.
 
-- [Trusted documents](/docs/hotchocolate/v16/performance/trusted-documents) covers the full workflow: extraction, registration, and enforcement.
-- [Strawberry Shake](/docs/strawberryshake/v16) and [Relay](https://relay.dev/docs/guides/persisted-queries/) both support build-time operation extraction.
+- [Trusted documents](./performance/trusted-documents.md) covers the full workflow: extraction, registration, and enforcement.
+- [Strawberry Shake](../strawberryshake/index.md) and [Relay](https://relay.dev/docs/guides/persisted-queries/) both support build-time operation extraction.
 
 When in the future you want to change or phase out parts of your schema you know the impact this change will have to your system before you apply it. This is a super power for API evolution.
 
@@ -83,8 +83,8 @@ A third-party API is consumed by external developers or clients outside your org
 
 Hot Chocolate provides **cost analysis** for this scenario. You assign weights to fields and connections, and the server rejects operations that exceed the performance budget before execution begins.
 
-- [Cost analysis](/docs/hotchocolate/v16/security/cost-analysis) explains field weights, type costs, and budget configuration.
-- [Controlling introspection](/docs/hotchocolate/v16/security/introspection) lets you restrict schema visibility in production.
+- [Cost analysis](./security/cost-analysis.md) explains field weights, type costs, and budget configuration.
+- [Controlling introspection](./security/introspection.md) lets you restrict schema visibility in production.
 
 These two approaches complement each other. A common setup is to host both a public and an internal GraphQL API. The internal API uses trusted documents to strictly control operations, while the public API relies on cost analysis and other safeguards to manage external traffic and protect against abuse.
 
@@ -105,7 +105,7 @@ These two approaches complement each other. A common setup is to host both a pub
 
 # Scaling Beyond a Single Server
 
-When your API grows beyond what a single service can handle, [Fusion](/docs/fusion/v16) lets you split your schema across multiple independent services. Each service owns part of the API surface. A gateway composes them into one unified schema that clients query as a single endpoint.
+When your API grows beyond what a single service can handle, [Fusion](../fusion/index.md) lets you split your schema across multiple independent services. Each service owns part of the API surface. A gateway composes them into one unified schema that clients query as a single endpoint.
 
 Fusion is not a separate product. It builds on Hot Chocolate. A standard Hot Chocolate server can act as a Fusion subgraph without changes to its resolvers or type definitions. You can start with a single Hot Chocolate server and add Fusion later when you need independent deployment or team-level ownership boundaries.
 
@@ -113,14 +113,14 @@ Fusion is not a separate product. It builds on Hot Chocolate. A standard Hot Cho
 
 Where you go from here depends on what you need:
 
-- **"I want to build something."** Start with the [Getting Started](/docs/hotchocolate/v16/get-started-with-graphql-in-net-core) tutorial. You will create a running GraphQL server in under five minutes.
+- **"I want to build something."** Start with the [Getting Started](./get-started-with-graphql-in-net-core.md) tutorial. You will create a running GraphQL server in under five minutes.
 
-- **"I want to understand the schema system."** Read [Defining a Schema](/docs/hotchocolate/v16/defining-a-schema). It covers queries, mutations, subscriptions, and all the GraphQL types.
+- **"I want to understand the schema system."** Read [Defining a Schema](./defining-a-schema/index.md). It covers queries, mutations, subscriptions, and all the GraphQL types.
 
-- **"I need to fetch data efficiently."** Go to [DataLoader](/docs/hotchocolate/v16/fetching-data/batching/dataloader) for batching and caching, or [Resolvers](/docs/hotchocolate/v16/resolvers/resolvers) for the full resolver API.
+- **"I need to fetch data efficiently."** Go to [DataLoader](./fetching-data/batching/dataloader.md) for batching and caching, or [Resolvers](./resolvers/index.md) for the full resolver API.
 
-- **"I need to secure my API."** See [Securing Your API](/docs/hotchocolate/v16/security) for authentication, authorization, cost analysis, and trusted documents.
+- **"I need to secure my API."** See [Securing Your API](./security/index.md) for authentication, authorization, cost analysis, and trusted documents.
 
-- **"I'm migrating from an older version."** Read the [migration guide from v15 to v16](/docs/hotchocolate/v16/migrating/migrate-from-15-to-16).
+- **"I'm migrating from an older version."** Read the [migration guide from v15 to v16](./migrating/migrate-from-15-to-16.md).
 
-- **"I want to split my API across services."** See [Fusion](/docs/fusion/v16) for distributed GraphQL with a gateway.
+- **"I want to split my API across services."** See [Fusion](../fusion/index.md) for distributed GraphQL with a gateway.

@@ -8,7 +8,7 @@ This section covers ways to improve the performance of your Hot Chocolate GraphQ
 
 Hot Chocolate constructs the schema eagerly at startup by default. You can register warmup tasks to pre-populate in-memory caches before the server begins accepting requests.
 
-[Learn more about server warmup](/docs/hotchocolate/v16/server/warmup)
+[Learn more about server warmup](../server/warmup.md)
 
 # Trusted Documents
 
@@ -22,7 +22,7 @@ The first approach stores operation documents ahead of time (before deployment).
 
 Strawberry Shake, [Relay](https://relay.dev/docs/guides/persisted-queries/), and [Apollo](https://www.apollographql.com/docs/react/api/link/persisted-queries/) client all support this approach.
 
-[Learn more about persisted operations](/docs/hotchocolate/v16/performance/trusted-documents)
+[Learn more about persisted operations](./trusted-documents.md)
 
 ## Automatic Persisted Operations
 
@@ -32,4 +32,4 @@ However, you do not get bundle size improvements for your applications because t
 
 Both Strawberry Shake and [Apollo](https://www.apollographql.com/docs/apollo-server/performance/apq/) client support this approach.
 
-[Learn more about automatic persisted operations](/docs/hotchocolate/v16/performance/automatic-persisted-operations)
+[Learn more about automatic persisted operations](./automatic-persisted-operations.md)

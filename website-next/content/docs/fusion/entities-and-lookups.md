@@ -4,7 +4,7 @@ title: "Entities and Lookups"
 
 Entities are the mechanism that makes distributed GraphQL work. They are types with stable keys that can be referenced and resolved across subgraphs. For example, the Products subgraph defines the `Product` type, and the Reviews subgraph contributes the `reviews` field to `Product`. The Accounts subgraph defines the `User` type, and other subgraphs can contribute additional fields to `User`. Without entities, each subgraph would be an isolated API. With entities, those subgraphs compose into one unified API.
 
-This page explains entity resolution in more detail: how entities are defined and how lookups resolve them across subgraphs. If you completed the [Getting Started](/docs/fusion/v16/getting-started) tutorial, you already used these concepts. Here, you will focus on the mechanics and patterns behind them.
+This page explains entity resolution in more detail: how entities are defined and how lookups resolve them across subgraphs. If you completed the [Getting Started](./getting-started.md) tutorial, you already used these concepts. Here, you will focus on the mechanics and patterns behind them.
 
 ## What Makes a Type an Entity
 
@@ -407,7 +407,7 @@ builder
 
 ## Next Steps
 
-- **Need field ownership contracts?** See [Field Ownership](/docs/fusion/v16/field-ownership-and-sharing).
-- **Need argument mapping and cross-subgraph dependencies?** See [Data Requirements](/docs/fusion/v16/data-requirements-and-mapping) for `@is`, `@require`, and FieldSelectionMap patterns.
+- **Need field ownership contracts?** See [Field Ownership](./field-ownership-and-sharing.md).
+- **Need argument mapping and cross-subgraph dependencies?** See [Data Requirements](./data-requirements-and-mapping.md) for `@is`, `@require`, and FieldSelectionMap patterns.
 - **Need runtime performance guidance?** See Hot Chocolate docs for DataLoader and batching patterns used inside lookup resolvers.
-- **Ready to go to production?** See [Authentication and Authorization](/docs/fusion/v16/authentication-and-authorization) for securing your gateway and subgraphs, or [Deployment and CI/CD](/docs/fusion/v16/deployment-and-ci-cd) for setting up independent subgraph deployments.
+- **Ready to go to production?** See [Authentication and Authorization](./authentication-and-authorization.md) for securing your gateway and subgraphs, or [Deployment and CI/CD](./deployment-and-ci-cd.md) for setting up independent subgraph deployments.

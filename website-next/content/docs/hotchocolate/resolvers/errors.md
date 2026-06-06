@@ -192,6 +192,6 @@ throw new GraphQLException(
 
 # Next Steps
 
-- [Mutation conventions](/docs/hotchocolate/v16/defining-a-schema/mutations) for structured mutation error handling
-- [Instrumentation](/docs/hotchocolate/v16/server/instrumentation) for logging and diagnostics
-- [Options reference](/docs/hotchocolate/v16/server/options) for `IncludeExceptionDetails` and other settings
+- [Mutation conventions](../defining-a-schema/mutations.md) for structured mutation error handling
+- [Instrumentation](../server/instrumentation.md) for logging and diagnostics
+- [Options reference](../server/options.md) for `IncludeExceptionDetails` and other settings

@@ -2,7 +2,7 @@
 title: "Input Object Types"
 ---
 
-GraphQL input object types let you pass structured data as arguments. While [scalar arguments](/docs/hotchocolate/v16/defining-a-schema/arguments) work for simple values, input types let you group related fields into a single object. Input types differ from output object types: their fields cannot have arguments and they use the `input` keyword in the schema.
+GraphQL input object types let you pass structured data as arguments. While [scalar arguments](./arguments.md) work for simple values, input types let you group related fields into a single object. Input types differ from output object types: their fields cannot have arguments and they use the `input` keyword in the schema.
 
 **GraphQL schema**
 
@@ -247,7 +247,7 @@ All fields on a `@oneOf` input must be nullable. Hot Chocolate validates at runt
 
 # Next Steps
 
-- **Need scalar arguments?** See [Arguments](/docs/hotchocolate/v16/defining-a-schema/arguments).
-- **Need to write mutations?** See [Mutations](/docs/hotchocolate/v16/defining-a-schema/mutations).
-- **Need to understand nullability?** See [Non-Null](/docs/hotchocolate/v16/defining-a-schema/non-null).
-- **Need to document input fields?** See [Documentation](/docs/hotchocolate/v16/defining-a-schema/documentation).
+- **Need scalar arguments?** See [Arguments](./arguments.md).
+- **Need to write mutations?** See [Mutations](./mutations.md).
+- **Need to understand nullability?** See [Non-Null](./non-null.md).
+- **Need to document input fields?** See [Documentation](./documentation.md).

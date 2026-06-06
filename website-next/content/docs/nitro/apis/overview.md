@@ -6,8 +6,8 @@ title: APIs
 An API within the context of Nitro, refers to a representation of your GraphQL Servers.
 This representation is more than a mere conceptual framework — it serves as a practical tool that allows you to group your documents and share common settings like connection and authorization parameters among them.
 
-Additionally, an API forms the foundation for your client registry, schema registry setup and the telemetry. For more detailed information on these features, refer to the [Schema Registry](/docs/nitro/apis/schema-registry) guide
-the [Client Registry](/docs/nitro/apis/client-registry) and the [Telemetry](/docs/nitro/open-telemetry/operation-monitoring) guide.
+Additionally, an API forms the foundation for your client registry, schema registry setup and the telemetry. For more detailed information on these features, refer to the [Schema Registry](./schema-registry.md) guide
+the [Client Registry](./client-registry.md) and the [Telemetry](../open-telemetry/operation-monitoring.md) guide.
 
 # API Types
 

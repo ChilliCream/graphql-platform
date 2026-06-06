@@ -320,7 +320,7 @@ The server sends periodic keep-alive messages (a space followed by a newline) to
 
 Hot Chocolate supports operation batching, request batching, and variable batching. These features let you send and execute multiple GraphQL operations in a single HTTP request, with results streamed back using one of the transport formats above.
 
-For full details on how to enable and use batching, see the [Batching](/docs/hotchocolate/v16/server/batching) page.
+For full details on how to enable and use batching, see the [Batching](./batching.md) page.
 
 # Supporting Legacy Clients
 
@@ -488,10 +488,10 @@ If a request is rejected because it lacks the required preflight header, the ser
 
 # Next Steps
 
-- [Endpoints](/docs/hotchocolate/v16/server/endpoints) for configuring the GraphQL middleware and per-endpoint options.
-- [Batching](/docs/hotchocolate/v16/server/batching) for details on variable batching and request batching.
-- [Subscriptions](/docs/hotchocolate/v16/defining-a-schema/subscriptions) for defining subscription types and event publishing.
-- [Interceptors](/docs/hotchocolate/v16/server/interceptors) for hooking into WebSocket and HTTP request processing.
-- [Migrate from v15 to v16](/docs/hotchocolate/v16/migrating/migrate-from-15-to-16#new-default-incremental-delivery-format-for-defer-and-stream) for the incremental delivery migration details.
+- [Endpoints](./endpoints.md) for configuring the GraphQL middleware and per-endpoint options.
+- [Batching](./batching.md) for details on variable batching and request batching.
+- [Subscriptions](../defining-a-schema/subscriptions.md) for defining subscription types and event publishing.
+- [Interceptors](./interceptors.md) for hooking into WebSocket and HTTP request processing.
+- [Migrate from v15 to v16](../migrating/migrate-from-15-to-16.md#new-default-incremental-delivery-format-for-defer-and-stream) for the incremental delivery migration details.
 
 <!-- spell-checker:ignore Bname, Buser -->

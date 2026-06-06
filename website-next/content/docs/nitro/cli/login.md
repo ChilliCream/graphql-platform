@@ -4,7 +4,7 @@ title: login Command
 
 The `nitro login` command logs you in interactively through your default browser. After authenticating, the CLI prompts you to select a default workspace (skipped when you only have one) and persists the session locally so subsequent commands don't need `--api-key`.
 
-For non-interactive environments such as CI/CD, skip `nitro login` entirely and authenticate per-invocation with `--api-key` instead (see [Global Options](/docs/nitro/cli/global-options)).
+For non-interactive environments such as CI/CD, skip `nitro login` entirely and authenticate per-invocation with `--api-key` instead (see [Global Options](./global-options.md)).
 
 ```shell
 nitro login

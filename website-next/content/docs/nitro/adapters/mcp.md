@@ -20,8 +20,8 @@ The adapter speaks the MCP standard, so the same collection works in Claude, Cha
 
 > **Prerequisite**: Nitro distributes the feature collection, but the MCP endpoint itself is served by your runtime. Install and configure the MCP adapter on your GraphQL server or Fusion gateway before tools published from Nitro become reachable.
 >
-> - Hot Chocolate: [MCP Adapter](/docs/hotchocolate/v16/build/adapters/mcp)
-> - Fusion: [MCP Adapter](/docs/fusion/v16/adapters/mcp)
+> - Hot Chocolate: [MCP Adapter](../../hotchocolate/build/adapters/mcp.md)
+> - Fusion: [MCP Adapter](../../fusion/adapters/mcp.md)
 
 # How it works
 
@@ -383,7 +383,7 @@ The CLI does the heavy lifting: archive, validate, upload, publish.
 nitro login
 ```
 
-You only need to do this once per machine. CI environments authenticate with `--api-key` instead. See [Global Options](/docs/nitro/cli/global-options).
+You only need to do this once per machine. CI environments authenticate with `--api-key` instead. See [Global Options](../cli/global-options.md).
 
 ## 2. Create a feature collection
 
@@ -397,7 +397,7 @@ nitro mcp create \
 
 Get the API ID from `nitro api list` or the Nitro UI. The command prints the new collection's ID. Save it. Every subsequent command needs it.
 
-See [`nitro mcp create`](/docs/nitro/cli/mcp#nitro-mcp-create) for the full reference.
+See [`nitro mcp create`](../cli/mcp.md#nitro-mcp-create) for the full reference.
 
 ## 3. Upload a version
 
@@ -413,7 +413,7 @@ nitro mcp upload \
 
 The CLI walks the glob patterns, finds the sibling `.json` and `.html` files automatically, packages everything into a ZIP archive, and uploads it. Nitro validates the archive on the server before storing it.
 
-See [`nitro mcp upload`](/docs/nitro/cli/mcp#nitro-mcp-upload) for all options.
+See [`nitro mcp upload`](../cli/mcp.md#nitro-mcp-upload) for all options.
 
 ## 4. Publish to a stage
 
@@ -428,7 +428,7 @@ nitro mcp publish \
 
 Stages are independent: publishing to `dev` does not touch `production`. To roll back, publish an earlier tag to the same stage.
 
-See [`nitro mcp publish`](/docs/nitro/cli/mcp#nitro-mcp-publish) for gated stages and approval flows.
+See [`nitro mcp publish`](../cli/mcp.md#nitro-mcp-publish) for gated stages and approval flows.
 
 ## Optional: validate in CI
 
@@ -444,7 +444,7 @@ nitro mcp validate \
 
 > Validation also runs automatically inside `nitro mcp publish`. Use the standalone command only when CI needs a separate gate.
 
-For the full reference, see [Nitro CLI MCP commands](/docs/nitro/cli/mcp).
+For the full reference, see [Nitro CLI MCP commands](../cli/mcp.md).
 
 ## Find your server URL
 
@@ -491,6 +491,6 @@ Nitro provides operational infrastructure around the collection so you do not ha
 
 # Next steps
 
-- Full CLI reference: [Nitro CLI MCP commands](/docs/nitro/cli/mcp).
+- Full CLI reference: [Nitro CLI MCP commands](../cli/mcp.md).
 - The MCP specification: [modelcontextprotocol.io](https://modelcontextprotocol.io/).
 - The MCP Apps SDK: [API reference](https://apps.extensions.modelcontextprotocol.io/api/).

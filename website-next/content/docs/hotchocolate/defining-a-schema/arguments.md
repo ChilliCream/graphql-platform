@@ -117,7 +117,7 @@ type Query {
 }
 ```
 
-When using nullable reference types (recommended), `string` maps to `String!` and `string?` maps to `String`. See [Non-Null](/docs/hotchocolate/v16/defining-a-schema/non-null) for details.
+When using nullable reference types (recommended), `string` maps to `String!` and `string?` maps to `String`. See [Non-Null](./non-null.md) for details.
 
 # Default Values
 
@@ -161,7 +161,7 @@ This produces `products(filter: BookFilterInput! = { title: null, year: 2024 }):
 
 # The ID Attribute
 
-The `[ID]` attribute marks a parameter as a GraphQL `ID` scalar. When combined with [global object identification](/docs/hotchocolate/v16/defining-a-schema/relay), it also deserializes the opaque global ID back to the underlying value.
+The `[ID]` attribute marks a parameter as a GraphQL `ID` scalar. When combined with [global object identification](./relay.md), it also deserializes the opaque global ID back to the underlying value.
 
 ```csharp
 [QueryType]
@@ -185,7 +185,7 @@ You can also use the generic form `[ID<Product>]` which infers the type name aut
 
 # Complex Arguments
 
-When an argument needs multiple fields, use an [input object type](/docs/hotchocolate/v16/defining-a-schema/input-object-types) instead of multiple scalar arguments.
+When an argument needs multiple fields, use an [input object type](./input-object-types.md) instead of multiple scalar arguments.
 
 ```csharp
 public record BookFilterInput(string? Title, string? Author, int? Year);
@@ -216,7 +216,7 @@ type Query {
 
 # Next Steps
 
-- **Need structured input?** See [Input Object Types](/docs/hotchocolate/v16/defining-a-schema/input-object-types).
-- **Need to understand nullability?** See [Non-Null](/docs/hotchocolate/v16/defining-a-schema/non-null).
-- **Need global IDs?** See [Relay](/docs/hotchocolate/v16/defining-a-schema/relay).
-- **Need to set up resolvers?** See [Resolvers](/docs/hotchocolate/v16/resolvers/resolvers).
+- **Need structured input?** See [Input Object Types](./input-object-types.md).
+- **Need to understand nullability?** See [Non-Null](./non-null.md).
+- **Need global IDs?** See [Relay](./relay.md).
+- **Need to set up resolvers?** See [Resolvers](../resolvers/index.md).

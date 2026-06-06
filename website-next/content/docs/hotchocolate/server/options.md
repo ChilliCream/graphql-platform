@@ -264,8 +264,8 @@ builder
 
 # Next Steps
 
-- [Field middleware](/docs/hotchocolate/v16/resolvers/field-middleware) for pipeline configuration
-- [Cache Control](/docs/hotchocolate/v16/server/cache-control) for CDN and HTTP caching behavior
-- [Pagination](/docs/hotchocolate/v16/fetching-data/pagination) for paging setup
-- [Persisted operations](/docs/hotchocolate/v16/performance/trusted-documents) for operation caching
-- [Migration guide](/docs/hotchocolate/v16/migrating/migrate-from-15-to-16) for breaking option changes
+- [Field middleware](../resolvers/field-middleware.md) for pipeline configuration
+- [Cache Control](./cache-control.md) for CDN and HTTP caching behavior
+- [Pagination](../fetching-data/pagination.md) for paging setup
+- [Persisted operations](../performance/trusted-documents.md) for operation caching
+- [Migration guide](../migrating/migrate-from-15-to-16.md) for breaking option changes

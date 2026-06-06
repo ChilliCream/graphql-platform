@@ -27,7 +27,7 @@ Lets guide you through the process of creating your first GraphQL query document
 **Step 2:** Click on the "Create Document" button to initiate the creation of your first query document.
 
 **Step 3:** You'll see a new document called 'untitled 1' generated. Simultaneously, the connection settings dialog box will pop up automatically.
-Now, input the following link into the 'HTTP Endpoint' field: <https://workshop.chillicream.com/graphql>
+Now, input the following link into the 'HTTP Endpoint' field: [https://workshop.chillicream.com/graphql](https://workshop.chillicream.com/graphql)
 It should resemble this:
 ![Nitro - Start](./images/getting-started-1.webp)
 
@@ -69,7 +69,7 @@ Sign in to your account by clicking the 'Sign In' button on the user icon in the
 
 ![Nitro - Start](./images/getting-started-4.webp)
 
-**Step 10:** Great job! You've successfully created, executed, and saved your first GraphQL query using Nitro. To learn more about the Nitro User Interface, head over to the [Explore the UI](/docs/nitro/explore-the-ui) guide.
+**Step 10:** Great job! You've successfully created, executed, and saved your first GraphQL query using Nitro. To learn more about the Nitro User Interface, head over to the [Explore the UI](./explore-the-ui/index.md) guide.
 
 Happy querying!
 

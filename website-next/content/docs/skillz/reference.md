@@ -2,7 +2,7 @@
 title: "Reference"
 ---
 
-This page is the complete, precise reference for the skillz command surface, JSON output, exit codes, environment variables, file locations, and supported agents. It is meant for lookup, not for learning. To learn by doing, start at [Installing Skills](/docs/skillz/installing-skills) and [Authoring Skills](/docs/skillz/authoring-skills).
+This page is the complete, precise reference for the skillz command surface, JSON output, exit codes, environment variables, file locations, and supported agents. It is meant for lookup, not for learning. To learn by doing, start at [Installing Skills](./installing-skills.md) and [Authoring Skills](./authoring-skills.md).
 
 Every command prints the same per-command help at the terminal. Run `dnx skillz <command> --help` to see the synopsis, arguments, and options for that command.
 
@@ -67,7 +67,7 @@ dnx skillz add <source> [options]
 
 The default install mode is symlink: skillz materializes each skill once into a canonical store and creates a relative symlink from each agent directory back to it. Pass `--copy` to copy instead. When every selected agent shares one skills directory, copy is used automatically.
 
-For sources, scopes, and install mechanics, see [Installing Skills](/docs/skillz/installing-skills). For agent targeting, see [Supported agents](#supported-agents).
+For sources, scopes, and install mechanics, see [Installing Skills](./installing-skills.md). For agent targeting, see [Supported agents](#supported-agents).
 
 ## skillz remove [skills...]
 
@@ -198,7 +198,7 @@ Publishing:
   URL:    Host the file, then skillz add https://example.com/my-skill/SKILL.md
 ```
 
-See [Authoring Skills](/docs/skillz/authoring-skills) for the `SKILL.md` format and publishing workflow.
+See [Authoring Skills](./authoring-skills.md) for the `SKILL.md` format and publishing workflow.
 
 ## Global flags
 
@@ -264,7 +264,7 @@ skillz uses exactly three exit codes.
 
 `XDG_CONFIG_HOME` (default `~/.config`) and `XDG_STATE_HOME` (default `~/.local/state`) affect where skillz keeps its own configuration and logs, and where several agents resolve their global directories.
 
-For private repositories, skillz shells out to `git` and uses your existing git credentials (SSH agent, credential helper, `gh` auth). See [Troubleshooting](/docs/skillz/troubleshooting) for authentication and rate-limit guidance.
+For private repositories, skillz shells out to `git` and uses your existing git credentials (SSH agent, credential helper, `gh` auth). See [Troubleshooting](./troubleshooting.md) for authentication and rate-limit guidance.
 
 # File locations
 
@@ -354,6 +354,6 @@ Invalid agents: bogus
 
 # See also
 
-- [Installing Skills](/docs/skillz/installing-skills): sources, scopes, and the install workflow in depth.
-- [Authoring Skills](/docs/skillz/authoring-skills): the `SKILL.md` format, `dnx skillz init`, and publishing.
-- [Troubleshooting](/docs/skillz/troubleshooting): authentication, rate limits, timeouts, and common errors.
+- [Installing Skills](./installing-skills.md): sources, scopes, and the install workflow in depth.
+- [Authoring Skills](./authoring-skills.md): the `SKILL.md` format, `dnx skillz init`, and publishing.
+- [Troubleshooting](./troubleshooting.md): authentication, rate limits, timeouts, and common errors.

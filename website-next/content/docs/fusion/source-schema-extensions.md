@@ -2,7 +2,7 @@
 title: "Source Schema Extensions"
 ---
 
-Some source schemas are not yours to edit, or you want to keep them free of Fusion-specific annotations. Fusion still needs [directives](/docs/fusion/v16/directives-reference) like `@lookup`, `@internal`, and `@inaccessible` on those schemas to compose your graph correctly. A **source schema extensions document** solves this. It is a separate SDL file you author yourself, layered over the base schema at parse time, that adds Fusion-specific annotations without modifying a single character of the base. Your original schema stays clean, and the directives the gateway needs to plan distributed queries land in a file you fully control.
+Some source schemas are not yours to edit, or you want to keep them free of Fusion-specific annotations. Fusion still needs [directives](./directives-reference.md) like `@lookup`, `@internal`, and `@inaccessible` on those schemas to compose your graph correctly. A **source schema extensions document** solves this. It is a separate SDL file you author yourself, layered over the base schema at parse time, that adds Fusion-specific annotations without modifying a single character of the base. Your original schema stays clean, and the directives the gateway needs to plan distributed queries land in a file you fully control.
 
 ## How It Works
 
@@ -71,9 +71,9 @@ enum StockStatus {
 What each block does:
 
 - `extend type Query { productById(id: ID!): Product @lookup }` promotes an existing field to a lookup. The field name targets the existing field, and the return type must match the base. Arguments do not need to be repeated; if you do repeat them, their types and defaults must match the base. New arguments may be added.
-- `extend type Query { productByCode(code: String!): Product @lookup @internal }` is also a lookup, but `@internal` keeps it out of the public surface. The gateway uses it to enter the Products subgraph when resolving cross-subgraph references, while clients never see it. See [Entities and Lookups](/docs/fusion/v16/entities-and-lookups) for the public versus internal lookup distinction.
-- `extend type Product { warehouseLocationCode: String @inaccessible }` applies a directive to an existing field. The field type repeats the base declaration; only the directive is the new contribution. Hidden fields can still be referenced by `@require` dependencies in other source schemas. See [Schema Exposure and Evolution](/docs/fusion/v16/schema-exposure-and-evolution).
-- `extend type Product { stockStatus(warehouseLocationCode: ... @require(...)): StockStatus! }` adds a brand new field with a hidden resolver argument. `@require(field: "warehouseLocationCode")` tells the gateway to populate the argument from the existing `warehouseLocationCode` field, and the argument is removed from the public surface so clients see `stockStatus: StockStatus!` with no arguments. Adding a field via extensions still requires that field to be resolvable at runtime by the underlying subgraph implementation: the extensions document only declares the field, it does not provide the resolver. See [Data Requirements](/docs/fusion/v16/data-requirements-and-mapping) for `@require` semantics.
+- `extend type Query { productByCode(code: String!): Product @lookup @internal }` is also a lookup, but `@internal` keeps it out of the public surface. The gateway uses it to enter the Products subgraph when resolving cross-subgraph references, while clients never see it. See [Entities and Lookups](./entities-and-lookups.md) for the public versus internal lookup distinction.
+- `extend type Product { warehouseLocationCode: String @inaccessible }` applies a directive to an existing field. The field type repeats the base declaration; only the directive is the new contribution. Hidden fields can still be referenced by `@require` dependencies in other source schemas. See [Schema Exposure and Evolution](./schema-exposure-and-evolution.md).
+- `extend type Product { stockStatus(warehouseLocationCode: ... @require(...)): StockStatus! }` adds a brand new field with a hidden resolver argument. `@require(field: "warehouseLocationCode")` tells the gateway to populate the argument from the existing `warehouseLocationCode` field, and the argument is removed from the public surface so clients see `stockStatus: StockStatus!` with no arguments. Adding a field via extensions still requires that field to be resolvable at runtime by the underlying subgraph implementation: the extensions document only declares the field, it does not provide the resolver. See [Data Requirements](./data-requirements-and-mapping.md) for `@require` semantics.
 - `enum StockStatus { ... }` introduces a new type. Extensions can declare types the base schema does not, because extensions are valid SDL documents in their own right.
 
 ### The Merged Result
@@ -109,7 +109,7 @@ This is the same shape you would have if you had hand-edited the base schema. Th
 
 ## What You Can Do with an Extensions Document
 
-**Apply directives to existing fields.** This is the most common use. Directives commonly applied this way include `@lookup`, `@internal`, `@inaccessible`, `@shareable`, `@external`, `@provides`, `@override`, `@deprecated`, and `@requiresOptIn`. For the semantics of each, see [Entities and Lookups](/docs/fusion/v16/entities-and-lookups), [Field Ownership](/docs/fusion/v16/field-ownership-and-sharing), and [Schema Exposure and Evolution](/docs/fusion/v16/schema-exposure-and-evolution).
+**Apply directives to existing fields.** This is the most common use. Directives commonly applied this way include `@lookup`, `@internal`, `@inaccessible`, `@shareable`, `@external`, `@provides`, `@override`, `@deprecated`, and `@requiresOptIn`. For the semantics of each, see [Entities and Lookups](./entities-and-lookups.md), [Field Ownership](./field-ownership-and-sharing.md), and [Schema Exposure and Evolution](./schema-exposure-and-evolution.md).
 
 ```graphql
 extend type Product {
@@ -117,7 +117,7 @@ extend type Product {
 }
 ```
 
-**Apply directives to field arguments.** Some directives, notably `@require`, are defined on argument definitions and attach to arguments rather than fields. See [Data Requirements](/docs/fusion/v16/data-requirements-and-mapping) for the full pattern.
+**Apply directives to field arguments.** Some directives, notably `@require`, are defined on argument definitions and attach to arguments rather than fields. See [Data Requirements](./data-requirements-and-mapping.md) for the full pattern.
 
 ```graphql
 extend type Product {
@@ -191,6 +191,6 @@ The base schema is stored exactly as supplied. Fusion does not fold the extensio
 
 ## Next Steps
 
-- [Composition](/docs/fusion/v16/composition): what happens after extensions are folded in.
-- [Adding a Subgraph](/docs/fusion/v16/adding-a-subgraph): the typical entry point that may use extensions.
-- [Schema Exposure and Evolution](/docs/fusion/v16/schema-exposure-and-evolution): directives commonly applied via extensions.
+- [Composition](./composition.md): what happens after extensions are folded in.
+- [Adding a Subgraph](./adding-a-subgraph.md): the typical entry point that may use extensions.
+- [Schema Exposure and Evolution](./schema-exposure-and-evolution.md): directives commonly applied via extensions.

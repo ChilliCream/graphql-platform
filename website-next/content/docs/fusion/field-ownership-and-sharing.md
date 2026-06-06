@@ -92,7 +92,7 @@ In this example:
 - Accounts still owns `User.username`.
 - Reviews can provide `username` only when resolving `Review.author`.
 
-For detailed `@provides` patterns and FieldSelectionMap syntax, see [Data Requirements and Mapping](/docs/fusion/v16/data-requirements-and-mapping).
+For detailed `@provides` patterns and FieldSelectionMap syntax, see [Data Requirements and Mapping](./data-requirements-and-mapping.md).
 
 ## Common Ownership Failures
 
@@ -123,6 +123,6 @@ Before composition, verify:
 
 ## Next Steps
 
-- **Need identity and lookup routing?** See [Entities and Lookups](/docs/fusion/v16/entities-and-lookups).
-- **Need dependency and mapping syntax?** See [Data Requirements and Mapping](/docs/fusion/v16/data-requirements-and-mapping).
-- **Need merge and validation rules?** See [Composition](/docs/fusion/v16/composition).
+- **Need identity and lookup routing?** See [Entities and Lookups](./entities-and-lookups.md).
+- **Need dependency and mapping syntax?** See [Data Requirements and Mapping](./data-requirements-and-mapping.md).
+- **Need merge and validation rules?** See [Composition](./composition.md).

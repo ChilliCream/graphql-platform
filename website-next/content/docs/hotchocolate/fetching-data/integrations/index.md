@@ -115,6 +115,6 @@ public class EntityFrameworkExecutable<T> : QueryableExecutable<T>
 
 # Next Steps
 
-- [Entity Framework integration](/docs/hotchocolate/v16/fetching-data/integrations/entity-framework) for EF Core executables
-- [MongoDB integration](/docs/hotchocolate/v16/fetching-data/integrations/mongodb) for MongoDB executables
-- [Filtering](/docs/hotchocolate/v16/fetching-data/filtering) for applying filters to executables
+- [Entity Framework integration](./entity-framework.md) for EF Core executables
+- [MongoDB integration](./mongodb.md) for MongoDB executables
+- [Filtering](../filtering.md) for applying filters to executables

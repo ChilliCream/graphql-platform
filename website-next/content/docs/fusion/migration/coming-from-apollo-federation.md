@@ -133,7 +133,7 @@ public static partial class ProductQueries
 
 The `[Internal]` attribute hides this field from the composite schema. Only the gateway uses it during query planning.
 
-For more on lookups and entity resolution patterns, see [Entities and Lookups](/docs/fusion/v16/entities-and-lookups).
+For more on lookups and entity resolution patterns, see [Entities and Lookups](../entities-and-lookups.md).
 
 ### Requirements Operate on Arguments, Not Fields
 
@@ -179,7 +179,7 @@ In the composite schema, clients see `deliveryEstimate(zip: String!)` -- the `di
 
 This changes how you design resolvers. In Apollo, the required data is available on `this` (the entity object). In Fusion, it arrives as a typed argument, which makes the dependency explicit and testable.
 
-Cross-subgraph data dependencies with `[Require]` are also covered in the [Adding a Subgraph](/docs/fusion/v16/adding-a-subgraph) page. A dedicated deep-dive will be available in future documentation.
+Cross-subgraph data dependencies with `[Require]` are also covered in the [Adding a Subgraph](../adding-a-subgraph.md) page. A dedicated deep-dive will be available in future documentation.
 
 ### Entity Stubs: How Subgraphs Reference Foreign Entities
 
@@ -230,7 +230,7 @@ This produces a `.far` (Fusion Archive) file -- a binary archive containing the 
 
 You can also use Nitro cloud for managed composition (similar to Apollo's GraphOS), but it is not required. Everything works fully offline.
 
-For more on composition rules and error resolution, see [Composition](/docs/fusion/v16/composition).
+For more on composition rules and error resolution, see [Composition](../composition.md).
 
 ### The Gateway Is Code, Not a Separate Binary
 
@@ -739,7 +739,7 @@ jobs:
             --api-key ${{ secrets.NITRO_API_KEY }}
 ```
 
-For more on deployment workflows, see [Deployment and CI/CD](/docs/fusion/v16/deployment-and-ci-cd).
+For more on deployment workflows, see [Deployment and CI/CD](../deployment-and-ci-cd.md).
 
 ## Mindset Shifts
 
@@ -819,9 +819,9 @@ Yes. Fusion supports real-time subscriptions through the gateway via SSE (Server
 
 After migrating, these pages provide deeper coverage of specific topics:
 
-- [Getting Started](/docs/fusion/v16/getting-started) -- The full tutorial for building a Fusion setup from scratch
-- [Entities and Lookups](/docs/fusion/v16/entities-and-lookups) -- Deep dive into entity resolution patterns
-- [Adding a Subgraph](/docs/fusion/v16/adding-a-subgraph) -- Adding subgraphs with `[Require]` for cross-subgraph data
-- [Composition](/docs/fusion/v16/composition) -- Composition rules, merging behavior, and error reference
-- [Deployment and CI/CD](/docs/fusion/v16/deployment-and-ci-cd) -- Production deployment and pipeline setup
-- [Nitro CLI Reference](/docs/fusion/v16/nitro-cli-reference) -- Complete CLI command reference
+- [Getting Started](../getting-started.md) -- The full tutorial for building a Fusion setup from scratch
+- [Entities and Lookups](../entities-and-lookups.md) -- Deep dive into entity resolution patterns
+- [Adding a Subgraph](../adding-a-subgraph.md) -- Adding subgraphs with `[Require]` for cross-subgraph data
+- [Composition](../composition.md) -- Composition rules, merging behavior, and error reference
+- [Deployment and CI/CD](../deployment-and-ci-cd.md) -- Production deployment and pipeline setup
+- [Nitro CLI Reference](../cli.md) -- Complete CLI command reference

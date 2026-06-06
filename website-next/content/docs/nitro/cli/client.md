@@ -6,7 +6,7 @@ The `nitro client` commands manage clients of an API. A client is a registered c
 
 A client owns a sequence of versions, each identified by a tag and containing a set of persisted operations. Versions are published to a stage to mark them as live.
 
-All `client` commands require authentication. Run `nitro login` first or pass `--api-key` (see [Global Options](/docs/nitro/cli/global-options)).
+All `client` commands require authentication. Run `nitro login` first or pass `--api-key` (see [Global Options](./global-options.md)).
 
 # `nitro client create`
 

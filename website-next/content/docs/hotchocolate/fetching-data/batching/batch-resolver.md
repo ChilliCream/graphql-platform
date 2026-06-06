@@ -113,5 +113,5 @@ descriptor
 
 # Next Steps
 
-- **Need to understand the N+1 problem?** See [DataLoader](/docs/hotchocolate/v16/fetching-data/batching/dataloader) for key-based batching with caching.
-- **Need to understand resolver basics?** See [Resolvers](/docs/hotchocolate/v16/resolvers/resolvers).
+- **Need to understand the N+1 problem?** See [DataLoader](./dataloader.md) for key-based batching with caching.
+- **Need to understand resolver basics?** See [Resolvers](../../resolvers/index.md).

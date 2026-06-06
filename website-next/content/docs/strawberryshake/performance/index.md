@@ -17,7 +17,7 @@ There are two flavors of persisted operations that Strawberry Shake supports and
 The first approach is to store operation documents ahead of time (ahead of deployment).
 This is done by extracting the operations from your client application at build time. It will reduce the size of the requests and the bundle size of your application since operations can be completely removed from the client code at build time and are replaced with operation document hashes. Apart from performance, persisted operations can also be used for security by configuring Hot Chocolate to only accept persisted operations on production environments.
 
-Read more on how to set up Strawberry Shake for persisted operations [here](/docs/strawberryshake/v16/performance/persisted-operations).
+Read more on how to set up Strawberry Shake for persisted operations [here](./persisted-operations.md).
 
 ## Automatic persisted operations
 
@@ -27,8 +27,8 @@ Automatic persisted operations allow us to store operation documents dynamically
 
 # Persisted State
 
-Apart from focusing on reducing network request size we also can optimize using the network less by using the stores more efficiently. If you are not yet familiar with the store concepts first head over to [here](/docs/strawberryshake/v16/caching).
+Apart from focusing on reducing network request size we also can optimize using the network less by using the stores more efficiently. If you are not yet familiar with the store concepts first head over to [here](../caching/index.md).
 
 One thing particular here is to persist the state that is aggregated in the stores to either the browsers IndexDB or to some small database like SQLite or LiteDB. When the user leaves the app and later returns to (closes the browser and reopens it) we can fill the state from our storage and have immediately data for the user while our store at the same time will start refreshing that data over the network if that is available.
 
-Read more on how to set up Strawberry Shake for persisted state [here](/docs/strawberryshake/v16/performance/persisted-state).
+Read more on how to set up Strawberry Shake for persisted state [here](./persisted-state.md).

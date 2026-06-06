@@ -168,7 +168,7 @@ builder
 
 # MaxPageSize and Cost Analysis
 
-The `MaxPageSize` setting works together with [cost analysis](/docs/hotchocolate/v16/security/cost-analysis) to protect your API. Cost analysis uses the `MaxPageSize` as the assumed list size when calculating the cost of a paginated field. If you increase `MaxPageSize`, the cost of queries against that field increases proportionally.
+The `MaxPageSize` setting works together with [cost analysis](../security/cost-analysis.md) to protect your API. Cost analysis uses the `MaxPageSize` as the assumed list size when calculating the cost of a paginated field. If you increase `MaxPageSize`, the cost of queries against that field increases proportionally.
 
 For public APIs, keep `MaxPageSize` conservative and use `RequirePagingBoundaries = true` to force clients to declare how many items they want.
 
@@ -543,11 +543,11 @@ builder
 
 When `NullOrdering` is `Unspecified` and the EF Core paging handler is used, ordering is detected automatically for PostgreSQL (`NativeNullsLast`) and SQL Server, SQLite, and in-memory (`NativeNullsFirst`). For unrecognized providers, an error is thrown when nullable cursor keys are present. Set `NullOrdering` explicitly to resolve it.
 
-[Learn more about database integrations](/docs/hotchocolate/v16/fetching-data/integrations)
+[Learn more about database integrations](./integrations/index.md)
 
 # Next Steps
 
-- **Need to filter results?** See [Filtering](/docs/hotchocolate/v16/fetching-data/filtering).
-- **Need to sort results?** See [Sorting](/docs/hotchocolate/v16/fetching-data/sorting).
-- **Need to optimize database queries?** See [Projections](/docs/hotchocolate/v16/fetching-data/projections).
-- **Need to protect against expensive queries?** See [Cost Analysis](/docs/hotchocolate/v16/security/cost-analysis).
+- **Need to filter results?** See [Filtering](./filtering.md).
+- **Need to sort results?** See [Sorting](./sorting.md).
+- **Need to optimize database queries?** See [Projections](./projections.md).
+- **Need to protect against expensive queries?** See [Cost Analysis](../security/cost-analysis.md).

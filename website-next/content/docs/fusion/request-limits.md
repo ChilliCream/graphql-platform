@@ -180,6 +180,6 @@ builder
 
 ## Next Steps
 
-- **"I need to secure my gateway."** [Authentication and Authorization](/docs/fusion/v16/authentication-and-authorization) covers JWT validation, header propagation, and subgraph-level authorization.
-- **"I need to tune transport performance."** [Performance Tuning](/docs/fusion/v16/performance-tuning) covers HTTP/2, request deduplication, and concurrency limiting.
-- **"I need CDN and HTTP response caching behavior."** [Cache Control](/docs/fusion/v16/cache-control) covers `@cacheControl`, composition merge behavior, and gateway response headers.
+- **"I need to secure my gateway."** [Authentication and Authorization](./authentication-and-authorization.md) covers JWT validation, header propagation, and subgraph-level authorization.
+- **"I need to tune transport performance."** [Performance Tuning](./performance-tuning.md) covers HTTP/2, request deduplication, and concurrency limiting.
+- **"I need CDN and HTTP response caching behavior."** [Cache Control](./cache-control.md) covers `@cacheControl`, composition merge behavior, and gateway response headers.

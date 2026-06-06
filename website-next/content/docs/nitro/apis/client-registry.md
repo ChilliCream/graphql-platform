@@ -66,7 +66,7 @@ Several GraphQL clients have built-in support for this Relay-style operations fi
 
 # Setting Up a Client Registry
 
-To set up a client registry, first, visit `nitro.chillicream.com` and sign up for an account. Next, you'll need to download and install Nitro CLI, the .NET tool used to manage your client registry. You can find more information about Nitro CLI in the [Nitro CLI Documentation](/docs/nitro/cli).
+To set up a client registry, first, visit `nitro.chillicream.com` and sign up for an account. Next, you'll need to download and install Nitro CLI, the .NET tool used to manage your client registry. You can find more information about Nitro CLI in the [Nitro CLI Documentation](../cli/installation.md).
 
 After installing Nitro CLI, create a new API either through the Nitro App or the CLI. In the app, simply right-click the document explorer and select "New API." If you prefer using the CLI, ensure you're logged in with the command `nitro login`, then create a new API with the command `nitro api create`. With these steps complete, you are ready to start using the client registry.
 
@@ -166,7 +166,7 @@ public void ConfigureServices(IServiceCollection services)
 You can setup a second level cache for persisted operations for improving your system's resilience and
 performance.
 
-Find out more about the cache here [Caching](/docs/nitro/apis/fusion).
+Find out more about the cache here [Caching](./fusion.md).
 
 # Integrating with Continuous Integration
 

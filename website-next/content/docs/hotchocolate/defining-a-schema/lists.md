@@ -85,7 +85,7 @@ Using `ListType<T>` makes the list type explicit in the descriptor.
 
 # List Nullability
 
-Lists have two layers of nullability: the list itself and its items. With [nullable reference types](/docs/hotchocolate/v16/defining-a-schema/non-null) enabled, Hot Chocolate infers both layers from your C# types.
+Lists have two layers of nullability: the list itself and its items. With [nullable reference types](./non-null.md) enabled, Hot Chocolate infers both layers from your C# types.
 
 | C# type          | GraphQL type | Meaning                                     |
 | ---------------- | ------------ | ------------------------------------------- |
@@ -119,6 +119,6 @@ This produces `matrix: [[Int!]!]!` in the schema.
 
 # Next Steps
 
-- **Need to control nullability?** See [Non-Null](/docs/hotchocolate/v16/defining-a-schema/non-null).
-- **Need pagination instead of full lists?** See [Pagination](/docs/hotchocolate/v16/fetching-data/pagination).
-- **Need to filter or sort lists?** See [Filtering](/docs/hotchocolate/v16/fetching-data/filtering) and [Sorting](/docs/hotchocolate/v16/fetching-data/sorting).
+- **Need to control nullability?** See [Non-Null](./non-null.md).
+- **Need pagination instead of full lists?** See [Pagination](../fetching-data/pagination.md).
+- **Need to filter or sort lists?** See [Filtering](../fetching-data/filtering.md) and [Sorting](../fetching-data/sorting.md).

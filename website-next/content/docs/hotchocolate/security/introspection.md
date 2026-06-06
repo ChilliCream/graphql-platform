@@ -36,7 +36,7 @@ You could also request the fields plus their arguments of a specific type using 
 }
 ```
 
-The `__typename` field is the introspection feature you will use the most in day-to-day development. When working with [unions](/docs/hotchocolate/v16/defining-a-schema/unions), for example, it tells you the name of the type being returned, letting you handle the result accordingly.
+The `__typename` field is the introspection feature you will use the most in day-to-day development. When working with [unions](../defining-a-schema/unions.md), for example, it tells you the name of the type being returned, letting you handle the result accordingly.
 
 ```graphql
 {
@@ -110,7 +110,7 @@ builder
     .AddHttpRequestInterceptor<IntrospectionInterceptor>();
 ```
 
-[Learn more about interceptors](/docs/hotchocolate/v16/server/interceptors)
+[Learn more about interceptors](../server/interceptors.md)
 
 ## Custom Error Message
 
@@ -165,6 +165,6 @@ public class IntrospectionInterceptor : DefaultHttpRequestInterceptor
 
 # Next Steps
 
-- [Interceptors](/docs/hotchocolate/v16/server/interceptors) for per-request customization.
-- [Security](/docs/hotchocolate/v16/security) for a broader look at securing your GraphQL server.
-- [Endpoints](/docs/hotchocolate/v16/server/endpoints) for configuring the Nitro IDE.
+- [Interceptors](../server/interceptors.md) for per-request customization.
+- [Security](./index.md) for a broader look at securing your GraphQL server.
+- [Endpoints](../server/endpoints.md) for configuring the Nitro IDE.

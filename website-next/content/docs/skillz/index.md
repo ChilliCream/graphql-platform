@@ -32,7 +32,7 @@ skillz detects the agents you have installed, then symlinks the skill into each 
 
 These docs show every command as `dnx skillz`. Prefer skillz on your `PATH`? Install the global tool with `dotnet tool install -g skillz`, then drop the `dnx` prefix and run `skillz` directly.
 
-Need the prerequisites or a step-by-step walkthrough? See [Get started](/docs/skillz/getting-started). The source lives at [github.com/ChilliCream/skillz](https://github.com/ChilliCream/skillz), and the package is on [nuget.org](https://www.nuget.org/packages/skillz).
+Need the prerequisites or a step-by-step walkthrough? See [Get started](./getting-started.md). The source lives at [github.com/ChilliCream/skillz](https://github.com/ChilliCream/skillz), and the package is on [nuget.org](https://www.nuget.org/packages/skillz).
 
 # What are Agent Skills
 
@@ -84,7 +84,7 @@ When the user asks to roll dice, parse the count and number of sides (default to
 then return each roll and the total.
 ```
 
-The `dnx skillz init` command scaffolds this layout for you; [Authoring Skills](/docs/skillz/authoring-skills) walks through it with the generated `SKILL.md` and folder tree. The full field reference, including optional frontmatter, lives in the [open specification](https://agentskills.io/specification) and in [Authoring Skills](/docs/skillz/authoring-skills).
+The `dnx skillz init` command scaffolds this layout for you; [Authoring Skills](./authoring-skills.md) walks through it with the generated `SKILL.md` and folder tree. The full field reference, including optional frontmatter, lives in the [open specification](https://agentskills.io/specification) and in [Authoring Skills](./authoring-skills.md).
 
 # Why skillz
 
@@ -110,5 +110,5 @@ skillz brings the [npx skills](https://github.com/vercel-labs/skills) workflow t
 
 # Next steps
 
-- [Get started](/docs/skillz/getting-started): install skillz and add your first skill end to end.
-- [Author a skill](/docs/skillz/authoring-skills): scaffold a `SKILL.md`, write a strong description, and publish it.
+- [Get started](./getting-started.md): install skillz and add your first skill end to end.
+- [Author a skill](./authoring-skills.md): scaffold a `SKILL.md`, write a strong description, and publish it.

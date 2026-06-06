@@ -248,7 +248,7 @@ descriptor.AddDefaults().DefaultBinding<AscOnlySortEnumType>();
 
 # Next Steps
 
-- **Need to filter results?** See [Filtering](/docs/hotchocolate/v16/fetching-data/filtering).
-- **Need to page through results?** See [Pagination](/docs/hotchocolate/v16/fetching-data/pagination).
-- **Need to optimize database queries?** See [Projections](/docs/hotchocolate/v16/fetching-data/projections).
-- **Need to protect against expensive queries?** See [Cost Analysis](/docs/hotchocolate/v16/security/cost-analysis).
+- **Need to filter results?** See [Filtering](./filtering.md).
+- **Need to page through results?** See [Pagination](./pagination.md).
+- **Need to optimize database queries?** See [Projections](./projections.md).
+- **Need to protect against expensive queries?** See [Cost Analysis](../security/cost-analysis.md).

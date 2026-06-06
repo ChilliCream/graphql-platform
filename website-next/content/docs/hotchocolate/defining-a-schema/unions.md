@@ -2,7 +2,7 @@
 title: "Unions"
 ---
 
-A GraphQL union represents a set of object types that share no required common fields. Unlike [interfaces](/docs/hotchocolate/v16/defining-a-schema/interfaces), union members do not need to declare the same fields. Clients use inline fragments to select fields from each possible type.
+A GraphQL union represents a set of object types that share no required common fields. Unlike [interfaces](./interfaces.md), union members do not need to declare the same fields. Clients use inline fragments to select fields from each possible type.
 
 **GraphQL schema**
 
@@ -176,6 +176,6 @@ union CheckoutResult = Order | InsufficientStockError | InvalidPaymentError
 
 # Next Steps
 
-- **Need shared fields across types?** See [Interfaces](/docs/hotchocolate/v16/defining-a-schema/interfaces).
-- **Need to define output types?** See [Object Types](/docs/hotchocolate/v16/defining-a-schema/object-types).
-- **Need input polymorphism?** See [OneOf Input Objects](/docs/hotchocolate/v16/defining-a-schema/input-object-types#oneof-input-objects).
+- **Need shared fields across types?** See [Interfaces](./interfaces.md).
+- **Need to define output types?** See [Object Types](./object-types.md).
+- **Need input polymorphism?** See [OneOf Input Objects](./input-object-types.md#oneof-input-objects).

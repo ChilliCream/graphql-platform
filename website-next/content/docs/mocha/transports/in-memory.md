@@ -151,5 +151,5 @@ builder.Services
 
 # Next steps
 
-- [RabbitMQ Transport](/docs/mocha/v16/transports/rabbitmq) - Configure the RabbitMQ transport for production deployments.
-- [Handlers and Consumers](/docs/mocha/v16/handlers-and-consumers) - Learn about every handler type and how to register them.
+- [RabbitMQ Transport](./rabbitmq.md) - Configure the RabbitMQ transport for production deployments.
+- [Handlers and Consumers](../handlers-and-consumers.md) - Learn about every handler type and how to register them.

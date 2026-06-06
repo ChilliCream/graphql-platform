@@ -277,7 +277,7 @@ curl -g 'http://localhost:5000/graphql/?extensions={"persistedQuery":{"version":
 
 # Next Steps
 
-- [Persisted Operations](/docs/hotchocolate/v16/performance/trusted-documents) for pre-registering operations ahead of deployment.
-- [HTTP Transport](/docs/hotchocolate/v16/server/http-transport) for details on HTTP GET caching.
+- [Persisted Operations](./trusted-documents.md) for pre-registering operations ahead of deployment.
+- [HTTP Transport](../server/http-transport.md) for details on HTTP GET caching.
 
 <!-- spell-checker:ignore yeex -->

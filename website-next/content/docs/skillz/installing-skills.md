@@ -10,7 +10,7 @@ dnx skillz add anthropics/skills
 
 That single command fetches [Anthropic's reference skills](https://github.com/anthropics/skills), then either prompts you to choose which skills and agents you want or, when it is running inside an agent, installs non-interactively. This page walks the full lifecycle: choosing a source, narrowing to specific skills and agents, picking a scope, keeping skills current, and removing them.
 
-If you have not installed the CLI yet, start with [Getting Started](/docs/skillz/getting-started).
+If you have not installed the CLI yet, start with [Getting Started](./getting-started.md).
 
 > [!WARNING]
 > **Skills run with your agent's full permissions.** A skill is executable instructions plus optional scripts that your agent runs on your machine. Install only from sources you trust, and review a skill before you use it. After every successful install, skillz reminds you: `Review skills before use; they run with full agent permissions.`
@@ -105,7 +105,7 @@ Available skills:
   beta
 ```
 
-A skill is any folder that contains a `SKILL.md` with both a `name` and a `description`. If the source contains no valid skills, skillz reports `No valid skills found. Skills require a SKILL.md with name and description.` and exits non-zero. See [Authoring Skills](/docs/skillz/authoring-skills) for the format.
+A skill is any folder that contains a `SKILL.md` with both a `name` and a `description`. If the source contains no valid skills, skillz reports `No valid skills found. Skills require a SKILL.md with name and description.` and exits non-zero. See [Authoring Skills](./authoring-skills.md) for the format.
 
 # Choose which agents
 
@@ -143,7 +143,7 @@ These are the headline agent identifiers. Names are case-sensitive.
 | Gemini CLI     | `gemini-cli`         |
 | Windsurf       | `windsurf`           |
 
-skillz supports more than 50 agents. For the complete list, plus the exact directory each agent installs into, see the [Reference](/docs/skillz/reference).
+skillz supports more than 50 agents. For the complete list, plus the exact directory each agent installs into, see the [Reference](./reference.md).
 
 Because identifiers are case-sensitive, `copilot` and `Claude-Code` are not valid. An invalid value fails fast and lists every valid name so you can copy the right one:
 
@@ -190,7 +190,7 @@ flowchart LR
   C --> A3["Universal agents (.agents/skills is the store)"]
 ```
 
-Some agents read directly from the shared `.agents/skills` store, so their skills directory _is_ that store and no symlink is needed. The [Reference](/docs/skillz/reference) lists which agents read from the shared store and the directory each agent installs into.
+Some agents read directly from the shared `.agents/skills` store, so their skills directory _is_ that store and no symlink is needed. The [Reference](./reference.md) lists which agents read from the shared store and the directory each agent installs into.
 
 To copy files instead of symlinking, pass `--copy`. Use it for sandboxed agents that cannot follow symlinks (for example, agents running in containers where symlinks across mounts break):
 
@@ -221,7 +221,7 @@ Found 1 skill(s)
 Done!  Review skills before use; they run with full agent permissions.
 ```
 
-If everything worked, you should see the `Installation Summary` panel followed by an `Installed N skill(s)` panel and the safety reminder. To confirm later, run `dnx skillz list` (see the [Reference](/docs/skillz/reference)).
+If everything worked, you should see the `Installation Summary` panel followed by an `Installed N skill(s)` panel and the safety reminder. To confirm later, run `dnx skillz list` (see the [Reference](./reference.md)).
 
 # Scan nested skills with --full-depth
 
@@ -262,7 +262,7 @@ A working SSH key prints the well-known success line (GitHub closes the connecti
 Hi <user>! You've successfully authenticated, but GitHub does not provide shell access.
 ```
 
-If a clone fails with an authentication error, skillz prints guidance pointing you back to your git credentials. See [Troubleshooting](/docs/skillz/troubleshooting) for the full list of clone and auth failures.
+If a clone fails with an authentication error, skillz prints guidance pointing you back to your git credentials. See [Troubleshooting](./troubleshooting.md) for the full list of clone and auth failures.
 
 # Keep skills up to date
 
@@ -302,7 +302,7 @@ Checking global skill 1/1: my-skill
 All global skills are up to date
 ```
 
-The update check calls the GitHub API. If you hit a rate limit, set a `GITHUB_TOKEN` or `GH_TOKEN` environment variable (or sign in with `gh auth login`) and skillz uses it for the check. See [Troubleshooting](/docs/skillz/troubleshooting) for rate-limit and timeout details.
+The update check calls the GitHub API. If you hit a rate limit, set a `GITHUB_TOKEN` or `GH_TOKEN` environment variable (or sign in with `gh auth login`) and skillz uses it for the check. See [Troubleshooting](./troubleshooting.md) for rate-limit and timeout details.
 
 # Remove skills
 
@@ -346,6 +346,6 @@ No matching skills found for: nope
 
 # Next steps
 
-- [Authoring Skills](/docs/skillz/authoring-skills): write and publish your own `SKILL.md` with `dnx skillz init`.
-- [Reference](/docs/skillz/reference): every command, flag, the full list of more than 50 agents, and per-agent install directories.
-- [Troubleshooting](/docs/skillz/troubleshooting): clone failures, authentication errors, rate limits, and symlink fallbacks.
+- [Authoring Skills](./authoring-skills.md): write and publish your own `SKILL.md` with `dnx skillz init`.
+- [Reference](./reference.md): every command, flag, the full list of more than 50 agents, and per-agent install directories.
+- [Troubleshooting](./troubleshooting.md): clone failures, authentication errors, rate limits, and symlink fallbacks.

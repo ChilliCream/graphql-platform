@@ -608,9 +608,9 @@ Messages with `Priority = "high"` reach the queue. Messages with any other prior
 
 # Next steps
 
-- [Transports Overview](/docs/mocha/v16/transports) - Understand the transport abstraction and lifecycle.
-- [Handlers and Consumers](/docs/mocha/v16/handlers-and-consumers) - Learn about handler types and consumer configuration.
-- [Reliability](/docs/mocha/v16/reliability) - Configure dead-letter routing, outbox, inbox, and fault handling.
+- [Transports Overview](./index.md) - Understand the transport abstraction and lifecycle.
+- [Handlers and Consumers](../handlers-and-consumers.md) - Learn about handler types and consumer configuration.
+- [Reliability](../reliability.md) - Configure dead-letter routing, outbox, inbox, and fault handling.
 
 > **Runnable example:** [RabbitMQ](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Examples/Transports/RabbitMQ)
 >

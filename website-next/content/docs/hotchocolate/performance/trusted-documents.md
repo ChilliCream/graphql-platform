@@ -17,7 +17,7 @@ Extracting operations is supported by client libraries like [Relay](https://rela
 - If Hot Chocolate finds an operation that matches the specified hash in the operation document storage, it executes the operation and returns the result to the client.
 
 > [!NOTE]
-> There are also [automatic persisted operations](/docs/hotchocolate/v16/performance/automatic-persisted-operations), which let clients persist operation documents at runtime. They might be a better fit if your API is used by many clients with different requirements.
+> There are also [automatic persisted operations](./automatic-persisted-operations.md), which let clients persist operation documents at runtime. They might be a better fit if your API is used by many clients with different requirements.
 
 # Benefits
 
@@ -50,7 +50,7 @@ Setting up a persisted operation file is not sufficient for a robust production 
 
 The client registry simplifies the management of your GraphQL clients. It stores and retrieves persisted operation documents through their hashes and ensures that operations are validated against the current schema on publish, preventing runtime errors due to schema-operation mismatches. It also supports versioning of your clients, allowing updates and maintenance without disrupting existing operations.
 
-Check out the [client registry documentation](/docs/nitro/apis/client-registry) for more information.
+Check out the [client registry documentation](../../nitro/apis/client-registry.md) for more information.
 
 # Storage Mechanisms
 
@@ -189,7 +189,7 @@ builder
 
 This blocks any dynamic operations that do not contain the `id` of a persisted operation.
 
-You might still want to allow the execution of dynamic operations in certain circumstances. Override the `OnlyAllowPersistedDocuments` rule on a per-request basis using the `AllowNonPersistedOperation` method on the `OperationRequestBuilder`. Implement a custom [IHttpRequestInterceptor](/docs/hotchocolate/v16/server/interceptors#ihttprequestinterceptor) and call `AllowNonPersistedOperation` if a certain condition is met:
+You might still want to allow the execution of dynamic operations in certain circumstances. Override the `OnlyAllowPersistedDocuments` rule on a per-request basis using the `AllowNonPersistedOperation` method on the `OperationRequestBuilder`. Implement a custom [IHttpRequestInterceptor](../server/interceptors.md#ihttprequestinterceptor) and call `AllowNonPersistedOperation` if a certain condition is met:
 
 ```csharp
 builder
@@ -246,6 +246,6 @@ A client is expected to send an `id` field containing the operation document has
 
 # Next Steps
 
-- [Automatic Persisted Operations](/docs/hotchocolate/v16/performance/automatic-persisted-operations) for dynamically storing operations at runtime.
-- [Interceptors](/docs/hotchocolate/v16/server/interceptors) for per-request customization.
-- [Client Registry](/docs/nitro/apis/client-registry) for production-ready persisted operation management.
+- [Automatic Persisted Operations](./automatic-persisted-operations.md) for dynamically storing operations at runtime.
+- [Interceptors](../server/interceptors.md) for per-request customization.
+- [Client Registry](../../nitro/apis/client-registry.md) for production-ready persisted operation management.

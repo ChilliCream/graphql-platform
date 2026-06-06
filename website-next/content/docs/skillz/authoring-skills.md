@@ -4,11 +4,11 @@ title: "Authoring Skills"
 
 Package your team's conventions once, and any agent can pick them up. A skill is a folder with a `SKILL.md` file that tells an agent how to do something the way your team does it: your release checklist, your code review rules, your API client patterns. You write it once, push it to a git repo, and your teammates install it with one command. From then on, every agent they run loads that knowledge on demand, no copy-pasting prompts into each session.
 
-This page teaches you to scaffold a skill, write a correct `SKILL.md`, add supporting files, and publish it so others can install it with [dnx skillz add](/docs/skillz/installing-skills). The skill format is the open [Agent Skills](https://agentskills.io/home) standard, so what you write here works across [more than 50 agents](/docs/skillz/), not only the one you author it in.
+This page teaches you to scaffold a skill, write a correct `SKILL.md`, add supporting files, and publish it so others can install it with [dnx skillz add](./installing-skills.md). The skill format is the open [Agent Skills](https://agentskills.io/home) standard, so what you write here works across [more than 50 agents](./index.md), not only the one you author it in.
 
 # Scaffold a skill
 
-> Prerequisites: skillz installed. See [Getting Started](/docs/skillz/getting-started) to install the CLI before running the commands below.
+> Prerequisites: skillz installed. See [Getting Started](./getting-started.md) to install the CLI before running the commands below.
 
 To create a new skill in its own folder, run `dnx skillz init` with a name.
 
@@ -91,7 +91,7 @@ Replace the placeholder `description`, then fill in the body. The next sections 
 
 A `SKILL.md` has two parts: YAML frontmatter between `---` fences, and a Markdown body below it. The frontmatter is metadata the agent reads to decide whether your skill is relevant. The body is the instructions the agent follows once it decides to use the skill.
 
-The "Required frontmatter" and "Optional frontmatter" subsections below are reference material: field-by-field constraint tables you can scan when you fill in the frontmatter. For the complete, authoritative field list see the [Reference](/docs/skillz/reference).
+The "Required frontmatter" and "Optional frontmatter" subsections below are reference material: field-by-field constraint tables you can scan when you fill in the frontmatter. For the complete, authoritative field list see the [Reference](./reference.md).
 
 ## Required frontmatter
 
@@ -124,7 +124,7 @@ Add these fields only when you need them. The open spec at [agentskills.io/speci
 | `metadata`      | A string-to-string map for client-defined properties the spec does not cover, such as `author` or `version`. Use distinctive key names to avoid collisions.                 |
 | `allowed-tools` | A space-separated list of pre-approved tools, for example `Bash(git:*) Read`.                                                                                               |
 
-For the exhaustive list of frontmatter fields and their constraints, see the [Reference](/docs/skillz/reference).
+For the exhaustive list of frontmatter fields and their constraints, see the [Reference](./reference.md).
 
 > [!WARNING]
 > **`allowed-tools` is experimental.** Support varies between agents, and `dnx skillz init` does not emit it. Treat it as a hint that some agents honor and others ignore, not a security boundary.
@@ -149,13 +149,13 @@ my-skill/
 
 skillz copies or symlinks the whole folder as a unit, so every supporting file ships with the skill. (A few build artifacts are excluded automatically, including `.git`, `node_modules`, and `__pycache__`.)
 
-These directories exist because of [progressive disclosure](/docs/skillz/#how-skills-load-progressive-disclosure): the agent loads your skill in stages so a large skill costs almost nothing until it is needed.
+These directories exist because of [progressive disclosure](./index.md#how-skills-load-progressive-disclosure): the agent loads your skill in stages so a large skill costs almost nothing until it is needed.
 
 - At startup the agent loads only `name` and `description`.
 - When the skill triggers, the agent reads the `SKILL.md` body.
 - A file under `references/`, `scripts/`, or `assets/` loads only when the body points the agent at it.
 
-This is why moving detail out of `SKILL.md` and into `references/` is free: that material never enters the context window until the agent actually follows a link to it. Reference your supporting files with relative paths one level deep (for example `references/api.md`), and avoid deep nesting chains. For more on the three-stage model, see the [Introduction](/docs/skillz/#how-skills-load-progressive-disclosure) and [Anthropic's overview](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview).
+This is why moving detail out of `SKILL.md` and into `references/` is free: that material never enters the context window until the agent actually follows a link to it. Reference your supporting files with relative paths one level deep (for example `references/api.md`), and avoid deep nesting chains. For more on the three-stage model, see the [Introduction](./index.md#how-skills-load-progressive-disclosure) and [Anthropic's overview](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview).
 
 # How skillz names skills on install
 
@@ -167,7 +167,7 @@ For a clean lowercase-hyphen name like `release-checklist`, the on-disk name is 
 
 A skill is a folder in a git repo, so publishing is committing and pushing. Anywhere skillz can reach with git works.
 
-To publish, commit your skill folder and push it to GitHub, GitLab, or any git remote. Then anyone installs it with `dnx skillz add` pointed at the repo. The forms below show what an installer runs against your published skill; for the full add workflow, including expected output, scoping, and agent targeting, see [Installing Skills](/docs/skillz/installing-skills).
+To publish, commit your skill folder and push it to GitHub, GitLab, or any git remote. Then anyone installs it with `dnx skillz add` pointed at the repo. The forms below show what an installer runs against your published skill; for the full add workflow, including expected output, scoping, and agent targeting, see [Installing Skills](./installing-skills.md).
 
 ```bash
 # install every skill in the repo
@@ -180,7 +180,7 @@ dnx skillz add my-org/my-skills@release-checklist
 dnx skillz add https://example.com/my-skill/SKILL.md
 ```
 
-Private repositories work with no extra configuration. skillz shells out to your own `git`, so it uses your existing credentials (SSH agent keys, a git credential helper, or `gh auth`). If you can `git clone` the repo, skillz can install from it. When authentication fails, see [Troubleshooting](/docs/skillz/troubleshooting).
+Private repositories work with no extra configuration. skillz shells out to your own `git`, so it uses your existing credentials (SSH agent keys, a git credential helper, or `gh auth`). If you can `git clone` the repo, skillz can install from it. When authentication fails, see [Troubleshooting](./troubleshooting.md).
 
 To keep a work-in-progress skill out of default discovery, set `metadata.internal` to `true` in the frontmatter. skillz hides internal skills unless the installer explicitly opts in (by filtering for the skill by name, or by setting the `INSTALL_INTERNAL_SKILLS` environment variable).
 
@@ -207,5 +207,5 @@ Running it after `dnx skillz init` and again before you push catches a malformed
 
 # Next steps
 
-- [Installing Skills](/docs/skillz/installing-skills): install your published skill, target specific agents, and choose project or global scope.
-- [Reference](/docs/skillz/reference): the complete command and flag surface, including `dnx skillz init`.
+- [Installing Skills](./installing-skills.md): install your published skill, target specific agents, and choose project or global scope.
+- [Reference](./reference.md): the complete command and flag surface, including `dnx skillz init`.

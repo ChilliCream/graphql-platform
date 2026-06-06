@@ -99,12 +99,12 @@ The key insight: this is not a rewrite. It is a gradual process. You move types 
 
 Where you go from here depends on what you need:
 
-- **"I want to build something."** Start with the [Getting Started](/docs/fusion/v16/getting-started) tutorial. You will create two services and a gateway from scratch.
+- **"I want to build something."** Start with the [Getting Started](./getting-started.md) tutorial. You will create two services and a gateway from scratch.
 
-- **"I want to add another service to an existing project."** Go to [Adding a Subgraph](/docs/fusion/v16/adding-a-subgraph). It covers creating a new service (subgraph) that extends existing entity types.
+- **"I want to add another service to an existing project."** Go to [Adding a Subgraph](./adding-a-subgraph.md). It covers creating a new service (subgraph) that extends existing entity types.
 
-- **"I'm migrating from another distributed GraphQL framework."** Read [Coming from Apollo Federation](/docs/fusion/v16/migration/coming-from-apollo-federation) or [Migrating from Schema Stitching](/docs/fusion/v16/migration/migrating-from-schema-stitching). These guides map familiar concepts to Fusion equivalents and walk through a migration.
+- **"I'm migrating from another distributed GraphQL framework."** Read [Coming from Apollo Federation](./migration/coming-from-apollo-federation.md) or [Migrating from Schema Stitching](./migration/migrating-from-schema-stitching.md). These guides map familiar concepts to Fusion equivalents and walk through a migration.
 
-- **"I need to deploy this."** See [Deployment & CI/CD](/docs/fusion/v16/deployment-and-ci-cd) for pipeline setup, schema management, and gateway configuration.
+- **"I need to deploy this."** See [Deployment & CI/CD](./deployment-and-ci-cd.md) for pipeline setup, schema management, and gateway configuration.
 
-- **"I need CDN and browser caching behavior."** See [Cache Control](/docs/fusion/v16/cache-control) for `@cacheControl`, composition merge behavior, and gateway response headers.
+- **"I need CDN and browser caching behavior."** See [Cache Control](./cache-control.md) for `@cacheControl`, composition merge behavior, and gateway response headers.

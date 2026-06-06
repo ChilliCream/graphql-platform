@@ -149,7 +149,7 @@ Both produce `genres: [String!]` in the schema.
 
 # Next Steps
 
-- **Need to define lists?** See [Lists](/docs/hotchocolate/v16/defining-a-schema/lists).
-- **Need to understand arguments?** See [Arguments](/docs/hotchocolate/v16/defining-a-schema/arguments).
-- **Need input types?** See [Input Object Types](/docs/hotchocolate/v16/defining-a-schema/input-object-types).
-- **Need to learn about scalars?** See [Scalars](/docs/hotchocolate/v16/defining-a-schema/scalars).
+- **Need to define lists?** See [Lists](./lists.md).
+- **Need to understand arguments?** See [Arguments](./arguments.md).
+- **Need input types?** See [Input Object Types](./input-object-types.md).
+- **Need to learn about scalars?** See [Scalars](./scalars.md).
