@@ -30,4 +30,9 @@ export const PRODUCTS: readonly Product[] = [
     title: "Mocha",
     description: "Messaging Bus for .NET",
   },
+  {
+    slug: "skillz",
+    title: "Skillz",
+    description: "Skills for the ChilliCream GraphQL Platform",
+  },
 ];
