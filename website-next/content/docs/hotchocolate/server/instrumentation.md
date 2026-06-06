@@ -217,7 +217,7 @@ OpenTelemetry is an open-source, vendor-neutral standard for collecting telemetr
 
 Hot Chocolate provides an OpenTelemetry integration that aligns with the [proposed GraphQL semantic conventions](https://github.com/graphql/otel-wg/blob/main/spec).
 
-<Video videoId="nCLSfJMihsg" />
+[Watch the video on YouTube](https://www.youtube.com/watch?v=nCLSfJMihsg)
 
 ## Setup
 

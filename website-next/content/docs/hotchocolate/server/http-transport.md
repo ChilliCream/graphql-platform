@@ -102,7 +102,7 @@ Content-Type: application/json
 ```
 
 > [!NOTE]
-> {query} and {operationName} parameters are encoded as raw strings in the query component. Therefore if the query string contained operationName=null then it should be interpreted as the {operationName} being the string "null". If a literal null is desired, the parameter (e.g. {operationName}) should be omitted.
+> \{query\} and \{operationName\} parameters are encoded as raw strings in the query component. Therefore if the query string contained operationName=null then it should be interpreted as the \{operationName\} being the string "null". If a literal null is desired, the parameter (e.g. \{operationName\}) should be omitted.
 
 The GraphQL HTTP GET request is specified [here](https://github.com/graphql/graphql-over-http/blob/master/spec/GraphQLOverHTTP.md#get).
 

@@ -23,7 +23,7 @@ This has a couple of downsides:
 
 Hot Chocolate implements the [GraphQL multipart request specification](https://github.com/jaydenseric/graphql-multipart-request-spec) which adds a new `Upload` scalar and lets your GraphQL server handle file upload streams.
 
-<Video videoId="XeF3IuGDq4A"></Video>
+[Watch the video on YouTube](https://www.youtube.com/watch?v=XeF3IuGDq4A)
 
 > [!WARNING]
 > Files cannot yet be uploaded through a gateway to stitched services using the `Upload` scalar.

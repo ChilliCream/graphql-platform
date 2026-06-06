@@ -141,7 +141,7 @@ builder
     }));
 ```
 
-<Video videoId="gO3bNKBmXZM" />
+[Watch the video on YouTube](https://www.youtube.com/watch?v=gO3bNKBmXZM)
 
 ## UUID Format
 
@@ -151,9 +151,9 @@ The `UUID` scalar supports multiple serialization formats:
 | ----------- | -------------------------------------------------------------------- |
 | N           | 00000000000000000000000000000000                                     |
 | D (default) | 00000000-0000-0000-0000-000000000000                                 |
-| B           | {00000000-0000-0000-0000-000000000000}                               |
+| B           | \{00000000-0000-0000-0000-000000000000\}                             |
 | P           | (00000000-0000-0000-0000-000000000000)                               |
-| X           | {0x00000000,0x0000,0x0000,{0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00}} |
+| X           | \{0x00000000,0x0000,0x0000,\{0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00\}\} |
 
 The `UuidType` always returns values in the specified format. When parsing input, it tries the specified format first, then falls back to other formats.
 

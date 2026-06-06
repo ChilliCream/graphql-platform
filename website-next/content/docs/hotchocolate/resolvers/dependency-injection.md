@@ -140,7 +140,7 @@ public sealed class QueryType : ObjectType
 
 # Constructor Injection
 
-If you're coming from an ASP.NET core controller-based workflow, you might be used to injecting services into your types via the constructor. In Hot Chocolate, you should <strong style="color: red">avoid</strong> injecting services into GraphQL type definitions for these reasons:
+If you're coming from an ASP.NET core controller-based workflow, you might be used to injecting services into your types via the constructor. In Hot Chocolate, you should **avoid** injecting services into GraphQL type definitions for these reasons:
 
 - GraphQL type definitions are registered as singletons, so constructor-injected services would also become singletons.
 - Hot Chocolate cannot synchronize access to those services during request execution, which can cause issues with services that are not thread-safe (such as EF Core's DbContext).
