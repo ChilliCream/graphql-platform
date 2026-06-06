@@ -422,6 +422,59 @@ public abstract class ClientsCommandTestBase(NitroCommandFixture fixture) : Comm
 
     #endregion
 
+    #region ListClientPublishedVersions
+
+    protected void SetupListClientPublishedVersionsQuery(
+        string? cursor = null,
+        string? endCursor = null,
+        bool hasNextPage = false,
+        params (string Tag, DateTimeOffset PublishedAt)[] versions)
+    {
+        var items = versions
+            .Select(static v => CreatePublishedVersionEdge(v.Tag, v.PublishedAt))
+            .ToArray();
+
+        var page = new ConnectionPage<IListClientPublishedVersionsCommand_PublishedClientVersionEdge>(
+            items, endCursor, hasNextPage);
+
+        ClientsClientMock.Setup(x => x.ListClientPublishedVersionsAsync(
+                ClientId, Stage, cursor, 10, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(page);
+    }
+
+    protected void SetupListClientPublishedVersionsQueryException()
+    {
+        ClientsClientMock.Setup(x => x.ListClientPublishedVersionsAsync(
+                ClientId, Stage, null, 10, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Something unexpected happened."));
+    }
+
+    protected void SetupListClientPublishedVersionsQueryNotFound(string? cursor = null)
+    {
+        ClientsClientMock.Setup(x => x.ListClientPublishedVersionsAsync(
+                ClientId, Stage, cursor, 10, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((ConnectionPage<IListClientPublishedVersionsCommand_PublishedClientVersionEdge>?)null);
+    }
+
+    protected static IListClientPublishedVersionsCommand_PublishedClientVersionEdge CreatePublishedVersionEdge(
+        string tag,
+        DateTimeOffset publishedAt)
+    {
+        var version = new Mock<IListClientPublishedVersionsCommandQuery_Node_PublishedVersions_Edges_Node_Version>(MockBehavior.Strict);
+        version.SetupGet(x => x.Tag).Returns(tag);
+
+        var node = new Mock<IListClientPublishedVersionsCommandQuery_Node_PublishedVersions_Edges_Node>(MockBehavior.Strict);
+        node.SetupGet(x => x.PublishedAt).Returns(publishedAt);
+        node.SetupGet(x => x.Version).Returns(version.Object);
+
+        var edge = new Mock<IListClientPublishedVersionsCommand_PublishedClientVersionEdge>(MockBehavior.Strict);
+        edge.SetupGet(x => x.Node).Returns(node.Object);
+
+        return edge.Object;
+    }
+
+    #endregion
+
     #region Download
 
     protected void SetupDownloadPersistedQueries(Stream? result)
