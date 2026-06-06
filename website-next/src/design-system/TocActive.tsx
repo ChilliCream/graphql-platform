@@ -5,16 +5,26 @@ import { useEffect } from "react";
 type SectionDescriptor = {
   id: string;
   childIds: string[];
+  subtrees: { id: string; childIds: string[] }[];
 };
 
 export function TocActive({ sections }: { sections: SectionDescriptor[] }) {
   useEffect(() => {
     const allIds = sections.flatMap((s) => [s.id, ...s.childIds]);
     const sectionOf = new Map<string, string>();
+    // Maps any heading id to the h3 subtree that owns it, so a subtree's
+    // deeper (h4) links only reveal while that subtree is the active one.
+    const subtreeOf = new Map<string, string>();
     for (const section of sections) {
       sectionOf.set(section.id, section.id);
       for (const childId of section.childIds) {
         sectionOf.set(childId, section.id);
+      }
+      for (const subtree of section.subtrees) {
+        subtreeOf.set(subtree.id, subtree.id);
+        for (const childId of subtree.childIds) {
+          subtreeOf.set(childId, subtree.id);
+        }
       }
     }
 
@@ -48,6 +58,42 @@ export function TocActive({ sections }: { sections: SectionDescriptor[] }) {
         } else {
           delete sectionEl.dataset.sectionActive;
         }
+      }
+
+      const activeSubtree = activeId ? subtreeOf.get(activeId) ?? null : null;
+      for (const subtreeEl of document.querySelectorAll<HTMLElement>(
+        "[data-toc-subtree]"
+      )) {
+        if (subtreeEl.dataset.tocSubtree === activeSubtree) {
+          subtreeEl.dataset.subtreeActive = "true";
+        } else {
+          delete subtreeEl.dataset.subtreeActive;
+        }
+      }
+
+      scrollActiveIntoView(activeId);
+    }
+
+    // Keep the active entry within the TOC's own scroll window so it stays
+    // visible even when the list is taller than the viewport.
+    function scrollActiveIntoView(activeId: string | null) {
+      if (!activeId) {
+        return;
+      }
+      const container = document.querySelector<HTMLElement>("[data-toc-scroll]");
+      const link = container?.querySelector<HTMLElement>(
+        `[data-toc-link="${CSS.escape(activeId)}"]`
+      );
+      if (!container || !link) {
+        return;
+      }
+      const margin = 24;
+      const linkBox = link.getBoundingClientRect();
+      const containerBox = container.getBoundingClientRect();
+      if (linkBox.top < containerBox.top + margin) {
+        container.scrollTop -= containerBox.top + margin - linkBox.top;
+      } else if (linkBox.bottom > containerBox.bottom - margin) {
+        container.scrollTop += linkBox.bottom - (containerBox.bottom - margin);
       }
     }
 
