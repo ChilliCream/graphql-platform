@@ -85,7 +85,7 @@ export default function remarkRewriteMdLinks() {
           if (!blogsRouteExists(cwd, segments.slice(1))) {
             file.fail(
               `Broken root-absolute link "${node.url}" — no matching post found under blog/ ` +
-                `(expected /blog/YYYY/MM/DD/slug)`,
+                `(expected /blog/YYYY-MM-DD-slug)`,
               node,
               RULE_ID
             );
@@ -191,7 +191,7 @@ function rewritePublicAsset(url, sourceDir, publicDir, cwd, file, node) {
 }
 
 /** Convert a path relative to cwd (without extension) under blog/ into the
- *  canonical /blog/YYYY/MM/DD/slug URL, or null if it doesn't match. */
+ *  canonical /blog/YYYY-MM-DD-slug URL, or null if it doesn't match. */
 function blogUrlFromCleanRel(cleanRel) {
   // cleanRel looks like "blog/2019-06-05-foo" or "blog/2019-06-05-foo/2019-06-05-foo"
   const segments = cleanRel.split("/");
@@ -199,15 +199,10 @@ function blogUrlFromCleanRel(cleanRel) {
     return null;
   }
   const stem = segments[1];
-  if (!stem) {
+  if (!stem || !BLOG_STEM_RE.test(stem)) {
     return null;
   }
-  const m = BLOG_STEM_RE.exec(stem);
-  if (!m) {
-    return null;
-  }
-  const [, yyyy, mm, dd, slug] = m;
-  return `/blog/${yyyy}/${mm}/${dd}/${slug}`;
+  return `/blog/${stem}`;
 }
 
 function appRouteExists(appDir, segments) {
@@ -280,20 +275,15 @@ function docsFileExists(cwd, subSegments) {
   );
 }
 
-/** Verify that /blog/YYYY/MM/DD/slug maps to an actual blog file on disk. */
+/** Verify that /blog/YYYY-MM-DD-slug maps to an actual blog file on disk. */
 function blogsRouteExists(cwd, subSegments) {
-  if (subSegments.length < 4) {
+  if (subSegments.length !== 1) {
     return false;
   }
-  const [yyyy, mm, dd, ...rest] = subSegments;
-  if (!/^\d{4}$/.test(yyyy) || !/^\d{2}$/.test(mm) || !/^\d{2}$/.test(dd)) {
+  const stem = subSegments[0];
+  if (!BLOG_STEM_RE.test(stem)) {
     return false;
   }
-  const slug = rest.join("/");
-  if (!slug) {
-    return false;
-  }
-  const stem = `${yyyy}-${mm}-${dd}-${slug}`;
   const candidates = [
     `${stem}.md`,
     `${stem}.mdx`,

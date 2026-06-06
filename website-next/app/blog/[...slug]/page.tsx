@@ -36,8 +36,8 @@ type PageProps = { params: Promise<Params> };
 export const dynamicParams = false;
 
 export function generateStaticParams(): Params[] {
-  const postParams = listBlogPosts().map<Params>(({ parsed }) => ({
-    slug: [parsed.year, parsed.month, parsed.day, parsed.slug],
+  const postParams = listBlogPosts().map<Params>(({ stem }) => ({
+    slug: [stem],
   }));
 
   const summaries = listBlogPostSummaries();
@@ -155,7 +155,7 @@ function isPaginationSlug(slug: string[]): boolean {
 }
 
 function stemForSlug(slug: string[]): string {
-  return `${slug[0]}-${slug[1]}-${slug[2]}-${slug.slice(3).join("/")}`;
+  return slug[0];
 }
 
 function renderPagination(pageNum: number) {
