@@ -21,6 +21,12 @@ internal static class ThrowHelper
 
     public static Exception NoClientSelected() => Exit("You did not select a client!");
 
+    public static Exception NoMcpFeatureCollectionSelected()
+        => Exit("You did not select an MCP feature collection!");
+
+    public static Exception NoOpenApiCollectionSelected()
+        => Exit("You did not select an OpenAPI collection!");
+
     public static ExitException MutationReturnedNoData()
         => Exit("The GraphQL mutation completed without errors, but the server did not return the expected data.");
 }

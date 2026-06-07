@@ -65,6 +65,13 @@ internal sealed class McpClient(IApiClient apiClient) : IMcpClient
             connection.PageInfo.HasNextPage);
     }
 
+    public async Task<string?> GetMcpFeatureCollectionApiIdAsync(string mcpFeatureCollectionId, CancellationToken cancellationToken)
+    {
+        var result = await apiClient.GetMcpFeatureCollectionApiIdQuery.ExecuteAsync(mcpFeatureCollectionId, cancellationToken);
+        var data = OperationResultHelper.EnsureData(result);
+        return (data.Node as IGetMcpFeatureCollectionApiIdQuery_Node_McpFeatureCollection)?.Api?.Id;
+    }
+
     public async Task<IUploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection> UploadMcpFeatureCollectionVersionAsync(
         string mcpFeatureCollectionId,
         string tag,

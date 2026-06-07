@@ -1,5 +1,7 @@
 using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.Clients;
+using ChilliCream.Nitro.CommandLine.Commands.Clients.Components;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
@@ -13,8 +15,8 @@ internal sealed class UploadClientCommand : Command
     {
         Description = "Upload a new client version.";
 
-        Options.Add(Opt<ClientIdOption>.Instance);
-        Options.Add(Opt<TagOption>.Instance);
+        Options.Add(Opt<OptionalClientIdOption>.Instance);
+        Options.Add(Opt<OptionalTagOption>.Instance);
         Options.Add(Opt<OperationsFileOption>.Instance);
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 
@@ -38,14 +40,35 @@ internal sealed class UploadClientCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var client = services.GetRequiredService<IClientsClient>();
+        var apisClient = services.GetRequiredService<IApisClient>();
         var fileSystem = services.GetRequiredService<IFileSystem>();
         var sessionService = services.GetRequiredService<ISessionService>();
 
         parseResult.AssertHasAuthentication(sessionService);
 
-        var tag = parseResult.GetRequiredValue(Opt<TagOption>.Instance);
+        string clientId;
+        var clientIdArg = parseResult.GetValue(Opt<OptionalClientIdOption>.Instance);
+        if (console.IsInteractive && clientIdArg is null)
+        {
+            var apiId = await console.GetOrPromptForApiIdAsync(
+                "For which API?", parseResult, apisClient, sessionService, cancellationToken);
+
+            var selectedClient = await SelectClientPrompt
+                .New(client, apiId)
+                .Title("Select a client from the list below.")
+                .RenderAsync(console, cancellationToken) ?? throw NoClientSelected();
+
+            clientId = selectedClient.Id;
+        }
+        else
+        {
+            clientId = parseResult.GetRequiredOptionalValue(Opt<OptionalClientIdOption>.Instance);
+        }
+
+        var tag = await console.GetOrPromptForTagAsync(
+            "Which tag?", parseResult, Opt<OptionalTagOption>.Instance, cancellationToken);
+
         var operationsFilePath = parseResult.GetRequiredValue(Opt<OperationsFileOption>.Instance);
-        var clientId = parseResult.GetRequiredValue(Opt<ClientIdOption>.Instance);
         var sourceMetadataJson = parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);
 
         var source = SourceMetadataParser.Parse(sourceMetadataJson);

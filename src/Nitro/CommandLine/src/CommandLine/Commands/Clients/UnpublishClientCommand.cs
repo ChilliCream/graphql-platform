@@ -1,8 +1,12 @@
 using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.Clients;
+using ChilliCream.Nitro.Client.Stages;
+using ChilliCream.Nitro.CommandLine.Commands.Clients.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Clients.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
+using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Clients;
 
@@ -13,8 +17,8 @@ internal sealed class UnpublishClientCommand : Command
         Description = "Unpublish a client version from a stage.";
 
         Options.Add(Opt<ClientTagsToUnpublishOption>.Instance);
-        Options.Add(Opt<StageNameOption>.Instance);
-        Options.Add(Opt<ClientIdOption>.Instance);
+        Options.Add(Opt<OptionalStageNameOption>.Instance);
+        Options.Add(Opt<OptionalClientIdOption>.Instance);
 
         this.AddGlobalNitroOptions();
 
@@ -36,13 +40,58 @@ internal sealed class UnpublishClientCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var client = services.GetRequiredService<IClientsClient>();
+        var apisClient = services.GetRequiredService<IApisClient>();
+        var stagesClient = services.GetRequiredService<IStagesClient>();
         var sessionService = services.GetRequiredService<ISessionService>();
 
         parseResult.AssertHasAuthentication(sessionService);
 
-        var tags = parseResult.GetRequiredValue(Opt<ClientTagsToUnpublishOption>.Instance).ToArray();
-        var stage = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
-        var clientId = parseResult.GetRequiredValue(Opt<ClientIdOption>.Instance);
+        string clientId;
+        string? apiId = null;
+        var clientIdArg = parseResult.GetValue(Opt<OptionalClientIdOption>.Instance);
+        if (console.IsInteractive && clientIdArg is null)
+        {
+            apiId = await console.GetOrPromptForApiIdAsync(
+                "For which API?", parseResult, apisClient, sessionService, cancellationToken);
+
+            var selectedClient = await SelectClientPrompt
+                .New(client, apiId)
+                .Title("Select a client from the list below.")
+                .RenderAsync(console, cancellationToken) ?? throw NoClientSelected();
+
+            clientId = selectedClient.Id;
+        }
+        else
+        {
+            clientId = parseResult.GetRequiredOptionalValue(Opt<OptionalClientIdOption>.Instance);
+        }
+
+        var stageArg = parseResult.GetValue(Opt<OptionalStageNameOption>.Instance);
+        if (string.IsNullOrEmpty(stageArg) && console.IsInteractive)
+        {
+            apiId ??= await client.GetClientApiIdAsync(clientId, cancellationToken)
+                ?? throw new ExitException("The client was not found.");
+        }
+
+        var stage = await console.GetOrPromptForStageNameAsync(
+            "Which stage?",
+            parseResult,
+            Opt<OptionalStageNameOption>.Instance,
+            stagesClient,
+            apiId ?? string.Empty,
+            cancellationToken);
+
+        var tags = parseResult.GetValue(Opt<ClientTagsToUnpublishOption>.Instance)?.ToArray() ?? [];
+        if (tags.Length == 0)
+        {
+            if (!console.IsInteractive)
+            {
+                throw MissingRequiredOption(Opt<ClientTagsToUnpublishOption>.Instance.Name);
+            }
+
+            var tag = await console.PromptAsync("Which tag?", defaultValue: null, cancellationToken);
+            tags = [tag];
+        }
 
         await using var activity = console.StartActivity(
             $"Unpublishing client '{clientId.EscapeMarkup()}' from stage '{stage.EscapeMarkup()}'",

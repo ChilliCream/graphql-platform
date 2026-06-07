@@ -21,8 +21,8 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               nitro fusion validate [options]
 
             Options:
-              --api-id <api-id> (REQUIRED)                   The ID of the API [env: NITRO_API_ID]
-              --stage <stage> (REQUIRED)                     The name of the stage [env: NITRO_STAGE]
+              --api-id <api-id>                              The ID of the API [env: NITRO_API_ID]
+              --stage <stage>                                The name of the stage [env: NITRO_STAGE]
               -a, --archive, --configuration <archive>       The path to a Fusion archive file (the '--configuration' alias is deprecated) [env: NITRO_FUSION_CONFIG_FILE]
               --legacy-v1-archive <legacy-v1-archive>        The path to a Fusion v1 archive file. This option is only intended to be used during the migration from Fusion v1 to Fusion v2+.
               -f, --source-schema-file <source-schema-file>  One or more paths to a source schema file (.graphqls) or directory containing a source schema file
@@ -38,6 +38,54 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
                 --source-schema-file ./products/schema.graphqls \
                 --source-schema-file ./reviews/schema.graphqls
             """);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Validate_Should_ReturnError_When_ApiIdNotProvided(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "validate",
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Missing required option '--api-id'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Validate_Should_ReturnError_When_StageNotProvided(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "validate",
+            "--api-id",
+            ApiId,
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Missing required option '--stage'.
+            """);
+        Assert.Equal(1, result.ExitCode);
     }
 
     [Theory]
@@ -69,31 +117,6 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     }
 
     #region Option Validation
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task MissingRequiredOptions_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        SetupInteractionMode(mode);
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "fusion",
-            "validate",
-            "--source-schema-file",
-            SourceSchemaFile);
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Option '--api-id' is required.
-            Option '--stage' is required.
-            """);
-        Assert.Equal(1, result.ExitCode);
-    }
 
     [Theory]
     [InlineData(InteractionMode.Interactive)]
@@ -238,6 +261,86 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             └── ✓ Fusion configuration passed validation.
             """);
         AssertSchemaUpload(capturedStream);
+    }
+
+    [Fact]
+    public async Task Validate_Should_PromptForStage_When_ApiProvided_Interactive()
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupListStagesQuery(("stage-1", Stage));
+        SetupArchiveFile();
+        SetupSchemaValidationMutation();
+        SetupSchemaValidationSubscription();
+
+        var command = StartInteractiveCommand(
+            "fusion",
+            "validate",
+            "--api-id",
+            ApiId,
+            "--archive",
+            ArchiveFile);
+
+        // act
+        command.SelectOption(0); // Select stage
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Validate_Should_PromptForApi_When_StageProvided_Interactive()
+    {
+        // arrange
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupSelectApisPrompt((ApiId, "products"));
+        SetupArchiveFile();
+        SetupSchemaValidationMutation();
+        SetupSchemaValidationSubscription();
+
+        var command = StartInteractiveCommand(
+            "fusion",
+            "validate",
+            "--stage",
+            Stage,
+            "--archive",
+            ArchiveFile);
+
+        // act
+        command.SelectOption(0); // Select API
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Validate_Should_PromptForApiAndStage_When_NothingProvided_Interactive()
+    {
+        // arrange
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupSelectApisPrompt((ApiId, "products"));
+        SetupListStagesQuery(("stage-1", Stage));
+        SetupArchiveFile();
+        SetupSchemaValidationMutation();
+        SetupSchemaValidationSubscription();
+
+        var command = StartInteractiveCommand(
+            "fusion",
+            "validate",
+            "--archive",
+            ArchiveFile);
+
+        // act
+        command.SelectOption(0); // Select API
+        command.SelectOption(0); // Select stage
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
     }
 
     [Fact]

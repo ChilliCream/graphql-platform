@@ -80,6 +80,39 @@ public abstract class ClientsCommandTestBase(NitroCommandFixture fixture) : Comm
 
     #endregion
 
+    #region GetClientApiId
+
+    protected void SetupGetClientApiId(string? apiId = ApiId)
+    {
+        ClientsClientMock.Setup(x => x.GetClientApiIdAsync(
+                ClientId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(apiId);
+    }
+
+    #endregion
+
+    #region ListStages
+
+    protected void SetupListStagesQuery(
+        params (string Id, string Name)[] stages)
+    {
+        var result = stages
+            .Select(static s =>
+            {
+                var stage = new Mock<IListStagesQuery_Node_Stages>(MockBehavior.Strict);
+                stage.SetupGet(x => x.Id).Returns(s.Id);
+                stage.SetupGet(x => x.Name).Returns(s.Name);
+                return stage.Object;
+            })
+            .ToArray<IListStagesQuery_Node_Stages>();
+
+        StagesClientMock.Setup(x => x.ListStagesAsync(
+                ApiId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(result);
+    }
+
+    #endregion
+
     #region Show
 
     protected void SetupShowClientQuery(IShowClientCommandQuery_Node? result)

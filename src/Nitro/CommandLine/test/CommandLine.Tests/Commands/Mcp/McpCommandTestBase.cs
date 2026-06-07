@@ -113,6 +113,56 @@ public abstract class McpCommandTestBase(NitroCommandFixture fixture) : CommandT
             .ThrowsAsync(new InvalidOperationException("Something unexpected happened."));
     }
 
+    protected void SetupListMcpFeatureCollectionsForPrompt(
+        params (string Id, string Name)[] items)
+    {
+        var nodes = items
+            .Select(static item =>
+                (IListMcpFeatureCollectionCommandQuery_Node_McpFeatureCollections_Edges_Node)
+                new ListMcpFeatureCollectionCommandQuery_Node_McpFeatureCollections_Edges_Node_McpFeatureCollection(
+                    item.Id,
+                    item.Name))
+            .ToArray();
+
+        McpClientMock.Setup(x => x.ListMcpFeatureCollectionsAsync(
+                ApiId, null, 5, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ConnectionPage<IListMcpFeatureCollectionCommandQuery_Node_McpFeatureCollections_Edges_Node>(
+                nodes, null, false));
+    }
+
+    #endregion
+
+    #region GetMcpFeatureCollectionApiId
+
+    protected void SetupGetMcpFeatureCollectionApiId(string? apiId = ApiId)
+    {
+        McpClientMock.Setup(x => x.GetMcpFeatureCollectionApiIdAsync(
+                McpFeatureCollectionId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(apiId);
+    }
+
+    #endregion
+
+    #region ListStages
+
+    protected void SetupListStagesQuery(
+        params (string Id, string Name)[] stages)
+    {
+        var result = stages
+            .Select(static s =>
+            {
+                var stage = new Mock<IListStagesQuery_Node_Stages>(MockBehavior.Strict);
+                stage.SetupGet(x => x.Id).Returns(s.Id);
+                stage.SetupGet(x => x.Name).Returns(s.Name);
+                return stage.Object;
+            })
+            .ToArray<IListStagesQuery_Node_Stages>();
+
+        StagesClientMock.Setup(x => x.ListStagesAsync(
+                ApiId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(result);
+    }
+
     #endregion
 
     #region Upload

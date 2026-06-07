@@ -23,8 +23,8 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : Clie
               nitro client upload [options]
 
             Options:
-              --client-id <client-id> (REQUIRED)              The ID of the client [env: NITRO_CLIENT_ID]
-              --tag <tag> (REQUIRED)                          The tag of the schema version to deploy [env: NITRO_TAG]
+              --client-id <client-id>                         The ID of the client [env: NITRO_CLIENT_ID]
+              --tag <tag>                                     The tag of the schema version to deploy [env: NITRO_TAG]
               --operations-file <operations-file> (REQUIRED)  The path to the json file with the operations [env: NITRO_OPERATIONS_FILE]
               --cloud-url <cloud-url>                         The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
               --api-key <api-key>                             The API key used for authentication [env: NITRO_API_KEY]
@@ -37,6 +37,58 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : Clie
                 --tag "v1" \
                 --operations-file ./operations.json
             """);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Upload_Should_ReturnError_When_ClientIdNotProvided(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+        SetupOperationsFile();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "client",
+            "upload",
+            "--tag",
+            Tag,
+            "--operations-file",
+            OperationsFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Missing required option '--client-id'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Upload_Should_ReturnError_When_TagNotProvided(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+        SetupOperationsFile();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "client",
+            "upload",
+            "--client-id",
+            ClientId,
+            "--operations-file",
+            OperationsFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Missing required option '--tag'.
+            """);
+        Assert.Equal(1, result.ExitCode);
     }
 
     [Theory]
@@ -212,6 +264,87 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : Clie
             Uploading new version 'v1' for client 'client-1'
             └── ✓ Uploaded new client version 'v1'.
             """);
+    }
+
+    [Fact]
+    public async Task Upload_Should_PromptForTag_When_ClientProvided_Interactive()
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupOperationsFile();
+        SetupUploadClientMutation();
+
+        var command = StartInteractiveCommand(
+            "client",
+            "upload",
+            "--client-id",
+            ClientId,
+            "--operations-file",
+            OperationsFile);
+
+        // act
+        command.Input(Tag); // Tag
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Upload_Should_PromptForApiAndClient_When_TagProvided_Interactive()
+    {
+        // arrange
+        SetupSelectApisPrompt((ApiId, ApiName));
+        SetupListClientsForPrompt((ClientId, ClientName));
+        SetupOperationsFile();
+        SetupUploadClientMutation();
+
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+
+        var command = StartInteractiveCommand(
+            "client",
+            "upload",
+            "--tag",
+            Tag,
+            "--operations-file",
+            OperationsFile);
+
+        // act
+        command.SelectOption(0); // Select API
+        command.SelectOption(0); // Select client
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Upload_Should_PromptForApiClientAndTag_When_NothingProvided_Interactive()
+    {
+        // arrange
+        SetupSelectApisPrompt((ApiId, ApiName));
+        SetupListClientsForPrompt((ClientId, ClientName));
+        SetupOperationsFile();
+        SetupUploadClientMutation();
+
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+
+        var command = StartInteractiveCommand(
+            "client",
+            "upload",
+            "--operations-file",
+            OperationsFile);
+
+        // act
+        command.SelectOption(0); // Select API
+        command.SelectOption(0); // Select client
+        command.Input(Tag);      // Tag
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
     }
 
     public static TheoryData<IUploadClient_UploadClient_Errors, string> GetUploadClientErrors() => new()

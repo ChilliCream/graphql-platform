@@ -1,5 +1,7 @@
 using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.Schemas;
+using ChilliCream.Nitro.Client.Stages;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
@@ -13,9 +15,9 @@ internal sealed class PublishSchemaCommand : Command
     {
         Description = "Publish a schema version to a stage.";
 
-        Options.Add(Opt<ApiIdOption>.Instance);
-        Options.Add(Opt<TagOption>.Instance);
-        Options.Add(Opt<StageNameOption>.Instance);
+        Options.Add(Opt<OptionalApiIdOption>.Instance);
+        Options.Add(Opt<OptionalTagOption>.Instance);
+        Options.Add(Opt<OptionalStageNameOption>.Instance);
         Options.Add(Opt<OptionalForceOption>.Instance);
         Options.Add(Opt<OptionalWaitForApprovalOption>.Instance);
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
@@ -52,13 +54,26 @@ internal sealed class PublishSchemaCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var client = services.GetRequiredService<ISchemasClient>();
+        var apisClient = services.GetRequiredService<IApisClient>();
+        var stagesClient = services.GetRequiredService<IStagesClient>();
         var sessionService = services.GetRequiredService<ISessionService>();
 
         parseResult.AssertHasAuthentication(sessionService);
 
-        var tag = parseResult.GetRequiredValue(Opt<TagOption>.Instance);
-        var stage = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
-        var apiId = parseResult.GetRequiredValue(Opt<ApiIdOption>.Instance);
+        var apiId = await console.GetOrPromptForApiIdAsync(
+            "For which API?", parseResult, apisClient, sessionService, ct);
+
+        var stage = await console.GetOrPromptForStageNameAsync(
+            "Which stage?",
+            parseResult,
+            Opt<OptionalStageNameOption>.Instance,
+            stagesClient,
+            apiId,
+            ct);
+
+        var tag = await console.GetOrPromptForTagAsync(
+            "Which tag?", parseResult, Opt<OptionalTagOption>.Instance, ct);
+
         var force = parseResult.GetValue(Opt<OptionalForceOption>.Instance);
         var waitForApproval = parseResult.GetValue(Opt<OptionalWaitForApprovalOption>.Instance);
         var sourceMetadataJson = parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);

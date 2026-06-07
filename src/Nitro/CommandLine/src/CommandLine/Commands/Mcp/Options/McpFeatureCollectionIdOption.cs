@@ -1,6 +1,6 @@
 namespace ChilliCream.Nitro.CommandLine.Commands.Mcp.Options;
 
-internal sealed class McpFeatureCollectionIdOption : Option<string>
+internal class McpFeatureCollectionIdOption : Option<string>
 {
     public McpFeatureCollectionIdOption() : base("--mcp-feature-collection-id")
     {

@@ -23,13 +23,13 @@ public sealed class UnpublishClientCommandTests(NitroCommandFixture fixture) : C
               nitro client unpublish [options]
 
             Options:
-              --tag <tag> (REQUIRED)              One or more client version tags to unpublish [env: NITRO_TAG]
-              --stage <stage> (REQUIRED)          The name of the stage [env: NITRO_STAGE]
-              --client-id <client-id> (REQUIRED)  The ID of the client [env: NITRO_CLIENT_ID]
-              --cloud-url <cloud-url>             The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
-              --api-key <api-key>                 The API key used for authentication [env: NITRO_API_KEY]
-              --output <json>                     The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help                      Show help and usage information
+              --tag <tag>              One or more client version tags to unpublish [env: NITRO_TAG]
+              --stage <stage>          The name of the stage [env: NITRO_STAGE]
+              --client-id <client-id>  The ID of the client [env: NITRO_CLIENT_ID]
+              --cloud-url <cloud-url>  The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>      The API key used for authentication [env: NITRO_API_KEY]
+              --output <json>          The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help           Show help and usage information
 
             Example:
               nitro client unpublish \
@@ -37,6 +37,81 @@ public sealed class UnpublishClientCommandTests(NitroCommandFixture fixture) : C
                 --stage "dev" \
                 --tag "v1"
             """);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Unpublish_Should_ReturnError_When_ClientIdNotProvided(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "client",
+            "unpublish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Missing required option '--client-id'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Unpublish_Should_ReturnError_When_StageNotProvided(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "client",
+            "unpublish",
+            "--client-id",
+            ClientId,
+            "--tag",
+            Tag);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Missing required option '--stage'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Unpublish_Should_ReturnError_When_TagNotProvided(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "client",
+            "unpublish",
+            "--client-id",
+            ClientId,
+            "--stage",
+            Stage);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Missing required option '--tag'.
+            """);
+        Assert.Equal(1, result.ExitCode);
     }
 
     [Theory]
@@ -187,6 +262,188 @@ public sealed class UnpublishClientCommandTests(NitroCommandFixture fixture) : C
             └── ✕ Failed to unpublish the client.
             """);
         Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task Unpublish_Should_PromptForTag_When_OnlyTagMissing_Interactive()
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupUnpublishClientMutation();
+
+        var command = StartInteractiveCommand(
+            "client",
+            "unpublish",
+            "--client-id",
+            ClientId,
+            "--stage",
+            Stage);
+
+        // act
+        command.Input(Tag); // Tag
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Unpublish_Should_PromptForStage_When_OnlyStageMissing_Interactive()
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupGetClientApiId();
+        SetupListStagesQuery(("stage-1", Stage));
+        SetupUnpublishClientMutation();
+
+        var command = StartInteractiveCommand(
+            "client",
+            "unpublish",
+            "--client-id",
+            ClientId,
+            "--tag",
+            Tag);
+
+        // act
+        command.SelectOption(0); // Select stage
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Unpublish_Should_PromptForApiAndClient_When_OnlyClientMissing_Interactive()
+    {
+        // arrange
+        SetupSelectApisPrompt((ApiId, ApiName));
+        SetupListClientsForPrompt((ClientId, ClientName));
+        SetupUnpublishClientMutation();
+
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+
+        var command = StartInteractiveCommand(
+            "client",
+            "unpublish",
+            "--stage",
+            Stage,
+            "--tag",
+            Tag);
+
+        // act
+        command.SelectOption(0); // Select API
+        command.SelectOption(0); // Select client
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Unpublish_Should_PromptForStageAndTag_When_ClientProvided_Interactive()
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupGetClientApiId();
+        SetupListStagesQuery(("stage-1", Stage));
+        SetupUnpublishClientMutation();
+
+        var command = StartInteractiveCommand(
+            "client",
+            "unpublish",
+            "--client-id",
+            ClientId);
+
+        // act
+        command.SelectOption(0); // Select stage
+        command.Input(Tag);      // Tag
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Unpublish_Should_PromptForApiClientAndTag_When_StageProvided_Interactive()
+    {
+        // arrange
+        SetupSelectApisPrompt((ApiId, ApiName));
+        SetupListClientsForPrompt((ClientId, ClientName));
+        SetupUnpublishClientMutation();
+
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+
+        var command = StartInteractiveCommand(
+            "client",
+            "unpublish",
+            "--stage",
+            Stage);
+
+        // act
+        command.SelectOption(0); // Select API
+        command.SelectOption(0); // Select client
+        command.Input(Tag);      // Tag
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Unpublish_Should_PromptForApiClientAndStage_When_TagProvided_Interactive()
+    {
+        // arrange
+        SetupSelectApisPrompt((ApiId, ApiName));
+        SetupListClientsForPrompt((ClientId, ClientName));
+        SetupListStagesQuery(("stage-1", Stage));
+        SetupUnpublishClientMutation();
+
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+
+        var command = StartInteractiveCommand(
+            "client",
+            "unpublish",
+            "--tag",
+            Tag);
+
+        // act
+        command.SelectOption(0); // Select API
+        command.SelectOption(0); // Select client
+        command.SelectOption(0); // Select stage
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Unpublish_Should_PromptForApiClientStageAndTag_When_NothingProvided_Interactive()
+    {
+        // arrange
+        SetupSelectApisPrompt((ApiId, ApiName));
+        SetupListClientsForPrompt((ClientId, ClientName));
+        SetupListStagesQuery(("stage-1", Stage));
+        SetupUnpublishClientMutation();
+
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+
+        var command = StartInteractiveCommand(
+            "client",
+            "unpublish");
+
+        // act
+        command.SelectOption(0); // Select API
+        command.SelectOption(0); // Select client
+        command.SelectOption(0); // Select stage
+        command.Input(Tag);      // Tag
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
     }
 
     public static TheoryData<IUnpublishClient_UnpublishClient_Errors, string> UnpublishMutationErrorCases =>

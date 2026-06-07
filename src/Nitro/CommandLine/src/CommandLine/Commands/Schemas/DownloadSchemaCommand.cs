@@ -1,4 +1,6 @@
+using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.Schemas;
+using ChilliCream.Nitro.Client.Stages;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
@@ -12,8 +14,8 @@ internal sealed class DownloadSchemaCommand : Command
     {
         Description = "Download a schema from a stage.";
 
-        Options.Add(Opt<ApiIdOption>.Instance);
-        Options.Add(Opt<StageNameOption>.Instance);
+        Options.Add(Opt<OptionalApiIdOption>.Instance);
+        Options.Add(Opt<OptionalStageNameOption>.Instance);
         Options.Add(Opt<OptionalOutputFileOption>.Instance);
 
         this.AddGlobalNitroOptions();
@@ -36,13 +38,24 @@ internal sealed class DownloadSchemaCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var client = services.GetRequiredService<ISchemasClient>();
+        var apisClient = services.GetRequiredService<IApisClient>();
+        var stagesClient = services.GetRequiredService<IStagesClient>();
         var fileSystem = services.GetRequiredService<IFileSystem>();
         var sessionService = services.GetRequiredService<ISessionService>();
 
         parseResult.AssertHasAuthentication(sessionService);
 
-        var apiId = parseResult.GetRequiredValue(Opt<ApiIdOption>.Instance);
-        var stageName = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
+        var apiId = await console.GetOrPromptForApiIdAsync(
+            "For which API?", parseResult, apisClient, sessionService, cancellationToken);
+
+        var stageName = await console.GetOrPromptForStageNameAsync(
+            "Which stage?",
+            parseResult,
+            Opt<OptionalStageNameOption>.Instance,
+            stagesClient,
+            apiId,
+            cancellationToken);
+
         var schemaFilePath = parseResult.GetValue(Opt<OptionalOutputFileOption>.Instance);
 
         if (string.IsNullOrEmpty(schemaFilePath))

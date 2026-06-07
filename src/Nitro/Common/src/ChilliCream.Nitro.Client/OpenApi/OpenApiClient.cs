@@ -66,6 +66,13 @@ internal sealed class OpenApiClient(IApiClient apiClient) : IOpenApiClient
             connection.PageInfo.HasNextPage);
     }
 
+    public async Task<string?> GetOpenApiCollectionApiIdAsync(string openApiCollectionId, CancellationToken cancellationToken)
+    {
+        var result = await apiClient.GetOpenApiCollectionApiIdQuery.ExecuteAsync(openApiCollectionId, cancellationToken);
+        var data = OperationResultHelper.EnsureData(result);
+        return (data.Node as IGetOpenApiCollectionApiIdQuery_Node_OpenApiCollection)?.Api?.Id;
+    }
+
     public async Task<IUploadOpenApiCollectionCommandMutation_UploadOpenApiCollection> UploadOpenApiCollectionVersionAsync(
         string openApiCollectionId,
         string tag,

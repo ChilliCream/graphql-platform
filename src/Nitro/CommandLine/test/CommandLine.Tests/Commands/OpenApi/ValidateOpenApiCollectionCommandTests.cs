@@ -24,13 +24,13 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
               nitro openapi validate [options]
 
             Options:
-              --openapi-collection-id <openapi-collection-id> (REQUIRED)  The ID of the OpenAPI collection [env: NITRO_OPENAPI_COLLECTION_ID]
-              --stage <stage> (REQUIRED)                                  The name of the stage [env: NITRO_STAGE]
-              -p, --pattern <pattern> (REQUIRED)                          One or more glob patterns for selecting OpenAPI document files
-              --cloud-url <cloud-url>                                     The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
-              --api-key <api-key>                                         The API key used for authentication [env: NITRO_API_KEY]
-              --output <json>                                             The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help                                              Show help and usage information
+              --openapi-collection-id <openapi-collection-id>  The ID of the OpenAPI collection [env: NITRO_OPENAPI_COLLECTION_ID]
+              --stage <stage>                                  The name of the stage [env: NITRO_STAGE]
+              -p, --pattern <pattern> (REQUIRED)               One or more glob patterns for selecting OpenAPI document files
+              --cloud-url <cloud-url>                          The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>                              The API key used for authentication [env: NITRO_API_KEY]
+              --output <json>                                  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help                                   Show help and usage information
 
             Example:
               nitro openapi validate \
@@ -38,6 +38,37 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
                 --stage "dev" \
                 --pattern "./**/*.graphql"
             """);
+    }
+
+    [Theory]
+    [InlineData("--openapi-collection-id")]
+    [InlineData("--stage")]
+    public async Task MissingRequiredOption_NonInteractive_ReturnsError(string missingOption)
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.NonInteractive);
+        SetupOpenApiDocument();
+
+        var args = new List<string>
+        {
+            "openapi",
+            "validate",
+            "--openapi-collection-id",
+            OpenApiCollectionId,
+            "--stage",
+            Stage,
+            "--pattern",
+            "**/*.graphql"
+        };
+
+        var index = args.IndexOf(missingOption);
+        args.RemoveRange(index, 2);
+
+        // act
+        var result = await ExecuteCommandAsync(args.ToArray());
+
+        // assert
+        result.AssertError($"Missing required option '{missingOption}'.");
     }
 
     [Theory]
@@ -258,6 +289,93 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             OpenAPI collection failed validation.
             """);
         Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task Validate_Should_PromptForStage_When_CollectionProvided_Interactive()
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupOpenApiDocument();
+        SetupGetOpenApiCollectionApiId();
+        SetupListStagesQuery(("stage-1", Stage));
+        SetupValidateOpenApiCollectionMutation();
+        SetupValidateOpenApiCollectionSubscription();
+
+        var command = StartInteractiveCommand(
+            "openapi",
+            "validate",
+            "--openapi-collection-id",
+            OpenApiCollectionId,
+            "--pattern",
+            "**/*.graphql");
+
+        // act
+        command.SelectOption(0); // Select stage
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Validate_Should_PromptForApiAndCollection_When_StageProvided_Interactive()
+    {
+        // arrange
+        SetupSelectApisPrompt((ApiId, "products"));
+        SetupListOpenApiCollectionsForPrompt((OpenApiCollectionId, OpenApiCollectionName));
+        SetupOpenApiDocument();
+        SetupValidateOpenApiCollectionMutation();
+        SetupValidateOpenApiCollectionSubscription();
+
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+
+        var command = StartInteractiveCommand(
+            "openapi",
+            "validate",
+            "--stage",
+            Stage,
+            "--pattern",
+            "**/*.graphql");
+
+        // act
+        command.SelectOption(0); // Select API
+        command.SelectOption(0); // Select collection
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Validate_Should_PromptForApiCollectionAndStage_When_NothingProvided_Interactive()
+    {
+        // arrange
+        SetupSelectApisPrompt((ApiId, "products"));
+        SetupListOpenApiCollectionsForPrompt((OpenApiCollectionId, OpenApiCollectionName));
+        SetupListStagesQuery(("stage-1", Stage));
+        SetupOpenApiDocument();
+        SetupValidateOpenApiCollectionMutation();
+        SetupValidateOpenApiCollectionSubscription();
+
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+
+        var command = StartInteractiveCommand(
+            "openapi",
+            "validate",
+            "--pattern",
+            "**/*.graphql");
+
+        // act
+        command.SelectOption(0); // Select API
+        command.SelectOption(0); // Select collection
+        command.SelectOption(0); // Select stage
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
     }
 
     public static TheoryData<IValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection_Errors, string>

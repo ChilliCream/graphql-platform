@@ -2,6 +2,7 @@ fragment ClientDetailPrompt_Client on Client {
   id
   name
   api {
+    id
     name
     path
   }

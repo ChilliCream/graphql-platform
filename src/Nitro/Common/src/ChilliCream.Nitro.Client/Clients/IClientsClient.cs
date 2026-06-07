@@ -59,6 +59,22 @@ public interface IClientsClient
         CancellationToken cancellationToken);
 
     /// <summary>
+    /// Gets the id of the API a client belongs to.
+    /// </summary>
+    /// <returns>The api id, or null if the client or its api was not found.</returns>
+    /// <exception cref="NitroClientGraphQLException">
+    /// The server returned a GraphQL error.
+    /// </exception>
+    /// <exception cref="NitroClientHttpRequestException">
+    /// The server returned an HTTP error without a GraphQL response body.
+    /// </exception>
+    /// <exception cref="NitroClientAuthorizationException">
+    /// The request was rejected because the current credentials do not grant access.
+    /// </exception>
+    /// <exception cref="OperationCanceledException">The operation was canceled.</exception>
+    Task<string?> GetClientApiIdAsync(string clientId, CancellationToken cancellationToken);
+
+    /// <summary>
     /// Lists clients for an API.
     /// </summary>
     /// <returns>A page of results, or <c>null</c> if the API was not found.</returns>

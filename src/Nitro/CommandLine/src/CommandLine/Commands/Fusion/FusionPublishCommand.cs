@@ -4,7 +4,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Text.Json;
 using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.FusionConfiguration;
+using ChilliCream.Nitro.Client.Stages;
 using ChilliCream.Nitro.CommandLine.Commands.Fusion.PublishCommand;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
@@ -32,9 +34,9 @@ internal sealed class FusionPublishCommand : Command
         Subcommands.Add(new FusionConfigurationPublishCancelCommand());
         Subcommands.Add(new FusionConfigurationPublishCommitCommand());
 
-        Options.Add(Opt<ApiIdOption>.Instance);
-        Options.Add(Opt<TagOption>.Instance);
-        Options.Add(Opt<StageNameOption>.Instance);
+        Options.Add(Opt<OptionalApiIdOption>.Instance);
+        Options.Add(Opt<OptionalTagOption>.Instance);
+        Options.Add(Opt<OptionalStageNameOption>.Instance);
         Options.Add(Opt<OptionalSourceSchemaIdentifierListOption>.Instance);
         Options.Add(Opt<OptionalSourceSchemaFileListOption>.Instance);
         Options.Add(Opt<OptionalFusionArchiveFileOption>.Instance);
@@ -78,10 +80,26 @@ internal sealed class FusionPublishCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var client = services.GetRequiredService<IFusionConfigurationClient>();
+        var apisClient = services.GetRequiredService<IApisClient>();
+        var stagesClient = services.GetRequiredService<IStagesClient>();
         var sessionService = services.GetRequiredService<ISessionService>();
         var fileSystem = services.GetRequiredService<IFileSystem>();
 
         parseResult.AssertHasAuthentication(sessionService);
+
+        var apiId = await console.GetOrPromptForApiIdAsync(
+            "For which API?", parseResult, apisClient, sessionService, cancellationToken);
+
+        var stageName = await console.GetOrPromptForStageNameAsync(
+            "Which stage?",
+            parseResult,
+            Opt<OptionalStageNameOption>.Instance,
+            stagesClient,
+            apiId,
+            cancellationToken);
+
+        var tag = await console.GetOrPromptForTagAsync(
+            "Which tag?", parseResult, Opt<OptionalTagOption>.Instance, cancellationToken);
 
         var workingDirectory = parseResult.GetValue(Opt<WorkingDirectoryOption>.Instance) ??
             fileSystem.GetCurrentDirectory();
@@ -95,9 +113,6 @@ internal sealed class FusionPublishCommand : Command
             parseResult.GetValue(Opt<OptionalLegacyFusionArchiveFileOption>.Instance);
         var force = parseResult.GetValue(Opt<OptionalForceOption>.Instance);
         var waitForApproval = parseResult.GetValue(Opt<OptionalWaitForApprovalOption>.Instance);
-        var stageName = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
-        var apiId = parseResult.GetRequiredValue(Opt<ApiIdOption>.Instance);
-        var tag = parseResult.GetRequiredValue(Opt<TagOption>.Instance);
         var sourceMetadataJson =
             parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);
         var source = SourceMetadataParser.Parse(sourceMetadataJson);

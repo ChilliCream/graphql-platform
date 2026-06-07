@@ -5,7 +5,7 @@ internal sealed class ClientTagsToUnpublishOption : Option<IEnumerable<string>>
     public ClientTagsToUnpublishOption() : base("--tag")
     {
         Description = "One or more client version tags to unpublish";
-        Required = true;
+        Required = false;
         AllowMultipleArgumentsPerToken = true;
         this.DefaultFromEnvironmentValue(EnvironmentVariables.Tag);
     }

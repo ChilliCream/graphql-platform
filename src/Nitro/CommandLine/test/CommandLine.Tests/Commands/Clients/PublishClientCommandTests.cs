@@ -24,15 +24,15 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : Cli
               nitro client publish [options]
 
             Options:
-              --client-id <client-id> (REQUIRED)  The ID of the client [env: NITRO_CLIENT_ID]
-              --tag <tag> (REQUIRED)              The tag of the schema version to deploy [env: NITRO_TAG]
-              --stage <stage> (REQUIRED)          The name of the stage [env: NITRO_STAGE]
-              --force                             Skip confirmation prompts for deletes and overwrites
-              --wait-for-approval                 Wait for the deployment to be approved before completing [env: NITRO_WAIT_FOR_APPROVAL]
-              --cloud-url <cloud-url>             The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
-              --api-key <api-key>                 The API key used for authentication [env: NITRO_API_KEY]
-              --output <json>                     The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help                      Show help and usage information
+              --client-id <client-id>  The ID of the client [env: NITRO_CLIENT_ID]
+              --tag <tag>              The tag of the schema version to deploy [env: NITRO_TAG]
+              --stage <stage>          The name of the stage [env: NITRO_STAGE]
+              --force                  Skip confirmation prompts for deletes and overwrites
+              --wait-for-approval      Wait for the deployment to be approved before completing [env: NITRO_WAIT_FOR_APPROVAL]
+              --cloud-url <cloud-url>  The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>      The API key used for authentication [env: NITRO_API_KEY]
+              --output <json>          The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help           Show help and usage information
 
             Example:
               nitro client publish \
@@ -40,6 +40,81 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : Cli
                 --tag "v1" \
                 --stage "dev"
             """);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Publish_Should_ReturnError_When_ClientIdNotProvided(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "client",
+            "publish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Missing required option '--client-id'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Publish_Should_ReturnError_When_StageNotProvided(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "client",
+            "publish",
+            "--client-id",
+            ClientId,
+            "--tag",
+            Tag);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Missing required option '--stage'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Publish_Should_ReturnError_When_TagNotProvided(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "client",
+            "publish",
+            "--client-id",
+            ClientId,
+            "--stage",
+            Stage);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Missing required option '--tag'.
+            """);
+        Assert.Equal(1, result.ExitCode);
     }
 
     [Theory]
@@ -409,6 +484,202 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : Cli
             ├── Publication request created. (ID: request-1)
             └── ✓ Published new client version 'v1' to stage 'dev'.
             """);
+    }
+
+    [Fact]
+    public async Task Publish_Should_PromptForTag_When_OnlyTagMissing_Interactive()
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupPublishClientMutation();
+        SetupPublishClientSubscription(
+            CreateClientVersionPublishSuccessEvent());
+
+        var command = StartInteractiveCommand(
+            "client",
+            "publish",
+            "--client-id",
+            ClientId,
+            "--stage",
+            Stage);
+
+        // act
+        command.Input(Tag); // Tag
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Publish_Should_PromptForStage_When_OnlyStageMissing_Interactive()
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupGetClientApiId();
+        SetupListStagesQuery(("stage-1", Stage));
+        SetupPublishClientMutation();
+        SetupPublishClientSubscription(
+            CreateClientVersionPublishSuccessEvent());
+
+        var command = StartInteractiveCommand(
+            "client",
+            "publish",
+            "--client-id",
+            ClientId,
+            "--tag",
+            Tag);
+
+        // act
+        command.SelectOption(0); // Select stage
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Publish_Should_PromptForApiAndClient_When_OnlyClientMissing_Interactive()
+    {
+        // arrange
+        SetupSelectApisPrompt((ApiId, ApiName));
+        SetupListClientsForPrompt((ClientId, ClientName));
+        SetupPublishClientMutation();
+        SetupPublishClientSubscription(
+            CreateClientVersionPublishSuccessEvent());
+
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+
+        var command = StartInteractiveCommand(
+            "client",
+            "publish",
+            "--stage",
+            Stage,
+            "--tag",
+            Tag);
+
+        // act
+        command.SelectOption(0); // Select API
+        command.SelectOption(0); // Select client
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Publish_Should_PromptForStageAndTag_When_ClientProvided_Interactive()
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupGetClientApiId();
+        SetupListStagesQuery(("stage-1", Stage));
+        SetupPublishClientMutation();
+        SetupPublishClientSubscription(
+            CreateClientVersionPublishSuccessEvent());
+
+        var command = StartInteractiveCommand(
+            "client",
+            "publish",
+            "--client-id",
+            ClientId);
+
+        // act
+        command.Input(Tag);      // Tag
+        command.SelectOption(0); // Select stage
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Publish_Should_PromptForApiClientAndTag_When_StageProvided_Interactive()
+    {
+        // arrange
+        SetupSelectApisPrompt((ApiId, ApiName));
+        SetupListClientsForPrompt((ClientId, ClientName));
+        SetupPublishClientMutation();
+        SetupPublishClientSubscription(
+            CreateClientVersionPublishSuccessEvent());
+
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+
+        var command = StartInteractiveCommand(
+            "client",
+            "publish",
+            "--stage",
+            Stage);
+
+        // act
+        command.SelectOption(0); // Select API
+        command.SelectOption(0); // Select client
+        command.Input(Tag);      // Tag
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Publish_Should_PromptForApiClientAndStage_When_TagProvided_Interactive()
+    {
+        // arrange
+        SetupSelectApisPrompt((ApiId, ApiName));
+        SetupListClientsForPrompt((ClientId, ClientName));
+        SetupListStagesQuery(("stage-1", Stage));
+        SetupPublishClientMutation();
+        SetupPublishClientSubscription(
+            CreateClientVersionPublishSuccessEvent());
+
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+
+        var command = StartInteractiveCommand(
+            "client",
+            "publish",
+            "--tag",
+            Tag);
+
+        // act
+        command.SelectOption(0); // Select API
+        command.SelectOption(0); // Select client
+        command.SelectOption(0); // Select stage
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Publish_Should_PromptForApiClientStageAndTag_When_NothingProvided_Interactive()
+    {
+        // arrange
+        SetupSelectApisPrompt((ApiId, ApiName));
+        SetupListClientsForPrompt((ClientId, ClientName));
+        SetupListStagesQuery(("stage-1", Stage));
+        SetupPublishClientMutation();
+        SetupPublishClientSubscription(
+            CreateClientVersionPublishSuccessEvent());
+
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+
+        var command = StartInteractiveCommand(
+            "client",
+            "publish");
+
+        // act
+        command.SelectOption(0); // Select API
+        command.SelectOption(0); // Select client
+        command.Input(Tag);      // Tag
+        command.SelectOption(0); // Select stage
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
     }
 
     public static TheoryData<IPublishClientVersion_PublishClient_Errors, string> GetMutationErrors()

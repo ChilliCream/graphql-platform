@@ -25,13 +25,13 @@ public sealed class DownloadSchemaCommandTests(NitroCommandFixture fixture) : Sc
               nitro schema download [options]
 
             Options:
-              --api-id <api-id> (REQUIRED)  The ID of the API [env: NITRO_API_ID]
-              --stage <stage> (REQUIRED)    The name of the stage [env: NITRO_STAGE]
-              --output-file <output-file>   The file path to write the output to [env: NITRO_OUTPUT_FILE]
-              --cloud-url <cloud-url>       The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
-              --api-key <api-key>           The API key used for authentication [env: NITRO_API_KEY]
-              --output <json>               The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help                Show help and usage information
+              --api-id <api-id>            The ID of the API [env: NITRO_API_ID]
+              --stage <stage>              The name of the stage [env: NITRO_STAGE]
+              --output-file <output-file>  The file path to write the output to [env: NITRO_OUTPUT_FILE]
+              --cloud-url <cloud-url>      The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>          The API key used for authentication [env: NITRO_API_KEY]
+              --output <json>              The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help               Show help and usage information
 
             Example:
               nitro schema download \
@@ -39,6 +39,50 @@ public sealed class DownloadSchemaCommandTests(NitroCommandFixture fixture) : Sc
                 --stage "dev" \
                 --output-file ./schema.graphqls
             """);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task MissingRequiredOptions_ReturnsError(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "schema",
+            "download");
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Missing required option '--api-id'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Download_Should_ReturnError_When_StageNotProvided(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "schema",
+            "download",
+            "--api-id",
+            ApiId);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Missing required option '--stage'.
+            """);
+        Assert.Equal(1, result.ExitCode);
     }
 
     [Theory]
@@ -69,26 +113,81 @@ public sealed class DownloadSchemaCommandTests(NitroCommandFixture fixture) : Sc
             """);
     }
 
-    [Theory]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task MissingRequiredOptions_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task Download_Should_PromptForStage_When_ApiProvided_Interactive()
     {
         // arrange
-        SetupInteractionMode(mode);
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupListStagesQuery(("stage-1", Stage));
+        SetupDownloadSchema();
+        SetupCreateFile(OutputFile);
+
+        var command = StartInteractiveCommand(
+            "schema",
+            "download",
+            "--api-id",
+            ApiId,
+            "--output-file",
+            OutputFile);
 
         // act
-        var result = await ExecuteCommandAsync(
-            "schema",
-            "download");
+        command.SelectOption(0); // Select stage
+        var result = await command.RunToCompletionAsync();
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Option '--api-id' is required.
-            Option '--stage' is required.
-            """);
-        Assert.Equal(1, result.ExitCode);
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Download_Should_PromptForApi_When_StageProvided_Interactive()
+    {
+        // arrange
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupSelectApisPrompt((ApiId, "products"));
+        SetupDownloadSchema();
+        SetupCreateFile(OutputFile);
+
+        var command = StartInteractiveCommand(
+            "schema",
+            "download",
+            "--stage",
+            Stage,
+            "--output-file",
+            OutputFile);
+
+        // act
+        command.SelectOption(0); // Select API
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Download_Should_PromptForApiAndStage_When_NothingProvided_Interactive()
+    {
+        // arrange
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupSelectApisPrompt((ApiId, "products"));
+        SetupListStagesQuery(("stage-1", Stage));
+        SetupDownloadSchema();
+        SetupCreateFile(OutputFile);
+
+        var command = StartInteractiveCommand(
+            "schema",
+            "download",
+            "--output-file",
+            OutputFile);
+
+        // act
+        command.SelectOption(0); // Select API
+        command.SelectOption(0); // Select stage
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
     }
 
     [Fact]
