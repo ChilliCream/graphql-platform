@@ -1,9 +1,13 @@
 using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.OpenApi;
+using ChilliCream.Nitro.Client.Stages;
+using ChilliCream.Nitro.CommandLine.Commands.OpenApi.Components;
 using ChilliCream.Nitro.CommandLine.Commands.OpenApi.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
+using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.OpenApi;
 
@@ -13,8 +17,8 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
     {
         Description = "Validate an OpenAPI collection version.";
 
-        Options.Add(Opt<OpenApiCollectionIdOption>.Instance);
-        Options.Add(Opt<StageNameOption>.Instance);
+        Options.Add(Opt<OptionalOpenApiCollectionIdOption>.Instance);
+        Options.Add(Opt<OptionalStageNameOption>.Instance);
         Options.Add(Opt<OpenApiCollectionFilePatternOption>.Instance);
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 
@@ -38,13 +42,48 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var client = services.GetRequiredService<IOpenApiClient>();
+        var apisClient = services.GetRequiredService<IApisClient>();
+        var stagesClient = services.GetRequiredService<IStagesClient>();
         var fileSystem = services.GetRequiredService<IFileSystem>();
         var sessionService = services.GetRequiredService<ISessionService>();
 
         parseResult.AssertHasAuthentication(sessionService);
 
-        var stage = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
-        var openApiCollectionId = parseResult.GetRequiredValue(Opt<OpenApiCollectionIdOption>.Instance);
+        string openApiCollectionId;
+        string? apiId = null;
+        var idArg = parseResult.GetValue(Opt<OptionalOpenApiCollectionIdOption>.Instance);
+        if (console.IsInteractive && idArg is null)
+        {
+            apiId = await console.GetOrPromptForApiIdAsync(
+                "For which API?", parseResult, apisClient, sessionService, ct);
+
+            var selectedCollection = await SelectOpenApiCollectionPrompt
+                .New(client, apiId)
+                .Title("Select a collection from the list below.")
+                .RenderAsync(console, ct) ?? throw NoOpenApiCollectionSelected();
+
+            openApiCollectionId = selectedCollection.Id;
+        }
+        else
+        {
+            openApiCollectionId = parseResult.GetRequiredOptionalValue(Opt<OptionalOpenApiCollectionIdOption>.Instance);
+        }
+
+        var stageArg = parseResult.GetValue(Opt<OptionalStageNameOption>.Instance);
+        if (string.IsNullOrEmpty(stageArg) && console.IsInteractive)
+        {
+            apiId ??= await client.GetOpenApiCollectionApiIdAsync(openApiCollectionId, ct)
+                ?? throw new ExitException("The collection was not found.");
+        }
+
+        var stage = await console.GetOrPromptForStageNameAsync(
+            "Which stage?",
+            parseResult,
+            Opt<OptionalStageNameOption>.Instance,
+            stagesClient,
+            apiId ?? string.Empty,
+            ct);
+
         var patterns = parseResult.GetRequiredValue(Opt<OpenApiCollectionFilePatternOption>.Instance);
         var sourceMetadataJson = parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);
         var source = SourceMetadataParser.Parse(sourceMetadataJson);

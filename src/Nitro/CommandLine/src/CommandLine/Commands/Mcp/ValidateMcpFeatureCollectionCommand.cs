@@ -1,9 +1,13 @@
 using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.Mcp;
+using ChilliCream.Nitro.Client.Stages;
+using ChilliCream.Nitro.CommandLine.Commands.Mcp.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Mcp.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
+using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Mcp;
 
@@ -13,8 +17,8 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
     {
         Description = "Validate an MCP feature collection version.";
 
-        Options.Add(Opt<McpFeatureCollectionIdOption>.Instance);
-        Options.Add(Opt<StageNameOption>.Instance);
+        Options.Add(Opt<OptionalMcpFeatureCollectionIdOption>.Instance);
+        Options.Add(Opt<OptionalStageNameOption>.Instance);
         Options.Add(Opt<McpPromptFilePatternOption>.Instance);
         Options.Add(Opt<McpToolFilePatternOption>.Instance);
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
@@ -40,13 +44,48 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var client = services.GetRequiredService<IMcpClient>();
+        var apisClient = services.GetRequiredService<IApisClient>();
+        var stagesClient = services.GetRequiredService<IStagesClient>();
         var fileSystem = services.GetRequiredService<IFileSystem>();
         var sessionService = services.GetRequiredService<ISessionService>();
 
         parseResult.AssertHasAuthentication(sessionService);
 
-        var stage = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
-        var mcpFeatureCollectionId = parseResult.GetRequiredValue(Opt<McpFeatureCollectionIdOption>.Instance);
+        string mcpFeatureCollectionId;
+        string? apiId = null;
+        var idArg = parseResult.GetValue(Opt<OptionalMcpFeatureCollectionIdOption>.Instance);
+        if (console.IsInteractive && idArg is null)
+        {
+            apiId = await console.GetOrPromptForApiIdAsync(
+                "For which API?", parseResult, apisClient, sessionService, ct);
+
+            var selectedCollection = await SelectMcpFeatureCollectionPrompt
+                .New(client, apiId)
+                .Title("Select a feature collection from the list below.")
+                .RenderAsync(console, ct) ?? throw NoMcpFeatureCollectionSelected();
+
+            mcpFeatureCollectionId = selectedCollection.Id;
+        }
+        else
+        {
+            mcpFeatureCollectionId = parseResult.GetRequiredOptionalValue(Opt<OptionalMcpFeatureCollectionIdOption>.Instance);
+        }
+
+        var stageArg = parseResult.GetValue(Opt<OptionalStageNameOption>.Instance);
+        if (string.IsNullOrEmpty(stageArg) && console.IsInteractive)
+        {
+            apiId ??= await client.GetMcpFeatureCollectionApiIdAsync(mcpFeatureCollectionId, ct)
+                ?? throw new ExitException("The feature collection was not found.");
+        }
+
+        var stage = await console.GetOrPromptForStageNameAsync(
+            "Which stage?",
+            parseResult,
+            Opt<OptionalStageNameOption>.Instance,
+            stagesClient,
+            apiId ?? string.Empty,
+            ct);
+
         var promptPatterns = parseResult.GetRequiredValue(Opt<McpPromptFilePatternOption>.Instance);
         var toolPatterns = parseResult.GetRequiredValue(Opt<McpToolFilePatternOption>.Instance);
         var sourceMetadataJson = parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);

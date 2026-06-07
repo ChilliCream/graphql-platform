@@ -1,0 +1,9 @@
+query GetMcpFeatureCollectionApiIdQuery($id: ID!) {
+  node(id: $id) {
+    ... on McpFeatureCollection {
+      api {
+        id
+      }
+    }
+  }
+}

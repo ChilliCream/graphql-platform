@@ -1,5 +1,7 @@
 using System.Text.Json;
+using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.Clients;
+using ChilliCream.Nitro.Client.Stages;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Configuration;
@@ -13,8 +15,8 @@ internal sealed class DownloadClientCommand : Command
     {
         Description = "Download the queries from a stage.";
 
-        Options.Add(Opt<ApiIdOption>.Instance);
-        Options.Add(Opt<StageNameOption>.Instance);
+        Options.Add(Opt<OptionalApiIdOption>.Instance);
+        Options.Add(Opt<OptionalStageNameOption>.Instance);
         Options.Add(Opt<FileSystemOutputOptions>.Instance);
         Options.Add(Opt<ClientFormatOption>.Instance);
 
@@ -38,13 +40,33 @@ internal sealed class DownloadClientCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var client = services.GetRequiredService<IClientsClient>();
+        var apisClient = services.GetRequiredService<IApisClient>();
+        var stagesClient = services.GetRequiredService<IStagesClient>();
         var fileSystem = services.GetRequiredService<IFileSystem>();
         var sessionService = services.GetRequiredService<ISessionService>();
 
         parseResult.AssertHasAuthentication(sessionService);
 
-        var apiId = parseResult.GetRequiredValue(Opt<ApiIdOption>.Instance);
-        var stageName = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
+        string apiId;
+        var apiIdArg = parseResult.GetValue(Opt<OptionalApiIdOption>.Instance);
+        if (console.IsInteractive && string.IsNullOrEmpty(apiIdArg))
+        {
+            apiId = await console.GetOrPromptForApiIdAsync(
+                "For which API?", parseResult, apisClient, sessionService, ct);
+        }
+        else
+        {
+            apiId = parseResult.GetRequiredOptionalValue(Opt<OptionalApiIdOption>.Instance);
+        }
+
+        var stageName = await console.GetOrPromptForStageNameAsync(
+            "Which stage?",
+            parseResult,
+            Opt<OptionalStageNameOption>.Instance,
+            stagesClient,
+            apiId,
+            ct);
+
         var output = parseResult.GetRequiredValue(Opt<FileSystemOutputOptions>.Instance);
         var format = parseResult.GetRequiredValue(Opt<ClientFormatOption>.Instance);
 

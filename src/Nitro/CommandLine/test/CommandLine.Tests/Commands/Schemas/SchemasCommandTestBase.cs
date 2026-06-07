@@ -17,6 +17,28 @@ public abstract class SchemasCommandTestBase(NitroCommandFixture fixture) : Comm
         SetupFile(SchemaFile, SchemaContent);
     }
 
+    #region ListStages
+
+    protected void SetupListStagesQuery(
+        params (string Id, string Name)[] stages)
+    {
+        var result = stages
+            .Select(static s =>
+            {
+                var stage = new Mock<IListStagesQuery_Node_Stages>(MockBehavior.Strict);
+                stage.SetupGet(x => x.Id).Returns(s.Id);
+                stage.SetupGet(x => x.Name).Returns(s.Name);
+                return stage.Object;
+            })
+            .ToArray();
+
+        StagesClientMock.Setup(x => x.ListStagesAsync(
+                ApiId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(result);
+    }
+
+    #endregion
+
     #region Upload
 
     protected MemoryStream SetupUploadSchemaMutation(

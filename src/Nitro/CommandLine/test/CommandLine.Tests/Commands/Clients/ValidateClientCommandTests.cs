@@ -23,8 +23,8 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
               nitro client validate [options]
 
             Options:
-              --client-id <client-id> (REQUIRED)              The ID of the client [env: NITRO_CLIENT_ID]
-              --stage <stage> (REQUIRED)                      The name of the stage [env: NITRO_STAGE]
+              --client-id <client-id>                         The ID of the client [env: NITRO_CLIENT_ID]
+              --stage <stage>                                 The name of the stage [env: NITRO_STAGE]
               --operations-file <operations-file> (REQUIRED)  The path to the json file with the operations [env: NITRO_OPERATIONS_FILE]
               --cloud-url <cloud-url>                         The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
               --api-key <api-key>                             The API key used for authentication [env: NITRO_API_KEY]
@@ -37,6 +37,58 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
                 --stage "dev" \
                 --operations-file ./operations.json
             """);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Validate_Should_ReturnError_When_ClientIdNotProvided(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+        SetupOperationsFile();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "client",
+            "validate",
+            "--stage",
+            Stage,
+            "--operations-file",
+            OperationsFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Missing required option '--client-id'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Validate_Should_ReturnError_When_StageNotProvided(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+        SetupOperationsFile();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "client",
+            "validate",
+            "--client-id",
+            ClientId,
+            "--operations-file",
+            OperationsFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Missing required option '--stage'.
+            """);
+        Assert.Equal(1, result.ExitCode);
     }
 
     [Theory]
@@ -276,6 +328,93 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
             Client failed validation.
             """);
         Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task Validate_Should_PromptForStage_When_ClientProvided_Interactive()
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupOperationsFile();
+        SetupGetClientApiId();
+        SetupListStagesQuery(("stage-1", Stage));
+        SetupValidateClientMutation();
+        SetupValidateClientSubscription();
+
+        var command = StartInteractiveCommand(
+            "client",
+            "validate",
+            "--client-id",
+            ClientId,
+            "--operations-file",
+            OperationsFile);
+
+        // act
+        command.SelectOption(0); // Select stage
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Validate_Should_PromptForApiAndClient_When_StageProvided_Interactive()
+    {
+        // arrange
+        SetupSelectApisPrompt((ApiId, ApiName));
+        SetupListClientsForPrompt((ClientId, ClientName));
+        SetupOperationsFile();
+        SetupValidateClientMutation();
+        SetupValidateClientSubscription();
+
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+
+        var command = StartInteractiveCommand(
+            "client",
+            "validate",
+            "--stage",
+            Stage,
+            "--operations-file",
+            OperationsFile);
+
+        // act
+        command.SelectOption(0); // Select API
+        command.SelectOption(0); // Select client
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Validate_Should_PromptForApiClientAndStage_When_NothingProvided_Interactive()
+    {
+        // arrange
+        SetupSelectApisPrompt((ApiId, ApiName));
+        SetupListClientsForPrompt((ClientId, ClientName));
+        SetupListStagesQuery(("stage-1", Stage));
+        SetupOperationsFile();
+        SetupValidateClientMutation();
+        SetupValidateClientSubscription();
+
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+
+        var command = StartInteractiveCommand(
+            "client",
+            "validate",
+            "--operations-file",
+            OperationsFile);
+
+        // act
+        command.SelectOption(0); // Select API
+        command.SelectOption(0); // Select client
+        command.SelectOption(0); // Select stage
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
     }
 
     public static TheoryData<IValidateClientVersion_ValidateClient_Errors, string>

@@ -25,9 +25,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               nitro fusion publish [command] [options]
 
             Options:
-              --api-id <api-id> (REQUIRED)                   The ID of the API [env: NITRO_API_ID]
-              --tag <tag> (REQUIRED)                         The tag of the schema version to deploy [env: NITRO_TAG]
-              --stage <stage> (REQUIRED)                     The name of the stage [env: NITRO_STAGE]
+              --api-id <api-id>                              The ID of the API [env: NITRO_API_ID]
+              --tag <tag>                                    The tag of the schema version to deploy [env: NITRO_TAG]
+              --stage <stage>                                The name of the stage [env: NITRO_STAGE]
               -s, --source-schema <source-schema>            One or more source schemas that should be included in the composition. Source schemas can either be just a name ('example') or a name and a version ('example@1.0.0'). If no version is specified the value of the '--tag' option is taken as the source schema version.
               -f, --source-schema-file <source-schema-file>  One or more paths to a source schema file (.graphqls) or directory containing a source schema file
               -a, --archive, --configuration <archive>       The path to a Fusion archive file (the '--configuration' alias is deprecated) [env: NITRO_FUSION_CONFIG_FILE]
@@ -55,6 +55,81 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
                 --source-schema products \
                 --source-schema reviews
             """);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Publish_Should_ReturnError_When_ApiIdNotProvided(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--source-schema",
+            SourceSchema);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Missing required option '--api-id'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Publish_Should_ReturnError_When_StageNotProvided(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--source-schema",
+            SourceSchema);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Missing required option '--stage'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Publish_Should_ReturnError_When_TagNotProvided(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--source-schema",
+            SourceSchema);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Missing required option '--tag'.
+            """);
+        Assert.Equal(1, result.ExitCode);
     }
 
     [Theory]
@@ -88,32 +163,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     }
 
     #region Option Validation
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task MissingRequiredOptions_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        SetupInteractionMode(mode);
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "fusion",
-            "publish",
-            "--source-schema",
-            SourceSchema);
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Option '--api-id' is required.
-            Option '--tag' is required.
-            Option '--stage' is required.
-            """);
-        Assert.Equal(1, result.ExitCode);
-    }
 
     [Theory]
     [InlineData(InteractionMode.Interactive)]
@@ -317,6 +366,237 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         var schema = await GetFusionSchemaAsync(capturedStream);
         AssertFusionSchema(schema);
+    }
+
+    [Fact]
+    public async Task Publish_Should_PromptForTag_When_OnlyTagMissing_Interactive()
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupArchiveFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        var command = StartInteractiveCommand(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--archive",
+            ArchiveFile);
+
+        // act
+        command.Input(Tag); // Enter tag
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Publish_Should_PromptForStage_When_OnlyStageMissing_Interactive()
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupListStagesQuery(("stage-1", Stage));
+        SetupArchiveFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        var command = StartInteractiveCommand(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--tag",
+            Tag,
+            "--archive",
+            ArchiveFile);
+
+        // act
+        command.SelectOption(0); // Select stage
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Publish_Should_PromptForApi_When_OnlyApiMissing_Interactive()
+    {
+        // arrange
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupSelectApisPrompt((ApiId, "products"));
+        SetupArchiveFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        var command = StartInteractiveCommand(
+            "fusion",
+            "publish",
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--archive",
+            ArchiveFile);
+
+        // act
+        command.SelectOption(0); // Select API
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Publish_Should_PromptForStageAndTag_When_ApiProvided_Interactive()
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupListStagesQuery(("stage-1", Stage));
+        SetupArchiveFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        var command = StartInteractiveCommand(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--archive",
+            ArchiveFile);
+
+        // act
+        command.SelectOption(0); // Select stage
+        command.Input(Tag); // Enter tag
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Publish_Should_PromptForApiAndTag_When_StageProvided_Interactive()
+    {
+        // arrange
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupSelectApisPrompt((ApiId, "products"));
+        SetupArchiveFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        var command = StartInteractiveCommand(
+            "fusion",
+            "publish",
+            "--stage",
+            Stage,
+            "--archive",
+            ArchiveFile);
+
+        // act
+        command.SelectOption(0); // Select API
+        command.Input(Tag); // Enter tag
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Publish_Should_PromptForApiAndStage_When_TagProvided_Interactive()
+    {
+        // arrange
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupSelectApisPrompt((ApiId, "products"));
+        SetupListStagesQuery(("stage-1", Stage));
+        SetupArchiveFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        var command = StartInteractiveCommand(
+            "fusion",
+            "publish",
+            "--tag",
+            Tag,
+            "--archive",
+            ArchiveFile);
+
+        // act
+        command.SelectOption(0); // Select API
+        command.SelectOption(0); // Select stage
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Publish_Should_PromptForApiStageAndTag_When_NothingProvided_Interactive()
+    {
+        // arrange
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupSelectApisPrompt((ApiId, "products"));
+        SetupListStagesQuery(("stage-1", Stage));
+        SetupArchiveFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        var command = StartInteractiveCommand(
+            "fusion",
+            "publish",
+            "--archive",
+            ArchiveFile);
+
+        // act
+        command.SelectOption(0); // Select API
+        command.SelectOption(0); // Select stage
+        command.Input(Tag); // Enter tag
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
     }
 
     [Fact]

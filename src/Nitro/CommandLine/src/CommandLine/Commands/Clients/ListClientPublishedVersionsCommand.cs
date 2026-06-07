@@ -1,6 +1,7 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.Clients;
+using ChilliCream.Nitro.Client.Stages;
 using ChilliCream.Nitro.CommandLine.Commands.Clients.Components;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
@@ -16,7 +17,7 @@ internal sealed class ListClientPublishedVersionsCommand : Command
         Description = "List all published versions of a client.";
 
         Options.Add(Opt<OptionalClientIdOption>.Instance);
-        Options.Add(Opt<StageNameOption>.Instance);
+        Options.Add(Opt<OptionalStageNameOption>.Instance);
         Options.Add(Opt<OptionalCursorOption>.Instance);
 
         this.AddGlobalNitroOptions();
@@ -39,18 +40,20 @@ internal sealed class ListClientPublishedVersionsCommand : Command
         var console = services.GetRequiredService<INitroConsole>();
         var client = services.GetRequiredService<IClientsClient>();
         var apisClient = services.GetRequiredService<IApisClient>();
+        var stagesClient = services.GetRequiredService<IStagesClient>();
         var sessionService = services.GetRequiredService<ISessionService>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
         parseResult.AssertHasAuthentication(sessionService);
 
-        var stage = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
         var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
 
         if (console.IsInteractive)
         {
-            return await RenderInteractiveAsync(parseResult, console, client, apisClient, sessionService, resultHolder, stage, cursor, ct);
+            return await RenderInteractiveAsync(parseResult, console, client, apisClient, stagesClient, sessionService, resultHolder, cursor, ct);
         }
+
+        var stage = parseResult.GetRequiredOptionalValue(Opt<OptionalStageNameOption>.Instance);
 
         return await RenderNonInteractiveAsync(parseResult, client, resultHolder, stage, cursor, ct);
     }
@@ -60,16 +63,17 @@ internal sealed class ListClientPublishedVersionsCommand : Command
         INitroConsole console,
         IClientsClient client,
         IApisClient apisClient,
+        IStagesClient stagesClient,
         ISessionService sessionService,
         IResultHolder resultHolder,
-        string stage,
         string? cursor,
         CancellationToken ct)
     {
         var clientId = parseResult.GetValue(Opt<OptionalClientIdOption>.Instance);
+        string? apiId = null;
         if (clientId is null)
         {
-            var apiId = await console.GetOrPromptForApiIdAsync(
+            apiId = await console.GetOrPromptForApiIdAsync(
                 "For which API do you want to list client versions?",
                 parseResult, apisClient, sessionService, ct);
 
@@ -80,6 +84,21 @@ internal sealed class ListClientPublishedVersionsCommand : Command
 
             clientId = selectedClient.Id;
         }
+
+        var stageArg = parseResult.GetValue(Opt<OptionalStageNameOption>.Instance);
+        if (string.IsNullOrEmpty(stageArg))
+        {
+            apiId ??= await client.GetClientApiIdAsync(clientId, ct)
+                ?? throw new ExitException("The client was not found.");
+        }
+
+        var stage = await console.GetOrPromptForStageNameAsync(
+            "Which stage?",
+            parseResult,
+            Opt<OptionalStageNameOption>.Instance,
+            stagesClient,
+            apiId ?? string.Empty,
+            ct);
 
         var container = PaginationContainer
             .CreateConnectionData(async (after, first, cancellationToken) =>

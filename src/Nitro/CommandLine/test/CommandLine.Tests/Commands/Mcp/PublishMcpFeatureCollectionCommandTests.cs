@@ -24,15 +24,15 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
               nitro mcp publish [options]
 
             Options:
-              --mcp-feature-collection-id <mcp-feature-collection-id> (REQUIRED)  The ID of the MCP Feature Collection [env: NITRO_MCP_FEATURE_COLLECTION_ID]
-              --tag <tag> (REQUIRED)                                              The tag of the schema version to deploy [env: NITRO_TAG]
-              --stage <stage> (REQUIRED)                                          The name of the stage [env: NITRO_STAGE]
-              --force                                                             Skip confirmation prompts for deletes and overwrites
-              --wait-for-approval                                                 Wait for the deployment to be approved before completing [env: NITRO_WAIT_FOR_APPROVAL]
-              --cloud-url <cloud-url>                                             The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
-              --api-key <api-key>                                                 The API key used for authentication [env: NITRO_API_KEY]
-              --output <json>                                                     The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help                                                      Show help and usage information
+              --mcp-feature-collection-id <mcp-feature-collection-id>  The ID of the MCP Feature Collection [env: NITRO_MCP_FEATURE_COLLECTION_ID]
+              --tag <tag>                                              The tag of the schema version to deploy [env: NITRO_TAG]
+              --stage <stage>                                          The name of the stage [env: NITRO_STAGE]
+              --force                                                  Skip confirmation prompts for deletes and overwrites
+              --wait-for-approval                                      Wait for the deployment to be approved before completing [env: NITRO_WAIT_FOR_APPROVAL]
+              --cloud-url <cloud-url>                                  The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>                                      The API key used for authentication [env: NITRO_API_KEY]
+              --output <json>                                          The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help                                           Show help and usage information
 
             Example:
               nitro mcp publish \
@@ -40,6 +40,37 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
                 --stage "dev" \
                 --tag "v1"
             """);
+    }
+
+    [Theory]
+    [InlineData("--mcp-feature-collection-id")]
+    [InlineData("--tag")]
+    [InlineData("--stage")]
+    public async Task MissingRequiredOption_NonInteractive_ReturnsError(string missingOption)
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.NonInteractive);
+
+        var args = new List<string>
+        {
+            "mcp",
+            "publish",
+            "--mcp-feature-collection-id",
+            McpFeatureCollectionId,
+            "--tag",
+            Tag,
+            "--stage",
+            Stage
+        };
+
+        var index = args.IndexOf(missingOption);
+        args.RemoveRange(index, 2);
+
+        // act
+        var result = await ExecuteCommandAsync(args.ToArray());
+
+        // assert
+        result.AssertError($"Missing required option '{missingOption}'.");
     }
 
     [Theory]
@@ -410,6 +441,202 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
             ├── Publication request created. (ID: request-1)
             └── ✓ Published new version 'v1' of MCP feature collection 'mcp-1' to stage 'dev'.
             """);
+    }
+
+    [Fact]
+    public async Task Publish_Should_PromptForTag_When_OnlyTagMissing_Interactive()
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupPublishMcpFeatureCollectionMutation();
+        SetupPublishMcpFeatureCollectionSubscription(
+            CreateMcpFeatureCollectionPublishSuccessEvent());
+
+        var command = StartInteractiveCommand(
+            "mcp",
+            "publish",
+            "--mcp-feature-collection-id",
+            McpFeatureCollectionId,
+            "--stage",
+            Stage);
+
+        // act
+        command.Input(Tag); // Tag
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Publish_Should_PromptForStage_When_OnlyStageMissing_Interactive()
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupGetMcpFeatureCollectionApiId();
+        SetupListStagesQuery(("stage-1", Stage));
+        SetupPublishMcpFeatureCollectionMutation();
+        SetupPublishMcpFeatureCollectionSubscription(
+            CreateMcpFeatureCollectionPublishSuccessEvent());
+
+        var command = StartInteractiveCommand(
+            "mcp",
+            "publish",
+            "--mcp-feature-collection-id",
+            McpFeatureCollectionId,
+            "--tag",
+            Tag);
+
+        // act
+        command.SelectOption(0); // Select stage
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Publish_Should_PromptForApiAndCollection_When_OnlyCollectionMissing_Interactive()
+    {
+        // arrange
+        SetupSelectApisPrompt((ApiId, "products"));
+        SetupListMcpFeatureCollectionsForPrompt((McpFeatureCollectionId, McpFeatureCollectionName));
+        SetupPublishMcpFeatureCollectionMutation();
+        SetupPublishMcpFeatureCollectionSubscription(
+            CreateMcpFeatureCollectionPublishSuccessEvent());
+
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+
+        var command = StartInteractiveCommand(
+            "mcp",
+            "publish",
+            "--stage",
+            Stage,
+            "--tag",
+            Tag);
+
+        // act
+        command.SelectOption(0); // Select API
+        command.SelectOption(0); // Select feature collection
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Publish_Should_PromptForStageAndTag_When_CollectionProvided_Interactive()
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupGetMcpFeatureCollectionApiId();
+        SetupListStagesQuery(("stage-1", Stage));
+        SetupPublishMcpFeatureCollectionMutation();
+        SetupPublishMcpFeatureCollectionSubscription(
+            CreateMcpFeatureCollectionPublishSuccessEvent());
+
+        var command = StartInteractiveCommand(
+            "mcp",
+            "publish",
+            "--mcp-feature-collection-id",
+            McpFeatureCollectionId);
+
+        // act
+        command.Input(Tag);      // Tag
+        command.SelectOption(0); // Select stage
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Publish_Should_PromptForApiCollectionAndTag_When_StageProvided_Interactive()
+    {
+        // arrange
+        SetupSelectApisPrompt((ApiId, "products"));
+        SetupListMcpFeatureCollectionsForPrompt((McpFeatureCollectionId, McpFeatureCollectionName));
+        SetupPublishMcpFeatureCollectionMutation();
+        SetupPublishMcpFeatureCollectionSubscription(
+            CreateMcpFeatureCollectionPublishSuccessEvent());
+
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+
+        var command = StartInteractiveCommand(
+            "mcp",
+            "publish",
+            "--stage",
+            Stage);
+
+        // act
+        command.SelectOption(0); // Select API
+        command.SelectOption(0); // Select feature collection
+        command.Input(Tag);      // Tag
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Publish_Should_PromptForApiCollectionAndStage_When_TagProvided_Interactive()
+    {
+        // arrange
+        SetupSelectApisPrompt((ApiId, "products"));
+        SetupListMcpFeatureCollectionsForPrompt((McpFeatureCollectionId, McpFeatureCollectionName));
+        SetupListStagesQuery(("stage-1", Stage));
+        SetupPublishMcpFeatureCollectionMutation();
+        SetupPublishMcpFeatureCollectionSubscription(
+            CreateMcpFeatureCollectionPublishSuccessEvent());
+
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+
+        var command = StartInteractiveCommand(
+            "mcp",
+            "publish",
+            "--tag",
+            Tag);
+
+        // act
+        command.SelectOption(0); // Select API
+        command.SelectOption(0); // Select feature collection
+        command.SelectOption(0); // Select stage
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Publish_Should_PromptForApiCollectionStageAndTag_When_NothingProvided_Interactive()
+    {
+        // arrange
+        SetupSelectApisPrompt((ApiId, "products"));
+        SetupListMcpFeatureCollectionsForPrompt((McpFeatureCollectionId, McpFeatureCollectionName));
+        SetupListStagesQuery(("stage-1", Stage));
+        SetupPublishMcpFeatureCollectionMutation();
+        SetupPublishMcpFeatureCollectionSubscription(
+            CreateMcpFeatureCollectionPublishSuccessEvent());
+
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+
+        var command = StartInteractiveCommand(
+            "mcp",
+            "publish");
+
+        // act
+        command.SelectOption(0); // Select API
+        command.SelectOption(0); // Select feature collection
+        command.Input(Tag);      // Tag
+        command.SelectOption(0); // Select stage
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
     }
 
     public static TheoryData<IPublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors, string>

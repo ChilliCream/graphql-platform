@@ -51,6 +51,15 @@ internal sealed class ClientsClient(
         return OperationResultHelper.EnsureData(result).Node;
     }
 
+    public async Task<string?> GetClientApiIdAsync(string clientId, CancellationToken cancellationToken)
+    {
+        var result = await apiClient.ShowClientCommandQuery.ExecuteAsync(clientId, cancellationToken);
+
+        var data = OperationResultHelper.EnsureData(result);
+
+        return (data.Node as IShowClientCommandQuery_Node_Client)?.Api?.Id;
+    }
+
     public async Task<ConnectionPage<IListClientCommandQuery_Node_Clients_Edges_Node>?> ListClientsAsync(
         string apiId,
         string? after,

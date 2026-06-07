@@ -1,4 +1,6 @@
+using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.Schemas;
+using ChilliCream.Nitro.Client.Stages;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
@@ -11,8 +13,8 @@ internal sealed class ValidateSchemaCommand : Command
     {
         Description = "Validate a schema against a stage.";
 
-        Options.Add(Opt<ApiIdOption>.Instance);
-        Options.Add(Opt<StageNameOption>.Instance);
+        Options.Add(Opt<OptionalApiIdOption>.Instance);
+        Options.Add(Opt<OptionalStageNameOption>.Instance);
         Options.Add(Opt<SchemaFileOption>.Instance);
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 
@@ -36,13 +38,24 @@ internal sealed class ValidateSchemaCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var client = services.GetRequiredService<ISchemasClient>();
+        var apisClient = services.GetRequiredService<IApisClient>();
+        var stagesClient = services.GetRequiredService<IStagesClient>();
         var fileSystem = services.GetRequiredService<IFileSystem>();
         var sessionService = services.GetRequiredService<ISessionService>();
 
         parseResult.AssertHasAuthentication(sessionService);
 
-        var stage = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
-        var apiId = parseResult.GetRequiredValue(Opt<ApiIdOption>.Instance);
+        var apiId = await console.GetOrPromptForApiIdAsync(
+            "For which API?", parseResult, apisClient, sessionService, ct);
+
+        var stage = await console.GetOrPromptForStageNameAsync(
+            "Which stage?",
+            parseResult,
+            Opt<OptionalStageNameOption>.Instance,
+            stagesClient,
+            apiId,
+            ct);
+
         var schemaFilePath = parseResult.GetRequiredValue(Opt<SchemaFileOption>.Instance);
         var sourceMetadataJson = parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);
 

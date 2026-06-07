@@ -16,7 +16,7 @@ internal sealed class DeleteStageCommand : Command
         Description = "Delete a stage by name.";
 
         Options.Add(Opt<OptionalApiIdOption>.Instance);
-        Options.Add(Opt<StageNameOption>.Instance);
+        Options.Add(Opt<OptionalStageNameOption>.Instance);
         Options.Add(Opt<OptionalForceOption>.Instance);
 
         this.AddGlobalNitroOptions();
@@ -51,7 +51,13 @@ internal sealed class DeleteStageCommand : Command
             sessionService,
             cancellationToken);
 
-        var stageName = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
+        var stageName = await console.GetOrPromptForStageNameAsync(
+            "Which stage?",
+            parseResult,
+            Opt<OptionalStageNameOption>.Instance,
+            client,
+            apiId,
+            cancellationToken);
 
         var force = parseResult.GetValue(Opt<OptionalForceOption>.Instance);
         if (!force)

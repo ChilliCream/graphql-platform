@@ -1,5 +1,8 @@
 using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.Clients;
+using ChilliCream.Nitro.Client.Stages;
+using ChilliCream.Nitro.CommandLine.Commands.Clients.Components;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
@@ -12,9 +15,9 @@ internal sealed class PublishClientCommand : Command
     {
         Description = "Publish a client version to a stage.";
 
-        Options.Add(Opt<ClientIdOption>.Instance);
-        Options.Add(Opt<TagOption>.Instance);
-        Options.Add(Opt<StageNameOption>.Instance);
+        Options.Add(Opt<OptionalClientIdOption>.Instance);
+        Options.Add(Opt<OptionalTagOption>.Instance);
+        Options.Add(Opt<OptionalStageNameOption>.Instance);
         Options.Add(Opt<OptionalForceOption>.Instance);
         Options.Add(Opt<OptionalWaitForApprovalOption>.Instance);
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
@@ -51,13 +54,50 @@ internal sealed class PublishClientCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var client = services.GetRequiredService<IClientsClient>();
+        var apisClient = services.GetRequiredService<IApisClient>();
+        var stagesClient = services.GetRequiredService<IStagesClient>();
         var sessionService = services.GetRequiredService<ISessionService>();
 
         parseResult.AssertHasAuthentication(sessionService);
 
-        var tag = parseResult.GetRequiredValue(Opt<TagOption>.Instance);
-        var stage = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
-        var clientId = parseResult.GetRequiredValue(Opt<ClientIdOption>.Instance);
+        string clientId;
+        string? apiId = null;
+        var clientIdArg = parseResult.GetValue(Opt<OptionalClientIdOption>.Instance);
+        if (console.IsInteractive && clientIdArg is null)
+        {
+            apiId = await console.GetOrPromptForApiIdAsync(
+                "For which API?", parseResult, apisClient, sessionService, ct);
+
+            var selectedClient = await SelectClientPrompt
+                .New(client, apiId)
+                .Title("Select a client from the list below.")
+                .RenderAsync(console, ct) ?? throw NoClientSelected();
+
+            clientId = selectedClient.Id;
+        }
+        else
+        {
+            clientId = parseResult.GetRequiredOptionalValue(Opt<OptionalClientIdOption>.Instance);
+        }
+
+        var tag = await console.GetOrPromptForTagAsync(
+            "Which tag?", parseResult, Opt<OptionalTagOption>.Instance, ct);
+
+        var stageArg = parseResult.GetValue(Opt<OptionalStageNameOption>.Instance);
+        if (string.IsNullOrEmpty(stageArg) && console.IsInteractive)
+        {
+            apiId ??= await client.GetClientApiIdAsync(clientId, ct)
+                ?? throw new ExitException("The client was not found.");
+        }
+
+        var stage = await console.GetOrPromptForStageNameAsync(
+            "Which stage?",
+            parseResult,
+            Opt<OptionalStageNameOption>.Instance,
+            stagesClient,
+            apiId ?? string.Empty,
+            ct);
+
         var force = parseResult.GetValue(Opt<OptionalForceOption>.Instance);
         var waitForApproval = parseResult.GetValue(Opt<OptionalWaitForApprovalOption>.Instance);
         var sourceMetadataJson = parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);

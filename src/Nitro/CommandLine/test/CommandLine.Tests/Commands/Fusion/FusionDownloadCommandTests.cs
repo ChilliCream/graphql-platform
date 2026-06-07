@@ -23,14 +23,14 @@ public sealed class FusionDownloadCommandTests(NitroCommandFixture fixture) : Fu
               nitro fusion download [options]
 
             Options:
-              --api-id <api-id> (REQUIRED)  The ID of the API [env: NITRO_API_ID]
-              --stage <stage> (REQUIRED)    The name of the stage [env: NITRO_STAGE]
-              --version <version>           The version of the archive to download [default: 2.0.0]
-              --output-file <output-file>   The file path to write the output to [env: NITRO_OUTPUT_FILE]
-              --cloud-url <cloud-url>       The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
-              --api-key <api-key>           The API key used for authentication [env: NITRO_API_KEY]
-              --output <json>               The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help                Show help and usage information
+              --api-id <api-id>            The ID of the API [env: NITRO_API_ID]
+              --stage <stage>              The name of the stage [env: NITRO_STAGE]
+              --version <version>          The version of the archive to download [default: 2.0.0]
+              --output-file <output-file>  The file path to write the output to [env: NITRO_OUTPUT_FILE]
+              --cloud-url <cloud-url>      The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>          The API key used for authentication [env: NITRO_API_KEY]
+              --output <json>              The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help               Show help and usage information
 
             Example:
               nitro fusion download \
@@ -38,6 +38,50 @@ public sealed class FusionDownloadCommandTests(NitroCommandFixture fixture) : Fu
                 --stage "dev" \
                 --output-file ./gateway.far
             """);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Download_Should_ReturnError_When_ApiIdNotProvided(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "download");
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Missing required option '--api-id'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Download_Should_ReturnError_When_StageNotProvided(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "download",
+            "--api-id",
+            ApiId);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Missing required option '--stage'.
+            """);
+        Assert.Equal(1, result.ExitCode);
     }
 
     [Theory]
@@ -67,29 +111,6 @@ public sealed class FusionDownloadCommandTests(NitroCommandFixture fixture) : Fu
     }
 
     #region Option Validation
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task MissingRequiredOptions_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        SetupInteractionMode(mode);
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "fusion",
-            "download");
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Option '--api-id' is required.
-            Option '--stage' is required.
-            """);
-        Assert.Equal(1, result.ExitCode);
-    }
 
     [Theory]
     [InlineData(InteractionMode.Interactive)]
@@ -241,5 +262,82 @@ public sealed class FusionDownloadCommandTests(NitroCommandFixture fixture) : Fu
             """
             The API with the given ID does not exist or there is no Fusion configuration that supports version '2.0.0'.
             """);
+    }
+
+    [Fact]
+    public async Task Download_Should_PromptForStage_When_ApiProvided_Interactive()
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupListStagesQuery(("stage-1", Stage));
+        SetupFusionConfigurationDownload();
+        SetupCreateFile(ArchiveFile);
+
+        var command = StartInteractiveCommand(
+            "fusion",
+            "download",
+            "--api-id",
+            ApiId,
+            "--output-file",
+            ArchiveFile);
+
+        // act
+        command.SelectOption(0); // Select stage
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Download_Should_PromptForApi_When_StageProvided_Interactive()
+    {
+        // arrange
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupSelectApisPrompt((ApiId, "products"));
+        SetupFusionConfigurationDownload();
+        SetupCreateFile(ArchiveFile);
+
+        var command = StartInteractiveCommand(
+            "fusion",
+            "download",
+            "--stage",
+            Stage,
+            "--output-file",
+            ArchiveFile);
+
+        // act
+        command.SelectOption(0); // Select API
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Download_Should_PromptForApiAndStage_When_NothingProvided_Interactive()
+    {
+        // arrange
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupSelectApisPrompt((ApiId, "products"));
+        SetupListStagesQuery(("stage-1", Stage));
+        SetupFusionConfigurationDownload();
+        SetupCreateFile(ArchiveFile);
+
+        var command = StartInteractiveCommand(
+            "fusion",
+            "download",
+            "--output-file",
+            ArchiveFile);
+
+        // act
+        command.SelectOption(0); // Select API
+        command.SelectOption(0); // Select stage
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
     }
 }

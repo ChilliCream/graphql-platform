@@ -24,15 +24,15 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
               nitro openapi publish [options]
 
             Options:
-              --openapi-collection-id <openapi-collection-id> (REQUIRED)  The ID of the OpenAPI collection [env: NITRO_OPENAPI_COLLECTION_ID]
-              --tag <tag> (REQUIRED)                                      The tag of the schema version to deploy [env: NITRO_TAG]
-              --stage <stage> (REQUIRED)                                  The name of the stage [env: NITRO_STAGE]
-              --force                                                     Skip confirmation prompts for deletes and overwrites
-              --wait-for-approval                                         Wait for the deployment to be approved before completing [env: NITRO_WAIT_FOR_APPROVAL]
-              --cloud-url <cloud-url>                                     The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
-              --api-key <api-key>                                         The API key used for authentication [env: NITRO_API_KEY]
-              --output <json>                                             The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help                                              Show help and usage information
+              --openapi-collection-id <openapi-collection-id>  The ID of the OpenAPI collection [env: NITRO_OPENAPI_COLLECTION_ID]
+              --tag <tag>                                      The tag of the schema version to deploy [env: NITRO_TAG]
+              --stage <stage>                                  The name of the stage [env: NITRO_STAGE]
+              --force                                          Skip confirmation prompts for deletes and overwrites
+              --wait-for-approval                              Wait for the deployment to be approved before completing [env: NITRO_WAIT_FOR_APPROVAL]
+              --cloud-url <cloud-url>                          The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>                              The API key used for authentication [env: NITRO_API_KEY]
+              --output <json>                                  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help                                   Show help and usage information
 
             Example:
               nitro openapi publish \
@@ -40,6 +40,37 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
                 --stage "dev" \
                 --tag "v1"
             """);
+    }
+
+    [Theory]
+    [InlineData("--openapi-collection-id")]
+    [InlineData("--tag")]
+    [InlineData("--stage")]
+    public async Task MissingRequiredOption_NonInteractive_ReturnsError(string missingOption)
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.NonInteractive);
+
+        var args = new List<string>
+        {
+            "openapi",
+            "publish",
+            "--openapi-collection-id",
+            OpenApiCollectionId,
+            "--tag",
+            Tag,
+            "--stage",
+            Stage
+        };
+
+        var index = args.IndexOf(missingOption);
+        args.RemoveRange(index, 2);
+
+        // act
+        var result = await ExecuteCommandAsync(args.ToArray());
+
+        // assert
+        result.AssertError($"Missing required option '{missingOption}'.");
     }
 
     [Theory]
@@ -410,6 +441,202 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
             ├── Publication request created. (ID: request-1)
             └── ✓ Published new version 'v1' of OpenAPI collection 'oa-1' to stage 'dev'.
             """);
+    }
+
+    [Fact]
+    public async Task Publish_Should_PromptForTag_When_OnlyTagMissing_Interactive()
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupPublishOpenApiCollectionMutation();
+        SetupPublishOpenApiCollectionSubscription(
+            CreateOpenApiCollectionPublishSuccessEvent());
+
+        var command = StartInteractiveCommand(
+            "openapi",
+            "publish",
+            "--openapi-collection-id",
+            OpenApiCollectionId,
+            "--stage",
+            Stage);
+
+        // act
+        command.Input(Tag); // Tag
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Publish_Should_PromptForStage_When_OnlyStageMissing_Interactive()
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupGetOpenApiCollectionApiId();
+        SetupListStagesQuery(("stage-1", Stage));
+        SetupPublishOpenApiCollectionMutation();
+        SetupPublishOpenApiCollectionSubscription(
+            CreateOpenApiCollectionPublishSuccessEvent());
+
+        var command = StartInteractiveCommand(
+            "openapi",
+            "publish",
+            "--openapi-collection-id",
+            OpenApiCollectionId,
+            "--tag",
+            Tag);
+
+        // act
+        command.SelectOption(0); // Select stage
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Publish_Should_PromptForApiAndCollection_When_OnlyCollectionMissing_Interactive()
+    {
+        // arrange
+        SetupSelectApisPrompt((ApiId, "products"));
+        SetupListOpenApiCollectionsForPrompt((OpenApiCollectionId, OpenApiCollectionName));
+        SetupPublishOpenApiCollectionMutation();
+        SetupPublishOpenApiCollectionSubscription(
+            CreateOpenApiCollectionPublishSuccessEvent());
+
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+
+        var command = StartInteractiveCommand(
+            "openapi",
+            "publish",
+            "--stage",
+            Stage,
+            "--tag",
+            Tag);
+
+        // act
+        command.SelectOption(0); // Select API
+        command.SelectOption(0); // Select collection
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Publish_Should_PromptForStageAndTag_When_CollectionProvided_Interactive()
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupGetOpenApiCollectionApiId();
+        SetupListStagesQuery(("stage-1", Stage));
+        SetupPublishOpenApiCollectionMutation();
+        SetupPublishOpenApiCollectionSubscription(
+            CreateOpenApiCollectionPublishSuccessEvent());
+
+        var command = StartInteractiveCommand(
+            "openapi",
+            "publish",
+            "--openapi-collection-id",
+            OpenApiCollectionId);
+
+        // act
+        command.Input(Tag);      // Tag
+        command.SelectOption(0); // Select stage
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Publish_Should_PromptForApiCollectionAndTag_When_StageProvided_Interactive()
+    {
+        // arrange
+        SetupSelectApisPrompt((ApiId, "products"));
+        SetupListOpenApiCollectionsForPrompt((OpenApiCollectionId, OpenApiCollectionName));
+        SetupPublishOpenApiCollectionMutation();
+        SetupPublishOpenApiCollectionSubscription(
+            CreateOpenApiCollectionPublishSuccessEvent());
+
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+
+        var command = StartInteractiveCommand(
+            "openapi",
+            "publish",
+            "--stage",
+            Stage);
+
+        // act
+        command.SelectOption(0); // Select API
+        command.SelectOption(0); // Select collection
+        command.Input(Tag);      // Tag
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Publish_Should_PromptForApiCollectionAndStage_When_TagProvided_Interactive()
+    {
+        // arrange
+        SetupSelectApisPrompt((ApiId, "products"));
+        SetupListOpenApiCollectionsForPrompt((OpenApiCollectionId, OpenApiCollectionName));
+        SetupListStagesQuery(("stage-1", Stage));
+        SetupPublishOpenApiCollectionMutation();
+        SetupPublishOpenApiCollectionSubscription(
+            CreateOpenApiCollectionPublishSuccessEvent());
+
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+
+        var command = StartInteractiveCommand(
+            "openapi",
+            "publish",
+            "--tag",
+            Tag);
+
+        // act
+        command.SelectOption(0); // Select API
+        command.SelectOption(0); // Select collection
+        command.SelectOption(0); // Select stage
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Publish_Should_PromptForApiCollectionStageAndTag_When_NothingProvided_Interactive()
+    {
+        // arrange
+        SetupSelectApisPrompt((ApiId, "products"));
+        SetupListOpenApiCollectionsForPrompt((OpenApiCollectionId, OpenApiCollectionName));
+        SetupListStagesQuery(("stage-1", Stage));
+        SetupPublishOpenApiCollectionMutation();
+        SetupPublishOpenApiCollectionSubscription(
+            CreateOpenApiCollectionPublishSuccessEvent());
+
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+
+        var command = StartInteractiveCommand(
+            "openapi",
+            "publish");
+
+        // act
+        command.SelectOption(0); // Select API
+        command.SelectOption(0); // Select collection
+        command.Input(Tag);      // Tag
+        command.SelectOption(0); // Select stage
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
     }
 
     public static TheoryData<IPublishOpenApiCollectionCommandMutation_PublishOpenApiCollection_Errors, string>

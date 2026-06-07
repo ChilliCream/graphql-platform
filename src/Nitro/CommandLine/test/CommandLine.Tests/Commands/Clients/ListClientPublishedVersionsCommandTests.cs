@@ -23,44 +23,18 @@ public sealed class ListClientPublishedVersionsCommandTests(NitroCommandFixture 
               nitro client list published-versions [options]
 
             Options:
-              --client-id <client-id>     The ID of the client [env: NITRO_CLIENT_ID]
-              --stage <stage> (REQUIRED)  The name of the stage [env: NITRO_STAGE]
-              --cursor <cursor>           The pagination cursor to resume from [env: NITRO_CURSOR]
-              --cloud-url <cloud-url>     The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
-              --api-key <api-key>         The API key used for authentication [env: NITRO_API_KEY]
-              --output <json>             The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help              Show help and usage information
+              --client-id <client-id>  The ID of the client [env: NITRO_CLIENT_ID]
+              --stage <stage>          The name of the stage [env: NITRO_STAGE]
+              --cursor <cursor>        The pagination cursor to resume from [env: NITRO_CURSOR]
+              --cloud-url <cloud-url>  The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>      The API key used for authentication [env: NITRO_API_KEY]
+              --output <json>          The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help           Show help and usage information
 
             Example:
               nitro client list published-versions \
                 --client-id "<client-id>" \
                 --stage "dev"
-            """);
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
-    {
-        // arrange & act
-        SetupInteractionMode(mode);
-        SetupNoAuthentication();
-
-        var result = await ExecuteCommandAsync(
-            "client",
-            "list",
-            "published-versions",
-            "--client-id",
-            ClientId,
-            "--stage",
-            Stage);
-
-        // assert
-        result.AssertError(
-            """
-            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -104,9 +78,35 @@ public sealed class ListClientPublishedVersionsCommandTests(NitroCommandFixture 
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Option '--stage' is required.
+            Missing required option '--stage'.
             """);
         Assert.Equal(1, result.ExitCode);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
+    {
+        // arrange & act
+        SetupInteractionMode(mode);
+        SetupNoAuthentication();
+
+        var result = await ExecuteCommandAsync(
+            "client",
+            "list",
+            "published-versions",
+            "--client-id",
+            ClientId,
+            "--stage",
+            Stage);
+
+        // assert
+        result.AssertError(
+            """
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
+            """);
     }
 
     [Theory]
@@ -294,6 +294,90 @@ public sealed class ListClientPublishedVersionsCommandTests(NitroCommandFixture 
               "cursor": null
             }
             """);
+    }
+
+    [Fact]
+    public async Task PublishedVersions_Should_PromptForStage_When_ClientProvided_Interactive()
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupGetClientApiId();
+        SetupListStagesQuery(("stage-1", Stage));
+        SetupListClientPublishedVersionsQuery(
+            versions: [("v1", new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero))]);
+
+        var command = StartInteractiveCommand(
+            "client",
+            "list",
+            "published-versions",
+            "--client-id",
+            ClientId);
+
+        // act
+        command.SelectOption(0); // Select stage
+        command.SelectOption(0); // Select version
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task PublishedVersions_Should_PromptForApiAndClient_When_StageProvided_Interactive()
+    {
+        // arrange
+        SetupSelectApisPrompt((ApiId, "products"));
+        SetupListClientsForPrompt((ClientId, ClientName));
+        SetupListClientPublishedVersionsQuery(
+            versions: [("v1", new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero))]);
+
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+
+        var command = StartInteractiveCommand(
+            "client",
+            "list",
+            "published-versions",
+            "--stage",
+            Stage);
+
+        // act
+        command.SelectOption(0); // Select API
+        command.SelectOption(0); // Select client
+        command.SelectOption(0); // Select version
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task PublishedVersions_Should_PromptForApiClientAndStage_When_NothingProvided_Interactive()
+    {
+        // arrange
+        SetupSelectApisPrompt((ApiId, "products"));
+        SetupListClientsForPrompt((ClientId, ClientName));
+        SetupListStagesQuery(("stage-1", Stage));
+        SetupListClientPublishedVersionsQuery(
+            versions: [("v1", new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero))]);
+
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+
+        var command = StartInteractiveCommand(
+            "client",
+            "list",
+            "published-versions");
+
+        // act
+        command.SelectOption(0); // Select API
+        command.SelectOption(0); // Select client
+        command.SelectOption(0); // Select stage
+        command.SelectOption(0); // Select version
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
     }
 
     [Fact]

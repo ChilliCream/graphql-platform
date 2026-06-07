@@ -1,6 +1,6 @@
 namespace ChilliCream.Nitro.CommandLine.Commands.OpenApi.Options;
 
-internal sealed class OpenApiCollectionIdOption : Option<string>
+internal class OpenApiCollectionIdOption : Option<string>
 {
     public OpenApiCollectionIdOption() : base("--openapi-collection-id")
     {

@@ -2,8 +2,10 @@
 using System.Diagnostics.CodeAnalysis;
 #endif
 using System.IO.Compression;
+using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.FusionConfiguration;
 using ChilliCream.Nitro.Client.Schemas;
+using ChilliCream.Nitro.Client.Stages;
 using ChilliCream.Nitro.CommandLine.Commands.Schemas;
 using ChilliCream.Nitro.CommandLine.FusionCompatibility;
 using ChilliCream.Nitro.CommandLine.Helpers;
@@ -23,8 +25,8 @@ internal sealed class FusionValidateCommand : Command
     {
         Description = "Validate a Fusion configuration against a stage.";
 
-        Options.Add(Opt<ApiIdOption>.Instance);
-        Options.Add(Opt<StageNameOption>.Instance);
+        Options.Add(Opt<OptionalApiIdOption>.Instance);
+        Options.Add(Opt<OptionalStageNameOption>.Instance);
         Options.Add(Opt<OptionalFusionArchiveFileOption>.Instance);
         Options.Add(Opt<OptionalLegacyFusionArchiveFileOption>.Instance);
         Options.Add(Opt<OptionalSourceSchemaFileListOption>.Instance);
@@ -50,13 +52,24 @@ internal sealed class FusionValidateCommand : Command
         var console = services.GetRequiredService<INitroConsole>();
         var fusionConfigurationClient = services.GetRequiredService<IFusionConfigurationClient>();
         var schemasClient = services.GetRequiredService<ISchemasClient>();
+        var apisClient = services.GetRequiredService<IApisClient>();
+        var stagesClient = services.GetRequiredService<IStagesClient>();
         var fileSystem = services.GetRequiredService<IFileSystem>();
         var sessionService = services.GetRequiredService<ISessionService>();
 
         parseResult.AssertHasAuthentication(sessionService);
 
-        var stageName = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
-        var apiId = parseResult.GetRequiredValue(Opt<ApiIdOption>.Instance);
+        var apiId = await console.GetOrPromptForApiIdAsync(
+            "For which API?", parseResult, apisClient, sessionService, ct);
+
+        var stageName = await console.GetOrPromptForStageNameAsync(
+            "Which stage?",
+            parseResult,
+            Opt<OptionalStageNameOption>.Instance,
+            stagesClient,
+            apiId,
+            ct);
+
         var archiveFile = parseResult.GetValue(Opt<OptionalFusionArchiveFileOption>.Instance);
         var legacyArchiveFile = parseResult.GetValue(Opt<OptionalLegacyFusionArchiveFileOption>.Instance);
         var sourceSchemaFiles =

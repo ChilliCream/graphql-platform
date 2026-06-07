@@ -1,0 +1,9 @@
+query GetOpenApiCollectionApiIdQuery($id: ID!) {
+  node(id: $id) {
+    ... on OpenApiCollection {
+      api {
+        id
+      }
+    }
+  }
+}

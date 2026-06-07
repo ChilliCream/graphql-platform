@@ -1,5 +1,7 @@
 using ChilliCream.Nitro.Client.Apis;
+using ChilliCream.Nitro.Client.Stages;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
+using ChilliCream.Nitro.CommandLine.Commands.Stages.Components;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
@@ -67,6 +69,28 @@ internal static class NitroConsoleExtensions
 
         var prompt = new SelectionPrompt<T>()
             .Title(question.AsQuestion())
+            .AddChoices(items);
+
+        return await prompt.ShowAsync(console, cancellationToken);
+    }
+
+    public static async Task<T> PromptAsync<T>(
+        this INitroConsole console,
+        string question,
+        T[] items,
+        Func<T, string> converter,
+        CancellationToken cancellationToken)
+        where T : notnull
+    {
+        if (!console.IsInteractive)
+        {
+            throw new ExitException(
+                "Attempted to prompt the user for a selection, but the console is running in non-interactive mode.");
+        }
+
+        var prompt = new SelectionPrompt<T>()
+            .Title(question.AsQuestion())
+            .UseConverter(converter)
             .AddChoices(items);
 
         return await prompt.ShowAsync(console, cancellationToken);
@@ -157,6 +181,57 @@ internal static class NitroConsoleExtensions
         }
 
         return apiId;
+    }
+
+    public static async Task<string> GetOrPromptForStageNameAsync(
+        this INitroConsole console,
+        string message,
+        ParseResult parseResult,
+        Option<string> stageOption,
+        IStagesClient stagesClient,
+        string apiId,
+        CancellationToken cancellationToken)
+    {
+        var value = parseResult.GetValue(stageOption);
+
+        if (!string.IsNullOrEmpty(value))
+        {
+            return value;
+        }
+
+        if (!console.IsInteractive)
+        {
+            throw ThrowHelper.MissingRequiredOption(stageOption.Name);
+        }
+
+        var stage = await SelectStagePrompt.New(stagesClient, apiId)
+            .Title(message)
+            .RenderAsync(console, cancellationToken)
+            ?? throw new ExitException("The selected API has no stages.");
+
+        return stage.Name;
+    }
+
+    public static async Task<string> GetOrPromptForTagAsync(
+        this INitroConsole console,
+        string message,
+        ParseResult parseResult,
+        Option<string> tagOption,
+        CancellationToken cancellationToken)
+    {
+        var value = parseResult.GetValue(tagOption);
+
+        if (!string.IsNullOrEmpty(value))
+        {
+            return value;
+        }
+
+        if (!console.IsInteractive)
+        {
+            throw ThrowHelper.MissingRequiredOption(tagOption.Name);
+        }
+
+        return await console.PromptAsync(message, defaultValue: null, cancellationToken);
     }
 
     public static void Success(this INitroConsole console, string message)

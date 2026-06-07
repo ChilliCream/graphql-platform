@@ -155,6 +155,56 @@ public abstract class OpenApiCommandTestBase(NitroCommandFixture fixture) : Comm
             .ThrowsAsync(new InvalidOperationException("Something unexpected happened."));
     }
 
+    protected void SetupListOpenApiCollectionsForPrompt(
+        params (string Id, string Name)[] items)
+    {
+        var nodes = items
+            .Select(static item =>
+                (IListOpenApiCollectionCommandQuery_Node_OpenApiCollections_Edges_Node)
+                new ListOpenApiCollectionCommandQuery_Node_OpenApiCollections_Edges_Node_OpenApiCollection(
+                    item.Id,
+                    item.Name))
+            .ToArray();
+
+        OpenApiClientMock.Setup(x => x.ListOpenApiCollectionsAsync(
+                ApiId, null, 5, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ConnectionPage<IListOpenApiCollectionCommandQuery_Node_OpenApiCollections_Edges_Node>(
+                nodes, null, false));
+    }
+
+    #endregion
+
+    #region GetOpenApiCollectionApiId
+
+    protected void SetupGetOpenApiCollectionApiId(string? apiId = ApiId)
+    {
+        OpenApiClientMock.Setup(x => x.GetOpenApiCollectionApiIdAsync(
+                OpenApiCollectionId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(apiId);
+    }
+
+    #endregion
+
+    #region ListStages
+
+    protected void SetupListStagesQuery(
+        params (string Id, string Name)[] stages)
+    {
+        var result = stages
+            .Select(static s =>
+            {
+                var stage = new Mock<IListStagesQuery_Node_Stages>(MockBehavior.Strict);
+                stage.SetupGet(x => x.Id).Returns(s.Id);
+                stage.SetupGet(x => x.Name).Returns(s.Name);
+                return stage.Object;
+            })
+            .ToArray<IListStagesQuery_Node_Stages>();
+
+        StagesClientMock.Setup(x => x.ListStagesAsync(
+                ApiId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(result);
+    }
+
     #endregion
 
     #region Upload

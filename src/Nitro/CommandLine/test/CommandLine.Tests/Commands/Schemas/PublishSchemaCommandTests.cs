@@ -24,15 +24,15 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
               nitro schema publish [options]
 
             Options:
-              --api-id <api-id> (REQUIRED)  The ID of the API [env: NITRO_API_ID]
-              --tag <tag> (REQUIRED)        The tag of the schema version to deploy [env: NITRO_TAG]
-              --stage <stage> (REQUIRED)    The name of the stage [env: NITRO_STAGE]
-              --force                       Skip confirmation prompts for deletes and overwrites
-              --wait-for-approval           Wait for the deployment to be approved before completing [env: NITRO_WAIT_FOR_APPROVAL]
-              --cloud-url <cloud-url>       The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
-              --api-key <api-key>           The API key used for authentication [env: NITRO_API_KEY]
-              --output <json>               The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help                Show help and usage information
+              --api-id <api-id>        The ID of the API [env: NITRO_API_ID]
+              --tag <tag>              The tag of the schema version to deploy [env: NITRO_TAG]
+              --stage <stage>          The name of the stage [env: NITRO_STAGE]
+              --force                  Skip confirmation prompts for deletes and overwrites
+              --wait-for-approval      Wait for the deployment to be approved before completing [env: NITRO_WAIT_FOR_APPROVAL]
+              --cloud-url <cloud-url>  The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>      The API key used for authentication [env: NITRO_API_KEY]
+              --output <json>          The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help           Show help and usage information
 
             Example:
               nitro schema publish \
@@ -40,6 +40,81 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
                 --tag "v1" \
                 --stage "dev"
             """);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Publish_Should_ReturnError_When_ApiIdNotProvided(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "schema",
+            "publish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Missing required option '--api-id'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Publish_Should_ReturnError_When_StageNotProvided(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "schema",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--tag",
+            Tag);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Missing required option '--stage'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Publish_Should_ReturnError_When_TagNotProvided(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "schema",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Missing required option '--tag'.
+            """);
+        Assert.Equal(1, result.ExitCode);
     }
 
     [Theory]
@@ -467,6 +542,188 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
             ├── Publication request created. (ID: request-id)
             └── ✓ Published new schema version 'v1' to stage 'dev'.
             """);
+    }
+
+    [Fact]
+    public async Task Publish_Should_PromptForTag_When_OnlyTagMissing_Interactive()
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupPublishSchemaMutation();
+        SetupPublishSchemaSubscription(
+            CreateSchemaVersionPublishSuccessEvent());
+
+        var command = StartInteractiveCommand(
+            "schema",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage);
+
+        // act
+        command.Input(Tag); // Enter tag
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Publish_Should_PromptForStage_When_OnlyStageMissing_Interactive()
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupListStagesQuery(("stage-1", Stage));
+        SetupPublishSchemaMutation();
+        SetupPublishSchemaSubscription(
+            CreateSchemaVersionPublishSuccessEvent());
+
+        var command = StartInteractiveCommand(
+            "schema",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--tag",
+            Tag);
+
+        // act
+        command.SelectOption(0); // Select stage
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Publish_Should_PromptForApi_When_OnlyApiMissing_Interactive()
+    {
+        // arrange
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupSelectApisPrompt((ApiId, "products"));
+        SetupPublishSchemaMutation();
+        SetupPublishSchemaSubscription(
+            CreateSchemaVersionPublishSuccessEvent());
+
+        var command = StartInteractiveCommand(
+            "schema",
+            "publish",
+            "--stage",
+            Stage,
+            "--tag",
+            Tag);
+
+        // act
+        command.SelectOption(0); // Select API
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Publish_Should_PromptForStageAndTag_When_ApiProvided_Interactive()
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupListStagesQuery(("stage-1", Stage));
+        SetupPublishSchemaMutation();
+        SetupPublishSchemaSubscription(
+            CreateSchemaVersionPublishSuccessEvent());
+
+        var command = StartInteractiveCommand(
+            "schema",
+            "publish",
+            "--api-id",
+            ApiId);
+
+        // act
+        command.SelectOption(0); // Select stage
+        command.Input(Tag); // Enter tag
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Publish_Should_PromptForApiAndTag_When_StageProvided_Interactive()
+    {
+        // arrange
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupSelectApisPrompt((ApiId, "products"));
+        SetupPublishSchemaMutation();
+        SetupPublishSchemaSubscription(
+            CreateSchemaVersionPublishSuccessEvent());
+
+        var command = StartInteractiveCommand(
+            "schema",
+            "publish",
+            "--stage",
+            Stage);
+
+        // act
+        command.SelectOption(0); // Select API
+        command.Input(Tag); // Enter tag
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Publish_Should_PromptForApiAndStage_When_TagProvided_Interactive()
+    {
+        // arrange
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupSelectApisPrompt((ApiId, "products"));
+        SetupListStagesQuery(("stage-1", Stage));
+        SetupPublishSchemaMutation();
+        SetupPublishSchemaSubscription(
+            CreateSchemaVersionPublishSuccessEvent());
+
+        var command = StartInteractiveCommand(
+            "schema",
+            "publish",
+            "--tag",
+            Tag);
+
+        // act
+        command.SelectOption(0); // Select API
+        command.SelectOption(0); // Select stage
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Publish_Should_PromptForApiStageAndTag_When_NothingProvided_Interactive()
+    {
+        // arrange
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupSelectApisPrompt((ApiId, "products"));
+        SetupListStagesQuery(("stage-1", Stage));
+        SetupPublishSchemaMutation();
+        SetupPublishSchemaSubscription(
+            CreateSchemaVersionPublishSuccessEvent());
+
+        var command = StartInteractiveCommand(
+            "schema",
+            "publish");
+
+        // act
+        command.SelectOption(0); // Select API
+        command.SelectOption(0); // Select stage
+        command.Input(Tag); // Enter tag
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
     }
 
     #region Error Theory Data

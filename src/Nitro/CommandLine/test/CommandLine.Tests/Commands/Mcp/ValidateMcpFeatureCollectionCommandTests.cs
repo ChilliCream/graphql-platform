@@ -24,14 +24,14 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
               nitro mcp validate [options]
 
             Options:
-              --mcp-feature-collection-id <mcp-feature-collection-id> (REQUIRED)  The ID of the MCP Feature Collection [env: NITRO_MCP_FEATURE_COLLECTION_ID]
-              --stage <stage> (REQUIRED)                                          The name of the stage [env: NITRO_STAGE]
-              -p, --prompt-pattern <prompt-pattern>                               One or more file patterns to locate MCP prompt definition files (*.json)
-              -t, --tool-pattern <tool-pattern>                                   One or more file patterns to locate MCP tool definition files (*.graphql)
-              --cloud-url <cloud-url>                                             The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
-              --api-key <api-key>                                                 The API key used for authentication [env: NITRO_API_KEY]
-              --output <json>                                                     The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help                                                      Show help and usage information
+              --mcp-feature-collection-id <mcp-feature-collection-id>  The ID of the MCP Feature Collection [env: NITRO_MCP_FEATURE_COLLECTION_ID]
+              --stage <stage>                                          The name of the stage [env: NITRO_STAGE]
+              -p, --prompt-pattern <prompt-pattern>                    One or more file patterns to locate MCP prompt definition files (*.json)
+              -t, --tool-pattern <tool-pattern>                        One or more file patterns to locate MCP tool definition files (*.graphql)
+              --cloud-url <cloud-url>                                  The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>                                      The API key used for authentication [env: NITRO_API_KEY]
+              --output <json>                                          The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help                                           Show help and usage information
 
             Example:
               nitro mcp validate \
@@ -40,6 +40,39 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
                 --prompt-pattern "./prompts/**/*.json" \
                 --tool-pattern "./tools/**/*.graphql"
             """);
+    }
+
+    [Theory]
+    [InlineData("--mcp-feature-collection-id")]
+    [InlineData("--stage")]
+    public async Task MissingRequiredOption_NonInteractive_ReturnsError(string missingOption)
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.NonInteractive);
+        SetupMcpDefinitionFiles();
+
+        var args = new List<string>
+        {
+            "mcp",
+            "validate",
+            "--mcp-feature-collection-id",
+            McpFeatureCollectionId,
+            "--stage",
+            Stage,
+            "--prompt-pattern",
+            "**/*.json",
+            "--tool-pattern",
+            "**/*.graphql"
+        };
+
+        var index = args.IndexOf(missingOption);
+        args.RemoveRange(index, 2);
+
+        // act
+        var result = await ExecuteCommandAsync(args.ToArray());
+
+        // assert
+        result.AssertError($"Missing required option '{missingOption}'.");
     }
 
     [Theory]
@@ -275,6 +308,99 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             MCP feature collection failed validation.
             """);
         Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task Validate_Should_PromptForStage_When_CollectionProvided_Interactive()
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupMcpDefinitionFiles();
+        SetupGetMcpFeatureCollectionApiId();
+        SetupListStagesQuery(("stage-1", Stage));
+        SetupValidateMcpFeatureCollectionMutation();
+        SetupValidateMcpFeatureCollectionSubscription();
+
+        var command = StartInteractiveCommand(
+            "mcp",
+            "validate",
+            "--mcp-feature-collection-id",
+            McpFeatureCollectionId,
+            "--prompt-pattern",
+            "**/*.json",
+            "--tool-pattern",
+            "**/*.graphql");
+
+        // act
+        command.SelectOption(0); // Select stage
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Validate_Should_PromptForApiAndCollection_When_StageProvided_Interactive()
+    {
+        // arrange
+        SetupSelectApisPrompt((ApiId, "products"));
+        SetupListMcpFeatureCollectionsForPrompt((McpFeatureCollectionId, McpFeatureCollectionName));
+        SetupMcpDefinitionFiles();
+        SetupValidateMcpFeatureCollectionMutation();
+        SetupValidateMcpFeatureCollectionSubscription();
+
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+
+        var command = StartInteractiveCommand(
+            "mcp",
+            "validate",
+            "--stage",
+            Stage,
+            "--prompt-pattern",
+            "**/*.json",
+            "--tool-pattern",
+            "**/*.graphql");
+
+        // act
+        command.SelectOption(0); // Select API
+        command.SelectOption(0); // Select feature collection
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Validate_Should_PromptForApiCollectionAndStage_When_NothingProvided_Interactive()
+    {
+        // arrange
+        SetupSelectApisPrompt((ApiId, "products"));
+        SetupListMcpFeatureCollectionsForPrompt((McpFeatureCollectionId, McpFeatureCollectionName));
+        SetupListStagesQuery(("stage-1", Stage));
+        SetupMcpDefinitionFiles();
+        SetupValidateMcpFeatureCollectionMutation();
+        SetupValidateMcpFeatureCollectionSubscription();
+
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+
+        var command = StartInteractiveCommand(
+            "mcp",
+            "validate",
+            "--prompt-pattern",
+            "**/*.json",
+            "--tool-pattern",
+            "**/*.graphql");
+
+        // act
+        command.SelectOption(0); // Select API
+        command.SelectOption(0); // Select feature collection
+        command.SelectOption(0); // Select stage
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
     }
 
     public static TheoryData<IValidateMcpFeatureCollectionCommandMutation_ValidateMcpFeatureCollection_Errors, string>

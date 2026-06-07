@@ -24,8 +24,8 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : Sc
               nitro schema validate [options]
 
             Options:
-              --api-id <api-id> (REQUIRED)            The ID of the API [env: NITRO_API_ID]
-              --stage <stage> (REQUIRED)              The name of the stage [env: NITRO_STAGE]
+              --api-id <api-id>                       The ID of the API [env: NITRO_API_ID]
+              --stage <stage>                         The name of the stage [env: NITRO_STAGE]
               --schema-file <schema-file> (REQUIRED)  The path to the graphql file with the schema definition [env: NITRO_SCHEMA_FILE]
               --cloud-url <cloud-url>                 The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
               --api-key <api-key>                     The API key used for authentication [env: NITRO_API_KEY]
@@ -38,6 +38,56 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : Sc
                 --stage "dev" \
                 --schema-file ./schema.graphqls
             """);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Validate_Should_ReturnError_When_ApiIdNotProvided(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "schema",
+            "validate",
+            "--stage",
+            Stage,
+            "--schema-file",
+            SchemaFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Missing required option '--api-id'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Validate_Should_ReturnError_When_StageNotProvided(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "schema",
+            "validate",
+            "--api-id",
+            ApiId,
+            "--schema-file",
+            SchemaFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Missing required option '--stage'.
+            """);
+        Assert.Equal(1, result.ExitCode);
     }
 
     [Theory]
@@ -314,6 +364,86 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : Sc
                 └── An unexpected error occurred.
             """);
         Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task Validate_Should_PromptForStage_When_ApiProvided_Interactive()
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupListStagesQuery(("stage-1", Stage));
+        SetupSchemaFile();
+        SetupSchemaValidationMutation();
+        SetupSchemaValidationSubscription();
+
+        var command = StartInteractiveCommand(
+            "schema",
+            "validate",
+            "--api-id",
+            ApiId,
+            "--schema-file",
+            SchemaFile);
+
+        // act
+        command.SelectOption(0); // Select stage
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Validate_Should_PromptForApi_When_StageProvided_Interactive()
+    {
+        // arrange
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupSelectApisPrompt((ApiId, "products"));
+        SetupSchemaFile();
+        SetupSchemaValidationMutation();
+        SetupSchemaValidationSubscription();
+
+        var command = StartInteractiveCommand(
+            "schema",
+            "validate",
+            "--stage",
+            Stage,
+            "--schema-file",
+            SchemaFile);
+
+        // act
+        command.SelectOption(0); // Select API
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task Validate_Should_PromptForApiAndStage_When_NothingProvided_Interactive()
+    {
+        // arrange
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupSelectApisPrompt((ApiId, "products"));
+        SetupListStagesQuery(("stage-1", Stage));
+        SetupSchemaFile();
+        SetupSchemaValidationMutation();
+        SetupSchemaValidationSubscription();
+
+        var command = StartInteractiveCommand(
+            "schema",
+            "validate",
+            "--schema-file",
+            SchemaFile);
+
+        // act
+        command.SelectOption(0); // Select API
+        command.SelectOption(0); // Select stage
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
     }
 
     #region Error Theory Data
