@@ -186,7 +186,11 @@ public class IntegrationTests
         Assert.True(await recorder.WaitAsync(s_timeout), "request handler never executed");
 
         // give the reply time to route back to the saga and finalize it
-        await Task.Delay(2000, default);
+        var deadline = DateTime.UtcNow + s_timeout;
+        while (storage.Count != 0 && DateTime.UtcNow < deadline)
+        {
+            await Task.Delay(50, default);
+        }
 
         // assert - the reply routed back to the saga, transitioned it to its final state, and the
         // saga state was deleted from the store (storage.Count reaches 0).
