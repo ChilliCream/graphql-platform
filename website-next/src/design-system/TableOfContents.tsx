@@ -76,7 +76,11 @@ export function TocNav({ sections }: { sections: TocSection[] }) {
             {section.subtree.length > 0 && (
               <ul className="space-y-1">
                 {section.subtree.map((node) => (
-                  <li key={node.h3.id}>
+                  <li
+                    key={node.h3.id}
+                    data-toc-subtree={node.h3.id}
+                    className="group/subtree"
+                  >
                     <a
                       href={`#${node.h3.id}`}
                       data-toc-link={node.h3.id}
@@ -85,7 +89,7 @@ export function TocNav({ sections }: { sections: TocSection[] }) {
                       {node.h3.text}
                     </a>
                     {node.h4s.length > 0 && (
-                      <ul className="hidden space-y-1 group-data-[section-active=true]/section:block">
+                      <ul className="hidden space-y-1 group-data-[subtree-active=true]/subtree:block">
                         {node.h4s.map((h4) => (
                           <li key={h4.id}>
                             <a
@@ -151,13 +155,15 @@ function buildSections(items: HeadingItem[]): TocSection[] {
 function toSectionMap(section: TocSection): {
   id: string;
   childIds: string[];
+  subtrees: { id: string; childIds: string[] }[];
 } {
   const childIds: string[] = [];
+  const subtrees: { id: string; childIds: string[] }[] = [];
   for (const node of section.subtree) {
     childIds.push(node.h3.id);
-    for (const h4 of node.h4s) {
-      childIds.push(h4.id);
-    }
+    const h4Ids = node.h4s.map((h4) => h4.id);
+    childIds.push(...h4Ids);
+    subtrees.push({ id: node.h3.id, childIds: h4Ids });
   }
-  return { id: section.h2.id, childIds };
+  return { id: section.h2.id, childIds, subtrees };
 }

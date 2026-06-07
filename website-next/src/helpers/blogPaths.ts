@@ -79,20 +79,22 @@ export function listBlogPosts(): {
   return posts;
 }
 
-/** Build the canonical URL for a blog post stem. */
+/** Build the canonical URL for a blog post stem. The URL slug mirrors the
+ *  markdown file name, e.g. /blog/2019-06-05-hot-chocolate-9. */
 export function blogUrlForStem(parsed: BlogStem): string {
-  return `/blog/${parsed.year}/${parsed.month}/${parsed.day}/${parsed.slug}`;
+  return `/blog/${parsed.year}-${parsed.month}-${parsed.day}-${parsed.slug}`;
 }
 
-/** Reverse the catch-all slug (e.g. ['2019','06','05','hot-chocolate-9.0.0'])
- *  to a file path relative to BLOG_ROOT, or null if not found. */
+/** Reverse the catch-all slug (e.g. ['2019-06-05-hot-chocolate-9']) to a file
+ *  path relative to BLOG_ROOT, or null if not found. */
 export function resolveBlogFile(slug: string[]): string | null {
-  if (slug.length < 4) {
+  if (slug.length !== 1) {
     return null;
   }
-  const [year, month, day, ...rest] = slug;
-  const slugPart = rest.join("/");
-  const stem = `${year}-${month}-${day}-${slugPart}`;
+  const stem = slug[0];
+  if (!parseBlogStem(stem)) {
+    return null;
+  }
   const candidates = [
     `${stem}.md`,
     `${stem}.mdx`,

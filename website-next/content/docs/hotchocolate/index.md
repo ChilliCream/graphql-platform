@@ -1,318 +1,126 @@
 ---
-title: Hot Chocolate
-description: The most powerful GraphQL server for .NET.
+title: "Overview"
 ---
 
-This page is the canonical exercise for the docs renderer. Every standard
-markdown feature, every custom component registered in `mdx-components.tsx`,
-and a representative set of Mermaid diagrams appear below. If something is
-missing here, it isn't supported yet.
+Hot Chocolate is an open-source [GraphQL](https://graphql.org/) server for .NET. You define your API shape using C# classes and methods, and Hot Chocolate translates that into a spec-compliant GraphQL schema. It handles parsing, validation, execution, and transport so you can focus on your domain logic.
 
-# Headings
+# What Is Hot Chocolate
 
-Headings render with the `Typography` component and produce anchor links on
-hover. They also feed the table of contents on the right.
+Hot Chocolate is a GraphQL server framework that runs on [ASP.NET Core](https://learn.microsoft.com/aspnet/core). You write C# types and resolvers. Hot Chocolate turns them into a GraphQL schema, validates incoming operations against that schema, executes them, and returns results over HTTP, WebSocket, or Server-Sent Events.
 
-## Heading two
+Hot Chocolate implements the [GraphQL 2025 specification](https://spec.graphql.org/) and several draft features including `@defer`, `@stream`, and `@requiresOptIn`. It implements the [GraphQL over HTTP specification](https://graphql.github.io/graphql-over-http/) for transport. It is compatible with all spec-compliant clients, including [Strawberry Shake](../strawberryshake/index.md), [Relay](https://relay.dev/), and [Apollo Client](https://www.apollographql.com/docs/react/).
 
-### Heading three
+# How You Build a Schema
 
-#### Heading four
+Hot Chocolate supports two approaches to building a GraphQL schema. Both produce the same result: a fully typed, spec-compliant GraphQL schema. They differ in how you express it in C#.
 
-# Text and inline elements
+## Implementation-First
 
-Paragraphs use the body variant. You can combine **bold**, _italic_,
-**_bold italic_**, ~~struck-through text~~, and `inline code` freely. Inline links
-work the same as anywhere else — see the [HotChocolate docs](/docs/hotchocolate)
-or an [external resource](https://graphql.org/).
+With implementation-first, your C# implementation is the single source of truth for your GraphQL schema. Define your API using familiar C# classes and attributes like `[QueryType]`. At build time, a source generator analyzes your code and creates the GraphQL types for you. You focus on your business logic, since your implementation is your schema. You don’t need to manually keep your code and schema in sync, deal with GraphQL-specific boilerplate, or write large type definitions in C#.
 
-# Lists
-
-Unordered list with nested items:
-
-- Source schemas describe a single service.
-- The composed schema is built from one or more source schemas.
-  - Composition resolves keys, lookups, and shared fields.
-  - The result is a `.far` archive consumed by the gateway.
-- Validation runs on every published schema.
-
-Ordered list:
-
-1. Upload the source schema.
-2. Publish the archive to a stage.
-3. Cut the gateway over to the new archive.
-
-# Blockquote
-
-> A blockquote that doesn't start with an admonition marker renders with the
-> `Quote` component. Use it for short callouts that aren't tied to a kind.
-
-# Admonitions
-
-GitHub-style alert markers on a blockquote upgrade it to an `Admonition`.
-All five kinds are supported.
-
-> [!NOTE]
-> A neutral piece of context the reader should keep in mind.
-
-> [!TIP]
-> A small recommendation that improves the result but isn't strictly required.
-
-> [!WARNING]
-> Something that can fail or behave surprisingly if ignored.
-
-> [!CAUTION]
-> A risk of data loss or other destructive outcome — proceed deliberately.
-
-> [!EXPERIMENTAL]
-> A preview API that may change before stabilizing.
-
-# Tables
-
-GFM tables work as expected. Column alignment is honoured.
-
-| Stage  | Artifact              | Consumer              |
-| ------ | --------------------- | --------------------- |
-| Build  | `schema.graphql`      | `nitro fusion upload` |
-| Deploy | `.far` archive        | Fusion gateway        |
-| PR     | composed gateway plan | Validation pipeline   |
-
-# Code blocks
-
-Plain fenced code with a language tag:
-
-```ts
-export function add(a: number, b: number): number {
-  return a + b;
+```csharp
+[QueryType]
+public static partial class ProductQueries
+{
+    public static async Task<Product?> GetProductByIdAsync(
+        int id,
+        CatalogContext db,
+        CancellationToken ct)
+        => await db.Products.FindAsync([id], ct);
 }
 ```
 
-A code block with a filename and highlighted lines (`{3-5}`):
+This approach is similar to how Meta built their GraphQL server. Your schema stays close to your domain code, while the tooling handles the translation.
 
-```ts filename="Program.cs" {3-5}
-var builder = WebApplication.CreateBuilder(args);
+## Code-First
 
-builder.Services.AddGraphQLServer().AddSourceSchemaDefaults();
-
-var app = builder.Build();
-app.MapGraphQL();
-app.Run();
-```
-
-# Code steps
-
-The `[[step, line, token]]` meta annotates a code block with named tokens.
-Hovering a `<CodeStep>` reference dims the surrounding code in the figure that
-declares the matching step.
-
-```csharp filename="Resolver.cs" [[1, 4, "GetProductById"], [2, 5, "id"], [3, 6, "ProductRepository"]]
-public sealed class Query
-{
-    [Lookup]
-    public Task<Product?> GetProductById(
-        [ID] int id,
-        ProductRepository repository,
-        CancellationToken cancellationToken)
-        => repository.FindAsync(id, cancellationToken);
-}
-```
-
-The lookup is named <CodeStep step={1}>GetProductById</CodeStep>, takes a
-single key argument <CodeStep step={2}>id</CodeStep>, and resolves through the
-<CodeStep step={3}>ProductRepository</CodeStep> data loader.
-
-# Horizontal rule
-
-A rule renders as the `Divider` component.
-
----
-
-# Tabs
-
-The generic `Tabs` / `Tab` combo is the lowest-level building block. Other
-choice tabs (API, input, pipeline) wrap it for specific axes.
-
-<Tabs>
-  <Tab label="C#">
-    ```csharp
-    builder.Services.AddGraphQLServer();
-    ```
-  </Tab>
-  <Tab label="F#">
-    ```fsharp
-    builder.Services.AddGraphQLServer() |> ignore
-    ```
-  </Tab>
-  <Tab label="VB">
-    ```vb
-    builder.Services.AddGraphQLServer()
-    ```
-  </Tab>
-</Tabs>
-
-## ApiChoiceTabs
-
-Pick between Minimal APIs and regular controller-style hosting.
-
-<ApiChoiceTabs>
-<ApiChoiceTabs.MinimalApis>
+The code-first approach lets you define your GraphQL types and schema structure directly in C# using Hot Chocolate’s fluent type descriptor API.
 
 ```csharp
-var app = builder.Build();
-app.MapGraphQL();
-app.Run();
-```
-
-</ApiChoiceTabs.MinimalApis>
-<ApiChoiceTabs.Regular>
-
-```csharp
-public class Startup
+public class ProductType : ObjectType<Product>
 {
-    public void Configure(IApplicationBuilder app)
+    protected override void Configure(IObjectTypeDescriptor<Product> descriptor)
     {
-        app.UseRouting();
-        app.UseEndpoints(e => e.MapGraphQL());
+        descriptor
+            .Field(p => p.Id)
+            .Type<NonNullType<IdType>>();
+
+        descriptor
+            .Field(p => p.Name)
+            .Type<NonNullType<StringType>>();
     }
 }
 ```
 
-</ApiChoiceTabs.Regular>
-</ApiChoiceTabs>
+Code-first is useful when you need to decouple the GraphQL schema shape from your C# model, or when you are building infrastructure that generates schemas programmatically.
 
-## InputChoiceTabs
+Both approaches can be mixed in the same project. You can use implementation-first for most types and drop into code-first for specific cases that need more control.
 
-Pick between CLI and Visual Studio. The `PackageInstallation` component below
-uses this internally.
+# GraphQL API Security Strategies
 
-<InputChoiceTabs>
-<InputChoiceTabs.CLI>
+GraphQL APIs are typically designed for one of two usage models.
 
-```bash
-dotnet add package HotChocolate.AspNetCore
-```
+Either your API is exclusively consumed by applications you control (first-party), such as your own web, mobile, or internal services, where you define and manage every client operation.
 
-</InputChoiceTabs.CLI>
-<InputChoiceTabs.VisualStudio>
+Or your API is open to external developers or partners (third-party), and you have no control over the GraphQL operations they send.
 
-Right-click the project → **Manage NuGet Packages…** → search for
-`HotChocolate.AspNetCore` and install the latest version.
+This distinction shapes how you configure Hot Chocolate and operate your GraphQL server.
 
-</InputChoiceTabs.VisualStudio>
-</InputChoiceTabs>
+## First-party GraphQL
 
-## PipelineChoiceTabs
+A first-party API is consumed exclusively by your own applications. This is how Meta built and operates GraphQL internally. Because you control both the server and every client, you know every operation at build time. This enables you to maintain a precise schema usage history and strictly allow only approved GraphQL operations.
 
-Pick between a GitHub Action and a CLI invocation for a pipeline step.
+Hot Chocolate supports this scenario with **trusted documents**. You extract all operations from your client applications during their build process, register them with the server, and the server only accepts pre-registered operations.
 
-<PipelineChoiceTabs>
-<PipelineChoiceTabs.GitHubAction>
+- [Trusted documents](./performance/trusted-documents.md) covers the full workflow: extraction, registration, and enforcement.
+- [Strawberry Shake](../strawberryshake/index.md) and [Relay](https://relay.dev/docs/guides/persisted-queries/) both support build-time operation extraction.
 
-```yaml
-- uses: ChilliCream/nitro-fusion-publish@v16
-  with:
-    tag: ${{ github.sha }}
-    stage: prod
-    api-id: ${{ secrets.NITRO_API_ID }}
-    api-key: ${{ secrets.NITRO_API_KEY }}
-    source-schemas: |
-      products
-```
+When in the future you want to change or phase out parts of your schema you know the impact this change will have to your system before you apply it. This is a super power for API evolution.
 
-</PipelineChoiceTabs.GitHubAction>
-<PipelineChoiceTabs.CLI>
+## Third-party GraphQL
 
-```bash
-dotnet nitro fusion publish \
-  --tag "${GITHUB_SHA}" \
-  --stage "prod" \
-  --api-id "${NITRO_API_ID}" \
-  --api-key "${NITRO_API_KEY}" \
-  --source-schema "products"
-```
+A third-party API is consumed by external developers or clients outside your organization. GitHub’s GraphQL API is a canonical example. You publish a schema, and external teams build applications against it. Because you do not control the clients, they can send any operation they want.
 
-</PipelineChoiceTabs.CLI>
-</PipelineChoiceTabs>
+Hot Chocolate provides **cost analysis** for this scenario. You assign weights to fields and connections, and the server rejects operations that exceed the performance budget before execution begins.
 
-## ExampleTabs
+- [Cost analysis](./security/cost-analysis.md) explains field weights, type costs, and budget configuration.
+- [Controlling introspection](./security/introspection.md) lets you restrict schema visibility in production.
 
-Show the same example across implementation-first, code-first, and
-schema-first styles. The Schema tab is hidden on `/v16/` routes.
+These two approaches complement each other. A common setup is to host both a public and an internal GraphQL API. The internal API uses trusted documents to strictly control operations, while the public API relies on cost analysis and other safeguards to manage external traffic and protect against abuse.
 
-<ExampleTabs>
-<Implementation>
+# Key Terminology
 
-```csharp
-[QueryType]
-public static class Query
-{
-    public static string Hello() => "World";
-}
-```
+| Term                  | Definition                                                                                                                                                                                                                         |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Schema**            | The contract that describes what data clients can query. Hot Chocolate generates it from your C# code.                                                                                                                             |
+| **Query type**        | The root type for read operations. Clients enter the graph through fields on this type.                                                                                                                                            |
+| **Mutation type**     | The root type for write operations. Mutations execute serially and are expected to cause side effects.                                                                                                                             |
+| **Subscription type** | The root type for real-time operations. Clients subscribe to events and receive updates as they occur.                                                                                                                             |
+| **Resolver**          | A function that fetches data for a single field. In implementation-first, each public method on a `[QueryType]` class is a resolver for third-party or first-party APIs.                                                           |
+| **Batch resolver**    | A resolver that fetches data for multiple parent objects in a single call, improving performance by reducing the number of backend requests. Useful for solving the N+1 problem and optimizing data access patterns.               |
+| **DataLoader**        | A batching and caching layer that groups multiple individual data requests into a single batch call, eliminating the N+1 problem.                                                                                                  |
+| **Source generator**  | A Roslyn source generator that inspects your C# code at build time and generates the schema registration, resolver pipelines, and DataLoader infrastructure.                                                                       |
+| **Cost analysis**     | A static analysis pass that calculates the cost of a query before execution and rejects queries that exceed configured limits. Based on the [IBM Cost Analysis specification](https://ibm.github.io/graphql-specs/cost-spec.html). |
+| **Trusted documents** | Pre-registered operations that the server accepts by hash. Operations not in the store are rejected. Also known as persisted operations.                                                                                           |
 
-</Implementation>
-<Code>
+# Scaling Beyond a Single Server
 
-```csharp
-public class Query
-{
-    public string Hello() => "World";
-}
+When your API grows beyond what a single service can handle, [Fusion](../fusion/index.md) lets you split your schema across multiple independent services. Each service owns part of the API surface. A gateway composes them into one unified schema that clients query as a single endpoint.
 
-public class QueryType : ObjectType<Query>
-{
-    protected override void Configure(IObjectTypeDescriptor<Query> d)
-        => d.Field(q => q.Hello()).Type<NonNullType<StringType>>();
-}
-```
+Fusion is not a separate product. It builds on Hot Chocolate. A standard Hot Chocolate server can act as a Fusion subgraph without changes to its resolvers or type definitions. You can start with a single Hot Chocolate server and add Fusion later when you need independent deployment or team-level ownership boundaries.
 
-</Code>
-<Schema>
+# Next Steps
 
-```graphql
-type Query {
-  hello: String!
-}
-```
+Where you go from here depends on what you need:
 
-</Schema>
-</ExampleTabs>
+- **"I want to build something."** Start with the [Getting Started](./get-started-with-graphql-in-net-core.md) tutorial. You will create a running GraphQL server in under five minutes.
 
-# PackageInstallation
+- **"I want to understand the schema system."** Read [Defining a Schema](./defining-a-schema/index.md). It covers queries, mutations, subscriptions, and all the GraphQL types.
 
-A shortcut that renders the install instructions for a NuGet package using
-`InputChoiceTabs` under the hood.
+- **"I need to fetch data efficiently."** Go to [DataLoader](./fetching-data/batching/dataloader.md) for batching and caching, or [Resolvers](./resolvers/index.md) for the full resolver API.
 
-<PackageInstallation packageName="HotChocolate.AspNetCore" />
+- **"I need to secure my API."** See [Securing Your API](./security/index.md) for authentication, authorization, cost analysis, and trusted documents.
 
-# Images
+- **"I'm migrating from an older version."** Read the [migration guide from v15 to v16](./migrating/migrate-from-15-to-16.md).
 
-Standard markdown images render through the `Image` component, which adds
-a soft ring and rounded corners.
-
-![An image](../../../public/images/analytics/banner.png)
-
-# Video
-
-A plain markdown link to a YouTube video.
-
-[Watch the introduction video](https://www.youtube.com/watch?v=dQw4w9WgXcQ)
-
-# Mermaid diagram
-
-```mermaid
-flowchart LR
-  Client[GraphQL Client] -->|HTTP| Gateway
-  Gateway -->|subscribes| PubSub[(PubSub)]
-  Gateway -->|resolves| OrdersSubgraph
-  Gateway -->|resolves| UsersSubgraph
-  Gateway -->|resolves| ProductsSubgraph
-  OrdersSubgraph --> OrdersDB[(Orders DB)]
-  UsersSubgraph --> UsersDB[(Users DB)]
-  ProductsSubgraph --> ProductsDB[(Products DB)]
-  subgraph Composition
-    direction TB
-    Compose([fusion compose]) --> Archive[(.far archive)]
-    Archive --> Gateway
-  end
-```
+- **"I want to split my API across services."** See [Fusion](../fusion/index.md) for distributed GraphQL with a gateway.

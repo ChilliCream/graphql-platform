@@ -5,11 +5,14 @@ import { DocPageMeta } from "@/src/design-system/DocPageMeta";
 import { EditOnGitHub } from "@/src/design-system/EditOnGitHub";
 import { TableOfContents } from "@/src/design-system/TableOfContents";
 import { Typography } from "@/src/design-system/Typography";
+import { NotFoundContent } from "@/src/components/NotFoundContent";
 import { compileDoc } from "@/src/helpers/compileDoc";
 import {
   CONTENT_ROOT,
   encodeDocId,
+  listDocProducts,
   listDocSlugs,
+  NOT_FOUND_SEGMENT,
   resolveFile,
 } from "@/src/helpers/docsParams";
 import { getGitMetadata } from "@/src/helpers/gitMetadata";
@@ -28,13 +31,41 @@ type PageProps = {
 export const dynamicParams = false;
 
 export function generateStaticParams(): Params[] {
-  return listDocSlugs().map((slug) => ({ slug }));
+  const docs = listDocSlugs().map((slug) => ({ slug }));
+
+  // Static 404 pages: one per product plus a docs-level fallback. nginx serves
+  // the closest one for unmatched docs URLs so the secondary link is in the HTML.
+  const notFound: Params[] = [
+    { slug: [NOT_FOUND_SEGMENT] },
+    ...listDocProducts().map((product) => ({
+      slug: [product, NOT_FOUND_SEGMENT],
+    })),
+  ];
+
+  return [...docs, ...notFound];
+}
+
+/** Builds the secondary link for a 404 slug, or `null` if it is not one. */
+function notFoundSecondary(
+  slug: string[],
+): { href: string; label: string } | null {
+  if (slug[slug.length - 1] !== NOT_FOUND_SEGMENT) {
+    return null;
+  }
+  if (slug.length > 1) {
+    const product = slug[0];
+    return { href: `/docs/${product}`, label: "Read the docs" };
+  }
+  return { href: "/docs", label: "Browse the docs" };
 }
 
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { slug } = await params;
+  if (notFoundSecondary(slug) !== null) {
+    return { title: "Page not found", robots: { index: false, follow: false } };
+  }
   const rel = resolveFile(slug);
   if (rel === null) {
     return {};
@@ -70,6 +101,12 @@ export async function generateMetadata({
 
 export default async function DocPage({ params }: PageProps) {
   const { slug } = await params;
+
+  const secondary = notFoundSecondary(slug);
+  if (secondary !== null) {
+    return <NotFoundContent secondary={secondary} />;
+  }
+
   const rel = resolveFile(slug);
 
   if (rel === null) {

@@ -3,6 +3,7 @@ import { DocsToolbar } from "@/src/design-system/DocsToolbar";
 import { Sidebar } from "@/src/design-system/Sidebar";
 import { SidebarDrawer } from "@/src/design-system/SidebarDrawer";
 import { buildContentTree } from "@/src/helpers/buildContentTree";
+import { NOT_FOUND_SEGMENT } from "@/src/helpers/docsParams";
 
 export default async function DocsLayout({
   children,
@@ -12,6 +13,13 @@ export default async function DocsLayout({
   params: Promise<{ slug: string[] }>;
 }) {
   const { slug } = await params;
+
+  // The synthetic 404 pages render the standalone not-found body, so skip the
+  // docs chrome (sidebar + toolbar) and let them sit in the root layout only.
+  if (slug[slug.length - 1] === NOT_FOUND_SEGMENT) {
+    return <>{children}</>;
+  }
+
   const product = slug[0];
   const tree = buildContentTree(`docs/${product}`, `/docs/${product}`);
   const currentPath = `/docs/${slug.join("/")}`;

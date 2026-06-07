@@ -99,6 +99,27 @@ public interface IClientsClient
         CancellationToken cancellationToken);
 
     /// <summary>
+    /// Lists published versions of a client filtered by stage.
+    /// </summary>
+    /// <returns>A page of results, or <c>null</c> if the client was not found.</returns>
+    /// <exception cref="NitroClientGraphQLException">
+    /// The server returned a GraphQL error.
+    /// </exception>
+    /// <exception cref="NitroClientHttpRequestException">
+    /// The server returned an HTTP error without a GraphQL response body.
+    /// </exception>
+    /// <exception cref="NitroClientAuthorizationException">
+    /// The request was rejected because the current credentials do not grant access.
+    /// </exception>
+    /// <exception cref="OperationCanceledException">The operation was canceled.</exception>
+    Task<ConnectionPage<IListClientPublishedVersionsCommand_PublishedClientVersionEdge>?> ListClientPublishedVersionsAsync(
+        string clientId,
+        string stage,
+        string? after,
+        int? first,
+        CancellationToken cancellationToken);
+
+    /// <summary>
     /// Uploads a client version.
     /// </summary>
     /// <returns>The uploaded client version.</returns>
