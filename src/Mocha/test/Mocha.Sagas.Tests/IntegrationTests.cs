@@ -261,7 +261,11 @@ public class IntegrationTests
         await bus.PublishAsync(new StartRequestEvent(), CancellationToken.None);
         await bus.PublishAsync(new StartSecondRequestEvent(), CancellationToken.None);
 
-        await Task.Delay(2000, default);
+        var deadline = DateTime.UtcNow + s_timeout;
+        while (storage.Count != 0 && DateTime.UtcNow < deadline)
+        {
+            await Task.Delay(50, default);
+        }
 
         // assert - both sagas finalized and were removed, with no phantom instances left behind
         Assert.Equal(0, storage.Count);
