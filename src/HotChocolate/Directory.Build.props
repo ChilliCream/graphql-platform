@@ -4,6 +4,6 @@
   <PropertyGroup>
     <Product>Hot Chocolate</Product>
     <PackageIcon>hotchocolate-icon.png</PackageIcon>
-    <NitroVersion>31.0.1</NitroVersion>
+    <NitroVersion>31.0.2</NitroVersion>
   </PropertyGroup>
 </Project>
