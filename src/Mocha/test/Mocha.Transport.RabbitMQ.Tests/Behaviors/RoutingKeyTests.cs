@@ -222,11 +222,10 @@ public class RoutingKeyTests
     }
 
     [Fact]
-    public async Task PublishAsync_Should_RouteAllBoundKeys_When_BindingUsesParamsAndChainedRoutingKeys()
+    public async Task PublishAsync_Should_RouteAllBoundKeys_When_MultipleBindingsDeclaredForSamePair()
     {
         // arrange
-        // the us queue declares its keys via the RoutingKeys(params) overload, the eu queue declares
-        // its keys via chained additive RoutingKey() calls; both forms must deliver every bound key.
+        // each routing key is attached via its own binding declaration between the exchange and queue.
         var usRecorder = new MessageRecorder();
         var euRecorder = new MessageRecorder();
         await using var vhost = await _fixture.CreateVhostAsync();
@@ -246,13 +245,10 @@ public class RoutingKeyTests
                 t.DeclareQueue("us-queue");
                 t.DeclareQueue("eu-queue");
 
-                // params overload: both keys added in a single call
-                t.DeclareBinding("region-direct", "us-queue").RoutingKeys("us.east", "us.west");
-
-                // chained additive calls: each RoutingKey accumulates a distinct key
-                t.DeclareBinding("region-direct", "eu-queue")
-                    .RoutingKey("eu.north")
-                    .RoutingKey("eu.south");
+                t.DeclareBinding("region-direct", "us-queue").RoutingKey("us.east");
+                t.DeclareBinding("region-direct", "us-queue").RoutingKey("us.west");
+                t.DeclareBinding("region-direct", "eu-queue").RoutingKey("eu.north");
+                t.DeclareBinding("region-direct", "eu-queue").RoutingKey("eu.south");
 
                 t.Endpoint("us-ep").Consumer<UsRegionConsumer>().Queue("us-queue");
                 t.Endpoint("eu-ep").Consumer<EuRegionConsumer>().Queue("eu-queue");
@@ -283,10 +279,10 @@ public class RoutingKeyTests
         // assert
         Assert.True(
             await usRecorder.WaitAsync(s_timeout, expectedCount: 2),
-            "Both keys from the RoutingKeys(params) binding should deliver to the us queue");
+            "Both bindings to the us queue should deliver their routing keys");
         Assert.True(
             await euRecorder.WaitAsync(s_timeout, expectedCount: 2),
-            "Both keys from the chained RoutingKey() binding should deliver to the eu queue");
+            "Both bindings to the eu queue should deliver their routing keys");
 
         var usPayloads = usRecorder
             .Messages.Cast<RegionEvent>()

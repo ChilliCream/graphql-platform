@@ -23,30 +23,11 @@ public sealed class RabbitMQBindingConfiguration : TopologyConfiguration
     public RabbitMQDestinationKind DestinationKind { get; set; }
 
     /// <summary>
-    /// Gets or sets the routing keys used for message routing.
-    /// Each routing key is matched against binding keys to determine message delivery, and every
-    /// key produces a separate broker binding between the source and destination.
-    /// For direct exchanges, a key must match exactly. For topic exchanges, wildcards are supported.
+    /// Gets or sets the routing key used for message routing.
+    /// The routing key is matched against binding keys to determine message delivery.
+    /// For direct exchanges, this must match exactly. For topic exchanges, wildcards are supported.
     /// </summary>
-    public HashSet<string> RoutingKeys { get; set; } = [];
-
-    /// <summary>
-    /// Gets or sets a single routing key. Backed by <see cref="RoutingKeys"/>: the getter returns the
-    /// first key (or <c>null</c>), and the setter replaces all keys with the value (or clears on <c>null</c>).
-    /// </summary>
-    [Obsolete("Use " + nameof(RoutingKeys) + " instead. This property will be removed in a future release.")]
-    public string? RoutingKey
-    {
-        get => RoutingKeys.Count == 0 ? null : RoutingKeys.First();
-        set
-        {
-            RoutingKeys.Clear();
-            if (value is not null)
-            {
-                RoutingKeys.Add(value);
-            }
-        }
-    }
+    public string? RoutingKey { get; set; }
 
     /// <summary>
     /// Gets or sets additional binding arguments for advanced routing configuration.

@@ -317,11 +317,11 @@ public class RabbitMQTopologyDescriptorTests
 
         // assert
         var binding = Assert.Single(topology.Bindings);
-        Assert.Equal(["my.key"], binding.RoutingKeys);
+        Assert.Equal("my.key", binding.RoutingKey);
     }
 
     [Fact]
-    public void DeclareBinding_Should_AccumulateRoutingKeys_When_RoutingKeyCalledMultipleTimes()
+    public void DeclareBinding_Should_UseLastRoutingKey_When_RoutingKeyCalledMultipleTimes()
     {
         // arrange & act
         var (_, _, topology) = CreateTopology(t =>
@@ -329,17 +329,17 @@ public class RabbitMQTopologyDescriptorTests
             t.DeclareExchange("src-exchange");
             t.DeclareQueue("dest-queue");
             t.DeclareBinding("src-exchange", "dest-queue")
-                .RoutingKey("first.key")
-                .RoutingKey("second.key");
+                .RoutingKey("first")
+                .RoutingKey("second");
         });
 
         // assert
         var binding = Assert.Single(topology.Bindings);
-        Assert.Equal(["first.key", "second.key"], binding.RoutingKeys);
+        Assert.Equal("second", binding.RoutingKey);
     }
 
     [Fact]
-    public void DeclareBinding_Should_AccumulateRoutingKeys_When_DeclaredTwiceForSamePair()
+    public void DeclareBinding_Should_CreateSeparateBindings_When_DeclaredTwiceForSamePair()
     {
         // arrange & act
         var (_, _, topology) = CreateTopology(t =>
@@ -351,95 +351,14 @@ public class RabbitMQTopologyDescriptorTests
         });
 
         // assert
-        var binding = Assert.Single(topology.Bindings);
-        Assert.Equal(["first.key", "second.key"], binding.RoutingKeys);
-    }
-
-    [Fact]
-    public void DeclareBinding_Should_SetAllRoutingKeys_When_RoutingKeysCalled()
-    {
-        // arrange & act
-        var (_, _, topology) = CreateTopology(t =>
-        {
-            t.DeclareExchange("src-exchange");
-            t.DeclareQueue("dest-queue");
-            t.DeclareBinding("src-exchange", "dest-queue").RoutingKeys("a.key", "b.key");
-        });
-
-        // assert
-        var binding = Assert.Single(topology.Bindings);
-        Assert.Equal(["a.key", "b.key"], binding.RoutingKeys);
-    }
-
-    [Fact]
-    public void DeclareBinding_Should_DeduplicateRoutingKeys_When_SameKeyAddedTwice()
-    {
-        // arrange & act
-        var (_, _, topology) = CreateTopology(t =>
-        {
-            t.DeclareExchange("src-exchange");
-            t.DeclareQueue("dest-queue");
-            t.DeclareBinding("src-exchange", "dest-queue")
-                .RoutingKey("dup.key")
-                .RoutingKey("dup.key");
-        });
-
-        // assert
-        var binding = Assert.Single(topology.Bindings);
-        Assert.Equal(["dup.key"], binding.RoutingKeys);
-    }
-
-    [Fact]
-    public void Binding_Should_ReturnFirstRoutingKey_When_ObsoleteRoutingKeyRead()
-    {
-        // arrange & act
-        var (_, _, topology) = CreateTopology(t =>
-        {
-            t.DeclareExchange("src-exchange");
-            t.DeclareQueue("dest-queue");
-            t.DeclareBinding("src-exchange", "dest-queue")
-                .RoutingKey("first.key")
-                .RoutingKey("second.key");
-        });
-
-        // assert
-        var binding = Assert.Single(topology.Bindings);
-#pragma warning disable CS0618
-        Assert.Equal("first.key", binding.RoutingKey);
-#pragma warning restore CS0618
-    }
-
-    [Fact]
-    public void Configuration_Should_OverwriteRoutingKeys_When_ObsoleteRoutingKeySet()
-    {
-        // arrange
-        var configuration = new RabbitMQBindingConfiguration();
-        configuration.RoutingKeys.Add("existing.key");
-
-        // act
-#pragma warning disable CS0618
-        configuration.RoutingKey = "replacement.key";
-
-        // assert
-        Assert.Equal("replacement.key", configuration.RoutingKey);
-#pragma warning restore CS0618
-        Assert.Equal(["replacement.key"], configuration.RoutingKeys);
-    }
-
-    [Fact]
-    public void Configuration_Should_ClearRoutingKeys_When_ObsoleteRoutingKeySetToNull()
-    {
-        // arrange
-        var configuration = new RabbitMQBindingConfiguration();
-        configuration.RoutingKeys.Add("existing.key");
-
-        // act
-#pragma warning disable CS0618
-        configuration.RoutingKey = null;
-#pragma warning restore CS0618
-
-        // assert
-        Assert.Empty(configuration.RoutingKeys);
+        var bindings = topology.Bindings
+            .Where(b => b.Source.Name == "src-exchange"
+                && b is RabbitMQQueueBinding qb && qb.Destination.Name == "dest-queue")
+            .ToList();
+        Assert.Equal(2, bindings.Count);
+        Assert.Equal(
+            ["first.key", "second.key"],
+            bindings.Select(b => b.RoutingKey).OrderBy(k => k, StringComparer.Ordinal));
     }
 
     [Fact]

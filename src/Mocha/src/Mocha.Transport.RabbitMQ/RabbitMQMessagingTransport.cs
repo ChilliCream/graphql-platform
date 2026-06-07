@@ -202,7 +202,7 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
                     "forward",
                     new Dictionary<string, object?>
                     {
-                        ["routingKeys"] = binding.RoutingKeys.Count == 0 ? null : binding.RoutingKeys.ToArray(),
+                        ["routingKey"] = string.IsNullOrEmpty(binding.RoutingKey) ? null : binding.RoutingKey,
                         ["autoProvision"] = binding.AutoProvision ?? autoProvision
                     }));
         }
