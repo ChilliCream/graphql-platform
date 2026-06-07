@@ -11,8 +11,9 @@ internal static class ConsumeContextExtensions
     /// Creates reply options from the incoming message metadata when a response channel is available.
     /// </summary>
     /// <remarks>
-    /// Correlation id and headers are copied so replies/faults remain linked to the original request
-    /// and downstream workflows (for example saga headers) keep working.
+    /// Headers are copied so replies and faults remain linked to the original request and downstream
+    /// workflows (for example saga headers) keep working. The correlation id is echoed when present,
+    /// so callers that correlate by a different mechanism (such as a saga header) are still supported.
     /// </remarks>
     public static bool TryCreateResponseOptions(this IConsumeContext context, out ReplyOptions options)
     {
@@ -23,15 +24,10 @@ internal static class ConsumeContextExtensions
             return false;
         }
 
-        if (context.CorrelationId is not { } correlationId)
-        {
-            return false;
-        }
-
         options = new ReplyOptions
         {
             Headers = [],
-            CorrelationId = correlationId,
+            CorrelationId = context.CorrelationId,
             ConversationId = context.ConversationId,
             ReplyAddress = replyTo
         };

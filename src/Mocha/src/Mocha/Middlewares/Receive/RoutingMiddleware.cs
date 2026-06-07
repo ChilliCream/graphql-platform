@@ -4,11 +4,13 @@ using Mocha.Features;
 namespace Mocha.Middlewares;
 
 /// <summary>
-/// Selects matching consumers for the resolved message type and current endpoint.
+/// Selects matching consumers for the current endpoint by evaluating each route's condition against
+/// the received message.
 /// </summary>
 /// <remarks>
-/// Matches include enclosed message types so handlers registered for base contracts can receive
-/// derived messages.
+/// The default condition matches by message type, including enclosed message types so handlers
+/// registered for base contracts can receive derived messages. Other conditions, such as header based
+/// reply routing, select on envelope metadata alone.
 /// Without this middleware, no consumer list is built for execution and messages can traverse the
 /// pipeline without ever reaching application handlers.
 /// </remarks>
@@ -18,21 +20,12 @@ internal sealed class RoutingMiddleware(IMessageRouter router)
     {
         var feature = context.Features.GetOrSet<ReceiveConsumerFeature>();
 
-        if (context.MessageType is { } messageType)
+        foreach (var route in router.GetInboundByEndpoint(context.Endpoint))
         {
-            var routes = router.GetInboundByEndpoint(context.Endpoint);
-
-            foreach (var route in routes)
+            if (route.Consumer is not null && route.Condition.Matches(context))
             {
-                if (route.MessageType is not null
-                    && route.Consumer is not null
-                    && (
-                        route.MessageType == messageType
-                        || messageType.EnclosedMessageTypes.Contains(route.MessageType)))
-                {
-                    // Consumers are collected on the feature for later execution middleware.
-                    feature.Consumers.Add(route.Consumer);
-                }
+                // Consumers are collected on the feature for later execution middleware.
+                feature.Consumers.Add(route.Consumer);
             }
         }
 
