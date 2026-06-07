@@ -5,8 +5,7 @@ namespace Mocha.Tests.MessageTypes;
 
 /// <summary>
 /// Tests for the condition that <see cref="InboundRoute.Initialize"/> derives for a route, covering
-/// the default type condition, the explicit override, the no-match reply route, and the loud failure
-/// for a route that requires a message type.
+/// the default type condition, the non-null invariant for all routes, and the no-match reply route.
 /// </summary>
 public class InboundRouteTests
 {
