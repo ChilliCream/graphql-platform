@@ -139,7 +139,10 @@ internal sealed class DefaultRequestExecutor : IRequestExecutor
             // transfer ownership of the request memory to the result so it is disposed when the
             // result is disposed. On the error path the arena stays attached and the pool reset
             // disposes it.
-            context.Result.RegisterForCleanup(context.DetachMemory());
+            if (context.TryDetachMemory() is { } memory)
+            {
+                context.Result.RegisterForCleanup(memory);
+            }
 
             if (scope is null)
             {
@@ -173,6 +176,7 @@ internal sealed class DefaultRequestExecutor : IRequestExecutor
 
             if (context is not null)
             {
+                context.TryDetachMemory()?.Dispose();
                 _contextPool.Return(context);
             }
 

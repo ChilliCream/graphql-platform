@@ -43,7 +43,7 @@ public class PooledRequestContextMemoryTests
         context.AttachMemory(arena);
 
         // act
-        var detached = context.DetachMemory();
+        var detached = context.TryDetachMemory();
 
         // assert
         Assert.Same(arena, detached);
@@ -51,16 +51,16 @@ public class PooledRequestContextMemoryTests
     }
 
     [Fact]
-    public void DetachMemory_Should_Throw_When_NotAttached()
+    public void TryDetachMemory_Should_ReturnNull_When_NotAttached()
     {
         // arrange
         var context = new PooledRequestContext();
 
         // act
-        void Act() => context.DetachMemory();
+        var detached = context.TryDetachMemory();
 
         // assert
-        Assert.Throws<InvalidOperationException>(Act);
+        Assert.Null(detached);
     }
 
     [Fact]
@@ -88,7 +88,7 @@ public class PooledRequestContextMemoryTests
         var context = new PooledRequestContext();
         using var arena = new MemoryArena();
         context.AttachMemory(arena);
-        context.DetachMemory();
+        context.TryDetachMemory();
 
         // act
         context.Reset();

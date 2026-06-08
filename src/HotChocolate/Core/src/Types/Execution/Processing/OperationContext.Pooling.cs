@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using HotChocolate.Buffers;
 using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Options;
@@ -37,6 +38,7 @@ internal sealed partial class OperationContext
     private Func<object?> _resolveQueryRootValue = null!;
     private IBatchDispatcher _batchDispatcher = null!;
     private InputParser _inputParser = null!;
+    private MemoryArena? _memory;
     private int _branchId;
     private int _variableIndex;
     private object? _rootValue;
@@ -72,10 +74,15 @@ internal sealed partial class OperationContext
         object? rootValue,
         Func<object?> resolveQueryRootValue,
         int variableIndex = -1,
-        CancellationToken requestAbortedOverride = default)
+        CancellationToken requestAbortedOverride = default,
+        MemoryArena? memoryArena = null)
     {
         _requestContext = requestContext;
         _schema = Unsafe.As<Schema>(requestContext.Schema);
+        _memory = memoryArena
+            ?? requestContext.Memory
+            ?? throw new InvalidOperationException(
+                "The operation context requires a memory arena, but none was supplied or attached to the request.");
         _errorHandler = _schema.Services.GetRequiredService<IErrorHandler>();
         _resolvers = scopedServices.GetRequiredService<ResolverProvider>();
         _diagnosticEvents = _schema.Services.GetRequiredService<IExecutionDiagnosticEvents>();
@@ -138,6 +145,7 @@ internal sealed partial class OperationContext
         _rootValue = context._rootValue;
         _resolveQueryRootValue = context._resolveQueryRootValue;
         _batchDispatcher = context._batchDispatcher;
+        _memory = context._memory;
         _currentBranchTracker = context._currentBranchTracker;
         _currentWorkScheduler = context._currentWorkScheduler;
         _currentDeferExecutionCoordinator = context._currentDeferExecutionCoordinator;
@@ -191,6 +199,7 @@ internal sealed partial class OperationContext
             _rootValue = null;
             _resolveQueryRootValue = null!;
             _batchDispatcher = null!;
+            _memory = null;
             _branchId = int.MinValue;
             _propagateNullValues = false;
             _isInitialized = false;

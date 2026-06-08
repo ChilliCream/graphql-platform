@@ -1,5 +1,3 @@
-using System.Diagnostics;
-
 namespace HotChocolate.Buffers;
 
 /// <summary>
@@ -15,8 +13,8 @@ namespace HotChocolate.Buffers;
 /// <para>
 /// The lifecycle is open, then sealed, then disposed. <see cref="Seal"/> marks the transition from
 /// the writer phase to a stable reader phase: no further rentals are accepted, but the memory
-/// already handed out stays valid. <see cref="Dispose"/> after <see cref="Seal"/> returns the pages
-/// to the pool for reuse. <see cref="Dispose"/> without a prior <see cref="Seal"/> intentionally
+/// already handed out stays valid. <see cref="Dispose()"/> after <see cref="Seal"/> returns the pages
+/// to the pool for reuse. <see cref="Dispose()"/> without a prior <see cref="Seal"/> intentionally
 /// abandons the pages instead of returning them, so abandoned work that may still read or write
 /// them cannot collide with another scope that reuses a pooled array. An arena must not be used
 /// after it has been disposed.
@@ -29,12 +27,21 @@ internal sealed class MemoryArena : IDisposable
     // A page index of -1 means no page has been rented yet.
     private const long InitialState = -1L << 32;
 
+    // The arena advances through these phases. Open accepts rentals; sealed stops new rentals but
+    // keeps handed-out memory valid; disposed has released its pages. The phase only moves forward.
+    private const int Open = 0;
+    private const int Sealed = 1;
+    private const int Disposed = 2;
+
+#if NET9_0_OR_GREATER
+    private readonly Lock _lock = new();
+#else
+    private readonly object _lock = new();
+#endif
     private byte[][] _pages = new byte[4][];
     private long _state = InitialState;
-    private SpinLock _lock = new(Debugger.IsAttached);
     private int _pageCount;
-    private bool _disposed;
-    private bool _sealed;
+    private int _phase;
 
     /// <summary>
     /// Gets the number of pages this arena currently holds.
@@ -44,12 +51,12 @@ internal sealed class MemoryArena : IDisposable
     /// <summary>
     /// Gets a value indicating whether this arena has been disposed.
     /// </summary>
-    internal bool IsDisposed => _disposed;
+    internal bool IsDisposed => Volatile.Read(ref _phase) == Disposed;
 
     /// <summary>
     /// Gets a value indicating whether this arena has been sealed.
     /// </summary>
-    internal bool IsSealed => _sealed;
+    internal bool IsSealed => Volatile.Read(ref _phase) == Sealed;
 
     /// <summary>
     /// Rents a slab of <paramref name="size"/> bytes carved from the arena's current page.
@@ -71,16 +78,18 @@ internal sealed class MemoryArena : IDisposable
                 $"The size must be between 0 and {JsonMemory.BufferSize}.");
         }
 
+        var phase = Volatile.Read(ref _phase);
+
 #if NET8_0_OR_GREATER
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(phase == Disposed, this);
 #else
-        if (_disposed)
+        if (phase == Disposed)
         {
             throw new ObjectDisposedException(nameof(MemoryArena));
         }
 #endif
 
-        if (_sealed)
+        if (phase == Sealed)
         {
             throw new InvalidOperationException(
                 "The memory arena has been sealed and no longer accepts rentals.");
@@ -113,18 +122,16 @@ internal sealed class MemoryArena : IDisposable
 
     private void RollOver(int observedPageIndex)
     {
-        // Rent the page outside the lock: allocation must never happen while a spin lock is held.
+        // Rent the page outside the lock: allocation must never happen while the lock is held.
         var page = JsonMemory.Rent(JsonMemoryKind.Arena);
         var published = false;
 
-        var lockTaken = false;
-        try
+        lock (_lock)
         {
-            _lock.Enter(ref lockTaken);
-
             // Only roll if no other thread has already advanced past the page we observed.
             // The page index changes only here under the lock, so this comparison is stable.
-            if (!_disposed && (int)(Interlocked.Read(ref _state) >> 32) == observedPageIndex)
+            if (Volatile.Read(ref _phase) != Disposed
+                && (int)(Interlocked.Read(ref _state) >> 32) == observedPageIndex)
             {
                 var newIndex = observedPageIndex + 1;
 
@@ -141,13 +148,6 @@ internal sealed class MemoryArena : IDisposable
                 published = true;
             }
         }
-        finally
-        {
-            if (lockTaken)
-            {
-                _lock.Exit(false);
-            }
-        }
 
         if (!published)
         {
@@ -159,62 +159,48 @@ internal sealed class MemoryArena : IDisposable
     /// <summary>
     /// Seals the arena so that no further <see cref="Rent"/> calls are accepted. The memory already
     /// handed out stays valid. Sealing marks the transition from the writer phase to a stable reader
-    /// phase and is what makes a later <see cref="Dispose"/> safe to return pages to the pool.
+    /// phase and is what makes a later <see cref="Dispose()"/> safe to return pages to the pool.
     /// Sealing is idempotent.
     /// </summary>
-    public void Seal()
-    {
-        var lockTaken = false;
-        try
-        {
-            _lock.Enter(ref lockTaken);
-            _sealed = true;
-        }
-        finally
-        {
-            if (lockTaken)
-            {
-                _lock.Exit(false);
-            }
-        }
-    }
+    public void Seal() => Interlocked.CompareExchange(ref _phase, Sealed, Open);
 
     /// <summary>
     /// Releases the arena's pages. If the arena was sealed the pages are returned to
     /// <see cref="JsonMemory"/> for reuse. If it was not sealed the pages are abandoned instead of
     /// returned, so abandoned work that may still hold a <see cref="MemorySegment"/> into them
-    /// cannot collide with another scope that reuses a pooled array. Dispose is idempotent.
+    /// cannot collide with another scope that reuses a pooled array.
     /// </summary>
     public void Dispose()
     {
+        GC.SuppressFinalize(this);
+        Dispose(disposing: true);
+    }
+
+    private void Dispose(bool disposing)
+    {
+        // Move to the disposed phase exactly once. The previous phase tells us whether the arena
+        // was sealed. A sealed arena returns its pages to the pool, but only on the deterministic
+        // dispose path. The finalizer is a leak backstop and always abandons, because it cannot
+        // prove that no handed-out segment still references a page.
+        var previous = Interlocked.Exchange(ref _phase, Disposed);
+
+        if (previous == Disposed)
+        {
+            return;
+        }
+
+        var retainMemory = disposing && (previous == Sealed);
+
         byte[][] pages;
         int count;
-        bool wasSealed;
 
-        var lockTaken = false;
-        try
+        lock (_lock)
         {
-            _lock.Enter(ref lockTaken);
-
-            if (_disposed)
-            {
-                return;
-            }
-
-            _disposed = true;
-            wasSealed = _sealed;
             pages = _pages;
             count = _pageCount;
             _pages = [];
             _pageCount = 0;
             _state = InitialState;
-        }
-        finally
-        {
-            if (lockTaken)
-            {
-                _lock.Exit(false);
-            }
         }
 
         if (count == 0)
@@ -222,8 +208,7 @@ internal sealed class MemoryArena : IDisposable
             return;
         }
 
-        // Done outside the lock; the pool has its own synchronization.
-        if (wasSealed)
+        if (retainMemory)
         {
             JsonMemory.Return(JsonMemoryKind.Arena, pages, count);
         }
@@ -232,4 +217,6 @@ internal sealed class MemoryArena : IDisposable
             JsonMemory.Abandon(JsonMemoryKind.Arena, count);
         }
     }
+
+    ~MemoryArena() => Dispose(disposing: false);
 }

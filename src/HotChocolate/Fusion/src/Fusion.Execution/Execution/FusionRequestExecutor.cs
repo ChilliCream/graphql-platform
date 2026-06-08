@@ -113,7 +113,10 @@ internal sealed class FusionRequestExecutor : IRequestExecutor, IAsyncDisposable
             // transfer ownership of the request memory to the result so it is disposed when the
             // result is disposed. On the error path the arena stays attached and the pool reset
             // disposes it.
-            context.Result.RegisterForCleanup(context.DetachMemory());
+            if (context.TryDetachMemory() is { } memory)
+            {
+                context.Result.RegisterForCleanup(memory);
+            }
 
             if (scope is null)
             {

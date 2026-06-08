@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
+using HotChocolate.Buffers;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Internal;
 using HotChocolate.Fetching;
@@ -190,6 +191,7 @@ internal sealed partial class SubscriptionExecutor
             // subscription is cancelled mid-execution.
             var gateAcquired = false;
             OperationContext? operationContext = null;
+            MemoryArena? arena = null;
 
             // Arm the shared CTS so that execution is bounded by the configured event timeout.
             _eventCts.CancelAfter(_eventTimeout);
@@ -204,6 +206,7 @@ internal sealed partial class SubscriptionExecutor
                 }
 
                 operationContext = _operationContextPool.Get();
+                arena = new MemoryArena();
 
                 var eventServices = serviceScope.ServiceProvider;
                 var dispatcher = eventServices.GetRequiredService<IBatchDispatcher>();
@@ -229,7 +232,8 @@ internal sealed partial class SubscriptionExecutor
                     _requestContext.VariableValues[0],
                     rootValue,
                     _resolveQueryRootValue,
-                    requestAbortedOverride: eventToken);
+                    requestAbortedOverride: eventToken,
+                    memoryArena: arena);
 
                 operationContext.Result.SetResultState(WellKnownContextData.EventMessage, payload);
 
@@ -238,7 +242,10 @@ internal sealed partial class SubscriptionExecutor
                     .ConfigureAwait(false);
 
                 // todo : we still need to think about defer in subscriptions
-                return result.ExpectOperationResult();
+                var operationResult = result.ExpectOperationResult();
+                operationResult.RegisterForCleanup(arena);
+                arena = null; // ownership handed to the result; the executor already sealed it
+                return operationResult;
             }
             catch (OperationCanceledException ex)
             {
@@ -253,6 +260,10 @@ internal sealed partial class SubscriptionExecutor
             }
             finally
             {
+                // a non-null arena means the event failed before ownership was handed to the
+                // result; the arena is then unsealed, so Dispose abandons it.
+                arena?.Dispose();
+
                 // if the operation context is null a cancellation has happened, and we will
                 // abandon the operation context in order to not have leakage into the
                 // new operations.
