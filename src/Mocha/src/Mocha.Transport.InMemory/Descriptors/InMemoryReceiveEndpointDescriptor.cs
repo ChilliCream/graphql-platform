@@ -38,6 +38,20 @@ internal sealed class InMemoryReceiveEndpointDescriptor
         return this;
     }
 
+    public new IInMemoryReceiveEndpointDescriptor Receives<TMessage>()
+    {
+        base.Receives<TMessage>();
+
+        return this;
+    }
+
+    public new IInMemoryReceiveEndpointDescriptor Receives(Type messageType)
+    {
+        base.Receives(messageType);
+
+        return this;
+    }
+
     public new IInMemoryReceiveEndpointDescriptor Kind(ReceiveEndpointKind kind)
     {
         base.Kind(kind);

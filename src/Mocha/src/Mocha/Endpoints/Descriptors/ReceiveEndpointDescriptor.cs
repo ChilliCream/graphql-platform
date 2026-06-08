@@ -44,6 +44,28 @@ public abstract class ReceiveEndpointDescriptor<T>(IMessagingConfigurationContex
         return this;
     }
 
+    /// <summary>
+    /// Binds all handlers for the specified message type to this receive endpoint.
+    /// </summary>
+    /// <typeparam name="TMessage">The message type to receive.</typeparam>
+    /// <returns>The descriptor instance for method chaining.</returns>
+    public IReceiveEndpointDescriptor<T> Receives<TMessage>()
+    {
+        Configuration.ReceivedMessageTypes.Add(typeof(TMessage));
+        return this;
+    }
+
+    /// <summary>
+    /// Binds all handlers for the specified message type to this receive endpoint.
+    /// </summary>
+    /// <param name="messageType">The message type to receive.</param>
+    /// <returns>The descriptor instance for method chaining.</returns>
+    public IReceiveEndpointDescriptor<T> Receives(Type messageType)
+    {
+        Configuration.ReceivedMessageTypes.Add(messageType);
+        return this;
+    }
+
     public IReceiveEndpointDescriptor<T> Kind(ReceiveEndpointKind kind)
     {
         Configuration.Kind = kind;

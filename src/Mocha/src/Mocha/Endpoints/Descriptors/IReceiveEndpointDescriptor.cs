@@ -38,6 +38,20 @@ public interface IReceiveEndpointDescriptor<out TConfiguration>
     IReceiveEndpointDescriptor<TConfiguration> Consumer<TConsumer>() where TConsumer : class, IConsumer;
 
     /// <summary>
+    /// Binds all handlers for the specified message type to this receive endpoint.
+    /// </summary>
+    /// <typeparam name="TMessage">The message type to receive.</typeparam>
+    /// <returns>The descriptor instance for method chaining.</returns>
+    IReceiveEndpointDescriptor<TConfiguration> Receives<TMessage>();
+
+    /// <summary>
+    /// Binds all handlers for the specified message type to this receive endpoint.
+    /// </summary>
+    /// <param name="messageType">The message type to receive.</param>
+    /// <returns>The descriptor instance for method chaining.</returns>
+    IReceiveEndpointDescriptor<TConfiguration> Receives(Type messageType);
+
+    /// <summary>
     /// Sets the kind of this receive endpoint (e.g., default, temporary).
     /// </summary>
     /// <param name="kind">The receive endpoint kind.</param>

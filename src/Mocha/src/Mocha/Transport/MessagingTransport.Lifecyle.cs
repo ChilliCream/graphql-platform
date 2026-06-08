@@ -46,39 +46,31 @@ public abstract partial class MessagingTransport
             //  TODO maybe we should move this to endpoint initialize - not sure yet
             foreach (var handlerType in endpointConfiguration.ConsumerIdentities)
             {
-                var consumer = context.Consumers.FirstOrDefault(h => h.Identity == handlerType);
-
-                if (consumer is not null)
-                {
-                    var routes = context.Router.GetInboundByConsumer(consumer);
-                    var applied = false;
-                    foreach (var route in routes)
-                    {
-                        if (route.Endpoint is null)
-                        {
-                            route.ConnectEndpoint(context, endpoint);
-                            applied = true;
-                        }
-                    }
-
-                    // in this case the user has explicilty mapped this consumer to multiple
-                    // endpoints and we are currently missing an additional route
-                    if (!applied)
-                    {
-                        var route = new InboundRoute();
-                        var configuration = new InboundRouteConfiguration
-                        {
-                            MessageType = route.MessageType,
-                            Consumer = consumer
-                        };
-                        route.Initialize(context, configuration);
-                        route.ConnectEndpoint(context, endpoint);
-                    }
-                }
-                else
-                {
-                    throw new InvalidOperationException(
+                var consumer = context.Consumers.FirstOrDefault(h => h.Identity == handlerType)
+                    ?? throw new InvalidOperationException(
                         $"Handler type {handlerType.FullName} not found for endpoint {Configuration.Name}");
+
+                foreach (var route in context.Router.GetInboundByConsumer(consumer))
+                {
+                    BindRouteToEndpoint(context, route, endpoint);
+                }
+            }
+
+            foreach (var messageRuntimeType in endpointConfiguration.ReceivedMessageTypes)
+            {
+                var matched = context.Router.InboundRoutes
+                    .Where(r => r.Kind is Subscribe or Send or Request
+                                && r.MessageType?.RuntimeType == messageRuntimeType)
+                    .ToList();
+
+                if (matched.Count == 0)
+                {
+                    throw ThrowHelper.NoHandlerForMessageType(messageRuntimeType, endpointConfiguration.Name);
+                }
+
+                foreach (var route in matched)
+                {
+                    BindRouteToEndpoint(context, route, endpoint);
                 }
             }
         }
@@ -128,6 +120,27 @@ public abstract partial class MessagingTransport
         MarkInitialized();
 
         OnAfterInitialized(context);
+    }
+
+    private static void BindRouteToEndpoint(
+        IMessagingSetupContext context, InboundRoute route, ReceiveEndpoint endpoint)
+    {
+        if (route.Endpoint is null)
+        {
+            route.ConnectEndpoint(context, endpoint);
+        }
+        else if (route.Endpoint != endpoint)
+        {
+            var clone = new InboundRoute();
+            clone.Initialize(context, new InboundRouteConfiguration
+            {
+                MessageType = route.MessageType,
+                Consumer = route.Consumer,
+                Kind = route.Kind
+            });
+            clone.ConnectEndpoint(context, endpoint);
+        }
+        // else: already on this endpoint -> idempotent skip
     }
 
     protected virtual void OnBeforeInitialize(IMessagingSetupContext context) { }

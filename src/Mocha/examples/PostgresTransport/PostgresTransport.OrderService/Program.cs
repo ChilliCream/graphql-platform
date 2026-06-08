@@ -33,6 +33,8 @@ builder
         // Explicit topology for Send pattern demo
         t.DeclareQueue("process-order");
         t.Endpoint("process-order-ep").Queue("process-order").Handler<ProcessOrderCommandHandler>();
+        // Alternative: bind by message type instead of handler type
+        // t.Endpoint("process-order-ep").Queue("process-order").Receives<ProcessOrderCommand>();
         t.DispatchEndpoint("send-demo").ToQueue("process-order").Send<ProcessOrderCommand>();
     });
 
