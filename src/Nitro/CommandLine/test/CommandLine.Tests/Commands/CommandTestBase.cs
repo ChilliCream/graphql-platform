@@ -25,7 +25,7 @@ using Spectre.Console.Testing;
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands;
 
 public abstract class CommandTestBase
-    : IClassFixture<NitroCommandFixture>, IAsyncDisposable
+    : IClassFixture<NitroCommandFixture>, IAsyncLifetime
 {
     protected const string ApiId = "api-1";
     protected const string Stage = "dev";
@@ -401,7 +401,9 @@ public abstract class CommandTestBase
             Times.Never);
     }
 
-    public async ValueTask DisposeAsync()
+    public Task InitializeAsync() => Task.CompletedTask;
+
+    public async Task DisposeAsync()
     {
         foreach (var file in _files)
         {
