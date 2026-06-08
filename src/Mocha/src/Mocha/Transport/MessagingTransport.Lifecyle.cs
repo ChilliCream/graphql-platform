@@ -128,19 +128,36 @@ public abstract partial class MessagingTransport
         if (route.Endpoint is null)
         {
             route.ConnectEndpoint(context, endpoint);
+            return;
         }
-        else if (route.Endpoint != endpoint)
+
+        if (route.Endpoint == endpoint)
         {
-            var clone = new InboundRoute();
-            clone.Initialize(context, new InboundRouteConfiguration
-            {
-                MessageType = route.MessageType,
-                Consumer = route.Consumer,
-                Kind = route.Kind
-            });
-            clone.ConnectEndpoint(context, endpoint);
+            return;
         }
-        // else: already on this endpoint -> idempotent skip
+
+        // The route is bound to another endpoint, so fan it out by adding an equivalent route to
+        // this endpoint. Skip when an equivalent route is already present so binding the same
+        // message type or consumer across three or more endpoints stays idempotent.
+        foreach (var existing in context.Router.GetInboundByEndpoint(endpoint))
+        {
+            if (existing.Consumer == route.Consumer
+                && existing.Kind == route.Kind
+                && Equals(existing.MessageType, route.MessageType))
+            {
+                return;
+            }
+        }
+
+        var clone = new InboundRoute();
+        clone.Initialize(context, new InboundRouteConfiguration
+        {
+            MessageType = route.MessageType,
+            Consumer = route.Consumer,
+            Kind = route.Kind,
+            Condition = route.Condition
+        });
+        clone.ConnectEndpoint(context, endpoint);
     }
 
     protected virtual void OnBeforeInitialize(IMessagingSetupContext context) { }
