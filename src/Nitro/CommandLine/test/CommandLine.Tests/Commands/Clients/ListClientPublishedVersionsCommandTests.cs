@@ -23,15 +23,18 @@ public sealed class ListClientPublishedVersionsCommandTests(NitroCommandFixture 
               nitro client list published-versions [options]
 
             Options:
-              --client-id <client-id>  The ID of the client [env: NITRO_CLIENT_ID]
-              --cursor <cursor>        The pagination cursor to resume from [env: NITRO_CURSOR]
-              --cloud-url <cloud-url>  The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
-              --api-key <api-key>      The API key used for authentication [env: NITRO_API_KEY]
-              --output <json>          The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help           Show help and usage information
+              --client-id <client-id>     The ID of the client [env: NITRO_CLIENT_ID]
+              --stage <stage> (REQUIRED)  The name of the stage [env: NITRO_STAGE]
+              --cursor <cursor>           The pagination cursor to resume from [env: NITRO_CURSOR]
+              --cloud-url <cloud-url>     The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>         The API key used for authentication [env: NITRO_API_KEY]
+              --output <json>             The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help              Show help and usage information
 
             Example:
-              nitro client list published-versions --client-id "<client-id>"
+              nitro client list published-versions \
+                --client-id "<client-id>" \
+                --stage "dev"
             """);
     }
 
@@ -48,7 +51,11 @@ public sealed class ListClientPublishedVersionsCommandTests(NitroCommandFixture 
         var result = await ExecuteCommandAsync(
             "client",
             "list",
-            "published-versions");
+            "published-versions",
+            "--client-id",
+            ClientId,
+            "--stage",
+            Stage);
 
         // assert
         result.AssertError(
@@ -68,7 +75,9 @@ public sealed class ListClientPublishedVersionsCommandTests(NitroCommandFixture 
         var result = await ExecuteCommandAsync(
             "client",
             "list",
-            "published-versions");
+            "published-versions",
+            "--stage",
+            Stage);
 
         // assert
         result.AssertError(
@@ -80,16 +89,11 @@ public sealed class ListClientPublishedVersionsCommandTests(NitroCommandFixture 
     [Theory]
     [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
-    public async Task WithClientId_ReturnsSuccess(InteractionMode mode)
+    public async Task MissingStage_ReturnsError(InteractionMode mode)
     {
-        // arrange
+        // arrange & act
         SetupInteractionMode(mode);
-        SetupListClientVersionsQuery(
-            versions: [
-                ("v1", new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero), new[] { Stage }),
-                ("v2", new DateTimeOffset(2025, 1, 16, 10, 0, 0, TimeSpan.Zero), new[] { "staging", Stage })]);
 
-        // act
         var result = await ExecuteCommandAsync(
             "client",
             "list",
@@ -98,24 +102,47 @@ public sealed class ListClientPublishedVersionsCommandTests(NitroCommandFixture 
             ClientId);
 
         // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Option '--stage' is required.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task WithClientId_ReturnsSuccess(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+        SetupListClientPublishedVersionsQuery(
+            versions: [
+                ("v1", new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero)),
+                ("v2", new DateTimeOffset(2025, 1, 16, 10, 0, 0, TimeSpan.Zero))]);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "client",
+            "list",
+            "published-versions",
+            "--client-id",
+            ClientId,
+            "--stage",
+            Stage);
+
+        // assert
         result.AssertSuccess(
             """
             {
               "values": [
                 {
                   "tag": "v1",
-                  "createdAt": "2025-01-15T10:00:00+00:00",
-                  "stages": [
-                    "dev"
-                  ]
+                  "publishedAt": "2025-01-15T10:00:00+00:00"
                 },
                 {
                   "tag": "v2",
-                  "createdAt": "2025-01-16T10:00:00+00:00",
-                  "stages": [
-                    "staging",
-                    "dev"
-                  ]
+                  "publishedAt": "2025-01-16T10:00:00+00:00"
                 }
               ],
               "cursor": null
@@ -128,17 +155,19 @@ public sealed class ListClientPublishedVersionsCommandTests(NitroCommandFixture 
     {
         // arrange
         SetupInteractionMode(InteractionMode.Interactive);
-        SetupListClientVersionsQuery(
+        SetupListClientPublishedVersionsQuery(
             versions: [
-                ("v1", new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero), new[] { Stage }),
-                ("v2", new DateTimeOffset(2025, 1, 16, 10, 0, 0, TimeSpan.Zero), new[] { "staging", Stage })]);
+                ("v1", new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero)),
+                ("v2", new DateTimeOffset(2025, 1, 16, 10, 0, 0, TimeSpan.Zero))]);
 
         var command = StartInteractiveCommand(
             "client",
             "list",
             "published-versions",
             "--client-id",
-            ClientId);
+            ClientId,
+            "--stage",
+            Stage);
 
         // act
         command.SelectOption(0);
@@ -151,49 +180,11 @@ public sealed class ListClientPublishedVersionsCommandTests(NitroCommandFixture 
     [Theory]
     [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
-    public async Task WithClientId_FiltersUnpublishedVersions_ReturnsSuccess(InteractionMode mode)
-    {
-        // arrange
-        SetupInteractionMode(mode);
-        SetupListClientVersionsQuery(
-            versions: [
-                ("v1", new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero), new[] { Stage }),
-                ("v2", new DateTimeOffset(2025, 1, 16, 10, 0, 0, TimeSpan.Zero), Array.Empty<string>())]);
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "client",
-            "list",
-            "published-versions",
-            "--client-id",
-            ClientId);
-
-        // assert
-        result.AssertSuccess(
-            """
-            {
-              "values": [
-                {
-                  "tag": "v1",
-                  "createdAt": "2025-01-15T10:00:00+00:00",
-                  "stages": [
-                    "dev"
-                  ]
-                }
-              ],
-              "cursor": null
-            }
-            """);
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
     public async Task WithClientId_NoData_ReturnsSuccess(InteractionMode mode)
     {
         // arrange
         SetupInteractionMode(mode);
-        SetupListClientVersionsQuery();
+        SetupListClientPublishedVersionsQuery();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -201,7 +192,9 @@ public sealed class ListClientPublishedVersionsCommandTests(NitroCommandFixture 
             "list",
             "published-versions",
             "--client-id",
-            ClientId);
+            ClientId,
+            "--stage",
+            Stage);
 
         // assert
         result.AssertSuccess(
@@ -218,14 +211,16 @@ public sealed class ListClientPublishedVersionsCommandTests(NitroCommandFixture 
     {
         // arrange
         SetupInteractionMode(InteractionMode.Interactive);
-        SetupListClientVersionsQuery();
+        SetupListClientPublishedVersionsQuery();
 
         var command = StartInteractiveCommand(
             "client",
             "list",
             "published-versions",
             "--client-id",
-            ClientId);
+            ClientId,
+            "--stage",
+            Stage);
 
         // act
         command.SelectOption(0);
@@ -240,9 +235,9 @@ public sealed class ListClientPublishedVersionsCommandTests(NitroCommandFixture 
     {
         // arrange
         SetupInteractionMode(InteractionMode.Interactive);
-        SetupListClientVersionsQuery(
+        SetupListClientPublishedVersionsQuery(
             cursor: "cursor-1",
-            versions: [("v1", new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero), new[] { Stage })]);
+            versions: [("v1", new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero))]);
 
         var command = StartInteractiveCommand(
             "client",
@@ -250,6 +245,8 @@ public sealed class ListClientPublishedVersionsCommandTests(NitroCommandFixture 
             "published-versions",
             "--client-id",
             ClientId,
+            "--stage",
+            Stage,
             "--cursor",
             "cursor-1");
 
@@ -268,9 +265,9 @@ public sealed class ListClientPublishedVersionsCommandTests(NitroCommandFixture 
     {
         // arrange
         SetupInteractionMode(mode);
-        SetupListClientVersionsQuery(
+        SetupListClientPublishedVersionsQuery(
             cursor: "cursor-1",
-            versions: [("v1", new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero), new[] { Stage })]);
+            versions: [("v1", new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero))]);
 
         // act
         var result = await ExecuteCommandAsync(
@@ -279,6 +276,8 @@ public sealed class ListClientPublishedVersionsCommandTests(NitroCommandFixture 
             "published-versions",
             "--client-id",
             ClientId,
+            "--stage",
+            Stage,
             "--cursor",
             "cursor-1");
 
@@ -289,10 +288,7 @@ public sealed class ListClientPublishedVersionsCommandTests(NitroCommandFixture 
               "values": [
                 {
                   "tag": "v1",
-                  "createdAt": "2025-01-15T10:00:00+00:00",
-                  "stages": [
-                    "dev"
-                  ]
+                  "publishedAt": "2025-01-15T10:00:00+00:00"
                 }
               ],
               "cursor": null
@@ -304,7 +300,7 @@ public sealed class ListClientPublishedVersionsCommandTests(NitroCommandFixture 
     public async Task ListClientPublishedVersionsThrows_ReturnsError()
     {
         // arrange
-        SetupListClientVersionsQueryException();
+        SetupListClientPublishedVersionsQueryException();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -312,7 +308,9 @@ public sealed class ListClientPublishedVersionsCommandTests(NitroCommandFixture 
             "list",
             "published-versions",
             "--client-id",
-            ClientId);
+            ClientId,
+            "--stage",
+            Stage);
 
         // assert
         result.StdErr.MatchInlineSnapshot(
@@ -330,7 +328,7 @@ public sealed class ListClientPublishedVersionsCommandTests(NitroCommandFixture 
     public async Task ListPublished_Should_ReturnError_When_ClientNotFound()
     {
         // arrange
-        SetupListClientVersionsQueryNotFound();
+        SetupListClientPublishedVersionsQueryNotFound();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -338,7 +336,9 @@ public sealed class ListClientPublishedVersionsCommandTests(NitroCommandFixture 
             "list",
             "published-versions",
             "--client-id",
-            ClientId);
+            ClientId,
+            "--stage",
+            Stage);
 
         // assert
         result.AssertError(

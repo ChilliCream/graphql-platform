@@ -29,4 +29,10 @@ public class InboundRouteConfiguration : MessagingConfiguration
     /// Gets or sets the kind of inbound route.
     /// </summary>
     public InboundRouteKind Kind { get; set; }
+
+    /// <summary>
+    /// Gets or sets the condition that decides whether this route selects its consumer for a received
+    /// message, or <c>null</c> to derive the default condition from the message type.
+    /// </summary>
+    public RouteCondition? Condition { get; set; }
 }
