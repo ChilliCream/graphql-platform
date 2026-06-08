@@ -31,6 +31,7 @@
                   "localDateTime",
                   "localTime",
                   "long",
+                  "nonNullDeprecated",
                   "object",
                   "short",
                   "string",
@@ -177,6 +178,21 @@
                     "type": "integer",
                     "description": "The `Long` scalar type represents a signed 64-bit integer.",
                     "format": "int64"
+                  },
+                  "nonNullDeprecated": {
+                    "type": "integer",
+                    "description": "nonNullDeprecated description",
+                    "format": "int32",
+                    "deprecated": true
+                  },
+                  "nullableObject": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/Object1NullableInput"
+                      }
+                    ],
+                    "description": "nullableObject description",
+                    "deprecated": true
                   },
                   "object": {
                     "$ref": "#/components/schemas/Object1NonNullableInput"
@@ -1017,6 +1033,42 @@
         },
         "description": "The user's address"
       },
+      "Object3NullableInput": {
+        "type": "object",
+        "properties": {
+          "field1C": {
+            "pattern": "^\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
+            "type": "string",
+            "description": "field1C description"
+          }
+        }
+      },
+      "Object2NullableInput": {
+        "type": "object",
+        "properties": {
+          "field1B": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Object3NullableInput"
+              }
+            ],
+            "description": "field1B description"
+          }
+        }
+      },
+      "Object1NullableInput": {
+        "type": "object",
+        "properties": {
+          "field1A": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Object2NullableInput"
+              }
+            ],
+            "description": "field1A description"
+          }
+        }
+      },
       "Object3NonNullableInput": {
         "required": [
           "field1C"
@@ -1037,7 +1089,12 @@
         "type": "object",
         "properties": {
           "field1B": {
-            "$ref": "#/components/schemas/Object3NonNullableInput"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Object3NonNullableInput"
+              }
+            ],
+            "description": "field1B description"
           }
         }
       },
@@ -1048,7 +1105,12 @@
         "type": "object",
         "properties": {
           "field1A": {
-            "$ref": "#/components/schemas/Object2NonNullableInput"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Object2NonNullableInput"
+              }
+            ],
+            "description": "field1A description"
           }
         }
       }

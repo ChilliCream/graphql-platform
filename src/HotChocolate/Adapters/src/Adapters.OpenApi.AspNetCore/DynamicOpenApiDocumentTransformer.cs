@@ -792,29 +792,29 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
             string? description,
             bool isDeprecated)
         {
-            // A $ref describes the referenced component, not the field, so it is returned unchanged.
-#if NET10_0_OR_GREATER
-            if (schema is not OpenApiSchema concreteSchema)
-            {
-                return schema;
-            }
-#else
-            if (schema.Reference is not null)
+            if (description is null && !isDeprecated)
             {
                 return schema;
             }
 
-            var concreteSchema = schema;
+#if NET10_0_OR_GREATER
+            var target = schema is OpenApiSchema concreteSchema
+                ? concreteSchema
+                : CreateAllOfSchema([schema]);
+#else
+            var target = schema.Reference is null
+                ? schema
+                : CreateAllOfSchema([schema]);
 #endif
 
-            concreteSchema.Deprecated = isDeprecated;
+            target.Deprecated = isDeprecated;
 
             if (description is not null)
             {
-                concreteSchema.Description = description;
+                target.Description = description;
             }
 
-            return concreteSchema;
+            return target;
         }
 
         private static OpenApiSchemaAbstraction CreateSchemaReference(string name)

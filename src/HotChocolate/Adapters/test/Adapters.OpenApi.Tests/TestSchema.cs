@@ -310,7 +310,13 @@ public sealed class TestSchema
         ushort UnsignedShort,
         Uri Uri,
         [property: GraphQLType<NonNullType<UrlType>>] Uri Url,
-        Guid Uuid);
+        Guid Uuid,
+        [property: GraphQLDescription("nullableObject description")]
+        [property: GraphQLDeprecated("nullableObject deprecated")]
+        Object1Nullable? NullableObject,
+        [property: GraphQLDescription("nonNullDeprecated description")]
+        [property: GraphQLDeprecated("nonNullDeprecated deprecated")]
+        int NonNullDeprecated = 0);
 
     [UnionType(name: "PetUnion")]
     public interface IPet
