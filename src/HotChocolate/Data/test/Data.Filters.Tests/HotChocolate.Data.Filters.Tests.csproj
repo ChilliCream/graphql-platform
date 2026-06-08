@@ -9,4 +9,8 @@
     <ProjectReference Include="..\..\src\Data\HotChocolate.Data.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Moq" />
+  </ItemGroup>
+
 </Project>

@@ -18,7 +18,7 @@ public class CancellationTests
                 .AddSingleton(query)
                 .AddGraphQL()
                 .AddQueryType<Query1>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         using var cts = new CancellationTokenSource(150);
 

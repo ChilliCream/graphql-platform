@@ -23,12 +23,12 @@ public partial class FusionMcpAdapterActivityTests : FusionTestBase
         // arrange
         using var server = await CreateGatewayAsync("query GetBook { book { title } }");
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
-        await mcpClient.ListToolsAsync();
+        await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         using (CaptureActivities(out var activities))
         {
             // act
-            await mcpClient.CallToolAsync("get_book");
+            await mcpClient.CallToolAsync("get_book", cancellationToken: TestContext.Current.CancellationToken);
 
             // assert
             MatchActivitySnapshot(activities);
@@ -41,12 +41,14 @@ public partial class FusionMcpAdapterActivityTests : FusionTestBase
         // arrange
         using var server = await CreateGatewayAsync("query InvalidGraphqlQuery { doesNotExist }");
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
-        await mcpClient.ListToolsAsync();
+        await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         using (CaptureActivities(out var activities))
         {
             // act
-            await mcpClient.CallToolAsync("invalid_graphql_query");
+            await mcpClient.CallToolAsync(
+                "invalid_graphql_query",
+                cancellationToken: TestContext.Current.CancellationToken);
 
             // assert
             MatchActivitySnapshot(activities);
@@ -59,12 +61,12 @@ public partial class FusionMcpAdapterActivityTests : FusionTestBase
         // arrange
         using var server = await CreateGatewayAsync("query GetBook { book { title } }");
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
-        await mcpClient.ListToolsAsync();
+        await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         using (CaptureActivities(out var activities))
         {
             // act
-            await mcpClient.CallToolAsync("does_not_exist");
+            await mcpClient.CallToolAsync("does_not_exist", cancellationToken: TestContext.Current.CancellationToken);
 
             // assert
             MatchActivitySnapshot(activities);
@@ -77,12 +79,12 @@ public partial class FusionMcpAdapterActivityTests : FusionTestBase
         // arrange
         using var server = await CreateGatewayAsync("query GetFaultyBook { faultyBook { title } }");
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
-        await mcpClient.ListToolsAsync();
+        await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         using (CaptureActivities(out var activities))
         {
             // act
-            await mcpClient.CallToolAsync("get_faulty_book");
+            await mcpClient.CallToolAsync("get_faulty_book", cancellationToken: TestContext.Current.CancellationToken);
 
             // assert
             MatchActivitySnapshot(activities);
@@ -95,12 +97,12 @@ public partial class FusionMcpAdapterActivityTests : FusionTestBase
         // arrange
         using var server = await CreateGatewayAsync(prompt: CreateGreetingPrompt());
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
-        await mcpClient.ListPromptsAsync();
+        await mcpClient.ListPromptsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         using (CaptureActivities(out var activities))
         {
             // act
-            await mcpClient.GetPromptAsync("greeting");
+            await mcpClient.GetPromptAsync("greeting", cancellationToken: TestContext.Current.CancellationToken);
 
             // assert
             MatchActivitySnapshot(activities);

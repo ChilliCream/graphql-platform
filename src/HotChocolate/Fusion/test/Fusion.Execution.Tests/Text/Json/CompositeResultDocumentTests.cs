@@ -547,7 +547,7 @@ public class CompositeResultDocumentTests : FusionTestBase
 
         new JsonResultFormatter(indented: true).Format(operationResult, writer);
 
-        await writer.FlushAsync();
+        await writer.FlushAsync(TestContext.Current.CancellationToken);
         await writer.CompleteAsync();
 
         // assert

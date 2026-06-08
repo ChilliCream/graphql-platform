@@ -1,7 +1,6 @@
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution.Configuration;
-using Xunit.Abstractions;
 
 namespace HotChocolate.Subscriptions.InMemory;
 

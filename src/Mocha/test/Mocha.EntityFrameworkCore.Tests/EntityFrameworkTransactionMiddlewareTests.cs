@@ -70,7 +70,7 @@ public sealed class EntityFrameworkTransactionMiddlewareTests : IDisposable
         }
 
         // Verify the item was persisted (transaction committed)
-        var items = await _dbContext.Items.ToListAsync();
+        var items = await _dbContext.Items.ToListAsync(TestContext.Current.CancellationToken);
         Assert.Single(items);
         Assert.Equal("Test Item", items[0].Name);
     }
@@ -108,7 +108,7 @@ public sealed class EntityFrameworkTransactionMiddlewareTests : IDisposable
         }
 
         // Verify the item was NOT persisted (transaction rolled back)
-        var items = await _dbContext.Items.ToListAsync();
+        var items = await _dbContext.Items.ToListAsync(TestContext.Current.CancellationToken);
         Assert.Empty(items);
     }
 
@@ -136,7 +136,7 @@ public sealed class EntityFrameworkTransactionMiddlewareTests : IDisposable
         }
 
         Assert.True(id > 0);
-        var item = await _dbContext.Items.FindAsync(id);
+        var item = await _dbContext.Items.FindAsync(new object?[] { id }, TestContext.Current.CancellationToken);
         Assert.NotNull(item);
         Assert.Equal("Response Item", item.Name);
     }
@@ -147,9 +147,9 @@ public sealed class EntityFrameworkTransactionMiddlewareTests : IDisposable
         using var scope = _provider.CreateScope();
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
-        await mediator.SendAsync(new CreateItemCommand("Via Mediator"));
+        await mediator.SendAsync(new CreateItemCommand("Via Mediator"), TestContext.Current.CancellationToken);
 
-        var items = await _dbContext.Items.ToListAsync();
+        var items = await _dbContext.Items.ToListAsync(TestContext.Current.CancellationToken);
         Assert.Single(items);
         Assert.Equal("Via Mediator", items[0].Name);
     }
@@ -160,10 +160,12 @@ public sealed class EntityFrameworkTransactionMiddlewareTests : IDisposable
         using var scope = _provider.CreateScope();
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
-        var id = await mediator.SendAsync(new CreateItemWithResponseCommand("Via Mediator Response"));
+        var id = await mediator.SendAsync(
+            new CreateItemWithResponseCommand("Via Mediator Response"),
+            TestContext.Current.CancellationToken);
 
         Assert.True(id > 0);
-        var item = await _dbContext.Items.FindAsync(id);
+        var item = await _dbContext.Items.FindAsync(new object?[] { id }, TestContext.Current.CancellationToken);
         Assert.NotNull(item);
         Assert.Equal("Via Mediator Response", item.Name);
     }
@@ -184,7 +186,7 @@ public sealed class EntityFrameworkTransactionMiddlewareTests : IDisposable
         var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
         db.Database.EnsureCreated();
         db.Items.Add(new TestItem { Name = "Existing" });
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var runtime = provider.GetRequiredService<MediatorRuntime>();
         var context = runtime.RentContext();
@@ -269,7 +271,7 @@ public sealed class EntityFrameworkTransactionMiddlewareTests : IDisposable
             () => mediator.SendAsync(new CreateItemCommand("Should Not Persist"), cts.Token).AsTask());
 
         // Verify nothing was persisted
-        var items = await _dbContext.Items.ToListAsync();
+        var items = await _dbContext.Items.ToListAsync(TestContext.Current.CancellationToken);
         Assert.Empty(items);
     }
 

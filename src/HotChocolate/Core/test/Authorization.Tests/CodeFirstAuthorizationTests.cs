@@ -16,10 +16,10 @@ public class CodeFirstAuthorizationTests
             resolver: AuthorizeResult.NotAllowed,
             validation: AuthorizeResult.Allowed);
         var services = CreateServices(handler);
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ person { name } }");
+        var result = await executor.ExecuteAsync("{ person { name } }", TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -54,10 +54,10 @@ public class CodeFirstAuthorizationTests
             resolver: AuthorizeResult.Allowed,
             validation: AuthorizeResult.NotAllowed);
         var services = CreateServices(handler);
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ person { name } }");
+        var result = await executor.ExecuteAsync("{ person { name } }", TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -92,7 +92,7 @@ public class CodeFirstAuthorizationTests
                 : AuthorizeResult.NotAllowed,
             validation: (_, _) => AuthorizeResult.Allowed);
         var services = CreateServices(handler);
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -102,7 +102,8 @@ public class CodeFirstAuthorizationTests
                 __typename
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -130,7 +131,7 @@ public class CodeFirstAuthorizationTests
                 : AuthorizeResult.NotAllowed,
             validation: (_, _) => AuthorizeResult.Allowed);
         var services = CreateServices(handler);
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -140,7 +141,8 @@ public class CodeFirstAuthorizationTests
                 __typename
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -175,7 +177,7 @@ public class CodeFirstAuthorizationTests
             resolver: (_, _) => AuthorizeResult.NotAllowed,
             validation: (_, _) => AuthorizeResult.Allowed);
         var services = CreateServices(handler);
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -183,7 +185,8 @@ public class CodeFirstAuthorizationTests
             {
               thisIsAuthorized
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -220,7 +223,7 @@ public class CodeFirstAuthorizationTests
                 ? AuthorizeResult.NotAllowed
                 : AuthorizeResult.Allowed);
         var services = CreateServices(handler);
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -228,7 +231,8 @@ public class CodeFirstAuthorizationTests
             {
               thisIsAuthorizedOnValidation
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -273,10 +277,10 @@ public class CodeFirstAuthorizationTests
                     .Resolve("sensitive data")
                     .Authorize("READ_AUTH", ApplyPolicy.Validation))
                 .AddAuthorizationHandler(_ => handler)
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ sensitiveData }");
+        var result = await executor.ExecuteAsync("{ sensitiveData }", TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -317,7 +321,7 @@ public class CodeFirstAuthorizationTests
                 options.ConfigureSchemaField =
                     descriptor => descriptor.Authorize("READ_INTRO", ApplyPolicy.Validation);
             });
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -327,7 +331,8 @@ public class CodeFirstAuthorizationTests
                 description
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -368,7 +373,7 @@ public class CodeFirstAuthorizationTests
                 options.ConfigureTypeField =
                     descriptor => descriptor.Authorize("READ_INTRO", ApplyPolicy.Validation);
             });
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -378,7 +383,8 @@ public class CodeFirstAuthorizationTests
                 name
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -419,7 +425,7 @@ public class CodeFirstAuthorizationTests
                 options.ConfigureNodeFields =
                     descriptor => descriptor.Authorize("READ_NODE", ApplyPolicy.Validation);
             });
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -429,7 +435,8 @@ public class CodeFirstAuthorizationTests
                 __typename
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -470,7 +477,7 @@ public class CodeFirstAuthorizationTests
                 options.ConfigureNodeFields =
                     descriptor => descriptor.Authorize("READ_NODE", ApplyPolicy.Validation);
             });
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -480,7 +487,8 @@ public class CodeFirstAuthorizationTests
                 __typename
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         Snapshot

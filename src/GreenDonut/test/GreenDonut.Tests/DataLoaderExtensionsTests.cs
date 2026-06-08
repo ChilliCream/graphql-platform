@@ -72,7 +72,7 @@ public class DataLoaderExtensionsTests
         loader.SetCacheEntry(key, value);
 
         // assert
-        var loadResult = await loader.LoadAsync(key);
+        var loadResult = await loader.LoadAsync(key, TestContext.Current.CancellationToken);
 
         Assert.Equal(value, loadResult);
     }
@@ -101,7 +101,7 @@ public class DataLoaderExtensionsTests
         loader.SetCacheEntry(key, second);
 
         // assert
-        var loadResult = await loader.LoadAsync(key);
+        var loadResult = await loader.LoadAsync(key, TestContext.Current.CancellationToken);
 
         Assert.Equal(first, loadResult);
     }

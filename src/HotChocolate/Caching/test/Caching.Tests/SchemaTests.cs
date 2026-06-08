@@ -20,7 +20,7 @@ public class SchemaTests
                         Language.OperationType.Query)
                         .ModifyOptions(o => o.RemoveUnusedTypeSystemDirectives = false))
                 .AddCacheControl()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchInlineSnapshot(
             """"

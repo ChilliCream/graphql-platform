@@ -74,14 +74,15 @@ jobs:
         timeout-minutes: 15
         continue-on-error: true
         run: >
-          dotnet test ${{ matrix.path }}
-          --collect:"XPlat Code Coverage;Format=opencover"
+          dotnet test
+          --project ${{ matrix.path }}
           --framework net10.0
-          --logger trx
           --no-build
+          --coverage
+          --coverage-output-format cobertura
+          --report-trx
+          --results-directory ${{ matrix.directoryPath }}/TestResults
           --verbosity q
-          --
-          DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="**/test/**"
         env:
           CI_BUILD: true
 
@@ -95,9 +96,7 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: coverage-${{ matrix.name }}
-          # The * matches a single directory that is named with a GUID.
-          # Take note of https://github.com/microsoft/vstest/issues/2334.
-          path: ${{ matrix.directoryPath }}/TestResults/*/coverage.opencover.xml
+          path: ${{ matrix.directoryPath }}/TestResults/*.cobertura.xml
 
       - name: Upload mismatch files as Artifact
         if: failure()
@@ -129,7 +128,7 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           name: graphql-platform
-          files: "./output/download/coverage-*/*/coverage.opencover.xml"
+          files: "./output/download/coverage-*/*.cobertura.xml"
           disable_search: true
           flags: unittests
           fail_ci_if_error: true

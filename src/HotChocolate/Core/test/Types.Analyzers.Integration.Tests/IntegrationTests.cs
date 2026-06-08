@@ -14,7 +14,7 @@ public class IntegrationTests
             .AddGraphQLServer()
             .AddIntegrationTestTypes()
             .AddPagingArguments()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -26,7 +26,7 @@ public class IntegrationTests
             .AddIntegrationTestTypes()
             .AddGlobalObjectIdentification()
             .ModifyPagingOptions(o => o.InferConnectionNameFromField = false)
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -38,11 +38,12 @@ public class IntegrationTests
             .AddGraphQLServer()
             .AddIntegrationTestTypes()
             .AddPagingArguments()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         await using var subscriptionResult = await executor.ExecuteAsync(
-            "subscription { onProductAdded(categoryId: 42) }");
+            "subscription { onProductAdded(categoryId: 42) }",
+            TestContext.Current.CancellationToken);
 
         // assert
         var stream = subscriptionResult.ExpectResponseStream();
@@ -67,7 +68,7 @@ public class IntegrationTests
             .AddGraphQLServer()
             .AddIntegrationTestTypes()
             .AddPagingArguments()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var subscription = schema.Types.GetType<ObjectType>("Subscription");
         Assert.Equal(
@@ -83,7 +84,7 @@ public class IntegrationTests
             .AddGraphQLServer()
             .AddIntegrationTestTypes()
             .AddPagingArguments()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var renamedType = schema.Types.GetType<ObjectType>("renamed_DescriptorAttributeProbe");
@@ -100,7 +101,7 @@ public class IntegrationTests
             .AddGraphQLServer()
             .AddIntegrationTestTypes()
             .AddPagingArguments()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var type = schema.Types.GetType<ObjectType>("DeclaringTypeProbe");
@@ -140,7 +141,7 @@ public class IntegrationTests
             .AddGraphQLServer()
             .AddIntegrationTestTypes()
             .AddPagingArguments()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var type = schema.Types.GetType<ObjectType>("PrefixOwnFieldsProbe");
@@ -163,10 +164,10 @@ public class IntegrationTests
             .AddIntegrationTestTypes()
             .AddPagingArguments()
             .ModifyPagingOptions(o => o.NullOrdering = NullOrdering.NativeNullsFirst)
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ ints { nodes } }");
+        var result = await executor.ExecuteAsync("{ ints { nodes } }", TestContext.Current.CancellationToken);
         var operationResult = result.ExpectOperationResult();
 
         // assert
@@ -184,10 +185,12 @@ public class IntegrationTests
             .AddGraphQLServer()
             .AddIntegrationTestTypes()
             .AddPagingArguments()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ someBooks { nodes { title } } }");
+        var result = await executor.ExecuteAsync(
+            "{ someBooks { nodes { title } } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         var json = result.ToJson();

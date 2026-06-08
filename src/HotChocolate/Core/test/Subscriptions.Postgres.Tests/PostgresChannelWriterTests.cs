@@ -2,7 +2,6 @@ using System.Data;
 using HotChocolate.Tests;
 using Npgsql;
 using Squadron;
-using Xunit.Abstractions;
 
 namespace HotChocolate.Subscriptions.Postgres;
 
@@ -69,7 +68,9 @@ public class PostgresChannelWriterTests
         // Assert
         while (testChannel.ReceivedMessages.Count < 1000)
         {
-            await testChannel.WaitForNotificationAsync().WaitAsync(TimeSpan.FromSeconds(10));
+            await testChannel.WaitForNotificationAsync().WaitAsync(
+                TimeSpan.FromSeconds(10),
+                TestContext.Current.CancellationToken);
         }
 
         Assert.Equal(1000, testChannel.ReceivedMessages.Count);
@@ -177,11 +178,11 @@ public class PostgresChannelWriterTests
     }
 
     /// <inheritdoc />
-    public Task InitializeAsync()
+    public ValueTask InitializeAsync()
     {
-        return _resource.CreateDatabaseAsync(_dbName);
+        return new ValueTask(_resource.CreateDatabaseAsync(_dbName));
     }
 
     /// <inheritdoc />
-    public Task DisposeAsync() => Task.CompletedTask;
+    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 }

@@ -3,7 +3,6 @@
   <PropertyGroup>
     <AssemblyName>StrawberryShake.Transport.WebSockets.Tests</AssemblyName>
     <RootNamespace>StrawberryShake.Transport.WebSockets</RootNamespace>
-    <IsPackable>false</IsPackable>
     <NoWarn>$(NoWarn);CS0414</NoWarn>
   </PropertyGroup>
 
@@ -12,6 +11,10 @@
     <ProjectReference Include="..\..\..\..\HotChocolate\Core\src\Subscriptions.InMemory\HotChocolate.Subscriptions.InMemory.csproj" />
     <ProjectReference Include="..\..\..\..\HotChocolate\Core\test\Utilities\HotChocolate.Tests.Utilities.csproj" />
     <ProjectReference Include="..\..\src\Transport.WebSockets\StrawberryShake.Transport.WebSockets.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Moq" />
   </ItemGroup>
 
   <ItemGroup>

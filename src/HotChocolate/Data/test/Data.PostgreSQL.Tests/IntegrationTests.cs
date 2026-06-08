@@ -28,7 +28,8 @@ public sealed partial class IntegrationTests(PostgreSqlResource resource)
         var connectionString = resource.GetConnectionString(db);
         await using var services = CreateServer(connectionString);
         await using var scope = services.CreateAsyncScope();
-        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
+        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
         executor.Schema.MatchSnapshot();
     }
 
@@ -553,11 +554,12 @@ public sealed partial class IntegrationTests(PostgreSqlResource resource)
         await using var scope = services.CreateAsyncScope();
         var context = scope.ServiceProvider.GetRequiredService<CatalogContext>();
         var seeder = scope.ServiceProvider.GetRequiredService<IDbSeeder<CatalogContext>>();
-        await context.Database.EnsureCreatedAsync();
+        await context.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
         await seeder.SeedAsync(context);
 
         // act
-        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
+        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
         await executor.ExecuteAsync(
             """
             {
@@ -568,7 +570,8 @@ public sealed partial class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         var cache = services.GetRequiredService<IMemoryCache>();
@@ -590,7 +593,7 @@ public sealed partial class IntegrationTests(PostgreSqlResource resource)
         await using var scope = services.CreateAsyncScope();
         var context = scope.ServiceProvider.GetRequiredService<CatalogContext>();
         var seeder = scope.ServiceProvider.GetRequiredService<IDbSeeder<CatalogContext>>();
-        await context.Database.EnsureCreatedAsync();
+        await context.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
         await seeder.SeedAsync(context);
 
         var cache = services.GetRequiredService<IMemoryCache>();
@@ -599,7 +602,8 @@ public sealed partial class IntegrationTests(PostgreSqlResource resource)
             new Promise<Brand>(new Brand { Id = 1, Name = "Test" }));
 
         // act
-        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
+        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
         var result = await executor.ExecuteAsync(
             """
             {
@@ -610,7 +614,8 @@ public sealed partial class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -635,7 +640,8 @@ public sealed partial class IntegrationTests(PostgreSqlResource resource)
         await using var services = CreateServer(connectionString);
 
         // We need to initialize the executor so that all services are registered.
-        await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
+        await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
 
         var serializer = services.GetRequiredService<INodeIdSerializer>();
         var original = new BrandKey(42, 7);
@@ -685,9 +691,10 @@ public sealed partial class IntegrationTests(PostgreSqlResource resource)
         await using var scope = services.CreateAsyncScope();
         var context = scope.ServiceProvider.GetRequiredService<CatalogContext>();
         var seeder = scope.ServiceProvider.GetRequiredService<IDbSeeder<CatalogContext>>();
-        await context.Database.EnsureCreatedAsync();
+        await context.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
         await seeder.SeedAsync(context);
-        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
+        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(
             """
@@ -698,7 +705,8 @@ public sealed partial class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """

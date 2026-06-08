@@ -124,7 +124,7 @@ public sealed class CreateOpenApiCollectionCommandTests(NitroCommandFixture fixt
 
         command.SelectOption(0); // API
         command.Input(OpenApiCollectionName); // Name
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();

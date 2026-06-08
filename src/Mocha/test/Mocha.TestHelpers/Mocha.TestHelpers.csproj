@@ -3,7 +3,17 @@
   <PropertyGroup>
     <AssemblyName>Mocha.TestHelpers</AssemblyName>
     <RootNamespace>Mocha.TestHelpers</RootNamespace>
+    <!-- This is a shared test-helper library, not a runnable test project, so it builds as a
+         Library instead of the Exe inherited from Directory.Build.props. -->
+    <OutputType>Library</OutputType>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- This library has no tests and uses no xunit types, so it drops the xunit.v3 runner and
+         the global Xunit using, both inherited from Directory.Build.props. -->
+    <PackageReference Remove="xunit.v3" />
+    <Using Remove="Xunit" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Mocha.Abstractions\Mocha.Abstractions.csproj" />

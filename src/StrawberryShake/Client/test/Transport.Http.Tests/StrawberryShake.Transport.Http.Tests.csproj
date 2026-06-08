@@ -3,7 +3,6 @@
   <PropertyGroup>
     <AssemblyName>StrawberryShake.Transport.Http.Tests</AssemblyName>
     <RootNamespace>StrawberryShake.Transport.Http</RootNamespace>
-    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>

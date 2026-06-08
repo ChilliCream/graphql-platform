@@ -23,20 +23,22 @@ public class QueryableFilterVisitorVariablesTests(SchemaCache cache) : IClassFix
             OperationRequestBuilder.New()
                 .SetDocument(query)
                 .SetVariableValues(new Dictionary<string, object?> { { "where", true } })
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(query)
                 .SetVariableValues(new Dictionary<string, object?> { { "where", false } })
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .Add(res1, "true")
             .Add(res2, "false")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -52,20 +54,22 @@ public class QueryableFilterVisitorVariablesTests(SchemaCache cache) : IClassFix
             OperationRequestBuilder.New()
                 .SetDocument(query)
                 .SetVariableValues(new Dictionary<string, object?> { { "where", true } })
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(query)
                 .SetVariableValues(new Dictionary<string, object?> { { "where", false } })
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .Add(res1, "true")
             .Add(res2, "false")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     public class Foo

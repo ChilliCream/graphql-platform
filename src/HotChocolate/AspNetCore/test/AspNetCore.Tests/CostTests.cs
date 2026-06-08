@@ -31,11 +31,11 @@ public class CostTests(TestServerFactory serverFactory) : ServerTestBase(serverF
 
         // act
         using var httpClient = server.CreateClient();
-        var response = await httpClient.PostAsync(uri, content);
+        var response = await httpClient.PostAsync(uri, content, TestContext.Current.CancellationToken);
 
         // assert
         response.EnsureSuccessStatusCode();
-        var result = await response.Content.ReadFromJsonAsync<JsonDocument>();
+        var result = await response.Content.ReadFromJsonAsync<JsonDocument>(TestContext.Current.CancellationToken);
         Assert.NotNull(response);
         result?.RootElement.MatchSnapshot();
     }
@@ -61,11 +61,11 @@ public class CostTests(TestServerFactory serverFactory) : ServerTestBase(serverF
 
         // act
         using var httpClient = server.CreateClient();
-        var response = await httpClient.PostAsync(uri, content);
+        var response = await httpClient.PostAsync(uri, content, TestContext.Current.CancellationToken);
 
         // assert
         response.EnsureSuccessStatusCode();
-        var result = await response.Content.ReadFromJsonAsync<JsonDocument>();
+        var result = await response.Content.ReadFromJsonAsync<JsonDocument>(TestContext.Current.CancellationToken);
         Assert.NotNull(response);
         result?.RootElement.MatchSnapshot();
     }
@@ -91,11 +91,11 @@ public class CostTests(TestServerFactory serverFactory) : ServerTestBase(serverF
 
         // act
         using var httpClient = server.CreateClient();
-        var response = await httpClient.PostAsync(uri, content);
+        var response = await httpClient.PostAsync(uri, content, TestContext.Current.CancellationToken);
 
         // assert
         response.EnsureSuccessStatusCode();
-        var result = await response.Content.ReadFromJsonAsync<JsonDocument>();
+        var result = await response.Content.ReadFromJsonAsync<JsonDocument>(TestContext.Current.CancellationToken);
         Assert.NotNull(response);
         result?.RootElement.MatchSnapshot();
     }
@@ -123,11 +123,11 @@ public class CostTests(TestServerFactory serverFactory) : ServerTestBase(serverF
 
         // act
         using var httpClient = server.CreateClient();
-        var response = await httpClient.PostAsync(uri, content);
+        var response = await httpClient.PostAsync(uri, content, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        var result = await response.Content.ReadFromJsonAsync<JsonDocument>();
+        var result = await response.Content.ReadFromJsonAsync<JsonDocument>(TestContext.Current.CancellationToken);
         Assert.NotNull(response);
         result?.RootElement.MatchSnapshot();
     }

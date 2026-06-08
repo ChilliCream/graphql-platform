@@ -128,7 +128,7 @@ public sealed class DeleteApiKeyCommandTests(NitroCommandFixture fixture) : ApiK
 
         // act
         command.Confirm(true);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();
@@ -147,7 +147,7 @@ public sealed class DeleteApiKeyCommandTests(NitroCommandFixture fixture) : ApiK
 
         // act
         command.Confirm(false);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.StdErr.MatchInlineSnapshot(

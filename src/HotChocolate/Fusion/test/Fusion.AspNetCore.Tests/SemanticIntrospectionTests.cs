@@ -28,10 +28,11 @@ public class SemanticIntrospectionTests : FusionTestBase
                     }
                 }
                 """),
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         response.MatchInlineSnapshot(
             """
             {
@@ -83,10 +84,11 @@ public class SemanticIntrospectionTests : FusionTestBase
                     }
                 }
                 """),
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         response.MatchInlineSnapshot(
             """
             {
@@ -126,10 +128,11 @@ public class SemanticIntrospectionTests : FusionTestBase
                     }
                 }
                 """),
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         response.MatchInlineSnapshot(
             """
             {
@@ -168,10 +171,11 @@ public class SemanticIntrospectionTests : FusionTestBase
                     }
                 }
                 """),
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         response.MatchInlineSnapshot(
             """
             {
@@ -207,10 +211,11 @@ public class SemanticIntrospectionTests : FusionTestBase
                     }
                 }
                 """),
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         response.MatchInlineSnapshot(
             """
             {
@@ -250,10 +255,11 @@ public class SemanticIntrospectionTests : FusionTestBase
                     }
                 }
                 """),
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         response.MatchInlineSnapshot(
             """
             {
@@ -290,10 +296,11 @@ public class SemanticIntrospectionTests : FusionTestBase
                     }
                 }
                 """),
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         response.MatchInlineSnapshot(
             """
             {
@@ -329,9 +336,10 @@ public class SemanticIntrospectionTests : FusionTestBase
                     }
                 }
                 """),
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
-        using var firstResponse = await firstResult.ReadAsResultAsync();
+        using var firstResponse = await firstResult.ReadAsResultAsync(TestContext.Current.CancellationToken);
         var firstJson = firstResponse.Data.ToString()!;
         var cursorStart = firstJson.IndexOf("\"cursor\":\"", StringComparison.Ordinal) + 10;
         var cursorEnd = firstJson.IndexOf("\"", cursorStart, StringComparison.Ordinal);
@@ -349,7 +357,8 @@ public class SemanticIntrospectionTests : FusionTestBase
                        }
                        """,
                 variables: new Dictionary<string, object?> { { "after", cursor } }),
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         firstResponse.MatchInlineSnapshot(
@@ -366,7 +375,7 @@ public class SemanticIntrospectionTests : FusionTestBase
             }
             """);
 
-        using var secondResponse = await secondResult.ReadAsResultAsync();
+        using var secondResponse = await secondResult.ReadAsResultAsync(TestContext.Current.CancellationToken);
         secondResponse.MatchInlineSnapshot(
             """
             {
@@ -402,10 +411,11 @@ public class SemanticIntrospectionTests : FusionTestBase
                     }
                 }
                 """),
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         response.MatchInlineSnapshot(
             """
             {
@@ -436,10 +446,11 @@ public class SemanticIntrospectionTests : FusionTestBase
                     }
                 }
                 """),
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         response.MatchInlineSnapshot(
             """
             {
@@ -523,10 +534,11 @@ public class SemanticIntrospectionTests : FusionTestBase
                     }
                 }
                 """),
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         response.MatchInlineSnapshot(
             """
             {
@@ -586,10 +598,11 @@ public class SemanticIntrospectionTests : FusionTestBase
                     }
                 }
                 """),
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         response.MatchInlineSnapshot(
             """
             {
@@ -698,10 +711,11 @@ public class SemanticIntrospectionTests : FusionTestBase
                     }
                 }
                 """),
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         response.MatchInlineSnapshot(
             """
             {
@@ -781,10 +795,11 @@ public class SemanticIntrospectionTests : FusionTestBase
                     }
                 }
                 """),
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         response.MatchInlineSnapshot(
             """
             {
@@ -840,10 +855,11 @@ public class SemanticIntrospectionTests : FusionTestBase
                     }
                 }
                 """),
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         response.MatchInlineSnapshot(
             """
             {
@@ -894,10 +910,11 @@ public class SemanticIntrospectionTests : FusionTestBase
                     }
                 }
                 """),
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         response.MatchInlineSnapshot(
             """
             {
@@ -945,10 +962,11 @@ public class SemanticIntrospectionTests : FusionTestBase
                     }
                 }
                 """),
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         response.MatchInlineSnapshot(
             """
             {
@@ -987,10 +1005,11 @@ public class SemanticIntrospectionTests : FusionTestBase
                     }
                 }
                 """),
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         response.MatchInlineSnapshot(
             """
             {
@@ -1025,10 +1044,11 @@ public class SemanticIntrospectionTests : FusionTestBase
                     }
                 }
                 """),
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         response.MatchInlineSnapshot(
             """
             {
@@ -1074,10 +1094,11 @@ public class SemanticIntrospectionTests : FusionTestBase
                     }
                 }
                 """),
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         response.MatchInlineSnapshot(
             """
             {

@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging" />
+    <PackageReference Include="Moq" />
     <PackageReference Include="Squadron.PostgreSql" />
   </ItemGroup>
 

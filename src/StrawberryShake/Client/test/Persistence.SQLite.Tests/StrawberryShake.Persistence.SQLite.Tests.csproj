@@ -3,7 +3,6 @@
   <PropertyGroup>
     <RootNamespace>StrawberryShake.Persistence.SQLite</RootNamespace>
     <AssemblyName>StrawberryShake.Persistence.SQLite.Tests</AssemblyName>
-    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>

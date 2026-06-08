@@ -70,7 +70,7 @@ public sealed class ListApiKeyCommandTests(NitroCommandFixture fixture) : ApiKey
 
         // act
         command.SelectOption(0);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         Assert.Empty(result.StdErr);
@@ -135,7 +135,7 @@ public sealed class ListApiKeyCommandTests(NitroCommandFixture fixture) : ApiKey
 
         // act
         command.SelectOption(0);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         Assert.Empty(result.StdErr);
@@ -232,7 +232,7 @@ public sealed class ListApiKeyCommandTests(NitroCommandFixture fixture) : ApiKey
 
         // act
         command.SelectOption(0);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         Assert.Empty(result.StdErr);

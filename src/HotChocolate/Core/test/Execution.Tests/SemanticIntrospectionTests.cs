@@ -19,7 +19,8 @@ public sealed class SemanticIntrospectionTests
                     score
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -68,7 +69,8 @@ public sealed class SemanticIntrospectionTests
                     score
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -105,7 +107,8 @@ public sealed class SemanticIntrospectionTests
                     score
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -141,7 +144,8 @@ public sealed class SemanticIntrospectionTests
                     coordinate
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -174,7 +178,8 @@ public sealed class SemanticIntrospectionTests
                     coordinate
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -210,7 +215,8 @@ public sealed class SemanticIntrospectionTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -244,7 +250,8 @@ public sealed class SemanticIntrospectionTests
                     score
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -277,7 +284,8 @@ public sealed class SemanticIntrospectionTests
                     coordinate
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         var firstJson = firstResult.ToJson();
         var cursorStart = firstJson.IndexOf("\"cursor\": \"", StringComparison.Ordinal) + 11;
@@ -297,7 +305,8 @@ public sealed class SemanticIntrospectionTests
                     }
                     """)
                 .SetVariableValues(new Dictionary<string, object?> { { "after", cursor } })
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         firstResult.MatchInlineSnapshot(
@@ -344,7 +353,8 @@ public sealed class SemanticIntrospectionTests
                     score
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -372,7 +382,8 @@ public sealed class SemanticIntrospectionTests
                     pathsToRoot
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -453,7 +464,8 @@ public sealed class SemanticIntrospectionTests
                     score
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -510,7 +522,8 @@ public sealed class SemanticIntrospectionTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -615,7 +628,8 @@ public sealed class SemanticIntrospectionTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -683,7 +697,8 @@ public sealed class SemanticIntrospectionTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -736,7 +751,8 @@ public sealed class SemanticIntrospectionTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -784,7 +800,8 @@ public sealed class SemanticIntrospectionTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -829,7 +846,8 @@ public sealed class SemanticIntrospectionTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -852,7 +870,8 @@ public sealed class SemanticIntrospectionTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -895,7 +914,8 @@ public sealed class SemanticIntrospectionTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -998,7 +1018,8 @@ public sealed class SemanticIntrospectionTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -1061,7 +1082,8 @@ public sealed class SemanticIntrospectionTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -1169,7 +1191,8 @@ public sealed class SemanticIntrospectionTests
                     coordinate
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -1212,7 +1235,8 @@ public sealed class SemanticIntrospectionTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -1254,7 +1278,8 @@ public sealed class SemanticIntrospectionTests
                     pathsToRoot
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -1291,7 +1316,8 @@ public sealed class SemanticIntrospectionTests
                     pathsToRoot
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -1329,7 +1355,8 @@ public sealed class SemanticIntrospectionTests
                     pathsToRoot
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -1366,7 +1393,8 @@ public sealed class SemanticIntrospectionTests
                     pathsToRoot
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -1404,7 +1432,8 @@ public sealed class SemanticIntrospectionTests
                     pathsToRoot
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -1451,7 +1480,8 @@ public sealed class SemanticIntrospectionTests
                     pathsToRoot
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -1490,7 +1520,8 @@ public sealed class SemanticIntrospectionTests
                     pathsToRoot
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(

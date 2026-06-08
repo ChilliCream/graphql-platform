@@ -177,21 +177,23 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                 .SetDocument(
                     "{ root(order: { foo: { barShort: ASC}}) "
                     + "{ foo{ barShort}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(order: { foo: { barShort: DESC}}) "
                     + "{ foo{ barShort}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .Add(res1, "ASC")
             .Add(res2, "DESC")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -207,21 +209,23 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                 .SetDocument(
                     "{ root(order: { foo: { barShort: ASC}}) "
                     + "{ foo{ barShort}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(order: { foo: { barShort: DESC}}) "
                     + "{ foo{ barShort}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .Add(res1, "ASC")
             .Add(res2, "13")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -236,21 +240,23 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                 .SetDocument(
                     "{ root(order: { foo: { barEnum: ASC}}) "
                     + "{ foo{ barEnum}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(order: { foo: { barEnum: DESC}}) "
                     + "{ foo{ barEnum}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .Add(res1, "ASC")
             .Add(res2, "DESC")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -265,21 +271,23 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                 .SetDocument(
                     "{ root(order: { foo: { barEnum: ASC}}) "
                     + "{ foo{ barEnum}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(order: { foo: { barEnum: DESC}}) "
                     + "{ foo{ barEnum}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .Add(res1, "ASC")
             .Add(res2, "13")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -294,21 +302,23 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                 .SetDocument(
                     "{ root(order: { foo: { barString: ASC}}) "
                     + "{ foo{ barString}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(order: { foo: { barString: DESC}}) "
                     + "{ foo{ barString}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .Add(res1, "ASC")
             .Add(res2, "DESC")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -323,21 +333,23 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                 .SetDocument(
                     "{ root(order: { foo: { barString: ASC}}) "
                     + "{ foo{ barString}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(order: { foo: { barString: DESC}}) "
                     + "{ foo{ barString}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .Add(res1, "ASC")
             .Add(res2, "DESC")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -352,21 +364,23 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                 .SetDocument(
                     "{ root(order: { foo: { barBool: ASC}}) "
                     + "{ foo{ barBool}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(order: { foo: { barBool: DESC}}) "
                     + "{ foo{ barBool}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .Add(res1, "ASC")
             .Add(res2, "DESC")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -381,21 +395,23 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                 .SetDocument(
                     "{ root(order: { foo: { barBool: ASC}}) "
                     + "{ foo{ barBool}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(order: { foo: { barBool: DESC}}) "
                     + "{ foo{ barBool}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .Add(res1, "ASC")
             .Add(res2, "13")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -410,7 +426,8 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                 .SetDocument(
                     "{ root(order: { foo: { barBool: ASC, barShort: ASC }}) "
                     + "{ foo{ barBool barShort}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
@@ -427,14 +444,16 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                             }
                         }
                         ")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(order: { foo: { barBool: DESC, barShort: DESC}}) "
                     + "{ foo{ barBool barShort}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res4 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
@@ -449,7 +468,8 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                             }
                         }
                     }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -458,7 +478,7 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
             .Add(res2, "ASC")
             .Add(res3, "DESC")
             .Add(res4, "DESC")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -501,7 +521,8 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                         }
                     }
                     """)
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder
@@ -523,10 +544,11 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                         }
                     }
                     """)
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
-        await Snapshot.Create().Add(res1, "ASC").Add(res2, "13").MatchAsync();
+        await Snapshot.Create().Add(res1, "ASC").Add(res2, "13").MatchAsync(TestContext.Current.CancellationToken);
     }
 
     public class Foo

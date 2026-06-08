@@ -23,4 +23,8 @@
     <Folder Include="__snapshots__" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Moq" />
+  </ItemGroup>
+
 </Project>

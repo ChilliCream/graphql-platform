@@ -3,10 +3,10 @@
   <PropertyGroup>
     <AssemblyName>StrawberryShake.Core.Tests</AssemblyName>
     <RootNamespace>StrawberryShake</RootNamespace>
-    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Moq" />
     <PackageReference Include="System.Reactive" />
   </ItemGroup>
 

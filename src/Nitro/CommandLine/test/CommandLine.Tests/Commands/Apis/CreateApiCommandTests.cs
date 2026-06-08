@@ -352,7 +352,7 @@ public sealed class CreateApiCommandTests(NitroCommandFixture fixture) : ApisCom
         command.Input(ApiName);
         command.Input("/products");
 
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();
@@ -378,7 +378,7 @@ public sealed class CreateApiCommandTests(NitroCommandFixture fixture) : ApisCom
         // act
         command.Input("/products");
 
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();

@@ -177,7 +177,7 @@ public sealed class DefaultHttpRequestParserTests
     {
         // arrange
         var pipe = new Pipe();
-        await pipe.Writer.WriteAsync(Encoding.UTF8.GetBytes("{ invalid json"));
+        await pipe.Writer.WriteAsync(Encoding.UTF8.GetBytes("{ invalid json"), TestContext.Current.CancellationToken);
         await pipe.Writer.CompleteAsync();
 
         var parser = new DefaultHttpRequestParser(
@@ -196,7 +196,7 @@ public sealed class DefaultHttpRequestParserTests
         // assert
         // The pipe must be left in a state where a subsequent ReadAsync
         // does not throw "Reading is already in progress".
-        var result = await pipe.Reader.ReadAsync();
+        var result = await pipe.Reader.ReadAsync(TestContext.Current.CancellationToken);
         Assert.True(result.IsCompleted);
         pipe.Reader.AdvanceTo(result.Buffer.End);
     }
@@ -206,7 +206,9 @@ public sealed class DefaultHttpRequestParserTests
     {
         // arrange
         var pipe = new Pipe();
-        await pipe.Writer.WriteAsync(Encoding.UTF8.GetBytes("{ \"id\": \"abc\" }"));
+        await pipe.Writer.WriteAsync(
+            Encoding.UTF8.GetBytes("{ \"id\": \"abc\" }"),
+            TestContext.Current.CancellationToken);
         pipe.Reader.CancelPendingRead();
 
         var parser = new DefaultHttpRequestParser(
@@ -226,7 +228,7 @@ public sealed class DefaultHttpRequestParserTests
         // The pipe must be left in a state where a subsequent ReadAsync
         // does not throw "Reading is already in progress".
         await pipe.Writer.CompleteAsync();
-        var result = await pipe.Reader.ReadAsync();
+        var result = await pipe.Reader.ReadAsync(TestContext.Current.CancellationToken);
         Assert.True(result.IsCompleted);
         pipe.Reader.AdvanceTo(result.Buffer.End);
     }
@@ -236,7 +238,7 @@ public sealed class DefaultHttpRequestParserTests
     {
         // arrange
         var pipe = new Pipe();
-        await pipe.Writer.WriteAsync(Encoding.UTF8.GetBytes("{ invalid json"));
+        await pipe.Writer.WriteAsync(Encoding.UTF8.GetBytes("{ invalid json"), TestContext.Current.CancellationToken);
         await pipe.Writer.CompleteAsync();
 
         var parser = new DefaultHttpRequestParser(
@@ -255,7 +257,7 @@ public sealed class DefaultHttpRequestParserTests
                 CancellationToken.None));
 
         // assert
-        var result = await pipe.Reader.ReadAsync();
+        var result = await pipe.Reader.ReadAsync(TestContext.Current.CancellationToken);
         Assert.True(result.IsCompleted);
         pipe.Reader.AdvanceTo(result.Buffer.End);
     }

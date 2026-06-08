@@ -26,7 +26,8 @@ public sealed class CoreIntegrationTests : IntegrationTestBase
         var storage = new TestMcpStorage();
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
-                Utf8GraphQLParser.Parse("query GetBooks { books { title } }")));
+                Utf8GraphQLParser.Parse("query GetBooks { books { title } }")),
+            TestContext.Current.CancellationToken);
         var builder = new WebHostBuilder()
             .ConfigureServices(
                 services => services
@@ -49,7 +50,7 @@ public sealed class CoreIntegrationTests : IntegrationTestBase
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
-        var tools = await mcpClient.ListToolsAsync();
+        var tools = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal("get_books", Assert.Single(tools).Name);
@@ -87,7 +88,10 @@ public sealed class CoreIntegrationTests : IntegrationTestBase
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
                 Utf8GraphQLParser.Parse(
-                    await File.ReadAllTextAsync("__resources__/GetSingleField.graphql"))));
+                    await File.ReadAllTextAsync(
+                        "__resources__/GetSingleField.graphql",
+                        TestContext.Current.CancellationToken))),
+            TestContext.Current.CancellationToken);
         var typeModule = new TestTypeModule();
         var builder = new WebHostBuilder()
             .ConfigureServices(
@@ -122,17 +126,19 @@ public sealed class CoreIntegrationTests : IntegrationTestBase
             });
 
         // act
-        var tools = await mcpClient1.ListToolsAsync();
+        var tools = await mcpClient1.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
         typeModule.TriggerChange();
         IList<McpClientTool>? updatedTools = null;
 
-        if (listChangedResetEvent1.Wait(TimeSpan.FromSeconds(5)))
+        if (listChangedResetEvent1.Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken))
         {
             var mcpClient3 = await CreateMcpClientAsync(server.CreateClient());
-            updatedTools = await mcpClient3.ListToolsAsync();
+            updatedTools = await mcpClient3.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
         }
 
-        var secondClientNotified = listChangedResetEvent2.Wait(TimeSpan.FromSeconds(5));
+        var secondClientNotified = listChangedResetEvent2.Wait(
+            TimeSpan.FromSeconds(5),
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotNull(updatedTools);

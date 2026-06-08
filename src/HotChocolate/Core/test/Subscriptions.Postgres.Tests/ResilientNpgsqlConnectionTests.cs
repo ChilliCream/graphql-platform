@@ -1,7 +1,6 @@
 using HotChocolate.Tests;
 using Npgsql;
 using Squadron;
-using Xunit.Abstractions;
 
 namespace HotChocolate.Subscriptions.Postgres;
 
