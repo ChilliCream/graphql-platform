@@ -8,14 +8,30 @@ namespace HotChocolate.Adapters.Mcp.Extensions;
 
 internal static class TypeExtensions
 {
-    public static JsonSchemaBuilder ToJsonSchemaBuilder(this IType type, bool isOneOf = false)
+    public static JsonSchemaBuilder ToJsonSchemaBuilder(
+        this IType type,
+        bool isOneOf = false,
+        JsonSchemaContext? context = null)
     {
+        var namedType = type.NullableType();
+        var isNullable = !type.IsNonNullType() && !isOneOf;
+
+        // Named input object types are emitted once under $defs and referenced through $ref.
+        // This is the only way to represent a self-referencing input type (such as a filter
+        // input) in a finite schema.
+        if (context is { UseReferences: true }
+            && namedType is IInputObjectTypeDefinition inputObjectReference)
+        {
+            RegisterInputObjectDef(inputObjectReference, context);
+            return RefSchema(inputObjectReference.Name, isNullable);
+        }
+
         var schemaBuilder = new JsonSchemaBuilder();
 
         // Type.
         var jsonType = type.GetJsonSchemaValueType();
 
-        if (!type.IsNonNullType() && !isOneOf)
+        if (isNullable)
         {
             // Nullability.
             jsonType |= SchemaValueType.Null;
@@ -47,7 +63,7 @@ internal static class TypeExtensions
             schemaBuilder.Pattern(pattern);
         }
 
-        switch (type.NullableType())
+        switch (namedType)
         {
             case IEnumTypeDefinition enumType:
                 // Enum values.
@@ -67,56 +83,107 @@ internal static class TypeExtensions
                 break;
 
             case IInputObjectTypeDefinition inputObjectType:
-                // Object properties.
-                var objectProperties = new Dictionary<string, JsonSchema>();
-                var requiredObjectProperties = new List<string>();
-
-                foreach (var field in inputObjectType.Fields)
+                // References are disabled, so the type is inlined. The cycle guard keeps the walk
+                // finite by collapsing a self-reference to the generic object schema already set.
+                // A false result means the type is already being expanded on the current path.
+                if (context?.Building.Add(inputObjectType.Name) == false)
                 {
-                    var fieldSchema = field.ToJsonSchema();
-
-                    objectProperties.Add(field.Name, fieldSchema);
-
-                    if (field.Type.IsNonNullType() && field.DefaultValue is null)
-                    {
-                        requiredObjectProperties.Add(field.Name);
-                    }
+                    break;
                 }
 
-                // OneOf.
-                if (inputObjectType.IsOneOf)
-                {
-                    List<JsonSchema> oneOfSchemas = [];
+                PopulateInputObjectMembers(schemaBuilder, inputObjectType, context);
 
-                    foreach (var (propertyName, propertySchema) in objectProperties)
-                    {
-                        var oneOfSchema = new JsonSchemaBuilder();
-
-                        oneOfSchema
-                            .Type(SchemaValueType.Object)
-                            .Properties((propertyName, propertySchema))
-                            .Required(propertyName);
-
-                        oneOfSchemas.Add(oneOfSchema.Build());
-                    }
-
-                    schemaBuilder.OneOf(oneOfSchemas);
-                }
-                else
-                {
-                    schemaBuilder.Properties(objectProperties);
-                    schemaBuilder.Required(requiredObjectProperties);
-                }
-
+                context?.Building.Remove(inputObjectType.Name);
                 break;
 
             case ListType listType:
                 // Array items.
-                schemaBuilder.Items(listType.ElementType().ToJsonSchemaBuilder());
+                schemaBuilder.Items(listType.ElementType().ToJsonSchemaBuilder(context: context));
                 break;
         }
 
         return schemaBuilder;
+    }
+
+    private static void RegisterInputObjectDef(
+        IInputObjectTypeDefinition inputObjectType,
+        JsonSchemaContext context)
+    {
+        var name = inputObjectType.Name;
+
+        // The definition name is reserved before its members are expanded so that a field
+        // referencing the same type resolves to a $ref instead of recursing.
+        if (context.Defs.ContainsKey(name) || !context.Building.Add(name))
+        {
+            return;
+        }
+
+        var defBuilder = new JsonSchemaBuilder().Type(SchemaValueType.Object);
+        PopulateInputObjectMembers(defBuilder, inputObjectType, context);
+
+        context.Defs[name] = defBuilder;
+        context.Building.Remove(name);
+    }
+
+    private static JsonSchemaBuilder RefSchema(string typeName, bool isNullable)
+    {
+        var reference = new JsonSchemaBuilder().Ref("#/$defs/" + typeName);
+
+        if (!isNullable)
+        {
+            return reference;
+        }
+
+        // A bare $ref cannot also permit null, so a nullable reference is expressed as an anyOf.
+        return new JsonSchemaBuilder()
+            .AnyOf(reference, new JsonSchemaBuilder().Type(SchemaValueType.Null));
+    }
+
+    private static void PopulateInputObjectMembers(
+        JsonSchemaBuilder schemaBuilder,
+        IInputObjectTypeDefinition inputObjectType,
+        JsonSchemaContext? context)
+    {
+        // Object properties.
+        var objectProperties = new Dictionary<string, JsonSchema>();
+        var requiredObjectProperties = new List<string>();
+
+        foreach (var field in inputObjectType.Fields)
+        {
+            var fieldSchema = field.ToJsonSchema(context);
+
+            objectProperties.Add(field.Name, fieldSchema);
+
+            if (field.Type.IsNonNullType() && field.DefaultValue is null)
+            {
+                requiredObjectProperties.Add(field.Name);
+            }
+        }
+
+        // OneOf.
+        if (inputObjectType.IsOneOf)
+        {
+            List<JsonSchema> oneOfSchemas = [];
+
+            foreach (var (propertyName, propertySchema) in objectProperties)
+            {
+                var oneOfSchema = new JsonSchemaBuilder();
+
+                oneOfSchema
+                    .Type(SchemaValueType.Object)
+                    .Properties((propertyName, propertySchema))
+                    .Required(propertyName);
+
+                oneOfSchemas.Add(oneOfSchema.Build());
+            }
+
+            schemaBuilder.OneOf(oneOfSchemas);
+        }
+        else
+        {
+            schemaBuilder.Properties(objectProperties);
+            schemaBuilder.Required(requiredObjectProperties);
+        }
     }
 
     private static SchemaValueType GetJsonSchemaValueType(this IType type)

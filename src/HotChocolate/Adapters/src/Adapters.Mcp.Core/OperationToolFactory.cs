@@ -1,6 +1,7 @@
 using System.Collections.Frozen;
 using System.Text;
 using System.Text.Json.Nodes;
+using HotChocolate.Adapters.Mcp.Configuration;
 using HotChocolate.Adapters.Mcp.Extensions;
 using HotChocolate.Adapters.Mcp.Storage;
 using HotChocolate.Language;
@@ -13,7 +14,7 @@ using static HotChocolate.Adapters.Mcp.WellKnownFieldNames;
 
 namespace HotChocolate.Adapters.Mcp;
 
-internal sealed class OperationToolFactory(ISchemaDefinition schema)
+internal sealed class OperationToolFactory(ISchemaDefinition schema, McpToolOptions options)
 {
     private static readonly Walker s_walker = new();
 
@@ -137,11 +138,12 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema)
     {
         var properties = new Dictionary<string, JsonSchema>();
         var requiredProperties = new List<string>();
+        var context = new JsonSchemaContext { UseReferences = options.UseJsonSchemaReferences };
 
         foreach (var variableNode in operation.VariableDefinitions)
         {
             var type = variableNode.Type.ToType(schema);
-            var propertyBuilder = type.ToJsonSchemaBuilder();
+            var propertyBuilder = type.ToJsonSchemaBuilder(context: context);
             var variableName = variableNode.Variable.Name.Value;
 
             // Description.
@@ -165,12 +167,22 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema)
             properties.Add(variableName, propertyBuilder);
         }
 
-        return
+        var schemaBuilder =
             new JsonSchemaBuilder()
                 .Type(SchemaValueType.Object)
                 .Properties(properties)
-                .Required(requiredProperties)
-                .Build();
+                .Required(requiredProperties);
+
+        // Definitions, emitted in a stable order so the schema is deterministic.
+        if (context.Defs.Count > 0)
+        {
+            schemaBuilder.Defs(
+                context.Defs
+                    .OrderBy(definition => definition.Key, StringComparer.Ordinal)
+                    .ToDictionary());
+        }
+
+        return schemaBuilder.Build();
     }
 
     private static JsonSchema CreateOutputSchema(JsonSchema dataSchema)
