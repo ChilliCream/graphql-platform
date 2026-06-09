@@ -218,7 +218,7 @@ async function run(config) {
   // Prune entries whose source no longer exists and best-effort delete orphans.
   for (const [url, entry] of Object.entries(manifest)) {
     if (!newManifest[url]) {
-      deleteOrphans(entry, outputDir, sourceDir);
+      deleteOrphans(entry, outputDir);
     }
   }
 
@@ -285,16 +285,22 @@ function allOutputsExist(entry, outputDir) {
 }
 
 function deleteOrphans(entry, outputDir) {
-  for (const variants of Object.values(entry.formats ?? {})) {
-    for (const variant of variants) {
-      const file = urlToOutputFile(variant.path, outputDir);
-      try {
-        if (file && fs.existsSync(file)) {
-          fs.unlinkSync(file);
-        }
-      } catch {
-        // best-effort
+  const paths = Object.values(entry.formats ?? {})
+    .flat()
+    .map((variant) => variant.path);
+  // Remote entries also keep the self-hosted original download on disk; prune
+  // it too, otherwise orphaned originals accumulate under remote/.
+  if (entry.fallbackSrc) {
+    paths.push(entry.fallbackSrc);
+  }
+  for (const url of paths) {
+    const file = urlToOutputFile(url, outputDir);
+    try {
+      if (file && fs.existsSync(file)) {
+        fs.unlinkSync(file);
       }
+    } catch {
+      // best-effort
     }
   }
 }

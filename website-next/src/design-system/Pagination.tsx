@@ -100,6 +100,7 @@ function PageButton({
   return (
     <Link
       href={href}
+      prefetch={false}
       aria-label={ariaLabel}
       className={`${baseClasses} border border-cc-card-border text-cc-ink-dim hover:border-cc-accent-hover hover:bg-cc-accent/10 hover:text-cc-accent-hover`}
     >

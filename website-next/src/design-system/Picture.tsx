@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import ReactDOM from "react-dom";
 import {
   getOptimizedImage,
   type OptimizedVariant,
@@ -37,6 +38,23 @@ export function Picture({
   ...rest
 }: PictureProps & Record<string, unknown>) {
   const opt = src ? getOptimizedImage(src) : null;
+
+  // Preload the LCP candidate during HTML parse. Because images are served by a
+  // custom pipeline (next.config `images.unoptimized`), Next.js never emits the
+  // `priority` preload that next/image would, so the hero <img> would otherwise
+  // be discovered late and race deferred third-party scripts. Preload the AVIF
+  // srcset to match the first <picture> <source>; the browser skips it when AVIF
+  // is unsupported and falls back to the WebP/original source.
+  if (priority && opt?.formats.avif?.length) {
+    const avif = opt.formats.avif;
+    ReactDOM.preload(avif[avif.length - 1].path, {
+      as: "image",
+      imageSrcSet: srcset(avif),
+      imageSizes: sizes ?? DEFAULT_SIZES,
+      type: "image/avif",
+      fetchPriority: "high",
+    });
+  }
 
   const imgEl = (
     <Image

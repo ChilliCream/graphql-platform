@@ -206,7 +206,10 @@
   background-attachment: fixed;
 }
 
-html:has(:target) {
+/* Smooth scrolling is opt-in via the flag set by <EnableSmoothScroll> once the
+   page has loaded. That keeps the initial #hash deep-link jump instant (land
+   directly on the section) while in-page anchor clicks still animate. */
+html[data-smooth-scroll="true"]:has(:target) {
   scroll-behavior: smooth;
 }
 
