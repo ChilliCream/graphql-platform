@@ -76,7 +76,6 @@ public class RabbitMQMessageTypeExtensionTests
         // the same bus handles ProcessPayment via an explicitly bound handler endpoint and
         // also sends ProcessPayment to an explicit destination queue.
         var services = new ServiceCollection();
-        services.AddSingleton(new MessageRecorder());
         var runtime = services
             .AddMessageBus()
             .AddRequestHandler<ProcessPaymentHandler>()
@@ -97,11 +96,10 @@ public class RabbitMQMessageTypeExtensionTests
         Assert.Contains("q/my-queue", route.Endpoint.Address.ToString());
     }
 
-    public sealed class ProcessPaymentHandler(MessageRecorder recorder) : IEventRequestHandler<ProcessPayment>
+    public sealed class ProcessPaymentHandler : IEventRequestHandler<ProcessPayment>
     {
         public ValueTask HandleAsync(ProcessPayment request, CancellationToken cancellationToken)
         {
-            recorder.Record(request);
             return default;
         }
     }

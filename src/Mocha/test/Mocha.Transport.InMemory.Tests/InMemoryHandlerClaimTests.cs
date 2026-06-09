@@ -197,7 +197,6 @@ public class InMemoryHandlerClaimTests
         // the same bus handles ProcessPayment via an explicitly bound handler endpoint and
         // also sends ProcessPayment to an explicit destination queue.
         var runtime = new ServiceCollection()
-            .AddSingleton(new MessageRecorder())
             .AddMessageBus()
             .AddRequestHandler<ProcessPaymentHandler>()
             .AddMessage<ProcessPayment>(d => d.Send(r => r.ToInMemoryQueue("my-queue")))
@@ -222,11 +221,10 @@ public class InMemoryHandlerClaimTests
         public ValueTask ConsumeAsync(IConsumeContext<OrderCreated> context) => default;
     }
 
-    public sealed class ProcessPaymentHandler(MessageRecorder recorder) : IEventRequestHandler<ProcessPayment>
+    public sealed class ProcessPaymentHandler : IEventRequestHandler<ProcessPayment>
     {
         public ValueTask HandleAsync(ProcessPayment request, CancellationToken cancellationToken)
         {
-            recorder.Record(request);
             return default;
         }
     }
