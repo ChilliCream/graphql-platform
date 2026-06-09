@@ -468,6 +468,10 @@ public class SemanticIntrospectionTests : FusionTestBase
                       [
                         "Query.userByEmail",
                         "User.name"
+                      ],
+                      [
+                        "Query.users",
+                        "User.name"
                       ]
                     ]
                   },
@@ -1102,6 +1106,96 @@ public class SemanticIntrospectionTests : FusionTestBase
             """);
     }
 
+    [Fact]
+    public async Task Search_Should_TraverseInterface_When_TypeIsReachableOnlyViaInterface()
+    {
+        // arrange
+        // TV implements Catalog; only Query.catalog (returning [Catalog]) references it.
+        using var server = CreateSourceSchema("A", AbstractTypeSourceSchema);
+
+        using var gateway = await CreateGatewayAsync(server);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        // act
+        using var result = await client.PostAsync(
+            new OperationRequest(
+                """
+                {
+                    __search(query: "brandName", first: 1) {
+                        coordinate
+                        pathsToRoot
+                    }
+                }
+                """),
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        using var response = await result.ReadAsResultAsync();
+        response.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "__search": [
+                  {
+                    "coordinate": "TV.brandName",
+                    "pathsToRoot": [
+                      [
+                        "Query.catalog",
+                        "TV.brandName"
+                      ]
+                    ]
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Search_Should_TraverseUnion_When_TypeIsReachableOnlyViaUnion()
+    {
+        // arrange
+        // Photo is a SearchResult union member; only Query.media references the union.
+        using var server = CreateSourceSchema("A", AbstractTypeSourceSchema);
+
+        using var gateway = await CreateGatewayAsync(server);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        // act
+        using var result = await client.PostAsync(
+            new OperationRequest(
+                """
+                {
+                    __search(query: "altText", first: 1) {
+                        coordinate
+                        pathsToRoot
+                    }
+                }
+                """),
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        using var response = await result.ReadAsResultAsync();
+        response.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "__search": [
+                  {
+                    "coordinate": "Photo.altText",
+                    "pathsToRoot": [
+                      [
+                        "Query.media",
+                        "Photo.altText"
+                      ]
+                    ]
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
     private Task<Gateway> CreateGatewayAsync(
         Microsoft.AspNetCore.TestHost.TestServer server,
         bool enableSemanticIntrospection = true)
@@ -1173,6 +1267,43 @@ public class SemanticIntrospectionTests : FusionTestBase
           productSearch(term: String!): [Product]
           "Retrieve an order by its unique identifier"
           orderById(id: ID!): Order
+        }
+        """;
+
+    // A dedicated source schema for abstract type path-to-root scenarios, kept separate
+    // from SourceSchema so the additional types do not shift BM25 scores in other tests.
+    private const string AbstractTypeSourceSchema =
+        """
+        "A catalog item available in the store"
+        interface Catalog {
+          "The unique catalog identifier"
+          id: ID!
+        }
+
+        "A television catalog item"
+        type TV implements Catalog {
+          "The unique catalog identifier"
+          id: ID!
+          "The manufacturer brand name"
+          brandName: String
+        }
+
+        "A photo media item"
+        type Photo {
+          "The photo URL"
+          url: String
+          "The accessibility altText for the photo"
+          altText: String
+        }
+
+        "A media item that can be one of several kinds"
+        union SearchResult = Photo
+
+        type Query {
+          "List all catalog items"
+          catalog: [Catalog]
+          "Retrieve a media item"
+          media: SearchResult
         }
         """;
 }
