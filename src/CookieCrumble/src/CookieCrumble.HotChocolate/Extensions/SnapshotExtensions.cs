@@ -24,6 +24,20 @@ public static class SnapshotExtensions
             postFix,
             formatter: CoreFormatters.PlainText);
 
+    /// <summary>
+    /// Matches a snapshot of an execution result, merging an incrementally delivered
+    /// (<c>@defer</c>/<c>@stream</c>) response into its final aggregated form. The snapshot
+    /// is identical whether the transport delivered the response across several payloads or
+    /// as a single bundled payload, so it does not depend on delivery timing.
+    /// </summary>
+    public static void MatchAggregatedSnapshot(
+        this IExecutionResult? value,
+        string? postFix = null)
+        => Snapshot.Match(
+            value,
+            postFix,
+            formatter: SnapshotValueFormatters.ExecutionResultAggregated);
+
     public static Snapshot AddResult(
         this Snapshot snapshot,
         IExecutionResult result,

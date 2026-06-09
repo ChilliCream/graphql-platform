@@ -401,9 +401,9 @@ public abstract class CommandTestBase
             Times.Never);
     }
 
-    public Task InitializeAsync() => Task.CompletedTask;
+    public ValueTask InitializeAsync() => ValueTask.CompletedTask;
 
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         foreach (var file in _files)
         {

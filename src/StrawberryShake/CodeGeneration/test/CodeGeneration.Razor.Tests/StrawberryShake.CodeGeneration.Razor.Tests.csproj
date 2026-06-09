@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\HotChocolate\Core\test\StarWars\HotChocolate.StarWars.Tests.csproj" />
+    <ProjectReference Include="..\..\..\..\HotChocolate\Core\test\StarWars\HotChocolate.StarWars.csproj" />
     <ProjectReference Include="..\..\..\Client\src\Persistence.SQLite\StrawberryShake.Persistence.SQLite.csproj" />
     <ProjectReference Include="..\..\..\Client\src\Razor\StrawberryShake.Razor.csproj" />
     <ProjectReference Include="..\..\..\Client\src\Transport.Http\StrawberryShake.Transport.Http.csproj" />

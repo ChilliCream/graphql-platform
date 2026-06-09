@@ -126,10 +126,16 @@ public class ResilientNpgsqlConnectionTests : IClassFixture<PostgreSqlResource>
         // Arrange
         var onConnectCalled = 0;
         var onDisconnectCalled = 0;
+        var reconnected = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 
         Func<CancellationToken, ValueTask> onConnect = _ =>
         {
-            onConnectCalled++;
+            // Initialize connects once; the reconnect after the drop is the second connect.
+            if (++onConnectCalled == 2)
+            {
+                reconnected.TrySetResult();
+            }
+
             return ValueTask.CompletedTask;
         };
         Func<CancellationToken, ValueTask> onDisconnect = _ =>
@@ -146,9 +152,7 @@ public class ResilientNpgsqlConnectionTests : IClassFixture<PostgreSqlResource>
         await resilientNpgsqlConnection.Connection!.CloseAsync();
 
         // Assert
-        SpinWait.SpinUntil(
-            () => onDisconnectCalled == 1 && onConnectCalled == 2,
-            TimeSpan.FromSeconds(1));
+        await reconnected.Task.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
 
         Assert.Equal(1, onDisconnectCalled);
         Assert.Equal(2, onConnectCalled);

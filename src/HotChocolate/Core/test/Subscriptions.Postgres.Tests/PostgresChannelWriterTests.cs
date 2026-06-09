@@ -104,7 +104,7 @@ public class PostgresChannelWriterTests
     public async Task Initialize_Should_ReconnectOnConnectionDrop()
     {
         // Arrange
-        var reconnected = false;
+        var reconnected = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         NpgsqlConnection? connection = null;
         var options = new PostgresSubscriptionOptions
         {
@@ -116,7 +116,7 @@ public class PostgresChannelWriterTests
                     return connection;
                 }
 
-                reconnected = true;
+                reconnected.TrySetResult();
 
                 return await ConnectionFactory(ct);
             },
@@ -129,8 +129,7 @@ public class PostgresChannelWriterTests
         await connection!.CloseAsync();
 
         // Assert
-        SpinWait.SpinUntil(() => reconnected, TimeSpan.FromSeconds(5));
-        Assert.True(reconnected);
+        await reconnected.Task.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
     }
 
     [Fact]

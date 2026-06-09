@@ -9,7 +9,7 @@
     <ProjectReference Include="..\..\..\Core\test\Utilities\HotChocolate.Tests.Utilities.csproj" />
     <ProjectReference Include="..\..\src\AspNetCore.Authorization.Opa\HotChocolate.AspNetCore.Authorization.Opa.csproj" />
     <ProjectReference Include="..\AspNetCore.Tests\HotChocolate.AspNetCore.Tests.csproj" />
-    <ProjectReference Include="..\..\..\Core\test\StarWars\HotChocolate.StarWars.Tests.csproj" />
+    <ProjectReference Include="..\..\..\Core\test\StarWars\HotChocolate.StarWars.csproj" />
   </ItemGroup>
 
   <ItemGroup>

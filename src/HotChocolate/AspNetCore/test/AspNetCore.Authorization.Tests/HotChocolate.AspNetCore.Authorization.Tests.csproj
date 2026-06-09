@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AspNetCore.Tests\HotChocolate.AspNetCore.Tests.csproj" />
-    <ProjectReference Include="..\..\..\Core\test\StarWars\HotChocolate.StarWars.Tests.csproj" />
+    <ProjectReference Include="..\..\..\Core\test\StarWars\HotChocolate.StarWars.csproj" />
     <ProjectReference Include="..\..\src\AspNetCore.Authorization\HotChocolate.AspNetCore.Authorization.csproj" />
   </ItemGroup>
 
