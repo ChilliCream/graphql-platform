@@ -2,9 +2,11 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import sharp from "sharp";
+import { collectRemoteImages } from "./remote.mjs";
 
 const IMAGE_RE = /\.(png|jpe?g|webp)$/i;
 const CONCURRENCY = 6;
+const REMOTE_CONCURRENCY = 4;
 // Longest edge (px) of the tiny placeholder encoded into the blurDataURL.
 const BLUR_SIZE = 8;
 
@@ -121,6 +123,88 @@ async function run(config) {
 
   await runPool(tasks, CONCURRENCY);
 
+  // Self-host + optimize external images (avatars, YouTube thumbnails).
+  const remotes = await collectRemoteImages(cwd);
+  const remoteDir = path.join(outputDir, "remote");
+  let remoteFetched = 0;
+  let remoteCached = 0;
+
+  const remoteTasks = remotes.map(({ key, url, fallbackUrl }) => async () => {
+    try {
+      const sha = sha256(key);
+      // URL-based cache key: the remote content is assumed stable, so we do not
+      // re-download on every build.
+      const hash = sha256(key + settingsJson);
+
+      const existing = manifest[key];
+      if (
+        existing &&
+        existing.hash === hash &&
+        existing.fallbackSrc &&
+        existing.blurDataURL &&
+        allOutputsExist(existing, outputDir) &&
+        remoteFallbackExists(existing.fallbackSrc, outputDir)
+      ) {
+        newManifest[key] = existing;
+        remoteCached++;
+        return;
+      }
+
+      let res = await fetch(url);
+      if (!res.ok && fallbackUrl) {
+        res = await fetch(fallbackUrl);
+      }
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+      const bytes = Buffer.from(await res.arrayBuffer());
+
+      const ext = extFromContentType(res.headers.get("content-type"));
+      const originalRel = `${sha}.${ext}`;
+      writeAtomic(path.join(remoteDir, originalRel), bytes);
+      const fallbackSrc = `/_optimized/images/remote/${originalRel}`;
+
+      const meta = await sharp(bytes).metadata();
+      const intrinsicW = meta.width ?? 0;
+      const intrinsicH = meta.height ?? 0;
+      const targetWidths = computeTargetWidths(widths, intrinsicW);
+
+      const formatsEntry = {};
+      for (const format of formats) {
+        const variants = [];
+        for (const width of targetWidths) {
+          const outRel = `${sha}.w${width}.${format}`;
+          const buffer = await sharp(bytes)
+            .resize({ width, withoutEnlargement: true })
+            .toFormat(format, { quality })
+            .toBuffer();
+          writeAtomic(path.join(remoteDir, outRel), buffer);
+          variants.push({ w: width, path: `/_optimized/images/remote/${outRel}` });
+        }
+        variants.sort((a, b) => a.w - b.w);
+        formatsEntry[format] = variants;
+      }
+
+      const blur = await makeBlur(bytes);
+
+      newManifest[key] = {
+        hash,
+        width: intrinsicW,
+        height: intrinsicH,
+        formats: formatsEntry,
+        ...blur,
+        fallbackSrc,
+      };
+      remoteFetched++;
+    } catch (err) {
+      // Never abort the build on a remote failure (e.g. offline). Skip the
+      // manifest entry so the component falls back to the external URL.
+      console.warn(`[image-opt] WARN remote ${key}: ${err.message}`);
+    }
+  });
+
+  await runPool(remoteTasks, REMOTE_CONCURRENCY);
+
   // Prune entries whose source no longer exists and best-effort delete orphans.
   for (const [url, entry] of Object.entries(manifest)) {
     if (!newManifest[url]) {
@@ -131,10 +215,34 @@ async function run(config) {
   writeAtomic(manifestPath, Buffer.from(JSON.stringify(newManifest, null, 2)));
 
   console.log(
-    `[image-opt] ${sources.length} sources, ${encoded} (re)encoded, ${cached} cached`
+    `[image-opt] ${sources.length} sources, ${encoded} (re)encoded, ${cached} cached` +
+      `, ${remotes.length} remote (${remoteFetched} fetched, ${remoteCached} cached)`
   );
 
   return newManifest;
+}
+
+function sha256(input) {
+  return crypto.createHash("sha256").update(input).digest("hex");
+}
+
+function extFromContentType(contentType) {
+  const type = (contentType ?? "").toLowerCase();
+  if (type.includes("image/png")) {
+    return "png";
+  }
+  if (type.includes("image/webp")) {
+    return "webp";
+  }
+  if (type.includes("image/jpeg")) {
+    return "jpg";
+  }
+  return "jpg";
+}
+
+function remoteFallbackExists(fallbackSrc, outputDir) {
+  const file = urlToOutputFile(fallbackSrc, outputDir);
+  return Boolean(file) && fs.existsSync(file);
 }
 
 function computeTargetWidths(ladder, intrinsicW) {

@@ -40,7 +40,7 @@ export function Picture({
 
   const imgEl = (
     <Image
-      src={src}
+      src={opt?.fallbackSrc ?? src}
       alt={alt}
       className={className}
       style={style}

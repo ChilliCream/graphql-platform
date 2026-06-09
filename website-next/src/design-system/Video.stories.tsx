@@ -53,7 +53,10 @@ export const NonYouTubePlaceholder: Story = {
     <div className="overflow-hidden rounded-md ring-1 ring-cc-card-border">
       <VideoFacade
         provider="generic"
-        poster="https://placehold.co/1280x720/0c1322/f5f1ea?text=Sample+Video"
+        poster={{
+          fallbackSrc:
+            "https://placehold.co/1280x720/0c1322/f5f1ea?text=Sample+Video",
+        }}
         embedSrc="https://www.w3schools.com/html/mov_bbb.mp4"
         playlabel="Play sample video"
       />
