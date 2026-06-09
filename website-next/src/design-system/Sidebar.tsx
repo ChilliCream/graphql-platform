@@ -50,6 +50,7 @@ function NodeView({
   const label = node.href ? (
     <Link
       href={node.href}
+      prefetch={false}
       aria-current={isActive ? "page" : undefined}
       className={`block flex-1 rounded px-3 py-1.5 transition-colors ${
         isActive

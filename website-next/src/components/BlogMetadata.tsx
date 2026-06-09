@@ -1,3 +1,5 @@
+import { Picture } from "@/src/design-system/Picture";
+
 type BlogMetadataProps = {
   author?: string;
   authorUrl?: string;
@@ -35,14 +37,12 @@ export function BlogMetadata({
           }
         >
           {authorImageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Picture
               src={authorImageUrl}
               alt={`${author}'s avatar`}
               width={30}
               height={30}
-              loading="lazy"
-              decoding="async"
+              sizes="30px"
               className="mr-2 h-[30px] w-[30px] rounded-full object-cover"
             />
           ) : null}
