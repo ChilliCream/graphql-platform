@@ -403,6 +403,10 @@ public sealed class SemanticIntrospectionTests
                       [
                         "Query.userByEmail",
                         "User.name"
+                      ],
+                      [
+                        "Query.users",
+                        "User.name"
                       ]
                     ]
                   },
@@ -1305,6 +1309,10 @@ public sealed class SemanticIntrospectionTests
                       [
                         "Query.userByEmail",
                         "User.email"
+                      ],
+                      [
+                        "Query.users",
+                        "User.email"
                       ]
                     ]
                   }
@@ -1380,6 +1388,10 @@ public sealed class SemanticIntrospectionTests
                       [
                         "Query.productSearch",
                         "Product.price"
+                      ],
+                      [
+                        "Query.orderById",
+                        "Order.total"
                       ]
                     ]
                   }

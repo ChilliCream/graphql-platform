@@ -468,6 +468,10 @@ public class SemanticIntrospectionTests : FusionTestBase
                       [
                         "Query.userByEmail",
                         "User.name"
+                      ],
+                      [
+                        "Query.users",
+                        "User.name"
                       ]
                     ]
                   },

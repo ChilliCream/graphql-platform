@@ -291,6 +291,50 @@ public class BM25SearchProviderTests
             paths[0].ToArray());
     }
 
+    [Fact]
+    public async Task GetPathsToRootAsync_Should_ReturnMultiplePaths_When_MultipleRootFieldsReachType()
+    {
+        // arrange
+        // Both Query.products and Query.featured return [Product]; TV implements Product.
+        var schema = CreateMultiRootFieldSchema();
+        var provider = new BM25SearchProvider(schema);
+
+        // act
+        var paths = await provider.GetPathsToRootAsync(
+            new SchemaCoordinate("TV", "brandName"));
+
+        // assert
+        // A root reference must not be deduped, so both root fields yield a path.
+        var rootFields = paths.Select(p => p[0]).ToArray();
+        Assert.Equal(2, paths.Count);
+        Assert.Contains(new SchemaCoordinate("Query", "products"), rootFields);
+        Assert.Contains(new SchemaCoordinate("Query", "featured"), rootFields);
+        Assert.All(paths, p => Assert.Equal(new SchemaCoordinate("TV", "brandName"), p[^1]));
+    }
+
+    private static Schema CreateMultiRootFieldSchema()
+    {
+        return SchemaBuilder.New()
+            .AddQueryType(d =>
+            {
+                d.Name("Query");
+                d.Field("products")
+                    .Type<ListType<ProductInterfaceType>>()
+                    .Resolve(Array.Empty<object>());
+                d.Field("featured")
+                    .Type<ListType<ProductInterfaceType>>()
+                    .Resolve(Array.Empty<object>());
+            })
+            .AddType<ProductInterfaceType>()
+            .AddType<TVType>()
+            .ModifyOptions(o =>
+            {
+                o.StrictValidation = false;
+                o.EnableSemanticIntrospection = false;
+            })
+            .Create();
+    }
+
     private static Schema CreateAbstractTypeSchema()
     {
         return SchemaBuilder.New()

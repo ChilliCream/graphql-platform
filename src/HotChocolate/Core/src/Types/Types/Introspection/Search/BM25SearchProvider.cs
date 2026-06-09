@@ -146,7 +146,12 @@ internal sealed class BM25SearchProvider : ISchemaSearchProvider
             {
                 foreach (var reference in references)
                 {
-                    if (!visited.Add(reference.Name))
+                    var isRootReference = rootTypeNames.Contains(reference.Name);
+
+                    // Only dedupe non-root hops. A root reference completes a path instead of
+                    // continuing the traversal, so marking it visited would suppress additional
+                    // distinct paths through other fields on the same root type.
+                    if (!isRootReference && !visited.Add(reference.Name))
                     {
                         continue;
                     }
@@ -154,7 +159,7 @@ internal sealed class BM25SearchProvider : ISchemaSearchProvider
                     var newPath = new List<SchemaCoordinate>(currentPath.Count + 1) { reference };
                     newPath.AddRange(currentPath);
 
-                    if (rootTypeNames.Contains(reference.Name))
+                    if (isRootReference)
                     {
                         if (coordinate.MemberName is not null)
                         {
