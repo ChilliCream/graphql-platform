@@ -1,5 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
+
   <PropertyGroup>
     <AssemblyName>HotChocolate.AspNetCore.Authorization.Tests</AssemblyName>
     <RootNamespace>HotChocolate.AspNetCore.Authorization</RootNamespace>

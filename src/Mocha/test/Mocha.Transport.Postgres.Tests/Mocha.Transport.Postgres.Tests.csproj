@@ -1,4 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
   <PropertyGroup>
     <AssemblyName>Mocha.Transport.Postgres.Tests</AssemblyName>
     <RootNamespace>Mocha.Transport.Postgres.Tests</RootNamespace>

@@ -1,5 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
+
   <PropertyGroup>
     <RootNamespace>ChilliCream.Nitro.Adapters.Mcp.Packaging</RootNamespace>
     <PackageId>ChilliCream.Nitro.Adapters.Mcp.Packaging.Tests</PackageId>

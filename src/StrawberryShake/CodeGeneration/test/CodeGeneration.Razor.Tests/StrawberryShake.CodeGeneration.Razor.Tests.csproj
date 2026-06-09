@@ -1,5 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
+
   <PropertyGroup>
     <AssemblyName>StrawberryShake.CodeGeneration.Razor.Tests</AssemblyName>
     <RootNamespace>StrawberryShake.CodeGeneration.CSharp</RootNamespace>

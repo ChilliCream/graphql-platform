@@ -4,32 +4,6 @@
   <PropertyGroup>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <IsPackable>false</IsPackable>
-    <OutputType>Exe</OutputType>
-    <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Using Include="CookieCrumble" />
-    <Using Include="CookieCrumble.Xunit3" />
-    <Using Include="Xunit" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble.Analyzers\CookieCrumble.Analyzers.csproj" OutputItemType="Analyzer" />
-    <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble.Xunit3\CookieCrumble.Xunit3.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" />
-    <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" />
-    <PackageReference Include="xunit.v3" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <!-- Some integration-test snapshots are *.Client.cs files written alongside the test sources;
-         a failed assertion drops them under __snapshots__/__mismatch__/ where the default compile
-         glob would otherwise pick them up and break the next build with duplicate-type errors. -->
-    <Compile Remove="**\__mismatch__\**" />
-  </ItemGroup>
 
 </Project>

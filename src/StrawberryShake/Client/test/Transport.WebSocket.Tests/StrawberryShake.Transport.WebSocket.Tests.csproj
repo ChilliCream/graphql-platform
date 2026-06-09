@@ -1,5 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
+
   <PropertyGroup>
     <AssemblyName>StrawberryShake.Transport.WebSockets.Tests</AssemblyName>
     <RootNamespace>StrawberryShake.Transport.WebSockets</RootNamespace>
