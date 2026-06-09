@@ -38,11 +38,6 @@ export function Picture({
 }: PictureProps & Record<string, unknown>) {
   const opt = src ? getOptimizedImage(src) : null;
 
-  // Priority images are eager and above-the-fold, so they paint (often from
-  // cache) almost immediately. Showing the blur placeholder for them only
-  // causes a blur->sharp flicker on reload with no benefit, so skip it there.
-  const blur = priority ? null : opt;
-
   const imgEl = (
     <Image
       src={opt?.fallbackSrc ?? src}
@@ -60,9 +55,9 @@ export function Picture({
       // background through the transparent <img> on every reload. Lazy images
       // stay async so decoding never blocks scrolling.
       decoding={priority ? "sync" : "async"}
-      blurDataURL={blur?.blurDataURL}
-      blurWidth={blur?.blurWidth}
-      blurHeight={blur?.blurHeight}
+      blurDataURL={opt?.blurDataURL}
+      blurWidth={opt?.blurWidth}
+      blurHeight={opt?.blurHeight}
       {...rest}
     />
   );

@@ -29,11 +29,6 @@ const withMDX = createMDX({
   },
 });
 
-// Image optimization and git metadata are generated as explicit pre-build
-// steps in the release workflow (see `yarn optimize-images` /
-// `yarn generate-git-metadata`), not during `next build`. The app falls back
-// to unoptimized images and static git metadata when those artifacts are
-// absent (development and builds outside the workflow).
 const config = withMDX(nextConfig);
 
 export default config;

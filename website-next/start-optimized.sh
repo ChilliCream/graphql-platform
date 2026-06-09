@@ -17,9 +17,6 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-echo "==> Installing dependencies"
-yarn --immutable --network-timeout 100000
-
 echo "==> Optimizing images"
 yarn optimize-images
 
