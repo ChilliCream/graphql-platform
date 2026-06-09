@@ -91,9 +91,7 @@ public class CancellationTests
         {
             Task1 = true;
 
-            // Cancel while task1 is running so the executor deterministically skips
-            // task2, instead of racing a wall-clock timeout that can fire before
-            // task1 even starts under load.
+            // Cancel while task1 is running so the serial executor skips task2.
             if (Cancellation is not null)
             {
                 await Cancellation.CancelAsync();

@@ -25,7 +25,7 @@ public class DeferTests
             """,
             TestContext.Current.CancellationToken);
 
-        Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
+        Assert.IsType<ResponseStream>(result).MatchAggregatedMarkdownSnapshot();
     }
 
     [Fact]
@@ -50,7 +50,7 @@ public class DeferTests
             """,
             TestContext.Current.CancellationToken);
 
-        Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
+        Assert.IsType<ResponseStream>(result).MatchAggregatedMarkdownSnapshot();
     }
 
     [Fact]
@@ -72,7 +72,7 @@ public class DeferTests
             """,
             TestContext.Current.CancellationToken);
 
-        Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
+        Assert.IsType<ResponseStream>(result).MatchAggregatedMarkdownSnapshot();
     }
 
     [Fact]
@@ -149,7 +149,7 @@ public class DeferTests
             """,
             TestContext.Current.CancellationToken);
 
-        Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
+        Assert.IsType<ResponseStream>(result).MatchAggregatedMarkdownSnapshot();
     }
 
     [Fact]
@@ -176,7 +176,7 @@ public class DeferTests
             """,
             TestContext.Current.CancellationToken);
 
-        Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
+        Assert.IsType<ResponseStream>(result).MatchAggregatedMarkdownSnapshot();
     }
 
     [Fact]
@@ -200,7 +200,7 @@ public class DeferTests
             """,
             TestContext.Current.CancellationToken);
 
-        Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
+        Assert.IsType<ResponseStream>(result).MatchAggregatedMarkdownSnapshot();
     }
 
     [Fact]
@@ -286,7 +286,7 @@ public class DeferTests
                 .Build(),
             TestContext.Current.CancellationToken);
 
-        Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
+        Assert.IsType<ResponseStream>(result).MatchAggregatedMarkdownSnapshot();
     }
 
     [Fact]
@@ -349,7 +349,7 @@ public class DeferTests
                 .Build(),
             TestContext.Current.CancellationToken);
 
-        Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
+        Assert.IsType<ResponseStream>(result).MatchAggregatedMarkdownSnapshot();
     }
 
     [Fact]
@@ -382,7 +382,7 @@ public class DeferTests
                 .Build(),
             TestContext.Current.CancellationToken);
 
-        Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
+        Assert.IsType<ResponseStream>(result).MatchAggregatedMarkdownSnapshot();
     }
 
     private class StateRequestInterceptor : DefaultHttpRequestInterceptor

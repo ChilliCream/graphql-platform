@@ -38,6 +38,20 @@ public static class SnapshotExtensions
             postFix,
             formatter: SnapshotValueFormatters.ExecutionResultAggregated);
 
+    /// <summary>
+    /// Markdown counterpart of <see cref="MatchAggregatedSnapshot"/>: matches a markdown
+    /// snapshot of an execution result, merging an incrementally delivered
+    /// (<c>@defer</c>/<c>@stream</c>) response into its final aggregated form so the snapshot
+    /// does not depend on whether the transport delivered it incrementally or bundled.
+    /// </summary>
+    public static void MatchAggregatedMarkdownSnapshot(
+        this IExecutionResult? value,
+        object? postFix = null,
+        string? extension = null)
+        => Snapshot.Create(postFix?.ToString(), extension)
+            .Add(value, formatter: SnapshotValueFormatters.ExecutionResultAggregated)
+            .MatchMarkdown();
+
     public static Snapshot AddResult(
         this Snapshot snapshot,
         IExecutionResult result,

@@ -34,7 +34,7 @@ public class DeferReferenceTests
             """,
             TestContext.Current.CancellationToken);
 
-        Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
+        Assert.IsType<ResponseStream>(result).MatchAggregatedMarkdownSnapshot();
     }
 
     /// <summary>
@@ -232,7 +232,7 @@ public class DeferReferenceTests
             """,
             TestContext.Current.CancellationToken);
 
-        Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
+        Assert.IsType<ResponseStream>(result).MatchAggregatedMarkdownSnapshot();
     }
 
     // ========================================================================
@@ -430,7 +430,7 @@ public class DeferReferenceTests
             """,
             TestContext.Current.CancellationToken);
 
-        Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
+        Assert.IsType<ResponseStream>(result).MatchAggregatedMarkdownSnapshot();
     }
 
     /// <summary>
@@ -513,7 +513,7 @@ public class DeferReferenceTests
             """,
             TestContext.Current.CancellationToken);
 
-        Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
+        Assert.IsType<ResponseStream>(result).MatchAggregatedMarkdownSnapshot();
     }
 
     // ========================================================================
@@ -670,7 +670,7 @@ public class DeferReferenceTests
             """,
             TestContext.Current.CancellationToken);
 
-        Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
+        Assert.IsType<ResponseStream>(result).MatchAggregatedMarkdownSnapshot();
     }
 
     /// <summary>
