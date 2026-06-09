@@ -1,5 +1,5 @@
-import NextImage from "next/image";
 import type { ReactNode } from "react";
+import { Picture } from "@/src/design-system/Picture";
 
 interface ContentSectionProps {
   title: ReactNode;
@@ -20,7 +20,7 @@ function resolveImage(
   if (image) return image;
   if (!imageSrc) return undefined;
   return (
-    <NextImage
+    <Picture
       src={imageSrc}
       alt={imageAlt ?? ""}
       width={imageMaxWidth ?? 1200}
