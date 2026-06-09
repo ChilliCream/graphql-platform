@@ -101,6 +101,7 @@ public static partial class ActivityTestHelper
             _exported = exported;
         }
 
+        [JsonIgnore]
         public IReadOnlyList<Activity> Exported => _exported;
 
         [JsonProperty("source", Order = 0)]
