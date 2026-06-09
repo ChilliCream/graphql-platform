@@ -123,7 +123,9 @@ public abstract partial class MessagingTransport
     }
 
     private static void BindRouteToEndpoint(
-        IMessagingSetupContext context, InboundRoute route, ReceiveEndpoint endpoint)
+        IMessagingSetupContext context,
+        InboundRoute route,
+        ReceiveEndpoint endpoint)
     {
         if (route.Endpoint is null)
         {
@@ -139,11 +141,13 @@ public abstract partial class MessagingTransport
         // The route is bound to another endpoint, so fan it out by adding an equivalent route to
         // this endpoint. Skip when an equivalent route is already present so binding the same
         // message type or consumer across three or more endpoints stays idempotent.
+        // Conditions are not part of the equivalence check, so two routes for the same consumer
+        // and message type that differ only by condition will not both be fanned out.
         foreach (var existing in context.Router.GetInboundByEndpoint(endpoint))
         {
             if (existing.Consumer == route.Consumer
                 && existing.Kind == route.Kind
-                && Equals(existing.MessageType, route.MessageType))
+                && existing.MessageType == route.MessageType)
             {
                 return;
             }

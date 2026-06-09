@@ -32,7 +32,8 @@ public class ReceivesTests
         var routes = runtime.Router.InboundRoutes
             .Where(r => r.MessageType?.RuntimeType == typeof(OrderCreated))
             .ToList();
-        Assert.All(routes, r => Assert.Equal(endpoint, r.Endpoint));
+        var route = Assert.Single(routes);
+        Assert.Equal(endpoint, route.Endpoint);
     }
 
     [Fact]
