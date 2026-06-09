@@ -238,7 +238,8 @@ public abstract partial class MessagingTransport
         foreach (var route in router.OutboundRoutes)
         {
             // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
-            if (route.Endpoint is null)
+            if (route.Endpoint is null
+                && route.Destination is null)
             {
                 ConnectRoute(context, route);
             }
@@ -282,12 +283,13 @@ public abstract partial class MessagingTransport
                 outboundRoute.Initialize(context, outboundRouteConfiguration);
             }
 
+            // a route with an explicit destination is connected later through the
+            // destination loop, so we must not claim it here.
             // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
-            if (outboundRoute.Endpoint is null)
+            if (outboundRoute.Endpoint is null
+                && outboundRoute.Destination is null)
             {
-                var outboundEndpoint = ConnectRoute(context, outboundRoute);
-
-                outboundRoute.ConnectEndpoint(context, outboundEndpoint);
+                ConnectRoute(context, outboundRoute);
             }
         }
     }
