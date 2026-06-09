@@ -42,6 +42,7 @@ public class InterfaceFieldDescriptor
         var naming = context.Naming;
 
         Configuration.Member = member ?? throw new ArgumentNullException(nameof(member));
+        Configuration.DeclaringType = member.ReflectedType ?? member.DeclaringType;
         Configuration.Name = naming.GetMemberName(member, MemberKind.InterfaceField);
         Configuration.Description = naming.GetMemberDescription(member, MemberKind.InterfaceField);
         Configuration.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
@@ -97,6 +98,9 @@ public class InterfaceFieldDescriptor
                 _parameterInfos,
                 definition.GetParameterExpressionBuilders(),
                 IsBatchResolver());
+
+            FieldDescriptorUtilities.DiscoverParentRequirements(_parameterInfos, Configuration);
+
             _argumentsInitialized = true;
         }
     }
@@ -250,6 +254,7 @@ public class InterfaceFieldDescriptor
 
             Configuration.ResolverType = resolverType;
             Configuration.ResolverMember = propertyOrMethod;
+            Configuration.DeclaringType = propertyOrMethod.ReflectedType ?? propertyOrMethod.DeclaringType;
             Configuration.Resolver = null;
             Configuration.ResultType = propertyOrMethod.GetReturnType();
 
@@ -311,6 +316,7 @@ public class InterfaceFieldDescriptor
             TypeContext.Output);
         Configuration.ResolverType = resolverType;
         Configuration.ResolverMember = propertyOrMethod;
+        Configuration.DeclaringType = propertyOrMethod.ReflectedType ?? propertyOrMethod.DeclaringType;
         Configuration.Resolver = null;
         Configuration.ResultType = elementType;
 
@@ -347,6 +353,21 @@ public class InterfaceFieldDescriptor
         params ArgumentNode[] arguments)
     {
         base.Directive(name, arguments);
+        return this;
+    }
+
+    public IInterfaceFieldDescriptor ParentRequires<TParent>(Expression<Func<TParent, object>> selector)
+        => ParentRequires<TParent>(ObjectFieldDescriptor.ExpressionSelectionSetFormatter.Format(selector));
+
+    public IInterfaceFieldDescriptor ParentRequires<TParent>(string? requires)
+    {
+        Configuration.SetFieldRequirements(requires, typeof(TParent));
+        return this;
+    }
+
+    public IInterfaceFieldDescriptor ParentRequires(string? requires)
+    {
+        Configuration.SetFieldRequirements(requires, Configuration.SourceType);
         return this;
     }
 

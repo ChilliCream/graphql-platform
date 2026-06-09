@@ -5,6 +5,7 @@ using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Text.Json;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Relay;
 
 namespace HotChocolate.Types;
@@ -250,5 +251,118 @@ public sealed class PrefixTypeNameAttribute(string prefix) : ObjectTypeDescripto
         descriptor
             .Extend()
             .OnBeforeCreate((_, cfg) => cfg.Name = $"{capturedPrefix}_{cfg.Name}");
+    }
+}
+
+public class DeclaringTypeProbe
+{
+    public required string Id { get; set; }
+}
+
+[ObjectType<DeclaringTypeProbe>]
+[TagOwnFields]
+public static partial class DeclaringTypeProbeTypeA
+{
+    public static string FromPartialA() => "a";
+}
+
+[ObjectType<DeclaringTypeProbe>]
+public static partial class DeclaringTypeProbeTypeB
+{
+    public static string FromPartialB() => "b";
+}
+
+// Tags only the fields that were declared on the partial this attribute sits on.
+// The attribute provider (the type passed to OnConfigure) is the partial itself,
+// so the invariant field.DeclaringType == attributeProvider selects exactly the
+// fields this partial contributed to the merged object type configuration.
+public sealed class TagOwnFieldsAttribute : ObjectTypeDescriptorAttribute
+{
+    protected override void OnConfigure(
+        IDescriptorContext context,
+        IObjectTypeDescriptor descriptor,
+        Type? type)
+    {
+        if (type is null)
+        {
+            return;
+        }
+
+        var attributeProvider = type;
+        descriptor
+            .Extend()
+            .OnBeforeCompletion((_, cfg) =>
+            {
+                if (cfg is not ObjectTypeConfiguration objectConfig)
+                {
+                    return;
+                }
+
+                foreach (var field in objectConfig.Fields)
+                {
+                    if (field.DeclaringType == attributeProvider)
+                    {
+                        field.Description = "tagged";
+                    }
+                }
+            });
+    }
+}
+
+public class PrefixOwnFieldsProbe
+{
+    public required string Id { get; set; }
+}
+
+[ObjectType<PrefixOwnFieldsProbe>]
+[PrefixOwnFields("a_")]
+public static partial class PrefixOwnFieldsProbeTypeA
+{
+    public static string FromPartialA() => "a";
+}
+
+[ObjectType<PrefixOwnFieldsProbe>]
+public static partial class PrefixOwnFieldsProbeTypeB
+{
+    public static string FromPartialB() => "b";
+}
+
+// Renames only the fields that were declared on the partial this attribute sits on.
+// The attribute provider (the type passed to OnConfigure) is the partial itself,
+// so the invariant field.DeclaringType == attributeProvider selects exactly the
+// fields this partial contributed to the merged object type configuration.
+public sealed class PrefixOwnFieldsAttribute(string prefix) : ObjectTypeDescriptorAttribute
+{
+    public string Prefix { get; } = prefix;
+
+    protected override void OnConfigure(
+        IDescriptorContext context,
+        IObjectTypeDescriptor descriptor,
+        Type? type)
+    {
+        if (type is null)
+        {
+            return;
+        }
+
+        var attributeProvider = type;
+        var capturedPrefix = Prefix;
+        descriptor
+            .Extend()
+            .OnBeforeNaming((_, cfg) =>
+            {
+                if (cfg is not ObjectTypeConfiguration objectConfig)
+                {
+                    return;
+                }
+
+                foreach (var field in objectConfig.Fields)
+                {
+                    if (field.DeclaringType == attributeProvider)
+                    {
+                        field.Name = capturedPrefix + field.Name;
+                    }
+                }
+            });
     }
 }

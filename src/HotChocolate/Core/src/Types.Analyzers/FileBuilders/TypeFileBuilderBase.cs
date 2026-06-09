@@ -334,6 +334,8 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                 resolver.ReturnType.ToClassNonNullableFullyQualifiedWithNullRefQualifier());
         }
 
+        Writer.WriteIndentedLine("configuration.DeclaringType = context.ThisType;");
+
         WriteFieldFlags(resolver);
 
         if (resolver.Kind is ResolverKind.ConnectionResolver)

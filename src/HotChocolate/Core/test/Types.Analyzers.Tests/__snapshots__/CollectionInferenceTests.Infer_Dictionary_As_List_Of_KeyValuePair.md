@@ -86,6 +86,7 @@ namespace TestNamespace
                         global::HotChocolate.Types.Descriptors.TypeReference.Create(typeInspector.GetType(typeof(global::System.Collections.Generic.KeyValuePair<int, string>), [false, false, true]), HotChocolate.Types.TypeContext.Output),
                         new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.ListTypeNode(new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__System_Collections_Generic_KeyValuePairOfintAndstring")))));
                     configuration.ResultType = typeof(global::System.Collections.Generic.Dictionary<int, string?>);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
 

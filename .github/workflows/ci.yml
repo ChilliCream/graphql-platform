@@ -338,7 +338,7 @@ jobs:
           show-progress: false
 
       - name: Validate Client
-        uses: ChilliCream/nitro-client-validate@30ce13815d90dad9ca50a96e5746a4e5abb11e8f # v16.0.1-p.5
+        uses: ChilliCream/nitro-client-validate@e9856650fe21377cd2a7f0c82002cf121dbe9a30 # v16.0.13
         with:
           client-id: ${{ secrets.NITRO_API_CLIENT_ID }}
           operations-file: src/Nitro/Common/src/ChilliCream.Nitro.Client/persisted/operations.json

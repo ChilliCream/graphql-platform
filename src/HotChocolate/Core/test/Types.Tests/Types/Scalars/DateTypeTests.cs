@@ -278,6 +278,21 @@ public class DateTypeTests
         Assert.IsType<DateOnly>(result);
     }
 
+    [Fact]
+    public void DateType_Relaxed_Format_Check_With_Utc_Z_Suffix()
+    {
+        // arrange
+        const string s = "2020-12-12T00:00:00.000Z";
+
+        // act
+        var type = new DateType(disableFormatCheck: true);
+        var inputValue = JsonDocument.Parse($"\"{s}\"").RootElement;
+        var result = type.CoerceInputValue(inputValue, null!);
+
+        // assert
+        Assert.Equal(new DateOnly(2020, 12, 12), Assert.IsType<DateOnly>(result));
+    }
+
     public class Query
     {
         [GraphQLType(typeof(DateType))]

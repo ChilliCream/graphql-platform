@@ -24,6 +24,7 @@ const products: { path: string; title: string }[] = [
   { path: "hotchocolate", title: "Hot Chocolate" },
   { path: "strawberryshake", title: "Strawberry Shake" },
   { path: "mocha", title: "Mocha" },
+  { path: "skillz", title: "Skillz" },
 ];
 
 const basicPages: { path: string; title: string }[] = [

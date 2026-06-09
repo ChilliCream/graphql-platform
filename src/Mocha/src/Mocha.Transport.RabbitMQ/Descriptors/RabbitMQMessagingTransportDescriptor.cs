@@ -202,17 +202,8 @@ public sealed class RabbitMQMessagingTransportDescriptor
     /// <inheritdoc />
     public IRabbitMQBindingDescriptor DeclareBinding(string exchange, string queue)
     {
-        var binding = _bindings.FirstOrDefault(b =>
-            b.Extend().Configuration.Source.EqualsOrdinal(exchange)
-            && b.Extend().Configuration.Destination.EqualsOrdinal(queue)
-        );
-
-        if (binding is null)
-        {
-            binding = RabbitMQBindingDescriptor.New(Context, exchange, queue);
-            _bindings.Add(binding);
-        }
-
+        var binding = RabbitMQBindingDescriptor.New(Context, exchange, queue);
+        _bindings.Add(binding);
         return binding;
     }
 

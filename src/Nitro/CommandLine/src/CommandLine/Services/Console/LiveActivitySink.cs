@@ -62,7 +62,13 @@ internal sealed class LiveActivitySink : IActivitySink
         await _console
             .Live(_tree)
             .AutoClear(true)
-            .Overflow(VerticalOverflow.Visible)
+            // Crop the live region to the viewport. With VerticalOverflow.Visible a tree
+            // taller than the terminal scrolls its top off-screen, which AutoClear cannot
+            // erase, leaving the live render in scrollback in addition to the static
+            // re-emit below (a duplicated report). Cropping keeps the live region within
+            // the viewport so AutoClear always clears it; the full tree is still shown by
+            // the static re-emit.
+            .Overflow(VerticalOverflow.Crop)
             .StartAsync(async ctx =>
             {
                 while (await _timer.WaitForNextTickAsync())
