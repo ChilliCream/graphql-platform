@@ -13,7 +13,7 @@ public static partial class ActivityTestHelper
     [GeneratedRegex(@"lambda_method\d+", RegexOptions.CultureInvariant)]
     private static partial Regex LambdaMethodRegex();
 
-    public static IDisposable CaptureActivities(out object activities)
+    public static IDisposable CaptureActivities(out Capture activities)
     {
         var exported = new List<Activity>();
 
@@ -90,7 +90,7 @@ public static partial class ActivityTestHelper
         }
     }
 
-    private sealed class Capture : IDisposable
+    public sealed class Capture : IDisposable
     {
         private readonly TracerProvider _tracerProvider;
         private readonly List<Activity> _exported;
@@ -100,6 +100,8 @@ public static partial class ActivityTestHelper
             _tracerProvider = tracerProvider;
             _exported = exported;
         }
+
+        public IReadOnlyList<Activity> Exported => _exported;
 
         [JsonProperty("source", Order = 0)]
         public OrderedDictionary<string, object?> Source

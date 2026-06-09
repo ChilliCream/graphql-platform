@@ -254,6 +254,71 @@ public partial class ActivityExecutionDiagnosticListenerTests
     }
 
     [Fact]
+    public async Task RequestSpanDisplayName_Should_BeOperationType_When_OperationNameInSpanNameDisabled()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange & act
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddInstrumentation(o => o.Scopes = ActivityScopes.All)
+                .AddQueryType<SimpleQuery>()
+                .ExecuteRequestAsync("query GetHeroName { sayHello }");
+
+            // assert
+            var requestSpan = activities.Exported
+                .Single(a => a.OperationName == "GraphQL Operation");
+            Assert.Equal("query", requestSpan.DisplayName);
+        }
+    }
+
+    [Fact]
+    public async Task RequestSpanDisplayName_Should_IncludeOperationName_When_OperationNameInSpanNameEnabledAndNamed()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange & act
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddInstrumentation(o =>
+                {
+                    o.Scopes = ActivityScopes.All;
+                    o.IncludeOperationNameInSpanName = true;
+                })
+                .AddQueryType<SimpleQuery>()
+                .ExecuteRequestAsync("query GetHeroName { sayHello }");
+
+            // assert
+            var requestSpan = activities.Exported
+                .Single(a => a.OperationName == "GraphQL Operation");
+            Assert.Equal("query GetHeroName", requestSpan.DisplayName);
+        }
+    }
+
+    [Fact]
+    public async Task RequestSpanDisplayName_Should_FallBackToOperationType_When_OperationNameInSpanNameEnabledAndAnonymous()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange & act
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddInstrumentation(o =>
+                {
+                    o.Scopes = ActivityScopes.All;
+                    o.IncludeOperationNameInSpanName = true;
+                })
+                .AddQueryType<SimpleQuery>()
+                .ExecuteRequestAsync("{ sayHello }");
+
+            // assert
+            var requestSpan = activities.Exported
+                .Single(a => a.OperationName == "GraphQL Operation");
+            Assert.Equal("query", requestSpan.DisplayName);
+        }
+    }
+
+    [Fact]
     public async Task CustomScopes_OnlyValidateAndCompile_LimitsSpans()
     {
         using (CaptureActivities(out var activities))

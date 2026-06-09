@@ -478,6 +478,111 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
     }
 
     [Fact]
+    public async Task RequestSpanDisplayName_Should_BeOperationType_When_OperationNameInSpanNameDisabled()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<Query>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1)
+            ],
+            configureGatewayBuilder: b => b.AddInstrumentation(o =>
+                o.Scopes = FusionActivityScopes.All));
+
+            var executor = await gateway.Services.GetRequestExecutorAsync();
+
+            var request = OperationRequestBuilder.New()
+                .SetDocument("query GetHeroName { sayHello }")
+                .Build();
+
+            // act
+            await executor.ExecuteAsync(request);
+
+            // assert
+            var requestSpan = activities.Exported
+                .Single(a => a.OperationName == "GraphQL Operation");
+            Assert.Equal("query", requestSpan.DisplayName);
+        }
+    }
+
+    [Fact]
+    public async Task RequestSpanDisplayName_Should_IncludeOperationName_When_OperationNameInSpanNameEnabledAndNamed()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<Query>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1)
+            ],
+            configureGatewayBuilder: b => b.AddInstrumentation(o =>
+            {
+                o.Scopes = FusionActivityScopes.All;
+                o.IncludeOperationNameInSpanName = true;
+            }));
+
+            var executor = await gateway.Services.GetRequestExecutorAsync();
+
+            var request = OperationRequestBuilder.New()
+                .SetDocument("query GetHeroName { sayHello }")
+                .Build();
+
+            // act
+            await executor.ExecuteAsync(request);
+
+            // assert
+            var requestSpan = activities.Exported
+                .Single(a => a.OperationName == "GraphQL Operation");
+            Assert.Equal("query GetHeroName", requestSpan.DisplayName);
+        }
+    }
+
+    [Fact]
+    public async Task RequestSpanDisplayName_Should_FallBackToOperationType_When_OperationNameInSpanNameEnabledAndAnonymous()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<Query>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1)
+            ],
+            configureGatewayBuilder: b => b.AddInstrumentation(o =>
+            {
+                o.Scopes = FusionActivityScopes.All;
+                o.IncludeOperationNameInSpanName = true;
+            }));
+
+            var executor = await gateway.Services.GetRequestExecutorAsync();
+
+            var request = OperationRequestBuilder.New()
+                .SetDocument("{ sayHello }")
+                .Build();
+
+            // act
+            await executor.ExecuteAsync(request);
+
+            // assert
+            var requestSpan = activities.Exported
+                .Single(a => a.OperationName == "GraphQL Operation");
+            Assert.Equal("query", requestSpan.DisplayName);
+        }
+    }
+
+    [Fact]
     public async Task CustomScopes_OnlyValidateAndPlan_LimitsSpans()
     {
         using (CaptureActivities(out var activities))
