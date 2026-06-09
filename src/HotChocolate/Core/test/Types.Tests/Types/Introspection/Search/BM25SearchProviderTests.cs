@@ -253,6 +253,107 @@ public class BM25SearchProviderTests
         Assert.Throws<ArgumentNullException>(() => new BM25SearchProvider(null!));
     }
 
+    [Fact]
+    public async Task GetPathsToRootAsync_Should_ReturnPath_When_TypeIsReachableOnlyThroughInterface()
+    {
+        // arrange
+        // TV implements Product; only Query.products (returning [Product]) references it.
+        var schema = CreateAbstractTypeSchema();
+        var provider = new BM25SearchProvider(schema);
+
+        // act
+        var paths = await provider.GetPathsToRootAsync(
+            new SchemaCoordinate("TV", "brandName"));
+
+        // assert
+        Assert.NotEmpty(paths);
+        Assert.Equal(
+            new[] { new SchemaCoordinate("Query", "products"), new SchemaCoordinate("TV", "brandName") },
+            paths[0].ToArray());
+    }
+
+    [Fact]
+    public async Task GetPathsToRootAsync_Should_ReturnPath_When_TypeIsReachableOnlyThroughUnion()
+    {
+        // arrange
+        // Photo is a SearchResult union member; only Query.search references the union.
+        var schema = CreateAbstractTypeSchema();
+        var provider = new BM25SearchProvider(schema);
+
+        // act
+        var paths = await provider.GetPathsToRootAsync(
+            new SchemaCoordinate("Photo", "url"));
+
+        // assert
+        Assert.NotEmpty(paths);
+        Assert.Equal(
+            new[] { new SchemaCoordinate("Query", "search"), new SchemaCoordinate("Photo", "url") },
+            paths[0].ToArray());
+    }
+
+    private static Schema CreateAbstractTypeSchema()
+    {
+        return SchemaBuilder.New()
+            .AddQueryType(d =>
+            {
+                d.Name("Query");
+                d.Field("products")
+                    .Type<ListType<ProductInterfaceType>>()
+                    .Resolve(Array.Empty<object>());
+                d.Field("search")
+                    .Type<SearchResultType>()
+                    .Resolve(new object());
+            })
+            .AddType<ProductInterfaceType>()
+            .AddType<TVType>()
+            .AddType<SearchResultType>()
+            .AddType<PhotoType>()
+            .ModifyOptions(o =>
+            {
+                o.StrictValidation = false;
+                o.EnableSemanticIntrospection = false;
+            })
+            .Create();
+    }
+
+    private sealed class ProductInterfaceType : InterfaceType
+    {
+        protected override void Configure(IInterfaceTypeDescriptor descriptor)
+        {
+            descriptor.Name("Product");
+            descriptor.Field("id").Type<NonNullType<IdType>>();
+        }
+    }
+
+    private sealed class TVType : ObjectType
+    {
+        protected override void Configure(IObjectTypeDescriptor descriptor)
+        {
+            descriptor.Name("TV");
+            descriptor.Implements<ProductInterfaceType>();
+            descriptor.Field("id").Type<NonNullType<IdType>>().Resolve("1");
+            descriptor.Field("brandName").Type<StringType>().Resolve("Acme");
+        }
+    }
+
+    private sealed class PhotoType : ObjectType
+    {
+        protected override void Configure(IObjectTypeDescriptor descriptor)
+        {
+            descriptor.Name("Photo");
+            descriptor.Field("url").Type<StringType>().Resolve("https://example.com");
+        }
+    }
+
+    private sealed class SearchResultType : UnionType
+    {
+        protected override void Configure(IUnionTypeDescriptor descriptor)
+        {
+            descriptor.Name("SearchResult");
+            descriptor.Type<PhotoType>();
+        }
+    }
+
     private static Schema CreateTestSchema()
     {
         return SchemaBuilder.New()
