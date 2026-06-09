@@ -414,6 +414,10 @@ public sealed class SemanticIntrospectionTests
                       [
                         "Query.userByEmail",
                         "User.name"
+                      ],
+                      [
+                        "Query.users",
+                        "User.name"
                       ]
                     ]
                   },
@@ -1331,6 +1335,10 @@ public sealed class SemanticIntrospectionTests
                       [
                         "Query.userByEmail",
                         "User.email"
+                      ],
+                      [
+                        "Query.users",
+                        "User.email"
                       ]
                     ]
                   }
@@ -1408,6 +1416,10 @@ public sealed class SemanticIntrospectionTests
                       [
                         "Query.productSearch",
                         "Product.price"
+                      ],
+                      [
+                        "Query.orderById",
+                        "Order.total"
                       ]
                     ]
                   }
@@ -1539,6 +1551,45 @@ public sealed class SemanticIntrospectionTests
             """);
     }
 
+    [Fact]
+    public async Task PathsToRoot_Should_TraverseInterface_When_TypeIsReachableOnlyViaInterface()
+    {
+        // arrange
+        // TV implements Product; only Query.products (returning [Product]) references it.
+        var executor = CreateAbstractTypeSchema().MakeExecutable();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                __search(query: "brandName", first: 1) {
+                    coordinate
+                    pathsToRoot
+                }
+            }
+            """);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "__search": [
+                  {
+                    "coordinate": "TV.brandName",
+                    "pathsToRoot": [
+                      [
+                        "Query.products",
+                        "TV.brandName"
+                      ]
+                    ]
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
     private static Schema CreateSchema()
     {
         return SchemaBuilder.New()
@@ -1547,6 +1598,23 @@ public sealed class SemanticIntrospectionTests
             .AddType<ProductType>()
             .AddType<OrderType>()
             .AddType<OrderStatusType>()
+            .Use(next => next)
+            .Create();
+    }
+
+    private static Schema CreateAbstractTypeSchema()
+    {
+        return SchemaBuilder.New()
+            .AddQueryType(d =>
+            {
+                d.Name(OperationTypeNames.Query);
+                d.Field("products")
+                    .Description("List all products")
+                    .Type<ListType<ProductInterfaceType>>()
+                    .Resolve(Array.Empty<object>());
+            })
+            .AddType<ProductInterfaceType>()
+            .AddType<TVType>()
             .Use(next => next)
             .Create();
     }
@@ -1640,6 +1708,31 @@ public sealed class SemanticIntrospectionTests
             descriptor.Field(p => p.Category)
                 .Description("The product category")
                 .Type<NonNullType<StringType>>();
+        }
+    }
+
+    private sealed class ProductInterfaceType : InterfaceType
+    {
+        protected override void Configure(IInterfaceTypeDescriptor descriptor)
+        {
+            descriptor.Name("Product");
+            descriptor.Description("A product available for purchase");
+            descriptor.Field("id").Type<NonNullType<IdType>>();
+        }
+    }
+
+    private sealed class TVType : ObjectType
+    {
+        protected override void Configure(IObjectTypeDescriptor descriptor)
+        {
+            descriptor.Name("TV");
+            descriptor.Description("A television product");
+            descriptor.Implements<ProductInterfaceType>();
+            descriptor.Field("id").Type<NonNullType<IdType>>().Resolve("1");
+            descriptor.Field("brandName")
+                .Description("The manufacturer brand name")
+                .Type<StringType>()
+                .Resolve("Acme");
         }
     }
 

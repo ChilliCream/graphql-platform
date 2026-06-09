@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { Picture } from "@/src/design-system/Picture";
 
 import { ContentSection } from "@/src/components/ContentSection";
 import { NextStepsSection } from "@/src/components/NextStepsSection";
@@ -19,7 +19,7 @@ export default function AnalyticsPage() {
         </SolidButton>
       </div>
       <div className="mt-20 flex justify-center">
-        <Image
+        <Picture
           src="/images/analytics/banner.png"
           alt="Instant Insights. Enhanced Performance."
           width={1200}
