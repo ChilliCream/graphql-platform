@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Analytics } from "@/src/components/Analytics";
 import { AnalyticsScripts } from "@/src/components/AnalyticsScripts";
+import { EnableSmoothScroll } from "@/src/components/EnableSmoothScroll";
 import Footer from "@/src/components/Footer";
 import Header from "@/src/components/Header";
 import { SITE_URL } from "@/src/helpers/siteUrl";
@@ -65,6 +66,7 @@ export default function RootLayout({
       </head>
       <body>
         <AnalyticsScripts />
+        <EnableSmoothScroll />
         <Header />
         <main>{children}</main>
         <Footer />
