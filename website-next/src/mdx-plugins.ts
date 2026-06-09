@@ -90,6 +90,24 @@ const mermaidOptions: RehypeMermaidOptions = {
         ry: 12px !important;
       }
 
+      /* Sequence diagram actor boxes share the soft-card look of flowchart
+         nodes (base theme defaults them to a bright cream fill). */
+      .actor,
+      rect.actor,
+      .actor-top,
+      .actor-bottom {
+        fill: var(--color-cc-card-bg) !important;
+        stroke: var(--color-cc-accent) !important;
+        stroke-width: 1.25px !important;
+        rx: 12px !important;
+        ry: 12px !important;
+      }
+      text.actor,
+      .actor tspan {
+        fill: var(--color-cc-ink) !important;
+        stroke: none !important;
+      }
+
       /* Edge labels sit on the page background so lines don't bleed through.
          Mermaid wraps the label text in a foreignObject <div>, so cover that
          (and any background rect) to kill the base theme's pink default. */

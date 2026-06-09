@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { SolidButton } from "@/src/design-system/Button";
 
 const SUBJECTS = [
   "Schedule a Demo",
@@ -173,13 +174,9 @@ export function ContactForm() {
           className={`${inputClasses} border-cc-card-border focus:border-fuchsia-500`}
         />
       </div>
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="inline-flex items-center self-start rounded-full bg-cc-ink px-7 py-3 text-sm font-medium text-[#0c1322] transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
-      >
+      <SolidButton type="submit" disabled={isSubmitting} className="self-start">
         {isSubmitting ? "Sending..." : "Send"}
-      </button>
+      </SolidButton>
     </form>
   );
 }

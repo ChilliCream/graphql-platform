@@ -1,9 +1,9 @@
 import path from "node:path";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { DocPageMeta } from "@/src/design-system/DocPageMeta";
-import { EditOnGitHub } from "@/src/design-system/EditOnGitHub";
-import { TableOfContents } from "@/src/design-system/TableOfContents";
+import { DocPageMeta } from "@/src/components/DocPageMeta";
+import { EditOnGitHub } from "@/src/components/EditOnGitHub";
+import { TableOfContents } from "@/src/components/TableOfContents";
 import { Typography } from "@/src/design-system/Typography";
 import { NotFoundContent } from "@/src/components/NotFoundContent";
 import { compileDoc } from "@/src/helpers/compileDoc";

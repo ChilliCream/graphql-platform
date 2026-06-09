@@ -93,7 +93,14 @@ export function SidebarDrawer({ children }: { children: ReactNode }) {
       </div>
 
       <aside className="hidden lg:block" aria-hidden="true" />
-      <div className="fixed bottom-0 left-0 top-18 z-10 hidden w-80 flex-col border-r border-cc-card-border lg:flex">
+      {/* Opaque docs surface so the full-width footer (rendered in the root
+          layout, outside the docs grid) is masked when it scrolls under this
+          fixed rail instead of bleeding through. `cc-content-dark`'s starfield
+          is viewport-fixed, so it stays seamless with the grid behind it.
+          `z-30` + `-mt-px` lift the rail to (and 1px above) the header's bottom
+          edge so it covers the header's full-width `border-b` across the sidebar
+          column: the separator stops at the content, not the rail. */}
+      <div className="cc-content-dark fixed bottom-0 left-0 top-18 z-30 -mt-px hidden w-80 flex-col border-r border-cc-card-border lg:flex">
         {children}
       </div>
     </>

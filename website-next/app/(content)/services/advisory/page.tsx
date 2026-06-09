@@ -1,4 +1,5 @@
 import { PageHero } from "@/src/components/PageHero";
+import { SolidButton } from "@/src/design-system/Button";
 
 interface InquiryPlan {
   title: string;
@@ -61,12 +62,9 @@ export default function AdvisoryPage() {
                   </li>
                 ))}
               </ul>
-              <a
-                href={plan.ctaLink}
-                className="mt-8 inline-flex items-center justify-center rounded-md bg-cc-ink px-6 py-2.5 text-sm font-medium text-[#0c1322] no-underline transition-colors hover:bg-white"
-              >
+              <SolidButton href={plan.ctaLink} className="mt-8">
                 {plan.ctaText}
-              </a>
+              </SolidButton>
             </div>
           ))}
         </div>
