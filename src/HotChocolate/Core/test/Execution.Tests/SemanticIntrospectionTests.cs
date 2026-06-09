@@ -1567,7 +1567,8 @@ public sealed class SemanticIntrospectionTests
                     pathsToRoot
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(

@@ -324,7 +324,8 @@ public class BM25SearchProviderTests
 
         // act
         var paths = await provider.GetPathsToRootAsync(
-            new SchemaCoordinate("TV", "brandName"));
+            new SchemaCoordinate("TV", "brandName"),
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotEmpty(paths);
@@ -343,7 +344,8 @@ public class BM25SearchProviderTests
 
         // act
         var paths = await provider.GetPathsToRootAsync(
-            new SchemaCoordinate("Photo", "url"));
+            new SchemaCoordinate("Photo", "url"),
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotEmpty(paths);
@@ -362,7 +364,8 @@ public class BM25SearchProviderTests
 
         // act
         var paths = await provider.GetPathsToRootAsync(
-            new SchemaCoordinate("TV", "brandName"));
+            new SchemaCoordinate("TV", "brandName"),
+            TestContext.Current.CancellationToken);
 
         // assert
         // A root reference must not be deduped, so both root fields yield a path.
