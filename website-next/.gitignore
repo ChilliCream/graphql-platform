@@ -17,6 +17,9 @@
 /.next/
 /out/
 
+# build-time image optimization output
+/public/_optimized/
+
 # storybook
 /storybook-static/
 

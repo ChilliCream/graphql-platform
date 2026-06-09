@@ -36,7 +36,7 @@ export function Image({
     <img
       ref={ref}
       alt={alt ?? ""}
-      className={`my-6 max-w-full rounded-md ${className}`.trim()}
+      className={className}
       {...props}
       onError={(event) => {
         onError?.(event);

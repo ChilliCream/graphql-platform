@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Picture } from "@/src/design-system/Picture";
 import { formatDate } from "@/src/helpers/formatDate";
 
 export type BlogTeaserData = {
@@ -25,12 +26,10 @@ export function BlogTeaser({ post }: BlogTeaserProps) {
       >
         <div className="aspect-video w-full overflow-hidden border-b border-cc-ink-faint bg-cc-white/4">
           {post.featuredImage ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Picture
               src={post.featuredImage}
               alt=""
-              loading="lazy"
-              decoding="async"
+              sizes="(max-width: 768px) 100vw, 400px"
               className="h-full w-full object-cover"
             />
           ) : null}

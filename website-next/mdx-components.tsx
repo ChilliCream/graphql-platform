@@ -6,7 +6,7 @@ import { Divider } from "@/src/design-system/Divider";
 import { InlineCode } from "@/src/design-system/InlineCode";
 import { Link } from "@/src/design-system/Link";
 import { List, ListItem } from "@/src/design-system/List";
-import { Image } from "@/src/design-system/Image";
+import { Picture } from "@/src/design-system/Picture";
 import { Quote } from "@/src/design-system/Quote";
 import { Tab, Tabs } from "@/src/design-system/Tabs";
 import { ApiChoiceTabs } from "@/src/design-system/ApiChoiceTabs";
@@ -69,7 +69,13 @@ const components: MDXComponents = {
   th: TableHeaderCell,
   td: TableCell,
 
-  img: Image,
+  img: (props) => (
+    <Picture
+      {...props}
+      className={`my-6 max-w-full rounded-md ${props.className ?? ""}`.trim()}
+      sizes="(max-width: 768px) 100vw, 1024px"
+    />
+  ),
 
   CodeStep,
   Tabs,

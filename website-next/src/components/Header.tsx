@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import { Picture } from "@/src/design-system/Picture";
 import type { ComponentType, ReactNode, SVGProps } from "react";
 
 import {
@@ -441,7 +441,7 @@ function LatestBlogPanel({ post }: { post: BlogPostSummary }) {
       >
         {post.featuredImage && (
           <div className="overflow-hidden rounded-md border border-cc-white/10">
-            <Image
+            <Picture
               src={post.featuredImage}
               alt={post.title}
               width={320}
