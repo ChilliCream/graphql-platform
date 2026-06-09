@@ -818,9 +818,15 @@ internal sealed class SourceSchemaMerger
         // The return type is computed from all field types together so that the result is
         // independent of source schema order. Pre-merge validation has already asserted that a
         // least restrictive type exists.
-        var hasLeastRestrictiveType = TypeMergeHelper.TryGetLeastRestrictiveType(
-            [.. fieldGroup.Select(i => (i.Field.Type, i.Schema))],
-            out var leastRestrictiveType);
+        var fieldTypes = new (IType Type, MutableSchemaDefinition Schema)[fieldGroup.Length];
+
+        for (var i = 0; i < fieldGroup.Length; i++)
+        {
+            fieldTypes[i] = (fieldGroup[i].Field.Type, fieldGroup[i].Schema);
+        }
+
+        var hasLeastRestrictiveType =
+            TypeMergeHelper.TryGetLeastRestrictiveType(fieldTypes, out var leastRestrictiveType);
         Assert(hasLeastRestrictiveType);
         var fieldType = leastRestrictiveType!.ExpectOutputType();
 

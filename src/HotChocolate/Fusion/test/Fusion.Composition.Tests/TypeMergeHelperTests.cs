@@ -204,6 +204,33 @@ public sealed class TypeMergeHelperTests
         Assert.Equal("Node", result!.NamedType().Name);
     }
 
+    // Two source schemas declare a composite type with the same name but a different kind (interface
+    // versus union), which cannot be unified.
+    [Fact]
+    public void TryGetLeastRestrictiveType_SameNameDifferentCompositeKind_Fails()
+    {
+        // arrange
+        var fields = OutputFieldTypes(
+            "thing",
+            """
+            type Query { thing: Thing }
+            interface Thing { id: ID }
+            type Foo implements Thing { id: ID }
+            """,
+            """
+            type Query { thing: Thing }
+            union Thing = Bar
+            type Bar { id: ID }
+            """);
+
+        // act
+        var success = TypeMergeHelper.TryGetLeastRestrictiveType(fields, out var result);
+
+        // assert
+        Assert.False(success);
+        Assert.Null(result);
+    }
+
     // When no declared type is a supertype of all the others, the fields are not mergeable.
     [Fact]
     public void TryGetLeastRestrictiveType_NoCommonSupertype_Fails()

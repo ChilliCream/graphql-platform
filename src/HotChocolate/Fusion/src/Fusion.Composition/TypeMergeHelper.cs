@@ -212,10 +212,10 @@ internal sealed class TypeMergeHelper
         ITypeDefinition type,
         Dictionary<string, HashSet<string>> possibleTypeNames)
     {
-        if (string.Equals(candidate.Name, type.Name, StringComparison.Ordinal)
-            && candidate.Kind == type.Kind)
+        if (string.Equals(candidate.Name, type.Name, StringComparison.Ordinal))
         {
-            return true;
+            // Same-name definitions are only mergeable when they share the same kind.
+            return candidate.Kind == type.Kind;
         }
 
         if (candidate.IsLeafType() || type.IsLeafType())

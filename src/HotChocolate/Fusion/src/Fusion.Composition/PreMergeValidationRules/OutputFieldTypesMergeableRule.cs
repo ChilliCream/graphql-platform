@@ -8,8 +8,8 @@ namespace HotChocolate.Fusion.PreMergeValidationRules;
 
 /// <summary>
 /// Fields on objects or interfaces that have the same name are considered semantically equivalent
-/// and mergeable when LeastRestrictiveType(fieldTypes) can select a return type for the composed
-/// field. This selection considers all field types together and must not depend on source schema order.
+/// and mergeable when <see cref="TypeMergeHelper.TryGetLeastRestrictiveType"/> can select a return type for the
+/// composed field. This selection considers all field types together and must not depend on source schema order.
 /// </summary>
 /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Output-Field-Types-Mergeable">
 /// Specification
