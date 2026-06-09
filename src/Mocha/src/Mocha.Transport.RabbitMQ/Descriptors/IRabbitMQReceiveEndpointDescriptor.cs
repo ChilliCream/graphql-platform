@@ -18,6 +18,12 @@ public interface IRabbitMQReceiveEndpointDescriptor : IReceiveEndpointDescriptor
     /// <inheritdoc cref="IReceiveEndpointDescriptor{TConfiguration}.Consumer{TConsumer}" />
     new IRabbitMQReceiveEndpointDescriptor Consumer<TConsumer>() where TConsumer : class, IConsumer;
 
+    /// <inheritdoc cref="IReceiveEndpointDescriptor{TConfiguration}.Receives{TMessage}" />
+    new IRabbitMQReceiveEndpointDescriptor Receives<TMessage>();
+
+    /// <inheritdoc cref="IReceiveEndpointDescriptor{TConfiguration}.Receives(Type)" />
+    new IRabbitMQReceiveEndpointDescriptor Receives(Type messageType);
+
     /// <inheritdoc cref="IReceiveEndpointDescriptor{TConfiguration}.Kind" />
     new IRabbitMQReceiveEndpointDescriptor Kind(ReceiveEndpointKind kind);
 

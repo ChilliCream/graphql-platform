@@ -18,6 +18,12 @@ public interface IPostgresReceiveEndpointDescriptor : IReceiveEndpointDescriptor
     /// <inheritdoc cref="IReceiveEndpointDescriptor{T}.Consumer{TConsumer}"/>
     new IPostgresReceiveEndpointDescriptor Consumer<TConsumer>() where TConsumer : class, IConsumer;
 
+    /// <inheritdoc cref="IReceiveEndpointDescriptor{T}.Receives{TMessage}"/>
+    new IPostgresReceiveEndpointDescriptor Receives<TMessage>();
+
+    /// <inheritdoc cref="IReceiveEndpointDescriptor{T}.Receives(Type)"/>
+    new IPostgresReceiveEndpointDescriptor Receives(Type messageType);
+
     /// <inheritdoc cref="IReceiveEndpointDescriptor{T}.Kind(ReceiveEndpointKind)"/>
     new IPostgresReceiveEndpointDescriptor Kind(ReceiveEndpointKind kind);
 
