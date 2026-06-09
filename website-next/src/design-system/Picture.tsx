@@ -50,6 +50,9 @@ export function Picture({
       loading={priority ? "eager" : "lazy"}
       fetchPriority={priority ? "high" : undefined}
       decoding="async"
+      blurDataURL={opt?.blurDataURL}
+      blurWidth={opt?.blurWidth}
+      blurHeight={opt?.blurHeight}
       {...rest}
     />
   );

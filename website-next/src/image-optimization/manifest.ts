@@ -9,6 +9,11 @@ export interface OptimizedImage {
   width: number;
   height: number;
   formats: Partial<Record<"avif" | "webp", OptimizedVariant[]>>;
+  /** Tiny base64 placeholder shown (blurred) until the full image loads. */
+  blurDataURL?: string;
+  /** Intrinsic dimensions of the blur placeholder image (for the blur SVG). */
+  blurWidth?: number;
+  blurHeight?: number;
 }
 
 let cache: Record<string, OptimizedImage> | null | undefined;

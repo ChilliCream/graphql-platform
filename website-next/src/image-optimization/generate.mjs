@@ -5,6 +5,23 @@ import sharp from "sharp";
 
 const IMAGE_RE = /\.(png|jpe?g|webp)$/i;
 const CONCURRENCY = 6;
+// Longest edge (px) of the tiny placeholder encoded into the blurDataURL.
+const BLUR_SIZE = 8;
+
+// Produce a tiny base64 placeholder (like next/image's blurDataURL): a small
+// webp downscale that the component renders blurred until the image loads.
+async function makeBlur(input) {
+  const buffer = await sharp(input)
+    .resize(BLUR_SIZE, BLUR_SIZE, { fit: "inside", withoutEnlargement: true })
+    .webp({ quality: 50 })
+    .toBuffer();
+  const meta = await sharp(buffer).metadata();
+  return {
+    blurDataURL: `data:image/webp;base64,${buffer.toString("base64")}`,
+    blurWidth: meta.width ?? BLUR_SIZE,
+    blurHeight: meta.height ?? BLUR_SIZE,
+  };
+}
 
 // Module-scope singleton guard: if optimizeImages runs twice in the same
 // process (e.g. the Next config is evaluated more than once), do the work once.
@@ -52,7 +69,11 @@ async function run(config) {
 
       const existing = manifest[url];
       if (existing && existing.hash === hash && allOutputsExist(existing, outputDir)) {
-        newManifest[url] = existing;
+        // Backfill the blur placeholder for manifests generated before blur
+        // support, without re-encoding the (unchanged) full-size variants.
+        newManifest[url] = existing.blurDataURL
+          ? existing
+          : { ...existing, ...(await makeBlur(bytes)) };
         cached++;
         return;
       }
@@ -85,6 +106,7 @@ async function run(config) {
         width: intrinsicW,
         height: intrinsicH,
         formats: formatsEntry,
+        ...(await makeBlur(bytes)),
       };
       encoded++;
     } catch (err) {
