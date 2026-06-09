@@ -58,7 +58,7 @@ export default function TrainingPage() {
               <ul className="mt-6 flex flex-1 flex-col gap-2 text-sm text-cc-ink">
                 {service.perks.map((perk) => (
                   <li key={perk} className="flex items-start gap-2">
-                    <span aria-hidden className="mt-1 text-fuchsia-400">
+                    <span aria-hidden className="mt-1 text-cc-accent">
                       ✓
                     </span>
                     <span>{perk}</span>

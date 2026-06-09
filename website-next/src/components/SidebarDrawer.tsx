@@ -30,6 +30,41 @@ export function SidebarDrawer({ children }: { children: ReactNode }) {
     return () => window.removeEventListener(SIDEBAR_OPEN_EVENT, handler);
   }, []);
 
+  // The docked sidebar and TOC rails are `fixed` so they stay pinned under the
+  // header while the article scrolls. They shrink to their content height, but a
+  // tall scrolling nav must still not cover the full-width footer (rendered in
+  // the root layout, outside the docs grid) once it scrolls into view. Expose
+  // how far the footer intrudes into the viewport as a CSS variable; both rails
+  // subtract it from their `max-height` so they cap at the footer's top edge.
+  useEffect(() => {
+    const root = document.documentElement;
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const footer = document.querySelector("footer");
+      const intrusion = footer
+        ? Math.max(0, window.innerHeight - footer.getBoundingClientRect().top)
+        : 0;
+      root.style.setProperty("--docs-rail-bottom", `${intrusion}px`);
+    };
+    const schedule = () => {
+      if (!frame) {
+        frame = requestAnimationFrame(update);
+      }
+    };
+    update();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      if (frame) {
+        cancelAnimationFrame(frame);
+      }
+      root.style.removeProperty("--docs-rail-bottom");
+    };
+  }, []);
+
   function handleContentClick(event: MouseEvent<HTMLDivElement>) {
     const target = event.target as HTMLElement;
     if (target.closest("a")) {
@@ -93,14 +128,14 @@ export function SidebarDrawer({ children }: { children: ReactNode }) {
       </div>
 
       <aside className="hidden lg:block" aria-hidden="true" />
-      {/* Opaque docs surface so the full-width footer (rendered in the root
-          layout, outside the docs grid) is masked when it scrolls under this
-          fixed rail instead of bleeding through. `cc-content-dark`'s starfield
-          is viewport-fixed, so it stays seamless with the grid behind it.
-          `z-30` + `-mt-px` lift the rail to (and 1px above) the header's bottom
-          edge so it covers the header's full-width `border-b` across the sidebar
-          column: the separator stops at the content, not the rail. */}
-      <div className="cc-content-dark fixed bottom-0 left-0 top-18 z-30 -mt-px hidden w-80 flex-col border-r border-cc-card-border lg:flex">
+      {/* Docked rail, fixed so it stays pinned under the header while the
+          article scrolls. It shrinks to its content height; `max-height` caps
+          it at the space down to the footer (`--docs-rail-bottom`, set above)
+          so a tall scrolling nav neither masks the footer nor wastes an empty
+          column. `z-30` + `-mt-px` lift the rail to (and 1px above) the header's
+          bottom edge so it covers the header's full-width `border-b` across the
+          sidebar column: the separator stops at the content, not the rail. */}
+      <div className="cc-content-dark fixed left-0 top-18 z-30 -mt-px hidden max-h-[calc(100vh-4.5rem-var(--docs-rail-bottom,0px))] w-80 flex-col border-r border-cc-card-border lg:flex">
         {children}
       </div>
     </>

@@ -55,7 +55,7 @@ export default function AdvisoryPage() {
               <ul className="mt-6 flex flex-1 flex-col gap-2 text-sm text-cc-ink">
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-start gap-2">
-                    <span aria-hidden className="mt-1 text-fuchsia-400">
+                    <span aria-hidden className="mt-1 text-cc-accent">
                       ✓
                     </span>
                     <span>{feature}</span>

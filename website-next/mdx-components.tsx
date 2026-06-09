@@ -62,7 +62,7 @@ const components: MDXComponents = {
   },
   pre: CodeBlock,
 
-  table: Table,
+  table: (props) => <Table alternating {...props} />,
   thead: TableHead,
   tbody: TableBody,
   tr: TableRow,

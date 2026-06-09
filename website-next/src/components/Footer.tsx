@@ -37,7 +37,7 @@ const basicPages: { path: string; title: string }[] = [
 
 export default function Footer() {
   return (
-    <footer className="mt-10 w-full border-t border-cc-card-border bg-cc-card-bg px-4 pt-14 pb-14 text-sm text-cc-ink-dim backdrop-blur-sm lg:pt-36">
+    <footer className="mt-10 w-full border-t border-cc-card-border bg-cc-card-bg px-4 pt-14 pb-14 text-sm text-cc-ink-dim backdrop-blur-sm">
       <div className="mx-auto flex max-w-7xl flex-col gap-12 lg:gap-8">
         <Section>
           <div className="flex flex-1 flex-col gap-6">
