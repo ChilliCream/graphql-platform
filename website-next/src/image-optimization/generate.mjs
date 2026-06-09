@@ -30,7 +30,7 @@ async function makeBlur(input) {
 let inFlight;
 
 /**
- * @param {{ quality: number, widths: number[], formats: string[], sourceDir: string, outputDir: string, manifestPath: string }} config
+ * @param {{ quality: number, widths: number[], formats: string[], sourceDir: string, outputDir: string, manifestPath: string, onProgress?: (p: { phase: "images" | "remote", done: number, total: number }) => void }} config
  */
 export default async function optimizeImages(config) {
   if (inFlight) {
@@ -47,6 +47,8 @@ async function run(config) {
   const manifestPath = path.resolve(cwd, config.manifestPath);
 
   const { quality, widths, formats } = config;
+  const onProgress =
+    typeof config.onProgress === "function" ? config.onProgress : null;
   // Hash the encode settings so changing quality/widths/formats invalidates the cache.
   const settingsJson = JSON.stringify({ quality, widths, formats });
 
@@ -121,7 +123,11 @@ async function run(config) {
     }
   });
 
-  await runPool(tasks, CONCURRENCY);
+  let localDone = 0;
+  await runPool(tasks, CONCURRENCY, () => {
+    localDone++;
+    onProgress?.({ phase: "images", done: localDone, total: sources.length });
+  });
 
   // Self-host + optimize external images (avatars, YouTube thumbnails).
   const remotes = await collectRemoteImages(cwd);
@@ -203,7 +209,11 @@ async function run(config) {
     }
   });
 
-  await runPool(remoteTasks, REMOTE_CONCURRENCY);
+  let remoteDone = 0;
+  await runPool(remoteTasks, REMOTE_CONCURRENCY, () => {
+    remoteDone++;
+    onProgress?.({ phase: "remote", done: remoteDone, total: remotes.length });
+  });
 
   // Prune entries whose source no longer exists and best-effort delete orphans.
   for (const [url, entry] of Object.entries(manifest)) {
@@ -332,12 +342,13 @@ function writeAtomic(file, buffer) {
   fs.renameSync(tmp, file);
 }
 
-async function runPool(tasks, concurrency) {
+async function runPool(tasks, concurrency, onTick) {
   let index = 0;
   const workers = Array.from({ length: Math.min(concurrency, tasks.length) }, async () => {
     while (index < tasks.length) {
       const current = index++;
       await tasks[current]();
+      onTick?.();
     }
   });
   await Promise.all(workers);

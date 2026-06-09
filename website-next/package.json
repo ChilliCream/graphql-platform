@@ -6,6 +6,9 @@
     "dev": "next dev -p 3001",
     "build": "next build",
     "start": "next start -p 3001",
+    "optimize-images": "node scripts/optimize-images.mjs",
+    "generate-git-metadata": "node scripts/generate-git-metadata.mjs",
+    "ci-local": "bash scripts/ci-local.sh",
     "lint": "eslint",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"

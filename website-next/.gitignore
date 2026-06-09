@@ -20,6 +20,9 @@
 # build-time image optimization output
 /public/_optimized/
 
+# generated git metadata (produced by the release workflow)
+/git-metadata.generated.json
+
 # storybook
 /storybook-static/
 
