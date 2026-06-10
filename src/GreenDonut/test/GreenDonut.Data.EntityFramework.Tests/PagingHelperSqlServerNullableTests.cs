@@ -25,14 +25,14 @@ public class PagingHelperSqlServerNullableTests(SqlServerResource resource)
             .OrderBy(t => t.Date)
             .ThenBy(t => t.Time)
             .ThenBy(t => t.Id)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         arguments = arguments with { After = page1.CreateEndCursor() };
         var page2 = await context.Records
             .OrderBy(t => t.Date)
             .ThenBy(t => t.Time)
             .ThenBy(t => t.Id)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         // Assert
         var snapshot = new Snapshot(postFix: TestEnvironment.TargetFramework);
@@ -57,14 +57,14 @@ public class PagingHelperSqlServerNullableTests(SqlServerResource resource)
             .OrderByDescending(t => t.Date)
             .ThenByDescending(t => t.Time)
             .ThenByDescending(t => t.Id)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         arguments = arguments with { After = page1.CreateEndCursor() };
         var page2 = await context.Records
             .OrderByDescending(t => t.Date)
             .ThenByDescending(t => t.Time)
             .ThenByDescending(t => t.Id)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         // Assert
         var snapshot = new Snapshot(postFix: TestEnvironment.TargetFramework);
@@ -89,14 +89,14 @@ public class PagingHelperSqlServerNullableTests(SqlServerResource resource)
             .OrderBy(t => t.Date)
             .ThenBy(t => t.Time)
             .ThenBy(t => t.Id)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         arguments = arguments with { After = page1.CreateEndCursor() };
         var page2 = await context.Records
             .OrderBy(t => t.Date)
             .ThenBy(t => t.Time)
             .ThenBy(t => t.Id)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         // Assert
         var snapshot = new Snapshot(postFix: TestEnvironment.TargetFramework);
@@ -121,14 +121,14 @@ public class PagingHelperSqlServerNullableTests(SqlServerResource resource)
             .OrderByDescending(t => t.Date)
             .ThenByDescending(t => t.Time)
             .ThenByDescending(t => t.Id)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         arguments = arguments with { After = page1.CreateEndCursor() };
         var page2 = await context.Records
             .OrderByDescending(t => t.Date)
             .ThenByDescending(t => t.Time)
             .ThenByDescending(t => t.Id)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         // Assert
         var snapshot = new Snapshot(postFix: TestEnvironment.TargetFramework);
@@ -153,14 +153,14 @@ public class PagingHelperSqlServerNullableTests(SqlServerResource resource)
             .OrderBy(t => t.Date)
             .ThenBy(t => t.String)
             .ThenBy(t => t.Id)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         arguments = arguments with { After = page1.CreateEndCursor() };
         var page2 = await context.Records
             .OrderBy(t => t.Date)
             .ThenBy(t => t.String)
             .ThenBy(t => t.Id)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         // Assert
         var snapshot = new Snapshot(postFix: TestEnvironment.TargetFramework);
@@ -185,14 +185,14 @@ public class PagingHelperSqlServerNullableTests(SqlServerResource resource)
             .OrderByDescending(t => t.Date)
             .ThenByDescending(t => t.String)
             .ThenByDescending(t => t.Id)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         arguments = arguments with { After = page1.CreateEndCursor() };
         var page2 = await context.Records
             .OrderByDescending(t => t.Date)
             .ThenByDescending(t => t.String)
             .ThenByDescending(t => t.Id)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         // Assert
         var snapshot = new Snapshot(TestEnvironment.TargetFramework);
@@ -217,14 +217,14 @@ public class PagingHelperSqlServerNullableTests(SqlServerResource resource)
             .OrderBy(t => t.Date)
             .ThenBy(t => t.String)
             .ThenBy(t => t.Id)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         arguments = arguments with { After = page1.CreateEndCursor() };
         var page2 = await context.Records
             .OrderBy(t => t.Date)
             .ThenBy(t => t.String)
             .ThenBy(t => t.Id)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         // Assert
         var snapshot = new Snapshot(postFix: TestEnvironment.TargetFramework);
@@ -249,14 +249,14 @@ public class PagingHelperSqlServerNullableTests(SqlServerResource resource)
             .OrderByDescending(t => t.Date)
             .ThenByDescending(t => t.String)
             .ThenByDescending(t => t.Id)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         arguments = arguments with { After = page1.CreateEndCursor() };
         var page2 = await context.Records
             .OrderByDescending(t => t.Date)
             .ThenByDescending(t => t.String)
             .ThenByDescending(t => t.Id)
-            .ToPageAsync(arguments);
+            .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
         // Assert
         var snapshot = new Snapshot(TestEnvironment.TargetFramework);

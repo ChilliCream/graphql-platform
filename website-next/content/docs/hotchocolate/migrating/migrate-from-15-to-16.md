@@ -1086,9 +1086,66 @@ If you prefer, you can still register the remaining scalar types individually in
 
 ### InstrumentationOptions changes
 
-- `RenameRootActivity` was removed.
+- `RenameRootActivity` was removed. See [Recreating `RenameRootActivity`](#recreating-renamerootactivity) to reproduce the previous behavior in user code.
 - `RequestDetails.Operation` was renamed to `RequestDetails.OperationName`.
 - `RequestDetails.Query` was renamed to `RequestDetails.Document`.
+
+### Recreating `RenameRootActivity`
+
+The root span is usually owned by the transport instrumentation (for example ASP.NET Core), not Hot Chocolate. Recreate the old behavior with a diagnostic event listener that publishes the operation name, then apply it from the transport instrumentation in `EnrichWithHttpResponse` (not `EnrichWithHttpRequest`, since the operation is only known after execution):
+
+```csharp
+using System.Diagnostics;
+using HotChocolate.Execution;
+using HotChocolate.Execution.Instrumentation;
+
+public sealed class RenameRootActivityListener : ExecutionDiagnosticEventListener
+{
+    public override IDisposable ExecuteRequest(RequestContext context) => new Scope(context);
+
+    private sealed class Scope(RequestContext context) : IDisposable
+    {
+        public void Dispose()
+        {
+            if (Activity.Current is not { } activity
+                || !context.TryGetOperation(out var operation)
+                || string.IsNullOrEmpty(operation.Name))
+            {
+                return;
+            }
+
+            var name = $"{operation.Kind.ToString().ToLowerInvariant()} {operation.Name}";
+
+            var root = activity;
+            while (root.Parent is { } parent)
+            {
+                root = parent;
+            }
+
+            root.SetCustomProperty("graphqlDisplayName", name);
+        }
+    }
+}
+```
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddInstrumentation()
+    .AddDiagnosticEventListener<RenameRootActivityListener>();
+
+builder.Services
+    .AddOpenTelemetry()
+    .WithTracing(tracing => tracing
+        .AddAspNetCoreInstrumentation(o => o.EnrichWithHttpResponse = (activity, _) =>
+        {
+            if (activity.GetCustomProperty("graphqlDisplayName") is string name)
+            {
+                activity.DisplayName = name;
+            }
+        })
+        .AddHotChocolateInstrumentation());
+```
 
 ## OpenTelemetry span and status changes
 

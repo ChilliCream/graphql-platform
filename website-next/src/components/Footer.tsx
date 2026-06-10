@@ -37,17 +37,13 @@ const basicPages: { path: string; title: string }[] = [
 
 export default function Footer() {
   return (
-    <footer className="mt-10 w-full border-t border-cc-card-border bg-cc-card-bg px-4 pt-14 pb-14 text-sm text-cc-ink-dim backdrop-blur-sm lg:pt-36">
+    <footer className="mt-10 w-full border-t border-cc-card-border bg-cc-card-bg px-4 pt-14 pb-14 text-sm text-cc-ink-dim backdrop-blur-sm">
       <div className="mx-auto flex max-w-7xl flex-col gap-12 lg:gap-8">
         <Section>
           <div className="flex flex-1 flex-col gap-6">
-            <Link
-              href="/"
-              aria-label="ChilliCream Home"
-              className="inline-flex leading-none text-cc-ink transition-colors hover:text-cc-accent"
-            >
-              <ChilliCreamText className="h-[30px] w-auto fill-current" />
-            </Link>
+            <span className="inline-flex leading-none text-cc-ink">
+              <ChilliCreamText className="h-8 w-auto fill-current" />
+            </span>
             <address className="not-italic">
               1207 Delaware Ave #3567
               <br />
@@ -56,7 +52,7 @@ export default function Footer() {
               United States
             </address>
           </div>
-          <div className="grid flex-[4] grid-cols-2 gap-8 md:grid-cols-4">
+          <div className="grid flex-4 grid-cols-2 gap-8 md:grid-cols-4">
             <LinkColumn title="Platform">
               <NavLink href="/platform/analytics">Analytics</NavLink>
               <NavLink href="/platform/continuous-integration">
@@ -91,25 +87,25 @@ export default function Footer() {
         <Section>
           <nav className="flex flex-row gap-4 text-cc-ink-dim">
             <SocialLink href={tools.blog} label="ChilliCream Blog">
-              <BlogIcon className="h-[22px] w-auto fill-current" />
+              <BlogIcon className="h-6 w-auto fill-current" />
             </SocialLink>
             <SocialLink href={tools.github} label="ChilliCream on GitHub">
-              <GitHubIcon className="h-[26px] w-auto fill-current" />
+              <GitHubIcon className="h-7 w-auto fill-current" />
             </SocialLink>
             <SocialLink href={tools.slack} label="ChilliCream Slack Community">
-              <SlackIcon className="h-[22px] w-auto fill-current" />
+              <SlackIcon className="h-6 w-auto fill-current" />
             </SocialLink>
             <SocialLink
               href={tools.youtube}
               label="ChilliCream YouTube Channel"
             >
-              <YouTubeIcon className="h-[22px] w-auto fill-current" />
+              <YouTubeIcon className="h-6 w-auto fill-current" />
             </SocialLink>
             <SocialLink href={tools.x} label="ChilliCream on X">
-              <XIcon className="h-[22px] w-auto fill-current" />
+              <XIcon className="h-6 w-auto fill-current" />
             </SocialLink>
             <SocialLink href={tools.linkedIn} label="ChilliCream on LinkedIn">
-              <LinkedInIcon className="h-[22px] w-auto fill-current" />
+              <LinkedInIcon className="h-6 w-auto fill-current" />
             </SocialLink>
           </nav>
         </Section>
@@ -136,8 +132,8 @@ function LinkColumn({
   children: ReactNode;
 }) {
   return (
-    <div className="flex min-w-[150px] flex-col gap-6">
-      <h3 className="flex h-[30px] items-end text-base font-semibold text-cc-ink">
+    <div className="flex min-w-36 flex-col gap-6">
+      <h3 className="flex h-8 items-end text-base font-semibold text-cc-ink">
         {title}
       </h3>
       <nav className="flex flex-col gap-2.5">{children}</nav>

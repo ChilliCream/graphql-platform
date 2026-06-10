@@ -44,7 +44,8 @@ public class Issue6329ReproTests
                       }
                     }
                     """)
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var operationResult = result.ExpectOperationResult();
         Assert.Empty(operationResult.Errors ?? []);

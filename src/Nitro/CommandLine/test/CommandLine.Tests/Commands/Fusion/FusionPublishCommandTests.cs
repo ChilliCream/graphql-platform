@@ -617,7 +617,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupRequestDeploymentSlotMutation(waitForApproval: true);
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
-        SetupReleaseDeploymentSlotMutation();
         var capturedStream = SetupFusionConfigurationUploadMutation();
         SetupFusionConfigurationUploadSubscription();
 
@@ -664,7 +663,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupFusionConfigurationValidationSubscription(
             CreateValidationInProgressEvent(),
             CreateValidationFailedEventWithErrors());
-        SetupReleaseDeploymentSlotMutation();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -1390,7 +1388,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
         SetupMissingFusionConfigurationDownload();
-        SetupLegacyFusionConfigurationDownload();
         SetupFusionConfigurationValidationMutation();
         SetupFusionConfigurationValidationSubscription();
         var capturedStream = SetupFusionConfigurationUploadMutation();
@@ -1448,7 +1445,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
         SetupMissingFusionConfigurationDownload();
-        SetupLegacyFusionConfigurationDownload();
         SetupFusionConfigurationValidationMutation();
         SetupFusionConfigurationValidationSubscription();
         var capturedStream = SetupFusionConfigurationUploadMutation();
@@ -1503,7 +1499,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
         SetupMissingFusionConfigurationDownload();
-        SetupMissingLegacyFusionConfigurationDownload();
         SetupFusionConfigurationValidationMutation();
         SetupFusionConfigurationValidationSubscription();
         var capturedStream = SetupFusionConfigurationUploadMutation();
@@ -1561,7 +1556,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
         SetupMissingFusionConfigurationDownload();
-        SetupMissingLegacyFusionConfigurationDownload();
         SetupFusionConfigurationValidationMutation();
         SetupFusionConfigurationValidationSubscription();
         var capturedStream = SetupFusionConfigurationUploadMutation();
@@ -1618,7 +1612,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupSourceSchemaFile();
         SetupLegacyArchiveFile();
         SetupMissingFusionConfigurationDownload();
-        SetupMissingLegacyFusionConfigurationDownload();
         SetupFusionConfigurationValidationMutation();
         SetupFusionConfigurationValidationSubscription();
         var capturedStream = SetupFusionConfigurationUploadMutation();
@@ -2145,7 +2138,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupFusionConfigurationValidationSubscription(
             CreateValidationInProgressEvent(),
             CreateValidationFailedEventWithErrors());
-        SetupReleaseDeploymentSlotMutation();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -2159,7 +2151,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             Tag,
             "--source-schema-file",
             SourceSchemaFile);
-        ;
 
         // assert
         result.StdErr.MatchInlineSnapshot(
@@ -2298,7 +2289,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
         SetupFusionConfigurationDownload();
-        SetupReleaseDeploymentSlotMutation();
         var capturedStream = SetupFusionConfigurationUploadMutation();
         SetupFusionConfigurationUploadSubscription();
 
@@ -2998,7 +2988,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
         SetupMissingFusionConfigurationDownload();
-        SetupLegacyFusionConfigurationDownload();
         SetupFusionConfigurationValidationMutation();
         SetupFusionConfigurationValidationSubscription();
         var capturedStream = SetupFusionConfigurationUploadMutation();
@@ -3055,7 +3044,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
         SetupMissingFusionConfigurationDownload();
-        SetupLegacyFusionConfigurationDownload();
         SetupFusionConfigurationValidationMutation();
         SetupFusionConfigurationValidationSubscription();
         var capturedStream = SetupFusionConfigurationUploadMutation();
@@ -3112,7 +3100,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
         SetupMissingFusionConfigurationDownload();
-        SetupMissingLegacyFusionConfigurationDownload();
         SetupFusionConfigurationValidationMutation();
         SetupFusionConfigurationValidationSubscription();
         var capturedStream = SetupFusionConfigurationUploadMutation();
@@ -3169,7 +3156,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
         SetupMissingFusionConfigurationDownload();
-        SetupMissingLegacyFusionConfigurationDownload();
         SetupFusionConfigurationValidationMutation();
         SetupFusionConfigurationValidationSubscription();
         var capturedStream = SetupFusionConfigurationUploadMutation();
@@ -3228,7 +3214,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupSourceSchemaDownload();
         SetupLegacyArchiveFile();
         SetupMissingFusionConfigurationDownload();
-        SetupMissingLegacyFusionConfigurationDownload();
         SetupFusionConfigurationValidationMutation();
         SetupFusionConfigurationValidationSubscription();
         var capturedStream = SetupFusionConfigurationUploadMutation();
@@ -3833,7 +3818,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupFusionConfigurationValidationSubscription(
             CreateValidationInProgressEvent(),
             CreateValidationFailedEventWithErrors());
-        SetupReleaseDeploymentSlotMutation();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -3989,7 +3973,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
         SetupFusionConfigurationDownload();
-        SetupReleaseDeploymentSlotMutation();
         var capturedStream = SetupFusionConfigurationUploadMutation();
         SetupFusionConfigurationUploadSubscription();
 

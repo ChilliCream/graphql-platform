@@ -241,7 +241,7 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ApiK
         command.SelectOption(0); // Api or Workspace
         command.SelectOption(0); // Api 1
 
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();
@@ -263,7 +263,7 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ApiK
         command.Input("integration"); // name
         command.SelectOption(1); // Api or Workspace
 
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();
@@ -286,7 +286,7 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ApiK
         // act
         command.Input(ApiKeyName);
 
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();

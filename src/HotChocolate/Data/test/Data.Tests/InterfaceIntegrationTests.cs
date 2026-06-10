@@ -60,7 +60,8 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .Build());
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken);
 
         var operationResult = result.ExpectOperationResult();
         operationResult.Extensions = [];
@@ -69,7 +70,7 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
             .Create(postFix: TestEnvironment.TargetFramework)
             .AddQueries(queries)
             .Add(operationResult)
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -113,7 +114,8 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .Build());
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken);
 
         var operationResult = result.ExpectOperationResult();
         operationResult.Extensions = [];
@@ -122,7 +124,7 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
             .Create(postFix: TestEnvironment.TargetFramework)
             .AddQueries(queries)
             .Add(operationResult)
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -170,7 +172,8 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .Build());
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken);
 
         var operationResult = result.ExpectOperationResult();
         operationResult.Extensions = [];
@@ -179,7 +182,7 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
             .Create(postFix: TestEnvironment.TargetFramework)
             .AddQueries(queries)
             .Add(operationResult)
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -214,7 +217,8 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
                             }
                         }
                         """)
-                    .Build());
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken);
 
         var operationResult = result.ExpectOperationResult();
         operationResult.Extensions = [];
@@ -226,7 +230,7 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
                     : null)
             .AddQueries(queries)
             .Add(operationResult)
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     private static async Task SeedAsync(string connectionString)

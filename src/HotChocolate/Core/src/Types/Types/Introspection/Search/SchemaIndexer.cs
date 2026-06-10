@@ -20,6 +20,7 @@ internal static class SchemaIndexer
     {
         var documents = new List<BM25Document>();
         var reverseMap = new Dictionary<string, List<SchemaCoordinate>>(StringComparer.Ordinal);
+        var abstractTypeMap = new Dictionary<string, List<string>>(StringComparer.Ordinal);
 
         foreach (var type in schema.Types)
         {
@@ -38,6 +39,11 @@ internal static class SchemaIndexer
             {
                 case IComplexTypeDefinition complexType:
                     IndexComplexTypeFields(complexType, documents, reverseMap);
+                    IndexImplementedInterfaces(complexType, abstractTypeMap);
+                    break;
+
+                case IUnionTypeDefinition unionType:
+                    IndexUnionMembers(unionType, abstractTypeMap);
                     break;
 
                 case IEnumTypeDefinition enumType:
@@ -53,7 +59,7 @@ internal static class SchemaIndexer
         // Directives are not indexed for search — they have no fetch path.
         // They remain accessible via __definitions coordinate lookup.
 
-        return new SchemaIndexResult(documents, reverseMap);
+        return new SchemaIndexResult(documents, reverseMap, abstractTypeMap);
     }
 
     private static void IndexComplexTypeFields(
@@ -84,6 +90,40 @@ internal static class SchemaIndexer
 
             references.Add(new SchemaCoordinate(complexType.Name, field.Name));
         }
+    }
+
+    private static void IndexImplementedInterfaces(
+        IComplexTypeDefinition complexType,
+        Dictionary<string, List<string>> abstractTypeMap)
+    {
+        foreach (var interfaceType in complexType.Implements)
+        {
+            AddAbstractType(abstractTypeMap, complexType.Name, interfaceType.Name);
+        }
+    }
+
+    private static void IndexUnionMembers(
+        IUnionTypeDefinition unionType,
+        Dictionary<string, List<string>> abstractTypeMap)
+    {
+        foreach (var memberType in unionType.Types)
+        {
+            AddAbstractType(abstractTypeMap, memberType.Name, unionType.Name);
+        }
+    }
+
+    private static void AddAbstractType(
+        Dictionary<string, List<string>> abstractTypeMap,
+        string typeName,
+        string abstractTypeName)
+    {
+        if (!abstractTypeMap.TryGetValue(typeName, out var abstractTypes))
+        {
+            abstractTypes = [];
+            abstractTypeMap[typeName] = abstractTypes;
+        }
+
+        abstractTypes.Add(abstractTypeName);
     }
 
     private static void IndexEnumValues(
@@ -121,10 +161,12 @@ internal static class SchemaIndexer
     }
 
     /// <summary>
-    /// The result of indexing a schema, containing the indexed documents
-    /// and a reverse adjacency map for path-to-root traversal.
+    /// The result of indexing a schema, containing the indexed documents,
+    /// a reverse adjacency map for path-to-root traversal, and a map from each
+    /// type to the abstract types (interfaces or unions) through which it is reachable.
     /// </summary>
     internal readonly record struct SchemaIndexResult(
         List<BM25Document> Documents,
-        Dictionary<string, List<SchemaCoordinate>> ReverseMap);
+        Dictionary<string, List<SchemaCoordinate>> ReverseMap,
+        Dictionary<string, List<string>> AbstractTypeMap);
 }

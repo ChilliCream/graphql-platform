@@ -329,10 +329,16 @@ public class DirectiveTypeTests : TypeTestBase
         var directive = schema.DirectiveTypes["foo"];
         Assert.NotNull(directive.Middleware);
 
-        await schema.MakeExecutable().ExecuteAsync("{ foo }");
-        await schema.MakeExecutable().ExecuteAsync("{ foo1 }");
-        await schema.MakeExecutable().ExecuteAsync("{ foo foo1 }");
-        var result = await schema.MakeExecutable().ExecuteAsync("{ foo foo1 }");
+        await schema.MakeExecutable().ExecuteAsync("{ foo }", TestContext.Current.CancellationToken);
+        await schema.MakeExecutable().ExecuteAsync(
+            "{ foo1 }",
+            TestContext.Current.CancellationToken);
+        await schema.MakeExecutable().ExecuteAsync(
+            "{ foo foo1 }",
+            TestContext.Current.CancellationToken);
+        var result = await schema.MakeExecutable().ExecuteAsync(
+            "{ foo foo1 }",
+            TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -567,7 +573,7 @@ public class DirectiveTypeTests : TypeTestBase
             .AddDirectiveType(
                 new DirectiveType<Deprecated2Directive>(
                     x => x.Location(DirectiveLocation.FieldDefinition)))
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         executor.Schema.MatchSnapshot();
@@ -618,7 +624,7 @@ public class DirectiveTypeTests : TypeTestBase
                         .Argument("bar")
                         .Type<IntType>()
                         .Deprecated("a")))
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         executor.Schema.MatchSnapshot();
@@ -670,7 +676,7 @@ public class DirectiveTypeTests : TypeTestBase
                 """
                 directive @Qux(bar: String @deprecated(reason: "reason")) on FIELD_DEFINITION
                 """)
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();
@@ -821,7 +827,7 @@ public class DirectiveTypeTests : TypeTestBase
                 directive @Example on ARGUMENT_DEFINITION
                 directive @Qux(bar: String @Example) on FIELD_DEFINITION
                 """)
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.True(
@@ -845,7 +851,7 @@ public class DirectiveTypeTests : TypeTestBase
                     .Resolve("asd")
                     .Directive("anno"))
             .AddType<AnnotationDirective>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();
@@ -865,7 +871,7 @@ public class DirectiveTypeTests : TypeTestBase
                     .Resolve("asd")
                     .Directive("foo"))
             .AddType<FooDirective>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();
@@ -884,7 +890,7 @@ public class DirectiveTypeTests : TypeTestBase
                     .Field("bar")
                     .Resolve("asd")
                     .Directive(new FooDirective("abc")))
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();

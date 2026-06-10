@@ -40,17 +40,20 @@ public class QueryableFilterVisitorEnumTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { eq: BAR } }) { barEnum } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { eq: FOO } }) { barEnum } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { eq: null } }) { barEnum } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -61,7 +64,7 @@ public class QueryableFilterVisitorEnumTests
                 "FOO").AddResult(
                 res3,
                 "null")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -74,17 +77,20 @@ public class QueryableFilterVisitorEnumTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { neq: BAR } }) { barEnum } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { neq: FOO } }) { barEnum } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { neq: null } }){ barEnum } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -95,7 +101,7 @@ public class QueryableFilterVisitorEnumTests
                 "FOO").AddResult(
                 res3,
                 "null")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -108,17 +114,20 @@ public class QueryableFilterVisitorEnumTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { in: [BAR FOO]}}){ barEnum}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { in: [FOO]}}){ barEnum}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { in: [null FOO]}}){ barEnum}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -129,7 +138,7 @@ public class QueryableFilterVisitorEnumTests
                 "FOO").AddResult(
                 res3,
                 "nullAndFoo")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -142,17 +151,20 @@ public class QueryableFilterVisitorEnumTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { nin: [BAR FOO] } }) { barEnum } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { nin: [FOO] } }) { barEnum } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { nin: [null FOO] } }) { barEnum } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -163,7 +175,7 @@ public class QueryableFilterVisitorEnumTests
                 "FOO").AddResult(
                 res3,
                 "nullAndFoo")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -177,17 +189,20 @@ public class QueryableFilterVisitorEnumTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { eq: BAR } }) { barEnum } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { eq: FOO } }) { barEnum } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { eq: null } }){ barEnum } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -198,7 +213,7 @@ public class QueryableFilterVisitorEnumTests
                 "FOO").AddResult(
                 res3,
                 "null")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -211,17 +226,20 @@ public class QueryableFilterVisitorEnumTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { neq: BAR } }) { barEnum } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { neq: FOO } }) { barEnum } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { neq: null } }) { barEnum } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -232,7 +250,7 @@ public class QueryableFilterVisitorEnumTests
                 "FOO").AddResult(
                 res3,
                 "null")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -245,17 +263,20 @@ public class QueryableFilterVisitorEnumTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { in: [BAR FOO] } }) { barEnum } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { in: [FOO] } }) { barEnum } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { in: [null FOO] } }) { barEnum } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -266,7 +287,7 @@ public class QueryableFilterVisitorEnumTests
                 "FOO").AddResult(
                 res3,
                 "nullAndFoo")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -279,17 +300,20 @@ public class QueryableFilterVisitorEnumTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { nin: [BAR FOO] } }){ barEnum } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { nin: [FOO] } }) { barEnum } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barEnum: { nin: [null FOO] } }) { barEnum } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -300,7 +324,7 @@ public class QueryableFilterVisitorEnumTests
                 "FOO").AddResult(
                 res3,
                 "nullAndFoo")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     public class Foo

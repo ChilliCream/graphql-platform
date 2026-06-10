@@ -94,7 +94,7 @@ public sealed class DeleteOpenApiCollectionCommandTests(NitroCommandFixture fixt
 
         // act
         command.Confirm(false);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.StdErr.MatchInlineSnapshot(
@@ -170,7 +170,7 @@ public sealed class DeleteOpenApiCollectionCommandTests(NitroCommandFixture fixt
 
         // act
         command.Confirm(true);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         Assert.Empty(result.StdErr);

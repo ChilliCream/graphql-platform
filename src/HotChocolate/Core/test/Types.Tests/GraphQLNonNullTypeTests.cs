@@ -14,7 +14,7 @@ public class GraphQLNonNullTypeTests
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -24,7 +24,7 @@ public class GraphQLNonNullTypeTests
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryDeep>()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -34,7 +34,7 @@ public class GraphQLNonNullTypeTests
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryDeepWithType>()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -44,7 +44,7 @@ public class GraphQLNonNullTypeTests
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryRequired>()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -54,7 +54,7 @@ public class GraphQLNonNullTypeTests
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryRequiredWithType>()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 

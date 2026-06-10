@@ -426,7 +426,7 @@ public class InputParserTests
         var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query4>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var query =
@@ -624,7 +624,7 @@ public class InputParserTests
                 .Argument("args", a => a.Type<NonNullType<MyInputType>>())
                 .Type<StringType>()
                 .ResolveWith<ResolverArgumentsAccessor>(r => r.ResolveWith(default!)))
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var query =

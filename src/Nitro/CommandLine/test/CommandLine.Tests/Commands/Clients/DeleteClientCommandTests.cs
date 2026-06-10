@@ -75,7 +75,7 @@ public sealed class DeleteClientCommandTests(NitroCommandFixture fixture) : Clie
 
         // act
         command.Confirm(true);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();
@@ -100,7 +100,7 @@ public sealed class DeleteClientCommandTests(NitroCommandFixture fixture) : Clie
         command.SelectOption(0); // Select API
         command.SelectOption(0); // Select Client
         command.Confirm(true);   // Confirm deletion
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();
@@ -168,7 +168,7 @@ public sealed class DeleteClientCommandTests(NitroCommandFixture fixture) : Clie
 
         // act
         command.Confirm(false);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.StdErr.MatchInlineSnapshot(

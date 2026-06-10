@@ -274,7 +274,7 @@ public class LocalDateTimeTypeTests
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryDateTime1>()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -291,7 +291,8 @@ public class LocalDateTimeTypeTests
                         localDateTime(localDateTime: "2017-12-30T11:24:00")
                     }
                 }
-                """)
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -301,7 +302,7 @@ public class LocalDateTimeTypeTests
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryDateTime2>()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -318,7 +319,8 @@ public class LocalDateTimeTypeTests
                         localDateTime
                     }
                 }
-                """)
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 

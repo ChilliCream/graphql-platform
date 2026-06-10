@@ -96,7 +96,7 @@ public sealed class DeleteMcpFeatureCollectionCommandTests(NitroCommandFixture f
 
         // act
         command.Confirm(false);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.StdErr.MatchInlineSnapshot(
@@ -249,7 +249,7 @@ public sealed class DeleteMcpFeatureCollectionCommandTests(NitroCommandFixture f
 
         // act
         command.Confirm(true);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();

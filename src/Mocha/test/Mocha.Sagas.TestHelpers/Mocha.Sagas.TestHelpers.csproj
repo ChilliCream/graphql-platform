@@ -6,10 +6,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Npgsql" />
     <PackageReference Include="Squadron.PostgreSql" />
-    <PackageReference Include="xunit.assert" />
-    <PackageReference Include="xunit.extensibility.core" />
+    <PackageReference Include="xunit.v3.assert" />
   </ItemGroup>
 
   <ItemGroup>

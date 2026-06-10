@@ -34,15 +34,15 @@ export default function PlatformPage() {
             <Link
               key={section.href}
               href={section.href}
-              className="group flex flex-col rounded-xl border border-cc-card-border bg-cc-card-bg backdrop-blur-sm p-8 no-underline  transition-colors hover:border-fuchsia-400"
+              className="group flex flex-col rounded-xl border border-cc-card-border bg-cc-card-bg backdrop-blur-sm p-8 no-underline  transition-colors hover:border-cc-accent"
             >
-              <h2 className="text-xl font-semibold text-cc-ink group-hover:text-fuchsia-400">
+              <h2 className="text-xl font-semibold text-cc-ink group-hover:text-cc-accent">
                 {section.title}
               </h2>
               <p className="mt-3 text-sm text-cc-ink-dim">
                 {section.description}
               </p>
-              <span className="mt-6 text-sm font-medium text-fuchsia-400">
+              <span className="mt-6 text-sm font-medium text-cc-accent">
                 Learn more →
               </span>
             </Link>

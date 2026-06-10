@@ -1,7 +1,6 @@
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Squadron;
-using Xunit.Abstractions;
 
 namespace HotChocolate.Subscriptions.Postgres;
 
@@ -21,7 +20,7 @@ public class PostgresPubSubIntegrationTests
     }
 
     /// <inheritdoc />
-    public Task InitializeAsync() => _resource.CreateDatabaseAsync(_dbName);
+    public ValueTask InitializeAsync() => new(_resource.CreateDatabaseAsync(_dbName));
 
     [Fact]
     public override Task Subscribe_Infer_Topic()
@@ -66,5 +65,5 @@ public class PostgresPubSubIntegrationTests
     }
 
     /// <inheritdoc />
-    public Task DisposeAsync() => Task.CompletedTask;
+    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 }

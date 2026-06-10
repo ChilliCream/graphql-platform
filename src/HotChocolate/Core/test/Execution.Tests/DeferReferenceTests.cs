@@ -31,9 +31,10 @@ public class DeferReferenceTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
-        Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
+        Assert.IsType<ResponseStream>(result).MatchAggregatedMarkdownSnapshot();
     }
 
     /// <summary>
@@ -55,7 +56,8 @@ public class DeferReferenceTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         var stream = Assert.IsType<ResponseStream>(result);
         await using (stream)
@@ -96,7 +98,8 @@ public class DeferReferenceTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // The non-null error on a.nonNullErrorField null-bubbles to `a`,
         // producing an error in the response.
@@ -160,7 +163,8 @@ public class DeferReferenceTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         var stream = Assert.IsType<ResponseStream>(result);
         await using (stream)
@@ -225,9 +229,10 @@ public class DeferReferenceTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
-        Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
+        Assert.IsType<ResponseStream>(result).MatchAggregatedMarkdownSnapshot();
     }
 
     // ========================================================================
@@ -257,7 +262,8 @@ public class DeferReferenceTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         var stream = Assert.IsType<ResponseStream>(result);
         await using (stream)
@@ -306,7 +312,8 @@ public class DeferReferenceTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         var stream = Assert.IsType<ResponseStream>(result);
         await using (stream)
@@ -363,7 +370,8 @@ public class DeferReferenceTests
             fragment HeroName on Hero {
                 name
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -390,7 +398,8 @@ public class DeferReferenceTests
             fragment HeroName on Hero {
                 name
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -418,9 +427,10 @@ public class DeferReferenceTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
-        Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
+        Assert.IsType<ResponseStream>(result).MatchAggregatedMarkdownSnapshot();
     }
 
     /// <summary>
@@ -443,7 +453,8 @@ public class DeferReferenceTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
     }
@@ -471,7 +482,8 @@ public class DeferReferenceTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -498,9 +510,10 @@ public class DeferReferenceTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
-        Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
+        Assert.IsType<ResponseStream>(result).MatchAggregatedMarkdownSnapshot();
     }
 
     // ========================================================================
@@ -533,7 +546,8 @@ public class DeferReferenceTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         var stream = Assert.IsType<ResponseStream>(result);
         await using (stream)
@@ -593,7 +607,8 @@ public class DeferReferenceTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         var stream = Assert.IsType<ResponseStream>(result);
         await using (stream)
@@ -652,9 +667,10 @@ public class DeferReferenceTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
-        Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
+        Assert.IsType<ResponseStream>(result).MatchAggregatedMarkdownSnapshot();
     }
 
     /// <summary>
@@ -681,7 +697,8 @@ public class DeferReferenceTests
                         }
                     }
                     """)
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // HC treats null `if` as false, disabling deferral.
         Assert.IsType<OperationResult>(result).MatchMarkdownSnapshot();
@@ -714,7 +731,8 @@ public class DeferReferenceTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         var stream = Assert.IsType<ResponseStream>(result);
         await using (stream)
@@ -778,7 +796,8 @@ public class DeferReferenceTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         var stream = Assert.IsType<ResponseStream>(result);
         await using (stream)
@@ -831,7 +850,8 @@ public class DeferReferenceTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         var stream = Assert.IsType<ResponseStream>(result);
         await using (stream)

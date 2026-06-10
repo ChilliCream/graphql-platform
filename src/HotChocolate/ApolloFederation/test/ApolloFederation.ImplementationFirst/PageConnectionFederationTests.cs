@@ -14,7 +14,7 @@ public class PageConnectionFederationTests
             .AddApolloFederation()
             .AddImplementationFirstTypes()
             .AddPagingArguments()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();

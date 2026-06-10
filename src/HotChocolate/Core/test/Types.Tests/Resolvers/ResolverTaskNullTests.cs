@@ -25,7 +25,8 @@ public class ResolverTaskNullTests
         // act
         var arg = argument is null ? "null" : $"\"{argument}\"";
         var result = await executor.ExecuteAsync(
-            $"{{ {field}(name: {arg}) }}");
+            $"{{ {field}(name: {arg}) }}",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot(postFix: $"{field}_{argument ?? "null"}");

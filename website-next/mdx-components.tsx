@@ -6,21 +6,21 @@ import { Divider } from "@/src/design-system/Divider";
 import { InlineCode } from "@/src/design-system/InlineCode";
 import { Link } from "@/src/design-system/Link";
 import { List, ListItem } from "@/src/design-system/List";
-import { Image } from "@/src/design-system/Image";
+import { Picture } from "@/src/design-system/Picture";
 import { Quote } from "@/src/design-system/Quote";
 import { Tab, Tabs } from "@/src/design-system/Tabs";
 import { ApiChoiceTabs } from "@/src/design-system/ApiChoiceTabs";
-import { InputChoiceTabs } from "@/src/design-system/InputChoiceTabs";
-import { PipelineChoiceTabs } from "@/src/design-system/PipelineChoiceTabs";
+import { InputChoiceTabs } from "@/src/components/InputChoiceTabs";
+import { PipelineChoiceTabs } from "@/src/components/PipelineChoiceTabs";
 import {
   Code,
   ExampleCode,
   ExampleTabs,
   Implementation,
   Schema,
-} from "@/src/design-system/ExampleTabs";
-import { PackageInstallation } from "@/src/design-system/PackageInstallation";
-import { Video } from "@/src/design-system/Video";
+} from "@/src/components/ExampleTabs";
+import { PackageInstallation } from "@/src/components/PackageInstallation";
+import { YouTubeVideo } from "@/src/components/YouTubeVideo";
 import { detectAdmonition } from "@/src/helpers/detectAdmonition";
 import {
   Table,
@@ -62,19 +62,25 @@ const components: MDXComponents = {
   },
   pre: CodeBlock,
 
-  table: Table,
+  table: (props) => <Table alternating {...props} />,
   thead: TableHead,
   tbody: TableBody,
   tr: TableRow,
   th: TableHeaderCell,
   td: TableCell,
 
-  img: Image,
+  img: (props) => (
+    <Picture
+      {...props}
+      className={`my-6 max-w-full rounded-md ${props.className ?? ""}`.trim()}
+      sizes="(max-width: 768px) 100vw, 1024px"
+    />
+  ),
 
   CodeStep,
   Tabs,
   Tab,
-  Video,
+  YouTubeVideo,
 
   // TODO: Replace these with proper components
   ApiChoiceTabs,

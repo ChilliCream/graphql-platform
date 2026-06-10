@@ -7,6 +7,7 @@ import { BlogTags } from "@/src/components/BlogTags";
 import { BlogTeaserGrid } from "@/src/components/BlogTeaserGrid";
 import { NotFoundContent } from "@/src/components/NotFoundContent";
 import { Pagination } from "@/src/design-system/Pagination";
+import { Picture } from "@/src/design-system/Picture";
 import { SimilarPosts } from "@/src/components/SimilarPosts";
 import { Typography } from "@/src/design-system/Typography";
 import { paginate, POSTS_PER_PAGE } from "@/src/helpers/blogPaging";
@@ -15,7 +16,10 @@ import {
   listBlogPosts,
   resolveBlogFile,
 } from "@/src/helpers/blogPaths";
-import { findSimilarPosts, listBlogPostSummaries } from "@/src/helpers/blogPosts";
+import {
+  findSimilarPosts,
+  listBlogPostSummaries,
+} from "@/src/helpers/blogPosts";
 import { compileDoc } from "@/src/helpers/compileDoc";
 import { readFrontmatter } from "@/src/helpers/readFrontmatter";
 import { estimateReadingTime } from "@/src/helpers/readingTime";
@@ -48,20 +52,13 @@ export function generateStaticParams(): Params[] {
   }));
 
   const summaries = listBlogPostSummaries();
-  const totalPages = Math.max(
-    1,
-    Math.ceil(summaries.length / POSTS_PER_PAGE),
-  );
+  const totalPages = Math.max(1, Math.ceil(summaries.length / POSTS_PER_PAGE));
   const pageParams: Params[] = [];
   for (let p = 2; p <= totalPages; p++) {
     pageParams.push({ slug: [String(p)] });
   }
 
-  const params = [
-    ...postParams,
-    ...pageParams,
-    { slug: [NOT_FOUND_SEGMENT] },
-  ];
+  const params = [...postParams, ...pageParams, { slug: [NOT_FOUND_SEGMENT] }];
   // output: export requires at least one prerendered path; placeholder
   // renders 404 via notFound() when no content is present.
   return params.length > 0 ? params : [{ slug: ["__empty__"] }];
@@ -118,7 +115,9 @@ export default async function BlogSlugPage({ params }: PageProps) {
 
   if (isNotFoundSlug(slug)) {
     return (
-      <NotFoundContent secondary={{ href: "/blog", label: "Browse the blog" }} />
+      <NotFoundContent
+        secondary={{ href: "/blog", label: "Browse the blog" }}
+      />
     );
   }
 
@@ -148,13 +147,12 @@ export default async function BlogSlugPage({ params }: PageProps) {
     <main className="px-5 py-8 sm:px-12">
       <article className="mx-auto max-w-5xl">
         {featuredImage ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Picture
             src={featuredImage}
             alt=""
-            loading="eager"
-            decoding="async"
-            className="mb-6 aspect-[16/9] w-full rounded-lg object-cover"
+            priority
+            sizes="(max-width: 1024px) 100vw, 1024px"
+            className="mb-6 aspect-video w-full rounded-lg object-cover"
           />
         ) : null}
         {frontmatter.title ? (

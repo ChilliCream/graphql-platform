@@ -15,7 +15,7 @@ public class TagDirectiveTests
                 .AddObjectType<Foo>()
                 .AddType<FooDirective>()
                 .SetSchema(d => d.Tag("OnSchema"))
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -38,7 +38,7 @@ public class TagDirectiveTests
                             INPUT_OBJECT | INPUT_FIELD_DEFINITION
                     """)
                 .UseField(_ => _ => default)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -66,7 +66,7 @@ public class TagDirectiveTests
                             INPUT_OBJECT | INPUT_FIELD_DEFINITION
                     """)
                 .UseField(_ => _ => default)
-                .BuildSchemaAsync());
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken));
 
         Assert.Null(exception);
     }

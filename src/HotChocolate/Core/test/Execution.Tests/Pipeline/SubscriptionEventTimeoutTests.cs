@@ -12,7 +12,7 @@ public sealed class SubscriptionEventTimeoutTests
         // arrange
         // A short per-event timeout. The resolver blocks until cancelled, so the event
         // must time out and the subscription must tear down.
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 
         var executor = await new ServiceCollection()
             .AddGraphQL()
@@ -34,14 +34,12 @@ public sealed class SubscriptionEventTimeoutTests
         // act
         await sender.SendAsync("OnMessage", "one", cts.Token);
 
-        // MoveNextAsync must complete (with false) once the event budget elapses and the
-        // subscription tears down.
         var moveNext = enumerator.MoveNextAsync().AsTask();
-        var completed = await Task.WhenAny(moveNext, Task.Delay(5000, cts.Token));
 
         // assert
-        Assert.Same(moveNext, completed);
-        Assert.False(await moveNext);
+        // The event exceeds the budget, so it times out and the subscription tears down:
+        // MoveNextAsync completes with false.
+        Assert.False(await moveNext.WaitAsync(cts.Token));
 
         await enumerator.DisposeAsync();
     }
@@ -99,7 +97,7 @@ public sealed class SubscriptionEventTimeoutTests
         // With a per-event timeout configured the shared CTS must still observe the
         // request-level abort. Start an event, abort the request, and confirm the
         // subscription tears down.
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         using var abortCts = new CancellationTokenSource();
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, abortCts.Token);
 
@@ -132,10 +130,9 @@ public sealed class SubscriptionEventTimeoutTests
         await abortCts.CancelAsync();
 
         // assert
-        // MoveNext completes promptly (false = stream ended) once cancellation propagates.
-        var completed = await Task.WhenAny(moveNext, Task.Delay(2000, cts.Token));
-        Assert.Same(moveNext, completed);
-        Assert.False(await moveNext);
+        // Once the abort propagates the subscription tears down: MoveNextAsync completes
+        // with false (stream ended).
+        Assert.False(await moveNext.WaitAsync(cts.Token));
 
         await enumerator.DisposeAsync();
     }

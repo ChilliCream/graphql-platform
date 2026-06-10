@@ -31,6 +31,11 @@ public class ReceiveEndpointConfiguration : MessagingConfiguration
     public List<Type> ConsumerIdentities { get; set; } = [];
 
     /// <summary>
+    /// Gets or sets the list of message types that this endpoint receives, used to bind all handlers for those types.
+    /// </summary>
+    public List<Type> ReceivedMessageTypes { get; set; } = [];
+
+    /// <summary>
     /// Gets or sets whether this is a temporary (auto-delete) endpoint.
     /// </summary>
     public bool IsTemporary { get; set; }

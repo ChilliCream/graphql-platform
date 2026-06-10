@@ -23,7 +23,7 @@ public class SchemaFirstTests
             .AddDocumentFromString(source)
             .ModifyOptions(o => o.SortFieldsByName = true)
             .UseField(next => next)
-            .ExecuteRequestAsync(query)
+            .ExecuteRequestAsync(query, cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -59,7 +59,7 @@ public class SchemaFirstTests
 
         // assert
         var executor = schema.MakeExecutable();
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
         result.ToJson().MatchSnapshot();
     }
 
@@ -90,7 +90,7 @@ public class SchemaFirstTests
             .AddResolver<PetQuery>("Query")
             .BindRuntimeType<Cat>()
             .BindRuntimeType<Dog>()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -121,7 +121,9 @@ public class SchemaFirstTests
             .AddResolver<PetQuery>("Query")
             .BindRuntimeType<Cat>()
             .BindRuntimeType<Dog>()
-            .ExecuteRequestAsync("{ pet { name __typename } }")
+            .ExecuteRequestAsync(
+                "{ pet { name __typename } }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -143,7 +145,9 @@ public class SchemaFirstTests
         // assert
         var executor = schema.MakeExecutable();
         var result =
-            await executor.ExecuteAsync("{ __schema { description } }");
+            await executor.ExecuteAsync(
+                "{ __schema { description } }",
+                TestContext.Current.CancellationToken);
         result.ToJson().MatchSnapshot();
     }
 
@@ -162,7 +166,7 @@ public class SchemaFirstTests
         // assert
         var executor = schema.MakeExecutable();
         var result =
-            await executor.ExecuteAsync("{ hello }");
+            await executor.ExecuteAsync("{ hello }", TestContext.Current.CancellationToken);
         result.ToJson().MatchSnapshot();
     }
 
@@ -181,7 +185,7 @@ public class SchemaFirstTests
         // assert
         var executor = schema.MakeExecutable();
         var result =
-            await executor.ExecuteAsync("{ hello }");
+            await executor.ExecuteAsync("{ hello }", TestContext.Current.CancellationToken);
         result.ToJson().MatchSnapshot();
     }
 
@@ -283,10 +287,10 @@ public class SchemaFirstTests
             .AddDocumentFromString(sourceText)
             .AddResolver<Query>()
             .AddJsonTypeConverter()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
-        var result = await executor.ExecuteAsync("{ hello }");
+        var result = await executor.ExecuteAsync("{ hello }", TestContext.Current.CancellationToken);
         result.ToJson().MatchSnapshot();
     }
 
@@ -302,7 +306,7 @@ public class SchemaFirstTests
                 .AddGraphQL()
                 .AddDocumentFromString(sdl)
                 .BindRuntimeType<QueryWithItems>("Query")
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.ToString().MatchSnapshot();
@@ -320,7 +324,7 @@ public class SchemaFirstTests
                 .AddGraphQL()
                 .AddDocumentFromString(sdl)
                 .BindRuntimeType<QueryWithOffsetItems>("Query")
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.ToString().MatchSnapshot();
@@ -338,7 +342,7 @@ public class SchemaFirstTests
                 .AddGraphQL()
                 .AddDocumentFromString(sdl)
                 .BindRuntimeType<QueryWithPersons>("Query")
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.ToString().MatchSnapshot();
@@ -356,7 +360,7 @@ public class SchemaFirstTests
                 .AddGraphQL()
                 .AddDocumentFromString(sdl)
                 .BindRuntimeType<QueryWithItems>("Query")
-                .ExecuteRequestAsync("{ items { nodes } }");
+                .ExecuteRequestAsync("{ items { nodes } }", cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -374,7 +378,9 @@ public class SchemaFirstTests
                 .AddGraphQL()
                 .AddDocumentFromString(sdl)
                 .BindRuntimeType<QueryWithPersons>("Query")
-                .ExecuteRequestAsync("{ items { nodes { name } } }");
+                .ExecuteRequestAsync(
+                    "{ items { nodes { name } } }",
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -392,7 +398,7 @@ public class SchemaFirstTests
                 .AddGraphQL()
                 .AddDocumentFromString(sdl)
                 .AddResolver<QueryWithItems>("Query")
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.ToString().MatchSnapshot();
@@ -411,7 +417,7 @@ public class SchemaFirstTests
                 .AddDocumentFromString(sdl)
                 .AddQueryType<QueryCodeFirst>()
                 .BindRuntimeType<Person>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.ToString().MatchSnapshot();
@@ -431,7 +437,7 @@ public class SchemaFirstTests
                 .AddQueryType<QueryCodeFirst>()
                 .BindRuntimeType<Person>()
                 .ConfigureSchema(sb => sb.TryAddSchemaDirective(new CustomDescriptionDirective()))
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(
@@ -452,7 +458,9 @@ public class SchemaFirstTests
                     enum TestEnumInput { FOO_BAR_INPUT }
                     enum TestEnum { FOO_BAR }")
             .AddResolver<QueryEnumExample>("Query")
-            .ExecuteRequestAsync("{ book(input: FOO_BAR_INPUT) }")
+            .ExecuteRequestAsync(
+                "{ book(input: FOO_BAR_INPUT) }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -471,7 +479,9 @@ public class SchemaFirstTests
                 """)
             .AddResolver<QueryWithFooInput>("Query")
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-            .ExecuteRequestAsync("{ book(input: { }) }")
+            .ExecuteRequestAsync(
+                "{ book(input: { }) }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -489,7 +499,9 @@ public class SchemaFirstTests
                 input Foo { bar: String = "baz" }
                 """)
             .AddResolver<QueryWithFooInput>("Query")
-            .ExecuteRequestAsync("{ book(input: { bar: \"baz123\" }) }")
+            .ExecuteRequestAsync(
+                "{ book(input: { bar: \"baz123\" }) }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -506,7 +518,9 @@ public class SchemaFirstTests
                     enum TestEnumInput { FOO_BAR_INPUT }
                     enum TestEnum { FOO_BAR }")
             .BindRuntimeType<QueryEnumExample>("Query")
-            .ExecuteRequestAsync("{ book(input: FOO_BAR_INPUT) }")
+            .ExecuteRequestAsync(
+                "{ book(input: FOO_BAR_INPUT) }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 

@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
     <TargetFrameworks>net10.0</TargetFrameworks>
     <AssemblyName>HotChocolate.Demo.Catalog.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Demo.Catalog.Tests</RootNamespace>

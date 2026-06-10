@@ -40,6 +40,7 @@ jobs:
           key: ${{ runner.os }}-nextjs-next-${{ hashFiles('website-next/yarn.lock') }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-nextjs-next-${{ hashFiles('website-next/yarn.lock') }}-
+            ${{ runner.os }}-nextjs-next-
 
       - name: Install Packages
         run: yarn --immutable --network-timeout 100000
@@ -47,6 +48,23 @@ jobs:
 
       - name: Install Playwright Chromium
         run: yarn playwright install --with-deps chromium
+        working-directory: website-next
+
+      - name: Cache Optimized Images
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+        with:
+          path: |
+            website-next/public/_optimized
+          key: ${{ runner.os }}-optimized-images-${{ hashFiles('website-next/public/images/**', 'website-next/src/image-optimization/**', 'website-next/scripts/optimize-images.mjs') }}
+          restore-keys: |
+            ${{ runner.os }}-optimized-images-
+
+      - name: Optimize Images
+        run: yarn optimize-images
+        working-directory: website-next
+
+      - name: Generate Git Metadata
+        run: yarn generate-git-metadata
         working-directory: website-next
 
       - name: Build Website

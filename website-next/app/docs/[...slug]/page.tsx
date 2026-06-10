@@ -1,9 +1,9 @@
 import path from "node:path";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { DocPageMeta } from "@/src/design-system/DocPageMeta";
-import { EditOnGitHub } from "@/src/design-system/EditOnGitHub";
-import { TableOfContents } from "@/src/design-system/TableOfContents";
+import { DocPageMeta } from "@/src/components/DocPageMeta";
+import { EditOnGitHub } from "@/src/components/EditOnGitHub";
+import { TableOfContents } from "@/src/components/TableOfContents";
 import { Typography } from "@/src/design-system/Typography";
 import { NotFoundContent } from "@/src/components/NotFoundContent";
 import { compileDoc } from "@/src/helpers/compileDoc";
@@ -118,7 +118,7 @@ export default async function DocPage({ params }: PageProps) {
   const gitMeta = await getGitMetadata(absolutePath);
 
   return (
-    <div className="grid min-h-[calc(100vh-72px)] grid-cols-1 2xl:grid-cols-[1fr_20rem]">
+    <div className="grid grid-cols-1 2xl:grid-cols-[1fr_20rem]">
       <main className="min-w-0 px-5 py-8 sm:px-12">
         <article className="mx-auto max-w-5xl">
           {frontmatter.title ? (

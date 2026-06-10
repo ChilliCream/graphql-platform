@@ -52,7 +52,7 @@ public sealed class RequiresOptInDirectiveTests
                     .Value("VALUE")
                     .RequiresOptIn("enumValueFeature1")
                     .RequiresOptIn("enumValueFeature2"))
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();
@@ -69,7 +69,7 @@ public sealed class RequiresOptInDirectiveTests
                 .AddQueryType<Query>()
                 .AddInputObjectType<Input>()
                 .AddType<Enum>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();
@@ -107,7 +107,7 @@ public sealed class RequiresOptInDirectiveTests
                     }
                     """)
                 .UseField(_ => _ => default)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();

@@ -38,7 +38,7 @@ public class ObjectTypeTests
                     CancellationToken cancellationToken)
                     => default;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -79,7 +79,7 @@ public class ObjectTypeTests
                     CancellationToken cancellationToken)
                     => default;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -120,7 +120,7 @@ public class ObjectTypeTests
                     CancellationToken cancellationToken)
                     => default;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -161,7 +161,7 @@ public class ObjectTypeTests
                     CancellationToken cancellationToken)
                     => default;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -186,7 +186,7 @@ public class ObjectTypeTests
                 public static string GetGreeting([Parent] Query query)
                     => query.Greeting + " world";
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -213,7 +213,7 @@ public class ObjectTypeTests
                 public static string GetGreeting([Parent] Query query)
                     => query.Greeting + query.Salutation;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -237,7 +237,7 @@ public class ObjectTypeTests
                 public static string GetFoo(string bar = "baz")
                     => bar;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -289,7 +289,7 @@ public class ObjectTypeTests
                 public static string GetEnumExplicitDefault(ConsoleColor? bar = default)
                     => bar?.ToString();
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -317,7 +317,7 @@ public class ObjectTypeTests
                 public static string GetUser()
                     => "User";
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -344,7 +344,7 @@ public class ObjectTypeTests
                 public static string GetPath()
                     => "Path";
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -373,7 +373,7 @@ public class ObjectTypeTests
                 public static string GetUserById(int userId, bool includeDeleted = false)
                     => $"User {userId}";
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -405,7 +405,7 @@ public class ObjectTypeTests
                 public static string ExecuteQuery(string query, int timeout = 30000)
                     => query;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -435,7 +435,7 @@ public class ObjectTypeTests
                 /// <inheritdoc />
                 public override string GetUser() => "Query User";
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -465,7 +465,7 @@ public class ObjectTypeTests
                 /// <inheritdoc />
                 public string GetCurrentUser() => "Current User";
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -495,7 +495,7 @@ public class ObjectTypeTests
                 /// <inheritdoc cref="IUserResolver.ResolveUser"/>
                 public string GetUserInfo() => "User Info";
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -537,7 +537,7 @@ public class ObjectTypeTests
                     CancellationToken cancellationToken)
                     => default;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -610,7 +610,7 @@ public class ObjectTypeTests
                     CancellationToken cancellationToken)
                     => default;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -650,7 +650,7 @@ public class ObjectTypeTests
                     CancellationToken cancellationToken)
                     => default;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -690,7 +690,7 @@ public class ObjectTypeTests
                     CancellationToken cancellationToken)
                     => default;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -730,7 +730,7 @@ public class ObjectTypeTests
                     CancellationToken cancellationToken)
                     => default;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -771,7 +771,7 @@ public class ObjectTypeTests
                     CancellationToken cancellationToken)
                     => default;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -812,7 +812,7 @@ public class ObjectTypeTests
                     CancellationToken cancellationToken = default)
                     => default;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -853,7 +853,7 @@ public class ObjectTypeTests
                     CancellationToken cancellationToken = default)
                     => default;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -899,7 +899,7 @@ public class ObjectTypeTests
                     CancellationToken cancellationToken = default)
                     => default;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -945,7 +945,7 @@ public class ObjectTypeTests
                     CancellationToken cancellationToken = default)
                     => default;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -991,7 +991,7 @@ public class ObjectTypeTests
                     CancellationToken cancellationToken = default)
                     => default;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -1018,7 +1018,7 @@ public class ObjectTypeTests
                 public static List<string> GetGreeting([Parent] List<User> users)
                     => default!;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -1049,7 +1049,7 @@ public class ObjectTypeTests
                     CancellationToken cancellationToken)
                     => default!;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -1082,7 +1082,7 @@ public class ObjectTypeTests
                     [Service] GreetingService greetingService)
                     => default!;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -1111,6 +1111,6 @@ public class ObjectTypeTests
                     List<string> prefix)
                     => default!;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 }

@@ -144,7 +144,7 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : Clie
         // act
         command.SelectOption(0);
         command.Input(ClientName);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();

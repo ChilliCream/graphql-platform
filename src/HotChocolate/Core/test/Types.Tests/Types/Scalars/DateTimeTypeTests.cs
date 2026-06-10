@@ -385,10 +385,10 @@ public class DateTimeTypeTests
         var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<DefaultDateTime>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var res = await executor.ExecuteAsync("{ test }");
+        var res = await executor.ExecuteAsync("{ test }", TestContext.Current.CancellationToken);
 
         // assert
         res.ToJson().MatchSnapshot();
