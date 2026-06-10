@@ -104,6 +104,7 @@ type Query {
 
 type Mutation {
   saveShapes(shapes: [ShapeInput!]!): Boolean!
+  setOptionalValue(value: String): String!
 }
 
 type Subscription {

@@ -197,4 +197,56 @@ public class IntegrationTests
         Assert.DoesNotContain("\"errors\"", json);
         Assert.Matches("\"title\": \"[0-9a-f]{32}\"", json);
     }
+
+    [Fact]
+    public async Task Resolves_Optional_Argument_That_Has_A_Value()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQLServer()
+            .AddIntegrationTestTypes()
+            .AddPagingArguments()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """mutation { setOptionalValue(value: "abc") }""",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "setOptionalValue": "abc"
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Resolves_Optional_Argument_That_Has_No_Value()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQLServer()
+            .AddIntegrationTestTypes()
+            .AddPagingArguments()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            "mutation { setOptionalValue }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "setOptionalValue": "unset"
+              }
+            }
+            """);
+    }
 }
