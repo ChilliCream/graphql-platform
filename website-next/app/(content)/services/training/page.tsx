@@ -1,3 +1,4 @@
+import { Offering } from "@/src/components/Offering";
 import { PageHero } from "@/src/components/PageHero";
 import { Section } from "@/src/components/Section";
 
@@ -44,33 +45,16 @@ export default function TrainingPage() {
       <Section title="Corporate Offers">
         <div className="grid gap-6 md:grid-cols-2">
           {SERVICES.map((service) => (
-            <div
+            <Offering
               key={service.kind}
-              className="flex flex-col rounded-xl border border-cc-card-border bg-cc-card-bg backdrop-blur-sm p-8 "
-            >
-              <h3 className="text-2xl font-semibold text-cc-ink">
-                {service.kind}
-              </h3>
-              <p className="mt-3 text-sm text-cc-ink-dim">
-                {service.description}
-              </p>
-              <ul className="mt-6 flex flex-1 flex-col gap-2 text-sm text-cc-ink">
-                {service.perks.map((perk) => (
-                  <li key={perk} className="flex items-start gap-2">
-                    <span aria-hidden className="mt-1 text-fuchsia-400">
-                      ✓
-                    </span>
-                    <span>{perk}</span>
-                  </li>
-                ))}
-              </ul>
-              <a
-                href="mailto:contact@chillicream.com?subject=Corporate Offers"
-                className="mt-8 inline-flex items-center justify-center rounded-md bg-cc-ink px-6 py-2.5 text-sm font-medium text-[#0c1322] no-underline transition-colors hover:bg-white"
-              >
-                Talk to us
-              </a>
-            </div>
+              title={service.kind}
+              description={service.description}
+              perks={service.perks}
+              callToAction={{
+                title: "Talk to us",
+                link: `mailto:contact@chillicream.com?subject=${service.kind}`,
+              }}
+            />
           ))}
         </div>
       </Section>

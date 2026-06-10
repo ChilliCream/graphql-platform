@@ -13,7 +13,7 @@ public static partial class ActivityTestHelper
     [GeneratedRegex(@"lambda_method\d+", RegexOptions.CultureInvariant)]
     private static partial Regex LambdaMethodRegex();
 
-    public static IDisposable CaptureActivities(out object activities)
+    public static IDisposable CaptureActivities(out Capture activities)
     {
         var exported = new List<Activity>();
         var quiescence = new QuiescenceProcessor();
@@ -94,7 +94,7 @@ public static partial class ActivityTestHelper
         }
     }
 
-    private sealed class Capture : IDisposable
+    public sealed class Capture : IDisposable
     {
         private readonly TracerProvider _tracerProvider;
         private readonly List<Activity> _exported;
@@ -121,6 +121,9 @@ public static partial class ActivityTestHelper
             _quiescence.WaitForIdle(TimeSpan.FromSeconds(5));
             return _exported.ToArray();
         }
+
+        [JsonIgnore]
+        public IReadOnlyList<Activity> Exported => _exported;
 
         [JsonProperty("source", Order = 0)]
         public OrderedDictionary<string, object?> Source

@@ -2,14 +2,10 @@
 
 import { useEffect, useState, type MouseEvent, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
+import { IconButton } from "@/src/design-system/IconButton";
 
 export const TOC_OPEN_EVENT = "docs:open-toc";
 
-/**
- * Off-canvas drawer for the table of contents. Hidden at 2xl+ where the TOC
- * docks inline. Opens when the `docs:open-toc` window event fires (dispatched
- * by DocsToolbar). Auto-closes on anchor click and route change.
- */
 export function TocDrawer({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
@@ -57,16 +53,14 @@ export function TocDrawer({ children }: { children: ReactNode }) {
         onClick={() => setOpen(false)}
       />
       <div
-        className={`absolute inset-y-0 right-0 flex w-[20rem] max-w-[85vw] flex-col overflow-y-auto bg-cc-bg shadow-xl transition-transform duration-200 ${
+        className={`absolute inset-y-0 right-0 flex w-80 max-w-[85vw] flex-col overflow-y-auto bg-cc-bg shadow-xl transition-transform duration-200 ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >
         <div className="flex items-center justify-end border-b border-cc-card-border px-3 py-2">
-          <button
-            type="button"
+          <IconButton
             aria-label="Close table of contents"
             onClick={() => setOpen(false)}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full text-cc-ink-dim hover:bg-cc-ink-faint"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -82,7 +76,7 @@ export function TocDrawer({ children }: { children: ReactNode }) {
               <line x1="6" y1="6" x2="18" y2="18" />
               <line x1="6" y1="18" x2="18" y2="6" />
             </svg>
-          </button>
+          </IconButton>
         </div>
         <div className="px-5 py-4" onClick={handleContentClick}>
           {children}

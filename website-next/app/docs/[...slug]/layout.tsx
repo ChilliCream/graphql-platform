@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
-import { DocsToolbar } from "@/src/design-system/DocsToolbar";
-import { Sidebar } from "@/src/design-system/Sidebar";
-import { SidebarDrawer } from "@/src/design-system/SidebarDrawer";
+import { DocsToolbar } from "@/src/components/DocsToolbar";
+import { Sidebar } from "@/src/components/Sidebar";
+import { SidebarDrawer } from "@/src/components/SidebarDrawer";
 import { buildContentTree } from "@/src/helpers/buildContentTree";
 import { NOT_FOUND_SEGMENT } from "@/src/helpers/docsParams";
 
@@ -25,7 +25,10 @@ export default async function DocsLayout({
   const currentPath = `/docs/${slug.join("/")}`;
 
   return (
-    <div className="cc-content-dark grid min-h-[calc(100vh-72px)] grid-cols-1 lg:grid-cols-[20rem_1fr]">
+    <div
+      data-docs-layout
+      className="cc-content-dark grid grid-cols-1 lg:grid-cols-[20rem_1fr]"
+    >
       <SidebarDrawer>
         <Sidebar
           tree={tree}

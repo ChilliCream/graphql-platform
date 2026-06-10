@@ -34,8 +34,8 @@ export function BlogTeaser({ post }: BlogTeaserProps) {
             />
           ) : null}
         </div>
-        <div className="flex flex-1 flex-col px-6.5 pt-5.5 pb-6">
-          <div className="flex items-center gap-3 text-[11px] uppercase tracking-[0.16em] text-cc-ink-dim">
+        <div className="flex flex-1 flex-col px-7 pt-6 pb-6">
+          <div className="flex items-center gap-3 text-xs uppercase tracking-[0.16em] text-cc-ink-dim">
             {post.category ? (
               <span className="rounded-md border border-cc-ink-faint px-2 py-1 text-cc-ink">
                 {post.category}
@@ -45,15 +45,15 @@ export function BlogTeaser({ post }: BlogTeaserProps) {
               {formatDate(post.date, { month: "short", year: "numeric" })}
             </time>
           </div>
-          <h3 className="m-0 mt-4.5 mb-3 text-[22px] font-medium leading-tight tracking-[-0.015em] text-cc-ink">
+          <h3 className="m-0 mt-5 mb-3 text-xl font-medium leading-tight tracking-[-0.015em] text-cc-ink">
             {post.title}
           </h3>
           {post.description ? (
-            <p className="m-0 mb-5.5 line-clamp-3 text-[15px] leading-[1.55] text-cc-ink-dim">
+            <p className="m-0 mb-6 line-clamp-3 text-sm leading-[1.55] text-cc-ink-dim">
               {post.description}
             </p>
           ) : null}
-          <span className="mt-auto text-[11px] uppercase tracking-[0.18em] text-cc-ink transition-colors group-hover/teaser:text-cc-accent">
+          <span className="mt-auto text-xs uppercase tracking-[0.18em] text-cc-ink transition-colors group-hover/teaser:text-cc-accent">
             Read →
           </span>
         </div>

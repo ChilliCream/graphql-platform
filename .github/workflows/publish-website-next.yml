@@ -40,6 +40,7 @@ jobs:
           key: ${{ runner.os }}-nextjs-next-${{ hashFiles('website-next/yarn.lock') }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-nextjs-next-${{ hashFiles('website-next/yarn.lock') }}-
+            ${{ runner.os }}-nextjs-next-
 
       - name: Install Packages
         run: yarn --immutable --network-timeout 100000

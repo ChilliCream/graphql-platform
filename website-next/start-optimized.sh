@@ -6,6 +6,9 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Run from the package root so yarn (package.json) and docker build (context)
+# resolve correctly regardless of the caller's working directory.
+cd "${SCRIPT_DIR}"
 
 IMAGE_TAG="website-next-local:ci"
 CONTAINER_NAME="website-next-local-$$"
