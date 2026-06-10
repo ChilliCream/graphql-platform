@@ -74,8 +74,10 @@ export function TocActive({ sections }: { sections: SectionDescriptor[] }) {
       scrollActiveIntoView(activeId);
     }
 
-    // Keep the active entry within the TOC's own scroll window so it stays
-    // visible even when the list is taller than the viewport.
+    // Pull the active entry up to near the top of the TOC's own scroll window
+    // so the list tracks the reader's position as they scroll. The browser
+    // clamps `scrollTop`, so the first entries settle the list at the very top
+    // and the last entries settle it scrolled all the way to the bottom.
     function scrollActiveIntoView(activeId: string | null) {
       if (!activeId) {
         return;
@@ -87,14 +89,9 @@ export function TocActive({ sections }: { sections: SectionDescriptor[] }) {
       if (!container || !link) {
         return;
       }
-      const margin = 24;
       const linkBox = link.getBoundingClientRect();
       const containerBox = container.getBoundingClientRect();
-      if (linkBox.top < containerBox.top + margin) {
-        container.scrollTop -= containerBox.top + margin - linkBox.top;
-      } else if (linkBox.bottom > containerBox.bottom - margin) {
-        container.scrollTop += linkBox.bottom - (containerBox.bottom - margin);
-      }
+      container.scrollTop += linkBox.top - containerBox.top;
     }
 
     function recompute() {

@@ -1,8 +1,8 @@
-import { Admonition } from "./Admonition";
-import { CodeBlock } from "./CodeBlock";
-import { InlineCode } from "./InlineCode";
+import { Admonition } from "@/src/design-system/Admonition";
+import { CodeBlock } from "@/src/design-system/CodeBlock";
+import { InlineCode } from "@/src/design-system/InlineCode";
 import { InputChoiceTabs } from "./InputChoiceTabs";
-import { Link } from "./Link";
+import { Link } from "@/src/design-system/Link";
 
 type Props = {
   packageName?: string;

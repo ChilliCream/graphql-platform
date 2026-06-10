@@ -77,8 +77,8 @@ function extractYouTubeIds(body) {
     }
   }
 
-  // <Video ... src="<id-or-url>"> — extract the 11-char id from the value.
-  const videoRe = /<Video\b[^>]*\bsrc=["']([^"']+)["']/g;
+  // <YouTubeVideo ... videoId="<id>"> — extract the 11-char id from the value.
+  const videoRe = /<YouTubeVideo\b[^>]*\bvideoId=["']([^"']+)["']/g;
   let videoMatch;
   while ((videoMatch = videoRe.exec(body)) !== null) {
     const id = idFromVideoSrc(videoMatch[1]);

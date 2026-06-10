@@ -4,7 +4,7 @@ import { compileMDX } from "next-mdx-remote/rsc";
 import type { VFile } from "vfile";
 import { rehypePlugins, remarkPlugins } from "@/src/mdx-plugins";
 import { useMDXComponents as getMDXComponents } from "@/mdx-components";
-import type { HeadingItem } from "@/src/design-system/TableOfContents";
+import type { HeadingItem } from "@/src/components/TableOfContents";
 
 type Frontmatter = {
   title?: string;

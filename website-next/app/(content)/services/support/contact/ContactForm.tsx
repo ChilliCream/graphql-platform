@@ -1,6 +1,10 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { SolidButton } from "@/src/design-system/Button";
+import { Dropdown, DropdownItem } from "@/src/design-system/Dropdown";
+import { Input } from "@/src/design-system/Input";
+import { TextArea } from "@/src/design-system/TextArea";
 
 const SUBJECTS = [
   "Schedule a Demo",
@@ -32,9 +36,6 @@ const INITIAL: FormData = {
   subject: SUBJECTS[0],
   message: "",
 };
-
-const inputClasses =
-  "rounded-md border bg-white/5 px-3 py-2 text-sm text-cc-ink focus:outline-hidden focus:ring-2 focus:ring-fuchsia-500/30 disabled:opacity-60";
 
 export function ContactForm() {
   const [data, setData] = useState<FormData>(INITIAL);
@@ -112,7 +113,7 @@ export function ContactForm() {
       noValidate
       className="flex flex-col gap-5 rounded-xl border border-cc-card-border bg-cc-card-bg p-8 backdrop-blur-sm"
     >
-      <Field
+      <Input
         label="Name"
         name="name"
         type="text"
@@ -120,9 +121,9 @@ export function ContactForm() {
         value={data.name}
         error={errors.name}
         disabled={isSubmitting}
-        onChange={(v) => update("name", v)}
+        onChange={(e) => update("name", e.target.value)}
       />
-      <Field
+      <Input
         label="Email"
         name="email"
         type="email"
@@ -130,9 +131,9 @@ export function ContactForm() {
         value={data.email}
         error={errors.email}
         disabled={isSubmitting}
-        onChange={(v) => update("email", v)}
+        onChange={(e) => update("email", e.target.value)}
       />
-      <Field
+      <Input
         label="Company"
         name="company"
         type="text"
@@ -140,90 +141,37 @@ export function ContactForm() {
         value={data.company}
         error={errors.company}
         disabled={isSubmitting}
-        onChange={(v) => update("company", v)}
+        onChange={(e) => update("company", e.target.value)}
       />
-      <div className="flex flex-col gap-1">
-        <label htmlFor="subject" className="text-sm font-medium text-cc-ink">
-          Subject
-        </label>
-        <select
-          id="subject"
-          name="subject"
-          value={data.subject}
-          disabled={isSubmitting}
-          onChange={(e) => update("subject", e.target.value)}
-          className={`${inputClasses} border-cc-card-border focus:border-fuchsia-500`}
-        >
-          {SUBJECTS.map((s) => (
-            <option key={s}>{s}</option>
-          ))}
-        </select>
-      </div>
-      <div className="flex flex-col gap-1">
-        <label htmlFor="message" className="text-sm font-medium text-cc-ink">
-          Message
-        </label>
-        <textarea
-          id="message"
-          name="message"
-          rows={5}
-          value={data.message}
-          disabled={isSubmitting}
-          onChange={(e) => update("message", e.target.value)}
-          className={`${inputClasses} border-cc-card-border focus:border-fuchsia-500`}
-        />
-      </div>
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="inline-flex items-center self-start rounded-full bg-cc-ink px-7 py-3 text-sm font-medium text-[#0c1322] transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+      <Dropdown
+        label="Subject"
+        className={isSubmitting ? "pointer-events-none opacity-60" : undefined}
+        panelClassName="p-1"
+        trigger={<span className="text-sm text-cc-ink">{data.subject}</span>}
       >
-        {isSubmitting ? "Sending..." : "Send"}
-      </button>
-    </form>
-  );
-}
-
-function Field({
-  label,
-  name,
-  type,
-  required,
-  value,
-  error,
-  disabled,
-  onChange,
-}: {
-  label: string;
-  name: string;
-  type: string;
-  required?: boolean;
-  value: string;
-  error?: string;
-  disabled?: boolean;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <div className="flex flex-col gap-1">
-      <label htmlFor={name} className="text-sm font-medium text-cc-ink">
-        {label}
-        {required && <span className="ml-1 text-fuchsia-400">*</span>}
-      </label>
-      <input
-        id={name}
-        name={name}
-        type={type}
-        value={value}
-        disabled={disabled}
-        aria-invalid={error ? true : undefined}
-        onChange={(e) => onChange(e.target.value)}
-        className={`${inputClasses} ${
-          error
-            ? "border-red-500 focus:border-red-500"
-            : "border-cc-card-border focus:border-fuchsia-500"
-        }`}
+        <ul className="m-0 flex list-none flex-col p-0">
+          {SUBJECTS.map((s) => (
+            <DropdownItem
+              key={s}
+              active={s === data.subject}
+              onClick={() => update("subject", s)}
+            >
+              {s}
+            </DropdownItem>
+          ))}
+        </ul>
+      </Dropdown>
+      <TextArea
+        label="Message"
+        name="message"
+        rows={5}
+        value={data.message}
+        disabled={isSubmitting}
+        onChange={(e) => update("message", e.target.value)}
       />
-      {error && <span className="text-sm text-red-500">{error}</span>}
-    </div>
+      <SolidButton type="submit" disabled={isSubmitting} className="self-start">
+        {isSubmitting ? "Sending..." : "Send"}
+      </SolidButton>
+    </form>
   );
 }

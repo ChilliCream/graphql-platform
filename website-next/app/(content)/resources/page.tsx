@@ -63,9 +63,9 @@ export default function ResourcesPage() {
               {...(link.external
                 ? { target: "_blank", rel: "noopener noreferrer" }
                 : {})}
-              className="group flex flex-col rounded-xl border border-cc-card-border bg-cc-card-bg backdrop-blur-sm p-6 no-underline  transition-colors hover:border-fuchsia-400"
+              className="group flex flex-col rounded-xl border border-cc-card-border bg-cc-card-bg backdrop-blur-sm p-6 no-underline  transition-colors hover:border-cc-accent"
             >
-              <h2 className="text-lg font-semibold text-cc-ink group-hover:text-fuchsia-400">
+              <h2 className="text-lg font-semibold text-cc-ink group-hover:text-cc-accent">
                 {link.title}
               </h2>
               <p className="mt-2 text-sm text-cc-ink-dim">{link.description}</p>

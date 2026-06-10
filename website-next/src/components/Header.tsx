@@ -81,7 +81,7 @@ export default async function Header() {
             href={TOOLS.nitro}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex h-9.5 items-center rounded-full bg-cc-ink px-7 text-sm font-medium text-cc-surface no-underline transition-colors hover:bg-cc-white"
+            className="inline-flex h-10 items-center rounded-full bg-cc-ink px-7 text-sm font-medium text-cc-surface no-underline transition-colors hover:bg-cc-white"
           >
             Launch
           </a>

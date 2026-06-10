@@ -30,14 +30,15 @@ export function TableOfContents({ items }: TableOfContentsProps) {
 
   return (
     <>
-      {/* Empty grid cell reserves the 20rem column width; the TOC itself is
-          position: fixed so it's anchored to the viewport instead of the
-          inner grid (otherwise it slides up once the article ends, even
-          though the footer is rendered separately below the grid). */}
-      <aside className="hidden max-w-[21rem] 2xl:block" aria-hidden="true" />
-      <div className="fixed bottom-0 right-0 top-[72px] z-10 hidden w-[20rem] overflow-y-auto px-5 py-8 2xl:block">
+      <aside className="hidden max-w-84 2xl:block" aria-hidden="true" />
+      <div className="cc-content-dark fixed right-0 top-18 z-30 -mt-px hidden max-h-[calc(100vh-72px-var(--docs-rail-bottom,0px))] min-h-[var(--docs-rail-min,0px)] w-80 flex-col px-5 pt-8 2xl:flex">
         <TocHeader />
-        <TocNav sections={sections} />
+        <div
+          data-toc-scroll
+          className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pb-8"
+        >
+          <TocNav sections={sections} />
+        </div>
       </div>
       <TocDrawer>
         <TocHeader />

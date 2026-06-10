@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from "react";
 import { usePathname } from "next/navigation";
-import { Tab, Tabs } from "./Tabs";
+import { Tab, Tabs } from "@/src/design-system/Tabs";
 
 type WithChildren = { children?: ReactNode };
 

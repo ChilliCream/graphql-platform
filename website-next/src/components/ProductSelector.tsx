@@ -1,5 +1,4 @@
-import Link from "next/link";
-import { Dropdown } from "../design-system/Dropdown";
+import { Dropdown, DropdownItem } from "../design-system/Dropdown";
 import { PRODUCTS } from "@/src/data/products";
 
 type ProductSelectorProps = {
@@ -15,7 +14,7 @@ export function ProductSelector({ activeSlug }: ProductSelectorProps) {
       panelClassName="p-1"
       trigger={
         <span className="flex flex-col">
-          <span className="text-[10px] font-semibold uppercase tracking-wide text-cc-nav-label">
+          <span className="text-xs font-semibold uppercase tracking-wide text-cc-nav-label">
             Product
           </span>
           <span className="text-sm font-semibold text-cc-ink">
@@ -25,33 +24,16 @@ export function ProductSelector({ activeSlug }: ProductSelectorProps) {
       }
     >
       <ul className="m-0 flex list-none flex-col p-0">
-        {PRODUCTS.map((product) => {
-          const isActive = product.slug === active.slug;
-          return (
-            <li key={product.slug}>
-              <Link
-                href={`/docs/${product.slug}`}
-                aria-current={isActive ? "page" : undefined}
-                className={[
-                  "block rounded px-3 py-2 no-underline transition-colors",
-                  isActive
-                    ? "bg-cc-accent/10 text-cc-accent"
-                    : "text-cc-ink hover:bg-cc-hover",
-                ].join(" ")}
-              >
-                <div className="text-sm font-medium">{product.title}</div>
-                <div
-                  className={[
-                    "text-xs",
-                    isActive ? "text-cc-accent/80" : "text-cc-ink-dim",
-                  ].join(" ")}
-                >
-                  {product.description}
-                </div>
-              </Link>
-            </li>
-          );
-        })}
+        {PRODUCTS.map((product) => (
+          <DropdownItem
+            key={product.slug}
+            href={`/docs/${product.slug}`}
+            active={product.slug === active.slug}
+            description={product.description}
+          >
+            {product.title}
+          </DropdownItem>
+        ))}
       </ul>
     </Dropdown>
   );
