@@ -10,7 +10,6 @@ public sealed partial class ResultDocument
     internal readonly struct DbRow
     {
         public const int Size = 20;
-        public const int UnknownSize = -1;
 
         // 29 bits for location (a cursor value for references) + 3 reserved bits
         private readonly int _location;
@@ -39,7 +38,7 @@ public sealed partial class ResultDocument
         {
             Debug.Assert((byte)tokenType < 16);
             Debug.Assert(location is >= 0 and <= 0x1FFFFFFF); // 29 bits
-            Debug.Assert(sizeOrLength is UnknownSize or >= 0 and <= 0x07FFFFFF); // 27 bits
+            Debug.Assert(sizeOrLength is >= 0 and <= 0x07FFFFFF); // 27 bits
             Debug.Assert(parentRow is >= 0 and <= 0x1FFFFFFF); // 29 bits
             Debug.Assert(operationReferenceId is >= 0 and <= 0x7FFF); // 15 bits
             Debug.Assert(numberOfRows is >= 0 and <= 0x07FFFFFF); // 27 bits
@@ -90,11 +89,6 @@ public sealed partial class ResultDocument
         /// String/PropertyName: Unescaping required.
         /// </summary>
         public bool HasComplexChildren => _sizeOrLengthUnion < 0;
-
-        /// <summary>
-        /// Specifies if a size for the item has ben set.
-        /// </summary>
-        public bool IsUnknownSize => _sizeOrLengthUnion == UnknownSize;
 
         /// <summary>
         /// Number of metadb rows this element spans.

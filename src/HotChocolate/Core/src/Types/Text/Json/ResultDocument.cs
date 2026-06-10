@@ -1,8 +1,6 @@
-using System.Buffers;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
-using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
@@ -377,66 +375,6 @@ public sealed partial class ResultDocument : IDisposable
         Debug.Fail("Only objects can be invalidated.");
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void WriteRawValueTo(Utf8JsonWriter writer, DbRow row)
-    {
-        switch (row.TokenType)
-        {
-            case ElementTokenType.Null:
-                writer.WriteNullValue();
-                return;
-
-            case ElementTokenType.True:
-                writer.WriteBooleanValue(true);
-                return;
-
-            case ElementTokenType.False:
-                writer.WriteBooleanValue(false);
-                return;
-
-            case ElementTokenType.String:
-            case ElementTokenType.Number:
-                writer.WriteRawValue(ReadRawValue(row), skipInputValidation: true);
-                return;
-
-            default:
-                throw new NotSupportedException();
-        }
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void WriteToBuffer(IBufferWriter<byte> writer, ReadOnlySpan<byte> data)
-    {
-        var span = writer.GetSpan(data.Length);
-        data.CopyTo(span);
-        writer.Advance(data.Length);
-    }
-
-    /// <summary>
-    /// Writes local data to the buffer, handling chunk boundaries.
-    /// </summary>
-    private void WriteLocalDataTo(IBufferWriter<byte> writer, int location, int size)
-    {
-        var remaining = size;
-        var chunkIndex = location >>> DataOffsetBits;
-        var offset = location & DataOffsetMask;
-
-        while (remaining > 0)
-        {
-            var availableInChunk = DataChunkBytes(chunkIndex) - offset;
-            var toWrite = Math.Min(remaining, availableInChunk);
-
-            var source = _data[chunkIndex].Span.Slice(offset, toWrite);
-            var dest = writer.GetSpan(toWrite);
-            source.CopyTo(dest);
-            writer.Advance(toWrite);
-
-            remaining -= toWrite;
-            chunkIndex++;
-            offset = 0;
-        }
-    }
-
     private ReadOnlySpan<byte> ReadRawValue(DbRow row)
     {
         switch (row.TokenType)
@@ -464,12 +402,9 @@ public sealed partial class ResultDocument : IDisposable
     }
 
     /// <summary>
-    /// Reads local data from the data chunks.
+    /// Reads local data from the data chunks. Data contained in a single chunk is returned as a
+    /// slice over that chunk; data that spans chunk boundaries is copied into a fresh buffer.
     /// </summary>
-    /// <remarks>
-    /// This method only supports data that fits within a single chunk.
-    /// Data that spans chunk boundaries should use <see cref="WriteLocalDataTo"/> instead.
-    /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private ReadOnlySpan<byte> ReadLocalData(int location, int size)
     {

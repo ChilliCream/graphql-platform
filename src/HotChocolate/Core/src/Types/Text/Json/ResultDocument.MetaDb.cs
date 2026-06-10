@@ -47,16 +47,6 @@ public sealed partial class ResultDocument
             };
         }
 
-        public readonly Cursor NextCursor
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get
-            {
-                var value = _nextValue;
-                return Unsafe.As<int, Cursor>(ref value);
-            }
-        }
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal Cursor Append(
             ElementTokenType tokenType,

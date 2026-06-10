@@ -218,12 +218,6 @@ public sealed partial class ResultDocument
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Cursor WithChunk(int chunk) => From(chunk, Row);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Cursor WithRow(int row) => From(Chunk, row);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Equals(Cursor other) => _value == other._value;
 
         public override bool Equals(object? obj) => obj is Cursor c && Equals(c);
