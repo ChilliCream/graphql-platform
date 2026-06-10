@@ -1101,6 +1101,42 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
     }
 
     [Fact]
+    public async Task QueryContext_Selector_Projects_Field_When_Variable_Include_Is_True()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType<AsPredicateQuery>()
+            .BuildRequestExecutorAsync();
+
+        const string query =
+            """
+            query Test($withName: Boolean!) {
+                authorsData {
+                    name @include(if: $withName)
+                }
+            }
+            """;
+
+        // act
+        var result = await executor.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(query)
+                .SetVariableValues(new Dictionary<string, object?> { ["withName"] = true })
+                .Build());
+
+        // assert
+        // A field included via a *variable* @include(if: $withName) must be projected and
+        // returned, just like a literal @include(if: true). Regression guard for #9880.
+        var operationResult = result.ExpectOperationResult();
+        Assert.True(operationResult.Errors is null or { Count: 0 });
+        Assert.Contains("Author1", operationResult.ToJson());
+    }
+
+    [Fact]
     public async Task QueryContext_Selector_Projects_Nested_Fields_When_Static_Include_Is_True()
     {
         // arrange

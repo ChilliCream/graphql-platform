@@ -78,16 +78,22 @@ public static class HotChocolateExecutionSelectionExtensions
         this Selection selection,
         ulong includeFlags)
     {
-        var isConditional = selection.IsConditional;
-
         // we first check if we already have an expression for this selection,
-        // this would be the cheapest way to get the expression.
-        if (!isConditional && TryGetExpression<TValue>(selection, out var expression))
+        // this would be the cheapest way to get the expression. A cached expression is
+        // only ever stored when the projected selection set (at any depth) contained no
+        // conditional (@include/@skip) selection, so it is independent of the runtime
+        // include flags and always safe to reuse here.
+        if (TryGetExpression<TValue>(selection, out var expression))
         {
             return expression;
         }
 
-        // if we do not have an expression we need to create one.
+        // we do not know up front whether the projection depends on the runtime include
+        // flags (a conditional selection can sit arbitrarily deep in the selection set),
+        // so we build the expression while tracking whether any conditional selection
+        // participated and only cache the result when none did.
+        var tracker = new SelectionExpressionBuilder.ConditionalTracker();
+
         // we first check what kind of field selection we have,
         // connection, collection or single field.
         var flags = selection.Field.Flags;
@@ -99,15 +105,10 @@ public static class HotChocolateExecutionSelectionExtensions
             var count = GetConnectionSelections(selection, buffer);
             for (var i = 0; i < count; i++)
             {
-                builder.Add(
-                    isConditional
-                        ? buffer[i].GetExpression<TValue>(includeFlags)
-                        : buffer[i].GetOrCreateExpression<TValue>());
+                builder.Add(buffer[i].BuildExpression<TValue>(includeFlags, tracker));
             }
             ArrayPool<Selection>.Shared.Return(buffer);
-            return isConditional
-                ? selection.GetExpression<TValue>(builder)
-                : selection.GetOrCreateExpression<TValue>(builder);
+            return selection.CacheIfStable(builder.TryCompile<TValue>()!, tracker);
         }
 
         if ((flags & CoreFieldFlags.CollectionSegment) == CoreFieldFlags.CollectionSegment)
@@ -117,28 +118,19 @@ public static class HotChocolateExecutionSelectionExtensions
             var count = GetCollectionSelections(selection, buffer);
             for (var i = 0; i < count; i++)
             {
-                builder.Add(
-                    isConditional
-                        ? buffer[i].GetExpression<TValue>(includeFlags)
-                        : buffer[i].GetOrCreateExpression<TValue>());
+                builder.Add(buffer[i].BuildExpression<TValue>(includeFlags, tracker));
             }
             ArrayPool<Selection>.Shared.Return(buffer);
-            return isConditional
-                ? selection.GetExpression<TValue>(builder)
-                : selection.GetOrCreateExpression<TValue>(builder);
+            return selection.CacheIfStable(builder.TryCompile<TValue>()!, tracker);
         }
 
         if ((flags & CoreFieldFlags.GlobalIdNodeField) == CoreFieldFlags.GlobalIdNodeField
             || (flags & CoreFieldFlags.GlobalIdNodesField) == CoreFieldFlags.GlobalIdNodesField)
         {
-            return isConditional
-                ? selection.GetNodeExpression<TValue>(includeFlags)
-                : selection.GetOrCreateNodeExpression<TValue>();
+            return selection.CacheIfStable(selection.BuildNodeExpression<TValue>(includeFlags, tracker), tracker);
         }
 
-        return isConditional
-            ? selection.GetExpression<TValue>(includeFlags)
-            : selection.GetOrCreateExpression<TValue>();
+        return selection.CacheIfStable(selection.BuildExpression<TValue>(includeFlags, tracker), tracker);
     }
 
     private static bool TryGetExpression<TValue>(
@@ -215,22 +207,24 @@ file static class Extensions
 
     extension(Selection selection)
     {
-        public Expression<Func<TValue, TValue>> GetOrCreateExpression<TValue>()
-            => selection.Features.GetOrSetSafe(() => s_builder.BuildExpression<TValue>(selection));
+        public Expression<Func<TValue, TValue>> BuildExpression<TValue>(
+            ulong includeFlags,
+            SelectionExpressionBuilder.ConditionalTracker tracker)
+            => s_builder.BuildExpression<TValue>(selection, includeFlags, tracker);
 
-        public Expression<Func<TValue, TValue>> GetExpression<TValue>(ulong includeFlags)
-            => s_builder.BuildExpression<TValue>(selection, includeFlags);
+        public Expression<Func<TValue, TValue>> BuildNodeExpression<TValue>(
+            ulong includeFlags,
+            SelectionExpressionBuilder.ConditionalTracker tracker)
+            => s_builder.BuildNodeExpression<TValue>(selection, includeFlags, tracker);
 
-        public Expression<Func<TValue, TValue>> GetOrCreateExpression<TValue>(ISelectorBuilder expressionBuilder)
-            => selection.Features.GetOrSetSafe(() => expressionBuilder.TryCompile<TValue>()!);
-
-        public Expression<Func<TValue, TValue>> GetExpression<TValue>(ISelectorBuilder expressionBuilder)
-            => expressionBuilder.TryCompile<TValue>()!;
-
-        public Expression<Func<TValue, TValue>> GetOrCreateNodeExpression<TValue>()
-            => selection.Features.GetOrSetSafe(() => s_builder.BuildNodeExpression<TValue>(selection));
-
-        public Expression<Func<TValue, TValue>> GetNodeExpression<TValue>(ulong includeFlags)
-            => s_builder.BuildNodeExpression<TValue>(selection, includeFlags);
+        // Cache the built expression for reuse only when it does not depend on the runtime
+        // include flags (i.e. no conditional @include/@skip selection participated). A
+        // conditional projection must be rebuilt per request from the current flags.
+        public Expression<Func<TValue, TValue>> CacheIfStable<TValue>(
+            Expression<Func<TValue, TValue>> expression,
+            SelectionExpressionBuilder.ConditionalTracker tracker)
+            => tracker.IsConditional
+                ? expression
+                : selection.Features.GetOrSetSafe(() => expression);
     }
 }

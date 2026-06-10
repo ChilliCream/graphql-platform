@@ -53,12 +53,13 @@ internal sealed class SelectionExpressionBuilder
 
     public Expression<Func<TRoot, TRoot>> BuildExpression<TRoot>(
         Selection selection,
-        ulong includeFlags = 0)
+        ulong includeFlags = 0,
+        ConditionalTracker? tracker = null)
     {
         var rootType = typeof(TRoot);
         var parameter = Expression.Parameter(rootType, "root");
         var requirements = selection.DeclaringOperation.Schema.Features.GetRequired<FieldRequirementsMetadata>();
-        var context = new Context(parameter, rootType, requirements, new NullabilityInfoContext(), includeFlags);
+        var context = new Context(parameter, rootType, requirements, new NullabilityInfoContext(), includeFlags, tracker);
         var root = new TypeContainer();
 
         CollectTypes(context, selection, root);
@@ -75,12 +76,13 @@ internal sealed class SelectionExpressionBuilder
 
     public Expression<Func<TRoot, TRoot>> BuildNodeExpression<TRoot>(
         Selection selection,
-        ulong includeFlags = 0)
+        ulong includeFlags = 0,
+        ConditionalTracker? tracker = null)
     {
         var rootType = typeof(TRoot);
         var parameter = Expression.Parameter(rootType, "root");
         var requirements = selection.DeclaringOperation.Schema.Features.GetRequired<FieldRequirementsMetadata>();
-        var context = new Context(parameter, rootType, requirements, new NullabilityInfoContext(), includeFlags);
+        var context = new Context(parameter, rootType, requirements, new NullabilityInfoContext(), includeFlags, tracker);
         var root = new TypeContainer();
 
         var entityType = selection.DeclaringOperation
@@ -380,6 +382,15 @@ internal sealed class SelectionExpressionBuilder
     {
         foreach (var selection in selectionSet.Selections)
         {
+            // A conditional selection (@include/@skip) makes the resulting projection
+            // dependent on the runtime include flags, regardless of whether it ends up
+            // included or skipped for the current flags. Record this so the caller knows
+            // the built expression must not be cached and reused across requests.
+            if (selection.IsConditional)
+            {
+                context.Tracker?.MarkConditional();
+            }
+
             if (!selection.IsIncluded(context.IncludeFlags))
             {
                 continue;
@@ -619,12 +630,25 @@ internal sealed class SelectionExpressionBuilder
         return nullabilityInfo.WriteState == NullabilityState.Nullable;
     }
 
+    /// <summary>
+    /// Tracks whether a conditional (@include/@skip) selection participated while
+    /// building a selector expression. When it did, the resulting expression depends
+    /// on the request's runtime include flags and must not be cached for reuse.
+    /// </summary>
+    public sealed class ConditionalTracker
+    {
+        public bool IsConditional { get; private set; }
+
+        public void MarkConditional() => IsConditional = true;
+    }
+
     private readonly record struct Context(
         Expression Parent,
         Type ParentType,
         FieldRequirementsMetadata Requirements,
         NullabilityInfoContext NullabilityInfoContext,
-        ulong IncludeFlags)
+        ulong IncludeFlags,
+        ConditionalTracker? Tracker)
     {
         public TypeNode? GetRequirements(Selection selection)
         {
