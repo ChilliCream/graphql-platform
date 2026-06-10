@@ -122,7 +122,7 @@ public sealed class CreateEnvironmentCommandTests(NitroCommandFixture fixture)
 
         // act
         command.Input(EnvironmentName);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();

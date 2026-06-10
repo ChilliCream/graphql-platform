@@ -112,7 +112,7 @@ public sealed class SetDefaultWorkspaceCommandTests(NitroCommandFixture fixture)
         // act
         command.SelectOption(0);
 
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();
@@ -192,7 +192,7 @@ public sealed class SetDefaultWorkspaceCommandTests(NitroCommandFixture fixture)
         // act
         command.SelectOption(0);
 
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();

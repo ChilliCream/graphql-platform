@@ -14,7 +14,7 @@ public class IntrospectionTests
         var executor = CreateSchema().MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -28,7 +28,7 @@ public class IntrospectionTests
         var executor = CreateSchema().MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -51,7 +51,7 @@ public class IntrospectionTests
                 .MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -65,7 +65,7 @@ public class IntrospectionTests
         var executor = CreateSchema().MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -81,7 +81,7 @@ public class IntrospectionTests
         var executor = CreateSchema().MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -95,7 +95,7 @@ public class IntrospectionTests
         var executor = CreateSchema().MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -109,7 +109,7 @@ public class IntrospectionTests
         var executor = CreateSchema().MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -135,7 +135,9 @@ public class IntrospectionTests
         var executor = schema.MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync("{ __typename a }");
+        var result = await executor.ExecuteAsync(
+            "{ __typename a }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -165,7 +167,7 @@ public class IntrospectionTests
         var executor = schema.MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -183,7 +185,9 @@ public class IntrospectionTests
         var executor = schema.MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync("{ __typename @upper a }");
+        var result = await executor.ExecuteAsync(
+            "{ __typename @upper a }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -201,7 +205,7 @@ public class IntrospectionTests
             .MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -250,7 +254,8 @@ public class IntrospectionTests
                                 }
                             }
                         }
-                    }");
+                    }",
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -299,7 +304,8 @@ public class IntrospectionTests
                                 }
                             }
                         }
-                    }");
+                    }",
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -351,7 +357,8 @@ public class IntrospectionTests
                                 }
                             }
                         }
-                    }");
+                    }",
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -405,7 +412,8 @@ public class IntrospectionTests
                                 }
                             }
                         }
-                    }");
+                    }",
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }

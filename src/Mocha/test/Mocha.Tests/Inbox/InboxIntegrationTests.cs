@@ -136,7 +136,7 @@ public class InboxIntegrationTests
         Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the event within timeout");
 
         // Give a short delay to ensure no async recording happens
-        await Task.Delay(200);
+        await Task.Delay(200, TestContext.Current.CancellationToken);
         Assert.Empty(inbox.RecordedEnvelopes);
     }
 

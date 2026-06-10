@@ -33,8 +33,8 @@ public class FusionOpenApiAdapterActivityTests : FusionTestBase
             using var client = gateway.CreateClient();
 
             // act
-            using var response = await client.GetAsync("/book");
-            await response.Content.ReadAsStringAsync();
+            using var response = await client.GetAsync("/book", TestContext.Current.CancellationToken);
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot();
@@ -59,8 +59,8 @@ public class FusionOpenApiAdapterActivityTests : FusionTestBase
             using var client = gateway.CreateClient();
 
             // act
-            using var response = await client.GetAsync("/invalid-graphql-query");
-            await response.Content.ReadAsStringAsync();
+            using var response = await client.GetAsync("/invalid-graphql-query", TestContext.Current.CancellationToken);
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot();
@@ -87,8 +87,8 @@ public class FusionOpenApiAdapterActivityTests : FusionTestBase
             using var client = gateway.CreateClient();
 
             // act
-            using var response = await client.GetAsync("/does-not-exist");
-            await response.Content.ReadAsStringAsync();
+            using var response = await client.GetAsync("/does-not-exist", TestContext.Current.CancellationToken);
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot();
@@ -115,8 +115,8 @@ public class FusionOpenApiAdapterActivityTests : FusionTestBase
             using var client = gateway.CreateClient();
 
             // act
-            using var response = await client.GetAsync("/faulty-book");
-            await response.Content.ReadAsStringAsync();
+            using var response = await client.GetAsync("/faulty-book", TestContext.Current.CancellationToken);
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot();

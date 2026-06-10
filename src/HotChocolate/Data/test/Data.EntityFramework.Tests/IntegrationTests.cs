@@ -35,10 +35,10 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             await using (var seed = new BookContext(
                 new DbContextOptionsBuilder<BookContext>().UseSqlite(connectionString).Options))
             {
-                await seed.Database.EnsureCreatedAsync();
+                await seed.Database.EnsureCreatedAsync(Xunit.TestContext.Current.CancellationToken);
                 seed.Authors.Add(
                     new Author { Id = 1, Name = "Foo", Books = { new Book { Id = 1, Title = "Foo1" } } });
-                await seed.SaveChangesAsync();
+                await seed.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
             }
 
             var result = await new ServiceCollection()
@@ -64,7 +64,9 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                             .ParentRequires<Book>(b => b.Author!);
                     })
                 .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-                .ExecuteRequestAsync("{ books { title authorInfo { name } } }");
+                .ExecuteRequestAsync(
+                    "{ books { title authorInfo { name } } }",
+                    cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
             // assert
             // The SQL must join and select the Authors columns, proving the required navigation
@@ -121,7 +123,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .Name("Query")
                     .Field("executable")
                     .Resolve(_authors))
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -131,7 +133,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 name
               }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -153,7 +156,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .Type<ObjectType<Author>>()
                     .Resolve(_authors.Take(1))
                     .UseSingleOrDefault())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -163,7 +166,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     name
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -188,7 +192,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .UseProjection()
                     .UseFiltering()
                     .UseSorting())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -198,7 +202,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     name
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -223,7 +228,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .UseProjection()
                     .UseFiltering()
                     .UseSorting())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -233,7 +238,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     name
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -255,7 +261,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .Type<ObjectType<Author>>()
                     .Resolve(_authors)
                     .UseFirstOrDefault())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -265,7 +271,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     name
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -290,7 +297,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .UseProjection()
                     .UseFiltering()
                     .UseSorting())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -300,7 +307,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     name
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -319,7 +327,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .AddSorting()
             .AddProjections()
             .AddQueryType<Query>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // assert
         var result = await executor.ExecuteAsync(
@@ -335,7 +343,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     }
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -358,7 +367,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .UseProjection()
                     .UseFiltering()
                     .UseSorting())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -368,7 +377,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     name
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -393,7 +403,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .UseProjection()
                     .UseFiltering()
                     .UseSorting())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -403,7 +413,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     name
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -428,7 +439,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .UseProjection()
                     .UseFiltering()
                     .UseSorting())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -438,7 +449,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     name
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -463,7 +475,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .UseProjection()
                     .UseFiltering()
                     .UseSorting())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -473,7 +485,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     name
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -498,7 +511,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .UseProjection()
                     .UseFiltering()
                     .UseSorting())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -508,7 +521,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     name
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -533,7 +547,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .UseProjection()
                     .UseFiltering()
                     .UseSorting())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -543,7 +557,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     name
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -571,7 +586,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .Type<ObjectType<SingleOrDefaultActiveUser>>()
                     .Resolve(users)
                     .UseSingleOrDefault())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -582,7 +597,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     isActive
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -598,19 +614,19 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 .UseInMemoryDatabase(databaseName)
                 .Options))
         {
-            await seedContext.Database.EnsureCreatedAsync();
+            await seedContext.Database.EnsureCreatedAsync(Xunit.TestContext.Current.CancellationToken);
 
             var blog1 = new ConstructorInjectionBlog { Name = "Blog1" };
             var blog2 = new ConstructorInjectionBlog { Name = "Blog2" };
 
             await seedContext.Blogs.AddRangeAsync(blog1, blog2);
-            await seedContext.SaveChangesAsync();
+            await seedContext.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
 
             await seedContext.Posts.AddRangeAsync(
                 new ConstructorInjectionPost { BlogId = blog1.Id },
                 new ConstructorInjectionPost { BlogId = blog1.Id },
                 new ConstructorInjectionPost { BlogId = blog2.Id });
-            await seedContext.SaveChangesAsync();
+            await seedContext.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
         }
 
         var executor = await new ServiceCollection()
@@ -619,7 +635,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .AddGraphQL()
             .AddProjections()
             .AddQueryType<ConstructorInjectionQuery>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(
             """
@@ -633,7 +649,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     postCount
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         var operationResult = result.ExpectOperationResult();
         Assert.True(operationResult.Errors is null || operationResult.Errors.Count == 0);
@@ -671,19 +688,19 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 .UseInMemoryDatabase(databaseName)
                 .Options))
         {
-            await seedContext.Database.EnsureCreatedAsync();
+            await seedContext.Database.EnsureCreatedAsync(Xunit.TestContext.Current.CancellationToken);
 
             var blog1 = new ConstructorInjectionBlog { Name = "Blog1" };
             var blog2 = new ConstructorInjectionBlog { Name = "Blog2" };
 
             await seedContext.Blogs.AddRangeAsync(blog1, blog2);
-            await seedContext.SaveChangesAsync();
+            await seedContext.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
 
             await seedContext.Posts.AddRangeAsync(
                 new ConstructorInjectionPost { BlogId = blog1.Id },
                 new ConstructorInjectionPost { BlogId = blog1.Id },
                 new ConstructorInjectionPost { BlogId = blog2.Id });
-            await seedContext.SaveChangesAsync();
+            await seedContext.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
         }
 
         var executor = await new ServiceCollection()
@@ -692,7 +709,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .AddGraphQL()
             .AddProjections()
             .AddQueryType<ConstructorInjectionQuery>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(
             """
@@ -706,7 +723,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     postCount
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         var operationResult = result.ExpectOperationResult();
         Assert.True(operationResult.Errors is null || operationResult.Errors.Count == 0);

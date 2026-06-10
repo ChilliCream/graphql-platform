@@ -23,7 +23,8 @@ public class OperationPlanCacheTests : FusionTestBase
                       field: String!
                     }
                     """));
-        var executor = await services.BuildServiceProvider().GetRequestExecutorAsync();
+        var executor = await services.BuildServiceProvider().GetRequestExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var operationPlanCache = executor.Schema.Services.GetRequiredService<Cache<OperationPlan>>();

@@ -43,7 +43,8 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                         name
                     }
                 }
-                """);
+                """,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         Snapshot
             .Create(
@@ -78,7 +79,8 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                         name
                     }
                 }
-                """);
+                """,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         Snapshot
             .Create(
@@ -113,7 +115,8 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                         name
                     }
                 }
-                """);
+                """,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         Snapshot
             .Create(
@@ -152,7 +155,8 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                         }
                     }
                 }
-                """);
+                """,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         Snapshot.Create()
             .AddSql(queries)
@@ -183,7 +187,8 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                         name
                     }
                 }
-                """);
+                """,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         Snapshot
             .Create(
@@ -221,7 +226,8 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                         name
                     }
                 }
-                """);
+                """,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         Snapshot
             .Create(
@@ -259,7 +265,8 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                         }
                     }
                 }
-                """);
+                """,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         Snapshot
             .Create(
@@ -303,7 +310,8 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                         }
                     }
                 }
-                """);
+                """,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         Snapshot
             .Create(
@@ -347,7 +355,8 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                         }
                     }
                 }
-                """);
+                """,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         Snapshot
             .Create(
@@ -387,7 +396,8 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                         }
                     }
                 }
-                """);
+                """,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         Snapshot
             .Create(
@@ -428,7 +438,8 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                         }
                     }
                 }
-                """);
+                """,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         Snapshot
             .Create(
@@ -464,7 +475,8 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                         details
                     }
                 }
-                """);
+                """,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         Snapshot
             .Create(
@@ -500,7 +512,8 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                         details
                     }
                 }
-                """);
+                """,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         Snapshot
             .Create(
@@ -536,7 +549,8 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                         details
                     }
                 }
-                """);
+                """,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         Snapshot
             .Create(
@@ -573,7 +587,8 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                         details
                     }
                 }
-                """);
+                """,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         Snapshot
             .Create(
@@ -610,7 +625,8 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                         }
                     }
                 }
-                """);
+                """,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         // Brand.Products is getter-only and cannot be assigned by AsSelector,
         // so products will be empty and the selector falls back to brand.Id.
@@ -648,7 +664,8 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                         __typename
                     }
                 }
-                """);
+                """,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         Snapshot
             .Create(
@@ -687,7 +704,8 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                         }
                     }
                 }
-                """);
+                """,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         Snapshot
             .Create(
@@ -725,7 +743,8 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                         }
                     }
                 }
-                """);
+                """,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         Snapshot
             .Create(
@@ -761,7 +780,8 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                         __typename
                     }
                 }
-                """);
+                """,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         Snapshot
             .Create(
@@ -795,7 +815,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
         // Act
         await using var scope = services.CreateAsyncScope();
         var dataLoader = scope.ServiceProvider.GetRequiredService<ProductByBrandIdDataLoader>();
-        await dataLoader.LoadAsync(1);
+        await dataLoader.LoadAsync(1, TestContext.Current.CancellationToken);
 
         // Assert
         Snapshot
@@ -831,7 +851,8 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                         }
                     }
                 }
-                """);
+                """,
+                cancellationToken: TestContext.Current.CancellationToken);
         // Assert
         Snapshot
             .Create(
@@ -867,7 +888,8 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                         }
                     }
                 }
-                """);
+                """,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         Snapshot

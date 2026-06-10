@@ -31,7 +31,7 @@ public class PartialClassHandlerTests
                     => new(42);
             }
             """
-        ]).MatchMarkdownAsync();
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -67,7 +67,7 @@ public class PartialClassHandlerTests
                 }
             }
             """
-        ]).MatchMarkdownAsync();
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -97,6 +97,6 @@ public class PartialClassHandlerTests
                 private static string FormatOrder(int id) => $"Order-{id}";
             }
             """
-        ]).MatchMarkdownAsync();
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 }

@@ -10,7 +10,12 @@ public class BM25SearchProviderTests
         var provider = new BM25SearchProvider(schema);
 
         // act
-        var results = await provider.SearchAsync("product", first: 10, after: null, minScore: null);
+        var results = await provider.SearchAsync(
+            "product",
+            first: 10,
+            after: null,
+            minScore: null,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotEmpty(results);
@@ -29,7 +34,12 @@ public class BM25SearchProviderTests
         var provider = new BM25SearchProvider(schema);
 
         // act
-        var results = await provider.SearchAsync("xyznonexistent", first: 10, after: null, minScore: null);
+        var results = await provider.SearchAsync(
+            "xyznonexistent",
+            first: 10,
+            after: null,
+            minScore: null,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Empty(results);
@@ -44,7 +54,13 @@ public class BM25SearchProviderTests
 
         // act & assert
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
-            () => provider.SearchAsync("product", first: 0, after: null, minScore: null).AsTask());
+            () => provider.SearchAsync(
+                "product",
+                first: 0,
+                after: null,
+                minScore: null,
+                cancellationToken: TestContext.Current.CancellationToken)
+                .AsTask());
     }
 
     [Fact]
@@ -56,7 +72,13 @@ public class BM25SearchProviderTests
 
         // act & assert
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
-            () => provider.SearchAsync("product", first: -1, after: null, minScore: null).AsTask());
+            () => provider.SearchAsync(
+                "product",
+                first: -1,
+                after: null,
+                minScore: null,
+                cancellationToken: TestContext.Current.CancellationToken)
+                .AsTask());
     }
 
     [Fact]
@@ -67,7 +89,12 @@ public class BM25SearchProviderTests
         var provider = new BM25SearchProvider(schema);
 
         // act
-        var results = await provider.SearchAsync("product", first: 1, after: null, minScore: null);
+        var results = await provider.SearchAsync(
+            "product",
+            first: 1,
+            after: null,
+            minScore: null,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Single(results);
@@ -81,7 +108,12 @@ public class BM25SearchProviderTests
         var provider = new BM25SearchProvider(schema);
 
         // act
-        var results = await provider.SearchAsync("product", first: 10, after: null, minScore: null);
+        var results = await provider.SearchAsync(
+            "product",
+            first: 10,
+            after: null,
+            minScore: null,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotEmpty(results);
@@ -100,7 +132,12 @@ public class BM25SearchProviderTests
         var provider = new BM25SearchProvider(schema);
 
         // act
-        var results = await provider.SearchAsync("product", first: 100, after: null, minScore: 0.5f);
+        var results = await provider.SearchAsync(
+            "product",
+            first: 100,
+            after: null,
+            minScore: 0.5f,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.All(results, r => Assert.True(r.Score >= 0.5f));
@@ -114,11 +151,20 @@ public class BM25SearchProviderTests
         var provider = new BM25SearchProvider(schema);
 
         // Get first page.
-        var firstPage = await provider.SearchAsync("product", first: 1, after: null, minScore: null);
+        var firstPage = await provider.SearchAsync(
+            "product",
+            first: 1,
+            after: null,
+            minScore: null,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // act - Get second page using cursor.
         var secondPage = await provider.SearchAsync(
-            "product", first: 1, after: firstPage[0].Cursor, minScore: null);
+            "product",
+            first: 1,
+            after: firstPage[0].Cursor,
+            minScore: null,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         if (secondPage.Count > 0)
@@ -136,7 +182,12 @@ public class BM25SearchProviderTests
         var provider = new BM25SearchProvider(schema);
 
         // act
-        var results = await provider.SearchAsync("product", first: 100, after: null, minScore: null);
+        var results = await provider.SearchAsync(
+            "product",
+            first: 100,
+            after: null,
+            minScore: null,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         for (var i = 1; i < results.Count; i++)
@@ -175,7 +226,8 @@ public class BM25SearchProviderTests
 
         // act
         var paths = await provider.GetPathsToRootAsync(
-            new SchemaCoordinate("Query"));
+            new SchemaCoordinate("Query"),
+            TestContext.Current.CancellationToken);
 
         // assert
         // A root type is already at root — no field path needed.
@@ -191,7 +243,8 @@ public class BM25SearchProviderTests
 
         // act
         var paths = await provider.GetPathsToRootAsync(
-            new SchemaCoordinate("Product"));
+            new SchemaCoordinate("Product"),
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotEmpty(paths);
@@ -208,7 +261,8 @@ public class BM25SearchProviderTests
 
         // act
         var paths = await provider.GetPathsToRootAsync(
-            new SchemaCoordinate("Product", "name"));
+            new SchemaCoordinate("Product", "name"),
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotEmpty(paths);
@@ -225,7 +279,8 @@ public class BM25SearchProviderTests
 
         // act
         var paths = await provider.GetPathsToRootAsync(
-            new SchemaCoordinate("Product"));
+            new SchemaCoordinate("Product"),
+            TestContext.Current.CancellationToken);
 
         // assert
         for (var i = 1; i < paths.Count; i++)
@@ -243,7 +298,13 @@ public class BM25SearchProviderTests
 
         // act & assert
         await Assert.ThrowsAsync<ArgumentNullException>(
-            () => provider.SearchAsync(null!, first: 10, after: null, minScore: null).AsTask());
+            () => provider.SearchAsync(
+                null!,
+                first: 10,
+                after: null,
+                minScore: null,
+                cancellationToken: TestContext.Current.CancellationToken)
+                .AsTask());
     }
 
     [Fact]
@@ -263,7 +324,8 @@ public class BM25SearchProviderTests
 
         // act
         var paths = await provider.GetPathsToRootAsync(
-            new SchemaCoordinate("TV", "brandName"));
+            new SchemaCoordinate("TV", "brandName"),
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotEmpty(paths);
@@ -282,7 +344,8 @@ public class BM25SearchProviderTests
 
         // act
         var paths = await provider.GetPathsToRootAsync(
-            new SchemaCoordinate("Photo", "url"));
+            new SchemaCoordinate("Photo", "url"),
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotEmpty(paths);
@@ -301,7 +364,8 @@ public class BM25SearchProviderTests
 
         // act
         var paths = await provider.GetPathsToRootAsync(
-            new SchemaCoordinate("TV", "brandName"));
+            new SchemaCoordinate("TV", "brandName"),
+            TestContext.Current.CancellationToken);
 
         // assert
         // A root reference must not be deduped, so both root fields yield a path.

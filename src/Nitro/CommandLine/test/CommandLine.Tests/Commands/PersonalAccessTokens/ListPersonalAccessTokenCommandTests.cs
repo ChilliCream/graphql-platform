@@ -51,7 +51,7 @@ public sealed class ListPersonalAccessTokenCommandTests(NitroCommandFixture fixt
             "list");
 
         command.SelectOption(0);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();
@@ -114,7 +114,7 @@ public sealed class ListPersonalAccessTokenCommandTests(NitroCommandFixture fixt
             "list");
 
         command.SelectOption(0);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();
@@ -164,7 +164,7 @@ public sealed class ListPersonalAccessTokenCommandTests(NitroCommandFixture fixt
             "cursor-1");
 
         command.SelectOption(0);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();

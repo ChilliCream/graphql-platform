@@ -153,7 +153,7 @@ public sealed class CreateWorkspaceCommandTests(NitroCommandFixture fixture)
         command.Input(WorkspaceName);
         command.Confirm(false);
 
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();
@@ -267,7 +267,7 @@ public sealed class CreateWorkspaceCommandTests(NitroCommandFixture fixture)
         // act
         command.Confirm(true);
 
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(0, result.ExitCode);
@@ -322,7 +322,7 @@ public sealed class CreateWorkspaceCommandTests(NitroCommandFixture fixture)
         // act
         command.Confirm(false);
 
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(0, result.ExitCode);

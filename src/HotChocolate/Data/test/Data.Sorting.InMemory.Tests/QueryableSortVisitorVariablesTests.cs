@@ -29,20 +29,22 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
             OperationRequestBuilder.New()
                 .SetDocument(query)
                 .SetVariableValues(new Dictionary<string, object?> { { "order", "ASC" } })
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(query)
                 .SetVariableValues(new Dictionary<string, object?> { { "order", "DESC" } })
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .Add(res1, "ASC")
             .Add(res2, "DESC")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -58,20 +60,22 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
             OperationRequestBuilder.New()
                 .SetDocument(query)
                 .SetVariableValues(new Dictionary<string, object?> { { "order", "ASC" } })
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(query)
                 .SetVariableValues(new Dictionary<string, object?> { { "order", "DESC" } })
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .Add(res1, "ASC")
             .Add(res2, "DESC")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -96,7 +100,7 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
             .Create()
             .Add(res1, "ASC")
             .Add(res2, "DESC")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -121,7 +125,7 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
             .Create()
             .Add(res1, "ASC")
             .Add(res2, "DESC")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     private TestServer CreateServer<TEntity, T>(TEntity?[] entities)

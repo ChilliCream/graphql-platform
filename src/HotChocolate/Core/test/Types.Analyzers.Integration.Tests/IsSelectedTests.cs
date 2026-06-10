@@ -14,10 +14,12 @@ public class IsSelectedTests
             .AddIntegrationTestTypes()
             .AddPagingArguments()
             .AddGlobalObjectIdentification()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ isSelectedTest { name wasNameSelected } }");
+        var result = await executor.ExecuteAsync(
+            "{ isSelectedTest { name wasNameSelected } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -42,10 +44,12 @@ public class IsSelectedTests
             .AddIntegrationTestTypes()
             .AddPagingArguments()
             .AddGlobalObjectIdentification()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ isSelectedTest { description wasNameSelected } }");
+        var result = await executor.ExecuteAsync(
+            "{ isSelectedTest { description wasNameSelected } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -70,13 +74,14 @@ public class IsSelectedTests
             .AddIntegrationTestTypes()
             .AddPagingArguments()
             .AddGlobalObjectIdentification()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var id = Convert.ToBase64String("IsSelectedNode:1"u8);
 
         // act
         var result = await executor.ExecuteAsync(
-            $$"""{ node(id: "{{id}}") { ... on IsSelectedNode { name wasNameSelected } } }""");
+            $$"""{ node(id: "{{id}}") { ... on IsSelectedNode { name wasNameSelected } } }""",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -101,13 +106,14 @@ public class IsSelectedTests
             .AddIntegrationTestTypes()
             .AddPagingArguments()
             .AddGlobalObjectIdentification()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var id = Convert.ToBase64String("IsSelectedNode:1"u8);
 
         // act
         var result = await executor.ExecuteAsync(
-            $$"""{ node(id: "{{id}}") { ... on IsSelectedNode { description wasNameSelected } } }""");
+            $$"""{ node(id: "{{id}}") { ... on IsSelectedNode { description wasNameSelected } } }""",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(

@@ -36,7 +36,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     .UseProjection()
                     .UseFiltering()
                     .UseSorting())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -46,7 +46,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     name
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -71,7 +72,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     .UseProjection()
                     .UseFiltering()
                     .UseSorting())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -81,7 +82,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     name
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -106,7 +108,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     .UseProjection()
                     .UseFiltering()
                     .UseSorting())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -116,7 +118,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     name
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -141,7 +144,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     .UseProjection()
                     .UseFiltering()
                     .UseSorting())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -151,7 +154,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     name
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -176,7 +180,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     .UseProjection()
                     .UseFiltering()
                     .UseSorting())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -186,7 +190,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     name
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -211,7 +216,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     .UseProjection()
                     .UseFiltering()
                     .UseSorting())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -221,7 +226,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     name
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -243,7 +249,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     o.ImplementsNode()
                         .IdField(f => f.Id)
                         .ResolveNode(_ => default!))
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -260,7 +266,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -282,7 +289,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     o.ImplementsNode()
                         .IdField(f => f.Id)
                         .ResolveNode(_ => default!))
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -299,7 +306,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -321,7 +329,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     o.ImplementsNode()
                         .IdField(f => f.Id)
                         .ResolveNode(_ => default!))
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -340,7 +348,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 title
                 id
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -362,7 +371,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     o.ImplementsNode()
                         .IdField(f => f.Id)
                         .ResolveNode(_ => default!))
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -379,7 +388,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 title
                 id
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -401,7 +411,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     o.ImplementsNode()
                         .IdField(f => f.Id)
                         .ResolveNode(_ => default!))
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -421,7 +431,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             fragment Test on Author {
                 name
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -443,7 +454,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     o.ImplementsNode()
                         .IdField(f => f.Id)
                         .ResolveNode(_ => default!))
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -461,7 +472,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             fragment Test on Author {
                 name
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -483,7 +495,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     o.ImplementsNode()
                         .IdField(f => f.Id)
                         .ResolveNode(_ => default!))
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -502,7 +514,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                    name
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -525,7 +538,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     o.ImplementsNode()
                         .IdField(f => f.Id)
                         .ResolveNode(_ => default!))
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -544,14 +557,15 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                    name
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .Add(result, "Result:")
             .Add(executor.Schema, "Schema:")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -571,7 +585,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     o.ImplementsNode()
                         .IdField(f => f.Id)
                         .ResolveNode(_ => default!))
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -583,14 +597,15 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .Add(result, "Result:")
             .Add(executor.Schema, "Schema:")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -601,7 +616,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddGraphQL()
             .AddFiltering()
             .AddQueryType<FooType>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -611,14 +626,15 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     qux
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .Add(result, "Result:")
             .Add(executor.Schema, "Schema:")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -631,7 +647,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddSorting("Foo")
             .AddProjections("Foo")
             .AddQueryType<DifferentScope>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -641,14 +657,15 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     nodes { title }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .Add(result, "Result:")
             .Add(executor.Schema, "Schema:")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -661,7 +678,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddSorting("Foo")
             .AddProjections("Foo")
             .AddQueryType<DifferentScope>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -687,7 +704,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .Create()
             .Add(result, "Result:")
             .Add(executor.Schema, "Schema:")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -700,7 +717,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddSorting("Foo")
             .AddProjections("Foo")
             .AddQueryType<DifferentScope>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -726,7 +743,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .Create()
             .Add(result, "Result:")
             .Add(executor.Schema, "Schema:")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -739,7 +756,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddSorting()
             .AddProjections()
             .AddQueryType<FirstOrDefaultQuery>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -749,7 +766,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     title
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -766,7 +784,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddProjections()
             .AddQueryType<FirstOrDefaultQuery>()
             .AddMutationType<FirstOrDefaultMutationManyToMany>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = executor.Schema.ToString();
@@ -786,7 +804,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddProjections()
             .AddQueryType<FirstOrDefaultQuery>()
             .AddMutationType<FirstOrDefaultMutationManyToOne>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = executor.Schema.ToString();
@@ -803,7 +821,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddGraphQL()
             .AddQueryType()
             .AddTypeExtension(typeof(StaticQuery))
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = executor.Schema.ToString();
@@ -841,7 +859,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddSorting()
             .AddProjections()
             .AddQueryType<AsPredicateQuery>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -851,7 +869,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     name
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -867,7 +886,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddSorting()
             .AddProjections()
             .AddQueryType<AsPredicateQuery>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -877,7 +896,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     name
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -893,7 +913,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddSorting()
             .AddProjections()
             .AddQueryType<AsPredicateQuery>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -903,7 +923,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     name
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -919,7 +940,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddSorting()
             .AddProjections()
             .AddQueryType<AsPredicateQuery>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -929,7 +950,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     name
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -945,7 +967,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddSorting()
             .AddProjections()
             .AddQueryType<AsPredicateQuery>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -956,7 +978,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     name
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -971,7 +994,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddFiltering()
             .AddSorting()
             .AddQueryType<RecordQuery>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -986,7 +1009,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         var operationResult = result.ExpectOperationResult();
@@ -1003,7 +1027,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddSorting()
             .AddProjections()
             .AddQueryType<AsPredicateQuery>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -1014,7 +1038,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     name @include(if: false)
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -1030,7 +1055,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddSorting()
             .AddProjections()
             .AddQueryType<AsPredicateQuery>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -1041,7 +1066,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     name @skip(if: true)
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -1057,7 +1083,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddSorting()
             .AddProjections()
             .AddQueryType<AsPredicateQuery>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         const string query =
             """
@@ -1079,7 +1105,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                         ["withName"] = true,
                         ["empty"] = true
                     })
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder.New()
@@ -1090,7 +1117,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                         ["withName"] = false,
                         ["empty"] = false
                     })
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -1110,7 +1138,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddSorting()
             .AddProjections()
             .AddQueryType<AsPredicateQuery>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -1124,7 +1152,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -1159,7 +1188,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddSorting()
             .AddProjections()
             .AddQueryType<AsPredicateQuery>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var request = OperationRequestBuilder.New()
             .SetDocument(
@@ -1178,7 +1207,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .Build();
 
         // act
-        var result = await executor.ExecuteAsync(request);
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -1213,7 +1242,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddSorting()
             .AddProjections()
             .AddQueryType<AsPredicateQuery>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -1227,7 +1256,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -1252,7 +1282,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddSorting()
             .AddProjections()
             .AddQueryType<AsPredicateQuery>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var request = OperationRequestBuilder.New()
             .SetDocument(
@@ -1271,7 +1301,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .Build();
 
         // act
-        var result = await executor.ExecuteAsync(request);
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -1298,7 +1328,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddFiltering()
             .AddSorting()
             .AddQueryType<QueryContextRecordSelectorQuery>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -1308,7 +1338,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     id
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         var operationResult = result.ExpectOperationResult();
@@ -1326,7 +1357,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddGraphQL()
             .AddSorting()
             .AddQueryType<QueryContextCustomSortQuery>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -1337,7 +1368,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     title
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();

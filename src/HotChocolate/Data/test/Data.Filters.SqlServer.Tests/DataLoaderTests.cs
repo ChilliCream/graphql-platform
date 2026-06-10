@@ -35,7 +35,8 @@ public sealed class DataLoaderTests
                         name
                     }
                 }
-                """);
+                """,
+                cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         Snapshot
             .Create(
@@ -71,7 +72,8 @@ public sealed class DataLoaderTests
                         name
                     }
                 }
-                """);
+                """,
+                cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         Snapshot
             .Create(
@@ -107,7 +109,8 @@ public sealed class DataLoaderTests
                         name
                     }
                 }
-                """);
+                """,
+                cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         Snapshot
             .Create(
@@ -146,7 +149,8 @@ public sealed class DataLoaderTests
                         name
                     }
                 }
-                """);
+                """,
+                cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         Snapshot
             .Create(
@@ -182,7 +186,8 @@ public sealed class DataLoaderTests
                         name
                     }
                 }
-                """);
+                """,
+                cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         Snapshot
             .Create(

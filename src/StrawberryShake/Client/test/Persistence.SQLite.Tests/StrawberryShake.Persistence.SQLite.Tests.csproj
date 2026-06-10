@@ -1,9 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
+
   <PropertyGroup>
     <RootNamespace>StrawberryShake.Persistence.SQLite</RootNamespace>
     <AssemblyName>StrawberryShake.Persistence.SQLite.Tests</AssemblyName>
-    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>

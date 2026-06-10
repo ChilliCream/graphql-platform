@@ -36,21 +36,24 @@ public class QueryableFilterVisitorInterfacesTests : IClassFixture<SchemaCache>
                 .SetDocument(
                     "{ root(where: { test: { prop: { eq: \"a\"}}}) "
                     + "{ test{ prop }}}")
-                .Build());
+                .Build(),
+            Xunit.TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { test: { prop: { eq: \"b\"}}}) "
                     + "{ test{ prop }}}")
-                .Build());
+                .Build(),
+            Xunit.TestContext.Current.CancellationToken);
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { test: { prop: { eq: null}}}) "
                     + "{ test{ prop}}}")
-                .Build());
+                .Build(),
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -61,7 +64,7 @@ public class QueryableFilterVisitorInterfacesTests : IClassFixture<SchemaCache>
             .AddResult(res1, "a")
             .AddResult(res2, "ba")
             .AddResult(res3, "null")
-            .MatchAsync();
+            .MatchAsync(Xunit.TestContext.Current.CancellationToken);
     }
 
     private static void Configure(ISchemaBuilder builder)

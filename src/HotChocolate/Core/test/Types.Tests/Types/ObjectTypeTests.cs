@@ -1168,7 +1168,8 @@ public class ObjectTypeTests : TypeTestBase
             OperationRequestBuilder.New()
                 .SetDocument("{ desc }")
                 .SetGlobalState(InitialValue, new Foo())
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -1479,7 +1480,8 @@ public class ObjectTypeTests : TypeTestBase
                 .SetGlobalState(
                     InitialValue,
                     new FooStruct { Qux = "Qux_Value", Baz = "Baz_Value" })
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -1887,7 +1889,9 @@ public class ObjectTypeTests : TypeTestBase
             .AddInterfaceType(t => t.Name("Foo").Field("abc").Type("String"))
             .AddObjectType(
                 t => t.Name("Bar").Implements("Foo").Field("abc").Type("String").Resolve("abc"))
-            .ExecuteRequestAsync("{ abc { abc } }")
+            .ExecuteRequestAsync(
+                "{ abc { abc } }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
 
         Assert.True(globalCheck);
@@ -1901,7 +1905,7 @@ public class ObjectTypeTests : TypeTestBase
         var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryWithDeprecatedArguments>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         executor.Schema.ToString().MatchSnapshot();
@@ -1934,7 +1938,7 @@ public class ObjectTypeTests : TypeTestBase
                     .Field("foo")
                     .Argument("bar", x => x.Type<IntType>().Deprecated("Is deprecated"))
                     .Resolve(""))
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         executor.Schema.ToString().MatchSnapshot();
@@ -1975,7 +1979,7 @@ public class ObjectTypeTests : TypeTestBase
                 }
                 """)
             .AddResolver("Query", "foo", x => 1)
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         executor.Schema.ToString().MatchSnapshot();
@@ -2011,7 +2015,7 @@ public class ObjectTypeTests : TypeTestBase
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<WithStaticField>(d => d.BindFields(Instance | Static))
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();
@@ -2026,7 +2030,7 @@ public class ObjectTypeTests : TypeTestBase
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<WithStaticField2>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();
@@ -2063,7 +2067,7 @@ public class ObjectTypeTests : TypeTestBase
                         o.DefaultBindingBehavior = BindingBehavior.Explicit;
                         o.DefaultFieldBindingFlags = Instance | Static;
                     })
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();
@@ -2084,7 +2088,7 @@ public class ObjectTypeTests : TypeTestBase
                         o.DefaultBindingBehavior = BindingBehavior.Explicit;
                         o.DefaultFieldBindingFlags = Instance | Static;
                     })
-                .ExecuteRequestAsync("{ hello staticHello }");
+                .ExecuteRequestAsync("{ hello staticHello }", cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -2101,7 +2105,7 @@ public class ObjectTypeTests : TypeTestBase
                 .AddQueryType()
                 .AddTypeExtension(typeof(BookQuery))
                 .ModifyOptions(o => o.DefaultFieldBindingFlags = InstanceAndStatic)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();
@@ -2162,7 +2166,7 @@ public class ObjectTypeTests : TypeTestBase
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryWithGenerics>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -2174,7 +2178,7 @@ public class ObjectTypeTests : TypeTestBase
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<IgnoreObjectLists>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -2186,7 +2190,7 @@ public class ObjectTypeTests : TypeTestBase
             .AddGraphQL()
             .AddQueryType<QueryWithTypeExtension>()
             .AddTypeExtension<QueryWithTypeExtension.SomeClassExtension>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }

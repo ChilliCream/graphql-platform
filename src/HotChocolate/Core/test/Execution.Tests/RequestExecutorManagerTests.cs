@@ -60,18 +60,20 @@ public class RequestExecutorManagerTests
 
         // act
         // assert
-        var initialExecutor = await manager.GetExecutorAsync();
+        var initialExecutor = await manager.GetExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
         warmupResetEvent.Reset();
 
         manager.EvictExecutor();
 
-        var executorAfterEviction = await manager.GetExecutorAsync();
+        var executorAfterEviction = await manager.GetExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Same(initialExecutor, executorAfterEviction);
 
         warmupResetEvent.Set();
         executorEvictedResetEvent.Wait(cts.Token);
-        var executorAfterWarmup = await manager.GetExecutorAsync();
+        var executorAfterWarmup = await manager.GetExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.NotSame(initialExecutor, executorAfterWarmup);
 
@@ -271,14 +273,18 @@ public class RequestExecutorManagerTests
 
         // act
         var initialExecutor = await manager.GetExecutorAsync(cancellationToken: cts.Token);
-        var initialResult = await initialExecutor.ExecuteAsync("{ ping }");
+        var initialResult = await initialExecutor.ExecuteAsync(
+            "{ ping }",
+            TestContext.Current.CancellationToken);
 
         manager.EvictExecutor();
 
         await executorEvictedResetEvent.WaitAsync(cts.Token);
 
         var rebuiltExecutor = await manager.GetExecutorAsync(cancellationToken: cts.Token);
-        var rebuiltResult = await rebuiltExecutor.ExecuteAsync("{ ping }");
+        var rebuiltResult = await rebuiltExecutor.ExecuteAsync(
+            "{ ping }",
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Empty(initialResult.ExpectOperationResult().Errors);

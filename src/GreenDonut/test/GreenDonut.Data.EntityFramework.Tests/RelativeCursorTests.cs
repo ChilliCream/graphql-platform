@@ -23,13 +23,17 @@ public class RelativeCursorTests(PostgreSqlResource resource)
 
         await using var context = new TestContext(connectionString);
         var arguments = new PagingArguments(2) { EnableRelativeCursors = true };
-        var first = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var first = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Act
 
         using var capture = new CapturePagingQueryInterceptor();
         arguments = arguments with { After = first.CreateCursor(first.Last!.Value, 0) };
-        var second = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var second = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Assert
 
@@ -58,14 +62,16 @@ public class RelativeCursorTests(PostgreSqlResource resource)
 
         await using var context = new TestContext(connectionString);
         var arguments = new PagingArguments(2) { EnableRelativeCursors = true };
-        var first = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var first = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Act
 
         using var capture = new CapturePagingQueryInterceptor();
         arguments = arguments with { After = first.CreateCursor(first.Last!.Value, 0) };
         var map = await context.Brands.Where(t => t.GroupId == 1).OrderBy(t => t.Name).ThenBy(t => t.Id)
-            .ToBatchPageAsync(t => t.GroupId, arguments);
+            .ToBatchPageAsync(t => t.GroupId, arguments, Xunit.TestContext.Current.CancellationToken);
         var second = map[1];
 
         // Assert
@@ -95,13 +101,17 @@ public class RelativeCursorTests(PostgreSqlResource resource)
 
         await using var context = new TestContext(connectionString);
         var arguments = new PagingArguments(2) { EnableRelativeCursors = true };
-        var first = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var first = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Act
 
         using var capture = new CapturePagingQueryInterceptor();
         arguments = arguments with { After = first.CreateCursor(first.Last!.Value, 1) };
-        var second = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var second = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Assert
 
@@ -130,14 +140,16 @@ public class RelativeCursorTests(PostgreSqlResource resource)
 
         await using var context = new TestContext(connectionString);
         var arguments = new PagingArguments(2) { EnableRelativeCursors = true };
-        var first = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var first = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Act
 
         using var capture = new CapturePagingQueryInterceptor();
         arguments = arguments with { After = first.CreateCursor(first.Last!.Value, 1) };
         var map = await context.Brands.Where(t => t.GroupId == 1).OrderBy(t => t.Name).ThenBy(t => t.Id)
-            .ToBatchPageAsync(t => t.GroupId, arguments);
+            .ToBatchPageAsync(t => t.GroupId, arguments, Xunit.TestContext.Current.CancellationToken);
         var second = map[1];
 
         // Assert
@@ -167,15 +179,21 @@ public class RelativeCursorTests(PostgreSqlResource resource)
 
         await using var context = new TestContext(connectionString);
         var arguments = new PagingArguments(2) { EnableRelativeCursors = true };
-        var first = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var first = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
         arguments = arguments with { After = first.CreateCursor(first.Last!.Value, 0) };
-        var second = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var second = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Act
 
         using var capture = new CapturePagingQueryInterceptor();
         arguments = arguments with { After = second.CreateCursor(second.Last!.Value, 1) };
-        var fourth = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var fourth = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Assert
 
@@ -206,16 +224,20 @@ public class RelativeCursorTests(PostgreSqlResource resource)
 
         await using var context = new TestContext(connectionString);
         var arguments = new PagingArguments(2) { EnableRelativeCursors = true };
-        var first = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var first = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
         arguments = arguments with { After = first.CreateCursor(first.Last!.Value, 0) };
-        var second = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var second = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Act
 
         using var capture = new CapturePagingQueryInterceptor();
         arguments = arguments with { After = second.CreateCursor(second.Last!.Value, 1) };
         var map = await context.Brands.Where(t => t.GroupId == 1).OrderBy(t => t.Name).ThenBy(t => t.Id)
-            .ToBatchPageAsync(t => t.GroupId, arguments);
+            .ToBatchPageAsync(t => t.GroupId, arguments, Xunit.TestContext.Current.CancellationToken);
         var fourth = map[1];
 
         // Assert
@@ -247,13 +269,17 @@ public class RelativeCursorTests(PostgreSqlResource resource)
 
         await using var context = new TestContext(connectionString);
         var arguments = new PagingArguments(2) { EnableRelativeCursors = true };
-        var first = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var first = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Act
 
         using var capture = new CapturePagingQueryInterceptor();
         arguments = arguments with { After = first.CreateCursor(first.Last!.Value, 2) };
-        var fourth = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var fourth = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Assert
 
@@ -284,14 +310,16 @@ public class RelativeCursorTests(PostgreSqlResource resource)
 
         await using var context = new TestContext(connectionString);
         var arguments = new PagingArguments(2) { EnableRelativeCursors = true };
-        var first = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var first = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Act
 
         using var capture = new CapturePagingQueryInterceptor();
         arguments = arguments with { After = first.CreateCursor(first.Last!.Value, 2) };
         var map = await context.Brands.Where(t => t.GroupId == 1).OrderBy(t => t.Name).ThenBy(t => t.Id)
-            .ToBatchPageAsync(t => t.GroupId, arguments);
+            .ToBatchPageAsync(t => t.GroupId, arguments, Xunit.TestContext.Current.CancellationToken);
         var fourth = map[1];
 
         // Assert
@@ -323,13 +351,17 @@ public class RelativeCursorTests(PostgreSqlResource resource)
 
         await using var context = new TestContext(connectionString);
         var arguments = new PagingArguments(last: 2) { EnableRelativeCursors = true };
-        var last = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var last = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Act
 
         using var capture = new CapturePagingQueryInterceptor();
         arguments = arguments with { Before = last.CreateCursor(last.First!.Value, 0) };
-        var secondToLast = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var secondToLast = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Assert
 
@@ -364,14 +396,16 @@ public class RelativeCursorTests(PostgreSqlResource resource)
 
         await using var context = new TestContext(connectionString);
         var arguments = new PagingArguments(last: 2) { EnableRelativeCursors = true };
-        var last = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var last = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Act
 
         using var capture = new CapturePagingQueryInterceptor();
         arguments = arguments with { Before = last.CreateCursor(last.First!.Value, 0) };
         var map = await context.Brands.Where(t => t.GroupId == 2).OrderBy(t => t.Name).ThenBy(t => t.Id)
-            .ToBatchPageAsync(t => t.GroupId, arguments);
+            .ToBatchPageAsync(t => t.GroupId, arguments, Xunit.TestContext.Current.CancellationToken);
         var secondToLast = map[2];
 
         // Assert
@@ -407,13 +441,17 @@ public class RelativeCursorTests(PostgreSqlResource resource)
 
         await using var context = new TestContext(connectionString);
         var arguments = new PagingArguments(last: 2) { EnableRelativeCursors = true };
-        var last = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var last = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Act
 
         using var capture = new CapturePagingQueryInterceptor();
         arguments = arguments with { Before = last.CreateCursor(last.First!.Value, -1) };
-        var thirdToLast = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var thirdToLast = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Assert
 
@@ -448,14 +486,16 @@ public class RelativeCursorTests(PostgreSqlResource resource)
 
         await using var context = new TestContext(connectionString);
         var arguments = new PagingArguments(last: 2) { EnableRelativeCursors = true };
-        var last = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var last = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Act
 
         using var capture = new CapturePagingQueryInterceptor();
         arguments = arguments with { Before = last.CreateCursor(last.First!.Value, -1) };
         var map = await context.Brands.Where(t => t.GroupId == 2).OrderBy(t => t.Name).ThenBy(t => t.Id)
-            .ToBatchPageAsync(t => t.GroupId, arguments);
+            .ToBatchPageAsync(t => t.GroupId, arguments, Xunit.TestContext.Current.CancellationToken);
         var thirdToLast = map[2];
 
         // Assert
@@ -491,13 +531,17 @@ public class RelativeCursorTests(PostgreSqlResource resource)
 
         await using var context = new TestContext(connectionString);
         var arguments = new PagingArguments(last: 2) { EnableRelativeCursors = true };
-        var last = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var last = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Act
 
         using var capture = new CapturePagingQueryInterceptor();
         arguments = arguments with { Before = last.CreateCursor(last.First!.Value, -2) };
-        var thirdToLast = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var thirdToLast = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Assert
 
@@ -535,14 +579,16 @@ public class RelativeCursorTests(PostgreSqlResource resource)
 
         await using var context = new TestContext(connectionString);
         var arguments = new PagingArguments(last: 2) { EnableRelativeCursors = true };
-        var last = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var last = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Act
 
         using var capture = new CapturePagingQueryInterceptor();
         arguments = arguments with { Before = last.CreateCursor(last.First!.Value, -2) };
         var map = await context.Brands.Where(t => t.GroupId == 2).OrderBy(t => t.Name).ThenBy(t => t.Id)
-            .ToBatchPageAsync(t => t.GroupId, arguments);
+            .ToBatchPageAsync(t => t.GroupId, arguments, Xunit.TestContext.Current.CancellationToken);
         var thirdToLast = map[2];
 
         // Assert
@@ -581,15 +627,21 @@ public class RelativeCursorTests(PostgreSqlResource resource)
 
         await using var context = new TestContext(connectionString);
         var arguments = new PagingArguments(last: 2) { EnableRelativeCursors = true };
-        var last = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var last = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
         arguments = arguments with { Before = last.CreateCursor(last.First!.Value, 0) };
-        var secondToLast = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var secondToLast = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Act
 
         using var capture = new CapturePagingQueryInterceptor();
         arguments = arguments with { Before = secondToLast.CreateCursor(secondToLast.First!.Value, -1) };
-        var fourthToLast = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var fourthToLast = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Assert
 
@@ -627,16 +679,20 @@ public class RelativeCursorTests(PostgreSqlResource resource)
 
         await using var context = new TestContext(connectionString);
         var arguments = new PagingArguments(last: 2) { EnableRelativeCursors = true };
-        var last = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var last = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
         arguments = arguments with { Before = last.CreateCursor(last.First!.Value, 0) };
-        var secondToLast = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var secondToLast = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Act
 
         using var capture = new CapturePagingQueryInterceptor();
         arguments = arguments with { Before = secondToLast.CreateCursor(secondToLast.First!.Value, -1) };
         var map = await context.Brands.Where(t => t.GroupId == 2).OrderBy(t => t.Name).ThenBy(t => t.Id)
-            .ToBatchPageAsync(t => t.GroupId, arguments);
+            .ToBatchPageAsync(t => t.GroupId, arguments, Xunit.TestContext.Current.CancellationToken);
         var fourthToLast = map[2];
 
         // Assert
@@ -675,11 +731,17 @@ public class RelativeCursorTests(PostgreSqlResource resource)
 
         await using var context = new TestContext(connectionString);
         var arguments = new PagingArguments(last: 2) { EnableRelativeCursors = true };
-        var last = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var last = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
         arguments = arguments with { Before = last.CreateCursor(last.First!.Value, 0) };
-        var secondToLast = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var secondToLast = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
         arguments = arguments with { Before = secondToLast.CreateCursor(secondToLast.First!.Value, 0) };
-        var thirdToLast = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var thirdToLast = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Act
 
@@ -706,11 +768,17 @@ public class RelativeCursorTests(PostgreSqlResource resource)
 
         await using var context = new TestContext(connectionString);
         var arguments = new PagingArguments(last: 2) { EnableRelativeCursors = true };
-        var last = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var last = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
         arguments = arguments with { Before = last.CreateCursor(last.First!.Value, 0) };
-        var secondToLast = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var secondToLast = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
         arguments = arguments with { Before = secondToLast.CreateCursor(secondToLast.First!.Value, 0) };
-        var thirdToLast = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var thirdToLast = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Act
 
@@ -738,7 +806,9 @@ public class RelativeCursorTests(PostgreSqlResource resource)
         var arguments = new PagingArguments(12) { EnableRelativeCursors = true };
 
         // Act
-        var first = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+        var first = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(20, first.TotalCount);

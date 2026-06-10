@@ -22,9 +22,10 @@ public class DeferTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
-        Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
+        Assert.IsType<ResponseStream>(result).MatchAggregatedMarkdownSnapshot();
     }
 
     [Fact]
@@ -46,9 +47,10 @@ public class DeferTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
-        Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
+        Assert.IsType<ResponseStream>(result).MatchAggregatedMarkdownSnapshot();
     }
 
     [Fact]
@@ -67,9 +69,10 @@ public class DeferTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
-        Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
+        Assert.IsType<ResponseStream>(result).MatchAggregatedMarkdownSnapshot();
     }
 
     [Fact]
@@ -88,7 +91,8 @@ public class DeferTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         Assert.IsType<OperationResult>(result).MatchMarkdownSnapshot();
     }
@@ -118,7 +122,8 @@ public class DeferTests
                     {
                         { "defer", false }
                     })
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         Assert.IsType<OperationResult>(result).MatchMarkdownSnapshot();
     }
@@ -141,9 +146,10 @@ public class DeferTests
                     id
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
-        Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
+        Assert.IsType<ResponseStream>(result).MatchAggregatedMarkdownSnapshot();
     }
 
     [Fact]
@@ -167,9 +173,10 @@ public class DeferTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
-        Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
+        Assert.IsType<ResponseStream>(result).MatchAggregatedMarkdownSnapshot();
     }
 
     [Fact]
@@ -190,9 +197,10 @@ public class DeferTests
                     id
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
-        Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
+        Assert.IsType<ResponseStream>(result).MatchAggregatedMarkdownSnapshot();
     }
 
     [Fact]
@@ -213,7 +221,8 @@ public class DeferTests
                     id
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         Assert.IsType<OperationResult>(result).MatchMarkdownSnapshot();
     }
@@ -245,7 +254,8 @@ public class DeferTests
                     {
                         { "defer", false }
                     })
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         Assert.IsType<OperationResult>(result).MatchMarkdownSnapshot();
     }
@@ -273,9 +283,10 @@ public class DeferTests
                     }
                     """)
                 .SetGlobalState("requestState", "state 123")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
-        Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
+        Assert.IsType<ResponseStream>(result).MatchAggregatedMarkdownSnapshot();
     }
 
     [Fact]
@@ -305,7 +316,8 @@ public class DeferTests
                     }
                     """)
                 .SetGlobalState("requestState", "state 123")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         Assert.IsType<ResponseStream>(response).MatchMarkdownSnapshot();
     }
@@ -334,9 +346,10 @@ public class DeferTests
                     }
                     """)
                 .SetGlobalState("requestState", "state 123")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
-        Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
+        Assert.IsType<ResponseStream>(result).MatchAggregatedMarkdownSnapshot();
     }
 
     [Fact]
@@ -347,7 +360,7 @@ public class DeferTests
 
         // arrange
         var services = DeferAndStreamTestSchema.CreateServiceProvider();
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
         await using var scope = services.CreateAsyncScope();
 
         // act
@@ -366,9 +379,10 @@ public class DeferTests
                     """)
                 .SetGlobalState("requestState", "state 123")
                 .SetServices(scope.ServiceProvider)
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
-        Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
+        Assert.IsType<ResponseStream>(result).MatchAggregatedMarkdownSnapshot();
     }
 
     private class StateRequestInterceptor : DefaultHttpRequestInterceptor
