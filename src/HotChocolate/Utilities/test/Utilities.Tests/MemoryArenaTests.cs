@@ -130,6 +130,22 @@ public class MemoryArenaTests
     }
 
     [Fact]
+    public void Dispose_Should_Succeed_When_SealedWithoutRentals()
+    {
+        // arrange
+        var arena = new MemoryArena();
+        arena.Seal();
+
+        // act
+        var ex = Record.Exception(arena.Dispose);
+
+        // assert
+        Assert.Null(ex);
+        Assert.True(arena.IsDisposed);
+        Assert.Equal(0, arena.RentedPageCount);
+    }
+
+    [Fact]
     public void Dispose_Should_BeIdempotent_When_Sealed()
     {
         // arrange

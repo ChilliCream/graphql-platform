@@ -20,7 +20,7 @@ namespace HotChocolate.Buffers;
 /// after it has been disposed.
 /// </para>
 /// </remarks>
-internal sealed class MemoryArena : IDisposable
+internal sealed class MemoryArena : IMemoryArena, IDisposable
 {
     // The cursor packs (pageIndex, offset) into a single word so the pair advances atomically:
     // the high 32 bits are the current page index, the low 32 bits the bump offset into that page.
@@ -108,7 +108,21 @@ internal sealed class MemoryArena : IDisposable
 
                 if (Interlocked.CompareExchange(ref _state, next, state) == state)
                 {
-                    return new MemorySegment(Volatile.Read(ref _pages)[pageIndex], offset, size);
+                    // Re-read the pages after winning the claim: a concurrent dispose empties the
+                    // array, in which case the rental must fail as disposed instead of faulting on
+                    // the cleared page table.
+                    var pages = Volatile.Read(ref _pages);
+
+#if NET8_0_OR_GREATER
+                    ObjectDisposedException.ThrowIf(pageIndex >= pages.Length, this);
+#else
+                    if (pageIndex >= pages.Length)
+                    {
+                        throw new ObjectDisposedException(nameof(MemoryArena));
+                    }
+#endif
+
+                    return new MemorySegment(pages[pageIndex], offset, size);
                 }
 
                 // another thread advanced the cursor first; retry.
@@ -198,7 +212,9 @@ internal sealed class MemoryArena : IDisposable
         {
             pages = _pages;
             count = _pageCount;
-            _pages = [];
+            // Publish the cleared page table with a volatile write so the lock-free reader in
+            // Rent observes it and fails as disposed instead of reading freed state.
+            Volatile.Write(ref _pages, []);
             _pageCount = 0;
             _state = InitialState;
         }

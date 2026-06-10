@@ -1,9 +1,9 @@
 namespace HotChocolate.Buffers;
 
 /// <summary>
-/// Represents a contiguous region of memory that a <see cref="MemoryArena"/> has handed out.
+/// Represents a contiguous region of memory that an <see cref="IMemoryArena"/> has handed out.
 /// </summary>
-internal readonly struct MemorySegment
+public readonly struct MemorySegment
 {
     /// <summary>
     /// Initializes a new instance of <see cref="MemorySegment"/>.
