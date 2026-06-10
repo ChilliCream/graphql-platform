@@ -21,24 +21,19 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Product>Hot Chocolate</Product>
     <Authors>ChilliCream authors and contributors</Authors>
     <Company>ChilliCream Inc.</Company>
-    <Copyright>Copyright &#169; 2021 ChilliCream Inc.</Copyright>
+    <Copyright>Copyright &#169; 2018 - present ChilliCream Inc.</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://chillicream.com</PackageProjectUrl>
     <PackageReleaseNotes>Release notes: https://github.com/ChilliCream/graphql-platform/releases/$(PackageVersion)</PackageReleaseNotes>
     <PackageTags>GraphQL ChilliCream</PackageTags>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <PackageIcon>hotchocolate-signet.png</PackageIcon>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <RepositoryUrl>https://github.com/ChilliCream/graphql-platform.git</RepositoryUrl>
     <RepositoryType>GitHub</RepositoryType>
+    <RepositoryUrl>https://github.com/ChilliCream/graphql-platform.git</RepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
@@ -54,11 +49,8 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
 
-  <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)..\website\static\resources\greendonut-signet.png" Pack="true" PackagePath="greendonut-signet.png" Visible="false" />
-    <None Include="$(MSBuildThisFileDirectory)..\website\static\resources\hotchocolate-signet.png" Pack="true" PackagePath="hotchocolate-signet.png" Visible="false" />
-    <None Include="$(MSBuildThisFileDirectory)..\website\static\resources\nitro-signet.png" Pack="true" PackagePath="nitro-signet.png" Visible="false" />
-    <None Include="$(MSBuildThisFileDirectory)..\website\static\resources\strawberryshake-signet.png" Pack="true" PackagePath="strawberryshake-signet.png" Visible="false" />
+  <ItemGroup Condition="'$(PackageIcon)' != ''">
+    <None Include="$(MSBuildThisFileDirectory)..\website\static\resources\$(PackageIcon)" Pack="true" PackagePath="$(PackageIcon)" Visible="false" />
     <None Include="$(MSBuildThisFileDirectory)..\LICEN*" Pack="true" PackagePath="" Visible="false" />
   </ItemGroup>
 
@@ -76,5 +68,4 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
-
 </Project>

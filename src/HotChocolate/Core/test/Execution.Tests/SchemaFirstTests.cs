@@ -21,7 +21,8 @@ public class SchemaFirstTests
         // act
         var result =
             await schema.MakeExecutable().ExecuteAsync(
-                "{ test testProp }");
+                "{ test testProp }",
+                TestContext.Current.CancellationToken);
 
         // assert
         Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
@@ -53,7 +54,8 @@ public class SchemaFirstTests
         // act
         var result =
             await schema.MakeExecutable().ExecuteAsync(
-                "{ foo(bar: { baz: \"hello\"}) }");
+                "{ foo(bar: { baz: \"hello\"}) }",
+                TestContext.Current.CancellationToken);
 
         // assert
         Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
@@ -80,7 +82,8 @@ public class SchemaFirstTests
         // act
         var result =
             await schema.MakeExecutable().ExecuteAsync(
-                "{ enumValue }");
+                "{ enumValue }",
+                TestContext.Current.CancellationToken);
 
         // assert
         Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
@@ -107,7 +110,8 @@ public class SchemaFirstTests
         // act
         var result =
             await schema.MakeExecutable().ExecuteAsync(
-                "{ setEnumValue(value:BAZ_BAR) }");
+                "{ setEnumValue(value:BAZ_BAR) }",
+                TestContext.Current.CancellationToken);
 
         // assert
         Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
@@ -141,7 +145,8 @@ public class SchemaFirstTests
         // act
         var result =
             await schema.MakeExecutable().ExecuteAsync(
-                "{ enumInInputObject(payload: { value:BAZ } ) }");
+                "{ enumInInputObject(payload: { value:BAZ } ) }",
+                TestContext.Current.CancellationToken);
 
         // assert
         Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
@@ -199,7 +204,8 @@ public class SchemaFirstTests
                         message
                       }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """

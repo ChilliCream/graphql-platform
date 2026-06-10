@@ -153,6 +153,7 @@ type Query {
 
 type Mutation {
   saveShapes(shapes: [ShapeInput!]!): Boolean!
+  setOptionalValue(value: String): String!
 }
 
 type Subscription {
@@ -225,6 +226,13 @@ type BooksEdge {
   node: Book!
 }
 
+type DeclaringTypeProbe {
+  "tagged"
+  fromPartialA: String!
+  fromPartialB: String!
+  id: String!
+}
+
 "A connection to a list of items."
 type FavoriteBooksConnection {
   "Information to aid in pagination."
@@ -282,6 +290,12 @@ type PageInfo {
   startCursor: String
   "When paginating forwards, the cursor to continue."
   endCursor: String
+}
+
+type PrefixOwnFieldsProbe {
+  a_fromPartialA: String!
+  fromPartialB: String!
+  id: String!
 }
 
 "A connection to a list of items."

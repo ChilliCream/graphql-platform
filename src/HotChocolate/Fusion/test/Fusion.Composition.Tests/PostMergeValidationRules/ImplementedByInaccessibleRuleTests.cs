@@ -150,4 +150,34 @@ public sealed class ImplementedByInaccessibleRuleTests : RuleTestBase
                 """
             ]);
     }
+
+    // When two source schemas declare the same-named interface with different fields, the merged
+    // interface holds the union of those fields, so an implementing type does not necessarily
+    // provide every field of the interface. This rule must not assume the field exists on the
+    // implementing type; the unimplemented field is reported by InterfaceFieldNoImplementationRule.
+    [Fact]
+    public void Validate_MergedInterfaceFieldNotOnAllImplementers_Succeeds()
+    {
+        AssertValid(
+        [
+            """
+            interface Error {
+                code: String!
+            }
+
+            type ErrorWithCode implements Error {
+                code: String!
+            }
+            """,
+            """
+            interface Error {
+                message: String!
+            }
+
+            type ErrorWithMessage implements Error {
+                message: String!
+            }
+            """
+        ]);
+    }
 }

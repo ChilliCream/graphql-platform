@@ -88,6 +88,7 @@ namespace TestNamespace
                     configuration.SubscribeWith = "SubscribeToOnProductAdded";
                     configuration.SourceType = context.ThisType;
                     configuration.ResultType = typeof(int);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
 

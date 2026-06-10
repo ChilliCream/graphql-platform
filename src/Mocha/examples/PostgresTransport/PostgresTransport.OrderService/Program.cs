@@ -34,6 +34,12 @@ builder
         t.DeclareQueue("process-order");
         t.Endpoint("process-order-ep").Queue("process-order").Handler<ProcessOrderCommandHandler>();
         t.DispatchEndpoint("send-demo").ToQueue("process-order").Send<ProcessOrderCommand>();
+
+        // Explicit topology bound by message type instead of handler type. Every handler
+        // registered for OrderShippedEvent is bound to this endpoint via Receives.
+        t.DeclareQueue("ship-order");
+        t.Endpoint("ship-order-ep").Queue("ship-order").Receives<OrderShippedEvent>();
+        t.DispatchEndpoint("ship-demo").ToQueue("ship-order").Send<OrderShippedEvent>();
     });
 
 builder.Services.AddHostedService<OrderSimulatorWorker>();
@@ -83,6 +89,17 @@ app.MapPost(
                 OrderId = orderId,
                 Action = "validate",
                 RequestedAt = DateTimeOffset.UtcNow
+            },
+            ct);
+
+        // Routes to the ship-order-ep endpoint, which binds its handlers via Receives<OrderShippedEvent>().
+        await messageBus.SendAsync(
+            new OrderShippedEvent
+            {
+                OrderId = orderId,
+                TrackingNumber = "TRK-" + orderId.ToString("N")[..8],
+                Carrier = "Demo Express",
+                ShippedAt = DateTimeOffset.UtcNow
             },
             ct);
 

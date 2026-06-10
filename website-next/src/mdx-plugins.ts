@@ -41,32 +41,90 @@ const mermaidOptions: RehypeMermaidOptions = {
   mermaidConfig: {
     theme: "base",
     securityLevel: "strict",
-    // Note: do not override `font-family` here. Mermaid runs in headless
-    // Chromium at build time to size each node, so changing the font after
-    // measurement (or to a font not loaded in the headless browser) clips
-    // the text in the live page.
-    //
-    // themeCSS is inlined as a <style> block inside the generated SVG, so
-    // CSS custom properties from `app/globals.css` (`--color-primary-*`,
-    // `--color-slate-*`) resolve in the browser. Mermaid sets fills/strokes
-    // via inline `style=`, which is why every rule needs `!important`.
     themeCSS: `
-      .edgePath .path { stroke-width: 1.5px; }
+      /* Edges read as dim ink lines on the dark surface */
+      .edgePath .path,
+      .flowchart-link {
+        stroke-width: 1.5px;
+        stroke: var(--color-cc-ink-dim) !important;
+      }
+      marker,
+      marker path,
+      .arrowheadPath,
+      #arrowhead path { fill: var(--color-cc-ink-dim) !important; stroke: var(--color-cc-ink-dim) !important; }
 
-      /* Primary nodes */
+      /* Sequence diagram lifelines and message arrows (default to near-black) */
+      .actor-line {
+        stroke: var(--color-cc-ink-dim) !important;
+      }
+      .messageLine0,
+      .messageLine1,
+      line.messageLine0,
+      line.messageLine1 {
+        stroke: var(--color-cc-ink-dim) !important;
+      }
+
+      /* All diagram text in cream ink */
+      .nodeLabel,
+      .cluster-label,
+      span.edgeLabel,
+      text {
+        fill: var(--color-cc-ink) !important;
+        color: var(--color-cc-ink) !important;
+      }
+
+      /* Primary nodes: translucent dark fill, accent border, rounded corners
+         so the boxes read as soft cards rather than hard outlines. */
       .node rect,
       .node circle,
       .node ellipse,
       .node polygon,
       .node path {
-        fill: var(--color-primary-50) !important;
-        stroke: var(--color-primary-700) !important;
+        fill: var(--color-cc-card-bg) !important;
+        stroke: var(--color-cc-accent) !important;
+        stroke-width: 1.25px !important;
+        stroke-linejoin: round;
+      }
+      .node rect {
+        rx: 12px !important;
+        ry: 12px !important;
       }
 
-      /* Cluster / subgraph frames pick up the slate scale */
+      /* Sequence diagram actor boxes share the soft-card look of flowchart
+         nodes (base theme defaults them to a bright cream fill). */
+      .actor,
+      rect.actor,
+      .actor-top,
+      .actor-bottom {
+        fill: var(--color-cc-card-bg) !important;
+        stroke: var(--color-cc-accent) !important;
+        stroke-width: 1.25px !important;
+        rx: 12px !important;
+        ry: 12px !important;
+      }
+      text.actor,
+      .actor tspan {
+        fill: var(--color-cc-ink) !important;
+        stroke: none !important;
+      }
+
+      /* Edge labels sit on the page background so lines don't bleed through.
+         Mermaid wraps the label text in a foreignObject <div>, so cover that
+         (and any background rect) to kill the base theme's pink default. */
+      .edgeLabel,
+      .edgeLabel rect,
+      .edgeLabel foreignObject div,
+      .edgeLabel .labelBkg,
+      .edgeLabel p {
+        background-color: var(--color-cc-bg) !important;
+        background: var(--color-cc-bg) !important;
+        fill: var(--color-cc-bg) !important;
+      }
+
+      /* Cluster / subgraph frames as a subtle dark card matching the site */
       .cluster rect {
-        fill: var(--color-slate-50) !important;
-        stroke: var(--color-slate-200) !important;
+        fill: var(--color-cc-card-bg) !important;
+        stroke: var(--color-cc-card-border) !important;
       }
     `,
   },

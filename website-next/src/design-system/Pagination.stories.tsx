@@ -27,7 +27,3 @@ export const FirstPage: Story = {
 export const LastPage: Story = {
   args: { currentPage: 12, totalPages: 12 },
 };
-
-export const SinglePage: Story = {
-  args: { currentPage: 1, totalPages: 1 },
-};

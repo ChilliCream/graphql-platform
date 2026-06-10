@@ -7,7 +7,7 @@ using HotChocolate.Execution;
 
 namespace CookieCrumble.HotChocolate.Formatters;
 
-internal sealed class ExecutionResultSnapshotValueFormatter
+internal sealed class ExecutionResultSnapshotValueFormatter(bool alwaysAggregate = false)
     : SnapshotValueFormatter<IExecutionResult>
 {
     protected override void Format(IBufferWriter<byte> snapshot, IExecutionResult value)
@@ -18,7 +18,7 @@ internal sealed class ExecutionResultSnapshotValueFormatter
         }
         else
         {
-            FormatStreamAsync(snapshot, (IResponseStream)value).Wait();
+            FormatStreamAsync(snapshot, (IResponseStream)value, alwaysAggregate).Wait();
         }
     }
 
@@ -34,7 +34,7 @@ internal sealed class ExecutionResultSnapshotValueFormatter
         {
             snapshot.Append("```text");
             snapshot.AppendLine();
-            FormatStreamAsync(snapshot, (IResponseStream)value).Wait();
+            FormatStreamAsync(snapshot, (IResponseStream)value, alwaysAggregate).Wait();
         }
 
         snapshot.AppendLine();
@@ -44,7 +44,8 @@ internal sealed class ExecutionResultSnapshotValueFormatter
 
     private static async Task FormatStreamAsync(
         IBufferWriter<byte> snapshot,
-        IResponseStream stream)
+        IResponseStream stream,
+        bool alwaysAggregate)
     {
         var docs = new List<JsonDocument>();
         JsonResultPatcher? patcher = null;
@@ -56,17 +57,21 @@ internal sealed class ExecutionResultSnapshotValueFormatter
             {
                 if (first)
                 {
-                    if (queryResult.HasNext ?? false)
+                    first = false;
+
+                    // When aggregating, the initial payload seeds the patcher regardless of
+                    // whether more payloads follow. This normalizes a response delivered as a
+                    // single bundled payload to the same merged form as an incrementally
+                    // delivered one, so the snapshot is independent of delivery batching.
+                    if (alwaysAggregate || (queryResult.HasNext ?? false))
                     {
                         var doc = JsonDocument.Parse(queryResult.ToJson());
                         docs.Add(doc);
 
                         patcher = new JsonResultPatcher();
                         patcher.SetResponse(doc);
-                        first = false;
                         continue;
                     }
-                    first = false;
                 }
 
                 if (patcher is null)

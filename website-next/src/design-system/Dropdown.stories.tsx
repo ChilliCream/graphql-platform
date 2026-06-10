@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
-import { Dropdown } from "./Dropdown";
+import { Dropdown, DropdownItem } from "./Dropdown";
 
 const meta = {
   title: "Design System/Dropdown",
@@ -19,35 +19,22 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+const PRODUCTS = [
+  { label: "Hot Chocolate", active: true },
+  { label: "Fusion", active: false },
+  { label: "Nitro", active: false },
+];
+
 export const Closed: Story = {
   args: {
     trigger: <span className="font-medium">Hot Chocolate</span>,
     children: (
-      <ul className="m-0 list-none p-1">
-        <li>
-          <a
-            className="block rounded px-2 py-2 no-underline hover:bg-slate-50"
-            href="#"
-          >
-            Hot Chocolate
-          </a>
-        </li>
-        <li>
-          <a
-            className="block rounded px-2 py-2 no-underline hover:bg-slate-50"
-            href="#"
-          >
-            Fusion
-          </a>
-        </li>
-        <li>
-          <a
-            className="block rounded px-2 py-2 no-underline hover:bg-slate-50"
-            href="#"
-          >
-            Nitro
-          </a>
-        </li>
+      <ul className="m-0 flex list-none flex-col p-1">
+        {PRODUCTS.map((item) => (
+          <DropdownItem key={item.label} href="#" active={item.active}>
+            {item.label}
+          </DropdownItem>
+        ))}
       </ul>
     ),
   },
@@ -60,28 +47,46 @@ export const Open: Story = {
   },
 };
 
+export const WithLabel: Story = {
+  args: {
+    ...Closed.args,
+    label: "Product",
+  },
+};
+
+const PRODUCTS_WITH_DESCRIPTIONS = [
+  {
+    title: "Hot Chocolate",
+    description: "GraphQL Server / Gateway",
+    active: true,
+  },
+  {
+    title: "Fusion",
+    description: "Federated GraphQL Gateway",
+    active: false,
+  },
+  {
+    title: "Strawberry Shake",
+    description: "GraphQL Client for .NET",
+    active: false,
+  },
+];
+
 export const WithDescriptions: Story = {
   args: {
     trigger: <span className="font-medium">Hot Chocolate</span>,
     defaultOpen: true,
     children: (
-      <ul className="m-0 list-none p-1">
-        {[
-          { title: "Hot Chocolate", description: "GraphQL Server / Gateway" },
-          { title: "Fusion", description: "Federated GraphQL Gateway" },
-          { title: "Strawberry Shake", description: "GraphQL Client for .NET" },
-        ].map((p) => (
-          <li key={p.title}>
-            <a
-              href="#"
-              className="block rounded px-3 py-2 no-underline transition-colors hover:bg-slate-50"
-            >
-              <div className="text-sm font-medium text-slate-900">
-                {p.title}
-              </div>
-              <div className="text-xs text-slate-500">{p.description}</div>
-            </a>
-          </li>
+      <ul className="m-0 flex list-none flex-col p-1">
+        {PRODUCTS_WITH_DESCRIPTIONS.map((p) => (
+          <DropdownItem
+            key={p.title}
+            href="#"
+            active={p.active}
+            description={p.description}
+          >
+            {p.title}
+          </DropdownItem>
         ))}
       </ul>
     ),

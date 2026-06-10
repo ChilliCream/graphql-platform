@@ -1439,11 +1439,7 @@ public sealed class SatisfiabilityValidatorTests
         Assert.True(result.IsSuccess);
     }
 
-    [Fact(Skip = "Requires a parent entity call: Category is keyless in schema C "
-        + "(reachable only via Product.category), so its id/name must be resolved "
-        + "by re-fetching the parent Product in A/B rather than by a direct "
-        + "Category lookup. The validator attempts a direct lookup and reports a "
-        + "cycle on Category.id. Enable once parent entity calls are supported.")]
+    [Fact]
     // https://github.com/graphql-hive/federation-gateway-audit/tree/main/src/test-suites/parent-entity-call
     public void ParentEntityCall()
     {
@@ -1794,11 +1790,7 @@ public sealed class SatisfiabilityValidatorTests
         Assert.True(result.IsSuccess);
     }
 
-    [Fact(Skip = "Circular @require whose intermediate field is owned by the "
-        + "requiring schema is not yet satisfiable. The validator evaluates the "
-        + "requirement from the entity's origin path and does not hop into the "
-        + "requiring schema to gather its locally-owned field first. Enable once "
-        + "multi-hop requirement gathering is supported.")]
+    [Fact]
     // https://github.com/graphql-hive/federation-gateway-audit/tree/main/src/test-suites/requires-circular
     public void RequiresCircular()
     {

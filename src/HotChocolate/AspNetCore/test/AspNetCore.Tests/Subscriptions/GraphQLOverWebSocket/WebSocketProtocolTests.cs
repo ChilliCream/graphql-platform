@@ -16,7 +16,6 @@ using HotChocolate.Transport.Formatters;
 using HotChocolate.Transport.Sockets.Client;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit.Abstractions;
 using static System.Net.WebSockets.WebSocketCloseStatus;
 using OperationRequest = HotChocolate.Transport.OperationRequest;
 

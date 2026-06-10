@@ -1,334 +1,102 @@
 import Link from "next/link";
-import type { ComponentType, ReactNode, SVGProps } from "react";
-import { BlogIcon } from "@/src/icons/Blog";
-import { ChevronDownIcon } from "@/src/icons/ChevronDown";
-import { ChilliCream } from "@/src/icons/ChilliCream";
+import { Picture } from "@/src/design-system/Picture";
+
+import { getLatestBlogPost } from "@/src/helpers/blogPosts";
+import { getGitHubStarCount } from "@/src/helpers/githubStars";
+import { ChilliCreamWinking } from "@/src/icons/ChilliCreamWinking";
 import { GitHubIcon } from "@/src/icons/GitHub";
-import { LinkedInIcon } from "@/src/icons/LinkedIn";
-import { SlackIcon } from "@/src/icons/Slack";
-import { XIcon } from "@/src/icons/X";
-import { YouTubeIcon } from "@/src/icons/YouTube";
+
+import { HeaderNav } from "./header/HeaderNav";
+import {
+  CONTACT_HREF,
+  GITHUB_REPO_URL,
+  GITHUB_STARGAZERS_URL,
+  MOBILE_ITEMS,
+  TOOLS,
+} from "./header/navData";
 import { MobileNav } from "./MobileNav";
 import { Search } from "./Search";
 
-const TOOLS = {
-  blog: "/blog",
-  github: "https://github.com/ChilliCream/graphql-platform",
-  linkedIn: "https://www.linkedin.com/company/chillicream",
-  nitro: "https://nitro.chillicream.com",
-  shop: "https://store.chillicream.com",
-  slack: "https://slack.chillicream.com/",
-  youtube: "https://www.youtube.com/c/ChilliCream",
-  x: "https://x.com/Chilli_Cream",
-};
+export default async function Header() {
+  const latestBlog = getLatestBlogPost();
+  const starCount = await getGitHubStarCount();
+  // The optimized <Picture> is built here (server-only: it reads the image
+  // manifest from disk) and handed to the client nav as a ready-made node.
+  const blogImage = latestBlog?.featuredImage ? (
+    <Picture
+      src={latestBlog.featuredImage}
+      alt={latestBlog.title}
+      width={320}
+      height={180}
+      className="block h-auto w-full"
+    />
+  ) : null;
 
-const DEMO_HREF = "mailto:contact@chillicream.com?subject=Demo";
-
-type Icon = ComponentType<SVGProps<SVGSVGElement>>;
-
-interface SubLink {
-  href: string;
-  label: string;
-  description?: string;
-  icon?: Icon;
-}
-
-interface SubGroup {
-  title: string;
-  links: SubLink[];
-}
-
-interface NavItem {
-  href: string;
-  label: string;
-  groups?: SubGroup[];
-  panelWidth?: string;
-}
-
-const NAV_ITEMS: NavItem[] = [
-  {
-    href: "/platform",
-    label: "Platform",
-    panelWidth: "w-[640px]",
-    groups: [
-      {
-        title: "Platform",
-        links: [
-          {
-            href: "/platform/analytics",
-            label: "Analytics",
-            description: "Instant Insights. Enhanced Performance.",
-          },
-          {
-            href: "/platform/continuous-integration",
-            label: "Continuous Integration",
-            description: "Innovate with Confidence. Deliver with Quality.",
-          },
-          {
-            href: "/platform/ecosystem",
-            label: "Ecosystem",
-            description: "An Ecosystem You Trust and Love.",
-          },
-        ],
-      },
-      {
-        title: "Products",
-        links: [
-          {
-            href: "/products/nitro",
-            label: "Nitro",
-            description: "GraphQL IDE / API Cockpit",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    href: "/services",
-    label: "Services",
-    panelWidth: "w-[420px]",
-    groups: [
-      {
-        title: "Services",
-        links: [
-          {
-            href: "/services/advisory",
-            label: "Advisory",
-            description: "Consulting / Contracting",
-          },
-          {
-            href: "/services/support",
-            label: "Support",
-            description: "Get Help from Experts",
-          },
-          {
-            href: "/services/training",
-            label: "Training",
-            description: "Increase Your Team's Productivity",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    href: "/docs",
-    label: "Developers",
-    panelWidth: "w-[640px]",
-    groups: [
-      {
-        title: "Documentation",
-        links: [
-          { href: "/docs/hotchocolate", label: "Hot Chocolate" },
-          { href: "/docs/strawberryshake", label: "Strawberry Shake" },
-          { href: "/docs/mocha", label: "Mocha" },
-          { href: "/docs/fusion", label: "Fusion" },
-          { href: "/docs/nitro", label: "Nitro" },
-        ],
-      },
-      {
-        title: "Additional Resources",
-        links: [
-          { href: TOOLS.blog, label: "Blog", icon: BlogIcon },
-          { href: TOOLS.github, label: "GitHub", icon: GitHubIcon },
-          { href: TOOLS.slack, label: "Slack / Community", icon: SlackIcon },
-          { href: TOOLS.youtube, label: "YouTube", icon: YouTubeIcon },
-          { href: TOOLS.x, label: "X", icon: XIcon },
-          { href: TOOLS.linkedIn, label: "LinkedIn", icon: LinkedInIcon },
-        ],
-      },
-    ],
-  },
-  {
-    href: "/resources",
-    label: "Company",
-    panelWidth: "w-[320px]",
-    groups: [
-      {
-        title: "Company",
-        links: [
-          { href: "mailto:contact@chillicream.com", label: "Contact" },
-          { href: TOOLS.shop, label: "Shop" },
-          {
-            href: "/legal/acceptable-use-policy",
-            label: "Acceptable Use Policy",
-          },
-          { href: "/legal/cookie-policy", label: "Cookie Policy" },
-          { href: "/legal/privacy-policy", label: "Privacy Policy" },
-          { href: "/legal/terms-of-service", label: "Terms of Service" },
-          {
-            href: "/licensing/chillicream-license",
-            label: "ChilliCream License",
-          },
-        ],
-      },
-    ],
-  },
-  { href: "/pricing", label: "Pricing" },
-  { href: "/help", label: "Help" },
-];
-
-const MOBILE_ITEMS = NAV_ITEMS.map((i) => ({ href: i.href, label: i.label }));
-
-export default function Header() {
   return (
-    <header className="sticky top-0 z-30 flex h-[72px] w-full justify-center border-b border-stone-200 bg-white/80 backdrop-blur-md">
+    <header className="sticky top-0 z-30 flex h-18 w-full justify-center border-b border-cc-white/10 bg-cc-card-bg shadow-[inset_0_1px_0_var(--cc-highlight)] backdrop-blur-[18px] backdrop-saturate-150">
       <div className="relative flex h-full w-full max-w-7xl items-center justify-between px-4 lg:gap-8">
         <Link
           href="/"
+          prefetch={false}
           aria-label="ChilliCream Home"
-          className="flex h-full flex-none items-center text-stone-900 transition-colors hover:text-primary-700"
+          className="flex h-full flex-none items-center text-cc-ink"
         >
-          <ChilliCream className="h-8 w-8 fill-current" />
+          <ChilliCreamWinking className="h-8 w-8 fill-current" />
         </Link>
 
-        <nav className="relative hidden h-full flex-1 lg:block">
-          <ol className="m-0 flex h-full list-none items-stretch p-0">
-            {NAV_ITEMS.map((item) =>
-              item.groups ? (
-                <NavWithSubmenu key={item.href} item={item} />
-              ) : (
-                <NavSimple key={item.href} item={item} />
-              ),
-            )}
-          </ol>
-        </nav>
+        <HeaderNav latestBlog={latestBlog} blogImage={blogImage} />
 
-        <div className="hidden flex-none items-center gap-6 lg:flex">
-          <a
-            href={DEMO_HREF}
-            className="text-sm font-medium text-stone-700 no-underline transition-colors hover:text-primary-700"
+        <div className="hidden flex-none items-center gap-5 min-[1060px]:flex">
+          <span className="inline-flex items-stretch overflow-hidden rounded-md border border-cc-card-border bg-cc-hover text-xs font-medium text-cc-ink-dim">
+            <a
+              href={GITHUB_REPO_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-2 py-1 no-underline transition-colors hover:bg-cc-ink-faint hover:text-cc-ink"
+              aria-label="Star ChilliCream on GitHub"
+            >
+              <GitHubIcon className="h-3.5 w-3.5 fill-current text-cc-ink" />
+              Star
+            </a>
+            {starCount !== null && (
+              <a
+                href={GITHUB_STARGAZERS_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center border-l border-cc-card-border px-2 py-1 tabular-nums text-cc-ink-dim no-underline transition-colors hover:bg-cc-ink-faint hover:text-cc-ink"
+                aria-label={`${starCount.toLocaleString("en-US")} stargazers on GitHub`}
+              >
+                {starCount.toLocaleString("en-US")}
+              </a>
+            )}
+          </span>
+          <Link
+            href={CONTACT_HREF}
+            prefetch={false}
+            className="text-sm font-medium text-cc-ink-dim no-underline transition-colors hover:text-cc-ink"
           >
-            Request a Demo
-          </a>
+            Contact Us
+          </Link>
           <a
             href={TOOLS.nitro}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex h-[38px] items-center rounded-md border-2 border-secondary-700 bg-secondary-700 px-7 text-sm font-medium text-white no-underline transition-colors hover:bg-secondary-800"
+            className="inline-flex h-10 items-center rounded-full bg-cc-ink px-7 text-sm font-medium text-cc-surface no-underline transition-colors hover:bg-cc-white"
           >
             Launch
           </a>
           <Search
             ariaLabel="Search"
-            className="flex h-full cursor-pointer items-center text-stone-700 transition-colors hover:text-primary-700"
+            className="flex h-full cursor-pointer items-center text-cc-ink-dim transition-colors hover:text-cc-ink"
           />
         </div>
 
         <MobileNav
           items={MOBILE_ITEMS}
-          demoHref={DEMO_HREF}
+          demoHref={CONTACT_HREF}
           nitroHref={TOOLS.nitro}
         />
       </div>
     </header>
-  );
-}
-
-function NavSimple({ item }: { item: NavItem }) {
-  return (
-    <li className="flex items-stretch">
-      <Link
-        href={item.href}
-        className="flex items-center px-4 text-sm font-medium text-stone-700 no-underline transition-colors hover:text-primary-700"
-      >
-        {item.label}
-      </Link>
-    </li>
-  );
-}
-
-function NavWithSubmenu({ item }: { item: NavItem }) {
-  return (
-    <li className="group/nav flex items-stretch">
-      <Link
-        href={item.href}
-        className="flex items-center gap-1.5 px-4 text-sm font-medium text-stone-700 no-underline transition-colors hover:text-primary-700 group-hover/nav:text-primary-700 group-focus-within/nav:text-primary-700"
-      >
-        {item.label}
-        <ChevronDownIcon className="h-3 w-3 fill-current transition-transform duration-200 group-hover/nav:rotate-180 group-focus-within/nav:rotate-180" />
-      </Link>
-
-      <SubmenuPanel item={item} />
-    </li>
-  );
-}
-
-function SubmenuPanel({ item }: { item: NavItem }) {
-  return (
-    <div
-      className={[
-        "pointer-events-none invisible absolute left-1/2 top-full -translate-x-1/2 pt-2 opacity-0 transition-[opacity,visibility] duration-200",
-        "group-hover/nav:pointer-events-auto group-hover/nav:visible group-hover/nav:opacity-100",
-        "group-focus-within/nav:pointer-events-auto group-focus-within/nav:visible group-focus-within/nav:opacity-100",
-      ].join(" ")}
-    >
-      <div
-        className={[
-          "rounded-lg border border-stone-200 bg-white/95 p-6 shadow-lg backdrop-blur-md",
-          item.panelWidth ?? "w-[420px]",
-        ].join(" ")}
-      >
-        <div
-          className={
-            (item.groups?.length ?? 0) > 1
-              ? "grid grid-cols-2 gap-x-8 gap-y-6"
-              : "grid grid-cols-1 gap-y-6"
-          }
-        >
-          {item.groups!.map((group) => (
-            <SubGroupBlock key={group.title} group={group} />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function SubGroupBlock({ group }: { group: SubGroup }) {
-  return (
-    <div>
-      <div
-        role="heading"
-        aria-level={2}
-        className="mb-3 text-xs font-semibold uppercase tracking-wide text-stone-400"
-      >
-        {group.title}
-      </div>
-      <ul className="m-0 flex list-none flex-col gap-1 p-0">
-        {group.links.map((link) => (
-          <li key={link.href} className="m-0">
-            <SubLinkRow link={link} />
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-function SubLinkRow({ link }: { link: SubLink }): ReactNode {
-  const isExternal = link.href.startsWith("http");
-  const linkProps = isExternal
-    ? { target: "_blank" as const, rel: "noopener noreferrer" as const }
-    : {};
-  const Icon = link.icon;
-
-  return (
-    <Link
-      href={link.href}
-      {...linkProps}
-      className="flex items-start gap-3 rounded-md px-2 py-2 text-stone-700 no-underline transition-colors hover:bg-stone-50 hover:text-primary-700"
-    >
-      {Icon && (
-        <Icon className="mt-0.5 h-4 w-4 flex-none fill-current text-stone-500" />
-      )}
-      <div>
-        <div className="text-sm font-medium">{link.label}</div>
-        {link.description && (
-          <div className="text-xs font-normal text-stone-500">
-            {link.description}
-          </div>
-        )}
-      </div>
-    </Link>
   );
 }

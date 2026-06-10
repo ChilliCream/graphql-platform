@@ -12,6 +12,7 @@ const PRODUCTS = [
   { slug: "strawberryshake", label: "Strawberry Shake" },
   { slug: "nitro", label: "Nitro" },
   { slug: "mocha", label: "Mocha" },
+  { slug: "skillz", label: "Skillz" },
 ];
 
 export default function DocsIndex() {
@@ -19,7 +20,7 @@ export default function DocsIndex() {
     <div className="px-5 py-8 sm:px-12">
       <div className="mx-auto max-w-5xl">
         <Typography variant="h1">Documentation</Typography>
-        <p className="text-stone-600">
+        <p className="text-cc-ink-dim">
           Pick a product to get started. More content is on its way.
         </p>
         <ul className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -27,10 +28,10 @@ export default function DocsIndex() {
             <li key={p.slug}>
               <Link
                 href={`/docs/${p.slug}`}
-                className="block rounded-md border border-stone-200 p-4 text-stone-800 no-underline transition-colors hover:border-secondary-700 hover:text-secondary-700"
+                className="block rounded-md border border-cc-card-border p-4 text-cc-ink no-underline transition-colors hover:border-cc-accent hover:text-cc-accent"
               >
                 <div className="font-medium">{p.label}</div>
-                <div className="text-sm text-stone-500">
+                <div className="text-sm text-cc-ink-dim">
                   /docs/{p.slug}
                 </div>
               </Link>

@@ -24,7 +24,7 @@ public partial class ActivityExecutionDiagnosticListenerTests
                 .AddGraphQL()
                 .AddInstrumentation()
                 .AddQueryType<SimpleQuery>()
-                .ExecuteRequestAsync("{ sayHello }");
+                .ExecuteRequestAsync("{ sayHello }", cancellationToken: TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot();
@@ -45,7 +45,9 @@ public partial class ActivityExecutionDiagnosticListenerTests
                     o.IncludeDocument = true;
                 })
                 .AddQueryType<SimpleQuery>()
-                .ExecuteRequestAsync("query SayHelloOperation { sayHello }");
+                .ExecuteRequestAsync(
+                    "query SayHelloOperation { sayHello }",
+                    cancellationToken: TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot();
@@ -66,7 +68,9 @@ public partial class ActivityExecutionDiagnosticListenerTests
                     o.IncludeDocument = true;
                 })
                 .AddQueryType<SimpleQuery>()
-                .ExecuteRequestAsync("query SayHelloOperation { sayHello_ }");
+                .ExecuteRequestAsync(
+                    "query SayHelloOperation { sayHello_ }",
+                    cancellationToken: TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot();
@@ -87,7 +91,9 @@ public partial class ActivityExecutionDiagnosticListenerTests
                     o.IncludeDocument = true;
                 })
                 .AddQueryType<SimpleQuery>()
-                .ExecuteRequestAsync("query SayHelloOperation { causeFatalError }");
+                .ExecuteRequestAsync(
+                    "query SayHelloOperation { causeFatalError }",
+                    cancellationToken: TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot();
@@ -113,10 +119,13 @@ public partial class ActivityExecutionDiagnosticListenerTests
                 .Services
                 .BuildServiceProvider();
 
-            var executor = await services.GetRequestExecutorAsync();
+            var executor = await services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
 
             // act
-            await executor.ExecuteAsync(OperationRequest.FromId("say-hello-persisted-id"));
+            await executor.ExecuteAsync(
+                OperationRequest.FromId("say-hello-persisted-id"),
+                TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot();
@@ -139,14 +148,15 @@ public partial class ActivityExecutionDiagnosticListenerTests
                 .Services
                 .BuildServiceProvider();
 
-            var executor = await services.GetRequestExecutorAsync();
+            var executor = await services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
 
             var request = OperationRequestBuilder.New()
                 .SetDocumentId("a8c5e2f1d3b4a6e7c9d0f1a2b3c4d5e6")
                 .Build();
 
             // act
-            await executor.ExecuteAsync(request);
+            await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot();
@@ -170,14 +180,15 @@ public partial class ActivityExecutionDiagnosticListenerTests
                 .Services
                 .BuildServiceProvider();
 
-            var executor = await services.GetRequestExecutorAsync();
+            var executor = await services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
 
             var request = OperationRequestBuilder.New()
                 .SetDocument("{ sayHello }")
                 .Build();
 
             // act
-            await executor.ExecuteAsync(request);
+            await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot();
@@ -194,7 +205,7 @@ public partial class ActivityExecutionDiagnosticListenerTests
                 .AddGraphQL()
                 .AddInstrumentation(o => o.Scopes = ActivityScopes.All)
                 .AddQueryType<SimpleQuery>()
-                .ExecuteRequestAsync("{ sayHello");
+                .ExecuteRequestAsync("{ sayHello", cancellationToken: TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot();
@@ -211,7 +222,7 @@ public partial class ActivityExecutionDiagnosticListenerTests
                 .AddGraphQL()
                 .AddInstrumentation(o => o.Scopes = ActivityScopes.All)
                 .AddQueryType<SimpleQuery>()
-                .ExecuteRequestAsync("{ unknownField123 }");
+                .ExecuteRequestAsync("{ unknownField123 }", cancellationToken: TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot();
@@ -229,7 +240,7 @@ public partial class ActivityExecutionDiagnosticListenerTests
                 .AddGraphQL()
                 .AddInstrumentation()
                 .AddQueryType<SimpleQuery>()
-                .ExecuteRequestAsync("{ sayHello }");
+                .ExecuteRequestAsync("{ sayHello }", cancellationToken: TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot();
@@ -246,10 +257,79 @@ public partial class ActivityExecutionDiagnosticListenerTests
                 .AddGraphQL()
                 .AddInstrumentation(o => o.Scopes = ActivityScopes.All)
                 .AddQueryType<SimpleQuery>()
-                .ExecuteRequestAsync("{ sayHello }");
+                .ExecuteRequestAsync("{ sayHello }", cancellationToken: TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
+    public async Task RequestSpanDisplayName_Should_BeOperationType_When_OperationNameInSpanNameDisabled()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange & act
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddInstrumentation(o => o.Scopes = ActivityScopes.All)
+                .AddQueryType<SimpleQuery>()
+                .ExecuteRequestAsync(
+                    "query GetHeroName { sayHello }",
+                    cancellationToken: TestContext.Current.CancellationToken);
+
+            // assert
+            var requestSpan = activities.Exported
+                .Single(a => a.OperationName == "GraphQL Operation");
+            Assert.Equal("query", requestSpan.DisplayName);
+        }
+    }
+
+    [Fact]
+    public async Task RequestSpanDisplayName_Should_IncludeOperationName_When_OperationNameInSpanNameEnabledAndNamed()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange & act
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddInstrumentation(o =>
+                {
+                    o.Scopes = ActivityScopes.All;
+                    o.IncludeOperationNameInSpanName = true;
+                })
+                .AddQueryType<SimpleQuery>()
+                .ExecuteRequestAsync(
+                    "query GetHeroName { sayHello }",
+                    cancellationToken: TestContext.Current.CancellationToken);
+
+            // assert
+            var requestSpan = activities.Exported
+                .Single(a => a.OperationName == "GraphQL Operation");
+            Assert.Equal("query GetHeroName", requestSpan.DisplayName);
+        }
+    }
+
+    [Fact]
+    public async Task RequestSpanDisplayName_Should_FallBackToOperationType_When_OperationNameInSpanNameEnabledAndAnonymous()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange & act
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddInstrumentation(o =>
+                {
+                    o.Scopes = ActivityScopes.All;
+                    o.IncludeOperationNameInSpanName = true;
+                })
+                .AddQueryType<SimpleQuery>()
+                .ExecuteRequestAsync("{ sayHello }", cancellationToken: TestContext.Current.CancellationToken);
+
+            // assert
+            var requestSpan = activities.Exported
+                .Single(a => a.OperationName == "GraphQL Operation");
+            Assert.Equal("query", requestSpan.DisplayName);
         }
     }
 
@@ -264,7 +344,7 @@ public partial class ActivityExecutionDiagnosticListenerTests
                 .AddInstrumentation(o =>
                     o.Scopes = ActivityScopes.ValidateDocument | ActivityScopes.CompileOperation)
                 .AddQueryType<SimpleQuery>()
-                .ExecuteRequestAsync("{ sayHello }");
+                .ExecuteRequestAsync("{ sayHello }", cancellationToken: TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot();
@@ -285,7 +365,7 @@ public partial class ActivityExecutionDiagnosticListenerTests
                     o.IncludeDocument = true;
                 })
                 .AddQueryType<SimpleQuery>()
-                .ExecuteRequestAsync("{ causeFatalError }");
+                .ExecuteRequestAsync("{ causeFatalError }", cancellationToken: TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot();
@@ -321,7 +401,8 @@ public partial class ActivityExecutionDiagnosticListenerTests
                             }
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot();
@@ -342,7 +423,9 @@ public partial class ActivityExecutionDiagnosticListenerTests
                     o.MaxErrorEvents = 2;
                 })
                 .AddQueryType<SimpleQuery>()
-                .ExecuteRequestAsync("{ failingItems(count: 5) { fail } }");
+                .ExecuteRequestAsync(
+                    "{ failingItems(count: 5) { fail } }",
+                    cancellationToken: TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot();
@@ -359,7 +442,7 @@ public partial class ActivityExecutionDiagnosticListenerTests
                 .AddGraphQL()
                 .AddInstrumentation(o => o.Scopes = ActivityScopes.All)
                 .AddQueryType<SimpleQuery>()
-                .ExecuteRequestAsync("{ causeCodedError }");
+                .ExecuteRequestAsync("{ causeCodedError }", cancellationToken: TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot();
@@ -377,7 +460,7 @@ public partial class ActivityExecutionDiagnosticListenerTests
                 .AddInstrumentation(o =>
                     o.Scopes = ActivityScopes.ExecuteRequest | ActivityScopes.ResolveFieldValue)
                 .AddQueryType<SimpleQuery>()
-                .ExecuteRequestAsync("{ causeUncodedError }");
+                .ExecuteRequestAsync("{ causeUncodedError }", cancellationToken: TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot();
@@ -394,7 +477,9 @@ public partial class ActivityExecutionDiagnosticListenerTests
                 .AddGraphQL()
                 .AddInstrumentation(o => o.Scopes = ActivityScopes.All)
                 .AddQueryType<SimpleQuery>()
-                .ExecuteRequestAsync("{ throwInvalidOperation }");
+                .ExecuteRequestAsync(
+                    "{ throwInvalidOperation }",
+                    cancellationToken: TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot();
@@ -413,7 +498,7 @@ public partial class ActivityExecutionDiagnosticListenerTests
                     o.Scopes = ActivityScopes.All)
                 .AddCostAnalyzer()
                 .AddQueryType<SimpleQuery>()
-                .ExecuteRequestAsync("{ sayHello }");
+                .ExecuteRequestAsync("{ sayHello }", cancellationToken: TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot();
@@ -430,7 +515,9 @@ public partial class ActivityExecutionDiagnosticListenerTests
                 .AddGraphQL()
                 .AddInstrumentation(o => o.Scopes = ActivityScopes.All)
                 .AddQueryType<SimpleQuery>()
-                .ExecuteRequestAsync("{ dataLoader(key: \"abc\") }");
+                .ExecuteRequestAsync(
+                    "{ dataLoader(key: \"abc\") }",
+                    cancellationToken: TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot();
@@ -451,7 +538,9 @@ public partial class ActivityExecutionDiagnosticListenerTests
                     o.IncludeDataLoaderKeys = true;
                 })
                 .AddQueryType<SimpleQuery>()
-                .ExecuteRequestAsync("{ dataLoader(key: \"abc\") }");
+                .ExecuteRequestAsync(
+                    "{ dataLoader(key: \"abc\") }",
+                    cancellationToken: TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot();
@@ -474,7 +563,8 @@ public partial class ActivityExecutionDiagnosticListenerTests
                         .SetDocument("query($mood: Mood!) { greetMood(mood: $mood) }")
                         .SetVariableValues(
                             new Dictionary<string, object?> { { "mood", "happy" } })
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot();
@@ -496,7 +586,8 @@ public partial class ActivityExecutionDiagnosticListenerTests
                         .SetDocument("query($name: String!) { greeting(name: $name) }")
                         .SetVariableValues(
                             new Dictionary<string, object?> { { "name", "World" } })
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot();
@@ -514,7 +605,7 @@ public partial class ActivityExecutionDiagnosticListenerTests
             .Services
             .BuildServiceProvider();
 
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var request = OperationRequestBuilder.New()
             .SetDocument("{ sayHello }")
@@ -522,11 +613,11 @@ public partial class ActivityExecutionDiagnosticListenerTests
             .Build();
 
         // act - execute twice so second uses cached document
-        await executor.ExecuteAsync(request);
+        await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         using (CaptureActivities(out var activities))
         {
-            await executor.ExecuteAsync(request);
+            await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot();
@@ -550,11 +641,13 @@ public partial class ActivityExecutionDiagnosticListenerTests
                 .Services
                 .BuildServiceProvider();
 
-            var executor = await services.GetRequestExecutorAsync();
+            var executor = await services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
             var sender = services.GetRequiredService<ITopicEventSender>();
 
             await using var result = await executor.ExecuteAsync(
-                "subscription OnMessageSubscription { onMessage }");
+                "subscription OnMessageSubscription { onMessage }",
+                TestContext.Current.CancellationToken);
             await using var responseStream = result.ExpectResponseStream();
 
             var results = responseStream.ReadResultsAsync().GetAsyncEnumerator(cts.Token);
@@ -593,11 +686,13 @@ public partial class ActivityExecutionDiagnosticListenerTests
                 .Services
                 .BuildServiceProvider();
 
-            var executor = await services.GetRequestExecutorAsync();
+            var executor = await services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
             var sender = services.GetRequiredService<ITopicEventSender>();
 
             await using var result = await executor.ExecuteAsync(
-                "subscription OnFailingMessageSubscription { onFailingMessage }");
+                "subscription OnFailingMessageSubscription { onFailingMessage }",
+                TestContext.Current.CancellationToken);
             await using var responseStream = result.ExpectResponseStream();
 
             var results = responseStream.ReadResultsAsync().GetAsyncEnumerator(cts.Token);

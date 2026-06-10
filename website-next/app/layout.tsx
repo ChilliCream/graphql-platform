@@ -1,6 +1,9 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { Analytics } from "@/src/components/Analytics";
+import { AnalyticsScripts } from "@/src/components/AnalyticsScripts";
+import { EnableSmoothScroll } from "@/src/components/EnableSmoothScroll";
 import Footer from "@/src/components/Footer";
 import Header from "@/src/components/Header";
 import { SITE_URL } from "@/src/helpers/siteUrl";
@@ -17,6 +20,10 @@ const DESCRIPTION =
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
+  // Preview/staging deployments emit `<meta name="robots" content="noindex, nofollow">`.
+  ...(process.env.NEXT_PUBLIC_NOINDEX === "true"
+    ? { robots: { index: false, follow: false } }
+    : {}),
   title: {
     default: TITLE,
     template: "%s - ChilliCream",
@@ -52,10 +59,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} font-sans`}>
+      <head>
+        <link rel="preconnect" href="https://consent.cookiebot.com" />
+        <link rel="preconnect" href="https://consentcdn.cookiebot.com" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+      </head>
       <body>
+        <AnalyticsScripts />
+        <EnableSmoothScroll />
         <Header />
         <main>{children}</main>
         <Footer />
+        <Analytics />
       </body>
     </html>
   );

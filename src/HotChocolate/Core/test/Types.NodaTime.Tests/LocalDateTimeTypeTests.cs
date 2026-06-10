@@ -256,12 +256,13 @@ public sealed class LocalDateTimeTypeTests
             .AddQueryType(b => b.Name(OperationTypeNames.Query))
             .AddType(typeof(QuerySingleRuntimeType))
             .AddNodaTime()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result =
             await executor.ExecuteAsync(
-                """{ localDateTime(input: "9999-12-31T23:59:59.999999999") }""");
+                """{ localDateTime(input: "9999-12-31T23:59:59.999999999") }""",
+                TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -283,7 +284,7 @@ public sealed class LocalDateTimeTypeTests
             .AddQueryType(b => b.Name(OperationTypeNames.Query))
             .AddType(typeof(QueryTwoRuntimeTypes))
             .AddNodaTime()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -292,7 +293,8 @@ public sealed class LocalDateTimeTypeTests
                 localDateTime1(input: "9999-12-31T23:59:59.999999999")
                 localDateTime2(input: "9999-12-31T23:59:59.999999999")
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(

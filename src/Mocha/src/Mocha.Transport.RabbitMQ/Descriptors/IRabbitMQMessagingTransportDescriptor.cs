@@ -63,7 +63,9 @@ public interface IRabbitMQMessagingTransportDescriptor
     IRabbitMQQueueDescriptor DeclareQueue(string name);
 
     /// <summary>
-    /// Declares or retrieves a binding between an exchange and a queue in the transport topology.
+    /// Declares a new binding between an exchange and a queue in the transport topology.
+    /// Each call creates a distinct binding. To bind several routing keys between the same exchange
+    /// and queue, call this multiple times and set a different <c>RoutingKey</c> on each binding.
     /// </summary>
     /// <param name="exchange">The source exchange name.</param>
     /// <param name="queue">The destination queue name.</param>

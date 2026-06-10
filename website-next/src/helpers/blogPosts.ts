@@ -8,6 +8,7 @@ export type BlogPostSummary = {
   title: string;
   description: string | null;
   date: string;
+  category: string | null;
   tags: string[];
   featuredImage: string | null;
   author: string | null;
@@ -51,6 +52,10 @@ export function listBlogPostSummaries(): BlogPostSummary[] {
           typeof fm.date === "string" && fm.date.length > 0
             ? fm.date
             : `${parsed.year}-${parsed.month}-${parsed.day}`,
+        category:
+          typeof fm.category === "string" && fm.category.length > 0
+            ? fm.category
+            : null,
         tags,
         featuredImage: resolveFeaturedImage(stem, featuredImageRaw),
         author: typeof fm.author === "string" ? fm.author : null,
@@ -64,6 +69,11 @@ export function listBlogPostSummaries(): BlogPostSummary[] {
   return posts;
 }
 
+export function getLatestBlogPost(): BlogPostSummary | null {
+  const posts = listBlogPostSummaries();
+  return posts.find((p) => p.featuredImage) ?? posts[0] ?? null;
+}
+
 function resolveFeaturedImage(stem: string, raw: string | null): string | null {
   if (!raw) {
     return null;
@@ -72,9 +82,8 @@ function resolveFeaturedImage(stem: string, raw: string | null): string | null {
   if (/^(https?:)?\/\//.test(raw) || raw.startsWith("/")) {
     return raw;
   }
-  // Co-located image: served from /public/blog/{stem}/ — the asset-copy
-  // step at content-setup time mirrors images out of /content/blog/{stem}/.
-  return `/blog/${stem}/${raw}`;
+  // Co-located image: blog images live under /public/images/blog/{stem}/.
+  return `/images/blog/${stem}/${raw}`;
 }
 
 /**

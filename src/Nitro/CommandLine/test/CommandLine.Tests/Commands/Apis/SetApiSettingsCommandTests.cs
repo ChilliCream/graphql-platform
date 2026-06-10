@@ -29,7 +29,7 @@ public sealed class SetApiSettingsCommandTests(NitroCommandFixture fixture) : Ap
                             --treat-dangerous-as-breaking    Treat dangerous changes as breaking [env: NITRO_TREAT_DANGEROUS_AS_BREAKING]
                             --allow-breaking-schema-changes  Allow breaking schema changes when no client breaks [env: NITRO_ALLOW_BREAKING_SCHEMA_CHANGES]
                             --cloud-url <cloud-url>          The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
-                            --api-key <api-key>              The API key used for authentication [env: NITRO_API_KEY]
+                            --api-key <api-key>              The API key or PAT used for authentication [env: NITRO_API_KEY]
                             --output <json>                  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
                             -?, -h, --help                   Show help and usage information
 
@@ -211,7 +211,7 @@ public sealed class SetApiSettingsCommandTests(NitroCommandFixture fixture) : Ap
 
         // act
         command.Confirm(true);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();
@@ -233,7 +233,7 @@ public sealed class SetApiSettingsCommandTests(NitroCommandFixture fixture) : Ap
 
         // act
         command.Confirm(false);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();

@@ -303,6 +303,48 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
         Assert.Equal("Provider", feature.Requirements);
     }
 
+    [Fact]
+    public void DeclaringType_Should_BeMemberType_When_FieldInferredFromMember()
+    {
+        // arrange
+        var member = typeof(DeclaringTypeEntity).GetProperty(nameof(DeclaringTypeEntity.Name))!;
+
+        // act
+        var descriptor = ObjectFieldDescriptor.New(Context, member, typeof(DeclaringTypeEntity));
+
+        // assert
+        var config = descriptor.CreateConfiguration();
+        Assert.Equal(typeof(DeclaringTypeEntity), config.DeclaringType);
+    }
+
+    [Fact]
+    public void DeclaringType_Should_BeResolverType_When_FieldUsesResolveWith()
+    {
+        // arrange
+        var descriptor = ObjectFieldDescriptor.New(Context, "field");
+
+        // act
+        descriptor.ResolveWith<DeclaringTypeResolver>(r => r.GetValue());
+
+        // assert
+        var config = descriptor.CreateConfiguration();
+        Assert.Equal(typeof(DeclaringTypeResolver), config.DeclaringType);
+    }
+
+    [Fact]
+    public void DeclaringType_Should_BeNull_When_FieldUsesResolverDelegate()
+    {
+        // arrange
+        var descriptor = ObjectFieldDescriptor.New(Context, "field");
+
+        // act
+        descriptor.Resolve(_ => new ValueTask<object?>("value"));
+
+        // assert
+        var config = descriptor.CreateConfiguration();
+        Assert.Null(config.DeclaringType);
+    }
+
     private enum TestProvider
     {
         None,
@@ -315,5 +357,15 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
         public int Type { get; set; }
         public TestProvider Provider { get; set; }
         public string Name { get; set; } = default!;
+    }
+
+    private sealed class DeclaringTypeEntity
+    {
+        public string Name { get; set; } = default!;
+    }
+
+    private sealed class DeclaringTypeResolver
+    {
+        public string GetValue() => "value";
     }
 }

@@ -28,7 +28,7 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
         await bus.PublishAsync(
             new TestEvent { Payload = "hello" },
             new PublishOptions { ScheduledTime = TimeProvider.System.GetUtcNow() },
-            default);
+            TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(await recorder.WaitAsync(s_timeout), "Handler should have received the scheduled message");
@@ -53,7 +53,7 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
             await bus.PublishAsync(
                 new TestEvent { Payload = $"msg-{i}" },
                 new PublishOptions { ScheduledTime = TimeProvider.System.GetUtcNow() },
-                default);
+                TestContext.Current.CancellationToken);
         }
 
         // Assert
@@ -91,13 +91,13 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
 
         var provider = services.BuildServiceProvider();
         var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
-        await runtime.StartAsync(default);
+        await runtime.StartAsync(TestContext.Current.CancellationToken);
 
         // Ensure schema exists
         using (var scope = provider.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
-            await db.Database.EnsureCreatedAsync(default);
+            await db.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
         }
 
         // Persist messages via IMessageBus (scheduling middleware captures them)
@@ -108,14 +108,14 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
             await bus.PublishAsync(
                 new TestEvent { Payload = $"pending-{i}" },
                 new PublishOptions { ScheduledTime = TimeProvider.System.GetUtcNow() },
-                default);
+                TestContext.Current.CancellationToken);
         }
 
         // Phase 2: start the scheduling worker (hosted services)
         var hostedServices = provider.GetServices<IHostedService>().ToList();
         foreach (var svc in hostedServices)
         {
-            await svc.StartAsync(default);
+            await svc.StartAsync(TestContext.Current.CancellationToken);
         }
 
         try
@@ -132,11 +132,11 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
         {
             foreach (var svc in hostedServices)
             {
-                await svc.StopAsync(default);
+                await svc.StopAsync(TestContext.Current.CancellationToken);
             }
 
             // Allow in-flight processor transactions to drain (see TestEnvironment comment)
-            await Task.Delay(250, default);
+            await Task.Delay(250, TestContext.Current.CancellationToken);
 
             await provider.DisposeAsync();
         }
@@ -156,21 +156,21 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
         await bus.PublishAsync(
             new TestEvent { Payload = "delete-me" },
             new PublishOptions { ScheduledTime = TimeProvider.System.GetUtcNow() },
-            default);
+            TestContext.Current.CancellationToken);
 
         // Wait for handler to receive the message
         Assert.True(await recorder.WaitAsync(s_timeout), "Handler should have received the scheduled message");
 
         // Assert - the row should have been deleted after successful dispatch.
         // Give a brief moment for the DELETE to commit after the handler returns.
-        await Task.Delay(500);
+        await Task.Delay(500, TestContext.Current.CancellationToken);
 
         using var verifyScope = env.Provider.CreateScope();
         var db = verifyScope.ServiceProvider.GetRequiredService<TestDbContext>();
         var remaining = await db.Database
             .SqlQueryRaw<int>(
                 "SELECT CAST(COUNT(*) AS INTEGER) AS \"Value\" FROM \"scheduled_messages\"")
-            .SingleAsync();
+            .SingleAsync(TestContext.Current.CancellationToken);
         Assert.Equal(0, remaining);
     }
 
@@ -190,7 +190,7 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
             await bus.PublishAsync(
                 new TestEvent { Payload = "will-fail" },
                 new PublishOptions { ScheduledTime = TimeProvider.System.GetUtcNow() },
-                default);
+                TestContext.Current.CancellationToken);
         }
 
         // Wait for at least one dispatch attempt to record the error
@@ -237,7 +237,7 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
             await bus.PublishAsync(
                 new TestEvent { Payload = "always-fails" },
                 new PublishOptions { ScheduledTime = TimeProvider.System.GetUtcNow() },
-                default);
+                TestContext.Current.CancellationToken);
         }
 
         // Wait for at least 2 dispatch attempts
@@ -278,7 +278,7 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
         var result = await bus.SchedulePublishAsync(
             new TestEvent { Payload = "cancellable" },
             scheduledTime,
-            default);
+            TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(result.IsCancellable);
@@ -292,7 +292,7 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
         var count = await db.Database
             .SqlQueryRaw<int>(
                 "SELECT CAST(COUNT(*) AS INTEGER) AS \"Value\" FROM \"scheduled_messages\"")
-            .SingleAsync();
+            .SingleAsync(TestContext.Current.CancellationToken);
         Assert.Equal(1, count);
     }
 
@@ -310,10 +310,10 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
         var result = await bus.SchedulePublishAsync(
             new TestEvent { Payload = "to-cancel" },
             scheduledTime,
-            default);
+            TestContext.Current.CancellationToken);
 
         // Act
-        var cancelled = await bus.CancelScheduledMessageAsync(result.Token!, default);
+        var cancelled = await bus.CancelScheduledMessageAsync(result.Token!, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(cancelled);
@@ -323,7 +323,7 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
         var remaining = await db.Database
             .SqlQueryRaw<int>(
                 "SELECT CAST(COUNT(*) AS INTEGER) AS \"Value\" FROM \"scheduled_messages\"")
-            .SingleAsync();
+            .SingleAsync(TestContext.Current.CancellationToken);
         Assert.Equal(0, remaining);
     }
 
@@ -340,7 +340,7 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
         var result = await bus.SchedulePublishAsync(
             new TestEvent { Payload = "dispatch-then-cancel" },
             DateTimeOffset.UtcNow,
-            default);
+            TestContext.Current.CancellationToken);
 
         // Wait for handler to receive the message
         Assert.True(await recorder.WaitAsync(s_timeout), "Handler should have received the scheduled message");
@@ -366,7 +366,7 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
         }
 
         // Act
-        var cancelled = await bus.CancelScheduledMessageAsync(result.Token!, default);
+        var cancelled = await bus.CancelScheduledMessageAsync(result.Token!, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.False(cancelled);
@@ -386,11 +386,11 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
         var result = await bus.SchedulePublishAsync(
             new TestEvent { Payload = "double-cancel" },
             scheduledTime,
-            default);
+            TestContext.Current.CancellationToken);
 
         // Act
-        var firstCancel = await bus.CancelScheduledMessageAsync(result.Token!, default);
-        var secondCancel = await bus.CancelScheduledMessageAsync(result.Token!, default);
+        var firstCancel = await bus.CancelScheduledMessageAsync(result.Token!, TestContext.Current.CancellationToken);
+        var secondCancel = await bus.CancelScheduledMessageAsync(result.Token!, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(firstCancel);
@@ -409,7 +409,7 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
         var invalidToken = $"postgres-scheduler:{Guid.NewGuid()}";
 
         // Act
-        var cancelled = await bus.CancelScheduledMessageAsync(invalidToken, default);
+        var cancelled = await bus.CancelScheduledMessageAsync(invalidToken, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.False(cancelled);
@@ -439,7 +439,7 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
             await bus.PublishAsync(
                 new TestEvent { Payload = $"live-{i}" },
                 new PublishOptions { ScheduledTime = TimeProvider.System.GetUtcNow() },
-                default);
+                TestContext.Current.CancellationToken);
 
             // Wait for this message to be delivered before publishing the next
             Assert.True(

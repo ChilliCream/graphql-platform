@@ -429,7 +429,7 @@ public class DefaultGraphQLClientConfigurationParserTests : FusionTestBase
         var manager = services.GetRequiredService<FusionRequestExecutorManager>();
 
         // act
-        var executor = await manager.GetExecutorAsync();
+        var executor = await manager.GetExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         var clientConfigs = executor.Schema.Features.GetRequired<SourceSchemaClientConfigurations>();
@@ -474,7 +474,7 @@ public class DefaultGraphQLClientConfigurationParserTests : FusionTestBase
         var manager = services.GetRequiredService<FusionRequestExecutorManager>();
 
         // act
-        var executor = await manager.GetExecutorAsync();
+        var executor = await manager.GetExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         var clientConfigs = executor.Schema.Features.GetRequired<SourceSchemaClientConfigurations>();

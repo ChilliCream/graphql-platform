@@ -49,6 +49,13 @@ public sealed class GraphQLServerOptions
     public bool EnforceMultipartRequestsPreflightHeader { get; set; } = true;
 
     /// <summary>
+    /// Defines if multipart file upload variables must be <c>null</c> at the file's location,
+    /// as required by the GraphQL multipart request spec. When disabled, any value at the
+    /// location is replaced by the uploaded file.
+    /// </summary>
+    public bool EnforceNullVariableValuesForMultipartFileUpload { get; set; } = true;
+
+    /// <summary>
     /// Defines if the GraphQL schema SDL can be downloaded.
     /// </summary>
     public bool EnableSchemaRequests { get; set; } = true;
@@ -85,6 +92,7 @@ public sealed class GraphQLServerOptions
             EnforceGetRequestsPreflightHeader = EnforceGetRequestsPreflightHeader,
             EnableMultipartRequests = EnableMultipartRequests,
             EnforceMultipartRequestsPreflightHeader = EnforceMultipartRequestsPreflightHeader,
+            EnforceNullVariableValuesForMultipartFileUpload = EnforceNullVariableValuesForMultipartFileUpload,
             EnableSchemaRequests = EnableSchemaRequests,
             Batching = Batching,
             MaxBatchSize = MaxBatchSize,

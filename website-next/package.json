@@ -3,9 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3001",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 3001",
+    "optimize-images": "node scripts/optimize-images.mjs",
+    "generate-git-metadata": "node scripts/generate-git-metadata.mjs",
+    "ci-local": "bash start-optimized.sh",
     "lint": "eslint",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
@@ -26,10 +29,11 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "remark-gfm": "^4.0.1",
+    "sharp": "^0.34.5",
     "shiki": "^4.0.2"
   },
   "devDependencies": {
-    "@storybook/nextjs-vite": "^9",
+    "@storybook/nextjs-vite": "^10.4.1",
     "@tailwindcss/postcss": "^4",
     "@tailwindcss/vite": "^4.3.0",
     "@types/node": "^20",
@@ -37,14 +41,15 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
+    "eslint-plugin-storybook": "10.4.1",
     "playwright": "^1.60.0",
     "rehype-mermaid": "^3.0.0",
-    "storybook": "^9",
+    "storybook": "^10.4.1",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vite": "^6"
   },
-  "packageManager": "yarn@4.14.1",
+  "packageManager": "yarn@4.15.0",
   "browserslist": [
     "chrome >= 110",
     "firefox >= 110",

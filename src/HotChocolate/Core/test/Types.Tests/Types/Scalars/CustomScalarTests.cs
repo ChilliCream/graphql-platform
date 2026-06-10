@@ -14,7 +14,7 @@ public class CustomScalarTests
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddType<FluentCustomScalarType>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();
@@ -28,7 +28,7 @@ public class CustomScalarTests
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddType<AnnotationCustomScalarType>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();
@@ -57,7 +57,7 @@ public class CustomScalarTests
             .AddType(new StringType())
             .AddType(new StringType("Custom"))
             .UseField(x => x)
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();

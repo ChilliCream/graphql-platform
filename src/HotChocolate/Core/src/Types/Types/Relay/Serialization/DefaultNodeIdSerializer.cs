@@ -170,7 +170,7 @@ public sealed class DefaultNodeIdSerializer : INodeIdSerializer
 
         Clear(rentedBuffer);
 
-        throw new NodeIdInvalidFormatException(internalId);
+        throw new NodeIdInvalidValueException(s_utf8.GetString(typeName), internalId);
 
         static string FormatBase64(
             ReadOnlySpan<byte> typeName,

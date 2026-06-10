@@ -7,6 +7,9 @@ const exportToc = path.resolve(process.cwd(), "src/recma/exportToc.mjs");
 
 const nextConfig: NextConfig = {
   output: "export",
+  images: {
+    unoptimized: true,
+  },
   pageExtensions: ["ts", "tsx", "md", "mdx"],
   serverExternalPackages: [
     "rehype-mermaid",
@@ -26,4 +29,6 @@ const withMDX = createMDX({
   },
 });
 
-export default withMDX(nextConfig);
+const config = withMDX(nextConfig);
+
+export default config;

@@ -44,11 +44,11 @@ public class Issue8407ProbeTests
                     ]
                 });
 
-            await db.SaveChangesAsync();
+            await db.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
         }
 
         var executor = await services.GetRequiredService<IRequestExecutorProvider>()
-            .GetExecutorAsync();
+            .GetExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(
             """
@@ -60,7 +60,8 @@ public class Issue8407ProbeTests
                 }
               }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         var operationResult = result.ExpectOperationResult();
         Assert.Empty(operationResult.Errors ?? []);

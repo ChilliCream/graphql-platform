@@ -12,7 +12,7 @@ public static class LookupTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<Query1>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchInlineSnapshot(
             """"
@@ -45,7 +45,7 @@ public static class LookupTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<Query2>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchInlineSnapshot(
             """"
@@ -87,7 +87,7 @@ public static class LookupTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<Query3>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchInlineSnapshot(
             """"
@@ -120,7 +120,7 @@ public static class LookupTests
             which identifies how to uniquely reference an instance of
             an entity across different source schemas.
             """
-            directive @key("The field selection set syntax." fields: FieldSelectionSet!) on
+            directive @key("The field selection set syntax." fields: FieldSelectionSet!) repeatable on
               | OBJECT
               | INTERFACE
 
@@ -140,7 +140,7 @@ public static class LookupTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<Query4>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchInlineSnapshot(
             """"
@@ -179,7 +179,7 @@ public static class LookupTests
             which identifies how to uniquely reference an instance of
             an entity across different source schemas.
             """
-            directive @key("The field selection set syntax." fields: FieldSelectionSet!) on
+            directive @key("The field selection set syntax." fields: FieldSelectionSet!) repeatable on
               | OBJECT
               | INTERFACE
 
@@ -199,7 +199,7 @@ public static class LookupTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<Query5>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchInlineSnapshot(
             """"

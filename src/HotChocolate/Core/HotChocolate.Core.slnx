@@ -41,7 +41,7 @@
     <Project Path="test/Execution.Tests/HotChocolate.Execution.Tests.csproj" />
     <Project Path="test/Features.Tests/HotChocolate.Features.Tests.csproj" />
     <Project Path="test/Fetching.Tests/HotChocolate.Fetching.Tests.csproj" />
-    <Project Path="test/StarWars/HotChocolate.StarWars.Tests.csproj" />
+    <Project Path="test/StarWars/HotChocolate.StarWars.csproj" />
     <Project Path="test/Subscriptions.InMemory.Tests/HotChocolate.Subscriptions.InMemory.Tests.csproj" />
     <Project Path="test/Subscriptions.Nats.Tests/HotChocolate.Subscriptions.Nats.Tests.csproj" />
     <Project Path="test/Subscriptions.Postgres.Tests/HotChocolate.Subscriptions.Postgres.Tests.csproj" />

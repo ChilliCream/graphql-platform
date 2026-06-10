@@ -23,14 +23,14 @@ public class DefaultGraphQLHttpClientTests
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
-        using var result = await client.SendAsync(request);
-        using var document = await result.ReadAsResultAsync();
+        using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
+        using var document = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
         // assert
         var itemCount = document.Root.GetProperty("data").GetProperty("items").GetArrayLength();
         Assert.Equal(500000, itemCount);
 
-        await app.StopAsync();
+        await app.StopAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -53,8 +53,8 @@ public class DefaultGraphQLHttpClientTests
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
-        using var result = await client.SendAsync(request);
-        var document = await result.ReadAsResultAsync();
+        using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
+        var document = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
         // assert
         var number = document.Root.GetProperty("data").GetProperty("number").GetInt32();
@@ -82,8 +82,8 @@ public class DefaultGraphQLHttpClientTests
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
-        using var result = await client.SendAsync(request);
-        var document = await result.ReadAsResultAsync();
+        using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
+        var document = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
         // assert
         var number = document.Root.GetProperty("data").GetProperty("number").GetInt32();
@@ -111,7 +111,7 @@ public class DefaultGraphQLHttpClientTests
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
-        using var result = await client.SendAsync(request);
+        using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
         var stream = result.ReadAsResultStreamAsync();
 
         // assert
@@ -149,7 +149,7 @@ public class DefaultGraphQLHttpClientTests
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
-        using var result = await client.SendAsync(request);
+        using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
         var stream = result.ReadAsResultStreamAsync();
 
         // assert
@@ -191,7 +191,7 @@ public class DefaultGraphQLHttpClientTests
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
-        using var result = await client.SendAsync(request);
+        using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
         var stream = result.ReadAsResultStreamAsync();
 
         // assert
@@ -239,7 +239,7 @@ public class DefaultGraphQLHttpClientTests
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
-        using var result = await client.SendAsync(request);
+        using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
         var stream = result.ReadAsResultStreamAsync();
 
         // assert
@@ -283,7 +283,7 @@ public class DefaultGraphQLHttpClientTests
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
-        using var result = await client.SendAsync(request);
+        using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
         var stream = result.ReadAsResultStreamAsync();
 
         // assert
@@ -329,7 +329,7 @@ public class DefaultGraphQLHttpClientTests
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
-        using var result = await client.SendAsync(request);
+        using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
         var stream = result.ReadAsResultStreamAsync();
 
         // assert
@@ -374,7 +374,7 @@ public class DefaultGraphQLHttpClientTests
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
-        using var result = await client.SendAsync(request);
+        using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
         var stream = result.ReadAsResultStreamAsync();
 
         // assert
@@ -424,7 +424,7 @@ public class DefaultGraphQLHttpClientTests
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
-        using var result = await client.SendAsync(request);
+        using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
         var stream = result.ReadAsResultStreamAsync();
 
         // assert
@@ -455,8 +455,8 @@ public class DefaultGraphQLHttpClientTests
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
-        using var result = await client.SendAsync(request);
-        var document = await result.ReadAsResultAsync();
+        using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
+        var document = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
         // assert
         var itemCount = document.Root.GetProperty("data").GetProperty("items").GetArrayLength();
@@ -476,8 +476,8 @@ public class DefaultGraphQLHttpClientTests
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
-        using var result = await client.SendAsync(request);
-        var document = await result.ReadAsResultAsync();
+        using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
+        var document = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
         // assert
         var itemCount = document.Root.GetProperty("data").GetProperty("items").GetArrayLength();
@@ -513,7 +513,7 @@ public class DefaultGraphQLHttpClientTests
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
-        using var result = await client.SendAsync(request);
+        using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
         var stream = result.ReadAsResultStreamAsync();
 
         // assert
@@ -547,7 +547,7 @@ public class DefaultGraphQLHttpClientTests
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
-        using var result = await client.SendAsync(request);
+        using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
         var stream = result.ReadAsResultStreamAsync();
 
         // assert
@@ -593,7 +593,7 @@ public class DefaultGraphQLHttpClientTests
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
-        using var result = await client.SendAsync(request);
+        using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
         var stream = result.ReadAsResultStreamAsync();
 
         // assert
@@ -645,7 +645,7 @@ public class DefaultGraphQLHttpClientTests
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
-        using var response = await client.SendAsync(request);
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotNull(handler.LastBody);

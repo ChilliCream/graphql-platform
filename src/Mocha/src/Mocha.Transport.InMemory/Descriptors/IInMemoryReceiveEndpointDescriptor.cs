@@ -19,6 +19,12 @@ public interface IInMemoryReceiveEndpointDescriptor : IReceiveEndpointDescriptor
     new IInMemoryReceiveEndpointDescriptor Consumer<TConsumer>() where TConsumer : class, IConsumer;
 
     /// <inheritdoc />
+    new IInMemoryReceiveEndpointDescriptor Receives<TMessage>();
+
+    /// <inheritdoc />
+    new IInMemoryReceiveEndpointDescriptor Receives(Type messageType);
+
+    /// <inheritdoc />
     new IInMemoryReceiveEndpointDescriptor Kind(ReceiveEndpointKind kind);
 
     /// <inheritdoc />

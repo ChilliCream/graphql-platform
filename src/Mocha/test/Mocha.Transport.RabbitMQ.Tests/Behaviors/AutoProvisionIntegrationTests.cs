@@ -138,12 +138,27 @@ public class AutoProvisionIntegrationTests
         await using var vhost = await _fixture.CreateVhostAsync();
 
         // Pre-provision resources on the broker
-        await using (var connection = await vhost.ConnectionFactory.CreateConnectionAsync())
-        await using (var channel = await connection.CreateChannelAsync())
+        await using (var connection = await vhost.ConnectionFactory.CreateConnectionAsync(
+            TestContext.Current.CancellationToken))
+        await using (var channel = await connection.CreateChannelAsync(
+            cancellationToken: TestContext.Current.CancellationToken))
         {
-            await channel.ExchangeDeclareAsync("pre-ex", "fanout", durable: true);
-            await channel.QueueDeclareAsync("pre-q", durable: true, exclusive: false, autoDelete: false);
-            await channel.QueueBindAsync("pre-q", "pre-ex", "");
+            await channel.ExchangeDeclareAsync(
+                "pre-ex",
+                "fanout",
+                durable: true,
+                cancellationToken: TestContext.Current.CancellationToken);
+            await channel.QueueDeclareAsync(
+                "pre-q",
+                durable: true,
+                exclusive: false,
+                autoDelete: false,
+                cancellationToken: TestContext.Current.CancellationToken);
+            await channel.QueueBindAsync(
+                "pre-q",
+                "pre-ex",
+                "",
+                cancellationToken: TestContext.Current.CancellationToken);
         }
 
         await using var bus = await new ServiceCollection()
@@ -184,10 +199,16 @@ public class AutoProvisionIntegrationTests
         await using var vhost = await _fixture.CreateVhostAsync();
 
         // Pre-provision only the exchange (with auto-provision disabled for it)
-        await using (var connection = await vhost.ConnectionFactory.CreateConnectionAsync())
-        await using (var channel = await connection.CreateChannelAsync())
+        await using (var connection = await vhost.ConnectionFactory.CreateConnectionAsync(
+            TestContext.Current.CancellationToken))
+        await using (var channel = await connection.CreateChannelAsync(
+            cancellationToken: TestContext.Current.CancellationToken))
         {
-            await channel.ExchangeDeclareAsync("mixed-ex", "fanout", durable: true);
+            await channel.ExchangeDeclareAsync(
+                "mixed-ex",
+                "fanout",
+                durable: true,
+                cancellationToken: TestContext.Current.CancellationToken);
         }
 
         await using var bus = await new ServiceCollection()

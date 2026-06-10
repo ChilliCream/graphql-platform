@@ -811,15 +811,28 @@ internal sealed class SourceSchemaMerger
 
         var firstField = fieldGroup[0].Field;
         var fieldName = firstField.Name;
-        var fieldType = firstField.Type;
         var description = firstField.Description;
         var isDeprecated = firstField.IsDeprecated;
         var deprecationReason = firstField.DeprecationReason;
 
+        // The return type is computed from all field types together so that the result is
+        // independent of source schema order. Pre-merge validation has already asserted that a
+        // least restrictive type exists.
+        var fieldTypes = new (IType Type, MutableSchemaDefinition Schema)[fieldGroup.Length];
+
+        for (var i = 0; i < fieldGroup.Length; i++)
+        {
+            fieldTypes[i] = (fieldGroup[i].Field.Type, fieldGroup[i].Schema);
+        }
+
+        var hasLeastRestrictiveType =
+            TypeMergeHelper.TryGetLeastRestrictiveType(fieldTypes, out var leastRestrictiveType);
+        Assert(hasLeastRestrictiveType);
+        var fieldType = leastRestrictiveType!.ExpectOutputType();
+
         for (var i = 1; i < fieldGroup.Length; i++)
         {
             var fieldInfo = fieldGroup[i];
-            fieldType = LeastRestrictiveType(fieldType, fieldInfo.Field.Type).ExpectOutputType();
             description ??= fieldInfo.Field.Description;
 
             if (fieldInfo.Field.IsDeprecated && !isDeprecated)
@@ -1021,50 +1034,6 @@ internal sealed class SourceSchemaMerger
             });
 
         return unionType;
-    }
-
-    /// <summary>
-    /// Identifies a single type that safely handles all possible runtime values produced by the
-    /// sources defining <c>typeA</c> and <c>typeB</c>. If one source can return <c>null</c> while
-    /// another cannot, the merged type becomes nullable to avoid runtime exceptions – because a
-    /// strictly non-null signature would be violated whenever <c>null</c> appears. Similarly, if
-    /// both sources enforce non-null, the result remains non-null.
-    /// </summary>
-    /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Least-Restrictive-Type">
-    /// Specification
-    /// </seealso>
-    private static IType LeastRestrictiveType(
-        IType typeA,
-        IType typeB)
-    {
-        var isNullable = !(typeA is NonNullType && typeB is NonNullType);
-
-        if (typeA is NonNullType)
-        {
-            typeA = typeA.NullableType();
-        }
-
-        if (typeB is NonNullType)
-        {
-            typeB = typeB.NullableType();
-        }
-
-        if (typeA is ListType)
-        {
-            Assert(typeB is ListType);
-
-            var innerTypeA = typeA.InnerType();
-            var innerTypeB = typeB.InnerType();
-            var innerType = LeastRestrictiveType(innerTypeA, innerTypeB);
-
-            return isNullable
-                ? new ListType(innerType)
-                : new NonNullType(new ListType(innerType));
-        }
-
-        Assert(typeA.Equals(typeB, TypeComparison.Structural));
-
-        return isNullable ? typeA : new NonNullType(typeA);
     }
 
     /// <summary>

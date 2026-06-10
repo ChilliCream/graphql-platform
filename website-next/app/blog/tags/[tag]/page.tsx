@@ -42,7 +42,7 @@ export default async function TagIndex({ params }: PageProps) {
       <div className="mx-auto flex max-w-6xl flex-col gap-6">
         <header className="flex flex-col gap-1">
           <Typography variant="h1">#{tag}</Typography>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-cc-ink-dim">
             {tagged.length} {tagged.length === 1 ? "post" : "posts"} tagged
             “{tag}”.
           </p>

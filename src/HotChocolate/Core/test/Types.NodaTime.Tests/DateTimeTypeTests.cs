@@ -358,12 +358,13 @@ public sealed class DateTimeTypeTests
             .AddQueryType(b => b.Name(OperationTypeNames.Query))
             .AddType(typeof(QuerySingleRuntimeType))
             .AddNodaTime()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result =
             await executor.ExecuteAsync(
-                """{ dateTime(input: "9999-12-31T23:59:59.999999999Z") }""");
+                """{ dateTime(input: "9999-12-31T23:59:59.999999999Z") }""",
+                TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -385,7 +386,7 @@ public sealed class DateTimeTypeTests
             .AddQueryType(b => b.Name(OperationTypeNames.Query))
             .AddType(typeof(QueryTwoRuntimeTypes))
             .AddNodaTime()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -394,7 +395,8 @@ public sealed class DateTimeTypeTests
                 dateTime1(input: "9999-12-31T23:59:59.999999999Z")
                 dateTime2(input: "9999-12-31T23:59:59.999999999Z")
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
