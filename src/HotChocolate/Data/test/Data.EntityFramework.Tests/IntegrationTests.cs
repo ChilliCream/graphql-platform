@@ -752,6 +752,58 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         }
     }
 
+    [Fact]
+    public async Task UseProjection_Should_Project_Only_Selected_Columns_When_Entity_Is_Record()
+    {
+        // arrange
+        var fileName = Guid.NewGuid().ToString("N") + ".db";
+        var connectionString = "Data Source=" + fileName;
+        var sql = new List<string>();
+
+        try
+        {
+            await using (var seed = new RecordProjectionDbContext(
+                new DbContextOptionsBuilder<RecordProjectionDbContext>()
+                    .UseSqlite(connectionString)
+                    .Options))
+            {
+                await seed.Database.EnsureCreatedAsync(Xunit.TestContext.Current.CancellationToken);
+                seed.Products.Add(
+                    new RecordProjectionProduct { Id = 1, Name = "Product", Description = "Description" });
+                await seed.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
+            }
+
+            var executor = await new ServiceCollection()
+                .AddDbContext<RecordProjectionDbContext>(
+                    b => b
+                        .UseSqlite(connectionString)
+                        .AddInterceptors(new SqlCapturingInterceptor(sql)))
+                .AddGraphQL()
+                .AddProjections()
+                .AddQueryType<RecordProjectionQuery>()
+                .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
+
+            // act
+            var result = await executor.ExecuteAsync(
+                "{ products { id } }",
+                Xunit.TestContext.Current.CancellationToken);
+
+            // assert
+            var operationResult = result.ExpectOperationResult();
+            Assert.Empty(operationResult.Errors);
+            string.Join("\n", sql).MatchInlineSnapshot(
+                """
+                SELECT "p"."Id"
+                FROM "Products" AS "p"
+                """);
+        }
+        finally
+        {
+            Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
+            File.Delete(fileName);
+        }
+    }
+
     public class ConstructorInjectionQuery
     {
         [UseProjection]
@@ -804,6 +856,29 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         public int Id { get; set; }
 
         public int BlogId { get; set; }
+    }
+
+    public class RecordProjectionQuery
+    {
+        [UseProjection]
+        public IQueryable<RecordProjectionProduct> GetProducts(RecordProjectionDbContext context)
+            => context.Products;
+    }
+
+    public class RecordProjectionDbContext(
+        DbContextOptions<RecordProjectionDbContext> options)
+        : DbContext(options)
+    {
+        public DbSet<RecordProjectionProduct> Products => Set<RecordProjectionProduct>();
+    }
+
+    public record RecordProjectionProduct
+    {
+        public required int Id { get; init; }
+
+        public required string Name { get; init; }
+
+        public required string Description { get; init; }
     }
 
     public class SingleOrDefaultUser
