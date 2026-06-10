@@ -1,6 +1,6 @@
+import { Offering } from "@/src/components/Offering";
 import { PageHero } from "@/src/components/PageHero";
 import { Section } from "@/src/components/Section";
-import { SolidButton } from "@/src/design-system/Button";
 
 interface CorporateService {
   kind: string;
@@ -45,33 +45,16 @@ export default function TrainingPage() {
       <Section title="Corporate Offers">
         <div className="grid gap-6 md:grid-cols-2">
           {SERVICES.map((service) => (
-            <div
+            <Offering
               key={service.kind}
-              className="flex flex-col rounded-xl border border-cc-card-border bg-cc-card-bg backdrop-blur-sm p-8 "
-            >
-              <h3 className="text-2xl font-semibold text-cc-ink">
-                {service.kind}
-              </h3>
-              <p className="mt-3 text-sm text-cc-ink-dim">
-                {service.description}
-              </p>
-              <ul className="mt-6 flex flex-1 flex-col gap-2 text-sm text-cc-ink">
-                {service.perks.map((perk) => (
-                  <li key={perk} className="flex items-start gap-2">
-                    <span aria-hidden className="mt-1 text-cc-accent">
-                      ✓
-                    </span>
-                    <span>{perk}</span>
-                  </li>
-                ))}
-              </ul>
-              <SolidButton
-                href="mailto:contact@chillicream.com?subject=Corporate Offers"
-                className="mt-8"
-              >
-                Talk to us
-              </SolidButton>
-            </div>
+              title={service.kind}
+              description={service.description}
+              perks={service.perks}
+              callToAction={{
+                title: "Talk to us",
+                link: `mailto:contact@chillicream.com?subject=${service.kind}`,
+              }}
+            />
           ))}
         </div>
       </Section>

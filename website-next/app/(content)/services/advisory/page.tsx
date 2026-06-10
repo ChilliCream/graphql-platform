@@ -1,5 +1,5 @@
+import { Offering } from "@/src/components/Offering";
 import { PageHero } from "@/src/components/PageHero";
-import { SolidButton } from "@/src/design-system/Button";
 
 interface InquiryPlan {
   title: string;
@@ -44,28 +44,14 @@ export default function AdvisoryPage() {
       <section className="py-8">
         <div className="grid gap-6 md:grid-cols-2">
           {PLANS.map((plan) => (
-            <div
+            <Offering
               key={plan.title}
-              className="flex flex-col rounded-xl border border-cc-card-border bg-cc-card-bg backdrop-blur-sm p-8 "
-            >
-              <h2 className="text-2xl font-semibold text-cc-ink">
-                {plan.title}
-              </h2>
-              <p className="mt-3 text-sm text-cc-ink-dim">{plan.description}</p>
-              <ul className="mt-6 flex flex-1 flex-col gap-2 text-sm text-cc-ink">
-                {plan.features.map((feature) => (
-                  <li key={feature} className="flex items-start gap-2">
-                    <span aria-hidden className="mt-1 text-cc-accent">
-                      ✓
-                    </span>
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              <SolidButton href={plan.ctaLink} className="mt-8">
-                {plan.ctaText}
-              </SolidButton>
-            </div>
+              headingLevel="h2"
+              title={plan.title}
+              description={plan.description}
+              perks={plan.features}
+              callToAction={{ title: plan.ctaText, link: plan.ctaLink }}
+            />
           ))}
         </div>
       </section>
