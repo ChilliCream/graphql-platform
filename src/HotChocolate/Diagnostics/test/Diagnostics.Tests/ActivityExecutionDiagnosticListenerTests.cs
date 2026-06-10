@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
@@ -715,11 +716,338 @@ public partial class ActivityExecutionDiagnosticListenerTests
         }
     }
 
+    [Fact]
+    public async Task Subscription_Span_Should_Be_Ok_When_Closed_Gracefully()
+    {
+        using var cts = new CancellationTokenSource(5000);
+
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            var services = new ServiceCollection()
+                .AddGraphQL()
+                .AddInstrumentation(o => o.Scopes = ActivityScopes.All)
+                .AddQueryType<SimpleQuery>()
+                .AddSubscriptionType<SimpleSubscription>()
+                .AddInMemorySubscriptions()
+                .Services
+                .BuildServiceProvider();
+
+            var executor = await services.GetRequestExecutorAsync();
+            var sender = services.GetRequiredService<ITopicEventSender>();
+
+            await using var result = await executor.ExecuteAsync(
+                "subscription OnMessageSubscription { onMessage }");
+            await using var responseStream = result.ExpectResponseStream();
+
+            var results = responseStream.ReadResultsAsync().GetAsyncEnumerator(cts.Token);
+
+            // act
+            // receive one event, then complete the source stream so the client
+            // observes a clean, graceful close (no exception, no abort)
+            try
+            {
+                var moveNext = results.MoveNextAsync().AsTask();
+                await sender.SendAsync("OnMessage", "hello", cts.Token);
+                Assert.True(await moveNext);
+                await sender.CompleteAsync("OnMessage");
+            }
+            finally
+            {
+                await results.DisposeAsync();
+            }
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
+    public async Task Subscription_Span_Should_Reflect_Client_Abort_When_Connection_Dropped()
+    {
+        using var cts = new CancellationTokenSource(5000);
+        using var abortCts = new CancellationTokenSource();
+        using var linked = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, abortCts.Token);
+
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            var services = new ServiceCollection()
+                .AddGraphQL()
+                .AddInstrumentation(o => o.Scopes = ActivityScopes.All)
+                .AddQueryType<SimpleQuery>()
+                .AddSubscriptionType<SimpleSubscription>()
+                .AddInMemorySubscriptions()
+                .Services
+                .BuildServiceProvider();
+
+            var executor = await services.GetRequestExecutorAsync();
+            var sender = services.GetRequiredService<ITopicEventSender>();
+
+            // the linked token becomes RequestAborted, so cancelling abortCts
+            // simulates a dropped browser connection (tab close)
+            await using var result = await executor.ExecuteAsync(
+                "subscription OnMessageSubscription { onMessage }", linked.Token);
+            await using var responseStream = result.ExpectResponseStream();
+
+            var results = responseStream.ReadResultsAsync().GetAsyncEnumerator(linked.Token);
+
+            try
+            {
+                // receive one event successfully while the connection is alive
+                var moveNext = results.MoveNextAsync().AsTask();
+                await sender.SendAsync("OnMessage", "hello", cts.Token);
+                Assert.True(await moveNext);
+
+                // act
+                // the subscription is now idle, waiting for the next event.
+                // drop the connection (close the tab) by aborting the request.
+                var next = results.MoveNextAsync().AsTask();
+                await abortCts.CancelAsync();
+
+                // tear down must complete promptly; guard against a hang
+                var completed = await Task.WhenAny(next, Task.Delay(2000, cts.Token));
+                Assert.Same(next, completed);
+                Assert.False(await next);
+            }
+            finally
+            {
+                await results.DisposeAsync();
+            }
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
+    public async Task Subscription_Span_Should_Reflect_Client_Abort_When_Connection_Dropped_During_Event()
+    {
+        using var cts = new CancellationTokenSource(5000);
+        using var abortCts = new CancellationTokenSource();
+        using var linked = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, abortCts.Token);
+
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            var signal = new BlockingSubscriptionSignal();
+
+            var services = new ServiceCollection()
+                .AddGraphQL()
+                .AddInstrumentation(o => o.Scopes = ActivityScopes.All)
+                .AddQueryType<SimpleQuery>()
+                .AddSubscriptionType<SimpleSubscription>()
+                .AddInMemorySubscriptions()
+                .Services
+                .AddSingleton(signal)
+                .BuildServiceProvider();
+
+            var executor = await services.GetRequestExecutorAsync();
+            var sender = services.GetRequiredService<ITopicEventSender>();
+
+            // the linked token becomes RequestAborted, so cancelling abortCts
+            // simulates a dropped browser connection (tab close)
+            await using var result = await executor.ExecuteAsync(
+                "subscription OnBlockingMessageSubscription { onBlockingMessage }", linked.Token);
+            await using var responseStream = result.ExpectResponseStream();
+
+            var results = responseStream.ReadResultsAsync().GetAsyncEnumerator(linked.Token);
+
+            try
+            {
+                // start processing an event; the resolver blocks until the
+                // connection drops, so the event is in flight when we abort
+                var next = results.MoveNextAsync().AsTask();
+                await sender.SendAsync("OnBlockingMessage", "hello", cts.Token);
+
+                // wait until execution has actually entered the blocking resolver
+                await signal.Entered.Task.WaitAsync(cts.Token);
+
+                // act
+                // drop the connection (close the tab) while the event is in flight
+                await abortCts.CancelAsync();
+
+                // tear down must complete promptly; guard against a hang
+                var completed = await Task.WhenAny(next, Task.Delay(2000, cts.Token));
+                Assert.Same(next, completed);
+                Assert.False(await next);
+            }
+            finally
+            {
+                await results.DisposeAsync();
+            }
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
+    public async Task Request_Spans_Should_Be_Unset_When_Client_Cancels_Mid_Execution()
+    {
+        using var cts = new CancellationTokenSource();
+
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            var services = new ServiceCollection()
+                .AddSingleton(cts)
+                .AddGraphQL()
+                .AddInstrumentation(o => o.Scopes = ActivityScopes.All)
+                .AddQueryType<SimpleQuery>()
+                .Services
+                .BuildServiceProvider();
+
+            var executor = await services.GetRequestExecutorAsync();
+
+            // act
+            // the resolver cancels the request token and then observes the
+            // cancellation, simulating a client that drops the connection while
+            // the operation is still executing
+            await executor.ExecuteAsync("{ cancelRequest }", cts.Token);
+
+            // assert
+            // the request and operation spans must be Unset (neither Error nor Ok),
+            // carry no error.type, and record no exception event
+            var requestSpan = activities.Exported
+                .Single(a => a.OperationName == "GraphQL Operation");
+            var operationSpan = activities.Exported
+                .Single(a => a.OperationName == "GraphQL Operation Execution");
+
+            Assert.Equal(ActivityStatusCode.Unset, requestSpan.Status);
+            Assert.Equal(ActivityStatusCode.Unset, operationSpan.Status);
+            Assert.Null(requestSpan.GetTagItem("error.type"));
+            Assert.DoesNotContain(requestSpan.Events, e => e.Name == "exception");
+        }
+    }
+
+    [Fact]
+    public async Task Request_Spans_Should_Be_Error_When_Execution_Times_Out()
+    {
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            // a tiny execution timeout combined with a resolver that blocks until
+            // the request token fires forces a server-side execution timeout (HC0045)
+            var services = new ServiceCollection()
+                .AddGraphQL()
+                .AddInstrumentation(o => o.Scopes = ActivityScopes.All)
+                .AddQueryType<SimpleQuery>()
+                .ModifyRequestOptions(o => o.ExecutionTimeout = TimeSpan.FromMilliseconds(100))
+                .Services
+                .BuildServiceProvider();
+
+            var executor = await services.GetRequestExecutorAsync();
+
+            // act
+            var result = await executor.ExecuteAsync("{ blockUntilTimeout }", cts.Token);
+
+            // assert
+            // an execution timeout is a server-side failure and must stay Error
+            var requestSpan = activities.Exported
+                .Single(a => a.OperationName == "GraphQL Operation");
+            var operationSpan = activities.Exported
+                .Single(a => a.OperationName == "GraphQL Operation Execution");
+
+            var operationResult = Assert.IsType<OperationResult>(result);
+
+            Assert.Equal(ActivityStatusCode.Error, requestSpan.Status);
+            Assert.Equal(ActivityStatusCode.Error, operationSpan.Status);
+            Assert.Equal(ErrorCodes.Execution.Timeout, operationResult.Errors[0].Code);
+        }
+    }
+
+    [Fact]
+    public async Task Subscription_Event_Span_Should_Be_Error_When_Event_Times_Out()
+    {
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            // a blocking resolver combined with a tiny per-event timeout forces a
+            // server-side event timeout (not a client abort): the request is never
+            // aborted by the caller
+            var signal = new BlockingSubscriptionSignal();
+
+            var services = new ServiceCollection()
+                .AddGraphQL()
+                .AddInstrumentation(o => o.Scopes = ActivityScopes.All)
+                .AddQueryType<SimpleQuery>()
+                .AddSubscriptionType<SimpleSubscription>()
+                .AddInMemorySubscriptions()
+                .ModifyRequestOptions(o => o.ExecutionTimeout = TimeSpan.FromMilliseconds(200))
+                .Services
+                .AddSingleton(signal)
+                .BuildServiceProvider();
+
+            var executor = await services.GetRequestExecutorAsync();
+            var sender = services.GetRequiredService<ITopicEventSender>();
+
+            await using var result = await executor.ExecuteAsync(
+                "subscription OnBlockingMessageSubscription { onBlockingMessage }", cts.Token);
+            await using var responseStream = result.ExpectResponseStream();
+
+            var results = responseStream.ReadResultsAsync().GetAsyncEnumerator(cts.Token);
+
+            try
+            {
+                // start processing an event that blocks past the per-event timeout
+                var next = results.MoveNextAsync().AsTask();
+                await sender.SendAsync("OnBlockingMessage", "hello", cts.Token);
+
+                // wait until execution actually entered the blocking resolver
+                await signal.Entered.Task.WaitAsync(cts.Token);
+
+                // act
+                // let the per-event timeout elapse and tear the event down
+                var completed = await Task.WhenAny(next, Task.Delay(5000, cts.Token));
+                Assert.Same(next, completed);
+                Assert.False(await next);
+            }
+            finally
+            {
+                await results.DisposeAsync();
+            }
+
+            // assert
+            // a server-side event timeout is an error and must stay Error, with the
+            // cancellation exception recorded
+            var eventSpan = activities.Exported
+                .Single(a => a.OperationName == "GraphQL Subscription Event");
+
+            Assert.Equal(ActivityStatusCode.Error, eventSpan.Status);
+            Assert.Equal(
+                "System.OperationCanceledException",
+                eventSpan.GetTagItem("error.type"));
+            Assert.Contains(eventSpan.Events, e => e.Name == "exception");
+        }
+    }
+
     public class SimpleQuery
     {
         public string SayHello() => "hello";
 
         public string Greeting(string name) => $"Hello, {name}!";
+
+        public string CancelRequest(IResolverContext context, [Service] CancellationTokenSource cts)
+        {
+            // cancel the request token, then observe the cancellation so the
+            // engine reports an HC0049 (client canceled) result
+            cts.Cancel();
+            context.RequestAborted.ThrowIfCancellationRequested();
+            return "unreachable";
+        }
+
+        public async Task<string> BlockUntilTimeout(IResolverContext context)
+        {
+            // block until the execution timeout cancels the (combined) request
+            // token, producing an HC0045 (timeout) result
+            await Task.Delay(Timeout.Infinite, context.RequestAborted);
+            return "unreachable";
+        }
 
         public string CauseFatalError(IResolverContext context)
             => throw new GraphQLException(
@@ -822,6 +1150,23 @@ public partial class ActivityExecutionDiagnosticListenerTests
         [Subscribe]
         public string OnFailingMessage([EventMessage] string message)
             => throw new InvalidOperationException("Subscription event failed.");
+
+        [Subscribe]
+        public async Task<string> OnBlockingMessage(
+            [EventMessage] string message,
+            [Service] BlockingSubscriptionSignal signal,
+            CancellationToken cancellationToken)
+        {
+            signal.Entered.TrySetResult();
+            await Task.Delay(Timeout.Infinite, cancellationToken);
+            return message;
+        }
+    }
+
+    public sealed class BlockingSubscriptionSignal
+    {
+        public TaskCompletionSource Entered { get; } =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
     }
 
     private sealed class NoopOperationDocumentStorage : IOperationDocumentStorage
