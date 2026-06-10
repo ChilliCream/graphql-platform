@@ -30,19 +30,13 @@ export function TableOfContents({ items }: TableOfContentsProps) {
 
   return (
     <>
-      {/* Empty grid cell reserves the 20rem column width; the rail itself is
-          fixed so it stays pinned under the header while the article scrolls. */}
-      <aside className="hidden max-w-[21rem] 2xl:block" aria-hidden="true" />
-      {/* Fixed rail that shrinks to its content height; `max-height` caps it at
-          the space down to the footer (`--docs-rail-bottom`, set by
-          SidebarDrawer) so a long TOC neither masks the footer nor wastes an
-          empty column. `z-30` + `-mt-px` cover the header's full-width
-          `border-b` across the TOC column so the separator stops at the
-          content, not the rail. The "On this page" heading stays pinned at the
-          top (with its padding) while only the nav list scrolls beneath it. */}
-      <div className="cc-content-dark fixed right-0 top-[72px] z-30 -mt-px hidden max-h-[calc(100vh-72px-var(--docs-rail-bottom,0px))] min-h-[var(--docs-rail-min,0px)] w-[20rem] flex-col px-5 pt-8 2xl:flex">
+      <aside className="hidden max-w-84 2xl:block" aria-hidden="true" />
+      <div className="cc-content-dark fixed right-0 top-18 z-30 -mt-px hidden max-h-[calc(100vh-72px-var(--docs-rail-bottom,0px))] min-h-[var(--docs-rail-min,0px)] w-80 flex-col px-5 pt-8 2xl:flex">
         <TocHeader />
-        <div data-toc-scroll className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pb-8">
+        <div
+          data-toc-scroll
+          className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pb-8"
+        >
           <TocNav sections={sections} />
         </div>
       </div>

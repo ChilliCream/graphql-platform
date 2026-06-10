@@ -42,7 +42,7 @@ export default function Footer() {
         <Section>
           <div className="flex flex-1 flex-col gap-6">
             <span className="inline-flex leading-none text-cc-ink">
-              <ChilliCreamText className="h-7.5 w-auto fill-current" />
+              <ChilliCreamText className="h-8 w-auto fill-current" />
             </span>
             <address className="not-italic">
               1207 Delaware Ave #3567
@@ -87,25 +87,25 @@ export default function Footer() {
         <Section>
           <nav className="flex flex-row gap-4 text-cc-ink-dim">
             <SocialLink href={tools.blog} label="ChilliCream Blog">
-              <BlogIcon className="h-5.5 w-auto fill-current" />
+              <BlogIcon className="h-6 w-auto fill-current" />
             </SocialLink>
             <SocialLink href={tools.github} label="ChilliCream on GitHub">
-              <GitHubIcon className="h-6.5 w-auto fill-current" />
+              <GitHubIcon className="h-7 w-auto fill-current" />
             </SocialLink>
             <SocialLink href={tools.slack} label="ChilliCream Slack Community">
-              <SlackIcon className="h-5.5 w-auto fill-current" />
+              <SlackIcon className="h-6 w-auto fill-current" />
             </SocialLink>
             <SocialLink
               href={tools.youtube}
               label="ChilliCream YouTube Channel"
             >
-              <YouTubeIcon className="h-5.5 w-auto fill-current" />
+              <YouTubeIcon className="h-6 w-auto fill-current" />
             </SocialLink>
             <SocialLink href={tools.x} label="ChilliCream on X">
-              <XIcon className="h-5.5 w-auto fill-current" />
+              <XIcon className="h-6 w-auto fill-current" />
             </SocialLink>
             <SocialLink href={tools.linkedIn} label="ChilliCream on LinkedIn">
-              <LinkedInIcon className="h-5.5 w-auto fill-current" />
+              <LinkedInIcon className="h-6 w-auto fill-current" />
             </SocialLink>
           </nav>
         </Section>
@@ -132,8 +132,8 @@ function LinkColumn({
   children: ReactNode;
 }) {
   return (
-    <div className="flex min-w-37.5 flex-col gap-6">
-      <h3 className="flex h-7.5 items-end text-base font-semibold text-cc-ink">
+    <div className="flex min-w-36 flex-col gap-6">
+      <h3 className="flex h-8 items-end text-base font-semibold text-cc-ink">
         {title}
       </h3>
       <nav className="flex flex-col gap-2.5">{children}</nav>

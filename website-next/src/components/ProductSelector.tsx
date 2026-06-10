@@ -14,7 +14,7 @@ export function ProductSelector({ activeSlug }: ProductSelectorProps) {
       panelClassName="p-1"
       trigger={
         <span className="flex flex-col">
-          <span className="text-[10px] font-semibold uppercase tracking-wide text-cc-nav-label">
+          <span className="text-xs font-semibold uppercase tracking-wide text-cc-nav-label">
             Product
           </span>
           <span className="text-sm font-semibold text-cc-ink">

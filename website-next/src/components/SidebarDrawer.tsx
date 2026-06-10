@@ -6,14 +6,6 @@ import { IconButton } from "@/src/design-system/IconButton";
 
 export const SIDEBAR_OPEN_EVENT = "docs:open-sidebar";
 
-/**
- * Wraps the sidebar to provide:
- * - Desktop (lg+): visible inline, sticky.
- * - Mobile (<lg): hidden behind an off-canvas drawer opened via the
- *   `docs:open-sidebar` window event (dispatched by DocsToolbar).
- *   Body scroll is locked while the drawer is open. The drawer auto-closes
- *   on route change.
- */
 export function SidebarDrawer({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
@@ -31,16 +23,6 @@ export function SidebarDrawer({ children }: { children: ReactNode }) {
     return () => window.removeEventListener(SIDEBAR_OPEN_EVENT, handler);
   }, []);
 
-  // The docked sidebar and TOC rails are `fixed` so they stay pinned under the
-  // header while the article scrolls. While reading they shrink to their content
-  // height (no wasted column), but the full-width footer (rendered in the root
-  // layout, outside the docs grid) sits below the article, which is usually
-  // taller than the nav. So once the footer scrolls into view the rails must
-  // extend down to it, otherwise a gap opens between the short rail and the
-  // footer that grows with viewport height. Two CSS variables drive this:
-  // `--docs-rail-bottom` caps the rails' `max-height` at the footer's top edge,
-  // and `--docs-rail-min` forces their `min-height` down to that same edge so a
-  // short nav reaches the footer instead of leaving a gap.
   useEffect(() => {
     const root = document.documentElement;
     const HEADER = 72;
@@ -54,7 +36,8 @@ export function SidebarDrawer({ children }: { children: ReactNode }) {
       const intrusion = Math.max(0, window.innerHeight - footerTop);
       // Only extend once the footer is actually on screen; while reading the
       // rails stay shrunk to content (min-height 0).
-      const min = footerTop < window.innerHeight ? Math.max(0, footerTop - HEADER) : 0;
+      const min =
+        footerTop < window.innerHeight ? Math.max(0, footerTop - HEADER) : 0;
       root.style.setProperty("--docs-rail-bottom", `${intrusion}px`);
       root.style.setProperty("--docs-rail-min", `${min}px`);
     };
@@ -138,13 +121,7 @@ export function SidebarDrawer({ children }: { children: ReactNode }) {
       </div>
 
       <aside className="hidden lg:block" aria-hidden="true" />
-      {/* Docked rail, fixed so it stays pinned under the header while the
-          article scrolls. It shrinks to its content height; `max-height` caps
-          it at the space down to the footer (`--docs-rail-bottom`, set above)
-          so a tall scrolling nav neither masks the footer nor wastes an empty
-          column. `z-30` + `-mt-px` lift the rail to (and 1px above) the header's
-          bottom edge so it covers the header's full-width `border-b` across the
-          sidebar column: the separator stops at the content, not the rail. */}
+
       <div className="cc-content-dark fixed left-0 top-18 z-30 -mt-px hidden max-h-[calc(100vh-4.5rem-var(--docs-rail-bottom,0px))] min-h-[var(--docs-rail-min,0px)] w-80 flex-col border-r border-cc-card-border lg:flex">
         {children}
       </div>

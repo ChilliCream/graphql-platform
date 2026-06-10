@@ -6,11 +6,6 @@ import { IconButton } from "@/src/design-system/IconButton";
 
 export const TOC_OPEN_EVENT = "docs:open-toc";
 
-/**
- * Off-canvas drawer for the table of contents. Hidden at 2xl+ where the TOC
- * docks inline. Opens when the `docs:open-toc` window event fires (dispatched
- * by DocsToolbar). Auto-closes on anchor click and route change.
- */
 export function TocDrawer({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
