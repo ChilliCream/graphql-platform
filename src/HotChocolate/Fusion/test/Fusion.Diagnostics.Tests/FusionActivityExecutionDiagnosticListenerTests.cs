@@ -510,14 +510,15 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             configureGatewayBuilder: b => b.AddInstrumentation(o =>
                 o.Scopes = FusionActivityScopes.All));
 
-            var executor = await gateway.Services.GetRequestExecutorAsync();
+            var executor = await gateway.Services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
 
             var request = OperationRequestBuilder.New()
                 .SetDocument("query GetHeroName { sayHello }")
                 .Build();
 
             // act
-            await executor.ExecuteAsync(request);
+            await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
             // assert
             var requestSpan = activities.Exported
@@ -546,14 +547,15 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
                 o.IncludeOperationNameInSpanName = true;
             }));
 
-            var executor = await gateway.Services.GetRequestExecutorAsync();
+            var executor = await gateway.Services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
 
             var request = OperationRequestBuilder.New()
                 .SetDocument("query GetHeroName { sayHello }")
                 .Build();
 
             // act
-            await executor.ExecuteAsync(request);
+            await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
             // assert
             var requestSpan = activities.Exported
@@ -582,14 +584,15 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
                 o.IncludeOperationNameInSpanName = true;
             }));
 
-            var executor = await gateway.Services.GetRequestExecutorAsync();
+            var executor = await gateway.Services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
 
             var request = OperationRequestBuilder.New()
                 .SetDocument("{ sayHello }")
                 .Build();
 
             // act
-            await executor.ExecuteAsync(request);
+            await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
             // assert
             var requestSpan = activities.Exported

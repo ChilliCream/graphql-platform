@@ -165,7 +165,7 @@ public static partial class ActivityTestHelper
     /// tracing has gone idle, so a captured trace is read only after every span (including
     /// server-side spans that complete after the awaited call returns) has finished.
     /// </summary>
-    private sealed class QuiescenceProcessor : BaseProcessor<Activity>
+    public sealed class QuiescenceProcessor : BaseProcessor<Activity>
     {
         private readonly object _gate = new();
         private readonly ManualResetEventSlim _idle = new(initialState: true);

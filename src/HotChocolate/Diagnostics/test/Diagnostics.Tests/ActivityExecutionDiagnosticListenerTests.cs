@@ -274,7 +274,9 @@ public partial class ActivityExecutionDiagnosticListenerTests
                 .AddGraphQL()
                 .AddInstrumentation(o => o.Scopes = ActivityScopes.All)
                 .AddQueryType<SimpleQuery>()
-                .ExecuteRequestAsync("query GetHeroName { sayHello }");
+                .ExecuteRequestAsync(
+                    "query GetHeroName { sayHello }",
+                    cancellationToken: TestContext.Current.CancellationToken);
 
             // assert
             var requestSpan = activities.Exported
@@ -297,7 +299,9 @@ public partial class ActivityExecutionDiagnosticListenerTests
                     o.IncludeOperationNameInSpanName = true;
                 })
                 .AddQueryType<SimpleQuery>()
-                .ExecuteRequestAsync("query GetHeroName { sayHello }");
+                .ExecuteRequestAsync(
+                    "query GetHeroName { sayHello }",
+                    cancellationToken: TestContext.Current.CancellationToken);
 
             // assert
             var requestSpan = activities.Exported
@@ -320,7 +324,7 @@ public partial class ActivityExecutionDiagnosticListenerTests
                     o.IncludeOperationNameInSpanName = true;
                 })
                 .AddQueryType<SimpleQuery>()
-                .ExecuteRequestAsync("{ sayHello }");
+                .ExecuteRequestAsync("{ sayHello }", cancellationToken: TestContext.Current.CancellationToken);
 
             // assert
             var requestSpan = activities.Exported
