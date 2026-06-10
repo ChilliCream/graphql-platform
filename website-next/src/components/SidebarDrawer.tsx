@@ -31,21 +31,31 @@ export function SidebarDrawer({ children }: { children: ReactNode }) {
   }, []);
 
   // The docked sidebar and TOC rails are `fixed` so they stay pinned under the
-  // header while the article scrolls. They shrink to their content height, but a
-  // tall scrolling nav must still not cover the full-width footer (rendered in
-  // the root layout, outside the docs grid) once it scrolls into view. Expose
-  // how far the footer intrudes into the viewport as a CSS variable; both rails
-  // subtract it from their `max-height` so they cap at the footer's top edge.
+  // header while the article scrolls. While reading they shrink to their content
+  // height (no wasted column), but the full-width footer (rendered in the root
+  // layout, outside the docs grid) sits below the article, which is usually
+  // taller than the nav. So once the footer scrolls into view the rails must
+  // extend down to it, otherwise a gap opens between the short rail and the
+  // footer that grows with viewport height. Two CSS variables drive this:
+  // `--docs-rail-bottom` caps the rails' `max-height` at the footer's top edge,
+  // and `--docs-rail-min` forces their `min-height` down to that same edge so a
+  // short nav reaches the footer instead of leaving a gap.
   useEffect(() => {
     const root = document.documentElement;
+    const HEADER = 72;
     let frame = 0;
     const update = () => {
       frame = 0;
       const footer = document.querySelector("footer");
-      const intrusion = footer
-        ? Math.max(0, window.innerHeight - footer.getBoundingClientRect().top)
-        : 0;
+      const footerTop = footer
+        ? footer.getBoundingClientRect().top
+        : Number.POSITIVE_INFINITY;
+      const intrusion = Math.max(0, window.innerHeight - footerTop);
+      // Only extend once the footer is actually on screen; while reading the
+      // rails stay shrunk to content (min-height 0).
+      const min = footerTop < window.innerHeight ? Math.max(0, footerTop - HEADER) : 0;
       root.style.setProperty("--docs-rail-bottom", `${intrusion}px`);
+      root.style.setProperty("--docs-rail-min", `${min}px`);
     };
     const schedule = () => {
       if (!frame) {
@@ -62,6 +72,7 @@ export function SidebarDrawer({ children }: { children: ReactNode }) {
         cancelAnimationFrame(frame);
       }
       root.style.removeProperty("--docs-rail-bottom");
+      root.style.removeProperty("--docs-rail-min");
     };
   }, []);
 
@@ -135,7 +146,7 @@ export function SidebarDrawer({ children }: { children: ReactNode }) {
           column. `z-30` + `-mt-px` lift the rail to (and 1px above) the header's
           bottom edge so it covers the header's full-width `border-b` across the
           sidebar column: the separator stops at the content, not the rail. */}
-      <div className="cc-content-dark fixed left-0 top-18 z-30 -mt-px hidden max-h-[calc(100vh-4.5rem-var(--docs-rail-bottom,0px))] w-80 flex-col border-r border-cc-card-border lg:flex">
+      <div className="cc-content-dark fixed left-0 top-18 z-30 -mt-px hidden max-h-[calc(100vh-4.5rem-var(--docs-rail-bottom,0px))] min-h-[var(--docs-rail-min,0px)] w-80 flex-col border-r border-cc-card-border lg:flex">
         {children}
       </div>
     </>

@@ -40,9 +40,9 @@ export function TableOfContents({ items }: TableOfContentsProps) {
           `border-b` across the TOC column so the separator stops at the
           content, not the rail. The "On this page" heading stays pinned at the
           top (with its padding) while only the nav list scrolls beneath it. */}
-      <div className="cc-content-dark fixed right-0 top-[72px] z-30 -mt-px hidden max-h-[calc(100vh-72px-var(--docs-rail-bottom,0px))] w-[20rem] flex-col px-5 pt-8 2xl:flex">
+      <div className="cc-content-dark fixed right-0 top-[72px] z-30 -mt-px hidden max-h-[calc(100vh-72px-var(--docs-rail-bottom,0px))] min-h-[var(--docs-rail-min,0px)] w-[20rem] flex-col px-5 pt-8 2xl:flex">
         <TocHeader />
-        <div data-toc-scroll className="min-h-0 flex-1 overflow-y-auto pb-8">
+        <div data-toc-scroll className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pb-8">
           <TocNav sections={sections} />
         </div>
       </div>
