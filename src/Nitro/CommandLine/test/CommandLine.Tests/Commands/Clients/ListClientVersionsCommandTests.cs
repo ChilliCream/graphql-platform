@@ -25,7 +25,7 @@ public sealed class ListClientVersionsCommandTests(NitroCommandFixture fixture) 
               --client-id <client-id>  The ID of the client [env: NITRO_CLIENT_ID]
               --cursor <cursor>        The pagination cursor to resume from [env: NITRO_CURSOR]
               --cloud-url <cloud-url>  The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
-              --api-key <api-key>      The API key used for authentication [env: NITRO_API_KEY]
+              --api-key <api-key>      The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>          The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help           Show help and usage information
 
