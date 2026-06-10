@@ -27,7 +27,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               --legacy-v1-archive <legacy-v1-archive>        The path to a Fusion v1 archive file. This option is only intended to be used during the migration from Fusion v1 to Fusion v2+.
               -f, --source-schema-file <source-schema-file>  One or more paths to a source schema file (.graphqls) or directory containing a source schema file
               --cloud-url <cloud-url>                        The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
-              --api-key <api-key>                            The API key used for authentication [env: NITRO_API_KEY]
+              --api-key <api-key>                            The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>                                The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                                 Show help and usage information
 
