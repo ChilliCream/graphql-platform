@@ -19,6 +19,7 @@ import {
   Implementation,
   Schema,
 } from "@/src/components/ExampleTabs";
+import { MochaTopologyVisualization } from "@/src/components/MochaTopologyVisualization";
 import { PackageInstallation } from "@/src/components/PackageInstallation";
 import { YouTubeVideo } from "@/src/components/YouTubeVideo";
 import { detectAdmonition } from "@/src/helpers/detectAdmonition";
@@ -81,6 +82,7 @@ const components: MDXComponents = {
   Tabs,
   Tab,
   YouTubeVideo,
+  MochaTopologyVisualization,
 
   // TODO: Replace these with proper components
   ApiChoiceTabs,

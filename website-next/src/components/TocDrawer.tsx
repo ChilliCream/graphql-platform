@@ -43,7 +43,7 @@ export function TocDrawer({ children }: { children: ReactNode }) {
 
   return (
     <div
-      className={`fixed inset-0 z-40 2xl:hidden ${open ? "" : "pointer-events-none"}`}
+      className={`fixed inset-0 z-50 2xl:hidden ${open ? "" : "pointer-events-none"}`}
       aria-hidden={!open}
     >
       <div
