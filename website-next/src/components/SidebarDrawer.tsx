@@ -81,7 +81,7 @@ export function SidebarDrawer({ children }: { children: ReactNode }) {
   return (
     <>
       <div
-        className={`fixed inset-0 z-40 lg:hidden ${open ? "" : "pointer-events-none"}`}
+        className={`fixed inset-0 z-50 lg:hidden ${open ? "" : "pointer-events-none"}`}
         aria-hidden={!open}
       >
         <div

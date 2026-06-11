@@ -33,7 +33,7 @@ export default async function Header() {
   ) : null;
 
   return (
-    <header className="sticky top-0 z-30 flex h-18 w-full justify-center border-b border-cc-white/10 bg-cc-card-bg shadow-[inset_0_1px_0_var(--cc-highlight)] backdrop-blur-[18px] backdrop-saturate-150">
+    <header className="sticky top-0 z-40 flex h-18 w-full justify-center border-b border-cc-white/10 bg-cc-card-bg shadow-[inset_0_1px_0_var(--cc-highlight)] backdrop-blur-[18px] backdrop-saturate-150">
       <div className="relative flex h-full w-full max-w-7xl items-center justify-between px-4 lg:gap-8">
         <Link
           href="/"
