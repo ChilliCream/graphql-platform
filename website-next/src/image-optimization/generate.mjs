@@ -30,7 +30,12 @@ async function makeBlur(input) {
 let inFlight;
 
 /**
- * @param {{ quality: number, widths: number[], formats: string[], sourceDir: string, outputDir: string, manifestPath: string, onProgress?: (p: { phase: "images" | "remote", done: number, total: number }) => void }} config
+ * @param {{ quality: number, widths: number[], formats: string[], sourceDir: string, outputDir: string, manifestPath: string, share?: { width: number, height: number, quality: number, images: string[] }, onProgress?: (p: { phase: "images" | "remote", done: number, total: number }) => void }} config
+ *
+ * `share` requests a dedicated share-card variant (an exact `width`x`height`
+ * cover-cropped JPEG, stored as `shareSrc` in the manifest) for the listed
+ * source URLs. JPEG because share-card crawlers do not reliably decode
+ * WebP/AVIF.
  */
 export default async function optimizeImages(config) {
   if (inFlight) {
@@ -52,6 +57,21 @@ async function run(config) {
   // Hash the encode settings so changing quality/widths/formats invalidates the cache.
   const settingsJson = JSON.stringify({ quality, widths, formats });
 
+  // Share variants are cached independently of the srcset ladder: `shareHash`
+  // on a manifest entry tracks the share encode settings, so changing them
+  // re-encodes only the share JPEGs, not every variant.
+  const share = config.share ?? null;
+  const shareSet = new Set(share?.images ?? []);
+  const shareHash = share
+    ? sha256(
+        JSON.stringify({
+          width: share.width,
+          height: share.height,
+          quality: share.quality,
+        })
+      )
+    : null;
+
   const manifest = loadManifest(manifestPath);
 
   const sources = walk(sourceDir).filter((f) => IMAGE_RE.test(f));
@@ -71,13 +91,23 @@ async function run(config) {
         .update(settingsJson)
         .digest("hex");
 
+      const shareOptions = {
+        wanted: shareSet.has(url),
+        bytes,
+        relPath,
+        outputDir,
+        share,
+        shareHash,
+      };
+
       const existing = manifest[url];
       if (existing && existing.hash === hash && allOutputsExist(existing, outputDir)) {
         // Backfill the blur placeholder for manifests generated before blur
         // support, without re-encoding the (unchanged) full-size variants.
-        newManifest[url] = existing.blurDataURL
+        const entry = existing.blurDataURL
           ? existing
           : { ...existing, ...(await makeBlur(bytes)) };
+        newManifest[url] = await ensureShareVariant(entry, shareOptions);
         cached++;
         return;
       }
@@ -105,13 +135,16 @@ async function run(config) {
         formatsEntry[format] = variants;
       }
 
-      newManifest[url] = {
-        hash,
-        width: intrinsicW,
-        height: intrinsicH,
-        formats: formatsEntry,
-        ...(await makeBlur(bytes)),
-      };
+      newManifest[url] = await ensureShareVariant(
+        {
+          hash,
+          width: intrinsicW,
+          height: intrinsicH,
+          formats: formatsEntry,
+          ...(await makeBlur(bytes)),
+        },
+        shareOptions
+      );
       encoded++;
     } catch (err) {
       console.warn(`[image-opt] WARN failed to optimize ${url}: ${err.message}`);
@@ -236,6 +269,65 @@ function sha256(input) {
   return crypto.createHash("sha256").update(input).digest("hex");
 }
 
+// Largest box with the share aspect ratio that fits inside the source image,
+// capped at the configured share dimensions.
+function shareTargetBox(share, intrinsicW, intrinsicH) {
+  if (!intrinsicW || !intrinsicH) {
+    return { width: share.width, height: share.height };
+  }
+  const scale = Math.min(intrinsicW / share.width, intrinsicH / share.height, 1);
+  return {
+    width: Math.max(1, Math.floor(share.width * scale)),
+    height: Math.max(1, Math.floor(share.height * scale)),
+  };
+}
+
+// Adds (or removes) the dedicated share-card JPEG for a manifest entry. The
+// source-content hash on the entry already covers byte changes; `shareHash`
+// covers share encode-settings changes, so an up-to-date variant is reused
+// without re-encoding.
+async function ensureShareVariant(
+  entry,
+  { wanted, bytes, relPath, outputDir, share, shareHash }
+) {
+  if (!wanted || !share) {
+    if (!entry.shareSrc) {
+      return entry;
+    }
+    // No longer a share image (e.g. frontmatter changed): drop the variant.
+    const file = urlToOutputFile(entry.shareSrc, outputDir);
+    try {
+      if (file && fs.existsSync(file)) {
+        fs.unlinkSync(file);
+      }
+    } catch {
+      // best-effort
+    }
+    const { shareSrc, shareHash: _stale, ...rest } = entry;
+    return rest;
+  }
+
+  const outRel = `${relPath}.share.jpg`;
+  const outFile = path.join(outputDir, outRel);
+  if (entry.shareSrc && entry.shareHash === shareHash && fs.existsSync(outFile)) {
+    return entry;
+  }
+
+  // Cover-crop to the exact share aspect ratio; never upscale. A source
+  // smaller than the target gets a proportionally scaled-down target box
+  // (same aspect ratio) instead, since `withoutEnlargement` alone would skip
+  // the aspect crop entirely. `withoutEnlargement` still backstops the case
+  // where the intrinsic dimensions are unknown and the box falls back to the
+  // full share size.
+  const box = shareTargetBox(share, entry.width, entry.height);
+  const buffer = await sharp(bytes)
+    .resize(box.width, box.height, { fit: "cover", withoutEnlargement: true })
+    .jpeg({ quality: share.quality })
+    .toBuffer();
+  writeAtomic(outFile, buffer);
+  return { ...entry, shareSrc: `/_optimized/images/${outRel}`, shareHash };
+}
+
 function extFromContentType(contentType) {
   const type = (contentType ?? "").toLowerCase();
   if (type.includes("image/png")) {
@@ -292,6 +384,9 @@ function deleteOrphans(entry, outputDir) {
   // it too, otherwise orphaned originals accumulate under remote/.
   if (entry.fallbackSrc) {
     paths.push(entry.fallbackSrc);
+  }
+  if (entry.shareSrc) {
+    paths.push(entry.shareSrc);
   }
   for (const url of paths) {
     const file = urlToOutputFile(url, outputDir);

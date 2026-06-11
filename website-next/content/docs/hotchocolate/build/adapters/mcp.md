@@ -189,4 +189,4 @@ Storage is registered but returned no definitions. With Nitro, ensure a publishe
 ## Next Steps
 
 - Author tools and prompts and publish them with Nitro in the [Nitro MCP](../../../nitro/adapters/mcp.md) section.
-- Customize how GraphQL errors surface in MCP tool results with [Error handling](../../guides/error-handling.md).
+- Customize how GraphQL errors surface in MCP tool results with [Errors](../../resolvers/errors.md).

@@ -289,7 +289,7 @@ These deserve their own posts, so I will keep this short. v16 ships two new adap
 - **MCP**, a [Model Context Protocol](https://modelcontextprotocol.io/) server adapter that exposes GraphQL operations as MCP tools for LLM agents. It also supports agentic UI through the MCP app extension.
 - **OpenAPI**, an adapter for projecting GraphQL operations as OpenAPI definitions.
 
-Both will get their own posts in the next few weeks. If you do not want to wait, the docs are already up for the [MCP adapter](../docs/hotchocolate/guides/mcp-adapter.md) and the [OpenAPI adapter](../docs/hotchocolate/guides/openapi-adapter.md).
+Both will get their own posts in the next few weeks. If you do not want to wait, the docs are already up for the [MCP adapter](../docs/hotchocolate/build/adapters/mcp.md) and the [OpenAPI adapter](../docs/hotchocolate/build/adapters/openapi.md).
 
 ## Wrapping up
 

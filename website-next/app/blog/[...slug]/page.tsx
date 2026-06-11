@@ -23,6 +23,7 @@ import {
 import { compileDoc } from "@/src/helpers/compileDoc";
 import { readFrontmatter } from "@/src/helpers/readFrontmatter";
 import { estimateReadingTime } from "@/src/helpers/readingTime";
+import { getShareImageSrc } from "@/src/image-optimization/manifest";
 import { toAbsoluteUrl } from "@/src/helpers/siteUrl";
 
 type BlogFrontmatter = {
@@ -88,7 +89,7 @@ export async function generateMetadata({
   const stem = stemForSlug(slug);
   const summary = listBlogPostSummaries().find((s) => s.stem === stem);
   const featuredImageAbs = summary?.featuredImage
-    ? toAbsoluteUrl(summary.featuredImage)
+    ? toAbsoluteUrl(getShareImageSrc(summary.featuredImage))
     : undefined;
   const images = featuredImageAbs ? [featuredImageAbs] : undefined;
 
