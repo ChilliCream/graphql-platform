@@ -18,6 +18,8 @@ export interface OptimizedImage {
   fallbackSrc?: string;
   /** Dedicated 1200x630 JPEG share-card variant (og:image, RSS enclosures). */
   shareSrc?: string;
+  /** Hash of the share encode settings used to produce `shareSrc` (cache key). */
+  shareHash?: string;
 }
 
 let cache: Record<string, OptimizedImage> | null | undefined;

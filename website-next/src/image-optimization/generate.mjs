@@ -316,10 +316,12 @@ async function ensureShareVariant(
   // Cover-crop to the exact share aspect ratio; never upscale. A source
   // smaller than the target gets a proportionally scaled-down target box
   // (same aspect ratio) instead, since `withoutEnlargement` alone would skip
-  // the aspect crop entirely.
+  // the aspect crop entirely. `withoutEnlargement` still backstops the case
+  // where the intrinsic dimensions are unknown and the box falls back to the
+  // full share size.
   const box = shareTargetBox(share, entry.width, entry.height);
   const buffer = await sharp(bytes)
-    .resize(box.width, box.height, { fit: "cover" })
+    .resize(box.width, box.height, { fit: "cover", withoutEnlargement: true })
     .jpeg({ quality: share.quality })
     .toBuffer();
   writeAtomic(outFile, buffer);
