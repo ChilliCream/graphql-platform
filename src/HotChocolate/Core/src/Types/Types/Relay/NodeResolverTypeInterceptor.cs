@@ -191,16 +191,11 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
             {
                 var field = QueryType.Fields[fieldName];
                 var feature = type.Features.GetOrSet<NodeTypeFeature>();
-                // v1: capture only the first inner partitioner; chained partitioners on a node-resolver
-                // source field are not propagated to the node-level batch dispatch.
-                var batchPartitionKey = field.BatchPartitionKeyResolvers.IsEmpty
-                    ? null
-                    : field.BatchPartitionKeyResolvers[0];
                 feature.NodeResolver = new NodeResolverInfo(
                     field,
                     field.Middleware,
                     field.BatchResolver,
-                    batchPartitionKey);
+                    field.BatchPartitionKeyResolver);
             }
         }
     }

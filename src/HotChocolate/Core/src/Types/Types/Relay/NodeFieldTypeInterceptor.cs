@@ -1,4 +1,8 @@
+using System.Buffers;
+using System.Buffers.Binary;
+using System.IO.Hashing;
 using System.Runtime.CompilerServices;
+using System.Text;
 using HotChocolate.Configuration;
 using HotChocolate.Features;
 using HotChocolate.Internal;
@@ -20,6 +24,8 @@ namespace HotChocolate.Types.Relay;
 /// </summary>
 internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
 {
+    private const int MaxStackallocTypeNameSize = 256;
+
     private ITypeCompletionContext? _queryContext;
     private ObjectTypeConfiguration? _queryTypeConfig;
     private TypeReference _nodeType = null!;
@@ -141,13 +147,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
                 new ArgumentConfiguration(Id, Relay_NodeField_Id_Description, id)
             },
             BatchResolver = contexts => ResolveNodeBatchAsync(contexts, serializerAccessor),
-            // node has 2 partitioners (outer by node type, inner by user partitioner);
-            // nodes has none — see node-field-batch-resolver-plan.md.
-            BatchPartitionKeyResolvers =
-            [
-                NodeOuterPartitioner(serializerAccessor),
-                NodeInnerPartitioner()
-            ],
+            BatchPartitionKeyResolver = NodePartitioner(serializerAccessor),
             Flags = CoreFieldFlags.ParallelExecutable | CoreFieldFlags.GlobalIdNodeField
         };
 
@@ -207,33 +207,62 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
         fields.Insert(index, field);
     }
 
-    private static BatchPartitionKeyResolver NodeOuterPartitioner(
+    private static BatchPartitionKeyResolver NodePartitioner(
         INodeIdSerializerAccessor serializerAccessor)
     {
         INodeIdSerializer? serializer = null;
         return context =>
         {
             serializer ??= serializerAccessor.Serializer;
-            var nodeId = context.ArgumentLiteral<StringValueNode>(Id);
-            var deserializedId = serializer.Parse(nodeId.Value, Unsafe.As<Schema>(context.Schema));
-            context.SetLocalState(IdValue, deserializedId);
-            return (uint)StringComparer.Ordinal.GetHashCode(deserializedId.TypeName);
+            var deserializedId = ResolveOrParseNodeId(context, serializer);
+            var typeName = deserializedId.TypeName;
+
+            var innerKey = 0UL;
+            if (context.Schema.Types.TryGetType<ObjectType>(typeName, out var type)
+                && type.Features.Get<NodeTypeFeature>() is { NodeResolver.BatchPartitionKey: { } inner })
+            {
+                innerKey = inner(context);
+            }
+
+            return ComposePartitionKey(innerKey, typeName);
         };
     }
 
-    private static BatchPartitionKeyResolver NodeInnerPartitioner()
+    private static NodeId ResolveOrParseNodeId(IMiddlewareContext context, INodeIdSerializer serializer)
     {
-        return context =>
+        if (context.LocalContextData.TryGetValue(IdValue, out var cached) && cached is NodeId nodeId)
         {
-            var deserializedId = context.GetLocalState<NodeId>(IdValue);
+            return nodeId;
+        }
 
-            if (context.Schema.Types.TryGetType<ObjectType>(deserializedId.TypeName, out var type)
-                && type.Features.Get<NodeTypeFeature>() is { NodeResolver.BatchPartitionKey: { } inner })
+        var literal = context.ArgumentLiteral<StringValueNode>(Id);
+        var deserializedId = serializer.Parse(literal.Value, Unsafe.As<Schema>(context.Schema));
+        context.SetLocalState(IdValue, deserializedId);
+        return deserializedId;
+    }
+
+    private static ulong ComposePartitionKey(ulong innerKey, string typeName)
+    {
+        var typeBytes = Encoding.UTF8.GetByteCount(typeName);
+        var length = sizeof(ulong) + typeBytes;
+        byte[]? rented = null;
+        Span<byte> buffer = length <= MaxStackallocTypeNameSize
+            ? stackalloc byte[length]
+            : rented = ArrayPool<byte>.Shared.Rent(length);
+
+        try
+        {
+            BinaryPrimitives.WriteUInt64LittleEndian(buffer, innerKey);
+            Encoding.UTF8.GetBytes(typeName, buffer[sizeof(ulong)..]);
+
+            return XxHash64.HashToUInt64(buffer[..length]);
+        }
+        finally
+        {
+            if (rented is not null)
             {
-                return inner(context);
+                ArrayPool<byte>.Shared.Return(rented);
             }
-
-            return 0;
-        };
+        }
     }
 }

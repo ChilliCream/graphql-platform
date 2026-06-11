@@ -21,9 +21,10 @@ internal static class NodeFieldResolvers
         ImmutableArray<IMiddlewareContext> contexts,
         INodeIdSerializerAccessor serializerAccessor)
     {
-        if (contexts.Length == 0)
+        if (contexts.IsDefaultOrEmpty)
         {
-            return;
+            throw new InvalidOperationException(
+                "A batch resolver is guaranteed to have at least one context.");
         }
 
         var serializer = serializerAccessor.Serializer;
@@ -258,12 +259,28 @@ internal static class NodeFieldResolvers
             return;
         }
 
-        var tasks = new Task[group.Count];
-        for (var i = 0; i < group.Count; i++)
+        var tasks = ArrayPool<Task>.Shared.Rent(group.Count);
+
+        try
         {
-            tasks[i] = pipeline(group[i].Context).AsTask();
+            for (var i = 0; i < group.Count; i++)
+            {
+                tasks[i] = pipeline(group[i].Context).AsTask();
+            }
+
+#if NET9_0_OR_GREATER
+            await Task.WhenAll(tasks.AsSpan(0, group.Count)).ConfigureAwait(false);
+#else
+            for (var i = 0; i < group.Count; i++)
+            {
+                await tasks[i].ConfigureAwait(false);
+            }
+#endif
         }
-        await Task.WhenAll(tasks).ConfigureAwait(false);
+        finally
+        {
+            ArrayPool<Task>.Shared.Return(tasks, true);
+        }
     }
 
     private static async Task DispatchAsync(
@@ -285,6 +302,7 @@ internal static class NodeFieldResolvers
         }
 
         var tasks = ArrayPool<Task>.Shared.Rent(contexts.Length);
+
         try
         {
             for (var i = 0; i < contexts.Length; i++)
@@ -292,11 +310,14 @@ internal static class NodeFieldResolvers
                 tasks[i] = pipeline(contexts[i]).AsTask();
             }
 
-            // Wait only on the first contexts.Length slots since the rented buffer may be larger.
+#if NET9_0_OR_GREATER
+            await Task.WhenAll(tasks.AsSpan(0, contexts.Length)).ConfigureAwait(false);
+#else
             for (var i = 0; i < contexts.Length; i++)
             {
                 await tasks[i].ConfigureAwait(false);
             }
+#endif
         }
         finally
         {

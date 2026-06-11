@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Buffers.Binary;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.IO.Hashing;
 using System.Reflection;
 using System.Text;
 using HotChocolate.Configuration;
@@ -21,8 +22,6 @@ namespace HotChocolate.Types.Pagination;
 public static class PagingHelper
 {
     private const int MaxStackallocPartitionKeySize = 256;
-    private const ulong Fnv64OffsetBasis = 14695981039346656037;
-    private const ulong Fnv64Prime = 1099511628211;
     private const string FirstArgumentName = "first";
     private const string AfterArgumentName = "after";
     private const string LastArgumentName = "last";
@@ -85,7 +84,7 @@ public static class PagingHelper
 
         var batchIndex = definition.BatchMiddlewareConfigurations.IndexOf(batchPlaceholder);
         definition.BatchMiddlewareConfigurations[batchIndex] = new(batchMiddleware, key: Paging);
-        definition.BatchPartitionKeyResolvers = [GetPagingBatchPartitionKey];
+        definition.BatchPartitionKeyResolver = GetPagingBatchPartitionKey;
         definition.Features.Set(options);
     }
 
@@ -285,15 +284,7 @@ public static class PagingHelper
 
     private static ulong ComputePartitionKeyHash(ReadOnlySpan<byte> buffer)
     {
-        var hash = Fnv64OffsetBasis;
-
-        foreach (var value in buffer)
-        {
-            hash ^= value;
-            hash *= Fnv64Prime;
-        }
-
-        return hash;
+        return XxHash64.HashToUInt64(buffer);
     }
 
     [RequiresDynamicCode("Uses MakeGenericType to create generic schema types at runtime.")]
