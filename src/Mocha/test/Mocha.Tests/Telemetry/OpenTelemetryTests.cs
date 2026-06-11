@@ -31,7 +31,7 @@ public class OpenTelemetryTests
         Assert.True(await recorder.WaitAsync(s_timeout));
 
         // Task.Delay: ActivityListener callbacks fire asynchronously; brief wait lets all callbacks complete
-        await Task.Delay(100, default);
+        await Task.Delay(100, TestContext.Current.CancellationToken);
 
         // assert - at least one activity was created
         Assert.NotEmpty(activities);
@@ -58,7 +58,7 @@ public class OpenTelemetryTests
         var response = await bus.RequestAsync(new TracedRequest { Query = "test" }, CancellationToken.None);
 
         // Task.Delay: ActivityListener callbacks fire asynchronously; brief wait lets all callbacks complete
-        await Task.Delay(100, default);
+        await Task.Delay(100, TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotEmpty(activities);
@@ -87,7 +87,7 @@ public class OpenTelemetryTests
         Assert.True(await recorder.WaitAsync(s_timeout));
 
         // Task.Delay: ActivityListener callbacks fire asynchronously; brief wait lets all callbacks complete
-        await Task.Delay(100, default);
+        await Task.Delay(100, TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotEmpty(activities);
@@ -119,7 +119,7 @@ public class OpenTelemetryTests
         Assert.True(await recorder.WaitAsync(s_timeout, expectedCount: 3));
 
         // Task.Delay: ActivityListener callbacks fire asynchronously; brief wait lets all callbacks complete
-        await Task.Delay(100, default);
+        await Task.Delay(100, TestContext.Current.CancellationToken);
 
         // assert - at least 3 activities (dispatch + consume for each)
         Assert.True(activities.Count >= 3, $"Expected at least 3 activities but got {activities.Count}");

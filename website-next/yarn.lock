@@ -9841,6 +9841,7 @@ __metadata:
     react-dom: "npm:19.2.4"
     rehype-mermaid: "npm:^3.0.0"
     remark-gfm: "npm:^4.0.1"
+    sharp: "npm:^0.34.5"
     shiki: "npm:^4.0.2"
     storybook: "npm:^10.4.1"
     tailwindcss: "npm:^4"

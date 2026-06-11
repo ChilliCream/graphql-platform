@@ -24,7 +24,7 @@ public sealed class OptInFeaturesIntrospectionTests
         var executor = CreateSchema().MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -77,7 +77,7 @@ public sealed class OptInFeaturesIntrospectionTests
         var executor = CreateSchema().MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -123,7 +123,7 @@ public sealed class OptInFeaturesIntrospectionTests
         var executor = CreateSchema().MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -162,7 +162,7 @@ public sealed class OptInFeaturesIntrospectionTests
         var executor = CreateSchema().MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -204,7 +204,7 @@ public sealed class OptInFeaturesIntrospectionTests
         var executor = CreateSchema().MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -262,7 +262,7 @@ public sealed class OptInFeaturesIntrospectionTests
         var executor = CreateSchema().MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -313,7 +313,7 @@ public sealed class OptInFeaturesIntrospectionTests
         var executor = CreateSchema().MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -361,7 +361,7 @@ public sealed class OptInFeaturesIntrospectionTests
         var executor = CreateSchema().MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -407,7 +407,7 @@ public sealed class OptInFeaturesIntrospectionTests
         var executor = CreateSchema().MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -446,7 +446,7 @@ public sealed class OptInFeaturesIntrospectionTests
         var executor = CreateSchema().MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -485,7 +485,7 @@ public sealed class OptInFeaturesIntrospectionTests
         var executor = CreateSchema().MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -531,7 +531,7 @@ public sealed class OptInFeaturesIntrospectionTests
         var executor = CreateSchema().MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -570,7 +570,7 @@ public sealed class OptInFeaturesIntrospectionTests
         var executor = CreateSchema().MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(

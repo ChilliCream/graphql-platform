@@ -36,7 +36,8 @@ public sealed class DataLoaderTests
                         name
                     }
                 }
-                """);
+                """,
+                cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         Snapshot
             .Create(Postfix([NET8_0, NET9_0]))
@@ -69,7 +70,8 @@ public sealed class DataLoaderTests
                         name
                     }
                 }
-                """);
+                """,
+                cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         Snapshot
             .Create(Postfix([NET8_0], [NET9_0]))
@@ -102,7 +104,8 @@ public sealed class DataLoaderTests
                         name
                     }
                 }
-                """);
+                """,
+                cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         Snapshot
             .Create(Postfix([NET8_0, NET9_0]))
@@ -138,7 +141,8 @@ public sealed class DataLoaderTests
                         name
                     }
                 }
-                """);
+                """,
+                cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         Snapshot
             .Create(Postfix([NET8_0, NET9_0]))
@@ -171,7 +175,8 @@ public sealed class DataLoaderTests
                         name
                     }
                 }
-                """);
+                """,
+                cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         Snapshot
             .Create(Postfix([NET8_0, NET9_0]))

@@ -40,7 +40,7 @@ public class RequiresDirectiveTests : FederationTypesTestBase
                     .Type("Review")
                     .Resolve(_ => default!);
             })
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var testType = schema.Types.GetType<ObjectType>("Review");
@@ -63,7 +63,7 @@ public class RequiresDirectiveTests : FederationTypesTestBase
             .AddGraphQL()
             .AddApolloFederation(FederationVersion.Federation10)
             .AddQueryType<Query>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var testType = schema.Types.GetType<ObjectType>("Review");

@@ -18,7 +18,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           show-progress: false
           # Full history so doc pages get accurate last-updated dates.
@@ -40,6 +40,7 @@ jobs:
           key: ${{ runner.os }}-nextjs-next-${{ hashFiles('website-next/yarn.lock') }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-nextjs-next-${{ hashFiles('website-next/yarn.lock') }}-
+            ${{ runner.os }}-nextjs-next-
 
       - name: Install Packages
         run: yarn --immutable --network-timeout 100000
@@ -47,6 +48,23 @@ jobs:
 
       - name: Install Playwright Chromium
         run: yarn playwright install --with-deps chromium
+        working-directory: website-next
+
+      - name: Cache Optimized Images
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+        with:
+          path: |
+            website-next/public/_optimized
+          key: ${{ runner.os }}-optimized-images-${{ hashFiles('website-next/public/images/**', 'website-next/src/image-optimization/**', 'website-next/scripts/optimize-images.mjs') }}
+          restore-keys: |
+            ${{ runner.os }}-optimized-images-
+
+      - name: Optimize Images
+        run: yarn optimize-images
+        working-directory: website-next
+
+      - name: Generate Git Metadata
+        run: yarn generate-git-metadata
         working-directory: website-next
 
       - name: Build Website
@@ -64,17 +82,17 @@ jobs:
           NEXT_PUBLIC_GTM_ID: ${{ secrets.NEXT_PUBLIC_GTM_ID }}
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3
+        uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5 # v4.1.0
 
       - name: Docker Login
-        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4
+        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4.2.0
         with:
           registry: ${{ secrets.CONTAINER_REG_URL }}
           username: ${{ secrets.CONTAINER_REG_USERNAME }}
           password: ${{ secrets.CONTAINER_REG_PASSWORD }}
 
       - name: Build Website Container
-        uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
         with:
           context: ./website-next
           file: ./website-next/Dockerfile

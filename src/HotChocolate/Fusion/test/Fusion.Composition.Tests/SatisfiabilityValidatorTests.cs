@@ -2485,6 +2485,94 @@ public sealed class SatisfiabilityValidatorTests
         Assert.True(result.IsSuccess);
     }
 
+    [Fact]
+    // https://github.com/graphql-hive/federation-gateway-audit/tree/main/src/test-suites/union-intersection
+    public void UnionIntersection()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    media: Media @shareable
+                    aMedia: Media @shareable
+                    book: Book @shareable
+                    song: Media @shareable
+                    viewer: Viewer @shareable
+                    bookById(id: ID!): Book @lookup @inaccessible # Added
+                    songById(id: ID!): Song @lookup @inaccessible # Added
+                }
+
+                union Media = Book | Song
+                union ViewerMedia = Book | Song
+
+                type Book @key(fields: "id") {
+                    id: ID!
+                    title: String! @shareable
+                    aTitle: String!
+                }
+
+                type Song @key(fields: "id") {
+                    id: ID!
+                    title: String! @shareable
+                    aTitle: String!
+                }
+
+                type Viewer {
+                    media: ViewerMedia @shareable
+                    aMedia: ViewerMedia
+                    book: Book @shareable
+                    song: ViewerMedia @shareable
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    media: Media @shareable
+                    bMedia: Media @shareable
+                    book: Media @shareable
+                    viewer: Viewer @shareable
+                    movieById(id: ID!): Movie @lookup @inaccessible # Added
+                    bookById(id: ID!): Book @lookup @inaccessible # Added
+                }
+
+                union Media = Book | Movie
+                union ViewerMedia = Book | Movie
+
+                type Movie @key(fields: "id") {
+                    id: ID!
+                    title: String! @shareable
+                    bTitle: String!
+                }
+
+                type Book @key(fields: "id") {
+                    id: ID!
+                    title: String! @shareable
+                    bTitle: String!
+                }
+
+                type Viewer {
+                    media: ViewerMedia @shareable
+                    bMedia: ViewerMedia
+                    book: ViewerMedia @shareable
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.True(result.IsSuccess);
+    }
+
     // Other tests.
 
     [Fact]

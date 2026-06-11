@@ -75,7 +75,8 @@ public class QueryableFilterVisitorOverlapsTests : SchemaCache
                             id
                         }
                     }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
@@ -104,7 +105,8 @@ public class QueryableFilterVisitorOverlapsTests : SchemaCache
                             id
                         }
                     }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -114,7 +116,7 @@ public class QueryableFilterVisitorOverlapsTests : SchemaCache
                     : null)
             .AddResult(res1, "true")
             .AddResult(res2, "false")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     public class Foo

@@ -1,7 +1,6 @@
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.GraphQLOverWebSocket;
 using HotChocolate.Transport.Sockets.Client;
-using Xunit.Abstractions;
 
 namespace HotChocolate.Transport.Sockets.GraphQLOverWebSocket;
 

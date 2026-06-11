@@ -74,7 +74,8 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
 
         // act
         var executorProvider = services.GetRequiredService<IRequestExecutorProvider>();
-        var executor = await executorProvider.GetExecutorAsync();
+        var executor = await executorProvider.GetExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(ISchemaDefinition.DefaultName, executor.Schema.Name);
@@ -115,7 +116,8 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
                 .BuildServiceProvider();
 
         var executorProvider = services.GetRequiredService<IRequestExecutorProvider>();
-        var executor = await executorProvider.GetExecutorAsync();
+        var executor = await executorProvider.GetExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -126,7 +128,8 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
                         foo
                     }
                     """)
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         var operationResult = result.ExpectOperationResult();
@@ -171,7 +174,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
 
         // act
         // assert
-        var initialExecutor = await manager.GetExecutorAsync();
+        var initialExecutor = await manager.GetExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
         warmupResetEvent.Reset();
 
         configProvider.UpdateConfiguration(
@@ -182,13 +185,15 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
                 }
                 """));
 
-        var executorAfterEviction = await manager.GetExecutorAsync();
+        var executorAfterEviction = await manager.GetExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Same(initialExecutor, executorAfterEviction);
 
         warmupResetEvent.Set();
         executorEvictedResetEvent.Wait(cts.Token);
-        var executorAfterWarmup = await manager.GetExecutorAsync();
+        var executorAfterWarmup = await manager.GetExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.NotSame(initialExecutor, executorAfterWarmup);
 
@@ -371,7 +376,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
         var manager = services.GetRequiredService<FusionRequestExecutorManager>();
 
         // act
-        var executor = await manager.GetExecutorAsync();
+        var executor = await manager.GetExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         var clientConfigs = executor.Schema.Features.GetRequired<SourceSchemaClientConfigurations>();
@@ -422,7 +427,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
         var manager = services.GetRequiredService<FusionRequestExecutorManager>();
 
         // act
-        var executor = await manager.GetExecutorAsync();
+        var executor = await manager.GetExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         var clientConfigs = executor.Schema.Features.GetRequired<SourceSchemaClientConfigurations>();
@@ -475,7 +480,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
         var manager = services.GetRequiredService<FusionRequestExecutorManager>();
 
         // act
-        var executor = await manager.GetExecutorAsync();
+        var executor = await manager.GetExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         var clientConfigs = executor.Schema.Features.GetRequired<SourceSchemaClientConfigurations>();
@@ -528,7 +533,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
         var manager = services.GetRequiredService<FusionRequestExecutorManager>();
 
         // act
-        var executor = await manager.GetExecutorAsync();
+        var executor = await manager.GetExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         var clientConfigs = executor.Schema.Features.GetRequired<SourceSchemaClientConfigurations>();
@@ -581,7 +586,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
         var manager = services.GetRequiredService<FusionRequestExecutorManager>();
 
         // act
-        var executor = await manager.GetExecutorAsync();
+        var executor = await manager.GetExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         var clientConfigs = executor.Schema.Features.GetRequired<SourceSchemaClientConfigurations>();
@@ -642,7 +647,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
         var manager = services.GetRequiredService<FusionRequestExecutorManager>();
 
         // act
-        var executor = await manager.GetExecutorAsync();
+        var executor = await manager.GetExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         var clientConfigs = executor.Schema.Features.GetRequired<SourceSchemaClientConfigurations>();

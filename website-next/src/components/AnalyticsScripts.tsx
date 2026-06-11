@@ -12,10 +12,14 @@ const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
  * - `NEXT_PUBLIC_COOKIEBOT_CBID`: Cookiebot domain group id (enables consent).
  * - `NEXT_PUBLIC_GTM_ID`: Google Tag Manager container id (enables analytics).
  *
- * Loading strategy is chosen for performance: only the tiny consent default and
- * the consent manager itself run `beforeInteractive` (they must gate cookies
- * before anything else). The GTM container loads `afterInteractive` so it never
- * blocks hydration.
+ * Loading strategy: the tiny Consent Mode default and the Cookiebot manager run
+ * `beforeInteractive`. Cookiebot's `auto` blocking mode rewrites cookie-setting
+ * scripts before they execute, so it must load first to do its job; this is the
+ * placement Cookiebot documents. The GTM container loads `lazyOnload` (browser
+ * idle): analytics is not needed for first paint, so deferring it keeps the
+ * ~295 KB of GTM + GA off the main thread during the critical render window. A
+ * `preconnect` to the consent origins (in the root layout) keeps the connection
+ * cost of the first-party-blocking Cookiebot script low.
  */
 export function AnalyticsScripts() {
   if (!COOKIEBOT_CBID) {
@@ -53,7 +57,7 @@ export function AnalyticsScripts() {
         <>
           <Script
             id="gtm-script"
-            strategy="afterInteractive"
+            strategy="lazyOnload"
             dangerouslySetInnerHTML={{
               __html: `
                 (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':

@@ -33,7 +33,7 @@ public class IntegrationTests(PostgreSqlResource resource)
             .AddQueryType<Query>()
             .AddDbContextCursorPagingProvider()
             .AddSorting()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(q => q
             .SetDocument(
@@ -49,7 +49,7 @@ public class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
                 """)
-            .SetGlobalState("printSQL", true));
+            .SetGlobalState("printSQL", true), Xunit.TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot(Postfix([NET8_0, NET9_0], [NET10_0]));
     }
@@ -66,7 +66,7 @@ public class IntegrationTests(PostgreSqlResource resource)
             .AddQueryType<Query>()
             .AddSorting()
             .AddDbContextCursorPagingProvider()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(q => q
             .SetDocument(
@@ -82,7 +82,7 @@ public class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
                 """)
-            .SetGlobalState("printSQL", true));
+            .SetGlobalState("printSQL", true), Xunit.TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot(Postfix([NET8_0, NET9_0], [NET10_0]));
     }
@@ -99,7 +99,7 @@ public class IntegrationTests(PostgreSqlResource resource)
             .AddQueryType<Query>()
             .AddDbContextCursorPagingProvider()
             .AddSorting()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(q => q
             .SetDocument(
@@ -116,7 +116,7 @@ public class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
                 """)
-            .SetGlobalState("printSQL", true));
+            .SetGlobalState("printSQL", true), Xunit.TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot(Postfix([NET8_0, NET9_0], [NET10_0]));
     }
@@ -133,7 +133,7 @@ public class IntegrationTests(PostgreSqlResource resource)
             .AddQueryType<Query>()
             .AddDbContextCursorPagingProvider()
             .AddSorting()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(q => q
             .SetDocument(
@@ -144,7 +144,7 @@ public class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
                 """)
-            .SetGlobalState("printSQL", true));
+            .SetGlobalState("printSQL", true), Xunit.TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -162,7 +162,7 @@ public class IntegrationTests(PostgreSqlResource resource)
             .AddTypeExtension(typeof(ProductConnectionExtensions))
             .AddDbContextCursorPagingProvider()
             .AddSorting()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(q => q
             .SetDocument(
@@ -173,7 +173,7 @@ public class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
                 """)
-            .SetGlobalState("printSQL", true));
+            .SetGlobalState("printSQL", true), Xunit.TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot(Postfix([NET8_0, NET9_0], [NET10_0]));
     }
@@ -190,7 +190,7 @@ public class IntegrationTests(PostgreSqlResource resource)
             .AddQueryType<Query>()
             .AddDbContextCursorPagingProvider()
             .AddSorting()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(q => q
             .SetDocument(
@@ -206,7 +206,7 @@ public class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
                 """)
-            .SetGlobalState("printSQL", true));
+            .SetGlobalState("printSQL", true), Xunit.TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot(Postfix([NET8_0, NET9_0], [NET10_0]));
     }
@@ -223,7 +223,7 @@ public class IntegrationTests(PostgreSqlResource resource)
             .AddQueryType<Query>()
             .AddDbContextCursorPagingProvider()
             .AddSorting()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(q => q
             .SetDocument(
@@ -239,7 +239,7 @@ public class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
                 """)
-            .SetGlobalState("printSQL", true));
+            .SetGlobalState("printSQL", true), Xunit.TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot(Postfix([NET8_0, NET9_0], [NET10_0]));
     }
@@ -256,7 +256,7 @@ public class IntegrationTests(PostgreSqlResource resource)
             .AddQueryType<Query>()
             .AddSorting()
             .AddDbContextCursorPagingProvider()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(q => q
             .SetDocument(
@@ -274,7 +274,7 @@ public class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
                 """)
-            .SetGlobalState("printSQL", true));
+            .SetGlobalState("printSQL", true), Xunit.TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot(Postfix([NET8_0, NET9_0], [NET10_0]));
     }
@@ -291,7 +291,7 @@ public class IntegrationTests(PostgreSqlResource resource)
             .AddQueryType<Query>()
             .AddSorting()
             .AddDbContextCursorPagingProvider()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(q => q
             .SetDocument(
@@ -309,7 +309,7 @@ public class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
                 """)
-            .SetGlobalState("printSQL", true));
+            .SetGlobalState("printSQL", true), Xunit.TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot(Postfix([NET8_0, NET9_0], [NET10_0]));
     }
@@ -326,7 +326,7 @@ public class IntegrationTests(PostgreSqlResource resource)
             .AddQueryType<Query>()
             .AddSorting()
             .AddDbContextCursorPagingProvider()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(q => q
             .SetDocument(
@@ -345,7 +345,7 @@ public class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
                 """)
-            .SetGlobalState("printSQL", true));
+            .SetGlobalState("printSQL", true), Xunit.TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot(Postfix([NET8_0, NET9_0], [NET10_0]));
     }
@@ -362,7 +362,7 @@ public class IntegrationTests(PostgreSqlResource resource)
             .AddQueryType<Query>()
             .AddSorting()
             .AddDbContextCursorPagingProvider()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(q => q
             .SetDocument(
@@ -381,7 +381,7 @@ public class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
                 """)
-            .SetGlobalState("printSQL", true));
+            .SetGlobalState("printSQL", true), Xunit.TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot(Postfix([NET8_0, NET9_0], [NET10_0]));
     }
@@ -399,7 +399,7 @@ public class IntegrationTests(PostgreSqlResource resource)
             .AddSorting()
             .AddDbContextCursorPagingProvider()
             .ModifyPagingOptions(o => o.NullOrdering = NullOrdering.NativeNullsLast)
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         var firstResult = await executor.ExecuteAsync(
             """
@@ -410,7 +410,8 @@ public class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         var firstOperationResult = firstResult.ExpectOperationResult();
         var firstGraphQLError = firstOperationResult.Errors?.FirstOrDefault();
@@ -445,7 +446,8 @@ public class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         var secondOperationResult = secondResult.ExpectOperationResult();
         var secondGraphQLError = secondOperationResult.Errors?.FirstOrDefault();
@@ -470,7 +472,7 @@ public class IntegrationTests(PostgreSqlResource resource)
             .AddQueryType<Query>()
             .AddSorting()
             .AddDbContextCursorPagingProvider()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         var firstResult = await executor.ExecuteAsync(
             """
@@ -481,7 +483,8 @@ public class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         var firstOperationResult = firstResult.ExpectOperationResult();
         Assert.True(firstOperationResult.Errors is null or { Count: 0 }, firstResult.ToJson());
@@ -509,7 +512,8 @@ public class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         var secondOperationResult = secondResult.ExpectOperationResult();
         Assert.True(secondOperationResult.Errors is null or { Count: 0 }, secondResult.ToJson());

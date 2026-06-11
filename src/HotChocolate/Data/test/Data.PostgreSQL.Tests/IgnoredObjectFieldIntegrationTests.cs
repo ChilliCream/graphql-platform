@@ -28,9 +28,10 @@ public sealed class IgnoredObjectFieldIntegrationTests(PostgreSqlResource resour
         await using var scope = services.CreateAsyncScope();
         var context = scope.ServiceProvider.GetRequiredService<CatalogContext>();
         var seeder = scope.ServiceProvider.GetRequiredService<IDbSeeder<CatalogContext>>();
-        await context.Database.EnsureCreatedAsync();
+        await context.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
         await seeder.SeedAsync(context);
-        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
+        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -42,7 +43,8 @@ public sealed class IgnoredObjectFieldIntegrationTests(PostgreSqlResource resour
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         using var document = JsonDocument.Parse(result.ToJson());
@@ -79,9 +81,10 @@ public sealed class IgnoredObjectFieldIntegrationTests(PostgreSqlResource resour
         await using var scope = services.CreateAsyncScope();
         var context = scope.ServiceProvider.GetRequiredService<CatalogContext>();
         var seeder = scope.ServiceProvider.GetRequiredService<IDbSeeder<CatalogContext>>();
-        await context.Database.EnsureCreatedAsync();
+        await context.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
         await seeder.SeedAsync(context);
-        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
+        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -93,7 +96,8 @@ public sealed class IgnoredObjectFieldIntegrationTests(PostgreSqlResource resour
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         using var document = JsonDocument.Parse(result.ToJson());

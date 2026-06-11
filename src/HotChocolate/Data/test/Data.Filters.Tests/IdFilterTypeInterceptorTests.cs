@@ -17,7 +17,7 @@ public class IdFilterTypeInterceptorTests
             .AddType(new FilterInputType<Foo>(x =>
                 x.Field(y => y.Bar).Type<IdOperationFilterInputType>()))
             .AddFiltering()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -30,7 +30,7 @@ public class IdFilterTypeInterceptorTests
             .AddQueryType(x => x.Name("Query").Field("test").Resolve("a"))
             .AddType(new FilterInputType<FooId>())
             .AddFiltering()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -43,7 +43,7 @@ public class IdFilterTypeInterceptorTests
             .AddQueryType(x => x.Name("Query").Field("test").Resolve("a"))
             .AddType(new FilterInputType<FooIdGeneric>())
             .AddFiltering()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -56,7 +56,7 @@ public class IdFilterTypeInterceptorTests
             .AddQueryType(x => x.Name("Query").Field("test").Resolve("a"))
             .AddType(new FilterInputType<FooIdDerived>())
             .AddFiltering()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var filterType = Assert.IsAssignableFrom<InputObjectType>(schema.Types["FooIdDerivedFilterInput"]);
         var fieldType = filterType.Fields["bar"].Type.NamedType();
@@ -72,7 +72,7 @@ public class IdFilterTypeInterceptorTests
             .AddQueryType(x => x.Name("Query").Field("test").Resolve("a"))
             .AddType(new FilterInputType<FooIdGenericDerived>())
             .AddFiltering()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var filterType = Assert.IsAssignableFrom<InputObjectType>(schema.Types["FooIdGenericDerivedFilterInput"]);
         var fieldType = filterType.Fields["bar"].Type.NamedType();

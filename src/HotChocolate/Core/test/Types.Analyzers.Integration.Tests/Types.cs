@@ -128,6 +128,11 @@ public class Shape
 public static partial class Mutation
 {
     public static bool SaveShapes(IReadOnlyList<Shape> shapes) => true;
+
+    // An Optional<T> parameter is bound through the runtime parameter binding,
+    // which must coerce the inner type and honor whether the argument was provided.
+    public static string SetOptionalValue(Optional<string?> value)
+        => value.HasValue ? value.Value ?? "null" : "unset";
 }
 
 public class IsSelectedNode

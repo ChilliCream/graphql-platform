@@ -20,7 +20,9 @@ public class DiagnosticListenerTests
             .AddStarWarsRepositories());
 
         // act
-        var result = await executor.ExecuteAsync("{ hero { name } }");
+        var result = await executor.ExecuteAsync(
+            "{ hero { name } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
@@ -41,7 +43,9 @@ public class DiagnosticListenerTests
             .BuildServiceProvider();
 
         // act
-        await services.ExecuteRequestAsync("{ hero { name } }");
+        await services.ExecuteRequestAsync(
+            "{ hero { name } }",
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.True(services.GetRequiredService<Touched>().Signal);
@@ -61,7 +65,9 @@ public class DiagnosticListenerTests
             .AddStarWarsRepositories());
 
         // act
-        var result = await executor.ExecuteAsync("{ hero { name } }");
+        var result = await executor.ExecuteAsync(
+            "{ hero { name } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Empty(Assert.IsType<OperationResult>(result).Errors);

@@ -33,7 +33,7 @@ export function Tag(props: TagProps) {
 
   if (props.href) {
     return (
-      <Link href={props.href} className={cls}>
+      <Link href={props.href} prefetch={false} className={cls}>
         {children}
       </Link>
     );

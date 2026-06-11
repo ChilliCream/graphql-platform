@@ -142,7 +142,7 @@ public class AutoProvisionIntegrationTests
         var schemaOptions = new PostgresSchemaOptions();
         await using (var conn = new NpgsqlConnection(db.ConnectionString))
         {
-            await conn.OpenAsync();
+            await conn.OpenAsync(TestContext.Current.CancellationToken);
             var migrator = new PostgresSchemaMigrator(schemaOptions);
             await migrator.MigrateAsync(conn);
         }
@@ -150,7 +150,7 @@ public class AutoProvisionIntegrationTests
         // Pre-provision topology resources directly in the database
         await using (var conn = new NpgsqlConnection(db.ConnectionString))
         {
-            await conn.OpenAsync();
+            await conn.OpenAsync(TestContext.Current.CancellationToken);
 
             await using var cmd = conn.CreateCommand();
             cmd.CommandText = $"""
@@ -161,7 +161,7 @@ public class AutoProvisionIntegrationTests
                     FROM {schemaOptions.TopicTable} t, {schemaOptions.QueueTable} q
                     WHERE t.name = 'pre-topic' AND q.name = 'pre-q';
                 """;
-            await cmd.ExecuteNonQueryAsync();
+            await cmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
         }
 
         await using var bus = await new ServiceCollection()
@@ -205,7 +205,7 @@ public class AutoProvisionIntegrationTests
         var schemaOptions = new PostgresSchemaOptions();
         await using (var conn = new NpgsqlConnection(db.ConnectionString))
         {
-            await conn.OpenAsync();
+            await conn.OpenAsync(TestContext.Current.CancellationToken);
             var migrator = new PostgresSchemaMigrator(schemaOptions);
             await migrator.MigrateAsync(conn);
         }
@@ -213,11 +213,11 @@ public class AutoProvisionIntegrationTests
         // Pre-provision only the topic (with auto-provision disabled for it)
         await using (var conn = new NpgsqlConnection(db.ConnectionString))
         {
-            await conn.OpenAsync();
+            await conn.OpenAsync(TestContext.Current.CancellationToken);
 
             await using var cmd = conn.CreateCommand();
             cmd.CommandText = $"INSERT INTO {schemaOptions.TopicTable} (name) VALUES ('mixed-topic')";
-            await cmd.ExecuteNonQueryAsync();
+            await cmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
         }
 
         await using var bus = await new ServiceCollection()

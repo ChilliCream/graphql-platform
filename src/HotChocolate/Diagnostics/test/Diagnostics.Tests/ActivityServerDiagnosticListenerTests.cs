@@ -30,8 +30,8 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
                         name
                     }
                 }");
-            using var result = await client.PostAsync(request, s_url);
-            await result.ReadAsResultAsync();
+            using var result = await client.PostAsync(request, s_url, TestContext.Current.CancellationToken);
+            await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot(Postfix([NET11_0]));
@@ -56,8 +56,8 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
                         name
                     }
                 }");
-            using var result = await client.PostAsync(request, s_url);
-            await result.ReadAsResultAsync();
+            using var result = await client.PostAsync(request, s_url, TestContext.Current.CancellationToken);
+            await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot(Postfix([NET11_0]));
@@ -82,8 +82,8 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
                         name
                     }
                 }");
-            using var result = await client.GetAsync(request, s_url);
-            await result.ReadAsResultAsync();
+            using var result = await client.GetAsync(request, s_url, TestContext.Current.CancellationToken);
+            await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot(Postfix([NET11_0]));
@@ -109,8 +109,8 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
                     }
                 }",
                 variables: new Dictionary<string, object?> { { "episode", "NEW_HOPE" } });
-            using var result = await client.PostAsync(request, s_url);
-            await result.ReadAsResultAsync();
+            using var result = await client.PostAsync(request, s_url, TestContext.Current.CancellationToken);
+            await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot(Postfix([NET11_0]));
@@ -140,8 +140,8 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
                     }
                 }",
                 variables: new Dictionary<string, object?> { { "episode", "NEW_HOPE" } });
-            using var result = await client.PostAsync(request, s_url);
-            await result.ReadAsResultAsync();
+            using var result = await client.PostAsync(request, s_url, TestContext.Current.CancellationToken);
+            await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot(Postfix([NET11_0]));
@@ -168,8 +168,8 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
                 }",
                 variables: new Dictionary<string, object?> { { "episode", "NEW_HOPE" } },
                 extensions: new Dictionary<string, object?> { { "test", "abc" } });
-            using var result = await client.PostAsync(request, s_url);
-            await result.ReadAsResultAsync();
+            using var result = await client.PostAsync(request, s_url, TestContext.Current.CancellationToken);
+            await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot(Postfix([NET11_0]));
@@ -187,10 +187,10 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
             var request = new HttpRequestMessage(HttpMethod.Get, url);
 
             // act
-            var response = await server.CreateClient().SendAsync(request);
+            var response = await server.CreateClient().SendAsync(request, TestContext.Current.CancellationToken);
 
             // assert
-            await response.Content.ReadAsStringAsync();
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot(Postfix([NET11_0]));
@@ -321,8 +321,8 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
                 }",
                 variables: new Dictionary<string, object?> { { "episode", "NEW_HOPE" } },
                 extensions: new Dictionary<string, object?> { { "test", "abc" } });
-            using var result = await client.PostAsync(request, s_url);
-            await result.ReadAsResultAsync();
+            using var result = await client.PostAsync(request, s_url, TestContext.Current.CancellationToken);
+            await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot(Postfix([NET11_0]));
@@ -353,8 +353,8 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
                 }",
                 variables: new Dictionary<string, object?> { { "episode", "NEW_HOPE" } },
                 extensions: new Dictionary<string, object?> { { "test", "abc" } });
-            using var result = await client.PostAsync(request, s_url);
-            await result.ReadAsResultAsync();
+            using var result = await client.PostAsync(request, s_url, TestContext.Current.CancellationToken);
+            await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot(Postfix([NET11_0]));
@@ -383,8 +383,8 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
                         name
                     }
                 }");
-            using var result = await client.PostAsync(request, s_url);
-            await result.ReadAsResultAsync();
+            using var result = await client.PostAsync(request, s_url, TestContext.Current.CancellationToken);
+            await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot(Postfix([NET11_0]));
@@ -410,8 +410,8 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
                     }
                 }",
                 extensions: new Dictionary<string, object?> { { "test", "abc" } });
-            using var result = await client.PostAsync(request, s_url);
-            await result.ReadAsResultAsync();
+            using var result = await client.PostAsync(request, s_url, TestContext.Current.CancellationToken);
+            await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot(Postfix([NET11_0]));

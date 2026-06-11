@@ -14,7 +14,7 @@ public static class SourceSchemaKeyInferenceTests
                 .AddGraphQL()
                 .AddQueryType<ObjectQuery>()
                 .ModifyOptions(o => o.InferKeysFromLookups = true)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchInlineSnapshot(
@@ -63,7 +63,7 @@ public static class SourceSchemaKeyInferenceTests
                 .AddType<Article>()
                 .AddType<Video>()
                 .ModifyOptions(o => o.InferKeysFromLookups = true)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchInlineSnapshot(
@@ -121,7 +121,7 @@ public static class SourceSchemaKeyInferenceTests
                 .AddType<Cat>()
                 .AddType<Dog>()
                 .ModifyOptions(o => o.InferKeysFromLookups = true)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchInlineSnapshot(
@@ -175,7 +175,7 @@ public static class SourceSchemaKeyInferenceTests
                 .AddGraphQL()
                 .AddQueryType<DeclaredKeyQuery>()
                 .ModifyOptions(o => o.InferKeysFromLookups = true)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchInlineSnapshot(
@@ -222,7 +222,7 @@ public static class SourceSchemaKeyInferenceTests
                 .AddGraphQL()
                 .AddQueryType<ChoiceQuery>()
                 .ModifyOptions(o => o.InferKeysFromLookups = true)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchInlineSnapshot(
@@ -285,7 +285,7 @@ public static class SourceSchemaKeyInferenceTests
                 .AddGraphQL()
                 .AddQueryType<NestedChoiceQuery>()
                 .ModifyOptions(o => o.InferKeysFromLookups = true)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchInlineSnapshot(
@@ -357,7 +357,7 @@ public static class SourceSchemaKeyInferenceTests
                 .AddGraphQL()
                 .AddQueryType<NestedPathQuery>()
                 .ModifyOptions(o => o.InferKeysFromLookups = true)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         var person = schema.Types.GetType<IObjectTypeDefinition>("Person");
@@ -374,7 +374,7 @@ public static class SourceSchemaKeyInferenceTests
                 .AddGraphQL()
                 .AddQueryType<MultiArgQuery>()
                 .ModifyOptions(o => o.InferKeysFromLookups = true)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         var product = schema.Types.GetType<IObjectTypeDefinition>("Product");
@@ -391,7 +391,7 @@ public static class SourceSchemaKeyInferenceTests
                 .AddGraphQL()
                 .AddQueryType<ReverseKeyQuery>()
                 .ModifyOptions(o => o.InferKeysFromLookups = true)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         var part = schema.Types.GetType<IObjectTypeDefinition>("Part");
@@ -408,7 +408,7 @@ public static class SourceSchemaKeyInferenceTests
                 .AddGraphQL()
                 .AddQueryType<TwoLookupsQuery>()
                 .ModifyOptions(o => o.InferKeysFromLookups = true)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         var book = schema.Types.GetType<IObjectTypeDefinition>("Book");
@@ -430,7 +430,7 @@ public static class SourceSchemaKeyInferenceTests
                 .AddGraphQL()
                 .AddQueryType<ObjectQuery>()
                 .AddSourceSchemaDefaults()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         var product = schema.Types.GetType<IObjectTypeDefinition>("Product");
@@ -446,7 +446,7 @@ public static class SourceSchemaKeyInferenceTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<ObjectQuery>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         var product = schema.Types.GetType<IObjectTypeDefinition>("Product");
@@ -462,7 +462,7 @@ public static class SourceSchemaKeyInferenceTests
                 .AddGraphQL()
                 .AddQueryType<NullableMultiArgQuery>()
                 .ModifyOptions(o => o.InferKeysFromLookups = true)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         var product = schema.Types.GetType<IObjectTypeDefinition>("Product");
@@ -479,7 +479,7 @@ public static class SourceSchemaKeyInferenceTests
                 .AddGraphQL()
                 .AddQueryType<MixedIsQuery>()
                 .ModifyOptions(o => o.InferKeysFromLookups = true)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         var product = schema.Types.GetType<IObjectTypeDefinition>("Product");
@@ -496,7 +496,7 @@ public static class SourceSchemaKeyInferenceTests
                 .AddGraphQL()
                 .AddQueryType<CartesianQuery>()
                 .ModifyOptions(o => o.InferKeysFromLookups = true)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         var account = schema.Types.GetType<IObjectTypeDefinition>("Account");
@@ -517,7 +517,7 @@ public static class SourceSchemaKeyInferenceTests
                 .AddGraphQL()
                 .AddQueryType<ObjectQuery>()
                 .ModifyOptions(o => o.InferKeysFromLookups = false)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchInlineSnapshot(

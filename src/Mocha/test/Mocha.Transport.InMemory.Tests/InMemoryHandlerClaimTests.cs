@@ -190,8 +190,42 @@ public class InMemoryHandlerClaimTests
             e => e.Name == "order-created");
     }
 
+    [Fact]
+    public void Send_Should_RouteToExplicitDestination_When_HandlerForSameMessageBoundExplicitly()
+    {
+        // arrange & act
+        // the same bus handles ProcessPayment via an explicitly bound handler endpoint and
+        // also sends ProcessPayment to an explicit destination queue.
+        var runtime = new ServiceCollection()
+            .AddMessageBus()
+            .AddRequestHandler<ProcessPaymentHandler>()
+            .AddMessage<ProcessPayment>(d => d.Send(r => r.ToInMemoryQueue("my-queue")))
+            .AddInMemory(t =>
+            {
+                t.BindHandlersExplicitly();
+                t.DeclareQueue("payment-q");
+                t.DeclareQueue("my-queue");
+                t.Endpoint("payment-endpoint").Queue("payment-q").Handler<ProcessPaymentHandler>();
+            })
+            .BuildRuntime();
+
+        // assert - the send route resolves to the explicit destination instead of the convention endpoint
+        var route = runtime.Router.OutboundRoutes.Single(r =>
+            r.Kind == OutboundRouteKind.Send && r.MessageType.RuntimeType == typeof(ProcessPayment));
+
+        Assert.Contains("q/my-queue", route.Endpoint.Address.ToString());
+    }
+
     public sealed class TestOrderConsumer : IConsumer<OrderCreated>
     {
         public ValueTask ConsumeAsync(IConsumeContext<OrderCreated> context) => default;
+    }
+
+    public sealed class ProcessPaymentHandler : IEventRequestHandler<ProcessPayment>
+    {
+        public ValueTask HandleAsync(ProcessPayment request, CancellationToken cancellationToken)
+        {
+            return default;
+        }
     }
 }

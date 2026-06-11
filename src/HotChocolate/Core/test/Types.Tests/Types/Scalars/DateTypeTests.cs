@@ -213,7 +213,7 @@ public class DateTypeTests
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryDate1>()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -231,7 +231,8 @@ public class DateTypeTests
                         date(date: "2017-12-30")
                     }
                 }
-                """)
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -241,7 +242,7 @@ public class DateTypeTests
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryDate2>()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -259,7 +260,8 @@ public class DateTypeTests
                         date
                     }
                 }
-                """)
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
