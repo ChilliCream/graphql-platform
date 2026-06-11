@@ -65,6 +65,25 @@ public class DirectiveParserTests
     }
 
     [Fact]
+    public void ParseDirectiveDefinitionLocation()
+    {
+        // arrange
+        const string text = "directive @onDirective on DIRECTIVE_DEFINITION";
+        var parser = new Utf8GraphQLParser(Encoding.UTF8.GetBytes(text));
+
+        // act
+        var document = parser.Parse();
+
+        // assert
+        var directiveDefinition = document.Definitions
+            .OfType<DirectiveDefinitionNode>().FirstOrDefault();
+        Assert.NotNull(directiveDefinition);
+        Assert.Equal(
+            "DIRECTIVE_DEFINITION",
+            Assert.Single(directiveDefinition.Locations).Value);
+    }
+
+    [Fact]
     public void DirectiveOrderIsSignificant()
     {
         // arrange
