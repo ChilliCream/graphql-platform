@@ -896,6 +896,17 @@ public partial class SyntaxVisitor<TContext>
             }
         }
 
+        if (_options.VisitDirectives)
+        {
+            for (var i = 0; i < node.Directives.Count; i++)
+            {
+                if (Visit(node.Directives[i], node, context).IsBreak())
+                {
+                    return Break;
+                }
+            }
+        }
+
         for (var i = 0; i < node.Locations.Count; i++)
         {
             if (Visit(node.Locations[i], node, context).IsBreak())

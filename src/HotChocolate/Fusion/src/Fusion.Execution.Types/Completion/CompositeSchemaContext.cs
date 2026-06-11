@@ -296,6 +296,7 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
                     null,
                     [])
             ],
+            [],
             [
                 new NameNode(HotChocolate.Language.DirectiveLocation.Field.Value),
                 new NameNode(HotChocolate.Language.DirectiveLocation.FragmentSpread.Value),
@@ -339,6 +340,7 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
                     null,
                     Array.Empty<DirectiveNode>())
             ],
+            [],
             [
                 new NameNode(HotChocolate.Language.DirectiveLocation.Field.Value),
                 new NameNode(HotChocolate.Language.DirectiveLocation.FragmentSpread.Value),
@@ -382,6 +384,7 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
                     null,
                     Array.Empty<DirectiveNode>())
             ],
+            [],
             [
                 new NameNode(HotChocolate.Language.DirectiveLocation.Scalar.Value)
             ]);
@@ -405,6 +408,7 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
             new NameNode(DirectiveNames.OneOf.Name),
             new StringValueNode("The `@oneOf` directive is used within the type system definition language to indicate that an Input Object is a OneOf Input Object."),
             isRepeatable: false,
+            [],
             [],
             [
                 new NameNode(HotChocolate.Language.DirectiveLocation.InputObject.Value)

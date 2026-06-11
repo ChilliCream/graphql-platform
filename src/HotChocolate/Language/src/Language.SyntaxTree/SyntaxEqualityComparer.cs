@@ -176,6 +176,7 @@ internal sealed class SyntaxEqualityComparer(bool ignoreDescriptions = false) : 
             && (ignoreDescriptions || SyntaxComparer.BySyntax.Equals(x.Description, y.Description))
             && x.IsRepeatable.Equals(y.IsRepeatable)
             && Equals(x.Arguments, y.Arguments)
+            && Equals(x.Directives, y.Directives)
             && Equals(x.Locations, y.Locations);
 
     private bool Equals(DirectiveNode x, DirectiveNode y)
@@ -646,6 +647,12 @@ internal sealed class SyntaxEqualityComparer(bool ignoreDescriptions = false) : 
         {
             var argument = node.Arguments[i];
             hashCode.Add(GetHashCode(argument));
+        }
+
+        for (var i = 0; i < node.Directives.Count; i++)
+        {
+            var directive = node.Directives[i];
+            hashCode.Add(GetHashCode(directive));
         }
 
         for (var i = 0; i < node.Locations.Count; i++)

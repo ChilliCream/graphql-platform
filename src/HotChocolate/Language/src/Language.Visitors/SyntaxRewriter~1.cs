@@ -105,11 +105,13 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
         var name = RewriteNode(node.Name, context);
         var description = RewriteNodeOrDefault(node.Description, context);
         var arguments = RewriteList(node.Arguments, context);
+        var directives = RewriteList(node.Directives, context);
         var locations = RewriteList(node.Locations, context);
 
         if (!ReferenceEquals(name, node.Name)
             || !ReferenceEquals(description, node.Description)
             || !ReferenceEquals(arguments, node.Arguments)
+            || !ReferenceEquals(directives, node.Directives)
             || !ReferenceEquals(locations, node.Locations))
         {
             return new DirectiveDefinitionNode(
@@ -118,6 +120,7 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
                 description,
                 node.IsRepeatable,
                 arguments,
+                directives,
                 locations);
         }
 

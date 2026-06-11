@@ -28,6 +28,9 @@ public sealed class DirectiveDefinitionNode : ITypeSystemDefinitionNode, IHasNam
     /// <param name="arguments">
     /// The arguments of the directive-
     /// </param>
+    /// <param name="directives">
+    /// The directives that are annotated to this directive definition.
+    /// </param>
     /// <param name="locations">
     /// The locations to which the directive can be annotated.
     /// </param>
@@ -37,6 +40,7 @@ public sealed class DirectiveDefinitionNode : ITypeSystemDefinitionNode, IHasNam
         StringValueNode? description,
         bool isRepeatable,
         IReadOnlyList<InputValueDefinitionNode> arguments,
+        IReadOnlyList<DirectiveNode> directives,
         IReadOnlyList<NameNode> locations)
     {
         Location = location;
@@ -44,6 +48,7 @@ public sealed class DirectiveDefinitionNode : ITypeSystemDefinitionNode, IHasNam
         Description = description;
         IsRepeatable = isRepeatable;
         Arguments = arguments ?? throw new ArgumentNullException(nameof(arguments));
+        Directives = directives ?? throw new ArgumentNullException(nameof(directives));
         Locations = locations ?? throw new ArgumentNullException(nameof(locations));
     }
 
@@ -74,6 +79,11 @@ public sealed class DirectiveDefinitionNode : ITypeSystemDefinitionNode, IHasNam
     public IReadOnlyList<InputValueDefinitionNode> Arguments { get; }
 
     /// <summary>
+    /// Gets the directives that are annotated to this directive definition.
+    /// </summary>
+    public IReadOnlyList<DirectiveNode> Directives { get; }
+
+    /// <summary>
     /// Gets the locations to which this directive can be annotated to.
     /// </summary>
     public IReadOnlyList<NameNode> Locations { get; }
@@ -91,6 +101,11 @@ public sealed class DirectiveDefinitionNode : ITypeSystemDefinitionNode, IHasNam
         foreach (var argument in Arguments)
         {
             yield return argument;
+        }
+
+        foreach (var directive in Directives)
+        {
+            yield return directive;
         }
 
         foreach (var location in Locations)
@@ -131,7 +146,7 @@ public sealed class DirectiveDefinitionNode : ITypeSystemDefinitionNode, IHasNam
     /// Returns the new node with the new <paramref name="location" />.
     /// </returns>
     public DirectiveDefinitionNode WithLocation(Location? location)
-        => new(location, Name, Description, IsRepeatable, Arguments, Locations);
+        => new(location, Name, Description, IsRepeatable, Arguments, Directives, Locations);
 
     /// <summary>
     /// Creates a new node from the current instance and replaces the
@@ -144,7 +159,7 @@ public sealed class DirectiveDefinitionNode : ITypeSystemDefinitionNode, IHasNam
     /// Returns the new node with the new <paramref name="name" />.
     /// </returns>
     public DirectiveDefinitionNode WithName(NameNode name)
-        => new(Location, name, Description, IsRepeatable, Arguments, Locations);
+        => new(Location, name, Description, IsRepeatable, Arguments, Directives, Locations);
 
     /// <summary>
     /// Creates a new node from the current instance and replaces the
@@ -157,7 +172,7 @@ public sealed class DirectiveDefinitionNode : ITypeSystemDefinitionNode, IHasNam
     /// Returns the new node with the new <paramref name="description" />.
     /// </returns>
     public DirectiveDefinitionNode WithDescription(StringValueNode? description)
-        => new(Location, Name, description, IsRepeatable, Arguments, Locations);
+        => new(Location, Name, description, IsRepeatable, Arguments, Directives, Locations);
 
     /// <summary>
     /// Creates a new node from the current instance and replaces the
@@ -170,7 +185,7 @@ public sealed class DirectiveDefinitionNode : ITypeSystemDefinitionNode, IHasNam
     /// Returns the new node with the new <paramref name="repeatable" />.
     /// </returns>
     public DirectiveDefinitionNode AsRepeatable(bool repeatable = true)
-        => new(Location, Name, Description, repeatable, Arguments, Locations);
+        => new(Location, Name, Description, repeatable, Arguments, Directives, Locations);
 
     /// <summary>
     /// Creates a new node from the current instance and replaces the
@@ -183,7 +198,20 @@ public sealed class DirectiveDefinitionNode : ITypeSystemDefinitionNode, IHasNam
     /// Returns the new node with the new <paramref name="arguments" />.
     /// </returns>
     public DirectiveDefinitionNode WithArguments(IReadOnlyList<InputValueDefinitionNode> arguments)
-        => new(Location, Name, Description, IsRepeatable, arguments, Locations);
+        => new(Location, Name, Description, IsRepeatable, arguments, Directives, Locations);
+
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="Directives" /> with <paramref name="directives" />.
+    /// </summary>
+    /// <param name="directives">
+    /// The directives that shall be used to replace the current directives.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="directives" />.
+    /// </returns>
+    public DirectiveDefinitionNode WithDirectives(IReadOnlyList<DirectiveNode> directives)
+        => new(Location, Name, Description, IsRepeatable, Arguments, directives, Locations);
 
     /// <summary>
     /// Creates a new node from the current instance and replaces the
@@ -196,5 +224,5 @@ public sealed class DirectiveDefinitionNode : ITypeSystemDefinitionNode, IHasNam
     /// Returns the new node with the new <paramref name="locations" />.
     /// </returns>
     public DirectiveDefinitionNode WithLocations(IReadOnlyList<NameNode> locations)
-        => new(Location, Name, Description, IsRepeatable, Arguments, locations);
+        => new(Location, Name, Description, IsRepeatable, Arguments, Directives, locations);
 }

@@ -495,6 +495,7 @@ public static class SchemaFormatter
                     CreateDescription(mutableDirective.Description),
                     mutableDirective.IsRepeatable,
                     arguments,
+                    [],
                     mutableDirective.Locations.ToNameNodes());
         }
 

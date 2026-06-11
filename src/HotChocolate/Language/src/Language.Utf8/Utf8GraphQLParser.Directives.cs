@@ -31,6 +31,7 @@ public ref partial struct Utf8GraphQLParser
             TakeDescription(),
             isRepeatable,
             arguments,
+            s_emptyDirectives,
             locations
         );
     }
