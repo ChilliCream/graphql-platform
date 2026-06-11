@@ -185,7 +185,10 @@ export default async function BlogSlugPage({ params }: PageProps) {
       {jsonLd ? (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          // Escape `<` so content text can never close the script tag (XSS).
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+          }}
         />
       ) : null}
       <article className="mx-auto max-w-5xl">

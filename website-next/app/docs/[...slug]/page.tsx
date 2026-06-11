@@ -178,7 +178,10 @@ export default async function DocPage({ params }: PageProps) {
       <main className="min-w-0 px-5 py-8 sm:px-12">
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          // Escape `<` so content text can never close the script tag (XSS).
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+          }}
         />
         <article className="mx-auto max-w-5xl">
           {frontmatter.title ? (

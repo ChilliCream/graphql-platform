@@ -21,7 +21,11 @@ const DOCS_CONTENT_ROOT = path.join(process.cwd(), "content", "docs");
 const EXCLUDED_PATHS = new Set(["/services/support/thank-you"]);
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  return [...(await staticPages()), ...(await docsPages()), ...blogPosts()];
+  return [
+    ...(await staticPages()),
+    ...(await docsPages()),
+    ...(await blogPosts()),
+  ];
 }
 
 async function staticPages(): Promise<MetadataRoute.Sitemap> {
@@ -68,23 +72,28 @@ async function docsPages(): Promise<MetadataRoute.Sitemap> {
   );
 }
 
-function blogPosts(): MetadataRoute.Sitemap {
-  return listBlogPosts().map(({ parsed, rel }) => {
-    const fm = readFrontmatter(path.join(BLOG_ROOT, rel)) as Record<
-      string,
-      unknown
-    >;
-    const date =
-      typeof fm.date === "string" && fm.date.length > 0
-        ? fm.date
-        : `${parsed.year}-${parsed.month}-${parsed.day}`;
-    return {
-      url: `${SITE_URL}${blogUrlForStem(parsed)}`,
-      lastModified: new Date(date),
-      changeFrequency: "yearly" as const,
-      priority: 0.5,
-    };
-  });
+async function blogPosts(): Promise<MetadataRoute.Sitemap> {
+  return Promise.all(
+    listBlogPosts().map(async ({ parsed, rel }) => {
+      const file = path.join(BLOG_ROOT, rel);
+      const fm = readFrontmatter(file) as Record<string, unknown>;
+      // An explicit `updated` frontmatter field wins; otherwise the last git
+      // commit touching the post, with file mtime as the no-git fallback.
+      const updated =
+        typeof fm.updated === "string" && fm.updated.length > 0
+          ? new Date(fm.updated)
+          : null;
+      return {
+        url: `${SITE_URL}${blogUrlForStem(parsed)}`,
+        lastModified:
+          updated ??
+          (await getLastModifiedFromGit(file)) ??
+          fs.statSync(file).mtime,
+        changeFrequency: "yearly" as const,
+        priority: 0.5,
+      };
+    }),
+  );
 }
 
 function walk(dir: string): string[] {
