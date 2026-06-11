@@ -11,11 +11,11 @@ authorUrl: https://github.com/rstaib
 authorImageUrl: https://avatars0.githubusercontent.com/u/4325318?s=100&v=4
 ---
 
-## Getting started
+# Getting started
 
 Everything you need to get started with **Banana Cake Pop** you'll find on [bananacakepop.com](https://bananacakepop.com)
 
-## Subscription protocol auto-detection
+# Subscription protocol auto-detection
 
 Auto-detection can save you from a headache when it comes to the following questions:
 
@@ -30,13 +30,13 @@ The new auto-detection is enabled by default. If you prefer a particular subscri
 
 ![Supported subscription protocols](../../public/images/blog/2022-09-01-new-in-banana-cake-pop-1/subscription-protocol-auto-detection-2.png)
 
-## Workspace auto synchronization
+# Workspace auto synchronization
 
 Your local and remote workspace changes will be synchronized every 60 seconds automatically. No need for you to click the synchronize button anymore. The new synchronize button is now located in the status bar and is also an indicator, showing you whether a workspace is synchronizing.
 
 ![Workspace auto synchronization](../../public/images/blog/2022-09-01-new-in-banana-cake-pop-1/workspace-auto-synchronization-1.png)
 
-## Status bar
+# Status bar
 
 The new decent status bar shows you a couple of information. For instance, is my browser connected to a network, or with what account am I signed in?
 
@@ -50,13 +50,13 @@ Furthermore, we introduced a new button in the right corner that shows the curre
 
 ![Version info](../../public/images/blog/2022-09-01-new-in-banana-cake-pop-1/status-bar-3.png)
 
-## Hidden Tabs
+# Hidden Tabs
 
 We introduced a new button that appears when a tab is at least partly hidden. This button, when clicked, will show a menu with partly hidden and completely hidden tabs.
 
 ![Version info](../../public/images/blog/2022-09-01-new-in-banana-cake-pop-1/hidden-tabs-1.png)
 
-## Subscribe
+# Subscribe
 
 To stay up to date, subscribe to our [ChilliCream YouTube Channel](https://www.youtube.com/c/ChilliCream) to get notified whenever we publish new videos.
 
