@@ -26,6 +26,7 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
             ArgumentNode n => RewriteArgument(n, context),
             BooleanValueNode n => RewriteBooleanValue(n, context),
             DirectiveDefinitionNode n => RewriteDirectiveDefinition(n, context),
+            DirectiveExtensionNode n => RewriteDirectiveExtension(n, context),
             DirectiveNode n => RewriteDirective(n, context),
             DocumentNode n => RewriteDocument(n, context),
             EnumTypeDefinitionNode n => RewriteEnumTypeDefinition(n, context),
@@ -122,6 +123,25 @@ public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
                 arguments,
                 directives,
                 locations);
+        }
+
+        return node;
+    }
+
+    protected virtual DirectiveExtensionNode? RewriteDirectiveExtension(
+        DirectiveExtensionNode node,
+        TContext context)
+    {
+        var name = RewriteNode(node.Name, context);
+        var directives = RewriteList(node.Directives, context);
+
+        if (!ReferenceEquals(name, node.Name)
+            || !ReferenceEquals(directives, node.Directives))
+        {
+            return new DirectiveExtensionNode(
+                node.Location,
+                name,
+                directives);
         }
 
         return node;

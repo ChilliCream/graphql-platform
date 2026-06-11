@@ -1068,4 +1068,18 @@ public class SchemaSyntaxPrinterTests
         // assert
         Assert.Equal(schema, result);
     }
+
+    [Fact]
+    public void Serialize_DirectiveExtensionDef_InOutShouldBeTheSame()
+    {
+        // arrange
+        const string schema = "extend directive @foo @a @b(c: 1)";
+        var document = Utf8GraphQLParser.Parse(schema);
+
+        // act
+        var result = document.ToString(indented: false);
+
+        // assert
+        Assert.Equal(schema, result);
+    }
 }

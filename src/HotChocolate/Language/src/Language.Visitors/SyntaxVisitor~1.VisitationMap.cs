@@ -90,6 +90,8 @@ public partial class SyntaxVisitor<TContext>
                 return VisitChildren((InputObjectTypeExtensionNode)node, context);
             case SyntaxKind.SchemaCoordinate:
                 return VisitChildren((SchemaCoordinateNode)node, context);
+            case SyntaxKind.DirectiveExtension:
+                return VisitChildren((DirectiveExtensionNode)node, context);
 
             default:
                 throw new NotSupportedException(node.GetType().FullName);
@@ -1159,6 +1161,29 @@ public partial class SyntaxVisitor<TContext>
             && Visit(node.ArgumentName, node, context).IsBreak())
         {
             return Break;
+        }
+
+        return DefaultAction;
+    }
+
+    protected virtual ISyntaxVisitorAction VisitChildren(
+        DirectiveExtensionNode node,
+        TContext context)
+    {
+        if (_options.VisitNames && Visit(node.Name, node, context).IsBreak())
+        {
+            return Break;
+        }
+
+        if (_options.VisitDirectives)
+        {
+            for (var i = 0; i < node.Directives.Count; i++)
+            {
+                if (Visit(node.Directives[i], node, context).IsBreak())
+                {
+                    return Break;
+                }
+            }
         }
 
         return DefaultAction;

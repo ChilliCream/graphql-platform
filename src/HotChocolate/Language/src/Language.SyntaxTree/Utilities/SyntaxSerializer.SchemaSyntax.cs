@@ -451,6 +451,20 @@ public sealed partial class SyntaxSerializer
             writer);
     }
 
+    private void VisitDirectiveExtension(
+        DirectiveExtensionNode node,
+        ISyntaxWriter writer)
+    {
+        writer.Write(Keywords.Extend);
+        writer.WriteSpace();
+        writer.Write(Keywords.Directive);
+        writer.WriteSpace();
+        writer.Write('@');
+        writer.WriteName(node.Name);
+
+        WriteDirectives(node.Directives, writer);
+    }
+
     private void VisitArgumentValueDefinition(
         InputValueDefinitionNode node,
         ISyntaxWriter writer)
