@@ -3,6 +3,7 @@ import path from "node:path";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { BlogMetadata } from "@/src/components/BlogMetadata";
+import { BlogShareBar } from "@/src/components/BlogShareBar";
 import { BlogTags } from "@/src/components/BlogTags";
 import { BlogTeaserGrid } from "@/src/components/BlogTeaserGrid";
 import { NotFoundContent } from "@/src/components/NotFoundContent";
@@ -205,13 +206,19 @@ export default async function BlogSlugPage({ params }: PageProps) {
         {frontmatter.title ? (
           <Typography variant="h1">{frontmatter.title}</Typography>
         ) : null}
-        <BlogMetadata
-          author={frontmatter.author}
-          authorUrl={frontmatter.authorUrl}
-          authorImageUrl={frontmatter.authorImageUrl}
-          date={frontmatter.date}
-          readingTime={readingTime}
-        />
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <BlogMetadata
+            author={frontmatter.author}
+            authorUrl={frontmatter.authorUrl}
+            authorImageUrl={frontmatter.authorImageUrl}
+            date={frontmatter.date}
+            readingTime={readingTime}
+          />
+          <BlogShareBar
+            url={toAbsoluteUrl(current?.href ?? `/blog/${stem}`)}
+            title={frontmatter.title ?? ""}
+          />
+        </div>
         <BlogTags tags={frontmatter.tags} />
         {content}
         <SimilarPosts posts={similar} />
