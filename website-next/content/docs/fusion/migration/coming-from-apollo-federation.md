@@ -7,7 +7,7 @@ If you have experience with Apollo Federation, you already understand the core i
 
 This guide maps Apollo Federation concepts to their Fusion equivalents, explains behavioral differences, and walks you through migrating subgraphs, the gateway, and your CI/CD pipeline. It is self-contained: you can complete a migration by following this guide alone. Links to other Fusion docs pages are provided for deeper dives, not as prerequisites.
 
-## Concept Mapping
+# Concept Mapping
 
 The table below maps Apollo Federation concepts to their Fusion equivalents. Some are straightforward renames; others involve meaningful behavioral changes. The "Key Difference" column flags which is which.
 
@@ -29,7 +29,7 @@ The table below maps Apollo Federation concepts to their Fusion equivalents. Som
 | Federation subgraph library (`@apollo/subgraph`) | No equivalent needed                              | Subgraphs are standard HotChocolate servers. No federation library.                                    |
 | `_service { sdl }` introspection                 | `dotnet run -- schema export`                     | Schema export is a CLI command, not a runtime introspection field.                                     |
 
-## What Fusion Does Not Need
+# What Fusion Does Not Need
 
 Several things from Apollo's model have no Fusion equivalent because the architecture handles them differently.
 
@@ -43,11 +43,11 @@ Several things from Apollo's model have no Fusion equivalent because the archite
 
 **No `@key` directive.** In Apollo, `@key(fields: "id")` tells the gateway which fields identify an entity. In Fusion, the gateway infers entity keys from the arguments of your `[Lookup]` fields. If your lookup is `GetProductById(int id)`, the gateway knows that `id` is the key for `Product`. You can use `[EntityKey("id")]` for explicit key declaration when needed, but it is rarely necessary.
 
-## Behavioral Differences in Depth
+# Behavioral Differences in Depth
 
 Beyond naming, several concepts work fundamentally differently in Fusion. Understanding these differences is important for a successful migration.
 
-### Entity Resolution: Lookups vs. the Entities Query
+## Entity Resolution: Lookups vs. the Entities Query
 
 This is the most significant architectural difference between Apollo Federation and Fusion.
 
@@ -134,7 +134,7 @@ The `[Internal]` attribute hides this field from the composite schema. Only the 
 
 For more on lookups and entity resolution patterns, see [Entities and Lookups](../entities-and-lookups.md).
 
-### Requirements Operate on Arguments, Not Fields
+## Requirements Operate on Arguments, Not Fields
 
 In Apollo Federation, `@requires` is a field-level directive. It declares that a field depends on data from another subgraph:
 
@@ -180,7 +180,7 @@ This changes how you design resolvers. In Apollo, the required data is available
 
 Cross-subgraph data dependencies with `[Require]` are also covered in the [Adding a Subgraph](../adding-a-subgraph.md) page. A dedicated deep-dive will be available in future documentation.
 
-### Entity Stubs: How Subgraphs Reference Foreign Entities
+## Entity Stubs: How Subgraphs Reference Foreign Entities
 
 In Apollo, when a subgraph extends an entity from another subgraph, it uses `extend type` with `@key`:
 
@@ -212,7 +212,7 @@ public sealed record Product([property: ID<Product>] int Id)
 
 The stub is not a copy of the full Product type. It only declares the key (`Id`) and the fields this subgraph contributes (`reviews`). The gateway merges it with the full `Product` type from the Products subgraph during composition.
 
-### Composition: Build Step, Not Cloud Operation
+## Composition: Build Step, Not Cloud Operation
 
 In Apollo, composition typically happens in GraphOS cloud when you run `rover subgraph publish`. The router downloads the composed supergraph schema from GraphOS at startup.
 
@@ -231,7 +231,7 @@ You can also use Nitro cloud for managed composition (similar to Apollo's GraphO
 
 For more on composition rules and error resolution, see [Composition](../composition.md).
 
-### The Gateway Is Code, Not a Separate Binary
+## The Gateway Is Code, Not a Separate Binary
 
 Apollo Router is a standalone binary (written in Rust) that you configure via YAML. Fusion's gateway is an ASP.NET Core application that you write and control:
 
@@ -249,13 +249,13 @@ app.Run();
 
 Because it is a standard ASP.NET Core app, you get full access to the middleware pipeline, dependency injection, authentication, header propagation, and everything else in the .NET ecosystem. There is no separate binary to deploy or configure.
 
-## Step-by-Step Migration
+# Step-by-Step Migration
 
-### Phase 1: Migrate Subgraphs
+## Phase 1: Migrate Subgraphs
 
 For each Apollo Federation subgraph, follow these steps.
 
-#### Step 1: Replace Apollo Packages with HotChocolate
+### Step 1: Replace Apollo Packages with HotChocolate
 
 Remove the Apollo subgraph library and add HotChocolate packages.
 
@@ -303,7 +303,7 @@ app.RunWithGraphQLCommands(args);
 
 The call to `RunWithGraphQLCommands(args)` enables `dotnet run -- schema export`, which is how Fusion extracts the subgraph schema for composition.
 
-#### Step 2: Convert Entity Resolution to Lookups
+### Step 2: Convert Entity Resolution to Lookups
 
 This is the core conversion. For every entity type that has a `@key` directive and a `__resolveReference` resolver, create a `[Lookup]` query field.
 
@@ -362,7 +362,7 @@ public static Product GetProductById(int id) => new(id);
 
 **Key point:** You do not need a `@key` directive. The gateway infers the entity key from the lookup's arguments. If your lookup takes `int id`, the gateway knows `id` is the key.
 
-#### Step 3: Convert Field Requirements
+### Step 3: Convert Field Requirements
 
 Replace field-level `@requires` with argument-level `[Require]`.
 
@@ -422,7 +422,7 @@ public int GetDeliveryEstimate(
 }
 ```
 
-#### Step 4: Convert External Fields and Provides
+### Step 4: Convert External Fields and Provides
 
 **`@external`** has a direct equivalent in `[External]`, but it is less frequently needed. In Apollo, you must mark any field referenced by `@requires` as `@external`. In Fusion, the `[Require]` selection syntax references fields from the composed graph directly -- no `@external` annotation is needed on the entity type.
 
@@ -453,7 +453,7 @@ public static partial class ReviewNode
 }
 ```
 
-#### Step 5: Handle Shared Fields
+### Step 5: Handle Shared Fields
 
 `[Shareable]` works the same in both systems. If multiple subgraphs define the same field on the same type, each definition must be marked as shareable.
 
@@ -480,7 +480,7 @@ public static partial class UserNode
 
 One difference: in Fusion, key fields (like `id`) are automatically shareable. You do not need to annotate them.
 
-#### Step 6: Create Schema Settings
+### Step 6: Create Schema Settings
 
 Every Fusion subgraph needs a `schema-settings.json` file that tells composition where the subgraph lives and how to connect to it:
 
@@ -506,7 +506,7 @@ Every Fusion subgraph needs a `schema-settings.json` file that tells composition
 
 Place this file next to your project. The `name` field must be unique across all subgraphs. The `clientName` field (`"fusion"`) must match the named HTTP client configured in the gateway.
 
-#### Step 7: Export the Schema
+### Step 7: Export the Schema
 
 Run the schema export command:
 
@@ -516,11 +516,11 @@ dotnet run -- schema export
 
 This generates a `.graphqls` file containing your subgraph's schema with Fusion-specific directives. This file, together with `schema-settings.json`, is what composition reads.
 
-### Phase 2: Migrate the Gateway
+## Phase 2: Migrate the Gateway
 
 Replace Apollo Router with a Fusion gateway ASP.NET Core project.
 
-#### Step 1: Create the Gateway Project
+### Step 1: Create the Gateway Project
 
 ```bash
 dotnet new web -n Gateway
@@ -528,7 +528,7 @@ cd Gateway
 dotnet add package HotChocolate.Fusion.AspNetCore
 ```
 
-#### Step 2: Configure the Gateway
+### Step 2: Configure the Gateway
 
 **Minimal gateway (`Program.cs`):**
 
@@ -553,7 +553,7 @@ builder
     .AddNitro();
 ```
 
-#### Step 3: Set Up Header Propagation
+### Step 3: Set Up Header Propagation
 
 If your Apollo Router forwards headers (like `Authorization`) to subgraphs, configure the same in Fusion:
 
@@ -593,7 +593,7 @@ app.MapGraphQL();
 app.Run();
 ```
 
-#### Step 4: Compose and Run
+### Step 4: Compose and Run
 
 Compose your subgraph schemas into a gateway archive:
 
@@ -613,7 +613,7 @@ dotnet run
 
 Navigate to `http://localhost:5000/graphql` to open the Nitro IDE and run cross-subgraph queries.
 
-### Phase 3: Migrate CI/CD
+## Phase 3: Migrate CI/CD
 
 Replace Apollo's `rover` commands with Nitro CLI equivalents.
 
@@ -623,7 +623,7 @@ Replace Apollo's `rover` commands with Nitro CLI equivalents.
 | `rover subgraph publish`   | `nitro fusion upload` + `nitro fusion publish` |
 | `rover supergraph compose` | `nitro fusion compose`                         |
 
-#### Schema Upload (Replaces Rover Subgraph Publish)
+### Schema Upload (Replaces Rover Subgraph Publish)
 
 In Apollo, publishing a subgraph triggers server-side composition. In Fusion, this is a two-step process: upload the schema, then publish to trigger composition.
 
@@ -655,7 +655,7 @@ nitro fusion publish \
   --api-key $NITRO_API_KEY
 ```
 
-#### Schema Validation (Replaces Rover Subgraph Check)
+### Schema Validation (Replaces Rover Subgraph Check)
 
 **Apollo:**
 
@@ -675,7 +675,7 @@ nitro fusion validate \
   --api-key $NITRO_API_KEY
 ```
 
-#### Local Composition (Replaces Rover Supergraph Compose)
+### Local Composition (Replaces Rover Supergraph Compose)
 
 **Apollo:**
 
@@ -692,7 +692,7 @@ nitro fusion compose \
   --archive gateway.far
 ```
 
-#### Example GitHub Actions Workflow
+### Example GitHub Actions Workflow
 
 ```yaml
 name: Deploy Subgraph
@@ -740,19 +740,19 @@ jobs:
 
 For more on deployment workflows, see [Deployment and CI/CD](../deployment-and-ci-cd.md).
 
-## Mindset Shifts
+# Mindset Shifts
 
 If you have spent significant time with Apollo Federation, some habits need adjusting. These are not just naming differences -- they change how you think about your graph.
 
-### Entity Resolution Is Explicit and Testable
+## Entity Resolution Is Explicit and Testable
 
 In Apollo, entity resolution happens through a hidden protocol (`_entities` + `__resolveReference`). You cannot easily call `_entities` from a GraphQL client to debug resolution issues. In Fusion, entity resolution is a regular query field. You can open your IDE, call `productById(id: 1)`, and see exactly what your lookup returns. This makes debugging straightforward.
 
-### You Don't Need to Think About Entity Ownership the Same Way
+## You Don't Need to Think About Entity Ownership the Same Way
 
 Apollo Federation has a strong concept of entity "ownership" -- one subgraph is the "defining" subgraph for an entity, and others "extend" it. In Fusion, all subgraphs contribute fields to shared entity types. The gateway uses lookups to resolve entities wherever they need to be fetched. The question is not "who owns this entity?" but "which subgraphs provide lookups for it?"
 
-### Composition Is a Build Step, Not a Cloud Operation
+## Composition Is a Build Step, Not a Cloud Operation
 
 In Apollo, composition typically happens in GraphOS when you publish a subgraph. In Fusion, composition is a command you run locally or in CI:
 
@@ -762,7 +762,7 @@ nitro fusion compose --archive gateway.far
 
 You can run this on your machine, see the output, inspect errors, and fix them before pushing. There is no cloud service in the loop unless you choose to use Nitro cloud.
 
-### Requirements Operate on Arguments, Not Fields
+## Requirements Operate on Arguments, Not Fields
 
 This changes resolver design. In Apollo, required data appears on the entity object. In Fusion, it arrives as a method parameter:
 
@@ -776,11 +776,11 @@ public int GetShippingEstimate([Require("weight")] int weight)
 
 This makes dependencies explicit in the method signature. You can see exactly what data a resolver needs by looking at its parameters.
 
-### The Gateway Is Your Code
+## The Gateway Is Your Code
 
 Apollo Router is a pre-built binary you configure externally. Fusion's gateway is an ASP.NET Core application you control. You write `Program.cs`, configure middleware, add authentication, and deploy it like any other .NET service. This means you have full control but also full responsibility for the gateway's behavior.
 
-## What Gets Simpler
+# What Gets Simpler
 
 Migrating to Fusion resolves several common pain points from Apollo Federation.
 
@@ -796,25 +796,25 @@ Migrating to Fusion resolves several common pain points from Apollo Federation.
 
 **Simpler subgraph setup.** Without a federation library, there are fewer moving parts. A minimal Fusion subgraph is just a HotChocolate server with `[Lookup]` on its entity query fields and a `schema-settings.json` file. That is the entire federation surface area.
 
-## FAQ
+# FAQ
 
-### Can I migrate incrementally -- some subgraphs on Apollo, some on Fusion?
+## Can I migrate incrementally -- some subgraphs on Apollo, some on Fusion?
 
 No. Apollo Federation and Fusion use different gateway protocols and composition models. You cannot run a mixed fleet where some subgraphs speak Apollo's federation protocol and others speak Fusion's. You need to migrate all subgraphs and the gateway together. However, you can migrate one subgraph at a time by converting and testing each one before switching the gateway over.
 
-### Do I need Nitro cloud?
+## Do I need Nitro cloud?
 
 No. Nitro cloud provides managed composition and gateway configuration delivery (similar to Apollo's GraphOS), but everything works without it. You can compose schemas locally with `nitro fusion compose`, load the `.far` file from disk with `AddFileSystemConfiguration()`, and never touch a cloud service. Nitro cloud is optional for teams that want managed schema delivery.
 
-### What About Apollo Federation Auth Directives?
+## What About Apollo Federation Auth Directives?
 
 Fusion uses standard ASP.NET Core authentication and authorization. You configure JWT/cookie authentication in the gateway's middleware pipeline and use HotChocolate's `[Authorize]` attribute on fields and types in your subgraphs. There is no Fusion-specific auth directive -- you use the same patterns you already know from ASP.NET Core.
 
-### Can Fusion handle subscriptions?
+## Can Fusion handle subscriptions?
 
 Yes. Fusion supports real-time subscriptions through the gateway via SSE (Server-Sent Events) and WebSocket transports. Subgraphs can use any HotChocolate subscription provider, including Postgres-backed subscriptions for multi-instance scenarios.
 
-### Where do I go from here?
+## Where do I go from here?
 
 After migrating, these pages provide deeper coverage of specific topics:
 

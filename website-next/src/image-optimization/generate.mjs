@@ -168,12 +168,16 @@ async function run(config) {
   let remoteFetched = 0;
   let remoteCached = 0;
 
-  const remoteTasks = remotes.map(({ key, url, fallbackUrl }) => async () => {
+  const remoteTasks = remotes.map((remote) => async () => {
+    const { key, url, fallbackUrl } = remote;
+    // Per-entry ladder override (e.g. avatars only need tiny DPR variants).
+    const ladder = remote.widths ?? widths;
     try {
       const sha = sha256(key);
       // URL-based cache key: the remote content is assumed stable, so we do not
-      // re-download on every build.
-      const hash = sha256(key + settingsJson);
+      // re-download on every build. The fetch URL and ladder are part of the
+      // hash so changing either re-encodes the entry.
+      const hash = sha256(key + url + settingsJson + JSON.stringify(ladder));
 
       const existing = manifest[key];
       if (
@@ -206,7 +210,7 @@ async function run(config) {
       const meta = await sharp(bytes).metadata();
       const intrinsicW = meta.width ?? 0;
       const intrinsicH = meta.height ?? 0;
-      const targetWidths = computeTargetWidths(widths, intrinsicW);
+      const targetWidths = computeTargetWidths(ladder, intrinsicW);
 
       const formatsEntry = {};
       for (const format of formats) {

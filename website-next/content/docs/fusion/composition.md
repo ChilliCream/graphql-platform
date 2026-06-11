@@ -3,7 +3,7 @@ title: "Composition"
 description: "How Fusion composition validates and merges source schemas into an execution schema, with the full pipeline phases and diagnostic log codes explained."
 ---
 
-## What Is Composition?
+# What Is Composition?
 
 Composition is the build-time process that takes one or more **source schemas** (the schemas exported by your subgraphs) and produces a single, validated, distributable **execution schema** that the gateway uses to plan and execute distributed queries.
 
@@ -17,7 +17,7 @@ Composition is the safety net of a Fusion deployment. It catches schema conflict
 
 If you are still onboarding, start with [Getting Started](./getting-started.md). The pages on [Entities and Lookups](./entities-and-lookups.md) and [Field Ownership](./field-ownership-and-sharing.md) cover the directives most often referenced by the log codes below.
 
-## The Composition Pipeline
+# The Composition Pipeline
 
 Composition runs as an ordered set of phases. Each phase reads the output of the previous one, runs its rules, and either passes the schema to the next phase or aborts with diagnostic errors. Composition halts at the first phase that produces errors. Within a single phase, several errors may be reported together before the pipeline stops at the phase boundary.
 
@@ -42,39 +42,39 @@ flowchart TD
     I -.fail.-> X
 ```
 
-### 1. Parse Source Schemas
+## 1. Parse Source Schemas
 
 Parses each source schema into an internal representation. This phase catches syntactically invalid SDL (`INVALID_GRAPHQL`).
 
-### 2. Preprocess Source Schemas
+## 2. Preprocess Source Schemas
 
 Normalizes each source schema for composition. This includes applying tag-based exclusions and any version-specific or interop transformations needed before the validation phases run.
 
-### 3. Enrich Source Schemas
+## 3. Enrich Source Schemas
 
 Decorates each schema with metadata extracted from directives, such as key fields, shareability, accessibility flags, and lookup information. The metadata is attached to types and fields so later phases can reason about them efficiently without re-parsing directive arguments.
 
-### 4. Validate Source Schemas
+## 4. Validate Source Schemas
 
 Runs per-schema validation rules against each source schema independently. Each source schema is checked on its own at this stage, before any cross-schema reasoning. Examples of issues caught here include `@external` placed on an interface field, malformed `@key` selection sets, root types with non-default names, and `@override` referencing the same source schema.
 
-### 5. Pre-Merge Validation
+## 5. Pre-Merge Validation
 
 Validates compatibility _across_ source schemas. This is where the pipeline checks that two source schemas which both define the same type agree on its shape: enum values match, output field types are mergeable, external argument types align, and input types declare the same required fields. Most "two source schemas disagree" diagnostics are surfaced here.
 
-### 6. Merge Source Schemas
+## 6. Merge Source Schemas
 
 Combines all validated source schemas into a single merged schema. Same-named types are unified, Fusion metadata is applied, and lookup information is recorded so the gateway knows which subgraph owns which field.
 
-### 7. Post-Merge Validation
+## 7. Post-Merge Validation
 
 Validates the merged schema as a whole. The rules here treat the composed schema as if it were a single GraphQL schema and check global invariants: no merged type is empty, all interfaces are implemented, no field references an inaccessible or internal type, the root query type exposes accessible fields, and default values do not point at inaccessible enum values.
 
-### 8. Validate Satisfiability
+## 8. Validate Satisfiability
 
 Performs reachability analysis. Starting from the root types, the pipeline walks every reachable field in the merged schema and confirms it can be resolved by at least one subgraph given the available `@lookup` and `@key` paths. If a field is reachable from a query but no subgraph can produce it, satisfiability fails with `UNSATISFIABLE_QUERY_PATH`. This is the last line of defense against shapes that look valid statically but cannot actually be served at runtime.
 
-## Common Scenarios
+# Common Scenarios
 
 A few rules account for most composition failures. Knowing the shape of the error helps you spot the cause quickly.
 
@@ -108,13 +108,13 @@ If you do not want to mark shared fields manually, you can set the per-source-sc
 
 **`@key` references a field that does not exist on the type.** A `@key(fields: "sku")` on a type that has no `sku` field fails with `KEY_INVALID_FIELDS`. The fix is to either add the missing field to the type or correct the selection set in the `@key` directive. See [Entities and Lookups](./entities-and-lookups.md) for the rules around key selection sets.
 
-## Log Codes Reference
+# Log Codes Reference
 
 This is the complete list of diagnostic codes the composition pipeline emits, grouped by severity. Codes are stable identifiers and are safe to match on in CI scripts.
 
 The placeholders `{0}`, `{1}`, etc. in the message column are replaced with the relevant type, field, or schema name when the diagnostic is emitted.
 
-### Errors
+## Errors
 
 | Code                                                                                                                                             | Message                                                                                                                                                               | How to resolve                                                                                                                                                                                                                                                                                                                                              |
 | ------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -185,20 +185,20 @@ The placeholders `{0}`, `{1}`, etc. in the message column are replaced with the 
 | [TYPE_KIND_MISMATCH](https://graphql.github.io/composite-schemas-spec/draft/#sec-Type-Kind-Mismatch)                                             | The type '\{0\}' has a different kind in schema '\{1\}' (\{2\}) than it does in schema '\{3\}' (\{4\}).                                                                         | The same type name was used for different kinds (for example, an object in one source schema and an interface in another). Decide which kind is correct and update the other source schema, or rename one of the types so they no longer collide.                                                                                                           |
 | [UNSATISFIABLE_QUERY_PATH](https://graphql.github.io/composite-schemas-spec/draft/#sec-Unsatisfiable-Query-Path)                                 | (Message varies. Includes the unreachable field, the path the validator tried, and the lookups it considered.)                                                        | Some reachable field cannot be resolved through the available `@lookup` and `@key` paths. See [Diagnosing UNSATISFIABLE_QUERY_PATH Errors](#diagnosing-unsatisfiable_query_path-errors) for how to read the message and fix the underlying gap.                                                                                                             |
 
-### Warnings
+## Warnings
 
 | Code                                                                                                                             | Message                                                                                                          | How to resolve                                                                                                                                                                                                                 |
 | -------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | [LOOKUP_RETURNS_NON_NULLABLE_TYPE](https://graphql.github.io/composite-schemas-spec/draft/#sec-Lookup-Returns-Non-Nullable-Type) | The lookup field '\{0\}' in schema '\{1\}' should return a nullable type.                                            | Lookups should return nullable entities so the gateway can represent missing keys without throwing. Change the return type of the lookup field to nullable. See [Entities and Lookups](./entities-and-lookups.md). |
 | [SPECIFIED_BY_URL_MISMATCH](https://graphql.github.io/composite-schemas-spec/draft/#sec-SpecifiedBy-URL-Mismatch)                | The scalar type '\{0\}' has a different specified-by URL in schema '\{1\}' (\{2\}) than it does in schema '\{3\}' (\{4\}). | The same scalar declares conflicting `@specifiedBy(url: ...)` URLs in different source schemas. Align the URL across all source schemas that define the scalar so the composed schema points to a single specification.        |
 
-### Diagnosing UNSATISFIABLE_QUERY_PATH Errors
+## Diagnosing UNSATISFIABLE_QUERY_PATH Errors
 
 Most composition errors point at a single source schema or definition. `UNSATISFIABLE_QUERY_PATH` is different. It is raised by the satisfiability validator (phase 8) and tells you that the merged schema as a whole has at least one reachable field that no source schema can serve through the available `@lookup` and `@key` paths.
 
 Because the validator weighs every option for reaching a field across every source schema, the diagnostic carries a tree of nested errors that explain why each candidate option failed. Reading that tree from the bottom up is the fastest way to find the gap.
 
-#### Anatomy of the message
+### Anatomy of the message
 
 The top-level message names the unreachable field:
 
@@ -218,7 +218,7 @@ Underneath it, indented with two spaces per level, are the nested errors that th
 
 Indentation is meaningful: a nested message is the reason its parent option failed. Start at the leaves and work up.
 
-#### Showing the path the validator took
+### Showing the path the validator took
 
 By default, the top-level message names the failed field but not the path the validator walked to reach it. Enable `IncludeSatisfiabilityPaths` to extend the message with the path:
 
@@ -236,7 +236,7 @@ nitro fusion compose --include-satisfiability-paths
 
 Paths add noise to short outputs and pay off on any non-trivial graph. Turn them on whenever an `UNSATISFIABLE_QUERY_PATH` error is hard to triage.
 
-#### Common causes and fixes
+### Common causes and fixes
 
 - **Missing `@lookup` for an entity in the target source schema.** A field on schema A returns an entity that is also defined in schema B, but B has no lookup that takes the entity's key. Add a lookup on B (typically `<entity>(id: ID!): <Entity>`) annotated with `@lookup`. See [Entities and Lookups](./entities-and-lookups.md).
 - **Mismatched `@key` selections across source schemas.** The shared entity has different `@key` selection sets in different source schemas, so the validator cannot find a key both sides recognize. Align the key selection sets, or add additional `@key` directives so every key the producer uses is also a key the consumer recognizes.
@@ -245,7 +245,7 @@ Paths add noise to short outputs and pay off on any non-trivial graph. Turn them
 
 When you fix the root cause, both the top-level `UNSATISFIABLE_QUERY_PATH` error and its nested children disappear together.
 
-#### Temporarily ignoring a non-accessible field
+### Temporarily ignoring a non-accessible field
 
 When a field is intentionally non-accessible at the moment, for example during an incremental rollout, you can ask the validator to skip it instead of failing composition. Add the qualified field name and the path to skip under the source schema's `satisfiability.ignoredNonAccessibleFields` in its `<schema>-settings.json` file:
 

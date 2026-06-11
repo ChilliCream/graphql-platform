@@ -14,7 +14,7 @@ Hot Chocolate 16 is our first new major release of the platform in more than a y
 
 Some releases are incremental, some are mostly technical. Hot Chocolate 16 is different. We rearchitected the type system, tightened scalar contracts, improved batching, adopted new GraphQL proposals, and made the defaults safer. Most of that starts with the new type system.
 
-## The new type system
+# The new type system
 
 In previous versions we introduced a small library called **HotChocolate.Skimmed** for editing SDL. It offered a rich type system API similar to Hot Chocolate's core, but with one important difference: the type system was mutable and deliberately allowed invalid intermediate states.
 
@@ -22,7 +22,7 @@ The idea behind Skimmed was to provide a modern API for Fusion composition and S
 
 So instead, we introduced a new abstraction, `HotChocolate.Types.Abstractions`, that describes the basics. On top of it we rewrote everything we had built over the years: validation, execution, and the rest. We then implemented the abstraction for Skimmed (now `HotChocolate.Types.Mutable`), `HotChocolate.Types`, and `HotChocolate.Fusion`. Each has its own extras, but shared concerns like the IBM Cost spec now work across all three. That makes it easy to write things like analyzers that take a GraphQL SDL, transform it, and then run it through validation.
 
-## Scalars
+# Scalars
 
 As part of this rewrite, we also tackled the scalar API.
 
@@ -58,7 +58,7 @@ public sealed class PolicyType : ScalarType<Policy, StringValueNode>
 
 That is it. It is a breaking change, but the gain in clarity is well worth it.
 
-## scalars.graphql.org
+# scalars.graphql.org
 
 For a long time, the contract of a GraphQL scalar was mostly its name. That is a weak contract for something like `DateTime`. Two servers could both expose a `DateTime` scalar and mean slightly different things, and clients had very little to go on beyond convention and documentation.
 
@@ -68,7 +68,7 @@ The result in v16 is fewer built-in scalars, but much better ones. The scalars w
 
 The full list, with diffs, lives in the [migration guide](../docs/hotchocolate/migrating/migrate-from-15-to-16.md).
 
-## Date and time scalars
+# Date and time scalars
 
 Date and time handling was one of the places where older Hot Chocolate versions were too lax. Moving from the built-in .NET types to NodaTime, or back again, was effectively a breaking API change because we let implementation details bleed into the client-facing schema. If you used the standard scalars you got one vocabulary. If you used `HotChocolate.Types.NodaTime`, you got another, with types like `OffsetType`, `InstantType`, and `ZonedDateTimeType`. Clients had to know which world they were in.
 
@@ -86,7 +86,7 @@ If you need to bind `System.TimeSpan` to `Duration`, or if you want custom preci
 
 We are already looking at a few more date and time mappings for the v16.x line. We have not made up our minds yet, so if there is a type you care about, please tell us.
 
-## A new batching engine
+# A new batching engine
 
 Efficient batching is one of those things that sounds simple until you build a GraphQL server. DataLoader is still a great tool, but it can feel heavy for straightforward scenarios because you have to split one piece of data-fetching logic across a resolver and a DataLoader.
 
@@ -137,7 +137,7 @@ So when we run a query like this:
 
 Does this make DataLoaders obsolete? Not at all. DataLoaders are still the right tool when you want batching to live in your application layer instead of in a resolver. They let you define normalized data-fetching primitives once, reuse them across resolvers, and still get automatic batching and deduplication.
 
-## Variable and Request Batching
+# Variable and Request Batching
 
 We have also been investing in the emerging [batching proposal for GraphQL over HTTP](https://github.com/graphql/graphql-over-http/pull/307). In v16, transport batches are folded into a single work scheduler, so variable batching and request batching are executed as if the work had been sent as one colocated request. The result is that batching is no longer just a transport trick, it behaves like a first-class execution mode.
 
@@ -170,7 +170,7 @@ And here is a JSON Lines response stream:
 
 Results can arrive out of order as soon as they are ready. `requestIndex` tells you which request in the outer array a result belongs to, and `variableIndex` identifies which variable set within a variable-batched request produced that result.
 
-## Semantic Introspection
+# Semantic Introspection
 
 I am not going to cover all of our AI-focused work in this post, because several of those features deserve their own write-up. One addition is worth a quick mention here though: Semantic Introspection.
 
@@ -188,7 +188,7 @@ builder
 
 By default, Hot Chocolate indexes the schema with BM25, so there is nothing else to wire up. If you want the full story, including how `__search` and `__definitions` work in practice, the [Semantic Introspection](./2026-04-22-semantic-introspection.md) post goes much deeper. And if you want to see the agent side of it, including the skill prompt that teaches an agent how to use semantic introspection effectively, take a look at the [GraphQL skill prompt](https://github.com/PascalSenn/apidays-singapore/blob/main/case-study/prompt-graphql-skill.md).
 
-## A new error mode for GraphQL
+# A new error mode for GraphQL
 
 Hot Chocolate 15 had experimental support for `@semanticNonNull`. That was never meant to be the final answer. It was a bridge while the GraphQL community worked toward a proper way to express error handling.
 
@@ -219,7 +219,7 @@ app.MapGraphQLSemanticNonNullSchema();
 
 The same trick is available from the CLI via `schema export --semantic-non-null` or programmatically with our `SchemaFormatter` by setting `RewriteToSemanticNonNull = true`.
 
-## Feature lifecycle with opt-in features
+# Feature lifecycle with opt-in features
 
 GraphQL has long had a good story for the end of a feature's life. `@deprecated` lets you signal that something is going away before you remove it. What it did not have was a standard story for the beginning of a feature's life, the phase where something is real, usable, and worth getting feedback on, but not yet stable enough for general use. The `@requiresOptIn` proposal closes that gap and turns the lifecycle into `experimental` -> `stable` -> `deprecated` -> `removed`.
 
@@ -263,7 +263,7 @@ type Product {
 
 In practice that means schema evolution becomes much more deliberate. You can ship something as experimental, promote it to stable when it has earned it, and later retire it through the existing deprecation flow.
 
-## Incremental delivery, the new format
+# Incremental delivery, the new format
 
 `@defer` and `@stream` also got a wire-format refresh. In v16, the default is now the v0.2 format from the incremental delivery spec, the one with `pending`, `incremental` entries identified by `id`, and `completed`. We use it consistently across multipart, SSE, and JSON Lines.
 
@@ -276,13 +276,13 @@ Most clients will not need to do anything. v0.2 is where the GraphQL ecosystem i
 
 One more thing: batching performance is now much better for incremental requests too. Like batch requests, an incremental request runs on a single work scheduler, which means it uses a single batching coordinator.
 
-## GraphQL semantic conventions for OpenTelemetry
+# GraphQL semantic conventions for OpenTelemetry
 
 OpenTelemetry has been around in the GraphQL space for a while, but it was never especially well specified. Different servers ended up with their own span names and attributes, which made cross-server tooling and conventions harder than they should have been. That changed with the new [GraphQL semantic conventions for OpenTelemetry](https://github.com/graphql/otel-wg/blob/main/spec), created by the GraphQL OTel working group.
 
 With Hot Chocolate 16, we have adopted that specification. In practice, that means our tracing now follows a shared GraphQL vocabulary instead of the server-specific conventions we used before. If you already have dashboards or alerts wired to the old names or values, the migration guide covers the rename and value changes.
 
-## MCP and OpenAPI
+# MCP and OpenAPI
 
 These deserve their own posts, so I will keep this short. v16 ships two new adapters that work both with Hot Chocolate and with Fusion:
 
@@ -291,7 +291,7 @@ These deserve their own posts, so I will keep this short. v16 ships two new adap
 
 Both will get their own posts in the next few weeks. If you do not want to wait, the docs are already up for the [MCP adapter](../docs/hotchocolate/build/adapters/mcp.md) and the [OpenAPI adapter](../docs/hotchocolate/build/adapters/openapi.md).
 
-## Wrapping up
+# Wrapping up
 
 If you are upgrading, start with our [migration guide](../docs/hotchocolate/migrating/migrate-from-15-to-16.md). It has the full list of breaking changes, defaults, and migration notes.
 

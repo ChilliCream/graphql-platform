@@ -8,23 +8,13 @@ import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import matter from "gray-matter";
+import { base, profiles } from "../src/image-optimization/config.mjs";
 import optimizeImages from "../src/image-optimization/generate.mjs";
 
 const config = {
-  quality: 90,
-  widths: [640, 1080, 1920],
-  formats: ["avif", "webp"],
-  sourceDir: "public/images",
-  outputDir: "public/_optimized/images",
-  manifestPath: "public/_optimized/manifest.json",
-  // Featured blog images additionally get a dedicated 1200x630 share-card
-  // JPEG (og:image / twitter:image / RSS enclosure). Exact Open Graph
-  // dimensions avoid crawler-side cropping; JPEG because share-card crawlers
-  // do not reliably decode WebP/AVIF.
+  ...base,
   share: {
-    width: 1200,
-    height: 630,
-    quality: 80,
+    ...profiles.shareCards,
     images: listFeaturedBlogImages(),
   },
 };

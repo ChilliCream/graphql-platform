@@ -5,7 +5,7 @@ description: "Connect your Hot Chocolate server to Nitro to fetch persisted oper
 
 Nitro can be smoothly integrated into your HotChocolate server, enabling utilization of the Persisted Operation Storage found within the client registry, to report operations and collect open telemetry. Your server will establish a connection with Nitro, retrieving persisted operations based on their unique hashes. Additional information on the client registry can be found [here](./apis/client-registry.md).
 
-## Getting Started
+# Getting Started
 
 To get started, follow these steps:
 
