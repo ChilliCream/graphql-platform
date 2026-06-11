@@ -160,4 +160,37 @@ public class DirectiveParserTests
             d => Assert.Equal("a", d.Name.Value),
             d => Assert.Equal("b", d.Name.Value));
     }
+
+    [Fact]
+    public void ParseDirectiveExtension()
+    {
+        // arrange
+        const string text = "extend directive @foo @tag(name: \"a\")";
+        var parser = new Utf8GraphQLParser(Encoding.UTF8.GetBytes(text));
+
+        // act
+        var document = parser.Parse();
+
+        // assert
+        var extension = document.Definitions
+            .OfType<DirectiveExtensionNode>().FirstOrDefault();
+        Assert.NotNull(extension);
+        Assert.Equal("foo", extension.Name.Value);
+        var directive = Assert.Single(extension.Directives);
+        Assert.Equal("tag", directive.Name.Value);
+    }
+
+    [Fact]
+    public void ParseDirectiveExtensionWithoutDirectives()
+    {
+        // arrange
+        // per the grammar, Directives[Const] is required on a directive extension
+        const string text = "extend directive @foo";
+
+        // act
+        static void Action() => Utf8GraphQLParser.Parse(text);
+
+        // assert
+        Assert.Throws<SyntaxException>(Action);
+    }
 }
