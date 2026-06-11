@@ -22,10 +22,31 @@ const EXCLUDED_PATHS = new Set(["/services/support/thank-you"]);
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
+    ...(await rootPages()),
     ...(await staticPages()),
     ...(await docsPages()),
     ...(await blogPosts()),
   ];
+}
+
+// Pages that live outside the `(content)` route group: the homepage and the
+// docs/blog hub pages. These are the highest-value URLs on the site and must
+// be listed explicitly since `staticPages()` only walks `(content)`.
+async function rootPages(): Promise<MetadataRoute.Sitemap> {
+  const pages = [
+    { file: path.join(process.cwd(), "app", "page.tsx"), urlPath: "/" },
+    { file: path.join(process.cwd(), "app", "docs", "page.tsx"), urlPath: "/docs" },
+    { file: path.join(process.cwd(), "app", "blog", "page.tsx"), urlPath: "/blog" },
+  ];
+  return Promise.all(
+    pages.map(async ({ file, urlPath }) => ({
+      url: urlPath === "/" ? `${SITE_URL}/` : `${SITE_URL}${urlPath}`,
+      lastModified:
+        (await getLastModifiedFromGit(file)) ?? fs.statSync(file).mtime,
+      changeFrequency: "weekly" as const,
+      priority: urlPath === "/" ? 1 : 0.8,
+    })),
+  );
 }
 
 async function staticPages(): Promise<MetadataRoute.Sitemap> {
