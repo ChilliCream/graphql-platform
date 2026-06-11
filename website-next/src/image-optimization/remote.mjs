@@ -1,16 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
+import { profiles } from "./config.mjs";
 
 const MD_RE = /\.(md|mdx)$/i;
-
-// Author avatars render at 30px (see BlogMetadata), so the srcset ladder only
-// needs 1x/2x/3x DPR variants instead of the global content-image ladder.
-const AVATAR_WIDTHS = [30, 60, 90];
-
-// Ask GitHub for a pre-scaled avatar (covers the largest ladder width at 2x)
-// instead of downloading the full-size original.
-const AVATAR_FETCH_SIZE = 180;
 
 // Matches an 11-char YouTube id in any of the supported URL forms or in a
 // <Video src="..."> attribute (bare id or URL).
@@ -58,7 +51,7 @@ export async function collectRemoteImages(cwd) {
           key: avatar,
           url: avatarFetchUrl(avatar),
           fallbackUrl: avatar,
-          widths: AVATAR_WIDTHS,
+          widths: profiles.avatars.widths,
         });
       }
     }
@@ -86,7 +79,7 @@ function avatarFetchUrl(avatar) {
   if (!/^https:\/\/avatars\.githubusercontent\.com\//.test(avatar)) {
     return avatar;
   }
-  return `${avatar}${avatar.includes("?") ? "&" : "?"}s=${AVATAR_FETCH_SIZE}`;
+  return `${avatar}${avatar.includes("?") ? "&" : "?"}s=${profiles.avatars.fetchSize}`;
 }
 
 function extractYouTubeIds(body) {

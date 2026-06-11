@@ -8,26 +8,13 @@ import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import matter from "gray-matter";
+import { base, profiles } from "../src/image-optimization/config.mjs";
 import optimizeImages from "../src/image-optimization/generate.mjs";
 
 const config = {
-  quality: 90,
-  // 828 fills the 640->1080 gap: content columns top out around 1024px CSS,
-  // so ~700-828px slots (tablet 1x, phone 2x) would otherwise be forced up to
-  // the 1080 variant.
-  widths: [640, 828, 1080, 1920],
-  formats: ["avif", "webp"],
-  sourceDir: "public/images",
-  outputDir: "public/_optimized/images",
-  manifestPath: "public/_optimized/manifest.json",
-  // Featured blog images additionally get a dedicated 1200x630 share-card
-  // JPEG (og:image / twitter:image / RSS enclosure). Exact Open Graph
-  // dimensions avoid crawler-side cropping; JPEG because share-card crawlers
-  // do not reliably decode WebP/AVIF.
+  ...base,
   share: {
-    width: 1200,
-    height: 630,
-    quality: 80,
+    ...profiles.shareCards,
     images: listFeaturedBlogImages(),
   },
 };
