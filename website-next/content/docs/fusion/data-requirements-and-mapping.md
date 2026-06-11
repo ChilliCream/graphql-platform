@@ -1,5 +1,6 @@
 ---
 title: "Data Requirements"
+description: "Declare cross-subgraph data dependencies in Fusion with the @require directive: required fields are validated at composition and fetched by the gateway."
 ---
 
 In traditional distributed systems, dependencies between services hide beneath the surface. A service assumes another service provides certain fields, responds in a certain shape, or is available at a certain time. These assumptions are invisible: they live in code, not in contracts. You discover them when something breaks in production. A field gets renamed, a service changes its response format, or a new team removes data another team depended on without knowing.

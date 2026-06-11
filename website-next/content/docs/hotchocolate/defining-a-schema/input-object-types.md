@@ -1,5 +1,6 @@
 ---
 title: "Input Object Types"
+description: "Define GraphQL input object types in Hot Chocolate to pass structured arguments, with records, default values, optional properties, and @oneOf inputs."
 ---
 
 GraphQL input object types let you pass structured data as arguments. While [scalar arguments](./arguments.md) work for simple values, input types let you group related fields into a single object. Input types differ from output object types: their fields cannot have arguments and they use the `input` keyword in the schema.

@@ -1,5 +1,6 @@
 ---
 title: "Logging"
+description: "Collect and analyze OpenTelemetry logs in Nitro: browse the Logs tab of each API, expand entries for details, and inspect logs within individual traces."
 ---
 
 Nitro includes Open Telemetry logging, allowing seamless log collection and analysis directly within the app.

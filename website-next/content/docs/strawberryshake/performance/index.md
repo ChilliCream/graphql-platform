@@ -1,5 +1,6 @@
 ---
 title: "Performance"
+description: "Optimize Strawberry Shake client performance with persisted operations and persisted state, cutting request size and network round trips for your app."
 ---
 
 In this section we will give you an overview on how to optimize the performance of your GraphQL client. We will put an emphasis on network performance since this is the most critical performance obstacle you are facing when developing fluent applications that also have to work over bad mobile network connections or even when the application becomes fully offline.

@@ -1,5 +1,6 @@
 ---
 title: Migrate Strawberry Shake from 13 to 14
+description: "Upgrade Strawberry Shake from 13 to 14: persisted queries become persisted operations, with renamed CLI options, directories, and generated files."
 ---
 
 This guide will walk you through the manual migration steps to update your Strawberry Shake GraphQL client to version 14.

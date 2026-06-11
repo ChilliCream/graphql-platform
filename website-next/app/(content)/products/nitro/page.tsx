@@ -1,7 +1,15 @@
+import type { Metadata } from "next";
+
 import { ContentSection } from "@/src/components/ContentSection";
 import { PageHero } from "@/src/components/PageHero";
 import { Section } from "@/src/components/Section";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
+
+export const metadata: Metadata = {
+  title: "Nitro",
+  description:
+    "Nitro is ChilliCream's GraphQL IDE: explore any GraphQL API with authentication flows, document sync, and subscriptions over SSE and WebSockets.",
+};
 
 const FEATURES: { title: string; description: string }[] = [
   {

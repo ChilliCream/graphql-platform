@@ -1,5 +1,6 @@
 ---
 title: "Schema Exposure and Evolution"
+description: "Control client visibility and schema evolution in Fusion with @inaccessible, @internal, @deprecated, @requiresOptIn, and @override field migration."
 ---
 
 Not everything in your source schema should be visible to clients, and not everything should stay the same forever. As your distributed graph grows, you need control over two things: what clients can see today, and how the schema changes over time.

@@ -1,5 +1,6 @@
 ---
 title: "OpenAPI Adapter"
+description: "Expose REST endpoints from a Hot Chocolate GraphQL schema with the AddOpenApi() adapter: annotate operations with @http and get generated OpenAPI docs."
 ---
 
 The OpenAPI adapter exposes your Hot Chocolate GraphQL schema as REST endpoints with automatic OpenAPI documentation. You define GraphQL operations annotated with `@http` directives, and the adapter generates HTTP endpoints that accept REST-style requests, execute the underlying GraphQL operation, and return the result as JSON. The generated endpoints appear in your OpenAPI specification alongside any other ASP.NET Core endpoints.

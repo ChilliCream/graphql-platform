@@ -1,5 +1,6 @@
 ---
 title: "Testing"
+description: "Test a Hot Chocolate GraphQL server end to end: build a test executor with AddGraphQL, run queries, and snapshot results using CookieCrumble's MatchSnapshot."
 ---
 
 Testing a GraphQL server means testing resolvers, the schema shape, and the execution pipeline. Hot Chocolate provides test infrastructure for all three. This page walks through the patterns you need to write reliable tests for a Hot Chocolate server.

@@ -1,5 +1,6 @@
 ---
 title: "Performance Tuning"
+description: "Tune Hot Chocolate performance with operation caching, DataLoader batching, projections, persisted operations, and incremental delivery with @defer."
 ---
 
 Hot Chocolate is designed for high throughput out of the box. The schema is built eagerly at startup, operations are cached after their first execution, and DataLoaders batch database calls automatically. This guide covers the tuning options available when you need to go further.

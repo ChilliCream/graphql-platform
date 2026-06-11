@@ -1,5 +1,6 @@
 ---
 title: Overview
+description: "Overview of configuring and operating a Hot Chocolate GraphQL server: endpoints, HTTP transport, interceptors, dependency injection, and instrumentation."
 ---
 
 This section covers how you configure and operate a Hot Chocolate GraphQL server. You will find details on transport protocols, middleware, dependency injection, and runtime behavior.

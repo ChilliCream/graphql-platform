@@ -1,5 +1,6 @@
 ---
 title: "Get started with Strawberry Shake in a Console application"
+description: "Add a Strawberry Shake GraphQL client to a .NET console application: install the CLI tools, generate a typed client from a schema, and fetch your first data."
 ---
 
 In this tutorial we will walk you through the basics of adding a Strawberry Shake GraphQL client to a console project. For this example we will create a simple console application and fetch some simple data from our demo backend.

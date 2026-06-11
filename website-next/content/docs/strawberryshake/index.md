@@ -1,5 +1,5 @@
 ---
-title: Strawberry Shake
+title: Introduction
 description: A reactive GraphQL client for .NET.
 ---
 

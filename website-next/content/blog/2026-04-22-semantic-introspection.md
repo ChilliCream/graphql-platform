@@ -1,9 +1,9 @@
 ---
-path: "/blog/2026/04/22/semantic-introspection"
 date: "2026-04-22"
 title: "Semantic Introspection"
 description: "The agentic age of software brings new challenges for our APIs. Semantic Introspection makes GraphQL discoverable, scalable, and precise for LLMs."
 tags: ["hotchocolate", "graphql", "ai", "llm", "semantic-introspection"]
+category: "AI"
 featuredImage: "header.png"
 author: Pascal Senn
 authorUrl: https://github.com/pascalsenn

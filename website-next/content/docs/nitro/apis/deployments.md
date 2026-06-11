@@ -1,5 +1,6 @@
 ---
 title: "Deployment"
+description: "Track schema, client, and Fusion configuration deployments in the Nitro Deployments tab and gate risky changes with the `--wait-for-approval` flag."
 ---
 
 ![Deployment](../../../../public/images/nitro-docs/apis/deployments-0.webp)

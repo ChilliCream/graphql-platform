@@ -1,5 +1,6 @@
 ---
 title: "Coming from Apollo Federation"
+description: "Map Apollo Federation concepts like @key and _entities to Hot Chocolate Fusion equivalents such as [Lookup], and migrate subgraphs, gateway, and CI/CD."
 ---
 
 If you have experience with Apollo Federation, you already understand the core idea behind distributed GraphQL: multiple services contribute types and fields to a single, unified schema, and a gateway coordinates query execution across them. HotChocolate Fusion solves the same problem with a different approach -- one grounded in the open [GraphQL Composite Schemas specification](https://graphql.github.io/composite-schemas-spec/) rather than a proprietary federation spec.

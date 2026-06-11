@@ -1,5 +1,6 @@
 ---
 title: "Scalars"
+description: "Reference for GraphQL scalars in Hot Chocolate: built-in types like ID and DateTime, the NodaTime package, binding behavior, and custom scalar definitions."
 ---
 
 Scalars are the leaf types in a GraphQL schema. They represent concrete values like strings, numbers, and dates. Unlike object types, scalars cannot be decomposed further. They are where the query ends and actual data is returned.

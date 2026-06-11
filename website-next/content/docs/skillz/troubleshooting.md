@@ -1,5 +1,6 @@
 ---
 title: "Troubleshooting"
+description: "Troubleshoot skillz errors: each section maps the exact message the CLI prints to its cause and a copy-pasteable fix for installing and updating skills."
 ---
 
 This page maps the errors and surprises you hit when running skillz to their cause and fix. Each section starts with the exact message skillz prints (where one exists), explains why it happens, and gives you a copy-pasteable way out.

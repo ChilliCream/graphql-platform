@@ -1,9 +1,9 @@
 ---
-path: "/blog/2022/09/01/new-in-banana-cake-pop-1"
 date: "2022-09-01"
 title: "New in Banana Cake Pop 1"
 description: "Subscription protocol auto-detection, Workspace auto synchronization, a Status Bar, and many further improvements."
 tags: ["bananacakepop", "graphql", "ide", "cloud", "release"]
+category: "Release"
 featuredImage: "new-in-banana-cake-pop-1.png"
 featuredVideoId: LlPEO2p_Bb8
 author: Rafael Staib

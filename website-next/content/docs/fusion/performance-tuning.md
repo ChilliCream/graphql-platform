@@ -1,5 +1,6 @@
 ---
 title: "Performance Tuning"
+description: "Tune the Fusion gateway transport: configure the named fusion `HttpClient`, enable HTTP/2 for subgraph calls, and deduplicate identical in-flight requests."
 ---
 
 The Fusion gateway proxies every GraphQL operation to one or more subgraphs over HTTP. The defaults work well out of the box, but high-throughput or latency-sensitive deployments can benefit from tuning the transport layer.

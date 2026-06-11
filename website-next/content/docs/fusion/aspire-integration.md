@@ -1,5 +1,6 @@
 ---
 title: "Aspire Integration"
+description: "Integrate Fusion composition into a .NET Aspire AppHost with `HotChocolate.Fusion.Aspire`: one build step composes subgraph schemas into a gateway archive."
 ---
 
 Nitro gives you full control over composition, but during active development you want a tighter loop. Every time you change a type, add a field, or adjust a resolver, you need to re-export the schema, re-compose, and restart the gateway. That friction adds up.

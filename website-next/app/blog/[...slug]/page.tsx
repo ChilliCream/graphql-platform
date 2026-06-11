@@ -95,11 +95,25 @@ export async function generateMetadata({
   return {
     title,
     description,
+    ...(summary?.author
+      ? { authors: [{ name: summary.author, url: summary.authorUrl ?? undefined }] }
+      : {}),
+    alternates: {
+      canonical: summary?.href,
+    },
     openGraph: {
       type: "article",
       title,
       description,
       images,
+      url: summary?.href,
+      publishedTime: summary?.date,
+      authors: summary?.authorUrl
+        ? [summary.authorUrl]
+        : summary?.author
+          ? [summary.author]
+          : undefined,
+      tags: summary && summary.tags.length > 0 ? summary.tags : undefined,
     },
     twitter: {
       card: "summary_large_image",
@@ -143,8 +157,40 @@ export default async function BlogSlugPage({ params }: PageProps) {
   const similar = current ? findSimilarPosts(current, summaries) : [];
   const featuredImage = current?.featuredImage ?? null;
 
+  const jsonLd = current
+    ? {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        headline: current.title,
+        ...(current.description ? { description: current.description } : {}),
+        datePublished: current.date,
+        ...(current.featuredImage
+          ? { image: toAbsoluteUrl(current.featuredImage) }
+          : {}),
+        ...(current.author
+          ? {
+              author: {
+                "@type": "Person",
+                name: current.author,
+                ...(current.authorUrl ? { url: current.authorUrl } : {}),
+              },
+            }
+          : {}),
+        mainEntityOfPage: toAbsoluteUrl(current.href),
+      }
+    : null;
+
   return (
     <main className="px-5 py-8 sm:px-12">
+      {jsonLd ? (
+        <script
+          type="application/ld+json"
+          // Escape `<` so content text can never close the script tag (XSS).
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+          }}
+        />
+      ) : null}
       <article className="mx-auto max-w-5xl">
         {featuredImage ? (
           <Picture

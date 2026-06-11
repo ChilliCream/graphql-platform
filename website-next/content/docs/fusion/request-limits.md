@@ -1,5 +1,6 @@
 ---
 title: "Request Limits"
+description: "Protect a Fusion gateway with request limits: parser options like `MaxAllowedFields`, validation depth caps, planner guardrails, and execution timeouts."
 ---
 
 A Fusion gateway faces the same GraphQL query attacks as a standalone server: deep nesting, alias amplification, fragment expansion, and directive overloading. It also has gateway-specific risks like expensive query planning. Fusion enforces limits at every stage of the pipeline: parsing, validation, planning, and execution.

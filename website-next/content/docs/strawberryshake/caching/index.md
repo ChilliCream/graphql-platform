@@ -1,5 +1,6 @@
 ---
 title: "Caching"
+description: "Strawberry Shake caches GraphQL results in a normalized entity store, reducing network requests and keeping reactive components in sync with state."
 ---
 
 > We are still working on the documentation for Strawberry Shake, so help us by finding typos, missing things, or write some additional docs with us.

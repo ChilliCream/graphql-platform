@@ -1,5 +1,6 @@
 ---
 title: "Source Schema Extensions"
+description: "Add Fusion directives like @lookup and @inaccessible to schemas you cannot edit using a source schema extensions document layered over the base SDL."
 ---
 
 Some source schemas are not yours to edit, or you want to keep them free of Fusion-specific annotations. Fusion still needs [directives](./directives-reference.md) like `@lookup`, `@internal`, and `@inaccessible` on those schemas to compose your graph correctly. A **source schema extensions document** solves this. It is a separate SDL file you author yourself, layered over the base schema at parse time, that adds Fusion-specific annotations without modifying a single character of the base. Your original schema stays clean, and the directives the gateway needs to plan distributed queries land in a file you fully control.

@@ -7,6 +7,7 @@ import {
   listBlogPosts,
 } from "@/src/helpers/blogPaths";
 import { getLastModifiedFromGit } from "@/src/helpers/gitMetadata";
+import { readFrontmatter } from "@/src/helpers/readFrontmatter";
 import { SITE_URL } from "@/src/helpers/siteUrl";
 
 export const dynamic = "force-static";
@@ -75,10 +76,19 @@ async function blogPosts(): Promise<MetadataRoute.Sitemap> {
   return Promise.all(
     listBlogPosts().map(async ({ parsed, rel }) => {
       const file = path.join(BLOG_ROOT, rel);
+      const fm = readFrontmatter(file) as Record<string, unknown>;
+      // An explicit `updated` frontmatter field wins; otherwise the last git
+      // commit touching the post, with file mtime as the no-git fallback.
+      const updated =
+        typeof fm.updated === "string" && fm.updated.length > 0
+          ? new Date(fm.updated)
+          : null;
       return {
         url: `${SITE_URL}${blogUrlForStem(parsed)}`,
         lastModified:
-          (await getLastModifiedFromGit(file)) ?? fs.statSync(file).mtime,
+          updated ??
+          (await getLastModifiedFromGit(file)) ??
+          fs.statSync(file).mtime,
         changeFrequency: "yearly" as const,
         priority: 0.5,
       };

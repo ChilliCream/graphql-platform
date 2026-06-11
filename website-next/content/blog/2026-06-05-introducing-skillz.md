@@ -1,9 +1,9 @@
 ---
-path: "/blog/2026/06/05/introducing-skillz"
 date: "2026-06-05"
 title: "Introducing skillz: the .NET CLI for Agent Skills"
 description: "skillz is a .NET CLI for installing, updating, and authoring Agent Skills, with dnx support for a one-shot workflow the way npx skills works in JavaScript."
 tags: ["dotnet", "release", "products", "ai"]
+category: "AI"
 author: Pascal Senn
 authorUrl: https://github.com/pascalsenn
 authorImageUrl: https://avatars.githubusercontent.com/u/14233220?v=4

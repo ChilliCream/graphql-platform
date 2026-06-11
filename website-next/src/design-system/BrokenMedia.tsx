@@ -1,21 +1,21 @@
-// TODO: Create a better illustration
+import type { CSSProperties } from "react";
 
 type BrokenMediaProps = {
-  /** Short reason shown under the icon, e.g. "This image couldn't be loaded." */
   message: string;
+  className?: string;
+  style?: CSSProperties;
 };
 
-/**
- * Placeholder shown when a media source (video, image) can't be resolved or
- * loaded: a broken-link illustration with a short message, sized like a 16:9
- * media frame.
- */
-export function BrokenMedia({ message }: BrokenMediaProps) {
+// TODO: Create a better illustration
+export function BrokenMedia({ message, className, style }: BrokenMediaProps) {
   return (
-    // Rendered as <span>s (not <div>/<p>) so it stays valid phrasing content:
-    // markdown wraps a standalone image in a <p>, and a block-level fallback
-    // there would be invalid HTML and trigger a hydration error.
-    <span className="my-6 flex aspect-video w-full flex-col items-center justify-center gap-3 rounded-md bg-cc-card-bg text-cc-ink-dim ring-1 ring-cc-card-border">
+    <span
+      className={`@container flex flex-col items-center justify-center gap-3 overflow-hidden bg-cc-card-bg text-cc-ink-dim ${
+        className ??
+        "my-6 aspect-video w-full rounded-md ring-1 ring-cc-card-border"
+      }`}
+      style={style}
+    >
       <svg
         viewBox="0 0 24 24"
         fill="none"
@@ -23,7 +23,7 @@ export function BrokenMedia({ message }: BrokenMediaProps) {
         strokeWidth="1.75"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className="h-10 w-10"
+        className="h-10 w-10 shrink-0 @max-[8rem]:h-5 @max-[8rem]:w-5"
         aria-hidden="true"
       >
         <path d="m18.84 12.25 1.72-1.71a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
@@ -33,7 +33,9 @@ export function BrokenMedia({ message }: BrokenMediaProps) {
         <line x1="16" y1="19" x2="16" y2="22" />
         <line x1="19" y1="16" x2="22" y2="16" />
       </svg>
-      <span className="text-sm font-medium">{message}</span>
+      <span className="px-4 text-center text-sm font-medium @max-[14rem]:sr-only">
+        {message}
+      </span>
     </span>
   );
 }

@@ -1,5 +1,6 @@
 ---
 title: Response Pane
+description: "Inspect query results in Nitro's Response Pane: view the JSON response, browse the history of executed requests, and check status code, duration, and size."
 ---
 
 The Response Pane is a central feature that is located to the right of the request editor. Its primary function is to display the response of a query that has been executed, but it offers a range of additional features that help in analyzing these responses.

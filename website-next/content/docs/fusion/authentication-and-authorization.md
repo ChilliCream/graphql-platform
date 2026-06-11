@@ -1,5 +1,6 @@
 ---
 title: "Authentication and Authorization"
+description: "Secure a Hot Chocolate Fusion gateway with ASP.NET Core authentication: JWT bearer setup, header propagation to subgraphs, and mTLS trust boundaries."
 ---
 
 The Fusion gateway builds on ASP.NET Core authentication and authorization. You can use the same features you use in any ASP.NET Core service, including JWT validation, cookie authentication, OpenID Connect, and mTLS.

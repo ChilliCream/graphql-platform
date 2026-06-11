@@ -1,5 +1,6 @@
 ---
 title: ".Net Middleware"
+description: "Serve Nitro from your Hot Chocolate server: MapGraphQL() hosts it at /graphql by default, or use MapNitroApp() to expose the IDE on a separate endpoint."
 ---
 
 By default, when you map your GraphQL endpoints using `MapGraphQL()`, Nitro is automatically served at the `/graphql` endpoint.

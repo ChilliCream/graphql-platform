@@ -1,5 +1,6 @@
 ---
 title: Introduction
+description: "Introduction to resolvers in Hot Chocolate: how the resolver tree executes a query, defining resolver methods, accessing arguments, and injecting services."
 ---
 
 Every field in a GraphQL schema is backed by a resolver function that produces the field's value. Understanding how resolvers compose into a tree is the key mental model for building efficient GraphQL APIs with Hot Chocolate.

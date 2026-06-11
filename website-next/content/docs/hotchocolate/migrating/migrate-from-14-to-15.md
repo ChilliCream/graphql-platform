@@ -1,5 +1,6 @@
 ---
 title: Migrate Hot Chocolate from 14 to 15
+description: "Everything you need to upgrade a Hot Chocolate GraphQL server from version 14 to 15: supported target frameworks, runtime type changes, and scalar behavior."
 ---
 
 This guide will walk you through the manual migration steps to update your Hot Chocolate GraphQL server to version 15.

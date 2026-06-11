@@ -1,5 +1,6 @@
 ---
 title: "Object Types"
+description: "Define GraphQL object types in Hot Chocolate with the [ObjectType<T>] attribute, adding fields, resolvers, and type extensions to build your schema graph."
 ---
 
 Object types are the building blocks of a GraphQL schema. Each object type has a name and a set of fields. Fields can return scalars like `String` and `Int`, or other object types, forming a graph that clients traverse through their queries.

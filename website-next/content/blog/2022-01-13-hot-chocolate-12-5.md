@@ -1,8 +1,8 @@
 ---
-path: "/blog/2022/01/13/hot-chocolate-12-5"
 date: "2022-01-13"
 title: "Pushing ahead with Hot Chocolate 12.5"
 tags: ["hotchocolate", "graphql", "dotnet", "aspnetcore"]
+category: "Release"
 featuredImage: "hot-chocolate-12-5-banner.png"
 author: Michael Staib
 authorUrl: https://github.com/michaelstaib

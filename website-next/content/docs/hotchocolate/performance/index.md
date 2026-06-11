@@ -1,5 +1,6 @@
 ---
 title: "Overview"
+description: "Overview of Hot Chocolate performance features: faster startup, trusted documents, and persisted operations that cut parsing and validation overhead per request."
 ---
 
 This section covers ways to improve the performance of your Hot Chocolate GraphQL server.

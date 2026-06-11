@@ -1,5 +1,6 @@
 ---
 title: "Fusion"
+description: "Use Nitro as the control plane for your Fusion gateway: monitor topology and subgraph telemetry, and let the gateway pull its latest configuration automatically."
 ---
 
 ![Image](../../../../public/images/nitro-docs/apis/fusion-0.webp)

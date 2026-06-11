@@ -1,5 +1,6 @@
 ---
 title: "Mutations"
+description: "Define GraphQL mutations in Hot Chocolate with the [MutationType] attribute and enable mutation conventions for inputs, payloads, and typed errors."
 ---
 
 The Mutation type is the entry point for write operations. Unlike query fields, mutation fields are expected to cause side effects: creating, updating, or deleting data. GraphQL executes top-level mutation fields serially, one after another, to guarantee ordering. Child fields of a mutation result are executed in parallel, like any other object type.

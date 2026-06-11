@@ -1,9 +1,9 @@
 ---
-path: "/blog/2023/02/07/new-in-banana-cake-pop-4"
 date: "2023-02-07"
 title: "New in Banana Cake Pop 4"
 description: "New document on paste cURL or fetch, schema reload enhancements, new ways of closing tabs, menu enhancements/standardization, and UI polishing."
 tags: ["bananacakepop", "graphql", "ide", "cloud", "release"]
+category: "Release"
 featuredImage: "new-in-banana-cake-pop-4.png"
 author: Rafael Staib
 authorUrl: https://github.com/rstaib

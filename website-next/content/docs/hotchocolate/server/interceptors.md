@@ -1,5 +1,6 @@
 ---
 title: Interceptors
+description: "Hook into transport events in Hot Chocolate with IHttpRequestInterceptor and ISocketSessionInterceptor to customize HTTP requests and WebSocket sessions."
 ---
 
 Interceptors let you hook into protocol-specific events. You can intercept an incoming HTTP request or handle a client connecting to or disconnecting from a WebSocket session.

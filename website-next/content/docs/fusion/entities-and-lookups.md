@@ -1,5 +1,6 @@
 ---
 title: "Entities and Lookups"
+description: "How entities work in Hot Chocolate Fusion: define key-based identity and use @lookup fields so the gateway can resolve types across subgraphs."
 ---
 
 Entities are the mechanism that makes distributed GraphQL work. They are types with stable keys that can be referenced and resolved across subgraphs. For example, the Products subgraph defines the `Product` type, and the Reviews subgraph contributes the `reviews` field to `Product`. The Accounts subgraph defines the `User` type, and other subgraphs can contribute additional fields to `User`. Without entities, each subgraph would be an isolated API. With entities, those subgraphs compose into one unified API.

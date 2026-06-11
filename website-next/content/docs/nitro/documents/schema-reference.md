@@ -1,5 +1,6 @@
 ---
 title: "Schema Reference"
+description: "Explore your GraphQL schema with Nitro's Schema Reference: browse types, fields, and directives in the Tree View or Explorer View and filter by name."
 ---
 
 The Schema Reference feature allows you to inspect and explore the schema of your GraphQL server. It provides valuable information about the available types, fields, and directives within the schema. This section describes the components and functionalities of the Schema Reference.

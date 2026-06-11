@@ -1,5 +1,6 @@
 ---
 title: login Command
+description: "Authenticate the Nitro CLI interactively with `nitro login`: sign in through the browser, pick a default workspace, and persist the session locally."
 ---
 
 The `nitro login` command logs you in interactively through your default browser. After authenticating, the CLI prompts you to select a default workspace (skipped when you only have one) and persists the session locally so subsequent commands don't need `--api-key`.
