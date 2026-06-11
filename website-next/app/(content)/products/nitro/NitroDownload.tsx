@@ -41,11 +41,12 @@ interface AppInfoVariant {
   readonly windows: WindowsAppInfo;
 }
 
-interface AppInfos {
-  readonly activeStable?: LinuxAppInfo | MacOSAppInfo | WindowsAppInfo;
+interface AppMatrix {
   readonly stable: AppInfoVariant;
   readonly insider: AppInfoVariant;
 }
+
+type ActiveAppInfo = LinuxAppInfo | MacOSAppInfo | WindowsAppInfo;
 
 function getOS(): OS | null {
   if (navigator.userAgent.indexOf("Win") >= 0) {
@@ -79,9 +80,42 @@ async function fetchAppInfo(variant: Variant, os: OS): Promise<LatestAppInfo> {
   const response = await fetch(
     DOWNLOAD_BASE_URL + filename + "?no-cache=" + new Date().getTime()
   );
-  const text = await response.text();
 
-  return load(text) as LatestAppInfo;
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch ${filename}: ${response.status} ${response.statusText}`
+    );
+  }
+
+  const text = await response.text();
+  const parsed = load(text);
+
+  if (
+    typeof parsed !== "object" ||
+    parsed === null ||
+    !Array.isArray((parsed as { files?: unknown }).files) ||
+    !(parsed as LatestAppInfo).files.every(
+      (file) => typeof file?.url === "string"
+    )
+  ) {
+    throw new Error(`Invalid app info manifest: ${filename}`);
+  }
+
+  return parsed as LatestAppInfo;
+}
+
+function findFile(
+  files: LatestAppInfo["files"],
+  predicate: (url: string) => boolean,
+  description: string
+): string {
+  const match = files.find((file) => predicate(file.url));
+
+  if (!match) {
+    throw new Error(`Missing required file: ${description}`);
+  }
+
+  return match.url;
 }
 
 async function fetchLinuxAppInfo(variant: Variant): Promise<LinuxAppInfo> {
@@ -89,36 +123,161 @@ async function fetchLinuxAppInfo(variant: Variant): Promise<LinuxAppInfo> {
 
   return {
     os: "linux",
-    appImage: { filename: files[0].url, text: "Linux" },
+    appImage: {
+      filename: findFile(
+        files,
+        (url) => url.endsWith(".AppImage"),
+        "Linux AppImage"
+      ),
+      text: "Linux",
+    },
   };
 }
 
 async function fetchMacOSAppInfo(variant: Variant): Promise<MacOSAppInfo> {
   const { files } = await fetchAppInfo(variant, "mac");
+  const isDmg = (url: string) => url.endsWith(".dmg");
 
   return {
     os: "mac",
-    intel: { filename: files[4].url, text: "Mac Intel" },
-    silicon: { filename: files[3].url, text: "Mac Silicon" },
-    universal: { filename: files[5].url, text: "Mac Universal" },
+    intel: {
+      filename: findFile(
+        files,
+        (url) => isDmg(url) && url.includes("x64"),
+        "Mac Intel (.dmg)"
+      ),
+      text: "Mac Intel",
+    },
+    silicon: {
+      filename: findFile(
+        files,
+        (url) => isDmg(url) && url.includes("arm64"),
+        "Mac Silicon (.dmg)"
+      ),
+      text: "Mac Silicon",
+    },
+    universal: {
+      filename: findFile(
+        files,
+        (url) => isDmg(url) && url.includes("universal"),
+        "Mac Universal (.dmg)"
+      ),
+      text: "Mac Universal",
+    },
   };
 }
 
 async function fetchWindowsAppInfo(variant: Variant): Promise<WindowsAppInfo> {
   const { files } = await fetchAppInfo(variant, "windows");
+  const isExe = (url: string) => url.endsWith(".exe");
 
   return {
     os: "windows",
-    arm64: { filename: files[1].url, text: "Windows arm64" },
-    x64: { filename: files[2].url, text: "Windows x64" },
-    universal: { filename: files[0].url, text: "Windows Universal" },
+    arm64: {
+      filename: findFile(
+        files,
+        (url) => isExe(url) && url.includes("arm64"),
+        "Windows arm64 (.exe)"
+      ),
+      text: "Windows arm64",
+    },
+    x64: {
+      filename: findFile(
+        files,
+        (url) => isExe(url) && url.includes("x64"),
+        "Windows x64 (.exe)"
+      ),
+      text: "Windows x64",
+    },
+    universal: {
+      filename: findFile(
+        files,
+        (url) =>
+          isExe(url) && !url.includes("arm64") && !url.includes("x64"),
+        "Windows Universal (.exe)"
+      ),
+      text: "Windows Universal",
+    },
   };
 }
 
-function useAppInfos(): AppInfos | undefined {
-  const [appInfos, setAppInfos] = useState<AppInfos | undefined>(undefined);
+async function fetchVariantAppInfo(
+  variant: Variant,
+  os: OS
+): Promise<ActiveAppInfo> {
+  switch (os) {
+    case "linux":
+      return fetchLinuxAppInfo(variant);
+    case "mac":
+      return fetchMacOSAppInfo(variant);
+    case "windows":
+      return fetchWindowsAppInfo(variant);
+  }
+}
+
+type ActiveAppInfoStatus =
+  | { readonly state: "loading" }
+  | { readonly state: "ready"; readonly activeStable?: ActiveAppInfo };
+
+// Fetches only the active OS's stable manifest on mount to power the primary
+// CTA. If the OS can't be detected, nothing is fetched (the matrix is loaded
+// lazily when the dropdown opens).
+function useActiveAppInfo(): ActiveAppInfoStatus {
+  const [status, setStatus] = useState<ActiveAppInfoStatus>({
+    state: "loading",
+  });
 
   useEffect(() => {
+    const os = getOS();
+
+    let cancelled = false;
+
+    // When no OS is detected there's nothing to fetch, so resolve immediately
+    // to the "ready" state with no active build.
+    const pending = os
+      ? fetchVariantAppInfo("nitro", os).then(
+          (info): ActiveAppInfoStatus => ({ state: "ready", activeStable: info })
+        )
+      : Promise.resolve<ActiveAppInfoStatus>({ state: "ready" });
+
+    pending
+      .then((next) => {
+        if (cancelled) {
+          return;
+        }
+
+        setStatus(next);
+      })
+      .catch(() => {
+        // CDN unreachable: leave the placeholder linking to the web version.
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return status;
+}
+
+type AppMatrixStatus =
+  | { readonly state: "idle" }
+  | { readonly state: "ready"; readonly matrix: AppMatrix }
+  | { readonly state: "error" };
+
+// Lazily fetches the full stable + insider matrix the first time it's enabled
+// (i.e. the dropdown is opened), then caches it for subsequent opens.
+function useAppMatrix(enabled: boolean): AppMatrixStatus {
+  const [status, setStatus] = useState<AppMatrixStatus>({ state: "idle" });
+  const requested = useRef(false);
+
+  useEffect(() => {
+    // Fetch at most once across the component's lifetime.
+    if (!enabled || requested.current) {
+      return;
+    }
+
+    requested.current = true;
     let cancelled = false;
 
     Promise.all([
@@ -142,46 +301,39 @@ function useAppInfos(): AppInfos | undefined {
             return;
           }
 
-          const stable = { linux, macOS, windows };
-          const insider = {
-            linux: linuxInsider,
-            macOS: macOSInsider,
-            windows: windowsInsider,
-          };
-
-          switch (getOS()) {
-            case "linux":
-              setAppInfos({ activeStable: linux, stable, insider });
-              break;
-            case "mac":
-              setAppInfos({ activeStable: macOS, stable, insider });
-              break;
-            case "windows":
-              setAppInfos({ activeStable: windows, stable, insider });
-              break;
-            default:
-              setAppInfos({ stable, insider });
-              break;
-          }
+          setStatus({
+            state: "ready",
+            matrix: {
+              stable: { linux, macOS, windows },
+              insider: {
+                linux: linuxInsider,
+                macOS: macOSInsider,
+                windows: windowsInsider,
+              },
+            },
+          });
         }
       )
       .catch(() => {
-        // CDN unreachable: leave the placeholder linking to the web version.
+        if (cancelled) {
+          return;
+        }
+
+        // CDN unreachable: keep the tfoot web/insider links available.
+        setStatus({ state: "error" });
       });
 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [enabled]);
 
-  return appInfos;
+  return status;
 }
 
 function getActiveDownload(
-  appInfos: AppInfos
+  active: ActiveAppInfo | undefined
 ): { url: string; text: string; filename?: string } {
-  const active = appInfos.activeStable;
-
   switch (active?.os) {
     case "linux":
       return {
@@ -201,12 +353,19 @@ function getActiveDownload(
   }
 }
 
-function DownloadAppLink({ filename }: { filename: string }) {
+function DownloadAppLink({
+  filename,
+  onClick,
+}: {
+  readonly filename: string;
+  readonly onClick?: () => void;
+}) {
   return (
     <a
       href={DOWNLOAD_BASE_URL + filename}
       download={filename}
       rel="noopener noreferrer nofollow"
+      onClick={onClick}
       className="flex items-center justify-center py-1 text-cc-ink hover:text-cc-white"
       aria-label={"Download " + filename}
     >
@@ -251,8 +410,12 @@ const MATRIX_ROWS: {
 ];
 
 export function NitroDownload() {
-  const appInfos = useAppInfos();
+  const activeStatus = useActiveAppInfo();
   const [open, setOpen] = useState(false);
+  const matrixStatus = useAppMatrix(open);
+  const matrix =
+    matrixStatus.state === "ready" ? matrixStatus.matrix : undefined;
+  const matrixLoading = matrixStatus.state === "idle";
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -260,20 +423,34 @@ export function NitroDownload() {
       return;
     }
 
-    const closeHandler = (event: MouseEvent) => {
+    const onPointerDown = (event: PointerEvent) => {
       if (!containerRef.current?.contains(event.target as Node)) {
         setOpen(false);
       }
     };
 
-    window.addEventListener("click", closeHandler);
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
 
     return () => {
-      window.removeEventListener("click", closeHandler);
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
     };
   }, [open]);
 
-  if (!appInfos) {
+  // While the active-OS fetch is pending or if it failed (the status never
+  // resolves to "ready"), fall back to the plain web link.
+  const activeStable =
+    activeStatus.state === "ready" ? activeStatus.activeStable : undefined;
+  const os = activeStatus.state === "ready" ? getOS() : null;
+
+  if (activeStatus.state !== "ready" || (os !== null && !activeStable)) {
     return (
       <a
         href={WEB_STABLE_URL}
@@ -286,7 +463,7 @@ export function NitroDownload() {
     );
   }
 
-  const active = getActiveDownload(appInfos);
+  const active = getActiveDownload(activeStable);
 
   return (
     <div ref={containerRef} className="relative inline-flex">
@@ -329,31 +506,52 @@ export function NitroDownload() {
                 </th>
               </tr>
             </thead>
-            <tbody>
-              {MATRIX_ROWS.map((row) => (
-                <tr
-                  key={row.os + row.type}
-                  className={
-                    row.groupStart || row.os
-                      ? "border-t border-cc-card-border"
-                      : ""
-                  }
-                >
-                  <td className="whitespace-nowrap px-3 py-1.5 font-semibold">
-                    {row.os}
-                  </td>
-                  <td className="whitespace-nowrap px-3 py-1.5 text-cc-ink-dim">
-                    {row.type}
-                  </td>
-                  <td className="px-3 py-1.5 text-center">
-                    <DownloadAppLink filename={row.pick(appInfos.stable)} />
-                  </td>
-                  <td className="px-3 py-1.5 text-center">
-                    <DownloadAppLink filename={row.pick(appInfos.insider)} />
+            {matrix ? (
+              <tbody>
+                {MATRIX_ROWS.map((row) => (
+                  <tr
+                    key={row.os + row.type}
+                    className={
+                      row.groupStart || row.os
+                        ? "border-t border-cc-card-border"
+                        : ""
+                    }
+                  >
+                    <td className="whitespace-nowrap px-3 py-1.5 font-semibold">
+                      {row.os}
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-1.5 text-cc-ink-dim">
+                      {row.type}
+                    </td>
+                    <td className="px-3 py-1.5 text-center">
+                      <DownloadAppLink
+                        filename={row.pick(matrix.stable)}
+                        onClick={() => setOpen(false)}
+                      />
+                    </td>
+                    <td className="px-3 py-1.5 text-center">
+                      <DownloadAppLink
+                        filename={row.pick(matrix.insider)}
+                        onClick={() => setOpen(false)}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            ) : (
+              <tbody>
+                <tr className="border-t border-cc-card-border">
+                  <td
+                    colSpan={4}
+                    className="px-3 py-3 text-center text-cc-ink-dim"
+                  >
+                    {matrixLoading
+                      ? "Loading downloads…"
+                      : "Downloads unavailable"}
                   </td>
                 </tr>
-              ))}
-            </tbody>
+              </tbody>
+            )}
             <tfoot>
               <tr className="border-t border-cc-card-border">
                 <td
@@ -364,6 +562,7 @@ export function NitroDownload() {
                     href={WEB_STABLE_URL}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() => setOpen(false)}
                     className="text-cc-ink hover:text-cc-white"
                   >
                     Open Web Version
@@ -373,6 +572,7 @@ export function NitroDownload() {
                     href={WEB_INSIDER_URL}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() => setOpen(false)}
                     className="text-cc-ink hover:text-cc-white"
                   >
                     Open Insider Version
