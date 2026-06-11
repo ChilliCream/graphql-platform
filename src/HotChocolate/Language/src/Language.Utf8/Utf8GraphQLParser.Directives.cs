@@ -17,6 +17,8 @@ public ref partial struct Utf8GraphQLParser
         var arguments =
             ParseArgumentDefinitions();
 
+        var directives = ParseDirectives(true);
+
         var isRepeatable = SkipRepeatableKeyword();
         ExpectOnKeyword();
 
@@ -31,7 +33,7 @@ public ref partial struct Utf8GraphQLParser
             TakeDescription(),
             isRepeatable,
             arguments,
-            s_emptyDirectives,
+            directives,
             locations
         );
     }

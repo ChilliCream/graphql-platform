@@ -120,4 +120,44 @@ public class DirectiveParserTests
         // assert
         document.MatchSnapshot();
     }
+
+    [Fact]
+    public void ParseDirectivesOnDirectiveDefinition()
+    {
+        // arrange
+        const string text =
+            "directive @foo(arg: Int) @tag(name: \"a\") repeatable on OBJECT";
+        var parser = new Utf8GraphQLParser(Encoding.UTF8.GetBytes(text));
+
+        // act
+        var document = parser.Parse();
+
+        // assert
+        var directiveDefinition = document.Definitions
+            .OfType<DirectiveDefinitionNode>().FirstOrDefault();
+        Assert.NotNull(directiveDefinition);
+        var directive = Assert.Single(directiveDefinition.Directives);
+        Assert.Equal("tag", directive.Name.Value);
+        Assert.True(directiveDefinition.IsRepeatable);
+    }
+
+    [Fact]
+    public void ParseDirectivesOnDirectiveDefinitionWithoutArguments()
+    {
+        // arrange
+        const string text = "directive @foo @a @b on FIELD";
+        var parser = new Utf8GraphQLParser(Encoding.UTF8.GetBytes(text));
+
+        // act
+        var document = parser.Parse();
+
+        // assert
+        var directiveDefinition = document.Definitions
+            .OfType<DirectiveDefinitionNode>().FirstOrDefault();
+        Assert.NotNull(directiveDefinition);
+        Assert.Collection(
+            directiveDefinition.Directives,
+            d => Assert.Equal("a", d.Name.Value),
+            d => Assert.Equal("b", d.Name.Value));
+    }
 }
