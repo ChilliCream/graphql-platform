@@ -429,6 +429,8 @@ public sealed partial class SyntaxSerializer
             WriteArgumentDefinitions(node.Arguments, writer);
         }
 
+        WriteDirectives(node.Directives, writer);
+
         writer.WriteSpace();
 
         if (node.IsRepeatable)

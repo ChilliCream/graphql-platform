@@ -1053,4 +1053,19 @@ public class SchemaSyntaxPrinterTests
               | VARIABLE_DEFINITION
             """);
     }
+
+    [Fact]
+    public void Serialize_DirectiveDefWithDirectivesNoIndent_InOutShouldBeTheSame()
+    {
+        // arrange
+        const string schema =
+            "directive @foo(arg: Int) @tag(name: \"a\") repeatable on OBJECT";
+        var document = Utf8GraphQLParser.Parse(schema);
+
+        // act
+        var result = document.ToString(indented: false);
+
+        // assert
+        Assert.Equal(schema, result);
+    }
 }
