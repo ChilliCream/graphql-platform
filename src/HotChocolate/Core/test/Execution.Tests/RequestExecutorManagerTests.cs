@@ -294,6 +294,65 @@ public class RequestExecutorManagerTests
         Assert.NotSame(initialExecutor, rebuiltExecutor);
     }
 
+    [Fact]
+    public async Task OnTypesChanged_Should_Not_Grow_CreateTypes_Calls_Exponentially_When_Type_Instance_Registered()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        var typeModule = new CountingTypeModule();
+
+        var manager = new ServiceCollection()
+            .AddGraphQL()
+            .AddTypeModule(_ => typeModule)
+            .AddType(new ObjectType<FooType>())
+            .AddQueryType(d => d.Field("foo").Resolve(""))
+            .Services
+            .BuildServiceProvider()
+            .GetRequiredService<RequestExecutorManager>();
+
+        await manager.GetExecutorAsync(cancellationToken: cts.Token);
+        var createCallsAfterInitial = typeModule.CreateTypesCallCount;
+
+        // act
+        for (var i = 0; i < 3; i++)
+        {
+            typeModule.TriggerChange();
+
+            // Give the eviction loop time to attempt (and fail) the rebuild. The rebuild
+            // throws so no Evicted event is raised; we just wait for the attempt to settle.
+            await Task.Delay(200, cts.Token);
+        }
+
+        // assert
+        var createCallsFromTriggers = typeModule.CreateTypesCallCount - createCallsAfterInitial;
+        Assert.True(
+            createCallsFromTriggers <= 3,
+            "Expected at most 3 CreateTypesAsync calls from 3 triggers, but observed "
+                + $"{createCallsFromTriggers}. This indicates leaked type module subscriptions.");
+    }
+
+    private sealed class CountingTypeModule : TypeModule
+    {
+        private int _createTypesCallCount;
+
+        public int CreateTypesCallCount => _createTypesCallCount;
+
+        public void TriggerChange() => OnTypesChanged();
+
+        public override ValueTask<IReadOnlyCollection<ITypeSystemMember>> CreateTypesAsync(
+            IDescriptorContext context,
+            CancellationToken cancellationToken)
+        {
+            Interlocked.Increment(ref _createTypesCallCount);
+            return base.CreateTypesAsync(context, cancellationToken);
+        }
+    }
+
+    private sealed class FooType
+    {
+        public string Bar() => "baz";
+    }
+
 #pragma warning disable CS9113 // Parameter is unread.
     private sealed class CustomWarmupTask(IDocumentCache documentCache, SomeService service) : IRequestExecutorWarmupTask
 #pragma warning restore CS9113 // Parameter is unread.
