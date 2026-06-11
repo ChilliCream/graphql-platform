@@ -314,21 +314,32 @@ public class RequestExecutorManagerTests
         var createCallsAfterInitial = typeModule.CreateTypesCallCount;
 
         // act
-        for (var i = 0; i < 3; i++)
+        for (var i = 1; i <= 3; i++)
         {
             typeModule.TriggerChange();
 
-            // Give the eviction loop time to attempt (and fail) the rebuild. The rebuild
-            // throws so no Evicted event is raised; we just wait for the attempt to settle.
-            await Task.Delay(200, cts.Token);
+            // The rebuild throws (the type instance is already initialized), so no Evicted
+            // event is raised. The only observable signal of the rebuild attempt is the
+            // CreateTypesAsync counter, so wait until this trigger's attempt has happened.
+            var expectedCalls = createCallsAfterInitial + i;
+            await SpinUntilAsync(() => typeModule.CreateTypesCallCount >= expectedCalls, cts.Token);
         }
+
+        // give leaked subscriptions time to surface additional rebuild attempts
+        await Task.Delay(200, cts.Token);
 
         // assert
         var createCallsFromTriggers = typeModule.CreateTypesCallCount - createCallsAfterInitial;
-        Assert.True(
-            createCallsFromTriggers <= 3,
-            "Expected at most 3 CreateTypesAsync calls from 3 triggers, but observed "
-                + $"{createCallsFromTriggers}. This indicates leaked type module subscriptions.");
+        Assert.Equal(3, createCallsFromTriggers);
+    }
+
+    private static async Task SpinUntilAsync(Func<bool> condition, CancellationToken cancellationToken)
+    {
+        while (!condition())
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            await Task.Delay(10, cancellationToken);
+        }
     }
 
     private sealed class CountingTypeModule : TypeModule
