@@ -12,7 +12,7 @@ This page covers:
 - Deduplicating identical in-flight requests
 - Limiting concurrent request processing to maximize throughput
 
-## Configure the HTTP Transport
+# Configure the HTTP Transport
 
 Fusion uses a **named `HttpClient`** to communicate with subgraphs. The default client name is `"fusion"`, and you configure it through the standard `IHttpClientFactory` pattern. This gives you full control over connection behavior, timeouts, and message handlers.
 
@@ -37,11 +37,11 @@ app.Run();
 1. **Named HTTP client `"fusion"`**: the client the gateway uses to call subgraphs. Any handler configuration you add here applies to all subgraph requests.
 2. **Gateway registration**: wires up the Fusion execution engine and loads the composed schema.
 
-## HTTP/2
+# HTTP/2
 
 HTTP/2 multiplexes multiple requests over a single TCP connection, which reduces connection overhead when the gateway sends many concurrent requests to a subgraph. This is especially beneficial when subgraphs are behind a load balancer that supports HTTP/2.
 
-### With TLS
+## With TLS
 
 When your subgraphs use TLS (HTTPS), HTTP/2 is negotiated automatically via ALPN. Enable `EnableMultipleHttp2Connections` to allow the gateway to open additional HTTP/2 connections when a single connection's stream limit is reached:
 
@@ -56,7 +56,7 @@ builder.Services
 
 No additional version configuration is needed. .NET negotiates HTTP/2 over TLS by default.
 
-### Without TLS
+## Without TLS
 
 In many Kubernetes deployments, services communicate over plaintext HTTP inside the cluster. HTTP/2 cleartext (h2c) requires explicit opt-in because .NET defaults to HTTP/1.1 for unencrypted connections.
 
@@ -89,11 +89,11 @@ builder.WebHost.ConfigureKestrel(options =>
 
 If you are unsure whether your infrastructure supports HTTP/2 cleartext end-to-end, **HTTP/1.1 works well** for most internal deployments. Switch to HTTP/2 only when you have confirmed support on both the gateway and all subgraphs.
 
-## Request Deduplication
+# Request Deduplication
 
 When multiple identical query requests are in flight to the same subgraph at the same time, **request deduplication** ensures only one HTTP request is actually sent. The first request becomes the "leader" and executes normally. Subsequent identical requests become "followers" that wait for the leader's response. Each caller receives an independent copy of the result.
 
-### When It Helps
+## When It Helps
 
 Deduplication is most effective when:
 
@@ -101,7 +101,7 @@ Deduplication is most effective when:
 - **Public APIs** serve unauthenticated traffic where many users send the same queries.
 - **The same user** sends identical concurrent requests (e.g., a UI that fires duplicate fetches).
 
-### Security Model
+## Security Model
 
 The deduplication hash includes the request body, URL, and the values of configurable **hash headers**. By default, `Authorization` and `Cookie` headers are included in the hash. This means:
 
@@ -109,7 +109,7 @@ The deduplication hash includes the request body, URL, and the values of configu
 - **Same user, same query, concurrent**: identical tokens produce the same hash and are deduplicated.
 - **Different users, same query**: different tokens produce different hashes. Never deduplicated. One user's response is never shared with another.
 
-### How to Enable
+## How to Enable
 
 Add the request deduplication message handler with `.AddRequestDeduplication()` to the named HTTP client builder:
 
@@ -119,7 +119,7 @@ builder.Services
     .AddRequestDeduplication();
 ```
 
-### Customizing Hash Headers
+## Customizing Hash Headers
 
 By default, the `Authorization` and `Cookie` headers are included in the deduplication hash, which covers most setups. If you need additional headers to be part of the hash, for instance a tenant identifier in a multi-tenant application, add them to `HashHeaders`:
 
@@ -139,7 +139,7 @@ For **service-to-service communication** where the gateway does not receive cook
 });
 ```
 
-### What Gets Deduplicated
+## What Gets Deduplicated
 
 Only **query operations** are deduplicated. The following are **not** deduplicated:
 
@@ -147,7 +147,7 @@ Only **query operations** are deduplicated. The following are **not** deduplicat
 - **Subscriptions**: long-lived connections that are inherently unique.
 - **File uploads**: multipart requests bypass deduplication.
 
-## Concurrent Execution Limiting
+# Concurrent Execution Limiting
 
 The gateway limits the number of simultaneous **executions** it processes using a **concurrency gate**. An execution is the work of running a single GraphQL operation end-to-end. Each query or mutation counts as one execution, and each event a subscription emits counts as one execution while its selection set runs. Capping concurrency keeps the gateway operating in its optimal throughput range. Too much work competing for the same resources (thread pool, memory, connections) can reduce overall throughput rather than increase it.
 
@@ -177,14 +177,14 @@ app.MapGraphQLHttp()
     });
 ```
 
-### Tuning Guidance
+## Tuning Guidance
 
 - **Too low**: executions queue behind the concurrency gate, adding latency even when the gateway and subgraphs have spare capacity. Subscriptions with high event rates feel this first.
 - **Too high**: the gateway runs more work than it can efficiently process, leading to thread pool starvation and increased latency across queries, mutations, and subscription events.
 
 Start with the default of 64 and adjust based on your workload. If you expect many long-lived subscriptions firing frequent events, factor those into your sizing. They now contend for the same slots as queries and mutations. Set to `null` to disable the limit entirely.
 
-### Execution Cancellation
+## Execution Cancellation
 
 Every execution is bounded by the `ExecutionTimeout` option (default 30 seconds). This applies uniformly to queries, mutations, subscription handshakes, and each subscription event. The budget covers both the time an execution spends waiting for a concurrency slot and the time it spends running. When the budget is exceeded, the execution is cancelled and the caller receives a clean timeout error.
 
@@ -198,7 +198,7 @@ builder
 
 If executions routinely time out at the gate, that is a signal to scale out or raise `MaxConcurrentExecutions`. Increasing `ExecutionTimeout` only defers the problem.
 
-## Next Steps
+# Next Steps
 
 - **"I need CDN and HTTP response caching behavior"**: [Cache Control](./cache-control.md) covers `@cacheControl`, composition merge behavior, and gateway response headers.
 - **"I need to secure my gateway"**: [Authentication and Authorization](./authentication-and-authorization.md) covers JWT validation, header propagation, and subgraph-level authorization.

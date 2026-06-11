@@ -12,7 +12,7 @@ This page covers:
 - Planner guardrails that prevent expensive query plan generation
 - Execution limits that bound time, request size, and transport features
 
-## Parser Limits
+# Parser Limits
 
 Parser limits stop malicious payloads before the AST is fully constructed. They are the first line of defense because they run before any semantic analysis.
 
@@ -34,11 +34,11 @@ builder
 | `MaxAllowedNodes`          | Unlimited      | Maximum number of AST nodes the parser produces from a document. Defaults to unlimited.                      |
 | `MaxAllowedTokens`         | Unlimited      | Maximum number of tokens the lexer processes. Defaults to unlimited.                                         |
 
-## Validation Limits
+# Validation Limits
 
 After parsing, the validation pipeline enforces semantic limits on the query structure. These limits protect against queries that are syntactically valid but computationally expensive to execute.
 
-### Execution Depth
+## Execution Depth
 
 Caps how deeply nested a query can be. A depth of 10 covers most real-world queries while blocking deeply nested attacks:
 
@@ -46,15 +46,15 @@ Caps how deeply nested a query can be. A depth of 10 covers most real-world quer
 builder.AddMaxExecutionDepthRule(10);
 ```
 
-### Fragment Visits
+## Fragment Visits
 
 Each time a visitor enters a fragment spread counts as one visit. Queries with deeply nested or repeated fragment spreads can cause exponential visitor work. The total number of fragment visits per operation is capped at **1,000** by default.
 
-### Field Merge Comparisons
+## Field Merge Comparisons
 
 The overlapping-fields-can-be-merged rule caps comparison work at 100,000 by default. No configuration is needed for most gateways. The default protects against fragment expansion bombs.
 
-### Field Coordinate Cycles
+## Field Coordinate Cycles
 
 Some schemas contain self-referential relationships. For example, a `User` type with a `friends` field that returns `[User]`. Without a limit, a client can nest this relationship arbitrarily deep, causing resolver fan-out that grows exponentially with each level.
 
@@ -98,7 +98,7 @@ builder.AddMaxAllowedFieldCycleDepthRule(
 
 This rule is enabled by default in non-development environments as part of the default security policy. You can remove it with `RemoveMaxAllowedFieldCycleDepthRule()` if your schema does not contain self-referential relationships.
 
-### Validation Errors
+## Validation Errors
 
 Caps the total number of validation errors reported per request. The default is 5. When the limit is reached, validation stops early instead of continuing to accumulate errors.
 
@@ -106,7 +106,7 @@ Caps the total number of validation errors reported per request. The default is 
 builder.SetMaxAllowedValidationErrors(5);
 ```
 
-### Introspection Depth
+## Introspection Depth
 
 Introspection queries with recursive fields like `__Type.ofType` or `__Type.fields` can be used to construct expensive queries that consume significant server resources. The concern is not schema discovery (the schema is available at `/graphql/schema.graphql` by default when using `MapGraphQL`, computed once with no performance impact), but resource consumption from deeply recursive introspection operations.
 
@@ -116,7 +116,7 @@ builder.SetIntrospectionAllowedDepth(
     maxAllowedListRecursiveDepth: 1);
 ```
 
-### Disable Introspection
+## Disable Introspection
 
 Introspection is disabled in non-development environments by default as part of the default security policy. This prevents clients from running expensive introspection queries against production systems. To disable it unconditionally (including in development):
 
@@ -124,7 +124,7 @@ Introspection is disabled in non-development environments by default as part of 
 builder.DisableIntrospection();
 ```
 
-## Operation Planner Guardrails
+# Operation Planner Guardrails
 
 Before execution, the gateway plans how to distribute the query across subgraphs. Complex queries can cause expensive planning. These guardrails prevent planning from consuming excessive resources.
 
@@ -145,9 +145,9 @@ builder
 | `MaxQueueSize`                   | Disabled | Maximum size of the planner's internal work queue.                           |
 | `MaxGeneratedOptionsPerWorkItem` | Disabled | Maximum number of options the planner generates per work item.               |
 
-## Execution Limits
+# Execution Limits
 
-### Timeout
+## Timeout
 
 Requests are aborted after 30 seconds by default. The timeout covers the entire request including all subgraph calls. It is not enforced when a debugger is attached.
 
@@ -159,7 +159,7 @@ builder
     });
 ```
 
-### HTTP Request Size
+## HTTP Request Size
 
 The maximum HTTP request body size defaults to approximately 20 MB:
 
@@ -167,7 +167,7 @@ The maximum HTTP request body size defaults to approximately 20 MB:
 builder.AddGraphQLGateway(maxAllowedRequestSize: 5 * 1000 * 1024); // 5 MB
 ```
 
-### Server Options
+## Server Options
 
 Control which HTTP methods and features are available:
 
@@ -179,7 +179,7 @@ builder
     });
 ```
 
-## Next Steps
+# Next Steps
 
 - **"I need to secure my gateway."** [Authentication and Authorization](./authentication-and-authorization.md) covers JWT validation, header propagation, and subgraph-level authorization.
 - **"I need to tune transport performance."** [Performance Tuning](./performance-tuning.md) covers HTTP/2, request deduplication, and concurrency limiting.

@@ -199,7 +199,10 @@ export default async function BlogSlugPage({ params }: PageProps) {
             src={featuredImage}
             alt=""
             priority
-            sizes="(max-width: 1024px) 100vw, 1024px"
+            // Mirrors the layout: a max-w-5xl (1024px) column inside px-5
+            // (sm:px-12) page padding, so the browser picks the smallest
+            // sufficient variant instead of rounding the slot up to 100vw.
+            sizes="(max-width: 639px) calc(100vw - 2.5rem), (max-width: 1119px) calc(100vw - 6rem), 1024px"
             className="mb-6 aspect-video w-full rounded-lg object-cover"
           />
         ) : null}

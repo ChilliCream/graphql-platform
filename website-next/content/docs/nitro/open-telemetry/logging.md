@@ -6,32 +6,32 @@ description: "Collect and analyze OpenTelemetry logs in Nitro: browse the Logs t
 Nitro includes Open Telemetry logging, allowing seamless log collection and analysis directly within the app.
 This documentation provides guidance on setting up and utilizing logging features in Nitro for enhanced monitoring, debugging, and performance analysis of your APIs.
 
-## API Logs
+# API Logs
 
 ![Api Logs](../../../../public/images/nitro-docs/open-telemetry/logs-0.webp)
 Each API in Nitro features a **Logs** tab, providing a centralized interface for viewing and managing logs associated with your API.
 This unified log view offers insights into your system’s activities, enabling you to monitor and troubleshoot in real-time.
 
-### Detailed Log Inspection
+## Detailed Log Inspection
 
 ![API Logs - Expanded](../../../../public/images/nitro-docs/open-telemetry/logs-1.webp)
 
 Within the Logs tab, individual log entries can be expanded to reveal additional details such as timestamps, log levels, and message content.
 
-## Trace Logs
+# Trace Logs
 
 ![Trace Logs](../../../../public/images/nitro-docs/open-telemetry/logs-2.webp)
 
 Logs can also be inspected within individual traces, providing detailed insights into the correlation between specific traces and their corresponding logs.
 
-## Log Retention
+# Log Retention
 
 Log retention in Nitro is configured as follows:
 
 - **Shared Clusters:** Logs are retained for 1 day to allow for recent log review.
 - **Dedicated Clusters:** Dynamic log retention times can be configured to meet specific needs, offering flexibility in log management.
 
-## Connect your service
+# Connect your service
 
 All the logging is done on a per API basis.
 An api represents one of your deployments.
@@ -111,6 +111,6 @@ public void ConfigureServices(IServiceCollection services)
 >
 > In this setup, the API key, ID, and stage are set through environment variables.
 
-## Full Example
+# Full Example
 
 For a complete implementation example, visit the [example repository](https://link.chillicream.com/docs/logging-example).
