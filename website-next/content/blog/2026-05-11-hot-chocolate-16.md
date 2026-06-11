@@ -1,9 +1,9 @@
 ---
-path: "/blog/2026/05/11/hot-chocolate-16"
 date: "2026-05-11"
 title: "What's new for Hot Chocolate 16"
 description: "Hot Chocolate 16 brings a new type system, better scalar contracts, safer defaults, improved batching, semantic introspection, and a new GraphQL error mode."
 tags: ["hotchocolate", "graphql", "dotnet", "aspnetcore"]
+category: "Release"
 featuredImage: "header.png"
 author: Michael Staib
 authorUrl: https://github.com/michaelstaib

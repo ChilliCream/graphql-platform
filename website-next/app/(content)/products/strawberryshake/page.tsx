@@ -1,7 +1,15 @@
+import type { Metadata } from "next";
+
 import { ContentSection } from "@/src/components/ContentSection";
 import { PageHero } from "@/src/components/PageHero";
 import { Section } from "@/src/components/Section";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
+
+export const metadata: Metadata = {
+  title: "Strawberry Shake",
+  description:
+    "Strawberry Shake is a strongly-typed GraphQL client for .NET with a reactive store, caching, subscriptions, and compile-time source generators.",
+};
 
 const FEATURES = [
   {

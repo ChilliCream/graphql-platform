@@ -12,7 +12,7 @@ export function SimilarPosts({ posts }: SimilarPostsProps) {
   }
 
   return (
-    <section className="mt-12 border-t border-cc-card-border pt-10">
+    <section className="mt-12 border-t border-cc-card-border pt-10 print:hidden">
       <div className="mb-6 flex items-baseline justify-between gap-4">
         <h2 className="m-0 text-2xl font-semibold text-cc-ink">
           You might also like

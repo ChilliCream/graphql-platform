@@ -1,5 +1,4 @@
 ---
-path: "/blog/2024/04/01/fullstack-workshop"
 date: "2024-04-01"
 title: "Full Stack GraphQL Workshop"
 description: "We're excited to announce our new Full Stack GraphQL Workshop. Learn more about the workshop here!"

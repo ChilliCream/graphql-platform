@@ -1,9 +1,9 @@
 ---
-path: "/blog/2023/01/08/new-in-banana-cake-pop-3"
 date: "2023-01-08"
 title: "New in Banana Cake Pop 3"
 description: "Team Workspaces, Express Middleware, Progressive Web Application (PWA) Support, Enterprise Single Sign-On (SSO), and many more features."
 tags: ["bananacakepop", "graphql", "ide", "cloud", "release"]
+category: "Release"
 featuredImage: "new-in-banana-cake-pop-3.png"
 author: Rafael Staib
 authorUrl: https://github.com/rstaib

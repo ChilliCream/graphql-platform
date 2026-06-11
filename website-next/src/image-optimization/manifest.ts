@@ -21,6 +21,11 @@ export interface OptimizedImage {
 let cache: Record<string, OptimizedImage> | null | undefined;
 
 function load(): Record<string, OptimizedImage> | null {
+  // In development, always render the original image from public/ so new or
+  // changed images show up without running `optimize-images` first.
+  if (process.env.NODE_ENV === "development") {
+    return null;
+  }
   if (cache !== undefined) {
     return cache;
   }

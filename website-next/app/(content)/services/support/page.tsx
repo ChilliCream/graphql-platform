@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+
 import { type Plan, PlanGrid } from "@/src/components/PlanGrid";
 import { PageHero } from "@/src/components/PageHero";
 import { Section } from "@/src/components/Section";
@@ -10,6 +12,12 @@ import {
   TableRow,
 } from "@/src/design-system/Table";
 import { CheckIcon } from "@/src/components/CheckIcon";
+
+export const metadata: Metadata = {
+  title: "Support",
+  description:
+    "Get GraphQL support from ChilliCream experts: plans from a free community Slack to enterprise SLAs with dedicated account managers and phone support.",
+};
 
 const SUPPORT_PLANS: Plan[] = [
   {

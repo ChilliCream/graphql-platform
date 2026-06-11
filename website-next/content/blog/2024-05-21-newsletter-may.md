@@ -1,10 +1,10 @@
 ---
-path: "/blog/2024/05/21/newsletter-may"
 date: "2024-05-21"
 title: "Recent Highlights"
 description: "We just released the Operation Builder, Telemetry, and a new Full Stack GraphQL Workshop. Checkout the blog post to learn more!"
 tags:
   ["bananacakepop", "graphql", "hotchocolate", "workshops", "cloud", "release"]
+category: "Newsletter"
 featuredImage: "header.png"
 author: Pascal Senn
 authorUrl: https://github.com/pascalsenn

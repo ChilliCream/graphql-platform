@@ -1,7 +1,15 @@
+import type { Metadata } from "next";
+
 import { ContentSection } from "@/src/components/ContentSection";
 import { NextStepsSection } from "@/src/components/NextStepsSection";
 import { PageHero } from "@/src/components/PageHero";
 import { SolidButton } from "@/src/design-system/Button";
+
+export const metadata: Metadata = {
+  title: "Continuous Integration",
+  description:
+    "Ship GraphQL changes safely with ChilliCream: schema validation, a centralized registry, environment workflows, and CI/CD integration via the Nitro CLI.",
+};
 
 export default function ContinuousIntegrationPage() {
   return (

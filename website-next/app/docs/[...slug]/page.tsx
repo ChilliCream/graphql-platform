@@ -6,6 +6,7 @@ import { EditOnGitHub } from "@/src/components/EditOnGitHub";
 import { TableOfContents } from "@/src/components/TableOfContents";
 import { Typography } from "@/src/design-system/Typography";
 import { NotFoundContent } from "@/src/components/NotFoundContent";
+import { docBreadcrumbs } from "@/src/helpers/buildContentTree";
 import { compileDoc } from "@/src/helpers/compileDoc";
 import {
   CONTENT_ROOT,
@@ -71,6 +72,16 @@ export async function generateMetadata({
     return {};
   }
   const { title, description } = readFrontmatter(path.join(CONTENT_ROOT, rel));
+  const gitMeta = await getGitMetadata(path.join(CONTENT_ROOT, rel));
+
+  // Surface the product in the title tag ("OpenAPI Adapter - Hot Chocolate"),
+  // since searches almost always include the product name. Skip the suffix on
+  // product index pages, where the title already is the product name.
+  const product = docBreadcrumbs(slug.slice(0, 1))[0]?.name;
+  const pageTitle =
+    title && product && title !== product ? `${title} - ${product}` : title;
+
+  const canonical = `/docs/${slug.join("/")}`;
 
   const id = encodeDocId(slug);
   const ogImage = {
@@ -82,17 +93,22 @@ export async function generateMetadata({
   };
 
   return {
-    title,
+    title: pageTitle,
     description,
+    alternates: {
+      canonical,
+    },
     openGraph: {
       type: "article",
-      title,
+      title: pageTitle,
       description,
       images: [ogImage],
+      url: canonical,
+      modifiedTime: gitMeta.isoDate,
     },
     twitter: {
       card: "summary_large_image",
-      title,
+      title: pageTitle,
       description,
       images: [ogImage],
     },
@@ -117,9 +133,51 @@ export default async function DocPage({ params }: PageProps) {
   const { content, frontmatter, toc } = await compileDoc(absolutePath);
   const gitMeta = await getGitMetadata(absolutePath);
 
+  const pageHref = `/docs/${slug.join("/")}`;
+  const crumbs = [
+    { name: "Docs", href: "/docs" },
+    ...docBreadcrumbs(slug),
+  ].filter((c, i, all) => c.href !== null || i === all.length - 1);
+  // Pages that exist on disk but are not (yet) referenced in the navigation
+  // tree still get a leaf crumb, named by their frontmatter title.
+  if (crumbs[crumbs.length - 1]?.href !== pageHref) {
+    crumbs.push({
+      name: frontmatter.title ?? slug[slug.length - 1],
+      href: pageHref,
+    });
+  }
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "TechArticle",
+      headline: frontmatter.title,
+      ...(frontmatter.description
+        ? { description: frontmatter.description }
+        : {}),
+      dateModified: gitMeta.isoDate,
+      mainEntityOfPage: toAbsoluteUrl(`/docs/${slug.join("/")}`),
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: crumbs.map((c, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        name: c.name,
+        ...(c.href && i < crumbs.length - 1
+          ? { item: toAbsoluteUrl(c.href) }
+          : {}),
+      })),
+    },
+  ];
+
   return (
     <div className="grid grid-cols-1 2xl:grid-cols-[1fr_20rem]">
       <main className="min-w-0 px-5 py-8 sm:px-12">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         <article className="mx-auto max-w-5xl">
           {frontmatter.title ? (
             <Typography variant="h1">{frontmatter.title}</Typography>

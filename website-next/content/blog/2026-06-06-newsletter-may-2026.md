@@ -1,9 +1,9 @@
 ---
-path: "/blog/2026/06/06/newsletter-may-2026"
 date: "2026-06-06"
 title: "Newsletter May 2026"
 description: "Hot Chocolate 16, Fusion 16, skillz, and more. Read the newsletter to learn about all the things we shipped in May and what comes next."
 tags: ["hotchocolate", "fusion", "graphql", "dotnet", "ai", "release"]
+category: "Newsletter"
 author: Pascal Senn
 authorUrl: https://github.com/pascalsenn
 authorImageUrl: https://avatars.githubusercontent.com/u/14233220?v=4

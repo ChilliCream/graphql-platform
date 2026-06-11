@@ -361,3 +361,68 @@ svg[role="graphics-document"][id^="mermaid-"] {
   content-visibility: auto;
   contain-intrinsic-size: auto 32rem;
 }
+
+@media print {
+  :root {
+    --color-cc-ink: #111827;
+    --color-cc-prose: #1f2937;
+    --color-cc-ink-dim: #4b5563;
+    --color-cc-ink-faint: rgba(17, 24, 39, 0.16);
+    --color-cc-hover: transparent;
+    --color-cc-bg: #fff;
+    --color-cc-card-bg: #fff;
+    --color-cc-card-border: rgba(17, 24, 39, 0.25);
+    --color-cc-card-border-hover: rgba(17, 24, 39, 0.25);
+    --color-cc-surface: #fff;
+    --color-cc-accent: #0f766e;
+    --color-cc-accent-hover: #0f766e;
+    --color-cc-nav-text: #1f2937;
+    --color-cc-nav-label: #4b5563;
+    --cc-dark-surface: none;
+  }
+
+  html,
+  body,
+  .cc-content-dark {
+    background: #fff !important;
+  }
+
+  header,
+  footer {
+    display: none !important;
+  }
+
+  /* Overflowing code blocks would otherwise print their scrollbar. */
+  * {
+    scrollbar-width: none;
+  }
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Keep the dark code-block chrome on paper; without this the browser
+     strips the background and the light syntax tokens become unreadable. */
+  .bg-cc-code-bg,
+  .bg-cc-code-bg * {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* Keep code blocks and tables on one page when they fit; anything
+     taller than a page still splits rather than overflow. */
+  figure.bg-cc-code-bg,
+  table {
+    break-inside: avoid;
+  }
+
+  /* Docs: hide the sidebar/TOC rails and their spacer columns so the
+     article spans the full page. */
+  [data-docs-layout],
+  [data-docs-layout] .grid {
+    grid-template-columns: 1fr !important;
+  }
+  [data-docs-layout] aside,
+  [data-docs-layout] .fixed {
+    display: none !important;
+  }
+}

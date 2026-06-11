@@ -10,7 +10,7 @@ import { TOC_OPEN_EVENT } from "./TocDrawer";
  */
 export function DocsToolbar() {
   return (
-    <div className="pointer-events-none fixed inset-x-0 top-18 z-20 flex items-start justify-between px-4 py-3 2xl:hidden">
+    <div className="pointer-events-none fixed inset-x-0 top-18 z-20 flex items-start justify-between px-4 py-3 2xl:hidden print:hidden">
       <PillButton
         ariaLabel="Open documentation menu"
         event={SIDEBAR_OPEN_EVENT}

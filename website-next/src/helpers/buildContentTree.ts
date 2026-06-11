@@ -92,3 +92,44 @@ function walk(dirRel: string, urlPrefix: string): TreeNode[] {
 
   return nodes;
 }
+
+export type Breadcrumb = { name: string; href: string | null };
+
+/**
+ * Resolves the navigation titles along a docs slug into breadcrumb entries by
+ * locating the page in the product's navigation tree. The first entry is the
+ * product itself (titled by its `structure.yaml`); the rest are the tree nodes
+ * on the path to the page. `href` is null for groups without an index page.
+ */
+export function docBreadcrumbs(slug: string[]): Breadcrumb[] {
+  const product = slug[0];
+  const rootRel = `docs/${product}`;
+  if (!fs.existsSync(abs(`${rootRel}/${META_FILE}`))) {
+    return [];
+  }
+
+  const productCrumb: Breadcrumb = {
+    name: readMeta(rootRel).title,
+    href: `/docs/${product}`,
+  };
+  if (slug.length === 1) {
+    return [productCrumb];
+  }
+
+  const tree = buildContentTree(rootRel, `/docs/${product}`);
+  const trail = findTrail(tree, `/docs/${slug.join("/")}`);
+  return trail ? [productCrumb, ...trail] : [productCrumb];
+}
+
+function findTrail(nodes: TreeNode[], targetHref: string): Breadcrumb[] | null {
+  for (const node of nodes) {
+    if (node.href === targetHref) {
+      return [{ name: node.title, href: node.href }];
+    }
+    const sub = findTrail(node.children, targetHref);
+    if (sub !== null) {
+      return [{ name: node.title, href: node.href }, ...sub];
+    }
+  }
+  return null;
+}
