@@ -1,5 +1,6 @@
 ---
 title: "Versioning"
+description: "Version a GraphQL schema in Hot Chocolate without URL versioning: deprecate fields with @deprecated and gate new features behind @requiresOptIn."
 ---
 
 Unlike REST APIs, GraphQL schemas do not use URL-based versioning (like `/graphql/v2`). Most schema changes are additive and non-breaking: adding new types and new fields does not affect existing queries. Removing a field or changing its nullability, however, is a breaking change.

@@ -1,5 +1,6 @@
 ---
 title: "Getting Started"
+description: "Build your first Hot Chocolate Fusion setup: two subgraphs and a gateway composed into one GraphQL API, with entities, lookups, and composition basics."
 ---
 
 In this tutorial, you will build and run a small Fusion setup locally.

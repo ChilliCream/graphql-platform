@@ -1,5 +1,6 @@
 ---
 title: openapi Command
+description: "Manage OpenAPI collections with the `nitro openapi` commands: upload versioned HTTP endpoint definitions, validate them, and publish them to a stage."
 ---
 
 The `nitro openapi` commands manage OpenAPI collections. An OpenAPI collection bundles a versioned set of HTTP endpoint definitions and/or models that HotChocolate (Fusion) uses to expose HTTP endpoints as a GraphQL schema on a given stage.

@@ -1,5 +1,6 @@
 ---
 title: Authorization
+description: "Protect fields and types in Hot Chocolate with the @authorize directive, integrating ASP.NET Core roles and policies for fine-grained access control."
 ---
 
 Authorization controls what an authenticated user can access. Hot Chocolate provides the `@authorize` directive for field-level and type-level access control, integrating with ASP.NET Core roles and policies.

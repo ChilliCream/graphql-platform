@@ -1,6 +1,6 @@
 ---
 title: "First-Party API"
-description: "Deploy a Fusion gateway as a locked-down first-party GraphQL API using trusted documents. Eliminate parser exploits, validation attacks, and complexity abuse by only executing pre-registered operations."
+description: "Deploy a Fusion gateway as a locked-down first-party GraphQL API using trusted documents so only pre-registered operations are executed."
 ---
 
 When your GraphQL API is only consumed by clients you control — mobile apps, websites, internal services — there is no reason for the server to accept arbitrary GraphQL Operations at runtime. You already know every operation your clients will ever send, because you wrote them. Trusted documents let you take advantage of that fact.

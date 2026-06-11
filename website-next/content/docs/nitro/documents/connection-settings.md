@@ -1,5 +1,6 @@
 ---
 title: Connection Settings
+description: "Configure Connection Settings in Nitro: the HTTP and subscription endpoints, subscription protocol, and other options for talking to your GraphQL server."
 ---
 
 The Connection Settings in Nitro allow you to configure various options related to connecting and communicating with your GraphQL server. This section describes the different settings available and their functionalities.

@@ -1,5 +1,6 @@
 ---
-title: "Overview"
+title: "Introduction"
+description: "Fusion is ChilliCream's GraphQL gateway for composing multiple services into one API, implementing the GraphQL Composite Schemas spec with build-time validation."
 ---
 
 Fusion lets you split one GraphQL API into multiple smaller services, without changing how clients consume it. Clients still send queries to one endpoint, and Fusion combines data from all services into one response. Teams can deploy independently, and contract conflicts are caught during build time.

@@ -1,6 +1,6 @@
 ---
 title: "Middleware and Pipelines"
-description: "Understand how Mocha's three middleware pipelines process messages. Learn which pipeline to target, how to write custom middleware, and how to control execution order."
+description: "Understand how Mocha's three middleware pipelines process messages, which pipeline to target, and how to write and order custom middleware."
 ---
 
 Mocha's pipeline implements the [Pipes and Filters](https://www.enterpriseintegrationpatterns.com/patterns/messaging/PipesAndFilters.html) pattern. Every message flows through a chain of middleware before reaching your handler. Each filter in the chain can inspect, modify, short-circuit, or observe the message - then pass control to the next filter.

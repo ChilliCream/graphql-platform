@@ -1,6 +1,6 @@
 ---
 title: "Messages"
-description: "Understand the message envelope, naming conventions, correlation, and message type identity in Mocha. Learn how to define POCO message types, attach custom headers, and access envelope metadata in handlers."
+description: "Understand the message envelope, naming conventions, correlation, and message type identity in Mocha, and learn how to define message types."
 ---
 
 A message is any C# class, record, or struct. No base class, no marker interface, no framework attributes. You define a type that holds your business data, and Mocha handles everything else - routing, serialization, correlation, and delivery. Records are used throughout the examples because they naturally fit message semantics, but they are not required. Mocha serializes message bodies as JSON by default.

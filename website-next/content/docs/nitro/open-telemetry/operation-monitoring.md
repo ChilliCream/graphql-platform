@@ -1,5 +1,6 @@
 ---
 title: "Operation Monitoring"
+description: "Visualize OpenTelemetry traces for your GraphQL operations in Nitro to spot slow queries, analyze resolver impact, and monitor your API's performance."
 ---
 
 ![Image](../../../../public/images/nitro-docs/open-telemetry/telemetry-0.webp)

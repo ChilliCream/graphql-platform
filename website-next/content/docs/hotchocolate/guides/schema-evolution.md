@@ -1,5 +1,6 @@
 ---
 title: "Schema Evolution"
+description: "Evolve a Hot Chocolate GraphQL schema without breaking clients: deprecate fields with @deprecated and ship opt-in features through @requiresOptIn."
 ---
 
 GraphQL schemas evolve. New fields get added, old ones get retired. Unlike REST APIs with URL versioning, GraphQL schemas use additive changes and deprecation to manage that lifecycle. This page covers the tools Hot Chocolate provides for evolving your schema without breaking clients.

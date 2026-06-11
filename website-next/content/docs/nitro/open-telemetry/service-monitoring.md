@@ -1,5 +1,6 @@
 ---
 title: "Service Monitoring"
+description: "Centralize logs and traces from any .NET service in Nitro with the ChilliCream.Nitro.OpenTelemetry package, covering REST APIs and background workers."
 ---
 
 Nitro’s OpenTelemetry support extends beyond GraphQL, allowing you to gather and analyze telemetry data from any .NET application. Whether you have REST APIs, background workers, or other services, you can seamlessly centralize logging and tracing in Nitro for a unified observability experience.

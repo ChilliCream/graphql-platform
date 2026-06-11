@@ -1,5 +1,6 @@
 ---
 title: "Relay"
+description: "Implement the Relay server specification in Hot Chocolate: global object identification with [Node] and [ID], node refetching, and mutation payload query fields."
 ---
 
 The Relay GraphQL Server Specification defines patterns for globally unique identifiers, object refetching, and cursor-based pagination. While these patterns originated in Facebook's Relay client, they improve schema design for any GraphQL client.

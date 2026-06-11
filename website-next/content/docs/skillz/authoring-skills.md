@@ -1,5 +1,6 @@
 ---
 title: "Authoring Skills"
+description: "Author agent skills with Skillz: scaffold a folder with dnx skillz init, write the SKILL.md frontmatter and instructions, and publish via git for installs."
 ---
 
 Package your team's conventions once, and any agent can pick them up. A skill is a folder with a `SKILL.md` file that tells an agent how to do something the way your team does it: your release checklist, your code review rules, your API client patterns. You write it once, push it to a git repo, and your teammates install it with one command. From then on, every agent they run loads that knowledge on demand, no copy-pasting prompts into each session.

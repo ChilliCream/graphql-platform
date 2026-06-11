@@ -1,5 +1,6 @@
 ---
 title: "Overview"
+description: "Overview of securing a Hot Chocolate GraphQL API: cost analysis for public APIs, trusted documents for private ones, plus authorization and request limits."
 ---
 
 Securing a GraphQL API requires more than authentication and authorization. Unlike REST, where each endpoint has a predictable cost, a single GraphQL query can traverse deep relationships and request large datasets. You need a strategy that matches your API's threat model.

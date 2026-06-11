@@ -1,5 +1,6 @@
 ---
 title: "Interfaces"
+description: "Define GraphQL interfaces in Hot Chocolate with the [InterfaceType] attribute, sharing fields across object types and mapping them from C# interfaces."
 ---
 
 A GraphQL interface defines a set of fields that multiple object types share. When a field returns an interface type, the client can query the shared fields directly and use fragments to access type-specific fields. Interfaces are output-only types and cannot be used as arguments or input fields.

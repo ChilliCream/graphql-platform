@@ -1,5 +1,6 @@
 ---
 title: "Adding a Subgraph"
+description: "Add a new subgraph to an existing Hot Chocolate Fusion project: create the GraphQL service, define entity extensions, export the schema, compose, and verify."
 ---
 
 You have an existing Fusion project with a gateway, one or more subgraphs, and a working composition pipeline. Now you need to add a new subgraph. Maybe your team owns a new domain (shipping, billing, inventory), or you are splitting an existing subgraph into smaller services. Either way, the process is the same: create a new Hot Chocolate project, define your types and any entity extensions, export the schema, compose, and verify.

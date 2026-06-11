@@ -1,5 +1,6 @@
 ---
 title: "Building a Public GraphQL API"
+description: "Configure a public Hot Chocolate GraphQL API with cost analysis, introspection control, authorization, depth limits, and ASP.NET Core rate limiting."
 ---
 
 If you are building a GraphQL API that external developers will consume, this guide walks through the configuration and design decisions that matter most. A public API is one where you publish a schema and cannot control what operations clients send. Think of APIs like GitHub's GraphQL API, where thousands of third-party applications issue queries you never anticipated.

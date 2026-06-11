@@ -1,5 +1,6 @@
 ---
 title: "Key Bindings"
+description: "Keyboard shortcut reference for Nitro on Mac and Windows: key bindings for documents, tabs, formatting, saving, and navigating the application quickly."
 ---
 
 This document provides a list of useful keyboard shortcuts for performing various actions in the application.

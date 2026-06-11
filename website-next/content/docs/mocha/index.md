@@ -1,6 +1,6 @@
 ---
 title: "Introduction"
-description: "Mocha is a messaging framework for .NET that provides a message bus for inter-service communication, a source-generated mediator for in-process CQRS, middleware pipelines, saga orchestration, and deep observability through Nitro integration."
+description: "Mocha is a messaging framework for .NET with a message bus for inter-service communication and a source-generated mediator for in-process CQRS."
 ---
 
 ```csharp

@@ -1,5 +1,6 @@
 ---
 title: "Dynamic Schemas"
+description: "Build dynamic GraphQL schemas in Hot Chocolate with ITypeModule, generating types at runtime from configuration or data and hot-reloading the schema."
 ---
 
 In multi-tenant or CMS-like applications, the GraphQL schema may need to change at runtime based on configuration, database structure, or per-tenant requirements. Hot Chocolate supports dynamic schemas through the `ITypeModule` interface, which lets you provide types programmatically and trigger schema reloads when the underlying data changes.

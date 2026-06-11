@@ -1,5 +1,6 @@
 ---
 title: "MCP Adapter"
+description: "Expose a Fusion gateway as an MCP server with `AddMcp()` and `MapGraphQLMcp()`, serving Nitro or custom tools and prompts to AI assistants over Streamable HTTP."
 ---
 
 The [Model Context Protocol (MCP)](https://modelcontextprotocol.io) is an open standard that lets AI assistants connect to external systems through a uniform tool and prompt interface. The `HotChocolate.Fusion.Adapters.Mcp` package turns a Fusion gateway into an MCP server. You supply tool and prompt definitions through an `IMcpStorage`, and the adapter handles execution, transport, and live updates. Definitions can come from Nitro (file-based authoring with a publish workflow) or from a custom `IMcpStorage` you build (programmatic, database-backed, or any source you choose).

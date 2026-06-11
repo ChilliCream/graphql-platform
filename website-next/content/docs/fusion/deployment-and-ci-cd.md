@@ -1,5 +1,6 @@
 ---
 title: "Deployment and CI/CD"
+description: "CI/CD pipelines for Hot Chocolate Fusion: upload source schemas with `nitro fusion`, publish configurations to Nitro stages, and hot-swap gateway archives."
 ---
 
 This page covers the CI/CD pipelines that ship a Fusion gateway in production: uploading source schemas to Nitro from each subgraph repository, publishing a Fusion configuration to a stage after a deployment, and validating composition on pull requests before merge. Composition runs in CI, the gateway pulls the latest archive from Nitro at runtime, and no archive file is ever shipped by hand.

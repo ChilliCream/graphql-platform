@@ -1,5 +1,6 @@
 ---
 title: "Error Handling"
+description: "Handle GraphQL errors in Hot Chocolate: filter request errors with IErrorFilter and model domain errors as typed payloads using the [Error] attribute."
 ---
 
 GraphQL APIs produce two kinds of errors. **Request errors** occur when something goes wrong during execution, such as an unhandled exception in a resolver. **Domain errors** represent business logic rejections, such as a username already being taken or an invalid input value. Hot Chocolate handles both, with different mechanisms for each.

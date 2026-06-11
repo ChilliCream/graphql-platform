@@ -1,5 +1,6 @@
 ---
 title: "Status Bar"
+description: "Reference for Nitro's Status Bar: connection status, signed-in user, organization and workspace switchers, environments, sync indicator, and log entries."
 ---
 
 The status bar is a visual component located at the bottom of the application interface. It is divided into several sections, each providing valuable information to the user.

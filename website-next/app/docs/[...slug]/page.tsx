@@ -93,7 +93,9 @@ export async function generateMetadata({
   };
 
   return {
-    title: pageTitle,
+    // `absolute` bypasses the layout's "%s - ChilliCream" template; the
+    // product suffix replaces it.
+    title: pageTitle ? { absolute: pageTitle } : undefined,
     description,
     alternates: {
       canonical,

@@ -1,5 +1,6 @@
 ---
 title: "Organizations"
+description: "Create and manage organizations in Nitro, the structure that hosts your workspaces and members, including the personal organization and management portal."
 ---
 
 This guide will walk you through the features and functionalities of Nitro Organizations, a structure designed to help teams and individuals work efficiently and effectively on GraphQL related services.

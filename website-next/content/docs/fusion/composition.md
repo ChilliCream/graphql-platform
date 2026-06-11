@@ -1,5 +1,6 @@
 ---
 title: "Composition"
+description: "How Fusion composition validates and merges source schemas into an execution schema, with the full pipeline phases and diagnostic log codes explained."
 ---
 
 ## What Is Composition?

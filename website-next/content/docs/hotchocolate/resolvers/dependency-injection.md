@@ -1,5 +1,6 @@
 ---
 title: Dependency Injection
+description: "Inject services into Hot Chocolate resolvers as method parameters, control service scoping, use keyed services, and switch the resolver service provider."
 ---
 
 If you're unfamiliar with dependency injection, the ASP.NET Core documentation is a good starting point:

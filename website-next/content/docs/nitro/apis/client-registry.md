@@ -1,5 +1,6 @@
 ---
 title: "Client Registry"
+description: "Manage GraphQL clients and persisted operations with the Nitro client registry: validate operations against the schema and distribute them to your server."
 ---
 
 ![Image](../../../../public/images/nitro-docs/apis/client-registry-0.webp)

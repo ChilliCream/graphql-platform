@@ -1,5 +1,6 @@
 ---
 title: Endpoints
+description: "Map Hot Chocolate endpoints in ASP.NET Core: MapGraphQL for HTTP and WebSockets, MapGraphQLSchema for SDL downloads, and MapNitroApp for the Nitro GraphQL IDE."
 ---
 
 Hot Chocolate provides a set of ASP.NET Core middleware for making the GraphQL server available via HTTP and WebSockets. There are also middleware for hosting the [Nitro](/products/nitro) GraphQL IDE and an endpoint for downloading the schema in its SDL representation.

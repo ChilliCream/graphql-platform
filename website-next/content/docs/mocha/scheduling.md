@@ -1,6 +1,6 @@
 ---
 title: "Scheduling"
-description: "Schedule messages for future delivery in Mocha using absolute times or relative delays, with durable Postgres persistence or in-memory scheduling for development. Cancel scheduled messages before they are dispatched."
+description: "Schedule messages for future delivery in Mocha using absolute times or relative delays, with durable Postgres or in-memory persistence."
 ---
 
 Sometimes a message should not be delivered right now. A welcome email goes out 30 minutes after signup. A payment retry fires 24 hours after the first failure. A saga timeout triggers if no response arrives within 5 minutes. Scheduling lets you hand a message to the bus with a future delivery time, and the infrastructure takes care of the rest. If plans change, you can cancel a scheduled message before it is dispatched.

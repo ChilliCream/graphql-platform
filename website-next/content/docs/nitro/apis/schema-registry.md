@@ -1,5 +1,6 @@
 ---
 title: "Schema & Client Registry"
+description: "Store, version, and distribute GraphQL schemas with the Nitro schema registry, validating changes against clients to catch breaking changes in CI/CD."
 ---
 
 ![Image](../../../../public/images/nitro-docs/apis/schema-registry-0.webp)

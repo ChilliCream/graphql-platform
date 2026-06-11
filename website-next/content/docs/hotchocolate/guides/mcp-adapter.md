@@ -1,5 +1,6 @@
 ---
 title: "MCP Adapter"
+description: "Expose a Hot Chocolate GraphQL schema as MCP tools with the AddMcp() adapter so AI agents can discover and call operations over the Model Context Protocol."
 ---
 
 The MCP (Model Context Protocol) adapter exposes your Hot Chocolate GraphQL schema as MCP tools, prompts, and resources. AI agents and LLMs that support MCP can discover and call your GraphQL operations without any manual tool definition. The adapter reads your schema, converts GraphQL operations into MCP tool definitions with full input and output JSON schemas, and serves them over the MCP protocol.

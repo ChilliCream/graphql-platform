@@ -1,5 +1,6 @@
 ---
 title: Migrate Hot Chocolate Fusion from 15 to 16
+description: "Migration guide for Hot Chocolate Fusion v15 to v16: publish dual archive formats per subgraph, then cut the gateway over to the new `.far` configuration."
 ---
 
 > [!NOTE]

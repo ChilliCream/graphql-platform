@@ -1,5 +1,6 @@
 ---
 title: "Queries"
+description: "Define the GraphQL Query type in Hot Chocolate with the [QueryType] attribute, splitting root fields across classes and writing side-effect-free resolvers."
 ---
 
 The Query type is the entry point for reading data from a GraphQL server. It is the only required root type. Every public method or property on a query class becomes a field that clients can request. Query fields are expected to be side-effect-free, which allows the execution engine to run them in parallel.

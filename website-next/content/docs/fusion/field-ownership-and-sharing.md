@@ -1,5 +1,6 @@
 ---
 title: "Field Ownership"
+description: "Fusion field ownership explained: which subgraph owns each field, when to use @shareable for intentional overlap, and how @external and @provides fit in."
 ---
 
 Field ownership defines which subgraph is responsible for each field in the composite schema. Clear ownership boundaries keep composition predictable and prevent semantic drift across teams.

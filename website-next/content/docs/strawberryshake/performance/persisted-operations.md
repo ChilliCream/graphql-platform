@@ -1,5 +1,6 @@
 ---
 title: "Persisted Operations"
+description: "Enable persisted operations in Strawberry Shake with `GraphQLPersistedOperationOutput` so clients send operation IDs instead of full GraphQL documents."
 ---
 
 Persisted operations allow you to improve the performance of your GraphQL requests and the security of your GraphQL server.
