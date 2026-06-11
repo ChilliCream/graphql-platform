@@ -5,7 +5,7 @@ description: "Add Fusion directives like @lookup and @inaccessible to schemas yo
 
 Some source schemas are not yours to edit, or you want to keep them free of Fusion-specific annotations. Fusion still needs [directives](./directives-reference.md) like `@lookup`, `@internal`, and `@inaccessible` on those schemas to compose your graph correctly. A **source schema extensions document** solves this. It is a separate SDL file you author yourself, layered over the base schema at parse time, that adds Fusion-specific annotations without modifying a single character of the base. Your original schema stays clean, and the directives the gateway needs to plan distributed queries land in a file you fully control.
 
-## How It Works
+# How It Works
 
 Both documents (the base schema and its extensions) are parsed sequentially into the same schema model. Extensions written with `extend type X` merge into the canonical `type X` definition during parsing. By the time composition runs, your extensions are indistinguishable from directives written directly on the base schema. Composition never sees the `extend` syntax: the parser has already folded everything into one source schema.
 
@@ -18,11 +18,11 @@ flowchart LR
     C --> E[Execution schema]
 ```
 
-## A Realistic Example
+# A Realistic Example
 
 Suppose you compose a federated graph from several services. One of them is a Products service that exposes `products.graphqls` as its source schema, and you want to keep that file free of Fusion-specific annotations. You need to mark `productById` as a lookup, expose a second lookup that Reviews uses for hydration without making it part of the public surface, hide an internal `warehouseLocationCode` field, and add a derived `stockStatus` field that depends on the warehouse code.
 
-### The Base Schema
+## The Base Schema
 
 ```graphql
 type Query {
@@ -47,7 +47,7 @@ type Money {
 
 There is not a single Fusion annotation in this file. It can change without forcing edits to your Fusion-specific configuration. Every Fusion-specific decision lives in the next document.
 
-### The Extensions Document
+## The Extensions Document
 
 ```graphql
 extend type Query {
@@ -77,7 +77,7 @@ What each block does:
 - `extend type Product { stockStatus(warehouseLocationCode: ... @require(...)): StockStatus! }` adds a brand new field with a hidden resolver argument. `@require(field: "warehouseLocationCode")` tells the gateway to populate the argument from the existing `warehouseLocationCode` field, and the argument is removed from the public surface so clients see `stockStatus: StockStatus!` with no arguments. Adding a field via extensions still requires that field to be resolvable at runtime by the underlying subgraph implementation: the extensions document only declares the field, it does not provide the resolver. See [Data Requirements](./data-requirements-and-mapping.md) for `@require` semantics.
 - `enum StockStatus { ... }` introduces a new type. Extensions can declare types the base schema does not, because extensions are valid SDL documents in their own right.
 
-### The Merged Result
+## The Merged Result
 
 After parsing, the source schema looks like this from composition's perspective:
 
@@ -108,7 +108,7 @@ enum StockStatus {
 
 This is the same shape you would have if you had hand-edited the base schema. The difference is purely in how you got there: two files, parsed in order, with the second contributing only the deltas.
 
-## What You Can Do with an Extensions Document
+# What You Can Do with an Extensions Document
 
 **Apply directives to existing fields.** This is the most common use. Directives commonly applied this way include `@lookup`, `@internal`, `@inaccessible`, `@shareable`, `@external`, `@provides`, `@override`, `@deprecated`, and `@requiresOptIn`. For the semantics of each, see [Entities and Lookups](./entities-and-lookups.md), [Field Ownership](./field-ownership-and-sharing.md), and [Schema Exposure and Evolution](./schema-exposure-and-evolution.md).
 
@@ -150,9 +150,9 @@ enum StockStatus {
 }
 ```
 
-## Using Extensions
+# Using Extensions
 
-### File Convention
+## File Convention
 
 Place the extensions file alongside the base schema using the `{name}-extensions.graphqls` naming convention. The Fusion CLI loads it automatically. There is no extra flag and no configuration entry to add.
 
@@ -166,13 +166,13 @@ schemas/
 
 When `nitro fusion compose` runs, each base schema and its matching extensions document are parsed together into a single source schema before composition starts.
 
-### Inside the Fusion Archive
+## Inside the Fusion Archive
 
 The archive preserves both files separately. The base schema is stored at `source-schemas/{name}/schema.graphqls`, and the extensions document is stored at `source-schemas/{name}/schema-extensions.graphqls`.
 
 The base schema is stored exactly as supplied. Fusion does not fold the extensions into it. This matters because recomposition (when a subgraph's schema changes and the archive is rebuilt) needs the extensions document to reapply your annotations on top of the new base. Without it, the directive layer would be lost on every regeneration. Keeping the two files distinct in the archive is what makes "the base schema stays untouched" hold end-to-end, not only in your repo but in every downstream consumer.
 
-## Behavior Reference
+# Behavior Reference
 
 | Situation                                                       | Behavior                                                                                              |
 | --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
@@ -182,7 +182,7 @@ The base schema is stored exactly as supplied. Fusion does not fold the extensio
 | Extension applies a directive the schema does not define        | Implicit at parse time. Fusion's built-ins compose as-is; other custom directives must be declared.   |
 | Extension re-applies a non-repeatable directive to the target   | Parsing fails when the extension's directives are merged onto the target.                             |
 
-## Troubleshooting
+# Troubleshooting
 
 **My directive did not apply.** Check the field name. If it does not exactly match a field on the base type, the parser adds a new field rather than extending the existing one, and the directive lands on that new field. Return type or repeated argument mismatches are different and cause parsing to fail rather than silently producing a new field.
 
@@ -190,7 +190,7 @@ The base schema is stored exactly as supplied. Fusion does not fold the extensio
 
 **I want to apply a directive that the schema does not import.** Fusion's built-in directives compose without further declaration. For any other custom directive, declare it in the schema (or in the extensions document) before applying it; otherwise composition will fail validation even though the parser accepts the unknown directive.
 
-## Next Steps
+# Next Steps
 
 - [Composition](./composition.md): what happens after extensions are folded in.
 - [Adding a Subgraph](./adding-a-subgraph.md): the typical entry point that may use extensions.

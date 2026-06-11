@@ -7,7 +7,7 @@ You have an existing Fusion project with a gateway, one or more subgraphs, and a
 
 This page walks you through adding a Shipping subgraph to an existing project that already has Products and Reviews subgraphs. If you have not set up a Fusion project yet, start with the [Getting Started](./getting-started.md) tutorial first.
 
-## Prerequisites
+# Prerequisites
 
 Before you begin, you need:
 
@@ -17,7 +17,7 @@ Before you begin, you need:
 
 You should be able to compose and run your existing project successfully. If composition is currently broken, fix that first.
 
-## Subgraph Project Structure
+# Subgraph Project Structure
 
 Every Fusion subgraph follows the same layout:
 
@@ -39,7 +39,7 @@ src/
 
 Your folder structure may differ, but the Fusion components are always the same: a GraphQL server, your type definitions, an exported schema, and a `schema-settings.json`.
 
-## Create the Subgraph Project
+# Create the Subgraph Project
 
 Create a new GraphQL server project from the template:
 
@@ -76,7 +76,7 @@ Your `Shipping/Shipping.csproj` should look like this:
 </Project>
 ```
 
-### Configure the Port
+## Configure the Port
 
 The `dotnet new graphql` template already defines a default port in `launchSettings.json`. Change it so the Shipping subgraph runs on port 5003. Edit `Shipping/Properties/launchSettings.json` and set `launchUrl` and `applicationUrl` under the `http` profile to:
 
@@ -87,11 +87,11 @@ The `dotnet new graphql` template already defines a default port in `launchSetti
 
 This ensures the subgraph runs on port 5003, which matches what you will configure in `schema-settings.json` later.
 
-## Define Your Types
+# Define Your Types
 
 The Shipping subgraph owns shipment data and contributes a `shipments` field to the existing `Product` type. It does not own Product. The Products subgraph does. The Shipping subgraph extends it with shipping information.
 
-### Define the Shipment Type
+## Define the Shipment Type
 
 Create `Shipment.cs` in the Shipping project:
 
@@ -114,7 +114,7 @@ public class Shipment
 
 Each shipment has a `ProductId` that references a product from the Products subgraph.
 
-### Add In-Memory Data
+## Add In-Memory Data
 
 Create `ShipmentRepository.cs`:
 
@@ -140,7 +140,7 @@ public static class ShipmentRepository
 }
 ```
 
-### Create the Entity Stub
+## Create the Entity Stub
 
 An entity stub is a lightweight declaration that says "I know this type exists in the graph and I want to add fields to it." Create `Types/Product.cs`:
 
@@ -158,7 +158,7 @@ public sealed record Product(int Id)
 
 This is not a duplicate of the Product type from the Products subgraph. It is an entity stub. The Shipping subgraph does not define `name`, `price`, or any other Product field. It only contributes the `shipments` field. When the gateway composes the schema, it merges this stub with the full `Product` type from the Products subgraph. Clients see one `Product` type with all fields from all subgraphs.
 
-### Add Query Resolvers
+## Add Query Resolvers
 
 Create `Types/ShippingQueries.cs` with a public lookup for `Shipment` and an internal lookup for `Product`:
 
@@ -185,7 +185,7 @@ public static partial class ShippingQueries
 
 For more on public vs. internal lookups and when to use each, see [Entities and Lookups](./entities-and-lookups.md).
 
-### Replace Foreign Keys with Entity References
+## Replace Foreign Keys with Entity References
 
 The `Shipment` type currently exposes a raw `ProductId`. To expose `shipment.product` instead, add a type extension. Create `Types/ShipmentNode.cs`:
 
@@ -207,7 +207,7 @@ public static partial class ShipmentNode
 
 `[BindMember(nameof(Shipment.ProductId))]` tells Hot Chocolate to replace the `productId` field on `Shipment` with the `product` field returned by this resolver. In the exported schema, clients see `shipment.product` (returning a full `Product`) instead of `shipment.productId` (a raw integer). The gateway resolves the full Product from whichever subgraph owns it.
 
-## Configure the Server
+# Configure the Server
 
 Set `Program.cs` to:
 
@@ -226,7 +226,7 @@ app.RunWithGraphQLCommands(args);
 
 `AddGraphQL("Shipping")` sets the subgraph name used during schema export. `AddTypes()` is source-generated and registers all types discovered by the analyzer. `RunWithGraphQLCommands(args)` enables CLI commands like schema export.
 
-## Export the Schema
+# Export the Schema
 
 From the project root, export the schema:
 
@@ -254,7 +254,7 @@ Because `Program.cs` uses `AddGraphQL("Shipping")`, the generated `schema-settin
 
 The `name` field identifies this subgraph within the composite schema and must be unique. The `url` is where the gateway sends requests to this subgraph at runtime.
 
-## Compose
+# Compose
 
 Run composition with all subgraph schemas, including your new one:
 
@@ -280,7 +280,7 @@ nitro fusion compose \
   -a gateway.far
 ```
 
-## Test Cross-Subgraph Queries
+# Test Cross-Subgraph Queries
 
 Start all services and the gateway. With the Shipping subgraph added, you can now query shipment data that crosses subgraph boundaries:
 
@@ -321,23 +321,23 @@ query {
 
 Here the gateway resolves the shipment from the Shipping subgraph, then uses the Products subgraph to fetch `name` and `price` for the referenced product.
 
-## Troubleshooting Composition Errors
+# Troubleshooting Composition Errors
 
 If composition fails after adding your new subgraph, the error messages point to specific issues.
 
-### Duplicate field without sharing
+## Duplicate field without sharing
 
 **"Field X is defined in multiple subgraphs"**. Your new subgraph defines a field that already exists in another subgraph. Key fields (like `id`) are automatically shareable, but all other duplicated fields need `@shareable` on every definition. See [Field Ownership](./field-ownership-and-sharing.md) for details.
 
-### Missing lookup
+## Missing lookup
 
 **"No lookup found for entity X"**. Your subgraph references an entity type but no subgraph provides a lookup for it. Add a lookup resolver (public or internal) for that entity. See [Entities and Lookups](./entities-and-lookups.md).
 
-### Incompatible field types
+## Incompatible field types
 
 **"Incompatible field types for X"**. Two subgraphs define the same field with different types. The types must be compatible according to the composition merging rules.
 
-## Next Steps
+# Next Steps
 
 - **Need cross-subgraph field dependencies?** See [Data Requirements](./data-requirements-and-mapping.md) for the full range of `@require` patterns and FieldSelectionMap syntax.
 - **Composition failed?** See [Composition](./composition.md) for the full merging rules, common errors, and fixes.

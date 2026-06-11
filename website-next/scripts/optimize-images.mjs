@@ -12,7 +12,10 @@ import optimizeImages from "../src/image-optimization/generate.mjs";
 
 const config = {
   quality: 90,
-  widths: [640, 1080, 1920],
+  // 828 fills the 640->1080 gap: content columns top out around 1024px CSS,
+  // so ~700-828px slots (tablet 1x, phone 2x) would otherwise be forced up to
+  // the 1080 variant.
+  widths: [640, 828, 1080, 1920],
   formats: ["avif", "webp"],
   sourceDir: "public/images",
   outputDir: "public/_optimized/images",

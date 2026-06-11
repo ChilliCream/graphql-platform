@@ -4,6 +4,14 @@ import matter from "gray-matter";
 
 const MD_RE = /\.(md|mdx)$/i;
 
+// Author avatars render at 30px (see BlogMetadata), so the srcset ladder only
+// needs 1x/2x/3x DPR variants instead of the global content-image ladder.
+const AVATAR_WIDTHS = [30, 60, 90];
+
+// Ask GitHub for a pre-scaled avatar (covers the largest ladder width at 2x)
+// instead of downloading the full-size original.
+const AVATAR_FETCH_SIZE = 180;
+
 // Matches an 11-char YouTube id in any of the supported URL forms or in a
 // <Video src="..."> attribute (bare id or URL).
 const YOUTUBE_RES = [
@@ -18,13 +26,13 @@ const YOUTUBE_RES = [
  * self-host and optimize them.
  *
  * @param {string} cwd
- * @returns {Promise<Array<{ key: string, url: string, fallbackUrl?: string }>>}
+ * @returns {Promise<Array<{ key: string, url: string, fallbackUrl?: string, widths?: number[] }>>}
  */
 export async function collectRemoteImages(cwd) {
   const contentDir = path.resolve(cwd, "content");
   const files = walk(contentDir).filter((f) => MD_RE.test(f));
 
-  /** @type {Map<string, { key: string, url: string, fallbackUrl?: string }>} */
+  /** @type {Map<string, { key: string, url: string, fallbackUrl?: string, widths?: number[] }>} */
   const byKey = new Map();
 
   for (const file of files) {
@@ -46,7 +54,12 @@ export async function collectRemoteImages(cwd) {
     const avatar = parsed.data?.authorImageUrl;
     if (typeof avatar === "string" && avatar.startsWith("http")) {
       if (!byKey.has(avatar)) {
-        byKey.set(avatar, { key: avatar, url: avatar, fallbackUrl: undefined });
+        byKey.set(avatar, {
+          key: avatar,
+          url: avatarFetchUrl(avatar),
+          fallbackUrl: avatar,
+          widths: AVATAR_WIDTHS,
+        });
       }
     }
 
@@ -64,6 +77,16 @@ export async function collectRemoteImages(cwd) {
   }
 
   return [...byKey.values()];
+}
+
+// GitHub avatars accept an `s=<size>` param; request a pre-scaled image so we
+// never download (or self-host) the full-size original. Other hosts are
+// fetched as-is.
+function avatarFetchUrl(avatar) {
+  if (!/^https:\/\/avatars\.githubusercontent\.com\//.test(avatar)) {
+    return avatar;
+  }
+  return `${avatar}${avatar.includes("?") ? "&" : "?"}s=${AVATAR_FETCH_SIZE}`;
 }
 
 function extractYouTubeIds(body) {
