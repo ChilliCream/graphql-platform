@@ -964,6 +964,25 @@ public class DirectiveTypeTests : TypeTestBase
         exception.Errors.Single().ToString().MatchSnapshot();
     }
 
+    [Fact]
+    public void DeprecatedDirective_DeclaresDirectiveDefinitionLocation()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddQueryType(c => c
+                .Name("Query")
+                .Field("foo")
+                .Type<StringType>()
+                .Resolve("bar"))
+            .Create();
+
+        // act
+        var deprecated = schema.DirectiveTypes[DirectiveNames.Deprecated.Name];
+
+        // assert
+        Assert.True(deprecated.Locations.HasFlag(DirectiveLocation.DirectiveDefinition));
+    }
+
     public class DirectiveWithSyntaxTypeArg : DirectiveType
     {
         protected override void Configure(IDirectiveTypeDescriptor descriptor)
