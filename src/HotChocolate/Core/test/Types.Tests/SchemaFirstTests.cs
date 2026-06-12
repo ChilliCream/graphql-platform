@@ -584,6 +584,34 @@ public class SchemaFirstTests
         exception.Errors.Single().ToString().MatchSnapshot();
     }
 
+    [Fact]
+    public async Task SchemaFirst_DirectiveAppliedOnlyToDirectiveDefinition_SurvivesPruning()
+    {
+        // arrange
+        // @custom is applied on Query so it survives pruning; @meta is applied
+        // only to @custom's definition, so it must be kept alive transitively.
+        const string source =
+            """
+            type Query @custom {
+                field: String
+            }
+
+            directive @meta on DIRECTIVE_DEFINITION
+
+            directive @custom @meta on OBJECT
+            """;
+
+        // act
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(source)
+            .UseField(next => next)
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.True(schema.DirectiveTypes.ContainsName("meta"));
+    }
+
     public class Query
     {
         public string Hello() => "World";
