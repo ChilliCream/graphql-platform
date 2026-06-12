@@ -47,6 +47,14 @@ public abstract class TypeSystemObject<TConfiguration> : TypeSystemObject
         MarkInitialized();
     }
 
+    internal sealed override void RegisterDependencies(ITypeDiscoveryContext context)
+    {
+        if (Configuration is { } configuration)
+        {
+            RegisterConfigurationDependencies(context, configuration);
+        }
+    }
+
     protected abstract TConfiguration CreateConfiguration(
         ITypeDiscoveryContext context);
 

@@ -255,13 +255,21 @@ internal sealed class TypeInitializer
 
     internal bool CompleteTypeName(RegisteredType registeredType)
     {
+        // PrepareForCompletion wires the type-reference resolver / global components / IsOfType
+        // onto the RegisteredType and must run even for an already-named registration; otherwise a
+        // later TryGetType/GetType against this RegisteredType during completion would throw
+        // NotYetReady. Only the name-completion + status transition is guarded, so an already-named
+        // type is not completed twice (which would trip the MarkNamed status assertion).
         registeredType.PrepareForCompletion(
             _typeReferenceResolver,
             _globalComps,
             _isOfType);
 
-        registeredType.Type.CompleteName(registeredType);
-        registeredType.Status = TypeStatus.Named;
+        if (registeredType.Status < TypeStatus.Named)
+        {
+            registeredType.Type.CompleteName(registeredType);
+            registeredType.Status = TypeStatus.Named;
+        }
 
         if (registeredType.IsNamedType || registeredType.IsDirectiveType)
         {

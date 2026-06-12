@@ -114,6 +114,10 @@ public abstract class TypeSystemObject : ITypeSystemMember, IFeatureProvider
         MarkInitialized();
     }
 
+    internal virtual void RegisterDependencies(ITypeDiscoveryContext context)
+    {
+    }
+
     /// <summary>
     /// If this type has a dynamic type it will be completed in this step.
     /// </summary>

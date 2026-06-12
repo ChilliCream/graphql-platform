@@ -173,6 +173,15 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
             {
                 typeSystemObject.Initialize(registeredType);
             }
+            else
+            {
+                if (typeSystemObject.IsNamed)
+                {
+                    registeredType.Status = TypeStatus.Named;
+                }
+
+                typeSystemObject.RegisterDependencies(registeredType);
+            }
 
             if (!isInferred)
             {
