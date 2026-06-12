@@ -32,9 +32,18 @@ public static class SchemaHelper
         var globalEntityPatterns = new List<SelectionSetNode>();
         var typeEntityPatterns = new Dictionary<string, SelectionSetNode>(StringComparer.Ordinal);
 
+        // We collect all non-extension definitions into a single merged document
+        // to avoid HC0065 (duplicate type name) errors when the same type appears
+        // in multiple schema files (e.g., when glob patterns pick up overlapping files).
+        var mergedDefinitions = new Dictionary<string, IDefinitionNode>(StringComparer.Ordinal);
+        var nonNamedDefinitions = new List<IDefinitionNode>();
+        var registeredScalars = new HashSet<string>(StringComparer.Ordinal);
+
         foreach (var document in schemaFiles.Select(f => f.Document))
         {
-            if (document.Definitions.Any(t => t is ITypeSystemExtensionNode))
+            var hasExtensions = document.Definitions.Any(t => t is ITypeSystemExtensionNode);
+
+            if (hasExtensions)
             {
                 CollectScalarInfos(
                     document.Definitions.OfType<ScalarTypeExtensionNode>(),
@@ -57,28 +66,84 @@ public static class SchemaHelper
                         typeEntityPatterns);
                 }
             }
-            else
+
+            // Process non-extension type definitions from ALL documents
+            // (including mixed documents that contain both extensions and regular types).
+            foreach (var scalar in document.Definitions.OfType<ScalarTypeDefinitionNode>())
             {
-                foreach (var scalar in document.Definitions.OfType<ScalarTypeDefinitionNode>())
+                var scalarName = scalar.Name.Value;
+                if (!registeredScalars.Add(scalarName))
                 {
-                    if (!BuiltInScalarNames.IsBuiltInScalar(scalar.Name.Value))
-                    {
-                        builder.AddType(new AnyType(
-                            scalar.Name.Value,
-                            scalar.Description?.Value));
-                    }
-                    else if (scalar.Name.Value == ScalarNames.Any)
-                    {
-                        builder.AddType(new AnyType());
-                    }
-                    else if (scalar.Name.Value == "JSON")
-                    {
-                        builder.AddType(new AnyType());
-                    }
+                    continue;
                 }
 
-                builder.AddDocument(document);
+                // Check the well-known Any/JSON special cases first (before the general
+                // built-in check) so these branches are always reachable.
+                if (scalarName == ScalarNames.Any)
+                {
+                    builder.AddType(new AnyType());
+                }
+                else if (scalarName == "JSON")
+                {
+                    builder.AddType(new AnyType("JSON"));
+                }
+                else if (!BuiltInScalarNames.IsBuiltInScalar(scalarName))
+                {
+                    builder.AddType(new AnyType(scalarName, scalar.Description?.Value));
+                }
+                // else: standard built-in scalar (String, Int, Float, Boolean, ID) -
+                // HC registers these automatically; no extra AddType call needed.
             }
+
+            // Collect non-extension type definitions, deduplicating by name
+            // to prevent HC0065 when the same type appears in multiple files.
+            // Scalar nodes are kept in the merged document so that any directives
+            // (e.g. @specifiedBy) attached to them are preserved for downstream processing.
+            foreach (var definition in document.Definitions)
+            {
+                if (definition is ITypeSystemExtensionNode)
+                {
+                    // Skip extension nodes - they are handled above
+                    continue;
+                }
+
+                if (definition is INamedSyntaxNode namedNode)
+                {
+                    var name = namedNode.Name.Value;
+                    if (mergedDefinitions.TryGetValue(name, out var existing))
+                    {
+                        // Same definition kind across files → first occurrence wins (exact
+                        // duplicates are expected when schema files overlap, e.g. from a CMS).
+                        // Conflicting kinds (e.g. an ObjectType in one file and an InputObjectType
+                        // with the same name in another) indicate a real schema authoring error.
+                        if (existing.GetType() != definition.GetType())
+                        {
+                            throw new InvalidOperationException(
+                                $"Schema conflict: type '{name}' is defined as " +
+                                $"'{existing.GetType().Name}' in one schema file and as " +
+                                $"'{definition.GetType().Name}' in another schema file. " +
+                                "Each type name must be unique and consistent across all schema files.");
+                        }
+                        // Same kind – first occurrence already stored, ignore duplicate.
+                    }
+                    else
+                    {
+                        mergedDefinitions.Add(name, definition);
+                    }
+                }
+                else
+                {
+                    nonNamedDefinitions.Add(definition);
+                }
+            }
+        }
+
+        // Add the merged document with deduplicated definitions
+        if (mergedDefinitions.Count > 0 || nonNamedDefinitions.Count > 0)
+        {
+            var allDefinitions = new List<IDefinitionNode>(
+                mergedDefinitions.Values.Concat(nonNamedDefinitions));
+            builder.AddDocument(new DocumentNode(allDefinitions));
         }
 
         AddDefaultScalarInfos(builder, leafTypes);

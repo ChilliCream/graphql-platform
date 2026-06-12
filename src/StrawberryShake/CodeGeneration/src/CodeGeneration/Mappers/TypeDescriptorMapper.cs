@@ -278,6 +278,7 @@ public static partial class TypeDescriptorMapper
 
         if (!context.Register(outputType.Name, kind, runtimeType))
         {
+
             throw ThrowHelper.TypeNameCollision(runtimeType.Name);
         }
 
