@@ -530,6 +530,15 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The directive extension `extend directive @{0}` targets an undefined directive..
+        /// </summary>
+        internal static string DirectiveExtension_UnknownTarget {
+            get {
+                return ResourceManager.GetString("DirectiveExtension_UnknownTarget", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Location adjacent to an argument definition.
         /// </summary>
         internal static string DirectiveLocation_ArgumentDefinition {

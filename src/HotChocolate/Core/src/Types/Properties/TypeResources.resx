@@ -72,6 +72,9 @@
   <data name="DirectiveCollection_LocationNotAllowed" xml:space="preserve">
     <value>The specified directive `@{0}` is not allowed on the current location `{1}`.</value>
   </data>
+  <data name="DirectiveExtension_UnknownTarget" xml:space="preserve">
+    <value>The directive extension `extend directive @{0}` targets an undefined directive.</value>
+  </data>
   <data name="DirectiveLocation_ArgumentDefinition" xml:space="preserve">
     <value>Location adjacent to an argument definition</value>
   </data>
