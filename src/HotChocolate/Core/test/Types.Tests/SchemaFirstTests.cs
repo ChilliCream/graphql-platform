@@ -524,6 +524,66 @@ public class SchemaFirstTests
             .MatchSnapshotAsync();
     }
 
+    [Fact]
+    public async Task SchemaFirst_DirectivesOnDirectiveDefinition_AreBound()
+    {
+        // arrange
+        const string source =
+            """
+            type Query {
+                field: String
+            }
+
+            directive @onDirectiveDefinition on DIRECTIVE_DEFINITION
+
+            directive @custom @onDirectiveDefinition on OBJECT
+
+            directive @old @deprecated(reason: "Use @custom.") on OBJECT
+            """;
+
+        // act
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(source)
+            .ModifyOptions(o => o.RemoveUnusedTypeSystemDirectives = false)
+            .UseField(next => next)
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        var custom = schema.DirectiveTypes["custom"];
+        var old = schema.DirectiveTypes["old"];
+        var directive = Assert.Single(custom.Directives);
+        Assert.Equal("onDirectiveDefinition", directive.Name);
+        Assert.True(old.IsDeprecated);
+        Assert.Equal("Use @custom.", old.DeprecationReason);
+    }
+
+    [Fact]
+    public void SchemaFirst_DirectiveOnDirectiveDefinitionWrongLocation_Errors()
+    {
+        // arrange
+        const string source =
+            """
+            type Query {
+                field: String
+            }
+
+            directive @onObject on OBJECT
+
+            directive @custom @onObject on OBJECT
+            """;
+
+        // act
+        static void Action() => SchemaBuilder.New()
+            .AddDocumentFromString(source)
+            .Use(next => next)
+            .Create();
+
+        // assert
+        var exception = Assert.Throws<SchemaException>(Action);
+        exception.Errors.Single().ToString().MatchSnapshot();
+    }
+
     public class Query
     {
         public string Hello() => "World";
