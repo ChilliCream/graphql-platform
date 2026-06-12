@@ -612,6 +612,66 @@ public class SchemaFirstTests
         Assert.True(schema.DirectiveTypes.ContainsName("meta"));
     }
 
+    [Fact]
+    public async Task SchemaFirst_DirectivesOnDirectiveDefinition_RoundTripInSdl()
+    {
+        // arrange
+        // @custom and @old are applied to Query so they survive default
+        // pruning; @onDirectiveDefinition survives transitively via @custom.
+        const string source =
+            """
+            type Query @custom @old {
+                field: String
+            }
+
+            directive @onDirectiveDefinition on DIRECTIVE_DEFINITION
+
+            directive @custom @onDirectiveDefinition on OBJECT
+
+            directive @old @deprecated(reason: "Use @custom.") on OBJECT
+            """;
+
+        // act
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(source)
+            .UseField(next => next)
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task DirectiveType_ToSyntaxNode_IncludesDirectivesAndDeprecated()
+    {
+        // arrange
+        // @old is applied to Query so it survives default pruning.
+        const string source =
+            """
+            type Query @old {
+                field: String
+            }
+
+            directive @old @deprecated(reason: "Use @custom.") on OBJECT
+            """;
+
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(source)
+            .UseField(next => next)
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var sdl = schema.DirectiveTypes["old"].ToString();
+
+        // assert
+        sdl.MatchInlineSnapshot(
+            """
+            directive @old @deprecated(reason: "Use @custom.") on OBJECT
+            """);
+    }
+
     public class Query
     {
         public string Hello() => "World";

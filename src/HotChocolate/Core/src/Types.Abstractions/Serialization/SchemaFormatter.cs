@@ -488,6 +488,11 @@ public static class SchemaFormatter
             VisitInputFields(mutableDirective.Arguments, context);
             var arguments = (List<InputValueDefinitionNode>)context.Result!;
 
+            VisitDirectives(mutableDirective.Directives, context);
+            var directives = (List<DirectiveNode>)context.Result!;
+
+            directives = ApplyDeprecatedDirective(mutableDirective, directives);
+
             context.Result =
                 new DirectiveDefinitionNode(
                     null,
@@ -495,7 +500,7 @@ public static class SchemaFormatter
                     CreateDescription(mutableDirective.Description),
                     mutableDirective.IsRepeatable,
                     arguments,
-                    [],
+                    directives,
                     mutableDirective.Locations.ToNameNodes());
         }
 
