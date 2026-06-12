@@ -1,5 +1,4 @@
 <Project>
-
   <PropertyGroup>
     <LangVersion>preview</LangVersion>
     <Version Condition="$(Version) == ''">0.0.0</Version>
@@ -49,8 +48,33 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(DOTNET_LOCAL_DEV)' == '1'">
+    <CreateHardLinksForCopyLocalIfPossible>true</CreateHardLinksForCopyLocalIfPossible>
+    <CreateHardLinksForAdditionalFilesIfPossible>true</CreateHardLinksForAdditionalFilesIfPossible>
+    <CreateHardLinksForPublishFilesIfPossible>true</CreateHardLinksForPublishFilesIfPossible>
+    <CreateHardLinksForCopyFilesToOutputDirectoryIfPossible>true</CreateHardLinksForCopyFilesToOutputDirectoryIfPossible>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(DOTNET_LOCAL_DEV)' == '1'">
+    <_Arch>$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant())</_Arch>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(DOTNET_LOCAL_DEV)' == '1' AND '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' == 'true'">
+    <RuntimeIdentifier>win-$(_Arch)</RuntimeIdentifier>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(DOTNET_LOCAL_DEV)' == '1' AND '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' == 'true'">
+    <RuntimeIdentifier>linux-$(_Arch)</RuntimeIdentifier>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(DOTNET_LOCAL_DEV)' == '1' AND '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' == 'true'">
+    <RuntimeIdentifier>osx-$(_Arch)</RuntimeIdentifier>
+  </PropertyGroup>
+
   <ItemGroup Condition="'$(PackageIcon)' != ''">
-    <None Include="$(MSBuildThisFileDirectory)..\website\static\resources\$(PackageIcon)" Pack="true" PackagePath="$(PackageIcon)" Visible="false" />
+    <None
+      Include="$(MSBuildThisFileDirectory)..\website\static\resources\$(PackageIcon)"
+      Pack="true"
+      PackagePath="$(PackageIcon)"
+      Visible="false"
+    />
     <None Include="$(MSBuildThisFileDirectory)..\LICEN*" Pack="true" PackagePath="" Visible="false" />
   </ItemGroup>
 
