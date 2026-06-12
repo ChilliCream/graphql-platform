@@ -1169,7 +1169,6 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
                 {
                     product {
                         name
-                        description
                     }
                     ... @defer(label: "foo") {
                         product {
@@ -1205,7 +1204,7 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
                 ---
                 Content-Type: application/json; charset=utf-8
 
-                {"data":{"product":{"name":"Abc","description":"Abc desc"}},"hasNext":true}
+                {"data":{"product":{"name":"Abc"}},"hasNext":true}
                 ---
                 Content-Type: application/json; charset=utf-8
 
@@ -1230,7 +1229,6 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
                 {
                     product {
                         name
-                        description
                     }
                     ... @defer(label: "foo") {
                         product {
@@ -1258,7 +1256,7 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
         var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
         Assert.Contains(
-            "\"data\":{\"product\":{\"name\":\"Abc\",\"description\":\"Abc desc\"}}",
+            "\"data\":{\"product\":{\"name\":\"Abc\"}},\"hasNext\":true",
             content,
             StringComparison.Ordinal);
         Assert.Contains(
@@ -1283,7 +1281,6 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
                 {
                     product {
                         name
-                        description
                     }
                     ... @defer(label: "foo") {
                         product {
@@ -1315,7 +1312,7 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
             .Add(content, "Response")
             .MatchInline(
                 """
-                {"data":{"product":{"name":"Abc","description":"Abc desc"}},"hasNext":true}
+                {"data":{"product":{"name":"Abc"}},"hasNext":true}
                 {"incremental":[{"data":{"product":{"name":"Abc","description":"Abc desc","reviews":[{"rating":5}]}},"path":[],"label":"foo"}],"hasNext":false}
 
                 """);
