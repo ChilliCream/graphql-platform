@@ -28,6 +28,38 @@ public sealed class DirectiveDefinitionNode : ITypeSystemDefinitionNode, IHasNam
     /// <param name="arguments">
     /// The arguments of the directive-
     /// </param>
+    /// <param name="locations">
+    /// The locations to which the directive can be annotated.
+    /// </param>
+    public DirectiveDefinitionNode(
+        Location? location,
+        NameNode name,
+        StringValueNode? description,
+        bool isRepeatable,
+        IReadOnlyList<InputValueDefinitionNode> arguments,
+        IReadOnlyList<NameNode> locations)
+        : this(location, name, description, isRepeatable, arguments, [], locations)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="DirectiveDefinitionNode"/>.
+    /// </summary>
+    /// <param name="location">
+    /// The location of the syntax node within the original source text.
+    /// </param>
+    /// <param name="name">
+    /// The name that this syntax node holds.
+    /// </param>
+    /// <param name="description">
+    /// The description of the directive.
+    /// </param>
+    /// <param name="isRepeatable">
+    /// Defines that the directive is repeatable and can be applied multiple times.
+    /// </param>
+    /// <param name="arguments">
+    /// The arguments of the directive-
+    /// </param>
     /// <param name="directives">
     /// The directives that are annotated to this directive definition.
     /// </param>

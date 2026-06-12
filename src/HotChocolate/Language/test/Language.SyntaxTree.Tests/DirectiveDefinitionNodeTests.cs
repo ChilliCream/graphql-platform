@@ -515,6 +515,27 @@ public class DirectiveDefinitionNodeTests
     }
 
     [Fact]
+    public void CreateDirectiveDefinitionWithoutDirectives()
+    {
+        // arrange
+        var name = new NameNode("foo");
+        var locations = new List<NameNode> { new(DirectiveLocation.Object.ToString()) };
+
+        // act
+        var directiveDefinition =
+            new DirectiveDefinitionNode(
+                null,
+                name,
+                description: null,
+                isRepeatable: false,
+                arguments: [],
+                locations);
+
+        // assert
+        Assert.Empty(directiveDefinition.Directives);
+    }
+
+    [Fact]
     public void WithDirectives()
     {
         // arrange
