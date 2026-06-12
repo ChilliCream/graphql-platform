@@ -2,6 +2,7 @@ using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Configurations;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types;
@@ -894,6 +895,73 @@ public class DirectiveTypeTests : TypeTestBase
 
         // assert
         schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public void DirectiveType_WithDirectivesAndDeprecation_CompletesCollection()
+    {
+        // arrange
+        var onDirectiveDefinition = new DirectiveType(d => d
+            .Name("onDirectiveDefinition")
+            .Location(DirectiveLocation.DirectiveDefinition));
+
+        var customConfiguration = new DirectiveTypeConfiguration("custom")
+        {
+            Locations = DirectiveLocation.Object,
+            DeprecationReason = "Use something else."
+        };
+        customConfiguration.Directives.Add(
+            new DirectiveConfiguration(new DirectiveNode("onDirectiveDefinition")));
+
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType(c => c
+                .Name("Query")
+                .Directive("custom")
+                .Field("foo")
+                .Type<StringType>()
+                .Resolve("bar"))
+            .AddDirectiveType(onDirectiveDefinition)
+            .AddDirectiveType(DirectiveType.CreateUnsafe(customConfiguration))
+            .Create();
+
+        // assert
+        var custom = schema.DirectiveTypes["custom"];
+        Assert.True(custom.IsDeprecated);
+        Assert.Equal("Use something else.", custom.DeprecationReason);
+        var directive = Assert.Single(custom.Directives);
+        Assert.Equal("onDirectiveDefinition", directive.Name);
+    }
+
+    [Fact]
+    public void DirectiveType_DirectiveWithoutDirectiveDefinitionLocation_Errors()
+    {
+        // arrange
+        var onObject = new DirectiveType(d => d
+            .Name("onObject")
+            .Location(DirectiveLocation.Object));
+
+        var customConfiguration = new DirectiveTypeConfiguration("custom")
+        {
+            Locations = DirectiveLocation.Object
+        };
+        customConfiguration.Directives.Add(
+            new DirectiveConfiguration(new DirectiveNode("onObject")));
+
+        // act
+        void Action() => SchemaBuilder.New()
+            .AddQueryType(c => c
+                .Name("Query")
+                .Field("foo")
+                .Type<StringType>()
+                .Resolve("bar"))
+            .AddDirectiveType(onObject)
+            .AddDirectiveType(DirectiveType.CreateUnsafe(customConfiguration))
+            .Create();
+
+        // assert
+        var exception = Assert.Throws<SchemaException>(Action);
+        exception.Errors.Single().ToString().MatchSnapshot();
     }
 
     public class DirectiveWithSyntaxTypeArg : DirectiveType
