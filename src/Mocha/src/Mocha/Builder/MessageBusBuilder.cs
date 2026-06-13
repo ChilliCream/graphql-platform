@@ -447,6 +447,11 @@ public partial class MessageBusBuilder : IMessageBusBuilder
             Conventions = conventions
         };
 
+        // Build the ordered, IsEnabled-filtered interceptor list once, before any transport
+        // initialization, so transports may observe it through the feature collection if needed.
+        var interceptors = BuildInterceptorList(services);
+        features.Set(new BusInterceptorFeature { Interceptors = interceptors });
+
         foreach (var (type, configureDelegate) in _messageDescriptors)
         {
             var descriptor = new MessageTypeDescriptor(setupContext, type);

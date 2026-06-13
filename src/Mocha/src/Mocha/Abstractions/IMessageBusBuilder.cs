@@ -103,6 +103,30 @@ public interface IMessageBusBuilder
     IMessageBusBuilder AddMessage<TMessage>(Action<IMessageTypeDescriptor> configure) where TMessage : class;
 
     /// <summary>
+    /// Registers a bus interceptor by type. The type is resolved from the service provider
+    /// during <see cref="Build"/>.
+    /// </summary>
+    /// <typeparam name="T">The interceptor type, which must derive from <see cref="BusInterceptor"/>.</typeparam>
+    /// <returns>The builder instance for method chaining.</returns>
+    IMessageBusBuilder AddBusInterceptor<T>() where T : BusInterceptor;
+
+    /// <summary>
+    /// Registers a pre-constructed bus interceptor instance.
+    /// </summary>
+    /// <param name="interceptor">The interceptor instance to register.</param>
+    /// <returns>The builder instance for method chaining.</returns>
+    IMessageBusBuilder AddBusInterceptor(BusInterceptor interceptor);
+
+    /// <summary>
+    /// Registers a bus interceptor using a factory delegate resolved at build time.
+    /// </summary>
+    /// <param name="factory">
+    /// A factory that receives the service provider and returns the interceptor instance.
+    /// </param>
+    /// <returns>The builder instance for method chaining.</returns>
+    IMessageBusBuilder AddBusInterceptor(Func<IServiceProvider, BusInterceptor> factory);
+
+    /// <summary>
     /// Builds and returns the fully configured <see cref="MessagingRuntime"/> using the specified
     /// service provider.
     /// </summary>
