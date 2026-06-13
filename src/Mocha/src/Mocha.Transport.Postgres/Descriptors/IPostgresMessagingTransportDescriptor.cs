@@ -20,6 +20,9 @@ public interface IPostgresMessagingTransportDescriptor
     /// <inheritdoc cref="IMessagingTransportDescriptor.BindHandlersExplicitly"/>
     new IPostgresMessagingTransportDescriptor BindHandlersExplicitly();
 
+    /// <inheritdoc cref="IMessagingTransportDescriptor.AutoBind"/>
+    new IPostgresMessagingTransportDescriptor AutoBind(bool enabled);
+
     /// <summary>
     /// Declares or retrieves a receive endpoint with the specified name.
     /// </summary>
@@ -109,4 +112,25 @@ public interface IPostgresMessagingTransportDescriptor
     /// <summary>Claims a consumer for this transport, creating a convention-named endpoint.</summary>
     IMessagingTransportConsumerDescriptor<IPostgresReceiveEndpointDescriptor> Consumer<TConsumer>()
         where TConsumer : class, IConsumer;
+
+    /// <summary>
+    /// Gets or creates the unified queue endpoint whose identity is the given queue name.
+    /// If an endpoint previously created by <c>Endpoint(name).Queue(name)</c> has the same queue
+    /// name, this call merges onto that endpoint rather than creating a second one. Calling this
+    /// method multiple times with the same name returns the same handle.
+    /// </summary>
+    /// <param name="name">The queue name. Also serves as the endpoint identity.</param>
+    /// <returns>A unified queue endpoint descriptor for further configuration.</returns>
+    IPostgresQueueEndpointDescriptor Queue(string name);
+
+    /// <summary>
+    /// Gets or creates the unified queue endpoint whose identity is the given queue name and
+    /// applies additional configuration through the supplied delegate.
+    /// If an endpoint previously created by <c>Endpoint(name).Queue(name)</c> has the same queue
+    /// name, this call merges onto that endpoint rather than creating a second one.
+    /// </summary>
+    /// <param name="name">The queue name. Also serves as the endpoint identity.</param>
+    /// <param name="configure">A delegate that configures the endpoint.</param>
+    /// <returns>The transport descriptor for method chaining.</returns>
+    IPostgresMessagingTransportDescriptor Queue(string name, Action<IPostgresQueueEndpointDescriptor> configure);
 }

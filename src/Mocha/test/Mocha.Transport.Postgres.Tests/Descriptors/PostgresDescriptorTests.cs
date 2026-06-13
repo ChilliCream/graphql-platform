@@ -155,14 +155,13 @@ public class PostgresDescriptorTests
     }
 
     [Fact]
-    public void ReceiveEndpoint_Should_SetFaultEndpoint_When_FaultEndpointCalled()
+    public void ReceiveEndpoint_Should_StoreVerbatimName_When_ErrorQueueNamedWithPascalCase()
     {
         // arrange & act
         var runtime = PostgresBusFixture.CreateRuntime(t =>
         {
             t.DeclareQueue("q");
-            t.DeclareQueue("q_err");
-            t.Endpoint("ep").Queue("q").FaultEndpoint("postgres:///q/q_err");
+            t.Endpoint("ep").Queue("q").ErrorQueue("Legacy.Orders.V2_error");
         });
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 
@@ -170,19 +169,18 @@ public class PostgresDescriptorTests
         var endpoint = transport.ReceiveEndpoints
             .OfType<PostgresReceiveEndpoint>()
             .Single(e => e.Name == "ep");
-        Assert.NotNull(endpoint.ErrorEndpoint);
-        Assert.Contains("q_err", endpoint.ErrorEndpoint!.Name);
+        Assert.Equal("Legacy.Orders.V2_error", endpoint.Configuration.ErrorQueue.QueueName);
+        Assert.False(endpoint.Configuration.ErrorQueue.IsDisabled);
     }
 
     [Fact]
-    public void ReceiveEndpoint_Should_SetSkippedEndpoint_When_SkippedEndpointCalled()
+    public void ReceiveEndpoint_Should_SetDisableFlag_When_DisableErrorQueueCalled()
     {
         // arrange & act
         var runtime = PostgresBusFixture.CreateRuntime(t =>
         {
             t.DeclareQueue("q");
-            t.DeclareQueue("q_skip");
-            t.Endpoint("ep").Queue("q").SkippedEndpoint("postgres:///q/q_skip");
+            t.Endpoint("ep").Queue("q").DisableErrorQueue();
         });
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 
@@ -190,7 +188,28 @@ public class PostgresDescriptorTests
         var endpoint = transport.ReceiveEndpoints
             .OfType<PostgresReceiveEndpoint>()
             .Single(e => e.Name == "ep");
-        Assert.NotNull(endpoint.SkippedEndpoint);
-        Assert.Contains("q_skip", endpoint.SkippedEndpoint!.Name);
+        Assert.True(endpoint.Configuration.ErrorQueue.IsDisabled);
+    }
+
+    [Fact]
+    public void Transport_Should_DefaultAutoBindTrue_When_NotConfigured()
+    {
+        // arrange & act
+        var runtime = PostgresBusFixture.CreateRuntime(t => { });
+        var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
+
+        // assert
+        Assert.True(transport.AutoBind);
+    }
+
+    [Fact]
+    public void Transport_Should_SetAutoBindFalse_When_AutoBindFalseCalled()
+    {
+        // arrange & act
+        var runtime = PostgresBusFixture.CreateRuntime(t => t.AutoBind(false));
+        var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
+
+        // assert
+        Assert.False(transport.AutoBind);
     }
 }

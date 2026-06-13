@@ -24,9 +24,16 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
     }
 
     private RabbitMQMessagingTopology _topology = null!;
+    private RabbitMQDestinationResolver? _resolver;
 
     /// <inheritdoc />
     public override MessagingTopology Topology => _topology;
+
+    /// <summary>
+    /// Gets the destination resolver consulted by both the producer path and the receive convention so
+    /// the two sides converge on one entity and cannot drift apart.
+    /// </summary>
+    internal RabbitMQDestinationResolver Resolver => _resolver ??= new RabbitMQDestinationResolver(Schema);
 
     /// <summary>
     /// Gets the consumer manager responsible for registering and maintaining queue consumers with automatic reconnection.
@@ -165,7 +172,8 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
                         ["type"] = exchange.Type,
                         ["durable"] = exchange.Durable,
                         ["autoDelete"] = exchange.AutoDelete,
-                        ["autoProvision"] = exchange.AutoProvision ?? autoProvision
+                        ["autoProvision"] = exchange.AutoProvision ?? autoProvision,
+                        ["source"] = exchange.Provenance
                     }));
         }
 
@@ -182,7 +190,8 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
                         ["durable"] = queue.Durable,
                         ["exclusive"] = queue.Exclusive,
                         ["autoDelete"] = queue.AutoDelete,
-                        ["autoProvision"] = queue.AutoProvision ?? autoProvision
+                        ["autoProvision"] = queue.AutoProvision ?? autoProvision,
+                        ["source"] = queue.Provenance
                     }));
         }
 
@@ -203,7 +212,8 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
                     new Dictionary<string, object?>
                     {
                         ["routingKey"] = string.IsNullOrEmpty(binding.RoutingKey) ? null : binding.RoutingKey,
-                        ["autoProvision"] = binding.AutoProvision ?? autoProvision
+                        ["autoProvision"] = binding.AutoProvision ?? autoProvision,
+                        ["source"] = binding.Provenance
                     }));
         }
 
@@ -367,23 +377,28 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
         IMessagingConfigurationContext context,
         OutboundRoute route)
     {
-        RabbitMQDispatchEndpointConfiguration? configuration = null;
-        if (route.Kind == OutboundRouteKind.Send)
+        if (route.Kind is not (OutboundRouteKind.Send or OutboundRouteKind.Publish))
         {
-            var exchangeName = context.Naming.GetSendEndpointName(route.MessageType.RuntimeType);
+            return null;
+        }
+
+        var resolution = Resolver.ResolveDestination(context.Naming, route);
+
+        RabbitMQDispatchEndpointConfiguration configuration;
+        if (resolution.Kind == RabbitMQDestinationKind.Queue)
+        {
             configuration = new RabbitMQDispatchEndpointConfiguration
             {
-                ExchangeName = exchangeName,
-                Name = "e/" + exchangeName
+                QueueName = resolution.Name,
+                Name = resolution.EndpointName
             };
         }
-        else if (route.Kind == OutboundRouteKind.Publish)
+        else
         {
-            var exchangeName = context.Naming.GetPublishEndpointName(route.MessageType.RuntimeType);
             configuration = new RabbitMQDispatchEndpointConfiguration
             {
-                ExchangeName = exchangeName,
-                Name = "e/" + exchangeName
+                ExchangeName = resolution.Name,
+                Name = resolution.EndpointName
             };
         }
 
@@ -436,7 +451,8 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
                     configuration = new RabbitMQDispatchEndpointConfiguration
                     {
                         QueueName = new string(queueName),
-                        Name = "q/" + new string(queueName)
+                        Name = "q/" + new string(queueName),
+                        AutoProvision = TryGetSatelliteAutoProvision(address)
                     };
                 }
             }
@@ -466,7 +482,9 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
             }
         }
 
-        if (configuration is null && address is { Scheme: "queue" } && segmentCount == 1)
+        var isEffectiveDefault = IsDefaultTransport || context.Transports.Length == 1;
+
+        if (configuration is null && isEffectiveDefault && address is { Scheme: "queue" } && segmentCount == 1)
         {
             var name = path[ranges[0]];
             configuration = new RabbitMQDispatchEndpointConfiguration
@@ -476,7 +494,7 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
             };
         }
 
-        if (configuration is null && address is { Scheme: "exchange" } && segmentCount == 1)
+        if (configuration is null && isEffectiveDefault && address is { Scheme: "exchange" } && segmentCount == 1)
         {
             var name = path[ranges[0]];
 
@@ -488,6 +506,38 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
         }
 
         return configuration;
+    }
+
+    private bool? TryGetSatelliteAutoProvision(Uri address)
+    {
+        // A satellite queue inherits the auto-provision value the receive endpoint resolved for it.
+        // The error and skipped satellite endpoints are addressed by the URIs the receive endpoint
+        // convention assigned, so matching the requested address back to its owning satellite recovers
+        // the resolved value without smuggling it through the address itself.
+        if (Configuration is null)
+        {
+            return null;
+        }
+
+        foreach (var receiveEndpoint in Configuration.ReceiveEndpoints)
+        {
+            if (receiveEndpoint is not RabbitMQReceiveEndpointConfiguration rabbitMQReceiveEndpoint)
+            {
+                continue;
+            }
+
+            if (rabbitMQReceiveEndpoint.ErrorEndpoint == address)
+            {
+                return rabbitMQReceiveEndpoint.ErrorQueue.AutoProvision;
+            }
+
+            if (rabbitMQReceiveEndpoint.SkippedEndpoint == address)
+            {
+                return rabbitMQReceiveEndpoint.SkippedQueue.AutoProvision;
+            }
+        }
+
+        return null;
     }
 
     /// <inheritdoc />

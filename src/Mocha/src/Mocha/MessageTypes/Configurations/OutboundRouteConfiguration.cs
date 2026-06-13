@@ -24,4 +24,9 @@ public class OutboundRouteConfiguration : MessagingConfiguration
     /// Gets or sets the destination URI for this route, or <c>null</c> to use naming conventions.
     /// </summary>
     public Uri? Destination { get; set; }
+
+    /// <summary>
+    /// Gets or sets the transport name for this route, or <c>null</c> to use the default transport.
+    /// </summary>
+    public string? TransportName { get; set; }
 }

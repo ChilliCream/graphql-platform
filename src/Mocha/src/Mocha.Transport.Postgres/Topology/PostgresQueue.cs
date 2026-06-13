@@ -49,6 +49,24 @@ public sealed class PostgresQueue : TopologyResource<PostgresQueueConfiguration>
         ImmutableInterlocked.Update(ref _subscriptions, static (s, sub) => s.Add(sub), subscription);
     }
 
+    /// <summary>
+    /// Merges an incoming configuration into this entity. AutoProvision strengthens: true wins
+    /// over null or false.
+    /// </summary>
+    /// <param name="configuration">The incoming configuration to merge from.</param>
+    internal void MergeFrom(PostgresQueueConfiguration configuration)
+    {
+        // AutoProvision: strengthen (true wins over null or false).
+        if (AutoProvision is null)
+        {
+            AutoProvision = configuration.AutoProvision;
+        }
+        else if (configuration.AutoProvision == true)
+        {
+            AutoProvision = true;
+        }
+    }
+
     /// <inheritdoc />
     public Task ProvisionAsync(
         PostgresConnectionManager connectionManager,

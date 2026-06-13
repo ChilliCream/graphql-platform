@@ -48,6 +48,85 @@ public sealed class PostgresReceiveEndpoint(PostgresMessagingTransport transport
         _maxConcurrency = configuration.MaxConcurrency ?? ReceiveEndpointConfiguration.Defaults.MaxConcurrency;
     }
 
+    protected override void OnDiscoverTopology(
+        IMessagingConfigurationContext context,
+        PostgresReceiveEndpointConfiguration configuration)
+    {
+        if (configuration.QueueName is null)
+        {
+            throw new InvalidOperationException("Queue name is required");
+        }
+
+        var topology = (PostgresMessagingTopology)Transport.Topology;
+
+        topology.AddQueue(
+            new PostgresQueueConfiguration
+            {
+                Name = configuration.QueueName,
+                AutoDelete = Kind == ReceiveEndpointKind.Reply,
+                AutoProvision = configuration.AutoProvision
+            });
+
+        // Materialize queue-level BindFrom intents into declared topic-to-queue subscriptions. Each
+        // intent names a source topic; the topic is ensured in the topology so the subscription can
+        // reference it. Existence guards prevent duplicate subscriptions when the same intent is
+        // applied more than once (for example, via convention and explicit configuration).
+        var resolver = ((PostgresMessagingTransport)Transport).Resolver;
+        foreach (var intent in configuration.QueueBindFroms)
+        {
+            MaterializeBindFrom(topology, resolver, configuration.QueueName, intent, messageTypeName: null);
+        }
+
+        // Materialize per-type BindFrom intents. A per-type BindFrom implies AutoBind(false) for
+        // that type (handled by the topology convention); here only the explicit bindings are added.
+        foreach (var typeBind in configuration.TypeBinds.Values)
+        {
+            foreach (var intent in typeBind.BindFroms)
+            {
+                MaterializeBindFrom(topology, resolver, configuration.QueueName, intent, typeBind.MessageType.Name);
+            }
+        }
+    }
+
+    private static void MaterializeBindFrom(
+        PostgresMessagingTopology topology,
+        PostgresDestinationResolver resolver,
+        string queueName,
+        BindFromIntent intent,
+        string? messageTypeName)
+    {
+        if (intent.RoutingKey is not null)
+        {
+            throw ThrowHelper.BindFromWithNonNullRoutingKey(
+                "PostgreSQL",
+                messageTypeName ?? intent.Source.ToString(),
+                queueName);
+        }
+
+        if (!resolver.TryResolveSourceTopic(intent.Source, out var topicName))
+        {
+            throw new InvalidOperationException(
+                $"BindFrom source '{intent.Source}' could not be resolved to a PostgreSQL topic name.");
+        }
+
+        // Ensure the source topic exists in the topology. AddTopic merges on duplicate names, so
+        // repeating the same source is a safe no-op.
+        topology.AddTopic(new PostgresTopicConfiguration { Name = topicName });
+
+        // Add the topic-to-queue subscription only if it does not already exist. AddSubscription
+        // throws on duplicate, so the existence guard makes repeat calls idempotent.
+        if (topology.Subscriptions.All(s => s.Source.Name != topicName || s.Destination.Name != queueName))
+        {
+            topology.AddSubscription(
+                new PostgresSubscriptionConfiguration
+                {
+                    Source = topicName,
+                    Destination = queueName,
+                    AutoProvision = topology.AutoProvision
+                });
+        }
+    }
+
     protected override void OnComplete(
         IMessagingConfigurationContext context,
         PostgresReceiveEndpointConfiguration configuration)

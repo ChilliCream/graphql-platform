@@ -45,11 +45,42 @@ public interface IReceiveEndpointDescriptor<out TConfiguration>
     IReceiveEndpointDescriptor<TConfiguration> Receives<TMessage>();
 
     /// <summary>
+    /// Binds all handlers for the specified message type to this receive endpoint, and applies
+    /// per-type auto-binding and explicit binding configuration via the provided delegate.
+    /// </summary>
+    /// <typeparam name="TMessage">The message type to receive.</typeparam>
+    /// <param name="configure">A delegate that configures per-type auto-binding and explicit bindings.</param>
+    /// <returns>The descriptor instance for method chaining.</returns>
+    IReceiveEndpointDescriptor<TConfiguration> Receives<TMessage>(Action<IReceiveTypeBindDescriptor> configure);
+
+    /// <summary>
     /// Binds all handlers for the specified message type to this receive endpoint.
     /// </summary>
     /// <param name="messageType">The message type to receive.</param>
     /// <returns>The descriptor instance for method chaining.</returns>
     IReceiveEndpointDescriptor<TConfiguration> Receives(Type messageType);
+
+    /// <summary>
+    /// Configures whether auto-binding is enabled at the queue scope.
+    /// When <c>true</c>, convention binds are generated for consumed message types that reach this queue.
+    /// When <c>false</c>, convention binds are suppressed for this queue; use <see cref="BindFrom"/> to
+    /// declare explicit bindings.
+    /// </summary>
+    /// <param name="enabled">True to enable auto-binding (default), false to disable it.</param>
+    /// <returns>The descriptor instance for method chaining.</returns>
+    IReceiveEndpointDescriptor<TConfiguration> AutoBind(bool enabled);
+
+    /// <summary>
+    /// Declares an explicit queue-level binding from the specified source entity into this endpoint's
+    /// queue. Multiple calls accumulate; this does not affect the queue-level auto-binding setting.
+    /// </summary>
+    /// <param name="source">The URI of the source exchange, queue, or topic to bind from.</param>
+    /// <param name="routingKey">
+    /// The optional routing key for the binding. When <c>null</c>, the binding matches all
+    /// messages from the source.
+    /// </param>
+    /// <returns>The descriptor instance for method chaining.</returns>
+    IReceiveEndpointDescriptor<TConfiguration> BindFrom(Uri source, string? routingKey = null);
 
     /// <summary>
     /// Sets the kind of this receive endpoint (e.g., default, temporary).

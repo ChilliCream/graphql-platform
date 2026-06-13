@@ -28,9 +28,16 @@ public sealed class PostgresMessagingTransport : MessagingTransport
     }
 
     private PostgresMessagingTopology _topology = null!;
+    private PostgresDestinationResolver? _resolver;
 
     /// <inheritdoc />
     public override MessagingTopology Topology => _topology;
+
+    /// <summary>
+    /// Gets the destination resolver consulted by both the producer path and the receive convention so
+    /// the two sides converge on one entity and cannot drift apart.
+    /// </summary>
+    internal PostgresDestinationResolver Resolver => _resolver ??= new PostgresDestinationResolver(Schema);
 
     /// <summary>
     /// Gets the connection manager responsible for providing PostgreSQL connections.
@@ -379,23 +386,28 @@ public sealed class PostgresMessagingTransport : MessagingTransport
         IMessagingConfigurationContext context,
         OutboundRoute route)
     {
-        PostgresDispatchEndpointConfiguration? configuration = null;
-        if (route.Kind == OutboundRouteKind.Send)
+        if (route.Kind is not (OutboundRouteKind.Send or OutboundRouteKind.Publish))
         {
-            var queueName = context.Naming.GetSendEndpointName(route.MessageType.RuntimeType);
+            return null;
+        }
+
+        var resolution = Resolver.ResolveDestination(context.Naming, route);
+
+        PostgresDispatchEndpointConfiguration configuration;
+        if (resolution.Kind == PostgresDestinationKind.Queue)
+        {
             configuration = new PostgresDispatchEndpointConfiguration
             {
-                QueueName = queueName,
-                Name = "q/" + queueName
+                QueueName = resolution.Name,
+                Name = resolution.EndpointName
             };
         }
-        else if (route.Kind == OutboundRouteKind.Publish)
+        else
         {
-            var topicName = context.Naming.GetPublishEndpointName(route.MessageType.RuntimeType);
             configuration = new PostgresDispatchEndpointConfiguration
             {
-                TopicName = topicName,
-                Name = "t/" + topicName
+                TopicName = resolution.Name,
+                Name = resolution.EndpointName
             };
         }
 
@@ -475,7 +487,9 @@ public sealed class PostgresMessagingTransport : MessagingTransport
             }
         }
 
-        if (configuration is null && address is { Scheme: "queue" })
+        var isEffectiveDefault = IsDefaultTransport || context.Transports.Length == 1;
+
+        if (configuration is null && isEffectiveDefault && address is { Scheme: "queue" })
         {
             var name =
                 !string.IsNullOrEmpty(address.Host) ? address.Host
@@ -487,7 +501,7 @@ public sealed class PostgresMessagingTransport : MessagingTransport
             }
         }
 
-        if (configuration is null && address is { Scheme: "topic" })
+        if (configuration is null && isEffectiveDefault && address is { Scheme: "topic" })
         {
             var name =
                 !string.IsNullOrEmpty(address.Host) ? address.Host

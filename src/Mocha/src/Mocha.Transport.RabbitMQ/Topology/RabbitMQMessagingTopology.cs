@@ -47,11 +47,19 @@ public sealed class RabbitMQMessagingTopology(
     public RabbitMQBusDefaults Defaults => defaults;
 
     /// <summary>
-    /// Adds a new exchange to the topology, initializing it from the given configuration.
+    /// Adds an exchange to the topology or merges into an existing exchange with the same name.
+    /// When an exchange with the same name already exists, the incoming configuration is merged
+    /// using the 3.5 rules: declared non-null scalar wins, convention fills the rest, Arguments
+    /// union per key, AutoProvision strengthens (true wins), provenance upgrades convention to
+    /// endpoint to declared. A shape conflict between two declared values throws
+    /// <see cref="RabbitMQTopologyShapeConflictException"/>.
     /// </summary>
     /// <param name="configuration">The exchange configuration specifying name, type, durability, and arguments.</param>
-    /// <returns>The created and initialized exchange resource.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if an exchange with the same name already exists.</exception>
+    /// <returns>The created or merged exchange resource.</returns>
+    /// <exception cref="RabbitMQTopologyShapeConflictException">
+    /// Thrown when both the existing and incoming configurations carry explicitly declared values
+    /// for the same scalar property and those values differ.
+    /// </exception>
     public RabbitMQExchange AddExchange(RabbitMQExchangeConfiguration configuration)
     {
         lock (_lock)
@@ -59,7 +67,8 @@ public sealed class RabbitMQMessagingTopology(
             var exchange = _exchanges.FirstOrDefault(e => e.Name == configuration.Name);
             if (exchange is not null)
             {
-                throw new InvalidOperationException($"Exchange '{configuration.Name}' already exists");
+                exchange.MergeFrom(configuration);
+                return exchange;
             }
 
             exchange = new RabbitMQExchange();
@@ -77,11 +86,19 @@ public sealed class RabbitMQMessagingTopology(
     }
 
     /// <summary>
-    /// Adds a new queue to the topology, initializing it from the given configuration.
+    /// Adds a queue to the topology or merges into an existing queue with the same name.
+    /// When a queue with the same name already exists, the incoming configuration is merged
+    /// using the 3.5 rules: declared non-null scalar wins, convention fills the rest, Arguments
+    /// union per key, AutoProvision strengthens (true wins), provenance upgrades convention to
+    /// endpoint to declared. A shape conflict between two declared values throws
+    /// <see cref="RabbitMQTopologyShapeConflictException"/>.
     /// </summary>
     /// <param name="configuration">The queue configuration specifying name, durability, exclusivity, and arguments.</param>
-    /// <returns>The created and initialized queue resource.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if a queue with the same name already exists.</exception>
+    /// <returns>The created or merged queue resource.</returns>
+    /// <exception cref="RabbitMQTopologyShapeConflictException">
+    /// Thrown when both the existing and incoming configurations carry explicitly declared values
+    /// for the same scalar property and those values differ.
+    /// </exception>
     public RabbitMQQueue AddQueue(RabbitMQQueueConfiguration configuration)
     {
         lock (_lock)
@@ -91,7 +108,8 @@ public sealed class RabbitMQMessagingTopology(
             var queue = _queues.FirstOrDefault(q => q.Name == configuration.Name);
             if (queue is not null)
             {
-                throw new InvalidOperationException($"Queue '{configuration.Name}' already exists");
+                queue.MergeFrom(configuration);
+                return queue;
             }
 
             configuration.Topology = this;
@@ -119,6 +137,23 @@ public sealed class RabbitMQMessagingTopology(
     {
         lock (_lock)
         {
+            var routingKey = configuration.RoutingKey ?? string.Empty;
+            var arguments = configuration.Arguments?
+                .Select(kv => new KeyValuePair<string, object?>(kv.Key, kv.Value));
+            var existing = _bindings.FirstOrDefault(b =>
+                b.Source.Name == configuration.Source
+                && b.RoutingKey == routingKey
+                && RabbitMQBinding.ArgumentsEqual(b.Arguments, arguments)
+                && MatchesDestination(b, configuration));
+            if (existing is not null)
+            {
+                // A repeated declaration of the same binding keeps the stronger metadata so an
+                // explicit auto-provision or a declared provenance is not lost to an earlier
+                // convention-created entry.
+                existing.MergeFrom(configuration);
+                return existing;
+            }
+
             var source = _exchanges.FirstOrDefault(e => e.Name == configuration.Source);
             if (source is null)
             {
@@ -174,5 +209,17 @@ public sealed class RabbitMQMessagingTopology(
 
             return binding;
         }
+    }
+
+    private static bool MatchesDestination(RabbitMQBinding binding, RabbitMQBindingConfiguration configuration)
+    {
+        return configuration.DestinationKind switch
+        {
+            RabbitMQDestinationKind.Queue =>
+                binding is RabbitMQQueueBinding qb && qb.Destination.Name == configuration.Destination,
+            RabbitMQDestinationKind.Exchange =>
+                binding is RabbitMQExchangeBinding eb && eb.Destination.Name == configuration.Destination,
+            _ => false
+        };
     }
 }

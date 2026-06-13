@@ -9,10 +9,12 @@ public class ExplicitTopologyTests
 {
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
     private readonly RabbitMQFixture _fixture;
+    private readonly ITestOutputHelper _output;
 
-    public ExplicitTopologyTests(RabbitMQFixture fixture)
+    public ExplicitTopologyTests(RabbitMQFixture fixture, ITestOutputHelper output)
     {
         _fixture = fixture;
+        _output = output;
     }
 
     [Fact]
@@ -127,6 +129,235 @@ public class ExplicitTopologyTests
         Assert.Equal("ORD-RCV", message.OrderId);
     }
 
+    [Fact]
+    public async Task Satellite_Should_ProvisionRenamedErrorQueue_When_ErrorQueueNamed()
+    {
+        // arrange
+        // ErrorQueue("custom-orders-error") stores the name verbatim; the default convention
+        // must not kebab-case or otherwise transform it. The spy endpoint on that exact name
+        // receives messages forwarded there when the handler throws.
+        var faultCapture = new FaultCapture();
+        await using var vhost = await _fixture.CreateVhostAsync();
+        await using var bus = await new ServiceCollection()
+            .AddSingleton(vhost.ConnectionFactory)
+            .AddSingleton(faultCapture)
+            .AddMessageBus()
+            .AddEventHandler<ThrowingOrderHandler>()
+            .AddConsumer<FaultSpyConsumer>()
+            .AddRabbitMQ(t =>
+            {
+                t.BindHandlersExplicitly();
+                t.Endpoint("main-ep")
+                    .Handler<ThrowingOrderHandler>()
+                    .ErrorQueue("custom-orders-error");
+                t.Endpoint("error-ep")
+                    .Queue("custom-orders-error")
+                    .Kind(ReceiveEndpointKind.Error)
+                    .Consumer<FaultSpyConsumer>();
+            })
+            .BuildTestBusAsync();
+
+        using var scope = bus.Provider.CreateScope();
+        var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        await messageBus.PublishAsync(new OrderCreated { OrderId = "SAT-RENAME" }, CancellationToken.None);
+
+        // assert
+        Assert.True(await faultCapture.WaitAsync(s_timeout), "Faulted message did not arrive in the renamed error queue");
+        Assert.Equal("SAT-RENAME", Assert.Single(faultCapture.Messages).OrderId);
+    }
+
+    [Fact]
+    public async Task Satellite_Should_OmitErrorQueue_When_ErrorDisabled()
+    {
+        // arrange
+        // DisableErrorQueue removes the error satellite entirely. When the handler throws, the
+        // fault middleware finds no error endpoint and silently acknowledges the message; no
+        // message should arrive in any queue named after the conventional "_error" suffix.
+        var faultCapture = new FaultCapture();
+        await using var vhost = await _fixture.CreateVhostAsync();
+        await using var bus = await new ServiceCollection()
+            .AddSingleton(vhost.ConnectionFactory)
+            .AddSingleton(faultCapture)
+            .AddMessageBus()
+            .AddEventHandler<ThrowingOrderHandler>()
+            .AddConsumer<FaultSpyConsumer>()
+            .AddRabbitMQ(t =>
+            {
+                t.BindHandlersExplicitly();
+                t.Endpoint("main-ep")
+                    .Handler<ThrowingOrderHandler>()
+                    .DisableErrorQueue();
+
+                // Set up the spy on the conventional error queue name to prove nothing arrives there.
+                t.DeclareQueue("main-ep_error");
+                t.Endpoint("error-ep")
+                    .Queue("main-ep_error")
+                    .Kind(ReceiveEndpointKind.Error)
+                    .Consumer<FaultSpyConsumer>();
+            })
+            .BuildTestBusAsync();
+
+        using var scope = bus.Provider.CreateScope();
+        var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        await messageBus.PublishAsync(new OrderCreated { OrderId = "SAT-OMIT" }, CancellationToken.None);
+
+        // assert: no message arrives in the conventional error queue because the satellite is disabled
+        Assert.False(
+            await faultCapture.WaitAsync(TimeSpan.FromSeconds(3)),
+            "A message arrived in the error queue even though the error satellite was disabled");
+    }
+
+    [Fact]
+    public async Task PublishAsync_Should_DeliverToConsumer_When_ExplicitDestinationConfigured()
+    {
+        // arrange
+        // AddMessage<OrderCreated> routes to an explicit exchange. The receive convention uses the
+        // resolver to detect HasExplicitDestination and binds directly from that exchange into the
+        // consumer queue instead of building a convention exchange chain.
+        var capture = new OrderCapture();
+        await using var vhost = await _fixture.CreateVhostAsync();
+        await using var bus = await new ServiceCollection()
+            .AddSingleton(vhost.ConnectionFactory)
+            .AddSingleton(capture)
+            .AddMessageBus()
+            .AddMessage<OrderCreated>(d => d.Publish(r => r.ToRabbitMQExchange("custom-routing-exchange")))
+            .AddConsumer<OrderSpyConsumer>()
+            .AddRabbitMQ(t => t.BindHandlersImplicitly())
+            .BuildTestBusAsync();
+
+        using var scope = bus.Provider.CreateScope();
+        var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-EXPLICIT-DEST" }, CancellationToken.None);
+
+        // assert
+        Assert.True(
+            await capture.WaitAsync(s_timeout),
+            "Consumer did not receive the message published to the explicit exchange destination");
+
+        var message = Assert.Single(capture.Messages);
+        Assert.Equal("ORD-EXPLICIT-DEST", message.OrderId);
+    }
+
+    [Fact]
+    public async Task Queue_Endpoint_DeclareQueue_Should_ProvisionOneQueue_When_SameName()
+    {
+        // arrange
+        // Three configuration paths all target the same queue name "orders":
+        //   1. DeclareQueue("orders").AutoProvision(true) at transport level
+        //   2. Endpoint("ep").Queue("orders").Consumer<OrderSpyConsumer>() at endpoint level
+        //   3. DeclareQueue("orders").AutoProvision(false) at transport level (second call)
+        // The entity-identity merge (W2b.05) converges all three to one entity. This test
+        // proves that exactly one "orders" queue is provisioned on the live broker and that
+        // a message published to the dispatch exchange reaches the consumer.
+        var capture = new OrderCapture();
+        await using var vhost = await _fixture.CreateVhostAsync();
+        await using var bus = await new ServiceCollection()
+            .AddSingleton(vhost.ConnectionFactory)
+            .AddSingleton(capture)
+            .AddMessageBus()
+            .AddConsumer<OrderSpyConsumer>()
+            .AddRabbitMQ(t =>
+            {
+                t.BindHandlersExplicitly();
+                t.DeclareExchange("orders-ex");
+                t.DeclareQueue("orders").AutoProvision(true);
+                t.DeclareBinding("orders-ex", "orders");
+                t.Endpoint("ep").Consumer<OrderSpyConsumer>().Queue("orders");
+                t.DeclareQueue("orders").AutoProvision(false);
+                t.DispatchEndpoint("orders-dispatch").ToExchange("orders-ex").Publish<OrderCreated>();
+            })
+            .BuildTestBusAsync();
+
+        // act: list broker queues to verify exactly one "orders" queue was provisioned.
+        var queues = await ListQueuesAsync(vhost.VhostName);
+        _output.WriteLine($"Queues on vhost: {string.Join(", ", queues.Select(q => q.Name))}");
+
+        using var scope = bus.Provider.CreateScope();
+        var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        await messageBus.PublishAsync(new OrderCreated { OrderId = "MERGE-THREE-WAY" }, CancellationToken.None);
+
+        // assert: broker shows exactly one queue named "orders" (no duplicates).
+        var ordersQueues = queues.Where(q => q.Name == "orders").ToList();
+        Assert.Single(ordersQueues);
+
+        // assert: message is delivered, proving the provisioned queue is operational.
+        Assert.True(
+            await capture.WaitAsync(s_timeout),
+            "Consumer on the merged 'orders' queue did not receive the published message");
+
+        var received = Assert.Single(capture.Messages);
+        Assert.Equal("MERGE-THREE-WAY", received.OrderId);
+    }
+
+    [Fact]
+    public async Task PublishAsync_Should_RouteToQueue_When_BindFromDeclared()
+    {
+        // arrange
+        // AutoBind(false) at queue scope suppresses the convention binding from the publish exchange
+        // chain into the consumer queue. A queue-level BindFrom from "bind-source-exchange" into the
+        // queue substitutes the explicit binding. The dispatch endpoint routes to that same exchange,
+        // so publishing reaches the consumer only through the declared BindFrom path.
+        var capture = new OrderCapture();
+        await using var vhost = await _fixture.CreateVhostAsync();
+        await using var bus = await new ServiceCollection()
+            .AddSingleton(vhost.ConnectionFactory)
+            .AddSingleton(capture)
+            .AddMessageBus()
+            .AddMessage<OrderCreated>(d => d.Publish(r => r.ToRabbitMQExchange("bind-source-exchange")))
+            .AddConsumer<OrderSpyConsumer>()
+            .AddRabbitMQ(t =>
+            {
+                t.BindHandlersExplicitly();
+                t.Endpoint("orders")
+                    .Queue("orders")
+                    .Consumer<OrderSpyConsumer>()
+                    .AutoBind(false)
+                    .BindFrom(new Uri("exchange:bind-source-exchange"));
+            })
+            .BuildTestBusAsync();
+
+        using var scope = bus.Provider.CreateScope();
+        var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        await messageBus.PublishAsync(new OrderCreated { OrderId = "BIND-FROM-ROUTE" }, CancellationToken.None);
+
+        // assert
+        Assert.True(
+            await capture.WaitAsync(s_timeout),
+            "Consumer did not receive the message routed via the explicit BindFrom binding");
+
+        var message = Assert.Single(capture.Messages);
+        Assert.Equal("BIND-FROM-ROUTE", message.OrderId);
+    }
+
+    private async Task<List<(string Name, string Type)>> ListQueuesAsync(string vhostName)
+    {
+        var output = await _fixture.InvokeCommandAsync(
+            ["rabbitmqctl", "list_queues", "name", "type", "-p", vhostName, "--no-table-headers"]);
+
+        Assert.NotNull(output);
+
+        var result = new List<(string Name, string Type)>();
+        var lines = output.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        foreach (var line in lines)
+        {
+            var parts = line.Split('\t');
+            if (parts.Length >= 2 && parts[1] is not "type")
+            {
+                result.Add((parts[0], parts[1]));
+            }
+        }
+
+        return result;
+    }
+
     public sealed class OrderCapture
     {
         private readonly SemaphoreSlim _semaphore = new(0);
@@ -157,6 +388,40 @@ public class ExplicitTopologyTests
         {
             capture.Record(context);
             return default;
+        }
+    }
+
+    public sealed class FaultCapture
+    {
+        private readonly SemaphoreSlim _semaphore = new(0);
+        public ConcurrentBag<OrderCreated> Messages { get; } = [];
+
+        public void Record(IConsumeContext<OrderCreated> context)
+        {
+            Messages.Add(context.Message);
+            _semaphore.Release();
+        }
+
+        public async Task<bool> WaitAsync(TimeSpan timeout)
+        {
+            return await _semaphore.WaitAsync(timeout);
+        }
+    }
+
+    public sealed class FaultSpyConsumer(FaultCapture capture) : IConsumer<OrderCreated>
+    {
+        public ValueTask ConsumeAsync(IConsumeContext<OrderCreated> context)
+        {
+            capture.Record(context);
+            return default;
+        }
+    }
+
+    public sealed class ThrowingOrderHandler : IEventHandler<OrderCreated>
+    {
+        public ValueTask HandleAsync(OrderCreated message, CancellationToken cancellationToken)
+        {
+            throw new InvalidOperationException("Handler failed deliberately");
         }
     }
 }

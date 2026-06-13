@@ -216,6 +216,58 @@ public class InMemoryHandlerClaimTests
         Assert.Contains("q/my-queue", route.Endpoint.Address.ToString());
     }
 
+    [Fact]
+    public void Receives_Should_NotAutoDiscoverClaimedType_OntoSecondEndpoint()
+    {
+        // arrange & act
+        // In implicit mode OrderCreated is claimed by the configured "test-order" endpoint through
+        // TestOrderConsumer. A second, unplaced handler of OrderCreated must not auto-discover its own
+        // framework endpoint; the claimed type converges onto the claiming endpoint instead.
+        var runtime = new ServiceCollection()
+            .AddMessageBus()
+            .AddConsumer<TestOrderConsumer>()
+            .AddEventHandler<OrderCreatedHandler2>()
+            .AddInMemory(t => t.Consumer<TestOrderConsumer>())
+            .BuildRuntime();
+        var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
+
+        // assert - no framework endpoint was fabricated for the unplaced second handler
+        Assert.DoesNotContain(
+            transport.ReceiveEndpoints.OfType<InMemoryReceiveEndpoint>(),
+            e => e.Name.EndsWith("order-created-handler-2"));
+
+        // assert - the unplaced handler's route converged onto the claiming endpoint
+        var handler2 = runtime.Consumers.Single(c => c.Name == nameof(OrderCreatedHandler2));
+        var route = runtime.Router.GetInboundByConsumer(handler2).Single();
+        Assert.Equal("test-order", route.Endpoint!.Name);
+    }
+
+    [Fact]
+    public void BindHandlersExplicitly_Should_StillGenerateTopology_When_AutoBindDefaultOn()
+    {
+        // arrange & act
+        // BindHandlersExplicitly governs only consumer binding (axis A); with AutoBind left at its
+        // default the convention still gap-fills the consume topology for the claimed endpoint.
+        var runtime = new ServiceCollection()
+            .AddMessageBus()
+            .AddConsumer<TestOrderConsumer>()
+            .AddInMemory(t =>
+            {
+                t.BindHandlersExplicitly();
+                t.Consumer<TestOrderConsumer>();
+            })
+            .BuildRuntime();
+        var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
+        var topology = (InMemoryMessagingTopology)transport.Topology;
+
+        var consumer = runtime.Consumers.Single(c => c.Name == nameof(TestOrderConsumer));
+        var queueName = runtime.Router.GetInboundByConsumer(consumer).Single().Endpoint!.Name;
+
+        // assert - the queue exists and a topic-to-queue binding was generated despite explicit binding
+        Assert.Contains(topology.Queues, q => q.Name == queueName);
+        Assert.Contains(topology.Bindings.OfType<InMemoryQueueBinding>(), b => b.Destination.Name == queueName);
+    }
+
     public sealed class TestOrderConsumer : IConsumer<OrderCreated>
     {
         public ValueTask ConsumeAsync(IConsumeContext<OrderCreated> context) => default;

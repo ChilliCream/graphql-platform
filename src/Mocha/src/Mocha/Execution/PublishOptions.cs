@@ -21,6 +21,11 @@ public readonly struct PublishOptions
     public DateTimeOffset? ExpirationTime { get; init; }
 
     /// <summary>
+    /// Gets the explicit destination endpoint address, overriding the default route, or <c>null</c> to use routing conventions.
+    /// </summary>
+    public Uri? Endpoint { get; init; }
+
+    /// <summary>
     /// Gets custom headers to include with the published message, or <c>null</c> if none.
     /// </summary>
     public Dictionary<string, object?>? Headers { get; init; }

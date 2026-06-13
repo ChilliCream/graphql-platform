@@ -1,0 +1,34 @@
+{
+  "Schema": "memory",
+  "TransportType": "InMemoryMessagingTransport",
+  "Entities": [
+    {
+      "Kind": "queue",
+      "Name": "orders",
+      "Flow": "outbound"
+    },
+    {
+      "Kind": "topic",
+      "Name": "mocha.test-helpers.order-created",
+      "Flow": "inbound"
+    },
+    {
+      "Kind": "topic",
+      "Name": "order-created",
+      "Flow": "inbound"
+    }
+  ],
+  "Links": [
+    {
+      "Kind": "bind",
+      "Direction": "forward"
+    }
+  ],
+  "ReceiveEndpoints": [
+    {
+      "Name": "orders",
+      "Kind": "Default"
+    }
+  ],
+  "DispatchEndpoints": []
+}

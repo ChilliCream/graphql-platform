@@ -33,6 +33,37 @@ public class RequestReplyTests
     }
 
     [Fact]
+    public async Task RequestAsync_Should_ReturnTypedResponse_When_ExplicitBindingMode()
+    {
+        // arrange
+        // explicit binding governs consumer binding only; the handler is bound explicitly and the
+        // reply flow resolves by address through the transport reply dispatch endpoint, so the
+        // request/response round trip must still work end to end.
+        var recorder = new MessageRecorder();
+        await using var provider = await new ServiceCollection()
+            .AddSingleton(recorder)
+            .AddMessageBus()
+            .AddRequestHandler<GetOrderStatusHandler>()
+            .AddInMemory(t =>
+            {
+                t.BindHandlersExplicitly();
+                t.Handler<GetOrderStatusHandler>();
+            })
+            .BuildServiceProvider();
+
+        using var scope = provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        using var cts = new CancellationTokenSource(s_timeout);
+        var response = await bus.RequestAsync(new GetOrderStatus { OrderId = "ORD-1" }, cts.Token);
+
+        // assert
+        Assert.Equal("ORD-1", response.OrderId);
+        Assert.Equal("Shipped", response.Status);
+    }
+
+    [Fact]
     public async Task RequestAsync_Should_ThrowRemoteError_When_HandlerReturnsNull()
     {
         // arrange

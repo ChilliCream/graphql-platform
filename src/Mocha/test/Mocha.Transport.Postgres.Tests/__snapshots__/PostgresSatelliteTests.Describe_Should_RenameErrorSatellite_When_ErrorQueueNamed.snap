@@ -1,0 +1,39 @@
+{
+  "Schema": "postgres",
+  "TransportType": "PostgresMessagingTransport",
+  "Entities": [
+    {
+      "Kind": "queue",
+      "Name": "LEGACY.Orders.Error"
+    },
+    {
+      "Kind": "queue",
+      "Name": "orders",
+      "AutoProvision": true
+    },
+    {
+      "Kind": "queue",
+      "Name": "orders_skipped"
+    },
+    {
+      "Kind": "topic",
+      "Name": "mocha.test-helpers.order-created"
+    },
+    {
+      "Kind": "topic",
+      "Name": "order-created"
+    }
+  ],
+  "Links": [
+    {
+      "Kind": "subscription",
+      "From": "postgres://localhost:5432/t/mocha.test-helpers.order-created",
+      "To": "postgres://localhost:5432/q/orders"
+    },
+    {
+      "Kind": "subscription",
+      "From": "postgres://localhost:5432/t/order-created",
+      "To": "postgres://localhost:5432/q/orders"
+    }
+  ]
+}

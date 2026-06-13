@@ -29,4 +29,11 @@ public class OutboundRouteDescriptor : MessagingDescriptorBase<OutboundRouteConf
         Configuration.Destination = destination;
         return this;
     }
+
+    /// <inheritdoc />
+    public IOutboundRouteDescriptor OnTransport(string name)
+    {
+        Configuration.TransportName = name;
+        return this;
+    }
 }

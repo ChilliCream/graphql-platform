@@ -6,12 +6,13 @@ namespace Mocha;
 public enum ConsumerBindingMode
 {
     /// <summary>
-    /// The consumer requires an explicit route configuration to bind to an endpoint.
+    /// The consumer is automatically bound to an endpoint based on naming conventions.
+    /// This is the default mode.
     /// </summary>
-    Explicit,
+    Implicit,
 
     /// <summary>
-    /// The consumer is automatically bound to an endpoint based on naming conventions.
+    /// The consumer requires an explicit route configuration to bind to an endpoint.
     /// </summary>
-    Implicit
+    Explicit
 }

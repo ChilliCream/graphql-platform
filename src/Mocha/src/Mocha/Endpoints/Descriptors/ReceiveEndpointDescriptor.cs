@@ -53,11 +53,64 @@ public abstract class ReceiveEndpointDescriptor<T>(IMessagingConfigurationContex
     }
 
     /// <inheritdoc />
+    public IReceiveEndpointDescriptor<T> Receives<TMessage>(Action<IReceiveTypeBindDescriptor> configure)
+    {
+        ArgumentNullException.ThrowIfNull(configure);
+
+        var descriptor = new ReceiveTypeBindDescriptor();
+        configure(descriptor);
+
+        var messageType = typeof(TMessage);
+        Configuration.ReceivedMessageTypes.Add(messageType);
+        MergeTypeBindIntent(messageType, descriptor);
+        return this;
+    }
+
+    /// <inheritdoc />
     public IReceiveEndpointDescriptor<T> Receives(Type messageType)
     {
         ArgumentNullException.ThrowIfNull(messageType);
         Configuration.ReceivedMessageTypes.Add(messageType);
         return this;
+    }
+
+    /// <inheritdoc />
+    public IReceiveEndpointDescriptor<T> AutoBind(bool enabled)
+    {
+        Configuration.AutoBind = enabled;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IReceiveEndpointDescriptor<T> BindFrom(Uri source, string? routingKey = null)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        Configuration.QueueBindFroms.Add(new BindFromIntent(source, routingKey));
+        return this;
+    }
+
+    private void MergeTypeBindIntent(Type messageType, ReceiveTypeBindDescriptor incoming)
+    {
+        if (!Configuration.TypeBinds.TryGetValue(messageType, out var existing))
+        {
+            Configuration.TypeBinds[messageType] = new ReceiveTypeBindIntent(
+                messageType,
+                incoming.ResolvedAutoBind,
+                incoming.BindFroms.Count > 0 ? [.. incoming.BindFroms] : []);
+            return;
+        }
+
+        // Merge: explicit AutoBind from the incoming descriptor wins over an implied value;
+        // if both are null (neither configured), keep null; BindFroms accumulate.
+        var mergedAutoBind = incoming.ResolvedAutoBind ?? existing.AutoBind;
+        var mergedBindFroms = existing.BindFroms.Count == 0 && incoming.BindFroms.Count == 0
+            ? (IReadOnlyList<BindFromIntent>)[]
+            : [.. existing.BindFroms, .. incoming.BindFroms];
+
+        Configuration.TypeBinds[messageType] = new ReceiveTypeBindIntent(
+            messageType,
+            mergedAutoBind,
+            mergedBindFroms);
     }
 
     public IReceiveEndpointDescriptor<T> Kind(ReceiveEndpointKind kind)

@@ -47,11 +47,12 @@ public sealed class PostgresMessagingTopology(
     public PostgresBusDefaults Defaults => defaults;
 
     /// <summary>
-    /// Adds a new topic to the topology, initializing it from the given configuration.
+    /// Adds a topic to the topology or merges into an existing topic with the same name.
+    /// When a topic with the same name already exists, AutoProvision strengthens: true wins
+    /// over null or false.
     /// </summary>
     /// <param name="configuration">The topic configuration specifying name and provisioning settings.</param>
-    /// <returns>The created and initialized topic resource.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if a topic with the same name already exists.</exception>
+    /// <returns>The created or merged topic resource.</returns>
     public PostgresTopic AddTopic(PostgresTopicConfiguration configuration)
     {
         lock (_lock)
@@ -59,7 +60,8 @@ public sealed class PostgresMessagingTopology(
             var topic = _topics.FirstOrDefault(t => t.Name == configuration.Name);
             if (topic is not null)
             {
-                throw new InvalidOperationException($"Topic '{configuration.Name}' already exists");
+                topic.MergeFrom(configuration);
+                return topic;
             }
 
             topic = new PostgresTopic();
@@ -77,11 +79,12 @@ public sealed class PostgresMessagingTopology(
     }
 
     /// <summary>
-    /// Adds a new queue to the topology, initializing it from the given configuration.
+    /// Adds a queue to the topology or merges into an existing queue with the same name.
+    /// When a queue with the same name already exists, AutoProvision strengthens: true wins
+    /// over null or false.
     /// </summary>
     /// <param name="configuration">The queue configuration specifying name, auto-delete, and provisioning settings.</param>
-    /// <returns>The created and initialized queue resource.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if a queue with the same name already exists.</exception>
+    /// <returns>The created or merged queue resource.</returns>
     public PostgresQueue AddQueue(PostgresQueueConfiguration configuration)
     {
         lock (_lock)
@@ -91,7 +94,8 @@ public sealed class PostgresMessagingTopology(
             var queue = _queues.FirstOrDefault(q => q.Name == configuration.Name);
             if (queue is not null)
             {
-                throw new InvalidOperationException($"Queue '{configuration.Name}' already exists");
+                queue.MergeFrom(configuration);
+                return queue;
             }
 
             configuration.Topology = this;

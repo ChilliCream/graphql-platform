@@ -18,6 +18,8 @@ public sealed class InMemoryMessagingTransportDescriptor
     private readonly List<InMemoryTopicDescriptor> _exchanges = [];
     private readonly List<InMemoryQueueDescriptor> _queues = [];
     private readonly List<InMemoryBindingDescriptor> _bindings = [];
+    private readonly Dictionary<string, InMemoryQueueEndpointDescriptor> _queueEndpoints =
+        new(StringComparer.Ordinal);
 
     /// <summary>
     /// Creates a new in-memory transport descriptor bound to the specified setup context.
@@ -109,6 +111,14 @@ public sealed class InMemoryMessagingTransportDescriptor
     }
 
     /// <inheritdoc />
+    public new IInMemoryMessagingTransportDescriptor AutoBind(bool enabled)
+    {
+        base.AutoBind(enabled);
+
+        return this;
+    }
+
+    /// <inheritdoc />
     public IMessagingTransportHandlerDescriptor<IInMemoryReceiveEndpointDescriptor> Handler<THandler>()
         where THandler : class, IHandler
     {
@@ -126,6 +136,38 @@ public sealed class InMemoryMessagingTransportDescriptor
         var endpoint = Endpoint(name);
         endpoint.Consumer(typeof(TConsumer));
         return new MessagingTransportConsumerDescriptor<IInMemoryReceiveEndpointDescriptor>(endpoint);
+    }
+
+    /// <inheritdoc />
+    public IInMemoryQueueEndpointDescriptor Queue(string name)
+    {
+        if (_queueEndpoints.TryGetValue(name, out var existing))
+        {
+            return existing;
+        }
+
+        // Locate an endpoint whose effective queue name already matches. This merges onto
+        // an endpoint that was previously created via Endpoint("foo").Queue(name).
+        var backing = _receiveEndpoints.FirstOrDefault(e =>
+            e.Extend().Configuration.QueueName.EqualsOrdinal(name));
+
+        if (backing is null)
+        {
+            backing = InMemoryReceiveEndpointDescriptor.New(Context, name);
+            _receiveEndpoints.Add(backing);
+        }
+
+        var adapter = new InMemoryQueueEndpointDescriptor(backing);
+        _queueEndpoints[name] = adapter;
+        return adapter;
+    }
+
+    /// <inheritdoc />
+    public IInMemoryMessagingTransportDescriptor Queue(string name, Action<IInMemoryQueueEndpointDescriptor> configure)
+    {
+        var handle = Queue(name);
+        configure(handle);
+        return this;
     }
 
     /// <inheritdoc />
@@ -204,7 +246,38 @@ public sealed class InMemoryMessagingTransportDescriptor
     /// <returns>The fully populated transport configuration ready for runtime initialization.</returns>
     public InMemoryTransportConfiguration CreateConfiguration()
     {
-        Configuration.ReceiveEndpoints = _receiveEndpoints
+        var queues = _queues.Select(q => q.CreateConfiguration()).ToList();
+        var topics = _exchanges.Select(e => e.CreateConfiguration()).ToList();
+        var bindings = _bindings.Select(b => b.CreateConfiguration()).ToList();
+
+        // Partition the unified Queue() handles: an entity-only handle (no consumers, no Receives)
+        // is a pure dispatch target. It lowers to a declared queue plus its BindFrom bindings here
+        // and never enters the receive-endpoint lifecycle. A handle that names a consumer or a
+        // received type materializes a real receive endpoint and stays in the list below.
+        var entityOnly = new HashSet<InMemoryReceiveEndpointDescriptor>();
+        var resolver = new InMemoryDestinationResolver(
+            Configuration.Schema ?? InMemoryTransportConfiguration.DefaultSchema);
+        foreach (var adapter in _queueEndpoints.Values)
+        {
+            var backing = adapter.Inner;
+            if (IsEntityOnly(backing.Configuration))
+            {
+                LowerEntityOnlyQueue(resolver, backing.Configuration, queues, topics, bindings);
+                entityOnly.Add(backing);
+            }
+        }
+
+        var consumingEndpoints = _receiveEndpoints
+            .Where(e => !entityOnly.Contains(e))
+            .ToList();
+
+        ValidateOneEndpointPerQueue(consumingEndpoints);
+
+        Configuration.Topics = topics;
+        Configuration.Queues = queues;
+        Configuration.Bindings = bindings;
+
+        Configuration.ReceiveEndpoints = consumingEndpoints
             .Select(ReceiveEndpointConfiguration (e) => e.CreateConfiguration())
             .ToList();
 
@@ -212,13 +285,96 @@ public sealed class InMemoryMessagingTransportDescriptor
             .Select(DispatchEndpointConfiguration (e) => e.CreateConfiguration())
             .ToList();
 
-        Configuration.Topics = _exchanges.Select(e => e.CreateConfiguration()).ToList();
-
-        Configuration.Queues = _queues.Select(q => q.CreateConfiguration()).ToList();
-
-        Configuration.Bindings = _bindings.Select(b => b.CreateConfiguration()).ToList();
-
         return Configuration;
+    }
+
+    private static bool IsEntityOnly(InMemoryReceiveEndpointConfiguration configuration)
+        => configuration.ConsumerIdentities.Count == 0
+            && configuration.ReceivedMessageTypes.Count == 0;
+
+    private static void LowerEntityOnlyQueue(
+        InMemoryDestinationResolver resolver,
+        InMemoryReceiveEndpointConfiguration configuration,
+        List<InMemoryQueueConfiguration> queues,
+        List<InMemoryTopicConfiguration> topics,
+        List<InMemoryBindingConfiguration> bindings)
+    {
+        var queueName = configuration.QueueName
+            ?? throw new InvalidOperationException("Queue name is required.");
+
+        // Satellites require a consuming endpoint to process failed or skipped messages.
+        // An entity-only queue has no consumer, so a configured satellite cannot be honored.
+        if (configuration.ErrorEndpoint is not null)
+        {
+            throw ThrowHelper.SatelliteRequiresConsumingEndpoint("error", queueName);
+        }
+
+        if (configuration.SkippedEndpoint is not null)
+        {
+            throw ThrowHelper.SatelliteRequiresConsumingEndpoint("skipped", queueName);
+        }
+
+        // Lower the queue itself.
+        queues.Add(new InMemoryQueueConfiguration { Name = queueName });
+
+        // Materialize the queue-level BindFrom intents into topic-to-queue bindings.
+        foreach (var intent in configuration.QueueBindFroms)
+        {
+            if (intent.RoutingKey is not null)
+            {
+                throw ThrowHelper.BindFromWithNonNullRoutingKey(
+                    "in-memory",
+                    intent.Source.ToString(),
+                    queueName);
+            }
+
+            if (!resolver.TryResolveSourceTopic(intent.Source, out var topicName))
+            {
+                throw new InvalidOperationException(
+                    $"BindFrom source '{intent.Source}' could not be resolved to an in-memory topic name.");
+            }
+
+            // Ensure the source topic exists.
+            if (topics.All(t => t.Name != topicName))
+            {
+                topics.Add(new InMemoryTopicConfiguration { Name = topicName });
+            }
+
+            // Add the binding only if it does not already exist.
+            if (bindings.All(b => b.Source != topicName || b.Destination != queueName))
+            {
+                bindings.Add(
+                    new InMemoryBindingConfiguration
+                    {
+                        Source = topicName,
+                        Destination = queueName,
+                        DestinationKind = InMemoryDestinationKind.Queue
+                    });
+            }
+        }
+    }
+
+    private static void ValidateOneEndpointPerQueue(List<InMemoryReceiveEndpointDescriptor> endpoints)
+    {
+        var seen = new Dictionary<string, InMemoryReceiveEndpointDescriptor>(StringComparer.Ordinal);
+        foreach (var endpoint in endpoints)
+        {
+            var queueName = endpoint.Configuration.QueueName;
+            if (queueName is null)
+            {
+                continue;
+            }
+
+            if (seen.TryGetValue(queueName, out var existing))
+            {
+                throw ThrowHelper.TwoReceiveEndpointsShareOneQueue(
+                    queueName,
+                    existing.Configuration.Name ?? queueName,
+                    endpoint.Configuration.Name ?? queueName);
+            }
+
+            seen[queueName] = endpoint;
+        }
     }
 
     /// <summary>

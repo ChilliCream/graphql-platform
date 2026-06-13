@@ -19,6 +19,9 @@ public interface IRabbitMQMessagingTransportDescriptor
     /// <inheritdoc cref="IMessagingTransportDescriptor.BindHandlersExplicitly" />
     new IRabbitMQMessagingTransportDescriptor BindHandlersExplicitly();
 
+    /// <inheritdoc cref="IMessagingTransportDescriptor.AutoBind" />
+    new IRabbitMQMessagingTransportDescriptor AutoBind(bool enabled);
+
     /// <summary>
     /// Sets a factory delegate that resolves an <see cref="IRabbitMQConnectionProvider"/> for creating RabbitMQ connections.
     /// </summary>
@@ -50,6 +53,10 @@ public interface IRabbitMQMessagingTransportDescriptor
 
     /// <summary>
     /// Declares or retrieves an exchange in the transport topology.
+    /// When called multiple times with the same name, the configurations merge using these rules:
+    /// declared non-null scalar properties win; convention-generated values fill the rest; arguments merge per key;
+    /// AutoProvision strengthens (true wins); provenance upgrades convention to endpoint to declared.
+    /// A shape conflict (both declared values differ for the same scalar property) throws <see cref="RabbitMQTopologyShapeConflictException"/>.
     /// </summary>
     /// <param name="name">The exchange name.</param>
     /// <returns>An exchange descriptor for further configuration.</returns>
@@ -57,6 +64,10 @@ public interface IRabbitMQMessagingTransportDescriptor
 
     /// <summary>
     /// Declares or retrieves a queue in the transport topology.
+    /// When called multiple times with the same name, the configurations merge using these rules:
+    /// declared non-null scalar properties win; convention-generated values fill the rest; arguments merge per key;
+    /// AutoProvision strengthens (true wins); provenance upgrades convention to endpoint to declared.
+    /// A shape conflict (both declared values differ for the same scalar property) throws <see cref="RabbitMQTopologyShapeConflictException"/>.
     /// </summary>
     /// <param name="name">The queue name.</param>
     /// <returns>A queue descriptor for further configuration.</returns>
@@ -111,4 +122,25 @@ public interface IRabbitMQMessagingTransportDescriptor
     /// <summary>Claims a consumer for this transport, creating a convention-named endpoint.</summary>
     IMessagingTransportConsumerDescriptor<IRabbitMQReceiveEndpointDescriptor> Consumer<TConsumer>()
         where TConsumer : class, IConsumer;
+
+    /// <summary>
+    /// Gets or creates the unified queue endpoint whose identity is the given queue name.
+    /// If an endpoint previously created by <c>Endpoint(name).Queue(name)</c> has the same queue
+    /// name, this call merges onto that endpoint rather than creating a second one. Calling this
+    /// method multiple times with the same name returns the same handle.
+    /// </summary>
+    /// <param name="name">The queue name. Also serves as the endpoint identity.</param>
+    /// <returns>A unified queue endpoint descriptor for further configuration.</returns>
+    IRabbitMQQueueEndpointDescriptor Queue(string name);
+
+    /// <summary>
+    /// Gets or creates the unified queue endpoint whose identity is the given queue name and
+    /// applies additional configuration through the supplied delegate.
+    /// If an endpoint previously created by <c>Endpoint(name).Queue(name)</c> has the same queue
+    /// name, this call merges onto that endpoint rather than creating a second one.
+    /// </summary>
+    /// <param name="name">The queue name. Also serves as the endpoint identity.</param>
+    /// <param name="configure">A delegate that configures the endpoint.</param>
+    /// <returns>The transport descriptor for method chaining.</returns>
+    IRabbitMQMessagingTransportDescriptor Queue(string name, Action<IRabbitMQQueueEndpointDescriptor> configure);
 }

@@ -24,7 +24,7 @@ public class InMemoryMessagingTopologyTests
     }
 
     [Fact]
-    public void AddTopic_Should_Throw_When_DuplicateName()
+    public void AddTopic_Should_ReturnExisting_When_DuplicateName()
     {
         // arrange
         var runtime = new ServiceCollection().AddMessageBus().AddInMemory().BuildRuntime();
@@ -34,12 +34,15 @@ public class InMemoryMessagingTopologyTests
         var config1 = new InMemoryTopicConfiguration { Name = "duplicate-topic" };
         var config2 = new InMemoryTopicConfiguration { Name = "duplicate-topic" };
 
-        topology!.AddTopic(config1);
+        var first = topology!.AddTopic(config1);
+        var countAfterFirst = topology.Topics.Count;
 
-        // act & assert
-        var exception = Assert.Throws<InvalidOperationException>(() => topology.AddTopic(config2));
-        Assert.Contains("duplicate-topic", exception.Message);
-        Assert.Contains("already exists", exception.Message);
+        // act
+        var second = topology.AddTopic(config2);
+
+        // assert
+        Assert.Same(first, second);
+        Assert.Equal(countAfterFirst, topology.Topics.Count);
     }
 
     [Fact]
@@ -61,7 +64,7 @@ public class InMemoryMessagingTopologyTests
     }
 
     [Fact]
-    public void AddQueue_Should_Throw_When_DuplicateName()
+    public void AddQueue_Should_ReturnExisting_When_DuplicateName()
     {
         // arrange
         var runtime = new ServiceCollection().AddMessageBus().AddInMemory().BuildRuntime();
@@ -71,12 +74,15 @@ public class InMemoryMessagingTopologyTests
         var config1 = new InMemoryQueueConfiguration { Name = "duplicate-queue" };
         var config2 = new InMemoryQueueConfiguration { Name = "duplicate-queue" };
 
-        topology!.AddQueue(config1);
+        var first = topology!.AddQueue(config1);
+        var countAfterFirst = topology.Queues.Count;
 
-        // act & assert
-        var exception = Assert.Throws<InvalidOperationException>(() => topology.AddQueue(config2));
-        Assert.Contains("duplicate-queue", exception.Message);
-        Assert.Contains("already exists", exception.Message);
+        // act
+        var second = topology.AddQueue(config2);
+
+        // assert
+        Assert.Same(first, second);
+        Assert.Equal(countAfterFirst, topology.Queues.Count);
     }
 
     [Fact]

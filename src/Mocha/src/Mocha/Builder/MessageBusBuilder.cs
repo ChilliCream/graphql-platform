@@ -478,6 +478,8 @@ public partial class MessageBusBuilder : IMessageBusBuilder
 
         setupContext.Transport = null;
 
+        ValidateTransportConfiguration(transports, router);
+
         // after we initialized the transport, we connect all outbound routes that have an URI
         // but no endpoint.
         foreach (var route in router.OutboundRoutes)
@@ -554,6 +556,49 @@ public partial class MessageBusBuilder : IMessageBusBuilder
         lazyRuntime.Runtime = runtime;
 
         return runtime;
+    }
+
+    private static void ValidateTransportConfiguration(
+        ImmutableArray<MessagingTransport> transports,
+        IMessageRouter router)
+    {
+        // (1) Multiple transports flagged as default is a configuration error that must be caught
+        // before any dispatch or discovery runs, because first-wins behavior is explicitly rejected.
+        var defaultTransports = transports.Where(t => t.IsDefaultTransport).ToList();
+        if (defaultTransports.Count > 1)
+        {
+            var names = defaultTransports.Select(t => t.Name).ToArray();
+            throw ThrowHelper.MultipleDefaultTransports(names);
+        }
+
+        // (2) and (3) are validated per outbound route that carries an OnTransport override.
+        foreach (var route in router.OutboundRoutes)
+        {
+            if (route.TransportName is not { } transportName)
+            {
+                continue;
+            }
+
+            // (2) The named transport must be registered.
+            var namedTransport = transports.FirstOrDefault(t => t.Name == transportName);
+            if (namedTransport is null)
+            {
+                throw ThrowHelper.UnknownOnTransportTarget(transportName);
+            }
+
+            // (3) When the route also has a scheme-qualified destination, the destination scheme
+            // must match the named transport. OnTransport plus a conflicting scheme is ambiguous
+            // and almost certainly a configuration mistake.
+            if (route.Destination is { } destination)
+            {
+                var scheme = destination.Scheme;
+                var schemeTransport = transports.FirstOrDefault(t => t.Schema == scheme);
+                if (schemeTransport is not null && schemeTransport != namedTransport)
+                {
+                    throw ThrowHelper.OnTransportSchemeConflict(transportName, scheme, schemeTransport.Name);
+                }
+            }
+        }
     }
 
     private void PrepareHandlers()

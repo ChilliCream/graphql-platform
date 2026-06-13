@@ -13,7 +13,12 @@ internal sealed class RabbitMQBindingDescriptor
     public RabbitMQBindingDescriptor(IMessagingConfigurationContext context, string source, string destination)
         : base(context)
     {
-        Configuration = new RabbitMQBindingConfiguration { Source = source, Destination = destination };
+        Configuration = new RabbitMQBindingConfiguration
+        {
+            Source = source,
+            Destination = destination,
+            Provenance = RabbitMQTopologyProvenance.Declared
+        };
     }
 
     /// <inheritdoc />

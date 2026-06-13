@@ -168,4 +168,73 @@ internal static class ThrowHelper
 
     public static Exception HostDescriptionMissing()
         => new InvalidOperationException("Host description is missing.");
+
+    public static Exception ConsumeBindUnderivable(string messageTypeName, string queueName)
+        => new InvalidOperationException(
+            $"The message type '{messageTypeName}' cannot be bound to consume queue '{queueName}' because "
+            + "its routing key is computed per message by a custom function. The bind key cannot be derived at configuration time. "
+            + $"Either use a static routing key via UseRabbitMQRoutingKey<T>(constant) or declare an explicit binding via Receives<{messageTypeName}>(r => r.BindFrom(...)).");
+
+    public static Exception ReceivesReplyType(string messageTypeName)
+        => new InvalidOperationException(
+            $"Message type '{messageTypeName}' is a reply type and cannot be declared with Receives<T>. "
+            + "Reply routes are address-routed and not subject to auto-binding topology.");
+
+    public static Exception ReceivesClaimedType(string messageTypeName, string claimingEndpoint, string conflictingEndpoint)
+        => new InvalidOperationException(
+            $"Message type '{messageTypeName}' is already claimed by receive endpoint '{claimingEndpoint}' "
+            + $"and cannot be claimed by endpoint '{conflictingEndpoint}'. Each message type can be claimed by at most one endpoint.");
+
+    public static Exception BindFromWithNonNullRoutingKey(string transportName, string messageTypeName, string queueName)
+        => new InvalidOperationException(
+            $"Message type '{messageTypeName}' on {transportName} transport cannot have a non-null routing key "
+            + $"in BindFrom binding to queue '{queueName}'. The {transportName} transport does not support routing keys.");
+
+    public static Exception TwoReceiveEndpointsShareOneQueue(string queueName, string endpoint1, string endpoint2)
+        => new InvalidOperationException(
+            $"Queue '{queueName}' is claimed by both receive endpoint '{endpoint1}' and receive endpoint '{endpoint2}'. "
+            + "Each queue can have at most one receive endpoint. Use 't.Queue(name, q => ...)' to define the endpoint and queue together, "
+            + "or add the queue to one endpoint via 'Endpoint(name).Queue(name, ...)' and declare additional properties via 'DeclareQueue(name)' if needed.");
+
+    public static Exception SatelliteRequiresConsumingEndpoint(string satelliteType, string queueName)
+        => new InvalidOperationException(
+            $"Satellite queue '{queueName}' ({satelliteType}) cannot be configured on an entity-only queue. "
+            + "Satellite queues (error, skipped) can only be configured on a receive endpoint with at least one consumer or Receives<T> declaration. "
+            + "Add a consumer via 'Handler<T>', 'Consumer<T>', or 'Receives<T>' to make this a consuming endpoint.");
+
+    public static Exception QueueIdentityPinned(string queueName)
+        => new InvalidOperationException(
+            $"Queue '{queueName}' identity was pinned when first created. Attempting to rename this queue after creation is not allowed. "
+            + "Queue names are immutable once established. If you need a different queue, create a new descriptor without renaming.");
+
+    public static Exception MultipleDefaultTransports(params string[] transportNames)
+        => new InvalidOperationException(
+            $"Multiple transports are flagged as default: {string.Join(", ", transportNames.Select(t => $"'{t}'"))}. "
+            + "Only one transport can be the default. Use IsDefaultTransport() to designate the default, or specify the transport explicitly via OnTransport(name) for each message type.");
+
+    public static Exception UnknownOnTransportTarget(string transportName)
+        => new InvalidOperationException(
+            $"OnTransport target '{transportName}' is not registered. "
+            + "Verify the transport name matches a registered transport and that the transport was added before the message type configuration.");
+
+    public static Exception OnTransportSchemeConflict(string transportName, string scheme, string conflictingTransport)
+        => new InvalidOperationException(
+            $"OnTransport('{transportName}') conflicts with the destination scheme '{scheme}' which is claimed by '{conflictingTransport}'. "
+            + "Either remove the OnTransport override or use a scheme-qualified address that matches the target transport.");
+
+    public static Exception NoDefaultTransportAvailable(params string[] transportNames)
+        => new InvalidOperationException(
+            $"No default transport is set and multiple transports are available: {string.Join(", ", transportNames.Select(t => $"'{t}'"))}. "
+            + "Designate exactly one transport as default via IsDefaultTransport(), or specify the transport explicitly via OnTransport(name) on each message type.");
+
+    public static Exception AmbiguousNeutralSchemeClaim(string scheme, params string[] transportNames)
+        => new InvalidOperationException(
+            $"Neutral scheme '{scheme}' is claimed by multiple transports: {string.Join(", ", transportNames.Select(t => $"'{t}'"))} without a default. "
+            + "Neutral schemes (without a transport prefix) can only be used when exactly one transport is registered or one transport is flagged as default. "
+            + "Either designate a default transport via IsDefaultTransport() or use a scheme-qualified address like '{transportNames[0]}:{scheme}' to specify the transport explicitly.");
+
+    public static Exception OnTransportWithSchemeQualifiedAddress(string transportName, string address)
+        => new InvalidOperationException(
+            $"OnTransport('{transportName}') is redundant with the scheme-qualified address '{address}'. "
+            + "Remove the OnTransport override or use a transport-neutral address and rely on OnTransport() for routing.");
 }

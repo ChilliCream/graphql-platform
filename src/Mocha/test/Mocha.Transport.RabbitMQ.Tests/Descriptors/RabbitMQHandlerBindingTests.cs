@@ -1,3 +1,4 @@
+using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
 
@@ -68,6 +69,92 @@ public class RabbitMQHandlerBindingTests
         // assert - default implicit binding should auto-create endpoints
         Assert.NotEmpty(transport.ReceiveEndpoints);
         Assert.Contains(transport.ReceiveEndpoints, e => e.Kind == ReceiveEndpointKind.Default);
+    }
+
+    [Fact]
+    public void BindHandlersImplicitly_Should_DescribeConventionTopology_When_HandlersRegistered()
+    {
+        // arrange
+        var runtime = CreateRuntime(
+            b => b.AddEventHandler<OrderCreatedHandler>(),
+            t => t.BindHandlersImplicitly());
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+
+        // act
+        var description = transport.Describe();
+
+        // assert: the convention exchange chain and the binding into the auto-named queue appear
+        RabbitMQDescribeSnapshot.Create(description).MatchSnapshot();
+    }
+
+    [Fact]
+    public void BindHandlersExplicitly_Should_DescribeConventionEntities_When_AutoBindDefaultOn()
+    {
+        // arrange
+        // AutoBind default on means the convention chain still appears even when handler binding
+        // is explicit. Only axis A is affected by BindHandlersExplicitly.
+        var runtime = CreateRuntime(
+            b => b.AddConsumer<OrderSpyConsumer>(),
+            t =>
+            {
+                t.BindHandlersExplicitly();
+                t.DeclareQueue("orders").AutoProvision(true);
+                t.Endpoint("orders").Queue("orders").Consumer<OrderSpyConsumer>();
+            });
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+
+        // act
+        var description = transport.Describe();
+
+        // assert
+        RabbitMQDescribeSnapshot.Create(description).MatchSnapshot();
+    }
+
+    [Fact]
+    public void BindHandlersExplicitly_Should_DescribeMinimalTopology_When_AutoBindFalse()
+    {
+        // arrange
+        // AutoBind(false) at transport scope removes all convention binds; only declared entities
+        // remain.
+        var runtime = CreateRuntime(
+            b => b.AddConsumer<OrderSpyConsumer>(),
+            t =>
+            {
+                t.BindHandlersExplicitly();
+                t.AutoBind(false);
+                t.DeclareQueue("orders").AutoProvision(true);
+                t.Endpoint("orders").Queue("orders").Consumer<OrderSpyConsumer>();
+            });
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+
+        // act
+        var description = transport.Describe();
+
+        // assert: no exchange-to-queue binds appear; type exchanges are still present
+        RabbitMQDescribeSnapshot.Create(description).MatchSnapshot();
+    }
+
+    [Fact]
+    public void BindHandlersExplicitly_Should_DescribeViaUnifiedQueue_When_HandlerAttachedToQueue()
+    {
+        // arrange
+        // A handler placed on a unified Queue() front door constitutes an explicit axis-A claim.
+        // The topology must include the consumer's convention exchange chain (AutoBind default on)
+        // and exactly one receive endpoint under the declared queue name.
+        var runtime = CreateRuntime(
+            b => b.AddEventHandler<OrderCreatedHandler>(),
+            t =>
+            {
+                t.BindHandlersExplicitly();
+                t.Queue("my-orders").Handler<OrderCreatedHandler>();
+            });
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+
+        // act
+        var description = transport.Describe();
+
+        // assert
+        RabbitMQDescribeSnapshot.Create(description).MatchSnapshot();
     }
 
     private static MessagingRuntime CreateRuntime(

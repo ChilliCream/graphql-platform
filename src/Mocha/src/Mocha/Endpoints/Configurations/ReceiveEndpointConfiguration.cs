@@ -46,6 +46,25 @@ public class ReceiveEndpointConfiguration : MessagingConfiguration
     public bool? AutoProvision { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether auto-binding is enabled at the queue scope.
+    /// A tri-state value: null (unset, defaults to true), true (enabled), or false (disabled).
+    /// Auto-binding generates convention binds for consumed message types that reach this queue.
+    /// </summary>
+    public bool? AutoBind { get; set; }
+
+    /// <summary>
+    /// Gets or sets the map of per-type auto-binding intents, keyed by message type.
+    /// Allows per-type override of the queue-level AutoBind setting.
+    /// </summary>
+    public Dictionary<Type, ReceiveTypeBindIntent> TypeBinds { get; set; } = [];
+
+    /// <summary>
+    /// Gets or sets the list of explicit binding intents for this queue,
+    /// binding it to source entities (exchanges, topics) with optional routing keys.
+    /// </summary>
+    public List<BindFromIntent> QueueBindFroms { get; set; } = [];
+
+    /// <summary>
     /// Gets or sets the maximum number of messages that can be processed concurrently on this endpoint.
     /// </summary>
     public int? MaxConcurrency { get; set; }

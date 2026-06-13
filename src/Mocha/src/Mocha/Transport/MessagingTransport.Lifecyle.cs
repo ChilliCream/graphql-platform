@@ -26,6 +26,9 @@ public abstract partial class MessagingTransport
         Naming = context.Naming;
         Conventions = new ConventionRegistry(context.Conventions.Concat(Configuration.Conventions));
         Options = Configuration.Options;
+        ConsumerBindingMode = Configuration.ConsumerBindingMode;
+        AutoBind = Configuration.AutoBind ?? true;
+        IsDefaultTransport = Configuration.IsDefaultTransport;
 
         _features = Configuration.Features;
         var busMiddlewares = context.Features.GetRequired<MiddlewareFeature>();
@@ -48,7 +51,7 @@ public abstract partial class MessagingTransport
             {
                 var consumer = context.Consumers.FirstOrDefault(h => h.Identity == handlerType)
                     ?? throw new InvalidOperationException(
-                        $"Handler type {handlerType.FullName} not found for endpoint {Configuration.Name}");
+                        $"Handler type {handlerType.FullName} not found. Call AddHandler<{handlerType.Name}>() before configuring the endpoint {Configuration.Name}.");
 
                 foreach (var route in context.Router.GetInboundByConsumer(consumer))
                 {
@@ -58,6 +61,24 @@ public abstract partial class MessagingTransport
 
             foreach (var messageRuntimeType in endpointConfiguration.ReceivedMessageTypes)
             {
+                // Reject Receives<T> when T is a reply type. Two detection paths cover both cases:
+                // (1) a route with Kind = Reply exists for the type (saga OnReply<T>),
+                // (2) the type is the response of a registered IEventRequest<T> (request-reply response).
+                var isReplyRouteKind = context.Router.InboundRoutes
+                    .Any(r => r.Kind == InboundRouteKind.Reply
+                              && r.MessageType?.RuntimeType == messageRuntimeType);
+
+                var isResponseRegistration = context.Messages.MessageTypes
+                    .Any(mt => mt.RuntimeType.GetInterfaces()
+                        .Any(i => i.IsGenericType
+                                  && i.GetGenericTypeDefinition() == typeof(IEventRequest<>)
+                                  && i.GetGenericArguments()[0] == messageRuntimeType));
+
+                if (isReplyRouteKind || isResponseRegistration)
+                {
+                    throw ThrowHelper.ReceivesReplyType(messageRuntimeType.Name);
+                }
+
                 var matched = context.Router.InboundRoutes
                     .Where(r => r.Kind is Subscribe or Send or Request
                                 && r.MessageType?.RuntimeType == messageRuntimeType)
@@ -65,7 +86,19 @@ public abstract partial class MessagingTransport
 
                 if (matched.Count == 0)
                 {
-                    throw ThrowHelper.NoHandlerForMessageType(messageRuntimeType, endpointConfiguration.Name);
+                    // A type with at least one per-type BindFrom is exempt: the explicit binding
+                    // routes messages into this queue from an external source, so no inbound route
+                    // needs to exist in the router for the type to be consumed.
+                    var hasBindFrom =
+                        endpointConfiguration.TypeBinds.TryGetValue(messageRuntimeType, out var intent)
+                        && intent.BindFroms.Count > 0;
+
+                    if (!hasBindFrom)
+                    {
+                        throw ThrowHelper.NoHandlerForMessageType(messageRuntimeType, endpointConfiguration.Name);
+                    }
+
+                    continue;
                 }
 
                 foreach (var route in matched)
@@ -111,7 +144,8 @@ public abstract partial class MessagingTransport
         // for each handler match the outbound route
         foreach (var route in context.Router.InboundRoutes)
         {
-            if (route.Endpoint is { Transport: { } transport } && transport == this)
+            if (ConsumerBindingMode == ConsumerBindingMode.Implicit
+                && route.Endpoint is { Transport: { } transport } && transport == this)
             {
                 transport.CreateMatchingOutboundRoute(context, route);
             }
@@ -220,13 +254,50 @@ public abstract partial class MessagingTransport
         }
 
         // Discover receive endpoints
-        if (Configuration.ConsumerBindingMode == ConsumerBindingMode.Implicit)
+        if (ConsumerBindingMode == ConsumerBindingMode.Implicit)
         {
+            // A message type is claimed when a configured receive endpoint names it via
+            // Handler/Consumer/Receives, in which case at least one route for the type is already
+            // connected to that endpoint on this transport. Implicit discovery connects only unclaimed
+            // routes onto framework-created endpoints; a claimed type binds its remaining routes to the
+            // claiming endpoint instead, so the type converges on a single endpoint. The claim map is
+            // computed up front so the outcome does not depend on the order routes are visited in.
+            var claimedTypeEndpoints = new Dictionary<Type, List<ReceiveEndpoint>>();
+            foreach (var route in router.InboundRoutes)
+            {
+                if (route.Endpoint is { Transport: { } endpointTransport } endpoint
+                    && endpointTransport == this
+                    && route.MessageType is { RuntimeType: { } runtimeType })
+                {
+                    if (!claimedTypeEndpoints.TryGetValue(runtimeType, out var endpoints))
+                    {
+                        endpoints = [];
+                        claimedTypeEndpoints[runtimeType] = endpoints;
+                    }
+
+                    if (!endpoints.Contains(endpoint))
+                    {
+                        endpoints.Add(endpoint);
+                    }
+                }
+            }
+
             foreach (var route in router.InboundRoutes)
             {
                 if (route.Endpoint is null)
                 {
-                    ConnectRoute(context, route);
+                    if (route.MessageType is { RuntimeType: { } runtimeType }
+                        && claimedTypeEndpoints.TryGetValue(runtimeType, out var claimingEndpoints))
+                    {
+                        foreach (var claimingEndpoint in claimingEndpoints)
+                        {
+                            BindRouteToEndpoint(context, route, claimingEndpoint);
+                        }
+                    }
+                    else
+                    {
+                        ConnectRoute(context, route);
+                    }
                 }
 
                 CreateMatchingOutboundRoute(context, route);
@@ -241,6 +312,13 @@ public abstract partial class MessagingTransport
             if (route.Endpoint is null
                 && route.Destination is null)
             {
+                // Skip routes explicitly targeting another transport so they are connected
+                // by the correct transport's DiscoverEndpoints pass instead.
+                if (route.TransportName is { } transportName && transportName != Name)
+                {
+                    continue;
+                }
+
                 ConnectRoute(context, route);
             }
         }

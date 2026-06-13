@@ -36,11 +36,10 @@ public sealed class InMemoryMessagingTopology(InMemoryMessagingTransport transpo
     public IReadOnlyList<InMemoryBinding> Bindings => _bindings;
 
     /// <summary>
-    /// Registers a new topic in the topology.
+    /// Adds a topic to the topology or returns the existing topic with the same name.
     /// </summary>
     /// <param name="configuration">The topic configuration specifying the topic name.</param>
-    /// <returns>The newly created <see cref="InMemoryTopic"/>.</returns>
-    /// <exception cref="InvalidOperationException">A topic with the same name already exists.</exception>
+    /// <returns>The created or existing <see cref="InMemoryTopic"/>.</returns>
     public InMemoryTopic AddTopic(InMemoryTopicConfiguration configuration)
     {
         lock (_lock)
@@ -48,7 +47,7 @@ public sealed class InMemoryMessagingTopology(InMemoryMessagingTransport transpo
             var topic = _topics.FirstOrDefault(e => e.Name == configuration.Name);
             if (topic is not null)
             {
-                throw new InvalidOperationException($"Topic '{configuration.Name}' already exists");
+                return topic;
             }
 
             topic = new InMemoryTopic();
@@ -65,11 +64,10 @@ public sealed class InMemoryMessagingTopology(InMemoryMessagingTransport transpo
     }
 
     /// <summary>
-    /// Registers a new queue in the topology.
+    /// Adds a queue to the topology or returns the existing queue with the same name.
     /// </summary>
     /// <param name="configuration">The queue configuration specifying the queue name.</param>
-    /// <returns>The newly created <see cref="InMemoryQueue"/>.</returns>
-    /// <exception cref="InvalidOperationException">A queue with the same name already exists.</exception>
+    /// <returns>The created or existing <see cref="InMemoryQueue"/>.</returns>
     public InMemoryQueue AddQueue(InMemoryQueueConfiguration configuration)
     {
         lock (_lock)
@@ -79,7 +77,7 @@ public sealed class InMemoryMessagingTopology(InMemoryMessagingTransport transpo
             var queue = _queues.FirstOrDefault(q => q.Name == configuration.Name);
             if (queue is not null)
             {
-                throw new InvalidOperationException($"Queue '{configuration.Name}' already exists");
+                return queue;
             }
 
             configuration.Topology = this;

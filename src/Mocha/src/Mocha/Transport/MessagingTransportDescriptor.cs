@@ -39,6 +39,14 @@ public interface IMessagingTransportDescriptor
     IMessagingTransportDescriptor BindHandlersExplicitly();
 
     /// <summary>
+    /// Configures whether auto-binding is enabled at the transport scope, controlling whether convention binds
+    /// are generated for consumed message types. When disabled, explicit bindings must be configured via BindFrom.
+    /// </summary>
+    /// <param name="enabled">True to enable auto-binding (default), false to disable it.</param>
+    /// <returns>The descriptor for method chaining.</returns>
+    IMessagingTransportDescriptor AutoBind(bool enabled);
+
+    /// <summary>
     /// Sets the schema prefix used for address resolution on this transport.
     /// </summary>
     /// <param name="schema">The schema string (e.g., "rabbitmq", "azure-sb").</param>
@@ -120,6 +128,13 @@ public abstract class MessagingTransportDescriptor<T>(IMessagingSetupContext con
     public IMessagingTransportDescriptor BindHandlersExplicitly()
     {
         Configuration.ConsumerBindingMode = ConsumerBindingMode.Explicit;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IMessagingTransportDescriptor AutoBind(bool enabled)
+    {
+        Configuration.AutoBind = enabled;
         return this;
     }
 

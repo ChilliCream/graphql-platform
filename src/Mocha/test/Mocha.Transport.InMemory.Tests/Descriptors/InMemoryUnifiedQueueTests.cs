@@ -1,0 +1,82 @@
+using Microsoft.Extensions.DependencyInjection;
+using Mocha.Transport.InMemory.Tests.Helpers;
+
+namespace Mocha.Transport.InMemory.Tests.Descriptors;
+
+/// <summary>
+/// Verifies the delivery behavior and entity-only lowering of the unified
+/// <c>t.Queue(name, q => ...)</c> front door on the in-memory transport.
+/// </summary>
+public class InMemoryUnifiedQueueTests
+{
+    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
+
+    [Fact]
+    public async Task Queue_Should_DeliverMessages_When_ConsumerAttachedViaFrontDoor()
+    {
+        // arrange
+        var recorder = new MessageRecorder();
+        await using var provider = await new ServiceCollection()
+            .AddSingleton(recorder)
+            .AddMessageBus()
+            .AddConsumer<OrderSpyConsumer>()
+            .AddInMemory(t =>
+            {
+                t.BindHandlersExplicitly();
+                t.Queue("orders").Consumer<OrderSpyConsumer>();
+            })
+            .BuildServiceProvider();
+
+        var bus = provider.GetRequiredService<IMessageBus>();
+
+        // act
+        await bus.SendAsync(
+            new OrderCreated { OrderId = "q-front-door-01" },
+            new SendOptions { Endpoint = new Uri("queue://orders") },
+            CancellationToken.None);
+
+        // assert
+        Assert.True(
+            await recorder.WaitAsync(s_timeout),
+            "Consumer attached via the unified Queue() front door should receive the message.");
+        var msg = Assert.IsType<OrderCreated>(Assert.Single(recorder.Messages));
+        Assert.Equal("q-front-door-01", msg.OrderId);
+    }
+
+    [Fact]
+    public void Queue_Should_NotDeliver_When_EntityOnly()
+    {
+        // arrange
+        // An entity-only Queue() handle (no consumer, no Receives) lowers to a declared queue
+        // entity but must not create a receive endpoint.
+        var runtime = InMemoryBusFixture.CreateRuntimeWithTransport(
+            b => { },
+            t =>
+            {
+                t.BindHandlersExplicitly();
+                t.Queue("dispatch-target");
+            });
+        var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
+        var topology = (InMemoryMessagingTopology)transport.Topology;
+
+        // act
+        var endpoint = transport.ReceiveEndpoints
+            .OfType<InMemoryReceiveEndpoint>()
+            .FirstOrDefault(e => e.Queue.Name == "dispatch-target");
+
+        // assert: no receive endpoint was created for the entity-only queue
+        Assert.Null(endpoint);
+
+        // assert: the queue entity was lowered into the topology
+        Assert.Contains(topology.Queues, q => q.Name == "dispatch-target");
+    }
+
+    public sealed class OrderSpyConsumer(MessageRecorder recorder) : IConsumer<OrderCreated>
+    {
+        public ValueTask ConsumeAsync(IConsumeContext<OrderCreated> context)
+        {
+            recorder.Record(context.Message);
+            return default;
+        }
+    }
+}

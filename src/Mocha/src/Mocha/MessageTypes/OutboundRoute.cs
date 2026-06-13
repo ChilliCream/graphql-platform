@@ -16,6 +16,11 @@ public sealed class OutboundRoute
     public bool IsCompleted { get; private set; }
 
     /// <summary>
+    /// Gets a value indicating whether the route's destination was explicitly configured, as opposed to backfilled from the endpoint address.
+    /// </summary>
+    public bool HasExplicitDestination { get; private set; }
+
+    /// <summary>
     /// Gets the kind of outbound route (send or publish).
     /// </summary>
     public OutboundRouteKind Kind { get; private set; }
@@ -34,6 +39,11 @@ public sealed class OutboundRoute
     /// Gets the dispatch endpoint that this route is connected to.
     /// </summary>
     public DispatchEndpoint Endpoint { get; private set; } = null!;
+
+    /// <summary>
+    /// Gets the transport name for this route, or <c>null</c> to use the default transport.
+    /// </summary>
+    public string? TransportName { get; private set; }
 
     /// <summary>
     /// Initializes the outbound route from configuration, resolving the message type.
@@ -61,7 +71,9 @@ public sealed class OutboundRoute
             throw ThrowHelper.RouteRequiresMessageType();
         }
 
+        HasExplicitDestination = configuration.Destination is not null;
         Destination = configuration.Destination;
+        TransportName = configuration.TransportName;
 
         MarkInitialized();
     }

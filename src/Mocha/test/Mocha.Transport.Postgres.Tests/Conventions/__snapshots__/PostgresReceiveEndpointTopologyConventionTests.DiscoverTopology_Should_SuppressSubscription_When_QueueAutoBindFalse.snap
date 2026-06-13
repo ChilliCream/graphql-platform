@@ -1,0 +1,27 @@
+{
+  "Schema": "postgres",
+  "TransportType": "PostgresMessagingTransport",
+  "Entities": [
+    {
+      "Kind": "queue",
+      "Name": "orders"
+    },
+    {
+      "Kind": "queue",
+      "Name": "orders_error"
+    },
+    {
+      "Kind": "queue",
+      "Name": "orders_skipped"
+    },
+    {
+      "Kind": "topic",
+      "Name": "mocha.test-helpers.order-created"
+    },
+    {
+      "Kind": "topic",
+      "Name": "order-created"
+    }
+  ],
+  "Links": []
+}

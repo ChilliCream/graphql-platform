@@ -2,12 +2,15 @@ namespace Mocha.Transport.Postgres;
 
 /// <summary>
 /// Default topology convention for PostgreSQL dispatch endpoints that provisions topics and queues
-/// referenced by the endpoint configuration.
+/// referenced by the endpoint configuration. In implicit mode, bridge topics are created so the
+/// producer and consumer paths converge on the same entity via the destination resolver.
 /// </summary>
 public sealed class PostgresDispatchEndpointTopologyConvention : IPostgresDispatchEndpointTopologyConvention
 {
     /// <summary>
-    /// Ensures the topic or queue targeted by the dispatch endpoint exists in the topology.
+    /// Ensures the topic or queue targeted by the dispatch endpoint exists in the topology. In
+    /// implicit mode, creates bridge topics for each route so the producer and consumer conventions
+    /// converge on the same entity.
     /// </summary>
     /// <param name="context">The messaging configuration context.</param>
     /// <param name="endpoint">The dispatch endpoint being configured.</param>
@@ -31,25 +34,57 @@ public sealed class PostgresDispatchEndpointTopologyConvention : IPostgresDispat
             topology.AddQueue(new PostgresQueueConfiguration { Name = configuration.QueueName });
         }
 
-        // Provision convention topics for each route so that routing is consistent
-        // across sender/receiver boundaries.
-        if (configuration.TopicName is not null)
+        // In implicit mode, ensure convention topics for each route exist so the producer and
+        // consumer conventions converge on the same entity.
+        if (configuration.TopicName is not null
+            && endpoint.Transport.ConsumerBindingMode == ConsumerBindingMode.Implicit)
         {
+            var resolver = ((PostgresMessagingTransport)endpoint.Transport).Resolver;
+
             foreach (var (runtimeType, kind) in configuration.Routes)
             {
-                var conventionTopicName =
-                    kind == OutboundRouteKind.Publish
-                        ? context.Naming.GetPublishEndpointName(runtimeType)
-                        : context.Naming.GetSendEndpointName(runtimeType);
-
-                if (configuration.TopicName == conventionTopicName)
+                var messageType = context.Messages.GetMessageType(runtimeType);
+                if (messageType is null)
                 {
                     continue;
                 }
 
-                if (topology.Topics.FirstOrDefault(t => t.Name == conventionTopicName) is null)
+                // Find the full outbound route to let the resolver honor any explicit destination.
+                var outboundRoute = context.Router.GetOutboundByMessageType(messageType)
+                    .FirstOrDefault(r => r.Kind == kind);
+
+                PostgresDestinationResolution chainEntry;
+                if (outboundRoute is not null)
                 {
-                    topology.AddTopic(new PostgresTopicConfiguration { Name = conventionTopicName });
+                    chainEntry = resolver.ResolveDestination(context.Naming, outboundRoute);
+                }
+                else
+                {
+                    // Route not yet registered: fall back to the convention topic name.
+                    chainEntry = kind == OutboundRouteKind.Publish
+                        ? resolver.ResolvePublishDestination(context.Naming, messageType)
+                        : new PostgresDestinationResolution(
+                            PostgresDestinationKind.Topic,
+                            context.Naming.GetSendEndpointName(runtimeType),
+                            "t/" + context.Naming.GetSendEndpointName(runtimeType));
+                }
+
+                // An explicit queue destination has no topic chain to bridge from.
+                if (chainEntry.Kind == PostgresDestinationKind.Queue)
+                {
+                    continue;
+                }
+
+                var chainTopicName = chainEntry.Name;
+
+                if (configuration.TopicName == chainTopicName)
+                {
+                    continue;
+                }
+
+                if (topology.Topics.FirstOrDefault(t => t.Name == chainTopicName) is null)
+                {
+                    topology.AddTopic(new PostgresTopicConfiguration { Name = chainTopicName });
                 }
             }
         }

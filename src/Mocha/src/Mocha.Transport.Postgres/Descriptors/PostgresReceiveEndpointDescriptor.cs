@@ -4,10 +4,27 @@ internal sealed class PostgresReceiveEndpointDescriptor
     : ReceiveEndpointDescriptor<PostgresReceiveEndpointConfiguration>
     , IPostgresReceiveEndpointDescriptor
 {
+    private bool _queueIdentityPinned;
+
     internal PostgresReceiveEndpointDescriptor(IMessagingConfigurationContext discoveryContext, string name)
         : base(discoveryContext)
     {
         Configuration = new PostgresReceiveEndpointConfiguration { Name = name, QueueName = name };
+    }
+
+    /// <summary>
+    /// Gets a value indicating whether this descriptor's queue identity is pinned and cannot be renamed.
+    /// A pinned descriptor was created via the unified <c>Queue(name, ...)</c> front door.
+    /// </summary>
+    internal bool IsQueueIdentityPinned => _queueIdentityPinned;
+
+    /// <summary>
+    /// Pins the queue identity so that subsequent calls to <see cref="Queue(string)"/> throw a build error.
+    /// Called by the unified <c>Queue(name, ...)</c> front door adapter after the descriptor is created.
+    /// </summary>
+    internal void PinQueueIdentity()
+    {
+        _queueIdentityPinned = true;
     }
 
     /// <inheritdoc />
@@ -51,9 +68,33 @@ internal sealed class PostgresReceiveEndpointDescriptor
     }
 
     /// <inheritdoc />
+    public new IPostgresReceiveEndpointDescriptor Receives<TMessage>(Action<IReceiveTypeBindDescriptor> configure)
+    {
+        base.Receives<TMessage>(configure);
+
+        return this;
+    }
+
+    /// <inheritdoc />
     public new IPostgresReceiveEndpointDescriptor Receives(Type messageType)
     {
         base.Receives(messageType);
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IPostgresReceiveEndpointDescriptor AutoBind(bool enabled)
+    {
+        base.AutoBind(enabled);
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IPostgresReceiveEndpointDescriptor BindFrom(Uri source, string? routingKey = null)
+    {
+        base.BindFrom(source, routingKey);
 
         return this;
     }
@@ -75,8 +116,29 @@ internal sealed class PostgresReceiveEndpointDescriptor
     }
 
     /// <inheritdoc />
+    public new IPostgresReceiveEndpointDescriptor FaultEndpoint(string name)
+    {
+        base.FaultEndpoint(name);
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IPostgresReceiveEndpointDescriptor SkippedEndpoint(string name)
+    {
+        base.SkippedEndpoint(name);
+
+        return this;
+    }
+
+    /// <inheritdoc />
     public IPostgresReceiveEndpointDescriptor Queue(string name)
     {
+        if (_queueIdentityPinned)
+        {
+            throw ThrowHelper.QueueIdentityPinned(Configuration.QueueName ?? Configuration.Name ?? string.Empty);
+        }
+
         Configuration.QueueName = name;
 
         return this;
@@ -91,17 +153,33 @@ internal sealed class PostgresReceiveEndpointDescriptor
     }
 
     /// <inheritdoc />
-    public new IPostgresReceiveEndpointDescriptor FaultEndpoint(string name)
+    public IPostgresReceiveEndpointDescriptor ErrorQueue(string name)
     {
-        base.FaultEndpoint(name);
+        Configuration.ErrorQueue.QueueName = name;
 
         return this;
     }
 
     /// <inheritdoc />
-    public new IPostgresReceiveEndpointDescriptor SkippedEndpoint(string name)
+    public IPostgresReceiveEndpointDescriptor DisableErrorQueue()
     {
-        base.SkippedEndpoint(name);
+        Configuration.ErrorQueue.IsDisabled = true;
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IPostgresReceiveEndpointDescriptor SkippedQueue(string name)
+    {
+        Configuration.SkippedQueue.QueueName = name;
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IPostgresReceiveEndpointDescriptor DisableSkippedQueue()
+    {
+        Configuration.SkippedQueue.IsDisabled = true;
 
         return this;
     }

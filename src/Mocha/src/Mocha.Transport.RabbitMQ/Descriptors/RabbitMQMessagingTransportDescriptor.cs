@@ -12,6 +12,8 @@ public sealed class RabbitMQMessagingTransportDescriptor
     private readonly List<RabbitMQExchangeDescriptor> _exchanges = [];
     private readonly List<RabbitMQQueueDescriptor> _queues = [];
     private readonly List<RabbitMQBindingDescriptor> _bindings = [];
+    private readonly Dictionary<string, RabbitMQQueueEndpointDescriptor> _queueEndpoints =
+        new(StringComparer.Ordinal);
 
     /// <summary>
     /// Creates a new RabbitMQ transport descriptor bound to the given setup context.
@@ -98,6 +100,14 @@ public sealed class RabbitMQMessagingTransportDescriptor
     public new IRabbitMQMessagingTransportDescriptor BindHandlersExplicitly()
     {
         base.BindHandlersExplicitly();
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IRabbitMQMessagingTransportDescriptor AutoBind(bool enabled)
+    {
+        base.AutoBind(enabled);
 
         return this;
     }
@@ -207,13 +217,76 @@ public sealed class RabbitMQMessagingTransportDescriptor
         return binding;
     }
 
+    /// <inheritdoc />
+    public IRabbitMQQueueEndpointDescriptor Queue(string name)
+    {
+        if (_queueEndpoints.TryGetValue(name, out var existing))
+        {
+            return existing;
+        }
+
+        // Locate an endpoint whose effective queue name already matches. This merges onto
+        // an endpoint that was previously created via Endpoint("foo").Queue(name).
+        var backing = _receiveEndpoints.FirstOrDefault(e =>
+            e.Extend().Configuration.QueueName.EqualsOrdinal(name));
+
+        if (backing is null)
+        {
+            backing = RabbitMQReceiveEndpointDescriptor.New(Context, name);
+            _receiveEndpoints.Add(backing);
+        }
+
+        var adapter = new RabbitMQQueueEndpointDescriptor(backing);
+        _queueEndpoints[name] = adapter;
+        return adapter;
+    }
+
+    /// <inheritdoc />
+    public IRabbitMQMessagingTransportDescriptor Queue(string name, Action<IRabbitMQQueueEndpointDescriptor> configure)
+    {
+        var handle = Queue(name);
+        configure(handle);
+        return this;
+    }
+
     /// <summary>
     /// Builds the final transport configuration from all accumulated descriptor settings, including receive and dispatch endpoints.
     /// </summary>
     /// <returns>A fully populated <see cref="RabbitMQTransportConfiguration"/> ready for transport initialization.</returns>
     public RabbitMQTransportConfiguration CreateConfiguration()
     {
-        Configuration.ReceiveEndpoints = _receiveEndpoints
+        var exchanges = _exchanges.Select(e => e.CreateConfiguration()).ToList();
+        var queues = _queues.Select(q => q.CreateConfiguration()).ToList();
+        var bindings = _bindings.Select(b => b.CreateConfiguration()).ToList();
+
+        // Partition the unified Queue() handles: an entity-only handle (no consumers, no Receives)
+        // is a pure dispatch target. It lowers to a declared queue plus its BindFrom bindings here
+        // and never enters the receive-endpoint lifecycle. A handle that names a consumer or a
+        // received type materializes a real receive endpoint and stays in the list below.
+        var entityOnly = new HashSet<RabbitMQReceiveEndpointDescriptor>();
+        var resolver = new RabbitMQDestinationResolver(
+            Configuration.Schema ?? RabbitMQTransportConfiguration.DefaultSchema);
+        foreach (var adapter in _queueEndpoints.Values)
+        {
+            var backing = adapter.Inner;
+            if (IsEntityOnly(backing.Configuration))
+            {
+                LowerEntityOnlyQueue(resolver, backing.Configuration, queues, exchanges, bindings);
+                entityOnly.Add(backing);
+            }
+        }
+
+        var consumingEndpoints = _receiveEndpoints
+            .Where(e => !entityOnly.Contains(e))
+            .ToList();
+
+        ValidateOneEndpointPerQueue(consumingEndpoints);
+
+        Configuration.Exchanges = exchanges;
+        Configuration.Queues = queues;
+        Configuration.Bindings = bindings;
+
+        Configuration.ReceiveEndpoints = consumingEndpoints
             .Select(ReceiveEndpointConfiguration (e) => e.CreateConfiguration())
             .ToList();
 
@@ -221,13 +294,99 @@ public sealed class RabbitMQMessagingTransportDescriptor
             .Select(DispatchEndpointConfiguration (e) => e.CreateConfiguration())
             .ToList();
 
-        Configuration.Exchanges = _exchanges.Select(e => e.CreateConfiguration()).ToList();
-
-        Configuration.Queues = _queues.Select(q => q.CreateConfiguration()).ToList();
-
-        Configuration.Bindings = _bindings.Select(b => b.CreateConfiguration()).ToList();
-
         return Configuration;
+    }
+
+    private static bool IsEntityOnly(RabbitMQReceiveEndpointConfiguration configuration)
+        => configuration.ConsumerIdentities.Count == 0
+            && configuration.ReceivedMessageTypes.Count == 0;
+
+    private void LowerEntityOnlyQueue(
+        RabbitMQDestinationResolver resolver,
+        RabbitMQReceiveEndpointConfiguration configuration,
+        List<RabbitMQQueueConfiguration> queues,
+        List<RabbitMQExchangeConfiguration> exchanges,
+        List<RabbitMQBindingConfiguration> bindings)
+    {
+        var queueName = configuration.QueueName
+            ?? throw new InvalidOperationException("Queue name is required.");
+
+        // Satellites (error, skipped) require a consuming endpoint to process the failed or skipped
+        // messages. An entity-only queue has no consumer, so a configured satellite cannot be honored.
+        if (configuration.ErrorQueue.QueueName is not null || configuration.ErrorQueue.IsDisabled)
+        {
+            throw ThrowHelper.SatelliteRequiresConsumingEndpoint("error", queueName);
+        }
+
+        if (configuration.SkippedQueue.QueueName is not null || configuration.SkippedQueue.IsDisabled)
+        {
+            throw ThrowHelper.SatelliteRequiresConsumingEndpoint("skipped", queueName);
+        }
+
+        // Lower the queue itself (queue before binding, matching the transport's initialization order
+        // where queues are added before bindings reference them).
+        queues.Add(
+            new RabbitMQQueueConfiguration
+            {
+                Name = queueName,
+                Durable = configuration.QueueDurable,
+                Arguments = configuration.QueueArguments,
+                AutoProvision = configuration.QueueAutoProvision ?? Configuration.AutoProvision,
+                Provenance = RabbitMQTopologyProvenance.Declared
+            });
+
+        // Materialize the queue-level BindFrom intents into declared exchange-to-queue bindings, the
+        // same lowering the receive-endpoint lifecycle performs for a consuming endpoint.
+        foreach (var intent in configuration.QueueBindFroms)
+        {
+            if (!resolver.TryResolveSourceExchange(intent.Source, out var exchangeName))
+            {
+                throw new InvalidOperationException(
+                    $"BindFrom source '{intent.Source}' could not be resolved to a RabbitMQ exchange name.");
+            }
+
+            exchanges.Add(
+                new RabbitMQExchangeConfiguration
+                {
+                    Name = exchangeName,
+                    AutoProvision = Configuration.AutoProvision,
+                    Provenance = RabbitMQTopologyProvenance.Declared
+                });
+
+            bindings.Add(
+                new RabbitMQBindingConfiguration
+                {
+                    Source = exchangeName,
+                    Destination = queueName,
+                    DestinationKind = RabbitMQDestinationKind.Queue,
+                    RoutingKey = intent.RoutingKey,
+                    AutoProvision = Configuration.AutoProvision,
+                    Provenance = RabbitMQTopologyProvenance.Declared
+                });
+        }
+    }
+
+    private static void ValidateOneEndpointPerQueue(List<RabbitMQReceiveEndpointDescriptor> endpoints)
+    {
+        var seen = new Dictionary<string, RabbitMQReceiveEndpointDescriptor>(StringComparer.Ordinal);
+        foreach (var endpoint in endpoints)
+        {
+            var queueName = endpoint.Configuration.QueueName;
+            if (queueName is null)
+            {
+                continue;
+            }
+
+            if (seen.TryGetValue(queueName, out var existing))
+            {
+                throw ThrowHelper.TwoReceiveEndpointsShareOneQueue(
+                    queueName,
+                    existing.Configuration.Name ?? queueName,
+                    endpoint.Configuration.Name ?? queueName);
+            }
+
+            seen[queueName] = endpoint;
+        }
     }
 
     /// <summary>

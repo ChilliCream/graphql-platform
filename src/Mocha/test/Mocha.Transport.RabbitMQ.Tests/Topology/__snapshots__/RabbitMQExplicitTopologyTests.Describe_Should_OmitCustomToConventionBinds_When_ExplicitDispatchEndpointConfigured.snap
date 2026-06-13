@@ -1,0 +1,13 @@
+{
+  "Schema": "rabbitmq",
+  "TransportType": "RabbitMQMessagingTransport",
+  "Entities": [
+    {
+      "Kind": "exchange",
+      "Name": "custom-ex",
+      "AutoProvision": true,
+      "Source": "declared"
+    }
+  ],
+  "Links": []
+}

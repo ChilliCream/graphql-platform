@@ -1,0 +1,58 @@
+{
+  "Schema": "rabbitmq",
+  "TransportType": "RabbitMQMessagingTransport",
+  "Entities": [
+    {
+      "Kind": "exchange",
+      "Name": "mocha.transport.rabbit-m-q.tests.descriptors.order-started",
+      "AutoProvision": true,
+      "Source": "convention"
+    },
+    {
+      "Kind": "exchange",
+      "Name": "order-started",
+      "AutoProvision": true,
+      "Source": "convention"
+    },
+    {
+      "Kind": "queue",
+      "Name": "mocha.transport.rabbit-m-q.tests.order-process-saga",
+      "AutoProvision": true,
+      "Source": "endpoint"
+    },
+    {
+      "Kind": "queue",
+      "Name": "mocha.transport.rabbit-m-q.tests.order-process-saga_error",
+      "AutoProvision": true,
+      "Source": "convention"
+    },
+    {
+      "Kind": "queue",
+      "Name": "mocha.transport.rabbit-m-q.tests.order-process-saga_skipped",
+      "AutoProvision": true,
+      "Source": "convention"
+    },
+    {
+      "Kind": "queue",
+      "Name": "order-processor",
+      "AutoProvision": true,
+      "Source": "declared"
+    }
+  ],
+  "Links": [
+    {
+      "Kind": "bind",
+      "From": "rabbitmq://localhost:5672/e/mocha.transport.rabbit-m-q.tests.descriptors.order-started",
+      "To": "rabbitmq://localhost:5672/e/order-started",
+      "AutoProvision": true,
+      "Source": "convention"
+    },
+    {
+      "Kind": "bind",
+      "From": "rabbitmq://localhost:5672/e/order-started",
+      "To": "rabbitmq://localhost:5672/q/mocha.transport.rabbit-m-q.tests.order-process-saga",
+      "AutoProvision": true,
+      "Source": "convention"
+    }
+  ]
+}

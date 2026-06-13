@@ -18,17 +18,56 @@ public sealed class RabbitMQDefaultReceiveEndpointConvention : IRabbitMQReceiveE
 
         if (configuration is { Kind: ReceiveEndpointKind.Default, QueueName: { } queueName })
         {
-            if (configuration.ErrorEndpoint is null)
-            {
-                var errorName = context.Naming.GetReceiveEndpointName(queueName, ReceiveEndpointKind.Error);
-                configuration.ErrorEndpoint = new Uri($"{transport.Schema}:q/{errorName}");
-            }
+            // The error and skip queues serve the endpoint's queue, so they inherit that queue's
+            // auto-provision value. The declared queue carries the explicit value when present, and
+            // the endpoint configuration is used as a fallback for convention-created queues. A
+            // satellite may override the inherited value independently.
+            var declaredQueue = transport.Configuration is RabbitMQTransportConfiguration rabbitMQConfiguration
+                ? rabbitMQConfiguration.Queues.FirstOrDefault(q => q.Name == queueName)
+                : null;
+            var inheritedAutoProvision = declaredQueue?.AutoProvision ?? configuration.AutoProvision;
 
-            if (configuration.SkippedEndpoint is null)
-            {
-                var skippedName = context.Naming.GetReceiveEndpointName(queueName, ReceiveEndpointKind.Skipped);
-                configuration.SkippedEndpoint = new Uri($"{transport.Schema}:q/{skippedName}");
-            }
+            MaterializeSatellite(
+                context,
+                transport,
+                configuration.ErrorQueue,
+                queueName,
+                ReceiveEndpointKind.Error,
+                inheritedAutoProvision,
+                endpoint => configuration.ErrorEndpoint ??= endpoint);
+
+            MaterializeSatellite(
+                context,
+                transport,
+                configuration.SkippedQueue,
+                queueName,
+                ReceiveEndpointKind.Skipped,
+                inheritedAutoProvision,
+                endpoint => configuration.SkippedEndpoint ??= endpoint);
         }
+    }
+
+    private static void MaterializeSatellite(
+        IMessagingConfigurationContext context,
+        RabbitMQMessagingTransport transport,
+        RabbitMQSatelliteConfiguration satellite,
+        string queueName,
+        ReceiveEndpointKind kind,
+        bool? inheritedAutoProvision,
+        Action<Uri> assign)
+    {
+        if (satellite.IsDisabled)
+        {
+            return;
+        }
+
+        // A satellite name is stored verbatim when provided and bypasses the naming convention,
+        // so literal names such as "LEGACY.Orders.Error" survive unchanged. When no name is set,
+        // the convention-derived name keeps the historical default.
+        var name = satellite.QueueName ?? context.Naming.GetReceiveEndpointName(queueName, kind);
+
+        satellite.AutoProvision ??= inheritedAutoProvision;
+
+        assign(new Uri($"{transport.Schema}:q/{name}"));
     }
 }

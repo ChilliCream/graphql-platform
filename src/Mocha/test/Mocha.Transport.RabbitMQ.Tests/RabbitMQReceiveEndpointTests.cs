@@ -25,14 +25,13 @@ public class RabbitMQReceiveEndpointTests
     }
 
     [Fact]
-    public void ReceiveEndpoint_Should_SetFaultEndpoint_When_FaultEndpointConfigured()
+    public void ReceiveEndpoint_Should_SetErrorQueueName_When_ErrorQueueConfigured()
     {
         // arrange
         var runtime = CreateRuntime(t =>
         {
             t.DeclareQueue("q").AutoProvision();
-            t.DeclareQueue("q_error").AutoProvision();
-            t.Endpoint("ep").Queue("q").Handler<OrderCreatedHandler>().FaultEndpoint("rabbitmq:///q/q_error");
+            t.Endpoint("ep").Queue("q").Handler<OrderCreatedHandler>().ErrorQueue("q_error");
         });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
@@ -40,18 +39,17 @@ public class RabbitMQReceiveEndpointTests
         var endpoint = transport.ReceiveEndpoints.OfType<RabbitMQReceiveEndpoint>().First(e => e.Queue.Name == "q");
 
         // assert
-        Assert.NotNull(endpoint.ErrorEndpoint);
+        Assert.Equal("q_error", endpoint.Configuration.ErrorQueue.QueueName);
     }
 
     [Fact]
-    public void ReceiveEndpoint_Should_SetSkippedEndpoint_When_SkippedEndpointConfigured()
+    public void ReceiveEndpoint_Should_SetSkippedQueueName_When_SkippedQueueConfigured()
     {
         // arrange
         var runtime = CreateRuntime(t =>
         {
             t.DeclareQueue("q").AutoProvision();
-            t.DeclareQueue("q_skipped").AutoProvision();
-            t.Endpoint("ep").Queue("q").Handler<OrderCreatedHandler>().SkippedEndpoint("rabbitmq:///q/q_skipped");
+            t.Endpoint("ep").Queue("q").Handler<OrderCreatedHandler>().SkippedQueue("q_skipped");
         });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
@@ -59,7 +57,7 @@ public class RabbitMQReceiveEndpointTests
         var endpoint = transport.ReceiveEndpoints.OfType<RabbitMQReceiveEndpoint>().First(e => e.Queue.Name == "q");
 
         // assert
-        Assert.NotNull(endpoint.SkippedEndpoint);
+        Assert.Equal("q_skipped", endpoint.Configuration.SkippedQueue.QueueName);
     }
 
     [Fact]

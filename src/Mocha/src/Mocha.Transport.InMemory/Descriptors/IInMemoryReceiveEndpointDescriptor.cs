@@ -22,7 +22,16 @@ public interface IInMemoryReceiveEndpointDescriptor : IReceiveEndpointDescriptor
     new IInMemoryReceiveEndpointDescriptor Receives<TMessage>();
 
     /// <inheritdoc />
+    new IInMemoryReceiveEndpointDescriptor Receives<TMessage>(Action<IReceiveTypeBindDescriptor> configure);
+
+    /// <inheritdoc />
     new IInMemoryReceiveEndpointDescriptor Receives(Type messageType);
+
+    /// <inheritdoc />
+    new IInMemoryReceiveEndpointDescriptor AutoBind(bool enabled);
+
+    /// <inheritdoc />
+    new IInMemoryReceiveEndpointDescriptor BindFrom(Uri source, string? routingKey = null);
 
     /// <inheritdoc />
     new IInMemoryReceiveEndpointDescriptor Kind(ReceiveEndpointKind kind);
