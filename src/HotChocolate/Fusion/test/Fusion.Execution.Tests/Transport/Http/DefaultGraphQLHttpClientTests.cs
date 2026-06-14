@@ -24,7 +24,7 @@ public class DefaultGraphQLHttpClientTests
 
         // act
         using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
-        using var document = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
+        using var document = await result.ReadAsResultAsync(CommonTestExtensions.CreateArena(), TestContext.Current.CancellationToken);
 
         // assert
         var itemCount = document.Root.GetProperty("data").GetProperty("items").GetArrayLength();
@@ -54,7 +54,7 @@ public class DefaultGraphQLHttpClientTests
 
         // act
         using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
-        var document = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
+        var document = await result.ReadAsResultAsync(CommonTestExtensions.CreateArena(), TestContext.Current.CancellationToken);
 
         // assert
         var number = document.Root.GetProperty("data").GetProperty("number").GetInt32();
@@ -83,7 +83,7 @@ public class DefaultGraphQLHttpClientTests
 
         // act
         using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
-        var document = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
+        var document = await result.ReadAsResultAsync(CommonTestExtensions.CreateArena(), TestContext.Current.CancellationToken);
 
         // assert
         var number = document.Root.GetProperty("data").GetProperty("number").GetInt32();
@@ -112,7 +112,7 @@ public class DefaultGraphQLHttpClientTests
 
         // act
         using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
-        var stream = result.ReadAsResultStreamAsync();
+        var stream = result.ReadAsResultStreamAsync(CommonTestExtensions.CreateArena());
 
         // assert
         var count = 0;
@@ -150,7 +150,7 @@ public class DefaultGraphQLHttpClientTests
 
         // act
         using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
-        var stream = result.ReadAsResultStreamAsync();
+        var stream = result.ReadAsResultStreamAsync(CommonTestExtensions.CreateArena());
 
         // assert
         var count = 0;
@@ -192,7 +192,7 @@ public class DefaultGraphQLHttpClientTests
 
         // act
         using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
-        var stream = result.ReadAsResultStreamAsync();
+        var stream = result.ReadAsResultStreamAsync(CommonTestExtensions.CreateArena());
 
         // assert
         var count = 0;
@@ -240,7 +240,7 @@ public class DefaultGraphQLHttpClientTests
 
         // act
         using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
-        var stream = result.ReadAsResultStreamAsync();
+        var stream = result.ReadAsResultStreamAsync(CommonTestExtensions.CreateArena());
 
         // assert
         var count = 0;
@@ -284,7 +284,7 @@ public class DefaultGraphQLHttpClientTests
 
         // act
         using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
-        var stream = result.ReadAsResultStreamAsync();
+        var stream = result.ReadAsResultStreamAsync(CommonTestExtensions.CreateArena());
 
         // assert
         var count = 0;
@@ -330,7 +330,7 @@ public class DefaultGraphQLHttpClientTests
 
         // act
         using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
-        var stream = result.ReadAsResultStreamAsync();
+        var stream = result.ReadAsResultStreamAsync(CommonTestExtensions.CreateArena());
 
         // assert
         var count = 0;
@@ -375,7 +375,7 @@ public class DefaultGraphQLHttpClientTests
 
         // act
         using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
-        var stream = result.ReadAsResultStreamAsync();
+        var stream = result.ReadAsResultStreamAsync(CommonTestExtensions.CreateArena());
 
         // assert
         var count = 0;
@@ -425,7 +425,7 @@ public class DefaultGraphQLHttpClientTests
 
         // act
         using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
-        var stream = result.ReadAsResultStreamAsync();
+        var stream = result.ReadAsResultStreamAsync(CommonTestExtensions.CreateArena());
 
         // assert
         var count = 0;
@@ -456,7 +456,7 @@ public class DefaultGraphQLHttpClientTests
 
         // act
         using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
-        var document = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
+        var document = await result.ReadAsResultAsync(CommonTestExtensions.CreateArena(), TestContext.Current.CancellationToken);
 
         // assert
         var itemCount = document.Root.GetProperty("data").GetProperty("items").GetArrayLength();
@@ -477,7 +477,7 @@ public class DefaultGraphQLHttpClientTests
 
         // act
         using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
-        var document = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
+        var document = await result.ReadAsResultAsync(CommonTestExtensions.CreateArena(), TestContext.Current.CancellationToken);
 
         // assert
         var itemCount = document.Root.GetProperty("data").GetProperty("items").GetArrayLength();
@@ -514,7 +514,7 @@ public class DefaultGraphQLHttpClientTests
 
         // act
         using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
-        var stream = result.ReadAsResultStreamAsync();
+        var stream = result.ReadAsResultStreamAsync(CommonTestExtensions.CreateArena());
 
         // assert
         var count = 0;
@@ -548,7 +548,7 @@ public class DefaultGraphQLHttpClientTests
 
         // act
         using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
-        var stream = result.ReadAsResultStreamAsync();
+        var stream = result.ReadAsResultStreamAsync(CommonTestExtensions.CreateArena());
 
         // assert
         var count = 0;
@@ -594,7 +594,7 @@ public class DefaultGraphQLHttpClientTests
 
         // act
         using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
-        var stream = result.ReadAsResultStreamAsync();
+        var stream = result.ReadAsResultStreamAsync(CommonTestExtensions.CreateArena());
 
         // assert
         var count = 0;

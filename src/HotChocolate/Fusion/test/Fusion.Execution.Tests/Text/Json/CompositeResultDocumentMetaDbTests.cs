@@ -4,17 +4,54 @@ namespace HotChocolate.Fusion.Text.Json;
 
 public class CompositeResultDocumentMetaDbTests : IDisposable
 {
-    private MetaDb _metaDb = MetaDb.Create(Cursor.CreateZero(ChunkSize.Size128K));
+    private MetaDb _metaDb = MetaDb.Create(CommonTestExtensions.CreateArena());
 
-    private static Cursor CreateCursor(int index) => Cursor.CreateZero(ChunkSize.Size128K).AddRows(index);
+    private static Cursor CreateCursor(int index) => Cursor.CreateZero().AddRows(index);
 
-    private static int TotalBytes(Cursor cursor) => (cursor.Chunk * (1 << (10 + (int)cursor.ChunkSize))) + cursor.ByteOffset;
+    // The chunk schedule is geometric (chunk i holds 1 << (10 + Min(i, 7)) bytes), so the absolute
+    // byte position sums each preceding chunk's capacity plus the byte offset within the cursor's
+    // chunk.
+    private static int TotalBytes(Cursor cursor)
+    {
+        var total = cursor.ByteOffset;
+        for (var chunk = 0; chunk < cursor.Chunk; chunk++)
+        {
+            total += 1 << (10 + (int)Cursor.ChunkSizeFor(chunk));
+        }
+
+        return total;
+    }
+
+    // Appends null rows until the next write lands on the last free slot of its current chunk.
+    private static void FillToOneFreeSlot(ref MetaDb metaDb)
+        => FillToFreeSlots(ref metaDb, 1);
+
+    // Appends null rows until exactly the given number of free slots remain in the current chunk.
+    private static void FillToFreeSlots(ref MetaDb metaDb, int freeSlots)
+    {
+        while (metaDb.NextCursor.Row < metaDb.NextCursor.RowsPerChunk - freeSlots)
+        {
+            metaDb.AppendNull(0);
+        }
+    }
+
+    // Appends null rows until the next write lands on the start of a fresh chunk.
+    private static int FillToChunkBoundary(ref MetaDb metaDb)
+    {
+        while (metaDb.NextCursor.Row != metaDb.NextCursor.RowsPerChunk - 1)
+        {
+            metaDb.AppendNull(0);
+        }
+
+        metaDb.AppendNull(0);
+        return metaDb.NextCursor.Index;
+    }
 
     [Fact]
     public void Create_CreatesValidMetaDb()
     {
         // Arrange & Act
-        using var metaDb = MetaDb.Create(Cursor.CreateZero(ChunkSize.Size128K));
+        using var metaDb = MetaDb.Create(CommonTestExtensions.CreateArena());
 
         // Assert
         Assert.Equal(0, metaDb.NextCursor.Index);
@@ -254,7 +291,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
     public void Dispose_WhenCalled_CleansUpResources()
     {
         // Arrange
-        var metaDb = MetaDb.Create(Cursor.CreateZero(ChunkSize.Size128K));
+        var metaDb = MetaDb.Create(CommonTestExtensions.CreateArena());
         metaDb.Append(ElementTokenType.String);
 
         // Act & Assert - Should not throw
@@ -265,7 +302,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
     public void MultipleDispose_DoesNotThrow()
     {
         // Arrange
-        var metaDb = MetaDb.Create(Cursor.CreateZero(ChunkSize.Size128K));
+        var metaDb = MetaDb.Create(CommonTestExtensions.CreateArena());
 
         // Act & Assert - Should not throw
         metaDb.Dispose();
@@ -276,7 +313,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
     public void Append_ExceedsInitialChunkCapacity_ExpandsChunkArray()
     {
         // Arrange
-        using var metaDb = MetaDb.Create(Cursor.CreateZero(ChunkSize.Size128K));
+        using var metaDb = MetaDb.Create(CommonTestExtensions.CreateArena());
 
         const int chunkSize = 128 * 1024;
         const int rowsPerChunk = chunkSize / 20;
@@ -292,9 +329,9 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         // Assert
         Assert.Equal(totalRowsToAdd, indices.Count);
 
-        // since 20 bytes do not fit perfectly into 128kb buffers we have some
-        // extra skip bytes.
-        Assert.Equal((totalRowsToAdd * 20) + 48, TotalBytes(metaDb.NextCursor));
+        // Every appended row advances the linear index by one, regardless of how many geometric
+        // chunks the rows spilled across.
+        Assert.Equal(totalRowsToAdd, metaDb.NextCursor.Index);
 
         // Verify we can read data from all chunks
         var firstRow = metaDb.Get(CreateCursor(0));
@@ -453,7 +490,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
     public void AppendNull_IsEquivalentToGenericAppend()
     {
         // Arrange — compare specialized vs generic path
-        using var reference = MetaDb.Create(Cursor.CreateZero(ChunkSize.Size128K));
+        using var reference = MetaDb.Create(CommonTestExtensions.CreateArena());
         var refCursor = reference.Append(ElementTokenType.None, parentRow: 123);
 
         // Act
@@ -517,7 +554,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
     public void AppendEmptyProperty_IsEquivalentToGenericAppend()
     {
         // Arrange
-        using var reference = MetaDb.Create(Cursor.CreateZero(ChunkSize.Size128K));
+        using var reference = MetaDb.Create(CommonTestExtensions.CreateArena());
         var refCursor = reference.Append(
             ElementTokenType.PropertyName,
             parentRow: 13,
@@ -579,7 +616,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
     public void AppendEmptyPropertyWithNullValue_IsEquivalentToTwoGenericAppends()
     {
         // Arrange
-        using var reference = MetaDb.Create(Cursor.CreateZero(ChunkSize.Size128K));
+        using var reference = MetaDb.Create(CommonTestExtensions.CreateArena());
         var refProp = reference.Append(
             ElementTokenType.PropertyName,
             parentRow: 21,
@@ -616,50 +653,62 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
     [Fact]
     public void AppendEmptyPropertyWithNullValue_FallsBackAcrossChunkBoundary()
     {
-        // Arrange — fill current chunk so only 1 row fits, forcing slow path.
-        using var metaDb = MetaDb.Create(Cursor.CreateZero(ChunkSize.Size128K));
-        const int rowsPerChunk = 128 * 1024 / 20;
+        // Arrange — fill the current chunk so only one slot remains, forcing the slow path.
+        var metaDb = MetaDb.Create(CommonTestExtensions.CreateArena());
 
-        // Fill all but one slot in the first chunk
-        for (var i = 0; i < rowsPerChunk - 1; i++)
+        try
         {
-            metaDb.AppendNull(0);
+            FillToOneFreeSlot(ref metaDb);
+
+            // Act — pair cannot fit, so the slow path runs (single-row Append + AppendNull).
+            var propCursor = metaDb.AppendEmptyPropertyWithNullValue(
+                parentRow: 0,
+                selectionId: 7,
+                flags: ElementFlags.None);
+            var valueCursor = CreateCursor(propCursor.Index + 1);
+
+            // Assert — correctness preserved across boundary
+            var propRow = metaDb.Get(propCursor);
+            var valueRow = metaDb.Get(valueCursor);
+            Assert.Equal(ElementTokenType.PropertyName, propRow.TokenType);
+            Assert.Equal(7, propRow.OperationReferenceId);
+            Assert.Equal(ElementTokenType.None, valueRow.TokenType);
+            Assert.Equal(propCursor.Value, valueRow.Parent);
         }
-
-        // Act — pair cannot fit, so the slow path runs (single-row Append + AppendNull).
-        var propCursor = metaDb.AppendEmptyPropertyWithNullValue(
-            parentRow: 0,
-            selectionId: 7,
-            flags: ElementFlags.None);
-        var valueCursor = CreateCursor(propCursor.Index + 1);
-
-        // Assert — correctness preserved across boundary
-        var propRow = metaDb.Get(propCursor);
-        var valueRow = metaDb.Get(valueCursor);
-        Assert.Equal(ElementTokenType.PropertyName, propRow.TokenType);
-        Assert.Equal(7, propRow.OperationReferenceId);
-        Assert.Equal(ElementTokenType.None, valueRow.TokenType);
-        Assert.Equal(propCursor.Value, valueRow.Parent);
+        finally
+        {
+            metaDb.Dispose();
+        }
     }
 
     [Fact]
     public void AppendNull_FollowsChunkBoundary()
     {
-        // Arrange — fill the first chunk and verify AppendNull keeps advancing into chunk 2.
-        using var metaDb = MetaDb.Create(Cursor.CreateZero(ChunkSize.Size128K));
-        const int rowsPerChunk = 128 * 1024 / 20;
+        // Arrange — fill the first chunk and verify AppendNull keeps advancing into the next chunk.
+        var metaDb = MetaDb.Create(CommonTestExtensions.CreateArena());
 
-        for (var i = 0; i < rowsPerChunk + 5; i++)
+        try
         {
-            metaDb.AppendNull(i);
+            var boundaryIndex = FillToChunkBoundary(ref metaDb);
+            var totalRows = boundaryIndex + 5;
+
+            // Continue appending past the chunk boundary, stamping the row index as the parent.
+            while (metaDb.NextCursor.Index < totalRows)
+            {
+                metaDb.AppendNull(metaDb.NextCursor.Index);
+            }
+
+            // Assert — the rows written past the boundary are readable with the expected parent.
+            for (var i = boundaryIndex; i < totalRows; i++)
+            {
+                var row = metaDb.Get(CreateCursor(i));
+                Assert.Equal(ElementTokenType.None, row.TokenType);
+                Assert.Equal(i, row.Parent);
+            }
         }
-
-        // Assert — every row readable with expected parent
-        for (var i = 0; i < rowsPerChunk + 5; i++)
+        finally
         {
-            var row = metaDb.Get(CreateCursor(i));
-            Assert.Equal(ElementTokenType.None, row.TokenType);
-            Assert.Equal(i, row.Parent);
+            metaDb.Dispose();
         }
     }
 
@@ -689,7 +738,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
     public void AppendStartObject_IsEquivalentToGenericAppend()
     {
         // Arrange
-        using var reference = MetaDb.Create(Cursor.CreateZero(ChunkSize.Size128K));
+        using var reference = MetaDb.Create(CommonTestExtensions.CreateArena());
         var refCursor = reference.Append(
             ElementTokenType.StartObject,
             sizeOrLength: 4,
@@ -742,7 +791,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
     public void AppendStartArray_IsEquivalentToGenericAppend()
     {
         // Arrange
-        using var reference = MetaDb.Create(Cursor.CreateZero(ChunkSize.Size128K));
+        using var reference = MetaDb.Create(CommonTestExtensions.CreateArena());
         var refCursor = reference.Append(
             ElementTokenType.StartArray,
             sizeOrLength: 7,
@@ -831,7 +880,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
     public void AppendNullRange_IsEquivalentToLoopOfAppendNull()
     {
         // Arrange
-        using var reference = MetaDb.Create(Cursor.CreateZero(ChunkSize.Size128K));
+        using var reference = MetaDb.Create(CommonTestExtensions.CreateArena());
         for (var i = 0; i < 7; i++)
         {
             reference.AppendNull(13);
@@ -853,25 +902,28 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
     [Fact]
     public void AppendNullRange_FallsBackAcrossChunkBoundary()
     {
-        // Arrange — fill most of the first chunk so the range crosses into chunk 2.
-        using var metaDb = MetaDb.Create(Cursor.CreateZero(ChunkSize.Size128K));
-        const int rowsPerChunk = 128 * 1024 / 20;
+        // Arrange — leave only 3 free slots in the current chunk so the range crosses the boundary.
+        var metaDb = MetaDb.Create(CommonTestExtensions.CreateArena());
 
-        for (var i = 0; i < rowsPerChunk - 3; i++)
+        try
         {
-            metaDb.AppendNull(0);
+            FillToFreeSlots(ref metaDb, 3);
+            var firstNullRangeIndex = metaDb.NextCursor.Index;
+
+            // Act — request 10 rows; only 3 fit in the current chunk, so slow path runs.
+            metaDb.AppendNullRange(parentRow: 42, count: 10);
+
+            // Assert — all 10 rows written correctly across the boundary.
+            for (var i = 0; i < 10; i++)
+            {
+                var row = metaDb.Get(CreateCursor(firstNullRangeIndex + i));
+                Assert.Equal(ElementTokenType.None, row.TokenType);
+                Assert.Equal(42, row.Parent);
+            }
         }
-
-        // Act — request 10 rows; only 3 fit in the current chunk, so slow path runs.
-        metaDb.AppendNullRange(parentRow: 42, count: 10);
-
-        // Assert — all 10 rows written correctly across the boundary.
-        const int firstNullRangeIndex = rowsPerChunk - 3;
-        for (var i = 0; i < 10; i++)
+        finally
         {
-            var row = metaDb.Get(CreateCursor(firstNullRangeIndex + i));
-            Assert.Equal(ElementTokenType.None, row.TokenType);
-            Assert.Equal(42, row.Parent);
+            metaDb.Dispose();
         }
     }
 

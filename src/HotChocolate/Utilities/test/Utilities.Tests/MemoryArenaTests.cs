@@ -1,3 +1,5 @@
+using System.Buffers;
+
 namespace HotChocolate.Buffers;
 
 public class MemoryArenaTests
@@ -174,6 +176,88 @@ public class MemoryArenaTests
 
         // assert
         Assert.Null(ex);
+    }
+
+    [Fact]
+    public void RentSegmentTable_Should_TrackTable_When_Rented()
+    {
+        // arrange
+        using var arena = new MemoryArena();
+
+        // act
+        var table = arena.RentSegmentTable(16);
+
+        // assert
+        Assert.True(table.Length >= 16);
+        Assert.Equal(1, arena.RentedTableCount);
+    }
+
+    [Fact]
+    public void GrowSegmentTable_Should_CopyEntriesAndKeepSingleTracked_When_Grown()
+    {
+        // arrange
+        // growing must not leave the old table tracked, otherwise dispose would return it twice.
+        using var arena = new MemoryArena();
+        var table = arena.RentSegmentTable(4);
+        var originalLength = table.Length;
+        table[0] = new MemorySegment(new byte[8], 1, 2);
+
+        // act
+        arena.GrowSegmentTable(ref table);
+
+        // assert
+        Assert.True(table.Length >= originalLength * 2);
+        Assert.Equal(1, table[0].Offset);
+        Assert.Equal(1, arena.RentedTableCount);
+    }
+
+    [Fact]
+    public void Dispose_Should_ReturnTablesToPool_When_Sealed()
+    {
+        // arrange
+        // the shared array pool hands buffers back in LIFO order, so a sealed table returned on
+        // dispose is the next table of that size handed out, which proves it was recycled.
+        var first = new MemoryArena();
+        var table = first.RentSegmentTable(16);
+        first.Seal();
+
+        // act
+        first.Dispose();
+        var recycled = ArrayPool<MemorySegment>.Shared.Rent(16);
+
+        // assert
+        Assert.Same(table, recycled);
+    }
+
+    [Fact]
+    public void Dispose_Should_AbandonTables_When_NotSealed()
+    {
+        // arrange
+        // an unsealed dispose abandons its tables, so a live document may still index them safely.
+        var first = new MemoryArena();
+        var table = first.RentSegmentTable(16);
+
+        // act
+        first.Dispose();
+        var rented = ArrayPool<MemorySegment>.Shared.Rent(16);
+
+        // assert
+        Assert.NotSame(table, rented);
+    }
+
+    [Fact]
+    public void Dispose_Should_ClearTableTracking_When_Disposed()
+    {
+        // arrange
+        var arena = new MemoryArena();
+        arena.RentSegmentTable(16);
+        arena.Seal();
+
+        // act
+        arena.Dispose();
+
+        // assert
+        Assert.Equal(0, arena.RentedTableCount);
     }
 
     [Fact]

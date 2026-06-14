@@ -2,23 +2,30 @@ namespace HotChocolate.Text.Json;
 
 public class ResultDocumentDataClaimTests
 {
-    // The data location packs the chunk index in the high 12 bits (4096 chunks max) and the byte
-    // offset within the chunk in the low 17 bits. Chunk byte sizes follow the geometric schedule:
-    // chunk 0 holds 1024 bytes, chunk 1 holds 2048, doubling up to 131072 from chunk 7 onward.
+    // The data store is a single linear byte space. Chunk byte sizes follow the geometric schedule:
+    // chunk 0 holds 1024 bytes, chunk 1 holds 2048, doubling up to 131072 from chunk 7 onward. The
+    // ramp (chunks 0..7) holds 1024 * 255 = 261120 bytes before the constant 128K tail begins.
     private const int LastChunk = 4095;
     private const int LargestChunkBytes = 131_072;
+    private const long RampTotalBytes = 255L * 1024;
 
-    private static long Head(int chunk, int offset) => ((long)chunk << 32) | (uint)offset;
+    // The linear byte position of the first byte of the given chunk.
+    private static long Start(int chunk)
+        => chunk < 8
+            ? 1024L * ((1L << chunk) - 1)
+            : RampTotalBytes + ((long)(chunk - 8) * LargestChunkBytes);
+
+    private static int Location(int chunk, int offset) => (chunk << 17) | offset;
 
     [Fact]
     public void ComputeDataClaim_Should_Throw_When_DataCapacityExceeded()
     {
         // arrange
         // the head sits near the end of the last chunk, so the value spills into chunk 4096.
-        var head = Head(LastChunk, LargestChunkBytes - 100);
+        var start = Start(LastChunk) + (LargestChunkBytes - 100);
 
         // act
-        void Act() => ResultDocument.ComputeDataClaim(head, 200);
+        void Act() => ResultDocument.ComputeDataClaim(start, 200);
 
         // assert
         Assert.Throws<InvalidOperationException>(Act);
@@ -28,15 +35,14 @@ public class ResultDocumentDataClaimTests
     public void ComputeDataClaim_Should_Succeed_When_ClaimFillsLastChunkExactly()
     {
         // arrange
-        var head = Head(LastChunk, 0);
+        var start = Start(LastChunk);
 
         // act
-        var (next, location, lastChunk) = ResultDocument.ComputeDataClaim(head, LargestChunkBytes);
+        var (location, lastChunk) = ResultDocument.ComputeDataClaim(start, LargestChunkBytes);
 
         // assert
         Assert.Equal(LastChunk, lastChunk);
-        Assert.Equal(LastChunk << 17, location);
-        Assert.Equal(Head(LastChunk + 1, 0), next);
+        Assert.Equal(Location(LastChunk, 0), location);
     }
 
     [Fact]
@@ -45,15 +51,14 @@ public class ResultDocumentDataClaimTests
         // arrange
         // a 2000-byte value at offset 100 of chunk 0 (1024 bytes) starts exactly at the head
         // and spans into chunk 1: 924 bytes fill chunk 0 and 1076 land in chunk 1.
-        var head = Head(0, 100);
+        var start = Start(0) + 100;
 
         // act
-        var (next, location, lastChunk) = ResultDocument.ComputeDataClaim(head, 2000);
+        var (location, lastChunk) = ResultDocument.ComputeDataClaim(start, 2000);
 
         // assert
-        Assert.Equal(100, location);
+        Assert.Equal(Location(0, 100), location);
         Assert.Equal(1, lastChunk);
-        Assert.Equal(Head(1, 1076), next);
     }
 
     [Fact]
@@ -61,14 +66,43 @@ public class ResultDocumentDataClaimTests
     {
         // arrange
         // 1024 + 2048 + 100 bytes fills chunks 0 and 1 completely and ends in chunk 2.
-        var head = Head(0, 0);
+        var start = Start(0);
 
         // act
-        var (next, location, lastChunk) = ResultDocument.ComputeDataClaim(head, 3172);
+        var (location, lastChunk) = ResultDocument.ComputeDataClaim(start, 3172);
 
         // assert
-        Assert.Equal(0, location);
+        Assert.Equal(Location(0, 0), location);
         Assert.Equal(2, lastChunk);
-        Assert.Equal(Head(2, 100), next);
+    }
+
+    [Fact]
+    public void ComputeDataClaim_Should_DecodeRampStart_When_HeadSitsInsideRampChunk()
+    {
+        // arrange
+        // chunk 3 starts at byte 1024+2048+4096 = 7168; offset 50 lands at byte 7218.
+        var start = Start(3) + 50;
+
+        // act
+        var (location, lastChunk) = ResultDocument.ComputeDataClaim(start, 10);
+
+        // assert
+        Assert.Equal(Location(3, 50), location);
+        Assert.Equal(3, lastChunk);
+    }
+
+    [Fact]
+    public void ComputeDataClaim_Should_DecodeTailStart_When_HeadSitsPastRamp()
+    {
+        // arrange
+        // chunk 10 is the third tail chunk; offset 77 inside it.
+        var start = Start(10) + 77;
+
+        // act
+        var (location, lastChunk) = ResultDocument.ComputeDataClaim(start, 5);
+
+        // assert
+        Assert.Equal(Location(10, 77), location);
+        Assert.Equal(10, lastChunk);
     }
 }

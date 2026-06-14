@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
+using HotChocolate.Buffers;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Text.Json;
 using HotChocolate.Types;
@@ -15,19 +16,21 @@ public sealed partial class CompositeResultDocument : IDisposable
     private readonly ulong _includeFlags;
     private readonly ulong _deferFlags;
     private readonly PathSegmentLocalPool? _pathPool;
-    private readonly ChunkSize _chunkSize = ChunkSize.Size128K;
     internal MetaDb _metaDb;
     private int _disposed;
 
     internal CompositeResultDocument(
+        IMemoryArena arena,
         Operation operation,
         ulong includeFlags,
         ulong deferFlags = 0,
         PathSegmentLocalPool? pathPool = null)
     {
-        var zero = Cursor.CreateZero(_chunkSize);
+        ArgumentNullException.ThrowIfNull(arena);
 
-        _metaDb = MetaDb.Create(zero);
+        var zero = Cursor.CreateZero();
+
+        _metaDb = MetaDb.Create(arena);
         _operation = operation;
         _includeFlags = includeFlags;
         _deferFlags = deferFlags;
@@ -480,19 +483,13 @@ public sealed partial class CompositeResultDocument : IDisposable
 
     public void Dispose()
     {
-        ReturnRentedMemory();
-        GC.SuppressFinalize(this);
-    }
-
-    private void ReturnRentedMemory()
-    {
         if (Interlocked.Exchange(ref _disposed, 1) != 0)
         {
             return;
         }
 
+        // The arena owns the chunk memory and frees it as a whole when it is disposed, so disposing
+        // the document only releases the metadb's pooled tracking array, never any chunk pages.
         _metaDb.Dispose();
     }
-
-    ~CompositeResultDocument() => ReturnRentedMemory();
 }

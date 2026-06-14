@@ -100,7 +100,7 @@ internal sealed class FusionRequestExecutor : IRequestExecutor, IAsyncDisposable
                 requestServices,
                 cancellationToken);
 
-            context.AttachMemory(new MemoryArena());
+            context.AttachMemory(MemoryArena.Rent());
 
             await _requestDelegate(context).ConfigureAwait(false);
 

@@ -177,7 +177,6 @@ internal sealed class DefaultRequestExecutor : IRequestExecutor
 
             if (context is not null)
             {
-                context.TryDetachMemory()?.Dispose();
                 _contextPool.Return(context);
             }
 

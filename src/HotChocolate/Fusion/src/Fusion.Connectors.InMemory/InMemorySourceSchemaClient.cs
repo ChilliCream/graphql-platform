@@ -7,6 +7,7 @@ using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Fusion.Properties;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Text.Json;
 using HotChocolate.Transport.Formatters;
@@ -73,6 +74,12 @@ public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
         ArgumentNullException.ThrowIfNull(context);
         ObjectDisposedException.ThrowIf(_disposed, this);
 
+        if (request.OperationType == OperationType.Subscription)
+        {
+            throw new InvalidOperationException(
+                FusionExecutionResources.SourceSchemaClient_SubscriptionsNotSupportedByExecute);
+        }
+
         ChunkedArrayWriter? buffer = null;
         var operationRequest = BuildOperationRequest(context, request, _onError, ref buffer);
 
@@ -82,7 +89,7 @@ public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
                 .ExecuteAsync(operationRequest, cancellationToken)
                 .ConfigureAwait(false);
 
-            return new Response(result, request, _formatter, buffer);
+            return new Response(context.Memory, result, request, _formatter, buffer);
         }
         catch
         {
@@ -150,7 +157,7 @@ public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
                 if (requestIndex == -1)
                 {
                     // No request index — fan out to all requests.
-                    var document = SerializeToDocument(operationResult, _formatter);
+                    var document = SerializeToDocument(context.Memory, operationResult, _formatter);
 
                     for (var i = 0; i < requests.Length; i++)
                     {
@@ -173,7 +180,7 @@ public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
                 if (variableIndex == -1)
                 {
                     // No variable index — fan out to all variable sets of this request.
-                    var document = SerializeToDocument(operationResult, _formatter);
+                    var document = SerializeToDocument(context.Memory, operationResult, _formatter);
 
                     for (var vi = 0; vi < request.Variables.Length; vi++)
                     {
@@ -196,7 +203,7 @@ public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
                         $"Invalid variable index {variableIndex} for request {requestIndex}.");
                 }
 
-                var resultDocument = SerializeToDocument(operationResult, _formatter);
+                var resultDocument = SerializeToDocument(context.Memory, operationResult, _formatter);
 
                 var sourceSchemaResult = additionalPaths.IsDefaultOrEmpty
                     ? new SourceSchemaResult(path, resultDocument)
@@ -208,6 +215,76 @@ public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
         finally
         {
             await responseStream.DisposeAsync().ConfigureAwait(false);
+            buffer?.Dispose();
+        }
+    }
+
+    /// <inheritdoc />
+    public async IAsyncEnumerable<EventResult> SubscribeAsync(
+        OperationPlanContext context,
+        SourceSchemaClientRequest request,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        // Each event document is backed by its own arena; the source hands out a fresh one
+        // immediately before materializing each event.
+        var arenaSource = new SubscriptionArenaSource(context);
+        ChunkedArrayWriter? buffer = null;
+        var operationRequest = BuildOperationRequest(context, request, _onError, ref buffer);
+
+        IExecutionResult result;
+
+        try
+        {
+            result = await _executor
+                .ExecuteAsync(operationRequest, cancellationToken)
+                .ConfigureAwait(false);
+        }
+        catch
+        {
+            operationRequest.Dispose();
+            buffer?.Dispose();
+            throw;
+        }
+
+        IMemoryArena? transferred = null;
+
+        try
+        {
+            if (result is OperationResult errorResult)
+            {
+                var arena = arenaSource.GetNextArena();
+                var document = SerializeToDocument(arena, errorResult, _formatter);
+                transferred = arena;
+                yield return new EventResult(arena, new SourceSchemaResult(CompactPath.Root, document));
+                yield break;
+            }
+
+            var stream = result.ExpectResponseStream();
+
+            await foreach (var operationResult in stream
+                .ReadResultsAsync()
+                .WithCancellation(cancellationToken)
+                .ConfigureAwait(false))
+            {
+                var arena = arenaSource.GetNextArena();
+                var document = SerializeToDocument(arena, operationResult, _formatter);
+                transferred = arena;
+                yield return new EventResult(arena, new SourceSchemaResult(CompactPath.Root, document));
+            }
+        }
+        finally
+        {
+            // An arena that was created for an event but never transferred (a materialization
+            // failure between creation and yield, or stream abandonment) is disposed here.
+            if (arenaSource.Arena is { } pending && !ReferenceEquals(pending, transferred))
+            {
+                ((IDisposable)pending).Dispose();
+            }
+
+            await result.DisposeAsync().ConfigureAwait(false);
             buffer?.Dispose();
         }
     }
@@ -402,28 +479,33 @@ public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
     }
 
     private static SourceResultDocument SerializeToDocument(
+        IMemoryArena arena,
         OperationResult operationResult,
         JsonResultFormatter formatter)
     {
-        using var writer = new ChunkedArrayWriter(JsonMemoryKind.Json);
+        // Format the result directly into the document's own gap-free arena segments, then parse
+        // those bytes in place without an intermediate staging buffer or extra copy.
+        var writer = new ArenaBufferWriter(arena);
         formatter.Format(operationResult, writer);
-        var (chunks, usedChunks, lastLength) = writer.DrainChunks();
-        return SourceResultDocument.Parse(chunks, lastLength, usedChunks, pooledMemory: true);
+        return SourceResultDocument.ParseFilled(arena, writer.Segments, writer.UsedChunks, writer.LastLength);
     }
 
     private sealed class Response : SourceSchemaClientResponse
     {
+        private readonly IMemoryArena _arena;
         private readonly IExecutionResult _result;
         private readonly SourceSchemaClientRequest _request;
         private readonly JsonResultFormatter _formatter;
         private readonly ChunkedArrayWriter? _buffer;
 
         public Response(
+            IMemoryArena arena,
             IExecutionResult result,
             SourceSchemaClientRequest request,
             JsonResultFormatter formatter,
             ChunkedArrayWriter? buffer)
         {
+            _arena = arena;
             _result = result;
             _request = request;
             _formatter = formatter;
@@ -439,44 +521,24 @@ public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
         public override async IAsyncEnumerable<SourceSchemaResult> ReadAsResultStreamAsync(
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
+            // The in-memory result is already fully materialized, so the values are produced
+            // synchronously while still honoring the asynchronous streaming contract.
+            await Task.CompletedTask.ConfigureAwait(false);
+
             var variables = _request.Variables;
-
-            if (_request.OperationType == OperationType.Subscription)
-            {
-                if (_result is OperationResult errorResult)
-                {
-                    var document = SerializeToDocument(errorResult, _formatter);
-                    yield return new SourceSchemaResult(CompactPath.Root, document);
-                }
-                else
-                {
-                    var stream = _result.ExpectResponseStream();
-
-                    await foreach (var operationResult in stream
-                        .ReadResultsAsync()
-                        .WithCancellation(cancellationToken)
-                        .ConfigureAwait(false))
-                    {
-                        var document = SerializeToDocument(operationResult, _formatter);
-                        yield return new SourceSchemaResult(CompactPath.Root, document);
-                    }
-                }
-
-                yield break;
-            }
 
             switch (variables.Length)
             {
                 case 0:
                 {
-                    var document = SerializeToDocument(_result.ExpectOperationResult(), _formatter);
+                    var document = SerializeToDocument(_arena, _result.ExpectOperationResult(), _formatter);
                     yield return new SourceSchemaResult(CompactPath.Root, document);
                     break;
                 }
 
                 case 1:
                 {
-                    var document = SerializeToDocument(_result.ExpectOperationResult(), _formatter);
+                    var document = SerializeToDocument(_arena, _result.ExpectOperationResult(), _formatter);
                     var variable = variables[0];
 
                     yield return variable.AdditionalPaths.IsDefaultOrEmpty
@@ -490,7 +552,7 @@ public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
                     if (_result is OperationResult singleResult)
                     {
                         // Single result for all variable sets (e.g. validation error).
-                        var document = SerializeToDocument(singleResult, _formatter);
+                        var document = SerializeToDocument(_arena, singleResult, _formatter);
                         var errorResult = new SourceSchemaResult(variables[0].Path, document);
 
                         for (var i = 0; i < variables.Length; i++)
@@ -519,7 +581,7 @@ public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
                             }
 
                             var variable = variables[index];
-                            var document = SerializeToDocument(operationResult, _formatter);
+                            var document = SerializeToDocument(_arena, operationResult, _formatter);
 
                             yield return variable.AdditionalPaths.IsDefaultOrEmpty
                                 ? new SourceSchemaResult(variable.Path, document)

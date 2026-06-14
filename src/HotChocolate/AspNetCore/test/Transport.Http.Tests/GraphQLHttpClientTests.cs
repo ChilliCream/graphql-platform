@@ -1554,6 +1554,140 @@ public class GraphQLHttpClientTests : ServerTestBase
     }
 
     [Fact]
+    public async Task ReadAsResultStream_Text_Event_Stream_Multi_Line_Data()
+    {
+        // arrange
+        // The event payload is split across several data lines that are joined with a single line feed.
+        var ms = new MemoryStream();
+        var sw = new StreamWriter(ms);
+        sw.Write("event: next");
+        sw.Write('\n');
+        sw.Write("data: {\"data\":");
+        sw.Write('\n');
+        sw.Write("data: {\"number\":42}");
+        sw.Write('\n');
+        sw.Write("data: }");
+        sw.Write('\n');
+        sw.Write('\n');
+        sw.Write("event: complete");
+        sw.Write('\n');
+        sw.Write('\n');
+        sw.Flush();
+        ms.Position = 0;
+
+        var handler = new MockHttpMessageHandler(ms, "text/event-stream");
+        using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
+
+        var operationRequest = new OperationRequest("{ number }");
+        var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
+
+        // act
+        using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
+        var stream = result.ReadAsResultStreamAsync();
+
+        // assert
+        var count = 0;
+
+        await foreach (var document in stream)
+        {
+            var number = document.Data.GetProperty("number").GetInt32();
+            Assert.Equal(42, number);
+            count++;
+        }
+
+        Assert.Equal(1, count);
+    }
+
+    [Fact]
+    public async Task ReadAsResultStream_Text_Event_Stream_With_KeepAlive_Comments()
+    {
+        // arrange
+        // Keep-alive comment blocks appear before, between, and after the events and are ignored.
+        var ms = new MemoryStream();
+        var sw = new StreamWriter(ms);
+        sw.Write(": ping");
+        sw.Write('\n');
+        sw.Write('\n');
+        sw.Write("event: next");
+        sw.Write('\n');
+        sw.Write("data: {\"data\":{\"number\":0}}");
+        sw.Write('\n');
+        sw.Write('\n');
+        sw.Write(": ping");
+        sw.Write('\n');
+        sw.Write('\n');
+        sw.Write("event: next");
+        sw.Write('\n');
+        sw.Write("data: {\"data\":{\"number\":1}}");
+        sw.Write('\n');
+        sw.Write('\n');
+        sw.Write("event: complete");
+        sw.Write('\n');
+        sw.Write('\n');
+        sw.Flush();
+        ms.Position = 0;
+
+        var handler = new MockHttpMessageHandler(ms, "text/event-stream");
+        using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
+
+        var operationRequest = new OperationRequest("{ number }");
+        var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
+
+        // act
+        using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
+        var stream = result.ReadAsResultStreamAsync();
+
+        // assert
+        var count = 0;
+
+        await foreach (var document in stream)
+        {
+            var number = document.Data.GetProperty("number").GetInt32();
+            Assert.Equal(count, number);
+            count++;
+        }
+
+        Assert.Equal(2, count);
+    }
+
+    [Fact]
+    public async Task ReadAsResultStream_Text_Event_Stream_Unknown_Event_With_Data_Is_Ignored()
+    {
+        // arrange
+        // An event name that is neither "next" nor "complete" is not part of the GraphQL over SSE
+        // protocol and is ignored, even when it carries data.
+        var ms = new MemoryStream();
+        var sw = new StreamWriter(ms);
+        sw.Write("event: foo");
+        sw.Write('\n');
+        sw.Write("data: {\"data\":{\"number\":0}}");
+        sw.Write('\n');
+        sw.Write('\n');
+        sw.Flush();
+        ms.Position = 0;
+
+        var handler = new MockHttpMessageHandler(ms, "text/event-stream");
+        using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
+
+        var operationRequest = new OperationRequest("{ number }");
+        var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
+
+        // act
+        using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
+        var stream = result.ReadAsResultStreamAsync();
+
+        // assert
+        var count = 0;
+
+        await foreach (var _ in stream)
+        {
+            count++;
+        }
+
+        Assert.Equal(0, count);
+    }
+
+    [Fact]
     public async Task Post_Variables_Do_Not_Escape_Apostrophe_To_Unicode()
     {
         // arrange

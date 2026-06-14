@@ -44,6 +44,8 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     private long _start;
     private int _disposed;
     private int _nodeSlotCapacity;
+    private MemoryArena? _memory;
+    private bool _ownsMemory;
     internal OperationPlanContextPool? _pool;
 
     /// <summary>
@@ -70,6 +72,23 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     /// Gets the source schema client scope used to obtain HTTP clients for downstream subgraphs.
     /// </summary>
     public ISourceSchemaClientScope ClientScope => _clientScope;
+
+    /// <summary>
+    /// Gets the memory arena that backs the documents produced during this operation plan execution.
+    /// </summary>
+    internal IMemoryArena Memory
+    {
+        get
+        {
+            if (_memory is null)
+            {
+                throw new InvalidOperationException(
+                    "The operation plan context is not associated with a memory arena.");
+            }
+
+            return _memory;
+        }
+    }
 
     internal ExecutionState ExecutionState => _executionState;
 

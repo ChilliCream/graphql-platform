@@ -1,4 +1,5 @@
 using System.Buffers;
+using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Text.Json;
@@ -12,6 +13,7 @@ internal sealed partial class FetchResultStore
     /// Initializes the <see cref="FetchResultStore"/> for a new request.
     /// </summary>
     public void Initialize(
+        IMemoryArena arena,
         ISchemaDefinition schema,
         IErrorHandler errorHandler,
         Operation operation,
@@ -20,9 +22,11 @@ internal sealed partial class FetchResultStore
         ulong deferFlags,
         int pathSegmentLocalPoolCapacity)
     {
+        ArgumentNullException.ThrowIfNull(arena);
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentNullException.ThrowIfNull(operation);
 
+        _arena = arena;
         _schema = schema;
         _errorHandler = errorHandler;
         _operation = operation;
@@ -32,7 +36,7 @@ internal sealed partial class FetchResultStore
         _disposed = false;
 
         _pathPool ??= new PathSegmentLocalPool(pathSegmentLocalPoolCapacity);
-        _result = new CompositeResultDocument(operation, includeFlags, deferFlags, _pathPool);
+        _result = new CompositeResultDocument(arena, operation, includeFlags, deferFlags, _pathPool);
 
         _valueCompletion = new ValueCompletion(
             this,
@@ -48,7 +52,7 @@ internal sealed partial class FetchResultStore
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        _result = new CompositeResultDocument(_operation, _includeFlags, _deferFlags, _pathPool);
+        _result = new CompositeResultDocument(_arena, _operation, _includeFlags, _deferFlags, _pathPool);
         _errors?.Clear();
         _pocketedErrors?.Clear();
 
@@ -101,6 +105,7 @@ internal sealed partial class FetchResultStore
         _schema = default!;
         _errorHandler = default!;
         _operation = default!;
+        _arena = default!;
     }
 
     private static void TrimOrClearBuffer(ref CompositeResultElement[] buffer, int maxRetainLength)

@@ -32,6 +32,10 @@ public sealed partial class ResultDocument
         private const int RampLength = (int)ChunkSize.Size128K;
         private static readonly int[] s_rampPrefix = BuildRampPrefix();
 
+        // Rows held by the chunk at ordinal i (i = Min(chunk, RampLength)); a direct table load
+        // replaces the Min+shift+div of RowsPerChunkFor on the AddRows fast path.
+        private static readonly int[] s_rowsPerChunk = BuildRowsPerChunk();
+
         private readonly int _value;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -150,39 +154,68 @@ public sealed partial class ResultDocument
                 return this;
             }
 
-            var row = Row + delta;
             var chunk = Chunk;
+            var row = Row + delta;
 
-            // Roll forward across one or more variable-size chunks. The per-step capacity follows
-            // the geometric schedule, so the loop walks chunk by chunk until the row fits.
-            while (row >= RowsPerChunkFor(chunk))
+            // Fast path: the move stays inside the current chunk (the common +1/-1 step). One table
+            // load gives the chunk capacity and a single unsigned compare covers both bounds.
+            if ((uint)row < (uint)s_rowsPerChunk[Math.Min(chunk, RampLength)])
             {
-                row -= RowsPerChunkFor(chunk);
-                chunk++;
+                return From(chunk, row);
             }
 
-            // Roll backward across one or more variable-size chunks.
-            while (row < 0)
-            {
-                chunk--;
+            // General path: project onto the linear row index and map it back to (chunk, row) in
+            // O(1). The ramp is a short prefix scan; the constant tail is closed-form division.
+            var linear = RowsBeforeChunk(chunk) + Row + delta;
 
-                if (chunk < 0)
+            if (linear < 0)
+            {
+                Debug.Fail("Cursor underflow");
+                return new Cursor(0);
+            }
+
+            return FromLinear(linear);
+        }
+
+        /// <summary>
+        /// Maps an absolute linear row index back to a (chunk, row) cursor following the geometric
+        /// schedule. Within the ramp this is a short prefix scan; past the ramp it is closed-form.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Cursor FromLinear(int linear)
+        {
+            if (linear >= s_rampPrefix[RampLength])
+            {
+                const int maxRowsPerChunk = (1 << (10 + (int)ChunkSize.Size128K)) / DbRow.Size;
+                var rem = linear - s_rampPrefix[RampLength];
+                var carry = rem / maxRowsPerChunk;
+                var chunk = RampLength + carry;
+                var row = rem - (carry * maxRowsPerChunk);
+
+                if (chunk >= MaxChunks)
                 {
-                    Debug.Fail("Cursor underflow");
-                    return new Cursor(0);
+                    Debug.Fail("Cursor overflow");
+                    chunk = MaxChunks - 1;
+                    row = maxRowsPerChunk - 1;
                 }
 
-                row += RowsPerChunkFor(chunk);
+                return From(chunk, row);
             }
 
-            if (chunk >= MaxChunks)
+            // Ramp: locate the chunk whose prefix window contains the linear index. RampLength is a
+            // small constant, so this resolves in a fixed number of compares.
+            var c = RampLength - 1;
+
+            for (var i = 0; i < RampLength; i++)
             {
-                Debug.Fail("Cursor overflow");
-                chunk = MaxChunks - 1;
-                row = RowsPerChunkFor(chunk) - 1;
+                if (s_rampPrefix[i + 1] > linear)
+                {
+                    c = i;
+                    break;
+                }
             }
 
-            return From(chunk, row);
+            return From(c, linear - s_rampPrefix[c]);
         }
 
         /// <summary>
@@ -215,6 +248,18 @@ public sealed partial class ResultDocument
 
             prefix[RampLength] = cumulative;
             return prefix;
+        }
+
+        private static int[] BuildRowsPerChunk()
+        {
+            var rows = new int[RampLength + 1];
+
+            for (var ordinal = 0; ordinal <= RampLength; ordinal++)
+            {
+                rows[ordinal] = RowsPerChunkFor(ordinal);
+            }
+
+            return rows;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

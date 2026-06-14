@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Buffers;
+using HotChocolate.Fusion.Properties;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Transport;
 using HotChocolate.Fusion.Transport.Http;
@@ -52,17 +53,23 @@ public sealed class ApolloFederationSourceSchemaClient : ISourceSchemaClient
     {
         ArgumentNullException.ThrowIfNull(context);
 
+        if (request.OperationType is OperationType.Subscription)
+        {
+            throw new InvalidOperationException(
+                FusionExecutionResources.SourceSchemaClient_SubscriptionsNotSupportedByExecute);
+        }
+
         var rewritten = _queryRewriter.GetOrRewrite(
             request.OperationSourceText,
             request.OperationHash);
 
         if (!rewritten.IsEntityLookup)
         {
-            return await ExecutePassthroughAsync(request, cancellationToken)
+            return await ExecutePassthroughAsync(context.Memory, request, cancellationToken)
                 .ConfigureAwait(false);
         }
 
-        return await ExecuteEntityLookupAsync(request, rewritten, cancellationToken)
+        return await ExecuteEntityLookupAsync(context.Memory, request, rewritten, cancellationToken)
             .ConfigureAwait(false);
     }
 
@@ -128,13 +135,26 @@ public sealed class ApolloFederationSourceSchemaClient : ISourceSchemaClient
 
         // All requests are entity lookups: build one combined aliased query.
         await foreach (var batchResult in ExecuteBatchedEntityLookupsAsync(
-            requests, rewrittenOps, cancellationToken).ConfigureAwait(false))
+            context.Memory, requests, rewrittenOps, cancellationToken).ConfigureAwait(false))
         {
             yield return batchResult;
         }
     }
 
+    /// <inheritdoc />
+    public IAsyncEnumerable<EventResult> SubscribeAsync(
+        OperationPlanContext context,
+        SourceSchemaClientRequest request,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        throw new NotSupportedException(
+            FusionExecutionResources.SourceSchemaClient_SubscriptionsNotSupported);
+    }
+
     private async IAsyncEnumerable<BatchStreamResult> ExecuteBatchedEntityLookupsAsync(
+        IMemoryArena arena,
         ImmutableArray<SourceSchemaClientRequest> requests,
         RewrittenOperation[] rewrittenOps,
         [EnumeratorCancellation] CancellationToken cancellationToken)
@@ -170,7 +190,7 @@ public sealed class ApolloFederationSourceSchemaClient : ISourceSchemaClient
 
         try
         {
-            sourceDocument = await httpResponse.ReadAsResultAsync(cancellationToken)
+            sourceDocument = await httpResponse.ReadAsResultAsync(arena, cancellationToken)
                 .ConfigureAwait(false);
 
             if (!sourceDocument.Root.TryGetProperty("data"u8, out var dataElement)
@@ -198,7 +218,7 @@ public sealed class ApolloFederationSourceSchemaClient : ISourceSchemaClient
                     // Alias not found or not an array: yield an empty-data result.
                     var emptyJson = $"{{\"data\":{{\"{lookupFieldName}\":null}}}}";
                     var emptyBytes = Encoding.UTF8.GetBytes(emptyJson);
-                    var emptyDoc = SourceResultDocument.Parse(emptyBytes, emptyBytes.Length);
+                    var emptyDoc = SourceResultDocument.Parse(arena, emptyBytes, emptyBytes.Length);
 
                     var path = variables.IsDefaultOrEmpty
                         ? CompactPath.Root
@@ -214,7 +234,7 @@ public sealed class ApolloFederationSourceSchemaClient : ISourceSchemaClient
                     var entity = aliasElement[j];
                     var entityJson = BuildWrappedEntityJson(lookupFieldName, entity);
                     var entityBytes = Encoding.UTF8.GetBytes(entityJson);
-                    var entityDocument = SourceResultDocument.Parse(entityBytes, entityBytes.Length);
+                    var entityDocument = SourceResultDocument.Parse(arena, entityBytes, entityBytes.Length);
 
                     CompactPath resultPath;
                     CompactPathSegment additionalPaths;
@@ -527,6 +547,7 @@ public sealed class ApolloFederationSourceSchemaClient : ISourceSchemaClient
     }
 
     private async ValueTask<SourceSchemaClientResponse> ExecutePassthroughAsync(
+        IMemoryArena arena,
         SourceSchemaClientRequest request,
         CancellationToken cancellationToken)
     {
@@ -545,12 +566,14 @@ public sealed class ApolloFederationSourceSchemaClient : ISourceSchemaClient
             .ConfigureAwait(false);
 
         return new PassthroughResponse(
+            arena,
             httpRequest.Uri ?? s_unknownUri,
             request.Variables,
             httpResponse);
     }
 
     private async ValueTask<SourceSchemaClientResponse> ExecuteEntityLookupAsync(
+        IMemoryArena arena,
         SourceSchemaClientRequest request,
         RewrittenOperation rewritten,
         CancellationToken cancellationToken)
@@ -586,6 +609,7 @@ public sealed class ApolloFederationSourceSchemaClient : ISourceSchemaClient
             .ConfigureAwait(false);
 
         return new EntityLookupResponse(
+            arena,
             httpRequest.Uri ?? s_unknownUri,
             request.Variables,
             rewritten.LookupFieldName!,
@@ -750,6 +774,7 @@ public sealed class ApolloFederationSourceSchemaClient : ISourceSchemaClient
     /// Delegates directly to the underlying HTTP response.
     /// </summary>
     private sealed class PassthroughResponse(
+        IMemoryArena arena,
         Uri uri,
         ImmutableArray<VariableValues> variables,
         GraphQLHttpResponse response)
@@ -764,7 +789,7 @@ public sealed class ApolloFederationSourceSchemaClient : ISourceSchemaClient
         public override async IAsyncEnumerable<SourceSchemaResult> ReadAsResultStreamAsync(
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
-            var result = await response.ReadAsResultAsync(cancellationToken).ConfigureAwait(false);
+            var result = await response.ReadAsResultAsync(arena, cancellationToken).ConfigureAwait(false);
 
             if (variables.IsDefaultOrEmpty || variables.Length <= 1)
             {
@@ -800,6 +825,7 @@ public sealed class ApolloFederationSourceSchemaClient : ISourceSchemaClient
     /// wrapping each entity as if it were the direct result of the lookup field.
     /// </summary>
     private sealed class EntityLookupResponse(
+        IMemoryArena arena,
         Uri uri,
         ImmutableArray<VariableValues> variables,
         string lookupFieldName,
@@ -816,7 +842,7 @@ public sealed class ApolloFederationSourceSchemaClient : ISourceSchemaClient
         public override async IAsyncEnumerable<SourceSchemaResult> ReadAsResultStreamAsync(
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
-            var sourceDocument = await response.ReadAsResultAsync(cancellationToken)
+            var sourceDocument = await response.ReadAsResultAsync(arena, cancellationToken)
                 .ConfigureAwait(false);
 
             // The subgraph response looks like:
@@ -854,7 +880,7 @@ public sealed class ApolloFederationSourceSchemaClient : ISourceSchemaClient
                 // Build a wrapper: {"data": {"<lookupFieldName>": <entity>}}
                 var entityJson = BuildWrappedEntityJson(lookupFieldName, entity);
                 var entityBytes = Encoding.UTF8.GetBytes(entityJson);
-                var entityDocument = SourceResultDocument.Parse(entityBytes, entityBytes.Length);
+                var entityDocument = SourceResultDocument.Parse(arena, entityBytes, entityBytes.Length);
 
                 CompactPath resultPath;
                 CompactPathSegment additionalPaths;

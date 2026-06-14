@@ -1,4 +1,6 @@
+using System.Buffers;
 using System.Diagnostics;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using HotChocolate.Buffers;
@@ -11,6 +13,7 @@ namespace HotChocolate.Text.Json;
 public sealed partial class ResultDocument : IDisposable
 {
     private static readonly Encoding s_utf8Encoding = Encoding.UTF8;
+    private static readonly ArrayPool<MemorySegment> s_arrayPool = ArrayPool<MemorySegment>.Shared;
     private readonly IMemoryArena _arena;
     private readonly Operation _operation;
     private readonly ulong _includeFlags;
@@ -18,7 +21,7 @@ public sealed partial class ResultDocument : IDisposable
     internal MetaDb _metaDb;
     private long _dataHead;
     private int _rentedDataChunks;
-    private readonly List<MemorySegment> _data = [];
+    private MemorySegment[] _data;
 
 #if NET10_0_OR_GREATER
     private readonly Lock _dataChunkLock = new();
@@ -37,6 +40,7 @@ public sealed partial class ResultDocument : IDisposable
 
         _arena = arena;
         _metaDb = MetaDb.Create(arena);
+        _data = RentDataChunks();
         _operation = operation;
         _includeFlags = includeFlags;
 
@@ -59,11 +63,21 @@ public sealed partial class ResultDocument : IDisposable
 
         _arena = arena;
         _metaDb = MetaDb.Create(arena);
+        _data = RentDataChunks();
         _operation = operation;
         _includeFlags = includeFlags;
         _rootPath = path;
 
         Data = CreateObject(Cursor.CreateZero(), selectionSet, includeFlags, deferFlags, deferUsage);
+    }
+
+    private static MemorySegment[] RentDataChunks()
+    {
+        var data = s_arrayPool.Rent(4);
+
+        // Clear pooled slots so unallocated chunks are recognizable by a null buffer.
+        data.AsSpan().Clear();
+        return data;
     }
 
     public ResultElement Data { get; }
@@ -77,8 +91,14 @@ public sealed partial class ResultDocument : IDisposable
     private const int DataMaxChunks = 1 << DataChunkBits;
     private const int DataMaxChunkOrdinal = (int)ChunkSize.Size128K;
 
+    // The geometric ramp covers chunks 0..7 (Size1K..Size128K); chunk 8 and beyond stay at
+    // Size128K. The ramp holds 1024 * (2^0 + ... + 2^7) = 255 KB before the constant tail begins.
+    private const int RampChunkCount = DataMaxChunkOrdinal + 1;
+    private const int LargestChunkBytes = 1 << (10 + DataMaxChunkOrdinal);
+    private const long RampTotalBytes = (long)255 * 1024;
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static int DataChunkBytes(int chunkIndex)
+    private static int GetDataChunkSize(int chunkIndex)
         => 1 << (10 + Math.Min(chunkIndex, DataMaxChunkOrdinal));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -417,9 +437,10 @@ public sealed partial class ResultDocument : IDisposable
         var offsetInStartChunk = location & DataOffsetMask;
 
         // Fast path: data fits in a single chunk
-        if (offsetInStartChunk + size <= DataChunkBytes(startChunkIndex))
+        if (offsetInStartChunk + size <= GetDataChunkSize(startChunkIndex))
         {
-            return _data[startChunkIndex].Span.Slice(offsetInStartChunk, size);
+            var seg = _data[startChunkIndex];
+            return seg.Buffer.AsSpan(seg.Offset + offsetInStartChunk, size);
         }
 
         Span<byte> buffer = new byte[size];
@@ -431,8 +452,8 @@ public sealed partial class ResultDocument : IDisposable
         {
             var chunk = _data[chunkIndex];
 
-            var bytesToCopyFromThisChunk = Math.Min(size - bytesRead, DataChunkBytes(chunkIndex) - offsetInChunk);
-            var chunkSpan = chunk.Span.Slice(offsetInChunk, bytesToCopyFromThisChunk);
+            var bytesToCopyFromThisChunk = Math.Min(size - bytesRead, GetDataChunkSize(chunkIndex) - offsetInChunk);
+            var chunkSpan = chunk.Buffer.AsSpan(chunk.Offset + offsetInChunk, bytesToCopyFromThisChunk);
 
             chunkSpan.CopyTo(buffer[bytesRead..]);
             bytesRead += bytesToCopyFromThisChunk;
@@ -619,39 +640,31 @@ public sealed partial class ResultDocument : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private int ClaimDataSpace(int size)
     {
-        while (true)
-        {
-            var head = Interlocked.Read(ref _dataHead);
-            var (next, location, lastChunk) = ComputeDataClaim(head, size);
-
-            if (Interlocked.CompareExchange(ref _dataHead, next, head) == head)
-            {
-                EnsureDataChunks(lastChunk);
-                return location;
-            }
-        }
+        // The data store is a single linear byte space, so a claim is one atomic add on the head.
+        // The start is the head before the add; the schedule decode below maps it to (chunk, offset).
+        var end = Interlocked.Add(ref _dataHead, size);
+        var (location, lastChunk) = ComputeDataClaim(end - size, size);
+        EnsureDataChunks(lastChunk);
+        return location;
     }
 
     /// <summary>
-    /// Computes the claim for <paramref name="size"/> bytes starting at the given write head:
-    /// the advanced head, the encoded start location, and the chunk holding the last byte.
+    /// Computes the claim for <paramref name="size"/> bytes starting at the linear byte
+    /// position <paramref name="start"/>: the encoded start location and the chunk holding the
+    /// last byte.
     /// </summary>
     /// <exception cref="InvalidOperationException">
     /// The claim would exceed the document's data capacity.
     /// </exception>
-    internal static (long Next, int Location, int LastChunk) ComputeDataClaim(long head, int size)
+    internal static (int Location, int LastChunk) ComputeDataClaim(long start, int size)
     {
-        var chunk = (int)(head >> 32);
-        var offset = (int)head;
-
         // A value always starts exactly at the head so the data store is written without gaps;
         // a value that does not fit the remaining space of the current chunk spans into the
         // following chunks, and the read and write paths walk the boundaries.
-        var (endChunk, endOffset) = AdvanceDataLocation(chunk, offset, size);
+        var (chunk, offset) = DecodeDataLocation(start);
 
-        // The last byte of the value lives in endChunk when endOffset > 0, otherwise the
-        // value ended exactly on the previous chunk boundary.
-        var lastChunk = endOffset > 0 ? endChunk : endChunk - 1;
+        // The last byte of the value (size == 0 claims occupy no byte, so they stay in chunk).
+        var lastChunk = size > 0 ? DecodeDataLocation(start + size - 1).Chunk : chunk;
 
         if (lastChunk >= DataMaxChunks)
         {
@@ -659,36 +672,28 @@ public sealed partial class ResultDocument : IDisposable
                 "The result document has exceeded its maximum data capacity.");
         }
 
-        var next = ((long)endChunk << 32) | (uint)endOffset;
-        return (next, EncodeDataLocation(chunk, offset), lastChunk);
+        return (EncodeDataLocation(chunk, offset), lastChunk);
     }
 
     /// <summary>
-    /// Advances a data location by <paramref name="size"/> bytes across the geometric chunks.
+    /// Maps a linear byte position to a (chunk, offset) location following the geometric schedule.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static (int Chunk, int Offset) AdvanceDataLocation(int chunk, int offset, int size)
+    private static (int Chunk, int Offset) DecodeDataLocation(long pos)
     {
-        var remaining = size;
-
-        while (true)
+        // Ramp (chunks 0..7): each chunk c holds 1024 << c bytes, so the cumulative bytes before
+        // chunk c are 1024 * ((1 << c) - 1). The chunk index is the highest bit set in
+        // (pos >> 10) + 1, which Log2 returns branch-free.
+        if (pos < RampTotalBytes)
         {
-            var availableInChunk = DataChunkBytes(chunk) - offset;
-
-            if (remaining < availableInChunk)
-            {
-                return (chunk, offset + remaining);
-            }
-
-            remaining -= availableInChunk;
-            chunk++;
-            offset = 0;
-
-            if (remaining == 0)
-            {
-                return (chunk, 0);
-            }
+            var chunk = BitOperations.Log2((uint)((pos >> 10) + 1));
+            var offset = (int)(pos - ((1L << (10 + chunk)) - 1024));
+            return (chunk, offset);
         }
+
+        // Tail (chunk 8+): every chunk holds the largest size (128K), so the index is closed-form.
+        var tail = pos - RampTotalBytes;
+        return (RampChunkCount + (int)(tail >> 17), (int)(tail & (LargestChunkBytes - 1)));
     }
 
     private void EnsureDataChunks(int requiredChunkIndex)
@@ -701,11 +706,25 @@ public sealed partial class ResultDocument : IDisposable
 
         lock (_dataChunkLock)
         {
-            var rented = _data.Count;
+            var data = _data;
+            var rented = _rentedDataChunks;
+
+            if (requiredChunkIndex >= data.Length)
+            {
+                // Double the tracking array, copy the rented segments, and clear the new slots so
+                // unallocated chunks are recognizable by a null buffer. The arena owns the chunk
+                // memory itself, so only the pooled tracking array is grown here.
+                var nextLength = data.Length * 2;
+                var newData = s_arrayPool.Rent(nextLength);
+                Array.Copy(data, newData, rented);
+                newData.AsSpan(rented).Clear();
+                s_arrayPool.Return(data);
+                _data = data = newData;
+            }
 
             while (rented <= requiredChunkIndex)
             {
-                _data.Add(_arena.Rent(DataChunkBytes(rented)));
+                data[rented] = _arena.Rent(GetDataChunkSize(rented));
                 rented++;
             }
 
@@ -740,7 +759,7 @@ public sealed partial class ResultDocument : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private (int Chunk, int Offset) WriteByte(int chunk, int offset, byte value)
     {
-        if (offset == DataChunkBytes(chunk))
+        if (offset == GetDataChunkSize(chunk))
         {
             chunk++;
             offset = 0;
@@ -758,12 +777,13 @@ public sealed partial class ResultDocument : IDisposable
             return (chunk, offset);
         }
 
-        var availableInChunk = DataChunkBytes(chunk) - offset;
+        var availableInChunk = GetDataChunkSize(chunk) - offset;
 
         // Fast path: we can write all the data into a single chunk
         if (data.Length <= availableInChunk)
         {
-            data.CopyTo(_data[chunk].Span.Slice(offset, data.Length));
+            var seg = _data[chunk];
+            data.CopyTo(seg.Buffer.AsSpan(seg.Offset + offset, data.Length));
             return (chunk, offset + data.Length);
         }
 
@@ -772,15 +792,16 @@ public sealed partial class ResultDocument : IDisposable
 
         while (remaining.Length > 0)
         {
-            availableInChunk = DataChunkBytes(chunk) - offset;
+            availableInChunk = GetDataChunkSize(chunk) - offset;
             var toWrite = Math.Min(remaining.Length, availableInChunk);
 
-            remaining[..toWrite].CopyTo(_data[chunk].Span.Slice(offset, toWrite));
+            var seg = _data[chunk];
+            remaining[..toWrite].CopyTo(seg.Buffer.AsSpan(seg.Offset + offset, toWrite));
 
             remaining = remaining[toWrite..];
             offset += toWrite;
 
-            if (offset == DataChunkBytes(chunk))
+            if (offset == GetDataChunkSize(chunk))
             {
                 chunk++;
                 offset = 0;
@@ -911,7 +932,9 @@ public sealed partial class ResultDocument : IDisposable
         // data segments are simply dropped here. The metadb only releases its pooled tracking
         // arrays, not the chunk memory.
         _metaDb.Dispose();
-        _data.Clear();
+        _data.AsSpan().Clear();
+        s_arrayPool.Return(_data);
+        _data = [];
     }
 
     ~ResultDocument() => ReleaseTrackingArrays();

@@ -7,7 +7,7 @@ namespace HotChocolate.Buffers;
 /// <remarks>
 /// <para>
 /// An arena is bound to a single execution scope, for example a request or a single subscription
-/// event. <see cref="Rent"/> is thread-safe while the arena is open, and the memory it hands out
+/// event. <see cref="Rent(int)"/> is thread-safe while the arena is open, and the memory it hands out
 /// stays valid until the arena is disposed.
 /// </para>
 /// <para>
@@ -33,6 +33,11 @@ internal sealed class MemoryArena : IMemoryArena, IDisposable
     private const int Sealed = 1;
     private const int Disposed = 2;
 
+    // Bounded reuse pool for arena instances. Only the cheap machinery (the page table array and
+    // the lock) is reused; the pages themselves go back to JsonMemory on dispose. The cap keeps the
+    // retained instances bounded under burst load.
+    private static readonly ArenaPool s_pool = new(Environment.ProcessorCount * 2);
+
 #if NET9_0_OR_GREATER
     private readonly Lock _lock = new();
 #else
@@ -42,6 +47,33 @@ internal sealed class MemoryArena : IMemoryArena, IDisposable
     private long _state = InitialState;
     private int _pageCount;
     private int _phase;
+
+    /// <summary>
+    /// Rents an open arena, reusing a pooled instance when one is available.
+    /// </summary>
+    internal static MemoryArena Rent()
+    {
+        var arena = s_pool.Rent();
+
+        if (arena is null)
+        {
+            return new MemoryArena();
+        }
+
+        // The instance was handed back as a pooled, fully-disposed shell with its finalizer
+        // suppressed. Re-arm it and reinstate the finalizer so an abandoned rental is still backed
+        // by the leak backstop.
+        GC.ReRegisterForFinalize(arena);
+        arena.Reinitialize();
+        return arena;
+    }
+
+    private void Reinitialize()
+    {
+        _state = InitialState;
+        _pageCount = 0;
+        _phase = Open;
+    }
 
     /// <summary>
     /// Gets the number of pages this arena currently holds.
@@ -171,7 +203,7 @@ internal sealed class MemoryArena : IMemoryArena, IDisposable
     }
 
     /// <summary>
-    /// Seals the arena so that no further <see cref="Rent"/> calls are accepted. The memory already
+    /// Seals the arena so that no further <see cref="Rent(int)"/> calls are accepted. The memory already
     /// handed out stays valid. Sealing marks the transition from the writer phase to a stable reader
     /// phase and is what makes a later <see cref="Dispose()"/> safe to return pages to the pool.
     /// Sealing is idempotent.
@@ -212,11 +244,34 @@ internal sealed class MemoryArena : IMemoryArena, IDisposable
         {
             pages = _pages;
             count = _pageCount;
-            // Publish the cleared page table with a volatile write so the lock-free reader in
-            // Rent observes it and fails as disposed instead of reading freed state.
-            Volatile.Write(ref _pages, []);
+
+            // On the retain path the page table array is reused, so it is kept in place; the abandon
+            // path publishes an empty table with a volatile write so the lock-free reader in Rent
+            // observes it and fails as disposed instead of reading freed state.
+            if (!retainMemory)
+            {
+                Volatile.Write(ref _pages, []);
+            }
+
             _pageCount = 0;
             _state = InitialState;
+        }
+
+        if (retainMemory)
+        {
+            if (count > 0)
+            {
+                JsonMemory.Return(JsonMemoryKind.Arena, pages, count);
+                // Clear the rented slots only after the pages have been handed back, so the reused
+                // page table no longer pins them for the next rental.
+                pages.AsSpan(0, count).Clear();
+            }
+
+            // The instance is a clean shell now; hand it back for reuse. The public Dispose already
+            // suppressed its finalizer, so a pooled instance carries no pending backstop; Rent
+            // re-registers it on the next rental.
+            s_pool.Return(this);
+            return;
         }
 
         if (count == 0)
@@ -224,15 +279,63 @@ internal sealed class MemoryArena : IMemoryArena, IDisposable
             return;
         }
 
-        if (retainMemory)
-        {
-            JsonMemory.Return(JsonMemoryKind.Arena, pages, count);
-        }
-        else
-        {
-            JsonMemory.Abandon(JsonMemoryKind.Arena, count);
-        }
+        JsonMemory.Abandon(JsonMemoryKind.Arena, count);
     }
 
     ~MemoryArena() => Dispose(disposing: false);
+
+    // A bounded, lock-free stack of reusable arena shells. Slots beyond the cap are dropped on
+    // return so the retained set stays bounded, which keeps steady-state allocations at zero
+    // without unbounded retention under burst load.
+    private sealed class ArenaPool(int capacity)
+    {
+        private readonly MemoryArena?[] _slots = new MemoryArena[capacity];
+        private int _count;
+
+        public MemoryArena? Rent()
+        {
+            while (true)
+            {
+                var count = Volatile.Read(ref _count);
+
+                if (count == 0)
+                {
+                    return null;
+                }
+
+                if (Interlocked.CompareExchange(ref _count, count - 1, count) == count)
+                {
+                    var arena = Interlocked.Exchange(ref _slots[count - 1], null);
+
+                    if (arena is not null)
+                    {
+                        return arena;
+                    }
+
+                    // The slot was not yet published by a concurrent return; fall back to a fresh
+                    // instance rather than spin.
+                    return null;
+                }
+            }
+        }
+
+        public bool Return(MemoryArena arena)
+        {
+            while (true)
+            {
+                var count = Volatile.Read(ref _count);
+
+                if (count >= _slots.Length)
+                {
+                    return false;
+                }
+
+                if (Interlocked.CompareExchange(ref _count, count + 1, count) == count)
+                {
+                    Volatile.Write(ref _slots[count], arena);
+                    return true;
+                }
+            }
+        }
+    }
 }

@@ -120,7 +120,7 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
                 ref buffer);
             ConfigureCallbacks(httpRequest, context, requests[0].Node);
 
-            var results = ExecuteBatchStreamAsync(requests, httpRequest, cancellationToken);
+            var results = ExecuteBatchStreamAsync(context.Memory, requests, httpRequest, cancellationToken);
 
             return _configuration.OnSourceSchemaResult is null
                 ? results
@@ -139,6 +139,7 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
     }
 
     private async IAsyncEnumerable<BatchStreamResult> ExecuteBatchStreamAsync(
+        IMemoryArena arena,
         ImmutableArray<SourceSchemaClientRequest> requests,
         GraphQLHttpRequest httpRequest,
         [EnumeratorCancellation] CancellationToken cancellationToken)
@@ -150,7 +151,7 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
 
         try
         {
-            await foreach (var result in httpResponse.ReadAsResultStreamAsync().WithCancellation(cancellationToken))
+            await foreach (var result in httpResponse.ReadAsResultStreamAsync(arena).WithCancellation(cancellationToken))
             {
                 // Check if the first result has a requestIndex.
                 // If it does we can assume all others will have one as well and we know we need to check for it.
@@ -801,7 +802,7 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
         {
             if (operation is OperationType.Subscription)
             {
-                await foreach (var result in response.ReadAsResultStreamAsync().WithCancellation(cancellationToken))
+                await foreach (var result in response.ReadAsResultStreamAsync(context.Memory).WithCancellation(cancellationToken))
                 {
                     yield return new SourceSchemaResult(CompactPath.Root, result);
                 }
@@ -812,14 +813,14 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
                 {
                     case 0:
                     {
-                        var result = await response.ReadAsResultAsync(cancellationToken);
+                        var result = await response.ReadAsResultAsync(context.Memory, cancellationToken);
                         yield return new SourceSchemaResult(CompactPath.Root, result);
                         break;
                     }
 
                     case 1:
                     {
-                        var result = await response.ReadAsResultAsync(cancellationToken);
+                        var result = await response.ReadAsResultAsync(context.Memory, cancellationToken);
                         var variable = variables[0];
                         yield return new SourceSchemaResult(
                             variable.Path,
@@ -834,7 +835,7 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
 
                         if (supportsVariableBatching)
                         {
-                            await foreach (var result in response.ReadAsResultStreamAsync()
+                            await foreach (var result in response.ReadAsResultStreamAsync(context.Memory)
                                 .WithCancellation(cancellationToken))
                             {
                                 if (!result.Root.TryGetProperty(VariableIndex, out var variableIndex)
@@ -863,7 +864,7 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
                         else
                         {
                             var requestIndex = 0;
-                            await foreach (var result in response.ReadAsResultStreamAsync()
+                            await foreach (var result in response.ReadAsResultStreamAsync(context.Memory)
                                 .WithCancellation(cancellationToken))
                             {
                                 if ((uint)requestIndex >= (uint)variables.Length)

@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Nodes;
@@ -32,6 +33,22 @@ public sealed partial class OperationPlanContext
 
         _disposed = 0;
         RequestContext = requestContext;
+
+        // The request arena backs the documents produced during this execution. The initial plan
+        // uses the arena attached to the request; an incremental plan runs after the request arena
+        // has been transferred to the initial stream result, so it creates and owns a fresh arena
+        // that travels with its own result.
+        if (requestContext.Memory is { } requestMemory)
+        {
+            _memory = requestMemory;
+            _ownsMemory = false;
+        }
+        else
+        {
+            _memory = MemoryArena.Rent();
+            _ownsMemory = true;
+        }
+
         Variables = variables;
         OperationPlan = operationPlan;
         IncludeFlags = operationPlan.Operation.CreateIncludeFlags(variables);
@@ -40,6 +57,7 @@ public sealed partial class OperationPlanContext
         _clientScope = requestContext.CreateClientScope();
 
         _resultStore.Initialize(
+            Memory,
             requestContext.Schema,
             _errorHandler,
             operationPlan.Operation,
@@ -47,6 +65,13 @@ public sealed partial class OperationPlanContext
             IncludeFlags,
             DeferFlags,
             requestContext.Schema.GetOptions().PathSegmentLocalPoolCapacity);
+
+        // A self-created arena is disposed together with the documents it backs: register it as a
+        // memory owner so it travels with the result on completion.
+        if (_ownsMemory)
+        {
+            _resultStore.MemoryOwners.Add(_memory);
+        }
 
         _executionState.Initialize(_collectTelemetry, cancellationTokenSource);
 
@@ -75,6 +100,8 @@ public sealed partial class OperationPlanContext
         _executionState.Clean();
 
         RequestContext = default!;
+        _memory = null;
+        _ownsMemory = false;
         Variables = default!;
         OperationPlan = default!;
         DeferFlags = 0;

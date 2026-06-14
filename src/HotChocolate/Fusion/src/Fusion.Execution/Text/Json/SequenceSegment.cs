@@ -9,6 +9,11 @@ internal class SequenceSegment : ReadOnlySequenceSegment<byte>
         Memory = memory.AsMemory(0, length);
     }
 
+    public SequenceSegment(ReadOnlyMemory<byte> memory)
+    {
+        Memory = memory;
+    }
+
     public SequenceSegment SetNext(SequenceSegment next)
     {
         Next = next;

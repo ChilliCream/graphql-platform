@@ -9,6 +9,7 @@ namespace HotChocolate.Fusion.Text.Json;
 internal sealed partial class SourceResultDocumentBuilder : IDisposable
 {
     private readonly Operation _operation;
+    private readonly IMemoryArena _arena;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     internal readonly PooledArrayWriter _data = new();
@@ -18,8 +19,13 @@ internal sealed partial class SourceResultDocumentBuilder : IDisposable
 
     private bool _disposed;
 
-    public SourceResultDocumentBuilder(Operation operation, ulong includeFlags, SelectionSet? selectionSet = null)
+    public SourceResultDocumentBuilder(
+        IMemoryArena arena,
+        Operation operation,
+        ulong includeFlags,
+        SelectionSet? selectionSet = null)
     {
+        _arena = arena ?? throw new ArgumentNullException(nameof(arena));
         _operation = operation ?? throw new ArgumentNullException(nameof(operation));
         _metaDb = new MetaDb();
 
@@ -106,90 +112,84 @@ internal sealed partial class SourceResultDocumentBuilder : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        // Rent a jagged array to hold up to 64 chunks (64 * 128KB = 8MB max)
-        var chunks = ArrayPool<byte[]>.Shared.Rent(64);
-
-        // Initialize all slots to empty arrays
-        for (var i = 0; i < chunks.Length; i++)
-        {
-            chunks[i] = [];
-        }
-
-        // Rent the first chunk
-        chunks[0] = JsonMemory.Rent(JsonMemoryKind.Json);
+        // Write the JSON directly into the document's own gap-free arena segments, then parse those
+        // bytes in place without any intermediate staging buffer or extra copy. The arena owns the
+        // chunk memory; only the segment table is pooled and handed to the parsed document.
+        var segments = ArrayPool<MemorySegment>.Shared.Rent(64);
+        segments[0] = _arena.Rent(SourceResultDocument.GetDataChunkSize(0));
 
         var currentChunkIndex = 0;
         var currentChunkOffset = 0;
 
         try
         {
-            WriteElement(0, chunks, ref currentChunkIndex, ref currentChunkOffset);
+            WriteElement(0, ref segments, ref currentChunkIndex, ref currentChunkOffset);
 
             var usedChunks = currentChunkIndex + 1;
-            var lastChunkLength = currentChunkOffset;
+            var lastLength = currentChunkOffset;
 
-            return SourceResultDocument.Parse(chunks, lastChunkLength, usedChunks, pooledMemory: true);
+            return SourceResultDocument.ParseFilled(_arena, segments, usedChunks, lastLength);
         }
         catch
         {
-            JsonMemory.Return(JsonMemoryKind.Json, chunks, currentChunkIndex + 1);
-            ArrayPool<byte[]>.Shared.Return(chunks);
+            segments.AsSpan(0, currentChunkIndex + 1).Clear();
+            ArrayPool<MemorySegment>.Shared.Return(segments);
             throw;
         }
     }
 
     private void WriteElement(
         int index,
-        byte[][] chunks,
+        ref MemorySegment[] segments,
         ref int currentChunkIndex,
         ref int currentChunkOffset)
     {
         switch (_metaDb.GetElementTokenType(index))
         {
             case ElementTokenType.StartObject:
-                WriteObject(index, chunks, ref currentChunkIndex, ref currentChunkOffset);
+                WriteObject(index, ref segments, ref currentChunkIndex, ref currentChunkOffset);
                 break;
 
             case ElementTokenType.StartArray:
-                WriteArray(index, chunks, ref currentChunkIndex, ref currentChunkOffset);
+                WriteArray(index, ref segments, ref currentChunkIndex, ref currentChunkOffset);
                 break;
 
             case ElementTokenType.String:
-                WriteString(index, chunks, ref currentChunkIndex, ref currentChunkOffset);
+                WriteString(index, ref segments, ref currentChunkIndex, ref currentChunkOffset);
                 break;
 
             case ElementTokenType.Number:
-                WriteNumber(index, chunks, ref currentChunkIndex, ref currentChunkOffset);
+                WriteNumber(index, ref segments, ref currentChunkIndex, ref currentChunkOffset);
                 break;
 
             case ElementTokenType.True:
-                WriteBytes("true"u8, chunks, ref currentChunkIndex, ref currentChunkOffset);
+                WriteBytes("true"u8, ref segments, ref currentChunkIndex, ref currentChunkOffset);
                 break;
 
             case ElementTokenType.False:
-                WriteBytes("false"u8, chunks, ref currentChunkIndex, ref currentChunkOffset);
+                WriteBytes("false"u8, ref segments, ref currentChunkIndex, ref currentChunkOffset);
                 break;
 
             case ElementTokenType.None:
             case ElementTokenType.Null:
-                WriteBytes("null"u8, chunks, ref currentChunkIndex, ref currentChunkOffset);
+                WriteBytes("null"u8, ref segments, ref currentChunkIndex, ref currentChunkOffset);
                 break;
 
             case ElementTokenType.Reference:
                 var referenceIndex = _metaDb.GetLocation(index);
-                WriteElement(referenceIndex, chunks, ref currentChunkIndex, ref currentChunkOffset);
+                WriteElement(referenceIndex, ref segments, ref currentChunkIndex, ref currentChunkOffset);
                 break;
         }
     }
 
     private void WriteObject(
         int startIndex,
-        byte[][] chunks,
+        ref MemorySegment[] segments,
         ref int currentChunkIndex,
         ref int currentChunkOffset)
     {
-        WriteByte((byte)'{', chunks, ref currentChunkIndex, ref currentChunkOffset);
-        WriteByte((byte)'\n', chunks, ref currentChunkIndex, ref currentChunkOffset);
+        WriteByte((byte)'{', ref segments, ref currentChunkIndex, ref currentChunkOffset);
+        WriteByte((byte)'\n', ref segments, ref currentChunkIndex, ref currentChunkOffset);
 
         startIndex = GetStartIndex(startIndex);
         var current = startIndex;
@@ -199,26 +199,26 @@ internal sealed partial class SourceResultDocumentBuilder : IDisposable
         {
             if (current > startIndex)
             {
-                WriteByte((byte)',', chunks, ref currentChunkIndex, ref currentChunkOffset);
+                WriteByte((byte)',', ref segments, ref currentChunkIndex, ref currentChunkOffset);
             }
 
-            WritePropertyName(++current, chunks, ref currentChunkIndex, ref currentChunkOffset);
-            WriteByte((byte)':', chunks, ref currentChunkIndex, ref currentChunkOffset);
-            WriteElement(++current, chunks, ref currentChunkIndex, ref currentChunkOffset);
-            WriteByte((byte)'\n', chunks, ref currentChunkIndex, ref currentChunkOffset);
+            WritePropertyName(++current, ref segments, ref currentChunkIndex, ref currentChunkOffset);
+            WriteByte((byte)':', ref segments, ref currentChunkIndex, ref currentChunkOffset);
+            WriteElement(++current, ref segments, ref currentChunkIndex, ref currentChunkOffset);
+            WriteByte((byte)'\n', ref segments, ref currentChunkIndex, ref currentChunkOffset);
         }
 
-        WriteByte((byte)'}', chunks, ref currentChunkIndex, ref currentChunkOffset);
-        WriteByte((byte)'\n', chunks, ref currentChunkIndex, ref currentChunkOffset);
+        WriteByte((byte)'}', ref segments, ref currentChunkIndex, ref currentChunkOffset);
+        WriteByte((byte)'\n', ref segments, ref currentChunkIndex, ref currentChunkOffset);
     }
 
     private void WriteArray(
         int startIndex,
-        byte[][] chunks,
+        ref MemorySegment[] segments,
         ref int currentChunkIndex,
         ref int currentChunkOffset)
     {
-        WriteByte((byte)'[', chunks, ref currentChunkIndex, ref currentChunkOffset);
+        WriteByte((byte)'[', ref segments, ref currentChunkIndex, ref currentChunkOffset);
 
         var row = _metaDb.Get(startIndex);
         var elementCount = row.SizeOrLength;
@@ -228,18 +228,18 @@ internal sealed partial class SourceResultDocumentBuilder : IDisposable
         {
             if (i > 0)
             {
-                WriteByte((byte)',', chunks, ref currentChunkIndex, ref currentChunkOffset);
+                WriteByte((byte)',', ref segments, ref currentChunkIndex, ref currentChunkOffset);
             }
 
-            WriteElement(elementIndex + i, chunks, ref currentChunkIndex, ref currentChunkOffset);
+            WriteElement(elementIndex + i, ref segments, ref currentChunkIndex, ref currentChunkOffset);
         }
 
-        WriteByte((byte)']', chunks, ref currentChunkIndex, ref currentChunkOffset);
+        WriteByte((byte)']', ref segments, ref currentChunkIndex, ref currentChunkOffset);
     }
 
     private void WritePropertyName(
         int index,
-        byte[][] chunks,
+        ref MemorySegment[] segments,
         ref int currentChunkIndex,
         ref int currentChunkOffset)
     {
@@ -250,53 +250,55 @@ internal sealed partial class SourceResultDocumentBuilder : IDisposable
         var selection = _operation.GetSelectionById(selectionId);
         var nameBytes = selection.Utf8ResponseName;
 
-        WriteByte((byte)'"', chunks, ref currentChunkIndex, ref currentChunkOffset);
-        WriteBytes(nameBytes, chunks, ref currentChunkIndex, ref currentChunkOffset);
-        WriteByte((byte)'"', chunks, ref currentChunkIndex, ref currentChunkOffset);
+        WriteByte((byte)'"', ref segments, ref currentChunkIndex, ref currentChunkOffset);
+        WriteBytes(nameBytes, ref segments, ref currentChunkIndex, ref currentChunkOffset);
+        WriteByte((byte)'"', ref segments, ref currentChunkIndex, ref currentChunkOffset);
     }
 
     private void WriteString(
         int index,
-        byte[][] chunks,
+        ref MemorySegment[] segments,
         ref int currentChunkIndex,
         ref int currentChunkOffset)
     {
         var row = _metaDb.Get(index);
-        var location = row.Location;
-        var size = row.SizeOrLength;
-
-        var data = _data.WrittenSpan.Slice(location, size);
-        WriteBytes(data, chunks, ref currentChunkIndex, ref currentChunkOffset);
+        var data = _data.WrittenSpan.Slice(row.Location, row.SizeOrLength);
+        WriteBytes(data, ref segments, ref currentChunkIndex, ref currentChunkOffset);
     }
 
     private void WriteNumber(
         int index,
-        byte[][] chunks,
+        ref MemorySegment[] segments,
         ref int currentChunkIndex,
         ref int currentChunkOffset)
     {
         var row = _metaDb.Get(index);
-        var location = row.Location;
-        var size = row.SizeOrLength;
-
-        var data = _data.WrittenSpan.Slice(location, size);
-        WriteBytes(data, chunks, ref currentChunkIndex, ref currentChunkOffset);
+        var data = _data.WrittenSpan.Slice(row.Location, row.SizeOrLength);
+        WriteBytes(data, ref segments, ref currentChunkIndex, ref currentChunkOffset);
     }
 
-    private static void WriteByte(
+    private void WriteByte(
         byte value,
-        byte[][] chunks,
+        ref MemorySegment[] segments,
         ref int currentChunkIndex,
         ref int currentChunkOffset)
     {
-        EnsureChunkCapacity(chunks, ref currentChunkIndex, ref currentChunkOffset);
-        chunks[currentChunkIndex][currentChunkOffset] = value;
+        var seg = segments[currentChunkIndex];
+
+        if (currentChunkOffset >= seg.Length)
+        {
+            seg = MoveToNextChunk(ref segments, ref currentChunkIndex, ref currentChunkOffset);
+        }
+
+        var buf = seg.Buffer;
+        var baseOff = seg.Offset;
+        buf[baseOff + currentChunkOffset] = value;
         currentChunkOffset++;
     }
 
-    private static void WriteBytes(
+    private void WriteBytes(
         ReadOnlySpan<byte> data,
-        byte[][] chunks,
+        ref MemorySegment[] segments,
         ref int currentChunkIndex,
         ref int currentChunkOffset)
     {
@@ -305,12 +307,18 @@ internal sealed partial class SourceResultDocumentBuilder : IDisposable
 
         while (remaining > 0)
         {
-            EnsureChunkCapacity(chunks, ref currentChunkIndex, ref currentChunkOffset);
+            var seg = segments[currentChunkIndex];
 
-            var available = JsonMemory.BufferSize - currentChunkOffset;
+            if (currentChunkOffset >= seg.Length)
+            {
+                seg = MoveToNextChunk(ref segments, ref currentChunkIndex, ref currentChunkOffset);
+            }
+
+            var available = seg.Length - currentChunkOffset;
             var bytesToWrite = Math.Min(remaining, available);
 
-            data.Slice(dataOffset, bytesToWrite).CopyTo(chunks[currentChunkIndex].AsSpan(currentChunkOffset));
+            data.Slice(dataOffset, bytesToWrite)
+                .CopyTo(seg.Buffer.AsSpan(seg.Offset + currentChunkOffset, bytesToWrite));
 
             currentChunkOffset += bytesToWrite;
             dataOffset += bytesToWrite;
@@ -318,24 +326,33 @@ internal sealed partial class SourceResultDocumentBuilder : IDisposable
         }
     }
 
-    private static void EnsureChunkCapacity(
-        byte[][] chunks,
+    private MemorySegment MoveToNextChunk(
+        ref MemorySegment[] segments,
         ref int currentChunkIndex,
         ref int currentChunkOffset)
     {
-        if (currentChunkOffset >= JsonMemory.BufferSize)
+        var nextChunkIndex = currentChunkIndex + 1;
+
+        if (nextChunkIndex >= SourceResultDocument.DataMaxChunks)
         {
-            currentChunkIndex++;
-            currentChunkOffset = 0;
+            throw new InvalidOperationException(
+                "The source result document has exceeded its maximum data capacity.");
         }
 
-        // Rent a new chunk if needed (and it's not already rented)
-        if (chunks[currentChunkIndex].Length == 0)
+        if (nextChunkIndex >= segments.Length)
         {
-            Debug.Fail("foo");
-
-            chunks[currentChunkIndex] = JsonMemory.Rent(JsonMemoryKind.Json);
+            var grown = ArrayPool<MemorySegment>.Shared.Rent(segments.Length * 2);
+            Array.Copy(segments, 0, grown, 0, nextChunkIndex);
+            segments.AsSpan(0, nextChunkIndex).Clear();
+            ArrayPool<MemorySegment>.Shared.Return(segments);
+            segments = grown;
         }
+
+        var segment = _arena.Rent(SourceResultDocument.GetDataChunkSize(nextChunkIndex));
+        segments[nextChunkIndex] = segment;
+        currentChunkIndex = nextChunkIndex;
+        currentChunkOffset = 0;
+        return segment;
     }
 
     public void Dispose()
