@@ -18,8 +18,6 @@ namespace HotChocolate.Fusion.Execution.Clients;
 /// </summary>
 public sealed class ApolloFederationSourceSchemaClient : ISourceSchemaClient
 {
-    private static readonly Uri s_unknownUri = new("http://unknown");
-
     private readonly GraphQLHttpClient _httpClient;
     private readonly FederationQueryRewriter _queryRewriter;
     private bool _disposed;
@@ -46,7 +44,7 @@ public sealed class ApolloFederationSourceSchemaClient : ISourceSchemaClient
             | SourceSchemaClientCapabilities.RequestBatching;
 
     /// <inheritdoc />
-    public async ValueTask<SourceSchemaClientResponse> ExecuteAsync(
+    public IAsyncEnumerable<SourceSchemaResult> ExecuteAsync(
         OperationPlanContext context,
         SourceSchemaClientRequest request,
         CancellationToken cancellationToken)
@@ -63,18 +61,13 @@ public sealed class ApolloFederationSourceSchemaClient : ISourceSchemaClient
             request.OperationSourceText,
             request.OperationHash);
 
-        if (!rewritten.IsEntityLookup)
-        {
-            return await ExecutePassthroughAsync(context.Memory, request, cancellationToken)
-                .ConfigureAwait(false);
-        }
-
-        return await ExecuteEntityLookupAsync(context.Memory, request, rewritten, cancellationToken)
-            .ConfigureAwait(false);
+        return rewritten.IsEntityLookup
+            ? ExecuteEntityLookupAsync(context, request, rewritten, cancellationToken)
+            : ExecutePassthroughAsync(context, request, cancellationToken);
     }
 
     /// <inheritdoc />
-    public async IAsyncEnumerable<BatchStreamResult> ExecuteBatchStreamAsync(
+    public async IAsyncEnumerable<SourceSchemaBatchResult> ExecuteBatchAsync(
         OperationPlanContext context,
         ImmutableArray<SourceSchemaClientRequest> requests,
         [EnumeratorCancellation] CancellationToken cancellationToken)
@@ -84,13 +77,10 @@ public sealed class ApolloFederationSourceSchemaClient : ISourceSchemaClient
         // Single request: use the simple path (no aliasing needed).
         if (requests.Length == 1)
         {
-            var response = await ExecuteAsync(context, requests[0], cancellationToken)
-                .ConfigureAwait(false);
-
-            await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken)
+            await foreach (var result in ExecuteAsync(context, requests[0], cancellationToken)
                 .ConfigureAwait(false))
             {
-                yield return new BatchStreamResult(0, result);
+                yield return new SourceSchemaBatchResult(0, result);
             }
 
             yield break;
@@ -120,13 +110,10 @@ public sealed class ApolloFederationSourceSchemaClient : ISourceSchemaClient
         {
             for (var i = 0; i < requests.Length; i++)
             {
-                var response = await ExecuteAsync(context, requests[i], cancellationToken)
-                    .ConfigureAwait(false);
-
-                await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken)
+                await foreach (var result in ExecuteAsync(context, requests[i], cancellationToken)
                     .ConfigureAwait(false))
                 {
-                    yield return new BatchStreamResult(i, result);
+                    yield return new SourceSchemaBatchResult(i, result);
                 }
             }
 
@@ -135,14 +122,14 @@ public sealed class ApolloFederationSourceSchemaClient : ISourceSchemaClient
 
         // All requests are entity lookups: build one combined aliased query.
         await foreach (var batchResult in ExecuteBatchedEntityLookupsAsync(
-            context.Memory, requests, rewrittenOps, cancellationToken).ConfigureAwait(false))
+            context, requests, rewrittenOps, cancellationToken).ConfigureAwait(false))
         {
             yield return batchResult;
         }
     }
 
     /// <inheritdoc />
-    public IAsyncEnumerable<EventResult> SubscribeAsync(
+    public IAsyncEnumerable<SourceSchemaEventResult> SubscribeAsync(
         OperationPlanContext context,
         SourceSchemaClientRequest request,
         CancellationToken cancellationToken)
@@ -153,12 +140,14 @@ public sealed class ApolloFederationSourceSchemaClient : ISourceSchemaClient
             FusionExecutionResources.SourceSchemaClient_SubscriptionsNotSupported);
     }
 
-    private async IAsyncEnumerable<BatchStreamResult> ExecuteBatchedEntityLookupsAsync(
-        IMemoryArena arena,
+    private async IAsyncEnumerable<SourceSchemaBatchResult> ExecuteBatchedEntityLookupsAsync(
+        OperationPlanContext context,
         ImmutableArray<SourceSchemaClientRequest> requests,
         RewrittenOperation[] rewrittenOps,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
+        var arena = context.Memory;
+
         // 1. Build the combined query AST and variables JSON.
         var (combinedQueryText, combinedVariablesJson) =
             BuildCombinedEntityQuery(requests, rewrittenOps);
@@ -182,8 +171,8 @@ public sealed class ApolloFederationSourceSchemaClient : ISourceSchemaClient
             extensions: JsonSegment.Empty);
 
         var httpRequest = new GraphQLHttpRequest(operationRequest);
-        var httpResponse = await _httpClient.SendAsync(httpRequest, cancellationToken)
-            .ConfigureAwait(false);
+        var httpResponse = await _httpClient.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
+        context.TrackTransport(requests[0].Node, httpRequest.Uri, httpResponse.RawContentType);
 
         // 4. Parse the response and yield per-request results.
         SourceResultDocument? sourceDocument = null;
@@ -200,7 +189,7 @@ public sealed class ApolloFederationSourceSchemaClient : ISourceSchemaClient
                 var path = requests[0].Variables.IsDefaultOrEmpty
                     ? CompactPath.Root
                     : requests[0].Variables[0].Path;
-                yield return new BatchStreamResult(0, new SourceSchemaResult(path, sourceDocument));
+                yield return new SourceSchemaBatchResult(0, new SourceSchemaResult(path, sourceDocument));
                 sourceDocument = null; // ownership transferred
                 yield break;
             }
@@ -223,7 +212,7 @@ public sealed class ApolloFederationSourceSchemaClient : ISourceSchemaClient
                     var path = variables.IsDefaultOrEmpty
                         ? CompactPath.Root
                         : variables[0].Path;
-                    yield return new BatchStreamResult(i, new SourceSchemaResult(path, emptyDoc));
+                    yield return new SourceSchemaBatchResult(i, new SourceSchemaResult(path, emptyDoc));
                     continue;
                 }
 
@@ -251,8 +240,8 @@ public sealed class ApolloFederationSourceSchemaClient : ISourceSchemaClient
                     }
 
                     yield return additionalPaths.IsDefaultOrEmpty
-                        ? new BatchStreamResult(i, new SourceSchemaResult(resultPath, entityDocument))
-                        : new BatchStreamResult(i, new SourceSchemaResult(resultPath, entityDocument, additionalPaths: additionalPaths));
+                        ? new SourceSchemaBatchResult(i, new SourceSchemaResult(resultPath, entityDocument))
+                        : new SourceSchemaBatchResult(i, new SourceSchemaResult(resultPath, entityDocument, additionalPaths: additionalPaths));
                 }
             }
         }
@@ -546,41 +535,76 @@ public sealed class ApolloFederationSourceSchemaClient : ISourceSchemaClient
         }
     }
 
-    private async ValueTask<SourceSchemaClientResponse> ExecutePassthroughAsync(
-        IMemoryArena arena,
+    private async IAsyncEnumerable<SourceSchemaResult> ExecutePassthroughAsync(
+        OperationPlanContext context,
         SourceSchemaClientRequest request,
-        CancellationToken cancellationToken)
+        [EnumeratorCancellation] CancellationToken cancellationToken)
     {
+        var arena = context.Memory;
+        var variables = request.Variables;
+
         var operationRequest = new OperationRequest(
             request.OperationSourceText,
             id: null,
             operationName: null,
             onError: null,
-            variables: request.Variables.IsDefaultOrEmpty
+            variables: variables.IsDefaultOrEmpty
                 ? VariableValues.Empty
-                : request.Variables[0],
+                : variables[0],
             extensions: JsonSegment.Empty);
 
         var httpRequest = new GraphQLHttpRequest(operationRequest);
         var httpResponse = await _httpClient.SendAsync(httpRequest, cancellationToken)
             .ConfigureAwait(false);
+        context.TrackTransport(request.Node, httpRequest.Uri, httpResponse.RawContentType);
 
-        return new PassthroughResponse(
-            arena,
-            httpRequest.Uri ?? s_unknownUri,
-            request.Variables,
-            httpResponse);
+        try
+        {
+            var result = await httpResponse.ReadAsResultAsync(arena, cancellationToken).ConfigureAwait(false);
+
+            if (variables.IsDefaultOrEmpty || variables.Length <= 1)
+            {
+                var path = variables.IsDefaultOrEmpty
+                    ? CompactPath.Root
+                    : variables[0].Path;
+                var additionalPaths = variables.IsDefaultOrEmpty
+                    ? default
+                    : variables[0].AdditionalPaths;
+
+                yield return additionalPaths.IsDefaultOrEmpty
+                    ? new SourceSchemaResult(path, result)
+                    : new SourceSchemaResult(path, result, additionalPaths: additionalPaths);
+            }
+            else
+            {
+                for (var i = 0; i < variables.Length; i++)
+                {
+                    var variable = variables[i];
+                    yield return variable.AdditionalPaths.IsDefaultOrEmpty
+                        ? new SourceSchemaResult(variable.Path, result)
+                        : new SourceSchemaResult(variable.Path, result, additionalPaths: variable.AdditionalPaths);
+                }
+            }
+        }
+        finally
+        {
+            httpResponse.Dispose();
+        }
     }
 
-    private async ValueTask<SourceSchemaClientResponse> ExecuteEntityLookupAsync(
-        IMemoryArena arena,
+    private async IAsyncEnumerable<SourceSchemaResult> ExecuteEntityLookupAsync(
+        OperationPlanContext context,
         SourceSchemaClientRequest request,
         RewrittenOperation rewritten,
-        CancellationToken cancellationToken)
+        [EnumeratorCancellation] CancellationToken cancellationToken)
     {
+        var arena = context.Memory;
+        var variables = request.Variables;
+        var lookupFieldName = rewritten.LookupFieldName!;
+
         // Build the representations JSON and send as a single _entities query.
         var representationsJson = BuildRepresentationsJson(
-            request.Variables,
+            variables,
             rewritten.EntityTypeName!,
             rewritten.VariableToKeyFieldMap);
 
@@ -607,14 +631,76 @@ public sealed class ApolloFederationSourceSchemaClient : ISourceSchemaClient
         var httpRequest = new GraphQLHttpRequest(operationRequest);
         var httpResponse = await _httpClient.SendAsync(httpRequest, cancellationToken)
             .ConfigureAwait(false);
+        context.TrackTransport(request.Node, httpRequest.Uri, httpResponse.RawContentType);
 
-        return new EntityLookupResponse(
-            arena,
-            httpRequest.Uri ?? s_unknownUri,
-            request.Variables,
-            rewritten.LookupFieldName!,
-            httpResponse,
-            buffer);
+        try
+        {
+            var sourceDocument = await httpResponse.ReadAsResultAsync(arena, cancellationToken)
+                .ConfigureAwait(false);
+
+            // The subgraph response looks like:
+            // {"data": {"_entities": [{"id":"1","name":"Widget"}, ...]}}
+            //
+            // We need to yield per-entity results that look like:
+            // {"data": {"productById": {"id":"1","name":"Widget"}}}
+            //
+            // For each entity in the _entities array, we build a wrapper document.
+
+            if (!sourceDocument.Root.TryGetProperty("data"u8, out var dataElement)
+                || dataElement.ValueKind != JsonValueKind.Object)
+            {
+                // If there's no data or an error, yield the raw result.
+                var path = variables.IsDefaultOrEmpty ? CompactPath.Root : variables[0].Path;
+                yield return new SourceSchemaResult(path, sourceDocument);
+                yield break;
+            }
+
+            if (!dataElement.TryGetProperty("_entities"u8, out var entitiesElement)
+                || entitiesElement.ValueKind != JsonValueKind.Array)
+            {
+                // No _entities array, yield raw result.
+                var path = variables.IsDefaultOrEmpty ? CompactPath.Root : variables[0].Path;
+                yield return new SourceSchemaResult(path, sourceDocument);
+                yield break;
+            }
+
+            var entityCount = entitiesElement.GetArrayLength();
+
+            for (var i = 0; i < entityCount; i++)
+            {
+                var entity = entitiesElement[i];
+
+                // Build a wrapper: {"data": {"<lookupFieldName>": <entity>}}
+                var entityJson = BuildWrappedEntityJson(lookupFieldName, entity);
+                var entityBytes = Encoding.UTF8.GetBytes(entityJson);
+                var entityDocument = SourceResultDocument.Parse(arena, entityBytes, entityBytes.Length);
+
+                CompactPath resultPath;
+                CompactPathSegment additionalPaths;
+
+                if (variables.IsDefaultOrEmpty || i >= variables.Length)
+                {
+                    resultPath = CompactPath.Root;
+                    additionalPaths = default;
+                }
+                else
+                {
+                    resultPath = variables[i].Path;
+                    additionalPaths = variables[i].AdditionalPaths;
+                }
+
+                yield return additionalPaths.IsDefaultOrEmpty
+                    ? new SourceSchemaResult(resultPath, entityDocument)
+                    : new SourceSchemaResult(resultPath, entityDocument, additionalPaths: additionalPaths);
+            }
+
+            sourceDocument.Dispose();
+        }
+        finally
+        {
+            httpResponse.Dispose();
+            buffer.Dispose();
+        }
     }
 
     /// <summary>
@@ -767,147 +853,5 @@ public sealed class ApolloFederationSourceSchemaClient : ISourceSchemaClient
         _disposed = true;
 
         return ValueTask.CompletedTask;
-    }
-
-    /// <summary>
-    /// Response for passthrough (non-entity-lookup) queries.
-    /// Delegates directly to the underlying HTTP response.
-    /// </summary>
-    private sealed class PassthroughResponse(
-        IMemoryArena arena,
-        Uri uri,
-        ImmutableArray<VariableValues> variables,
-        GraphQLHttpResponse response)
-        : SourceSchemaClientResponse
-    {
-        public override Uri Uri => uri;
-
-        public override string ContentType => response.RawContentType ?? "unknown";
-
-        public override bool IsSuccessful => response.IsSuccessStatusCode;
-
-        public override async IAsyncEnumerable<SourceSchemaResult> ReadAsResultStreamAsync(
-            [EnumeratorCancellation] CancellationToken cancellationToken = default)
-        {
-            var result = await response.ReadAsResultAsync(arena, cancellationToken).ConfigureAwait(false);
-
-            if (variables.IsDefaultOrEmpty || variables.Length <= 1)
-            {
-                var path = variables.IsDefaultOrEmpty
-                    ? CompactPath.Root
-                    : variables[0].Path;
-                var additionalPaths = variables.IsDefaultOrEmpty
-                    ? default
-                    : variables[0].AdditionalPaths;
-
-                yield return additionalPaths.IsDefaultOrEmpty
-                    ? new SourceSchemaResult(path, result)
-                    : new SourceSchemaResult(path, result, additionalPaths: additionalPaths);
-            }
-            else
-            {
-                for (var i = 0; i < variables.Length; i++)
-                {
-                    var variable = variables[i];
-                    yield return variable.AdditionalPaths.IsDefaultOrEmpty
-                        ? new SourceSchemaResult(variable.Path, result)
-                        : new SourceSchemaResult(variable.Path, result, additionalPaths: variable.AdditionalPaths);
-                }
-            }
-        }
-
-        public override void Dispose() => response.Dispose();
-    }
-
-    /// <summary>
-    /// Response for entity lookup queries. Reads the <c>_entities</c> array from the
-    /// subgraph response and yields one <see cref="SourceSchemaResult"/> per entity,
-    /// wrapping each entity as if it were the direct result of the lookup field.
-    /// </summary>
-    private sealed class EntityLookupResponse(
-        IMemoryArena arena,
-        Uri uri,
-        ImmutableArray<VariableValues> variables,
-        string lookupFieldName,
-        GraphQLHttpResponse response,
-        ChunkedArrayWriter? buffer)
-        : SourceSchemaClientResponse
-    {
-        public override Uri Uri => uri;
-
-        public override string ContentType => response.RawContentType ?? "unknown";
-
-        public override bool IsSuccessful => response.IsSuccessStatusCode;
-
-        public override async IAsyncEnumerable<SourceSchemaResult> ReadAsResultStreamAsync(
-            [EnumeratorCancellation] CancellationToken cancellationToken = default)
-        {
-            var sourceDocument = await response.ReadAsResultAsync(arena, cancellationToken)
-                .ConfigureAwait(false);
-
-            // The subgraph response looks like:
-            // {"data": {"_entities": [{"id":"1","name":"Widget"}, ...]}}
-            //
-            // We need to yield per-entity results that look like:
-            // {"data": {"productById": {"id":"1","name":"Widget"}}}
-            //
-            // For each entity in the _entities array, we build a wrapper document.
-
-            if (!sourceDocument.Root.TryGetProperty("data"u8, out var dataElement)
-                || dataElement.ValueKind != JsonValueKind.Object)
-            {
-                // If there's no data or an error, yield the raw result.
-                var path = variables.IsDefaultOrEmpty ? CompactPath.Root : variables[0].Path;
-                yield return new SourceSchemaResult(path, sourceDocument);
-                yield break;
-            }
-
-            if (!dataElement.TryGetProperty("_entities"u8, out var entitiesElement)
-                || entitiesElement.ValueKind != JsonValueKind.Array)
-            {
-                // No _entities array, yield raw result.
-                var path = variables.IsDefaultOrEmpty ? CompactPath.Root : variables[0].Path;
-                yield return new SourceSchemaResult(path, sourceDocument);
-                yield break;
-            }
-
-            var entityCount = entitiesElement.GetArrayLength();
-
-            for (var i = 0; i < entityCount; i++)
-            {
-                var entity = entitiesElement[i];
-
-                // Build a wrapper: {"data": {"<lookupFieldName>": <entity>}}
-                var entityJson = BuildWrappedEntityJson(lookupFieldName, entity);
-                var entityBytes = Encoding.UTF8.GetBytes(entityJson);
-                var entityDocument = SourceResultDocument.Parse(arena, entityBytes, entityBytes.Length);
-
-                CompactPath resultPath;
-                CompactPathSegment additionalPaths;
-
-                if (variables.IsDefaultOrEmpty || i >= variables.Length)
-                {
-                    resultPath = CompactPath.Root;
-                    additionalPaths = default;
-                }
-                else
-                {
-                    resultPath = variables[i].Path;
-                    additionalPaths = variables[i].AdditionalPaths;
-                }
-
-                yield return additionalPaths.IsDefaultOrEmpty
-                    ? new SourceSchemaResult(resultPath, entityDocument)
-                    : new SourceSchemaResult(resultPath, entityDocument, additionalPaths: additionalPaths);
-            }
-
-            sourceDocument.Dispose();
-        }
-
-        public override void Dispose()
-        {
-            response.Dispose();
-            buffer?.Dispose();
-        }
     }
 }
