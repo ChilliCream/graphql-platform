@@ -8,6 +8,7 @@ on:
     paths:
       - .github/workflows/publish-website-next.yml
       - website-next/**
+      - src/Mocha/src/mocha-visualizer/**
 
 permissions:
   contents: read
@@ -23,7 +24,9 @@ jobs:
           show-progress: false
           # Full history so doc pages get accurate last-updated dates.
           fetch-depth: 0
-          sparse-checkout: website-next
+          sparse-checkout: |
+            website-next
+            src/Mocha/src/mocha-visualizer
 
       - name: Install Node.js
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
