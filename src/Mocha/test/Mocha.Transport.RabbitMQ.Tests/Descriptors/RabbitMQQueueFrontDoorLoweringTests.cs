@@ -7,37 +7,11 @@ namespace Mocha.Transport.RabbitMQ.Tests.Descriptors;
 /// <summary>
 /// Verifies the unified Queue() front-door build-time behavior: an entity-only handle lowers to a
 /// declared queue plus its BindFrom bindings without entering the receive-endpoint lifecycle,
-/// satellites on an entity-only queue are a build error, two endpoints over one queue are a build
-/// error, and a configuration that uses no Queue() handle is left byte-identical.
+/// satellites on an entity-only queue are a build error, and a configuration that uses no Queue()
+/// handle is left byte-identical.
 /// </summary>
 public class RabbitMQQueueFrontDoorLoweringTests
 {
-    [Fact]
-    public void Build_Should_Throw_When_TwoEndpointsShareOneQueue()
-    {
-        // arrange
-        // Two distinct endpoints (named "a" and "b") are both pointed at the same backing queue
-        // "shared". Each queue can host at most one receive endpoint, so the build must fail.
-        void Build()
-        {
-            CreateRuntime(
-                b => b.AddConsumer<OrderSpyConsumer>(),
-                t =>
-                {
-                    t.BindHandlersExplicitly();
-                    t.Endpoint("a").Queue("shared").Consumer<OrderSpyConsumer>();
-                    t.Endpoint("b").Queue("shared").Consumer<OrderSpyConsumer>();
-                });
-        }
-
-        // act
-        var exception = Assert.Throws<InvalidOperationException>(Build);
-
-        // assert
-        Assert.Contains("shared", exception.Message);
-        Assert.Contains("at most one receive endpoint", exception.Message);
-    }
-
     [Fact]
     public void Build_Should_Throw_When_SatelliteConfiguredOnEntityOnlyQueue()
     {
@@ -115,15 +89,15 @@ public class RabbitMQQueueFrontDoorLoweringTests
     public void Describe_Should_StayByteIdentical_When_ConfigurationUsesNoQueueFrontDoor()
     {
         // arrange
-        // A configuration declared entirely through Endpoint()/DeclareQueue() (no Queue() handle)
-        // must flow through the partition code path unchanged.
+        // A configuration declared entirely through DeclareQueue()/Endpoint() (no Queue() handle)
+        // must flow through the build code path unchanged.
         var runtime = CreateRuntime(
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
             {
                 t.BindHandlersExplicitly();
                 t.DeclareQueue("orders").AutoProvision(true);
-                t.Endpoint("orders").Queue("orders").Consumer<OrderSpyConsumer>();
+                t.Endpoint("orders").Consumer<OrderSpyConsumer>();
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 

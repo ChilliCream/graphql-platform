@@ -18,7 +18,7 @@ public sealed class PostgresMessagingTransportDescriptor
     private readonly List<PostgresTopicDescriptor> _topics = [];
     private readonly List<PostgresQueueDescriptor> _queues = [];
     private readonly List<PostgresSubscriptionDescriptor> _subscriptions = [];
-    private readonly Dictionary<string, PostgresQueueEndpointDescriptor> _queueEndpoints =
+    private readonly Dictionary<string, PostgresQueueBuilder> _queueBuilders =
         new(StringComparer.Ordinal);
 
     /// <summary>
@@ -165,7 +165,7 @@ public sealed class PostgresMessagingTransportDescriptor
     public IPostgresReceiveEndpointDescriptor Endpoint(string name)
     {
         var endpoint = _receiveEndpoints.FirstOrDefault(e =>
-            e.Extend().Configuration.Name.EqualsOrdinal(name) || e.Extend().Configuration.QueueName.EqualsOrdinal(name)
+            e.Extend().Configuration.Name.EqualsOrdinal(name)
         );
 
         if (endpoint is null)
@@ -234,31 +234,20 @@ public sealed class PostgresMessagingTransportDescriptor
     }
 
     /// <inheritdoc />
-    public IPostgresQueueEndpointDescriptor Queue(string name)
+    public IPostgresQueueBuilder Queue(string name)
     {
-        if (_queueEndpoints.TryGetValue(name, out var existing))
+        if (_queueBuilders.TryGetValue(name, out var existing))
         {
             return existing;
         }
 
-        // Locate an endpoint whose effective queue name already matches. This merges onto
-        // an endpoint that was previously created via Endpoint("foo").Queue(name).
-        var backing = _receiveEndpoints.FirstOrDefault(e =>
-            e.Extend().Configuration.QueueName.EqualsOrdinal(name));
-
-        if (backing is null)
-        {
-            backing = PostgresReceiveEndpointDescriptor.New(Context, name);
-            _receiveEndpoints.Add(backing);
-        }
-
-        var adapter = new PostgresQueueEndpointDescriptor(backing);
-        _queueEndpoints[name] = adapter;
-        return adapter;
+        var builder = new PostgresQueueBuilder(this, name);
+        _queueBuilders[name] = builder;
+        return builder;
     }
 
     /// <inheritdoc />
-    public IPostgresMessagingTransportDescriptor Queue(string name, Action<IPostgresQueueEndpointDescriptor> configure)
+    public IPostgresMessagingTransportDescriptor Queue(string name, Action<IPostgresQueueBuilder> configure)
     {
         var handle = Queue(name);
         configure(handle);
@@ -276,34 +265,46 @@ public sealed class PostgresMessagingTransportDescriptor
         var topics = _topics.Select(e => e.CreateConfiguration()).ToList();
         var subscriptions = _subscriptions.Select(b => b.CreateConfiguration()).ToList();
 
-        // Partition the unified Queue() handles: an entity-only handle (no consumers, no Receives)
-        // is a pure dispatch target. It lowers to a declared queue plus its BindFrom subscriptions
-        // here and never enters the receive-endpoint lifecycle. A handle that names a consumer or a
-        // received type materializes a real receive endpoint and stays in the list below.
-        var entityOnly = new HashSet<PostgresReceiveEndpointDescriptor>();
-        var resolver = new PostgresDestinationResolver(
-            Configuration.Schema ?? PostgresTransportConfiguration.DefaultSchema);
-        foreach (var adapter in _queueEndpoints.Values)
+        // Prune endpoints materialized by Queue() builders that ended up entity-only (no consumer,
+        // no Receives). An entity-only builder with Endpoint == null never created an endpoint, so
+        // nothing to prune. A builder whose endpoint is entity-only but has satellite config is an
+        // error (satellites need a consuming endpoint). Otherwise, remove the phantom endpoint.
+        foreach (var builder in _queueBuilders.Values)
         {
-            var backing = adapter.Inner;
-            if (IsEntityOnly(backing.Configuration))
+            var endpoint = builder.Endpoint;
+            if (endpoint is null)
             {
-                LowerEntityOnlyQueue(resolver, backing.Configuration, queues, topics, subscriptions);
-                entityOnly.Add(backing);
+                // Infra-only builder; queue already in topology via DeclareQueue. Nothing to do.
+                continue;
+            }
+
+            var config = endpoint.Configuration;
+            if (config.ConsumerIdentities.Count == 0 && config.ReceivedMessageTypes.Count == 0)
+            {
+                var queueName = config.QueueName ?? config.Name ?? string.Empty;
+
+                if (config.ErrorQueue.QueueName is not null || config.ErrorQueue.IsDisabled)
+                {
+                    throw ThrowHelper.SatelliteRequiresConsumingEndpoint("error", queueName);
+                }
+
+                if (config.SkippedQueue.QueueName is not null || config.SkippedQueue.IsDisabled)
+                {
+                    throw ThrowHelper.SatelliteRequiresConsumingEndpoint("skipped", queueName);
+                }
+
+                // Entity-only: remove the phantom endpoint from the lifecycle list.
+                _receiveEndpoints.Remove(endpoint);
             }
         }
 
-        var consumingEndpoints = _receiveEndpoints
-            .Where(e => !entityOnly.Contains(e))
-            .ToList();
-
-        ValidateOneEndpointPerQueue(consumingEndpoints);
+        ValidateOneEndpointPerQueue(_receiveEndpoints);
 
         Configuration.Topics = topics;
         Configuration.Queues = queues;
         Configuration.Subscriptions = subscriptions;
 
-        Configuration.ReceiveEndpoints = consumingEndpoints
+        Configuration.ReceiveEndpoints = _receiveEndpoints
             .Select(ReceiveEndpointConfiguration (e) => e.CreateConfiguration())
             .ToList();
 
@@ -312,80 +313,6 @@ public sealed class PostgresMessagingTransportDescriptor
             .ToList();
 
         return Configuration;
-    }
-
-    private static bool IsEntityOnly(PostgresReceiveEndpointConfiguration configuration)
-        => configuration.ConsumerIdentities.Count == 0
-            && configuration.ReceivedMessageTypes.Count == 0;
-
-    private void LowerEntityOnlyQueue(
-        PostgresDestinationResolver resolver,
-        PostgresReceiveEndpointConfiguration configuration,
-        List<PostgresQueueConfiguration> queues,
-        List<PostgresTopicConfiguration> topics,
-        List<PostgresSubscriptionConfiguration> subscriptions)
-    {
-        var queueName = configuration.QueueName
-            ?? throw new InvalidOperationException("Queue name is required.");
-
-        // Satellites (error, skipped) require a consuming endpoint to process the failed or skipped
-        // messages. An entity-only queue has no consumer, so a configured satellite cannot be honored.
-        if (configuration.ErrorQueue.QueueName is not null || configuration.ErrorQueue.IsDisabled)
-        {
-            throw ThrowHelper.SatelliteRequiresConsumingEndpoint("error", queueName);
-        }
-
-        if (configuration.SkippedQueue.QueueName is not null || configuration.SkippedQueue.IsDisabled)
-        {
-            throw ThrowHelper.SatelliteRequiresConsumingEndpoint("skipped", queueName);
-        }
-
-        // Lower the queue itself (queue before subscription, matching the transport's initialization
-        // order where queues are added before subscriptions reference them).
-        queues.Add(
-            new PostgresQueueConfiguration
-            {
-                Name = queueName,
-                AutoProvision = configuration.AutoProvision ?? Configuration.AutoProvision
-            });
-
-        // Materialize the queue-level BindFrom intents into declared topic-to-queue subscriptions,
-        // the same lowering the receive-endpoint lifecycle performs for a consuming endpoint.
-        foreach (var intent in configuration.QueueBindFroms)
-        {
-            if (intent.RoutingKey is not null)
-            {
-                throw ThrowHelper.BindFromWithNonNullRoutingKey(
-                    "PostgreSQL",
-                    intent.Source.ToString(),
-                    queueName);
-            }
-
-            if (!resolver.TryResolveSourceTopic(intent.Source, out var topicName))
-            {
-                throw new InvalidOperationException(
-                    $"BindFrom source '{intent.Source}' could not be resolved to a PostgreSQL topic name.");
-            }
-
-            // Ensure the source topic exists. AddTopic merges on duplicate names via the runtime path,
-            // so for the descriptor-time lowering we use a simple existence check on the list.
-            if (topics.All(t => t.Name != topicName))
-            {
-                topics.Add(new PostgresTopicConfiguration { Name = topicName });
-            }
-
-            // Add the subscription only if it does not already exist.
-            if (subscriptions.All(s => s.Source != topicName || s.Destination != queueName))
-            {
-                subscriptions.Add(
-                    new PostgresSubscriptionConfiguration
-                    {
-                        Source = topicName,
-                        Destination = queueName,
-                        AutoProvision = Configuration.AutoProvision
-                    });
-            }
-        }
     }
 
     private static void ValidateOneEndpointPerQueue(List<PostgresReceiveEndpointDescriptor> endpoints)

@@ -9,7 +9,6 @@ namespace Mocha;
 /// Selection order:
 /// <list type="number">
 ///   <item>Explicit transport scheme: the destination URI scheme matches exactly one transport's schema.</item>
-///   <item>OnTransport override: <see cref="OutboundRoute.TransportName"/> names a registered transport.</item>
 ///   <item>Resolved default: the sole <see cref="MessagingTransportConfiguration.IsDefaultTransport"/> flag, or the
 ///   single registered transport when no flag is set.</item>
 /// </list>
@@ -25,8 +24,8 @@ internal static class MessagingTransportSelection
     /// <returns>The transport responsible for this route.</returns>
     /// <exception cref="InvalidOperationException">
     /// Thrown when selection is ambiguous: multiple transports claim the destination scheme,
-    /// the <see cref="OutboundRoute.TransportName"/> target is not registered, multiple transports
-    /// are flagged as default, or no default is set and multiple transports are available.
+    /// multiple transports are flagged as default, or no default is set and multiple transports
+    /// are available.
     /// </exception>
     public static MessagingTransport Select(
         ImmutableArray<MessagingTransport> transports,
@@ -59,21 +58,7 @@ internal static class MessagingTransportSelection
             }
         }
 
-        // (2) OnTransport override: an explicit transport name on the route.
-        if (route.TransportName is { } transportName)
-        {
-            foreach (var transport in transports)
-            {
-                if (transport.Name == transportName)
-                {
-                    return transport;
-                }
-            }
-
-            throw ThrowHelper.UnknownOnTransportTarget(transportName);
-        }
-
-        // (3) Resolved default.
+        // (2) Resolved default.
         return ResolveDefault(transports);
     }
 

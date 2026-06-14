@@ -118,14 +118,11 @@ public class RabbitMQDescriptorTests
     {
         // arrange & act
         var runtime = CreateRuntime(t =>
-        {
-            t.DeclareQueue("custom-q").AutoProvision(true);
-            t.Endpoint("ep").Queue("custom-q");
-        });
+            t.Queue("custom-q").AutoProvision(true).Handler<OrderCreatedHandler>().Kind(ReceiveEndpointKind.Error));
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
         // assert
-        var endpoint = transport.ReceiveEndpoints.OfType<RabbitMQReceiveEndpoint>().Single(e => e.Name == "ep");
+        var endpoint = transport.ReceiveEndpoints.OfType<RabbitMQReceiveEndpoint>().Single(e => e.Name == "custom-q");
         Assert.Equal("custom-q", endpoint.Queue.Name);
     }
 
@@ -134,14 +131,11 @@ public class RabbitMQDescriptorTests
     {
         // arrange & act
         var runtime = CreateRuntime(t =>
-        {
-            t.DeclareQueue("err-q").AutoProvision(true);
-            t.Endpoint("ep").Queue("err-q").Kind(ReceiveEndpointKind.Error);
-        });
+            t.Queue("err-q").AutoProvision(true).Handler<OrderCreatedHandler>().Kind(ReceiveEndpointKind.Error));
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
         // assert
-        var endpoint = transport.ReceiveEndpoints.OfType<RabbitMQReceiveEndpoint>().Single(e => e.Name == "ep");
+        var endpoint = transport.ReceiveEndpoints.OfType<RabbitMQReceiveEndpoint>().Single(e => e.Name == "err-q");
         Assert.Equal(ReceiveEndpointKind.Error, endpoint.Kind);
     }
 
@@ -150,14 +144,11 @@ public class RabbitMQDescriptorTests
     {
         // arrange & act
         var runtime = CreateRuntime(t =>
-        {
-            t.DeclareQueue("q").AutoProvision(true);
-            t.Endpoint("ep").Queue("q").ErrorQueue("Legacy.Orders.V2_error");
-        });
+            t.Queue("q").AutoProvision(true).Handler<OrderCreatedHandler>().ErrorQueue("Legacy.Orders.V2_error"));
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
         // assert
-        var endpoint = transport.ReceiveEndpoints.OfType<RabbitMQReceiveEndpoint>().Single(e => e.Name == "ep");
+        var endpoint = transport.ReceiveEndpoints.OfType<RabbitMQReceiveEndpoint>().Single(e => e.Name == "q");
         Assert.Equal("Legacy.Orders.V2_error", endpoint.Configuration.ErrorQueue.QueueName);
         Assert.False(endpoint.Configuration.ErrorQueue.IsDisabled);
     }
@@ -167,14 +158,11 @@ public class RabbitMQDescriptorTests
     {
         // arrange & act
         var runtime = CreateRuntime(t =>
-        {
-            t.DeclareQueue("q").AutoProvision(true);
-            t.Endpoint("ep").Queue("q").DisableErrorQueue();
-        });
+            t.Queue("q").AutoProvision(true).Handler<OrderCreatedHandler>().DisableErrorQueue());
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
         // assert
-        var endpoint = transport.ReceiveEndpoints.OfType<RabbitMQReceiveEndpoint>().Single(e => e.Name == "ep");
+        var endpoint = transport.ReceiveEndpoints.OfType<RabbitMQReceiveEndpoint>().Single(e => e.Name == "q");
         Assert.True(endpoint.Configuration.ErrorQueue.IsDisabled);
     }
 
@@ -185,12 +173,9 @@ public class RabbitMQDescriptorTests
         // Satellite AutoProvision is carried by the typed RabbitMQSatelliteConfiguration, not by
         // a ?autoProvision= query string embedded in the satellite queue address URI (D13).
         var runtime = CreateRuntime(t =>
-        {
-            t.DeclareQueue("q").AutoProvision(true);
-            t.Endpoint("ep").Queue("q");
-        });
+            t.Queue("q").AutoProvision(true).Handler<OrderCreatedHandler>());
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        var endpoint = transport.ReceiveEndpoints.OfType<RabbitMQReceiveEndpoint>().Single(e => e.Name == "ep");
+        var endpoint = transport.ReceiveEndpoints.OfType<RabbitMQReceiveEndpoint>().Single(e => e.Name == "q");
 
         // assert
         // The satellite endpoint URIs must not embed a ?autoProvision= query parameter; the typed
@@ -228,6 +213,7 @@ public class RabbitMQDescriptorTests
         var services = new ServiceCollection();
         services.AddSingleton(new MessageRecorder());
         var builder = services.AddMessageBus();
+        builder.AddEventHandler<OrderCreatedHandler>();
         var runtime = builder
             .AddRabbitMQ(t =>
             {

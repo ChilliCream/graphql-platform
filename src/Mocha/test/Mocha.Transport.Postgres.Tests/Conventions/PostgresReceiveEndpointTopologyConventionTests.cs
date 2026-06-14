@@ -92,8 +92,7 @@ public class PostgresReceiveEndpointTopologyConventionTests
             t =>
             {
                 t.BindHandlersExplicitly();
-                t.DeclareQueue("orders");
-                t.Endpoint("orders").Queue("orders").Consumer<OrderSpyConsumer>().AutoBind(false);
+                t.Queue("orders").Consumer<OrderSpyConsumer>().AutoBind(false);
             });
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 
@@ -117,8 +116,7 @@ public class PostgresReceiveEndpointTopologyConventionTests
             {
                 t.AutoBind(false);
                 t.BindHandlersExplicitly();
-                t.DeclareQueue("orders");
-                t.Endpoint("orders").Queue("orders").Consumer<OrderSpyConsumer>();
+                t.Queue("orders").Consumer<OrderSpyConsumer>();
             });
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 

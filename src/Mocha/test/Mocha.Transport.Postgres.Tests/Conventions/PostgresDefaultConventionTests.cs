@@ -90,16 +90,14 @@ public class PostgresDefaultConventionTests
             .AddPostgres(t =>
             {
                 t.ConnectionString("Host=localhost;Database=test;Username=test;Password=test");
-                t.DeclareQueue("my-q");
                 t.DeclareQueue("custom-error-q");
-                t.Endpoint("ep")
-                    .Queue("my-q")
+                t.Queue("my-q")
                     .Handler<OrderCreatedHandler>()
                     .FaultEndpoint("postgres:///q/custom-error-q");
             })
             .BuildRuntime();
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
-        var receiveEndpoint = transport.ReceiveEndpoints.First(e => e.Name == "ep");
+        var receiveEndpoint = transport.ReceiveEndpoints.First(e => e.Name == "my-q");
 
         // assert
         Assert.NotNull(receiveEndpoint.ErrorEndpoint);

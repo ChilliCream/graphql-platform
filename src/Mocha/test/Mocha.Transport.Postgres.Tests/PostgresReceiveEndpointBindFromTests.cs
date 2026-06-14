@@ -21,8 +21,7 @@ public class PostgresReceiveEndpointBindFromTests
             t =>
             {
                 t.BindHandlersExplicitly();
-                t.Endpoint("orders")
-                    .Queue("orders")
+                t.Queue("orders")
                     .Consumer<OrderSpyConsumer>()
                     .BindFrom(new Uri("topic:source-topic"));
             });
@@ -40,15 +39,13 @@ public class PostgresReceiveEndpointBindFromTests
     {
         // arrange
         // Declaring the same queue-level BindFrom twice must produce exactly one subscription.
-        // The existence guard in MaterializeBindFrom prevents a duplicate AddSubscription call
-        // that would otherwise throw.
+        // The existence guard in DeclareSubscription prevents a duplicate.
         var runtime = CreateRuntime(
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
             {
                 t.BindHandlersExplicitly();
-                t.Endpoint("orders")
-                    .Queue("orders")
+                t.Queue("orders")
                     .Consumer<OrderSpyConsumer>()
                     .BindFrom(new Uri("topic:source-topic"))
                     .BindFrom(new Uri("topic:source-topic"));
@@ -77,8 +74,7 @@ public class PostgresReceiveEndpointBindFromTests
                 t =>
                 {
                     t.BindHandlersExplicitly();
-                    t.Endpoint("orders")
-                        .Queue("orders")
+                    t.Queue("orders")
                         .Consumer<OrderSpyConsumer>()
                         .BindFrom(new Uri("topic:source-topic"), routingKey: "key.not.valid");
                 }));

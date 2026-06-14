@@ -34,13 +34,12 @@ public class PostgresHandlerBindingTests
             t =>
             {
                 t.BindHandlersExplicitly();
-                t.DeclareQueue("q");
-                t.Endpoint("ep").Queue("q").Consumer<OrderSpyConsumer>();
+                t.Queue("q").Consumer<OrderSpyConsumer>();
             });
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 
         // assert - manually declared endpoint should exist
-        Assert.Contains(transport.ReceiveEndpoints, e => e.Name == "ep");
+        Assert.Contains(transport.ReceiveEndpoints, e => e.Name == "q");
     }
 
     [Fact]

@@ -11,11 +11,4 @@ public interface IOutboundRouteDescriptor
     /// <param name="destination">The destination URI.</param>
     /// <returns>This descriptor for method chaining.</returns>
     IOutboundRouteDescriptor Destination(Uri destination);
-
-    /// <summary>
-    /// Sets the transport for the outbound route.
-    /// </summary>
-    /// <param name="name">The name of the transport.</param>
-    /// <returns>This descriptor for method chaining.</returns>
-    IOutboundRouteDescriptor OnTransport(string name);
 }

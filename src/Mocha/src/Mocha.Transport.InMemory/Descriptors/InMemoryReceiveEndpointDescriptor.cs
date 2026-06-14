@@ -4,27 +4,10 @@ internal sealed class InMemoryReceiveEndpointDescriptor
     : ReceiveEndpointDescriptor<InMemoryReceiveEndpointConfiguration>
     , IInMemoryReceiveEndpointDescriptor
 {
-    private bool _queueIdentityPinned;
-
     internal InMemoryReceiveEndpointDescriptor(IMessagingConfigurationContext discoveryContext, string name)
         : base(discoveryContext)
     {
         Configuration = new InMemoryReceiveEndpointConfiguration { Name = name, QueueName = name };
-    }
-
-    /// <summary>
-    /// Gets a value indicating whether this descriptor's queue identity is pinned and cannot be renamed.
-    /// A pinned descriptor was created via the unified <c>Queue(name, ...)</c> front door.
-    /// </summary>
-    internal bool IsQueueIdentityPinned => _queueIdentityPinned;
-
-    /// <summary>
-    /// Pins the queue identity so that subsequent calls to <see cref="Queue(string)"/> throw a build error.
-    /// Called by the unified <c>Queue(name, ...)</c> front door adapter after the descriptor is created.
-    /// </summary>
-    internal void PinQueueIdentity()
-    {
-        _queueIdentityPinned = true;
     }
 
     public new IInMemoryReceiveEndpointDescriptor Handler<THandler>() where THandler : class, IHandler
@@ -100,18 +83,6 @@ internal sealed class InMemoryReceiveEndpointDescriptor
     public new IInMemoryReceiveEndpointDescriptor MaxConcurrency(int maxConcurrency)
     {
         base.MaxConcurrency(maxConcurrency);
-
-        return this;
-    }
-
-    public IInMemoryReceiveEndpointDescriptor Queue(string name)
-    {
-        if (_queueIdentityPinned)
-        {
-            throw ThrowHelper.QueueIdentityPinned(Configuration.QueueName ?? Configuration.Name ?? string.Empty);
-        }
-
-        Configuration.QueueName = name;
 
         return this;
     }

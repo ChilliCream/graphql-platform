@@ -19,8 +19,7 @@ public class PostgresSatelliteTests
         var runtime = CreateRuntime(t =>
         {
             t.BindHandlersExplicitly();
-            t.DeclareQueue("orders").AutoProvision(true);
-            t.Endpoint("orders").Queue("orders").Handler<OrderCreatedHandler>()
+            t.Queue("orders").AutoProvision(true).Handler<OrderCreatedHandler>()
                 .ErrorQueue("LEGACY.Orders.Error");
         });
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
@@ -41,8 +40,7 @@ public class PostgresSatelliteTests
         var runtime = CreateRuntime(t =>
         {
             t.BindHandlersExplicitly();
-            t.DeclareQueue("orders").AutoProvision(true);
-            t.Endpoint("orders").Queue("orders").Handler<OrderCreatedHandler>();
+            t.Queue("orders").AutoProvision(true).Handler<OrderCreatedHandler>();
         });
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 
@@ -62,8 +60,7 @@ public class PostgresSatelliteTests
         var runtime = CreateRuntime(t =>
         {
             t.BindHandlersExplicitly();
-            t.DeclareQueue("orders").AutoProvision(true);
-            t.Endpoint("orders").Queue("orders").Handler<OrderCreatedHandler>()
+            t.Queue("orders").AutoProvision(true).Handler<OrderCreatedHandler>()
                 .DisableErrorQueue();
         });
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();

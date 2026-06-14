@@ -41,11 +41,6 @@ public sealed class OutboundRoute
     public DispatchEndpoint Endpoint { get; private set; } = null!;
 
     /// <summary>
-    /// Gets the transport name for this route, or <c>null</c> to use the default transport.
-    /// </summary>
-    public string? TransportName { get; private set; }
-
-    /// <summary>
     /// Initializes the outbound route from configuration, resolving the message type.
     /// </summary>
     /// <param name="context">The messaging configuration context.</param>
@@ -73,7 +68,6 @@ public sealed class OutboundRoute
 
         HasExplicitDestination = configuration.Destination is not null;
         Destination = configuration.Destination;
-        TransportName = configuration.TransportName;
 
         MarkInitialized();
     }

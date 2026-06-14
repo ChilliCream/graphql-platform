@@ -85,7 +85,7 @@ public class RabbitMQMessageTypeExtensionTests
                 t.ConnectionProvider(_ => new StubConnectionProvider());
                 t.BindHandlersExplicitly();
                 t.AutoProvision(false);
-                t.Endpoint("payment-endpoint").Queue("payment-q").Handler<ProcessPaymentHandler>();
+                t.Queue("payment-q").Handler<ProcessPaymentHandler>();
             })
             .BuildRuntime();
 

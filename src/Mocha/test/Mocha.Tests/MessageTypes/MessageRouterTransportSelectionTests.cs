@@ -6,7 +6,7 @@ namespace Mocha.Tests.MessageTypes;
 /// <summary>
 /// Tests for <see cref="MessageRouter.GetEndpoint"/> transport selection logic,
 /// covering the deterministic routing rules defined in W3: flagged default, sole transport,
-/// ambiguity error, OnTransport override, and scheme-qualified destination.
+/// ambiguity error, and scheme-qualified destination.
 /// </summary>
 public class MessageRouterTransportSelectionTests
 {
@@ -62,25 +62,6 @@ public class MessageRouterTransportSelectionTests
     }
 
     [Fact]
-    public void GetEndpoint_Should_HonorOnTransport_When_MessageHasTransportOverride()
-    {
-        // arrange
-        // Route is pre-registered with OnTransport("beta"); "alpha" is the default.
-        // DiscoverEndpoints skips routes targeting another transport, so "beta" connects it.
-        var runtime = CreateRuntime(b => b
-            .AddMessage<OnTransportEvent>(m => m.Publish(r => r.OnTransport("beta")))
-            .AddInMemory(t => t.Name("alpha").Schema("alpha").IsDefaultTransport())
-            .AddInMemory(t => t.Name("beta").Schema("beta")));
-        var messageType = runtime.Messages.MessageTypes.Single(mt => mt.RuntimeType == typeof(OnTransportEvent));
-
-        // act
-        var endpoint = runtime.GetPublishEndpoint(messageType);
-
-        // assert
-        Assert.Equal("beta", endpoint.Transport.Name);
-    }
-
-    [Fact]
     public void SchemeQualifiedDestination_Should_RouteByScheme_When_TransportSchemeUsed()
     {
         // arrange
@@ -114,6 +95,5 @@ public class MessageRouterTransportSelectionTests
     public sealed class DefaultFlaggedEvent;
     public sealed class SoleTransportEvent;
     public sealed class AmbiguousEvent;
-    public sealed class OnTransportEvent;
     public sealed class SchemeEvent;
 }

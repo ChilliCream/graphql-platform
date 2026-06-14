@@ -16,8 +16,7 @@ public class RabbitMQExplicitTopologyTests
             t =>
             {
                 t.BindHandlersExplicitly();
-                t.DeclareQueue("orders").AutoProvision(true);
-                t.Endpoint("orders").Queue("orders").Consumer<OrderSpyConsumer>();
+                t.Queue("orders").AutoProvision(true).Consumer<OrderSpyConsumer>();
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
@@ -40,8 +39,7 @@ public class RabbitMQExplicitTopologyTests
             {
                 t.BindHandlersExplicitly();
                 t.AutoBind(false);
-                t.DeclareQueue("orders").AutoProvision(true);
-                t.Endpoint("orders").Queue("orders").Consumer<OrderSpyConsumer>();
+                t.Queue("orders").AutoProvision(true).Consumer<OrderSpyConsumer>();
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
@@ -120,8 +118,7 @@ public class RabbitMQExplicitTopologyTests
             t =>
             {
                 t.BindHandlersExplicitly();
-                t.DeclareQueue("orders").AutoProvision(true);
-                t.Endpoint("orders").Queue("orders").Consumer<OrderSpyConsumer>();
+                t.Queue("orders").AutoProvision(true).Consumer<OrderSpyConsumer>();
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
         var expectedExchange = transport.Naming.GetPublishEndpointName(typeof(OrderCreated));
@@ -146,8 +143,7 @@ public class RabbitMQExplicitTopologyTests
             {
                 t.AutoProvision(false);
                 t.BindHandlersExplicitly();
-                t.DeclareQueue("orders").AutoProvision(true);
-                t.Endpoint("orders").Queue("orders").Consumer<OrderSpyConsumer>();
+                t.Queue("orders").AutoProvision(true).Consumer<OrderSpyConsumer>();
             }).Transports.OfType<RabbitMQMessagingTransport>().Single();
 
         var parentFalse = CreateRuntime(
@@ -156,8 +152,7 @@ public class RabbitMQExplicitTopologyTests
             {
                 t.AutoProvision(true);
                 t.BindHandlersExplicitly();
-                t.DeclareQueue("orders").AutoProvision(false);
-                t.Endpoint("orders").Queue("orders").Consumer<OrderSpyConsumer>();
+                t.Queue("orders").AutoProvision(false).Consumer<OrderSpyConsumer>();
             }).Transports.OfType<RabbitMQMessagingTransport>().Single();
 
         // act & assert
@@ -626,29 +621,29 @@ public class RabbitMQExplicitTopologyTests
         // arrange
         // Three paths all target the same queue name "orders":
         //   1. DeclareQueue("orders") at transport level (declared provenance)
-        //   2. Endpoint("orders").Queue("orders") at endpoint level (endpoint provenance)
+        //   2. Queue("orders") builder (creates queue + lazy endpoint)
         //   3. A second DeclareQueue("orders") with a different AutoProvision flag
         // The descriptor layer deduplicates DeclareQueue calls by name, so the second call returns
         // the same descriptor object and the last AutoProvision call on it wins at descriptor level.
         // The AddQueue merge (W2b.05) enforces the strengthen rule when two topology-level configs
-        // meet; this test verifies no duplicate queue and no exception across all three paths.
+        // meet; this test verifies no duplicate queue and no exception across all paths.
         var runtimeAllThree = CreateRuntime(
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
             {
                 t.BindHandlersExplicitly();
                 t.DeclareQueue("orders").AutoProvision(true);
-                t.Endpoint("orders").Queue("orders").Consumer<OrderSpyConsumer>();
+                t.Queue("orders").Consumer<OrderSpyConsumer>();
                 t.DeclareQueue("orders").AutoProvision(false);
             });
 
-        // endpoint-only path: no DeclareQueue, just Endpoint().Queue()
+        // queue-builder-only path: no DeclareQueue, just Queue()
         var runtimeEndpointOnly = CreateRuntime(
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
             {
                 t.BindHandlersExplicitly();
-                t.Endpoint("orders").Queue("orders").Consumer<OrderSpyConsumer>();
+                t.Queue("orders").Consumer<OrderSpyConsumer>();
             });
 
         var transportAllThree = runtimeAllThree.Transports.OfType<RabbitMQMessagingTransport>().Single();
@@ -730,8 +725,7 @@ public class RabbitMQExplicitTopologyTests
             t =>
             {
                 t.BindHandlersExplicitly();
-                t.Endpoint("orders")
-                    .Queue("orders")
+                t.Queue("orders")
                     .Consumer<OrderSpyConsumer>()
                     .AutoBind(false)
                     .Receives<OrderCreated>(r => r.AutoBind(true));
@@ -745,8 +739,7 @@ public class RabbitMQExplicitTopologyTests
             t =>
             {
                 t.BindHandlersExplicitly();
-                t.Endpoint("orders")
-                    .Queue("orders")
+                t.Queue("orders")
                     .Consumer<OrderSpyConsumer>()
                     .Receives<OrderCreated>(r => r.BindFrom(new Uri("exchange:source-exchange")));
             });
@@ -804,8 +797,7 @@ public class RabbitMQExplicitTopologyTests
             t =>
             {
                 t.BindHandlersExplicitly();
-                t.Endpoint("inventory")
-                    .Queue("inventory")
+                t.Queue("inventory")
                     .Receives<ItemAdded>()
                     .Receives<ItemRemoved>()
                     .Receives<OrderCreated>()
@@ -833,12 +825,10 @@ public class RabbitMQExplicitTopologyTests
             {
                 t.BindHandlersExplicitly();
 
-                t.Endpoint("orders-a")
-                    .Queue("orders-a")
+                t.Queue("orders-a")
                     .Receives<OrderCreated>();
 
-                t.Endpoint("orders-b")
-                    .Queue("orders-b")
+                t.Queue("orders-b")
                     .Receives<OrderCreated>(r => r.AutoBind(false));
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();

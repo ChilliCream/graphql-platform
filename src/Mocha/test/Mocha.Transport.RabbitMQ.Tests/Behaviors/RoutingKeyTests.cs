@@ -41,8 +41,8 @@ public class RoutingKeyTests
                 t.DeclareBinding("region-topic", "us-queue").RoutingKey("us.*");
                 t.DeclareBinding("region-topic", "eu-queue").RoutingKey("eu.*");
 
-                t.Endpoint("us-ep").Consumer<UsRegionConsumer>().Queue("us-queue");
-                t.Endpoint("eu-ep").Consumer<EuRegionConsumer>().Queue("eu-queue");
+                t.Queue("us-queue").AutoBind(false).Consumer<UsRegionConsumer>();
+                t.Queue("eu-queue").AutoBind(false).Consumer<EuRegionConsumer>();
                 t.DispatchEndpoint("region-dispatch").ToExchange("region-topic").Publish<RegionEvent>();
             })
             .BuildTestBusAsync();
@@ -88,7 +88,7 @@ public class RoutingKeyTests
                 t.DeclareQueue("catch-all-queue");
                 t.DeclareBinding("wildcard-topic", "catch-all-queue").RoutingKey("#");
 
-                t.Endpoint("catch-all-ep").Consumer<CatchAllConsumer>().Queue("catch-all-queue");
+                t.Queue("catch-all-queue").AutoBind(false).Consumer<CatchAllConsumer>();
                 t.DispatchEndpoint("wildcard-dispatch").ToExchange("wildcard-topic").Publish<RegionEvent>();
             })
             .BuildTestBusAsync();
@@ -143,7 +143,7 @@ public class RoutingKeyTests
                 t.DeclareQueue("nomatch-queue");
                 t.DeclareBinding("nomatch-topic", "nomatch-queue").RoutingKey("eu.*");
 
-                t.Endpoint("nomatch-ep").Consumer<CatchAllConsumer>().Queue("nomatch-queue");
+                t.Queue("nomatch-queue").AutoBind(false).Consumer<CatchAllConsumer>();
                 t.DispatchEndpoint("nomatch-dispatch").ToExchange("nomatch-topic").Publish<RegionEvent>();
             })
             .BuildTestBusAsync();
@@ -185,7 +185,7 @@ public class RoutingKeyTests
                 t.DeclareQueue("header-queue");
                 t.DeclareBinding("header-topic", "header-queue").RoutingKey("#");
 
-                t.Endpoint("header-ep").Consumer<CatchAllConsumer>().Queue("header-queue");
+                t.Queue("header-queue").AutoBind(false).Consumer<CatchAllConsumer>();
                 t.DispatchEndpoint("header-dispatch")
                     .ToExchange("header-topic")
                     .Publish<RegionEvent>()
@@ -250,8 +250,8 @@ public class RoutingKeyTests
                 t.DeclareBinding("region-direct", "eu-queue").RoutingKey("eu.north");
                 t.DeclareBinding("region-direct", "eu-queue").RoutingKey("eu.south");
 
-                t.Endpoint("us-ep").Consumer<UsRegionConsumer>().Queue("us-queue");
-                t.Endpoint("eu-ep").Consumer<EuRegionConsumer>().Queue("eu-queue");
+                t.Queue("us-queue").AutoBind(false).Consumer<UsRegionConsumer>();
+                t.Queue("eu-queue").AutoBind(false).Consumer<EuRegionConsumer>();
                 t.DispatchEndpoint("region-dispatch").ToExchange("region-direct").Publish<RegionEvent>();
             })
             .BuildTestBusAsync();

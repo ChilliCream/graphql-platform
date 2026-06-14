@@ -10,10 +10,7 @@ public class RabbitMQReceiveEndpointTests
     {
         // arrange
         var runtime = CreateRuntime(t =>
-        {
-            t.DeclareQueue("my-q").AutoProvision();
-            t.Endpoint("ep").Queue("my-q").Handler<OrderCreatedHandler>();
-        });
+            t.Queue("my-q").AutoProvision().Handler<OrderCreatedHandler>());
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
         // act
@@ -29,10 +26,7 @@ public class RabbitMQReceiveEndpointTests
     {
         // arrange
         var runtime = CreateRuntime(t =>
-        {
-            t.DeclareQueue("q").AutoProvision();
-            t.Endpoint("ep").Queue("q").Handler<OrderCreatedHandler>().ErrorQueue("q_error");
-        });
+            t.Queue("q").AutoProvision().Handler<OrderCreatedHandler>().ErrorQueue("q_error"));
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
         // act
@@ -47,10 +41,7 @@ public class RabbitMQReceiveEndpointTests
     {
         // arrange
         var runtime = CreateRuntime(t =>
-        {
-            t.DeclareQueue("q").AutoProvision();
-            t.Endpoint("ep").Queue("q").Handler<OrderCreatedHandler>().SkippedQueue("q_skipped");
-        });
+            t.Queue("q").AutoProvision().Handler<OrderCreatedHandler>().SkippedQueue("q_skipped"));
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
         // act
@@ -65,10 +56,7 @@ public class RabbitMQReceiveEndpointTests
     {
         // arrange
         var runtime = CreateRuntime(t =>
-        {
-            t.DeclareQueue("err-q").AutoProvision();
-            t.Endpoint("err-ep").Queue("err-q").Kind(ReceiveEndpointKind.Error);
-        });
+            t.Queue("err-q").AutoProvision().Handler<OrderCreatedHandler>().Kind(ReceiveEndpointKind.Error));
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
         // act
@@ -83,10 +71,7 @@ public class RabbitMQReceiveEndpointTests
     {
         // arrange
         var runtime = CreateRuntime(t =>
-        {
-            t.DeclareQueue("my-q").AutoProvision();
-            t.Endpoint("ep").Queue("my-q").Handler<OrderCreatedHandler>();
-        });
+            t.Queue("my-q").AutoProvision().Handler<OrderCreatedHandler>());
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
         // act
@@ -102,10 +87,7 @@ public class RabbitMQReceiveEndpointTests
     {
         // arrange
         var runtime = CreateRuntime(t =>
-        {
-            t.DeclareQueue("my-q").AutoProvision();
-            t.Endpoint("ep").Queue("my-q").Handler<OrderCreatedHandler>();
-        });
+            t.Queue("my-q").AutoProvision().Handler<OrderCreatedHandler>());
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
         // act

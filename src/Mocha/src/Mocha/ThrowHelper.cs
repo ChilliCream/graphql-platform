@@ -210,31 +210,16 @@ internal static class ThrowHelper
     public static Exception MultipleDefaultTransports(params string[] transportNames)
         => new InvalidOperationException(
             $"Multiple transports are flagged as default: {string.Join(", ", transportNames.Select(t => $"'{t}'"))}. "
-            + "Only one transport can be the default. Use IsDefaultTransport() to designate the default, or specify the transport explicitly via OnTransport(name) for each message type.");
-
-    public static Exception UnknownOnTransportTarget(string transportName)
-        => new InvalidOperationException(
-            $"OnTransport target '{transportName}' is not registered. "
-            + "Verify the transport name matches a registered transport and that the transport was added before the message type configuration.");
-
-    public static Exception OnTransportSchemeConflict(string transportName, string scheme, string conflictingTransport)
-        => new InvalidOperationException(
-            $"OnTransport('{transportName}') conflicts with the destination scheme '{scheme}' which is claimed by '{conflictingTransport}'. "
-            + "Either remove the OnTransport override or use a scheme-qualified address that matches the target transport.");
+            + "Only one transport can be the default. Use IsDefaultTransport() to designate the default.");
 
     public static Exception NoDefaultTransportAvailable(params string[] transportNames)
         => new InvalidOperationException(
             $"No default transport is set and multiple transports are available: {string.Join(", ", transportNames.Select(t => $"'{t}'"))}. "
-            + "Designate exactly one transport as default via IsDefaultTransport(), or specify the transport explicitly via OnTransport(name) on each message type.");
+            + "Designate exactly one transport as default via IsDefaultTransport().");
 
     public static Exception AmbiguousNeutralSchemeClaim(string scheme, params string[] transportNames)
         => new InvalidOperationException(
             $"Neutral scheme '{scheme}' is claimed by multiple transports: {string.Join(", ", transportNames.Select(t => $"'{t}'"))} without a default. "
             + "Neutral schemes (without a transport prefix) can only be used when exactly one transport is registered or one transport is flagged as default. "
             + "Either designate a default transport via IsDefaultTransport() or use a scheme-qualified address like '{transportNames[0]}:{scheme}' to specify the transport explicitly.");
-
-    public static Exception OnTransportWithSchemeQualifiedAddress(string transportName, string address)
-        => new InvalidOperationException(
-            $"OnTransport('{transportName}') is redundant with the scheme-qualified address '{address}'. "
-            + "Remove the OnTransport override or use a transport-neutral address and rely on OnTransport() for routing.");
 }

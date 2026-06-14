@@ -21,8 +21,7 @@ public class RabbitMQSatelliteTests
             t =>
             {
                 t.BindHandlersExplicitly();
-                t.DeclareQueue("orders").AutoProvision(true);
-                t.Endpoint("orders").Queue("orders").Consumer<OrderSpyConsumer>()
+                t.Queue("orders").AutoProvision(true).Consumer<OrderSpyConsumer>()
                     .ErrorQueue("LEGACY.Orders.Error");
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
@@ -45,8 +44,7 @@ public class RabbitMQSatelliteTests
             t =>
             {
                 t.BindHandlersExplicitly();
-                t.DeclareQueue("orders").AutoProvision(true);
-                t.Endpoint("orders").Queue("orders").Consumer<OrderSpyConsumer>()
+                t.Queue("orders").AutoProvision(true).Consumer<OrderSpyConsumer>()
                     .DisableErrorQueue();
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
@@ -69,8 +67,7 @@ public class RabbitMQSatelliteTests
             t =>
             {
                 t.BindHandlersExplicitly();
-                t.DeclareQueue("orders").AutoProvision(true);
-                t.Endpoint("orders").Queue("orders").Consumer<OrderSpyConsumer>()
+                t.Queue("orders").AutoProvision(true).Consumer<OrderSpyConsumer>()
                     .DisableSkippedQueue();
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
@@ -95,7 +92,7 @@ public class RabbitMQSatelliteTests
                 t.AutoProvision(true);
                 t.BindHandlersExplicitly();
                 t.DeclareQueue("orders").AutoProvision(false);
-                t.Endpoint("orders").Queue("orders").Consumer<OrderSpyConsumer>();
+                t.Queue("orders").Consumer<OrderSpyConsumer>();
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
@@ -120,7 +117,7 @@ public class RabbitMQSatelliteTests
                 t.AutoProvision(true);
                 t.BindHandlersExplicitly();
                 t.DeclareQueue("orders").AutoProvision(false);
-                t.Endpoint("orders").Queue("orders").Consumer<OrderSpyConsumer>();
+                t.Queue("orders").Consumer<OrderSpyConsumer>();
                 t.AddConvention(new ErrorSatelliteAutoProvisionOverrideConvention(autoProvision: true));
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();

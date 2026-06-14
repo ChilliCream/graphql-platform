@@ -4,27 +4,10 @@ internal sealed class PostgresReceiveEndpointDescriptor
     : ReceiveEndpointDescriptor<PostgresReceiveEndpointConfiguration>
     , IPostgresReceiveEndpointDescriptor
 {
-    private bool _queueIdentityPinned;
-
     internal PostgresReceiveEndpointDescriptor(IMessagingConfigurationContext discoveryContext, string name)
         : base(discoveryContext)
     {
         Configuration = new PostgresReceiveEndpointConfiguration { Name = name, QueueName = name };
-    }
-
-    /// <summary>
-    /// Gets a value indicating whether this descriptor's queue identity is pinned and cannot be renamed.
-    /// A pinned descriptor was created via the unified <c>Queue(name, ...)</c> front door.
-    /// </summary>
-    internal bool IsQueueIdentityPinned => _queueIdentityPinned;
-
-    /// <summary>
-    /// Pins the queue identity so that subsequent calls to <see cref="Queue(string)"/> throw a build error.
-    /// Called by the unified <c>Queue(name, ...)</c> front door adapter after the descriptor is created.
-    /// </summary>
-    internal void PinQueueIdentity()
-    {
-        _queueIdentityPinned = true;
     }
 
     /// <inheritdoc />
@@ -132,54 +115,9 @@ internal sealed class PostgresReceiveEndpointDescriptor
     }
 
     /// <inheritdoc />
-    public IPostgresReceiveEndpointDescriptor Queue(string name)
-    {
-        if (_queueIdentityPinned)
-        {
-            throw ThrowHelper.QueueIdentityPinned(Configuration.QueueName ?? Configuration.Name ?? string.Empty);
-        }
-
-        Configuration.QueueName = name;
-
-        return this;
-    }
-
-    /// <inheritdoc />
     public IPostgresReceiveEndpointDescriptor MaxBatchSize(int size)
     {
         Configuration.MaxBatchSize = size;
-
-        return this;
-    }
-
-    /// <inheritdoc />
-    public IPostgresReceiveEndpointDescriptor ErrorQueue(string name)
-    {
-        Configuration.ErrorQueue.QueueName = name;
-
-        return this;
-    }
-
-    /// <inheritdoc />
-    public IPostgresReceiveEndpointDescriptor DisableErrorQueue()
-    {
-        Configuration.ErrorQueue.IsDisabled = true;
-
-        return this;
-    }
-
-    /// <inheritdoc />
-    public IPostgresReceiveEndpointDescriptor SkippedQueue(string name)
-    {
-        Configuration.SkippedQueue.QueueName = name;
-
-        return this;
-    }
-
-    /// <inheritdoc />
-    public IPostgresReceiveEndpointDescriptor DisableSkippedQueue()
-    {
-        Configuration.SkippedQueue.IsDisabled = true;
 
         return this;
     }

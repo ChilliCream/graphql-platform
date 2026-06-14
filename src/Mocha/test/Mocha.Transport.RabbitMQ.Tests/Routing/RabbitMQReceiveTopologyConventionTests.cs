@@ -144,7 +144,7 @@ public class RabbitMQReceiveTopologyConventionTests
             t =>
             {
                 t.BindHandlersExplicitly();
-                t.Endpoint("orders").Queue("orders").Consumer<OrderSpyConsumer>().AutoBind(false);
+                t.Queue("orders").Consumer<OrderSpyConsumer>().AutoBind(false);
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
@@ -166,8 +166,7 @@ public class RabbitMQReceiveTopologyConventionTests
             t =>
             {
                 t.BindHandlersExplicitly();
-                t.Endpoint("orders")
-                    .Queue("orders")
+                t.Queue("orders")
                     .Consumer<OrderSpyConsumer>()
                     .Receives<OrderCreated>(r => r.AutoBind(false));
             });
@@ -191,8 +190,7 @@ public class RabbitMQReceiveTopologyConventionTests
             t =>
             {
                 t.BindHandlersExplicitly();
-                t.Endpoint("orders")
-                    .Queue("orders")
+                t.Queue("orders")
                     .Consumer<OrderSpyConsumer>()
                     .AutoBind(false)
                     .Receives<OrderCreated>(r => r.AutoBind(true));
@@ -244,7 +242,7 @@ public class RabbitMQReceiveTopologyConventionTests
             {
                 t.AutoBind(false);
                 t.BindHandlersExplicitly();
-                t.Endpoint("orders").Queue("orders").Consumer<OrderSpyConsumer>();
+                t.Queue("orders").Consumer<OrderSpyConsumer>();
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 

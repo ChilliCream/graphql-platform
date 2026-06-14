@@ -162,7 +162,7 @@ public class BusDefaultsIntegrationTests
                 t.DeclareQueue("classic-q").QueueType(RabbitMQQueueType.Classic);
                 t.DeclareBinding("order-ex", "classic-q");
 
-                t.Endpoint("classic-ep").Consumer<OrderSpyConsumer>().Queue("classic-q");
+                t.Queue("classic-q").Consumer<OrderSpyConsumer>();
                 t.DispatchEndpoint("order-dispatch").ToExchange("order-ex").Publish<OrderCreated>();
             })
             .BuildTestBusAsync();
@@ -195,7 +195,7 @@ public class BusDefaultsIntegrationTests
                 t.DeclareQueue("override-q").QueueType(RabbitMQQueueType.Classic);
                 t.DeclareBinding("order-ex", "override-q");
 
-                t.Endpoint("override-ep").Consumer<OrderSpyConsumer>().Queue("override-q");
+                t.Queue("override-q").Consumer<OrderSpyConsumer>();
                 t.DispatchEndpoint("order-dispatch").ToExchange("order-ex").Publish<OrderCreated>();
             })
             .BuildTestBusAsync();

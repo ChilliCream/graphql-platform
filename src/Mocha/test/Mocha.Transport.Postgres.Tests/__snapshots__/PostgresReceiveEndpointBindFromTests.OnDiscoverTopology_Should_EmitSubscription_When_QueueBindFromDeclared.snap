@@ -4,8 +4,7 @@
   "Entities": [
     {
       "Kind": "queue",
-      "Name": "orders",
-      "AutoDelete": false
+      "Name": "orders"
     },
     {
       "Kind": "queue",
@@ -42,8 +41,7 @@
     {
       "Kind": "subscription",
       "From": "postgres://localhost:5432/t/source-topic",
-      "To": "postgres://localhost:5432/q/orders",
-      "AutoProvision": true
+      "To": "postgres://localhost:5432/q/orders"
     }
   ]
 }

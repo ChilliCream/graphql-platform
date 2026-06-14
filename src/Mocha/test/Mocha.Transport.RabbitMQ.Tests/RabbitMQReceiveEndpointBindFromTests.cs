@@ -21,8 +21,7 @@ public class RabbitMQReceiveEndpointBindFromTests
             t =>
             {
                 t.BindHandlersExplicitly();
-                t.Endpoint("orders")
-                    .Queue("orders")
+                t.Queue("orders")
                     .Consumer<OrderSpyConsumer>()
                     .BindFrom(new Uri("exchange:source-fanout-exchange"));
             });
@@ -46,8 +45,7 @@ public class RabbitMQReceiveEndpointBindFromTests
             t =>
             {
                 t.BindHandlersExplicitly();
-                t.Endpoint("orders")
-                    .Queue("orders")
+                t.Queue("orders")
                     .Consumer<OrderSpyConsumer>()
                     .BindFrom(new Uri("exchange:topic-exchange"), "order.created.eu")
                     .BindFrom(new Uri("exchange:topic-exchange"), "order.created.us");
@@ -80,8 +78,7 @@ public class RabbitMQReceiveEndpointBindFromTests
             t =>
             {
                 t.BindHandlersExplicitly();
-                t.Endpoint("orders")
-                    .Queue("orders")
+                t.Queue("orders")
                     .Consumer<OrderSpyConsumer>()
                     .Receives<OrderCreated>(r => r.BindFrom(new Uri("exchange:custom-orders-exchange")));
             });

@@ -96,7 +96,7 @@ public class BusDefaultsIntegrationTests
                 t.DeclareQueue("explicit-q").AutoDelete(false);
                 t.DeclareSubscription("order-topic", "explicit-q");
 
-                t.Endpoint("explicit-ep").Consumer<OrderSpyConsumer>().Queue("explicit-q");
+                t.Queue("explicit-q").Consumer<OrderSpyConsumer>();
                 t.DispatchEndpoint("order-dispatch").ToTopic("order-topic").Publish<OrderCreated>();
             })
             .BuildTestBusAsync();
@@ -128,7 +128,7 @@ public class BusDefaultsIntegrationTests
                 t.DeclareQueue("override-q").AutoDelete(false);
                 t.DeclareSubscription("order-topic", "override-q");
 
-                t.Endpoint("override-ep").Consumer<OrderSpyConsumer>().Queue("override-q");
+                t.Queue("override-q").Consumer<OrderSpyConsumer>();
                 t.DispatchEndpoint("order-dispatch").ToTopic("order-topic").Publish<OrderCreated>();
             })
             .BuildTestBusAsync();

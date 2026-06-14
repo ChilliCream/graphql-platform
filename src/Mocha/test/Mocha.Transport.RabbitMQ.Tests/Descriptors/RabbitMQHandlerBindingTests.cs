@@ -35,13 +35,12 @@ public class RabbitMQHandlerBindingTests
             t =>
             {
                 t.BindHandlersExplicitly();
-                t.DeclareQueue("q").AutoProvision(true);
-                t.Endpoint("ep").Queue("q").Consumer<OrderSpyConsumer>();
+                t.Queue("q").AutoProvision(true).Consumer<OrderSpyConsumer>();
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
         // assert - manually declared endpoint should exist
-        Assert.Contains(transport.ReceiveEndpoints, e => e.Name == "ep");
+        Assert.Contains(transport.ReceiveEndpoints, e => e.Name == "q");
     }
 
     [Fact]
@@ -98,8 +97,7 @@ public class RabbitMQHandlerBindingTests
             t =>
             {
                 t.BindHandlersExplicitly();
-                t.DeclareQueue("orders").AutoProvision(true);
-                t.Endpoint("orders").Queue("orders").Consumer<OrderSpyConsumer>();
+                t.Queue("orders").AutoProvision(true).Consumer<OrderSpyConsumer>();
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
@@ -122,8 +120,7 @@ public class RabbitMQHandlerBindingTests
             {
                 t.BindHandlersExplicitly();
                 t.AutoBind(false);
-                t.DeclareQueue("orders").AutoProvision(true);
-                t.Endpoint("orders").Queue("orders").Consumer<OrderSpyConsumer>();
+                t.Queue("orders").AutoProvision(true).Consumer<OrderSpyConsumer>();
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 

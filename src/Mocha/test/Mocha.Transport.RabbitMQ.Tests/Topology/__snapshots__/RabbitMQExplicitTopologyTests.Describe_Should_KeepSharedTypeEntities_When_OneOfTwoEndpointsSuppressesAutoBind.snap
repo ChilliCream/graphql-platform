@@ -18,7 +18,7 @@
       "Kind": "queue",
       "Name": "orders-a",
       "AutoProvision": true,
-      "Source": "endpoint"
+      "Source": "declared"
     },
     {
       "Kind": "queue",
@@ -36,7 +36,7 @@
       "Kind": "queue",
       "Name": "orders-b",
       "AutoProvision": true,
-      "Source": "endpoint"
+      "Source": "declared"
     },
     {
       "Kind": "queue",

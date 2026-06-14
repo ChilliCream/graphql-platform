@@ -113,7 +113,7 @@ public class AutoProvisionIntegrationTests
                 t.DeclareQueue("ap-q").AutoProvision(true);
                 t.DeclareBinding("ap-ex", "ap-q").AutoProvision(true);
 
-                t.Endpoint("ap-ep").Consumer<OrderSpyConsumer>().Queue("ap-q");
+                t.Queue("ap-q").Consumer<OrderSpyConsumer>();
                 t.DispatchEndpoint("ap-dispatch").ToExchange("ap-ex").Publish<OrderCreated>();
             })
             .BuildTestBusAsync();
@@ -174,7 +174,7 @@ public class AutoProvisionIntegrationTests
                 t.DeclareQueue("pre-q");
                 t.DeclareBinding("pre-ex", "pre-q");
 
-                t.Endpoint("pre-ep").Consumer<OrderSpyConsumer>().Queue("pre-q");
+                t.Queue("pre-q").Consumer<OrderSpyConsumer>();
                 t.DispatchEndpoint("pre-dispatch").ToExchange("pre-ex").Publish<OrderCreated>();
             })
             .BuildTestBusAsync();
@@ -224,7 +224,7 @@ public class AutoProvisionIntegrationTests
                 t.DeclareQueue("mixed-q"); // will be auto-provisioned (inherits true)
                 t.DeclareBinding("mixed-ex", "mixed-q"); // will be auto-provisioned
 
-                t.Endpoint("mixed-ep").Consumer<OrderSpyConsumer>().Queue("mixed-q");
+                t.Queue("mixed-q").Consumer<OrderSpyConsumer>();
                 t.DispatchEndpoint("mixed-dispatch").ToExchange("mixed-ex").Publish<OrderCreated>();
             })
             .BuildTestBusAsync();

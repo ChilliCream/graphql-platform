@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using Mocha.Transport.Postgres.Tests.Helpers;
 
 namespace Mocha.Transport.Postgres.Tests.Descriptors;
@@ -122,17 +123,23 @@ public class PostgresDescriptorTests
     public void ReceiveEndpoint_Should_SetQueueName_When_QueueCalled()
     {
         // arrange & act
-        var runtime = PostgresBusFixture.CreateRuntime(t =>
-        {
-            t.DeclareQueue("custom-q");
-            t.Endpoint("ep").Queue("custom-q");
-        });
+        var services = new ServiceCollection();
+        services.AddSingleton(new MessageRecorder());
+        var builder = services.AddMessageBus();
+        builder.AddEventHandler<OrderCreatedHandler>();
+        var runtime = builder
+            .AddPostgres(t =>
+            {
+                t.ConnectionString("Host=localhost;Database=mocha_test;Username=test;Password=test");
+                t.Queue("custom-q").Handler<OrderCreatedHandler>().Kind(ReceiveEndpointKind.Error);
+            })
+            .BuildRuntime();
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 
         // assert
         var endpoint = transport.ReceiveEndpoints
             .OfType<PostgresReceiveEndpoint>()
-            .Single(e => e.Name == "ep");
+            .Single(e => e.Queue.Name == "custom-q");
         Assert.Equal("custom-q", endpoint.Queue.Name);
     }
 
@@ -140,17 +147,23 @@ public class PostgresDescriptorTests
     public void ReceiveEndpoint_Should_SetKind_When_KindCalled()
     {
         // arrange & act
-        var runtime = PostgresBusFixture.CreateRuntime(t =>
-        {
-            t.DeclareQueue("err-q");
-            t.Endpoint("ep").Queue("err-q").Kind(ReceiveEndpointKind.Error);
-        });
+        var services = new ServiceCollection();
+        services.AddSingleton(new MessageRecorder());
+        var builder = services.AddMessageBus();
+        builder.AddEventHandler<OrderCreatedHandler>();
+        var runtime = builder
+            .AddPostgres(t =>
+            {
+                t.ConnectionString("Host=localhost;Database=mocha_test;Username=test;Password=test");
+                t.Queue("err-q").Handler<OrderCreatedHandler>().Kind(ReceiveEndpointKind.Error);
+            })
+            .BuildRuntime();
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 
         // assert
         var endpoint = transport.ReceiveEndpoints
             .OfType<PostgresReceiveEndpoint>()
-            .Single(e => e.Name == "ep");
+            .Single(e => e.Queue.Name == "err-q");
         Assert.Equal(ReceiveEndpointKind.Error, endpoint.Kind);
     }
 
@@ -158,17 +171,23 @@ public class PostgresDescriptorTests
     public void ReceiveEndpoint_Should_StoreVerbatimName_When_ErrorQueueNamedWithPascalCase()
     {
         // arrange & act
-        var runtime = PostgresBusFixture.CreateRuntime(t =>
-        {
-            t.DeclareQueue("q");
-            t.Endpoint("ep").Queue("q").ErrorQueue("Legacy.Orders.V2_error");
-        });
+        var services = new ServiceCollection();
+        services.AddSingleton(new MessageRecorder());
+        var builder = services.AddMessageBus();
+        builder.AddEventHandler<OrderCreatedHandler>();
+        var runtime = builder
+            .AddPostgres(t =>
+            {
+                t.ConnectionString("Host=localhost;Database=mocha_test;Username=test;Password=test");
+                t.Queue("q").ErrorQueue("Legacy.Orders.V2_error").Handler<OrderCreatedHandler>();
+            })
+            .BuildRuntime();
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 
         // assert
         var endpoint = transport.ReceiveEndpoints
             .OfType<PostgresReceiveEndpoint>()
-            .Single(e => e.Name == "ep");
+            .Single(e => e.Queue.Name == "q");
         Assert.Equal("Legacy.Orders.V2_error", endpoint.Configuration.ErrorQueue.QueueName);
         Assert.False(endpoint.Configuration.ErrorQueue.IsDisabled);
     }
@@ -177,17 +196,23 @@ public class PostgresDescriptorTests
     public void ReceiveEndpoint_Should_SetDisableFlag_When_DisableErrorQueueCalled()
     {
         // arrange & act
-        var runtime = PostgresBusFixture.CreateRuntime(t =>
-        {
-            t.DeclareQueue("q");
-            t.Endpoint("ep").Queue("q").DisableErrorQueue();
-        });
+        var services = new ServiceCollection();
+        services.AddSingleton(new MessageRecorder());
+        var builder = services.AddMessageBus();
+        builder.AddEventHandler<OrderCreatedHandler>();
+        var runtime = builder
+            .AddPostgres(t =>
+            {
+                t.ConnectionString("Host=localhost;Database=mocha_test;Username=test;Password=test");
+                t.Queue("q").DisableErrorQueue().Handler<OrderCreatedHandler>();
+            })
+            .BuildRuntime();
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 
         // assert
         var endpoint = transport.ReceiveEndpoints
             .OfType<PostgresReceiveEndpoint>()
-            .Single(e => e.Name == "ep");
+            .Single(e => e.Queue.Name == "q");
         Assert.True(endpoint.Configuration.ErrorQueue.IsDisabled);
     }
 

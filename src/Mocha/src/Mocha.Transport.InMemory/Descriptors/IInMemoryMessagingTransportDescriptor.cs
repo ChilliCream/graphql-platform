@@ -97,23 +97,20 @@ public interface IInMemoryMessagingTransportDescriptor : IMessagingTransportDesc
         where TConsumer : class, IConsumer;
 
     /// <summary>
-    /// Gets or creates the unified queue endpoint whose identity is the given queue name.
-    /// If an endpoint previously created by <c>Endpoint(name).Queue(name)</c> has the same queue
-    /// name, this call merges onto that endpoint rather than creating a second one. Calling this
-    /// method multiple times with the same name returns the same handle.
+    /// Gets or creates the queue builder for the given queue name. The queue is eagerly declared
+    /// in the topology. If only infra methods are called, no receive endpoint is materialized.
+    /// Calling this method multiple times with the same name returns the same builder.
     /// </summary>
     /// <param name="name">The queue name. Also serves as the endpoint identity.</param>
-    /// <returns>A unified queue endpoint descriptor for further configuration.</returns>
-    IInMemoryQueueEndpointDescriptor Queue(string name);
+    /// <returns>A queue builder for further configuration.</returns>
+    IInMemoryQueueBuilder Queue(string name);
 
     /// <summary>
-    /// Gets or creates the unified queue endpoint whose identity is the given queue name and
-    /// applies additional configuration through the supplied delegate.
-    /// If an endpoint previously created by <c>Endpoint(name).Queue(name)</c> has the same queue
-    /// name, this call merges onto that endpoint rather than creating a second one.
+    /// Gets or creates the queue builder for the given queue name and applies additional
+    /// configuration through the supplied delegate.
     /// </summary>
     /// <param name="name">The queue name. Also serves as the endpoint identity.</param>
-    /// <param name="configure">A delegate that configures the endpoint.</param>
+    /// <param name="configure">A delegate that configures the queue builder.</param>
     /// <returns>The transport descriptor for method chaining.</returns>
-    IInMemoryMessagingTransportDescriptor Queue(string name, Action<IInMemoryQueueEndpointDescriptor> configure);
+    IInMemoryMessagingTransportDescriptor Queue(string name, Action<IInMemoryQueueBuilder> configure);
 }

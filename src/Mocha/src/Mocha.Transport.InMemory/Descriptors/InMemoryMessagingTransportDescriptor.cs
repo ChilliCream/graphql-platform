@@ -18,7 +18,7 @@ public sealed class InMemoryMessagingTransportDescriptor
     private readonly List<InMemoryTopicDescriptor> _exchanges = [];
     private readonly List<InMemoryQueueDescriptor> _queues = [];
     private readonly List<InMemoryBindingDescriptor> _bindings = [];
-    private readonly Dictionary<string, InMemoryQueueEndpointDescriptor> _queueEndpoints =
+    private readonly Dictionary<string, InMemoryQueueBuilder> _queueBuilders =
         new(StringComparer.Ordinal);
 
     /// <summary>
@@ -139,31 +139,20 @@ public sealed class InMemoryMessagingTransportDescriptor
     }
 
     /// <inheritdoc />
-    public IInMemoryQueueEndpointDescriptor Queue(string name)
+    public IInMemoryQueueBuilder Queue(string name)
     {
-        if (_queueEndpoints.TryGetValue(name, out var existing))
+        if (_queueBuilders.TryGetValue(name, out var existing))
         {
             return existing;
         }
 
-        // Locate an endpoint whose effective queue name already matches. This merges onto
-        // an endpoint that was previously created via Endpoint("foo").Queue(name).
-        var backing = _receiveEndpoints.FirstOrDefault(e =>
-            e.Extend().Configuration.QueueName.EqualsOrdinal(name));
-
-        if (backing is null)
-        {
-            backing = InMemoryReceiveEndpointDescriptor.New(Context, name);
-            _receiveEndpoints.Add(backing);
-        }
-
-        var adapter = new InMemoryQueueEndpointDescriptor(backing);
-        _queueEndpoints[name] = adapter;
-        return adapter;
+        var builder = new InMemoryQueueBuilder(this, name);
+        _queueBuilders[name] = builder;
+        return builder;
     }
 
     /// <inheritdoc />
-    public IInMemoryMessagingTransportDescriptor Queue(string name, Action<IInMemoryQueueEndpointDescriptor> configure)
+    public IInMemoryMessagingTransportDescriptor Queue(string name, Action<IInMemoryQueueBuilder> configure)
     {
         var handle = Queue(name);
         configure(handle);
@@ -174,7 +163,7 @@ public sealed class InMemoryMessagingTransportDescriptor
     public IInMemoryReceiveEndpointDescriptor Endpoint(string name)
     {
         var endpoint = _receiveEndpoints.FirstOrDefault(e =>
-            e.Extend().Configuration.Name.EqualsOrdinal(name) || e.Extend().Configuration.QueueName.EqualsOrdinal(name)
+            e.Extend().Configuration.Name.EqualsOrdinal(name)
         );
 
         if (endpoint is null)

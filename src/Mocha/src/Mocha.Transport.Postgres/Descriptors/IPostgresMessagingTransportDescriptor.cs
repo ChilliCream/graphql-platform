@@ -114,23 +114,21 @@ public interface IPostgresMessagingTransportDescriptor
         where TConsumer : class, IConsumer;
 
     /// <summary>
-    /// Gets or creates the unified queue endpoint whose identity is the given queue name.
-    /// If an endpoint previously created by <c>Endpoint(name).Queue(name)</c> has the same queue
-    /// name, this call merges onto that endpoint rather than creating a second one. Calling this
-    /// method multiple times with the same name returns the same handle.
+    /// Gets or creates a queue builder whose identity is the given queue name. The builder eagerly
+    /// declares a queue in the topology and lazily creates a receive endpoint when routing methods
+    /// (Consumer, Handler, Receives, etc.) are called. Calling this method multiple times with the
+    /// same name returns the same builder.
     /// </summary>
-    /// <param name="name">The queue name. Also serves as the endpoint identity.</param>
-    /// <returns>A unified queue endpoint descriptor for further configuration.</returns>
-    IPostgresQueueEndpointDescriptor Queue(string name);
+    /// <param name="name">The queue name, which also serves as the endpoint identity.</param>
+    /// <returns>A queue builder for further configuration.</returns>
+    IPostgresQueueBuilder Queue(string name);
 
     /// <summary>
-    /// Gets or creates the unified queue endpoint whose identity is the given queue name and
-    /// applies additional configuration through the supplied delegate.
-    /// If an endpoint previously created by <c>Endpoint(name).Queue(name)</c> has the same queue
-    /// name, this call merges onto that endpoint rather than creating a second one.
+    /// Gets or creates a queue builder whose identity is the given queue name and applies
+    /// additional configuration through the supplied delegate.
     /// </summary>
-    /// <param name="name">The queue name. Also serves as the endpoint identity.</param>
-    /// <param name="configure">A delegate that configures the endpoint.</param>
+    /// <param name="name">The queue name, which also serves as the endpoint identity.</param>
+    /// <param name="configure">A delegate that configures the queue builder.</param>
     /// <returns>The transport descriptor for method chaining.</returns>
-    IPostgresMessagingTransportDescriptor Queue(string name, Action<IPostgresQueueEndpointDescriptor> configure);
+    IPostgresMessagingTransportDescriptor Queue(string name, Action<IPostgresQueueBuilder> configure);
 }

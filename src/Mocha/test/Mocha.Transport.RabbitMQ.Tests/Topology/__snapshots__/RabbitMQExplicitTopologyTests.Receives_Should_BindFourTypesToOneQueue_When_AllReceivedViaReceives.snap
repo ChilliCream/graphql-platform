@@ -54,7 +54,7 @@
       "Kind": "queue",
       "Name": "inventory",
       "AutoProvision": true,
-      "Source": "endpoint"
+      "Source": "declared"
     },
     {
       "Kind": "queue",

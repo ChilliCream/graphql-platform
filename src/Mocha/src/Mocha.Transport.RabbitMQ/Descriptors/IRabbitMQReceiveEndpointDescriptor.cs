@@ -36,36 +36,6 @@ public interface IRabbitMQReceiveEndpointDescriptor : IReceiveEndpointDescriptor
     /// <inheritdoc cref="IReceiveEndpointDescriptor{TConfiguration}.Kind" />
     new IRabbitMQReceiveEndpointDescriptor Kind(ReceiveEndpointKind kind);
 
-    /// <summary>
-    /// Sets the verbatim name of the error queue satellite for this endpoint.
-    /// The name is stored exactly as provided; no convention-based transformation is applied.
-    /// </summary>
-    /// <param name="name">The exact queue name to use for the error satellite.</param>
-    /// <returns>The descriptor for method chaining.</returns>
-    IRabbitMQReceiveEndpointDescriptor ErrorQueue(string name);
-
-    /// <summary>
-    /// Disables the error queue satellite for this endpoint.
-    /// When disabled, failed messages are not forwarded to an error queue.
-    /// </summary>
-    /// <returns>The descriptor for method chaining.</returns>
-    IRabbitMQReceiveEndpointDescriptor DisableErrorQueue();
-
-    /// <summary>
-    /// Sets the verbatim name of the skipped queue satellite for this endpoint.
-    /// The name is stored exactly as provided; no convention-based transformation is applied.
-    /// </summary>
-    /// <param name="name">The exact queue name to use for the skipped satellite.</param>
-    /// <returns>The descriptor for method chaining.</returns>
-    IRabbitMQReceiveEndpointDescriptor SkippedQueue(string name);
-
-    /// <summary>
-    /// Disables the skipped queue satellite for this endpoint.
-    /// When disabled, unrecognized messages are not forwarded to a skipped queue.
-    /// </summary>
-    /// <returns>The descriptor for method chaining.</returns>
-    IRabbitMQReceiveEndpointDescriptor DisableSkippedQueue();
-
     /// <inheritdoc cref="IReceiveEndpointDescriptor{TConfiguration}.MaxConcurrency" />
     new IRabbitMQReceiveEndpointDescriptor MaxConcurrency(int maxConcurrency);
 
@@ -74,14 +44,6 @@ public interface IRabbitMQReceiveEndpointDescriptor : IReceiveEndpointDescriptor
 
     /// <inheritdoc cref="IReceiveEndpointDescriptor{TConfiguration}.SkippedEndpoint" />
     new IRabbitMQReceiveEndpointDescriptor SkippedEndpoint(string name);
-
-    /// <summary>
-    /// Sets the RabbitMQ queue name that this endpoint will consume from, overriding the default
-    /// derived from the endpoint name.
-    /// </summary>
-    /// <param name="name">The queue name to bind to.</param>
-    /// <returns>The descriptor for method chaining.</returns>
-    IRabbitMQReceiveEndpointDescriptor Queue(string name);
 
     /// <summary>
     /// Sets the maximum number of unacknowledged messages the broker will deliver to this

@@ -30,8 +30,7 @@ public class ErrorQueueTests
             {
                 t.ConnectionString(db.ConnectionString);
                 t.Endpoint("handler-ep").Handler<ThrowingOrderHandler>().FaultEndpoint("postgres:///q/handler-q_error");
-                t.Endpoint("error-ep")
-                    .Queue("handler-q_error")
+                t.Queue("handler-q_error")
                     // we mark it as an error because only then no route will be provisioned for the
                     // spy (otherwise the normal order handler publish will also go to the spy)
                     .Kind(ReceiveEndpointKind.Error)
@@ -69,14 +68,11 @@ public class ErrorQueueTests
             .AddPostgres(t =>
             {
                 t.ConnectionString(db.ConnectionString);
-                t.DeclareQueue("payment-q");
-                t.Endpoint("payment-ep")
-                    .Queue("payment-q")
+                t.Queue("payment-q")
                     .Handler<ThrowingPaymentHandler>()
                     .FaultEndpoint("postgres:///q/payment-q_error");
                 t.DispatchEndpoint("payment-dispatch").ToQueue("payment-q").Send<ProcessPayment>();
-                t.Endpoint("payment-error-ep")
-                    .Queue("payment-q_error")
+                t.Queue("payment-q_error")
                     // we mark it as an error because only then no route will be provisioned for the
                     // spy (otherwise the normal order handler publish will also go to the spy)
                     .Kind(ReceiveEndpointKind.Error)
@@ -115,9 +111,8 @@ public class ErrorQueueTests
             {
                 t.ConnectionString(db.ConnectionString);
                 t.Endpoint("handler-ep").Handler<ThrowingOrderHandler>().FaultEndpoint("postgres:///q/handler-q_error");
-                t.Endpoint("error-ep")
+                t.Queue("handler-q_error")
                     .Consumer<ErrorSpyConsumer>()
-                    .Queue("handler-q_error")
                     // we mark it as an error because only then no route will be provisioned for the
                     // spy (otherwise the normal order handler publish will also go to the spy)
                     .Kind(ReceiveEndpointKind.Error);

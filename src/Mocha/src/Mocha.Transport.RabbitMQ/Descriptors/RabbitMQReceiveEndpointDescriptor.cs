@@ -7,27 +7,10 @@ internal sealed class RabbitMQReceiveEndpointDescriptor
     : ReceiveEndpointDescriptor<RabbitMQReceiveEndpointConfiguration>
     , IRabbitMQReceiveEndpointDescriptor
 {
-    private bool _queueIdentityPinned;
-
     private RabbitMQReceiveEndpointDescriptor(IMessagingConfigurationContext discoveryContext, string name)
         : base(discoveryContext)
     {
         Configuration = new RabbitMQReceiveEndpointConfiguration { Name = name, QueueName = name };
-    }
-
-    /// <summary>
-    /// Gets a value indicating whether this descriptor's queue identity is pinned and cannot be renamed.
-    /// A pinned descriptor was created via the unified <c>Queue(name, ...)</c> front door.
-    /// </summary>
-    internal bool IsQueueIdentityPinned => _queueIdentityPinned;
-
-    /// <summary>
-    /// Pins the queue identity so that subsequent calls to <see cref="Queue(string)"/> throw a build error.
-    /// Called by the unified <c>Queue(name, ...)</c> front door adapter after the descriptor is created.
-    /// </summary>
-    internal void PinQueueIdentity()
-    {
-        _queueIdentityPinned = true;
     }
 
     /// <inheritdoc />
@@ -132,54 +115,9 @@ internal sealed class RabbitMQReceiveEndpointDescriptor
     }
 
     /// <inheritdoc />
-    public IRabbitMQReceiveEndpointDescriptor Queue(string name)
-    {
-        if (_queueIdentityPinned)
-        {
-            throw ThrowHelper.QueueIdentityPinned(Configuration.QueueName ?? Configuration.Name ?? string.Empty);
-        }
-
-        Configuration.QueueName = name;
-
-        return this;
-    }
-
-    /// <inheritdoc />
     public IRabbitMQReceiveEndpointDescriptor MaxPrefetch(ushort maxPrefetch)
     {
         Configuration.MaxPrefetch = maxPrefetch;
-
-        return this;
-    }
-
-    /// <inheritdoc />
-    public IRabbitMQReceiveEndpointDescriptor ErrorQueue(string name)
-    {
-        Configuration.ErrorQueue.QueueName = name;
-
-        return this;
-    }
-
-    /// <inheritdoc />
-    public IRabbitMQReceiveEndpointDescriptor DisableErrorQueue()
-    {
-        Configuration.ErrorQueue.IsDisabled = true;
-
-        return this;
-    }
-
-    /// <inheritdoc />
-    public IRabbitMQReceiveEndpointDescriptor SkippedQueue(string name)
-    {
-        Configuration.SkippedQueue.QueueName = name;
-
-        return this;
-    }
-
-    /// <inheritdoc />
-    public IRabbitMQReceiveEndpointDescriptor DisableSkippedQueue()
-    {
-        Configuration.SkippedQueue.IsDisabled = true;
 
         return this;
     }

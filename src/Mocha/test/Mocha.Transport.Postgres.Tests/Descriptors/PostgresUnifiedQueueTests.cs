@@ -4,7 +4,7 @@ using Mocha.Transport.Postgres.Tests.Helpers;
 namespace Mocha.Transport.Postgres.Tests.Descriptors;
 
 /// <summary>
-/// Verifies the identity, entity-only lowering, rename guards, and convergence behavior of the
+/// Verifies the identity, entity-only lowering, and convergence behavior of the
 /// unified <c>t.Queue(name, q => ...)</c> front door on the PostgreSQL transport.
 /// </summary>
 public class PostgresUnifiedQueueTests
@@ -15,17 +15,14 @@ public class PostgresUnifiedQueueTests
     public void Queue_Should_ResolveSameEndpoint_When_EndpointSharesQueueName()
     {
         // arrange
-        // Two paths target the same queue name "orders":
-        //   1. t.Endpoint("ep").Queue("orders") explicit endpoint with a queue rename
-        //   2. t.Queue("orders") unified front door
-        // Both must converge on a single receive endpoint, not create a duplicate.
+        // Queue("orders") with a consumer must produce exactly one receive endpoint,
+        // not create a duplicate.
         var runtime = CreateRuntime(
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
             {
                 t.BindHandlersExplicitly();
-                t.Endpoint("ep").Queue("orders").Consumer<OrderSpyConsumer>();
-                t.Queue("orders").AutoBind(false);
+                t.Queue("orders").Consumer<OrderSpyConsumer>().AutoBind(false);
             });
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 
@@ -148,83 +145,57 @@ public class PostgresUnifiedQueueTests
         Assert.Contains(topology.Queues, q => q.Name == "dispatch-target");
     }
 
-    // --- Rename guards ---
+    // --- Identity guards ---
 
     [Fact]
-    public void Queue_Should_Throw_When_QueueNameChangedAfterPinned()
+    public void Queue_Should_SetQueueNameAsEndpointName_When_NoExplicitEndpointName()
     {
         // arrange
-        // Once an identity-pinned Queue() handle exists, calling Queue("other-name") on the
-        // returned descriptor must fail at build time, not silently rename the queue.
-        void Build()
-        {
-            CreateRuntime(
-                b => { },
-                t =>
-                {
-                    t.BindHandlersExplicitly();
-                    IPostgresReceiveEndpointDescriptor handle = t.Queue("orders");
-
-                    // downcast to the base interface and attempt a rename
-                    handle.Queue("different-name");
-                });
-        }
+        var runtime = CreateRuntime(
+            b => b.AddConsumer<OrderSpyConsumer>(),
+            t =>
+            {
+                t.BindHandlersExplicitly();
+                t.Queue("my-queue").Consumer<OrderSpyConsumer>();
+            });
+        var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 
         // act
-        var exception = Assert.ThrowsAny<InvalidOperationException>(Build);
+        var endpoint = transport.ReceiveEndpoints
+            .OfType<PostgresReceiveEndpoint>()
+            .SingleOrDefault(e => e.Queue.Name == "my-queue");
 
-        // assert
-        Assert.Contains("orders", exception.Message);
-    }
-
-    [Fact]
-    public void Queue_Should_Throw_When_ObsoleteQueueMethodCalledOnFrontDoor()
-    {
-        // arrange
-        // The IPostgresQueueEndpointDescriptor.Queue(string) method is decorated with
-        // [Obsolete(error: true)]. A runtime call through the concrete adapter must also throw.
-        void Build()
-        {
-            CreateRuntime(
-                b => { },
-                t =>
-                {
-                    t.BindHandlersExplicitly();
-                    var handle = t.Queue("orders");
-
-                    // call the guarded method via the adapter's explicit guard
-                    ((IPostgresReceiveEndpointDescriptor)handle).Queue("should-throw");
-                });
-        }
-
-        // act
-        var exception = Assert.ThrowsAny<InvalidOperationException>(Build);
-
-        // assert: the identity-pinned queue name is mentioned in the error
-        Assert.Contains("orders", exception.Message);
+        // assert: the builder used the queue name as the endpoint name
+        Assert.NotNull(endpoint);
+        Assert.Equal("my-queue", endpoint.Name);
     }
 
     // --- Build errors ---
 
     [Fact]
-    public void Queue_Should_Throw_When_TwoEndpointsShareSameQueueName()
+    public void Queue_Should_MergeWithExistingEndpoint_When_SameNameCalledTwice()
     {
         // arrange
-        void Build()
-        {
-            CreateRuntime(
-                b => b.AddConsumer<OrderSpyConsumer>(),
-                t =>
-                {
-                    t.BindHandlersExplicitly();
-                    t.Queue("orders").Consumer<OrderSpyConsumer>();
-                    // A second endpoint targeting the same queue name "orders" must be rejected
-                    t.Endpoint("second").Queue("orders").Consumer<OrderSpyConsumer>();
-                });
-        }
+        // Calling Queue("orders") when Endpoint("orders") already created an endpoint with
+        // that name must merge onto the existing endpoint, not create a second one.
+        var runtime = CreateRuntime(
+            b => b.AddConsumer<OrderSpyConsumer>(),
+            t =>
+            {
+                t.BindHandlersExplicitly();
+                t.Endpoint("orders");
+                t.Queue("orders").Consumer<OrderSpyConsumer>();
+            });
+        var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 
-        // act & assert: two endpoints sharing one queue name is a build error
-        Assert.ThrowsAny<InvalidOperationException>(Build);
+        // act
+        var endpoints = transport.ReceiveEndpoints
+            .OfType<PostgresReceiveEndpoint>()
+            .Where(e => e.Queue.Name == "orders")
+            .ToList();
+
+        // assert: exactly one endpoint, not two
+        Assert.Single(endpoints);
     }
 
     [Fact]

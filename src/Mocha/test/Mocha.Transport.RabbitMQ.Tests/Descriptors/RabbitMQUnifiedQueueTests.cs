@@ -6,8 +6,8 @@ using Mocha.Transport.RabbitMQ.Tests.Helpers;
 namespace Mocha.Transport.RabbitMQ.Tests.Descriptors;
 
 /// <summary>
-/// Verifies the identity, entity-only lowering, rename guards, three-way convergence, saga
-/// placement, and axis-A claim behavior of the unified <c>t.Queue(name, q => ...)</c> front door.
+/// Verifies the identity, entity-only lowering, convergence, saga placement, and axis-A claim
+/// behavior of the unified <c>t.Queue(name, q => ...)</c> front door.
 /// </summary>
 public class RabbitMQUnifiedQueueTests
 {
@@ -138,62 +138,6 @@ public class RabbitMQUnifiedQueueTests
         Assert.NotNull(endpoint);
     }
 
-    // --- Rename guards ---
-
-    [Fact]
-    public void Queue_Should_Throw_When_QueueNameChangedAfterPinned()
-    {
-        // arrange
-        // Once an identity-pinned Queue() handle exists, calling Queue("other-name") on the
-        // returned descriptor must fail at build time, not silently rename the queue.
-        void Build()
-        {
-            CreateRuntime(
-                b => { },
-                t =>
-                {
-                    t.BindHandlersExplicitly();
-                    IRabbitMQReceiveEndpointDescriptor handle = t.Queue("orders");
-
-                    // downcast to the base interface and attempt a rename
-                    handle.Queue("different-name");
-                });
-        }
-
-        // act
-        var exception = Assert.ThrowsAny<InvalidOperationException>(Build);
-
-        // assert
-        Assert.Contains("orders", exception.Message);
-    }
-
-    [Fact]
-    public void Queue_Should_Throw_When_ObsoleteQueueMethodCalledOnFrontDoor()
-    {
-        // arrange
-        // The IRabbitMQQueueEndpointDescriptor.Queue(string) method is decorated with
-        // [Obsolete(error: true)]. A runtime call through the concrete adapter must also throw.
-        void Build()
-        {
-            CreateRuntime(
-                b => { },
-                t =>
-                {
-                    t.BindHandlersExplicitly();
-                    var handle = t.Queue("orders");
-
-                    // call the guarded method via the adapter's explicit guard
-                    ((IRabbitMQReceiveEndpointDescriptor)handle).Queue("should-throw");
-                });
-        }
-
-        // act
-        var exception = Assert.ThrowsAny<InvalidOperationException>(Build);
-
-        // assert: the identity-pinned queue name is mentioned in the error
-        Assert.Contains("orders", exception.Message);
-    }
-
     // --- Convergence ---
 
     [Fact]
@@ -201,7 +145,7 @@ public class RabbitMQUnifiedQueueTests
     {
         // arrange
         // Two paths target the same queue name "orders":
-        //   1. t.Queue("orders") unified front door (the primary surface, creates a pinned adapter)
+        //   1. t.Queue("orders") unified front door (the primary surface, creates a builder)
         //   2. t.DeclareQueue("orders") at transport level (declared provenance)
         // The W2b AddQueue merge rules must converge both into exactly one queue entity with no
         // exception. The second DeclareQueue call below also verifies descriptor-level deduplication.
@@ -316,9 +260,9 @@ public class RabbitMQUnifiedQueueTests
     public void Queue_Should_ApplyQueueShapeArguments_When_WithArgumentCalled()
     {
         // arrange
-        // WithArgument on the unified handle stores the argument in the endpoint configuration.
-        // For entity-only queues the argument propagates to the lowered topology queue entity;
-        // for consuming endpoints it flows through the endpoint configuration's QueueArguments.
+        // WithArgument on the unified handle stores the argument on the queue descriptor.
+        // For entity-only queues the argument appears on the topology queue entity;
+        // for consuming endpoints it flows through the queue descriptor's arguments.
         var runtime = CreateRuntime(
             b => { },
             t =>
@@ -343,7 +287,7 @@ public class RabbitMQUnifiedQueueTests
     {
         // arrange
         // The ErrorQueue(name) verb on the unified handle must configure the satellite with
-        // the verbatim name, just as it does via Endpoint().Queue().ErrorQueue().
+        // the verbatim name.
         var runtime = CreateRuntime(
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>

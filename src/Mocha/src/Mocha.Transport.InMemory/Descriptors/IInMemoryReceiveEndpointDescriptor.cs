@@ -45,13 +45,6 @@ public interface IInMemoryReceiveEndpointDescriptor : IReceiveEndpointDescriptor
     /// <inheritdoc />
     new IInMemoryReceiveEndpointDescriptor MaxConcurrency(int maxConcurrency);
 
-    /// <summary>
-    /// Sets the name of the in-memory queue this endpoint will consume from.
-    /// </summary>
-    /// <param name="name">The queue name.</param>
-    /// <returns>The descriptor for method chaining.</returns>
-    IInMemoryReceiveEndpointDescriptor Queue(string name);
-
     /// <inheritdoc />
     new IInMemoryReceiveEndpointDescriptor UseReceive(
         ReceiveMiddlewareConfiguration configuration,

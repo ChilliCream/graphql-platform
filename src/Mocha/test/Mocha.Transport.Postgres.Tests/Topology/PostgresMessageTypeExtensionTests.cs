@@ -71,7 +71,5 @@ public class PostgresMessageTypeExtensionTests
             DestinationUri = address;
             return this;
         }
-
-        public IOutboundRouteDescriptor OnTransport(string name) => this;
     }
 }

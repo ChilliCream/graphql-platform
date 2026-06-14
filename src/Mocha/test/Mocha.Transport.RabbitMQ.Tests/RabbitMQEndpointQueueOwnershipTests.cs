@@ -22,8 +22,7 @@ public class RabbitMQEndpointQueueOwnershipTests
             t =>
             {
                 t.BindHandlersExplicitly();
-                t.DeclareQueue("orders").AutoProvision(true);
-                t.Endpoint("orders").Queue("orders").Consumer<OrderSpyConsumer>();
+                t.Queue("orders").AutoProvision(true).Consumer<OrderSpyConsumer>();
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
@@ -38,16 +37,14 @@ public class RabbitMQEndpointQueueOwnershipTests
     public void Describe_Should_NotThrow_When_DeclareQueueAndEndpointShareName()
     {
         // arrange
-        // Scenario 01 B1: both DeclareQueue and an Endpoint call refer to the same queue name.
-        // The interim fold (W1.02) must prevent a second AddQueue from being attempted; the
-        // resulting topology must contain exactly one queue and one set of satellite queues.
+        // Both configurations target the same queue via the Queue() builder. The resulting
+        // topology must contain exactly one queue and one set of satellite queues.
         var withDeclare = CreateRuntime(
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
             {
                 t.BindHandlersExplicitly();
-                t.DeclareQueue("orders").AutoProvision(true);
-                t.Endpoint("orders").Queue("orders").Consumer<OrderSpyConsumer>();
+                t.Queue("orders").AutoProvision(true).Consumer<OrderSpyConsumer>();
             });
 
         var withoutDeclare = CreateRuntime(
@@ -55,7 +52,7 @@ public class RabbitMQEndpointQueueOwnershipTests
             t =>
             {
                 t.BindHandlersExplicitly();
-                t.Endpoint("orders").Queue("orders").Consumer<OrderSpyConsumer>();
+                t.Queue("orders").Consumer<OrderSpyConsumer>();
             });
 
         var transportWithDeclare = withDeclare.Transports.OfType<RabbitMQMessagingTransport>().Single();
@@ -86,8 +83,7 @@ public class RabbitMQEndpointQueueOwnershipTests
             t =>
             {
                 t.BindHandlersExplicitly();
-                t.DeclareQueue("orders").AutoProvision(true);
-                t.Endpoint("orders").Queue("orders").Consumer<OrderSpyConsumer>();
+                t.Queue("orders").AutoProvision(true).Consumer<OrderSpyConsumer>();
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
         var topology = (RabbitMQMessagingTopology)transport.Topology;
@@ -111,8 +107,7 @@ public class RabbitMQEndpointQueueOwnershipTests
             t =>
             {
                 t.BindHandlersExplicitly();
-                t.DeclareQueue("orders").WithArgument("x-dead-letter-exchange", "orders_dlx");
-                t.Endpoint("orders").Queue("orders").Consumer<OrderSpyConsumer>();
+                t.Queue("orders").WithArgument("x-dead-letter-exchange", "orders_dlx").Consumer<OrderSpyConsumer>();
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
         var topology = (RabbitMQMessagingTopology)transport.Topology;

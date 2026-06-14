@@ -10,10 +10,7 @@ public class PostgresReceiveEndpointTests
     {
         // arrange
         var runtime = CreateRuntime(t =>
-        {
-            t.DeclareQueue("my-q");
-            t.Endpoint("ep").Queue("my-q").Handler<OrderCreatedHandler>();
-        });
+            t.Queue("my-q").Handler<OrderCreatedHandler>());
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 
         // act
@@ -30,9 +27,8 @@ public class PostgresReceiveEndpointTests
         // arrange
         var runtime = CreateRuntime(t =>
         {
-            t.DeclareQueue("q");
             t.DeclareQueue("q_error");
-            t.Endpoint("ep").Queue("q").Handler<OrderCreatedHandler>().FaultEndpoint("postgres:///q/q_error");
+            t.Queue("q").Handler<OrderCreatedHandler>().FaultEndpoint("postgres:///q/q_error");
         });
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 
@@ -49,9 +45,8 @@ public class PostgresReceiveEndpointTests
         // arrange
         var runtime = CreateRuntime(t =>
         {
-            t.DeclareQueue("q");
             t.DeclareQueue("q_skipped");
-            t.Endpoint("ep").Queue("q").Handler<OrderCreatedHandler>().SkippedEndpoint("postgres:///q/q_skipped");
+            t.Queue("q").Handler<OrderCreatedHandler>().SkippedEndpoint("postgres:///q/q_skipped");
         });
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 
@@ -69,7 +64,7 @@ public class PostgresReceiveEndpointTests
         var runtime = CreateRuntime(t =>
         {
             t.DeclareQueue("err-q");
-            t.Endpoint("err-ep").Queue("err-q").Kind(ReceiveEndpointKind.Error);
+            t.Endpoint("err-q").Kind(ReceiveEndpointKind.Error);
         });
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 
@@ -85,10 +80,7 @@ public class PostgresReceiveEndpointTests
     {
         // arrange
         var runtime = CreateRuntime(t =>
-        {
-            t.DeclareQueue("my-q");
-            t.Endpoint("ep").Queue("my-q").Handler<OrderCreatedHandler>();
-        });
+            t.Queue("my-q").Handler<OrderCreatedHandler>());
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 
         // act
@@ -104,10 +96,7 @@ public class PostgresReceiveEndpointTests
     {
         // arrange
         var runtime = CreateRuntime(t =>
-        {
-            t.DeclareQueue("my-q");
-            t.Endpoint("ep").Queue("my-q").Handler<OrderCreatedHandler>();
-        });
+            t.Queue("my-q").Handler<OrderCreatedHandler>());
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 
         // act

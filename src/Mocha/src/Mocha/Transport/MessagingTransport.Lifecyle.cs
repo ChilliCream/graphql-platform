@@ -312,13 +312,6 @@ public abstract partial class MessagingTransport
             if (route.Endpoint is null
                 && route.Destination is null)
             {
-                // Skip routes explicitly targeting another transport so they are connected
-                // by the correct transport's DiscoverEndpoints pass instead.
-                if (route.TransportName is { } transportName && transportName != Name)
-                {
-                    continue;
-                }
-
                 ConnectRoute(context, route);
             }
         }

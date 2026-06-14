@@ -35,7 +35,7 @@ public class ExplicitTopologyTests
                 t.DeclareQueue("custom-q");
                 t.DeclareBinding("custom-ex", "custom-q");
 
-                t.Endpoint("custom-ep").Consumer<OrderSpyConsumer>().Queue("custom-q");
+                t.Queue("custom-q").Consumer<OrderSpyConsumer>();
 
                 t.DispatchEndpoint("custom-dispatch").ToExchange("custom-ex").Publish<OrderCreated>();
             })
@@ -72,7 +72,7 @@ public class ExplicitTopologyTests
                 t.DeclareQueue("custom-q");
                 t.DeclareBinding("custom-ex", "custom-q");
 
-                t.Endpoint("custom-ep").Consumer<OrderSpyConsumer>().Queue("custom-q");
+                t.Queue("custom-q").Consumer<OrderSpyConsumer>();
 
                 t.DispatchEndpoint("custom-dispatch").ToExchange("custom-ex").Publish<OrderCreated>();
             })
@@ -109,7 +109,7 @@ public class ExplicitTopologyTests
                 t.DeclareQueue("custom-q");
                 t.DeclareBinding("custom-ex", "custom-q");
 
-                t.Endpoint("custom-ep").Queue("custom-q")
+                t.Queue("custom-q")
                     .Receives<OrderCreated>();
 
                 t.DispatchEndpoint("custom-dispatch").ToExchange("custom-ex").Publish<OrderCreated>();
@@ -147,11 +147,10 @@ public class ExplicitTopologyTests
             .AddRabbitMQ(t =>
             {
                 t.BindHandlersExplicitly();
-                t.Endpoint("main-ep")
+                t.Queue("main-ep")
                     .Handler<ThrowingOrderHandler>()
                     .ErrorQueue("custom-orders-error");
-                t.Endpoint("error-ep")
-                    .Queue("custom-orders-error")
+                t.Queue("custom-orders-error")
                     .Kind(ReceiveEndpointKind.Error)
                     .Consumer<FaultSpyConsumer>();
             })
@@ -186,14 +185,12 @@ public class ExplicitTopologyTests
             .AddRabbitMQ(t =>
             {
                 t.BindHandlersExplicitly();
-                t.Endpoint("main-ep")
+                t.Queue("main-ep")
                     .Handler<ThrowingOrderHandler>()
                     .DisableErrorQueue();
 
                 // Set up the spy on the conventional error queue name to prove nothing arrives there.
-                t.DeclareQueue("main-ep_error");
-                t.Endpoint("error-ep")
-                    .Queue("main-ep_error")
+                t.Queue("main-ep_error")
                     .Kind(ReceiveEndpointKind.Error)
                     .Consumer<FaultSpyConsumer>();
             })
@@ -248,11 +245,10 @@ public class ExplicitTopologyTests
     public async Task Queue_Endpoint_DeclareQueue_Should_ProvisionOneQueue_When_SameName()
     {
         // arrange
-        // Three configuration paths all target the same queue name "orders":
+        // Two configuration paths target the same queue name "orders":
         //   1. DeclareQueue("orders").AutoProvision(true) at transport level
-        //   2. Endpoint("ep").Queue("orders").Consumer<OrderSpyConsumer>() at endpoint level
-        //   3. DeclareQueue("orders").AutoProvision(false) at transport level (second call)
-        // The entity-identity merge (W2b.05) converges all three to one entity. This test
+        //   2. Queue("orders").Consumer<OrderSpyConsumer>() via the queue builder
+        // The entity-identity merge converges both to one entity. This test
         // proves that exactly one "orders" queue is provisioned on the live broker and that
         // a message published to the dispatch exchange reaches the consumer.
         var capture = new OrderCapture();
@@ -268,8 +264,7 @@ public class ExplicitTopologyTests
                 t.DeclareExchange("orders-ex");
                 t.DeclareQueue("orders").AutoProvision(true);
                 t.DeclareBinding("orders-ex", "orders");
-                t.Endpoint("ep").Consumer<OrderSpyConsumer>().Queue("orders");
-                t.DeclareQueue("orders").AutoProvision(false);
+                t.Queue("orders").Consumer<OrderSpyConsumer>();
                 t.DispatchEndpoint("orders-dispatch").ToExchange("orders-ex").Publish<OrderCreated>();
             })
             .BuildTestBusAsync();
@@ -314,8 +309,7 @@ public class ExplicitTopologyTests
             .AddRabbitMQ(t =>
             {
                 t.BindHandlersExplicitly();
-                t.Endpoint("orders")
-                    .Queue("orders")
+                t.Queue("orders")
                     .Consumer<OrderSpyConsumer>()
                     .AutoBind(false)
                     .BindFrom(new Uri("exchange:bind-source-exchange"));
