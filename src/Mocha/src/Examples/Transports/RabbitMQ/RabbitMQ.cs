@@ -34,8 +34,7 @@ builder.Services
         // Configure a receive endpoint with a quorum queue for production use.
         // Quorum queues replicate across nodes via Raft consensus and are the
         // recommended queue type since RabbitMQ 4.0 (classic mirrored queues removed).
-        transport.Endpoint("order-processing")
-            .Queue("orders.processing")
+        transport.Queue("orders.processing")
             // MaxPrefetch controls how many unacknowledged messages RabbitMQ
             // delivers at once. For quorum queues, avoid prefetch=1 as it
             // starves consumers while acknowledgements flow through consensus.

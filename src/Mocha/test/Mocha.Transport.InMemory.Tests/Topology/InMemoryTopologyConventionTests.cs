@@ -286,8 +286,7 @@ public class InMemoryTopologyConventionTests
             t =>
             {
                 t.BindHandlersExplicitly();
-                t.DeclareQueue("orders");
-                t.Endpoint("orders").Queue("orders")
+                t.Queue("orders")
                     .Consumer<OrderSpyConsumer>()
                     .Receives<OrderCreated>(r => r.AutoBind(false));
             });
@@ -312,8 +311,7 @@ public class InMemoryTopologyConventionTests
             t =>
             {
                 t.BindHandlersExplicitly();
-                t.DeclareQueue("orders");
-                t.Endpoint("orders").Queue("orders")
+                t.Queue("orders")
                     .Consumer<OrderSpyConsumer>()
                     .AutoBind(false);
             });

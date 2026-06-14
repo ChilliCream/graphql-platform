@@ -28,9 +28,8 @@ public class PublishOptionsEndpointTests
             .AddInMemory(t =>
             {
                 // Bind the handler explicitly to "order-target" queue.
-                t.Endpoint("order-target-ep")
-                    .Handler<OrderCreatedHandler>()
-                    .Queue("order-target");
+                t.Queue("order-target")
+                    .Handler<OrderCreatedHandler>();
 
                 // Declare a dispatch endpoint so the bus resolves queue://order-target
                 // without a topic hop.

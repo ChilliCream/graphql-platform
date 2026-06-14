@@ -193,19 +193,14 @@ internal static class ThrowHelper
     public static Exception TwoReceiveEndpointsShareOneQueue(string queueName, string endpoint1, string endpoint2)
         => new InvalidOperationException(
             $"Queue '{queueName}' is claimed by both receive endpoint '{endpoint1}' and receive endpoint '{endpoint2}'. "
-            + "Each queue can have at most one receive endpoint. Use 't.Queue(name, q => ...)' to define the endpoint and queue together, "
-            + "or add the queue to one endpoint via 'Endpoint(name).Queue(name, ...)' and declare additional properties via 'DeclareQueue(name)' if needed.");
+            + "Each queue can have at most one receive endpoint. Configure it via 't.Queue(name, q => ...)' or 't.Queue(name)...' "
+            + "and declare extra queue shape via 't.DeclareQueue(name)' if needed.");
 
     public static Exception SatelliteRequiresConsumingEndpoint(string satelliteType, string queueName)
         => new InvalidOperationException(
             $"Satellite queue '{queueName}' ({satelliteType}) cannot be configured on an entity-only queue. "
             + "Satellite queues (error, skipped) can only be configured on a receive endpoint with at least one consumer or Receives<T> declaration. "
             + "Add a consumer via 'Handler<T>', 'Consumer<T>', or 'Receives<T>' to make this a consuming endpoint.");
-
-    public static Exception QueueIdentityPinned(string queueName)
-        => new InvalidOperationException(
-            $"Queue '{queueName}' identity was pinned when first created. Attempting to rename this queue after creation is not allowed. "
-            + "Queue names are immutable once established. If you need a different queue, create a new descriptor without renaming.");
 
     public static Exception MultipleDefaultTransports(params string[] transportNames)
         => new InvalidOperationException(

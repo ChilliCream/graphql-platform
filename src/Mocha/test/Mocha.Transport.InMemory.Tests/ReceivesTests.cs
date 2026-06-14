@@ -17,9 +17,7 @@ public class ReceivesTests
             .AddInMemory(t =>
             {
                 t.BindHandlersExplicitly();
-                t.DeclareQueue("orders");
-                t.Endpoint("orders").Queue("orders")
-                    .Receives<OrderCreated>();
+                t.Queue("orders").Receives<OrderCreated>();
             })
             .BuildRuntime();
         var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
@@ -48,9 +46,7 @@ public class ReceivesTests
             .AddInMemory(t =>
             {
                 t.BindHandlersExplicitly();
-                t.DeclareQueue("orders");
-                t.Endpoint("orders").Queue("orders")
-                    .Receives<OrderCreated>();
+                t.Queue("orders").Receives<OrderCreated>();
             })
             .BuildRuntime();
         var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
@@ -77,12 +73,8 @@ public class ReceivesTests
             .AddInMemory(t =>
             {
                 t.BindHandlersExplicitly();
-                t.DeclareQueue("orders-primary");
-                t.DeclareQueue("orders-backup");
-                t.Endpoint("primary").Queue("orders-primary")
-                    .Receives<OrderCreated>();
-                t.Endpoint("backup").Queue("orders-backup")
-                    .Receives<OrderCreated>();
+                t.Queue("orders-primary").Receives<OrderCreated>();
+                t.Queue("orders-backup").Receives<OrderCreated>();
             })
             .BuildRuntime();
         var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
@@ -90,10 +82,10 @@ public class ReceivesTests
         // assert
         var primaryEndpoint = transport.ReceiveEndpoints
             .OfType<InMemoryReceiveEndpoint>()
-            .Single(e => e.Name == "primary");
+            .Single(e => e.Name == "orders-primary");
         var backupEndpoint = transport.ReceiveEndpoints
             .OfType<InMemoryReceiveEndpoint>()
-            .Single(e => e.Name == "backup");
+            .Single(e => e.Name == "orders-backup");
 
         var routes = runtime.Router.InboundRoutes
             .Where(r => r.MessageType?.RuntimeType == typeof(OrderCreated))
@@ -113,9 +105,7 @@ public class ReceivesTests
                 .AddInMemory(t =>
                 {
                     t.BindHandlersExplicitly();
-                    t.DeclareQueue("orders");
-                    t.Endpoint("orders").Queue("orders")
-                        .Receives<OrderCreated>();
+                    t.Queue("orders").Receives<OrderCreated>();
                 })
                 .BuildRuntime());
 
@@ -138,8 +128,7 @@ public class ReceivesTests
             .AddInMemory(t =>
             {
                 t.BindHandlersExplicitly();
-                t.DeclareQueue("orders");
-                t.Endpoint("orders").Queue("orders")
+                t.Queue("orders")
                     .Receives<OrderCreated>(r => r.BindFrom(new Uri("topic:orders")));
             })
             .BuildRuntime();
@@ -167,9 +156,7 @@ public class ReceivesTests
                 .AddInMemory(t =>
                 {
                     t.BindHandlersExplicitly();
-                    t.DeclareQueue("orders");
-                    t.Endpoint("orders").Queue("orders")
-                        .Receives<OrderCreated>();
+                    t.Queue("orders").Receives<OrderCreated>();
                 })
                 .BuildRuntime());
 
@@ -187,12 +174,8 @@ public class ReceivesTests
             .AddInMemory(t =>
             {
                 t.BindHandlersExplicitly();
-                t.DeclareQueue("orders-a");
-                t.DeclareQueue("orders-b");
-                t.Endpoint("endpoint-a").Queue("orders-a")
-                    .Consumer<TestOrderConsumer>();
-                t.Endpoint("endpoint-b").Queue("orders-b")
-                    .Consumer<TestOrderConsumer>();
+                t.Queue("orders-a").Consumer<TestOrderConsumer>();
+                t.Queue("orders-b").Consumer<TestOrderConsumer>();
             })
             .BuildRuntime();
         var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
@@ -200,10 +183,10 @@ public class ReceivesTests
         // assert
         var endpointA = transport.ReceiveEndpoints
             .OfType<InMemoryReceiveEndpoint>()
-            .Single(e => e.Name == "endpoint-a");
+            .Single(e => e.Name == "orders-a");
         var endpointB = transport.ReceiveEndpoints
             .OfType<InMemoryReceiveEndpoint>()
-            .Single(e => e.Name == "endpoint-b");
+            .Single(e => e.Name == "orders-b");
 
         var routes = runtime.Router.InboundRoutes
             .Where(r => r.Consumer?.Identity == typeof(TestOrderConsumer))
@@ -226,9 +209,7 @@ public class ReceivesTests
             .AddInMemory(t =>
             {
                 t.BindHandlersExplicitly();
-                t.DeclareQueue("orders");
-                t.Endpoint("orders").Queue("orders")
-                    .Receives<OrderCreated>();
+                t.Queue("orders").Receives<OrderCreated>();
             })
             .BuildServiceProvider();
 
@@ -255,12 +236,9 @@ public class ReceivesTests
             .AddInMemory(t =>
             {
                 t.BindHandlersExplicitly();
-                t.DeclareQueue("orders-1");
-                t.DeclareQueue("orders-2");
-                t.DeclareQueue("orders-3");
-                t.Endpoint("e1").Queue("orders-1").Receives<OrderCreated>();
-                t.Endpoint("e2").Queue("orders-2").Receives<OrderCreated>();
-                t.Endpoint("e3").Queue("orders-3").Receives<OrderCreated>();
+                t.Queue("orders-1").Receives<OrderCreated>();
+                t.Queue("orders-2").Receives<OrderCreated>();
+                t.Queue("orders-3").Receives<OrderCreated>();
             })
             .BuildRuntime();
 
@@ -282,10 +260,8 @@ public class ReceivesTests
             .AddInMemory(t =>
             {
                 t.BindHandlersExplicitly();
-                t.DeclareQueue("orders-primary");
-                t.DeclareQueue("orders-backup");
-                t.Endpoint("primary").Queue("orders-primary").Receives<OrderCreated>();
-                t.Endpoint("backup").Queue("orders-backup").Receives<OrderCreated>();
+                t.Queue("orders-primary").Receives<OrderCreated>();
+                t.Queue("orders-backup").Receives<OrderCreated>();
             })
             .BuildRuntime();
 
@@ -310,10 +286,8 @@ public class ReceivesTests
             .AddInMemory(t =>
             {
                 t.BindHandlersExplicitly();
-                t.DeclareQueue("orders-primary");
-                t.DeclareQueue("orders-backup");
-                t.Endpoint("primary").Queue("orders-primary").Receives<OrderCreated>();
-                t.Endpoint("backup").Queue("orders-backup").Receives<OrderCreated>();
+                t.Queue("orders-primary").Receives<OrderCreated>();
+                t.Queue("orders-backup").Receives<OrderCreated>();
             })
             .BuildServiceProvider();
 
@@ -344,9 +318,7 @@ public class ReceivesTests
                 .AddInMemory(t =>
                 {
                     t.BindHandlersExplicitly();
-                    t.DeclareQueue("orders");
-                    t.Endpoint("orders").Queue("orders")
-                        .Receives<OrderStatusResponse>();
+                    t.Queue("orders").Receives<OrderStatusResponse>();
                 })
                 .BuildRuntime());
 
@@ -372,9 +344,7 @@ public class ReceivesTests
                 .AddInMemory(t =>
                 {
                     t.BindHandlersExplicitly();
-                    t.DeclareQueue("orders");
-                    t.Endpoint("orders").Queue("orders")
-                        .Receives<StockInfoResult>();
+                    t.Queue("orders").Receives<StockInfoResult>();
                 })
                 .BuildRuntime());
 
@@ -397,9 +367,7 @@ public class ReceivesTests
             .AddInMemory(t =>
             {
                 t.BindHandlersExplicitly();
-                t.DeclareQueue("orders");
-                t.Endpoint("orders").Queue("orders")
-                    .Receives<OrderCreated>();
+                t.Queue("orders").Receives<OrderCreated>();
             })
             .BuildRuntime();
 
@@ -425,8 +393,7 @@ public class ReceivesTests
             .AddInMemory(t =>
             {
                 t.BindHandlersExplicitly();
-                t.DeclareQueue("orders");
-                t.Endpoint("orders").Queue("orders")
+                t.Queue("orders")
                     .Receives<OrderCreated>()
                     .AutoBind(false);
             })
@@ -458,8 +425,7 @@ public class ReceivesTests
             .AddInMemory(t =>
             {
                 t.BindHandlersExplicitly();
-                t.DeclareQueue("orders");
-                t.Endpoint("orders").Queue("orders")
+                t.Queue("orders")
                     .Receives<OrderCreated>()
                     .AutoBind(false)
                     .BindFrom(new Uri("topic:order-created"));

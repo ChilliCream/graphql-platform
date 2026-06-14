@@ -203,9 +203,8 @@ public class InMemoryHandlerClaimTests
             .AddInMemory(t =>
             {
                 t.BindHandlersExplicitly();
-                t.DeclareQueue("payment-q");
                 t.DeclareQueue("my-queue");
-                t.Endpoint("payment-endpoint").Queue("payment-q").Handler<ProcessPaymentHandler>();
+                t.Queue("payment-q").Handler<ProcessPaymentHandler>();
             })
             .BuildRuntime();
 

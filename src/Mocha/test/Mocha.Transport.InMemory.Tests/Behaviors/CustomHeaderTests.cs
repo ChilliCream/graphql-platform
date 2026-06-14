@@ -56,14 +56,12 @@ public class CustomHeaderTests
             .AddConsumer<PaymentHeaderSpyConsumer>()
             .AddInMemory(t =>
             {
-                t.Endpoint("payment-ep")
+                t.Queue("payment-q")
                     .Handler<ThrowingPaymentHandler>()
-                    .Queue("payment-q")
                     .FaultEndpoint("memory:///q/payment-q_error");
 
-                t.Endpoint("error-ep")
+                t.Queue("payment-q_error")
                     .Consumer<PaymentHeaderSpyConsumer>()
-                    .Queue("payment-q_error")
                     .Kind(ReceiveEndpointKind.Error);
 
                 t.DispatchEndpoint("payment-dispatch").ToQueue("payment-q").Send<ProcessPayment>();
