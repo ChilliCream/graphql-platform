@@ -15,6 +15,7 @@ internal sealed class ScheduledMessageWorker(
     ScheduledMessageDispatcher dispatcher)
     : IHostedService
 {
+    private readonly object _lock = new();
     private NpgsqlDataSource? _dataSource;
     private ContinuousTask? _task;
 
@@ -23,16 +24,18 @@ internal sealed class ScheduledMessageWorker(
     /// </summary>
     /// <param name="cancellationToken">A token that signals when startup should be aborted.</param>
     /// <returns>A completed task once the background loop has been initiated.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if the worker is already running.</exception>
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        if (_task is not null)
+        lock (_lock)
         {
-            throw new InvalidOperationException("The worker is already running.");
-        }
+            if (_task is not null)
+            {
+                return Task.CompletedTask;
+            }
 
-        _dataSource = NpgsqlDataSource.Create(options.ConnectionString);
-        _task = new ContinuousTask(ProcessAsync);
+            _dataSource = NpgsqlDataSource.Create(options.ConnectionString);
+            _task = new ContinuousTask(ProcessAsync);
+        }
 
         return Task.CompletedTask;
     }
@@ -43,13 +46,20 @@ internal sealed class ScheduledMessageWorker(
     /// <param name="cancellationToken">A token that signals when shutdown should be forced.</param>
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        if (_task is null)
+        ContinuousTask? task;
+
+        lock (_lock)
+        {
+            task = _task;
+            _task = null;
+        }
+
+        if (task is null)
         {
             return;
         }
 
-        await _task.DisposeAsync();
-        _task = null;
+        await task.DisposeAsync();
 
         if (_dataSource is not null)
         {

@@ -26,6 +26,23 @@ public sealed class OutboxServiceRegistrationTests
     }
 
     [Fact]
+    public async Task StartAsync_Should_NotThrow_When_CalledMultipleTimes()
+    {
+        // arrange
+        await using var provider = BuildProvider();
+        var worker = provider.GetServices<IHostedService>()
+            .OfType<PostgresMessageBusOutboxWorker>()
+            .Single();
+
+        // act
+        await worker.StartAsync(CancellationToken.None);
+        await worker.StartAsync(CancellationToken.None);
+
+        // assert
+        await worker.StopAsync(CancellationToken.None);
+    }
+
+    [Fact]
     public async Task UsePostgresOutbox_Should_RegisterScopedOutbox_When_Called()
     {
         // Arrange
