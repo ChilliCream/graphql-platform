@@ -55,17 +55,10 @@
     <CreateHardLinksForCopyFilesToOutputDirectoryIfPossible>true</CreateHardLinksForCopyFilesToOutputDirectoryIfPossible>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(DOTNET_LOCAL_DEV)' == '1'">
-    <_Arch>$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant())</_Arch>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(DOTNET_LOCAL_DEV)' == '1' AND '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' == 'true'">
-    <RuntimeIdentifier>win-$(_Arch)</RuntimeIdentifier>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(DOTNET_LOCAL_DEV)' == '1' AND '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' == 'true'">
-    <RuntimeIdentifier>linux-$(_Arch)</RuntimeIdentifier>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(DOTNET_LOCAL_DEV)' == '1' AND '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' == 'true'">
-    <RuntimeIdentifier>osx-$(_Arch)</RuntimeIdentifier>
+  <PropertyGroup Condition="'$(DOTNET_LOCAL_DEV)' == '1' AND '$(RuntimeIdentifier)' == '' AND '$(RuntimeIdentifiers)' == ''">
+    <RuntimeIdentifier>$([System.Runtime.InteropServices.RuntimeInformation]::RuntimeIdentifier)</RuntimeIdentifier>
+    <SelfContained>false</SelfContained>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(PackageIcon)' != ''">
