@@ -38,14 +38,62 @@ interface SwirlPlacement {
  * events.
  */
 const DRINK_SCATTER: readonly DrinkPlacement[] = [
-  { Drink: GreenDonut, left: "30%", top: "15%", width: "clamp(2.25rem,3.4vw,3.25rem)", rotate: "-8deg" },
-  { Drink: Nitro, left: "61%", top: "12%", width: "clamp(2rem,3vw,2.75rem)", rotate: "9deg" },
-  { Drink: Mocha, left: "9%", top: "33%", width: "clamp(2rem,3vw,2.75rem)", rotate: "-6deg" },
-  { Drink: CookieCrumble, left: "90%", top: "24%", width: "clamp(2.1rem,3.2vw,3rem)", rotate: "8deg" },
-  { Drink: HotChocolate, left: "9%", top: "74%", width: "clamp(2.1rem,3.2vw,3rem)", rotate: "-5deg" },
-  { Drink: StrawberryShake, left: "33%", top: "85%", width: "clamp(2.1rem,3.2vw,3rem)", rotate: "6deg" },
-  { Drink: Fusion, left: "55%", top: "85%", width: "clamp(2.25rem,3.4vw,3.25rem)", rotate: "-4deg" },
-  { Drink: Espresso, left: "90%", top: "80%", width: "clamp(1.8rem,2.6vw,2.5rem)", rotate: "7deg" },
+  {
+    Drink: GreenDonut,
+    left: "30%",
+    top: "15%",
+    width: "clamp(2.25rem,3.4vw,3.25rem)",
+    rotate: "-8deg",
+  },
+  {
+    Drink: Nitro,
+    left: "61%",
+    top: "12%",
+    width: "clamp(2rem,3vw,2.75rem)",
+    rotate: "9deg",
+  },
+  {
+    Drink: Mocha,
+    left: "9%",
+    top: "33%",
+    width: "clamp(2rem,3vw,2.75rem)",
+    rotate: "-6deg",
+  },
+  {
+    Drink: CookieCrumble,
+    left: "90%",
+    top: "24%",
+    width: "clamp(2.1rem,3.2vw,3rem)",
+    rotate: "8deg",
+  },
+  {
+    Drink: HotChocolate,
+    left: "9%",
+    top: "74%",
+    width: "clamp(2.1rem,3.2vw,3rem)",
+    rotate: "-5deg",
+  },
+  {
+    Drink: StrawberryShake,
+    left: "33%",
+    top: "85%",
+    width: "clamp(2.1rem,3.2vw,3rem)",
+    rotate: "6deg",
+  },
+  {
+    Drink: Fusion,
+    left: "55%",
+    top: "85%",
+    width: "clamp(2.25rem,3.4vw,3.25rem)",
+    rotate: "-4deg",
+  },
+  {
+    Drink: Espresso,
+    left: "90%",
+    top: "80%",
+    width: "clamp(1.8rem,2.6vw,2.5rem)",
+    rotate: "7deg",
+  },
 ];
 
 const SWIRL_SCATTER: readonly SwirlPlacement[] = [
@@ -66,7 +114,11 @@ const SWIRL_SCATTER: readonly SwirlPlacement[] = [
 const ACCENT_GRADIENT =
   "linear-gradient(100deg,#29c5e6 0%,#6e8fe0 30%,#ab86c9 62%,#e87bb4 100%)";
 
-function position(left: string, top: string, extra: CSSProperties): CSSProperties {
+function position(
+  left: string,
+  top: string,
+  extra: CSSProperties,
+): CSSProperties {
   return { left, top, transform: "translate(-50%, -50%)", ...extra };
 }
 
@@ -88,13 +140,13 @@ export function HomeHero() {
         {SWIRL_SCATTER.map(({ left, top, size, rotate }) => (
           <Swirl
             key={left + top}
-            className="absolute text-cc-nav-label/60"
+            className="text-cc-nav-label/60 absolute"
             style={position(left, top, { width: size, height: size, rotate })}
           />
         ))}
       </div>
 
-      <h1 className="font-heading font-bold tracking-[-0.02em] text-balance text-cc-ink text-h4 sm:text-h3 lg:text-h2 xl:text-h1">
+      <h1 className="font-heading text-cc-ink text-h4 sm:text-h3 lg:text-h2 xl:text-h1 font-bold tracking-[-0.02em] text-balance">
         The API Platform
         <span
           className="block bg-clip-text pb-[0.12em] leading-[1.12] text-transparent"
@@ -104,10 +156,10 @@ export function HomeHero() {
         </span>
       </h1>
 
-      <p className="mt-6 max-w-2xl text-pretty text-base text-cc-ink-dim sm:text-xl">
-        Unify all your APIs into a comprehensive company graph, streamlining data
-        accessibility and enhancing integration. Transform the way you manage and
-        interact with your data.
+      <p className="text-cc-ink-dim mt-6 max-w-2xl text-base text-pretty sm:text-xl">
+        Unify all your APIs into a comprehensive company graph, streamlining
+        data accessibility and enhancing integration. Transform the way you
+        manage and interact with your data.
       </p>
     </section>
   );
