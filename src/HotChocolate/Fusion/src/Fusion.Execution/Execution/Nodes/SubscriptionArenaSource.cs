@@ -1,6 +1,6 @@
 using HotChocolate.Buffers;
 
-namespace HotChocolate.Fusion.Execution.Clients;
+namespace HotChocolate.Fusion.Execution;
 
 /// <summary>
 /// An <see cref="IMemoryArenaSource"/> that hands out a fresh <see cref="IMemoryArena"/> for every

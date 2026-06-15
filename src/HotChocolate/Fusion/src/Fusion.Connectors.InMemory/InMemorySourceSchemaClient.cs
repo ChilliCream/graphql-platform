@@ -299,7 +299,7 @@ public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
     }
 
     /// <inheritdoc />
-    public async IAsyncEnumerable<SourceSchemaEventResult> SubscribeAsync(
+    public async IAsyncEnumerable<SourceSchemaResult> SubscribeAsync(
         OperationPlanContext context,
         SourceSchemaClientRequest request,
         [EnumeratorCancellation] CancellationToken cancellationToken)
@@ -307,9 +307,9 @@ public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
         ArgumentNullException.ThrowIfNull(context);
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        // Each event document is backed by its own arena; the source hands out a fresh one
-        // immediately before materializing each event.
-        var arenaSource = new SubscriptionArenaSource();
+        // Each event is materialized into the arena handed out by the active memory source, which
+        // mints a fresh arena for every event so that each event document is backed by its own arena.
+        var arenaSource = context.MemorySource;
         ChunkedArrayWriter? buffer = null;
         var operationRequest = BuildOperationRequest(context, request, _onError, ref buffer);
 
@@ -330,16 +330,13 @@ public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
 
         context.TrackTransport(request.Node, s_uri, "application/json");
 
-        IMemoryArena? transferred = null;
-
         try
         {
             if (result is OperationResult errorResult)
             {
                 var arena = arenaSource.GetNextArena();
                 var document = SerializeToDocument(arena, errorResult, _formatter);
-                transferred = arena;
-                yield return new SourceSchemaEventResult(arena, new SourceSchemaResult(CompactPath.Root, document));
+                yield return new SourceSchemaResult(CompactPath.Root, document);
                 yield break;
             }
 
@@ -352,19 +349,11 @@ public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
             {
                 var arena = arenaSource.GetNextArena();
                 var document = SerializeToDocument(arena, operationResult, _formatter);
-                transferred = arena;
-                yield return new SourceSchemaEventResult(arena, new SourceSchemaResult(CompactPath.Root, document));
+                yield return new SourceSchemaResult(CompactPath.Root, document);
             }
         }
         finally
         {
-            // An arena that was created for an event but never transferred (a materialization
-            // failure between creation and yield, or stream abandonment) is disposed here.
-            if (arenaSource.Arena is { } pending && !ReferenceEquals(pending, transferred))
-            {
-                ((IDisposable)pending).Dispose();
-            }
-
             await result.DisposeAsync().ConfigureAwait(false);
             buffer?.Dispose();
         }

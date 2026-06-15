@@ -156,20 +156,18 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
     }
 
     /// <inheritdoc />
-    public async IAsyncEnumerable<SourceSchemaEventResult> SubscribeAsync(
+    public async IAsyncEnumerable<SourceSchemaResult> SubscribeAsync(
         OperationPlanContext context,
         SourceSchemaClientRequest request,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        // Each event document is backed by its own arena; the source hands out a fresh one
-        // immediately before parsing each event.
-        var arenaSource = new SubscriptionArenaSource();
+        // Each event is read through the active memory source, which hands out a fresh arena for
+        // every event so that each event document is backed by its own arena.
+        var arenaSource = context.MemorySource;
         ChunkedArrayWriter? buffer = null;
         GraphQLHttpResponse? httpResponse = null;
-        IMemoryArena? transferred = null;
-        SourceSchemaResult? pendingResult = null;
 
         try
         {
@@ -182,31 +180,13 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
             await foreach (var document in httpResponse.ReadAsResultStreamAsync(arenaSource, requireStreaming: true)
                 .WithCancellation(cancellationToken).ConfigureAwait(false))
             {
-                // Ownership of the arena that backs this document and of the parsed result transfers
-                // to the consumer only when the event is actually yielded. The transfer is marked
-                // after the callback so that a throwing callback leaves both pending and the finally
-                // disposes them.
                 var result = new SourceSchemaResult(CompactPath.Root, document);
-                pendingResult = result;
                 _configuration.OnSourceSchemaResult?.Invoke(context, request.Node, result);
-                transferred = arenaSource.Arena;
-                pendingResult = null;
-                yield return new SourceSchemaEventResult(arenaSource.Arena, result);
+                yield return result;
             }
         }
         finally
         {
-            // A result that was parsed for an event but never transferred (a throwing callback, a
-            // parse failure between creation and yield, or stream abandonment) is disposed here so its
-            // pooled document tracking arrays and the arena that backs it cannot leak. The document is
-            // disposed before the arena and exactly once, since the transfer clears pendingResult.
-            pendingResult?.Dispose();
-
-            if (arenaSource.Arena is { } pending && !ReferenceEquals(pending, transferred))
-            {
-                ((IDisposable)pending).Dispose();
-            }
-
             httpResponse?.Dispose();
             buffer?.Dispose();
         }

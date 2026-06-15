@@ -48,17 +48,15 @@ public interface ISourceSchemaClient : IAsyncDisposable
 
     /// <summary>
     /// Subscribes to a GraphQL subscription operation against the source schema and streams the
-    /// events back as they arrive. Each event carries the arena that backs its document; yielding
-    /// an event transfers ownership of that arena to the consumer.
+    /// events back as they arrive.
     /// </summary>
     /// <param name="context">The current operation plan execution context.</param>
     /// <param name="request">The subscription request to execute.</param>
     /// <param name="cancellationToken">A token to cancel the subscription.</param>
     /// <returns>
-    /// An async stream of <see cref="SourceSchemaEventResult"/> where each item pairs an event
-    /// result with the arena that backs its document.
+    /// An async stream of <see cref="SourceSchemaResult"/> items produced by the subscription.
     /// </returns>
-    IAsyncEnumerable<SourceSchemaEventResult> SubscribeAsync(
+    IAsyncEnumerable<SourceSchemaResult> SubscribeAsync(
         OperationPlanContext context,
         SourceSchemaClientRequest request,
         CancellationToken cancellationToken);

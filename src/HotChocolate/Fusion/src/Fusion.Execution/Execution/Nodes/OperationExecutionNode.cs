@@ -136,13 +136,11 @@ public sealed class OperationExecutionNode : ExecutionNode
             // we execute the GraphQL request against a source schema
             var client = context.GetClient(schemaName, _operation.Type);
             using var clientScope = diagnosticEvents.ExecuteSourceSchemaRequest(context, this, schemaName);
-            var response = await client.ExecuteAsync(context, request, cancellationToken).ConfigureAwait(false);
-            context.TrackSourceSchemaClientResponse(this, response);
 
             // we read the responses from the response stream.
             var initialBufferLength = Math.Max(variables.Length, 2);
 
-            await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken).ConfigureAwait(false))
+            await foreach (var result in client.ExecuteAsync(context, request, cancellationToken).ConfigureAwait(false))
             {
                 // If there is only one response, we skip the buffer rental.
                 if (index == 0)
@@ -289,14 +287,11 @@ public sealed class OperationExecutionNode : ExecutionNode
         {
             var client = context.GetClient(schemaName, _operation.Type);
 
-            var response = await client.ExecuteAsync(context, request, cancellationToken);
-
             var stream = new SubscriptionEnumerable(
                 context,
                 this,
                 subscriptionId,
-                response,
-                response.ReadAsResultStreamAsync(cancellationToken),
+                client.SubscribeAsync(context, request, cancellationToken),
                 context.DiagnosticEvents);
 
             return SubscriptionResult.Success(subscriptionId, stream);
@@ -314,23 +309,20 @@ public sealed class OperationExecutionNode : ExecutionNode
         private readonly OperationPlanContext _context;
         private readonly OperationExecutionNode _node;
         private readonly ulong _subscriptionId;
-        private readonly SourceSchemaClientResponse _response;
-        private readonly IAsyncEnumerable<SourceSchemaResult> _resultEnumerable;
+        private readonly IAsyncEnumerable<SourceSchemaResult> _eventEnumerable;
         private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
 
         public SubscriptionEnumerable(
             OperationPlanContext context,
             OperationExecutionNode node,
             ulong subscriptionId,
-            SourceSchemaClientResponse response,
-            IAsyncEnumerable<SourceSchemaResult> resultEnumerable,
+            IAsyncEnumerable<SourceSchemaResult> eventEnumerable,
             IFusionExecutionDiagnosticEvents diagnosticEvents)
         {
             _context = context;
             _node = node;
             _subscriptionId = subscriptionId;
-            _response = response;
-            _resultEnumerable = resultEnumerable;
+            _eventEnumerable = eventEnumerable;
             _diagnosticEvents = diagnosticEvents;
         }
 
@@ -341,8 +333,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                 _node,
                 _node.SchemaName ?? _context.GetDynamicSchemaName(_node),
                 _subscriptionId,
-                _response,
-                _resultEnumerable.GetAsyncEnumerator(cancellationToken),
+                _eventEnumerable.GetAsyncEnumerator(cancellationToken),
                 _diagnosticEvents,
                 cancellationToken);
     }
@@ -353,12 +344,12 @@ public sealed class OperationExecutionNode : ExecutionNode
         private readonly OperationPlanContext _context;
         private readonly OperationExecutionNode _node;
         private readonly string _schemaName;
-        private readonly SourceSchemaClientResponse _response;
-        private readonly IAsyncEnumerator<SourceSchemaResult> _resultEnumerator;
+        private readonly IAsyncEnumerator<SourceSchemaResult> _eventEnumerator;
         private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
         private readonly CancellationToken _cancellationToken;
         private readonly IDisposable _subscriptionScope;
         private readonly SourceSchemaResult[] _resultBuffer = new SourceSchemaResult[1];
+        private readonly SubscriptionArenaSource _eventArenaSource = new();
         private bool _completed;
         private bool _disposed;
 
@@ -367,8 +358,7 @@ public sealed class OperationExecutionNode : ExecutionNode
             OperationExecutionNode node,
             string schemaName,
             ulong subscriptionId,
-            SourceSchemaClientResponse response,
-            IAsyncEnumerator<SourceSchemaResult> resultEnumerator,
+            IAsyncEnumerator<SourceSchemaResult> eventEnumerator,
             IFusionExecutionDiagnosticEvents diagnosticEvents,
             CancellationToken cancellationToken)
         {
@@ -376,8 +366,7 @@ public sealed class OperationExecutionNode : ExecutionNode
             _node = node;
             _schemaName = schemaName;
             _subscriptionId = subscriptionId;
-            _response = response;
-            _resultEnumerator = resultEnumerator;
+            _eventEnumerator = eventEnumerator;
             _diagnosticEvents = diagnosticEvents;
             _cancellationToken = cancellationToken;
             _subscriptionScope = diagnosticEvents.ExecuteSubscription(context.RequestContext, _subscriptionId);
@@ -394,19 +383,60 @@ public sealed class OperationExecutionNode : ExecutionNode
             }
 
             bool hasResult;
+            var received = false;
             IDisposable? scope = null;
             long? start = null;
 
             try
             {
-                hasResult = await _resultEnumerator.MoveNextAsync();
+                _context.SetActiveEventArenaSource(_eventArenaSource);
+                hasResult = await _eventEnumerator.MoveNextAsync();
+
+                // From here the event arena is owned by this enumerator: the source has marked it
+                // transferred and it finally will no longer dispose it. If anything between here and
+                // the event arena being bound and registered as the active arena throws, the arena
+                // must be disposed on the failure path below.
+                received = hasResult;
                 scope = _diagnosticEvents.ExecuteSubscriptionNode(_context, _node, _schemaName, _subscriptionId);
                 start = Stopwatch.GetTimestamp();
+
+                if (hasResult)
+                {
+                    _resultBuffer[0] = _eventEnumerator.Current;
+
+                    // Bind the event arena as the active arena before adding the event's result, so the
+                    // event document and the result built for it share one arena and that arena travels
+                    // with the delivered result. No event ever carries a second arena. This runs inside
+                    // the try so a failure while binding the arena disposes it on the failure path
+                    // instead of leaving it to the finalizer.
+                    _context.SetActiveEventArena(_eventArenaSource.Arena);
+
+                    _context.AddPartialResults(_node._source, _resultBuffer, _node._resultSelectionSet, containsErrors: true);
+
+                    Current = new EventMessageResult(
+                        _node.Id,
+                        Activity.Current,
+                        ExecutionStatus.Success,
+                        scope,
+                        start.Value,
+                        Stopwatch.GetTimestamp(),
+                        Exception: null,
+                        VariableValueSets: _context.GetVariableValueSets(_node));
+                    return true;
+                }
             }
             catch (Exception exception)
             {
-                // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
-                _resultBuffer[0]?.Dispose();
+                // An event was received but its result was never delivered, so dispose both the parsed
+                // result document (returning its pooled tracking arrays) and the arena that backs it
+                // here. Both disposals are idempotent, so they are safe whether or not the failure
+                // happened after the arena was already registered as the active event arena.
+                if (received)
+                {
+                    _eventEnumerator.Current.Dispose();
+                    ((IDisposable)_eventArenaSource.Arena).Dispose();
+                }
+
                 Current = new EventMessageResult(
                     _node.Id,
                     Activity.Current,
@@ -428,23 +458,6 @@ public sealed class OperationExecutionNode : ExecutionNode
                 return false;
             }
 
-            if (hasResult)
-            {
-                _resultBuffer[0] = _resultEnumerator.Current;
-                _context.AddPartialResults(_node._source, _resultBuffer, _node._resultSelectionSet, containsErrors: true);
-
-                Current = new EventMessageResult(
-                    _node.Id,
-                    Activity.Current,
-                    ExecutionStatus.Success,
-                    scope,
-                    start.Value,
-                    Stopwatch.GetTimestamp(),
-                    Exception: null,
-                    VariableValueSets: _context.GetVariableValueSets(_node));
-                return true;
-            }
-
             _completed = true;
             Current = null!;
             return false;
@@ -458,8 +471,7 @@ public sealed class OperationExecutionNode : ExecutionNode
             }
 
             _disposed = true;
-            _response.Dispose();
-            await _resultEnumerator.DisposeAsync();
+            await _eventEnumerator.DisposeAsync();
             _subscriptionScope.Dispose();
         }
     }

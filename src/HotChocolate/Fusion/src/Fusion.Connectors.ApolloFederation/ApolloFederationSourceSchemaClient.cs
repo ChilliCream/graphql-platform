@@ -129,7 +129,7 @@ public sealed class ApolloFederationSourceSchemaClient : ISourceSchemaClient
     }
 
     /// <inheritdoc />
-    public IAsyncEnumerable<SourceSchemaEventResult> SubscribeAsync(
+    public IAsyncEnumerable<SourceSchemaResult> SubscribeAsync(
         OperationPlanContext context,
         SourceSchemaClientRequest request,
         CancellationToken cancellationToken)
