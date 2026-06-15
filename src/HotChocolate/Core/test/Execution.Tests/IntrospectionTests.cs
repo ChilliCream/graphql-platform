@@ -418,6 +418,43 @@ public class IntrospectionTests
         result.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task DirectiveDeprecationIsExposed()
+    {
+        // arrange
+        const string query =
+            """
+            {
+                __schema {
+                    directives {
+                        name
+                        isDeprecated
+                        deprecationReason
+                    }
+                }
+            }
+            """;
+
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(
+                """
+                type Query @current {
+                    field: String
+                }
+
+                directive @current on OBJECT
+                """)
+            .UseField(next => next)
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
     private static Schema CreateSchema()
     {
         return SchemaBuilder.New()
