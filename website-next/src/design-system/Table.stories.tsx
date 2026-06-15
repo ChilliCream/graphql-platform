@@ -14,7 +14,8 @@ const meta = {
   argTypes: {
     alternating: {
       control: "boolean",
-      description: "Tint every other body row to make wide tables easier to scan.",
+      description:
+        "Tint every other body row to make wide tables easier to scan.",
     },
   },
 } satisfies Meta<typeof Table>;

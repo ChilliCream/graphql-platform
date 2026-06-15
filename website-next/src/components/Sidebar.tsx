@@ -14,7 +14,7 @@ export function Sidebar({
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-2 px-5 py-6 text-sm">
       <ProductSelector key={currentPath} activeSlug={activeProduct} />
-      <nav className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
+      <nav className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto">
         <ul className="flex flex-col gap-1">
           {tree.map((node, i) => (
             <NodeView
@@ -41,9 +41,7 @@ function NodeView({
 }) {
   const hasChildren = node.children.length > 0;
   const containsCurrent = subtreeContains(node, currentPath);
-  const childMatchesCurrent = node.children.some(
-    (c) => c.href === currentPath
-  );
+  const childMatchesCurrent = node.children.some((c) => c.href === currentPath);
   const isActive = node.href === currentPath && !childMatchesCurrent;
   const padLeft = `${depth * 0.75 + 0.75}rem`;
 
@@ -54,7 +52,7 @@ function NodeView({
       aria-current={isActive ? "page" : undefined}
       className={`block flex-1 rounded px-3 py-1.5 transition-colors ${
         isActive
-          ? "bg-cc-white/10 font-medium text-cc-white"
+          ? "bg-cc-white/10 text-cc-white font-medium"
           : "text-cc-nav-text hover:bg-cc-white/5 hover:text-cc-white"
       }`}
       style={{ paddingLeft: padLeft }}
@@ -63,7 +61,7 @@ function NodeView({
     </Link>
   ) : (
     <span
-      className="block flex-1 cursor-pointer rounded px-3 py-1.5 text-left text-cc-nav-text transition-colors hover:bg-cc-white/5 hover:text-cc-white"
+      className="text-cc-nav-text hover:bg-cc-white/5 hover:text-cc-white block flex-1 cursor-pointer rounded px-3 py-1.5 text-left transition-colors"
       style={{ paddingLeft: padLeft }}
     >
       {node.title}
@@ -81,7 +79,7 @@ function NodeView({
           {label}
           <span
             aria-hidden="true"
-            className="inline-flex w-7 cursor-pointer items-center justify-center rounded text-cc-nav-text hover:bg-cc-white/5 hover:text-cc-white"
+            className="text-cc-nav-text hover:bg-cc-white/5 hover:text-cc-white inline-flex w-7 cursor-pointer items-center justify-center rounded"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

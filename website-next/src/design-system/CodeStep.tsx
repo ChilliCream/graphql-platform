@@ -45,7 +45,7 @@ export function CodeStep({ step, children }: CodeStepProps) {
 
   return (
     <span
-      className="code-step rounded px-1 font-mono ring-1 inline-block leading-tight"
+      className="code-step inline-block rounded px-1 font-mono leading-tight ring-1"
       data-step={step}
       style={stepStyle(step)}
       onMouseEnter={activate}

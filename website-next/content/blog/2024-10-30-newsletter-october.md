@@ -60,7 +60,6 @@ As our products evolved, we wanted a name that reflects our commitment to delive
 **What's Included in Nitro:**
 
 - **Nitro App (Formerly BananaCakePop):** Your all-in-one tool for developing, testing, and optimizing GraphQL APIs.
-
   - **Get the Nitro App:** [Download Here](https://get-nitro.chillicream.com)
   - **Try Nitro Cloud:** [Launch Now](https://nitro.chillicream.com)
 

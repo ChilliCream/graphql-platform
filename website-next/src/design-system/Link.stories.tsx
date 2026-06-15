@@ -34,8 +34,7 @@ export const InProse: Story = {
   args: { href: "/docs", children: "" },
   render: () => (
     <p className="text-base text-stone-800">
-      Visit our{" "}
-      <Link href="/docs">documentation</Link> or check the{" "}
+      Visit our <Link href="/docs">documentation</Link> or check the{" "}
       <Link href="https://github.com/ChilliCream/graphql-platform">
         GitHub repository
       </Link>{" "}

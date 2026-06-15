@@ -87,7 +87,7 @@ time, and **fails the build on broken links**.
 [Page in another section](../guides/first-party-api.md)
 [Cross-product page](../../hotchocolate/index.md)
 [Deep link with anchor](./other-page.md#a-section)
-[Same-page anchor](#a-section)   <!-- just the hash, no file -->
+[Same-page anchor](#a-section) <!-- just the hash, no file -->
 ```
 
 - Always point at the `.md` file (e.g. `./cli.md`, not `/docs/.../cli`).

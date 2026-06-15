@@ -6,7 +6,7 @@ export function Divider({
 }: ComponentPropsWithoutRef<"hr">) {
   return (
     <hr
-      className={`my-10 border-0 border-t border-cc-card-border ${className}`.trim()}
+      className={`border-cc-card-border my-10 border-0 border-t ${className}`.trim()}
       {...props}
     />
   );
