@@ -983,6 +983,86 @@ public class DirectiveTypeTests : TypeTestBase
         Assert.True(deprecated.Locations.HasFlag(DirectiveLocation.DirectiveDefinition));
     }
 
+    [Fact]
+    public void CodeFirst_DeprecatedAndDirectives_AppliedToDirectiveType()
+    {
+        // arrange
+        var onDirectiveDefinition = new DirectiveType(d => d
+            .Name("onDirectiveDefinition")
+            .Location(DirectiveLocation.DirectiveDefinition));
+
+        var custom = new DirectiveType(d => d
+            .Name("custom")
+            .Location(DirectiveLocation.Object)
+            .Deprecated("Use something else.")
+            .Directive("onDirectiveDefinition"));
+
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType(c => c
+                .Name("Query")
+                .Directive("custom")
+                .Field("foo")
+                .Type<StringType>()
+                .Resolve("bar"))
+            .AddDirectiveType(onDirectiveDefinition)
+            .AddDirectiveType(custom)
+            .Create();
+
+        // assert
+        var customType = schema.DirectiveTypes["custom"];
+        Assert.True(customType.IsDeprecated);
+        Assert.Equal("Use something else.", customType.DeprecationReason);
+        var directive = Assert.Single(customType.Directives);
+        Assert.Equal("onDirectiveDefinition", directive.Name);
+    }
+
+    [Fact]
+    public void AnnotationBased_ObsoleteDirectiveClass_SetsDeprecation()
+    {
+        // arrange
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType(c => c
+                .Name("Query")
+                .Directive("outdated")
+                .Field("foo")
+                .Type<StringType>()
+                .Resolve("bar"))
+#pragma warning disable CS0618 // Type is obsolete; obsolescence is the scenario under test.
+            .AddDirectiveType(new DirectiveType<OutdatedDirective>(
+                d => d.Location(DirectiveLocation.Object)))
+#pragma warning restore CS0618
+            .Create();
+
+        // assert
+        var outdated = schema.DirectiveTypes["outdated"];
+        Assert.True(outdated.IsDeprecated);
+        Assert.Equal("Use the replacement directive.", outdated.DeprecationReason);
+    }
+
+    [Fact]
+    public void AnnotationBased_GraphQLDeprecatedDirectiveClass_SetsDeprecation()
+    {
+        // arrange
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType(c => c
+                .Name("Query")
+                .Directive("legacy")
+                .Field("foo")
+                .Type<StringType>()
+                .Resolve("bar"))
+            .AddDirectiveType(new DirectiveType<LegacyDirective>(
+                d => d.Location(DirectiveLocation.Object)))
+            .Create();
+
+        // assert
+        var legacy = schema.DirectiveTypes["legacy"];
+        Assert.True(legacy.IsDeprecated);
+        Assert.Equal("Use the replacement directive.", legacy.DeprecationReason);
+    }
+
     public class DirectiveWithSyntaxTypeArg : DirectiveType
     {
         protected override void Configure(IDirectiveTypeDescriptor descriptor)
@@ -1106,4 +1186,10 @@ public class DirectiveTypeTests : TypeTestBase
 
         public string? Foo { get; }
     }
+
+    [Obsolete("Use the replacement directive.")]
+    public sealed class OutdatedDirective;
+
+    [GraphQLDeprecated("Use the replacement directive.")]
+    public sealed class LegacyDirective;
 }
