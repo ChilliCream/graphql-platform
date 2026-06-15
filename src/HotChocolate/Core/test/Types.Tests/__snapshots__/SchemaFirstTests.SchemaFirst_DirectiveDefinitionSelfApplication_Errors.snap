@@ -1,0 +1,6 @@
+{
+  "message": "The directive definition '@custom' must not be annotated with itself.",
+  "extensions": {
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Type-System.Directives.Type-Validation"
+  }
+}

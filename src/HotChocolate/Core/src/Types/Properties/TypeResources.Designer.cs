@@ -908,6 +908,15 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The directive definition &apos;@{0}&apos; must not be annotated with itself..
+        /// </summary>
+        internal static string ErrorHelper_DirectiveDefinitionSelfApplication {
+            get {
+                return ResourceManager.GetString("ErrorHelper_DirectiveDefinitionSelfApplication", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The field `{0}` declares the data middleware `{1}` more than once..
         /// </summary>
         internal static string ErrorHelper_DuplicateDataMiddlewareDetected_Message {
