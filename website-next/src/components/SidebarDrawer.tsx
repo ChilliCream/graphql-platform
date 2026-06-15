@@ -6,7 +6,13 @@ import { IconButton } from "@/src/design-system/IconButton";
 
 export const SIDEBAR_OPEN_EVENT = "docs:open-sidebar";
 
-export function SidebarDrawer({ children }: { children: ReactNode }) {
+export function SidebarDrawer({
+  children,
+  closeLabel = "Close documentation menu",
+}: {
+  children: ReactNode;
+  closeLabel?: string;
+}) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const [prevPathname, setPrevPathname] = useState(pathname);
@@ -97,7 +103,7 @@ export function SidebarDrawer({ children }: { children: ReactNode }) {
         >
           <div className="flex items-center justify-end border-b border-cc-card-border px-3 py-2">
             <IconButton
-              aria-label="Close documentation menu"
+              aria-label={closeLabel}
               onClick={() => setOpen(false)}
             >
               <svg
