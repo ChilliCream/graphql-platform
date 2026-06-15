@@ -456,6 +456,50 @@ public class IntrospectionTests
     }
 
     [Fact]
+    public async Task DeprecatedDirectivesAreFilteredByDefault()
+    {
+        // arrange
+        const string query =
+            """
+            {
+                defaultDirectives: __schema {
+                    directives {
+                        name
+                    }
+                }
+                allDirectives: __schema {
+                    directives(includeDeprecated: true) {
+                        name
+                        deprecationReason
+                    }
+                }
+            }
+            """;
+
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(
+                """
+                type Query @old @current {
+                    field: String
+                }
+
+                directive @old @deprecated(reason: "Use @current.") on OBJECT
+
+                directive @current on OBJECT
+                """)
+            .UseField(next => next)
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
+
+        // assert
+        // @old must only appear in the allDirectives list.
+        result.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task DirectiveDefinitionLocationIsExposed()
     {
         // arrange
