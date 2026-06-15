@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Diagnostics;
@@ -25,7 +26,8 @@ public sealed partial class OperationPlanContext
         RequestContext requestContext,
         IVariableValueCollection variables,
         IOperationPlan operationPlan,
-        CancellationTokenSource cancellationTokenSource)
+        CancellationTokenSource cancellationTokenSource,
+        MemoryArena? memory = null)
     {
         ArgumentNullException.ThrowIfNull(requestContext);
         ArgumentNullException.ThrowIfNull(variables);
@@ -34,20 +36,12 @@ public sealed partial class OperationPlanContext
         _disposed = 0;
         RequestContext = requestContext;
 
-        // The request arena backs the documents produced during this execution. The initial plan
-        // uses the arena attached to the request; an incremental plan runs after the request arena
-        // has been transferred to the initial stream result, so it creates and owns a fresh arena
-        // that travels with its own result.
-        if (requestContext.Memory is { } requestMemory)
-        {
-            _memory = requestMemory;
-            _ownsMemory = false;
-        }
-        else
-        {
-            _memory = MemoryArena.Rent();
-            _ownsMemory = true;
-        }
+        _memory = memory
+            ?? requestContext.Memory
+            ?? throw new InvalidOperationException(
+                "The operation plan context requires a memory arena.");
+        _memorySource.Set(_memory);
+        _currentMemorySource = _memorySource;
 
         Variables = variables;
         OperationPlan = operationPlan;
@@ -55,6 +49,7 @@ public sealed partial class OperationPlanContext
         DeferFlags = operationPlan.Operation.CreateDeferFlags(variables);
         _collectTelemetry = requestContext.CollectOperationPlanTelemetry();
         _clientScope = requestContext.CreateClientScope();
+        _clientScopeCreatedAt = Stopwatch.GetTimestamp();
 
         _resultStore.Initialize(
             Memory,
@@ -65,13 +60,6 @@ public sealed partial class OperationPlanContext
             IncludeFlags,
             DeferFlags,
             requestContext.Schema.GetOptions().PathSegmentLocalPoolCapacity);
-
-        // A self-created arena is disposed together with the documents it backs: register it as a
-        // memory owner so it travels with the result on completion.
-        if (_ownsMemory)
-        {
-            _resultStore.MemoryOwners.Add(_memory);
-        }
 
         _executionState.Initialize(_collectTelemetry, cancellationTokenSource);
 
@@ -101,7 +89,8 @@ public sealed partial class OperationPlanContext
 
         RequestContext = default!;
         _memory = null;
-        _ownsMemory = false;
+        _memorySource.Clear();
+        _currentMemorySource = null!;
         Variables = default!;
         OperationPlan = default!;
         DeferFlags = 0;
@@ -116,6 +105,7 @@ public sealed partial class OperationPlanContext
 #endif
         _traceId = null;
         _start = 0;
+        _clientScopeCreatedAt = 0;
     }
 
     /// <summary>

@@ -376,12 +376,6 @@ public sealed partial class SourceResultDocument : IDisposable
 
     public void Dispose()
     {
-        ReleaseResources();
-        GC.SuppressFinalize(this);
-    }
-
-    private void ReleaseResources()
-    {
         if (Interlocked.Exchange(ref _disposed, 1) != 0)
         {
             return;
@@ -389,8 +383,6 @@ public sealed partial class SourceResultDocument : IDisposable
 
         _parsedData.Dispose();
     }
-
-    ~SourceResultDocument() => ReleaseResources();
 
     public override string ToString()
     {

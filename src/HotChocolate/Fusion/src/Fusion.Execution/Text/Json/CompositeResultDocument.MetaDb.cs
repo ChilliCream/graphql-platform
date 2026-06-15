@@ -1,4 +1,3 @@
-using System.Buffers;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -12,8 +11,6 @@ public sealed partial class CompositeResultDocument
 {
     internal struct MetaDb : IDisposable
     {
-        private static readonly ArrayPool<MemorySegment> s_arrayPool = ArrayPool<MemorySegment>.Shared;
-
         private IMemoryArena _arena;
         private MemorySegment[] _chunks;
         private Cursor _next;
@@ -26,7 +23,7 @@ public sealed partial class CompositeResultDocument
         internal static MetaDb Create(IMemoryArena arena)
         {
             const int chunksNeeded = 4;
-            var chunks = s_arrayPool.Rent(chunksNeeded);
+            var chunks = arena.RentSegmentTable(chunksNeeded);
             var log = Log;
 
             log.MetaDbCreated(2, Cursor.RowsPerChunkFor(0), 1);
@@ -380,20 +377,8 @@ public sealed partial class CompositeResultDocument
 
         private void GrowChunks(int currentLength)
         {
-            var nextLength = currentLength * 2;
-            var newChunks = s_arrayPool.Rent(nextLength);
-            Log.ChunksExpanded(2, currentLength, nextLength);
-
-            Array.Copy(_chunks, newChunks, currentLength);
-
-            for (var i = currentLength; i < newChunks.Length; i++)
-            {
-                newChunks[i] = default;
-            }
-
-            _chunks.AsSpan().Clear();
-            s_arrayPool.Return(_chunks);
-            _chunks = newChunks;
+            _arena.GrowSegmentTable(ref _chunks);
+            Log.ChunksExpanded(2, currentLength, _chunks.Length);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -636,12 +621,6 @@ public sealed partial class CompositeResultDocument
                 var cursor = _next;
                 var chunksLength = cursor.Chunk + 1;
                 Log.MetaDbDisposed(2, chunksLength, cursor.Row);
-
-                // The arena owns the chunk memory and frees it as a whole when it is disposed, so
-                // the chunk segments are only dropped here, never returned to a pool. Only the
-                // pooled outer array that tracks the segments is returned.
-                _chunks.AsSpan().Clear();
-                s_arrayPool.Return(_chunks);
 
                 _chunks = [];
                 _arena = null!;

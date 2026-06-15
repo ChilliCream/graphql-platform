@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading.Channels;
+using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Results;
@@ -58,23 +59,23 @@ internal static class OperationPlanExecutor
     {
         // Execute the main (non-deferred) plan nodes first.
         var executionCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        OperationPlanContext? context = null;
+        OperationPlanContext? rootContext = null;
 
         try
         {
-            context = requestContext.Schema.Services.GetRequiredService<OperationPlanContextPool>().Rent();
-            context.Initialize(requestContext, variables, operationPlan, executionCts);
+            rootContext = requestContext.Schema.Services.GetRequiredService<OperationPlanContextPool>().Rent();
+            rootContext.Initialize(requestContext, variables, operationPlan, executionCts);
 
-            context.Begin();
+            rootContext.Begin();
 
             switch (operationPlan.Operation.Definition.Operation)
             {
                 case OperationType.Query:
-                    await ExecuteQueryAsync(context, operationPlan, executionCts.Token);
+                    await ExecuteQueryAsync(rootContext, operationPlan, executionCts.Token);
                     break;
 
                 case OperationType.Mutation:
-                    await ExecuteMutationAsync(context, operationPlan, executionCts.Token);
+                    await ExecuteMutationAsync(rootContext, operationPlan, executionCts.Token);
                     break;
 
                 default:
@@ -85,7 +86,7 @@ internal static class OperationPlanExecutor
 
             // Complete the initial result while retaining data needed by active
             // incremental plans.
-            var initialResult = context.Complete(retainMemoryForDefer: true);
+            var initialResult = rootContext.Complete(retainMemoryForDefer: true);
 
             // Compute the active delivery groups (one per @defer occurrence whose
             // @defer(if:) evaluates to true) and the incremental plans that will actually run.
@@ -128,15 +129,16 @@ internal static class OperationPlanExecutor
             {
                 // No active top-level delivery groups. Transfer retained
                 // result resources to the initial result.
-                context.TransferRetainedMemoryTo(initialResult);
+                rootContext.TransferRetainedMemoryTo(initialResult);
                 executionCts.Dispose();
-                await context.DisposeAsync();
+                await rootContext.DisposeAsync();
                 return initialResult;
             }
 
-            // Return a ResponseStream that yields the initial result followed
-            // by incremental results.
-            var rootContext = context;
+            // Capture the single request arena now. The request executor detaches it from the
+            // request context once this method returns the stream, so every incremental plan reuses
+            // the captured arena instead of minting its own, and the stream seals it once when read
+            // to completion.
             var stream = new ResponseStream(
                 () => CreateIncrementalStream(
                     requestContext,
@@ -148,7 +150,7 @@ internal static class OperationPlanExecutor
                     cancellationToken),
                 ExecutionResultKind.DeferredResult);
 
-            stream.RegisterForCleanup(context);
+            stream.RegisterForCleanup(rootContext);
             stream.RegisterForCleanup(executionCts);
             return stream;
         }
@@ -156,9 +158,9 @@ internal static class OperationPlanExecutor
         {
             executionCts.Dispose();
 
-            if (context is not null)
+            if (rootContext is not null)
             {
-                await context.DisposeAsync();
+                await rootContext.DisposeAsync();
             }
 
             throw;
@@ -177,6 +179,7 @@ internal static class OperationPlanExecutor
         // Yield the initial result first.
         yield return initialResult;
 
+        var requestArena = rootContext.Memory;
         var incrementalPlans = operationPlan.IncrementalPlans;
 
         // Per-delivery-group completion tracking. A delivery group is considered
@@ -236,6 +239,7 @@ internal static class OperationPlanExecutor
                     incrementalPlan,
                     rootContext.GetResultStoreForChildDefer(),
                     channel.Writer,
+                    requestArena,
                     cancellationToken);
             }
 
@@ -315,6 +319,7 @@ internal static class OperationPlanExecutor
                         candidate,
                         parentStore,
                         channel.Writer,
+                        requestArena,
                         cancellationToken);
 
                     foreach (var deliveryGroup in candidate.DeliveryGroups)
@@ -422,6 +427,14 @@ internal static class OperationPlanExecutor
                 payload.HasNext = pendingIncrementalPlanCount > 0;
                 yield return payload;
             }
+
+            // The stream was read to completion, so the initial plan and every incremental plan have
+            // finished writing into the single request arena.
+            //
+            // Sealing it here lets its pages be  returned to the pool when the stream result is disposed.
+            // On early disposal or cancellation we never reach this point and the arena is abandoned instead,
+            // because an in-flight incremental plan may still write to it.
+            requestArena.Seal();
         }
         finally
         {
@@ -444,6 +457,7 @@ internal static class OperationPlanExecutor
         IncrementalPlan incrementalPlan,
         FetchResultStore parentResultStore,
         ChannelWriter<IncrementalPlanResult> completion,
+        MemoryArena requestArena,
         CancellationToken cancellationToken)
     {
         if (incrementalPlan.AllNodes.IsEmpty)
@@ -457,7 +471,10 @@ internal static class OperationPlanExecutor
 
         try
         {
-            context.Initialize(requestContext, variables, incrementalPlan, executionCts);
+            // Reuse the single request arena instead of minting a per-plan arena: the request
+            // executor has already detached it from the request context, so it is supplied
+            // explicitly here.
+            context.Initialize(requestContext, variables, incrementalPlan, executionCts, requestArena);
 
             // Copy parent-scope requirements into the child context.
             CollectIncrementalPlanRequirements(parentResultStore, incrementalPlan, context);
@@ -833,7 +850,7 @@ internal static class OperationPlanExecutor
             context = requestContext.Schema.Services.GetRequiredService<OperationPlanContextPool>().Rent();
             context.Initialize(requestContext, requestContext.VariableValues[0], operationPlan, executionCts);
 
-            var subscriptionResult = await subscriptionNode.SubscribeAsync(context, executionCts.Token);
+            var subscriptionResult = subscriptionNode.Subscribe(context);
             var executionState = context.ExecutionState;
 
             cancellationRegistration = executionCts.Token.Register(
@@ -844,6 +861,12 @@ internal static class OperationPlanExecutor
             {
                 throw new InvalidOperationException("We could not subscribe to the underlying source schema.");
             }
+
+            // The subscription setup is complete and nothing writes into the subscribe-scoped request
+            // arena anymore; each event rents its own arena. Sealing it here lets its pages be returned
+            // to the pool once the subscription result is disposed. If the setup fails we never get here
+            // and the unsealed arena is abandoned instead.
+            requestContext.Memory?.Seal();
 
             var subscriptionEnumerable = CreateResponseStream(
                 context,
@@ -993,8 +1016,7 @@ internal static class OperationPlanExecutor
     {
         var plan = context.OperationPlan;
         var executionState = context.ExecutionState;
-        var stream = subscriptionResult.ReadStreamAsync()
-            .WithCancellation(executionCancellationToken);
+
         await using var cancellationRegistration = executionCancellationToken.Register(
             static state => Unsafe.As<AsyncAutoResetEvent>(state)!.TryResetToIdle(),
             executionState.Signal);
@@ -1011,7 +1033,8 @@ internal static class OperationPlanExecutor
 
         try
         {
-            await foreach (var eventArgs in stream)
+            await foreach (var eventArgs in subscriptionResult.ReadStreamAsync()
+                .WithCancellation(executionCancellationToken))
             {
                 using var scope = context.DiagnosticEvents.OnSubscriptionEvent(
                     context,
@@ -1076,6 +1099,7 @@ internal static class OperationPlanExecutor
                     // the Execution nodes and the PlanExecutor should have been gracefully cancelled,
                     // so we throw here to properly cancel the request execution.
                     requestCancellationToken.ThrowIfCancellationRequested();
+
                     // If the event budget was exhausted, surface it as a cancellation so the
                     // stream tears down and the caller can observe the timeout.
                     eventToken.ThrowIfCancellationRequested();

@@ -488,8 +488,6 @@ public sealed partial class CompositeResultDocument : IDisposable
             return;
         }
 
-        // The arena owns the chunk memory and frees it as a whole when it is disposed, so disposing
-        // the document only releases the metadb's pooled tracking array, never any chunk pages.
         _metaDb.Dispose();
     }
 }

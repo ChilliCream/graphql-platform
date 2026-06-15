@@ -30,7 +30,7 @@ internal sealed class ArenaBufferWriter : IBufferWriter<byte>
         _arena = arena;
 
         // Rent the first segment now so the first write does not have to branch on an empty table.
-        _segments = ArrayPool<MemorySegment>.Shared.Rent(64);
+        _segments = arena.RentSegmentTable(64);
         _currentChunkBytes = SourceResultDocument.GetDataChunkSize(0);
         var segment = arena.Rent(_currentChunkBytes);
         _segments[0] = segment;
@@ -40,8 +40,8 @@ internal sealed class ArenaBufferWriter : IBufferWriter<byte>
     }
 
     /// <summary>
-    /// Gets the rented table of filled segments. Every segment except the last is full; the last
-    /// holds <see cref="LastLength"/> bytes. The table is owned by the caller that takes it.
+    /// Gets the table of filled segments. Every segment except the last is full; the last holds
+    /// <see cref="LastLength"/> bytes.
     /// </summary>
     public MemorySegment[] Segments => _segments;
 
@@ -155,11 +155,7 @@ internal sealed class ArenaBufferWriter : IBufferWriter<byte>
 
             if (_currentChunk >= _segments.Length)
             {
-                var grown = ArrayPool<MemorySegment>.Shared.Rent(_segments.Length * 2);
-                Array.Copy(_segments, 0, grown, 0, _currentChunk);
-                _segments.AsSpan(0, _currentChunk).Clear();
-                ArrayPool<MemorySegment>.Shared.Return(_segments);
-                _segments = grown;
+                _arena.GrowSegmentTable(ref _segments);
             }
 
             _segments[_currentChunk] = _arena.Rent(SourceResultDocument.GetDataChunkSize(_currentChunk));

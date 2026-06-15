@@ -1,4 +1,3 @@
-using System.Buffers;
 using System.Diagnostics;
 using System.Text.Json;
 using HotChocolate.Buffers;
@@ -113,29 +112,20 @@ internal sealed partial class SourceResultDocumentBuilder : IDisposable
         ObjectDisposedException.ThrowIf(_disposed, this);
 
         // Write the JSON directly into the document's own gap-free arena segments, then parse those
-        // bytes in place without any intermediate staging buffer or extra copy. The arena owns the
-        // chunk memory; only the segment table is pooled and handed to the parsed document.
-        var segments = ArrayPool<MemorySegment>.Shared.Rent(64);
+        // bytes in place without any intermediate staging buffer or extra copy. The arena owns both
+        // the chunk memory and the segment table.
+        var segments = _arena.RentSegmentTable(64);
         segments[0] = _arena.Rent(SourceResultDocument.GetDataChunkSize(0));
 
         var currentChunkIndex = 0;
         var currentChunkOffset = 0;
 
-        try
-        {
-            WriteElement(0, ref segments, ref currentChunkIndex, ref currentChunkOffset);
+        WriteElement(0, ref segments, ref currentChunkIndex, ref currentChunkOffset);
 
-            var usedChunks = currentChunkIndex + 1;
-            var lastLength = currentChunkOffset;
+        var usedChunks = currentChunkIndex + 1;
+        var lastLength = currentChunkOffset;
 
-            return SourceResultDocument.ParseFilled(_arena, segments, usedChunks, lastLength);
-        }
-        catch
-        {
-            segments.AsSpan(0, currentChunkIndex + 1).Clear();
-            ArrayPool<MemorySegment>.Shared.Return(segments);
-            throw;
-        }
+        return SourceResultDocument.ParseFilled(_arena, segments, usedChunks, lastLength);
     }
 
     private void WriteElement(
@@ -341,11 +331,7 @@ internal sealed partial class SourceResultDocumentBuilder : IDisposable
 
         if (nextChunkIndex >= segments.Length)
         {
-            var grown = ArrayPool<MemorySegment>.Shared.Rent(segments.Length * 2);
-            Array.Copy(segments, 0, grown, 0, nextChunkIndex);
-            segments.AsSpan(0, nextChunkIndex).Clear();
-            ArrayPool<MemorySegment>.Shared.Return(segments);
-            segments = grown;
+            _arena.GrowSegmentTable(ref segments);
         }
 
         var segment = _arena.Rent(SourceResultDocument.GetDataChunkSize(nextChunkIndex));

@@ -100,7 +100,7 @@ internal sealed class FusionRequestExecutor : IRequestExecutor, IAsyncDisposable
                 requestServices,
                 cancellationToken);
 
-            context.AttachMemory(MemoryArena.Rent());
+            context.AttachMemory(new MemoryArena());
 
             await _requestDelegate(context).ConfigureAwait(false);
 
@@ -110,11 +110,16 @@ internal sealed class FusionRequestExecutor : IRequestExecutor, IAsyncDisposable
                     "The request pipeline is expected to produce an execution result.");
             }
 
-            // transfer ownership of the request memory to the result so it is disposed when the
-            // result is disposed. On the error path the arena stays attached and the pool reset
-            // disposes it.
+            // Transfer request memory to the result. Non-deferred executions are done writing, so
+            // seal the shared arena here; deferred streams keep it open sp incremental plans can
+            // still write to the arena as they execute.
             if (context.TryDetachMemory() is { } memory)
             {
+                if (context.Result.Kind is not ExecutionResultKind.DeferredResult)
+                {
+                    memory.Seal();
+                }
+
                 context.Result.RegisterForCleanup(memory);
             }
 
@@ -178,14 +183,30 @@ internal sealed class FusionRequestExecutor : IRequestExecutor, IAsyncDisposable
     {
         ArgumentNullException.ThrowIfNull(requestBatch);
 
-        return Task.FromResult<IResponseStream>(
-            new ResponseStream(
-                () => CreateResponseStream(requestBatch, cancellationToken),
-                ExecutionResultKind.BatchResult));
+        // Batch items that produce a stream or a result batch are unwrapped and their inner
+        // results are forwarded into this stream. The forwarded results are backed by the
+        // wrapper's memory, so the wrappers must stay alive until the consumer has processed
+        // all results; we dispose them once the batch response stream itself is disposed.
+        var unwrappedResults = new ConcurrentQueue<IExecutionResult>();
+
+        var response = new ResponseStream(
+            () => CreateResponseStream(requestBatch, unwrappedResults, cancellationToken),
+            ExecutionResultKind.BatchResult);
+
+        response.RegisterForCleanup(async () =>
+        {
+            while (unwrappedResults.TryDequeue(out var unwrapped))
+            {
+                await unwrapped.DisposeAsync().ConfigureAwait(false);
+            }
+        });
+
+        return Task.FromResult<IResponseStream>(response);
     }
 
     private async IAsyncEnumerable<OperationResult> CreateResponseStream(
         OperationRequestBatch requestBatch,
+        ConcurrentQueue<IExecutionResult> unwrappedResults,
         [EnumeratorCancellation] CancellationToken ct = default)
     {
         IServiceScope? scope = null;
@@ -201,7 +222,8 @@ internal sealed class FusionRequestExecutor : IRequestExecutor, IAsyncDisposable
 
         try
         {
-            await foreach (var result in ExecuteBatchStream(requestBatch, requestServices, ct).ConfigureAwait(false))
+            await foreach (var result in ExecuteBatchStream(requestBatch, requestServices, unwrappedResults, ct)
+                .ConfigureAwait(false))
             {
                 yield return result;
             }
@@ -222,6 +244,7 @@ internal sealed class FusionRequestExecutor : IRequestExecutor, IAsyncDisposable
     private async IAsyncEnumerable<OperationResult> ExecuteBatchStream(
         OperationRequestBatch requestBatch,
         IServiceProvider services,
+        ConcurrentQueue<IExecutionResult> unwrappedResults,
         [EnumeratorCancellation] CancellationToken ct = default)
     {
         var requests = requestBatch.Requests;
@@ -232,7 +255,7 @@ internal sealed class FusionRequestExecutor : IRequestExecutor, IAsyncDisposable
 
         for (var i = 0; i < requestCount; i++)
         {
-            tasks.Add(ExecuteBatchItemAsync(WithServices(requests[i], services), i, completed, ct));
+            tasks.Add(ExecuteBatchItemAsync(WithServices(requests[i], services), i, completed, unwrappedResults, ct));
         }
 
         var buffer = new OperationResult[Math.Min(16, requestCount)];
@@ -293,15 +316,17 @@ internal sealed class FusionRequestExecutor : IRequestExecutor, IAsyncDisposable
         IOperationRequest request,
         int requestIndex,
         ConcurrentQueue<OperationResult> completed,
+        ConcurrentQueue<IExecutionResult> unwrappedResults,
         CancellationToken cancellationToken)
     {
         var result = await ExecuteAsync(request, requestIndex, cancellationToken).ConfigureAwait(false);
-        await UnwrapBatchItemResultAsync(result, completed, cancellationToken);
+        await UnwrapBatchItemResultAsync(result, completed, unwrappedResults, cancellationToken);
     }
 
     private static async Task UnwrapBatchItemResultAsync(
         IExecutionResult result,
         ConcurrentQueue<OperationResult> completed,
+        ConcurrentQueue<IExecutionResult> unwrappedResults,
         CancellationToken cancellationToken)
     {
         switch (result)
@@ -312,6 +337,10 @@ internal sealed class FusionRequestExecutor : IRequestExecutor, IAsyncDisposable
 
             case IResponseStream stream:
             {
+                // the forwarded items are backed by the stream wrapper's memory, so the wrapper
+                // is disposed with the batch response stream, not here.
+                unwrappedResults.Enqueue(stream);
+
                 await foreach (var item in stream.ReadResultsAsync().WithCancellation(cancellationToken))
                 {
                     completed.Enqueue(item);
@@ -322,6 +351,10 @@ internal sealed class FusionRequestExecutor : IRequestExecutor, IAsyncDisposable
 
             case OperationResultBatch resultBatch:
             {
+                // the forwarded items are backed by the batch wrapper's memory, so the wrapper
+                // is disposed with the batch response stream, not here.
+                unwrappedResults.Enqueue(resultBatch);
+
                 List<Task>? tasks = null;
                 foreach (var item in resultBatch.Results)
                 {
@@ -331,7 +364,12 @@ internal sealed class FusionRequestExecutor : IRequestExecutor, IAsyncDisposable
                     }
                     else
                     {
-                        (tasks ??= []).Add(UnwrapBatchItemResultAsync(item, completed, cancellationToken));
+                        (tasks ??= []).Add(
+                            UnwrapBatchItemResultAsync(
+                                item,
+                                completed,
+                                unwrappedResults,
+                                cancellationToken));
                     }
                 }
 

@@ -548,6 +548,9 @@ public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
         return true;
     }
 
+    // TODO : At the moment the source schema and the gateway use different arenas and things need to be
+    // reparsed and copied. If the in-memory model gets some traction we should consider sharing arenas,
+    // and remove the need to copy and reparse.
     private static SourceResultDocument SerializeToDocument(
         IMemoryArena arena,
         OperationResult operationResult,

@@ -1,4 +1,3 @@
-using System.Buffers;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -12,8 +11,6 @@ public sealed partial class SourceResultDocument
 {
     internal struct MetaDb : IDisposable
     {
-        private static readonly ArrayPool<MemorySegment> s_arrayPool = ArrayPool<MemorySegment>.Shared;
-
         private IMemoryArena _arena;
         private MemorySegment[] _chunks;
         private Cursor _cursor;
@@ -48,7 +45,7 @@ public sealed partial class SourceResultDocument
             var chunksNeeded = estimatedRows <= s_rampRows
                 ? RampChunks + 1
                 : RampChunks + 1 + ((estimatedRows - s_rampRows) / s_maxRowsPerChunk);
-            var chunks = s_arrayPool.Rent(chunksNeeded);
+            var chunks = arena.RentSegmentTable(chunksNeeded);
             var log = Log;
 
             log.MetaDbCreated(1, estimatedRows, 1);
@@ -162,24 +159,8 @@ public sealed partial class SourceResultDocument
             {
                 // if we do not have enough space we will double the size we have for
                 // chunks of memory.
-                var nextChunksLength = chunksLength * 2;
-                var newChunks = s_arrayPool.Rent(nextChunksLength);
-                log.ChunksExpanded(2, chunksLength, nextChunksLength);
-
-                Array.Copy(_chunks, newChunks, chunksLength);
-
-                for (var i = chunksLength; i < nextChunksLength; i++)
-                {
-                    newChunks[i] = default;
-                }
-
-                // clear and return old chunks buffer
-                chunks.Clear();
-                s_arrayPool.Return(_chunks);
-
-                // assign new chunks buffer
-                _chunks = newChunks;
-                chunks = newChunks.AsSpan();
+                GrowChunks(chunks.Length);
+                chunks = _chunks.AsSpan();
             }
 
             var chunk = chunks[chunkIndex];
@@ -194,6 +175,12 @@ public sealed partial class SourceResultDocument
 
             _cursor = Cursor.From(cursor.Chunk, cursor.Row + 1);
             return (cursor, chunk, cursor.ByteOffset);
+        }
+
+        private void GrowChunks(int currentLength)
+        {
+            _arena.GrowSegmentTable(ref _chunks);
+            Log.ChunksExpanded(2, currentLength, _chunks.Length);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -256,12 +243,8 @@ public sealed partial class SourceResultDocument
                 var chunksLength = cursor.Chunk + 1;
                 Log.MetaDbDisposed(1, chunksLength, cursor.Row);
 
-                // The arena owns the chunk memory and frees it as a whole when it is disposed, so
-                // the chunk segments are only dropped here, never returned to a pool. Only the
-                // pooled outer array that tracks the segments is returned.
-                _chunks.AsSpan().Clear();
-                s_arrayPool.Return(_chunks);
-
+                // The arena owns the chunk memory and the chunk table, and frees both as a whole
+                // when it is disposed, so neither is returned here.
                 _chunks = [];
                 _arena = null!;
                 _disposed = true;

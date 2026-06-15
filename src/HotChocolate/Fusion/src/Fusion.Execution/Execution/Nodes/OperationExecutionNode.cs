@@ -261,9 +261,7 @@ public sealed class OperationExecutionNode : ExecutionNode
         return context.DiagnosticEvents.ExecuteOperationNode(context, this, schemaName);
     }
 
-    internal async Task<SubscriptionResult> SubscribeAsync(
-        OperationPlanContext context,
-        CancellationToken cancellationToken = default)
+    internal SubscriptionResult Subscribe(OperationPlanContext context)
     {
         var variables = context.CreateVariableValueSets(_target, _forwardedVariables, _requirements);
 
@@ -285,13 +283,11 @@ public sealed class OperationExecutionNode : ExecutionNode
 
         try
         {
-            var client = context.GetClient(schemaName, _operation.Type);
-
             var stream = new SubscriptionEnumerable(
                 context,
                 this,
                 subscriptionId,
-                client.SubscribeAsync(context, request, cancellationToken),
+                request,
                 context.DiagnosticEvents);
 
             return SubscriptionResult.Success(subscriptionId, stream);
@@ -309,20 +305,20 @@ public sealed class OperationExecutionNode : ExecutionNode
         private readonly OperationPlanContext _context;
         private readonly OperationExecutionNode _node;
         private readonly ulong _subscriptionId;
-        private readonly IAsyncEnumerable<SourceSchemaResult> _eventEnumerable;
+        private readonly SourceSchemaClientRequest _request;
         private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
 
         public SubscriptionEnumerable(
             OperationPlanContext context,
             OperationExecutionNode node,
             ulong subscriptionId,
-            IAsyncEnumerable<SourceSchemaResult> eventEnumerable,
+            SourceSchemaClientRequest request,
             IFusionExecutionDiagnosticEvents diagnosticEvents)
         {
             _context = context;
             _node = node;
             _subscriptionId = subscriptionId;
-            _eventEnumerable = eventEnumerable;
+            _request = request;
             _diagnosticEvents = diagnosticEvents;
         }
 
@@ -333,7 +329,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                 _node,
                 _node.SchemaName ?? _context.GetDynamicSchemaName(_node),
                 _subscriptionId,
-                _eventEnumerable.GetAsyncEnumerator(cancellationToken),
+                _request,
                 _diagnosticEvents,
                 cancellationToken);
     }
@@ -350,6 +346,7 @@ public sealed class OperationExecutionNode : ExecutionNode
         private readonly IDisposable _subscriptionScope;
         private readonly SourceSchemaResult[] _resultBuffer = new SourceSchemaResult[1];
         private readonly SubscriptionArenaSource _eventArenaSource = new();
+        private readonly ISourceSchemaClientScope _clientScope;
         private bool _completed;
         private bool _disposed;
 
@@ -358,7 +355,7 @@ public sealed class OperationExecutionNode : ExecutionNode
             OperationExecutionNode node,
             string schemaName,
             ulong subscriptionId,
-            IAsyncEnumerator<SourceSchemaResult> eventEnumerator,
+            SourceSchemaClientRequest request,
             IFusionExecutionDiagnosticEvents diagnosticEvents,
             CancellationToken cancellationToken)
         {
@@ -366,10 +363,14 @@ public sealed class OperationExecutionNode : ExecutionNode
             _node = node;
             _schemaName = schemaName;
             _subscriptionId = subscriptionId;
-            _eventEnumerator = eventEnumerator;
             _diagnosticEvents = diagnosticEvents;
             _cancellationToken = cancellationToken;
             _subscriptionScope = diagnosticEvents.ExecuteSubscription(context.RequestContext, _subscriptionId);
+
+            _clientScope = context.RequestContext.CreateClientScope();
+            _eventEnumerator = context.GetClient(schemaName, request.OperationType)
+                .SubscribeAsync(context, request, cancellationToken)
+                .GetAsyncEnumerator(cancellationToken);
         }
 
         public EventMessageResult Current { get; private set; } = null!;
@@ -473,6 +474,7 @@ public sealed class OperationExecutionNode : ExecutionNode
             _disposed = true;
             await _eventEnumerator.DisposeAsync();
             _subscriptionScope.Dispose();
+            await _clientScope.DisposeAsync();
         }
     }
 

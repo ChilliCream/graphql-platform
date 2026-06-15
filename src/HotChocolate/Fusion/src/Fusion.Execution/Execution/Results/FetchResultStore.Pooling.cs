@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Diagnostics;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
@@ -63,6 +64,52 @@ internal sealed partial class FetchResultStore
             _errorHandlingMode,
             maxDepth: 32);
 
+        _memory.Push(_result);
+    }
+
+    /// <summary>
+    /// Swaps the arena that backs the next result over to <paramref name="arena"/> and rebuilds the
+    /// pending result document over it. The current pending result document, which has not yet
+    /// received any data, is discarded. The arena is registered so its lifetime travels with the
+    /// result it backs.
+    /// </summary>
+    public void SwapArena(IMemoryArena arena)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(arena);
+
+        // arenas can only be swapped in a subscription context,
+        // and only once complete is called on the context.
+        Debug.Assert(
+            _memory.Count <= 1,
+            "SwapArena expects an empty stack or a single pending seed result. "
+            + "Extra entries mean a prior event's memory owners were not drained by Complete.");
+
+        // The most recent seed result document is untouched at this point (no data has been added
+        // for the current event yet), so it is safe to discard it and rebuild over the new arena.
+        if (_memory.TryPop(out var pending))
+        {
+            pending.Dispose();
+        }
+
+        _arena = arena;
+
+        _result = new CompositeResultDocument(
+            _arena,
+            _operation,
+            _includeFlags,
+            _deferFlags,
+            _pathPool);
+
+        _valueCompletion = new ValueCompletion(
+            this,
+            _schema,
+            _errorHandler,
+            _errorHandlingMode,
+            maxDepth: 32);
+
+        // The arena is a disposable instance whose lifetime travels with the result it backs.
+        _memory.Push((IDisposable)arena);
         _memory.Push(_result);
     }
 
