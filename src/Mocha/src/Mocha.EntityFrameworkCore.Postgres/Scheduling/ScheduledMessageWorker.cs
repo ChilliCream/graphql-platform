@@ -20,7 +20,8 @@ internal sealed class ScheduledMessageWorker(
     private ContinuousTask? _task;
 
     /// <summary>
-    /// Starts the scheduled message processing background task.
+    /// Starts the scheduled message processing background task. This call is idempotent: invoking it
+    /// again while the worker is already running is a no-op that returns without starting a second loop.
     /// </summary>
     /// <param name="cancellationToken">A token that signals when startup should be aborted.</param>
     /// <returns>A completed task once the background loop has been initiated.</returns>
@@ -37,8 +38,8 @@ internal sealed class ScheduledMessageWorker(
             // StopAsync (or a concurrent restart) can clear and dispose the field without
             // affecting an already-running loop.
             var dataSource = NpgsqlDataSource.Create(options.ConnectionString);
-            _dataSource = dataSource;
             _task = new ContinuousTask(token => ProcessAsync(dataSource, token));
+            _dataSource = dataSource;
         }
 
         return Task.CompletedTask;

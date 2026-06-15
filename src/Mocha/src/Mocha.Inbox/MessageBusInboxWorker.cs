@@ -25,7 +25,8 @@ internal sealed class MessageBusInboxWorker(
     private ContinuousTask? _task;
 
     /// <summary>
-    /// Starts the inbox cleanup background task.
+    /// Starts the inbox cleanup background task. This call is idempotent: invoking it again
+    /// while the worker is already running is a no-op that returns without starting a second loop.
     /// </summary>
     /// <param name="cancellationToken">A token that signals when startup should be aborted.</param>
     /// <returns>A completed task once the background loop has been initiated.</returns>
