@@ -195,6 +195,10 @@ jobs:
         run: yarn playwright install --with-deps chromium
         working-directory: website-next
 
+      - name: Format Check
+        run: yarn format:check
+        working-directory: website-next
+
       - name: Lint
         run: yarn lint
         working-directory: website-next

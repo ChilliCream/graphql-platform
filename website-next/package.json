@@ -10,6 +10,8 @@
     "generate-git-metadata": "node scripts/generate-git-metadata.mjs",
     "ci-local": "bash start-optimized.sh",
     "lint": "eslint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },
