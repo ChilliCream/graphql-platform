@@ -45,15 +45,6 @@ public interface IReceiveEndpointDescriptor<out TConfiguration>
     IReceiveEndpointDescriptor<TConfiguration> Receives<TMessage>();
 
     /// <summary>
-    /// Binds all handlers for the specified message type to this receive endpoint, and applies
-    /// per-type auto-binding and explicit binding configuration via the provided delegate.
-    /// </summary>
-    /// <typeparam name="TMessage">The message type to receive.</typeparam>
-    /// <param name="configure">A delegate that configures per-type auto-binding and explicit bindings.</param>
-    /// <returns>The descriptor instance for method chaining.</returns>
-    IReceiveEndpointDescriptor<TConfiguration> Receives<TMessage>(Action<IReceiveTypeBindDescriptor> configure);
-
-    /// <summary>
     /// Binds all handlers for the specified message type to this receive endpoint.
     /// </summary>
     /// <param name="messageType">The message type to receive.</param>

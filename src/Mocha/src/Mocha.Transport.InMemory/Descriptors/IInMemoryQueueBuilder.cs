@@ -45,14 +45,6 @@ public interface IInMemoryQueueBuilder
     IInMemoryQueueBuilder Receives<TMessage>();
 
     /// <summary>
-    /// Declares that this queue receives the specified message type with additional binding configuration.
-    /// </summary>
-    /// <typeparam name="TMessage">The message type.</typeparam>
-    /// <param name="configure">A delegate to configure per-type binding.</param>
-    /// <returns>The builder for method chaining.</returns>
-    IInMemoryQueueBuilder Receives<TMessage>(Action<IReceiveTypeBindDescriptor> configure);
-
-    /// <summary>
     /// Declares that this queue receives the specified message type.
     /// </summary>
     /// <param name="messageType">The message type.</param>

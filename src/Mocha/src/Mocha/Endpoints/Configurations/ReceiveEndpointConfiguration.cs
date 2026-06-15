@@ -54,12 +54,6 @@ public class ReceiveEndpointConfiguration : MessagingConfiguration
     public MessagingBindMode? BindMode { get; set; }
 
     /// <summary>
-    /// Gets or sets the map of per-type bind intents, keyed by message type.
-    /// Allows per-type override of the queue-level bind mode.
-    /// </summary>
-    public Dictionary<Type, ReceiveTypeBindIntent> TypeBinds { get; set; } = [];
-
-    /// <summary>
     /// Gets or sets the maximum number of messages that can be processed concurrently on this endpoint.
     /// </summary>
     public int? MaxConcurrency { get; set; }

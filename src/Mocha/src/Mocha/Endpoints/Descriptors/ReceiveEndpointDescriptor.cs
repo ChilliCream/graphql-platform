@@ -53,20 +53,6 @@ public abstract class ReceiveEndpointDescriptor<T>(IMessagingConfigurationContex
     }
 
     /// <inheritdoc />
-    public IReceiveEndpointDescriptor<T> Receives<TMessage>(Action<IReceiveTypeBindDescriptor> configure)
-    {
-        ArgumentNullException.ThrowIfNull(configure);
-
-        var descriptor = new ReceiveTypeBindDescriptor();
-        configure(descriptor);
-
-        var messageType = typeof(TMessage);
-        Configuration.ReceivedMessageTypes.Add(messageType);
-        MergeTypeBindIntent(messageType, descriptor);
-        return this;
-    }
-
-    /// <inheritdoc />
     public IReceiveEndpointDescriptor<T> Receives(Type messageType)
     {
         ArgumentNullException.ThrowIfNull(messageType);
@@ -86,25 +72,6 @@ public abstract class ReceiveEndpointDescriptor<T>(IMessagingConfigurationContex
     {
         Configuration.BindMode = MessagingBindMode.Explicit;
         return this;
-    }
-
-    private void MergeTypeBindIntent(Type messageType, ReceiveTypeBindDescriptor incoming)
-    {
-        if (!Configuration.TypeBinds.TryGetValue(messageType, out var existing))
-        {
-            Configuration.TypeBinds[messageType] = new ReceiveTypeBindIntent(
-                messageType,
-                incoming.ResolvedBindMode);
-            return;
-        }
-
-        // Merge: explicit bind mode from the incoming descriptor wins over an implied value;
-        // if both are null (neither configured), keep null.
-        var mergedBindMode = incoming.ResolvedBindMode ?? existing.BindMode;
-
-        Configuration.TypeBinds[messageType] = new ReceiveTypeBindIntent(
-            messageType,
-            mergedBindMode);
     }
 
     public IReceiveEndpointDescriptor<T> Kind(ReceiveEndpointKind kind)

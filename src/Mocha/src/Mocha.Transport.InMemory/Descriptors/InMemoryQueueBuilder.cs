@@ -70,13 +70,6 @@ internal sealed class InMemoryQueueBuilder : IInMemoryQueueBuilder
     }
 
     /// <inheritdoc />
-    public IInMemoryQueueBuilder Receives<TMessage>(Action<IReceiveTypeBindDescriptor> configure)
-    {
-        EnsureEndpoint().Receives<TMessage>(configure);
-        return this;
-    }
-
-    /// <inheritdoc />
     public IInMemoryQueueBuilder Receives(Type messageType)
     {
         EnsureEndpoint().Receives(messageType);

@@ -101,13 +101,6 @@ internal sealed class RabbitMQQueueBuilder : IRabbitMQQueueBuilder
     }
 
     /// <inheritdoc />
-    public IRabbitMQQueueBuilder Receives<TMessage>(Action<IReceiveTypeBindDescriptor> configure)
-    {
-        EnsureEndpoint().Receives<TMessage>(configure);
-        return this;
-    }
-
-    /// <inheritdoc />
     public IRabbitMQQueueBuilder Receives(Type messageType)
     {
         EnsureEndpoint().Receives(messageType);

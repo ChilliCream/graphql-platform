@@ -21,9 +21,6 @@ public interface IPostgresReceiveEndpointDescriptor : IReceiveEndpointDescriptor
     /// <inheritdoc />
     new IPostgresReceiveEndpointDescriptor Receives<TMessage>();
 
-    /// <inheritdoc cref="IReceiveEndpointDescriptor{T}.Receives{TMessage}(Action{IReceiveTypeBindDescriptor})"/>
-    new IPostgresReceiveEndpointDescriptor Receives<TMessage>(Action<IReceiveTypeBindDescriptor> configure);
-
     /// <inheritdoc cref="IReceiveEndpointDescriptor{T}.Receives(Type)"/>
     new IPostgresReceiveEndpointDescriptor Receives(Type messageType);
 

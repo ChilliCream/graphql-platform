@@ -22,9 +22,6 @@ public interface IInMemoryReceiveEndpointDescriptor : IReceiveEndpointDescriptor
     new IInMemoryReceiveEndpointDescriptor Receives<TMessage>();
 
     /// <inheritdoc />
-    new IInMemoryReceiveEndpointDescriptor Receives<TMessage>(Action<IReceiveTypeBindDescriptor> configure);
-
-    /// <inheritdoc />
     new IInMemoryReceiveEndpointDescriptor Receives(Type messageType);
 
     /// <inheritdoc />

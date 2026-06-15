@@ -51,14 +51,6 @@ internal sealed class RabbitMQReceiveEndpointDescriptor
     }
 
     /// <inheritdoc />
-    public new IRabbitMQReceiveEndpointDescriptor Receives<TMessage>(Action<IReceiveTypeBindDescriptor> configure)
-    {
-        base.Receives<TMessage>(configure);
-
-        return this;
-    }
-
-    /// <inheritdoc />
     public new IRabbitMQReceiveEndpointDescriptor Receives(Type messageType)
     {
         base.Receives(messageType);

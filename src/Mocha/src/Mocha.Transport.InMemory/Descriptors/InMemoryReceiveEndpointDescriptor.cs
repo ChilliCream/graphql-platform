@@ -45,13 +45,6 @@ internal sealed class InMemoryReceiveEndpointDescriptor
         return this;
     }
 
-    public new IInMemoryReceiveEndpointDescriptor Receives<TMessage>(Action<IReceiveTypeBindDescriptor> configure)
-    {
-        base.Receives<TMessage>(configure);
-
-        return this;
-    }
-
     public new IInMemoryReceiveEndpointDescriptor Receives(Type messageType)
     {
         base.Receives(messageType);

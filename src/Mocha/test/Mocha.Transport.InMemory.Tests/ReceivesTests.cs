@@ -180,7 +180,7 @@ public class ReceivesTests
             .AddEventHandler<OrderCreatedHandler>()
             .AddInMemory(t =>
             {
-                t.BindExplicitly();
+                t.BindImplicitly();
                 t.Queue("orders").Receives<OrderCreated>();
             })
             .BuildServiceProvider();
@@ -257,7 +257,7 @@ public class ReceivesTests
             .AddEventHandler<OrderCreatedHandler>()
             .AddInMemory(t =>
             {
-                t.BindExplicitly();
+                t.BindImplicitly();
                 t.Queue("orders-primary").Receives<OrderCreated>();
                 t.Queue("orders-backup").Receives<OrderCreated>();
             })

@@ -87,13 +87,6 @@ internal sealed class PostgresQueueBuilder : IPostgresQueueBuilder
     }
 
     /// <inheritdoc />
-    public IPostgresQueueBuilder Receives<TMessage>(Action<IReceiveTypeBindDescriptor> configure)
-    {
-        EnsureEndpoint().Receives<TMessage>(configure);
-        return this;
-    }
-
-    /// <inheritdoc />
     public IPostgresQueueBuilder Receives(Type messageType)
     {
         EnsureEndpoint().Receives(messageType);

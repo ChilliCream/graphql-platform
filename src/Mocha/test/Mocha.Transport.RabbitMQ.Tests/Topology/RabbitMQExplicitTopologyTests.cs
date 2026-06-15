@@ -713,33 +713,6 @@ public class RabbitMQExplicitTopologyTests
             }).BuildRuntime());
     }
 
-    [Fact]
-    public void AutoBindAndReceives_Should_ProduceExpectedTopology_When_MixedScopes()
-    {
-        // arrange
-        // QueueAutoBindOffTypeReEnable: queue scope turns auto-binding off in bulk, but the per-type
-        // Receives<OrderCreated>(r => r.BindImplicitly()) re-enables it for that type (type > queue).
-        // The convention chain into the queue appears for OrderCreated only.
-        var queueOffTypeOn = CreateRuntime(
-            b => b.AddConsumer<OrderSpyConsumer>(),
-            t =>
-            {
-                t.BindExplicitly();
-                t.Queue("orders")
-                    .Consumer<OrderSpyConsumer>()
-                    .BindExplicitly()
-                    .Receives<OrderCreated>(r => r.BindImplicitly());
-            });
-
-        var transportQueueOffTypeOn = queueOffTypeOn.Transports.OfType<RabbitMQMessagingTransport>().Single();
-
-        // act
-        var descQueueOffTypeOn = transportQueueOffTypeOn.Describe();
-
-        // assert
-        RabbitMQDescribeSnapshot.Create(descQueueOffTypeOn).MatchSnapshot();
-    }
-
     [Fact(Skip = "Placeholder: cross-entity fanout-exchange / routing-key conflict check is deferred"
               + " per plan v3 note (minor finding 8). A declared fanout exchange receiving a convention"
               + " bind with a non-empty routing key should emit a shape-conflict diagnostic rather than"
@@ -791,36 +764,6 @@ public class RabbitMQExplicitTopologyTests
         var description = transport.Describe();
 
         // assert
-        RabbitMQDescribeSnapshot.Create(description).MatchSnapshot();
-    }
-
-    [Fact]
-    public void Describe_Should_KeepSharedTypeEntities_When_OneOfTwoEndpointsSuppressesAutoBind()
-    {
-        // arrange
-        // OrderCreated is consumed by two endpoints. orders-b suppresses auto-binding for that type
-        // via Receives<OrderCreated>(r => r.BindExplicitly()), so its queue gets no convention bind.
-        // The type-owned publish/send exchanges are shared and must remain in the topology for both.
-        var runtime = CreateRuntime(
-            b => b.AddConsumer<OrderSpyConsumer>(),
-            t =>
-            {
-                t.BindExplicitly();
-
-                t.Queue("orders-a")
-                    .Receives<OrderCreated>();
-
-                t.Queue("orders-b")
-                    .Receives<OrderCreated>(r => r.BindExplicitly());
-            });
-        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-
-        // act
-        var description = transport.Describe();
-
-        // assert
-        // orders-a has the convention exchange-to-queue bind; orders-b does not.
-        // Both queues exist; the OrderCreated exchange chain is emitted once (shared entity).
         RabbitMQDescribeSnapshot.Create(description).MatchSnapshot();
     }
 
