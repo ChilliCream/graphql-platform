@@ -163,8 +163,6 @@ export default async function BlogSlugPage({ params }: PageProps) {
   const similar = current ? findSimilarPosts(current, summaries) : [];
   const featuredImage = current?.featuredImage ?? null;
 
-  // Left rail: the 10 most recent posts (summaries come newest-first),
-  // including the current post, which is highlighted as active.
   const sidebarPosts = summaries.slice(0, 10);
   const currentHref = current?.href ?? `/blog/${stem}`;
 
@@ -196,11 +194,11 @@ export default async function BlogSlugPage({ params }: PageProps) {
       data-docs-layout
       className="cc-content-dark grid grid-cols-1 lg:grid-cols-[20rem_1fr]"
     >
-      <SidebarDrawer>
+      <SidebarDrawer closeLabel="Close latest posts">
         <BlogSidebar posts={sidebarPosts} currentHref={currentHref} />
       </SidebarDrawer>
       <div className="min-w-0">
-        <DocsToolbar />
+        <DocsToolbar menuLabel="Open latest posts" menuPillLabel="Latest posts" />
         <div className="grid grid-cols-1 2xl:grid-cols-[1fr_20rem]">
           <main className="min-w-0 px-5 pb-8 pt-16 sm:px-12 2xl:pt-8">
             {jsonLd ? (

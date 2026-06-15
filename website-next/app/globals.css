@@ -246,12 +246,9 @@ html[data-smooth-scroll="true"]:has(:target) {
    variables are declared by DocSearch on `:root` (its stylesheet loads
    after this one, so a `:root` override here loses the cascade). Scoping
    to `.DocSearch-Container` beats that with higher specificity and lets
-   descendants inherit via `var()`.
-
-   NOTE: @docsearch/css is v4, which renamed/added tokens. v4-only tokens left
-   unset fall back to the light `:root` defaults (bright-blue selected row,
-   white footer keys, light borders), so every token the modal reads must be
-   overridden here. Full token list:
+   descendants inherit via `var()`. @docsearch/css v4 added tokens that fall
+   back to the light `:root` defaults when unset, so every token the modal
+   reads is overridden here. Full token list:
    https://docsearch.algolia.com/docs/styling */
 .DocSearch-Container {
   --docsearch-primary-color: var(--color-cc-accent);
@@ -283,38 +280,26 @@ html[data-smooth-scroll="true"]:has(:target) {
   --docsearch-logo-color: var(--color-cc-ink-dim);
 }
 
-/* Give the modal a defined edge so it reads as a distinct surface over the
-   blurred page behind it. */
 .DocSearch-Container .DocSearch-Modal {
   border: 1px solid rgb(245 241 234 / 0.12);
 }
 
-/* The hit title is the primary line; the breadcrumb/path beneath it is
-   supporting context, so dim it down. */
 .DocSearch-Container .DocSearch-Hit-path {
   color: var(--color-cc-ink-dim);
 }
 
-/* Footer command hints ("Navigate", "Select", "Close") are chrome the user
-   reads, keep them at full ink rather than the muted token. */
 .DocSearch-Container .DocSearch-Commands,
 .DocSearch-Container .DocSearch-Commands li {
   color: var(--color-cc-ink);
 }
 
-/* Hovering/selecting a hit highlights the row background; DocSearch also
-   recolors the leading icon and the enter-arrow to the accent, which reads as
-   noisy. Keep those icons at their resting dim ink instead. */
 .DocSearch-Container .DocSearch-Hit[aria-selected="true"] .DocSearch-Hit-icon,
 .DocSearch-Container .DocSearch-Hit[aria-selected="true"] .DocSearch-Hit-action {
   color: var(--color-cc-ink-dim);
 }
 
-/* Search-bar chrome (magnifier, Clear, Close) defaults to the accent. Reserve
-   the accent for matched terms only and keep these controls as dim ink. The
-   magnifier svg flips to the accent on `:focus-within` and the Close button
-   (also a .DocSearch-Action) flips to a tinted accent box on hover, so those
-   states need overriding at higher specificity too. */
+/* Keep search-bar controls at dim ink; override the accent DocSearch applies
+   on :focus-within (magnifier) and :hover (Close) too. */
 .DocSearch-Container .DocSearch-SearchBar-Magnifier,
 .DocSearch-Container .DocSearch-MagnifierLabel,
 .DocSearch-Container .DocSearch-MagnifierLabel svg,

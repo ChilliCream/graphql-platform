@@ -3,8 +3,8 @@ import type { BlogPostSummary } from "@/src/helpers/blogPosts";
 
 /**
  * Left rail for blog posts mirroring the docs sidebar, listing the most recent
- * posts (newest first) so readers can jump between articles. The currently open
- * post is excluded by the caller, which also caps the list length.
+ * posts (newest first) so readers can jump between articles. The post matching
+ * `currentHref` is highlighted as active.
  */
 export function BlogSidebar({
   posts,
