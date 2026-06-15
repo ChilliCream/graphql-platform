@@ -49,7 +49,11 @@ export const STEP_PALETTE: Record<
   4: stepColors("var(--cc-step-4)", "var(--cc-step-4-text)"),
 };
 
-export function stepStyle(step: number): { backgroundColor: string; borderColor: string; color: string } {
+export function stepStyle(step: number): {
+  backgroundColor: string;
+  borderColor: string;
+  color: string;
+} {
   const c = STEP_PALETTE[step] ?? STEP_PALETTE[1];
   return { backgroundColor: c.bg, borderColor: c.border, color: c.text };
 }

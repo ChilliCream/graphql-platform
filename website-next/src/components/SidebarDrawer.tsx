@@ -6,7 +6,13 @@ import { IconButton } from "@/src/design-system/IconButton";
 
 export const SIDEBAR_OPEN_EVENT = "docs:open-sidebar";
 
-export function SidebarDrawer({ children }: { children: ReactNode }) {
+export function SidebarDrawer({
+  children,
+  closeLabel = "Close documentation menu",
+}: {
+  children: ReactNode;
+  closeLabel?: string;
+}) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const [prevPathname, setPrevPathname] = useState(pathname);
@@ -85,21 +91,18 @@ export function SidebarDrawer({ children }: { children: ReactNode }) {
         aria-hidden={!open}
       >
         <div
-          className={`absolute inset-0 bg-cc-black/40 transition-opacity ${
+          className={`bg-cc-black/40 absolute inset-0 transition-opacity ${
             open ? "opacity-100" : "opacity-0"
           }`}
           onClick={() => setOpen(false)}
         />
         <div
-          className={`absolute inset-y-0 left-0 w-80 max-w-[85vw] overflow-y-auto bg-cc-bg shadow-xl transition-transform duration-200 ${
+          className={`bg-cc-bg absolute inset-y-0 left-0 w-80 max-w-[85vw] overflow-y-auto shadow-xl transition-transform duration-200 ${
             open ? "translate-x-0" : "-translate-x-full"
           }`}
         >
-          <div className="flex items-center justify-end border-b border-cc-card-border px-3 py-2">
-            <IconButton
-              aria-label="Close documentation menu"
-              onClick={() => setOpen(false)}
-            >
+          <div className="border-cc-card-border flex items-center justify-end border-b px-3 py-2">
+            <IconButton aria-label={closeLabel} onClick={() => setOpen(false)}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
@@ -122,7 +125,7 @@ export function SidebarDrawer({ children }: { children: ReactNode }) {
 
       <aside className="hidden lg:block" aria-hidden="true" />
 
-      <div className="cc-content-dark fixed left-0 top-18 z-30 -mt-px hidden max-h-[calc(100vh-4.5rem-var(--docs-rail-bottom,0px))] min-h-[var(--docs-rail-min,0px)] w-80 flex-col border-r border-cc-card-border lg:flex">
+      <div className="cc-content-dark border-cc-card-border fixed top-18 left-0 z-30 -mt-px hidden max-h-[calc(100vh-4.5rem-var(--docs-rail-bottom,0px))] min-h-[var(--docs-rail-min,0px)] w-80 flex-col border-r lg:flex">
         {children}
       </div>
     </>

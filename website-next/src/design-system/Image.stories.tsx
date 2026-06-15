@@ -62,11 +62,11 @@ export const BrokenInCard: Story = {
   },
   decorators: [
     (Story) => (
-      <div className="overflow-hidden rounded-2xl border border-cc-ink-faint">
-        <div className="aspect-video w-full overflow-hidden border-b border-cc-ink-faint">
+      <div className="border-cc-ink-faint overflow-hidden rounded-2xl border">
+        <div className="border-cc-ink-faint aspect-video w-full overflow-hidden border-b">
           <Story />
         </div>
-        <div className="px-7 py-6 text-sm text-cc-ink-dim">Card content</div>
+        <div className="text-cc-ink-dim px-7 py-6 text-sm">Card content</div>
       </div>
     ),
   ],

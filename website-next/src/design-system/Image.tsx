@@ -24,7 +24,7 @@ interface ImageProps extends ComponentPropsWithoutRef<"img"> {
 function blurBackground(
   blurDataURL: string,
   blurWidth = 8,
-  blurHeight = 8
+  blurHeight = 8,
 ): CSSProperties {
   const svgWidth = blurWidth * 40;
   const svgHeight = blurHeight * 40;

@@ -29,7 +29,11 @@ export function Pagination({
       aria-label="Pagination"
       className="mt-10 flex items-center justify-center gap-1"
     >
-      <PageButton href={prevHref} disabled={prevHref === null} ariaLabel="Previous page">
+      <PageButton
+        href={prevHref}
+        disabled={prevHref === null}
+        ariaLabel="Previous page"
+      >
         ‹
       </PageButton>
       {pages.map((p, i) =>
@@ -37,7 +41,7 @@ export function Pagination({
           <span
             key={`gap-${i}`}
             aria-hidden="true"
-            className="px-2 text-cc-ink-dim"
+            className="text-cc-ink-dim px-2"
           >
             …
           </span>
@@ -52,7 +56,11 @@ export function Pagination({
           </PageButton>
         ),
       )}
-      <PageButton href={nextHref} disabled={nextHref === null} ariaLabel="Next page">
+      <PageButton
+        href={nextHref}
+        disabled={nextHref === null}
+        ariaLabel="Next page"
+      >
         ›
       </PageButton>
     </nav>
@@ -80,7 +88,7 @@ function PageButton({
     return (
       <span
         aria-hidden="true"
-        className={`${baseClasses} cursor-not-allowed border border-cc-card-border text-cc-ink-faint`}
+        className={`${baseClasses} border-cc-card-border text-cc-ink-faint cursor-not-allowed border`}
       >
         {children}
       </span>
@@ -91,7 +99,7 @@ function PageButton({
       <span
         aria-current="page"
         aria-label={ariaLabel}
-        className={`${baseClasses} border border-cc-accent bg-cc-accent/10 font-semibold text-cc-accent`}
+        className={`${baseClasses} border-cc-accent bg-cc-accent/10 text-cc-accent border font-semibold`}
       >
         {children}
       </span>
@@ -102,7 +110,7 @@ function PageButton({
       href={href}
       prefetch={false}
       aria-label={ariaLabel}
-      className={`${baseClasses} border border-cc-card-border text-cc-ink-dim hover:border-cc-accent-hover hover:bg-cc-accent/10 hover:text-cc-accent-hover`}
+      className={`${baseClasses} border-cc-card-border text-cc-ink-dim hover:border-cc-accent-hover hover:bg-cc-accent/10 hover:text-cc-accent-hover border`}
     >
       {children}
     </Link>
