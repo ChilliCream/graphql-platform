@@ -44,21 +44,18 @@ public sealed class DefaultMessageBus(
     /// Publishes a message to all subscribed consumers using the specified publish options.
     /// </summary>
     /// <remarks>
-    /// When <see cref="PublishOptions.Endpoint"/> is set, the message is dispatched to that specific
-    /// address; otherwise the runtime's router resolves the endpoint by message type. Custom headers and
-    /// expiration time from <paramref name="options"/> are applied to the dispatch context before
-    /// pipeline execution.
+    /// The message is routed through the publish endpoint resolved by the runtime's router for the
+    /// given message type. Custom headers and expiration time from <paramref name="options"/> are
+    /// applied to the dispatch context before pipeline execution.
     /// </remarks>
     /// <typeparam name="T">The type of the message to publish.</typeparam>
     /// <param name="message">The message instance to publish. Must not be <see langword="null"/>.</param>
-    /// <param name="options">Options controlling the target endpoint, headers, and expiration for this publish operation.</param>
+    /// <param name="options">Options controlling headers and expiration for this publish operation.</param>
     /// <param name="cancellationToken">A token to cancel the publish operation.</param>
     public async ValueTask PublishAsync<T>(T message, PublishOptions options, CancellationToken cancellationToken)
     {
         var messageType = runtime.GetMessageType(message!.GetType());
-        var endpoint = options.Endpoint is { } address
-            ? runtime.GetDispatchEndpoint(address)
-            : runtime.GetPublishEndpoint(messageType);
+        var endpoint = runtime.GetPublishEndpoint(messageType);
 
         var context = _contextPool.Get();
         try
@@ -320,9 +317,7 @@ public sealed class DefaultMessageBus(
         where T : notnull
     {
         var messageType = runtime.GetMessageType(message!.GetType());
-        var endpoint = options.Endpoint is { } address
-            ? runtime.GetDispatchEndpoint(address)
-            : runtime.GetPublishEndpoint(messageType);
+        var endpoint = runtime.GetPublishEndpoint(messageType);
 
         var context = _contextPool.Get();
         try

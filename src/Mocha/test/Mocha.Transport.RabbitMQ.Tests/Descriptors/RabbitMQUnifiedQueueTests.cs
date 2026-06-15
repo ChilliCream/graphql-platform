@@ -7,7 +7,7 @@ namespace Mocha.Transport.RabbitMQ.Tests.Descriptors;
 
 /// <summary>
 /// Verifies the identity, entity-only lowering, convergence, saga placement, and axis-A claim
-/// behavior of the unified <c>t.Queue(name, q => ...)</c> front door.
+/// behavior of the unified <c>t.Queue(name)</c> front door.
 /// </summary>
 public class RabbitMQUnifiedQueueTests
 {

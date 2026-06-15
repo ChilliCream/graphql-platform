@@ -119,13 +119,4 @@ public interface IPostgresMessagingTransportDescriptor
     /// <param name="name">The queue name, which also serves as the endpoint identity.</param>
     /// <returns>A queue builder for further configuration.</returns>
     IPostgresQueueBuilder Queue(string name);
-
-    /// <summary>
-    /// Gets or creates a queue builder whose identity is the given queue name and applies
-    /// additional configuration through the supplied delegate.
-    /// </summary>
-    /// <param name="name">The queue name, which also serves as the endpoint identity.</param>
-    /// <param name="configure">A delegate that configures the queue builder.</param>
-    /// <returns>The transport descriptor for method chaining.</returns>
-    IPostgresMessagingTransportDescriptor Queue(string name, Action<IPostgresQueueBuilder> configure);
 }

@@ -48,7 +48,7 @@ public class ReceiveEndpointConfiguration : MessagingConfiguration
     /// <summary>
     /// Gets or sets the bind mode override at the queue scope.
     /// A null value inherits the transport scope. <see cref="MessagingBindMode.Implicit"/> generates
-    /// convention binds for consumed message types that reach this queue, while
+    /// convention binds for consumed message types that reach this endpoint, while
     /// <see cref="MessagingBindMode.Explicit"/> suppresses them.
     /// </summary>
     public MessagingBindMode? BindMode { get; set; }

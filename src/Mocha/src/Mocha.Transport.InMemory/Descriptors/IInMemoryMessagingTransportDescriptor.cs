@@ -101,13 +101,4 @@ public interface IInMemoryMessagingTransportDescriptor : IMessagingTransportDesc
     /// <param name="name">The queue name. Also serves as the endpoint identity.</param>
     /// <returns>A queue builder for further configuration.</returns>
     IInMemoryQueueBuilder Queue(string name);
-
-    /// <summary>
-    /// Gets or creates the queue builder for the given queue name and applies additional
-    /// configuration through the supplied delegate.
-    /// </summary>
-    /// <param name="name">The queue name. Also serves as the endpoint identity.</param>
-    /// <param name="configure">A delegate that configures the queue builder.</param>
-    /// <returns>The transport descriptor for method chaining.</returns>
-    IInMemoryMessagingTransportDescriptor Queue(string name, Action<IInMemoryQueueBuilder> configure);
 }

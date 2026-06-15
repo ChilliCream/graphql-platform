@@ -60,24 +60,6 @@ public abstract partial class MessagingTransport
 
             foreach (var messageRuntimeType in endpointConfiguration.ReceivedMessageTypes)
             {
-                // Reject Receives<T> when T is a reply type. Two detection paths cover both cases:
-                // (1) a route with Kind = Reply exists for the type (saga OnReply<T>),
-                // (2) the type is the response of a registered IEventRequest<T> (request-reply response).
-                var isReplyRouteKind = context.Router.InboundRoutes
-                    .Any(r => r.Kind == InboundRouteKind.Reply
-                              && r.MessageType?.RuntimeType == messageRuntimeType);
-
-                var isResponseRegistration = context.Messages.MessageTypes
-                    .Any(mt => mt.RuntimeType.GetInterfaces()
-                        .Any(i => i.IsGenericType
-                                  && i.GetGenericTypeDefinition() == typeof(IEventRequest<>)
-                                  && i.GetGenericArguments()[0] == messageRuntimeType));
-
-                if (isReplyRouteKind || isResponseRegistration)
-                {
-                    throw ThrowHelper.ReceivesReplyType(messageRuntimeType.Name);
-                }
-
                 var matched = context.Router.InboundRoutes
                     .Where(r => r.Kind is Subscribe or Send or Request
                                 && r.MessageType?.RuntimeType == messageRuntimeType)
@@ -243,12 +225,11 @@ public abstract partial class MessagingTransport
         // Discover receive endpoints
         if (BindMode == MessagingBindMode.Implicit)
         {
-            // A message type is claimed when a configured receive endpoint names it via
-            // Handler/Consumer/Receives, in which case at least one route for the type is already
-            // connected to that endpoint on this transport. Implicit discovery connects only unclaimed
-            // routes onto framework-created endpoints; a claimed type binds its remaining routes to the
-            // claiming endpoint instead, so the type converges on a single endpoint. The claim map is
-            // computed up front so the outcome does not depend on the order routes are visited in.
+            // First find message types that are already bound to an endpoint on this transport.
+            // Example: Queue("orders").Receives<OrderCreated>() makes "orders" the owner of
+            // OrderCreated. If OrderCreatedHandlerA is already on "orders" and
+            // OrderCreatedHandlerB is still unbound, HandlerB should go to "orders" too instead
+            // of getting a second auto-created endpoint.
             var claimedTypeEndpoints = new Dictionary<Type, List<ReceiveEndpoint>>();
             foreach (var route in router.InboundRoutes)
             {
@@ -269,6 +250,10 @@ public abstract partial class MessagingTransport
                 }
             }
 
+            // Now connect the remaining routes. Claimed types go to their owner endpoint, so all
+            // handlers for the same message type stay together. Unclaimed types are handled by
+            // normal implicit discovery, which creates the default endpoint for the route.
+            // The owner map is built first so route order does not change the result.
             foreach (var route in router.InboundRoutes)
             {
                 if (route.Endpoint is null)

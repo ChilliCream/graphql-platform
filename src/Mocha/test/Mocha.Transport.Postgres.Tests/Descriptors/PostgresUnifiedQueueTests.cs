@@ -5,7 +5,7 @@ namespace Mocha.Transport.Postgres.Tests.Descriptors;
 
 /// <summary>
 /// Verifies the identity, entity-only lowering, and convergence behavior of the
-/// unified <c>t.Queue(name, q => ...)</c> front door on the PostgreSQL transport.
+/// unified <c>t.Queue(name)</c> front door on the PostgreSQL transport.
 /// </summary>
 public class PostgresUnifiedQueueTests
 {

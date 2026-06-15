@@ -24,7 +24,7 @@ public class RabbitMQQueueFrontDoorLoweringTests
                 t =>
                 {
                     t.BindExplicitly();
-                    t.Queue("audit", q => q.ErrorQueue("audit_error"));
+                    t.Queue("audit").ErrorQueue("audit_error");
                 });
         }
 
@@ -71,7 +71,7 @@ public class RabbitMQQueueFrontDoorLoweringTests
             t =>
             {
                 t.BindExplicitly();
-                t.Queue("audit", q => q.Quorum());
+                t.Queue("audit").Quorum();
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
         var topology = (RabbitMQMessagingTopology)transport.Topology;

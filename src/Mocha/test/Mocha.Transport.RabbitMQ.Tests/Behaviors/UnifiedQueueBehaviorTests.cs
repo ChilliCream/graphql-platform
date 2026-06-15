@@ -5,7 +5,7 @@ using Mocha.Transport.RabbitMQ.Tests.Helpers;
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
 /// <summary>
-/// End-to-end Docker-gated tests for the unified <c>t.Queue(name, q => ...)</c> front door.
+/// End-to-end Docker-gated tests for the unified <c>t.Queue(name)</c> front door.
 /// Verifies that consumer placement via the unified handle routes messages to the consumer.
 /// </summary>
 [Collection("RabbitMQ")]

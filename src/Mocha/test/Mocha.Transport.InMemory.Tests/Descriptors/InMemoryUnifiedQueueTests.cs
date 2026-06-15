@@ -5,7 +5,7 @@ namespace Mocha.Transport.InMemory.Tests.Descriptors;
 
 /// <summary>
 /// Verifies the delivery behavior and entity-only lowering of the unified
-/// <c>t.Queue(name, q => ...)</c> front door on the in-memory transport.
+/// <c>t.Queue(name)</c> front door on the in-memory transport.
 /// </summary>
 public class InMemoryUnifiedQueueTests
 {

@@ -193,7 +193,7 @@ internal static class ThrowHelper
     public static Exception TwoReceiveEndpointsShareOneQueue(string queueName, string endpoint1, string endpoint2)
         => new InvalidOperationException(
             $"Queue '{queueName}' is claimed by both receive endpoint '{endpoint1}' and receive endpoint '{endpoint2}'. "
-            + "Each queue can have at most one receive endpoint. Configure it via 't.Queue(name, q => ...)' or 't.Queue(name)...' "
+            + "Each queue can have at most one receive endpoint. Configure it via 't.Queue(name)...' "
             + "and declare extra queue shape via 't.DeclareQueue(name)' if needed.");
 
     public static Exception SatelliteRequiresConsumingEndpoint(string satelliteType, string queueName)
@@ -201,20 +201,4 @@ internal static class ThrowHelper
             $"Satellite queue '{queueName}' ({satelliteType}) cannot be configured on an entity-only queue. "
             + "Satellite queues (error, skipped) can only be configured on a receive endpoint with at least one consumer or Receives<T> declaration. "
             + "Add a consumer via 'Handler<T>', 'Consumer<T>', or 'Receives<T>' to make this a consuming endpoint.");
-
-    public static Exception MultipleDefaultTransports(params string[] transportNames)
-        => new InvalidOperationException(
-            $"Multiple transports are flagged as default: {string.Join(", ", transportNames.Select(t => $"'{t}'"))}. "
-            + "Only one transport can be the default. Use IsDefaultTransport() to designate the default.");
-
-    public static Exception NoDefaultTransportAvailable(params string[] transportNames)
-        => new InvalidOperationException(
-            $"No default transport is set and multiple transports are available: {string.Join(", ", transportNames.Select(t => $"'{t}'"))}. "
-            + "Designate exactly one transport as default via IsDefaultTransport().");
-
-    public static Exception AmbiguousNeutralSchemeClaim(string scheme, params string[] transportNames)
-        => new InvalidOperationException(
-            $"Neutral scheme '{scheme}' is claimed by multiple transports: {string.Join(", ", transportNames.Select(t => $"'{t}'"))} without a default. "
-            + "Neutral schemes (without a transport prefix) can only be used when exactly one transport is registered or one transport is flagged as default. "
-            + "Either designate a default transport via IsDefaultTransport() or use a scheme-qualified address like '{transportNames[0]}:{scheme}' to specify the transport explicitly.");
 }

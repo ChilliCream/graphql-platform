@@ -144,14 +144,6 @@ public sealed class InMemoryMessagingTransportDescriptor
     }
 
     /// <inheritdoc />
-    public IInMemoryMessagingTransportDescriptor Queue(string name, Action<IInMemoryQueueBuilder> configure)
-    {
-        var handle = Queue(name);
-        configure(handle);
-        return this;
-    }
-
-    /// <inheritdoc />
     public IInMemoryReceiveEndpointDescriptor Endpoint(string name)
     {
         var endpoint = _receiveEndpoints.FirstOrDefault(e =>

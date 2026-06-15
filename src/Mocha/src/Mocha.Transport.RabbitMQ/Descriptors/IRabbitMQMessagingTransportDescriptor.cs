@@ -129,13 +129,4 @@ public interface IRabbitMQMessagingTransportDescriptor
     /// <param name="name">The queue name, which also serves as the endpoint identity.</param>
     /// <returns>A queue builder for further configuration.</returns>
     IRabbitMQQueueBuilder Queue(string name);
-
-    /// <summary>
-    /// Gets or creates a queue builder for the given queue name and applies additional
-    /// configuration through the supplied delegate.
-    /// </summary>
-    /// <param name="name">The queue name, which also serves as the endpoint identity.</param>
-    /// <param name="configure">A delegate that configures the queue builder.</param>
-    /// <returns>The transport descriptor for method chaining.</returns>
-    IRabbitMQMessagingTransportDescriptor Queue(string name, Action<IRabbitMQQueueBuilder> configure);
 }

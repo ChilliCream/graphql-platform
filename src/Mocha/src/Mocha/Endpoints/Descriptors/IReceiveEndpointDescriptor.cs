@@ -52,15 +52,15 @@ public interface IReceiveEndpointDescriptor<out TConfiguration>
     IReceiveEndpointDescriptor<TConfiguration> Receives(Type messageType);
 
     /// <summary>
-    /// Sets the queue bind mode to <see cref="MessagingBindMode.Implicit"/>, generating
-    /// convention binds for consumed message types that reach this queue.
+    /// Sets this receive endpoint's bind mode to <see cref="MessagingBindMode.Implicit"/>, generating
+    /// convention binds for consumed message types that reach this endpoint.
     /// </summary>
     /// <returns>The descriptor instance for method chaining.</returns>
     IReceiveEndpointDescriptor<TConfiguration> BindImplicitly();
 
     /// <summary>
-    /// Sets the queue bind mode to <see cref="MessagingBindMode.Explicit"/>, suppressing
-    /// convention binds for consumed message types that reach this queue.
+    /// Sets this receive endpoint's bind mode to <see cref="MessagingBindMode.Explicit"/>, suppressing
+    /// convention binds for consumed message types that reach this endpoint.
     /// </summary>
     /// <returns>The descriptor instance for method chaining.</returns>
     IReceiveEndpointDescriptor<TConfiguration> BindExplicitly();

@@ -238,14 +238,6 @@ public sealed class PostgresMessagingTransportDescriptor
         return builder;
     }
 
-    /// <inheritdoc />
-    public IPostgresMessagingTransportDescriptor Queue(string name, Action<IPostgresQueueBuilder> configure)
-    {
-        var handle = Queue(name);
-        configure(handle);
-        return this;
-    }
-
     /// <summary>
     /// Builds the final <see cref="PostgresTransportConfiguration"/> from all declared endpoints,
     /// topics, queues, and subscriptions.

@@ -222,14 +222,6 @@ public sealed class RabbitMQMessagingTransportDescriptor
         return builder;
     }
 
-    /// <inheritdoc />
-    public IRabbitMQMessagingTransportDescriptor Queue(string name, Action<IRabbitMQQueueBuilder> configure)
-    {
-        var handle = Queue(name);
-        configure(handle);
-        return this;
-    }
-
     /// <summary>
     /// Builds the final transport configuration from all accumulated descriptor settings, including receive and dispatch endpoints.
     /// </summary>
