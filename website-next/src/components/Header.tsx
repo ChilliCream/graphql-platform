@@ -33,13 +33,13 @@ export default async function Header() {
   ) : null;
 
   return (
-    <header className="sticky top-0 z-40 flex h-18 w-full justify-center border-b border-cc-white/10 bg-cc-card-bg shadow-[inset_0_1px_0_var(--cc-highlight)] backdrop-blur-[18px] backdrop-saturate-150">
+    <header className="border-cc-white/10 bg-cc-card-bg sticky top-0 z-40 flex h-18 w-full justify-center border-b shadow-[inset_0_1px_0_var(--cc-highlight)] backdrop-blur-[18px] backdrop-saturate-150">
       <div className="relative flex h-full w-full max-w-7xl items-center justify-between px-4 lg:gap-8">
         <Link
           href="/"
           prefetch={false}
           aria-label="ChilliCream Home"
-          className="flex h-full flex-none items-center text-cc-ink"
+          className="text-cc-ink flex h-full flex-none items-center"
         >
           <ChilliCreamWinking className="h-8 w-8 fill-current" />
         </Link>
@@ -47,15 +47,15 @@ export default async function Header() {
         <HeaderNav latestBlog={latestBlog} blogImage={blogImage} />
 
         <div className="hidden flex-none items-center gap-5 min-[1060px]:flex">
-          <span className="inline-flex items-stretch overflow-hidden rounded-md border border-cc-card-border bg-cc-hover text-xs font-medium text-cc-ink-dim">
+          <span className="border-cc-card-border bg-cc-hover text-cc-ink-dim inline-flex items-stretch overflow-hidden rounded-md border text-xs font-medium">
             <a
               href={GITHUB_REPO_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-2 py-1 no-underline transition-colors hover:bg-cc-ink-faint hover:text-cc-ink"
+              className="hover:bg-cc-ink-faint hover:text-cc-ink inline-flex items-center gap-1.5 px-2 py-1 no-underline transition-colors"
               aria-label="Star ChilliCream on GitHub"
             >
-              <GitHubIcon className="h-3.5 w-3.5 fill-current text-cc-ink" />
+              <GitHubIcon className="text-cc-ink h-3.5 w-3.5 fill-current" />
               Star
             </a>
             {starCount !== null && (
@@ -63,7 +63,7 @@ export default async function Header() {
                 href={GITHUB_STARGAZERS_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center border-l border-cc-card-border px-2 py-1 tabular-nums text-cc-ink-dim no-underline transition-colors hover:bg-cc-ink-faint hover:text-cc-ink"
+                className="border-cc-card-border text-cc-ink-dim hover:bg-cc-ink-faint hover:text-cc-ink inline-flex items-center border-l px-2 py-1 tabular-nums no-underline transition-colors"
                 aria-label={`${starCount.toLocaleString("en-US")} stargazers on GitHub`}
               >
                 {starCount.toLocaleString("en-US")}
@@ -73,7 +73,7 @@ export default async function Header() {
           <Link
             href={CONTACT_HREF}
             prefetch={false}
-            className="text-sm font-medium text-cc-ink-dim no-underline transition-colors hover:text-cc-ink"
+            className="text-cc-ink-dim hover:text-cc-ink text-sm font-medium no-underline transition-colors"
           >
             Contact Us
           </Link>
@@ -81,13 +81,13 @@ export default async function Header() {
             href={TOOLS.nitro}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex h-10 items-center rounded-full bg-cc-ink px-7 text-sm font-medium text-cc-surface no-underline transition-colors hover:bg-cc-white"
+            className="bg-cc-ink text-cc-surface hover:bg-cc-white inline-flex h-10 items-center rounded-full px-7 text-sm font-medium no-underline transition-colors"
           >
             Launch
           </a>
           <Search
             ariaLabel="Search"
-            className="flex h-full cursor-pointer items-center text-cc-ink-dim transition-colors hover:text-cc-ink"
+            className="text-cc-ink-dim hover:text-cc-ink flex h-full cursor-pointer items-center transition-colors"
           />
         </div>
 

@@ -7,9 +7,9 @@ import "@xyflow/react/dist/style.css";
 const MochaTopologyVisualizationInner = dynamic(
   () =>
     import("./MochaTopologyVisualizationInner").then(
-      (m) => m.MochaTopologyVisualizationInner
+      (m) => m.MochaTopologyVisualizationInner,
     ),
-  { ssr: false }
+  { ssr: false },
 );
 
 const containerStyle: React.CSSProperties = {

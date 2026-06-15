@@ -75,15 +75,14 @@ interface LatestAppInfo {
 }
 
 async function fetchAppInfo(variant: Variant, os: OS): Promise<LatestAppInfo> {
-  const filename =
-    os === "windows" ? `${variant}.yml` : `${variant}-${os}.yml`;
+  const filename = os === "windows" ? `${variant}.yml` : `${variant}-${os}.yml`;
   const response = await fetch(
-    DOWNLOAD_BASE_URL + filename + "?no-cache=" + new Date().getTime()
+    DOWNLOAD_BASE_URL + filename + "?no-cache=" + new Date().getTime(),
   );
 
   if (!response.ok) {
     throw new Error(
-      `Failed to fetch ${filename}: ${response.status} ${response.statusText}`
+      `Failed to fetch ${filename}: ${response.status} ${response.statusText}`,
     );
   }
 
@@ -95,7 +94,7 @@ async function fetchAppInfo(variant: Variant, os: OS): Promise<LatestAppInfo> {
     parsed === null ||
     !Array.isArray((parsed as { files?: unknown }).files) ||
     !(parsed as LatestAppInfo).files.every(
-      (file) => typeof file?.url === "string"
+      (file) => typeof file?.url === "string",
     )
   ) {
     throw new Error(`Invalid app info manifest: ${filename}`);
@@ -107,7 +106,7 @@ async function fetchAppInfo(variant: Variant, os: OS): Promise<LatestAppInfo> {
 function findFile(
   files: LatestAppInfo["files"],
   predicate: (url: string) => boolean,
-  description: string
+  description: string,
 ): string {
   const match = files.find((file) => predicate(file.url));
 
@@ -127,7 +126,7 @@ async function fetchLinuxAppInfo(variant: Variant): Promise<LinuxAppInfo> {
       filename: findFile(
         files,
         (url) => url.endsWith(".AppImage"),
-        "Linux AppImage"
+        "Linux AppImage",
       ),
       text: "Linux",
     },
@@ -144,7 +143,7 @@ async function fetchMacOSAppInfo(variant: Variant): Promise<MacOSAppInfo> {
       filename: findFile(
         files,
         (url) => isDmg(url) && url.includes("x64"),
-        "Mac Intel (.dmg)"
+        "Mac Intel (.dmg)",
       ),
       text: "Mac Intel",
     },
@@ -152,7 +151,7 @@ async function fetchMacOSAppInfo(variant: Variant): Promise<MacOSAppInfo> {
       filename: findFile(
         files,
         (url) => isDmg(url) && url.includes("arm64"),
-        "Mac Silicon (.dmg)"
+        "Mac Silicon (.dmg)",
       ),
       text: "Mac Silicon",
     },
@@ -160,7 +159,7 @@ async function fetchMacOSAppInfo(variant: Variant): Promise<MacOSAppInfo> {
       filename: findFile(
         files,
         (url) => isDmg(url) && url.includes("universal"),
-        "Mac Universal (.dmg)"
+        "Mac Universal (.dmg)",
       ),
       text: "Mac Universal",
     },
@@ -177,7 +176,7 @@ async function fetchWindowsAppInfo(variant: Variant): Promise<WindowsAppInfo> {
       filename: findFile(
         files,
         (url) => isExe(url) && url.includes("arm64"),
-        "Windows arm64 (.exe)"
+        "Windows arm64 (.exe)",
       ),
       text: "Windows arm64",
     },
@@ -185,16 +184,15 @@ async function fetchWindowsAppInfo(variant: Variant): Promise<WindowsAppInfo> {
       filename: findFile(
         files,
         (url) => isExe(url) && url.includes("x64"),
-        "Windows x64 (.exe)"
+        "Windows x64 (.exe)",
       ),
       text: "Windows x64",
     },
     universal: {
       filename: findFile(
         files,
-        (url) =>
-          isExe(url) && !url.includes("arm64") && !url.includes("x64"),
-        "Windows Universal (.exe)"
+        (url) => isExe(url) && !url.includes("arm64") && !url.includes("x64"),
+        "Windows Universal (.exe)",
       ),
       text: "Windows Universal",
     },
@@ -203,7 +201,7 @@ async function fetchWindowsAppInfo(variant: Variant): Promise<WindowsAppInfo> {
 
 async function fetchVariantAppInfo(
   variant: Variant,
-  os: OS
+  os: OS,
 ): Promise<ActiveAppInfo> {
   switch (os) {
     case "linux":
@@ -236,7 +234,10 @@ function useActiveAppInfo(): ActiveAppInfoStatus {
     // to the "ready" state with no active build.
     const pending = os
       ? fetchVariantAppInfo("nitro", os).then(
-          (info): ActiveAppInfoStatus => ({ state: "ready", activeStable: info })
+          (info): ActiveAppInfoStatus => ({
+            state: "ready",
+            activeStable: info,
+          }),
         )
       : Promise.resolve<ActiveAppInfoStatus>({ state: "ready" });
 
@@ -312,7 +313,7 @@ function useAppMatrix(enabled: boolean): AppMatrixStatus {
               },
             },
           });
-        }
+        },
       )
       .catch(() => {
         if (cancelled) {
@@ -331,9 +332,11 @@ function useAppMatrix(enabled: boolean): AppMatrixStatus {
   return status;
 }
 
-function getActiveDownload(
-  active: ActiveAppInfo | undefined
-): { url: string; text: string; filename?: string } {
+function getActiveDownload(active: ActiveAppInfo | undefined): {
+  url: string;
+  text: string;
+  filename?: string;
+} {
   switch (active?.os) {
     case "linux":
       return {
@@ -366,7 +369,7 @@ function DownloadAppLink({
       download={filename}
       rel="noopener noreferrer nofollow"
       onClick={onClick}
-      className="flex items-center justify-center py-1 text-cc-ink hover:text-cc-white"
+      className="text-cc-ink hover:text-cc-white flex items-center justify-center py-1"
       aria-label={"Download " + filename}
     >
       <svg
@@ -456,7 +459,7 @@ export function NitroDownload() {
         href={WEB_STABLE_URL}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex cursor-pointer items-center justify-center rounded-full bg-cc-ink px-7 py-3 text-sm font-medium text-cc-surface no-underline transition-colors hover:bg-cc-white"
+        className="bg-cc-ink text-cc-surface hover:bg-cc-white inline-flex cursor-pointer items-center justify-center rounded-full px-7 py-3 text-sm font-medium no-underline transition-colors"
       >
         Open Web Version
       </a>
@@ -471,7 +474,7 @@ export function NitroDownload() {
         href={active.url}
         download={active.filename}
         rel="noopener noreferrer nofollow"
-        className="inline-flex cursor-pointer flex-col items-center justify-center rounded-l-full bg-cc-ink py-2 pl-7 pr-4 text-sm font-medium leading-tight text-cc-surface no-underline transition-colors hover:bg-cc-white"
+        className="bg-cc-ink text-cc-surface hover:bg-cc-white inline-flex cursor-pointer flex-col items-center justify-center rounded-l-full py-2 pr-4 pl-7 text-sm leading-tight font-medium no-underline transition-colors"
       >
         {active.text}
         <span className="text-xs opacity-80">Stable Build</span>
@@ -481,7 +484,7 @@ export function NitroDownload() {
         aria-label="Show all downloads"
         aria-expanded={open}
         onClick={() => setOpen((prev) => !prev)}
-        className="inline-flex cursor-pointer items-center justify-center rounded-r-full border-l border-cc-surface/30 bg-cc-ink py-2 pl-3 pr-5 text-cc-surface transition-colors hover:bg-cc-white"
+        className="border-cc-surface/30 bg-cc-ink text-cc-surface hover:bg-cc-white inline-flex cursor-pointer items-center justify-center rounded-r-full border-l py-2 pr-5 pl-3 transition-colors"
       >
         <svg
           viewBox="0 0 448 512"
@@ -492,8 +495,8 @@ export function NitroDownload() {
         </svg>
       </button>
       {open && (
-        <div className="absolute left-1/2 top-full z-10 mt-2 -translate-x-1/2 rounded-xl border border-cc-card-border bg-cc-card-bg backdrop-blur-md">
-          <table className="w-full border-collapse text-sm text-cc-ink">
+        <div className="border-cc-card-border bg-cc-card-bg absolute top-full left-1/2 z-10 mt-2 -translate-x-1/2 rounded-xl border backdrop-blur-md">
+          <table className="text-cc-ink w-full border-collapse text-sm">
             <thead>
               <tr>
                 <th className="px-3 py-1.5" />
@@ -513,14 +516,14 @@ export function NitroDownload() {
                     key={row.os + row.type}
                     className={
                       row.groupStart || row.os
-                        ? "border-t border-cc-card-border"
+                        ? "border-cc-card-border border-t"
                         : ""
                     }
                   >
-                    <td className="whitespace-nowrap px-3 py-1.5 font-semibold">
+                    <td className="px-3 py-1.5 font-semibold whitespace-nowrap">
                       {row.os}
                     </td>
-                    <td className="whitespace-nowrap px-3 py-1.5 text-cc-ink-dim">
+                    <td className="text-cc-ink-dim px-3 py-1.5 whitespace-nowrap">
                       {row.type}
                     </td>
                     <td className="px-3 py-1.5 text-center">
@@ -540,10 +543,10 @@ export function NitroDownload() {
               </tbody>
             ) : (
               <tbody>
-                <tr className="border-t border-cc-card-border">
+                <tr className="border-cc-card-border border-t">
                   <td
                     colSpan={4}
-                    className="px-3 py-3 text-center text-cc-ink-dim"
+                    className="text-cc-ink-dim px-3 py-3 text-center"
                   >
                     {matrixLoading
                       ? "Loading downloads…"
@@ -553,10 +556,10 @@ export function NitroDownload() {
               </tbody>
             )}
             <tfoot>
-              <tr className="border-t border-cc-card-border">
+              <tr className="border-cc-card-border border-t">
                 <td
                   colSpan={4}
-                  className="whitespace-nowrap px-3 py-2 text-center"
+                  className="px-3 py-2 text-center whitespace-nowrap"
                 >
                   <a
                     href={WEB_STABLE_URL}
@@ -567,7 +570,7 @@ export function NitroDownload() {
                   >
                     Open Web Version
                   </a>
-                  <span className="mx-2 text-cc-ink-dim">|</span>
+                  <span className="text-cc-ink-dim mx-2">|</span>
                   <a
                     href={WEB_INSIDER_URL}
                     target="_blank"

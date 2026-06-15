@@ -68,7 +68,7 @@ async function run(config) {
           width: share.width,
           height: share.height,
           quality: share.quality,
-        })
+        }),
       )
     : null;
 
@@ -101,7 +101,11 @@ async function run(config) {
       };
 
       const existing = manifest[url];
-      if (existing && existing.hash === hash && allOutputsExist(existing, outputDir)) {
+      if (
+        existing &&
+        existing.hash === hash &&
+        allOutputsExist(existing, outputDir)
+      ) {
         // Backfill the blur placeholder for manifests generated before blur
         // support, without re-encoding the (unchanged) full-size variants.
         const entry = existing.blurDataURL
@@ -143,11 +147,13 @@ async function run(config) {
           formats: formatsEntry,
           ...(await makeBlur(bytes)),
         },
-        shareOptions
+        shareOptions,
       );
       encoded++;
     } catch (err) {
-      console.warn(`[image-opt] WARN failed to optimize ${url}: ${err.message}`);
+      console.warn(
+        `[image-opt] WARN failed to optimize ${url}: ${err.message}`,
+      );
       // Reuse the previous manifest entry if we had one, so the page can still
       // fall back gracefully on the next build.
       if (manifest[url]) {
@@ -222,7 +228,10 @@ async function run(config) {
             .toFormat(format, { quality })
             .toBuffer();
           writeAtomic(path.join(remoteDir, outRel), buffer);
-          variants.push({ w: width, path: `/_optimized/images/remote/${outRel}` });
+          variants.push({
+            w: width,
+            path: `/_optimized/images/remote/${outRel}`,
+          });
         }
         variants.sort((a, b) => a.w - b.w);
         formatsEntry[format] = variants;
@@ -263,7 +272,7 @@ async function run(config) {
 
   console.log(
     `[image-opt] ${sources.length} sources, ${encoded} (re)encoded, ${cached} cached` +
-      `, ${remotes.length} remote (${remoteFetched} fetched, ${remoteCached} cached)`
+      `, ${remotes.length} remote (${remoteFetched} fetched, ${remoteCached} cached)`,
   );
 
   return newManifest;
@@ -279,7 +288,11 @@ function shareTargetBox(share, intrinsicW, intrinsicH) {
   if (!intrinsicW || !intrinsicH) {
     return { width: share.width, height: share.height };
   }
-  const scale = Math.min(intrinsicW / share.width, intrinsicH / share.height, 1);
+  const scale = Math.min(
+    intrinsicW / share.width,
+    intrinsicH / share.height,
+    1,
+  );
   return {
     width: Math.max(1, Math.floor(share.width * scale)),
     height: Math.max(1, Math.floor(share.height * scale)),
@@ -292,7 +305,7 @@ function shareTargetBox(share, intrinsicW, intrinsicH) {
 // without re-encoding.
 async function ensureShareVariant(
   entry,
-  { wanted, bytes, relPath, outputDir, share, shareHash }
+  { wanted, bytes, relPath, outputDir, share, shareHash },
 ) {
   if (!wanted || !share) {
     if (!entry.shareSrc) {
@@ -313,7 +326,11 @@ async function ensureShareVariant(
 
   const outRel = `${relPath}.share.jpg`;
   const outFile = path.join(outputDir, outRel);
-  if (entry.shareSrc && entry.shareHash === shareHash && fs.existsSync(outFile)) {
+  if (
+    entry.shareSrc &&
+    entry.shareHash === shareHash &&
+    fs.existsSync(outFile)
+  ) {
     return entry;
   }
 
@@ -449,12 +466,15 @@ function writeAtomic(file, buffer) {
 
 async function runPool(tasks, concurrency, onTick) {
   let index = 0;
-  const workers = Array.from({ length: Math.min(concurrency, tasks.length) }, async () => {
-    while (index < tasks.length) {
-      const current = index++;
-      await tasks[current]();
-      onTick?.();
-    }
-  });
+  const workers = Array.from(
+    { length: Math.min(concurrency, tasks.length) },
+    async () => {
+      while (index < tasks.length) {
+        const current = index++;
+        await tasks[current]();
+        onTick?.();
+      }
+    },
+  );
   await Promise.all(workers);
 }

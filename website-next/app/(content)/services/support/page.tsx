@@ -132,7 +132,7 @@ export default function SupportPage() {
                 {row.values.map((v, i) => (
                   <TableCell key={i} align="center">
                     {v === true ? (
-                      <span className="inline-flex items-center justify-center text-cc-accent">
+                      <span className="text-cc-accent inline-flex items-center justify-center">
                         <CheckIcon />
                       </span>
                     ) : v === false ? (
