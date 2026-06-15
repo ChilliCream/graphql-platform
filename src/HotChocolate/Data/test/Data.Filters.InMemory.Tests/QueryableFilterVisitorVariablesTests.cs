@@ -171,14 +171,14 @@ public class QueryableFilterVisitorVariablesTests(SchemaCache cache) : IClassFix
             {
               "errors": [
                 {
-                  "message": "The filter argument contains 1025 operations, which exceeds the maximum allowed number of 1024.",
+                  "message": "The filter argument contains 65 operations, which exceeds the maximum allowed number of 64.",
                   "path": [
                     "root"
                   ],
                   "extensions": {
                     "code": "HC0117",
-                    "filterOperations": 1025,
-                    "maxAllowedFilterOperations": 1024
+                    "filterOperations": 65,
+                    "maxAllowedFilterOperations": 64
                   }
                 }
               ],
