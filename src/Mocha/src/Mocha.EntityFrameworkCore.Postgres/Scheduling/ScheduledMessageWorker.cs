@@ -33,8 +33,12 @@ internal sealed class ScheduledMessageWorker(
                 return Task.CompletedTask;
             }
 
-            _dataSource = NpgsqlDataSource.Create(options.ConnectionString);
-            _task = new ContinuousTask(ProcessAsync);
+            // The loop captures its own data source rather than reading the field, so that
+            // StopAsync (or a concurrent restart) can clear and dispose the field without
+            // affecting an already-running loop.
+            var dataSource = NpgsqlDataSource.Create(options.ConnectionString);
+            _dataSource = dataSource;
+            _task = new ContinuousTask(token => ProcessAsync(dataSource, token));
         }
 
         return Task.CompletedTask;
@@ -47,11 +51,14 @@ internal sealed class ScheduledMessageWorker(
     public async Task StopAsync(CancellationToken cancellationToken)
     {
         ContinuousTask? task;
+        NpgsqlDataSource? dataSource;
 
         lock (_lock)
         {
             task = _task;
+            dataSource = _dataSource;
             _task = null;
+            _dataSource = null;
         }
 
         if (task is null)
@@ -61,16 +68,15 @@ internal sealed class ScheduledMessageWorker(
 
         await task.DisposeAsync();
 
-        if (_dataSource is not null)
+        if (dataSource is not null)
         {
-            await _dataSource.DisposeAsync();
-            _dataSource = null;
+            await dataSource.DisposeAsync();
         }
     }
 
-    private async Task ProcessAsync(CancellationToken stoppingToken)
+    private async Task ProcessAsync(NpgsqlDataSource dataSource, CancellationToken stoppingToken)
     {
-        await using var connection = await _dataSource!.OpenConnectionAsync(stoppingToken);
+        await using var connection = await dataSource.OpenConnectionAsync(stoppingToken);
 
         await dispatcher.ProcessAsync(connection, stoppingToken);
     }
