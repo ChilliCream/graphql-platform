@@ -78,6 +78,9 @@
   <data name="DirectiveLocation_ArgumentDefinition" xml:space="preserve">
     <value>Location adjacent to an argument definition</value>
   </data>
+  <data name="DirectiveLocation_DirectiveDefinition" xml:space="preserve">
+    <value>Location adjacent to a directive definition.</value>
+  </data>
   <data name="DirectiveLocation_Description" xml:space="preserve">
     <value>A Directive can be adjacent to many parts of the GraphQL language, a __DirectiveLocation describes one such possible adjacencies.</value>
   </data>

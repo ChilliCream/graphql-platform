@@ -455,6 +455,47 @@ public class IntrospectionTests
         result.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task DirectiveDefinitionLocationIsExposed()
+    {
+        // arrange
+        const string query =
+            """
+            {
+                __type(name: "__DirectiveLocation") {
+                    enumValues {
+                        name
+                    }
+                }
+                __schema {
+                    directives {
+                        name
+                        locations
+                    }
+                }
+            }
+            """;
+
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(
+                """
+                type Query {
+                    field: String
+                }
+
+                directive @onDirectiveDefinition on DIRECTIVE_DEFINITION
+                """)
+            .UseField(next => next)
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
     private static Schema CreateSchema()
     {
         return SchemaBuilder.New()

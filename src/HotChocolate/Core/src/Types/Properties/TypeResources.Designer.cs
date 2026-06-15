@@ -548,6 +548,15 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Location adjacent to a directive definition..
+        /// </summary>
+        internal static string DirectiveLocation_DirectiveDefinition {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_DirectiveDefinition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A Directive can be adjacent to many parts of the GraphQL language, a __DirectiveLocation describes one such possible adjacencies..
         /// </summary>
         internal static string DirectiveLocation_Description {
