@@ -1,7 +1,7 @@
-type SwirlProps = {
-  className?: string;
-  style?: React.CSSProperties;
-};
+interface SwirlProps {
+  readonly className?: string;
+  readonly style?: React.CSSProperties;
+}
 
 /**
  * The little four-blade "swirl" mark from the startpage artwork (the artistic

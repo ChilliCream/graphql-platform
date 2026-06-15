@@ -1,7 +1,36 @@
-import type { CSSProperties } from "react";
+import type { ComponentType, CSSProperties } from "react";
 
 import { Swirl } from "@/src/icons/Swirl";
-import { Drink, DrinkSpriteMaster, type DrinkId } from "./HeroDrinks";
+import {
+  CookieCrumble,
+  Espresso,
+  Fusion,
+  GreenDonut,
+  HotChocolate,
+  Mocha,
+  Nitro,
+  StrawberryShake,
+} from "./Drinks";
+
+interface DrinkComponentProps {
+  readonly className?: string;
+  readonly style?: CSSProperties;
+}
+
+interface DrinkPlacement {
+  readonly Drink: ComponentType<DrinkComponentProps>;
+  readonly left: string;
+  readonly top: string;
+  readonly width: string;
+  readonly rotate: string;
+}
+
+interface SwirlPlacement {
+  readonly left: string;
+  readonly top: string;
+  readonly size: string;
+  readonly rotate: string;
+}
 
 /**
  * Scatter of product drinks around the headline, mirroring the startpage
@@ -10,29 +39,18 @@ import { Drink, DrinkSpriteMaster, type DrinkId } from "./HeroDrinks";
  * decorative, so the layer is hidden from assistive tech and ignores pointer
  * events.
  */
-const DRINK_SCATTER: ReadonlyArray<{
-  drink: DrinkId;
-  left: string;
-  top: string;
-  width: string;
-  rotate: string;
-}> = [
-  { drink: "greenDonut", left: "30%", top: "15%", width: "clamp(2.25rem,3.4vw,3.25rem)", rotate: "-8deg" },
-  { drink: "nitro", left: "61%", top: "12%", width: "clamp(2rem,3vw,2.75rem)", rotate: "9deg" },
-  { drink: "mocha", left: "9%", top: "33%", width: "clamp(2rem,3vw,2.75rem)", rotate: "-6deg" },
-  { drink: "cookieCrumble", left: "90%", top: "24%", width: "clamp(2.1rem,3.2vw,3rem)", rotate: "8deg" },
-  { drink: "hotChocolate", left: "9%", top: "74%", width: "clamp(2.1rem,3.2vw,3rem)", rotate: "-5deg" },
-  { drink: "strawberryShake", left: "33%", top: "85%", width: "clamp(2.1rem,3.2vw,3rem)", rotate: "6deg" },
-  { drink: "fusion", left: "55%", top: "85%", width: "clamp(2.25rem,3.4vw,3.25rem)", rotate: "-4deg" },
-  { drink: "espresso", left: "90%", top: "80%", width: "clamp(1.8rem,2.6vw,2.5rem)", rotate: "7deg" },
+const DRINK_SCATTER: readonly DrinkPlacement[] = [
+  { Drink: GreenDonut, left: "30%", top: "15%", width: "clamp(2.25rem,3.4vw,3.25rem)", rotate: "-8deg" },
+  { Drink: Nitro, left: "61%", top: "12%", width: "clamp(2rem,3vw,2.75rem)", rotate: "9deg" },
+  { Drink: Mocha, left: "9%", top: "33%", width: "clamp(2rem,3vw,2.75rem)", rotate: "-6deg" },
+  { Drink: CookieCrumble, left: "90%", top: "24%", width: "clamp(2.1rem,3.2vw,3rem)", rotate: "8deg" },
+  { Drink: HotChocolate, left: "9%", top: "74%", width: "clamp(2.1rem,3.2vw,3rem)", rotate: "-5deg" },
+  { Drink: StrawberryShake, left: "33%", top: "85%", width: "clamp(2.1rem,3.2vw,3rem)", rotate: "6deg" },
+  { Drink: Fusion, left: "55%", top: "85%", width: "clamp(2.25rem,3.4vw,3.25rem)", rotate: "-4deg" },
+  { Drink: Espresso, left: "90%", top: "80%", width: "clamp(1.8rem,2.6vw,2.5rem)", rotate: "7deg" },
 ];
 
-const SWIRL_SCATTER: ReadonlyArray<{
-  left: string;
-  top: string;
-  size: string;
-  rotate: string;
-}> = [
+const SWIRL_SCATTER: readonly SwirlPlacement[] = [
   { left: "21%", top: "16%", size: "1.5rem", rotate: "-12deg" },
   { left: "47%", top: "26%", size: "1.2rem", rotate: "18deg" },
   { left: "78%", top: "30%", size: "1.1rem", rotate: "-8deg" },
@@ -57,33 +75,23 @@ function position(left: string, top: string, extra: CSSProperties): CSSPropertie
 export function HomeHero() {
   return (
     <section className="relative isolate mx-auto flex min-h-[34rem] max-w-6xl flex-col items-center justify-center px-5 py-20 text-center sm:min-h-[40rem] sm:px-12 lg:min-h-[46rem]">
-      <DrinkSpriteMaster />
-
       {/* Decorative scatter, behind the headline. */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 -z-10 hidden select-none sm:block"
       >
-        {DRINK_SCATTER.map((item) => (
+        {DRINK_SCATTER.map(({ Drink, left, top, width, rotate }) => (
           <Drink
-            key={item.drink}
-            drink={item.drink}
+            key={left + top}
             className="absolute h-auto drop-shadow-[0_8px_20px_rgba(0,0,0,0.45)]"
-            style={position(item.left, item.top, {
-              width: item.width,
-              rotate: item.rotate,
-            })}
+            style={position(left, top, { width, rotate })}
           />
         ))}
-        {SWIRL_SCATTER.map((item, i) => (
+        {SWIRL_SCATTER.map(({ left, top, size, rotate }) => (
           <Swirl
-            key={i}
+            key={left + top}
             className="absolute text-cc-nav-label/60"
-            style={position(item.left, item.top, {
-              width: item.size,
-              height: item.size,
-              rotate: item.rotate,
-            })}
+            style={position(left, top, { width: size, height: size, rotate })}
           />
         ))}
       </div>
