@@ -50,6 +50,8 @@
     "eslint-config-next": "16.2.6",
     "eslint-plugin-storybook": "10.4.1",
     "playwright": "^1.60.0",
+    "prettier": "^3.8.3",
+    "prettier-plugin-tailwindcss": "^0.8.0",
     "rehype-mermaid": "^3.0.0",
     "storybook": "^10.4.1",
     "tailwindcss": "^4",
