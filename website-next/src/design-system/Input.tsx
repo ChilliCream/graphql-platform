@@ -25,7 +25,12 @@ export function Input({
   const inputId = id ?? name ?? generatedId;
 
   return (
-    <FormField htmlFor={inputId} label={label} required={required} error={error}>
+    <FormField
+      htmlFor={inputId}
+      label={label}
+      required={required}
+      error={error}
+    >
       <input
         id={inputId}
         name={name}

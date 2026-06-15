@@ -102,7 +102,11 @@ export async function generateMetadata({
     title,
     description,
     ...(summary?.author
-      ? { authors: [{ name: summary.author, url: summary.authorUrl ?? undefined }] }
+      ? {
+          authors: [
+            { name: summary.author, url: summary.authorUrl ?? undefined },
+          ],
+        }
       : {}),
     alternates: {
       canonical: summary?.href,
@@ -198,9 +202,12 @@ export default async function BlogSlugPage({ params }: PageProps) {
         <BlogSidebar posts={sidebarPosts} currentHref={currentHref} />
       </SidebarDrawer>
       <div className="min-w-0">
-        <DocsToolbar menuLabel="Open latest posts" menuPillLabel="Latest posts" />
+        <DocsToolbar
+          menuLabel="Open latest posts"
+          menuPillLabel="Latest posts"
+        />
         <div className="grid grid-cols-1 2xl:grid-cols-[1fr_20rem]">
-          <main className="min-w-0 px-5 pb-8 pt-16 sm:px-12 2xl:pt-8">
+          <main className="min-w-0 px-5 pt-16 pb-8 sm:px-12 2xl:pt-8">
             {jsonLd ? (
               <script
                 type="application/ld+json"

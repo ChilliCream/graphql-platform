@@ -294,7 +294,9 @@ html[data-smooth-scroll="true"]:has(:target) {
 }
 
 .DocSearch-Container .DocSearch-Hit[aria-selected="true"] .DocSearch-Hit-icon,
-.DocSearch-Container .DocSearch-Hit[aria-selected="true"] .DocSearch-Hit-action {
+.DocSearch-Container
+  .DocSearch-Hit[aria-selected="true"]
+  .DocSearch-Hit-action {
   color: var(--color-cc-ink-dim);
 }
 

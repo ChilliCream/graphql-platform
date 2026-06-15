@@ -38,7 +38,7 @@ export default function remarkYouTubeEmbed() {
 
 function soleLinkChild(paragraph) {
   const meaningful = paragraph.children.filter(
-    (c) => !(c.type === "text" && (c.value ?? "").trim() === "")
+    (c) => !(c.type === "text" && (c.value ?? "").trim() === ""),
   );
   if (meaningful.length !== 1) {
     return null;
@@ -69,7 +69,7 @@ function extractYouTubeId(url) {
     return v;
   }
   const match = parsed.pathname.match(
-    /^\/(?:embed|shorts|v)\/([a-zA-Z0-9_-]{11})/
+    /^\/(?:embed|shorts|v)\/([a-zA-Z0-9_-]{11})/,
   );
   return match ? match[1] : null;
 }

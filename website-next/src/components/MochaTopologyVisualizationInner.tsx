@@ -337,7 +337,7 @@ function findInferredNodesBetween(
   targetNodeId: string,
   traceMapping: TraceTopologyMapping,
   allNodes: Node[],
-  allEdges: Edge[]
+  allEdges: Edge[],
 ): Node[] {
   if (!sourceNodeId || !targetNodeId || sourceNodeId === targetNodeId)
     return [];
@@ -380,7 +380,7 @@ function TraceStepList({
   edges,
 }: TraceStepListProps) {
   const sorted = [...trace.activities].sort(
-    (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+    (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
   );
 
   const timestamps = sorted.map((a) => new Date(a.startTime).getTime());
@@ -397,8 +397,8 @@ function TraceStepList({
             targetNodeId,
             traceMapping,
             nodes,
-            edges
-          )
+            edges,
+          ),
         );
       } else {
         inferredBetween.push([]);
@@ -588,10 +588,10 @@ export const MochaTopologyVisualizationInner: FC<
   // When maximized with a trace, auto-expand the sidebar on the trace tab
   const hasTrace = !!traceData;
   const [sidebarCollapsed, setSidebarCollapsed] = useState(
-    !expanded || !hasTrace
+    !expanded || !hasTrace,
   );
   const [sidebarTab, setSidebarTab] = useState<SidebarTab>(
-    hasTrace ? "trace" : "search"
+    hasTrace ? "trace" : "search",
   );
 
   // React to expand/collapse transitions (state adjustment during render
@@ -609,7 +609,7 @@ export const MochaTopologyVisualizationInner: FC<
 
   // State captured from TopologyFlow via onTraceMappingChange
   const [traceMapping, setTraceMapping] = useState<TraceTopologyMapping | null>(
-    null
+    null,
   );
   const [flowNodes, setFlowNodes] = useState<Node[]>([]);
   const [flowEdges, setFlowEdges] = useState<Edge[]>([]);
@@ -626,7 +626,7 @@ export const MochaTopologyVisualizationInner: FC<
       setFlowNodes(info.nodes);
       setFlowEdges(info.edges);
     },
-    []
+    [],
   );
 
   const handleActivityClick = useCallback((activity: MessageActivity) => {
@@ -665,9 +665,9 @@ export const MochaTopologyVisualizationInner: FC<
   const hasSagas = useMemo(
     () =>
       diagramData?.services.some(
-        (s: { sagas: unknown[] }) => s.sagas.length > 0
+        (s: { sagas: unknown[] }) => s.sagas.length > 0,
       ) ?? false,
-    [diagramData]
+    [diagramData],
   );
 
   const sidebarTabs = useMemo<SidebarTab[]>(
@@ -675,7 +675,7 @@ export const MochaTopologyVisualizationInner: FC<
       hasSagas
         ? ["trace", "sagas", "details", "search"]
         : ["trace", "details", "search"],
-    [hasSagas]
+    [hasSagas],
   );
 
   if (!diagramData) return null;

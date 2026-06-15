@@ -74,7 +74,7 @@ export function YouTubeVideo({ videoId, playlabel }: YouTubeVideoProps) {
   );
 
   return (
-    <div className="my-6 overflow-hidden rounded-md ring-1 ring-cc-card-border">
+    <div className="ring-cc-card-border my-6 overflow-hidden rounded-md ring-1">
       <VideoFacade videoId={videoId} playlabel={playlabel}>
         {poster}
       </VideoFacade>

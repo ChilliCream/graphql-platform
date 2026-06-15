@@ -205,8 +205,11 @@ Drop a sibling `.html` file next to your `.graphql` file. The basename matches t
         align-items: center;
         gap: 12px;
         padding: 12px;
-        border: 1px solid var(--color-border-primary, color-mix(in srgb, CanvasText
-                15%, transparent));
+        border: 1px solid
+          var(
+            --color-border-primary,
+            color-mix(in srgb, CanvasText 15%, transparent)
+          );
         border-radius: var(--border-radius-md, 8px);
       }
       img {
@@ -247,7 +250,7 @@ Drop a sibling `.html` file next to your `.graphql` file. The basename matches t
                 <strong>${p.name}</strong>
                 <span>$${p.price.toFixed(2)}</span>
               </li>
-            `
+            `,
           )
           .join("");
       };

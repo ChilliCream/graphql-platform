@@ -40,7 +40,8 @@ function listFeaturedBlogImages() {
     }
     try {
       const { data } = matter(fs.readFileSync(post.file, "utf8"));
-      const raw = typeof data.featuredImage === "string" ? data.featuredImage : "";
+      const raw =
+        typeof data.featuredImage === "string" ? data.featuredImage : "";
       if (!raw) {
         continue;
       }

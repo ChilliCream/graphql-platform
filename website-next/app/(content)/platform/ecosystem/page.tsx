@@ -79,19 +79,19 @@ export default function EcosystemPage() {
         secondaryLinkText="Launch"
       />
       <Section title="Batteries Included">
-        <p className="-mt-4 mb-8 text-center text-base text-cc-ink-dim sm:text-lg">
+        <p className="text-cc-ink-dim -mt-4 mb-8 text-center text-base sm:text-lg">
           Everything you need to build great APIs &mdash; and more
         </p>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((feature) => (
             <div
               key={feature.title}
-              className="rounded-xl border border-cc-card-border bg-cc-card-bg backdrop-blur-sm p-6 "
+              className="border-cc-card-border bg-cc-card-bg rounded-xl border p-6 backdrop-blur-sm"
             >
-              <h3 className="text-lg font-semibold text-cc-ink">
+              <h3 className="text-cc-ink text-lg font-semibold">
                 {feature.title}
               </h3>
-              <p className="mt-2 text-sm text-cc-ink-dim">
+              <p className="text-cc-ink-dim mt-2 text-sm">
                 {feature.description}
               </p>
             </div>
