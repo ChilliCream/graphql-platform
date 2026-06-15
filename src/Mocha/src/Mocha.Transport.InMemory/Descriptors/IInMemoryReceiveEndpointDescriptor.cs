@@ -28,7 +28,10 @@ public interface IInMemoryReceiveEndpointDescriptor : IReceiveEndpointDescriptor
     new IInMemoryReceiveEndpointDescriptor Receives(Type messageType);
 
     /// <inheritdoc />
-    new IInMemoryReceiveEndpointDescriptor AutoBind(bool enabled);
+    new IInMemoryReceiveEndpointDescriptor BindImplicitly();
+
+    /// <inheritdoc />
+    new IInMemoryReceiveEndpointDescriptor BindExplicitly();
 
     /// <inheritdoc />
     new IInMemoryReceiveEndpointDescriptor Kind(ReceiveEndpointKind kind);

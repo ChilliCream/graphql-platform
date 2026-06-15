@@ -46,7 +46,7 @@ public class RequestReplyTests
             .AddRequestHandler<GetOrderStatusHandler>()
             .AddInMemory(t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Handler<GetOrderStatusHandler>();
             })
             .BuildServiceProvider();

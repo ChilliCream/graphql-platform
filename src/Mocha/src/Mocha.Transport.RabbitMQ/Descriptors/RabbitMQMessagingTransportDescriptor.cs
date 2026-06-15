@@ -89,25 +89,17 @@ public sealed class RabbitMQMessagingTransportDescriptor
     }
 
     /// <inheritdoc />
-    public new IRabbitMQMessagingTransportDescriptor BindHandlersImplicitly()
+    public new IRabbitMQMessagingTransportDescriptor BindImplicitly()
     {
-        base.BindHandlersImplicitly();
+        base.BindImplicitly();
 
         return this;
     }
 
     /// <inheritdoc />
-    public new IRabbitMQMessagingTransportDescriptor BindHandlersExplicitly()
+    public new IRabbitMQMessagingTransportDescriptor BindExplicitly()
     {
-        base.BindHandlersExplicitly();
-
-        return this;
-    }
-
-    /// <inheritdoc />
-    public new IRabbitMQMessagingTransportDescriptor AutoBind(bool enabled)
-    {
-        base.AutoBind(enabled);
+        base.BindExplicitly();
 
         return this;
     }

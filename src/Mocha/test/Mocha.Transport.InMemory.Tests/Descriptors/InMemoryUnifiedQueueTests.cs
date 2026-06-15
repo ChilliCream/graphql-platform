@@ -22,7 +22,7 @@ public class InMemoryUnifiedQueueTests
             .AddConsumer<OrderSpyConsumer>()
             .AddInMemory(t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Queue("orders").Consumer<OrderSpyConsumer>();
             })
             .BuildServiceProvider();
@@ -53,7 +53,7 @@ public class InMemoryUnifiedQueueTests
             b => { },
             t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Queue("dispatch-target");
             });
         var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();

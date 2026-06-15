@@ -46,7 +46,7 @@ public sealed class RabbitMQDispatchEndpointTopologyConvention : IRabbitMQDispat
         // In implicit mode, bind the custom dispatch exchange to the resolver's chain entry for each route
         // so the producer and consumer sides converge on the same entity.
         if (configuration.ExchangeName is not null
-            && endpoint.Transport.ConsumerBindingMode == ConsumerBindingMode.Implicit)
+            && endpoint.Transport.BindMode == MessagingBindMode.Implicit)
         {
             foreach (var (runtimeType, kind) in configuration.Routes)
             {

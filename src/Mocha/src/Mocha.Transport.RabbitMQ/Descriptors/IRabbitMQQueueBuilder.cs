@@ -90,11 +90,18 @@ public interface IRabbitMQQueueBuilder
     IRabbitMQQueueBuilder Receives(Type messageType);
 
     /// <summary>
-    /// Sets whether auto-binding is enabled for this queue's receive endpoint.
+    /// Sets the queue bind mode to <see cref="MessagingBindMode.Implicit"/>, enabling
+    /// convention binds for consumed message types on this queue.
     /// </summary>
-    /// <param name="enabled">True to enable auto-binding; false to disable.</param>
     /// <returns>The builder for method chaining.</returns>
-    IRabbitMQQueueBuilder AutoBind(bool enabled);
+    IRabbitMQQueueBuilder BindImplicitly();
+
+    /// <summary>
+    /// Sets the queue bind mode to <see cref="MessagingBindMode.Explicit"/>, suppressing
+    /// convention binds for consumed message types on this queue.
+    /// </summary>
+    /// <returns>The builder for method chaining.</returns>
+    IRabbitMQQueueBuilder BindExplicitly();
 
     /// <summary>
     /// Sets the maximum number of unacknowledged messages the broker will deliver to this

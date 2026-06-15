@@ -75,9 +75,16 @@ public abstract class ReceiveEndpointDescriptor<T>(IMessagingConfigurationContex
     }
 
     /// <inheritdoc />
-    public IReceiveEndpointDescriptor<T> AutoBind(bool enabled)
+    public IReceiveEndpointDescriptor<T> BindImplicitly()
     {
-        Configuration.AutoBind = enabled;
+        Configuration.BindMode = MessagingBindMode.Implicit;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IReceiveEndpointDescriptor<T> BindExplicitly()
+    {
+        Configuration.BindMode = MessagingBindMode.Explicit;
         return this;
     }
 
@@ -87,17 +94,17 @@ public abstract class ReceiveEndpointDescriptor<T>(IMessagingConfigurationContex
         {
             Configuration.TypeBinds[messageType] = new ReceiveTypeBindIntent(
                 messageType,
-                incoming.ResolvedAutoBind);
+                incoming.ResolvedBindMode);
             return;
         }
 
-        // Merge: explicit AutoBind from the incoming descriptor wins over an implied value;
+        // Merge: explicit bind mode from the incoming descriptor wins over an implied value;
         // if both are null (neither configured), keep null.
-        var mergedAutoBind = incoming.ResolvedAutoBind ?? existing.AutoBind;
+        var mergedBindMode = incoming.ResolvedBindMode ?? existing.BindMode;
 
         Configuration.TypeBinds[messageType] = new ReceiveTypeBindIntent(
             messageType,
-            mergedAutoBind);
+            mergedBindMode);
     }
 
     public IReceiveEndpointDescriptor<T> Kind(ReceiveEndpointKind kind)

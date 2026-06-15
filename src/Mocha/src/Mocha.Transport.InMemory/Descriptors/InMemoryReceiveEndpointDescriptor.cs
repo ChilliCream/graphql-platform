@@ -59,9 +59,16 @@ internal sealed class InMemoryReceiveEndpointDescriptor
         return this;
     }
 
-    public new IInMemoryReceiveEndpointDescriptor AutoBind(bool enabled)
+    public new IInMemoryReceiveEndpointDescriptor BindImplicitly()
     {
-        base.AutoBind(enabled);
+        base.BindImplicitly();
+
+        return this;
+    }
+
+    public new IInMemoryReceiveEndpointDescriptor BindExplicitly()
+    {
+        base.BindExplicitly();
 
         return this;
     }

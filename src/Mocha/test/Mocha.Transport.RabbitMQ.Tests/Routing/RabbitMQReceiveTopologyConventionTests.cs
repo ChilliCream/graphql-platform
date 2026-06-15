@@ -25,7 +25,7 @@ public class RabbitMQReceiveTopologyConventionTests
                 b.AddConsumer<OrderSpyConsumer>();
                 b.AddMessage<OrderCreated>(d => d.Publish(r => r.ToRabbitMQExchange("custom-orders")));
             },
-            t => t.BindHandlersImplicitly());
+            t => t.BindImplicitly());
         var (topology, queueName) = ResolveConsumerQueue(runtime);
 
         // act
@@ -46,7 +46,7 @@ public class RabbitMQReceiveTopologyConventionTests
         // binds into its queue must be one and the same entity, so the two paths cannot drift apart.
         var runtime = CreateRuntime(
             b => b.AddConsumer<OrderSpyConsumer>(),
-            t => t.BindHandlersImplicitly());
+            t => t.BindImplicitly());
         var (topology, queueName) = ResolveConsumerQueue(runtime);
         var producerExchange = runtime.Naming.GetPublishEndpointName(typeof(OrderCreated));
 
@@ -78,7 +78,7 @@ public class RabbitMQReceiveTopologyConventionTests
                 b.AddConsumer<OrderSpyConsumer>();
                 b.AddMessage<OrderCreated>(d => d.UseRabbitMQRoutingKey<OrderCreated>(m => m.OrderId));
             },
-            t => t.BindHandlersImplicitly()));
+            t => t.BindImplicitly()));
 
         // assert
         Assert.IsType<InvalidOperationException>(ex);
@@ -98,7 +98,7 @@ public class RabbitMQReceiveTopologyConventionTests
                 b.AddConsumer<OrderSpyConsumer>();
                 b.AddMessage<OrderCreated>(d => d.Publish(r => r.ToRabbitMQQueue("orders-queue")));
             },
-            t => t.BindHandlersImplicitly()));
+            t => t.BindImplicitly()));
 
         // assert
         Assert.IsType<InvalidOperationException>(ex);
@@ -119,7 +119,7 @@ public class RabbitMQReceiveTopologyConventionTests
             .AddRabbitMQ(t =>
             {
                 t.ConnectionProvider(_ => new StubConnectionProvider());
-                t.BindHandlersImplicitly();
+                t.BindImplicitly();
             })
             .BuildRuntime();
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
@@ -134,7 +134,7 @@ public class RabbitMQReceiveTopologyConventionTests
     }
 
     [Fact]
-    public void DiscoverTopology_Should_SuppressQueueBind_When_QueueAutoBindFalse()
+    public void DiscoverTopology_Should_SuppressQueueBind_When_QueueBindExplicit()
     {
         // arrange
         // queue-scope auto-binding is off, so the convention must not bind any exchange into the
@@ -143,57 +143,8 @@ public class RabbitMQReceiveTopologyConventionTests
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
             {
-                t.BindHandlersExplicitly();
-                t.Queue("orders").Consumer<OrderSpyConsumer>().AutoBind(false);
-            });
-        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-
-        // act
-        var description = transport.Describe();
-
-        // assert
-        RabbitMQDescribeSnapshot.Create(description).MatchSnapshot();
-    }
-
-    [Fact]
-    public void DiscoverTopology_Should_SuppressQueueBind_When_TypeAutoBindFalse()
-    {
-        // arrange
-        // queue-scope auto-binding stays on but the per-type override turns it off for OrderCreated,
-        // so its bind into the queue is suppressed while the convention exchanges remain.
-        var runtime = CreateRuntime(
-            b => b.AddConsumer<OrderSpyConsumer>(),
-            t =>
-            {
-                t.BindHandlersExplicitly();
-                t.Queue("orders")
-                    .Consumer<OrderSpyConsumer>()
-                    .Receives<OrderCreated>(r => r.AutoBind(false));
-            });
-        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-
-        // act
-        var description = transport.Describe();
-
-        // assert
-        RabbitMQDescribeSnapshot.Create(description).MatchSnapshot();
-    }
-
-    [Fact]
-    public void DiscoverTopology_Should_KeepQueueBind_When_TypeAutoBindTrueOverridesQueueFalse()
-    {
-        // arrange
-        // the queue turns auto-binding off in bulk, but the per-type override re-enables it for
-        // OrderCreated, so the convention binds the chain into the queue for that type (type > queue).
-        var runtime = CreateRuntime(
-            b => b.AddConsumer<OrderSpyConsumer>(),
-            t =>
-            {
-                t.BindHandlersExplicitly();
-                t.Queue("orders")
-                    .Consumer<OrderSpyConsumer>()
-                    .AutoBind(false)
-                    .Receives<OrderCreated>(r => r.AutoBind(true));
+                t.BindExplicitly();
+                t.Queue("orders").Consumer<OrderSpyConsumer>().BindExplicitly();
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
@@ -218,7 +169,7 @@ public class RabbitMQReceiveTopologyConventionTests
             .AddRabbitMQ(t =>
             {
                 t.ConnectionProvider(_ => new StubConnectionProvider());
-                t.BindHandlersImplicitly();
+                t.BindImplicitly();
             })
             .BuildRuntime();
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
@@ -231,7 +182,7 @@ public class RabbitMQReceiveTopologyConventionTests
     }
 
     [Fact]
-    public void DiscoverTopology_Should_KeepTypeExchanges_When_TransportAutoBindFalse()
+    public void DiscoverTopology_Should_KeepTypeExchanges_When_TransportBindExplicit()
     {
         // arrange
         // transport-scope auto-binding is off, so no exchange is bound into the queue; the type-owned
@@ -240,8 +191,8 @@ public class RabbitMQReceiveTopologyConventionTests
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
             {
-                t.AutoBind(false);
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
+                t.BindExplicitly();
                 t.Queue("orders").Consumer<OrderSpyConsumer>();
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();

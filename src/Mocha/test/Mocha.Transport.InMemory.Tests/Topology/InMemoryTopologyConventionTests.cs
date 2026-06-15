@@ -260,7 +260,7 @@ public class InMemoryTopologyConventionTests
         var builder = services.AddMessageBus();
         builder.AddSaga<OrderStockCheckSaga>();
         var runtime = builder
-            .AddInMemory(t => t.BindHandlersImplicitly())
+            .AddInMemory(t => t.BindImplicitly())
             .BuildRuntime();
         var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
         var topology = (InMemoryMessagingTopology)transport.Topology;
@@ -275,32 +275,7 @@ public class InMemoryTopologyConventionTests
     }
 
     [Fact]
-    public void Topology_Should_SuppressQueueBinding_When_TypeRouteAutoBindFalse()
-    {
-        // arrange
-        // per-type auto-binding is off for OrderCreated, so the convention must not create the
-        // topic-to-queue binding into the endpoint queue; the type-owned publish and send topics
-        // are kept because they belong to the type, not the queue.
-        var transport = CreateTransport(
-            b => b.AddConsumer<OrderSpyConsumer>(),
-            t =>
-            {
-                t.BindHandlersExplicitly();
-                t.Queue("orders")
-                    .Consumer<OrderSpyConsumer>()
-                    .Receives<OrderCreated>(r => r.AutoBind(false));
-            });
-
-        // act
-        var description = transport.Describe();
-
-        // assert
-        var snapshot = TopologySnapshotHelper.CreateDescribeSnapshot(description);
-        snapshot.MatchSnapshot();
-    }
-
-    [Fact]
-    public void Topology_Should_KeepTopics_When_QueueAutoBindFalse()
+    public void Topology_Should_KeepTopics_When_QueueBindExplicit()
     {
         // arrange
         // queue-scope auto-binding is off, so no binding is created into the queue; the type-owned
@@ -310,10 +285,10 @@ public class InMemoryTopologyConventionTests
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Queue("orders")
                     .Consumer<OrderSpyConsumer>()
-                    .AutoBind(false);
+                    .BindExplicitly();
             });
 
         // act

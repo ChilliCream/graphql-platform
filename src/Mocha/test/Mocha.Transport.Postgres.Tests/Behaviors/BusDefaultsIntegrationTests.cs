@@ -89,7 +89,7 @@ public class BusDefaultsIntegrationTests
             {
                 t.ConnectionString(db.ConnectionString);
                 t.ConfigureDefaults(d => d.Queue.AutoDelete = true);
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
 
                 // Explicitly declare a queue with AutoDelete=false - should override the default
                 t.DeclareTopic("order-topic");
@@ -122,7 +122,7 @@ public class BusDefaultsIntegrationTests
             {
                 t.ConnectionString(db.ConnectionString);
                 t.ConfigureDefaults(d => d.Queue.AutoDelete = true);
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
 
                 t.DeclareTopic("order-topic");
                 t.DeclareQueue("override-q").AutoDelete(false);

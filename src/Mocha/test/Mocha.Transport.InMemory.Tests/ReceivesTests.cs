@@ -16,7 +16,7 @@ public class ReceivesTests
             .AddEventHandler<OrderCreatedHandler>()
             .AddInMemory(t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Queue("orders").Receives<OrderCreated>();
             })
             .BuildRuntime();
@@ -45,7 +45,7 @@ public class ReceivesTests
             .AddEventHandler<OrderCreatedHandler2>()
             .AddInMemory(t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Queue("orders").Receives<OrderCreated>();
             })
             .BuildRuntime();
@@ -72,7 +72,7 @@ public class ReceivesTests
             .AddEventHandler<OrderCreatedHandler>()
             .AddInMemory(t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Queue("orders-primary").Receives<OrderCreated>();
                 t.Queue("orders-backup").Receives<OrderCreated>();
             })
@@ -104,7 +104,7 @@ public class ReceivesTests
                 .AddMessageBus()
                 .AddInMemory(t =>
                 {
-                    t.BindHandlersExplicitly();
+                    t.BindExplicitly();
                     t.Queue("orders").Receives<OrderCreated>();
                 })
                 .BuildRuntime());
@@ -127,7 +127,7 @@ public class ReceivesTests
                 .AddMessageBus()
                 .AddInMemory(t =>
                 {
-                    t.BindHandlersExplicitly();
+                    t.BindExplicitly();
                     t.Queue("orders").Receives<OrderCreated>();
                 })
                 .BuildRuntime());
@@ -145,7 +145,7 @@ public class ReceivesTests
             .AddConsumer<TestOrderConsumer>()
             .AddInMemory(t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Queue("orders-a").Consumer<TestOrderConsumer>();
                 t.Queue("orders-b").Consumer<TestOrderConsumer>();
             })
@@ -180,7 +180,7 @@ public class ReceivesTests
             .AddEventHandler<OrderCreatedHandler>()
             .AddInMemory(t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Queue("orders").Receives<OrderCreated>();
             })
             .BuildServiceProvider();
@@ -207,7 +207,7 @@ public class ReceivesTests
             .AddEventHandler<OrderCreatedHandler>()
             .AddInMemory(t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Queue("orders-1").Receives<OrderCreated>();
                 t.Queue("orders-2").Receives<OrderCreated>();
                 t.Queue("orders-3").Receives<OrderCreated>();
@@ -231,7 +231,7 @@ public class ReceivesTests
             .AddEventHandler<OrderCreatedHandler>()
             .AddInMemory(t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Queue("orders-primary").Receives<OrderCreated>();
                 t.Queue("orders-backup").Receives<OrderCreated>();
             })
@@ -257,7 +257,7 @@ public class ReceivesTests
             .AddEventHandler<OrderCreatedHandler>()
             .AddInMemory(t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Queue("orders-primary").Receives<OrderCreated>();
                 t.Queue("orders-backup").Receives<OrderCreated>();
             })
@@ -289,7 +289,7 @@ public class ReceivesTests
                 .AddRequestHandler<GetOrderStatusHandler>()
                 .AddInMemory(t =>
                 {
-                    t.BindHandlersExplicitly();
+                    t.BindExplicitly();
                     t.Queue("orders").Receives<OrderStatusResponse>();
                 })
                 .BuildRuntime());
@@ -315,7 +315,7 @@ public class ReceivesTests
             builder
                 .AddInMemory(t =>
                 {
-                    t.BindHandlersExplicitly();
+                    t.BindExplicitly();
                     t.Queue("orders").Receives<StockInfoResult>();
                 })
                 .BuildRuntime());
@@ -338,7 +338,7 @@ public class ReceivesTests
             .AddEventHandler<OrderCreatedHandler>()
             .AddInMemory(t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Queue("orders").Receives<OrderCreated>();
             })
             .BuildRuntime();
@@ -351,12 +351,11 @@ public class ReceivesTests
     }
 
     [Fact]
-    public async Task AutoBind_Should_NotDeliver_When_QueueAutoBindFalseAndNoBindFrom()
+    public async Task BindExplicitly_Should_NotDeliver_When_QueueBindExplicit()
     {
         // arrange
-        // AutoBind(false) at queue scope removes the convention binding from the send topic into the
-        // queue. Without a BindFrom to substitute an explicit binding, published messages never reach
-        // the queue even though the type-owned topics exist.
+        // BindExplicitly at queue scope removes the convention binding from the send topic into the
+        // queue. Published messages never reach the queue even though the type-owned topics exist.
         var recorder = new MessageRecorder();
         await using var provider = await new ServiceCollection()
             .AddSingleton(recorder)
@@ -364,10 +363,10 @@ public class ReceivesTests
             .AddEventHandler<OrderCreatedHandler>()
             .AddInMemory(t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Queue("orders")
                     .Receives<OrderCreated>()
-                    .AutoBind(false);
+                    .BindExplicitly();
             })
             .BuildServiceProvider();
 
@@ -381,41 +380,6 @@ public class ReceivesTests
         var received = await recorder.WaitAsync(TimeSpan.FromMilliseconds(500));
         Assert.False(received);
         Assert.Empty(recorder.Messages);
-    }
-
-    [Fact]
-    public async Task BindFrom_Should_Deliver_When_ExplicitBindDeclared()
-    {
-        // arrange
-        // AutoBind(false) suppresses the convention queue binding. The queue-level BindFrom from
-        // the send topic substitutes an explicit binding so published messages are still delivered.
-        var recorder = new MessageRecorder();
-        await using var provider = await new ServiceCollection()
-            .AddSingleton(recorder)
-            .AddMessageBus()
-            .AddEventHandler<OrderCreatedHandler>()
-            .AddInMemory(t =>
-            {
-                t.BindHandlersExplicitly();
-                t.Queue("orders")
-                    .Receives<OrderCreated>()
-                    .AutoBind(false)
-                    .BindFrom(new Uri("topic:order-created"));
-            })
-            .BuildServiceProvider();
-
-        var bus = provider.GetRequiredService<IMessageBus>();
-
-        // act
-        await bus.PublishAsync(new OrderCreated { OrderId = "BIND-1" }, CancellationToken.None);
-
-        // assert
-        Assert.True(
-            await recorder.WaitAsync(TimeSpan.FromSeconds(10)),
-            "Handler did not receive the message via the explicit BindFrom binding.");
-
-        var message = Assert.IsType<OrderCreated>(Assert.Single(recorder.Messages));
-        Assert.Equal("BIND-1", message.OrderId);
     }
 }
 

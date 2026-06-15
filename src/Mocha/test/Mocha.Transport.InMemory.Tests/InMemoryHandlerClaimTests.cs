@@ -14,7 +14,7 @@ public class InMemoryHandlerClaimTests
             .AddEventHandler<OrderCreatedHandler>()
             .AddInMemory(t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Handler<OrderCreatedHandler>();
             })
             .BuildRuntime();
@@ -38,7 +38,7 @@ public class InMemoryHandlerClaimTests
             .AddEventHandler<OrderCreatedHandler>()
             .AddInMemory(t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Handler<OrderCreatedHandler>()
                     .ConfigureEndpoint(e => e.MaxConcurrency(5));
             })
@@ -62,7 +62,7 @@ public class InMemoryHandlerClaimTests
             .AddConsumer<TestOrderConsumer>()
             .AddInMemory(t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Consumer<TestOrderConsumer>();
             })
             .BuildRuntime();
@@ -86,7 +86,7 @@ public class InMemoryHandlerClaimTests
             .AddEventHandler<OrderCreatedHandler>()
             .AddInMemory(t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Endpoint("order-created").MaxConcurrency(10);
                 t.Handler<OrderCreatedHandler>();
             })
@@ -114,7 +114,7 @@ public class InMemoryHandlerClaimTests
             .AddEventHandler<OrderCreatedHandler2>()
             .AddInMemory(t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Handler<OrderCreatedHandler>();
                 t.Handler<OrderCreatedHandler2>();
             })
@@ -152,7 +152,7 @@ public class InMemoryHandlerClaimTests
             .AddInMemory(t =>
             {
                 t.Name("inmemory");
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Handler<OrderCreatedHandler>();
             })
             .BuildRuntime();
@@ -202,7 +202,7 @@ public class InMemoryHandlerClaimTests
             .AddMessage<ProcessPayment>(d => d.Send(r => r.ToInMemoryQueue("my-queue")))
             .AddInMemory(t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.DeclareQueue("my-queue");
                 t.Queue("payment-q").Handler<ProcessPaymentHandler>();
             })
@@ -242,17 +242,17 @@ public class InMemoryHandlerClaimTests
     }
 
     [Fact]
-    public void BindHandlersExplicitly_Should_StillGenerateTopology_When_AutoBindDefaultOn()
+    public void BindExplicitly_Should_SuppressConventionTopology_When_TransportExplicit()
     {
         // arrange & act
-        // BindHandlersExplicitly governs only consumer binding (axis A); with AutoBind left at its
-        // default the convention still gap-fills the consume topology for the claimed endpoint.
+        // BindExplicitly suppresses both discovery and convention binds. The queue exists
+        // but no topic-to-queue binding is generated because the transport default bind is off.
         var runtime = new ServiceCollection()
             .AddMessageBus()
             .AddConsumer<TestOrderConsumer>()
             .AddInMemory(t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Consumer<TestOrderConsumer>();
             })
             .BuildRuntime();
@@ -262,9 +262,9 @@ public class InMemoryHandlerClaimTests
         var consumer = runtime.Consumers.Single(c => c.Name == nameof(TestOrderConsumer));
         var queueName = runtime.Router.GetInboundByConsumer(consumer).Single().Endpoint!.Name;
 
-        // assert - the queue exists and a topic-to-queue binding was generated despite explicit binding
+        // assert - the queue exists but no topic-to-queue binding was generated (transport Explicit)
         Assert.Contains(topology.Queues, q => q.Name == queueName);
-        Assert.Contains(topology.Bindings.OfType<InMemoryQueueBinding>(), b => b.Destination.Name == queueName);
+        Assert.DoesNotContain(topology.Bindings.OfType<InMemoryQueueBinding>(), b => b.Destination.Name == queueName);
     }
 
     public sealed class TestOrderConsumer : IConsumer<OrderCreated>

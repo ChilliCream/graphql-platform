@@ -5,7 +5,7 @@ namespace Mocha.Transport.InMemory.Tests.Descriptors;
 public class InMemoryDescriptorTests
 {
     [Fact]
-    public void Transport_Should_DefaultAutoBindTrue_When_NotConfigured()
+    public void Transport_Should_DefaultBindModeImplicit_When_NotConfigured()
     {
         // arrange & act
         var runtime = InMemoryBusFixture.CreateRuntimeWithTransport(
@@ -14,19 +14,19 @@ public class InMemoryDescriptorTests
         var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
 
         // assert
-        Assert.True(transport.AutoBind);
+        Assert.Equal(MessagingBindMode.Implicit, transport.BindMode);
     }
 
     [Fact]
-    public void Transport_Should_SetAutoBindFalse_When_AutoBindFalseCalled()
+    public void Transport_Should_SetBindModeExplicit_When_BindExplicitlyCalled()
     {
         // arrange & act
         var runtime = InMemoryBusFixture.CreateRuntimeWithTransport(
             b => { },
-            t => t.AutoBind(false));
+            t => t.BindExplicitly());
         var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
 
         // assert
-        Assert.False(transport.AutoBind);
+        Assert.Equal(MessagingBindMode.Explicit, transport.BindMode);
     }
 }

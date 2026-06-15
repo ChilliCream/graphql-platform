@@ -20,7 +20,7 @@ public class RabbitMQSatelliteTests
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Queue("orders").AutoProvision(true).Consumer<OrderSpyConsumer>()
                     .ErrorQueue("LEGACY.Orders.Error");
             });
@@ -43,7 +43,7 @@ public class RabbitMQSatelliteTests
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Queue("orders").AutoProvision(true).Consumer<OrderSpyConsumer>()
                     .DisableErrorQueue();
             });
@@ -66,7 +66,7 @@ public class RabbitMQSatelliteTests
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Queue("orders").AutoProvision(true).Consumer<OrderSpyConsumer>()
                     .DisableSkippedQueue();
             });
@@ -90,7 +90,7 @@ public class RabbitMQSatelliteTests
             t =>
             {
                 t.AutoProvision(true);
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.DeclareQueue("orders").AutoProvision(false);
                 t.Queue("orders").Consumer<OrderSpyConsumer>();
             });
@@ -115,7 +115,7 @@ public class RabbitMQSatelliteTests
             t =>
             {
                 t.AutoProvision(true);
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.DeclareQueue("orders").AutoProvision(false);
                 t.Queue("orders").Consumer<OrderSpyConsumer>();
                 t.AddConvention(new ErrorSatelliteAutoProvisionOverrideConvention(autoProvision: true));

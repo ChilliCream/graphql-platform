@@ -155,7 +155,7 @@ public class BusDefaultsIntegrationTests
             .AddRabbitMQ(t =>
             {
                 t.ConfigureDefaults(d => d.Queue.QueueType = RabbitMQQueueType.Quorum);
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
 
                 // Explicitly declare a classic queue - should override the quorum default
                 t.DeclareExchange("order-ex");
@@ -189,7 +189,7 @@ public class BusDefaultsIntegrationTests
             .AddRabbitMQ(t =>
             {
                 t.ConfigureDefaults(d => d.Queue.QueueType = RabbitMQQueueType.Quorum);
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
 
                 t.DeclareExchange("order-ex");
                 t.DeclareQueue("override-q").QueueType(RabbitMQQueueType.Classic);

@@ -3,7 +3,7 @@ namespace Mocha.Transport.Postgres;
 /// <summary>
 /// Default topology convention for PostgreSQL receive endpoints that provisions topics and
 /// subscriptions based on the endpoint's inbound routes. Auto-binding is resolved per route
-/// with the type, queue, transport precedence; when it is off, the subscription into this queue
+/// with the queue, transport precedence; when it is off, the subscription into this queue
 /// is suppressed while the type-owned publish and send topics are still produced.
 /// </summary>
 public sealed class PostgresReceiveEndpointTopologyConvention : IPostgresReceiveEndpointTopologyConvention
@@ -11,7 +11,7 @@ public sealed class PostgresReceiveEndpointTopologyConvention : IPostgresReceive
     /// <summary>
     /// Discovers and creates the missing topics and subscriptions needed by the receive endpoint based
     /// on its inbound message routes, subscribing them to the endpoint's existing queue. Auto-binding
-    /// is resolved per route with the type, queue, transport precedence (3.4): when it is off, only
+    /// is resolved per route with the queue, transport precedence: when it is off, only
     /// the convention subscription into this queue is suppressed; the type-owned publish and send topics
     /// remain so a second endpoint that does auto-bind the same type keeps a complete chain.
     /// </summary>
@@ -55,11 +55,11 @@ public sealed class PostgresReceiveEndpointTopologyConvention : IPostgresReceive
                 continue;
             }
 
-            // Auto-binding is resolved per route with the type > queue > transport precedence (3.4).
+            // Auto-binding is resolved per route with the queue > transport precedence.
             // When it is off, the only effect is that no convention subscription into this queue is
             // generated for the type; the type-owned publish/send topics are still built so a second
             // endpoint that does auto-bind the same type keeps a complete chain (suppression scope).
-            var autoBind = ResolveAutoBind(endpoint.Transport, configuration, route.MessageType);
+            var autoBind = ResolveAutoBind(endpoint.Transport, configuration);
 
             var chainEntry = ResolveChainEntry(context, resolver, route.MessageType);
 
@@ -117,22 +117,15 @@ public sealed class PostgresReceiveEndpointTopologyConvention : IPostgresReceive
 
     private static bool ResolveAutoBind(
         MessagingTransport transport,
-        PostgresReceiveEndpointConfiguration configuration,
-        MessageType messageType)
+        PostgresReceiveEndpointConfiguration configuration)
     {
-        // Type scope wins over queue scope, which wins over transport scope; default on.
-        if (configuration.TypeBinds.TryGetValue(messageType.RuntimeType, out var typeBind)
-            && typeBind.AutoBind.HasValue)
+        // Queue scope wins over transport scope.
+        if (configuration.BindMode.HasValue)
         {
-            return typeBind.AutoBind.Value;
+            return configuration.BindMode.Value == MessagingBindMode.Implicit;
         }
 
-        if (configuration.AutoBind.HasValue)
-        {
-            return configuration.AutoBind.Value;
-        }
-
-        return transport.AutoBind;
+        return transport.BindMode == MessagingBindMode.Implicit;
     }
 
     private static ChainEntry ResolveChainEntry(

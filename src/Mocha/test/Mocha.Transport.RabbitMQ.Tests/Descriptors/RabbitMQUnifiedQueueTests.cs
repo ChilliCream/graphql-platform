@@ -21,7 +21,7 @@ public class RabbitMQUnifiedQueueTests
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Queue("orders").Consumer<OrderSpyConsumer>();
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
@@ -46,11 +46,11 @@ public class RabbitMQUnifiedQueueTests
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 var first = t.Queue("orders");
                 first.Consumer<OrderSpyConsumer>();
                 var second = t.Queue("orders");
-                second.AutoBind(false);
+                second.BindExplicitly();
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
@@ -72,7 +72,7 @@ public class RabbitMQUnifiedQueueTests
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Queue("my-queue").Consumer<OrderSpyConsumer>();
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
@@ -94,13 +94,13 @@ public class RabbitMQUnifiedQueueTests
     {
         // arrange
         // An entity-only Queue() handle (no consumer, no Receives) lowers to a declared queue
-        // entity and its BindFrom bindings but never enters the receive-endpoint lifecycle.
+        // entity without entering the receive-endpoint lifecycle.
         var runtime = CreateRuntime(
             b => { },
             t =>
             {
-                t.BindHandlersExplicitly();
-                t.Queue("audit", q => q.BindFrom(new Uri("exchange:audit-events")));
+                t.BindExplicitly();
+                t.Queue("audit");
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
@@ -124,7 +124,7 @@ public class RabbitMQUnifiedQueueTests
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Queue("orders").Receives<OrderCreated>();
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
@@ -153,7 +153,7 @@ public class RabbitMQUnifiedQueueTests
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Queue("orders").Consumer<OrderSpyConsumer>();
                 t.DeclareQueue("orders").AutoProvision(true);
                 t.DeclareQueue("orders").AutoProvision(false);
@@ -188,7 +188,7 @@ public class RabbitMQUnifiedQueueTests
             .AddRabbitMQ(t =>
             {
                 t.ConnectionProvider(_ => new StubConnectionProvider());
-                t.BindHandlersImplicitly();
+                t.BindImplicitly();
                 // t.Queue("order-processor") creates an entity-only dispatch-target queue alongside
                 // the saga's auto-discovered consume endpoint.
                 t.Queue("order-processor");
@@ -207,17 +207,17 @@ public class RabbitMQUnifiedQueueTests
     // --- Axis-A claim ---
 
     [Fact]
-    public void BindHandlersExplicitly_Should_NotThrow_When_HandlerAttachedViaQueue()
+    public void BindExplicitly_Should_NotThrow_When_HandlerAttachedViaQueue()
     {
         // arrange
-        // Under BindHandlersExplicitly, a handler registered via t.Queue("q").Handler<T>() is an
+        // Under BindExplicitly, a handler registered via t.Queue("q").Handler<T>() is an
         // explicit axis-A claim (3.6) and must not require a separate t.Handler<T>() call. The build
         // must succeed without any unconnected-route diagnostic.
         var runtime = CreateRuntime(
             b => b.AddEventHandler<OrderCreatedHandler>(),
             t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Queue("orders").Handler<OrderCreatedHandler>();
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
@@ -228,17 +228,17 @@ public class RabbitMQUnifiedQueueTests
     }
 
     [Fact]
-    public void BindHandlersExplicitly_Should_NotAutoDiscoverHandler_When_HandlerAttachedViaQueue()
+    public void BindExplicitly_Should_NotAutoDiscoverHandler_When_HandlerAttachedViaQueue()
     {
         // arrange
-        // Under BindHandlersExplicitly, a handler registered via the front door must not also
+        // Under BindExplicitly, a handler registered via the front door must not also
         // trigger auto-discovery on a separate convention-named endpoint. Exactly one receive
         // endpoint should exist, holding the queue name specified via Queue().
         var runtime = CreateRuntime(
             b => b.AddEventHandler<OrderCreatedHandler>(),
             t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Queue("my-orders").Handler<OrderCreatedHandler>();
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
@@ -267,7 +267,7 @@ public class RabbitMQUnifiedQueueTests
             b => { },
             t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Queue("audit").WithArgument("x-message-ttl", 30_000);
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
@@ -292,7 +292,7 @@ public class RabbitMQUnifiedQueueTests
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Queue("orders")
                     .Consumer<OrderSpyConsumer>()
                     .ErrorQueue("LEGACY.Orders.Error");

@@ -84,9 +84,16 @@ internal sealed class InMemoryQueueBuilder : IInMemoryQueueBuilder
     }
 
     /// <inheritdoc />
-    public IInMemoryQueueBuilder AutoBind(bool enabled)
+    public IInMemoryQueueBuilder BindImplicitly()
     {
-        EnsureEndpoint().AutoBind(enabled);
+        EnsureEndpoint().BindImplicitly();
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IInMemoryQueueBuilder BindExplicitly()
+    {
+        EnsureEndpoint().BindExplicitly();
         return this;
     }
 

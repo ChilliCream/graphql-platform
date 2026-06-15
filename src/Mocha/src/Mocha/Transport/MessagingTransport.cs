@@ -75,16 +75,12 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     protected internal MessagingTransportConfiguration Configuration { get; protected set; } = null!;
 
     /// <summary>
-    /// Gets the consumer binding mode that determines whether this transport derives missing
+    /// Gets the bind mode that determines whether this transport derives missing
     /// endpoints and routes from conventions or requires them to be configured explicitly.
+    /// When <see cref="MessagingBindMode.Implicit"/>, convention-based discovery and binds are enabled.
+    /// When <see cref="MessagingBindMode.Explicit"/>, discovery and convention binds are suppressed by default.
     /// </summary>
-    public ConsumerBindingMode ConsumerBindingMode { get; private set; } = ConsumerBindingMode.Implicit;
-
-    /// <summary>
-    /// Gets a value indicating whether auto-binding is enabled at the transport scope.
-    /// Auto-binding generates convention binds for consumed message types that reach a queue.
-    /// </summary>
-    public bool AutoBind { get; private set; } = true;
+    public MessagingBindMode BindMode { get; private set; } = MessagingBindMode.Implicit;
 
     /// <summary>
     /// Gets a value indicating whether this transport is the designated default for routing when

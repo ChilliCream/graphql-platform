@@ -40,13 +40,6 @@
       "To": "rabbitmq://localhost:5672/e/order-created",
       "AutoProvision": true,
       "Source": "convention"
-    },
-    {
-      "Kind": "bind",
-      "From": "rabbitmq://localhost:5672/e/order-created",
-      "To": "rabbitmq://localhost:5672/q/my-orders",
-      "AutoProvision": true,
-      "Source": "convention"
     }
   ]
 }

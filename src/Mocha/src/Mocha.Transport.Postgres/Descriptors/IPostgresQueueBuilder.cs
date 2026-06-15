@@ -76,11 +76,18 @@ public interface IPostgresQueueBuilder
     IPostgresQueueBuilder Receives(Type messageType);
 
     /// <summary>
-    /// Sets whether auto-binding is enabled for this queue's receive endpoint.
+    /// Sets the queue bind mode to <see cref="MessagingBindMode.Implicit"/>, enabling
+    /// convention binds for consumed message types on this queue.
     /// </summary>
-    /// <param name="enabled">True to enable auto-binding; false to disable.</param>
     /// <returns>The builder for method chaining.</returns>
-    IPostgresQueueBuilder AutoBind(bool enabled);
+    IPostgresQueueBuilder BindImplicitly();
+
+    /// <summary>
+    /// Sets the queue bind mode to <see cref="MessagingBindMode.Explicit"/>, suppressing
+    /// convention binds for consumed message types on this queue.
+    /// </summary>
+    /// <returns>The builder for method chaining.</returns>
+    IPostgresQueueBuilder BindExplicitly();
 
     /// <summary>
     /// Sets the maximum number of messages to fetch per batch on this queue's endpoint.

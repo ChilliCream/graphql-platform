@@ -30,7 +30,7 @@ public class ExplicitTopologyTests
             .AddConsumer<OrderSpyConsumer>()
             .AddRabbitMQ(t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.DeclareExchange("custom-ex");
                 t.DeclareQueue("custom-q");
                 t.DeclareBinding("custom-ex", "custom-q");
@@ -67,7 +67,7 @@ public class ExplicitTopologyTests
             .AddConsumer<OrderSpyConsumer>()
             .AddRabbitMQ(t =>
             {
-                t.BindHandlersImplicitly();
+                t.BindImplicitly();
                 t.DeclareExchange("custom-ex");
                 t.DeclareQueue("custom-q");
                 t.DeclareBinding("custom-ex", "custom-q");
@@ -104,7 +104,7 @@ public class ExplicitTopologyTests
             .AddConsumer<OrderSpyConsumer>()
             .AddRabbitMQ(t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.DeclareExchange("custom-ex");
                 t.DeclareQueue("custom-q");
                 t.DeclareBinding("custom-ex", "custom-q");
@@ -146,7 +146,7 @@ public class ExplicitTopologyTests
             .AddConsumer<FaultSpyConsumer>()
             .AddRabbitMQ(t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Queue("main-ep")
                     .Handler<ThrowingOrderHandler>()
                     .ErrorQueue("custom-orders-error");
@@ -184,7 +184,7 @@ public class ExplicitTopologyTests
             .AddConsumer<FaultSpyConsumer>()
             .AddRabbitMQ(t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Queue("main-ep")
                     .Handler<ThrowingOrderHandler>()
                     .DisableErrorQueue();
@@ -223,7 +223,7 @@ public class ExplicitTopologyTests
             .AddMessageBus()
             .AddMessage<OrderCreated>(d => d.Publish(r => r.ToRabbitMQExchange("custom-routing-exchange")))
             .AddConsumer<OrderSpyConsumer>()
-            .AddRabbitMQ(t => t.BindHandlersImplicitly())
+            .AddRabbitMQ(t => t.BindImplicitly())
             .BuildTestBusAsync();
 
         using var scope = bus.Provider.CreateScope();
@@ -260,7 +260,7 @@ public class ExplicitTopologyTests
             .AddConsumer<OrderSpyConsumer>()
             .AddRabbitMQ(t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.DeclareExchange("orders-ex");
                 t.DeclareQueue("orders").AutoProvision(true);
                 t.DeclareBinding("orders-ex", "orders");
@@ -288,47 +288,6 @@ public class ExplicitTopologyTests
 
         var received = Assert.Single(capture.Messages);
         Assert.Equal("MERGE-THREE-WAY", received.OrderId);
-    }
-
-    [Fact]
-    public async Task PublishAsync_Should_RouteToQueue_When_BindFromDeclared()
-    {
-        // arrange
-        // AutoBind(false) at queue scope suppresses the convention binding from the publish exchange
-        // chain into the consumer queue. A queue-level BindFrom from "bind-source-exchange" into the
-        // queue substitutes the explicit binding. The dispatch endpoint routes to that same exchange,
-        // so publishing reaches the consumer only through the declared BindFrom path.
-        var capture = new OrderCapture();
-        await using var vhost = await _fixture.CreateVhostAsync();
-        await using var bus = await new ServiceCollection()
-            .AddSingleton(vhost.ConnectionFactory)
-            .AddSingleton(capture)
-            .AddMessageBus()
-            .AddMessage<OrderCreated>(d => d.Publish(r => r.ToRabbitMQExchange("bind-source-exchange")))
-            .AddConsumer<OrderSpyConsumer>()
-            .AddRabbitMQ(t =>
-            {
-                t.BindHandlersExplicitly();
-                t.Queue("orders")
-                    .Consumer<OrderSpyConsumer>()
-                    .AutoBind(false)
-                    .BindFrom(new Uri("exchange:bind-source-exchange"));
-            })
-            .BuildTestBusAsync();
-
-        using var scope = bus.Provider.CreateScope();
-        var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-
-        // act
-        await messageBus.PublishAsync(new OrderCreated { OrderId = "BIND-FROM-ROUTE" }, CancellationToken.None);
-
-        // assert
-        Assert.True(
-            await capture.WaitAsync(s_timeout),
-            "Consumer did not receive the message routed via the explicit BindFrom binding");
-
-        var message = Assert.Single(capture.Messages);
-        Assert.Equal("BIND-FROM-ROUTE", message.OrderId);
     }
 
     private async Task<List<(string Name, string Type)>> ListQueuesAsync(string vhostName)

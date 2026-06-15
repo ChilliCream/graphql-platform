@@ -109,7 +109,7 @@ public class AutoProvisionIntegrationTests
             {
                 t.ConnectionString(db.ConnectionString);
                 t.AutoProvision(false);
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.DeclareTopic("ap-topic").AutoProvision(true);
                 t.DeclareQueue("ap-q").AutoProvision(true);
                 t.DeclareSubscription("ap-topic", "ap-q").AutoProvision(true);
@@ -172,7 +172,7 @@ public class AutoProvisionIntegrationTests
             {
                 t.ConnectionString(db.ConnectionString);
                 t.AutoProvision(false);
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.DeclareTopic("pre-topic");
                 t.DeclareQueue("pre-q");
                 t.DeclareSubscription("pre-topic", "pre-q");
@@ -228,7 +228,7 @@ public class AutoProvisionIntegrationTests
             {
                 t.ConnectionString(db.ConnectionString);
                 t.AutoProvision(true);
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.DeclareTopic("mixed-topic").AutoProvision(false); // already exists
                 t.DeclareQueue("mixed-q"); // will be auto-provisioned (inherits true)
                 t.DeclareSubscription("mixed-topic", "mixed-q"); // will be auto-provisioned

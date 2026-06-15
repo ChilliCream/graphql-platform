@@ -115,9 +115,16 @@ internal sealed class RabbitMQQueueBuilder : IRabbitMQQueueBuilder
     }
 
     /// <inheritdoc />
-    public IRabbitMQQueueBuilder AutoBind(bool enabled)
+    public IRabbitMQQueueBuilder BindImplicitly()
     {
-        EnsureEndpoint().AutoBind(enabled);
+        EnsureEndpoint().BindImplicitly();
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IRabbitMQQueueBuilder BindExplicitly()
+    {
+        EnsureEndpoint().BindExplicitly();
         return this;
     }
 

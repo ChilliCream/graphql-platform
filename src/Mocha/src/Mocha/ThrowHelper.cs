@@ -173,7 +173,7 @@ internal static class ThrowHelper
         => new InvalidOperationException(
             $"The message type '{messageTypeName}' cannot be bound to consume queue '{queueName}' because "
             + "its routing key is computed per message by a custom function. The bind key cannot be derived at configuration time. "
-            + $"Either use a static routing key via UseRabbitMQRoutingKey<T>(constant) or declare an explicit binding via Receives<{messageTypeName}>(r => r.BindFrom(...)).");
+            + "Use a static routing key via UseRabbitMQRoutingKey<T>(constant) instead.");
 
     public static Exception ReceivesReplyType(string messageTypeName)
         => new InvalidOperationException(

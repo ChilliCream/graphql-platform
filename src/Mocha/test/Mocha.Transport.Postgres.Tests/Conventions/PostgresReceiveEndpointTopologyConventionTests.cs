@@ -7,19 +7,19 @@ namespace Mocha.Transport.Postgres.Tests.Conventions;
 
 /// <summary>
 /// Verifies that <see cref="PostgresReceiveEndpointTopologyConvention"/> respects per-route
-/// auto-binding gating and the P1 reply-route guard: subscriptions are suppressed when
-/// auto-binding is off while type-owned topics remain, and reply routes never produce
-/// convention topics or subscriptions regardless of auto-binding state.
+/// bind-mode gating and the P1 reply-route guard: subscriptions are suppressed when
+/// bind mode is Explicit while type-owned topics remain, and reply routes never produce
+/// convention topics or subscriptions regardless of bind mode.
 /// </summary>
 public class PostgresReceiveEndpointTopologyConventionTests
 {
     [Fact]
-    public void DiscoverTopology_Should_KeepConventionTopics_When_ExplicitBindingAndAutoBindDefaultOn()
+    public void DiscoverTopology_Should_SuppressConventionSubscriptions_When_TransportBindExplicit()
     {
         // arrange
-        // explicit binding places the handler but auto-binding is on by default; the convention
-        // still creates the publish and send topics for the handled type because auto-binding
-        // governs the subscription into the queue, not the type-owned topic entities.
+        // BindExplicitly suppresses both discovery and convention subscriptions.
+        // Type-owned publish/send topics are still created (they survive regardless of bind mode)
+        // but no subscription into the queue is generated.
         var services = new ServiceCollection();
         services.AddSingleton(new MessageRecorder());
         var builder = services.AddMessageBus();
@@ -28,7 +28,7 @@ public class PostgresReceiveEndpointTopologyConventionTests
             .AddPostgres(t =>
             {
                 t.ConnectionString("Host=localhost;Database=mocha_test;Username=test;Password=test");
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Handler<OrderCreatedHandler>();
             })
             .BuildRuntime();
@@ -41,8 +41,7 @@ public class PostgresReceiveEndpointTopologyConventionTests
             .ToList();
 
         // assert
-        // the explicit binding places the handler on an endpoint; with auto-binding on, the
-        // convention creates the publish/send topics so a producer can still reach the queue.
+        // Type-owned topics remain even under BindExplicitly.
         Assert.NotEmpty(conventionTopics);
     }
 
@@ -60,7 +59,7 @@ public class PostgresReceiveEndpointTopologyConventionTests
             .AddPostgres(t =>
             {
                 t.ConnectionString("Host=localhost;Database=mocha_test;Username=test;Password=test");
-                t.BindHandlersImplicitly();
+                t.BindImplicitly();
             })
             .BuildRuntime();
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
@@ -82,7 +81,7 @@ public class PostgresReceiveEndpointTopologyConventionTests
     }
 
     [Fact]
-    public void DiscoverTopology_Should_SuppressSubscription_When_QueueAutoBindFalse()
+    public void DiscoverTopology_Should_SuppressSubscription_When_QueueBindExplicit()
     {
         // arrange
         // queue-scope auto-binding is off, so the convention must not create any subscription into
@@ -91,8 +90,8 @@ public class PostgresReceiveEndpointTopologyConventionTests
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
             {
-                t.BindHandlersExplicitly();
-                t.Queue("orders").Consumer<OrderSpyConsumer>().AutoBind(false);
+                t.BindExplicitly();
+                t.Queue("orders").Consumer<OrderSpyConsumer>().BindExplicitly();
             });
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 
@@ -104,7 +103,7 @@ public class PostgresReceiveEndpointTopologyConventionTests
     }
 
     [Fact]
-    public void DiscoverTopology_Should_KeepTopics_When_TransportAutoBindFalse()
+    public void DiscoverTopology_Should_KeepTopics_When_TransportBindExplicit()
     {
         // arrange
         // transport-scope auto-binding is off, so no subscription is created into the queue;
@@ -114,8 +113,8 @@ public class PostgresReceiveEndpointTopologyConventionTests
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
             {
-                t.AutoBind(false);
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
+                t.BindExplicitly();
                 t.Queue("orders").Consumer<OrderSpyConsumer>();
             });
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
@@ -141,7 +140,7 @@ public class PostgresReceiveEndpointTopologyConventionTests
             .AddPostgres(t =>
             {
                 t.ConnectionString("Host=localhost;Database=mocha_test;Username=test;Password=test");
-                t.BindHandlersImplicitly();
+                t.BindImplicitly();
             })
             .BuildRuntime();
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();

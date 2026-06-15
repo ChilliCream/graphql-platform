@@ -18,7 +18,7 @@ public class PostgresSatelliteTests
         // must not kebab-case or otherwise transform it.
         var runtime = CreateRuntime(t =>
         {
-            t.BindHandlersExplicitly();
+            t.BindExplicitly();
             t.Queue("orders").AutoProvision(true).Handler<OrderCreatedHandler>()
                 .ErrorQueue("LEGACY.Orders.Error");
         });
@@ -39,7 +39,7 @@ public class PostgresSatelliteTests
         // byte-identical to the pre-typed-satellite output.
         var runtime = CreateRuntime(t =>
         {
-            t.BindHandlersExplicitly();
+            t.BindExplicitly();
             t.Queue("orders").AutoProvision(true).Handler<OrderCreatedHandler>();
         });
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
@@ -59,7 +59,7 @@ public class PostgresSatelliteTests
         // the conventional "_error" suffix should appear.
         var runtime = CreateRuntime(t =>
         {
-            t.BindHandlersExplicitly();
+            t.BindExplicitly();
             t.Queue("orders").AutoProvision(true).Handler<OrderCreatedHandler>()
                 .DisableErrorQueue();
         });

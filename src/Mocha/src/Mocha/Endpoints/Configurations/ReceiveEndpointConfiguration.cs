@@ -46,15 +46,16 @@ public class ReceiveEndpointConfiguration : MessagingConfiguration
     public bool? AutoProvision { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether auto-binding is enabled at the queue scope.
-    /// A tri-state value: null (unset, defaults to true), true (enabled), or false (disabled).
-    /// Auto-binding generates convention binds for consumed message types that reach this queue.
+    /// Gets or sets the bind mode override at the queue scope.
+    /// A null value inherits the transport scope. <see cref="MessagingBindMode.Implicit"/> generates
+    /// convention binds for consumed message types that reach this queue, while
+    /// <see cref="MessagingBindMode.Explicit"/> suppresses them.
     /// </summary>
-    public bool? AutoBind { get; set; }
+    public MessagingBindMode? BindMode { get; set; }
 
     /// <summary>
-    /// Gets or sets the map of per-type auto-binding intents, keyed by message type.
-    /// Allows per-type override of the queue-level AutoBind setting.
+    /// Gets or sets the map of per-type bind intents, keyed by message type.
+    /// Allows per-type override of the queue-level bind mode.
     /// </summary>
     public Dictionary<Type, ReceiveTypeBindIntent> TypeBinds { get; set; } = [];
 

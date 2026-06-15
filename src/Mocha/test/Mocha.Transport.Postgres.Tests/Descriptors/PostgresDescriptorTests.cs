@@ -217,24 +217,24 @@ public class PostgresDescriptorTests
     }
 
     [Fact]
-    public void Transport_Should_DefaultAutoBindTrue_When_NotConfigured()
+    public void Transport_Should_DefaultBindModeImplicit_When_NotConfigured()
     {
         // arrange & act
         var runtime = PostgresBusFixture.CreateRuntime(t => { });
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 
         // assert
-        Assert.True(transport.AutoBind);
+        Assert.Equal(MessagingBindMode.Implicit, transport.BindMode);
     }
 
     [Fact]
-    public void Transport_Should_SetAutoBindFalse_When_AutoBindFalseCalled()
+    public void Transport_Should_SetBindModeExplicit_When_BindExplicitlyCalled()
     {
         // arrange & act
-        var runtime = PostgresBusFixture.CreateRuntime(t => t.AutoBind(false));
+        var runtime = PostgresBusFixture.CreateRuntime(t => t.BindExplicitly());
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 
         // assert
-        Assert.False(transport.AutoBind);
+        Assert.Equal(MessagingBindMode.Explicit, transport.BindMode);
     }
 }

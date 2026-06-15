@@ -16,16 +16,12 @@ public abstract class MessagingTransportConfiguration : MessagingConfiguration
     public string? Schema { get; set; }
 
     /// <summary>
-    /// Gets or sets the consumer binding mode that controls how consumers are mapped to receive endpoints.
+    /// Gets or sets the bind mode that controls how consumers are mapped to receive endpoints
+    /// and whether convention binds are generated for consumed message types.
+    /// When <see cref="MessagingBindMode.Implicit"/>, consumers are auto-discovered and convention binds are on by default.
+    /// When <see cref="MessagingBindMode.Explicit"/>, discovery is suppressed and convention binds are off by default.
     /// </summary>
-    public ConsumerBindingMode ConsumerBindingMode { get; set; } = ConsumerBindingMode.Implicit;
-
-    /// <summary>
-    /// Gets or sets a value indicating whether auto-binding is enabled at the transport scope.
-    /// A tri-state value: null (unset, defaults to true), true (enabled), or false (disabled).
-    /// Auto-binding generates convention binds for consumed message types that reach this queue.
-    /// </summary>
-    public bool? AutoBind { get; set; }
+    public MessagingBindMode BindMode { get; set; } = MessagingBindMode.Implicit;
 
     /// <summary>
     /// Gets or sets a value indicating whether this is the default transport for routing when multiple transports are registered.

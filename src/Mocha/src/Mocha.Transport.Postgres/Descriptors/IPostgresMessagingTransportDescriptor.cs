@@ -14,14 +14,11 @@ public interface IPostgresMessagingTransportDescriptor
     /// <inheritdoc cref="IMessagingTransportDescriptor.Schema(string)"/>
     new IPostgresMessagingTransportDescriptor Schema(string schema);
 
-    /// <inheritdoc cref="IMessagingTransportDescriptor.BindHandlersImplicitly"/>
-    new IPostgresMessagingTransportDescriptor BindHandlersImplicitly();
+    /// <inheritdoc cref="IMessagingTransportDescriptor.BindImplicitly"/>
+    new IPostgresMessagingTransportDescriptor BindImplicitly();
 
-    /// <inheritdoc cref="IMessagingTransportDescriptor.BindHandlersExplicitly"/>
-    new IPostgresMessagingTransportDescriptor BindHandlersExplicitly();
-
-    /// <inheritdoc cref="IMessagingTransportDescriptor.AutoBind"/>
-    new IPostgresMessagingTransportDescriptor AutoBind(bool enabled);
+    /// <inheritdoc cref="IMessagingTransportDescriptor.BindExplicitly"/>
+    new IPostgresMessagingTransportDescriptor BindExplicitly();
 
     /// <summary>
     /// Declares or retrieves a receive endpoint with the specified name.

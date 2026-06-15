@@ -27,9 +27,9 @@ builder.Services
     .AddEventHandler<OrderPlacedHandler>()
     .AddRabbitMQ(transport =>
     {
-        // BindHandlersExplicitly() means you control exactly which handlers
+        // BindExplicitly() means you control exactly which handlers
         // go to which endpoints. Auto-discovery is disabled.
-        transport.BindHandlersExplicitly();
+        transport.BindExplicitly();
 
         // Configure a receive endpoint with a quorum queue for production use.
         // Quorum queues replicate across nodes via Raft consensus and are the

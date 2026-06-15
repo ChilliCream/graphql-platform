@@ -67,9 +67,17 @@ internal sealed class PostgresReceiveEndpointDescriptor
     }
 
     /// <inheritdoc />
-    public new IPostgresReceiveEndpointDescriptor AutoBind(bool enabled)
+    public new IPostgresReceiveEndpointDescriptor BindImplicitly()
     {
-        base.AutoBind(enabled);
+        base.BindImplicitly();
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IPostgresReceiveEndpointDescriptor BindExplicitly()
+    {
+        base.BindExplicitly();
 
         return this;
     }

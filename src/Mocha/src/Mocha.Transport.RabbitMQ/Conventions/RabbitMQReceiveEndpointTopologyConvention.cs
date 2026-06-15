@@ -4,7 +4,7 @@ namespace Mocha.Transport.RabbitMQ;
 /// Convention that creates the exchange and binding chains in the topology for receive endpoints,
 /// building the publish and send exchange hierarchy and binding it to the endpoint's queue for each
 /// inbound route whose auto-binding is enabled. The endpoint owns its queue, so this convention binds
-/// to it but never creates it. Auto-binding is resolved per route with the type, queue, transport
+/// to it but never creates it. Auto-binding is resolved per route with the queue, transport
 /// precedence; when it is off, the bind into this queue is suppressed while the type-owned publish and
 /// send exchanges are still produced.
 /// </summary>
@@ -57,11 +57,11 @@ public sealed class RabbitMQReceiveEndpointTopologyConvention : IRabbitMQReceive
                 continue;
             }
 
-            // Auto-binding is resolved per route with the type > queue > transport precedence (3.4).
+            // Auto-binding is resolved per route with the queue > transport precedence.
             // When it is off, the only effect is that no convention bind into this queue is generated
             // for the type; the type-owned publish/send exchanges are still built so a second endpoint
-            // that does auto-bind the same type keeps a complete chain (suppression scope, reading X).
-            var autoBind = ResolveAutoBind(endpoint.Transport, configuration, route.MessageType);
+            // that does auto-bind the same type keeps a complete chain (suppression scope).
+            var autoBind = ResolveAutoBind(endpoint.Transport, configuration);
 
             // The bind-key and queue-destination diagnostics only fire when a bind is actually being
             // derived. With auto-binding off no bind is derived, so an underivable key or an explicit
@@ -139,22 +139,15 @@ public sealed class RabbitMQReceiveEndpointTopologyConvention : IRabbitMQReceive
 
     private static bool ResolveAutoBind(
         MessagingTransport transport,
-        RabbitMQReceiveEndpointConfiguration configuration,
-        MessageType messageType)
+        RabbitMQReceiveEndpointConfiguration configuration)
     {
-        // Type scope wins over queue scope, which wins over transport scope; default on.
-        if (configuration.TypeBinds.TryGetValue(messageType.RuntimeType, out var typeBind)
-            && typeBind.AutoBind.HasValue)
+        // Queue scope wins over transport scope.
+        if (configuration.BindMode.HasValue)
         {
-            return typeBind.AutoBind.Value;
+            return configuration.BindMode.Value == MessagingBindMode.Implicit;
         }
 
-        if (configuration.AutoBind.HasValue)
-        {
-            return configuration.AutoBind.Value;
-        }
-
-        return transport.AutoBind;
+        return transport.BindMode == MessagingBindMode.Implicit;
     }
 
     private static ChainEntry ResolveChainEntry(

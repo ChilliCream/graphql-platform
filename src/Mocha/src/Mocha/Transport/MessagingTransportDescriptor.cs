@@ -27,24 +27,19 @@ public interface IMessagingTransportDescriptor
     IMessagingTransportDescriptor ModifyOptions(Action<TransportOptions> configure);
 
     /// <summary>
-    /// Configures the transport to automatically bind consumers to endpoints based on message type conventions.
+    /// Sets the transport bind mode to <see cref="MessagingBindMode.Implicit"/>, enabling
+    /// convention-based consumer discovery and automatic convention binds for consumed message types.
     /// </summary>
     /// <returns>The descriptor for method chaining.</returns>
-    IMessagingTransportDescriptor BindHandlersImplicitly();
+    IMessagingTransportDescriptor BindImplicitly();
 
     /// <summary>
-    /// Configures the transport to require explicit consumer-to-endpoint bindings rather than convention-based discovery.
+    /// Sets the transport bind mode to <see cref="MessagingBindMode.Explicit"/>, suppressing
+    /// convention-based consumer discovery and automatic convention binds.
+    /// Consumers must be placed on endpoints explicitly, and bindings must be declared via DeclareBinding.
     /// </summary>
     /// <returns>The descriptor for method chaining.</returns>
-    IMessagingTransportDescriptor BindHandlersExplicitly();
-
-    /// <summary>
-    /// Configures whether auto-binding is enabled at the transport scope, controlling whether convention binds
-    /// are generated for consumed message types. When disabled, explicit bindings must be configured via BindFrom.
-    /// </summary>
-    /// <param name="enabled">True to enable auto-binding (default), false to disable it.</param>
-    /// <returns>The descriptor for method chaining.</returns>
-    IMessagingTransportDescriptor AutoBind(bool enabled);
+    IMessagingTransportDescriptor BindExplicitly();
 
     /// <summary>
     /// Sets the schema prefix used for address resolution on this transport.
@@ -118,23 +113,16 @@ public abstract class MessagingTransportDescriptor<T>(IMessagingSetupContext con
     }
 
     /// <inheritdoc />
-    public IMessagingTransportDescriptor BindHandlersImplicitly()
+    public IMessagingTransportDescriptor BindImplicitly()
     {
-        Configuration.ConsumerBindingMode = ConsumerBindingMode.Implicit;
+        Configuration.BindMode = MessagingBindMode.Implicit;
         return this;
     }
 
     /// <inheritdoc />
-    public IMessagingTransportDescriptor BindHandlersExplicitly()
+    public IMessagingTransportDescriptor BindExplicitly()
     {
-        Configuration.ConsumerBindingMode = ConsumerBindingMode.Explicit;
-        return this;
-    }
-
-    /// <inheritdoc />
-    public IMessagingTransportDescriptor AutoBind(bool enabled)
-    {
-        Configuration.AutoBind = enabled;
+        Configuration.BindMode = MessagingBindMode.Explicit;
         return this;
     }
 

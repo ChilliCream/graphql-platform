@@ -67,9 +67,17 @@ internal sealed class RabbitMQReceiveEndpointDescriptor
     }
 
     /// <inheritdoc />
-    public new IRabbitMQReceiveEndpointDescriptor AutoBind(bool enabled)
+    public new IRabbitMQReceiveEndpointDescriptor BindImplicitly()
     {
-        base.AutoBind(enabled);
+        base.BindImplicitly();
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IRabbitMQReceiveEndpointDescriptor BindExplicitly()
+    {
+        base.BindExplicitly();
 
         return this;
     }

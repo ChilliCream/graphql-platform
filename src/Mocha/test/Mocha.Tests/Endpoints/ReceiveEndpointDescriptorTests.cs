@@ -4,7 +4,7 @@ using Mocha.Middlewares;
 namespace Mocha.Tests;
 
 /// <summary>
-/// Unit tests for the base <see cref="ReceiveEndpointDescriptor{T}"/> AutoBind and Receives surface.
+/// Unit tests for the base <see cref="ReceiveEndpointDescriptor{T}"/> bind mode and Receives surface.
 /// </summary>
 public class ReceiveEndpointDescriptorTests
 {
@@ -46,26 +46,26 @@ public class ReceiveEndpointDescriptorTests
         var descriptor = new TestDescriptor();
 
         // act
-        descriptor.Receives<OrderCreated>(r => r.AutoBind(false));
+        descriptor.Receives<OrderCreated>(r => r.BindExplicitly());
 
         // assert
         Assert.True(descriptor.Configuration.TypeBinds.TryGetValue(typeof(OrderCreated), out var intent));
         Assert.Equal(typeof(OrderCreated), intent.MessageType);
-        Assert.Equal(false, intent.AutoBind);
+        Assert.Equal(MessagingBindMode.Explicit, intent.BindMode);
     }
 
     [Fact]
-    public void Receives_Should_NotAffectQueueAutoBindSetting_When_TypeLevelAutoBindUsed()
+    public void Receives_Should_NotAffectQueueBindMode_When_TypeLevelBindModeUsed()
     {
         // arrange
         var descriptor = new TestDescriptor();
 
-        // act: per-type AutoBind(false) affects only that type, not the queue
-        descriptor.Receives<OrderCreated>(r => r.AutoBind(false));
+        // act: per-type BindExplicitly affects only that type, not the queue
+        descriptor.Receives<OrderCreated>(r => r.BindExplicitly());
 
-        // assert: queue-level AutoBind is unset; type-level intent carries false
-        Assert.Null(descriptor.Configuration.AutoBind);
-        Assert.Equal(false, descriptor.Configuration.TypeBinds[typeof(OrderCreated)].AutoBind);
+        // assert: queue-level bind mode is unset; type-level intent carries Explicit
+        Assert.Null(descriptor.Configuration.BindMode);
+        Assert.Equal(MessagingBindMode.Explicit, descriptor.Configuration.TypeBinds[typeof(OrderCreated)].BindMode);
     }
 
     [Fact]
@@ -74,13 +74,13 @@ public class ReceiveEndpointDescriptorTests
         // arrange
         var descriptor = new TestDescriptor();
 
-        // act: two separate Receives<T> calls; the second one sets AutoBind(false)
-        descriptor.Receives<OrderCreated>(r => r.AutoBind(true));
-        descriptor.Receives<OrderCreated>(r => r.AutoBind(false));
+        // act: two separate Receives<T> calls; the second one sets BindExplicitly
+        descriptor.Receives<OrderCreated>(r => r.BindImplicitly());
+        descriptor.Receives<OrderCreated>(r => r.BindExplicitly());
 
         // assert: one entry in TypeBinds; last explicit wins via merge
         Assert.Single(descriptor.Configuration.TypeBinds);
         var intent = descriptor.Configuration.TypeBinds[typeof(OrderCreated)];
-        Assert.Equal(false, intent.AutoBind);
+        Assert.Equal(MessagingBindMode.Explicit, intent.BindMode);
     }
 }

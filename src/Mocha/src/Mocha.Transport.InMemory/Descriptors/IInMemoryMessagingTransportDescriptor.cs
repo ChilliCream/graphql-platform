@@ -13,13 +13,10 @@ public interface IInMemoryMessagingTransportDescriptor : IMessagingTransportDesc
     new IInMemoryMessagingTransportDescriptor Schema(string schema);
 
     /// <inheritdoc />
-    new IInMemoryMessagingTransportDescriptor BindHandlersImplicitly();
+    new IInMemoryMessagingTransportDescriptor BindImplicitly();
 
     /// <inheritdoc />
-    new IInMemoryMessagingTransportDescriptor BindHandlersExplicitly();
-
-    /// <inheritdoc />
-    new IInMemoryMessagingTransportDescriptor AutoBind(bool enabled);
+    new IInMemoryMessagingTransportDescriptor BindExplicitly();
 
     /// <summary>
     /// Declares or retrieves a receive endpoint with the specified name.

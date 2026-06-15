@@ -27,8 +27,11 @@ public interface IRabbitMQReceiveEndpointDescriptor : IReceiveEndpointDescriptor
     /// <inheritdoc cref="IReceiveEndpointDescriptor{TConfiguration}.Receives(Type)" />
     new IRabbitMQReceiveEndpointDescriptor Receives(Type messageType);
 
-    /// <inheritdoc cref="IReceiveEndpointDescriptor{TConfiguration}.AutoBind" />
-    new IRabbitMQReceiveEndpointDescriptor AutoBind(bool enabled);
+    /// <inheritdoc cref="IReceiveEndpointDescriptor{TConfiguration}.BindImplicitly" />
+    new IRabbitMQReceiveEndpointDescriptor BindImplicitly();
+
+    /// <inheritdoc cref="IReceiveEndpointDescriptor{TConfiguration}.BindExplicitly" />
+    new IRabbitMQReceiveEndpointDescriptor BindExplicitly();
 
     /// <inheritdoc cref="IReceiveEndpointDescriptor{TConfiguration}.Kind" />
     new IRabbitMQReceiveEndpointDescriptor Kind(ReceiveEndpointKind kind);

@@ -6,9 +6,8 @@ namespace Mocha.Transport.RabbitMQ.Tests.Descriptors;
 
 /// <summary>
 /// Verifies the unified Queue() front-door build-time behavior: an entity-only handle lowers to a
-/// declared queue plus its BindFrom bindings without entering the receive-endpoint lifecycle,
-/// satellites on an entity-only queue are a build error, and a configuration that uses no Queue()
-/// handle is left byte-identical.
+/// declared queue without entering the receive-endpoint lifecycle, satellites on an entity-only queue
+/// are a build error, and a configuration that uses no Queue() handle is left byte-identical.
 /// </summary>
 public class RabbitMQQueueFrontDoorLoweringTests
 {
@@ -24,7 +23,7 @@ public class RabbitMQQueueFrontDoorLoweringTests
                 b => { },
                 t =>
                 {
-                    t.BindHandlersExplicitly();
+                    t.BindExplicitly();
                     t.Queue("audit", q => q.ErrorQueue("audit_error"));
                 });
         }
@@ -41,15 +40,14 @@ public class RabbitMQQueueFrontDoorLoweringTests
     public void Describe_Should_ShowEntityOnlyQueue_When_QueueWithoutConsumersOrReceives()
     {
         // arrange
-        // An entity-only Queue() handle declares a queue and a BindFrom but never names a consumer.
-        // It lowers to a declared queue plus a declared exchange-to-queue binding and produces no
-        // receive endpoint (hence no satellites and no instance queue).
+        // An entity-only Queue() handle (no consumer, no Receives) lowers to a declared queue and
+        // produces no receive endpoint (hence no satellites and no instance queue).
         var runtime = CreateRuntime(
             b => { },
             t =>
             {
-                t.BindHandlersExplicitly();
-                t.Queue("audit", q => q.BindFrom(new Uri("exchange:audit-events")));
+                t.BindExplicitly();
+                t.Queue("audit");
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
@@ -72,7 +70,7 @@ public class RabbitMQQueueFrontDoorLoweringTests
             b => { },
             t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Queue("audit", q => q.Quorum());
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
@@ -95,7 +93,7 @@ public class RabbitMQQueueFrontDoorLoweringTests
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.DeclareQueue("orders").AutoProvision(true);
                 t.Endpoint("orders").Consumer<OrderSpyConsumer>();
             });

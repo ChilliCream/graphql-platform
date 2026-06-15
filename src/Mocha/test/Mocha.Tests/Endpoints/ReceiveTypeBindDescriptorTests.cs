@@ -3,38 +3,38 @@ namespace Mocha.Tests;
 public class ReceiveTypeBindDescriptorTests
 {
     [Fact]
-    public void ResolvedAutoBind_Should_BeNull_When_NeitherAutoBindCalled()
+    public void ResolvedBindMode_Should_BeNull_When_NeitherBindModeCalled()
     {
         // arrange & act
         var descriptor = new ReceiveTypeBindDescriptor();
 
         // assert
-        Assert.Null(descriptor.ResolvedAutoBind);
+        Assert.Null(descriptor.ResolvedBindMode);
     }
 
     [Fact]
-    public void ResolvedAutoBind_Should_BeTrue_When_AutoBindTrue()
+    public void ResolvedBindMode_Should_BeImplicit_When_BindImplicitly()
     {
         // arrange
         var descriptor = new ReceiveTypeBindDescriptor();
 
         // act
-        descriptor.AutoBind(true);
+        descriptor.BindImplicitly();
 
         // assert
-        Assert.Equal(true, descriptor.ResolvedAutoBind);
+        Assert.Equal(MessagingBindMode.Implicit, descriptor.ResolvedBindMode);
     }
 
     [Fact]
-    public void ResolvedAutoBind_Should_BeFalse_When_AutoBindFalse()
+    public void ResolvedBindMode_Should_BeExplicit_When_BindExplicitly()
     {
         // arrange
         var descriptor = new ReceiveTypeBindDescriptor();
 
         // act
-        descriptor.AutoBind(false);
+        descriptor.BindExplicitly();
 
         // assert
-        Assert.Equal(false, descriptor.ResolvedAutoBind);
+        Assert.Equal(MessagingBindMode.Explicit, descriptor.ResolvedBindMode);
     }
 }

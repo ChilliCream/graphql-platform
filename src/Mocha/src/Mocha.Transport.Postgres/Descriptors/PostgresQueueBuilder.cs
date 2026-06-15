@@ -101,9 +101,16 @@ internal sealed class PostgresQueueBuilder : IPostgresQueueBuilder
     }
 
     /// <inheritdoc />
-    public IPostgresQueueBuilder AutoBind(bool enabled)
+    public IPostgresQueueBuilder BindImplicitly()
     {
-        EnsureEndpoint().AutoBind(enabled);
+        EnsureEndpoint().BindImplicitly();
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IPostgresQueueBuilder BindExplicitly()
+    {
+        EnsureEndpoint().BindExplicitly();
         return this;
     }
 

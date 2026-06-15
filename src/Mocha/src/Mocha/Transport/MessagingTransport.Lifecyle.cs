@@ -26,8 +26,7 @@ public abstract partial class MessagingTransport
         Naming = context.Naming;
         Conventions = new ConventionRegistry(context.Conventions.Concat(Configuration.Conventions));
         Options = Configuration.Options;
-        ConsumerBindingMode = Configuration.ConsumerBindingMode;
-        AutoBind = Configuration.AutoBind ?? true;
+        BindMode = Configuration.BindMode;
         IsDefaultTransport = Configuration.IsDefaultTransport;
 
         _features = Configuration.Features;
@@ -132,7 +131,7 @@ public abstract partial class MessagingTransport
         // for each handler match the outbound route
         foreach (var route in context.Router.InboundRoutes)
         {
-            if (ConsumerBindingMode == ConsumerBindingMode.Implicit
+            if (BindMode == MessagingBindMode.Implicit
                 && route.Endpoint is { Transport: { } transport } && transport == this)
             {
                 transport.CreateMatchingOutboundRoute(context, route);
@@ -242,7 +241,7 @@ public abstract partial class MessagingTransport
         }
 
         // Discover receive endpoints
-        if (ConsumerBindingMode == ConsumerBindingMode.Implicit)
+        if (BindMode == MessagingBindMode.Implicit)
         {
             // A message type is claimed when a configured receive endpoint names it via
             // Handler/Consumer/Receives, in which case at least one route for the type is already

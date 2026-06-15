@@ -108,7 +108,7 @@ public class AutoProvisionIntegrationTests
             .AddRabbitMQ(t =>
             {
                 t.AutoProvision(false);
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.DeclareExchange("ap-ex").AutoProvision(true);
                 t.DeclareQueue("ap-q").AutoProvision(true);
                 t.DeclareBinding("ap-ex", "ap-q").AutoProvision(true);
@@ -169,7 +169,7 @@ public class AutoProvisionIntegrationTests
             .AddRabbitMQ(t =>
             {
                 t.AutoProvision(false);
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.DeclareExchange("pre-ex");
                 t.DeclareQueue("pre-q");
                 t.DeclareBinding("pre-ex", "pre-q");
@@ -219,7 +219,7 @@ public class AutoProvisionIntegrationTests
             .AddRabbitMQ(t =>
             {
                 t.AutoProvision(true);
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.DeclareExchange("mixed-ex").AutoProvision(false); // already exists
                 t.DeclareQueue("mixed-q"); // will be auto-provisioned (inherits true)
                 t.DeclareBinding("mixed-ex", "mixed-q"); // will be auto-provisioned

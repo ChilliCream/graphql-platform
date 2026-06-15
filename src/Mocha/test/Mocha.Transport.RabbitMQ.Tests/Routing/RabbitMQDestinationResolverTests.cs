@@ -140,8 +140,8 @@ public class RabbitMQDestinationResolverTests
         // assert
         Assert.IsType<InvalidOperationException>(ex);
         Assert.Contains("static routing key", ex.Message);
-        Assert.Contains("BindFrom", ex.Message);
-        Assert.Contains("Receives", ex.Message);
+        Assert.Contains(messageTypeName, ex.Message);
+        Assert.Contains(queueName, ex.Message);
     }
 
     private static MessagingRuntime CreateRuntime(Action<IMessageBusHostBuilder> configure)

@@ -3,25 +3,11 @@
   "TransportType": "RabbitMQMessagingTransport",
   "Entities": [
     {
-      "Kind": "exchange",
-      "Name": "audit-events",
-      "AutoProvision": true,
-      "Source": "declared"
-    },
-    {
       "Kind": "queue",
       "Name": "audit",
       "AutoProvision": true,
       "Source": "declared"
     }
   ],
-  "Links": [
-    {
-      "Kind": "bind",
-      "From": "rabbitmq://localhost:5672/e/audit-events",
-      "To": "rabbitmq://localhost:5672/q/audit",
-      "AutoProvision": true,
-      "Source": "declared"
-    }
-  ]
+  "Links": []
 }

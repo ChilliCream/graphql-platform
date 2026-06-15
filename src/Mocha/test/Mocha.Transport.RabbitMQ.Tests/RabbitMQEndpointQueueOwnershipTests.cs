@@ -21,7 +21,7 @@ public class RabbitMQEndpointQueueOwnershipTests
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Queue("orders").AutoProvision(true).Consumer<OrderSpyConsumer>();
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
@@ -43,7 +43,7 @@ public class RabbitMQEndpointQueueOwnershipTests
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Queue("orders").AutoProvision(true).Consumer<OrderSpyConsumer>();
             });
 
@@ -51,7 +51,7 @@ public class RabbitMQEndpointQueueOwnershipTests
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Queue("orders").Consumer<OrderSpyConsumer>();
             });
 
@@ -82,7 +82,7 @@ public class RabbitMQEndpointQueueOwnershipTests
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Queue("orders").AutoProvision(true).Consumer<OrderSpyConsumer>();
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
@@ -106,7 +106,7 @@ public class RabbitMQEndpointQueueOwnershipTests
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Queue("orders").WithArgument("x-dead-letter-exchange", "orders_dlx").Consumer<OrderSpyConsumer>();
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();

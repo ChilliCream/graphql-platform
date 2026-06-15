@@ -95,25 +95,17 @@ public sealed class InMemoryMessagingTransportDescriptor
     }
 
     /// <inheritdoc />
-    public new IInMemoryMessagingTransportDescriptor BindHandlersImplicitly()
+    public new IInMemoryMessagingTransportDescriptor BindImplicitly()
     {
-        base.BindHandlersImplicitly();
+        base.BindImplicitly();
 
         return this;
     }
 
     /// <inheritdoc />
-    public new IInMemoryMessagingTransportDescriptor BindHandlersExplicitly()
+    public new IInMemoryMessagingTransportDescriptor BindExplicitly()
     {
-        base.BindHandlersExplicitly();
-
-        return this;
-    }
-
-    /// <inheritdoc />
-    public new IInMemoryMessagingTransportDescriptor AutoBind(bool enabled)
-    {
-        base.AutoBind(enabled);
+        base.BindExplicitly();
 
         return this;
     }

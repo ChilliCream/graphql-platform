@@ -33,7 +33,7 @@ public class RoutingKeyTests
             .AddMessage<RegionEvent>(m => m.UseRabbitMQRoutingKey<RegionEvent>(msg => msg.Region))
             .AddRabbitMQ(t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
 
                 t.DeclareExchange("region-topic").Type(RabbitMQExchangeType.Topic);
                 t.DeclareQueue("us-queue");
@@ -41,8 +41,8 @@ public class RoutingKeyTests
                 t.DeclareBinding("region-topic", "us-queue").RoutingKey("us.*");
                 t.DeclareBinding("region-topic", "eu-queue").RoutingKey("eu.*");
 
-                t.Queue("us-queue").AutoBind(false).Consumer<UsRegionConsumer>();
-                t.Queue("eu-queue").AutoBind(false).Consumer<EuRegionConsumer>();
+                t.Queue("us-queue").BindExplicitly().Consumer<UsRegionConsumer>();
+                t.Queue("eu-queue").BindExplicitly().Consumer<EuRegionConsumer>();
                 t.DispatchEndpoint("region-dispatch").ToExchange("region-topic").Publish<RegionEvent>();
             })
             .BuildTestBusAsync();
@@ -82,13 +82,13 @@ public class RoutingKeyTests
             .AddMessage<RegionEvent>(m => m.UseRabbitMQRoutingKey<RegionEvent>(msg => msg.Region))
             .AddRabbitMQ(t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
 
                 t.DeclareExchange("wildcard-topic").Type(RabbitMQExchangeType.Topic);
                 t.DeclareQueue("catch-all-queue");
                 t.DeclareBinding("wildcard-topic", "catch-all-queue").RoutingKey("#");
 
-                t.Queue("catch-all-queue").AutoBind(false).Consumer<CatchAllConsumer>();
+                t.Queue("catch-all-queue").BindExplicitly().Consumer<CatchAllConsumer>();
                 t.DispatchEndpoint("wildcard-dispatch").ToExchange("wildcard-topic").Publish<RegionEvent>();
             })
             .BuildTestBusAsync();
@@ -137,13 +137,13 @@ public class RoutingKeyTests
             .AddMessage<RegionEvent>(m => m.UseRabbitMQRoutingKey<RegionEvent>(msg => msg.Region))
             .AddRabbitMQ(t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
 
                 t.DeclareExchange("nomatch-topic").Type(RabbitMQExchangeType.Topic);
                 t.DeclareQueue("nomatch-queue");
                 t.DeclareBinding("nomatch-topic", "nomatch-queue").RoutingKey("eu.*");
 
-                t.Queue("nomatch-queue").AutoBind(false).Consumer<CatchAllConsumer>();
+                t.Queue("nomatch-queue").BindExplicitly().Consumer<CatchAllConsumer>();
                 t.DispatchEndpoint("nomatch-dispatch").ToExchange("nomatch-topic").Publish<RegionEvent>();
             })
             .BuildTestBusAsync();
@@ -179,13 +179,13 @@ public class RoutingKeyTests
             .AddMessage<RegionEvent>(m => m.UseRabbitMQRoutingKey<RegionEvent>(msg => msg.Region))
             .AddRabbitMQ(t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
 
                 t.DeclareExchange("header-topic").Type(RabbitMQExchangeType.Topic);
                 t.DeclareQueue("header-queue");
                 t.DeclareBinding("header-topic", "header-queue").RoutingKey("#");
 
-                t.Queue("header-queue").AutoBind(false).Consumer<CatchAllConsumer>();
+                t.Queue("header-queue").BindExplicitly().Consumer<CatchAllConsumer>();
                 t.DispatchEndpoint("header-dispatch")
                     .ToExchange("header-topic")
                     .Publish<RegionEvent>()
@@ -239,7 +239,7 @@ public class RoutingKeyTests
             .AddMessage<RegionEvent>(m => m.UseRabbitMQRoutingKey<RegionEvent>(msg => msg.Region))
             .AddRabbitMQ(t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
 
                 t.DeclareExchange("region-direct").Type(RabbitMQExchangeType.Direct);
                 t.DeclareQueue("us-queue");
@@ -250,8 +250,8 @@ public class RoutingKeyTests
                 t.DeclareBinding("region-direct", "eu-queue").RoutingKey("eu.north");
                 t.DeclareBinding("region-direct", "eu-queue").RoutingKey("eu.south");
 
-                t.Queue("us-queue").AutoBind(false).Consumer<UsRegionConsumer>();
-                t.Queue("eu-queue").AutoBind(false).Consumer<EuRegionConsumer>();
+                t.Queue("us-queue").BindExplicitly().Consumer<UsRegionConsumer>();
+                t.Queue("eu-queue").BindExplicitly().Consumer<EuRegionConsumer>();
                 t.DispatchEndpoint("region-dispatch").ToExchange("region-direct").Publish<RegionEvent>();
             })
             .BuildTestBusAsync();

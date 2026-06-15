@@ -61,13 +61,18 @@ public interface IReceiveEndpointDescriptor<out TConfiguration>
     IReceiveEndpointDescriptor<TConfiguration> Receives(Type messageType);
 
     /// <summary>
-    /// Configures whether auto-binding is enabled at the queue scope.
-    /// When <c>true</c>, convention binds are generated for consumed message types that reach this queue.
-    /// When <c>false</c>, convention binds are suppressed for this queue.
+    /// Sets the queue bind mode to <see cref="MessagingBindMode.Implicit"/>, generating
+    /// convention binds for consumed message types that reach this queue.
     /// </summary>
-    /// <param name="enabled">True to enable auto-binding (default), false to disable it.</param>
     /// <returns>The descriptor instance for method chaining.</returns>
-    IReceiveEndpointDescriptor<TConfiguration> AutoBind(bool enabled);
+    IReceiveEndpointDescriptor<TConfiguration> BindImplicitly();
+
+    /// <summary>
+    /// Sets the queue bind mode to <see cref="MessagingBindMode.Explicit"/>, suppressing
+    /// convention binds for consumed message types that reach this queue.
+    /// </summary>
+    /// <returns>The descriptor instance for method chaining.</returns>
+    IReceiveEndpointDescriptor<TConfiguration> BindExplicitly();
 
     /// <summary>
     /// Sets the kind of this receive endpoint (e.g., default, temporary).

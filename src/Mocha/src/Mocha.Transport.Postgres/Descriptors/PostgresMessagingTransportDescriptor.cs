@@ -95,25 +95,17 @@ public sealed class PostgresMessagingTransportDescriptor
     }
 
     /// <inheritdoc />
-    public new IPostgresMessagingTransportDescriptor BindHandlersImplicitly()
+    public new IPostgresMessagingTransportDescriptor BindImplicitly()
     {
-        base.BindHandlersImplicitly();
+        base.BindImplicitly();
 
         return this;
     }
 
     /// <inheritdoc />
-    public new IPostgresMessagingTransportDescriptor BindHandlersExplicitly()
+    public new IPostgresMessagingTransportDescriptor BindExplicitly()
     {
-        base.BindHandlersExplicitly();
-
-        return this;
-    }
-
-    /// <inheritdoc />
-    public new IPostgresMessagingTransportDescriptor AutoBind(bool enabled)
-    {
-        base.AutoBind(enabled);
+        base.BindExplicitly();
 
         return this;
     }

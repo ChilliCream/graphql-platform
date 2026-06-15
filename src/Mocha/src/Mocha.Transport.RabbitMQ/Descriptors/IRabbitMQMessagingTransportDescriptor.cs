@@ -13,14 +13,11 @@ public interface IRabbitMQMessagingTransportDescriptor
     /// <inheritdoc cref="IMessagingTransportDescriptor.Schema" />
     new IRabbitMQMessagingTransportDescriptor Schema(string schema);
 
-    /// <inheritdoc cref="IMessagingTransportDescriptor.BindHandlersImplicitly" />
-    new IRabbitMQMessagingTransportDescriptor BindHandlersImplicitly();
+    /// <inheritdoc cref="IMessagingTransportDescriptor.BindImplicitly" />
+    new IRabbitMQMessagingTransportDescriptor BindImplicitly();
 
-    /// <inheritdoc cref="IMessagingTransportDescriptor.BindHandlersExplicitly" />
-    new IRabbitMQMessagingTransportDescriptor BindHandlersExplicitly();
-
-    /// <inheritdoc cref="IMessagingTransportDescriptor.AutoBind" />
-    new IRabbitMQMessagingTransportDescriptor AutoBind(bool enabled);
+    /// <inheritdoc cref="IMessagingTransportDescriptor.BindExplicitly" />
+    new IRabbitMQMessagingTransportDescriptor BindExplicitly();
 
     /// <summary>
     /// Sets a factory delegate that resolves an <see cref="IRabbitMQConnectionProvider"/> for creating RabbitMQ connections.

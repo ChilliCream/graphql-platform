@@ -21,8 +21,8 @@ public class PostgresUnifiedQueueTests
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
             {
-                t.BindHandlersExplicitly();
-                t.Queue("orders").Consumer<OrderSpyConsumer>().AutoBind(false);
+                t.BindExplicitly();
+                t.Queue("orders").Consumer<OrderSpyConsumer>().BindExplicitly();
             });
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 
@@ -44,7 +44,7 @@ public class PostgresUnifiedQueueTests
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Queue("orders").Consumer<OrderSpyConsumer>();
             });
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
@@ -69,11 +69,11 @@ public class PostgresUnifiedQueueTests
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 var first = t.Queue("orders");
                 first.Consumer<OrderSpyConsumer>();
                 var second = t.Queue("orders");
-                second.AutoBind(false);
+                second.BindExplicitly();
             });
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 
@@ -90,38 +90,6 @@ public class PostgresUnifiedQueueTests
     // --- Entity-only lowering ---
 
     [Fact]
-    public void Queue_Should_LowerToEntityOnly_When_NoConsumersOrReceives()
-    {
-        // arrange
-        // An entity-only Queue() handle (no consumer, no Receives) lowers to a declared queue
-        // entity and its BindFrom subscriptions but never enters the receive-endpoint lifecycle.
-        var runtime = CreateRuntime(
-            b => { },
-            t =>
-            {
-                t.BindHandlersExplicitly();
-                t.Queue("audit", q => q.BindFrom(new Uri("topic:audit-events")));
-            });
-        var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
-        var topology = (PostgresMessagingTopology)transport.Topology;
-
-        // act
-        var endpoint = transport.ReceiveEndpoints
-            .OfType<PostgresReceiveEndpoint>()
-            .FirstOrDefault(e => e.Queue.Name == "audit");
-
-        // assert: no receive endpoint was created for the entity-only queue
-        Assert.Null(endpoint);
-
-        // assert: the queue entity was lowered into the topology
-        Assert.Contains(topology.Queues, q => q.Name == "audit");
-
-        // assert: the BindFrom subscription and its source topic were lowered
-        Assert.Contains(topology.Topics, t => t.Name == "audit-events");
-        Assert.Contains(topology.Subscriptions, s => s.Source.Name == "audit-events" && s.Destination.Name == "audit");
-    }
-
-    [Fact]
     public void Queue_Should_NotMaterializeReceiveEndpoint_When_NoConsumersOrReceives()
     {
         // arrange
@@ -129,7 +97,7 @@ public class PostgresUnifiedQueueTests
             b => { },
             t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Queue("dispatch-target");
             });
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
@@ -155,7 +123,7 @@ public class PostgresUnifiedQueueTests
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Queue("my-queue").Consumer<OrderSpyConsumer>();
             });
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
@@ -182,7 +150,7 @@ public class PostgresUnifiedQueueTests
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Endpoint("orders");
                 t.Queue("orders").Consumer<OrderSpyConsumer>();
             });
@@ -208,7 +176,7 @@ public class PostgresUnifiedQueueTests
                 b => { },
                 t =>
                 {
-                    t.BindHandlersExplicitly();
+                    t.BindExplicitly();
                     // No consumer or Receives: entity-only. Configuring an error satellite
                     // on an entity-only queue must fail because there is no consumer to process
                     // the failed messages.
@@ -230,7 +198,7 @@ public class PostgresUnifiedQueueTests
             b => { },
             t =>
             {
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.Queue("audit").AutoProvision(false);
             });
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();

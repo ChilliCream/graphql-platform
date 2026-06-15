@@ -37,7 +37,7 @@ public sealed class PostgresDispatchEndpointTopologyConvention : IPostgresDispat
         // In implicit mode, ensure convention topics for each route exist so the producer and
         // consumer conventions converge on the same entity.
         if (configuration.TopicName is not null
-            && endpoint.Transport.ConsumerBindingMode == ConsumerBindingMode.Implicit)
+            && endpoint.Transport.BindMode == MessagingBindMode.Implicit)
         {
             var resolver = ((PostgresMessagingTransport)endpoint.Transport).Resolver;
 

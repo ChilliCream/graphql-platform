@@ -83,7 +83,7 @@ public class RabbitMQMessageTypeExtensionTests
             .AddRabbitMQ(t =>
             {
                 t.ConnectionProvider(_ => new StubConnectionProvider());
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.AutoProvision(false);
                 t.Queue("payment-q").Handler<ProcessPaymentHandler>();
             })
