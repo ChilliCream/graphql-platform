@@ -1,16 +1,14 @@
 import type { ComponentType, CSSProperties } from "react";
 
+import { CookieCrumble } from "@/src/icons/CookieCrumble";
+import { Espresso } from "@/src/icons/Espresso";
+import { Fusion } from "@/src/icons/Fusion";
+import { GreenDonut } from "@/src/icons/GreenDonut";
+import { HotChocolate } from "@/src/icons/HotChocolate";
+import { Mocha } from "@/src/icons/Mocha";
+import { Nitro } from "@/src/icons/Nitro";
+import { StrawberryShake } from "@/src/icons/StrawberryShake";
 import { Swirl } from "@/src/icons/Swirl";
-import {
-  CookieCrumble,
-  Espresso,
-  Fusion,
-  GreenDonut,
-  HotChocolate,
-  Mocha,
-  Nitro,
-  StrawberryShake,
-} from "./Drinks";
 
 interface DrinkComponentProps {
   readonly className?: string;
