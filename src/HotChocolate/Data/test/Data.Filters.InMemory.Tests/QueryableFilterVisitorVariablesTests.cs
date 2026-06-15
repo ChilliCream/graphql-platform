@@ -118,7 +118,7 @@ public class QueryableFilterVisitorVariablesTests(SchemaCache cache) : IClassFix
                     "root"
                   ],
                   "extensions": {
-                    "code": "HC0027",
+                    "code": "HC0117",
                     "filterOperations": 3,
                     "maxAllowedFilterOperations": 2
                   }
@@ -176,7 +176,7 @@ public class QueryableFilterVisitorVariablesTests(SchemaCache cache) : IClassFix
                     "root"
                   ],
                   "extensions": {
-                    "code": "HC0027",
+                    "code": "HC0117",
                     "filterOperations": 1025,
                     "maxAllowedFilterOperations": 1024
                   }
