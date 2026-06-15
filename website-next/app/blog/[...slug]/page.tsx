@@ -4,9 +4,13 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { BlogMetadata } from "@/src/components/BlogMetadata";
 import { BlogShareBar } from "@/src/components/BlogShareBar";
+import { BlogSidebar } from "@/src/components/BlogSidebar";
 import { BlogTags } from "@/src/components/BlogTags";
 import { BlogTeaserGrid } from "@/src/components/BlogTeaserGrid";
+import { DocsToolbar } from "@/src/components/DocsToolbar";
 import { NotFoundContent } from "@/src/components/NotFoundContent";
+import { SidebarDrawer } from "@/src/components/SidebarDrawer";
+import { TableOfContents } from "@/src/components/TableOfContents";
 import { Pagination } from "@/src/design-system/Pagination";
 import { Picture } from "@/src/design-system/Picture";
 import { SimilarPosts } from "@/src/components/SimilarPosts";
@@ -147,7 +151,7 @@ export default async function BlogSlugPage({ params }: PageProps) {
   }
 
   const absPath = path.join(BLOG_ROOT, rel);
-  const [{ content, frontmatter }, raw] = await Promise.all([
+  const [{ content, frontmatter, toc }, raw] = await Promise.all([
     compileDoc<BlogFrontmatter>(absPath),
     fs.readFile(absPath, "utf-8"),
   ]);
@@ -158,6 +162,11 @@ export default async function BlogSlugPage({ params }: PageProps) {
   const current = summaries.find((s) => s.stem === stem);
   const similar = current ? findSimilarPosts(current, summaries) : [];
   const featuredImage = current?.featuredImage ?? null;
+
+  // Left rail: the 10 most recent posts (summaries come newest-first),
+  // including the current post, which is highlighted as active.
+  const sidebarPosts = summaries.slice(0, 10);
+  const currentHref = current?.href ?? `/blog/${stem}`;
 
   const jsonLd = current
     ? {
@@ -183,50 +192,64 @@ export default async function BlogSlugPage({ params }: PageProps) {
     : null;
 
   return (
-    <main className="px-5 py-8 sm:px-12">
-      {jsonLd ? (
-        <script
-          type="application/ld+json"
-          // Escape `<` so content text can never close the script tag (XSS).
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
-          }}
-        />
-      ) : null}
-      <article className="mx-auto max-w-5xl">
-        {featuredImage ? (
-          <Picture
-            src={featuredImage}
-            alt=""
-            priority
-            // Mirrors the layout: a max-w-5xl (1024px) column inside px-5
-            // (sm:px-12) page padding, so the browser picks the smallest
-            // sufficient variant instead of rounding the slot up to 100vw.
-            sizes="(max-width: 639px) calc(100vw - 2.5rem), (max-width: 1119px) calc(100vw - 6rem), 1024px"
-            className="mb-6 aspect-video w-full rounded-lg object-cover"
-          />
-        ) : null}
-        {frontmatter.title ? (
-          <Typography variant="h1">{frontmatter.title}</Typography>
-        ) : null}
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <BlogMetadata
-            author={frontmatter.author}
-            authorUrl={frontmatter.authorUrl}
-            authorImageUrl={frontmatter.authorImageUrl}
-            date={frontmatter.date}
-            readingTime={readingTime}
-          />
-          <BlogShareBar
-            url={toAbsoluteUrl(current?.href ?? `/blog/${stem}`)}
-            title={frontmatter.title ?? ""}
-          />
+    <div
+      data-docs-layout
+      className="cc-content-dark grid grid-cols-1 lg:grid-cols-[20rem_1fr]"
+    >
+      <SidebarDrawer>
+        <BlogSidebar posts={sidebarPosts} currentHref={currentHref} />
+      </SidebarDrawer>
+      <div className="min-w-0">
+        <DocsToolbar />
+        <div className="grid grid-cols-1 2xl:grid-cols-[1fr_20rem]">
+          <main className="min-w-0 px-5 pb-8 pt-16 sm:px-12 2xl:pt-8">
+            {jsonLd ? (
+              <script
+                type="application/ld+json"
+                // Escape `<` so content text can never close the script tag (XSS).
+                dangerouslySetInnerHTML={{
+                  __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+                }}
+              />
+            ) : null}
+            <article className="mx-auto max-w-5xl">
+              {featuredImage ? (
+                <Picture
+                  src={featuredImage}
+                  alt=""
+                  priority
+                  // Mirrors the layout: a max-w-5xl (1024px) column inside px-5
+                  // (sm:px-12) page padding, so the browser picks the smallest
+                  // sufficient variant instead of rounding the slot up to 100vw.
+                  sizes="(max-width: 639px) calc(100vw - 2.5rem), (max-width: 1119px) calc(100vw - 6rem), 1024px"
+                  className="mb-6 aspect-video w-full rounded-lg object-cover"
+                />
+              ) : null}
+              {frontmatter.title ? (
+                <Typography variant="h1">{frontmatter.title}</Typography>
+              ) : null}
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <BlogMetadata
+                  author={frontmatter.author}
+                  authorUrl={frontmatter.authorUrl}
+                  authorImageUrl={frontmatter.authorImageUrl}
+                  date={frontmatter.date}
+                  readingTime={readingTime}
+                />
+                <BlogShareBar
+                  url={toAbsoluteUrl(current?.href ?? `/blog/${stem}`)}
+                  title={frontmatter.title ?? ""}
+                />
+              </div>
+              <BlogTags tags={frontmatter.tags} />
+              {content}
+              <SimilarPosts posts={similar} />
+            </article>
+          </main>
+          <TableOfContents items={toc} />
         </div>
-        <BlogTags tags={frontmatter.tags} />
-        {content}
-        <SimilarPosts posts={similar} />
-      </article>
-    </main>
+      </div>
+    </div>
   );
 }
 
