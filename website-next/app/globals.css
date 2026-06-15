@@ -2,11 +2,12 @@
 
 @theme {
   /* ---- Font families ----
-     Heading voice is Neue Kabel (commercial, not yet bundled): the stack
-     falls back to Futura/Trebuchet until the web font is supplied. Body voice
-     is the native system stack. `--font-sans` (Tailwind's `font-sans`) aliases
-     the body voice so existing utilities pick it up. */
-  --font-heading: "Neue Kabel", "Futura", "Trebuchet MS", sans-serif;
+     Heading voice is Josefin Sans, self-hosted via `next/font/google`
+     (`--font-josefin-sans`). Body voice is the native system stack.
+     `--font-sans` (Tailwind's `font-sans`) aliases the body voice so existing
+     utilities pick it up. */
+  --font-heading:
+    var(--font-josefin-sans), "Futura", "Trebuchet MS", sans-serif;
   --font-body:
     system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --font-sans: var(--font-body);
