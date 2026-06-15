@@ -110,9 +110,9 @@ const SWIRL_SCATTER: readonly SwirlPlacement[] = [
   { left: "73%", top: "92%", size: "1.5rem", rotate: "12deg" },
 ];
 
-// Brand spectrum (cyan -> violet -> pink) used on the headline accent line.
+// Brand spectrum (cyan -> violet -> coral) used on the headline accent line.
 const ACCENT_GRADIENT =
-  "linear-gradient(100deg,#29c5e6 0%,#6e8fe0 30%,#ab86c9 62%,#e87bb4 100%)";
+  "linear-gradient(100deg,#16b9e4 0%,#7c92c6 33%,#b681a9 63%,#f0786a 100%)";
 
 function position(
   left: string,
