@@ -1,6 +1,6 @@
 ---
 title: "Reliability"
-description: "Configure exception policies, retry, delayed redelivery, fault handling, dead-letter routing, message expiry, concurrency limits, circuit breakers, the transactional outbox, and the idempotent inbox in Mocha to build resilient messaging pipelines."
+description: "Configure retries, fault handling, dead-letter routing, the transactional outbox, and the idempotent inbox to build resilient Mocha pipelines."
 ---
 
 Messaging systems fail. Handlers throw exceptions, brokers go offline, databases lock up, and messages arrive faster than consumers can process them. Mocha's reliability features handle these failures at the infrastructure level so your handler code stays focused on business logic.

@@ -1,9 +1,9 @@
 ---
-path: "/blog/2026/05/28/mcp-hotchocolate-fusion"
 date: "2026-05-28"
 title: "From GraphQL to MCP in Two Lines"
 description: "Hot Chocolate and Fusion now ship an MCP adapter. Add two lines, author tools and prompts on disk, publish them with Nitro, and connect any MCP host to your GraphQL API."
 tags: ["hotchocolate", "fusion", "nitro", "mcp", "ai", "llm"]
+category: "AI"
 featuredImage: "header.png"
 author: Glen
 authorUrl: https://github.com/glen-84
@@ -14,7 +14,7 @@ Agents are becoming first-class consumers of our APIs. Alongside the web and mob
 
 Hot Chocolate 16 ships that wiring. With the new MCP adapter and Nitro as the control plane, two calls on your server expose every published tool and prompt at `/graphql/mcp`. Authoring is plain files on disk, deployment is a CLI command, and rolling out a new version of your tool catalog does not require a redeploy.
 
-## What MCP is, and why you might want it
+# What MCP is, and why you might want it
 
 MCP is an open standard for connecting AI applications to external systems. The host (Claude, ChatGPT, a VS Code agent, an internal agent runtime) speaks the protocol once. Any MCP-compatible server plugs in without custom integration code per product.
 
@@ -25,7 +25,7 @@ An MCP server exposes two main things:
 
 For a GraphQL backend the fit is good. A tool is a GraphQL operation, its arguments are GraphQL variables, and its result is the JSON your server already returns. Your schema stays the source of truth, and your tool catalog is just a set of operations against it.
 
-## The pieces
+# The pieces
 
 There are three moving parts:
 
@@ -35,7 +35,7 @@ There are three moving parts:
 
 The adapter does not know how to fetch tools on its own. It asks an `IMcpStorage` for them. With Nitro referenced, that storage is wired up automatically. With Nitro absent, you can implement `IMcpStorage` yourself for self-hosted scenarios, but most teams should let Nitro do the heavy lifting.
 
-## Enable MCP on a Hot Chocolate server
+# Enable MCP on a Hot Chocolate server
 
 Start with an existing GraphQL server. Reference the adapter, the core Nitro package, and the Hot Chocolate integration:
 
@@ -77,7 +77,7 @@ app.Run();
 
 If you prefer environment variables, set `NITRO_API_ID`, `NITRO_API_KEY`, and `NITRO_STAGE` and drop the `AddNitro` delegate entirely. Nitro service options bind to them.
 
-## Enable MCP on a Fusion gateway
+# Enable MCP on a Fusion gateway
 
 The Fusion story is the same shape. Different packages, same two calls:
 
@@ -113,7 +113,7 @@ app.Run();
 
 The gateway resolves your tools' GraphQL operations across all source schemas it composes, so a single tool can fetch data from multiple subgraphs in one call. From the model's perspective there is just one MCP server and one URL.
 
-## Author tools and prompts on disk
+# Author tools and prompts on disk
 
 A feature collection is a folder tree. Each tool and each prompt lives in its own folder, and files inside the folder share the folder name as the basename:
 
@@ -131,7 +131,7 @@ mcp/
 
 The CLI picks files up by glob (`./mcp/tools/**/*.graphql`, `./mcp/prompts/**/*.json`) and brings sibling `.json` and `.html` files along automatically.
 
-### A tool is a GraphQL operation
+## A tool is a GraphQL operation
 
 The minimum a tool needs is a `.graphql` file. The basename is the tool name. GraphQL variables become MCP tool arguments. The result the server returns is what the model sees.
 
@@ -152,7 +152,7 @@ query SearchProducts($text: String!, $first: Int! = 10) {
 
 With just that file, `SearchProducts` is already a working MCP tool.
 
-### Optional settings
+## Optional settings
 
 Add a sibling `.json` file for a custom title, icons, or behavior hints:
 
@@ -170,7 +170,7 @@ Add a sibling `.json` file for a custom title, icons, or behavior hints:
 
 The title shows up in the host's tool picker. Annotations help the model decide whether the call is safe to retry or whether it could have side effects.
 
-### An optional MCP Apps view
+## An optional MCP Apps view
 
 [MCP Apps](https://apps.extensions.modelcontextprotocol.io/) is an extension to MCP that lets the server return interactive HTML the host renders inside the chat, alongside the plain-text result. The host loads the HTML into a sandboxed iframe and bridges JSON-RPC over `postMessage`, so the view can read tool results, follow the host's theme, and call other tools.
 
@@ -280,7 +280,7 @@ In hosts that support MCP Apps, the chat will render this list inline. In plain-
 
 <!-- spell-checker:ignore: ontoolresult onhostcontextchanged nums srgb -->
 
-### A prompt is templated JSON
+## A prompt is templated JSON
 
 `mcp/prompts/SearchProducts/SearchProducts.json`:
 
@@ -309,11 +309,11 @@ In hosts that support MCP Apps, the chat will render this list inline. In plain-
 
 `{searchQuery}` is interpolated from the matching argument. Whatever you declare in `arguments` is available as `{name}` inside `messages`.
 
-## Publish with the Nitro CLI
+# Publish with the Nitro CLI
 
 The CLI does the archive, validate, upload, and publish steps. Three commands take you from disk to a live tool catalog.
 
-### 1. Create the feature collection
+## 1. Create the feature collection
 
 A collection is a named container for a set of tools and prompts. Create one for your API:
 
@@ -325,7 +325,7 @@ nitro mcp create \
 
 `<api-id>` comes from `nitro api list` or the Nitro UI. The command prints the new collection ID. Save it.
 
-### 2. Upload a tagged version
+## 2. Upload a tagged version
 
 Each upload is a complete, immutable snapshot tagged with a name (a release tag, a Git SHA, anything you want):
 
@@ -339,7 +339,7 @@ nitro mcp upload \
 
 The CLI walks the glob patterns, picks up sibling `.json` and `.html` files, packages everything into a ZIP, and uploads it. Nitro validates the archive on the server before storing it.
 
-### 3. Publish to a stage
+## 3. Publish to a stage
 
 Uploading does not expose anything to clients. Publishing makes a tagged version live on a stage:
 
@@ -352,7 +352,7 @@ nitro mcp publish \
 
 Stages are independent. Publishing to `dev` does not touch `production`. To roll back, publish an earlier tag to the same stage. The runtime picks up the change over the Nitro change feed and updates its tool set in place, no restart required.
 
-### Optional: smoke-test with MCP Inspector
+## Optional: smoke-test with MCP Inspector
 
 Before you point a chat host at the URL, exercise the tools with [MCP Inspector](https://github.com/modelcontextprotocol/inspector), the official MCP debugging tool:
 
@@ -362,7 +362,7 @@ npx @modelcontextprotocol/inspector
 
 Open the printed URL in a browser, point it at `https://<your-graphql-host>/graphql/mcp`, and invoke the tools with arbitrary arguments. This catches schema mismatches and bad prompt JSON without round-tripping through a chat host.
 
-## Add the server to ChatGPT
+# Add the server to ChatGPT
 
 ChatGPT exposes remote MCP servers as apps in Developer mode. The flow is similar in Claude, VS Code, and other hosts. The exact menus shift over time, so the canonical references are:
 
@@ -395,7 +395,7 @@ When the model decides to call `SearchProducts`, the host invokes the tool, your
 
 ![SearchProducts result with Apps view](../../public/images/blog/2026-05-28-mcp-hotchocolate-fusion/chatgpt-tool-result.webp)
 
-## What you get from Nitro
+# What you get from Nitro
 
 Once tools are flowing, the management surface is where Nitro pays off:
 
@@ -406,7 +406,7 @@ Once tools are flowing, the management surface is where Nitro pays off:
 
 When a new version is published, the change feed pushes it to the runtime. The server picks up the new tools and prompts in place.
 
-## Wrap up
+# Wrap up
 
 Two lines on the server, a folder of files on disk, three CLI commands to publish. If you have a Hot Chocolate server or a Fusion gateway, you have an MCP server.
 

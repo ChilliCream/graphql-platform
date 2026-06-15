@@ -1,8 +1,8 @@
 ---
-path: "/blog/2025/02/01/hot-chocolate-15"
 date: "2025-02-01"
 title: "What's new for Hot Chocolate 15"
 tags: ["hotchocolate", "graphql", "dotnet", "aspnetcore"]
+category: "Release"
 featuredImage: "hot-chocolate-15.png"
 author: Michael Staib
 authorUrl: https://github.com/michaelstaib
@@ -11,7 +11,7 @@ authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 
 Originally, we did not plan on releasing another major version of Hot Chocolate before we release the next major version of Fusion. Really the whole team was focused on working in Fusion, our platform for building distributed GraphQL services. However, while I was upgrading Microsoft’s Azure Data API Builder to Hot Chocolate 14, I stumbled upon a regression introduced between Hot Chocolate 12 and Hot Chocolate 14. Unfortunately, fixing it in 14.4 would have required breaking changes.
 
-## Type System
+# Type System
 
 Microsoft’s Azure Data API Builder uses type interceptors to build a GraphQL schema from a database schema. The intermediary schema it produces is a heavily annotated GraphQL schema document. This approach is straightforward and we do something similar with Hot Chocolate Fusion. However, in the case of Azure Data API Builder, the directives used are more complex and utilize input object structures.
 
@@ -28,15 +28,15 @@ However, this change had broader implications, so we also introduced another ste
 
 If you are using type interceptors, the `OnAfterCompleteTypes` hook may no longer behave as before. This might cause errors that do not break compilation per se but do break the runtime behavior. Because of these changes, we decided to rename the Hot Chocolate 14.4 release to Hot Chocolate 15.
 
-## Opportunities
+# Opportunities
 
 If we are doing a major release, let’s not waste a version bump just for a regression fix. We decided to merge the changes of our current development branch and turn it into a proper major release, shipping a few nice features in the process.
 
-## Supported .NET Versions
+# Supported .NET Versions
 
 With Hot Chocolate 15, we have realigned the frameworks we support and dropped support for .NET Standard 2.0, .NET 6.0, and .NET 7.0. Going forward, Hot Chocolate 15 supports .NET 8.0 and .NET 9.0. This allows us to modernize a lot of code and remove many conditional compilation directives.
 
-## Projections
+# Projections
 
 One long-standing feature of Hot Chocolate is the `HotChocolate.Data` integration, which makes it easy to build on top of _Entity Framework_, Marten, _RavenDB_ or _MongoDB_. It also rich data features like pagination, sorting, filtering, and projections with minimal setup:
 
@@ -64,7 +64,7 @@ public static IQueryable<Product> GetProducts(CatalogContext dbContext)
 
 We introduced some **experimental** features in Hot Chocolate 14 to address these problems, but we weren’t fully satisfied with the implementation. The general direction was good, but the specifics needed work. So we took a step back, refined what worked, and turned it into a proper feature that is no longer experimental.
 
-## DataLoader Basics
+# DataLoader Basics
 
 Let’s first discuss **DataLoader**, a fundamental concept in GraphQL for batching and deferring data fetching. What many people don’t know is that Meta (formals Facebook) used the concept of a "data loader" before GraphQL even existed, calling it "preparables" or "loader." The idea is to have a unified, interface for efficiently fetching data.
 
@@ -153,7 +153,7 @@ public static async Task<Dictionary<int, Brand>> GetBrandByIdAsync(
 
 So, the example above will lead to the DataLoader interface `IBrandByIdDataLoader`.
 
-## Adding Projections, Filtering, and Sorting
+# Adding Projections, Filtering, and Sorting
 
 How do we now introduce _client-driven_ projections, filtering, and sorting without exposing `IQueryable` from our business layer?
 
@@ -244,7 +244,7 @@ public static async Task<Connection<Brand>> GetBrandByIdAsync(
 
 This is a very powerful feature that allows you to keep your business layer clean while still enabling client-driven data fetching. Since we are using DataLoader, we do not have to worry about split queries or other inefficiencies.
 
-## Pagination
+# Pagination
 
 So, how does this change our resolver when we want to filter and sort? Lets say we have a top-level query that fetches all brands.
 
@@ -405,7 +405,7 @@ The beauty of this approach is that the complexity in my business layer remains 
 
 ![GreenDonut Packages By Layer](../../public/images/blog/2025-02-01-hot-chocolate-15/greendonut-2.png)
 
-## DataLoader Branching
+# DataLoader Branching
 
 But wait — if we use a DataLoader and fetch by key and path in different query contexts, wouldn’t that lead to conflicting data fetches? It would if we were using the same DataLoader. However, DataLoaders are immutable. When we apply a wither method, we are effectively branching the DataLoader as we are effectively changing what we fetch and how we fetch it.
 
@@ -438,7 +438,7 @@ public async Task<Page<Brand>> Handle(
 
 In this case, the Include is merged into the same DataLoader branch. The new DataLoader allows you to define custom branching rules and introduce custom state, enabling you to extend the base functionality as needed.
 
-## Conclusion
+# Conclusion
 
 While we hadn’t originally planned to release this at this time, I believe it brings a fantastic set of additions and will empower you to build layered and clean GraphQL services better than ever. With the new APIs — and I’ve only shown a fraction of them — you can now create well-structured GraphQL services without compromising performance or abstraction. At the same time, you can keep complexity low and productivity high.
 

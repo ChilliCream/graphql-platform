@@ -1,10 +1,10 @@
 ---
-path: "/blog/2024/10/30/newsletter-october"
 date: "2024-10-30"
 title: "Newsletter October"
 description: "Hot Chocolate 14 is released, BCP is now Nitro and there is a new DDD Workshop"
 tags:
   ["bananacakepop", "graphql", "hotchocolate", "workshops", "cloud", "release"]
+category: "Newsletter"
 featuredImage: "header.png"
 author: Pascal Senn
 authorUrl: https://github.com/pascalsenn

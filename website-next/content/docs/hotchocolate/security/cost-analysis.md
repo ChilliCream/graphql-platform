@@ -1,5 +1,6 @@
 ---
 title: Cost Analysis
+description: "Guard a public Hot Chocolate API with cost analysis: the @cost and @listSize directives assign weights so overly expensive queries are rejected before execution."
 ---
 
 import { List, Panel, Tab, Tabs } from "../../../../components/mdx/tabs";

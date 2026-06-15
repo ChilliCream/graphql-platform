@@ -1,5 +1,6 @@
 ---
 title: APIs
+description: "APIs in Nitro represent your GraphQL servers and group documents, settings, registries, and telemetry. Compare Collection, Service, and Gateway API types."
 ---
 
 ![Image](../../../../public/images/nitro-docs/apis/apis-0.webp)

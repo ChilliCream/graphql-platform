@@ -1,5 +1,6 @@
 ---
 title: Migrate Strawberry Shake from 12 to 13
+description: "Migrate your Strawberry Shake GraphQL client from 12 to 13: switch to the new meta packages like StrawberryShake.Blazor and update tools and packages."
 ---
 
 This guide will walk you through the manual migration steps to update your Strawberry Shake GraphQL client to version 13.

@@ -1,5 +1,13 @@
+import type { Metadata } from "next";
+
 import { Offering } from "@/src/components/Offering";
 import { PageHero } from "@/src/components/PageHero";
+
+export const metadata: Metadata = {
+  title: "Advisory",
+  description:
+    "Get quick access to ChilliCream's GraphQL experts: hourly consulting, architecture guidance, code reviews, and full contracting engagements.",
+};
 
 interface InquiryPlan {
   title: string;

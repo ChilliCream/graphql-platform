@@ -1,5 +1,6 @@
 ---
 title: Stages
+description: "Stages in Nitro model environments like dev, QA, and production: each holds an active schema and client versions, configured through a YAML stage editor."
 ---
 
 # Working with Stages

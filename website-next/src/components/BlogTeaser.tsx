@@ -37,7 +37,7 @@ export function BlogTeaser({ post }: BlogTeaserProps) {
         <div className="flex flex-1 flex-col px-7 pt-6 pb-6">
           <div className="flex items-center gap-3 text-xs uppercase tracking-[0.16em] text-cc-ink-dim">
             {post.category ? (
-              <span className="rounded-md border border-cc-ink-faint px-2 py-1 text-cc-ink">
+              <span className="rounded-md border border-cc-ink-faint py-1.5 pl-2 pr-[calc(0.5rem-0.16em)] leading-none text-cc-ink">
                 {post.category}
               </span>
             ) : null}

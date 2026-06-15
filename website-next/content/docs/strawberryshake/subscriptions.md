@@ -1,5 +1,6 @@
 ---
 title: "Subscriptions"
+description: "Use GraphQL subscriptions in Strawberry Shake over WebSockets: configure `ConfigureWebSocketClient` and consume real-time results with `Watch()`."
 ---
 
 > We are still working on the documentation for Strawberry Shake, so help us by finding typos, missing things, or write some additional docs with us.

@@ -16,11 +16,20 @@ export interface OptimizedImage {
   blurHeight?: number;
   /** Self-hosted URL to render as the `<img>` src for remote (external) images. */
   fallbackSrc?: string;
+  /** Dedicated 1200x630 JPEG share-card variant (og:image, RSS enclosures). */
+  shareSrc?: string;
+  /** Hash of the share encode settings used to produce `shareSrc` (cache key). */
+  shareHash?: string;
 }
 
 let cache: Record<string, OptimizedImage> | null | undefined;
 
 function load(): Record<string, OptimizedImage> | null {
+  // In development, always render the original image from public/ so new or
+  // changed images show up without running `optimize-images` first.
+  if (process.env.NODE_ENV === "development") {
+    return null;
+  }
   if (cache !== undefined) {
     return cache;
   }
@@ -34,6 +43,16 @@ function load(): Record<string, OptimizedImage> | null {
     cache = null; // dev / unoptimized / not generated yet
   }
   return cache ?? null;
+}
+
+/**
+ * Resolves the image URL to embed in share-card metadata (og:image /
+ * twitter:image, RSS enclosures). Returns the dedicated 1200x630 JPEG share
+ * variant when the optimization pipeline generated one, or the original `src`
+ * otherwise (development, external URLs, or image not in the manifest).
+ */
+export function getShareImageSrc(src: string): string {
+  return getOptimizedImage(src)?.shareSrc ?? src;
 }
 
 export function getOptimizedImage(src: string): OptimizedImage | null {

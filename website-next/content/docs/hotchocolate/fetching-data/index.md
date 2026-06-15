@@ -1,5 +1,6 @@
 ---
 title: Overview
+description: "Overview of data middleware in Hot Chocolate: pagination, filtering, sorting, projections, and DataLoader batching applied to IQueryable data sources."
 ---
 
 Hot Chocolate provides data middleware that applies common operations directly to your `IQueryable` or `IExecutable` data sources. Instead of implementing pagination, filtering, sorting, and projections by hand, you declare them on your fields and Hot Chocolate generates the corresponding GraphQL types and applies the operations at execution time.

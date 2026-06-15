@@ -1,5 +1,6 @@
 ---
 title: fusion Command
+description: "Reference for the `nitro fusion` commands: upload source schemas, publish composed Fusion gateway configurations to a stage, and validate them in CI/CD."
 ---
 
 The `nitro fusion` commands manage [Fusion](../../fusion/index.md) configurations. A Fusion configuration is the composed gateway artifact built from one or more source schemas. Once published to a stage, the gateway loads it and starts serving the federated graph.

@@ -1,5 +1,6 @@
 ---
 title: "Nitro - Express"
+description: "Serve the Nitro GraphQL IDE from your Express server with the @chillicream/nitro-express-middleware package, using a CDN hosted or self-hosted app."
 ---
 
 You can easily integrate Nitro GraphQL IDE with your server app using the `@chillicream/nitro-express-middleware` package.

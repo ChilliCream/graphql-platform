@@ -3,6 +3,7 @@ import path from "node:path";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { BlogMetadata } from "@/src/components/BlogMetadata";
+import { BlogShareBar } from "@/src/components/BlogShareBar";
 import { BlogTags } from "@/src/components/BlogTags";
 import { BlogTeaserGrid } from "@/src/components/BlogTeaserGrid";
 import { NotFoundContent } from "@/src/components/NotFoundContent";
@@ -23,6 +24,7 @@ import {
 import { compileDoc } from "@/src/helpers/compileDoc";
 import { readFrontmatter } from "@/src/helpers/readFrontmatter";
 import { estimateReadingTime } from "@/src/helpers/readingTime";
+import { getShareImageSrc } from "@/src/image-optimization/manifest";
 import { toAbsoluteUrl } from "@/src/helpers/siteUrl";
 
 type BlogFrontmatter = {
@@ -88,18 +90,32 @@ export async function generateMetadata({
   const stem = stemForSlug(slug);
   const summary = listBlogPostSummaries().find((s) => s.stem === stem);
   const featuredImageAbs = summary?.featuredImage
-    ? toAbsoluteUrl(summary.featuredImage)
+    ? toAbsoluteUrl(getShareImageSrc(summary.featuredImage))
     : undefined;
   const images = featuredImageAbs ? [featuredImageAbs] : undefined;
 
   return {
     title,
     description,
+    ...(summary?.author
+      ? { authors: [{ name: summary.author, url: summary.authorUrl ?? undefined }] }
+      : {}),
+    alternates: {
+      canonical: summary?.href,
+    },
     openGraph: {
       type: "article",
       title,
       description,
       images,
+      url: summary?.href,
+      publishedTime: summary?.date,
+      authors: summary?.authorUrl
+        ? [summary.authorUrl]
+        : summary?.author
+          ? [summary.author]
+          : undefined,
+      tags: summary && summary.tags.length > 0 ? summary.tags : undefined,
     },
     twitter: {
       card: "summary_large_image",
@@ -143,28 +159,69 @@ export default async function BlogSlugPage({ params }: PageProps) {
   const similar = current ? findSimilarPosts(current, summaries) : [];
   const featuredImage = current?.featuredImage ?? null;
 
+  const jsonLd = current
+    ? {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        headline: current.title,
+        ...(current.description ? { description: current.description } : {}),
+        datePublished: current.date,
+        ...(current.featuredImage
+          ? { image: toAbsoluteUrl(current.featuredImage) }
+          : {}),
+        ...(current.author
+          ? {
+              author: {
+                "@type": "Person",
+                name: current.author,
+                ...(current.authorUrl ? { url: current.authorUrl } : {}),
+              },
+            }
+          : {}),
+        mainEntityOfPage: toAbsoluteUrl(current.href),
+      }
+    : null;
+
   return (
     <main className="px-5 py-8 sm:px-12">
+      {jsonLd ? (
+        <script
+          type="application/ld+json"
+          // Escape `<` so content text can never close the script tag (XSS).
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+          }}
+        />
+      ) : null}
       <article className="mx-auto max-w-5xl">
         {featuredImage ? (
           <Picture
             src={featuredImage}
             alt=""
             priority
-            sizes="(max-width: 1024px) 100vw, 1024px"
+            // Mirrors the layout: a max-w-5xl (1024px) column inside px-5
+            // (sm:px-12) page padding, so the browser picks the smallest
+            // sufficient variant instead of rounding the slot up to 100vw.
+            sizes="(max-width: 639px) calc(100vw - 2.5rem), (max-width: 1119px) calc(100vw - 6rem), 1024px"
             className="mb-6 aspect-video w-full rounded-lg object-cover"
           />
         ) : null}
         {frontmatter.title ? (
           <Typography variant="h1">{frontmatter.title}</Typography>
         ) : null}
-        <BlogMetadata
-          author={frontmatter.author}
-          authorUrl={frontmatter.authorUrl}
-          authorImageUrl={frontmatter.authorImageUrl}
-          date={frontmatter.date}
-          readingTime={readingTime}
-        />
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <BlogMetadata
+            author={frontmatter.author}
+            authorUrl={frontmatter.authorUrl}
+            authorImageUrl={frontmatter.authorImageUrl}
+            date={frontmatter.date}
+            readingTime={readingTime}
+          />
+          <BlogShareBar
+            url={toAbsoluteUrl(current?.href ?? `/blog/${stem}`)}
+            title={frontmatter.title ?? ""}
+          />
+        </div>
         <BlogTags tags={frontmatter.tags} />
         {content}
         <SimilarPosts posts={similar} />

@@ -74,7 +74,21 @@ export function Image({
   }, []);
 
   if (broken) {
-    return <BrokenMedia message="This image couldn't be loaded." />;
+    // The placeholder takes over the image's own layout classes and intrinsic
+    // aspect ratio so it occupies the same box the image would have. Without a
+    // className it falls back to BrokenMedia's standalone media frame.
+    const { width, height } = props;
+    return (
+      <BrokenMedia
+        message="This image couldn't be loaded."
+        className={className || undefined}
+        style={
+          width && height
+            ? { aspectRatio: `${width} / ${height}`, ...style }
+            : style
+        }
+      />
+    );
   }
 
   const showBlur = !loaded && !!blurDataURL;

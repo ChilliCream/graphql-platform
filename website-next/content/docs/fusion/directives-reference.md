@@ -1,5 +1,6 @@
 ---
 title: "Directive Reference"
+description: "Reference for Fusion composition directives like @key, @lookup, @require, and @shareable, with SDL definitions, arguments, and composed output examples."
 ---
 
 Fusion implements the [GraphQL Composite Schemas Specification](https://graphql.github.io/composite-schemas-spec/draft/). The directives defined in this specification are applied to source schemas (subgraph schemas) to control how they compose into a unified composite schema. Each directive entry below shows its SDL definition, what it does, and a practical example with the resulting composed output.

@@ -14,14 +14,20 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
+    "@chillicream/mocha-visualizer": "file:../src/Mocha/src/mocha-visualizer",
     "@docsearch/css": "^4.6.3",
     "@docsearch/react": "^4.6.3",
+    "@fortawesome/fontawesome-svg-core": "^7.1.0",
+    "@fortawesome/free-solid-svg-icons": "^7.1.0",
+    "@fortawesome/react-fontawesome": "^3.1.1",
     "@mdx-js/loader": "^3.1.1",
     "@mdx-js/react": "^3.1.1",
     "@next/mdx": "^16.2.6",
     "@next/third-parties": "16.2.6",
     "@types/js-yaml": "^4.0.9",
     "@types/mdx": "^2.0.13",
+    "@xyflow/react": "^12.10.0",
+    "elkjs": "^0.11.0",
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.1",
     "next": "16.2.6",
@@ -30,7 +36,8 @@
     "react-dom": "19.2.4",
     "remark-gfm": "^4.0.1",
     "sharp": "^0.34.5",
-    "shiki": "^4.0.2"
+    "shiki": "^4.0.2",
+    "styled-components": "^6.4.2"
   },
   "devDependencies": {
     "@storybook/nextjs-vite": "^10.4.1",

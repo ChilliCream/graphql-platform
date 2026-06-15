@@ -1,5 +1,6 @@
 ---
 title: Migrate Hot Chocolate from 12 to 13
+description: "Upgrade your Hot Chocolate GraphQL server from version 12 to 13 with this migration guide covering package updates and the breaking changes you need to address."
 ---
 
 This guide will walk you through the manual migration steps to update your Hot Chocolate GraphQL server to version 13.

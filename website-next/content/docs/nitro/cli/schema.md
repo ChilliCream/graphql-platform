@@ -1,5 +1,6 @@
 ---
 title: schema Command
+description: "Manage the GraphQL schema of an API with the `nitro schema` commands: upload versions, validate a stage for breaking changes, publish, and download."
 ---
 
 The `nitro schema` commands manage the GraphQL schema (SDL) of an API.

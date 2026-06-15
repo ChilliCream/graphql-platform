@@ -7,6 +7,7 @@ import {
   listBlogPosts,
 } from "@/src/helpers/blogPaths";
 import { getLastModifiedFromGit } from "@/src/helpers/gitMetadata";
+import { readFrontmatter } from "@/src/helpers/readFrontmatter";
 import { SITE_URL } from "@/src/helpers/siteUrl";
 
 export const dynamic = "force-static";
@@ -21,10 +22,31 @@ const EXCLUDED_PATHS = new Set(["/services/support/thank-you"]);
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
+    ...(await rootPages()),
     ...(await staticPages()),
     ...(await docsPages()),
     ...(await blogPosts()),
   ];
+}
+
+// Pages that live outside the `(content)` route group: the homepage and the
+// docs/blog hub pages. These are the highest-value URLs on the site and must
+// be listed explicitly since `staticPages()` only walks `(content)`.
+async function rootPages(): Promise<MetadataRoute.Sitemap> {
+  const pages = [
+    { file: path.join(process.cwd(), "app", "page.tsx"), urlPath: "/" },
+    { file: path.join(process.cwd(), "app", "docs", "page.tsx"), urlPath: "/docs" },
+    { file: path.join(process.cwd(), "app", "blog", "page.tsx"), urlPath: "/blog" },
+  ];
+  return Promise.all(
+    pages.map(async ({ file, urlPath }) => ({
+      url: urlPath === "/" ? `${SITE_URL}/` : `${SITE_URL}${urlPath}`,
+      lastModified:
+        (await getLastModifiedFromGit(file)) ?? fs.statSync(file).mtime,
+      changeFrequency: "weekly" as const,
+      priority: urlPath === "/" ? 1 : 0.8,
+    })),
+  );
 }
 
 async function staticPages(): Promise<MetadataRoute.Sitemap> {
@@ -75,10 +97,19 @@ async function blogPosts(): Promise<MetadataRoute.Sitemap> {
   return Promise.all(
     listBlogPosts().map(async ({ parsed, rel }) => {
       const file = path.join(BLOG_ROOT, rel);
+      const fm = readFrontmatter(file) as Record<string, unknown>;
+      // An explicit `updated` frontmatter field wins; otherwise the last git
+      // commit touching the post, with file mtime as the no-git fallback.
+      const updated =
+        typeof fm.updated === "string" && fm.updated.length > 0
+          ? new Date(fm.updated)
+          : null;
       return {
         url: `${SITE_URL}${blogUrlForStem(parsed)}`,
         lastModified:
-          (await getLastModifiedFromGit(file)) ?? fs.statSync(file).mtime,
+          updated ??
+          (await getLastModifiedFromGit(file)) ??
+          fs.statSync(file).mtime,
         changeFrequency: "yearly" as const,
         priority: 0.5,
       };

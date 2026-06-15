@@ -1,5 +1,6 @@
 ---
 title: "Schema Definition"
+description: "View and download the raw SDL of your GraphQL server with Nitro's Schema Definition feature, including an editor for examining types, fields, and structure."
 ---
 
 ![Nitro - Schema Definition](../../../../public/images/nitro-docs/documents/definition-0.webp)

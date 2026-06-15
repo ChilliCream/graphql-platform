@@ -1,7 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { PageHero } from "@/src/components/PageHero";
 import { Section } from "@/src/components/Section";
+
+export const metadata: Metadata = {
+  title: "Services",
+  description:
+    "Work with ChilliCream's GraphQL experts: advisory and consulting, support plans with SLAs you can rely on, and focused training for your team.",
+};
 
 const SERVICE_SECTIONS = [
   {

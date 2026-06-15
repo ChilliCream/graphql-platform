@@ -1,5 +1,6 @@
 ---
 title: "Networking"
+description: "Strawberry Shake networking: HTTP, WebSocket, SignalR, gRPC, and in-memory transport packages, plus transport profiles to pick a protocol per operation."
 ---
 
 Strawberry Shake supports multiple network protocols to communicate with your GraphQL server. Each transport integration is represented by a specific NuGet package to keep your client size as small as possible.

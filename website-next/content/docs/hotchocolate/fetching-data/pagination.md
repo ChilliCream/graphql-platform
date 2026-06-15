@@ -1,5 +1,6 @@
 ---
 title: "Pagination"
+description: "Implement cursor-based connection pagination in Hot Chocolate with [UseConnection] and PagingArguments, following the GraphQL Cursor Connections spec."
 ---
 
 When a dataset is too large to return in a single response, you need pagination. Hot Chocolate implements cursor-based connection pagination following the [GraphQL Cursor Connections Specification](https://relay.dev/graphql/connections.htm). Connections give clients a standardized way to traverse pages using opaque cursors.

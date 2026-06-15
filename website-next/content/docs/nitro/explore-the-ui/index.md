@@ -1,5 +1,6 @@
 ---
 title: Explore the UI
+description: "Overview of the Nitro user interface: sidebar, document tree, main area, environments, history, settings, and the status bar, with links to detailed guides."
 ---
 
 ![Image](../../../../public/images/nitro-docs/explore-the-ui/eti-01.webp)

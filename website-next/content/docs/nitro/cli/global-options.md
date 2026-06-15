@@ -1,5 +1,6 @@
 ---
 title: Global Options
+description: "Global options every Nitro CLI command accepts: `--api-key` for non-interactive auth, `--output json` for scripting, and `--cloud-url` for self-hosted setups."
 ---
 
 # `-?, -h, --help`
