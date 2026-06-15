@@ -66,11 +66,18 @@ internal sealed class PostgresMessageBusOutboxWorker(
             return;
         }
 
-        await task.DisposeAsync();
-
-        if (dataSource is not null)
+        // Dispose the data source even if the loop fails to shut down cleanly, so the
+        // underlying connection pool is always released.
+        try
         {
-            await dataSource.DisposeAsync();
+            await task.DisposeAsync();
+        }
+        finally
+        {
+            if (dataSource is not null)
+            {
+                await dataSource.DisposeAsync();
+            }
         }
     }
 
