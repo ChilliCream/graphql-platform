@@ -731,31 +731,13 @@ public class RabbitMQExplicitTopologyTests
                     .Receives<OrderCreated>(r => r.AutoBind(true));
             });
 
-        // TypeBindFromImpliesAutoBindOff: queue scope auto-binding is on (default), but a per-type
-        // BindFrom declares an explicit binding and implies AutoBind(false) for that type.
-        // The declared exchange-to-queue binding appears; the convention chain bind into the queue does not.
-        var typeBindFrom = CreateRuntime(
-            b => b.AddConsumer<OrderSpyConsumer>(),
-            t =>
-            {
-                t.BindHandlersExplicitly();
-                t.Queue("orders")
-                    .Consumer<OrderSpyConsumer>()
-                    .Receives<OrderCreated>(r => r.BindFrom(new Uri("exchange:source-exchange")));
-            });
-
         var transportQueueOffTypeOn = queueOffTypeOn.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        var transportTypeBindFrom = typeBindFrom.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
         // act
         var descQueueOffTypeOn = transportQueueOffTypeOn.Describe();
-        var descTypeBindFrom = transportTypeBindFrom.Describe();
 
         // assert
-        new Snapshot()
-            .Add(RabbitMQDescribeSnapshot.Create(descQueueOffTypeOn), "QueueAutoBindOffTypeReEnable", MarkdownLanguages.Json)
-            .Add(RabbitMQDescribeSnapshot.Create(descTypeBindFrom), "TypeBindFromImpliesAutoBindOff", MarkdownLanguages.Json)
-            .MatchMarkdown();
+        RabbitMQDescribeSnapshot.Create(descQueueOffTypeOn).MatchSnapshot();
     }
 
     [Fact(Skip = "Placeholder: cross-entity fanout-exchange / routing-key conflict check is deferred"

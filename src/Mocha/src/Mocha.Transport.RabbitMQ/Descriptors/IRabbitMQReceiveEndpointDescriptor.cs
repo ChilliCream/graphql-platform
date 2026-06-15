@@ -30,9 +30,6 @@ public interface IRabbitMQReceiveEndpointDescriptor : IReceiveEndpointDescriptor
     /// <inheritdoc cref="IReceiveEndpointDescriptor{TConfiguration}.AutoBind" />
     new IRabbitMQReceiveEndpointDescriptor AutoBind(bool enabled);
 
-    /// <inheritdoc cref="IReceiveEndpointDescriptor{TConfiguration}.BindFrom" />
-    new IRabbitMQReceiveEndpointDescriptor BindFrom(Uri source, string? routingKey = null);
-
     /// <inheritdoc cref="IReceiveEndpointDescriptor{TConfiguration}.Kind" />
     new IRabbitMQReceiveEndpointDescriptor Kind(ReceiveEndpointKind kind);
 

@@ -21,7 +21,7 @@ public class InMemoryReceiveEndpointBindFromTests
                 t =>
                 {
                     t.BindHandlersExplicitly();
-                    t.Endpoint("orders")
+                    t.Queue("orders")
                         .Consumer<OrderSpyConsumer>()
                         .BindFrom(new Uri("topic:source-topic"), routingKey: "key.not.valid");
                 }));

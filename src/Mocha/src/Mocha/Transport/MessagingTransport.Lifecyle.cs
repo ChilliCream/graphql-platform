@@ -86,19 +86,7 @@ public abstract partial class MessagingTransport
 
                 if (matched.Count == 0)
                 {
-                    // A type with at least one per-type BindFrom is exempt: the explicit binding
-                    // routes messages into this queue from an external source, so no inbound route
-                    // needs to exist in the router for the type to be consumed.
-                    var hasBindFrom =
-                        endpointConfiguration.TypeBinds.TryGetValue(messageRuntimeType, out var intent)
-                        && intent.BindFroms.Count > 0;
-
-                    if (!hasBindFrom)
-                    {
-                        throw ThrowHelper.NoHandlerForMessageType(messageRuntimeType, endpointConfiguration.Name);
-                    }
-
-                    continue;
+                    throw ThrowHelper.NoHandlerForMessageType(messageRuntimeType, endpointConfiguration.Name);
                 }
 
                 foreach (var route in matched)

@@ -30,9 +30,6 @@ public interface IPostgresReceiveEndpointDescriptor : IReceiveEndpointDescriptor
     /// <inheritdoc cref="IReceiveEndpointDescriptor{T}.AutoBind"/>
     new IPostgresReceiveEndpointDescriptor AutoBind(bool enabled);
 
-    /// <inheritdoc cref="IReceiveEndpointDescriptor{T}.BindFrom"/>
-    new IPostgresReceiveEndpointDescriptor BindFrom(Uri source, string? routingKey = null);
-
     /// <inheritdoc cref="IReceiveEndpointDescriptor{T}.Kind(ReceiveEndpointKind)"/>
     new IPostgresReceiveEndpointDescriptor Kind(ReceiveEndpointKind kind);
 

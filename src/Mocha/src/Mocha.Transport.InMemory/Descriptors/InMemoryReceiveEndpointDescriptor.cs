@@ -66,13 +66,6 @@ internal sealed class InMemoryReceiveEndpointDescriptor
         return this;
     }
 
-    public new IInMemoryReceiveEndpointDescriptor BindFrom(Uri source, string? routingKey = null)
-    {
-        base.BindFrom(source, routingKey);
-
-        return this;
-    }
-
     public new IInMemoryReceiveEndpointDescriptor Kind(ReceiveEndpointKind kind)
     {
         base.Kind(kind);

@@ -8,13 +8,6 @@ namespace Mocha.Transport.RabbitMQ;
 /// both the producer path and the consumer conventions, so the two sides converge on one entity and
 /// one canonical endpoint name and cannot drift apart.
 /// </summary>
-/// <remarks>
-/// The resolver answers only the static half of routing: the exchange or queue an explicit
-/// destination names, or the convention exchange a type otherwise routes to. The dynamic routing key
-/// is evaluated per message at send time, so the resolver never invokes a routing-key extractor; it
-/// only reports, via <see cref="ResolveBindKey"/>, whether a statically derivable key exists. Reply
-/// routes are address-routed and must never be passed to the resolver.
-/// </remarks>
 internal sealed class RabbitMQDestinationResolver
 {
     private readonly string _schema;
@@ -64,12 +57,6 @@ internal sealed class RabbitMQDestinationResolver
     /// Classifies whether a consume binding for the message type can be derived from a statically
     /// known routing key.
     /// </summary>
-    /// <remarks>
-    /// A type with no routing key is bound key-less (<see cref="RabbitMQBindKeyKind.None"/>). A type
-    /// whose routing key is computed per message by a custom function cannot be bound at configuration
-    /// time without guessing, so it is reported <see cref="RabbitMQBindKeyKind.Underivable"/>; deriving
-    /// a key-less binding would silently fail to match. The resolver never invokes the extractor.
-    /// </remarks>
     /// <param name="messageType">The consumed message type.</param>
     /// <returns>The bind-key classification for the type.</returns>
     public RabbitMQBindKeyResolution ResolveBindKey(MessageType messageType)
@@ -86,7 +73,7 @@ internal sealed class RabbitMQDestinationResolver
     /// Attempts to extract an exchange name from a BindFrom source URI so the materialization path
     /// can create the exchange entity in the topology.
     /// </summary>
-    /// <param name="source">The source URI from a <see cref="BindFromIntent"/>.</param>
+    /// <param name="source">The source URI identifying the exchange to bind from.</param>
     /// <param name="exchangeName">
     /// When this method returns <c>true</c>, contains the resolved exchange name.
     /// </param>

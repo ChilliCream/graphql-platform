@@ -5,15 +5,6 @@ namespace Mocha;
 /// <summary>
 /// Selects the appropriate transport for an outbound route.
 /// </summary>
-/// <remarks>
-/// Selection order:
-/// <list type="number">
-///   <item>Explicit transport scheme: the destination URI scheme matches exactly one transport's schema.</item>
-///   <item>Resolved default: the sole <see cref="MessagingTransportConfiguration.IsDefaultTransport"/> flag, or the
-///   single registered transport when no flag is set.</item>
-/// </list>
-/// The method never falls back to first-wins order. Ambiguous or unconfigured cases throw immediately.
-/// </remarks>
 internal static class MessagingTransportSelection
 {
     /// <summary>

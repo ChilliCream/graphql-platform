@@ -7,12 +7,6 @@ namespace Mocha.Transport.InMemory;
 /// single authority consulted by both the producer path and the consumer conventions, so the two
 /// sides converge on one entity and one canonical endpoint name and cannot drift apart.
 /// </summary>
-/// <remarks>
-/// The resolver answers only the static half of routing: the topic or queue an explicit destination
-/// names, or the convention topic a type otherwise routes to. In-memory has no routing keys, so
-/// every consume binding is key-less and always derivable. Reply routes are address-routed and must
-/// never be passed to the resolver.
-/// </remarks>
 internal sealed class InMemoryDestinationResolver
 {
     private readonly string _schema;
@@ -65,7 +59,7 @@ internal sealed class InMemoryDestinationResolver
     /// Attempts to extract a topic name from a BindFrom source URI so the materialization path
     /// can create the topic entity in the topology.
     /// </summary>
-    /// <param name="source">The source URI from a <see cref="BindFromIntent"/>.</param>
+    /// <param name="source">The source URI identifying the topic to bind from.</param>
     /// <param name="topicName">
     /// When this method returns <c>true</c>, contains the resolved topic name.
     /// </param>

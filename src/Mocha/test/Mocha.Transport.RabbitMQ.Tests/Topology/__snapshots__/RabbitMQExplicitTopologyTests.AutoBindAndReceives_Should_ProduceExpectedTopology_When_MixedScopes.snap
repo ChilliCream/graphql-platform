@@ -4,12 +4,6 @@
   "Entities": [
     {
       "Kind": "exchange",
-      "Name": "custom-orders-exchange",
-      "AutoProvision": true,
-      "Source": "declared"
-    },
-    {
-      "Kind": "exchange",
       "Name": "mocha.test-helpers.order-created",
       "AutoProvision": true,
       "Source": "convention"
@@ -42,15 +36,15 @@
   "Links": [
     {
       "Kind": "bind",
-      "From": "rabbitmq://localhost:5672/e/custom-orders-exchange",
-      "To": "rabbitmq://localhost:5672/q/orders",
+      "From": "rabbitmq://localhost:5672/e/mocha.test-helpers.order-created",
+      "To": "rabbitmq://localhost:5672/e/order-created",
       "AutoProvision": true,
-      "Source": "declared"
+      "Source": "convention"
     },
     {
       "Kind": "bind",
-      "From": "rabbitmq://localhost:5672/e/mocha.test-helpers.order-created",
-      "To": "rabbitmq://localhost:5672/e/order-created",
+      "From": "rabbitmq://localhost:5672/e/order-created",
+      "To": "rabbitmq://localhost:5672/q/orders",
       "AutoProvision": true,
       "Source": "convention"
     }

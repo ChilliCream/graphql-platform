@@ -66,34 +66,6 @@ public class RabbitMQReceiveEndpointBindFromTests
         RabbitMQDescribeSnapshot.Create(description).MatchSnapshot();
     }
 
-    [Fact]
-    public void OnDiscoverTopology_Should_AddPerTypeBindings_When_TypeBindFromDeclared()
-    {
-        // arrange
-        // A per-type BindFrom via Receives<T>(r => r.BindFrom(...)) must be materialized as a
-        // declared exchange-to-queue binding. The convention's auto-bind for that type is suppressed
-        // (AutoBind false implied), so only the explicit binding appears.
-        var runtime = CreateRuntime(
-            b => b.AddConsumer<OrderSpyConsumer>(),
-            t =>
-            {
-                t.BindHandlersExplicitly();
-                t.Queue("orders")
-                    .Consumer<OrderSpyConsumer>()
-                    .Receives<OrderCreated>(r => r.BindFrom(new Uri("exchange:custom-orders-exchange")));
-            });
-        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-
-        // act
-        var description = transport.Describe();
-
-        // assert
-        // The explicit binding from custom-orders-exchange into orders must appear; the convention
-        // publish/send chain for OrderCreated must NOT be present because AutoBind is implied false
-        // by the per-type BindFrom.
-        RabbitMQDescribeSnapshot.Create(description).MatchSnapshot();
-    }
-
     private static MessagingRuntime CreateRuntime(
         Action<IMessageBusHostBuilder> configureBuilder,
         Action<IRabbitMQMessagingTransportDescriptor> configureTransport)

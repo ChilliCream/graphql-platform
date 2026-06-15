@@ -135,6 +135,13 @@ internal sealed class InMemoryQueueBuilder : IInMemoryQueueBuilder
     {
         ArgumentNullException.ThrowIfNull(source);
 
+        if (routingKey is not null)
+        {
+            throw new InvalidOperationException(
+                "The in-memory transport does not support routing key semantics. "
+                + $"Queue '{_name}' cannot use a routing key in BindFrom.");
+        }
+
         var resolver = new InMemoryDestinationResolver(
             _transport.Configuration.Schema ?? InMemoryTransportConfiguration.DefaultSchema);
 

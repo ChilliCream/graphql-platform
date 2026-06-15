@@ -115,39 +115,11 @@ public class ReceivesTests
     }
 
     [Fact]
-    public void Receives_Should_SuppressNoRouteThrow_When_BindFromDeclared()
+    public void Receives_Should_Throw_When_NoRouteExists()
     {
         // arrange
-        // No handler is registered, so no inbound route exists for OrderCreated.
-        // The per-type BindFrom declares an explicit source topic that routes messages into the queue,
-        // so the missing inbound route must not raise NoHandlerForMessageType.
-
-        // act
-        var runtime = new ServiceCollection()
-            .AddMessageBus()
-            .AddInMemory(t =>
-            {
-                t.BindHandlersExplicitly();
-                t.Queue("orders")
-                    .Receives<OrderCreated>(r => r.BindFrom(new Uri("topic:orders")));
-            })
-            .BuildRuntime();
-        var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
-
-        // assert
-        var endpoint = transport.ReceiveEndpoints
-            .OfType<InMemoryReceiveEndpoint>()
-            .SingleOrDefault(e => e.Name == "orders");
-
-        Assert.NotNull(endpoint);
-    }
-
-    [Fact]
-    public void Receives_Should_StillThrow_When_NoRouteAndNoBindFrom()
-    {
-        // arrange
-        // No handler is registered and no per-type BindFrom is declared.
-        // The missing inbound route must still raise NoHandlerForMessageType.
+        // No handler is registered for OrderCreated.
+        // The missing inbound route must raise NoHandlerForMessageType.
 
         // act & assert
         var exception = Assert.Throws<InvalidOperationException>(() =>

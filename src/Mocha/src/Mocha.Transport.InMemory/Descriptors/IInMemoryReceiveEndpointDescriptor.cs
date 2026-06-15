@@ -31,9 +31,6 @@ public interface IInMemoryReceiveEndpointDescriptor : IReceiveEndpointDescriptor
     new IInMemoryReceiveEndpointDescriptor AutoBind(bool enabled);
 
     /// <inheritdoc />
-    new IInMemoryReceiveEndpointDescriptor BindFrom(Uri source, string? routingKey = null);
-
-    /// <inheritdoc />
     new IInMemoryReceiveEndpointDescriptor Kind(ReceiveEndpointKind kind);
 
     /// <inheritdoc />

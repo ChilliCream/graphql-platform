@@ -187,12 +187,6 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
     /// <summary>
     /// Runs topology discovery conventions to resolve the source resources for this endpoint.
     /// </summary>
-    /// <remarks>
-    /// The endpoint first ensures its own backing resource exists via <see cref="OnDiscoverTopology"/>,
-    /// then applies the topology conventions that bind the endpoint into the wider routing topology.
-    /// Because the endpoint owns its backing resource, the topology conventions only reference it and
-    /// never create it, so removing or replacing them does not strand the endpoint.
-    /// </remarks>
     /// <param name="context">The messaging configuration context used for topology discovery.</param>
     public void DiscoverTopology(IMessagingConfigurationContext context)
     {

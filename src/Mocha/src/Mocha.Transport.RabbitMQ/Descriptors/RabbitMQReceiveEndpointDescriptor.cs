@@ -75,14 +75,6 @@ internal sealed class RabbitMQReceiveEndpointDescriptor
     }
 
     /// <inheritdoc />
-    public new IRabbitMQReceiveEndpointDescriptor BindFrom(Uri source, string? routingKey = null)
-    {
-        base.BindFrom(source, routingKey);
-
-        return this;
-    }
-
-    /// <inheritdoc />
     public new IRabbitMQReceiveEndpointDescriptor Kind(ReceiveEndpointKind kind)
     {
         base.Kind(kind);

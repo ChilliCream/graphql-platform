@@ -75,14 +75,6 @@ internal sealed class PostgresReceiveEndpointDescriptor
     }
 
     /// <inheritdoc />
-    public new IPostgresReceiveEndpointDescriptor BindFrom(Uri source, string? routingKey = null)
-    {
-        base.BindFrom(source, routingKey);
-
-        return this;
-    }
-
-    /// <inheritdoc />
     public new IPostgresReceiveEndpointDescriptor Kind(ReceiveEndpointKind kind)
     {
         base.Kind(kind);

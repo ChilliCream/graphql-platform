@@ -59,12 +59,6 @@ public class ReceiveEndpointConfiguration : MessagingConfiguration
     public Dictionary<Type, ReceiveTypeBindIntent> TypeBinds { get; set; } = [];
 
     /// <summary>
-    /// Gets or sets the list of explicit binding intents for this queue,
-    /// binding it to source entities (exchanges, topics) with optional routing keys.
-    /// </summary>
-    public List<BindFromIntent> QueueBindFroms { get; set; } = [];
-
-    /// <summary>
     /// Gets or sets the maximum number of messages that can be processed concurrently on this endpoint.
     /// </summary>
     public int? MaxConcurrency { get; set; }
