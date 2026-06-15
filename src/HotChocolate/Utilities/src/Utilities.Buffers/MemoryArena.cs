@@ -1,3 +1,5 @@
+using System.Buffers;
+
 namespace HotChocolate.Buffers;
 
 /// <summary>
@@ -33,52 +35,35 @@ internal sealed class MemoryArena : IMemoryArena, IDisposable
     private const int Sealed = 1;
     private const int Disposed = 2;
 
-    // Bounded reuse pool for arena instances. Only the cheap machinery (the page table array and
-    // the lock) is reused; the pages themselves go back to JsonMemory on dispose. The cap keeps the
-    // retained instances bounded under burst load.
-    private static readonly ArenaPool s_pool = new(Environment.ProcessorCount * 2);
-
 #if NET9_0_OR_GREATER
     private readonly Lock _lock = new();
 #else
     private readonly object _lock = new();
 #endif
+    private readonly List<MemorySegment[]> _tables = [];
     private byte[][] _pages = new byte[4][];
     private long _state = InitialState;
     private int _pageCount;
     private int _phase;
 
     /// <summary>
-    /// Rents an open arena, reusing a pooled instance when one is available.
-    /// </summary>
-    internal static MemoryArena Rent()
-    {
-        var arena = s_pool.Rent();
-
-        if (arena is null)
-        {
-            return new MemoryArena();
-        }
-
-        // The instance was handed back as a pooled, fully-disposed shell with its finalizer
-        // suppressed. Re-arm it and reinstate the finalizer so an abandoned rental is still backed
-        // by the leak backstop.
-        GC.ReRegisterForFinalize(arena);
-        arena.Reinitialize();
-        return arena;
-    }
-
-    private void Reinitialize()
-    {
-        _state = InitialState;
-        _pageCount = 0;
-        _phase = Open;
-    }
-
-    /// <summary>
     /// Gets the number of pages this arena currently holds.
     /// </summary>
     internal int RentedPageCount => _pageCount;
+
+    /// <summary>
+    /// Gets the number of segment tables this arena currently tracks.
+    /// </summary>
+    internal int RentedTableCount
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return _tables.Count;
+            }
+        }
+    }
 
     /// <summary>
     /// Gets a value indicating whether this arena has been disposed.
@@ -203,6 +188,53 @@ internal sealed class MemoryArena : IMemoryArena, IDisposable
     }
 
     /// <summary>
+    /// Rents a <see cref="MemorySegment"/> table of at least <paramref name="minLength"/> entries.
+    /// The table's lifetime is bound to the arena: the arena reclaims it when it is disposed, so the
+    /// caller must not return the table itself.
+    /// </summary>
+    /// <param name="minLength">The minimum number of entries the table must hold.</param>
+    /// <returns>A table of at least <paramref name="minLength"/> entries.</returns>
+    public MemorySegment[] RentSegmentTable(int minLength)
+    {
+        var table = ArrayPool<MemorySegment>.Shared.Rent(minLength);
+
+        lock (_lock)
+        {
+            _tables.Add(table);
+        }
+
+        return table;
+    }
+
+    /// <summary>
+    /// Grows the given <see cref="MemorySegment"/> table to twice its current length, copying the
+    /// existing entries into the new table. The new table's lifetime is bound to the arena just like
+    /// the original, so the caller must not return either table itself.
+    /// </summary>
+    /// <param name="table">The table to grow. On return it references the larger table.</param>
+    public void GrowSegmentTable(ref MemorySegment[] table)
+    {
+        var grown = ArrayPool<MemorySegment>.Shared.Rent(table.Length * 2);
+        Array.Copy(table, grown, table.Length);
+
+        var old = table;
+
+        lock (_lock)
+        {
+            // Swap the tracked table: the old array is no longer tracked, the new one is, so a later
+            // dispose does not return either array twice.
+            _tables.Remove(old);
+            _tables.Add(grown);
+        }
+
+        // The old array is returned now: its entries have been copied into the grown table and no
+        // tracking still references it, so there is no double-return on dispose.
+        ArrayPool<MemorySegment>.Shared.Return(old, clearArray: true);
+
+        table = grown;
+    }
+
+    /// <summary>
     /// Seals the arena so that no further <see cref="Rent(int)"/> calls are accepted. The memory already
     /// handed out stays valid. Sealing marks the transition from the writer phase to a stable reader
     /// phase and is what makes a later <see cref="Dispose()"/> safe to return pages to the pool.
@@ -235,42 +267,46 @@ internal sealed class MemoryArena : IMemoryArena, IDisposable
             return;
         }
 
-        var retainMemory = disposing && (previous == Sealed);
+        var reclaim = disposing && (previous == Sealed);
 
         byte[][] pages;
         int count;
+        MemorySegment[][] tables;
+        int tableCount;
 
         lock (_lock)
         {
             pages = _pages;
             count = _pageCount;
 
-            // On the retain path the page table array is reused, so it is kept in place; the abandon
-            // path publishes an empty table with a volatile write so the lock-free reader in Rent
-            // observes it and fails as disposed instead of reading freed state.
-            if (!retainMemory)
-            {
-                Volatile.Write(ref _pages, []);
-            }
+            // Snapshot the tracked tables before clearing tracking so the reclaim path can return
+            // them outside the lock. The abandon path drops them on the floor for the GC.
+            tableCount = _tables.Count;
+            tables = tableCount == 0 ? [] : _tables.ToArray();
+            _tables.Clear();
 
+            // Publish an empty page table with a volatile write so the lock-free reader in Rent
+            // observes it and fails as disposed instead of reading freed state.
+            Volatile.Write(ref _pages, []);
             _pageCount = 0;
             _state = InitialState;
         }
 
-        if (retainMemory)
+        if (reclaim)
         {
             if (count > 0)
             {
                 JsonMemory.Return(JsonMemoryKind.Arena, pages, count);
-                // Clear the rented slots only after the pages have been handed back, so the reused
-                // page table no longer pins them for the next rental.
-                pages.AsSpan(0, count).Clear();
             }
 
-            // The instance is a clean shell now; hand it back for reuse. The public Dispose already
-            // suppressed its finalizer, so a pooled instance carries no pending backstop; Rent
-            // re-registers it on the next rental.
-            s_pool.Return(this);
+            // The arena owns the tables, so on a sealed deterministic dispose it clears the used
+            // range and returns each one to the pool. The abandon path below intentionally skips
+            // this, because a live document may still index into a table.
+            for (var i = 0; i < tableCount; i++)
+            {
+                ArrayPool<MemorySegment>.Shared.Return(tables[i], clearArray: true);
+            }
+
             return;
         }
 
@@ -283,59 +319,4 @@ internal sealed class MemoryArena : IMemoryArena, IDisposable
     }
 
     ~MemoryArena() => Dispose(disposing: false);
-
-    // A bounded, lock-free stack of reusable arena shells. Slots beyond the cap are dropped on
-    // return so the retained set stays bounded, which keeps steady-state allocations at zero
-    // without unbounded retention under burst load.
-    private sealed class ArenaPool(int capacity)
-    {
-        private readonly MemoryArena?[] _slots = new MemoryArena[capacity];
-        private int _count;
-
-        public MemoryArena? Rent()
-        {
-            while (true)
-            {
-                var count = Volatile.Read(ref _count);
-
-                if (count == 0)
-                {
-                    return null;
-                }
-
-                if (Interlocked.CompareExchange(ref _count, count - 1, count) == count)
-                {
-                    var arena = Interlocked.Exchange(ref _slots[count - 1], null);
-
-                    if (arena is not null)
-                    {
-                        return arena;
-                    }
-
-                    // The slot was not yet published by a concurrent return; fall back to a fresh
-                    // instance rather than spin.
-                    return null;
-                }
-            }
-        }
-
-        public bool Return(MemoryArena arena)
-        {
-            while (true)
-            {
-                var count = Volatile.Read(ref _count);
-
-                if (count >= _slots.Length)
-                {
-                    return false;
-                }
-
-                if (Interlocked.CompareExchange(ref _count, count + 1, count) == count)
-                {
-                    Volatile.Write(ref _slots[count], arena);
-                    return true;
-                }
-            }
-        }
-    }
 }

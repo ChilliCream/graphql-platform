@@ -84,7 +84,7 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
         // pages are returned to the pool when the result is disposed.
         await using var fixture = await RoutingTestFixture.CreateAsync();
         var context = fixture.CreateContext();
-        var arena = (MemoryArena)context.Memory;
+        var arena = context.Memory;
 
         // act
         context.Complete();
@@ -382,7 +382,10 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
                 requestServices: _services,
                 requestAborted: CancellationToken.None);
 
-            context.Initialize(requestContext, _variables, _operationPlan, cts);
+            // The request executor always attaches a memory arena to the request before a plan
+            // runs. The arena is supplied explicitly here because this fixture does not go through
+            // the request executor that would otherwise attach it to the request context.
+            context.Initialize(requestContext, _variables, _operationPlan, cts, new MemoryArena());
             _rentedContexts.Add(context);
             return context;
         }
