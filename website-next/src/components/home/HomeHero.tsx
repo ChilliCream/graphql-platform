@@ -146,7 +146,7 @@ export function HomeHero() {
         ))}
       </div>
 
-      <h1 className="font-heading text-cc-ink text-h4 sm:text-h3 lg:text-h2 xl:text-h1 font-bold tracking-[-0.02em] text-balance">
+      <h1 className="font-heading text-cc-ink text-h4 sm:text-h3 lg:text-h2 xl:text-h1 font-semibold tracking-[-0.02em] text-balance">
         The API Platform
         <span
           className="block bg-clip-text pb-[0.12em] leading-[1.12] text-transparent"
