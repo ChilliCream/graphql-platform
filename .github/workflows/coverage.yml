@@ -143,7 +143,7 @@ jobs:
           "./output/download/**/*.cobertura.xml"
 
       - name: Upload coverage to GitHub
-        uses: actions/upload-code-coverage@abb5995db9e0199b0e2bb9dbd136fce4cb1ec4d3 # v1
+        uses: ChilliCream/upload-code-coverage@c4b498aa6251701297737919a9b879eaac3f41b4 # fork: scope PR lookup to base repo (upstream #14)
         timeout-minutes: 10
         with:
           file: ./output/merged.cobertura.xml
