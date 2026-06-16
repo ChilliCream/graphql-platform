@@ -49,40 +49,20 @@ internal sealed partial class FetchResultStore
         _memory.Push(_result);
     }
 
-    public void Reset()
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-
-        _result = new CompositeResultDocument(_arena, _operation, _includeFlags, _deferFlags, _pathPool);
-        _errors?.Clear();
-        _pocketedErrors?.Clear();
-
-        _valueCompletion = new ValueCompletion(
-            this,
-            _schema,
-            _errorHandler,
-            _errorHandlingMode,
-            maxDepth: 32);
-
-        _memory.Push(_result);
-    }
-
     /// <summary>
-    /// Swaps the arena that backs the next result over to <paramref name="arena"/> and rebuilds the
-    /// pending result document over it. The current pending result document, which has not yet
-    /// received any data, is discarded. The arena is registered so its lifetime travels with the
-    /// result it backs.
+    /// Resets the store for the next subscription event onto <paramref name="arena"/>.
+    /// This rebuilds the pending result document and clears accumulated errors.
     /// </summary>
-    public void SwapArena(IMemoryArena arena)
+    public void Reset(IMemoryArena arena)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(arena);
 
-        // arenas can only be swapped in a subscription context,
+        // arenas can only be reset in a subscription context,
         // and only once complete is called on the context.
         Debug.Assert(
             _memory.Count <= 1,
-            "SwapArena expects an empty stack or a single pending seed result. "
+            "Reset expects an empty stack or a single pending seed result. "
             + "Extra entries mean a prior event's memory owners were not drained by Complete.");
 
         // The most recent seed result document is untouched at this point (no data has been added
@@ -100,6 +80,9 @@ internal sealed partial class FetchResultStore
             _includeFlags,
             _deferFlags,
             _pathPool);
+
+        _errors?.Clear();
+        _pocketedErrors?.Clear();
 
         _valueCompletion = new ValueCompletion(
             this,

@@ -117,7 +117,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
         ArgumentNullException.ThrowIfNull(eventArena);
         var memory = _memory = (MemoryArena)eventArena;
         _memorySource.Set(memory);
-        _resultStore.SwapArena(memory);
+        _resultStore.Reset(memory);
         _currentMemorySource = _memorySource;
     }
 
