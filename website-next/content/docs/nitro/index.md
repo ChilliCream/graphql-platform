@@ -1,5 +1,6 @@
 ---
 title: "Introduction"
+description: "Introduction to Nitro, the GraphQL IDE from ChilliCream with team collaboration, schema and client registries, and OpenTelemetry monitoring for your APIs."
 ---
 
 > Explore, engage and share your thoughts via [slack](http://slack.chillicream.com/) in the **#nitro** channel.

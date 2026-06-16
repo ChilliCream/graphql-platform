@@ -1,5 +1,6 @@
 ---
 title: "Cookie Policy"
+description: "Learn how ChilliCream uses cookies on its websites and applications and how you can manage your cookie preferences."
 ---
 
 This policy is effective as of 26 August 2021.

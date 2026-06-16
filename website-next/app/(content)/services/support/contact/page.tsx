@@ -1,5 +1,13 @@
+import type { Metadata } from "next";
+
 import { PageHero } from "@/src/components/PageHero";
 import { ContactForm } from "./ContactForm";
+
+export const metadata: Metadata = {
+  title: "Contact Us",
+  description:
+    "Contact the ChilliCream team: tell us what you need, from support plans and demos to GraphQL consulting and training, and we will be in touch shortly.",
+};
 
 export default function ContactPage() {
   return (

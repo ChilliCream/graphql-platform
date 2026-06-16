@@ -1,5 +1,6 @@
 ---
 title: Settings - Themes
+description: "Customize the appearance of Nitro with light and dark themes, including OS theme sync and options like ChilliCream Blue and the GitHub theme family."
 ---
 
 Nitro offers a range of themes to customize the visual appearance of the application. These themes are available as light and dark themes, providing flexibility to suit different user preferences.

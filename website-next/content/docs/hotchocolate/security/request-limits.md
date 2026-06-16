@@ -1,5 +1,6 @@
 ---
 title: "Request Limits"
+description: "Bound resource usage in Hot Chocolate with request limits such as MaxExecutionDepth, parser limits, and execution timeouts that block adversarial queries."
 ---
 
 Unlike REST, where each endpoint has a predictable cost, a single GraphQL request can trigger unbounded work through deep nesting, alias amplification, or fragment expansion. Hot Chocolate enforces limits at every stage of request processing (parsing, validation, and execution) to keep resource consumption bounded even under adversarial workloads.

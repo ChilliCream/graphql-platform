@@ -1,5 +1,6 @@
 ---
 title: Migrate Hot Chocolate from 10 to 11
+description: "Step-by-step guide for migrating a Hot Chocolate GraphQL server from version 10 to 11, including the move to the consolidated HotChocolate.AspNetCore package."
 ---
 
 This guide will walk you through the manual migration steps to get you Hot Chocolate GraphQL server to version 11.

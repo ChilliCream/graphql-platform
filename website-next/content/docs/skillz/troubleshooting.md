@@ -1,5 +1,6 @@
 ---
 title: "Troubleshooting"
+description: "Troubleshoot skillz errors: each section maps the exact message the CLI prints to its cause and a copy-pasteable fix for installing and updating skills."
 ---
 
 This page maps the errors and surprises you hit when running skillz to their cause and fix. Each section starts with the exact message skillz prints (where one exists), explains why it happens, and gives you a copy-pasteable way out.
@@ -44,7 +45,7 @@ If `--list` reports `Found 0 skill(s)`, work through these in order:
 | Check                                                     | Fix                                                                                                                    |
 | --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | Is your path or subpath pointing at the right folder?     | Point at the directory that contains `SKILL.md`, or add the repo subpath: `dnx skillz add owner/repo/skills/my-skill`. |
-| Does the `SKILL.md` have both `name:` and `description:`? | Add the missing field. Both must be non-empty. See [Authoring Skills](./authoring-skills.md).                  |
+| Does the `SKILL.md` have both `name:` and `description:`? | Add the missing field. Both must be non-empty. See [Authoring Skills](./authoring-skills.md).                          |
 | Are the skills in nested directories?                     | Add `--full-depth` to scan nested directories: `dnx skillz add owner/repo --full-depth --list`.                        |
 
 > `--full-depth` widens discovery so skillz scans nested directories for skills. It does not change how much of the repository is cloned. Clones are always shallow regardless of this flag.
@@ -147,7 +148,7 @@ Pick whichever fix matches your intent:
 | -------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | You do use that agent in this project                          | Create its directory, then re-run the install: `mkdir -p .claude && dnx skillz add owner/repo --agent claude-code`.           |
 | You want a self-contained copy regardless of agent directories | Add `--copy` to write the skill straight into each agent's directory: `dnx skillz add owner/repo --agent claude-code --copy`. |
-| You meant a different agent                                    | Re-run with the correct `--agent` value. See [Installing Skills](./installing-skills.md).                             |
+| You meant a different agent                                    | Re-run with the correct `--agent` value. See [Installing Skills](./installing-skills.md).                                     |
 
 After the directory exists, re-running the install links the skill into `.claude/skills`. The Installation Summary then lists `Symlinked:  Claude Code` instead of skipping that agent.
 

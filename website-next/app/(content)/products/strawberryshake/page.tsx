@@ -1,7 +1,15 @@
+import type { Metadata } from "next";
+
 import { ContentSection } from "@/src/components/ContentSection";
 import { PageHero } from "@/src/components/PageHero";
 import { Section } from "@/src/components/Section";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
+
+export const metadata: Metadata = {
+  title: "Strawberry Shake",
+  description:
+    "Strawberry Shake is a strongly-typed GraphQL client for .NET with a reactive store, caching, subscriptions, and compile-time source generators.",
+};
 
 const FEATURES = [
   {
@@ -46,12 +54,12 @@ export default function StrawberryShakePage() {
           {FEATURES.map((feature) => (
             <div
               key={feature.title}
-              className="rounded-xl border border-cc-card-border bg-cc-card-bg backdrop-blur-sm p-6 "
+              className="border-cc-card-border bg-cc-card-bg rounded-xl border p-6 backdrop-blur-sm"
             >
-              <h3 className="text-lg font-semibold text-cc-ink">
+              <h3 className="text-cc-ink text-lg font-semibold">
                 {feature.title}
               </h3>
-              <p className="mt-2 text-sm text-cc-ink-dim">
+              <p className="text-cc-ink-dim mt-2 text-sm">
                 {feature.description}
               </p>
             </div>

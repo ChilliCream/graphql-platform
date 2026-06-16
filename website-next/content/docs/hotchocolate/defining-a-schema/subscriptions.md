@@ -1,5 +1,6 @@
 ---
 title: "Subscriptions"
+description: "Add real-time GraphQL subscriptions in Hot Chocolate with [SubscriptionType] and [Subscribe], backed by in-memory, Redis, NATS, or Postgres providers."
 ---
 
 GraphQL subscriptions allow clients to receive real-time updates from the server. A client opens a persistent connection (over WebSocket or SSE) and asks for specific events. When those events occur, the server pushes the data to the client immediately.

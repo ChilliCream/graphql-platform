@@ -1,5 +1,6 @@
 ---
 title: "Batch Resolvers"
+description: "Resolve a field for many parents in a single call with the [BatchResolver] attribute in Hot Chocolate, a lighter alternative to DataLoaders without caching."
 ---
 
 Batch resolvers are an alternative to DataLoaders for cases where you want to resolve a field for multiple parent objects in a single method call without defining a separate DataLoader class. Instead of each resolver running independently and batching through a DataLoader, the execution engine collects all parent objects and calls your resolver once with the full list.

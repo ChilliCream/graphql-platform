@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+
 import { type Plan, PlanGrid } from "@/src/components/PlanGrid";
 import { PageHero } from "@/src/components/PageHero";
 import { Section } from "@/src/components/Section";
@@ -10,6 +12,12 @@ import {
   TableRow,
 } from "@/src/design-system/Table";
 import { CheckIcon } from "@/src/components/CheckIcon";
+
+export const metadata: Metadata = {
+  title: "Support",
+  description:
+    "Get GraphQL support from ChilliCream experts: plans from a free community Slack to enterprise SLAs with dedicated account managers and phone support.",
+};
 
 const SUPPORT_PLANS: Plan[] = [
   {
@@ -124,7 +132,7 @@ export default function SupportPage() {
                 {row.values.map((v, i) => (
                   <TableCell key={i} align="center">
                     {v === true ? (
-                      <span className="inline-flex items-center justify-center text-cc-accent">
+                      <span className="text-cc-accent inline-flex items-center justify-center">
                         <CheckIcon />
                       </span>
                     ) : v === false ? (

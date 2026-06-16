@@ -1,5 +1,4 @@
 <Project>
-
   <PropertyGroup>
     <LangVersion>preview</LangVersion>
     <Version Condition="$(Version) == ''">0.0.0</Version>
@@ -53,8 +52,26 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(DOTNET_LOCAL_DEV)' == '1'">
+    <CreateHardLinksForCopyLocalIfPossible>true</CreateHardLinksForCopyLocalIfPossible>
+    <CreateHardLinksForAdditionalFilesIfPossible>true</CreateHardLinksForAdditionalFilesIfPossible>
+    <CreateHardLinksForPublishFilesIfPossible>true</CreateHardLinksForPublishFilesIfPossible>
+    <CreateHardLinksForCopyFilesToOutputDirectoryIfPossible>true</CreateHardLinksForCopyFilesToOutputDirectoryIfPossible>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(DOTNET_LOCAL_DEV)' == '1' AND '$(RuntimeIdentifier)' == '' AND '$(RuntimeIdentifiers)' == ''">
+    <RuntimeIdentifier>$([System.Runtime.InteropServices.RuntimeInformation]::RuntimeIdentifier)</RuntimeIdentifier>
+    <SelfContained>false</SelfContained>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+  </PropertyGroup>
+
   <ItemGroup Condition="'$(PackageIcon)' != ''">
-    <None Include="$(MSBuildThisFileDirectory)..\website\static\resources\$(PackageIcon)" Pack="true" PackagePath="$(PackageIcon)" Visible="false" />
+    <None
+      Include="$(MSBuildThisFileDirectory)..\website\static\resources\$(PackageIcon)"
+      Pack="true"
+      PackagePath="$(PackageIcon)"
+      Visible="false"
+    />
     <None Include="$(MSBuildThisFileDirectory)..\LICEN*" Pack="true" PackagePath="" Visible="false" />
   </ItemGroup>
 

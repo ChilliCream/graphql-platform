@@ -1,5 +1,6 @@
 ---
 title: "Authentication"
+description: "Authenticate Strawberry Shake requests to protected GraphQL APIs: set bearer tokens via `ConfigureHttpClient` and secure WebSocket connections."
 ---
 
 To access a protected API with Strawberry Shake, you need to proof the user's identity to the server.

@@ -1,5 +1,13 @@
+import type { Metadata } from "next";
+
 import { type Plan, PlanGrid } from "@/src/components/PlanGrid";
 import { Section } from "@/src/components/Section";
+
+export const metadata: Metadata = {
+  title: "Help",
+  description:
+    "Need urgent GraphQL help? Join the ChilliCream community Slack, book a session with an expert, or choose a support plan that fits your team.",
+};
 
 const PLANS: Plan[] = [
   {

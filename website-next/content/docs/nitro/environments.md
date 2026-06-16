@@ -1,5 +1,6 @@
 ---
 title: Environments
+description: "Define environment variables in Nitro to reuse URLs, tokens, and credentials across documents and switch between development, testing, and production values."
 ---
 
 Environment variable provide a mechanism for reusing specific values across multiple documents. These variables are defined as key-value pairs.

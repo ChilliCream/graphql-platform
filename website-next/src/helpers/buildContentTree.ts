@@ -26,7 +26,7 @@ function abs(rel: string): string {
  */
 export function buildContentTree(
   rootRel: string,
-  urlPrefix: string
+  urlPrefix: string,
 ): TreeNode[] {
   if (!fs.existsSync(abs(rootRel))) {
     return [];
@@ -54,12 +54,12 @@ function walk(dirRel: string, urlPrefix: string): TreeNode[] {
   for (const item of items) {
     if (!item.path || !item.title) {
       throw new Error(
-        `Invalid item in ${dirRel}/${META_FILE}: each item needs 'path' and 'title'`
+        `Invalid item in ${dirRel}/${META_FILE}: each item needs 'path' and 'title'`,
       );
     }
 
     const fileExt = [".md", ".mdx"].find((ext) =>
-      fs.existsSync(abs(`${dirRel}/${item.path}${ext}`))
+      fs.existsSync(abs(`${dirRel}/${item.path}${ext}`)),
     );
 
     if (fileExt) {
@@ -74,7 +74,7 @@ function walk(dirRel: string, urlPrefix: string): TreeNode[] {
     if (fs.existsSync(subAbs) && fs.statSync(subAbs).isDirectory()) {
       const childUrl = `${urlPrefix}/${item.path}`;
       const indexFile = ["index.md", "index.mdx"].find((n) =>
-        fs.existsSync(abs(`${subRel}/${n}`))
+        fs.existsSync(abs(`${subRel}/${n}`)),
       );
       const children = walk(subRel, childUrl);
       nodes.push({
@@ -86,9 +86,50 @@ function walk(dirRel: string, urlPrefix: string): TreeNode[] {
     }
 
     throw new Error(
-      `Item '${item.path}' referenced in ${dirRel}/${META_FILE} does not exist on disk`
+      `Item '${item.path}' referenced in ${dirRel}/${META_FILE} does not exist on disk`,
     );
   }
 
   return nodes;
+}
+
+export type Breadcrumb = { name: string; href: string | null };
+
+/**
+ * Resolves the navigation titles along a docs slug into breadcrumb entries by
+ * locating the page in the product's navigation tree. The first entry is the
+ * product itself (titled by its `structure.yaml`); the rest are the tree nodes
+ * on the path to the page. `href` is null for groups without an index page.
+ */
+export function docBreadcrumbs(slug: string[]): Breadcrumb[] {
+  const product = slug[0];
+  const rootRel = `docs/${product}`;
+  if (!fs.existsSync(abs(`${rootRel}/${META_FILE}`))) {
+    return [];
+  }
+
+  const productCrumb: Breadcrumb = {
+    name: readMeta(rootRel).title,
+    href: `/docs/${product}`,
+  };
+  if (slug.length === 1) {
+    return [productCrumb];
+  }
+
+  const tree = buildContentTree(rootRel, `/docs/${product}`);
+  const trail = findTrail(tree, `/docs/${slug.join("/")}`);
+  return trail ? [productCrumb, ...trail] : [productCrumb];
+}
+
+function findTrail(nodes: TreeNode[], targetHref: string): Breadcrumb[] | null {
+  for (const node of nodes) {
+    if (node.href === targetHref) {
+      return [{ name: node.title, href: node.href }];
+    }
+    const sub = findTrail(node.children, targetHref);
+    if (sub !== null) {
+      return [{ name: node.title, href: node.href }, ...sub];
+    }
+  }
+  return null;
 }

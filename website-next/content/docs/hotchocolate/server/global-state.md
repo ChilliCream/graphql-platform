@@ -1,5 +1,6 @@
 ---
 title: Global State
+description: "Share per-request data across all Hot Chocolate resolvers and middleware with Global State, initialized at request start and accessed via [GlobalState]."
 ---
 
 Global State lets you define properties on a per-request basis and makes them available to all resolvers and middleware.

@@ -1,5 +1,6 @@
 ---
 title: "Data Requirements"
+description: "Declare cross-subgraph data dependencies in Fusion with the @require directive: required fields are validated at composition and fetched by the gateway."
 ---
 
 In traditional distributed systems, dependencies between services hide beneath the surface. A service assumes another service provides certain fields, responds in a certain shape, or is available at a certain time. These assumptions are invisible: they live in code, not in contracts. You discover them when something breaks in production. A field gets renamed, a service changes its response format, or a new team removes data another team depended on without knowing.
@@ -10,7 +11,7 @@ This shifts cross-service data dependencies from hidden runtime failures to visi
 
 This chapter covers the directives and attributes that make this work: `@require` for declaring data requirements and `@provides` for declaring fields that a subgraph can resolve locally alongside an entity reference. You will learn the full range of patterns and the syntax behind each directive.
 
-## Declaring Data Dependencies
+# Declaring Data Dependencies
 
 Use `@require` on a resolver argument when that argument's value must come from fields owned by other subgraphs. Instead of calling another service yourself, you declare what data you need and the gateway fetches it for you.
 
@@ -68,7 +69,7 @@ type Product {
 
 The `weight` argument is gone. Clients pass only `zip`. The gateway handles the resolution of `weight` transparently.
 
-### How the Gateway Resolves Requirements
+## How the Gateway Resolves Requirements
 
 When a resolver declares a data requirement with `@require`, three things happen during composition and execution:
 
@@ -80,7 +81,7 @@ The resolver receives the data as if it were a normal argument. It does not know
 
 ![The gateway fetches required data from the Products subgraph first, then passes it to the Shipping subgraph as resolved @require arguments](../../../public/images/fusion-docs/data-requirements-require-flow.png)
 
-### Complex Requirements with Input Objects
+## Complex Requirements with Input Objects
 
 When a resolver needs multiple fields, you can gather them into a single input object using FieldSelectionMap syntax. This is a clean approach as it puts all the requirements for a resolver into a single argument.
 
@@ -164,7 +165,7 @@ type Product {
 
 The `dimension` requirement argument is hidden from clients. Clients see only `zip`; the gateway resolves the nested fields (`weight`, `length`, `width`, `height`) automatically.
 
-### Multiple Scalar Requirements
+## Multiple Scalar Requirements
 
 You can annotate multiple arguments with `@require` on the same field. Each one declares an independent data dependency. So, while you can aggregate them into a single input object like explained above you also can spread them across arguments.
 
@@ -199,7 +200,7 @@ public static partial class ProductNode
 }
 ```
 
-### Nested Field Paths
+## Nested Field Paths
 
 `@require` can reach into nested objects using dot notation.
 
@@ -217,7 +218,7 @@ type Product {
 
 The gateway traverses `seller.address.countryCode` on the entity and passes the resolved value as the `countryCode` argument.
 
-### List Aggregation Paths
+## List Aggregation Paths
 
 When an entity field is a list, you can use bracket notation to select a field from each element. The gateway collects the selected values into a flat list.
 
@@ -235,11 +236,11 @@ type Product {
 
 The path `seller.addresses[countryCode]` means: navigate to `seller.addresses` (a list), then select `countryCode` from each element. If the seller has three addresses with country codes `"US"`, `"DE"`, and `"US"`, the resolver receives `["US", "DE", "US"]` as the `countryCodes` argument.
 
-## Declaring Contextually Available Fields
+# Declaring Contextually Available Fields
 
 Use `@provides` on a field that returns an entity to tell the gateway that certain subfields of that entity are available when resolved through this specific field. The subgraph does not own those fields globally, but it can provide them in this context.
 
-### When Contextual Availability Helps
+## When Contextual Availability Helps
 
 Consider a Reviews subgraph where the `author` field returns a `User` entity. The `User` type and its `username` field are owned by the Accounts subgraph. Normally the gateway would need to call the Accounts subgraph to fetch `username`. But the Reviews subgraph already has the author's username available when resolving `Review.author`. By annotating the `author` field with `@provides(fields: "username")`, the subgraph tells the gateway: "When you resolve `author` through the `Review` entity on my subgraph, I can also give you `username`."
 
@@ -282,7 +283,7 @@ public static partial class ReviewNode
 }
 ```
 
-### Providing Multiple and Nested Fields
+## Providing Multiple and Nested Fields
 
 `@provides` accepts a field selection set, so you can declare multiple fields or nested fields:
 
@@ -298,7 +299,7 @@ type Review {
 }
 ```
 
-### When to Provide Fields Contextually
+## When to Provide Fields Contextually
 
 Use `@provides` when:
 
@@ -308,7 +309,7 @@ Use `@provides` when:
 
 Do not use `@provides` as a substitute for proper entity ownership. If your subgraph is the authoritative source for a field, that field should be defined as a regular field, not as `@external` with `@provides`. Similarly, if your subgraph can resolve a field on every path, use `@shareable` instead of marking it `@external` and adding `@provides` to each field that returns the entity.
 
-## FieldSelectionMap Syntax Reference
+# FieldSelectionMap Syntax Reference
 
 `@require` uses the FieldSelectionMap scalar for its `field` argument. This is a mini-language for describing how to map entity fields to argument shapes.
 
@@ -322,7 +323,7 @@ Do not use `@provides` as a substitute for proper entity ownership. If your subg
 | List aggregation | `"addresses[countryCode]"`             | Selects `countryCode` from each element in the `addresses` list  |
 | List projection  | `"dimensions[{ weight, height }]"`     | Selects multiple fields from each list element into an object    |
 
-### When to Use Which Syntax
+## When to Use Which Syntax
 
 **Simple path.** Use when `@require` maps one argument to one field.
 
@@ -356,9 +357,9 @@ dims: [ProductDimensionInput!]! @require(field: "dimensions[{ weight, height }]"
 
 > For the full FieldSelectionMap grammar, see the [Composite Schemas specification](https://graphql.github.io/composite-schemas-spec/draft/#sec-Appendix-A-Specification-of-FieldSelectionMap-Scalar).
 
-## Troubleshooting
+# Troubleshooting
 
-### `REQUIRE_INVALID_FIELDS`: Referenced field does not exist
+## `REQUIRE_INVALID_FIELDS`: Referenced field does not exist
 
 ```text
 Error: The @require directive on argument "weight" references field "weight"
@@ -367,26 +368,26 @@ which does not exist on type "Product".
 
 The field path in `@require(field: "...")` points to a field that does not exist on the entity type after composition. Check that the field name matches exactly (GraphQL field names, not C# property names) and that the owning subgraph is included in composition.
 
-### `PROVIDES_INVALID_FIELDS`: Invalid field selection in `@provides`
+## `PROVIDES_INVALID_FIELDS`: Invalid field selection in `@provides`
 
 The `@provides(fields: "...")` selection references one or more fields that do not exist on the returned entity type. Verify each field path (including nested fields) against the GraphQL schema.
 
-### `PROVIDES_FIELDS_MISSING_EXTERNAL`: Provided field must be marked `@external`
+## `PROVIDES_FIELDS_MISSING_EXTERNAL`: Provided field must be marked `@external`
 
 A field referenced by `@provides(fields: "...")` must be declared as `@external` in the same subgraph. Mark the provided field (and nested fields, when applicable) as `@external`, or remove it from `@provides` if this subgraph owns it globally.
 
-### `EXTERNAL_UNUSED`: External field is not referenced
+## `EXTERNAL_UNUSED`: External field is not referenced
 
 Every `@external` field must be referenced by a `@provides` directive. Remove unused `@external` declarations or add the corresponding `@provides` selection.
 
-### Required argument still visible in composite schema
+## Required argument still visible in composite schema
 
 If a `@require` argument appears in the composite schema when it should not, check that:
 
 - The `@require` directive is on the argument, not on the field
 - The `field` value is a valid FieldSelectionMap (invalid syntax triggers a `REQUIRE_INVALID_SYNTAX` composition error)
 
-## Next Steps
+# Next Steps
 
 - **Need entity identity and lookup patterns?** See [Entities and Lookups](./entities-and-lookups.md) for the full guide to keys, public vs. internal lookups, and composite keys.
 - **Need field ownership contracts?** See [Field Ownership](./field-ownership-and-sharing.md).

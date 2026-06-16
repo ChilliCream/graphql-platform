@@ -294,6 +294,76 @@ public class RequestExecutorManagerTests
         Assert.NotSame(initialExecutor, rebuiltExecutor);
     }
 
+    [Fact]
+    public async Task OnTypesChanged_Should_Not_Grow_CreateTypes_Calls_Exponentially_When_Type_Instance_Registered()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        var typeModule = new CountingTypeModule();
+
+        var manager = new ServiceCollection()
+            .AddGraphQL()
+            .AddTypeModule(_ => typeModule)
+            .AddType(new ObjectType<FooType>())
+            .AddQueryType(d => d.Field("foo").Resolve(""))
+            .Services
+            .BuildServiceProvider()
+            .GetRequiredService<RequestExecutorManager>();
+
+        await manager.GetExecutorAsync(cancellationToken: cts.Token);
+        var createCallsAfterInitial = typeModule.CreateTypesCallCount;
+
+        // act
+        for (var i = 1; i <= 3; i++)
+        {
+            typeModule.TriggerChange();
+
+            // The rebuild throws (the type instance is already initialized), so no Evicted
+            // event is raised. The only observable signal of the rebuild attempt is the
+            // CreateTypesAsync counter, so wait until this trigger's attempt has happened.
+            var expectedCalls = createCallsAfterInitial + i;
+            await SpinUntilAsync(() => typeModule.CreateTypesCallCount >= expectedCalls, cts.Token);
+        }
+
+        // give leaked subscriptions time to surface additional rebuild attempts
+        await Task.Delay(200, cts.Token);
+
+        // assert
+        var createCallsFromTriggers = typeModule.CreateTypesCallCount - createCallsAfterInitial;
+        Assert.Equal(3, createCallsFromTriggers);
+    }
+
+    private static async Task SpinUntilAsync(Func<bool> condition, CancellationToken cancellationToken)
+    {
+        while (!condition())
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            await Task.Delay(10, cancellationToken);
+        }
+    }
+
+    private sealed class CountingTypeModule : TypeModule
+    {
+        private int _createTypesCallCount;
+
+        public int CreateTypesCallCount => _createTypesCallCount;
+
+        public void TriggerChange() => OnTypesChanged();
+
+        public override ValueTask<IReadOnlyCollection<ITypeSystemMember>> CreateTypesAsync(
+            IDescriptorContext context,
+            CancellationToken cancellationToken)
+        {
+            Interlocked.Increment(ref _createTypesCallCount);
+            return base.CreateTypesAsync(context, cancellationToken);
+        }
+    }
+
+    private sealed class FooType
+    {
+        public string Bar() => "baz";
+    }
+
 #pragma warning disable CS9113 // Parameter is unread.
     private sealed class CustomWarmupTask(IDocumentCache documentCache, SomeService service) : IRequestExecutorWarmupTask
 #pragma warning restore CS9113 // Parameter is unread.

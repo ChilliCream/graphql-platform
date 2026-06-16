@@ -1,5 +1,6 @@
 ---
 title: "Reference"
+description: "Complete skillz CLI reference covering every command and flag, JSON output, exit codes, environment variables, file locations, and supported agents."
 ---
 
 This page is the complete, precise reference for the skillz command surface, JSON output, exit codes, environment variables, file locations, and supported agents. It is meant for lookup, not for learning. To learn by doing, start at [Installing Skills](./installing-skills.md) and [Authoring Skills](./authoring-skills.md).

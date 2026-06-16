@@ -1,5 +1,6 @@
 ---
 title: "Deployment"
+description: "Track schema, client, and Fusion configuration deployments in the Nitro Deployments tab and gate risky changes with the `--wait-for-approval` flag."
 ---
 
 ![Deployment](../../../../public/images/nitro-docs/apis/deployments-0.webp)
@@ -8,7 +9,7 @@ Deploying a service typically involves publishing a client, schema, or fusion co
 
 Whenever you initiate a deployment of a client, schema, or fusion configuration through Nitro CLI, it logs an entry in the "Deployments" tab. This tab provides a chronological overview of all deployments executed on the stage, offering visibility into the deployment history and status.
 
-## Setup Approvals
+# Setup Approvals
 
 In development environments, it's not uncommon for GraphQL changes to introduce breaking changes. To mitigate the risk of manually pushing such changes to a stage, Nitro CLI offers the `--wait-for-approval` flag. This option can be utilized when publishing a schema, client, or fusion configuration and serves as a time saver by allowing you to review and approve deployments directly from the "Deployments" tab.
 

@@ -11,7 +11,7 @@ export function EditOnGitHub({ href }: EditOnGitHubProps) {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="mt-10 inline-flex items-center gap-2 text-sm font-medium text-cc-ink-dim no-underline transition-colors hover:text-cc-accent"
+      className="text-cc-ink-dim hover:text-cc-accent mt-10 inline-flex items-center gap-2 text-sm font-medium no-underline transition-colors print:hidden"
     >
       <GitHubIcon className="h-4 w-4 fill-current" aria-hidden="true" />
       Edit this page on GitHub

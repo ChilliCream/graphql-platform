@@ -1,5 +1,6 @@
 ---
 title: "Directives"
+description: "Create and apply GraphQL directives in Hot Chocolate, from built-ins like @skip and @include to custom directive types that alter execution behavior."
 ---
 
 Directives let you add metadata for client tools (such as code generators and IDEs) or modify a GraphQL server’s runtime execution and type validation behavior.

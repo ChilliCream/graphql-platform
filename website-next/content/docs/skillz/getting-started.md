@@ -1,5 +1,6 @@
 ---
 title: "Getting Started"
+description: "Run skillz with `dnx` and add your first Agent Skill to Claude Code or another AI coding agent in five minutes using `dnx skillz add`."
 ---
 
 By the end of this guide you will have run skillz and added your first skill to your agent.

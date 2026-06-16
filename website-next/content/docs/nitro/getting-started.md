@@ -1,5 +1,6 @@
 ---
 title: "Getting Started"
+description: "Set up Nitro as a web or desktop app and run your first GraphQL query, from creating a document to connecting to a server and executing operations."
 ---
 
 Ready to explore the features of Nitro? In this getting started guide, we'll show you how to get up and running with Nitro.

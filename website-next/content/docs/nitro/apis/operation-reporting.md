@@ -1,5 +1,6 @@
 ---
 title: "Operation Reporting"
+description: "Nitro Operation Reporting gives insight into the GraphQL operations executed on your server; enable it with the `ChilliCream.Nitro` package and `AddNitro()`."
 ---
 
 ![Image](../../../../public/images/nitro-docs/apis/operation-reporting-0.webp)

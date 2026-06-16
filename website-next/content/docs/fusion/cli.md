@@ -1,5 +1,6 @@
 ---
 title: "Nitro CLI Reference"
+description: "Reference for the `nitro fusion` CLI commands: compose, validate, publish, download, and run Fusion gateway configurations locally or with Nitro Cloud."
 ---
 
 The Nitro CLI provides the `nitro fusion` command group for composing, validating, publishing, and running Fusion gateway configurations. Use these commands for local development workflows and for publishing configurations to Nitro Cloud.

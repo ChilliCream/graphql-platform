@@ -1,5 +1,6 @@
 ---
 title: "DataLoader"
+description: "Solve the N+1 problem in Hot Chocolate with DataLoader: source-generated [DataLoader] methods batch and cache data lookups within a GraphQL request."
 ---
 
 DataLoaders solve the N+1 problem in GraphQL. When the execution engine resolves a list of objects and each object needs related data, a naive implementation fires one database query per object. A DataLoader collects all those individual requests, waits for the execution engine to finish the current batch of resolvers, and then sends one query for all requested keys at once.

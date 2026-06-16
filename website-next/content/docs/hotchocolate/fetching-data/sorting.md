@@ -1,5 +1,6 @@
 ---
 title: Sorting
+description: "Generate sort input types from .NET models with the [UseSorting] attribute in Hot Chocolate, translating client sort arguments into native database ordering."
 ---
 
 Hot Chocolate generates sort input types from your .NET models, allowing clients to order results by one or more fields. The default implementation translates sort operations to expression trees applied to `IQueryable`, producing native database queries. For models with nested objects, sorting extends across relationships.

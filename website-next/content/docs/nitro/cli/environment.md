@@ -1,5 +1,6 @@
 ---
 title: environment Command
+description: "Manage workspace environments with the `nitro environment` commands: create, list, show, and delete variable groups reused across documents in the Nitro UI."
 ---
 
 The `nitro environment` commands manage environments. An environment is a workspace-level grouping that holds a list of variables that can be reused across documents in the Nitro UI.

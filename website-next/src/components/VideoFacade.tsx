@@ -26,7 +26,7 @@ export function VideoFacade({
   if (active) {
     const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`;
     return (
-      <div className="relative aspect-video w-full bg-cc-black">
+      <div className="bg-cc-black relative aspect-video w-full">
         <iframe
           src={embedUrl}
           title={playlabel}
@@ -44,14 +44,14 @@ export function VideoFacade({
       type="button"
       onClick={() => setActive(true)}
       aria-label={playlabel}
-      className="group relative block aspect-video w-full cursor-pointer overflow-hidden border-0 bg-cc-black p-0"
+      className="group bg-cc-black relative block aspect-video w-full cursor-pointer overflow-hidden border-0 p-0"
     >
       {children}
       <span
         aria-hidden="true"
         className="absolute inset-0 flex items-center justify-center"
       >
-        <span className="flex h-12 w-17 items-center justify-center rounded-[14%] bg-cc-black/70 text-cc-white transition-colors group-hover:bg-cc-youtube">
+        <span className="bg-cc-black/70 text-cc-white group-hover:bg-cc-youtube flex h-12 w-17 items-center justify-center rounded-[14%] transition-colors">
           <svg
             viewBox="0 0 24 24"
             fill="currentColor"

@@ -1,5 +1,6 @@
 ---
 title: Projections
+description: "Translate GraphQL field selections into optimized database queries with the [UseProjection] attribute in Hot Chocolate, combined with filtering and sorting."
 ---
 
 GraphQL clients specify which fields they need. Projections take advantage of this by translating the requested fields directly into optimized database queries. If a client requests only `name` and `email`, Hot Chocolate queries only those columns from the database.

@@ -26,9 +26,7 @@ export function generateStaticParams(): Params[] {
       params.push({ tag, page: String(p) });
     }
   }
-  return params.length > 0
-    ? params
-    : [{ tag: "__empty__", page: "__empty__" }];
+  return params.length > 0 ? params : [{ tag: "__empty__", page: "__empty__" }];
 }
 
 export async function generateMetadata({ params }: PageProps) {
