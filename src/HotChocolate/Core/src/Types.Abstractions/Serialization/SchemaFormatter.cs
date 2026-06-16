@@ -493,8 +493,12 @@ public static class SchemaFormatter
 
             directives = ApplyDeprecatedDirective(mutableDirective, directives);
 
-            context.Result =
-                new DirectiveDefinitionNode(
+            context.Result = IsTypeExtension(mutableDirective)
+                ? new DirectiveExtensionNode(
+                    null,
+                    new NameNode(mutableDirective.Name),
+                    directives)
+                : (IDefinitionNode)new DirectiveDefinitionNode(
                     null,
                     new NameNode(mutableDirective.Name),
                     CreateDescription(mutableDirective.Description),

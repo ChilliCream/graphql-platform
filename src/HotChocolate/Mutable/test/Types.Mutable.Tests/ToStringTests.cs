@@ -174,4 +174,27 @@ public class ToStringTests
             directive @meta(value: String) on DIRECTIVE_DEFINITION
             """);
     }
+
+    [Fact]
+    public void Schema_With_DirectiveExtension_ToString()
+    {
+        // arrange
+        const string sdl =
+            """
+            directive @meta(value: String) on DIRECTIVE_DEFINITION
+
+            extend directive @foo @meta(value: "a")
+            """;
+
+        // act
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        schema.ToString().MatchInlineSnapshot(
+            """
+            extend directive @foo @meta(value: "a")
+
+            directive @meta(value: String) on DIRECTIVE_DEFINITION
+            """);
+    }
 }
