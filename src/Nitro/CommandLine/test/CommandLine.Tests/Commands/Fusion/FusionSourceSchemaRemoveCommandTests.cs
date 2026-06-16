@@ -115,6 +115,7 @@ public sealed class FusionSourceSchemaRemoveCommandTests(NitroCommandFixture fix
         var archiveFileName = await ComposeArchiveAsync(
             "valid-example-1/source-schema-1.graphqls",
             "valid-example-1/source-schema-2.graphqls");
+        var output = SetupCreateFile(archiveFileName);
 
         // act
         var result = await ExecuteCommandAsync(
@@ -128,9 +129,9 @@ public sealed class FusionSourceSchemaRemoveCommandTests(NitroCommandFixture fix
         // assert
         Assert.Equal(0, result.ExitCode);
 
-        using var archive = FusionArchive.Open(archiveFileName);
-        var names = await archive.GetSourceSchemaNamesAsync(TestContext.Current.CancellationToken);
-        var schema = await GetFusionSchemaAsync(archive);
+        using var resultArchive = FusionArchive.Open(new MemoryStream(output.ToArray()));
+        var names = await resultArchive.GetSourceSchemaNamesAsync(TestContext.Current.CancellationToken);
+        var schema = await GetFusionSchemaAsync(resultArchive);
         Assert.Equal(["Schema1"], names);
         Assert.Contains("schema1Field", schema);
         Assert.DoesNotContain("schema2Field", schema);

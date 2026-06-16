@@ -152,6 +152,7 @@ public sealed class FusionSourceSchemaReplaceCommandTests(NitroCommandFixture fi
             "valid-example-1/source-schema-1.graphqls",
             "valid-example-1/source-schema-2.graphqls");
         SetupReplacementSchema();
+        var output = SetupCreateFile(archiveFileName);
 
         // act
         var result = await ExecuteCommandAsync(
@@ -167,25 +168,59 @@ public sealed class FusionSourceSchemaReplaceCommandTests(NitroCommandFixture fi
         // assert
         Assert.Equal(0, result.ExitCode);
 
-        using var archive = FusionArchive.Open(archiveFileName);
-        var names = await archive.GetSourceSchemaNamesAsync(TestContext.Current.CancellationToken);
-        var schema = await GetFusionSchemaAsync(archive);
+        using var resultArchive = FusionArchive.Open(new MemoryStream(output.ToArray()));
+        var names = await resultArchive.GetSourceSchemaNamesAsync(TestContext.Current.CancellationToken);
+        var schema = await GetFusionSchemaAsync(resultArchive);
         Assert.Equal(["Schema1", "Schema3"], names);
         Assert.Contains("schema3Field", schema);
         Assert.DoesNotContain("schema2Field", schema);
     }
 
     [Fact]
-    public async Task Replace_CompositionFails_LeavesArchiveOnDiskUnchanged()
+    public async Task Replace_RelativeArchive_ResolvesAgainstWorkingDirectory()
+    {
+        // arrange
+        var archiveBytes = await ComposeArchiveBytesAsync(
+            "valid-example-1/source-schema-1.graphqls",
+            "valid-example-1/source-schema-2.graphqls");
+        var workingDirectory = CreateTempDirectory();
+        var archivePath = Path.Combine(workingDirectory, "gateway.far");
+        SetupFile(archivePath, new MemoryStream(archiveBytes));
+        SetupReplacementSchema();
+        var output = SetupCreateFile(archivePath);
+
+        // act
+        // The relative --archive must resolve under --working-directory, while the
+        // --source-schema-file is passed as an absolute path so it is found regardless.
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "source-schema",
+            "replace",
+            "Schema2",
+            "--archive",
+            "gateway.far",
+            "--source-schema-file",
+            "/some/working/directory/replacement/schema.graphqls",
+            "--working-directory",
+            workingDirectory);
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+
+        using var resultArchive = FusionArchive.Open(new MemoryStream(output.ToArray()));
+        var names = await resultArchive.GetSourceSchemaNamesAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(["Schema1", "Schema3"], names);
+    }
+
+    [Fact]
+    public async Task Replace_CompositionFails_DoesNotWriteArchive()
     {
         // arrange
         var archiveFileName = await ComposeArchiveAsync(
             "valid-example-1/source-schema-1.graphqls",
             "valid-example-1/source-schema-2.graphqls");
         SetupInvalidReplacementSchema();
-        var before = await File.ReadAllBytesAsync(
-            archiveFileName,
-            TestContext.Current.CancellationToken);
+        var output = SetupCreateFile(archiveFileName);
 
         // act
         var result = await ExecuteCommandAsync(
@@ -199,11 +234,8 @@ public sealed class FusionSourceSchemaReplaceCommandTests(NitroCommandFixture fi
             "replacement/schema.graphqls");
 
         // assert
-        var after = await File.ReadAllBytesAsync(
-            archiveFileName,
-            TestContext.Current.CancellationToken);
         Assert.Equal(1, result.ExitCode);
-        Assert.Equal(before, after);
+        Assert.Empty(output.ToArray());
     }
 
     private void SetupReplacementSchema()
@@ -256,6 +288,23 @@ public sealed class FusionSourceSchemaReplaceCommandTests(NitroCommandFixture fi
         return archiveFileName;
     }
 
+    private async Task<byte[]> ComposeArchiveBytesAsync(params string[] relativeSchemaPaths)
+    {
+        var archiveFileName = await ComposeArchiveAsync(relativeSchemaPaths);
+
+        return await File.ReadAllBytesAsync(
+            archiveFileName,
+            TestContext.Current.CancellationToken);
+    }
+
+    private string CreateTempDirectory()
+    {
+        var tempDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempDirectory);
+        _tempFiles.Add(tempDirectory);
+        return tempDirectory;
+    }
+
     private void SetupSourceSchemaFromResources(string relativePath)
     {
         var fullPath = Path.Combine(s_resourcesDir, relativePath);
@@ -280,7 +329,11 @@ public sealed class FusionSourceSchemaReplaceCommandTests(NitroCommandFixture fi
         {
             try
             {
-                if (File.Exists(file))
+                if (Directory.Exists(file))
+                {
+                    Directory.Delete(file, recursive: true);
+                }
+                else if (File.Exists(file))
                 {
                     File.Delete(file);
                 }

@@ -48,11 +48,15 @@ internal sealed class FusionSourceSchemaRemoveCommand : Command
         var archiveFile = parseResult.GetRequiredValue(Opt<FusionArchiveFileOption>.Instance);
         var environment = parseResult.GetValue(Opt<FusionEnvironmentOption>.Instance);
 
-        archiveFile = FusionSourceSchemaHelpers.ResolveExistingArchiveFile(fileSystem, archiveFile);
+        archiveFile = FusionSourceSchemaHelpers.ResolveExistingArchiveFile(
+            fileSystem,
+            archiveFile,
+            fileSystem.GetCurrentDirectory());
 
         environment ??= environmentVariables.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
 
         return await FusionSourceSchemaHelpers.ApplyAndRecomposeAsync(
+            fileSystem,
             archiveFile,
             MutateAsync,
             [],

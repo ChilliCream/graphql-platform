@@ -56,7 +56,10 @@ internal sealed class FusionSourceSchemaReplaceCommand : Command
         var workingDirectory = parseResult.GetValue(Opt<WorkingDirectoryOption>.Instance)
             ?? fileSystem.GetCurrentDirectory();
 
-        archiveFile = FusionSourceSchemaHelpers.ResolveExistingArchiveFile(fileSystem, archiveFile);
+        archiveFile = FusionSourceSchemaHelpers.ResolveExistingArchiveFile(
+            fileSystem,
+            archiveFile,
+            workingDirectory);
 
         var (schemaName, sourceText, settings) = await FusionCompositionHelpers.ReadSourceSchemaAsync(
             fileSystem,
@@ -72,6 +75,7 @@ internal sealed class FusionSourceSchemaReplaceCommand : Command
         environment ??= environmentVariables.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
 
         return await FusionSourceSchemaHelpers.ApplyAndRecomposeAsync(
+            fileSystem,
             archiveFile,
             MutateAsync,
             newSourceSchemas,
