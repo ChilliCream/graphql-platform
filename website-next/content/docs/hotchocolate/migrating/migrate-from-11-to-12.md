@@ -146,7 +146,7 @@ public class Person
 }
 ```
 
-[Reference](https://chillicream.com/docs/hotchocolate/v12/fetching-data/pagination#naming)
+[Reference](../fetching-data/pagination.md#connection-naming)
 
 ## MongoDB Paging
 
@@ -161,7 +161,7 @@ services
     ...
 ```
 
-[Reference](https://chillicream.com/docs/hotchocolate/v12/fetching-data/pagination#providers)
+[Reference](../fetching-data/pagination.md)
 
 # Records
 
@@ -175,7 +175,7 @@ public record Foo([property: ID] string Id);
 
 We added more instrumentation events and generalized more how one can tap into our internal events. The class `DiagnosticEventListener` is now obsolete and replaced with `ExecutionDiagnosticEventListener`. This is due to new event listener classes like `DataLoaderDiagnosticEventListener`. Most virtual methods previously returning IActivityScope now return IDisposable.
 
-[Learn more about instrumentation](https://chillicream.com/docs/hotchocolate/v12/server/instrumentation)
+[Learn more about instrumentation](../server/instrumentation.md)
 
 # Relay
 
@@ -203,7 +203,7 @@ services
     .AddGlobalObjectIdentification();
 ```
 
-[Learn more about Global Object Identification](https://chillicream.com/docs/hotchocolate/v12/defining-a-schema/relay#global-object-identification)
+[Learn more about Global Object Identification](../defining-a-schema/relay.md#global-object-identification)
 
 ## Query field in Mutation payloads
 
@@ -238,7 +238,7 @@ If you just want to enable the feature without further configuration, you can om
 > [!WARNING]
 > Since `EnableRelaySupport()` previously always implied the usage of Global Object Identification, you might have to enable Global Object Identification separately as well.
 
-[Learn more about Query field in Mutation payloads](https://chillicream.com/docs/hotchocolate/v12/defining-a-schema/relay#query-field-in-mutation-payloads)
+[Learn more about Query field in Mutation payloads](../defining-a-schema/relay.md#query-field-in-mutation-payloads)
 
 # DataLoader
 
