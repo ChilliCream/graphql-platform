@@ -33,8 +33,6 @@ internal sealed class RabbitMQQueueBuilder : IRabbitMQQueueBuilder
     private RabbitMQReceiveEndpointDescriptor EnsureEndpoint()
         => _endpoint ??= (RabbitMQReceiveEndpointDescriptor)_transport.Endpoint(_name);
 
-    // -- Infra group --
-
     /// <inheritdoc />
     public IRabbitMQQueueBuilder Durable(bool durable = true)
     {
@@ -62,8 +60,6 @@ internal sealed class RabbitMQQueueBuilder : IRabbitMQQueueBuilder
         _queue.AutoProvision(autoProvision);
         return this;
     }
-
-    // -- Routing group --
 
     /// <inheritdoc />
     public IRabbitMQQueueBuilder Handler<THandler>() where THandler : class, IHandler
@@ -166,8 +162,6 @@ internal sealed class RabbitMQQueueBuilder : IRabbitMQQueueBuilder
         return this;
     }
 
-    // -- Satellite sugar --
-
     /// <inheritdoc />
     public IRabbitMQQueueBuilder ErrorQueue(string name)
     {
@@ -196,8 +190,6 @@ internal sealed class RabbitMQQueueBuilder : IRabbitMQQueueBuilder
         return this;
     }
 
-    // -- BindFrom (infra group, writes directly to topology) --
-
     /// <inheritdoc />
     public IRabbitMQQueueBuilder BindFrom(Uri source, string? routingKey = null)
     {
@@ -221,12 +213,4 @@ internal sealed class RabbitMQQueueBuilder : IRabbitMQQueueBuilder
 
         return this;
     }
-
-    // -- Escape hatches --
-
-    /// <inheritdoc />
-    public IRabbitMQQueueDescriptor AsQueue() => _queue;
-
-    /// <inheritdoc />
-    public IRabbitMQReceiveEndpointDescriptor AsEndpoint() => EnsureEndpoint();
 }

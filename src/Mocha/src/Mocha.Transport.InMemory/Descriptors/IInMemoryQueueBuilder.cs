@@ -7,8 +7,6 @@ namespace Mocha.Transport.InMemory;
 /// </summary>
 public interface IInMemoryQueueBuilder
 {
-    // -- Routing group (delegates to a lazily created receive endpoint) --
-
     /// <summary>
     /// Registers a handler type on this queue's receive endpoint.
     /// </summary>
@@ -105,8 +103,6 @@ public interface IInMemoryQueueBuilder
     /// <returns>The builder for method chaining.</returns>
     IInMemoryQueueBuilder SkippedEndpoint(string name);
 
-    // -- BindFrom (infra group, writes directly to topology) --
-
     /// <summary>
     /// Binds this queue to a source topic, writing the topic and binding directly to the
     /// transport topology without materializing a receive endpoint.
@@ -115,18 +111,4 @@ public interface IInMemoryQueueBuilder
     /// <param name="routingKey">An optional routing key for the binding.</param>
     /// <returns>The builder for method chaining.</returns>
     IInMemoryQueueBuilder BindFrom(Uri source, string? routingKey = null);
-
-    // -- Escape hatches --
-
-    /// <summary>
-    /// Returns the underlying queue descriptor for direct topology configuration.
-    /// </summary>
-    /// <returns>The queue descriptor.</returns>
-    IInMemoryQueueDescriptor AsQueue();
-
-    /// <summary>
-    /// Returns the underlying receive endpoint descriptor, creating it if necessary.
-    /// </summary>
-    /// <returns>The receive endpoint descriptor.</returns>
-    IInMemoryReceiveEndpointDescriptor AsEndpoint();
 }

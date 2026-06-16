@@ -8,7 +8,6 @@ namespace Mocha.Transport.InMemory;
 internal sealed class InMemoryQueueBuilder : IInMemoryQueueBuilder
 {
     private readonly InMemoryMessagingTransportDescriptor _transport;
-    private readonly IInMemoryQueueDescriptor _queue;
     private readonly string _name;
     private InMemoryReceiveEndpointDescriptor? _endpoint;
 
@@ -21,7 +20,7 @@ internal sealed class InMemoryQueueBuilder : IInMemoryQueueBuilder
     {
         _transport = transport;
         _name = name;
-        _queue = transport.DeclareQueue(name);
+        transport.DeclareQueue(name);
     }
 
     /// <summary>
@@ -31,8 +30,6 @@ internal sealed class InMemoryQueueBuilder : IInMemoryQueueBuilder
 
     private InMemoryReceiveEndpointDescriptor EnsureEndpoint()
         => _endpoint ??= (InMemoryReceiveEndpointDescriptor)_transport.Endpoint(_name);
-
-    // -- Routing group --
 
     /// <inheritdoc />
     public IInMemoryQueueBuilder Handler<THandler>() where THandler : class, IHandler
@@ -128,8 +125,6 @@ internal sealed class InMemoryQueueBuilder : IInMemoryQueueBuilder
         return this;
     }
 
-    // -- BindFrom (infra group, writes directly to topology) --
-
     /// <inheritdoc />
     public IInMemoryQueueBuilder BindFrom(Uri source, string? routingKey = null)
     {
@@ -156,12 +151,4 @@ internal sealed class InMemoryQueueBuilder : IInMemoryQueueBuilder
 
         return this;
     }
-
-    // -- Escape hatches --
-
-    /// <inheritdoc />
-    public IInMemoryQueueDescriptor AsQueue() => _queue;
-
-    /// <inheritdoc />
-    public IInMemoryReceiveEndpointDescriptor AsEndpoint() => EnsureEndpoint();
 }

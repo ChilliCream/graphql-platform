@@ -33,8 +33,6 @@ internal sealed class PostgresQueueBuilder : IPostgresQueueBuilder
     private PostgresReceiveEndpointDescriptor EnsureEndpoint()
         => _endpoint ??= (PostgresReceiveEndpointDescriptor)_transport.Endpoint(_name);
 
-    // -- Infra group --
-
     /// <inheritdoc />
     public IPostgresQueueBuilder AutoProvision(bool autoProvision = true)
     {
@@ -48,8 +46,6 @@ internal sealed class PostgresQueueBuilder : IPostgresQueueBuilder
         _queue.AutoDelete(autoDelete);
         return this;
     }
-
-    // -- Routing group --
 
     /// <inheritdoc />
     public IPostgresQueueBuilder Handler<THandler>() where THandler : class, IHandler
@@ -152,8 +148,6 @@ internal sealed class PostgresQueueBuilder : IPostgresQueueBuilder
         return this;
     }
 
-    // -- Satellite sugar --
-
     /// <inheritdoc />
     public IPostgresQueueBuilder ErrorQueue(string name)
     {
@@ -182,8 +176,6 @@ internal sealed class PostgresQueueBuilder : IPostgresQueueBuilder
         return this;
     }
 
-    // -- BindFrom (infra group, writes directly to topology) --
-
     /// <inheritdoc />
     public IPostgresQueueBuilder BindFrom(Uri source, string? routingKey = null)
     {
@@ -211,12 +203,4 @@ internal sealed class PostgresQueueBuilder : IPostgresQueueBuilder
 
         return this;
     }
-
-    // -- Escape hatches --
-
-    /// <inheritdoc />
-    public IPostgresQueueDescriptor AsQueue() => _queue;
-
-    /// <inheritdoc />
-    public IPostgresReceiveEndpointDescriptor AsEndpoint() => EnsureEndpoint();
 }

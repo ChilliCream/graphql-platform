@@ -7,8 +7,6 @@ namespace Mocha.Transport.Postgres;
 /// </summary>
 public interface IPostgresQueueBuilder
 {
-    // -- Infra group (delegates to the backing queue descriptor) --
-
     /// <summary>
     /// Sets whether the backing queue is automatically provisioned in the database.
     /// </summary>
@@ -22,8 +20,6 @@ public interface IPostgresQueueBuilder
     /// <param name="autoDelete">True to enable auto-deletion; otherwise false.</param>
     /// <returns>The builder for method chaining.</returns>
     IPostgresQueueBuilder AutoDelete(bool autoDelete = true);
-
-    // -- Routing group (delegates to a lazily created receive endpoint) --
 
     /// <summary>
     /// Registers a handler type on this queue's receive endpoint.
@@ -128,8 +124,6 @@ public interface IPostgresQueueBuilder
     /// <returns>The builder for method chaining.</returns>
     IPostgresQueueBuilder SkippedEndpoint(string name);
 
-    // -- Satellite sugar (calls EnsureEndpoint, writes to satellite config) --
-
     /// <summary>
     /// Sets the verbatim name of the error queue satellite for this queue's endpoint.
     /// </summary>
@@ -156,8 +150,6 @@ public interface IPostgresQueueBuilder
     /// <returns>The builder for method chaining.</returns>
     IPostgresQueueBuilder DisableSkippedQueue();
 
-    // -- BindFrom (infra group, writes directly to topology) --
-
     /// <summary>
     /// Binds this queue to a source topic, writing the topic and subscription directly to the
     /// transport topology without materializing a receive endpoint.
@@ -166,18 +158,4 @@ public interface IPostgresQueueBuilder
     /// <param name="routingKey">An optional routing key for the binding.</param>
     /// <returns>The builder for method chaining.</returns>
     IPostgresQueueBuilder BindFrom(Uri source, string? routingKey = null);
-
-    // -- Escape hatches --
-
-    /// <summary>
-    /// Returns the underlying queue descriptor for direct topology configuration.
-    /// </summary>
-    /// <returns>The queue descriptor.</returns>
-    IPostgresQueueDescriptor AsQueue();
-
-    /// <summary>
-    /// Returns the underlying receive endpoint descriptor, creating it if necessary.
-    /// </summary>
-    /// <returns>The receive endpoint descriptor.</returns>
-    IPostgresReceiveEndpointDescriptor AsEndpoint();
 }

@@ -7,8 +7,6 @@ namespace Mocha.Transport.RabbitMQ;
 /// </summary>
 public interface IRabbitMQQueueBuilder
 {
-    // -- Infra group (delegates to the backing queue descriptor) --
-
     /// <summary>
     /// Sets whether the backing queue survives broker restarts.
     /// </summary>
@@ -36,8 +34,6 @@ public interface IRabbitMQQueueBuilder
     /// <param name="autoProvision">True to provision the queue; otherwise false.</param>
     /// <returns>The builder for method chaining.</returns>
     IRabbitMQQueueBuilder AutoProvision(bool autoProvision = true);
-
-    // -- Routing group (delegates to a lazily created receive endpoint) --
 
     /// <summary>
     /// Registers a handler type on this queue's receive endpoint.
@@ -143,8 +139,6 @@ public interface IRabbitMQQueueBuilder
     /// <returns>The builder for method chaining.</returns>
     IRabbitMQQueueBuilder SkippedEndpoint(string name);
 
-    // -- Satellite sugar (calls EnsureEndpoint, writes to satellite config) --
-
     /// <summary>
     /// Sets the verbatim name of the error queue satellite for this queue's endpoint.
     /// </summary>
@@ -171,8 +165,6 @@ public interface IRabbitMQQueueBuilder
     /// <returns>The builder for method chaining.</returns>
     IRabbitMQQueueBuilder DisableSkippedQueue();
 
-    // -- BindFrom (infra group, writes directly to topology) --
-
     /// <summary>
     /// Binds this queue to a source exchange, writing the exchange and binding directly to the
     /// transport topology without materializing a receive endpoint.
@@ -181,18 +173,4 @@ public interface IRabbitMQQueueBuilder
     /// <param name="routingKey">An optional routing key for the binding.</param>
     /// <returns>The builder for method chaining.</returns>
     IRabbitMQQueueBuilder BindFrom(Uri source, string? routingKey = null);
-
-    // -- Escape hatches --
-
-    /// <summary>
-    /// Returns the underlying queue descriptor for direct topology configuration.
-    /// </summary>
-    /// <returns>The queue descriptor.</returns>
-    IRabbitMQQueueDescriptor AsQueue();
-
-    /// <summary>
-    /// Returns the underlying receive endpoint descriptor, creating it if necessary.
-    /// </summary>
-    /// <returns>The receive endpoint descriptor.</returns>
-    IRabbitMQReceiveEndpointDescriptor AsEndpoint();
 }
