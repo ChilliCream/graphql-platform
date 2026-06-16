@@ -7,6 +7,7 @@ namespace HotChocolate.Data.Filters;
 public class FilterConventionDefinition : IHasScope
 {
     public static readonly string DefaultArgumentName = "where";
+    public const int DefaultMaxAllowedFilterOperations = 64;
     private string _argumentName = DefaultArgumentName;
 
     public string? Scope { get; set; }
@@ -32,6 +33,8 @@ public class FilterConventionDefinition : IHasScope
     public List<IFilterProviderExtension> ProviderExtensions { get; } = [];
 
     public List<Type> ProviderExtensionsTypes { get; } = [];
+
+    public int? MaxAllowedFilterOperations { get; set; }
 
     public bool UseOr { get; set; } = true;
 

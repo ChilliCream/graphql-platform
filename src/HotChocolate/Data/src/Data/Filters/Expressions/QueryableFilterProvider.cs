@@ -100,6 +100,7 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
         string argumentName,
         IObjectFieldDescriptor descriptor)
     {
+        var maxAllowedFilterOperations = FilterConvention.GetMaxAllowedFilterOperations();
         var contextData = descriptor.Extend().Definition.ContextData;
         var argumentKey = (VisitFilterArgument)VisitFilterArgumentExecutor;
         contextData[ContextVisitFilterArgumentKey] = argumentKey;
@@ -111,6 +112,11 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
             IFilterInputType filterInput,
             bool inMemory)
         {
+            if (maxAllowedFilterOperations is { } maxAllowed)
+            {
+                ValidateFilterOperations(valueNode, filterInput, maxAllowed);
+            }
+
             var visitorContext = new QueryableFilterContext(filterInput, inMemory);
 
             // rewrite GraphQL input object into expression tree.
@@ -118,6 +124,89 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
 
             return visitorContext;
         }
+    }
+
+    private static void ValidateFilterOperations(
+        IValueNode valueNode,
+        IFilterInputType filterInput,
+        int maxAllowedFilterOperations)
+    {
+        var filterOperations = 0;
+        var stack = new Stack<(IValueNode Value, IInputType Type)>();
+        stack.Push((valueNode, filterInput));
+
+        while (stack.Count > 0)
+        {
+            var (value, type) = stack.Pop();
+
+            switch (value)
+            {
+                case ObjectValueNode objectValue
+                    when type.NamedType() is InputObjectType inputObject:
+                    for (var i = objectValue.Fields.Count - 1; i >= 0; i--)
+                    {
+                        var fieldValue = objectValue.Fields[i];
+
+                        if (!inputObject.Fields.TryGetField(fieldValue.Name.Value, out var field))
+                        {
+                            continue;
+                        }
+
+                        if (field is IFilterOperationField and not IAndField and not IOrField)
+                        {
+                            filterOperations++;
+
+                            if (filterOperations > maxAllowedFilterOperations)
+                            {
+                                throw new GraphQLException(
+                                    ErrorHelper.MaxAllowedFilterOperationsExceeded(
+                                        fieldValue.Value,
+                                        filterOperations,
+                                        maxAllowedFilterOperations));
+                            }
+                        }
+
+                        if (CanContainFilterOperations(field.Type, fieldValue.Value))
+                        {
+                            stack.Push((fieldValue.Value, field.Type));
+                        }
+                    }
+
+                    break;
+
+                case ListValueNode listValue
+                    when TryGetListElementType(type, out var elementType):
+                    for (var i = listValue.Items.Count - 1; i >= 0; i--)
+                    {
+                        stack.Push((listValue.Items[i], elementType));
+                    }
+
+                    break;
+            }
+        }
+    }
+
+    private static bool CanContainFilterOperations(IInputType type, IValueNode value)
+        => value switch
+        {
+            ObjectValueNode => type.NamedType() is InputObjectType,
+            ListValueNode => TryGetListElementType(type, out var elementType)
+                && elementType.NamedType() is InputObjectType,
+            _ => false,
+        };
+
+    private static bool TryGetListElementType(
+        IInputType type,
+        [NotNullWhen(true)] out IInputType? elementType)
+    {
+        if (type.IsListType() && type.ElementType() is IInputType inputType)
+        {
+            elementType = inputType;
+            return true;
+        }
+
+        elementType = null;
+        return false;
     }
 
     /// <inheritdoc />

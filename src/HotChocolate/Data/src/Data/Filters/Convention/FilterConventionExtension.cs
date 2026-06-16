@@ -77,6 +77,12 @@ public class FilterConventionExtension
                 filterConvention.Definition.ArgumentName = Definition.ArgumentName;
             }
 
+            if (Definition.MaxAllowedFilterOperations.HasValue)
+            {
+                filterConvention.Definition.MaxAllowedFilterOperations =
+                    Definition.MaxAllowedFilterOperations;
+            }
+
             if (Definition.Provider is not null)
             {
                 filterConvention.Definition.Provider = Definition.Provider;
