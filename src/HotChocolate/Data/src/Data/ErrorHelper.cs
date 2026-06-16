@@ -46,6 +46,22 @@ internal static class ErrorHelper
             .SetExtension(nameof(field), field)
             .Build();
 
+    public static IError MaxAllowedFilterOperationsExceeded(
+        IValueNode node,
+        int filterOperations,
+        int maxAllowedFilterOperations) =>
+        ErrorBuilder.New()
+            .SetMessage(
+                "The filter argument contains {0} operations, which exceeds the maximum allowed "
+                + "number of {1}.",
+                filterOperations,
+                maxAllowedFilterOperations)
+            .AddLocation(node)
+            .SetCode(ErrorCodes.Data.MaxFilterOperationsExceeded)
+            .SetExtension(nameof(filterOperations), filterOperations)
+            .SetExtension(nameof(maxAllowedFilterOperations), maxAllowedFilterOperations)
+            .Build();
+
     public static IError CreateNonNullError<T>(
         ISortField field,
         IValueNode value,

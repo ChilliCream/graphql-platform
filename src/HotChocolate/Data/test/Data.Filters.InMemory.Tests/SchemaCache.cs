@@ -24,6 +24,18 @@ public class SchemaCache
                 configure: configure));
     }
 
+    public IRequestExecutor CreateSchemaWithConvention<T, TType>(
+        T[] entities,
+        FilterConvention convention,
+        bool withPaging = false,
+        Action<ISchemaBuilder>? configure = null)
+        where TType : FilterInputType<T>
+        => base.CreateSchema<T, TType>(
+            entities,
+            convention,
+            withPaging,
+            configure);
+
     public void Dispose()
     {
     }

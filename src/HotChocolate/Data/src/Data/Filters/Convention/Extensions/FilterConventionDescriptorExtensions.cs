@@ -27,6 +27,7 @@ public static class FilterConventionDescriptorExtensions
         descriptor
             .AddDefaultOperations()
             .BindDefaultTypes(compatibilityMode)
+            .MaxAllowedFilterOperations(FilterConventionDefinition.DefaultMaxAllowedFilterOperations)
             .UseQueryableProvider();
 
     /// <summary>
