@@ -226,6 +226,38 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
             .ReturnsAsync(() => CreateFusionArchiveStream(archiveFormat));
     }
 
+    protected void SetupFusionConfigurationDownloadWithCompositionSettings(string settingsJson)
+    {
+        FusionConfigurationClientMock
+            .Setup(x => x.DownloadLatestFusionArchiveAsync(
+                ApiId,
+                Stage,
+                "2.0.0",
+                ArchiveFormats.Far,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => CreateFusionArchiveStreamWithCompositionSettings(settingsJson));
+    }
+
+    protected void SetupStageCompositionSettings(StageCompositionSettings? settings = null)
+    {
+        FusionConfigurationClientMock
+            .Setup(x => x.GetStageCompositionSettingsAsync(
+                ApiId,
+                Stage,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(settings);
+    }
+
+    protected void SetupStageCompositionSettingsException()
+    {
+        FusionConfigurationClientMock
+            .Setup(x => x.GetStageCompositionSettingsAsync(
+                ApiId,
+                Stage,
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Something unexpected happened."));
+    }
+
     protected void SetupMissingFusionConfigurationDownload(
         string version = "2.0.0",
         string archiveFormat = ArchiveFormats.Far)
@@ -630,6 +662,25 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
         memoryStream.Position = 0;
 
         return memoryStream;
+    }
+
+    private static MemoryStream CreateFusionArchiveStreamWithCompositionSettings(string settingsJson)
+    {
+        var stream = CreateFusionArchiveStream();
+
+        using (var archive = FusionArchive.Open(
+                   stream,
+                   FusionArchiveMode.Update,
+                   leaveOpen: true))
+        {
+            using var settings = JsonDocument.Parse(settingsJson);
+            archive.SetCompositionSettingsAsync(settings).GetAwaiter().GetResult();
+            archive.CommitAsync().GetAwaiter().GetResult();
+        }
+
+        stream.Position = 0;
+
+        return stream;
     }
 
     private async Task<Stream> CreateSourceSchemaArchiveStreamAsync(

@@ -108,6 +108,9 @@ type Mutation {
   ): UpdateFeatureFlagsPayload!
   updateMockSchema(input: UpdateMockSchemaInput!): UpdateMockSchemaPayload!
   updatePreferences(input: UpdatePreferencesInput!): UpdatePreferencesPayload!
+  updateStageCompositionSettings(
+    input: UpdateStageCompositionSettingsInput!
+  ): UpdateStageCompositionSettingsPayload!
   updateStages(input: UpdateStagesInput!): UpdateStagesPayload!
   updateThemeSettings(
     input: UpdateThemeSettingsInput!
@@ -4725,6 +4728,7 @@ type Stage implements Node {
     "Returns the first _n_ elements from the list."
     first: Int
   ): StageClientDeploymentsConnection
+  compositionSettings: StageCompositionSettings
   conditions: [StageCondition!]!
   coordinate(coordinate: String!): GraphQLTypeSystemMember
   coordinates(
@@ -4890,6 +4894,14 @@ type StageClientsMetrics {
     orderBy: [ClientInsightsOrderByInput!]
     to: DateTime!
   ): ClientInsightsConnection
+}
+
+type StageCompositionSettings {
+  cacheControlMergeBehavior: DirectiveMergeBehavior
+  enableGlobalObjectIdentification: Boolean
+  excludeByTag: [String!]
+  removeUnreferencedDefinitions: Boolean
+  tagMergeBehavior: DirectiveMergeBehavior
 }
 
 type StageErrorsMetrics {
@@ -5402,6 +5414,11 @@ type UpdateMockSchemaPayload {
 type UpdatePreferencesPayload {
   errors: [UpdatePreferencesError!]
   preferences: Any
+}
+
+type UpdateStageCompositionSettingsPayload {
+  errors: [UpdateStageCompositionSettingsError!]
+  stage: Stage
 }
 
 type UpdateStagesPayload {
@@ -6302,6 +6319,10 @@ union UpdateMockSchemaError =
 
 union UpdatePreferencesError = UnauthorizedOperation | ValidationError
 
+union UpdateStageCompositionSettingsError =
+  | StageNotFoundError
+  | UnauthorizedOperation
+
 union UpdateStagesError =
   | ApiNotFoundError
   | StageNotFoundError
@@ -6782,6 +6803,14 @@ input PartialSchemaRegistrySettingsInput {
   treatDangerousAsBreaking: Boolean! = false
 }
 
+input PartialStageCompositionSettingsInput {
+  cacheControlMergeBehavior: DirectiveMergeBehavior
+  enableGlobalObjectIdentification: Boolean
+  excludeByTag: [String!]
+  removeUnreferencedDefinitions: Boolean
+  tagMergeBehavior: DirectiveMergeBehavior
+}
+
 input PollClientVersionPublishRequestInput {
   id: ID!
 }
@@ -6965,6 +6994,11 @@ input UpdateMockSchemaInput {
 
 input UpdatePreferencesInput {
   preferences: Any!
+}
+
+input UpdateStageCompositionSettingsInput {
+  settings: PartialStageCompositionSettingsInput!
+  stageId: ID!
 }
 
 input UpdateStagesInput {
@@ -7236,6 +7270,12 @@ enum DirectiveLocation {
   UNION
   "Location adjacent to a field."
   VARIABLE_DEFINITION
+}
+
+enum DirectiveMergeBehavior {
+  IGNORE
+  INCLUDE
+  INCLUDE_PRIVATE
 }
 
 enum FusionConfigurationFormat {
