@@ -1,5 +1,4 @@
 using HotChocolate.Rules;
-using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Types.Validation.Rules;
 
@@ -9,35 +8,21 @@ public sealed class DirectiveDefinitionNoSelfReferenceRuleTests
     [Fact]
     public void Validate_DirectiveDoesNotReferenceItself_Succeeds()
     {
-        var schema = new MutableSchemaDefinition();
-        var onDirectiveDefinition = new MutableDirectiveDefinition("onDirectiveDefinition")
-        {
-            Locations = DirectiveLocation.DirectiveDefinition
-        };
-        var custom = new TestDirectiveDefinition("custom")
-        {
-            Locations = DirectiveLocation.Object
-        };
-        custom.Directives.Add(new Mutable.Directive(onDirectiveDefinition));
-        schema.DirectiveDefinitions.Add(onDirectiveDefinition);
-        schema.DirectiveDefinitions.Add(custom);
+        AssertValid(
+            """
+            directive @onDirectiveDefinition on DIRECTIVE_DEFINITION
 
-        AssertValid(schema);
+            directive @custom @onDirectiveDefinition on OBJECT
+            """);
     }
 
     [Fact]
     public void Validate_DirectiveDefinitionSelfApplication_Fails()
     {
-        var schema = new MutableSchemaDefinition();
-        var custom = new TestDirectiveDefinition("custom")
-        {
-            Locations = DirectiveLocation.DirectiveDefinition
-        };
-        custom.Directives.Add(new Mutable.Directive(custom));
-        schema.DirectiveDefinitions.Add(custom);
-
         AssertInvalid(
-            schema,
+            """
+            directive @custom @custom on DIRECTIVE_DEFINITION
+            """,
             """
             {
                 "message": "The directive definition '@custom' must not reference itself.",
@@ -55,18 +40,10 @@ public sealed class DirectiveDefinitionNoSelfReferenceRuleTests
     [Fact]
     public void Validate_DirectiveDefinitionArgumentSelfApplication_Fails()
     {
-        var schema = new MutableSchemaDefinition();
-        var custom = new TestDirectiveDefinition("custom")
-        {
-            Locations = DirectiveLocation.ArgumentDefinition | DirectiveLocation.DirectiveDefinition
-        };
-        var argument = new MutableInputFieldDefinition("arg");
-        argument.Directives.Add(new Mutable.Directive(custom));
-        custom.Arguments.Add(argument);
-        schema.DirectiveDefinitions.Add(custom);
-
         AssertInvalid(
-            schema,
+            """
+            directive @custom(arg: Int @custom) on ARGUMENT_DEFINITION | DIRECTIVE_DEFINITION
+            """,
             """
             {
                 "message": "The directive definition '@custom' must not reference itself.",
@@ -79,14 +56,5 @@ public sealed class DirectiveDefinitionNoSelfReferenceRuleTests
                 }
             }
             """);
-    }
-
-    private sealed class TestDirectiveDefinition(string name)
-        : MutableDirectiveDefinition(name)
-        , IDirectivesProvider
-    {
-        public Mutable.DirectiveCollection Directives { get; } = [];
-
-        IReadOnlyDirectiveCollection IDirectivesProvider.Directives => Directives;
     }
 }
