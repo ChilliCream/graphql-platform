@@ -55,6 +55,7 @@ public static class SchemaParser
         BuildTypes(schema, document, skippedNodes);
         BuildDirectiveTypes(schema, document, skippedNodes);
         ExtendTypes(schema, document, skippedNodes);
+        ExtendDirectiveTypes(schema, document, skippedNodes);
         BuildAndExtendSchema(schema, document, skippedNodes);
     }
 
@@ -192,6 +193,14 @@ public static class SchemaParser
                     default:
                         throw new InvalidOperationException();
                 }
+            }
+
+            if (definition is DirectiveExtensionNode directiveExt
+                && !schema.DirectiveDefinitions.ContainsName(directiveExt.Name.Value))
+            {
+                var directiveType = new MutableDirectiveDefinition(directiveExt.Name.Value);
+                directiveType.MarkAsExtension();
+                schema.DirectiveDefinitions.Add(directiveType);
             }
         }
     }
@@ -942,6 +951,42 @@ public static class SchemaParser
             }
 
             type.Locations |= parsedLocation.MapLocation();
+        }
+    }
+
+    private static void ExtendDirectiveTypes(
+        MutableSchemaDefinition schema,
+        DocumentNode document,
+        HashSet<ISyntaxNode> skip)
+    {
+        foreach (var definition in document.Definitions)
+        {
+            if (skip.Contains(definition))
+            {
+                continue;
+            }
+
+            if (definition is DirectiveExtensionNode directiveExt)
+            {
+                ExtendDirectiveType(
+                    schema,
+                    schema.DirectiveDefinitions[directiveExt.Name.Value],
+                    directiveExt);
+            }
+        }
+    }
+
+    private static void ExtendDirectiveType(
+        MutableSchemaDefinition schema,
+        MutableDirectiveDefinition type,
+        DirectiveExtensionNode node)
+    {
+        MergeDirectives(schema, type.Directives, node.Directives, $"@{type.Name}");
+
+        if (IsDeprecated(type.Directives, out var reason))
+        {
+            type.IsDeprecated = true;
+            type.DeprecationReason = reason;
         }
     }
 
