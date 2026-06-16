@@ -56,6 +56,19 @@ internal sealed class DirectiveValidationRule : ISchemaValidationRule
             if (directive.Definition.Name.EqualsOrdinal(directiveDefinition.Name))
             {
                 errors.Add(DirectiveDefinitionSelfApplication(directiveDefinition));
+                return;
+            }
+        }
+
+        foreach (var argument in directiveDefinition.Arguments)
+        {
+            foreach (var directive in argument.Directives)
+            {
+                if (directive.Definition.Name.EqualsOrdinal(directiveDefinition.Name))
+                {
+                    errors.Add(DirectiveDefinitionSelfApplication(directiveDefinition));
+                    return;
+                }
             }
         }
     }

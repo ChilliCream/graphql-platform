@@ -955,7 +955,7 @@ Type: `{0}`</value>
     <value>The directive arguments have invalid values: '{0}' at {1}.</value>
   </data>
   <data name="ErrorHelper_DirectiveDefinitionSelfApplication" xml:space="preserve">
-    <value>The directive definition '@{0}' must not be annotated with itself.</value>
+    <value>The directive definition '@{0}' must not reference itself.</value>
   </data>
   <data name="TypeDiscoveryInfo_TypeRefKindNotSupported" xml:space="preserve">
     <value>TypeReference kind not supported.</value>

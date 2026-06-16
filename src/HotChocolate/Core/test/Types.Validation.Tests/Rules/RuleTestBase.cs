@@ -27,6 +27,19 @@ public abstract class RuleTestBase<TRule> where TRule : new()
         Assert.True(_log.IsEmpty);
     }
 
+    protected void AssertValid(ISchemaDefinition schema)
+    {
+        // arrange
+        var validator = new SchemaValidator([s_rule]);
+
+        // act
+        var success = validator.Validate(schema, _log);
+
+        // assert
+        Assert.True(success);
+        Assert.True(_log.IsEmpty);
+    }
+
     protected void AssertInvalid(
         [StringSyntax("graphql")] string sdl,
         [StringSyntax(StringSyntaxAttribute.Json)] params string[] logEntries)

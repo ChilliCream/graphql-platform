@@ -908,7 +908,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The directive definition &apos;@{0}&apos; must not be annotated with itself..
+        ///   Looks up a localized string similar to The directive definition &apos;@{0}&apos; must not reference itself..
         /// </summary>
         internal static string ErrorHelper_DirectiveDefinitionSelfApplication {
             get {

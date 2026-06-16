@@ -786,6 +786,30 @@ public class SchemaFirstTests
         exception.Errors.Single().ToString().MatchSnapshot();
     }
 
+    [Fact]
+    public void SchemaFirst_DirectiveDefinitionArgumentSelfApplication_Errors()
+    {
+        // arrange
+        const string source =
+            """
+            type Query {
+                field: String
+            }
+
+            directive @custom(arg: Int @custom) on ARGUMENT_DEFINITION | DIRECTIVE_DEFINITION
+            """;
+
+        // act
+        static void Action() => SchemaBuilder.New()
+            .AddDocumentFromString(source)
+            .Use(next => next)
+            .Create();
+
+        // assert
+        var exception = Assert.Throws<SchemaException>(Action);
+        exception.Errors.Single().ToString().MatchSnapshot();
+    }
+
     public class Query
     {
         public string Hello() => "World";
