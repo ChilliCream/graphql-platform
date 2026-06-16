@@ -785,4 +785,19 @@ public class SchemaParserTests
         Assert.Equal("Use newId", field.DeprecationReason);
         Assert.True(field.Directives.ContainsName("deprecated"));
     }
+
+    [Fact]
+    public void Parse_Should_MapDirectiveDefinitionLocation_When_DirectiveDeclaresIt()
+    {
+        // arrange
+        const string sdl = "directive @meta on DIRECTIVE_DEFINITION";
+
+        // act
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        Assert.Equal(
+            DirectiveLocation.DirectiveDefinition,
+            schema.DirectiveDefinitions["meta"].Locations);
+    }
 }
