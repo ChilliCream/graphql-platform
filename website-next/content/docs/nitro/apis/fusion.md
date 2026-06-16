@@ -174,7 +174,7 @@ dotnet tool install HotChocolate.Fusion.CommandLine
 
 All changes to the gateway originate from a subgraph. Once the subgraph is ready to be deployed, you need to pack it. Packing a subgraph will create a subgraph package file that contains the schema, the extensions and the configuration of the subgraph.
 
-To easily access the newest schema and extensions, you can use the `schema export` command from the [Command Line Extension](https://chillicream.com/docs/hotchocolate/v13/server/command-line). This command exports your current schema into a specified output file.
+To easily access the newest schema and extensions, you can use the `schema export` command from the [Command Line Extension](../../hotchocolate/server/command-line.md). This command exports your current schema into a specified output file.
 
 ```bash
 dotnet run -- schema export --output schema.graphql

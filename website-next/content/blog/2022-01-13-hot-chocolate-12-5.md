@@ -65,7 +65,7 @@ With all this in place, we can execute requests against our demo server and insp
 
 The complete example can be found [here](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/OpenTelemetry).
 
-Docs can be found [here](https://chillicream.com/docs/hotchocolate/v12/server/instrumentation/#opentelemetry).
+Docs can be found [here](../docs/hotchocolate/server/instrumentation.md#opentelemetry).
 
 # `OneOf` Input Objects
 
@@ -127,7 +127,7 @@ builder.Services
 
 The complete example can be found [here](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/OneOf).
 
-Docs can be found [here](https://chillicream.com/docs/hotchocolate/v12/defining-a-schema/input-object-types/#oneof-input-objects).
+Docs can be found [here](../docs/hotchocolate/defining-a-schema/input-object-types.md#oneof-input-objects).
 
 The current GraphQL spec RFC can be found [here](https://github.com/graphql/graphql-spec/pull/825).
 
