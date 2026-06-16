@@ -35,19 +35,19 @@ That performance comes from a brand-new execution engine. Fusion 16 is no longer
 
 The result is a fast gateway without giving up the .NET platform. Your gateway remains an ASP.NET Core application running on .NET 8, 9, and 10. Authentication, configuration, resilience, and observability stay in your hands, and you automatically inherit every Kestrel and runtime improvement Microsoft ships.
 
-Read the full post: [What's new in Fusion 16](/blog/2026/05/15/fusion-16).
+Read the full post: [What's new in Fusion 16](./2026-05-15-fusion-16.md).
 
 # Hot Chocolate 16
 
 Hot Chocolate 16 is our first major GraphQL server release in over a year, and it touches some of the deepest parts of the server. We reworked the type system, tightened scalar contracts, improved batching, adopted new GraphQL spec proposals, and made the defaults safer.
 
-Read the full post: [What's new for Hot Chocolate 16](/blog/2026/05/11/hot-chocolate-16).
+Read the full post: [What's new for Hot Chocolate 16](./2026-05-11-hot-chocolate-16.md).
 
 # OpenAPI adapter
 
 Every GraphQL project eventually meets a consumer that needs REST: a partner integration, a legacy system, or a tool that cannot speak GraphQL. The new OpenAPI adapter lets you expose selected parts of your graph as REST endpoints without building and maintaining a second API.
 
-Read the full post: [Open Your GraphQL API for the REST](/blog/2026/06/11/open-your-graphql-api-for-the-rest).
+Read the full post: [Open Your GraphQL API for the REST](./2026-06-11-open-your-graphql-api-for-the-rest.md).
 
 # MCP adapter
 
@@ -55,7 +55,7 @@ Agents are becoming API consumers, and with v16 you can give them an MCP server 
 
 But that is not all. The new MCP adapter also supports the MCP Apps standard, so you can colocate UI with your tools and return richer, agentic experiences directly from your GraphQL server or gateway.
 
-Read the full post: [From GraphQL to MCP in Two Lines](/blog/2026/05/28/mcp-hotchocolate-fusion).
+Read the full post: [From GraphQL to MCP in Two Lines](./2026-05-28-mcp-hotchocolate-fusion.md).
 
 # skillz
 
@@ -67,7 +67,7 @@ Alongside the CLI, we are publishing our first skill for the platform: `graphql-
 dnx skillz add ChilliCream/agent-skills --skill graphql-schema-design
 ```
 
-Read the announcement: [Introducing skillz](/blog/2026/06/05/introducing-skillz).
+Read the announcement: [Introducing skillz](./2026-06-05-introducing-skillz.md).
 
 # Semantic Introspection
 
@@ -77,7 +77,7 @@ Hot Chocolate 16 and Fusion 16 include this through `__search` and `__definition
 
 With Nitro, Semantic Introspection can go beyond BM25 by adding embeddings to your schema, giving agents true semantic search across your API. That can make agent interaction dramatically cheaper than loading full API descriptions into context, while keeping GraphQL's precision intact. For the first time, you can really talk to your data.
 
-Read the full post: [Semantic Introspection](/blog/2026/04/22/semantic-introspection).
+Read the full post: [Semantic Introspection](./2026-04-22-semantic-introspection.md).
 
 # From the community
 

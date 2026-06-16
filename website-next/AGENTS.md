@@ -6,9 +6,9 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 <!-- END:nextjs-agent-rules -->
 
-# Writing documentation
+# Authoring markdown content
 
-When creating or editing docs under `content/docs/`, follow the conventions in
-[README.md → Writing Documentation](./README.md#writing-documentation). It covers
-frontmatter, `structure.yaml` sidebars, links, images, YouTube videos,
+When creating or editing content under `content/docs/` or `content/blog/`, follow
+the conventions in [README.md → Authoring Markdown Content](./README.md#authoring-markdown-content).
+It covers frontmatter, `structure.yaml` sidebars, links, images, YouTube videos,
 admonitions, Mermaid diagrams, and MDX gotchas.
