@@ -46,4 +46,17 @@ public class MutableDirectiveDefinitionTests
         // assert
         Assert.True(directiveDefinition.Directives.ContainsName("meta"));
     }
+
+    [Fact]
+    public void BuiltInDeprecatedDirective_Should_DeclareDirectiveDefinitionLocation()
+    {
+        // arrange
+        var schema = new MutableSchemaDefinition();
+
+        // act
+        var deprecated = BuiltIns.Deprecated.Create(schema);
+
+        // assert
+        Assert.True(deprecated.Locations.HasFlag(DirectiveLocation.DirectiveDefinition));
+    }
 }
