@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  Children,
-  isValidElement,
-  type FC,
-  type ReactNode,
-} from "react";
+import { Children, isValidElement, type FC, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { Tab, Tabs } from "@/src/design-system/Tabs";
 
@@ -39,7 +34,7 @@ export const ExampleTabs: FC<WithChildren> = ({ children }) => {
   }
 
   const tabs = ORDER.filter((type) => byType.has(type)).filter(
-    (type) => showSchema || type !== Schema
+    (type) => showSchema || type !== Schema,
   );
 
   return (

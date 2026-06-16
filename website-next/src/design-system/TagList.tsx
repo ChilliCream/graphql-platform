@@ -28,7 +28,10 @@ export function TagList({ tags, hrefForTag, className }: TagListProps) {
       if (!entry.label) {
         return null;
       }
-      return { label: entry.label, href: entry.href ?? hrefForTag?.(entry.label) };
+      return {
+        label: entry.label,
+        href: entry.href ?? hrefForTag?.(entry.label),
+      };
     })
     .filter((i): i is TagListItem => i !== null);
 
@@ -38,10 +41,7 @@ export function TagList({ tags, hrefForTag, className }: TagListProps) {
 
   return (
     <ul
-      className={[
-        "m-0 flex list-none flex-wrap gap-1.5 p-0",
-        className ?? "",
-      ]
+      className={["m-0 flex list-none flex-wrap gap-1.5 p-0", className ?? ""]
         .filter(Boolean)
         .join(" ")}
     >

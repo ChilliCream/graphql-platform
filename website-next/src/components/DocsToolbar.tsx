@@ -54,7 +54,7 @@ function PillButton({
       type="button"
       aria-label={ariaLabel}
       onClick={() => window.dispatchEvent(new CustomEvent(event))}
-      className={`pointer-events-auto inline-flex cursor-pointer items-center gap-2 rounded-md border border-cc-card-border bg-cc-bg/95 px-3 py-1.5 text-xs font-medium text-cc-ink-dim shadow-sm backdrop-blur transition-colors hover:bg-cc-bg ${className}`}
+      className={`border-cc-card-border bg-cc-bg/95 text-cc-ink-dim hover:bg-cc-bg pointer-events-auto inline-flex cursor-pointer items-center gap-2 rounded-md border px-3 py-1.5 text-xs font-medium shadow-sm backdrop-blur transition-colors ${className}`}
     >
       {iconPosition === "left" && children}
       {label}

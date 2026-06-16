@@ -26,11 +26,11 @@ export function BlogMetadata({
 
   // TODO: Fix image and custom link
   return (
-    <div className="flex flex-row items-center gap-2 text-sm text-cc-ink-dim">
+    <div className="text-cc-ink-dim flex flex-row items-center gap-2 text-sm">
       {author ? (
         <a
           href={authorUrl || "#"}
-          className="flex items-center text-cc-ink hover:text-cc-accent no-underline"
+          className="text-cc-ink hover:text-cc-accent flex items-center no-underline"
           target={authorUrl?.startsWith("http") ? "_blank" : undefined}
           rel={
             authorUrl?.startsWith("http") ? "noopener noreferrer" : undefined

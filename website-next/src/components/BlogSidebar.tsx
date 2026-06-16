@@ -15,10 +15,10 @@ export function BlogSidebar({
 }) {
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-2 px-5 py-6 text-sm">
-      <p className="px-3 text-xs font-semibold uppercase tracking-widest text-cc-ink-dim">
+      <p className="text-cc-ink-dim px-3 text-xs font-semibold tracking-widest uppercase">
         Latest posts
       </p>
-      <nav className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
+      <nav className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto">
         <ul className="flex flex-col gap-1">
           {posts.map((post) => {
             const isActive = post.href === currentHref;
@@ -30,7 +30,7 @@ export function BlogSidebar({
                   aria-current={isActive ? "page" : undefined}
                   className={`block rounded px-3 py-1.5 transition-colors ${
                     isActive
-                      ? "bg-cc-white/10 font-medium text-cc-white"
+                      ? "bg-cc-white/10 text-cc-white font-medium"
                       : "text-cc-nav-text hover:bg-cc-white/5 hover:text-cc-white"
                   }`}
                 >
