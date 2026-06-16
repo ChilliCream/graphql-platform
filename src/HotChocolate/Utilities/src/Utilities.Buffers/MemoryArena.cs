@@ -1,4 +1,4 @@
-using System.Buffers;
+using static HotChocolate.Buffers.MemoryArenaEventSource;
 
 namespace HotChocolate.Buffers;
 
@@ -35,16 +35,35 @@ internal sealed class MemoryArena : IMemoryArena, IDisposable
     private const int Sealed = 1;
     private const int Disposed = 2;
 
+    // A process-wide counter assigns each arena a stable id so the lifecycle ledger can correlate
+    // every rent, grow, seal and abandon back to the arena that performed it.
+    private static long s_nextId;
+
 #if NET9_0_OR_GREATER
     private readonly Lock _lock = new();
 #else
     private readonly object _lock = new();
 #endif
-    private readonly List<MemorySegment[]> _tables = [];
+    private MemorySegment[][]? _tables;
+    private int _tableCount;
+    private readonly long _id = Interlocked.Increment(ref s_nextId);
     private byte[][] _pages = new byte[4][];
     private long _state = InitialState;
     private int _pageCount;
     private int _phase;
+    private long _rentCount;
+    private long _rentBytes;
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="MemoryArena"/>.
+    /// </summary>
+    public MemoryArena()
+    {
+        if (Log.IsEnabled())
+        {
+            Log.ArenaCreated(_id);
+        }
+    }
 
     /// <summary>
     /// Gets the number of pages this arena currently holds.
@@ -60,7 +79,7 @@ internal sealed class MemoryArena : IMemoryArena, IDisposable
         {
             lock (_lock)
             {
-                return _tables.Count;
+                return _tableCount;
             }
         }
     }
@@ -139,6 +158,15 @@ internal sealed class MemoryArena : IMemoryArena, IDisposable
                     }
 #endif
 
+                    // Count this bump rental for the seal-time summary. The plain static flag keeps
+                    // the disabled path to a single field read and a not-taken branch; the counters
+                    // are interlocked because concurrent threads bump the same arena.
+                    if (IsTracingEnabled)
+                    {
+                        Interlocked.Increment(ref _rentCount);
+                        Interlocked.Add(ref _rentBytes, size);
+                    }
+
                     return new MemorySegment(pages[pageIndex], offset, size);
                 }
 
@@ -177,6 +205,11 @@ internal sealed class MemoryArena : IMemoryArena, IDisposable
                 _pageCount = newIndex + 1;
                 Interlocked.Exchange(ref _state, (long)newIndex << 32);
                 published = true;
+
+                if (Log.IsEnabled())
+                {
+                    Log.MemoryRented(_id, JsonMemory.BufferSize);
+                }
             }
         }
 
@@ -196,14 +229,43 @@ internal sealed class MemoryArena : IMemoryArena, IDisposable
     /// <returns>A table of at least <paramref name="minLength"/> entries.</returns>
     public MemorySegment[] RentSegmentTable(int minLength)
     {
-        var table = ArrayPool<MemorySegment>.Shared.Rent(minLength);
+        var table = MemorySegmentTablePool.Rent(minLength);
 
         lock (_lock)
         {
-            _tables.Add(table);
+            // Rent the tracker on the first table. Each arena keeps one tracker for its lifetime and
+            // returns it on seal, so tracking adds no per-request allocation once the pool is warm.
+            _tables ??= MemorySegmentTableTrackerPool.Rent();
+
+            if (_tableCount == _tables.Length)
+            {
+                GrowTracker();
+            }
+
+            _tables[_tableCount++] = table;
+        }
+
+        if (Log.IsEnabled())
+        {
+            Log.ArrayRented(_id, table.Length);
         }
 
         return table;
+    }
+
+    // Grows the tracker when a request rents more tables than the current tracker holds. The old
+    // tracker is returned once its entries are copied (the pool parks a pooled-capacity one and
+    // drops an already-grown one), so growing past a pooled tracker does not drain the pool. The
+    // grown array is a plain allocation that the pool drops on its next return. Rare cold path,
+    // called under the arena lock.
+    private void GrowTracker()
+    {
+        var old = _tables!;
+        var grown = new MemorySegment[old.Length * 2][];
+        Array.Copy(old, grown, _tableCount);
+        _tables = grown;
+
+        MemorySegmentTableTrackerPool.Return(old, _tableCount);
     }
 
     /// <summary>
@@ -214,22 +276,34 @@ internal sealed class MemoryArena : IMemoryArena, IDisposable
     /// <param name="table">The table to grow. On return it references the larger table.</param>
     public void GrowSegmentTable(ref MemorySegment[] table)
     {
-        var grown = ArrayPool<MemorySegment>.Shared.Rent(table.Length * 2);
+        var grown = MemorySegmentTablePool.Rent(table.Length * 2);
         Array.Copy(table, grown, table.Length);
 
         var old = table;
 
         lock (_lock)
         {
-            // Swap the tracked table: the old array is no longer tracked, the new one is, so a later
-            // dispose does not return either array twice.
-            _tables.Remove(old);
-            _tables.Add(grown);
+            // Replace the tracked table in place: the old array is no longer tracked, the new one is,
+            // so a later dispose does not return either array twice.
+            var tables = _tables;
+            for (var i = 0; i < _tableCount; i++)
+            {
+                if (ReferenceEquals(tables![i], old))
+                {
+                    tables[i] = grown;
+                    break;
+                }
+            }
         }
 
         // The old array is returned now: its entries have been copied into the grown table and no
         // tracking still references it, so there is no double-return on dispose.
-        ArrayPool<MemorySegment>.Shared.Return(old, clearArray: true);
+        MemorySegmentTablePool.Return(old);
+
+        if (Log.IsEnabled())
+        {
+            Log.ArrayGrown(_id, old.Length, grown.Length);
+        }
 
         table = grown;
     }
@@ -271,7 +345,7 @@ internal sealed class MemoryArena : IMemoryArena, IDisposable
 
         byte[][] pages;
         int count;
-        MemorySegment[][] tables;
+        MemorySegment[][]? tables;
         int tableCount;
 
         lock (_lock)
@@ -279,11 +353,12 @@ internal sealed class MemoryArena : IMemoryArena, IDisposable
             pages = _pages;
             count = _pageCount;
 
-            // Snapshot the tracked tables before clearing tracking so the reclaim path can return
-            // them outside the lock. The abandon path drops them on the floor for the GC.
-            tableCount = _tables.Count;
-            tables = tableCount == 0 ? [] : _tables.ToArray();
-            _tables.Clear();
+            // Detach the tracker before clearing tracking so the reclaim path can return the tables
+            // and the tracker outside the lock. The abandon path drops both on the floor for the GC.
+            tables = _tables;
+            tableCount = _tableCount;
+            _tables = null;
+            _tableCount = 0;
 
             // Publish an empty page table with a volatile write so the lock-free reader in Rent
             // observes it and fails as disposed instead of reading freed state.
@@ -299,15 +374,43 @@ internal sealed class MemoryArena : IMemoryArena, IDisposable
                 JsonMemory.Return(JsonMemoryKind.Arena, pages, count);
             }
 
-            // The arena owns the tables, so on a sealed deterministic dispose it clears the used
-            // range and returns each one to the pool. The abandon path below intentionally skips
-            // this, because a live document may still index into a table.
-            for (var i = 0; i < tableCount; i++)
+            // The arena owns the tables, so on a sealed deterministic dispose it returns each one to
+            // the pool and then returns the tracker itself. The abandon path below intentionally
+            // skips this, because a live document may still index into a table.
+            if (tables is not null)
             {
-                ArrayPool<MemorySegment>.Shared.Return(tables[i], clearArray: true);
+                for (var i = 0; i < tableCount; i++)
+                {
+                    MemorySegmentTablePool.Return(tables[i]);
+                }
+
+                MemorySegmentTableTrackerPool.Return(tables, tableCount);
+            }
+
+            if (Log.IsEnabled())
+            {
+                Log.ArenaSealed(
+                    _id,
+                    count,
+                    (long)count * JsonMemory.BufferSize,
+                    tableCount,
+                    Interlocked.Read(ref _rentCount),
+                    Interlocked.Read(ref _rentBytes));
             }
 
             return;
+        }
+
+        // The abandon event is emitted before the count check so that tables rented without a page
+        // are still recorded as abandoned.
+        if (Log.IsEnabled())
+        {
+            Log.ArenaAbandoned(
+                _id,
+                count,
+                (long)count * JsonMemory.BufferSize,
+                tableCount,
+                disposing ? 0 : 1);
         }
 
         if (count == 0)

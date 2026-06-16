@@ -26,7 +26,7 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
     private int _chunkCount;
     private int _currentChunk;
     private int _currentChunkOffset;
-    private byte[] _scratch;
+    private byte[] _scratch = [];
     private bool _advanceFromScratch;
     private bool _disposed;
 
@@ -36,7 +36,6 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
         _chunks = ArrayPool<byte[]>.Shared.Rent(4);
         _chunks[0] = JsonMemory.Rent(memoryKind);
         _chunkCount = 1;
-        _scratch = new byte[DefaultScratchSize];
     }
 
     /// <summary>

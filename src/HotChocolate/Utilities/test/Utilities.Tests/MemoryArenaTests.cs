@@ -1,7 +1,6 @@
-using System.Buffers;
-
 namespace HotChocolate.Buffers;
 
+[Collection(MemorySegmentTablePoolCollection.Name)]
 public class MemoryArenaTests
 {
     [Fact]
@@ -215,15 +214,15 @@ public class MemoryArenaTests
     public void Dispose_Should_ReturnTablesToPool_When_Sealed()
     {
         // arrange
-        // the shared array pool hands buffers back in LIFO order, so a sealed table returned on
-        // dispose is the next table of that size handed out, which proves it was recycled.
+        // the table pool hands tables back in LIFO order, so a sealed table returned on dispose is
+        // the next table of that length handed out, which proves it was recycled.
         var first = new MemoryArena();
         var table = first.RentSegmentTable(16);
         first.Seal();
 
         // act
         first.Dispose();
-        var recycled = ArrayPool<MemorySegment>.Shared.Rent(16);
+        var recycled = MemorySegmentTablePool.Rent(16);
 
         // assert
         Assert.Same(table, recycled);
@@ -239,10 +238,52 @@ public class MemoryArenaTests
 
         // act
         first.Dispose();
-        var rented = ArrayPool<MemorySegment>.Shared.Rent(16);
+        var rented = MemorySegmentTablePool.Rent(16);
 
         // assert
         Assert.NotSame(table, rented);
+    }
+
+    [Fact]
+    public void RentSegmentTable_Should_TrackAllTables_When_ExceedingTrackerCapacity()
+    {
+        // arrange
+        // renting past the pooled tracker capacity grows the tracker into a larger fallback array;
+        // every table must stay tracked across the grow.
+        using var arena = new MemoryArena();
+        var count = MemorySegmentTableTrackerPool.Capacity + 4;
+
+        // act
+        for (var i = 0; i < count; i++)
+        {
+            arena.RentSegmentTable(16);
+        }
+
+        // assert
+        Assert.Equal(count, arena.RentedTableCount);
+    }
+
+    [Fact]
+    public void Dispose_Should_ReturnTablesToPool_When_SealedAfterTrackerGrew()
+    {
+        // arrange
+        // after the tracker grows past its pooled capacity, a sealed dispose must still return every
+        // tracked table exactly once; the last table returned is the next one handed out.
+        var first = new MemoryArena();
+        var count = MemorySegmentTableTrackerPool.Capacity + 1;
+        MemorySegment[] last = null!;
+        for (var i = 0; i < count; i++)
+        {
+            last = first.RentSegmentTable(16);
+        }
+        first.Seal();
+
+        // act
+        first.Dispose();
+        var recycled = MemorySegmentTablePool.Rent(16);
+
+        // assert
+        Assert.Same(last, recycled);
     }
 
     [Fact]
