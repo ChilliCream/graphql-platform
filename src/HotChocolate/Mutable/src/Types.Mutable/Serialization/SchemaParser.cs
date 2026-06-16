@@ -893,6 +893,14 @@ public static class SchemaParser
         type.Description = node.Description?.Value;
         type.IsRepeatable = node.IsRepeatable;
 
+        BuildDirectiveCollection(schema, type.Directives, node.Directives);
+
+        if (IsDeprecated(type.Directives, out var deprecationReason))
+        {
+            type.IsDeprecated = true;
+            type.DeprecationReason = deprecationReason;
+        }
+
         foreach (var argumentNode in node.Arguments)
         {
             var builtArgumentType = schema.Types.BuildType(argumentNode.Type);

@@ -800,4 +800,26 @@ public class SchemaParserTests
             DirectiveLocation.DirectiveDefinition,
             schema.DirectiveDefinitions["meta"].Locations);
     }
+
+    [Fact]
+    public void Parse_Should_ReadDirectivesOnDirectiveDefinition()
+    {
+        // arrange
+        const string sdl =
+            """
+            directive @meta(value: String) on DIRECTIVE_DEFINITION
+
+            directive @foo @meta(value: "a") @deprecated(reason: "Use bar") on OBJECT
+            """;
+
+        // act
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        var directiveDefinition = schema.DirectiveDefinitions["foo"];
+        Assert.True(directiveDefinition.Directives.ContainsName("meta"));
+        Assert.True(directiveDefinition.IsDeprecated);
+        Assert.Equal("Use bar", directiveDefinition.DeprecationReason);
+        Assert.True(directiveDefinition.Directives.ContainsName("deprecated"));
+    }
 }
