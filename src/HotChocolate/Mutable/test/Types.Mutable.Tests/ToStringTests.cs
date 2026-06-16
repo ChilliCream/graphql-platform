@@ -197,4 +197,23 @@ public class ToStringTests
             directive @meta(value: String) on DIRECTIVE_DEFINITION
             """);
     }
+
+    [Fact]
+    public void Schema_With_DeprecatedDirectiveDefinition_ToString()
+    {
+        // arrange
+        const string sdl =
+            """
+            directive @foo @deprecated(reason: "x") on OBJECT
+            """;
+
+        // act
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        schema.ToString().MatchInlineSnapshot(
+            """
+            directive @foo @deprecated(reason: "x") on OBJECT
+            """);
+    }
 }
