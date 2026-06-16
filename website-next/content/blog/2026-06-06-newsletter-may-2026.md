@@ -14,6 +14,7 @@ tags:
     "semantic-introspection",
     "release",
   ]
+category: "Newsletter"
 author: Pascal Senn
 authorUrl: https://github.com/pascalsenn
 authorImageUrl: https://avatars.githubusercontent.com/u/14233220?v=4
