@@ -303,6 +303,185 @@ public class FooType : ObjectType
 
 Since the directive instance that we have added to our type is now a strong .NET type, we don't have to fear changes to the directive structure or name anymore.
 
+## Directives on Directive Definitions
+
+A directive definition is itself a schema element, so it can carry directives. You can use this to mark a directive definition as deprecated or to attach metadata to it, in the same way you annotate object types, fields, or enum values.
+
+To apply a directive to a directive definition, that directive must declare the `DIRECTIVE_DEFINITION` location.
+
+### Declaring a Directive That Targets Directive Definitions
+
+A directive can only be applied to a directive definition when its own definition includes the `DIRECTIVE_DEFINITION` location.
+
+<ExampleTabs>
+<Implementation>
+
+```csharp
+[DirectiveType(DirectiveLocation.DirectiveDefinition)]
+public class OnDirectiveDefinition
+{
+}
+```
+
+</Implementation>
+<Code>
+
+```csharp
+public class OnDirectiveDefinitionType : DirectiveType
+{
+    protected override void Configure(IDirectiveTypeDescriptor descriptor)
+    {
+        descriptor.Name("onDirectiveDefinition");
+        descriptor.Location(DirectiveLocation.DirectiveDefinition);
+    }
+}
+```
+
+</Code>
+</ExampleTabs>
+
+This configuration translates into the following SDL.
+
+```sdl
+directive @onDirectiveDefinition on DIRECTIVE_DEFINITION
+```
+
+### Applying a Directive to a Directive Definition
+
+Once a directive declares the `DIRECTIVE_DEFINITION` location, you can apply it to another directive definition.
+
+In schema-first SDL you place the applied directive between the directive name and the `on` keyword.
+
+```sdl
+directive @onDirectiveDefinition on DIRECTIVE_DEFINITION
+
+directive @custom @onDirectiveDefinition on OBJECT
+```
+
+In code-first, call `Directive(...)` on the `IDirectiveTypeDescriptor` to apply a directive to the directive definition you are configuring.
+
+```csharp
+public class CustomDirectiveType : DirectiveType
+{
+    protected override void Configure(IDirectiveTypeDescriptor descriptor)
+    {
+        descriptor.Name("custom");
+        descriptor.Location(DirectiveLocation.Object);
+        descriptor.Directive("onDirectiveDefinition");
+    }
+}
+```
+
+The descriptor offers the following overloads to apply a directive to the directive definition: `Directive(string name, params ArgumentNode[] arguments)`, `Directive<T>(T instance)`, and `Directive<T>()`.
+
+> **Note:** Applying a custom directive to a directive definition is done through the descriptor (Code) or through schema-first SDL.
+
+### Deprecating a Directive Definition
+
+`@deprecated` is allowed on directive definitions and on their arguments. Use it to signal that a directive (or one of its arguments) should no longer be used.
+
+<ExampleTabs>
+<Implementation>
+
+Annotate the directive class with `[Obsolete(...)]` or `[GraphQLDeprecated(...)]`. Both set the deprecation.
+
+```csharp
+[Obsolete("Use @custom instead.")]
+[DirectiveType(DirectiveLocation.Object)]
+public class OldDirective
+{
+}
+```
+
+```csharp
+[GraphQLDeprecated("Use @custom instead.")]
+[DirectiveType(DirectiveLocation.Object)]
+public class OldDirective
+{
+}
+```
+
+</Implementation>
+<Code>
+
+Call `Deprecated(...)` on the descriptor.
+
+```csharp
+public class OldDirectiveType : DirectiveType
+{
+    protected override void Configure(IDirectiveTypeDescriptor descriptor)
+    {
+        descriptor.Name("old");
+        descriptor.Location(DirectiveLocation.Object);
+        descriptor.Deprecated("Use @custom instead.");
+    }
+}
+```
+
+</Code>
+</ExampleTabs>
+
+In schema-first SDL, apply `@deprecated` to the directive definition or to one of its arguments.
+
+```sdl
+directive @old @deprecated(reason: "Use @custom.") on OBJECT
+
+directive @custom(
+  legacyArg: Int @deprecated(reason: "Use newArg instead.")
+  newArg: String
+) on OBJECT
+```
+
+### Extending a Directive
+
+In schema-first you can use `extend directive` to add directives, including a deprecation, to an existing directive definition. The added directives merge into the existing definition.
+
+```sdl
+directive @custom on OBJECT
+
+extend directive @custom @onDirectiveDefinition
+
+extend directive @custom @deprecated(reason: "Use something else.")
+```
+
+### Introspection
+
+Introspection exposes this surface, mirroring how deprecated fields, enum values, and arguments behave.
+
+- `__Directive` exposes `isDeprecated: Boolean!` and `deprecationReason: String`.
+- `__Schema.directives(includeDeprecated: Boolean = false)` hides deprecated directives by default. Pass `includeDeprecated: true` to include them.
+- `__DirectiveLocation` includes `DIRECTIVE_DEFINITION`.
+
+```graphql
+{
+  __schema {
+    directives(includeDeprecated: true) {
+      name
+      isDeprecated
+      deprecationReason
+      locations
+    }
+  }
+}
+```
+
+### Troubleshooting
+
+**Problem:** The directive definition `@custom` must not reference itself.
+
+- **Cause:** A directive is applied to its own definition or to one of its own arguments. Self-reference is not allowed.
+- **Solution:** Apply a different directive, or remove the self-application.
+
+**Problem:** The specified directive `@onObject` is not allowed on the current location `DirectiveDefinition`.
+
+- **Cause:** The applied directive's definition does not include the `DIRECTIVE_DEFINITION` location.
+- **Solution:** Add `DIRECTIVE_DEFINITION` to that directive's locations (`on DIRECTIVE_DEFINITION` in SDL, or `descriptor.Location(DirectiveLocation.DirectiveDefinition)` in code-first).
+
+**Problem:** The directive extension `extend directive @unknown` targets an undefined directive.
+
+- **Cause:** `extend directive` references a directive that is not defined.
+- **Solution:** Define the directive before extending it.
+
 ## Locations
 
 A directive can define one or multiple locations, where it can be applied. Multiple locations are separated by a pipe `|`.
@@ -331,6 +510,8 @@ directive @enum on ENUM
 directive @enumValue on ENUM_VALUE
 directive @union on UNION
 directive @scalar on SCALAR
+directive @directiveDefinition on DIRECTIVE_DEFINITION
+directive @custom @directiveDefinition on OBJECT
 schema @schema {
   query: Query
 }
@@ -358,6 +539,8 @@ type User {
 union SearchResult @union = Product | User
 scalar DateTime @scalar
 ```
+
+The `DIRECTIVE_DEFINITION` location lets a directive be applied to other directive definitions, as with `@directiveDefinition` on the `@custom` definition above. See [Directives on directive definitions](#directives-on-directive-definitions) for the details.
 
 ### Executable Locations
 

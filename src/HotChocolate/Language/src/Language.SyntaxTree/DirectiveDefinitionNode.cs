@@ -8,7 +8,7 @@ namespace HotChocolate.Language;
 /// by a validator, executor, or client tool such as a code generator.
 /// https://spec.graphql.org/September2025/#sec-Type-System.Directives
 /// </summary>
-public sealed class DirectiveDefinitionNode : ITypeSystemDefinitionNode, IHasName
+public sealed class DirectiveDefinitionNode : ITypeSystemDefinitionNode, IHasName, IHasDirectives
 {
     /// <summary>
     /// Initializes a new instance of <see cref="DirectiveDefinitionNode"/>.

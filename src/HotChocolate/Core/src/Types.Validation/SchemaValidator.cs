@@ -38,6 +38,7 @@ public sealed class SchemaValidator
     public void AddDefaultRules()
     {
         _rules.Add(new DirectiveDefinitionIncludesLocationRule());
+        _rules.Add(new DirectiveDefinitionNoSelfReferenceRule());
         _rules.Add(new DirectiveIsDefinedRule());
         _rules.Add(new EnumValueIsDefinedRule());
         _rules.Add(new NoInputObjectCycleRule());
@@ -161,6 +162,8 @@ public sealed class SchemaValidator
         {
             PublishEvent(new DirectiveDefinitionEvent(directiveDefinition), context);
             PublishEvent(new NamedMemberEvent(directiveDefinition), context);
+
+            PublishDirectiveEvents(directiveDefinition, context);
 
             foreach (var argument in directiveDefinition.Arguments)
             {
