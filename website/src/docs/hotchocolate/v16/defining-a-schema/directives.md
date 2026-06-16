@@ -350,7 +350,7 @@ directive @onDirectiveDefinition on DIRECTIVE_DEFINITION
 
 Once a directive declares the `DIRECTIVE_DEFINITION` location, you can apply it to another directive definition.
 
-In schema-first SDL you place the applied directive between the directive name and the `on` keyword.
+In schema-first SDL you place the applied directives after the argument definitions (if any) and before the optional `repeatable` keyword and the `on` keyword.
 
 ```sdl
 directive @onDirectiveDefinition on DIRECTIVE_DEFINITION
