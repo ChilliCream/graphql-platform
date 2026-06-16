@@ -52,7 +52,7 @@ export function TableRow({
 }: ComponentPropsWithoutRef<"tr">) {
   return (
     <tr
-      className={`border-b border-cc-card-border ${className}`.trim()}
+      className={`border-cc-card-border border-b ${className}`.trim()}
       {...props}
     />
   );
@@ -65,7 +65,7 @@ export function TableHeaderCell({
 }: ComponentPropsWithoutRef<"th"> & { align?: Align }) {
   return (
     <th
-      className={`px-4 py-3 font-semibold text-cc-ink ${ALIGN_CLASS[align]} ${className}`.trim()}
+      className={`text-cc-ink px-4 py-3 font-semibold ${ALIGN_CLASS[align]} ${className}`.trim()}
       {...props}
     />
   );
@@ -78,7 +78,7 @@ export function TableCell({
 }: ComponentPropsWithoutRef<"td"> & { align?: Align }) {
   return (
     <td
-      className={`px-4 py-3 text-cc-ink ${ALIGN_CLASS[align]} ${className}`.trim()}
+      className={`text-cc-ink px-4 py-3 ${ALIGN_CLASS[align]} ${className}`.trim()}
       {...props}
     />
   );

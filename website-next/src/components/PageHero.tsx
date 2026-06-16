@@ -12,20 +12,20 @@ export function PageHero({
   return (
     <section className="py-16 text-center sm:py-24">
       {eyebrow && (
-        <div className="mb-3 font-mono text-xs font-semibold uppercase tracking-widest text-cc-ink-dim">
+        <div className="text-cc-ink-dim mb-3 font-mono text-xs font-semibold tracking-widest uppercase">
           {eyebrow}
         </div>
       )}
-      <h1 className="text-5xl font-semibold leading-tight tracking-tight text-cc-ink sm:text-6xl lg:text-7xl">
+      <h1 className="text-cc-ink text-5xl leading-tight font-semibold tracking-tight sm:text-6xl lg:text-7xl">
         {title}
       </h1>
       {subtitle && (
-        <p className="mt-2 text-5xl font-semibold leading-tight tracking-tight text-cc-ink sm:text-6xl lg:text-7xl">
+        <p className="text-cc-ink mt-2 text-5xl leading-tight font-semibold tracking-tight sm:text-6xl lg:text-7xl">
           {subtitle}
         </p>
       )}
       {teaser && (
-        <p className="mx-auto mt-6 max-w-2xl text-base text-cc-ink-dim sm:text-lg">
+        <p className="text-cc-ink-dim mx-auto mt-6 max-w-2xl text-base sm:text-lg">
           {teaser}
         </p>
       )}

@@ -246,36 +246,78 @@ html[data-smooth-scroll="true"]:has(:target) {
    variables are declared by DocSearch on `:root` (its stylesheet loads
    after this one, so a `:root` override here loses the cascade). Scoping
    to `.DocSearch-Container` beats that with higher specificity and lets
-   descendants inherit via `var()`. Full token list:
+   descendants inherit via `var()`. @docsearch/css v4 added tokens that fall
+   back to the light `:root` defaults when unset, so every token the modal
+   reads is overridden here. Full token list:
    https://docsearch.algolia.com/docs/styling */
 .DocSearch-Container {
   --docsearch-primary-color: var(--color-cc-accent);
   --docsearch-highlight-color: var(--color-cc-accent);
+  --docsearch-focus-color: var(--color-cc-accent);
+  --docsearch-soft-primary-color: rgb(94 234 212 / 0.12);
   --docsearch-text-color: var(--color-cc-ink);
+  --docsearch-secondary-text-color: var(--color-cc-ink-dim);
   --docsearch-muted-color: var(--color-cc-ink-dim);
+  --docsearch-icon-color: var(--color-cc-ink-dim);
+  --docsearch-subtle-color: var(--color-cc-ink-faint);
   --docsearch-container-background: rgb(5 8 15 / 0.7);
-  --docsearch-modal-background: #0c1322;
+  --docsearch-modal-background: var(--color-cc-surface);
   --docsearch-modal-shadow:
     inset 1px 1px 0 0 rgb(245 241 234 / 0.06), 0 12px 32px 0 rgb(0 0 0 / 0.5);
   --docsearch-searchbox-background: rgb(245 241 234 / 0.05);
   --docsearch-searchbox-focus-background: rgb(245 241 234 / 0.08);
   --docsearch-searchbox-shadow: inset 0 0 0 2px var(--color-cc-accent);
   --docsearch-hit-color: rgb(245 241 234 / 0.8);
-  --docsearch-hit-active-color: #ffffff;
   --docsearch-hit-background: rgb(245 241 234 / 0.04);
-  --docsearch-hit-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.3);
-  --docsearch-key-gradient: linear-gradient(
-    -225deg,
-    rgb(245 241 234 / 0.08),
-    rgb(245 241 234 / 0.04)
-  );
-  --docsearch-key-shadow:
-    inset 0 -2px 0 0 rgb(0 0 0 / 0.3),
-    inset 0 0 1px 1px rgb(245 241 234 / 0.06), 0 1px 2px 1px rgb(0 0 0 / 0.3);
-  --docsearch-footer-background: #0b0f1a;
+  --docsearch-hit-highlight-color: rgb(94 234 212 / 0.12);
+  --docsearch-background-color: rgb(245 241 234 / 0.06);
+  --docsearch-key-background: rgb(245 241 234 / 0.06);
+  --docsearch-key-color: var(--color-cc-ink-dim);
+  --docsearch-key-pressed-shadow: inset 0 2px 4px rgb(0 0 0 / 0.4);
+  --docsearch-footer-background: var(--color-cc-bg);
   --docsearch-footer-shadow:
     0 -1px 0 0 rgb(245 241 234 / 0.1), 0 -3px 6px 0 rgb(0 0 0 / 0.2);
   --docsearch-logo-color: var(--color-cc-ink-dim);
+}
+
+.DocSearch-Container .DocSearch-Modal {
+  border: 1px solid rgb(245 241 234 / 0.12);
+}
+
+.DocSearch-Container .DocSearch-Hit-path {
+  color: var(--color-cc-ink-dim);
+}
+
+.DocSearch-Container .DocSearch-Commands,
+.DocSearch-Container .DocSearch-Commands li {
+  color: var(--color-cc-ink);
+}
+
+.DocSearch-Container .DocSearch-Hit[aria-selected="true"] .DocSearch-Hit-icon,
+.DocSearch-Container
+  .DocSearch-Hit[aria-selected="true"]
+  .DocSearch-Hit-action {
+  color: var(--color-cc-ink-dim);
+}
+
+/* Keep search-bar controls at dim ink; override the accent DocSearch applies
+   on :focus-within (magnifier) and :hover (Close) too. */
+.DocSearch-Container .DocSearch-SearchBar-Magnifier,
+.DocSearch-Container .DocSearch-MagnifierLabel,
+.DocSearch-Container .DocSearch-MagnifierLabel svg,
+.DocSearch-Container .DocSearch-Form:focus-within .DocSearch-MagnifierLabel svg,
+.DocSearch-Container .DocSearch-Clear,
+.DocSearch-Container .DocSearch-Close {
+  color: var(--color-cc-ink-dim);
+}
+
+.DocSearch-Container .DocSearch-Action.DocSearch-Close:hover {
+  background: rgb(245 241 234 / 0.08);
+  color: var(--color-cc-ink);
+}
+
+.DocSearch-Container .DocSearch-Clear:hover {
+  color: var(--color-cc-ink);
 }
 
 :where(h1, h2, h3, h4, h5, h6)[id] {

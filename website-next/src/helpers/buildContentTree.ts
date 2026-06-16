@@ -26,7 +26,7 @@ function abs(rel: string): string {
  */
 export function buildContentTree(
   rootRel: string,
-  urlPrefix: string
+  urlPrefix: string,
 ): TreeNode[] {
   if (!fs.existsSync(abs(rootRel))) {
     return [];
@@ -54,12 +54,12 @@ function walk(dirRel: string, urlPrefix: string): TreeNode[] {
   for (const item of items) {
     if (!item.path || !item.title) {
       throw new Error(
-        `Invalid item in ${dirRel}/${META_FILE}: each item needs 'path' and 'title'`
+        `Invalid item in ${dirRel}/${META_FILE}: each item needs 'path' and 'title'`,
       );
     }
 
     const fileExt = [".md", ".mdx"].find((ext) =>
-      fs.existsSync(abs(`${dirRel}/${item.path}${ext}`))
+      fs.existsSync(abs(`${dirRel}/${item.path}${ext}`)),
     );
 
     if (fileExt) {
@@ -74,7 +74,7 @@ function walk(dirRel: string, urlPrefix: string): TreeNode[] {
     if (fs.existsSync(subAbs) && fs.statSync(subAbs).isDirectory()) {
       const childUrl = `${urlPrefix}/${item.path}`;
       const indexFile = ["index.md", "index.mdx"].find((n) =>
-        fs.existsSync(abs(`${subRel}/${n}`))
+        fs.existsSync(abs(`${subRel}/${n}`)),
       );
       const children = walk(subRel, childUrl);
       nodes.push({
@@ -86,7 +86,7 @@ function walk(dirRel: string, urlPrefix: string): TreeNode[] {
     }
 
     throw new Error(
-      `Item '${item.path}' referenced in ${dirRel}/${META_FILE} does not exist on disk`
+      `Item '${item.path}' referenced in ${dirRel}/${META_FILE} does not exist on disk`,
     );
   }
 

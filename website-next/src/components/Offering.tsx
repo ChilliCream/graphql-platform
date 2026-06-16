@@ -22,13 +22,13 @@ export function Offering({
   headingLevel: Heading = "h3",
 }: OfferingProps) {
   return (
-    <div className="flex flex-col rounded-xl border border-cc-card-border bg-cc-card-bg p-8 backdrop-blur-sm">
-      <Heading className="text-2xl font-semibold text-cc-ink">{title}</Heading>
-      <p className="mt-3 text-sm text-cc-ink-dim">{description}</p>
-      <ul className="mt-6 flex flex-1 flex-col gap-2 text-sm text-cc-ink">
+    <div className="border-cc-card-border bg-cc-card-bg flex flex-col rounded-xl border p-8 backdrop-blur-sm">
+      <Heading className="text-cc-ink text-2xl font-semibold">{title}</Heading>
+      <p className="text-cc-ink-dim mt-3 text-sm">{description}</p>
+      <ul className="text-cc-ink mt-6 flex flex-1 flex-col gap-2 text-sm">
         {perks.map((perk) => (
           <li key={perk} className="flex items-start gap-2">
-            <span className="flex h-5 flex-none items-center text-cc-accent">
+            <span className="text-cc-accent flex h-5 flex-none items-center">
               <CheckIcon />
             </span>
             <span>{perk}</span>

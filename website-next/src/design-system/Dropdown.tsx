@@ -26,7 +26,7 @@ export function Dropdown({
   return (
     <div className={`flex flex-col gap-1 ${className ?? ""}`.trim()}>
       {label && (
-        <span id={labelId} className="text-sm font-medium text-cc-ink">
+        <span id={labelId} className="text-cc-ink text-sm font-medium">
           {label}
         </span>
       )}
@@ -34,28 +34,28 @@ export function Dropdown({
         <summary
           aria-labelledby={label ? labelId : undefined}
           className={[
-            "flex w-full cursor-pointer list-none select-none items-center gap-2",
-            "rounded-md border border-cc-card-border bg-white/5 px-3 py-2.5",
-            "text-left text-sm text-cc-ink transition-colors",
+            "flex w-full cursor-pointer list-none items-center gap-2 select-none",
+            "border-cc-card-border rounded-md border bg-white/5 px-3 py-2.5",
+            "text-cc-ink text-left text-sm transition-colors",
             // Hover affordance only while closed, so it can't override the
             // accent border below (group-open has lower specificity in v4).
             "[details:not([open])>&:hover]:border-cc-card-border-hover",
             // Accent highlight while open, mirroring an input's focus state.
-            "group-open:border-cc-accent group-open:ring-2 group-open:ring-cc-accent/30",
-            "focus-visible:outline-hidden focus-visible:border-cc-accent focus-visible:ring-2 focus-visible:ring-cc-accent/30",
+            "group-open:border-cc-accent group-open:ring-cc-accent/30 group-open:ring-2",
+            "focus-visible:border-cc-accent focus-visible:ring-cc-accent/30 focus-visible:ring-2 focus-visible:outline-hidden",
             "[&::-webkit-details-marker]:hidden",
           ].join(" ")}
         >
           <span className="min-w-0 flex-1">{trigger}</span>
           <ChevronDownIcon
             aria-hidden="true"
-            className="h-3 w-3 flex-none fill-current text-cc-ink-dim transition-transform duration-200 group-open:rotate-180 group-open:text-cc-accent"
+            className="text-cc-ink-dim group-open:text-cc-accent h-3 w-3 flex-none fill-current transition-transform duration-200 group-open:rotate-180"
           />
         </summary>
         <div
           className={[
             "absolute inset-x-0 top-full z-20 mt-1",
-            "overflow-hidden rounded-md border border-cc-card-border bg-cc-bg shadow-lg",
+            "border-cc-card-border bg-cc-bg overflow-hidden rounded-md border shadow-lg",
             panelClassName ?? "",
           ].join(" ")}
         >

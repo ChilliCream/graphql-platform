@@ -311,6 +311,7 @@ public static class ErrorCodes
         public const string FilteringProjectionFailed = "HC0023";
         public const string SortingProjectionFailed = "HC0024";
         public const string NoPaginationProviderFound = "HC0025";
+        public const string MaxFilterOperationsExceeded = "HC0117";
 
         /// <summary>
         /// Type does not contain a valid node field. Only `items` and `nodes` are supported
