@@ -302,6 +302,78 @@ nitro fusion compose \
   --archive ./gateway.far
 ```
 
+# `nitro fusion source-schema`
+
+Manage the source schemas inside a local Fusion archive. Each subcommand applies its change and then recomposes the archive in place.
+
+## `nitro fusion source-schema remove`
+
+Remove a source schema from a Fusion archive and recompose the remaining source schemas. Fails if the named source schema is not in the archive, or if it is the only source schema in the archive.
+
+```shell
+nitro fusion source-schema remove <SOURCE_SCHEMA_NAME> \
+  --archive "<archive-file>"
+```
+
+### Arguments
+
+| Argument               | Description                                    |
+| ---------------------- | ---------------------------------------------- |
+| `<SOURCE_SCHEMA_NAME>` | Name of the source schema to remove. Required. |
+
+### Options
+
+| Option                                   | Env                        | Description                                                                          |
+| ---------------------------------------- | -------------------------- | ------------------------------------------------------------------------------------ |
+| `-a, --archive <archive>`                | `NITRO_FUSION_CONFIG_FILE` | Path to the Fusion archive file to update. Required.                                 |
+| `-e, --env, --environment <environment>` |                            | Name of the environment used for value substitution in `schema-settings.json` files. |
+
+### Examples
+
+Remove a source schema from an archive:
+
+```shell
+nitro fusion source-schema remove reviews \
+  --archive ./gateway.far
+```
+
+## `nitro fusion source-schema replace`
+
+Replace a source schema in a Fusion archive with an updated source schema and recompose. The replacement source schema's name is taken from its `schema-settings.json` (`name` field), so this command can also rename a source schema (the old one is removed and the new one added). Fails if `<OLD_SOURCE_SCHEMA_NAME>` is not present in the archive.
+
+```shell
+nitro fusion source-schema replace <OLD_SOURCE_SCHEMA_NAME> \
+  --archive "<archive-file>" \
+  --source-schema-file "<source-schema-file>"
+```
+
+### Arguments
+
+| Argument                   | Description                                     |
+| -------------------------- | ----------------------------------------------- |
+| `<OLD_SOURCE_SCHEMA_NAME>` | Name of the source schema to replace. Required. |
+
+### Options
+
+| Option                                          | Env                        | Description                                                                                                                              |
+| ----------------------------------------------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `-a, --archive <archive>`                       | `NITRO_FUSION_CONFIG_FILE` | Path to the Fusion archive file to update. Required.                                                                                     |
+| `-f, --source-schema-file <source-schema-file>` |                            | Path to the new source schema file (`.graphqls`) or to a directory that contains one. Required. Only a single source schema is accepted. |
+| `-e, --env, --environment <environment>`        |                            | Name of the environment used for value substitution in `schema-settings.json` files.                                                     |
+| `-w, --working-directory <working-directory>`   |                            | Working directory for the command. Used for resolving relative paths.                                                                    |
+
+> `--source-schema-file` accepts either a schema file or a directory. In both cases, a `schema-settings.json` file is expected to sit next to the schema file (when a directory is given, both files must be inside that directory).
+
+### Examples
+
+Replace a source schema in an archive:
+
+```shell
+nitro fusion source-schema replace reviews \
+  --archive ./gateway.far \
+  --source-schema-file ./reviews/schema.graphqls
+```
+
 # `nitro fusion settings set`
 
 Set a Fusion composition setting on a Fusion archive. Use this to flip composition-level toggles after a composition has been produced, without recomposing from sources.

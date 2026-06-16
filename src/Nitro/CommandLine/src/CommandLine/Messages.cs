@@ -29,6 +29,12 @@ internal static class Messages
 
     public static string ArchiveFileDoesNotExist(string path) => $"Archive file '{path}' does not exist.";
 
+    public static string SourceSchemaDoesNotExistInArchive(string sourceSchemaName, string archiveFile)
+        => $"Source schema '{sourceSchemaName}' does not exist in the Fusion archive '{archiveFile}'.";
+
+    public static string CannotRemoveLastSourceSchema(string sourceSchemaName)
+        => $"Source schema '{sourceSchemaName}' cannot be removed because it is the only source schema in the Fusion archive.";
+
     public static string LegacyArchiveFileDoesNotExist(string path) => $"Legacy archive file '{path}' does not exist.";
 
     public static string FailedToOpenLegacyArchive(string filePath, string detail)
