@@ -427,14 +427,14 @@ internal sealed class FusionComposeCommand : Command
                 var existing = (await archive.GetSourceSchemaNamesAsync(cancellationToken))
                     .ToHashSet(StringComparer.Ordinal);
 
-                foreach (var name in removeSourceSchemas)
+                var missingSourceSchema =
+                    removeSourceSchemas.FirstOrDefault(name => !existing.Contains(name));
+
+                if (missingSourceSchema is not null)
                 {
-                    if (!existing.Contains(name))
-                    {
-                        console.Error.WriteErrorLine(
-                            Messages.SourceSchemaDoesNotExistInArchive(name, archiveFile));
-                        return 1;
-                    }
+                    console.Error.WriteErrorLine(
+                        Messages.SourceSchemaDoesNotExistInArchive(missingSourceSchema, archiveFile));
+                    return 1;
                 }
 
                 foreach (var name in removeSourceSchemas)
