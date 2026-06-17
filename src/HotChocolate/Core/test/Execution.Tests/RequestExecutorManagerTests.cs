@@ -379,7 +379,7 @@ public class RequestExecutorManagerTests
                 lock (_sync)
                 {
                     _typesChanged += value;
-                    _subscriberCount++;
+                    _subscriberCount = _typesChanged?.GetInvocationList().Length ?? 0;
                 }
             }
             remove
@@ -387,7 +387,7 @@ public class RequestExecutorManagerTests
                 lock (_sync)
                 {
                     _typesChanged -= value;
-                    _subscriberCount--;
+                    _subscriberCount = _typesChanged?.GetInvocationList().Length ?? 0;
                 }
             }
         }
