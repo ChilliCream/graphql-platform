@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
+using HotChocolate.Data.MongoDb;
 using HotChocolate.Data.Filters;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
@@ -17,6 +18,8 @@ namespace HotChocolate.Data.MongoDb.Filters;
 public abstract class MongoDbListOperationHandlerBase
     : FilterFieldHandler<MongoDbFilterVisitorContext, MongoDbFilterDefinition>
 {
+    private static readonly MongoDbFilterCombinator s_combinator = new();
+
     /// <summary>
     /// Specifies the identifier of the operations that should be handled by this handler
     /// </summary>
@@ -115,6 +118,12 @@ public abstract class MongoDbListOperationHandlerBase
     protected static MongoDbFilterDefinition CombineOperationsOfScope(MongoDbFilterScope scope)
     {
         var level = scope.Level.Peek();
+
+        if (level.Count == 0)
+        {
+            throw ThrowHelper.Filtering_MongoDbCombinator_QueueEmpty(s_combinator);
+        }
+
         if (level.Count == 1)
         {
             return level.Peek();
