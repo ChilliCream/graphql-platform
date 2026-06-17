@@ -25,7 +25,7 @@
     <PackageReference Include="Microsoft.Extensions.Http" />
     <PackageReference Include="System.Reactive" />
     <PackageReference Include="System.IO.Hashing" />
-    <PackageReference Include="System.Net.ServerSentEvents" />
+    <PackageReference Include="System.Net.ServerSentEvents" Condition="'$(TargetFramework)' == 'net8.0' or '$(TargetFramework)' == 'net9.0'" />
   </ItemGroup>
 
   <ItemGroup>
