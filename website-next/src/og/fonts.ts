@@ -9,23 +9,34 @@ const FONT_DIR = path.join(process.cwd(), "src/og/fonts");
 export type OgFont = {
   name: string;
   data: Buffer;
-  weight: 400 | 700;
+  weight: 400 | 600 | 700;
   style: "normal";
 };
 
 /**
- * Loads the vendored Inter TTFs (regular + bold) as raw font bytes for
- * `ImageResponse`. Reading from `process.cwd()` works at build time, which is
+ * Loads the vendored share-card fonts as raw bytes for `ImageResponse`:
+ * Inter for body/title copy and Josefin Sans for the display headline (matching
+ * the landing hero). Reading from `process.cwd()` works at build time, which is
  * required for the static export (`output: "export"`).
  */
-export async function loadInterFonts(): Promise<OgFont[]> {
-  const [regular, bold] = await Promise.all([
-    readFile(path.join(FONT_DIR, "Inter-Regular.ttf")),
-    readFile(path.join(FONT_DIR, "Inter-Bold.ttf")),
-  ]);
+export async function loadShareCardFonts(): Promise<OgFont[]> {
+  const [interRegular, interBold, josefinSemiBold, josefinBold] =
+    await Promise.all([
+      readFile(path.join(FONT_DIR, "Inter-Regular.ttf")),
+      readFile(path.join(FONT_DIR, "Inter-Bold.ttf")),
+      readFile(path.join(FONT_DIR, "JosefinSans-600.woff")),
+      readFile(path.join(FONT_DIR, "JosefinSans-700.woff")),
+    ]);
 
   return [
-    { name: "Inter", data: regular, weight: 400, style: "normal" },
-    { name: "Inter", data: bold, weight: 700, style: "normal" },
+    { name: "Inter", data: interRegular, weight: 400, style: "normal" },
+    { name: "Inter", data: interBold, weight: 700, style: "normal" },
+    {
+      name: "Josefin Sans",
+      data: josefinSemiBold,
+      weight: 600,
+      style: "normal",
+    },
+    { name: "Josefin Sans", data: josefinBold, weight: 700, style: "normal" },
   ];
 }
