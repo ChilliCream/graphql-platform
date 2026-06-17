@@ -43,12 +43,29 @@ internal sealed class ExecutionResultSnapshotValueFormatter
         snapshot.AppendLine();
     }
 
+    private static Task FormatStreamAsync(IBufferWriter<byte> snapshot, IResponseStream stream)
+        // Only @defer/@stream responses carry the incremental-delivery envelope. Other
+        // streams (subscriptions, batches) are sequences of independent results and are
+        // written out verbatim, one payload after another.
+        => stream.Kind is ExecutionResultKind.DeferredResult
+            ? FormatIncrementalAsync(snapshot, stream)
+            : FormatEventStreamAsync(snapshot, stream);
+
+    private static async Task FormatEventStreamAsync(IBufferWriter<byte> snapshot, IResponseStream stream)
+    {
+        await foreach (var result in stream.ReadResultsAsync().ConfigureAwait(false))
+        {
+            snapshot.Append(result.ToJson());
+            snapshot.AppendLine();
+        }
+    }
+
     // Reconstructs a single, delivery-order-independent view of an incrementally
     // delivered (@defer/@stream) response: the initial payload's non-protocol
     // fields plus the `pending`, `incremental`, and `completed` entries collected
     // across every payload and ordered by `id`. The snapshot is identical whether
     // the transport bundled the response into one payload or split it across several.
-    private static async Task FormatStreamAsync(
+    private static async Task FormatIncrementalAsync(
         IBufferWriter<byte> snapshot,
         IResponseStream stream)
     {
