@@ -558,7 +558,7 @@ public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
     {
         // Format the result directly into the document's own gap-free arena segments, then parse
         // those bytes in place without an intermediate staging buffer or extra copy.
-        var writer = new ArenaBufferWriter(arena);
+        using var writer = new ArenaBufferWriter(arena);
         formatter.Format(operationResult, writer);
         return SourceResultDocument.ParseFilled(arena, writer.Segments, writer.UsedChunks, writer.LastLength);
     }

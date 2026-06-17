@@ -11,7 +11,7 @@ namespace HotChocolate.Fusion.Text.Json;
 /// <see cref="SourceResultDocument.ParseFilled(IMemoryArena, MemorySegment[], int, int)"/> without
 /// any further copy.
 /// </summary>
-internal sealed class ArenaBufferWriter : IBufferWriter<byte>
+internal sealed class ArenaBufferWriter : IBufferWriter<byte>, IDisposable
 {
     private readonly IMemoryArena _arena;
     private MemorySegment[] _segments;
@@ -71,18 +71,19 @@ internal sealed class ArenaBufferWriter : IBufferWriter<byte>
         // full chunk rolled over above.
         if (sizeHint <= remaining)
         {
-            return _currentBuffer.AsSpan(_currentBase + _currentChunkOffset);
+            return _currentBuffer.AsSpan(_currentBase + _currentChunkOffset, remaining);
         }
 
         // The requested size exceeds the remaining space in this chunk. Hand out a scratch buffer
         // and copy it into the segments gap-free on Advance, so the written layout never has holes.
         if (sizeHint > _scratch.Length)
         {
-            _scratch = new byte[sizeHint];
+            ReturnScratch();
+            _scratch = ArrayPool<byte>.Shared.Rent(sizeHint);
         }
 
         _advanceFromScratch = true;
-        return _scratch;
+        return _scratch.AsSpan(0, sizeHint);
     }
 
     /// <inheritdoc />
@@ -104,11 +105,12 @@ internal sealed class ArenaBufferWriter : IBufferWriter<byte>
 
         if (sizeHint > _scratch.Length)
         {
-            _scratch = new byte[sizeHint];
+            ReturnScratch();
+            _scratch = ArrayPool<byte>.Shared.Rent(sizeHint);
         }
 
         _advanceFromScratch = true;
-        return _scratch.AsMemory();
+        return _scratch.AsMemory(0, sizeHint);
     }
 
     /// <inheritdoc />
@@ -137,6 +139,20 @@ internal sealed class ArenaBufferWriter : IBufferWriter<byte>
             source[..take].CopyTo(_currentBuffer.AsSpan(_currentBase + _currentChunkOffset, take));
             _currentChunkOffset += take;
             source = source[take..];
+        }
+    }
+
+    public void Dispose()
+    {
+        ReturnScratch();
+    }
+
+    private void ReturnScratch()
+    {
+        if (_scratch.Length > 0)
+        {
+            ArrayPool<byte>.Shared.Return(_scratch);
+            _scratch = [];
         }
     }
 
