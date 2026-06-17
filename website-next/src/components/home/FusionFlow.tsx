@@ -27,20 +27,6 @@ const CONVERGENCE: readonly { color: string; d: string }[] = [
   { color: "#b07fd0", d: "M890 70 L890 300 C890 520 500 560 500 770" },
 ];
 
-const CHIPS = ["gRPC", "GraphQL", "OpenAPI", "MCP"] as const;
-
-/** Fan-out from the chip box down to the four protocol columns below. */
-const FANOUT: readonly string[] = [
-  "M500 0 C500 90 125 70 125 180",
-  "M500 0 C500 110 375 70 375 180",
-  "M500 0 C500 110 625 70 625 180",
-  "M500 0 C500 90 875 70 875 180",
-];
-
-/** Brand spectrum used for the headline accent and the chip-box border. */
-const SPECTRUM =
-  "linear-gradient(100deg,#16b9e4 0%,#7c92c6 33%,#b681a9 63%,#f0786a 100%)";
-
 function GlowBeam({ className }: { readonly className?: string }) {
   return (
     <div
@@ -158,42 +144,6 @@ export function FusionFlow() {
         </p>
         <GlowBeam className="mt-10" />
       </div>
-
-      {/* Protocol chip box with the brand-spectrum border. */}
-      <div
-        className="mx-auto max-w-3xl rounded-2xl p-px"
-        style={{ backgroundImage: SPECTRUM }}
-      >
-        <div className="bg-cc-surface grid grid-cols-2 gap-3 rounded-[15px] p-3 sm:grid-cols-4 sm:p-4">
-          {CHIPS.map((chip) => (
-            <div
-              key={chip}
-              className="border-cc-card-border/70 bg-cc-card-bg text-cc-ink-dim rounded-xl border px-4 py-3 text-center font-mono text-sm"
-            >
-              {chip}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Fan-out toward the protocol cards below. */}
-      <svg
-        viewBox="0 0 1000 180"
-        fill="none"
-        aria-hidden="true"
-        preserveAspectRatio="none"
-        className="mt-px hidden h-24 w-full lg:block"
-      >
-        {FANOUT.map((d) => (
-          <path
-            key={d}
-            d={d}
-            stroke="rgba(245,241,234,0.22)"
-            strokeWidth={1.5}
-            vectorEffect="non-scaling-stroke"
-          />
-        ))}
-      </svg>
     </section>
   );
 }
