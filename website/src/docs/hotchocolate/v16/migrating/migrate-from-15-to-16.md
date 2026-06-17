@@ -1435,6 +1435,12 @@ For a query against a nullable `Bar` column:
 - Previously: only rows where `Bar = false` were returned.
 - Now: rows where `Bar = false` and rows where `Bar IS NULL` are returned.
 
+## Cost validation now active for `AutomaticPersistedOperations`-pipeline
+
+If you are using Automatic Persisted Queries (APQ), cost analysis is now validated correctly.
+In v15, cost was not applied when the `AutomaticPersistedOperations`-pipeline was used, allowing queries to bypass cost limits.
+After upgrading, queries that previously executed successfully may now be rejected due to their configured cost.
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.
