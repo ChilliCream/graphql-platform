@@ -37,7 +37,7 @@ public class QueryableListAnyOperationHandler
         object? parsedValue)
     {
         if (context.RuntimeTypes.Count > 0
-            && context.RuntimeTypes.Peek().TypeArguments is { Count: > 0 } args
+            && context.RuntimeTypes.Peek().ElementType is { } element
             && parsedValue is bool parsedBool)
         {
             var property = context.GetInstance();
@@ -45,12 +45,12 @@ public class QueryableListAnyOperationHandler
             Expression expression;
             if (parsedBool)
             {
-                expression = FilterExpressionBuilder.Any(args[0].Source, property);
+                expression = FilterExpressionBuilder.Any(element.Source, property);
             }
             else
             {
                 expression = FilterExpressionBuilder.Not(
-                    FilterExpressionBuilder.Any(args[0].Source, property));
+                    FilterExpressionBuilder.Any(element.Source, property));
             }
 
             if (context.InMemory)
