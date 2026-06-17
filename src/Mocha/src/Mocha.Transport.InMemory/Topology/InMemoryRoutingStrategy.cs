@@ -6,10 +6,8 @@ namespace Mocha.Transport.InMemory;
 /// <summary>
 /// Defines the endpoint and topology layout for the in-memory transport.
 /// </summary>
-public sealed class InMemoryRoutingStrategy : RoutingStrategy
+public sealed class InMemoryRoutingStrategy : RoutingStrategy<InMemoryMessagingTransport>
 {
-    private InMemoryMessagingTransport InMemoryTransport => (InMemoryMessagingTransport)Transport;
-
     /// <inheritdoc />
     public override DispatchEndpointConfiguration? CreateEndpointConfiguration(
         IMessagingConfigurationContext context,
@@ -20,27 +18,22 @@ public sealed class InMemoryRoutingStrategy : RoutingStrategy
             return null;
         }
 
-        var resolution = InMemoryTransport.Resolver.ResolveDestination(context.Naming, route);
+        var resolution = InMemoryDestinations.Resolve(Transport.Schema, context.Naming, route);
 
-        InMemoryDispatchEndpointConfiguration configuration;
         if (resolution.Kind == InMemoryDestinationKind.Queue)
         {
-            configuration = new InMemoryDispatchEndpointConfiguration
+            return new InMemoryDispatchEndpointConfiguration
             {
                 QueueName = resolution.Name,
                 Name = resolution.EndpointName
             };
         }
-        else
-        {
-            configuration = new InMemoryDispatchEndpointConfiguration
-            {
-                TopicName = resolution.Name,
-                Name = resolution.EndpointName
-            };
-        }
 
-        return configuration;
+        return new InMemoryDispatchEndpointConfiguration
+        {
+            TopicName = resolution.Name,
+            Name = resolution.EndpointName
+        };
     }
 
     /// <inheritdoc />
@@ -54,7 +47,7 @@ public sealed class InMemoryRoutingStrategy : RoutingStrategy
         Span<Range> ranges = stackalloc Range[2];
         var segmentCount = path.Split(ranges, '/', RemoveEmptyEntries | TrimEntries);
 
-        if (address.Scheme == InMemoryTransport.Schema && address.Host is "")
+        if (address.Scheme == Transport.Schema && address.Host is "")
         {
             if (segmentCount == 1 && path[ranges[0]] is "replies")
             {
@@ -92,7 +85,7 @@ public sealed class InMemoryRoutingStrategy : RoutingStrategy
             }
         }
 
-        if (configuration is null && InMemoryTransport.Topology.Address.IsBaseOf(address) && segmentCount == 2)
+        if (configuration is null && Transport.Topology.Address.IsBaseOf(address) && segmentCount == 2)
         {
             var kind = path[ranges[0]];
             var name = path[ranges[1]];
@@ -116,7 +109,7 @@ public sealed class InMemoryRoutingStrategy : RoutingStrategy
             }
         }
 
-        var isEffectiveDefault = InMemoryTransport.IsDefaultTransport || context.Transports.Length == 1;
+        var isEffectiveDefault = Transport.IsDefaultTransport || context.Transports.Length == 1;
 
         if (configuration is null && isEffectiveDefault && address is { Scheme: "queue" })
         {
@@ -150,11 +143,10 @@ public sealed class InMemoryRoutingStrategy : RoutingStrategy
         IMessagingConfigurationContext context,
         InboundRoute route)
     {
-        InMemoryReceiveEndpointConfiguration configuration;
         if (route.Kind == InboundRouteKind.Reply)
         {
             var instanceEndpointName = context.Naming.GetInstanceEndpoint(context.Host.InstanceId);
-            configuration = new InMemoryReceiveEndpointConfiguration
+            return new InMemoryReceiveEndpointConfiguration
             {
                 Name = "Replies",
                 QueueName = instanceEndpointName,
@@ -164,13 +156,9 @@ public sealed class InMemoryRoutingStrategy : RoutingStrategy
                 ReceiveMiddlewares = [ReplyReceiveMiddleware.Create()]
             };
         }
-        else
-        {
-            var queueName = context.Naming.GetReceiveEndpointName(route, ReceiveEndpointKind.Default);
-            configuration = new InMemoryReceiveEndpointConfiguration { Name = queueName, QueueName = queueName };
-        }
 
-        return configuration;
+        var queueName = context.Naming.GetReceiveEndpointName(route, ReceiveEndpointKind.Default);
+        return new InMemoryReceiveEndpointConfiguration { Name = queueName, QueueName = queueName };
     }
 
     /// <inheritdoc />
@@ -179,51 +167,32 @@ public sealed class InMemoryRoutingStrategy : RoutingStrategy
         ReceiveEndpoint endpoint,
         ReceiveEndpointConfiguration configuration)
     {
-        if (endpoint is InMemoryReceiveEndpoint inMemoryEndpoint
-            && configuration is InMemoryReceiveEndpointConfiguration inMemoryConfiguration)
-        {
-            DiscoverReceiveTopology(context, inMemoryEndpoint, inMemoryConfiguration);
-        }
-    }
-
-    /// <inheritdoc />
-    public override void DiscoverTopology(
-        IMessagingConfigurationContext context,
-        DispatchEndpoint endpoint,
-        DispatchEndpointConfiguration configuration)
-    {
-        if (endpoint is InMemoryDispatchEndpoint inMemoryEndpoint
-            && configuration is InMemoryDispatchEndpointConfiguration inMemoryConfiguration)
-        {
-            DiscoverDispatchTopology(inMemoryEndpoint, inMemoryConfiguration);
-        }
-    }
-
-    internal static void DiscoverReceiveTopology(
-        IMessagingConfigurationContext context,
-        InMemoryReceiveEndpoint endpoint,
-        InMemoryReceiveEndpointConfiguration configuration)
-    {
-        if (configuration.QueueName is null)
-        {
-            throw new InvalidOperationException("Queue name is required");
-        }
-
-        var topology = (InMemoryMessagingTopology)endpoint.Transport.Topology;
-
-        if (topology.Queues.FirstOrDefault(q => q.Name == configuration.QueueName) is null)
-        {
-            topology.AddQueue(new InMemoryQueueConfiguration { Name = configuration.QueueName });
-        }
-
-        if (endpoint.Kind is ReceiveEndpointKind.Reply or ReceiveEndpointKind.Error or ReceiveEndpointKind.Skipped)
+        if (endpoint is not InMemoryReceiveEndpoint inMemoryEndpoint
+            || configuration is not InMemoryReceiveEndpointConfiguration inMemoryConfiguration)
         {
             return;
         }
 
-        var resolver = ((InMemoryMessagingTransport)endpoint.Transport).Resolver;
+        if (inMemoryConfiguration.QueueName is null)
+        {
+            throw new InvalidOperationException("Queue name is required");
+        }
 
-        var routes = context.Router.GetInboundByEndpoint(endpoint);
+        var topology = (InMemoryMessagingTopology)inMemoryEndpoint.Transport.Topology;
+
+        if (topology.Queues.FirstOrDefault(q => q.Name == inMemoryConfiguration.QueueName) is null)
+        {
+            topology.AddQueue(new InMemoryQueueConfiguration { Name = inMemoryConfiguration.QueueName });
+        }
+
+        if (inMemoryEndpoint.Kind is ReceiveEndpointKind.Reply or ReceiveEndpointKind.Error or ReceiveEndpointKind.Skipped)
+        {
+            return;
+        }
+
+        var schema = inMemoryEndpoint.Transport.Schema;
+
+        var routes = context.Router.GetInboundByEndpoint(inMemoryEndpoint);
         foreach (var route in routes)
         {
             if (route.Kind is InboundRouteKind.Reply)
@@ -236,32 +205,35 @@ public sealed class InMemoryRoutingStrategy : RoutingStrategy
                 continue;
             }
 
-            var autoBind = ResolveAutoBind(endpoint.Transport, configuration);
-            var chainEntry = ResolveChainEntry(context, resolver, route.MessageType);
-
-            if (chainEntry.Kind == InMemoryDestinationKind.Queue)
+            var autoBind = (inMemoryConfiguration.BindMode ?? inMemoryEndpoint.Transport.BindMode)
+                is MessagingBindMode.Implicit;
+            var explicitPublishRoute = context.Router.GetOutboundByMessageType(route.MessageType)
+                .FirstOrDefault(r => r is { HasExplicitDestination: true, Kind: OutboundRouteKind.Publish });
+            if (explicitPublishRoute is not null)
             {
+                var destination = InMemoryDestinations.Resolve(schema, context.Naming, explicitPublishRoute);
+
+                if (destination.Kind == InMemoryDestinationKind.Queue)
+                {
+                    if (autoBind)
+                    {
+                        throw ThrowHelper.ConsumeBindUnderivable(GetTypeName(route.MessageType), inMemoryConfiguration.QueueName);
+                    }
+
+                    continue;
+                }
+
+                EnsureTopic(topology, destination.Name);
+
                 if (autoBind)
                 {
-                    throw ThrowHelper.ConsumeBindUnderivable(GetTypeName(route.MessageType), configuration.QueueName);
+                    EnsureQueueBinding(topology, destination.Name, inMemoryConfiguration.QueueName);
                 }
 
                 continue;
             }
 
-            if (chainEntry.IsExplicit)
-            {
-                EnsureTopic(topology, chainEntry.Name);
-
-                if (autoBind)
-                {
-                    EnsureQueueBinding(topology, chainEntry.Name, configuration.QueueName);
-                }
-
-                continue;
-            }
-
-            var publishTopicName = chainEntry.Name;
+            var publishTopicName = context.Naming.GetPublishEndpointName(route.MessageType.RuntimeType);
             EnsureTopic(topology, publishTopicName);
 
             var sendTopicName = context.Naming.GetSendEndpointName(route.MessageType.RuntimeType);
@@ -273,58 +245,36 @@ public sealed class InMemoryRoutingStrategy : RoutingStrategy
 
             if (autoBind)
             {
-                EnsureQueueBinding(topology, sendTopicName, configuration.QueueName);
+                EnsureQueueBinding(topology, sendTopicName, inMemoryConfiguration.QueueName);
             }
         }
     }
 
-    internal static void DiscoverDispatchTopology(
-        InMemoryDispatchEndpoint endpoint,
-        InMemoryDispatchEndpointConfiguration configuration)
-    {
-        var topology = (InMemoryMessagingTopology)endpoint.Transport.Topology;
-
-        if (configuration.TopicName is not null
-            && topology.Topics.FirstOrDefault(t => t.Name == configuration.TopicName) is null)
-        {
-            topology.AddTopic(new InMemoryTopicConfiguration { Name = configuration.TopicName });
-        }
-
-        if (configuration.QueueName is not null
-            && topology.Queues.FirstOrDefault(q => q.Name == configuration.QueueName) is null)
-        {
-            topology.AddQueue(new InMemoryQueueConfiguration { Name = configuration.QueueName });
-        }
-    }
-
-    private static bool ResolveAutoBind(
-        MessagingTransport transport,
-        InMemoryReceiveEndpointConfiguration configuration)
-    {
-        if (configuration.BindMode.HasValue)
-        {
-            return configuration.BindMode.Value == MessagingBindMode.Implicit;
-        }
-
-        return transport.BindMode == MessagingBindMode.Implicit;
-    }
-
-    private static ChainEntry ResolveChainEntry(
+    /// <inheritdoc />
+    public override void DiscoverTopology(
         IMessagingConfigurationContext context,
-        InMemoryDestinationResolver resolver,
-        MessageType messageType)
+        DispatchEndpoint endpoint,
+        DispatchEndpointConfiguration configuration)
     {
-        foreach (var route in context.Router.GetOutboundByMessageType(messageType))
+        if (endpoint is not InMemoryDispatchEndpoint inMemoryEndpoint
+            || configuration is not InMemoryDispatchEndpointConfiguration inMemoryConfiguration)
         {
-            if (route is { HasExplicitDestination: true, Kind: OutboundRouteKind.Publish })
-            {
-                var resolution = resolver.ResolveDestination(context.Naming, route);
-                return new ChainEntry(resolution.Kind, resolution.Name, IsExplicit: true);
-            }
+            return;
         }
 
-        var conventionTopic = resolver.ResolvePublishDestination(context.Naming, messageType);
-        return new ChainEntry(conventionTopic.Kind, conventionTopic.Name, IsExplicit: false);
+        var topology = (InMemoryMessagingTopology)inMemoryEndpoint.Transport.Topology;
+
+        if (inMemoryConfiguration.TopicName is not null
+            && topology.Topics.FirstOrDefault(t => t.Name == inMemoryConfiguration.TopicName) is null)
+        {
+            topology.AddTopic(new InMemoryTopicConfiguration { Name = inMemoryConfiguration.TopicName });
+        }
+
+        if (inMemoryConfiguration.QueueName is not null
+            && topology.Queues.FirstOrDefault(q => q.Name == inMemoryConfiguration.QueueName) is null)
+        {
+            topology.AddQueue(new InMemoryQueueConfiguration { Name = inMemoryConfiguration.QueueName });
+        }
     }
 
     private static void EnsureTopic(InMemoryMessagingTopology topology, string topicName)
@@ -377,6 +327,4 @@ public sealed class InMemoryRoutingStrategy : RoutingStrategy
 
     private static string GetTypeName(MessageType messageType)
         => messageType.RuntimeType.FullName ?? messageType.RuntimeType.Name;
-
-    private readonly record struct ChainEntry(InMemoryDestinationKind Kind, string Name, bool IsExplicit);
 }

@@ -189,10 +189,9 @@ internal sealed class PostgresQueueBuilder : IPostgresQueueBuilder
                 _name);
         }
 
-        var resolver = new PostgresDestinationResolver(
-            _transport.Configuration.Schema ?? PostgresTransportConfiguration.DefaultSchema);
+        var schema = _transport.Configuration.Schema ?? PostgresTransportConfiguration.DefaultSchema;
 
-        if (!resolver.TryResolveSourceTopic(source, out var topicName))
+        if (!PostgresDestinations.TryResolveSourceTopic(schema, source, out var topicName))
         {
             throw new InvalidOperationException(
                 $"BindFrom source '{source}' could not be resolved to a PostgreSQL topic name.");

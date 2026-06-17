@@ -137,10 +137,9 @@ internal sealed class InMemoryQueueBuilder : IInMemoryQueueBuilder
                 + $"Queue '{_name}' cannot use a routing key in BindFrom.");
         }
 
-        var resolver = new InMemoryDestinationResolver(
-            _transport.Configuration.Schema ?? InMemoryTransportConfiguration.DefaultSchema);
+        var schema = _transport.Configuration.Schema ?? InMemoryTransportConfiguration.DefaultSchema;
 
-        if (!resolver.TryResolveSourceTopic(source, out var topicName))
+        if (!InMemoryDestinations.TryResolveSourceTopic(schema, source, out var topicName))
         {
             throw new InvalidOperationException(
                 $"BindFrom source '{source}' could not be resolved to an in-memory topic name.");

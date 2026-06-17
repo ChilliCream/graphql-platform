@@ -6,10 +6,8 @@ namespace Mocha.Transport.Postgres;
 /// <summary>
 /// Defines the endpoint and topology layout for the PostgreSQL transport.
 /// </summary>
-public sealed class PostgresRoutingStrategy : RoutingStrategy
+public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingTransport>
 {
-    private PostgresMessagingTransport PostgresTransport => (PostgresMessagingTransport)Transport;
-
     /// <inheritdoc />
     public override DispatchEndpointConfiguration? CreateEndpointConfiguration(
         IMessagingConfigurationContext context,
@@ -20,27 +18,22 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy
             return null;
         }
 
-        var resolution = PostgresTransport.Resolver.ResolveDestination(context.Naming, route);
+        var resolution = PostgresDestinations.Resolve(Transport.Schema, context.Naming, route);
 
-        PostgresDispatchEndpointConfiguration configuration;
         if (resolution.Kind == PostgresDestinationKind.Queue)
         {
-            configuration = new PostgresDispatchEndpointConfiguration
+            return new PostgresDispatchEndpointConfiguration
             {
                 QueueName = resolution.Name,
                 Name = resolution.EndpointName
             };
         }
-        else
-        {
-            configuration = new PostgresDispatchEndpointConfiguration
-            {
-                TopicName = resolution.Name,
-                Name = resolution.EndpointName
-            };
-        }
 
-        return configuration;
+        return new PostgresDispatchEndpointConfiguration
+        {
+            TopicName = resolution.Name,
+            Name = resolution.EndpointName
+        };
     }
 
     /// <inheritdoc />
@@ -54,7 +47,7 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy
         Span<Range> ranges = stackalloc Range[2];
         var segmentCount = path.Split(ranges, '/', RemoveEmptyEntries | TrimEntries);
 
-        if (address.Scheme == PostgresTransport.Schema && address.Host is "")
+        if (address.Scheme == Transport.Schema && address.Host is "")
         {
             if (segmentCount == 1 && path[ranges[0]] is "replies")
             {
@@ -92,7 +85,7 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy
             }
         }
 
-        if (configuration is null && PostgresTransport.Topology.Address.IsBaseOf(address) && segmentCount == 2)
+        if (configuration is null && Transport.Topology.Address.IsBaseOf(address) && segmentCount == 2)
         {
             var kind = path[ranges[0]];
             var name = path[ranges[1]];
@@ -116,7 +109,7 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy
             }
         }
 
-        var isEffectiveDefault = PostgresTransport.IsDefaultTransport || context.Transports.Length == 1;
+        var isEffectiveDefault = Transport.IsDefaultTransport || context.Transports.Length == 1;
 
         if (configuration is null && isEffectiveDefault && address is { Scheme: "queue" })
         {
@@ -150,11 +143,10 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy
         IMessagingConfigurationContext context,
         InboundRoute route)
     {
-        PostgresReceiveEndpointConfiguration configuration;
         if (route.Kind == InboundRouteKind.Reply)
         {
             var instanceEndpointName = context.Naming.GetInstanceEndpoint(context.Host.InstanceId);
-            configuration = new PostgresReceiveEndpointConfiguration
+            return new PostgresReceiveEndpointConfiguration
             {
                 Name = "Replies",
                 QueueName = instanceEndpointName,
@@ -164,13 +156,9 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy
                 ReceiveMiddlewares = [ReplyReceiveMiddleware.Create()]
             };
         }
-        else
-        {
-            var queueName = context.Naming.GetReceiveEndpointName(route, ReceiveEndpointKind.Default);
-            configuration = new PostgresReceiveEndpointConfiguration { Name = queueName, QueueName = queueName };
-        }
 
-        return configuration;
+        var queueName = context.Naming.GetReceiveEndpointName(route, ReceiveEndpointKind.Default);
+        return new PostgresReceiveEndpointConfiguration { Name = queueName, QueueName = queueName };
     }
 
     /// <inheritdoc />
@@ -179,54 +167,35 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy
         ReceiveEndpoint endpoint,
         ReceiveEndpointConfiguration configuration)
     {
-        if (endpoint is PostgresReceiveEndpoint postgresEndpoint
-            && configuration is PostgresReceiveEndpointConfiguration postgresConfiguration)
-        {
-            DiscoverReceiveTopology(context, postgresEndpoint, postgresConfiguration);
-        }
-    }
-
-    /// <inheritdoc />
-    public override void DiscoverTopology(
-        IMessagingConfigurationContext context,
-        DispatchEndpoint endpoint,
-        DispatchEndpointConfiguration configuration)
-    {
-        if (endpoint is PostgresDispatchEndpoint postgresEndpoint
-            && configuration is PostgresDispatchEndpointConfiguration postgresConfiguration)
-        {
-            DiscoverDispatchTopology(context, postgresEndpoint, postgresConfiguration);
-        }
-    }
-
-    internal static void DiscoverReceiveTopology(
-        IMessagingConfigurationContext context,
-        PostgresReceiveEndpoint endpoint,
-        PostgresReceiveEndpointConfiguration configuration)
-    {
-        if (configuration.QueueName is null)
-        {
-            throw new InvalidOperationException("Queue name is required");
-        }
-
-        var topology = (PostgresMessagingTopology)endpoint.Transport.Topology;
-
-        topology.AddQueue(
-            new PostgresQueueConfiguration
-            {
-                Name = configuration.QueueName,
-                AutoDelete = endpoint.Kind == ReceiveEndpointKind.Reply,
-                AutoProvision = configuration.AutoProvision
-            });
-
-        if (endpoint.Kind is ReceiveEndpointKind.Reply or ReceiveEndpointKind.Error or ReceiveEndpointKind.Skipped)
+        if (endpoint is not PostgresReceiveEndpoint postgresEndpoint
+            || configuration is not PostgresReceiveEndpointConfiguration postgresConfiguration)
         {
             return;
         }
 
-        var resolver = ((PostgresMessagingTransport)endpoint.Transport).Resolver;
+        if (postgresConfiguration.QueueName is null)
+        {
+            throw new InvalidOperationException("Queue name is required");
+        }
 
-        var routes = context.Router.GetInboundByEndpoint(endpoint);
+        var topology = (PostgresMessagingTopology)postgresEndpoint.Transport.Topology;
+
+        topology.AddQueue(
+            new PostgresQueueConfiguration
+            {
+                Name = postgresConfiguration.QueueName,
+                AutoDelete = postgresEndpoint.Kind == ReceiveEndpointKind.Reply,
+                AutoProvision = postgresConfiguration.AutoProvision
+            });
+
+        if (postgresEndpoint.Kind is ReceiveEndpointKind.Reply or ReceiveEndpointKind.Error or ReceiveEndpointKind.Skipped)
+        {
+            return;
+        }
+
+        var schema = postgresEndpoint.Transport.Schema;
+
+        var routes = context.Router.GetInboundByEndpoint(postgresEndpoint);
         foreach (var route in routes)
         {
             if (route.Kind is InboundRouteKind.Reply)
@@ -239,32 +208,35 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy
                 continue;
             }
 
-            var autoBind = ResolveAutoBind(endpoint.Transport, configuration);
-            var chainEntry = ResolveChainEntry(context, resolver, route.MessageType);
-
-            if (chainEntry.Kind == PostgresDestinationKind.Queue)
+            var autoBind = (postgresConfiguration.BindMode ?? postgresEndpoint.Transport.BindMode)
+                is MessagingBindMode.Implicit;
+            var explicitPublishRoute = context.Router.GetOutboundByMessageType(route.MessageType)
+                .FirstOrDefault(r => r is { HasExplicitDestination: true, Kind: OutboundRouteKind.Publish });
+            if (explicitPublishRoute is not null)
             {
+                var destination = PostgresDestinations.Resolve(schema, context.Naming, explicitPublishRoute);
+
+                if (destination.Kind == PostgresDestinationKind.Queue)
+                {
+                    if (autoBind)
+                    {
+                        throw ThrowHelper.ConsumeBindUnderivable(GetTypeName(route.MessageType), postgresConfiguration.QueueName);
+                    }
+
+                    continue;
+                }
+
+                EnsureTopic(topology, destination.Name);
+
                 if (autoBind)
                 {
-                    throw ThrowHelper.ConsumeBindUnderivable(GetTypeName(route.MessageType), configuration.QueueName);
+                    EnsureSubscription(topology, destination.Name, postgresConfiguration.QueueName);
                 }
 
                 continue;
             }
 
-            if (chainEntry.IsExplicit)
-            {
-                EnsureTopic(topology, chainEntry.Name);
-
-                if (autoBind)
-                {
-                    EnsureSubscription(topology, chainEntry.Name, configuration.QueueName);
-                }
-
-                continue;
-            }
-
-            var publishTopicName = chainEntry.Name;
+            var publishTopicName = context.Naming.GetPublishEndpointName(route.MessageType.RuntimeType);
             EnsureTopic(topology, publishTopicName);
 
             var sendTopicName = context.Naming.GetSendEndpointName(route.MessageType.RuntimeType);
@@ -274,42 +246,49 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy
 
                 if (autoBind)
                 {
-                    EnsureSubscription(topology, publishTopicName, configuration.QueueName);
+                    EnsureSubscription(topology, publishTopicName, postgresConfiguration.QueueName);
                 }
             }
 
             if (autoBind)
             {
-                EnsureSubscription(topology, sendTopicName, configuration.QueueName);
+                EnsureSubscription(topology, sendTopicName, postgresConfiguration.QueueName);
             }
         }
     }
 
-    internal static void DiscoverDispatchTopology(
+    /// <inheritdoc />
+    public override void DiscoverTopology(
         IMessagingConfigurationContext context,
-        PostgresDispatchEndpoint endpoint,
-        PostgresDispatchEndpointConfiguration configuration)
+        DispatchEndpoint endpoint,
+        DispatchEndpointConfiguration configuration)
     {
-        var topology = (PostgresMessagingTopology)endpoint.Transport.Topology;
-
-        if (configuration.TopicName is not null
-            && topology.Topics.FirstOrDefault(t => t.Name == configuration.TopicName) is null)
+        if (endpoint is not PostgresDispatchEndpoint postgresEndpoint
+            || configuration is not PostgresDispatchEndpointConfiguration postgresConfiguration)
         {
-            topology.AddTopic(new PostgresTopicConfiguration { Name = configuration.TopicName });
+            return;
         }
 
-        if (configuration.QueueName is not null
-            && topology.Queues.FirstOrDefault(q => q.Name == configuration.QueueName) is null)
+        var topology = (PostgresMessagingTopology)postgresEndpoint.Transport.Topology;
+
+        if (postgresConfiguration.TopicName is not null
+            && topology.Topics.FirstOrDefault(t => t.Name == postgresConfiguration.TopicName) is null)
         {
-            topology.AddQueue(new PostgresQueueConfiguration { Name = configuration.QueueName });
+            topology.AddTopic(new PostgresTopicConfiguration { Name = postgresConfiguration.TopicName });
         }
 
-        if (configuration.TopicName is not null
-            && endpoint.Transport.BindMode == MessagingBindMode.Implicit)
+        if (postgresConfiguration.QueueName is not null
+            && topology.Queues.FirstOrDefault(q => q.Name == postgresConfiguration.QueueName) is null)
         {
-            var resolver = ((PostgresMessagingTransport)endpoint.Transport).Resolver;
+            topology.AddQueue(new PostgresQueueConfiguration { Name = postgresConfiguration.QueueName });
+        }
 
-            foreach (var (runtimeType, kind) in configuration.Routes)
+        if (postgresConfiguration.TopicName is not null
+            && postgresEndpoint.Transport.BindMode == MessagingBindMode.Implicit)
+        {
+            var schema = postgresEndpoint.Transport.Schema;
+
+            foreach (var (runtimeType, kind) in postgresConfiguration.Routes)
             {
                 var messageType = context.Messages.GetMessageType(runtimeType);
                 if (messageType is null)
@@ -320,69 +299,28 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy
                 var outboundRoute = context.Router.GetOutboundByMessageType(messageType)
                     .FirstOrDefault(r => r.Kind == kind);
 
-                PostgresDestinationResolution chainEntry;
-                if (outboundRoute is not null)
-                {
-                    chainEntry = resolver.ResolveDestination(context.Naming, outboundRoute);
-                }
-                else
-                {
-                    chainEntry = kind == OutboundRouteKind.Publish
-                        ? resolver.ResolvePublishDestination(context.Naming, messageType)
-                        : new PostgresDestinationResolution(
-                            PostgresDestinationKind.Topic,
-                            context.Naming.GetSendEndpointName(runtimeType),
-                            "t/" + context.Naming.GetSendEndpointName(runtimeType));
-                }
+                var destination = outboundRoute is not null
+                    ? PostgresDestinations.Resolve(schema, context.Naming, outboundRoute)
+                    : PostgresDestinations.ResolveConvention(context.Naming, kind, messageType);
 
-                if (chainEntry.Kind == PostgresDestinationKind.Queue)
+                if (destination.Kind == PostgresDestinationKind.Queue)
                 {
                     continue;
                 }
 
-                var chainTopicName = chainEntry.Name;
+                var topicName = destination.Name;
 
-                if (configuration.TopicName == chainTopicName)
+                if (postgresConfiguration.TopicName == topicName)
                 {
                     continue;
                 }
 
-                if (topology.Topics.FirstOrDefault(t => t.Name == chainTopicName) is null)
+                if (topology.Topics.FirstOrDefault(t => t.Name == topicName) is null)
                 {
-                    topology.AddTopic(new PostgresTopicConfiguration { Name = chainTopicName });
+                    topology.AddTopic(new PostgresTopicConfiguration { Name = topicName });
                 }
             }
         }
-    }
-
-    private static bool ResolveAutoBind(
-        MessagingTransport transport,
-        PostgresReceiveEndpointConfiguration configuration)
-    {
-        if (configuration.BindMode.HasValue)
-        {
-            return configuration.BindMode.Value == MessagingBindMode.Implicit;
-        }
-
-        return transport.BindMode == MessagingBindMode.Implicit;
-    }
-
-    private static ChainEntry ResolveChainEntry(
-        IMessagingConfigurationContext context,
-        PostgresDestinationResolver resolver,
-        MessageType messageType)
-    {
-        foreach (var route in context.Router.GetOutboundByMessageType(messageType))
-        {
-            if (route is { HasExplicitDestination: true, Kind: OutboundRouteKind.Publish })
-            {
-                var resolution = resolver.ResolveDestination(context.Naming, route);
-                return new ChainEntry(resolution.Kind, resolution.Name, IsExplicit: true);
-            }
-        }
-
-        var conventionTopic = resolver.ResolvePublishDestination(context.Naming, messageType);
-        return new ChainEntry(conventionTopic.Kind, conventionTopic.Name, IsExplicit: false);
     }
 
     private static void EnsureTopic(PostgresMessagingTopology topology, string topicName)
@@ -412,6 +350,4 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy
 
     private static string GetTypeName(MessageType messageType)
         => messageType.RuntimeType.FullName ?? messageType.RuntimeType.Name;
-
-    private readonly record struct ChainEntry(PostgresDestinationKind Kind, string Name, bool IsExplicit);
 }

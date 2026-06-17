@@ -3,7 +3,7 @@ using Mocha.Transport.RabbitMQ.Tests.Helpers;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Routing;
 
-public class RabbitMQDestinationResolverTests
+public class RabbitMQDestinationsTests
 {
     [Fact]
     public void ResolveDestination_Should_UseConventionExchange_When_DestinationNotConfigured()
@@ -12,11 +12,13 @@ public class RabbitMQDestinationResolverTests
         var runtime = CreateRuntime(b => b.AddMessage<OrderCreated>(d => d.Publish(_ => { })));
         var messageType = runtime.Messages.GetMessageType(typeof(OrderCreated))!;
         var route = runtime.Router.GetOutboundByMessageType(messageType).Single();
-        var resolver = new RabbitMQDestinationResolver(RabbitMQTransportConfiguration.DefaultSchema);
         var expectedName = runtime.Naming.GetPublishEndpointName(typeof(OrderCreated));
 
         // act
-        var resolution = resolver.ResolveDestination(runtime.Naming, route);
+        var resolution = RabbitMQDestinations.Resolve(
+            RabbitMQTransportConfiguration.DefaultSchema,
+            runtime.Naming,
+            route);
 
         // assert
         Assert.Equal(RabbitMQDestinationKind.Exchange, resolution.Kind);
@@ -32,10 +34,12 @@ public class RabbitMQDestinationResolverTests
             b => b.AddMessage<OrderCreated>(d => d.Publish(r => r.ToRabbitMQExchange("orders-exchange"))));
         var messageType = runtime.Messages.GetMessageType(typeof(OrderCreated))!;
         var route = runtime.Router.GetOutboundByMessageType(messageType).Single();
-        var resolver = new RabbitMQDestinationResolver(RabbitMQTransportConfiguration.DefaultSchema);
 
         // act
-        var resolution = resolver.ResolveDestination(runtime.Naming, route);
+        var resolution = RabbitMQDestinations.Resolve(
+            RabbitMQTransportConfiguration.DefaultSchema,
+            runtime.Naming,
+            route);
 
         // assert
         Assert.Equal(RabbitMQDestinationKind.Exchange, resolution.Kind);
@@ -51,50 +55,17 @@ public class RabbitMQDestinationResolverTests
             b => b.AddMessage<OrderCreated>(d => d.Send(r => r.ToRabbitMQQueue("orders-queue"))));
         var messageType = runtime.Messages.GetMessageType(typeof(OrderCreated))!;
         var route = runtime.Router.GetOutboundByMessageType(messageType).Single();
-        var resolver = new RabbitMQDestinationResolver(RabbitMQTransportConfiguration.DefaultSchema);
 
         // act
-        var resolution = resolver.ResolveDestination(runtime.Naming, route);
+        var resolution = RabbitMQDestinations.Resolve(
+            RabbitMQTransportConfiguration.DefaultSchema,
+            runtime.Naming,
+            route);
 
         // assert
         Assert.Equal(RabbitMQDestinationKind.Queue, resolution.Kind);
         Assert.Equal("orders-queue", resolution.Name);
         Assert.Equal("q/orders-queue", resolution.EndpointName);
-    }
-
-    [Fact]
-    public void ResolveBindKey_Should_ReturnNone_When_NoRoutingKeyConfigured()
-    {
-        // arrange
-        var runtime = CreateRuntime(b => b.AddMessage<OrderCreated>(d => d.Publish(_ => { })));
-        var messageType = runtime.Messages.GetMessageType(typeof(OrderCreated))!;
-        var resolver = new RabbitMQDestinationResolver(RabbitMQTransportConfiguration.DefaultSchema);
-
-        // act
-        var resolution = resolver.ResolveBindKey(messageType);
-
-        // assert
-        Assert.Equal(RabbitMQBindKeyKind.None, resolution.Kind);
-        Assert.Null(resolution.Key);
-    }
-
-    [Fact]
-    public void ResolveBindKey_Should_ReturnUnderivable_When_CustomRoutingKeyFunctionConfigured()
-    {
-        // arrange
-        // a per-message routing-key function cannot be evaluated at configuration time, so a consume
-        // binding for the type cannot be derived without guessing a key.
-        var runtime = CreateRuntime(
-            b => b.AddMessage<OrderCreated>(d => d.UseRabbitMQRoutingKey<OrderCreated>(m => m.OrderId)));
-        var messageType = runtime.Messages.GetMessageType(typeof(OrderCreated))!;
-        var resolver = new RabbitMQDestinationResolver(RabbitMQTransportConfiguration.DefaultSchema);
-
-        // act
-        var resolution = resolver.ResolveBindKey(messageType);
-
-        // assert
-        Assert.Equal(RabbitMQBindKeyKind.Underivable, resolution.Kind);
-        Assert.Null(resolution.Key);
     }
 
     [Fact]
@@ -139,7 +110,7 @@ public class RabbitMQDestinationResolverTests
 
         // assert
         Assert.IsType<InvalidOperationException>(ex);
-        Assert.Contains("static routing key", ex.Message);
+        Assert.Contains("BindFrom(source, routingKey)", ex.Message);
         Assert.Contains(messageTypeName, ex.Message);
         Assert.Contains(queueName, ex.Message);
     }

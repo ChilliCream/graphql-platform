@@ -3,7 +3,7 @@ using Mocha.Transport.InMemory.Tests.Helpers;
 
 namespace Mocha.Transport.InMemory.Tests.Routing;
 
-public class InMemoryDestinationResolverTests
+public class InMemoryDestinationsTests
 {
     [Fact]
     public void ResolveDestination_Should_UseConventionTopic_When_DestinationNotConfigured()
@@ -12,11 +12,13 @@ public class InMemoryDestinationResolverTests
         var runtime = CreateRuntime(b => b.AddMessage<OrderCreated>(d => d.Publish(_ => { })));
         var messageType = runtime.Messages.GetMessageType(typeof(OrderCreated))!;
         var route = runtime.Router.GetOutboundByMessageType(messageType).Single();
-        var resolver = new InMemoryDestinationResolver(InMemoryTransportConfiguration.DefaultSchema);
         var expectedName = runtime.Naming.GetPublishEndpointName(typeof(OrderCreated));
 
         // act
-        var resolution = resolver.ResolveDestination(runtime.Naming, route);
+        var resolution = InMemoryDestinations.Resolve(
+            InMemoryTransportConfiguration.DefaultSchema,
+            runtime.Naming,
+            route);
 
         // assert
         Assert.Equal(InMemoryDestinationKind.Topic, resolution.Kind);
@@ -32,10 +34,12 @@ public class InMemoryDestinationResolverTests
             b => b.AddMessage<OrderCreated>(d => d.Publish(r => r.ToInMemoryTopic("orders-topic"))));
         var messageType = runtime.Messages.GetMessageType(typeof(OrderCreated))!;
         var route = runtime.Router.GetOutboundByMessageType(messageType).Single();
-        var resolver = new InMemoryDestinationResolver(InMemoryTransportConfiguration.DefaultSchema);
 
         // act
-        var resolution = resolver.ResolveDestination(runtime.Naming, route);
+        var resolution = InMemoryDestinations.Resolve(
+            InMemoryTransportConfiguration.DefaultSchema,
+            runtime.Naming,
+            route);
 
         // assert
         Assert.Equal(InMemoryDestinationKind.Topic, resolution.Kind);

@@ -28,16 +28,9 @@ public sealed class InMemoryMessagingTransport : MessagingTransport
     }
 
     private InMemoryMessagingTopology _topology = null!;
-    private InMemoryDestinationResolver? _resolver;
 
     /// <inheritdoc />
     public override MessagingTopology Topology => _topology;
-
-    /// <summary>
-    /// Gets the destination resolver consulted by both the producer path and the receive convention so
-    /// the two sides converge on one entity and cannot drift apart.
-    /// </summary>
-    internal InMemoryDestinationResolver Resolver => _resolver ??= new InMemoryDestinationResolver(Schema);
 
     /// <summary>
     /// Builds the in-memory topology URI from the host's assembly name and creates the

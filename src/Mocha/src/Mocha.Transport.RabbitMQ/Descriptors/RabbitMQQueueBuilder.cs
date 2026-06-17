@@ -195,10 +195,9 @@ internal sealed class RabbitMQQueueBuilder : IRabbitMQQueueBuilder
     {
         ArgumentNullException.ThrowIfNull(source);
 
-        var resolver = new RabbitMQDestinationResolver(
-            _transport.Configuration.Schema ?? RabbitMQTransportConfiguration.DefaultSchema);
+        var schema = _transport.Configuration.Schema ?? RabbitMQTransportConfiguration.DefaultSchema;
 
-        if (!resolver.TryResolveSourceExchange(source, out var exchangeName))
+        if (!RabbitMQDestinations.TryResolveSourceExchange(schema, source, out var exchangeName))
         {
             throw new InvalidOperationException(
                 $"BindFrom source '{source}' could not be resolved to a RabbitMQ exchange name.");

@@ -254,3 +254,26 @@ public abstract class RoutingStrategy
         }
     }
 }
+
+public abstract class RoutingStrategy<TTransport> : RoutingStrategy
+    where TTransport : MessagingTransport
+{
+    private TTransport? _transport;
+
+    protected new TTransport Transport
+        => _transport ?? throw new InvalidOperationException("Routing strategy is not initialized.");
+
+    protected sealed override void OnInitialize(MessagingTransport transport)
+    {
+        if (transport is not TTransport typedTransport)
+        {
+            throw new InvalidOperationException(
+                $"Routing strategy '{GetType().Name}' requires transport '{typeof(TTransport).Name}'.");
+        }
+
+        _transport = typedTransport;
+        OnInitialize(typedTransport);
+    }
+
+    protected virtual void OnInitialize(TTransport transport) { }
+}

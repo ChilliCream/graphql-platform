@@ -3,7 +3,7 @@ using Mocha.Transport.Postgres.Tests.Helpers;
 
 namespace Mocha.Transport.Postgres.Tests.Routing;
 
-public class PostgresDestinationResolverTests
+public class PostgresDestinationsTests
 {
     [Fact]
     public void ResolveDestination_Should_UseConventionTopic_When_DestinationNotConfigured()
@@ -12,11 +12,13 @@ public class PostgresDestinationResolverTests
         var runtime = CreateRuntime(b => b.AddMessage<OrderCreated>(d => d.Publish(_ => { })));
         var messageType = runtime.Messages.GetMessageType(typeof(OrderCreated))!;
         var route = runtime.Router.GetOutboundByMessageType(messageType).Single();
-        var resolver = new PostgresDestinationResolver(PostgresTransportConfiguration.DefaultSchema);
         var expectedName = runtime.Naming.GetPublishEndpointName(typeof(OrderCreated));
 
         // act
-        var resolution = resolver.ResolveDestination(runtime.Naming, route);
+        var resolution = PostgresDestinations.Resolve(
+            PostgresTransportConfiguration.DefaultSchema,
+            runtime.Naming,
+            route);
 
         // assert
         Assert.Equal(PostgresDestinationKind.Topic, resolution.Kind);
@@ -32,10 +34,12 @@ public class PostgresDestinationResolverTests
             b => b.AddMessage<OrderCreated>(d => d.Publish(r => r.ToPostgresTopic("orders-topic"))));
         var messageType = runtime.Messages.GetMessageType(typeof(OrderCreated))!;
         var route = runtime.Router.GetOutboundByMessageType(messageType).Single();
-        var resolver = new PostgresDestinationResolver(PostgresTransportConfiguration.DefaultSchema);
 
         // act
-        var resolution = resolver.ResolveDestination(runtime.Naming, route);
+        var resolution = PostgresDestinations.Resolve(
+            PostgresTransportConfiguration.DefaultSchema,
+            runtime.Naming,
+            route);
 
         // assert
         Assert.Equal(PostgresDestinationKind.Topic, resolution.Kind);

@@ -24,16 +24,9 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
     }
 
     private RabbitMQMessagingTopology _topology = null!;
-    private RabbitMQDestinationResolver? _resolver;
 
     /// <inheritdoc />
     public override MessagingTopology Topology => _topology;
-
-    /// <summary>
-    /// Gets the destination resolver consulted by both the producer path and the receive convention so
-    /// the two sides converge on one entity and cannot drift apart.
-    /// </summary>
-    internal RabbitMQDestinationResolver Resolver => _resolver ??= new RabbitMQDestinationResolver(Schema);
 
     /// <summary>
     /// Gets the consumer manager responsible for registering and maintaining queue consumers with automatic reconnection.
