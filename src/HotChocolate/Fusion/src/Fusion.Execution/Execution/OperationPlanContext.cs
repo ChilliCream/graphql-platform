@@ -294,6 +294,9 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     internal void CompleteNode(ExecutionNodeResult result)
         => _executionState.EnqueueForCompletion(result);
 
+    internal void EnqueuePendingMerge(PendingMerge merge)
+        => _executionState.EnqueueMerge(merge);
+
     internal ImmutableArray<VariableValues> CreateVariableValueSets(
         SelectionPath selectionSet,
         ReadOnlySpan<string> forwardedVariables,
