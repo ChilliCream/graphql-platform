@@ -8,6 +8,13 @@ namespace Mocha.Transport.Postgres;
 /// </summary>
 public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingTransport>
 {
+    private PostgresMessagingTopology _topology = null!;
+
+    protected override void OnInitialize(PostgresMessagingTransport transport)
+    {
+        _topology = (PostgresMessagingTopology)transport.Topology;
+    }
+
     /// <inheritdoc />
     public override DispatchEndpointConfiguration? CreateEndpointConfiguration(
         IMessagingConfigurationContext context,
@@ -178,9 +185,7 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
             throw new InvalidOperationException("Queue name is required");
         }
 
-        var topology = (PostgresMessagingTopology)postgresEndpoint.Transport.Topology;
-
-        topology.AddQueue(
+        _topology.AddQueue(
             new PostgresQueueConfiguration
             {
                 Name = postgresConfiguration.QueueName,
@@ -194,6 +199,8 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
         }
 
         var schema = postgresEndpoint.Transport.Schema;
+        var autoBind = (postgresConfiguration.BindMode ?? postgresEndpoint.Transport.BindMode)
+            is MessagingBindMode.Implicit;
 
         var routes = context.Router.GetInboundByEndpoint(postgresEndpoint);
         foreach (var route in routes)
@@ -208,8 +215,11 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
                 continue;
             }
 
-            var autoBind = (postgresConfiguration.BindMode ?? postgresEndpoint.Transport.BindMode)
-                is MessagingBindMode.Implicit;
+            if (!autoBind)
+            {
+                continue;
+            }
+
             var explicitPublishRoute = context.Router.GetOutboundByMessageType(route.MessageType)
                 .FirstOrDefault(r => r is { HasExplicitDestination: true, Kind: OutboundRouteKind.Publish });
             if (explicitPublishRoute is not null)
@@ -218,42 +228,27 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
 
                 if (destination.Kind == PostgresDestinationKind.Queue)
                 {
-                    if (autoBind)
-                    {
-                        throw ThrowHelper.ConsumeBindUnderivable(GetTypeName(route.MessageType), postgresConfiguration.QueueName);
-                    }
-
                     continue;
                 }
 
-                EnsureTopic(topology, destination.Name);
-
-                if (autoBind)
-                {
-                    EnsureSubscription(topology, destination.Name, postgresConfiguration.QueueName);
-                }
+                EnsureTopic(_topology, destination.Name);
+                EnsureSubscription(_topology, destination.Name, postgresConfiguration.QueueName);
 
                 continue;
             }
 
             var publishTopicName = context.Naming.GetPublishEndpointName(route.MessageType.RuntimeType);
-            EnsureTopic(topology, publishTopicName);
+            EnsureTopic(_topology, publishTopicName);
 
             var sendTopicName = context.Naming.GetSendEndpointName(route.MessageType.RuntimeType);
             if (sendTopicName != publishTopicName)
             {
-                EnsureTopic(topology, sendTopicName);
+                EnsureTopic(_topology, sendTopicName);
 
-                if (autoBind)
-                {
-                    EnsureSubscription(topology, publishTopicName, postgresConfiguration.QueueName);
-                }
+                EnsureSubscription(_topology, publishTopicName, postgresConfiguration.QueueName);
             }
 
-            if (autoBind)
-            {
-                EnsureSubscription(topology, sendTopicName, postgresConfiguration.QueueName);
-            }
+            EnsureSubscription(_topology, sendTopicName, postgresConfiguration.QueueName);
         }
     }
 
@@ -263,30 +258,28 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
         DispatchEndpoint endpoint,
         DispatchEndpointConfiguration configuration)
     {
-        if (endpoint is not PostgresDispatchEndpoint postgresEndpoint
+        if (endpoint is not PostgresDispatchEndpoint
             || configuration is not PostgresDispatchEndpointConfiguration postgresConfiguration)
         {
             return;
         }
 
-        var topology = (PostgresMessagingTopology)postgresEndpoint.Transport.Topology;
-
         if (postgresConfiguration.TopicName is not null
-            && topology.Topics.FirstOrDefault(t => t.Name == postgresConfiguration.TopicName) is null)
+            && _topology.Topics.FirstOrDefault(t => t.Name == postgresConfiguration.TopicName) is null)
         {
-            topology.AddTopic(new PostgresTopicConfiguration { Name = postgresConfiguration.TopicName });
+            _topology.AddTopic(new PostgresTopicConfiguration { Name = postgresConfiguration.TopicName });
         }
 
         if (postgresConfiguration.QueueName is not null
-            && topology.Queues.FirstOrDefault(q => q.Name == postgresConfiguration.QueueName) is null)
+            && _topology.Queues.FirstOrDefault(q => q.Name == postgresConfiguration.QueueName) is null)
         {
-            topology.AddQueue(new PostgresQueueConfiguration { Name = postgresConfiguration.QueueName });
+            _topology.AddQueue(new PostgresQueueConfiguration { Name = postgresConfiguration.QueueName });
         }
 
         if (postgresConfiguration.TopicName is not null
-            && postgresEndpoint.Transport.BindMode == MessagingBindMode.Implicit)
+            && Transport.BindMode == MessagingBindMode.Implicit)
         {
-            var schema = postgresEndpoint.Transport.Schema;
+            var schema = Transport.Schema;
 
             foreach (var (runtimeType, kind) in postgresConfiguration.Routes)
             {
@@ -315,9 +308,9 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
                     continue;
                 }
 
-                if (topology.Topics.FirstOrDefault(t => t.Name == topicName) is null)
+                if (_topology.Topics.FirstOrDefault(t => t.Name == topicName) is null)
                 {
-                    topology.AddTopic(new PostgresTopicConfiguration { Name = topicName });
+                    _topology.AddTopic(new PostgresTopicConfiguration { Name = topicName });
                 }
             }
         }
@@ -347,7 +340,4 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
                 });
         }
     }
-
-    private static string GetTypeName(MessageType messageType)
-        => messageType.RuntimeType.FullName ?? messageType.RuntimeType.Name;
 }

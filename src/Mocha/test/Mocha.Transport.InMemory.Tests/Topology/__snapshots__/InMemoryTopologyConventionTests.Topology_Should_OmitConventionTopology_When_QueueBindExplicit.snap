@@ -6,24 +6,9 @@
       "Kind": "queue",
       "Name": "orders",
       "Flow": "outbound"
-    },
-    {
-      "Kind": "topic",
-      "Name": "mocha.test-helpers.order-created",
-      "Flow": "inbound"
-    },
-    {
-      "Kind": "topic",
-      "Name": "order-created",
-      "Flow": "inbound"
     }
   ],
-  "Links": [
-    {
-      "Kind": "bind",
-      "Direction": "forward"
-    }
-  ],
+  "Links": [],
   "ReceiveEndpoints": [
     {
       "Name": "orders",

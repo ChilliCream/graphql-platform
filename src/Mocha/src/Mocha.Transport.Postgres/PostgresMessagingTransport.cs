@@ -388,15 +388,22 @@ public sealed class PostgresMessagingTransport : MessagingTransport
     private async Task RecoverFromEvictionAsync(CancellationToken cancellationToken)
     {
         await ConsumerManager.RegisterAsync(cancellationToken);
+        var autoProvision = _topology.AutoProvision;
 
         foreach (var queue in _topology.Queues)
         {
-            await queue.ProvisionAsync(ConnectionManager, _schemaOptions, ConsumerManager, cancellationToken);
+            if (queue.AutoProvision ?? autoProvision)
+            {
+                await queue.ProvisionAsync(ConnectionManager, _schemaOptions, ConsumerManager, cancellationToken);
+            }
         }
 
         foreach (var subscription in _topology.Subscriptions)
         {
-            await subscription.ProvisionAsync(ConnectionManager, _schemaOptions, cancellationToken);
+            if (subscription.AutoProvision ?? autoProvision)
+            {
+                await subscription.ProvisionAsync(ConnectionManager, _schemaOptions, cancellationToken);
+            }
         }
     }
 

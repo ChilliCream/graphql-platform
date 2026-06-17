@@ -8,6 +8,13 @@ namespace Mocha.Transport.InMemory;
 /// </summary>
 public sealed class InMemoryRoutingStrategy : RoutingStrategy<InMemoryMessagingTransport>
 {
+    private InMemoryMessagingTopology _topology = null!;
+
+    protected override void OnInitialize(InMemoryMessagingTransport transport)
+    {
+        _topology = (InMemoryMessagingTopology)transport.Topology;
+    }
+
     /// <inheritdoc />
     public override DispatchEndpointConfiguration? CreateEndpointConfiguration(
         IMessagingConfigurationContext context,
@@ -178,11 +185,9 @@ public sealed class InMemoryRoutingStrategy : RoutingStrategy<InMemoryMessagingT
             throw new InvalidOperationException("Queue name is required");
         }
 
-        var topology = (InMemoryMessagingTopology)inMemoryEndpoint.Transport.Topology;
-
-        if (topology.Queues.FirstOrDefault(q => q.Name == inMemoryConfiguration.QueueName) is null)
+        if (_topology.Queues.FirstOrDefault(q => q.Name == inMemoryConfiguration.QueueName) is null)
         {
-            topology.AddQueue(new InMemoryQueueConfiguration { Name = inMemoryConfiguration.QueueName });
+            _topology.AddQueue(new InMemoryQueueConfiguration { Name = inMemoryConfiguration.QueueName });
         }
 
         if (inMemoryEndpoint.Kind is ReceiveEndpointKind.Reply or ReceiveEndpointKind.Error or ReceiveEndpointKind.Skipped)
@@ -191,6 +196,8 @@ public sealed class InMemoryRoutingStrategy : RoutingStrategy<InMemoryMessagingT
         }
 
         var schema = inMemoryEndpoint.Transport.Schema;
+        var autoBind = (inMemoryConfiguration.BindMode ?? inMemoryEndpoint.Transport.BindMode)
+            is MessagingBindMode.Implicit;
 
         var routes = context.Router.GetInboundByEndpoint(inMemoryEndpoint);
         foreach (var route in routes)
@@ -205,8 +212,11 @@ public sealed class InMemoryRoutingStrategy : RoutingStrategy<InMemoryMessagingT
                 continue;
             }
 
-            var autoBind = (inMemoryConfiguration.BindMode ?? inMemoryEndpoint.Transport.BindMode)
-                is MessagingBindMode.Implicit;
+            if (!autoBind)
+            {
+                continue;
+            }
+
             var explicitPublishRoute = context.Router.GetOutboundByMessageType(route.MessageType)
                 .FirstOrDefault(r => r is { HasExplicitDestination: true, Kind: OutboundRouteKind.Publish });
             if (explicitPublishRoute is not null)
@@ -215,38 +225,26 @@ public sealed class InMemoryRoutingStrategy : RoutingStrategy<InMemoryMessagingT
 
                 if (destination.Kind == InMemoryDestinationKind.Queue)
                 {
-                    if (autoBind)
-                    {
-                        throw ThrowHelper.ConsumeBindUnderivable(GetTypeName(route.MessageType), inMemoryConfiguration.QueueName);
-                    }
-
                     continue;
                 }
 
-                EnsureTopic(topology, destination.Name);
-
-                if (autoBind)
-                {
-                    EnsureQueueBinding(topology, destination.Name, inMemoryConfiguration.QueueName);
-                }
+                EnsureTopic(_topology, destination.Name);
+                EnsureQueueBinding(_topology, destination.Name, inMemoryConfiguration.QueueName);
 
                 continue;
             }
 
             var publishTopicName = context.Naming.GetPublishEndpointName(route.MessageType.RuntimeType);
-            EnsureTopic(topology, publishTopicName);
+            EnsureTopic(_topology, publishTopicName);
 
             var sendTopicName = context.Naming.GetSendEndpointName(route.MessageType.RuntimeType);
             if (sendTopicName != publishTopicName)
             {
-                EnsureTopic(topology, sendTopicName);
-                EnsureTopicBinding(topology, publishTopicName, sendTopicName);
+                EnsureTopic(_topology, sendTopicName);
+                EnsureTopicBinding(_topology, publishTopicName, sendTopicName);
             }
 
-            if (autoBind)
-            {
-                EnsureQueueBinding(topology, sendTopicName, inMemoryConfiguration.QueueName);
-            }
+            EnsureQueueBinding(_topology, sendTopicName, inMemoryConfiguration.QueueName);
         }
     }
 
@@ -256,24 +254,22 @@ public sealed class InMemoryRoutingStrategy : RoutingStrategy<InMemoryMessagingT
         DispatchEndpoint endpoint,
         DispatchEndpointConfiguration configuration)
     {
-        if (endpoint is not InMemoryDispatchEndpoint inMemoryEndpoint
+        if (endpoint is not InMemoryDispatchEndpoint
             || configuration is not InMemoryDispatchEndpointConfiguration inMemoryConfiguration)
         {
             return;
         }
 
-        var topology = (InMemoryMessagingTopology)inMemoryEndpoint.Transport.Topology;
-
         if (inMemoryConfiguration.TopicName is not null
-            && topology.Topics.FirstOrDefault(t => t.Name == inMemoryConfiguration.TopicName) is null)
+            && _topology.Topics.FirstOrDefault(t => t.Name == inMemoryConfiguration.TopicName) is null)
         {
-            topology.AddTopic(new InMemoryTopicConfiguration { Name = inMemoryConfiguration.TopicName });
+            _topology.AddTopic(new InMemoryTopicConfiguration { Name = inMemoryConfiguration.TopicName });
         }
 
         if (inMemoryConfiguration.QueueName is not null
-            && topology.Queues.FirstOrDefault(q => q.Name == inMemoryConfiguration.QueueName) is null)
+            && _topology.Queues.FirstOrDefault(q => q.Name == inMemoryConfiguration.QueueName) is null)
         {
-            topology.AddQueue(new InMemoryQueueConfiguration { Name = inMemoryConfiguration.QueueName });
+            _topology.AddQueue(new InMemoryQueueConfiguration { Name = inMemoryConfiguration.QueueName });
         }
     }
 
@@ -324,7 +320,4 @@ public sealed class InMemoryRoutingStrategy : RoutingStrategy<InMemoryMessagingT
                 });
         }
     }
-
-    private static string GetTypeName(MessageType messageType)
-        => messageType.RuntimeType.FullName ?? messageType.RuntimeType.Name;
 }

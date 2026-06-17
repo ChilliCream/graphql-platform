@@ -9,6 +9,13 @@ namespace Mocha.Transport.RabbitMQ;
 /// </summary>
 public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingTransport>
 {
+    private RabbitMQMessagingTopology _topology = null!;
+
+    protected override void OnInitialize(RabbitMQMessagingTransport transport)
+    {
+        _topology = (RabbitMQMessagingTopology)transport.Topology;
+    }
+
     /// <inheritdoc />
     public override DispatchEndpointConfiguration? CreateEndpointConfiguration(
         IMessagingConfigurationContext context,
@@ -177,9 +184,7 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
             throw new InvalidOperationException("Queue name is required");
         }
 
-        var topology = (RabbitMQMessagingTopology)rabbitEndpoint.Transport.Topology;
-
-        topology.AddQueue(
+        _topology.AddQueue(
             new RabbitMQQueueConfiguration
             {
                 Name = rabbitConfiguration.QueueName,
@@ -194,6 +199,8 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
         }
 
         var schema = rabbitEndpoint.Transport.Schema;
+        var autoBind = (rabbitConfiguration.BindMode ?? rabbitEndpoint.Transport.BindMode)
+            is MessagingBindMode.Implicit;
 
         var routes = context.Router.GetInboundByEndpoint(rabbitEndpoint);
         foreach (var route in routes)
@@ -208,49 +215,42 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
                 continue;
             }
 
-            var autoBind = (rabbitConfiguration.BindMode ?? rabbitEndpoint.Transport.BindMode)
-                is MessagingBindMode.Implicit;
-
-            if (autoBind && HasPerMessageRoutingKey(route.MessageType))
+            if (!autoBind || HasPerMessageRoutingKey(route.MessageType))
             {
-                throw ThrowHelper.ConsumeBindUnderivable(GetTypeName(route.MessageType), rabbitConfiguration.QueueName);
+                continue;
             }
 
             var explicitPublishRoute = context.Router.GetOutboundByMessageType(route.MessageType)
                 .FirstOrDefault(r => r is { HasExplicitDestination: true, Kind: OutboundRouteKind.Publish });
+
             if (explicitPublishRoute is not null)
             {
                 var destination = RabbitMQDestinations.Resolve(schema, context.Naming, explicitPublishRoute);
 
                 if (destination.Kind == RabbitMQDestinationKind.Queue)
                 {
-                    if (autoBind)
-                    {
-                        throw ThrowHelper.ConsumeBindUnderivable(GetTypeName(route.MessageType), rabbitConfiguration.QueueName);
-                    }
-
                     continue;
                 }
 
-                EnsureExchange(topology, destination.Name);
-
-                if (autoBind)
-                {
-                    EnsureExchangeToQueueBinding(topology, destination.Name, rabbitConfiguration.QueueName);
-                }
+                EnsureExchange(_topology, destination.Name);
+                EnsureExchangeToQueueBinding(_topology, destination.Name, rabbitConfiguration.QueueName);
 
                 continue;
             }
 
+            // Convention routing fans publish traffic into the send exchange, then binds the send
+            // exchange into the receive queue. This keeps Publish<T> and Send<T> converged on the
+            // same queue while still allowing separate publish and send exchange names.
+            // Example: publish/order-created -> send/order-created -> queue/orders.
             var publishExchangeName = context.Naming.GetPublishEndpointName(route.MessageType.RuntimeType);
-            EnsureExchange(topology, publishExchangeName);
+            EnsureExchange(_topology, publishExchangeName);
 
             var sendExchangeName = context.Naming.GetSendEndpointName(route.MessageType.RuntimeType);
             if (sendExchangeName != publishExchangeName)
             {
-                EnsureExchange(topology, sendExchangeName);
+                EnsureExchange(_topology, sendExchangeName);
 
-                if (topology.Bindings.FirstOrDefault(b =>
+                if (_topology.Bindings.FirstOrDefault(b =>
                         b.Source.Name == publishExchangeName
                         && string.IsNullOrEmpty(b.RoutingKey)
                         && b is RabbitMQExchangeBinding exchangeBinding
@@ -258,7 +258,7 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
                     )
                     is null)
                 {
-                    topology.AddBinding(
+                    _topology.AddBinding(
                         new RabbitMQBindingConfiguration
                         {
                             Source = publishExchangeName,
@@ -268,10 +268,7 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
                 }
             }
 
-            if (autoBind)
-            {
-                EnsureExchangeToQueueBinding(topology, sendExchangeName, rabbitConfiguration.QueueName);
-            }
+            EnsureExchangeToQueueBinding(_topology, sendExchangeName, rabbitConfiguration.QueueName);
         }
     }
 
@@ -281,32 +278,30 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
         DispatchEndpoint endpoint,
         DispatchEndpointConfiguration configuration)
     {
-        if (endpoint is not RabbitMQDispatchEndpoint rabbitEndpoint
+        if (endpoint is not RabbitMQDispatchEndpoint
             || configuration is not RabbitMQDispatchEndpointConfiguration rabbitConfiguration)
         {
             return;
         }
 
-        var topology = (RabbitMQMessagingTopology)rabbitEndpoint.Transport.Topology;
-
         if (rabbitConfiguration.ExchangeName is not null)
         {
-            topology.AddExchange(new RabbitMQExchangeConfiguration { Name = rabbitConfiguration.ExchangeName });
+            _topology.AddExchange(new RabbitMQExchangeConfiguration { Name = rabbitConfiguration.ExchangeName });
         }
 
         if (rabbitConfiguration.QueueName is not null)
         {
-            topology.AddQueue(new RabbitMQQueueConfiguration
+            _topology.AddQueue(new RabbitMQQueueConfiguration
             {
                 Name = rabbitConfiguration.QueueName,
                 AutoProvision = rabbitConfiguration.AutoProvision
             });
         }
 
-        var schema = rabbitEndpoint.Transport.Schema;
+        var schema = Transport.Schema;
 
         if (rabbitConfiguration.ExchangeName is not null
-            && rabbitEndpoint.Transport.BindMode == MessagingBindMode.Implicit)
+            && Transport.BindMode == MessagingBindMode.Implicit)
         {
             foreach (var (runtimeType, kind) in rabbitConfiguration.Routes)
             {
@@ -334,9 +329,9 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
                     continue;
                 }
 
-                topology.AddExchange(new RabbitMQExchangeConfiguration { Name = exchangeName });
+                _topology.AddExchange(new RabbitMQExchangeConfiguration { Name = exchangeName });
 
-                topology.AddBinding(
+                _topology.AddBinding(
                     new RabbitMQBindingConfiguration
                     {
                         Source = rabbitConfiguration.ExchangeName,
@@ -348,7 +343,7 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
 
         foreach (var outboundRoute in context.Router.OutboundRoutes)
         {
-            if (outboundRoute.Endpoint != rabbitEndpoint)
+            if (outboundRoute.Endpoint != endpoint)
             {
                 continue;
             }
@@ -373,7 +368,7 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
             }
 
             contribution.Name = destination.Name;
-            topology.AddExchange(contribution);
+            _topology.AddExchange(contribution);
         }
     }
 
@@ -463,9 +458,6 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
                 });
         }
     }
-
-    private static string GetTypeName(MessageType messageType)
-        => messageType.RuntimeType.FullName ?? messageType.RuntimeType.Name;
 
     private static bool HasPerMessageRoutingKey(MessageType messageType)
         => messageType.Features.TryGet<RabbitMQRoutingKeyExtractor>(out _);

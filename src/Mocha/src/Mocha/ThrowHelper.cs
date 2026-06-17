@@ -169,12 +169,6 @@ internal static class ThrowHelper
     public static Exception HostDescriptionMissing()
         => new InvalidOperationException("Host description is missing.");
 
-    public static Exception ConsumeBindUnderivable(string messageTypeName, string queueName)
-        => new InvalidOperationException(
-            $"The message type '{messageTypeName}' cannot be bound to consume queue '{queueName}' because "
-            + "its routing key is computed per message by a custom function. The bind key cannot be derived at configuration time. "
-            + "Declare the binding explicitly with BindFrom(source, routingKey) or disable implicit binding.");
-
     public static Exception ReceivesReplyType(string messageTypeName)
         => new InvalidOperationException(
             $"Message type '{messageTypeName}' is a reply type and cannot be declared with Receives<T>. "

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using static System.StringSplitOptions;
 
 namespace Mocha.Transport.Postgres;
@@ -32,7 +33,7 @@ internal static class PostgresDestinations
     public static bool TryResolveSourceTopic(
         string schema,
         Uri source,
-        [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out string? topicName)
+        [NotNullWhen(true)] out string? topicName)
     {
         if (TryResolveExplicit(schema, source, out var destination)
             && destination.Kind == PostgresDestinationKind.Topic)

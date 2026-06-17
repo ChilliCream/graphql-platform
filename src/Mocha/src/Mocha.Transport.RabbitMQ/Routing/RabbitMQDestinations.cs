@@ -1,10 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
 using static System.StringSplitOptions;
 
 namespace Mocha.Transport.RabbitMQ;
 
 internal static class RabbitMQDestinations
 {
-    public static (RabbitMQDestinationKind Kind, string Name, string EndpointName) Resolve(
+    public static RabbitMQDestination Resolve(
         string schema,
         IBusNamingConventions naming,
         OutboundRoute route)
@@ -18,7 +19,7 @@ internal static class RabbitMQDestinations
         return ResolveConvention(naming, route.Kind, route.MessageType);
     }
 
-    public static (RabbitMQDestinationKind Kind, string Name, string EndpointName) ResolveConvention(
+    public static RabbitMQDestination ResolveConvention(
         IBusNamingConventions naming,
         OutboundRouteKind kind,
         MessageType messageType)
@@ -32,7 +33,7 @@ internal static class RabbitMQDestinations
     public static bool TryResolveSourceExchange(
         string schema,
         Uri source,
-        [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out string? exchangeName)
+        [NotNullWhen(true)] out string? exchangeName)
     {
         if (TryResolveExplicit(schema, source, out var destination)
             && destination.Kind == RabbitMQDestinationKind.Exchange)
@@ -48,7 +49,7 @@ internal static class RabbitMQDestinations
     private static bool TryResolveExplicit(
         string schema,
         Uri destination,
-        out (RabbitMQDestinationKind Kind, string Name, string EndpointName) resolution)
+        [NotNullWhen(true)] out RabbitMQDestination? resolution)
     {
         var path = destination.AbsolutePath.AsSpan();
         Span<Range> ranges = stackalloc Range[2];
@@ -85,13 +86,18 @@ internal static class RabbitMQDestinations
             return true;
         }
 
-        resolution = default;
+        resolution = null;
         return false;
     }
 
-    private static (RabbitMQDestinationKind Kind, string Name, string EndpointName) Exchange(string name)
-        => (RabbitMQDestinationKind.Exchange, name, "e/" + name);
+    private static RabbitMQDestination Exchange(string name)
+        => new(RabbitMQDestinationKind.Exchange, name, "e/" + name);
 
-    private static (RabbitMQDestinationKind Kind, string Name, string EndpointName) Queue(string name)
-        => (RabbitMQDestinationKind.Queue, name, "q/" + name);
+    private static RabbitMQDestination Queue(string name)
+        => new(RabbitMQDestinationKind.Queue, name, "q/" + name);
 }
+
+internal sealed record RabbitMQDestination(
+    RabbitMQDestinationKind Kind,
+    string Name,
+    string EndpointName);

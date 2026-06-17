@@ -275,12 +275,11 @@ public class InMemoryTopologyConventionTests
     }
 
     [Fact]
-    public void Topology_Should_KeepTopics_When_QueueBindExplicit()
+    public void Topology_Should_OmitConventionTopology_When_QueueBindExplicit()
     {
         // arrange
-        // queue-scope auto-binding is off, so no binding is created into the queue; the type-owned
-        // publish and send topics still appear because suppression scope removes only the queue
-        // bindings, not the type-owned topic entities.
+        // Queue-scope auto-binding is off, so the service does not derive convention topics or
+        // bindings for this route. It may still consume from topology provisioned elsewhere.
         var transport = CreateTransport(
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
@@ -324,21 +323,26 @@ public class InMemoryTopologyConventionTests
     }
 
     [Fact]
-    public void DiscoverTopology_Should_Throw_When_MessageHasExplicitQueueDestination()
+    public void DiscoverTopology_Should_SkipConventionBinding_When_MessageHasExplicitQueueDestination()
     {
         // arrange
-        // When a consumed message type is routed to an explicit queue the resolver returns Queue kind,
-        // and there is no topic chain to bind from. The convention must reject this at build time.
+        // When a consumed message type is routed to an explicit queue there is no topic chain to bind
+        // from. The convention should skip the consume binding instead of rejecting a topology that may
+        // be provisioned outside this service.
         var services = new ServiceCollection();
         var builder = services.AddMessageBus();
         builder.AddMessage<OrderCreated>(d => d.Publish(r => r.ToInMemoryQueue("direct-q")));
         builder.AddEventHandler<OrderCreatedHandler>();
 
         // act
-        var act = () => builder.AddInMemory().BuildRuntime();
+        var runtime = builder.AddInMemory().BuildRuntime();
+        var topology = (InMemoryMessagingTopology)runtime.Transports
+            .OfType<InMemoryMessagingTransport>()
+            .Single()
+            .Topology;
 
         // assert
-        Assert.Throws<InvalidOperationException>(act);
+        Assert.Empty(topology.Bindings.OfType<InMemoryQueueBinding>());
     }
 
     private static (

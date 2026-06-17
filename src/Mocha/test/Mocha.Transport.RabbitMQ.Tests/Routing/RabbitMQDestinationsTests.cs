@@ -68,53 +68,6 @@ public class RabbitMQDestinationsTests
         Assert.Equal("q/orders-queue", resolution.EndpointName);
     }
 
-    [Fact]
-    public void ConsumeBindUnderivable_Should_IncludeMessageTypeName()
-    {
-        // arrange
-        var messageTypeName = typeof(OrderCreated).FullName!;
-        const string queueName = "test-queue";
-
-        // act
-        var ex = ThrowHelper.ConsumeBindUnderivable(messageTypeName, queueName);
-
-        // assert
-        Assert.IsType<InvalidOperationException>(ex);
-        Assert.Contains(messageTypeName, ex.Message);
-    }
-
-    [Fact]
-    public void ConsumeBindUnderivable_Should_IncludeQueueName()
-    {
-        // arrange
-        var messageTypeName = typeof(OrderCreated).FullName!;
-        const string queueName = "my-orders-queue";
-
-        // act
-        var ex = ThrowHelper.ConsumeBindUnderivable(messageTypeName, queueName);
-
-        // assert
-        Assert.IsType<InvalidOperationException>(ex);
-        Assert.Contains(queueName, ex.Message);
-    }
-
-    [Fact]
-    public void ConsumeBindUnderivable_Should_IncludeRemediationInstructions()
-    {
-        // arrange
-        var messageTypeName = typeof(OrderCreated).FullName!;
-        const string queueName = "test-queue";
-
-        // act
-        var ex = ThrowHelper.ConsumeBindUnderivable(messageTypeName, queueName);
-
-        // assert
-        Assert.IsType<InvalidOperationException>(ex);
-        Assert.Contains("BindFrom(source, routingKey)", ex.Message);
-        Assert.Contains(messageTypeName, ex.Message);
-        Assert.Contains(queueName, ex.Message);
-    }
-
     private static MessagingRuntime CreateRuntime(Action<IMessageBusHostBuilder> configure)
     {
         var services = new ServiceCollection();
