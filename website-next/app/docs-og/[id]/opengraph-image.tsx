@@ -9,10 +9,8 @@ import {
   resolveFile,
 } from "@/src/helpers/docsParams";
 import { readFrontmatter } from "@/src/helpers/readFrontmatter";
-import { loadInterFonts } from "@/src/og/fonts";
-import { ShareCard } from "@/src/og/ShareCard";
-
-// TODO: Proper styling and layout of share cards
+import { DocsShareCard } from "@/src/og/DocsShareCard";
+import { loadShareCardFonts } from "@/src/og/fonts";
 
 export const dynamicParams = false;
 
@@ -46,10 +44,10 @@ export default async function Image({ params }: { params: Promise<Params> }) {
   const eyebrow = product?.title ?? "ChilliCream";
   const title = frontmatter?.title ?? product?.title ?? "ChilliCream";
 
-  const fonts = await loadInterFonts();
+  const fonts = await loadShareCardFonts();
 
   return new ImageResponse(
-    <ShareCard badge={eyebrow} eyebrow={eyebrow} title={title} />,
+    <DocsShareCard badge={eyebrow} eyebrow={eyebrow} title={title} />,
     {
       ...size,
       fonts,
