@@ -6,43 +6,28 @@ interface PourOverProps {
 }
 
 /**
- * Pour-over dripper and mug, drawn as monoline art so it inherits
- * `currentColor` and scales crisply. Decorative by default.
+ * Pour-over brewer, drawn as monoline art so it inherits `currentColor` and
+ * scales crisply. Decorative by default.
  */
 export function PourOver({ className, style }: PourOverProps) {
   return (
     <svg
-      viewBox="0 0 96 104"
+      viewBox="0 0 200 220"
       fill="none"
       stroke="currentColor"
-      strokeWidth={3}
+      strokeWidth={1.6}
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
       className={className}
       style={style}
     >
-      {/* mug liquid */}
-      <path
-        d="M32 80 L64 80 L64 86 Q64 92 58 92 L38 92 Q32 92 32 86 Z"
-        fill="currentColor"
-        fillOpacity={0.22}
-        stroke="none"
-      />
-      {/* funnel rim */}
-      <ellipse cx="48" cy="17" rx="27" ry="5" />
-      {/* funnel cone */}
-      <path d="M21 18 L46 52 L50 52 L75 18" />
-      {/* funnel ridges */}
-      <path d="M29 27 L67 27" />
-      <path d="M33 35 L63 35" />
-      <path d="M37 43 L59 43" />
-      {/* drip */}
-      <path d="M48 52 L48 60" />
-      {/* mug body */}
-      <path d="M31 60 L65 60 L65 86 Q65 94 57 94 L39 94 Q31 94 31 86 Z" />
-      {/* mug handle */}
-      <path d="M65 68 C77 70 77 86 65 88" />
+      <path d="M 56 28 L 144 28 L 116 100 L 84 100 Z" />
+      <line x1="76" y1="108" x2="124" y2="108" />
+      <line x1="76" y1="118" x2="124" y2="118" />
+      <path d="M 84 118 L 60 196 Q 60 204 70 204 L 130 204 Q 140 204 140 196 L 116 118" />
+      <line x1="66" y1="178" x2="134" y2="178" opacity={0.4} />
+      <path d="M 56 28 Q 64 22 72 28" />
     </svg>
   );
 }

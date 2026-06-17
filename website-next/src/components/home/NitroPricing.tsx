@@ -1,12 +1,11 @@
 import type { ComponentType } from "react";
 
 import { CheckIcon } from "@/src/components/CheckIcon";
-import { Chemex } from "@/src/icons/Chemex";
+import { DripBrewer } from "@/src/icons/DripBrewer";
 import { FrenchPress } from "@/src/icons/FrenchPress";
 import { PourOver } from "@/src/icons/PourOver";
 
 interface Plan {
-  readonly brew: string;
   readonly Icon: ComponentType<{ readonly className?: string }>;
   readonly name: string;
   readonly tagline: string;
@@ -20,7 +19,6 @@ interface Plan {
 
 const PLANS: readonly Plan[] = [
   {
-    brew: "French Press",
     Icon: FrenchPress,
     name: "Shared Instance",
     tagline: "Shared resources, fully managed",
@@ -37,8 +35,7 @@ const PLANS: readonly Plan[] = [
     ctaHref: "/get-started",
   },
   {
-    brew: "Pour-Over",
-    Icon: PourOver,
+    Icon: DripBrewer,
     name: "Dedicated Instance",
     tagline: "Dedicated resources, fully managed",
     price: "$400",
@@ -55,8 +52,7 @@ const PLANS: readonly Plan[] = [
     popular: true,
   },
   {
-    brew: "Chemex",
-    Icon: Chemex,
+    Icon: PourOver,
     name: "Self-Hosted",
     tagline: "Self managed",
     price: "Custom",
@@ -98,15 +94,7 @@ function PlanCard({ plan }: { readonly plan: Plan }) {
       )}
 
       <div className="flex flex-col items-center text-center">
-        <div
-          className="flex size-24 items-center justify-center rounded-2xl"
-          style={{ backgroundImage: "linear-gradient(180deg,#6157ec,#5d55f1)" }}
-        >
-          <plan.Icon className="h-16 w-auto text-white" />
-        </div>
-        <p className="text-cc-nav-label mt-3 font-mono text-[0.65rem] tracking-[0.15em] uppercase">
-          {plan.brew}
-        </p>
+        <plan.Icon className="text-cc-ink h-28 w-auto" />
       </div>
 
       <Dots />
@@ -153,9 +141,9 @@ function PlanCard({ plan }: { readonly plan: Plan }) {
 }
 
 /**
- * Nitro pricing: three plans framed as coffee brews (French Press, Pour-Over,
- * Chemex). The middle plan is highlighted as the popular pick. Cards stack on
- * small screens and sit side by side from large up.
+ * Nitro pricing: three plans framed as coffee brews (French Press, Drip
+ * Brewer, Pour-Over). The middle plan is highlighted as the popular pick. Cards
+ * stack on small screens and sit side by side from large up.
  */
 export function NitroPricing() {
   return (

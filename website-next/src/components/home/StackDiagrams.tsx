@@ -23,21 +23,69 @@ function Node({ x, y, w, h }: NodeBox) {
   );
 }
 
+interface Leg {
+  /** Satellite (node) center. */
+  readonly x: number;
+  readonly y: number;
+  /** Where the spoke attaches to the hub perimeter. */
+  readonly ax: number;
+  readonly ay: number;
+}
+
 /**
- * Hub-and-spoke graph used by both feature rows: one larger node in the center,
- * three satellites above and three below, joined by S-curves that gather into
- * the center node's top and bottom edges. Matches the source design's node art.
+ * Hub-and-spoke graph used by both feature rows: one larger node in the center
+ * with three satellites above and three below. The six spokes radiate from
+ * points spread around the hub's perimeter (left side, top, right side, ...)
+ * like an asterisk, each leaving the hub along its own diagonal and arriving at
+ * its satellite as a short vertical stub.
  */
 function Hub({ className }: { readonly className?: string }) {
-  const cx = 180;
-  const cy = 185;
-  const topY = 58;
-  const botY = 312;
-  const cols = [80, 180, 280];
+  const cx = 210;
+  const cy = 190;
+  const hubW = 56;
+  const hubH = 42;
+  const satW = 34;
+  const satH = 26;
+  const topY = 40;
+  const botY = 340;
+  const cols = [56, 210, 364];
+
+  const hubTop = cy - hubH / 2;
+  const hubBot = cy + hubH / 2;
+  const hubLeft = cx - hubW / 2;
+  const hubRight = cx + hubW / 2;
+  // Upper/lower attach points on the hub's side edges for the diagonal legs.
+  const sideUp = cy - hubH / 4;
+  const sideDown = cy + hubH / 4;
+
+  const topRow = topY + satH / 2;
+  const botRow = botY - satH / 2;
+
+  // Attach the centre legs to the top/bottom edge and the diagonal legs to the
+  // side edges, so the spokes splay around the box instead of pinching to a
+  // single point.
+  const legs: readonly Leg[] = [
+    { x: cols[0], y: topRow, ax: hubLeft, ay: sideUp },
+    { x: cols[1], y: topRow, ax: cx, ay: hubTop },
+    { x: cols[2], y: topRow, ax: hubRight, ay: sideUp },
+    { x: cols[0], y: botRow, ax: hubLeft, ay: sideDown },
+    { x: cols[1], y: botRow, ax: cx, ay: hubBot },
+    { x: cols[2], y: botRow, ax: hubRight, ay: sideDown },
+  ];
+
+  // Cubic from the hub anchor to the satellite: the first control point pushes
+  // out along the anchor->node diagonal (radial departure); the second sits
+  // directly above/below the node so the line lands as a short vertical stub.
+  const spoke = ({ x, y, ax, ay }: Leg) => {
+    const stub = y < cy ? 40 : -40;
+    const c1x = ax + (x - ax) * 0.55;
+    const c1y = ay + (y - ay) * 0.2;
+    return `M ${ax} ${ay} C ${c1x} ${c1y} ${x} ${y + stub} ${x} ${y}`;
+  };
 
   return (
     <svg
-      viewBox="0 0 360 370"
+      viewBox="0 0 420 380"
       fill="none"
       aria-hidden="true"
       className={className}
@@ -55,26 +103,17 @@ function Hub({ className }: { readonly className?: string }) {
       </defs>
 
       <g stroke={EDGE} strokeWidth={1.5}>
-        {cols.map((x) => (
-          <path
-            key={`t${x}`}
-            d={`M180 167 C180 120 ${x} 120 ${x} ${topY + 12}`}
-          />
-        ))}
-        {cols.map((x) => (
-          <path
-            key={`b${x}`}
-            d={`M180 203 C180 250 ${x} 250 ${x} ${botY - 12}`}
-          />
+        {legs.map((leg) => (
+          <path key={`${leg.x}-${leg.y}`} d={spoke(leg)} />
         ))}
       </g>
 
       {cols.map((x) => (
-        <Node key={`tn${x}`} x={x} y={topY} w={32} h={24} />
+        <Node key={`tn${x}`} x={x} y={topY} w={satW} h={satH} />
       ))}
-      <Node x={cx} y={cy} w={54} h={40} />
+      <Node x={cx} y={cy} w={hubW} h={hubH} />
       {cols.map((x) => (
-        <Node key={`bn${x}`} x={x} y={botY} w={32} h={24} />
+        <Node key={`bn${x}`} x={x} y={botY} w={satW} h={satH} />
       ))}
     </svg>
   );
@@ -104,7 +143,9 @@ function StackRow({ title, diagram, reverse }: StackRowProps) {
           an application, we&rsquo;ve got the right tools for you.
         </p>
       </div>
-      <div className="w-full max-w-sm flex-1">{diagram}</div>
+      <div className="flex flex-1 justify-center">
+        <div className="w-full max-w-sm">{diagram}</div>
+      </div>
     </div>
   );
 }
