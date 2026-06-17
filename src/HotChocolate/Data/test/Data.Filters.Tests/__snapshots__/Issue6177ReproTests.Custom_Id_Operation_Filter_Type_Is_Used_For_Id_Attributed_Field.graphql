@@ -1,0 +1,22 @@
+schema {
+  query: Query
+}
+
+type Query {
+  subscriptions(where: SubscriptionNodeFilterInput): [SubscriptionNode]
+}
+
+type SubscriptionNode {
+  id: ID!
+}
+
+input SubscriptionIdOperationFilterInput {
+  eq: ID
+  in: [ID]
+}
+
+input SubscriptionNodeFilterInput {
+  and: [SubscriptionNodeFilterInput!]
+  or: [SubscriptionNodeFilterInput!]
+  id: SubscriptionIdOperationFilterInput
+}
