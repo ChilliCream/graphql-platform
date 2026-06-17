@@ -47,7 +47,11 @@ export default async function Image({ params }: { params: Promise<Params> }) {
   const fonts = await loadShareCardFonts();
 
   return new ImageResponse(
-    <DocsShareCard badge={eyebrow} eyebrow={eyebrow} title={title} />,
+    <DocsShareCard
+      eyebrow={eyebrow}
+      title={title}
+      productSlug={product?.slug}
+    />,
     {
       ...size,
       fonts,

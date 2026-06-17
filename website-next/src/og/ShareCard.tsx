@@ -5,7 +5,7 @@ import {
   HERO_SWIRLS,
 } from "@/src/components/home/heroArtwork";
 import { Swirl } from "@/src/icons/Swirl";
-import { ccBg, ccInk, ccSurface } from "@/src/theme/colors";
+import { ccBg, ccDarkSurface, ccInk } from "@/src/theme/colors";
 
 type ShareCardProps = {
   /**
@@ -52,7 +52,7 @@ export function ShareCard({ pageTitle }: ShareCardProps) {
         alignItems: "center",
         justifyContent: "center",
         backgroundColor: ccBg,
-        backgroundImage: `linear-gradient(160deg, ${ccSurface} 0%, ${ccBg} 70%)`,
+        backgroundImage: ccDarkSurface,
         color: ccInk,
         fontFamily: "Josefin Sans",
       }}

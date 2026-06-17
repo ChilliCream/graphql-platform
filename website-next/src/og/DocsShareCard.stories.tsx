@@ -14,16 +14,18 @@ const meta = {
   },
   decorators: [
     (Story) => (
-      <div style={{ width: 600, height: 315, overflow: "hidden" }}>
-        <div
-          style={{
-            width: 1200,
-            height: 630,
-            transform: "scale(0.5)",
-            transformOrigin: "top left",
-          }}
-        >
-          <Story />
+      <div style={{ background: "#ffffff", padding: 32 }}>
+        <div style={{ width: 600, height: 315, overflow: "hidden" }}>
+          <div
+            style={{
+              width: 1200,
+              height: 630,
+              transform: "scale(0.5)",
+              transformOrigin: "top left",
+            }}
+          >
+            <Story />
+          </div>
         </div>
       </div>
     ),
@@ -36,7 +38,7 @@ type Story = StoryObj<typeof meta>;
 /** Card args for a doc page belonging to a product, looked up by slug. */
 function productArgs(slug: string, title: string) {
   const name = PRODUCTS.find((p) => p.slug === slug)?.title ?? slug;
-  return { badge: name, eyebrow: name, title };
+  return { eyebrow: name, title, productSlug: slug };
 }
 
 // A typical doc page title.

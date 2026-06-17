@@ -13,16 +13,18 @@ const meta = {
   },
   decorators: [
     (Story) => (
-      <div style={{ width: 600, height: 315, overflow: "hidden" }}>
-        <div
-          style={{
-            width: 1200,
-            height: 630,
-            transform: "scale(0.5)",
-            transformOrigin: "top left",
-          }}
-        >
-          <Story />
+      <div style={{ background: "#ffffff", padding: 32 }}>
+        <div style={{ width: 600, height: 315, overflow: "hidden" }}>
+          <div
+            style={{
+              width: 1200,
+              height: 630,
+              transform: "scale(0.5)",
+              transformOrigin: "top left",
+            }}
+          >
+            <Story />
+          </div>
         </div>
       </div>
     ),
