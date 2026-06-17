@@ -387,6 +387,7 @@ public sealed class OperationExecutionNode : ExecutionNode
             var received = false;
             IDisposable? scope = null;
             long? start = null;
+            var arenaBefore = _eventArenaSource.Arena;
 
             try
             {
@@ -428,13 +429,17 @@ public sealed class OperationExecutionNode : ExecutionNode
             }
             catch (Exception exception)
             {
-                // An event was received but its result was never delivered, so dispose both the parsed
-                // result document (returning its pooled tracking arrays) and the arena that backs it
-                // here. Both disposals are idempotent, so they are safe whether or not the failure
-                // happened after the arena was already registered as the active event arena.
+                // An event was received but its result was never delivered, so dispose the parsed
+                // result document to return its pooled tracking arrays.
                 if (received)
                 {
                     _eventEnumerator.Current.Dispose();
+                }
+
+                // An arena minted during this failed iteration is owned by this enumerator. An
+                // arena carried over from a prior delivered event is still owned by that result.
+                if (!ReferenceEquals(_eventArenaSource.Arena, arenaBefore))
+                {
                     ((IDisposable)_eventArenaSource.Arena).Dispose();
                 }
 
