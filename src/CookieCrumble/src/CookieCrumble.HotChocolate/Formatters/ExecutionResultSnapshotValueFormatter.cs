@@ -69,30 +69,21 @@ internal sealed class ExecutionResultSnapshotValueFormatter
         IBufferWriter<byte> snapshot,
         IResponseStream stream)
     {
-        var documents = new List<JsonDocument>();
         var accumulator = new StreamAccumulator();
 
-        try
+        // StreamAccumulator deep-clones every element it retains, so each parsed
+        // document is only needed for the duration of its AddPayload call and can be
+        // disposed immediately afterwards.
+        await foreach (var result in stream.ReadResultsAsync().ConfigureAwait(false))
         {
-            await foreach (var result in stream.ReadResultsAsync().ConfigureAwait(false))
-            {
-                var document = JsonDocument.Parse(result.ToJson());
-                documents.Add(document);
-                accumulator.AddPayload(document.RootElement);
-            }
+            using var document = JsonDocument.Parse(result.ToJson());
+            accumulator.AddPayload(document.RootElement);
+        }
 
-            await using var writer = new Utf8JsonWriter(snapshot, IndentedWriterOptions);
-            WriteEnvelope(writer, accumulator);
-            writer.Flush();
-            snapshot.AppendLine();
-        }
-        finally
-        {
-            foreach (var document in documents)
-            {
-                document.Dispose();
-            }
-        }
+        await using var writer = new Utf8JsonWriter(snapshot, IndentedWriterOptions);
+        WriteEnvelope(writer, accumulator);
+        writer.Flush();
+        snapshot.AppendLine();
     }
 
     private static void WriteEnvelope(Utf8JsonWriter writer, StreamAccumulator accumulator)
