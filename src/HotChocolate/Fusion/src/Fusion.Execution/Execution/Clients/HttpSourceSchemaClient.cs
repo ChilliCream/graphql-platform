@@ -137,7 +137,7 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
                 ref buffer);
             ConfigureCallbacks(httpRequest, context, requests[0].Node);
 
-            var results = ExecuteBatchStreamAsync(context, requests, httpRequest, cancellationToken);
+            var results = ExecuteBatchStreamAsync(context, requests, httpRequest, buffer, cancellationToken);
 
             return _configuration.OnSourceSchemaResult is null
                 ? results
@@ -192,21 +192,24 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
         }
     }
 
-    private async IAsyncEnumerable<SourceSchemaBatchResult> ExecuteBatchStreamAsync(
+    internal async IAsyncEnumerable<SourceSchemaBatchResult> ExecuteBatchStreamAsync(
         OperationPlanContext context,
         ImmutableArray<SourceSchemaClientRequest> requests,
         GraphQLHttpRequest httpRequest,
+        ChunkedArrayWriter? buffer,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var arenaSource = context.MemorySource;
-        var httpResponse = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
-        context.TrackTransport(requests[0].Node, httpRequest.Uri, httpResponse.RawContentType);
+        GraphQLHttpResponse? httpResponse = null;
         bool? didFirstResultHaveRequestIndex = null;
         var currentRequestIndex = 0;
         var currentVariableIndex = 0;
 
         try
         {
+            httpResponse = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
+            context.TrackTransport(requests[0].Node, httpRequest.Uri, httpResponse.RawContentType);
+
             await foreach (var result in httpResponse.ReadAsResultStreamAsync(arenaSource).WithCancellation(cancellationToken))
             {
                 // Check if the first result has a requestIndex.
@@ -318,7 +321,8 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
         }
         finally
         {
-            httpResponse.Dispose();
+            httpResponse?.Dispose();
+            buffer?.Dispose();
         }
     }
 
