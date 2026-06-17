@@ -59,6 +59,14 @@ public sealed class RabbitMQMessagingTransportDescriptor
     }
 
     /// <inheritdoc />
+    public new IRabbitMQMessagingTransportDescriptor UseRoutingStrategy(Func<IServiceProvider, RoutingStrategy> factory)
+    {
+        base.UseRoutingStrategy(factory);
+
+        return this;
+    }
+
+    /// <inheritdoc />
     public new IRabbitMQMessagingTransportDescriptor UseDispatch(
         DispatchMiddlewareConfiguration configuration,
         string? before = null,

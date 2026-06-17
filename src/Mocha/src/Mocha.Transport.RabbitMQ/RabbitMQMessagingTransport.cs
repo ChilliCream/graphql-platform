@@ -353,9 +353,9 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
     }
 
     /// <inheritdoc />
-    protected override IRoutingStrategy CreateRoutingStrategy()
+    protected override RoutingStrategy CreateRoutingStrategy()
     {
-        return new RabbitMQRoutingStrategy(this);
+        return new RabbitMQRoutingStrategy();
     }
 
     /// <summary>

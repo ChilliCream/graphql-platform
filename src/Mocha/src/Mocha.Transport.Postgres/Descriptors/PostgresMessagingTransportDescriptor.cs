@@ -65,6 +65,14 @@ public sealed class PostgresMessagingTransportDescriptor
     }
 
     /// <inheritdoc />
+    public new IPostgresMessagingTransportDescriptor UseRoutingStrategy(Func<IServiceProvider, RoutingStrategy> factory)
+    {
+        base.UseRoutingStrategy(factory);
+
+        return this;
+    }
+
+    /// <inheritdoc />
     public new IPostgresMessagingTransportDescriptor UseDispatch(
         DispatchMiddlewareConfiguration configuration,
         string? before = null,

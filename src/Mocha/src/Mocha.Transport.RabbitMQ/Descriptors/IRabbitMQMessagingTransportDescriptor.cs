@@ -100,6 +100,9 @@ public interface IRabbitMQMessagingTransportDescriptor
     /// <inheritdoc cref="IMessagingTransportDescriptor.IsDefaultTransport" />
     new IRabbitMQMessagingTransportDescriptor IsDefaultTransport();
 
+    /// <inheritdoc cref="IMessagingTransportDescriptor.UseRoutingStrategy(Func{IServiceProvider, RoutingStrategy})" />
+    new IRabbitMQMessagingTransportDescriptor UseRoutingStrategy(Func<IServiceProvider, RoutingStrategy> factory);
+
     /// <inheritdoc cref="IMessagingTransportDescriptor.UseDispatch" />
     new IRabbitMQMessagingTransportDescriptor UseDispatch(
         DispatchMiddlewareConfiguration configuration,

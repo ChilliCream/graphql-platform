@@ -36,6 +36,11 @@ public abstract class MessagingTransportConfiguration : MessagingConfiguration
     public bool IsDefaultTransport { get; set; }
 
     /// <summary>
+    /// Gets or sets the factory that creates the routing strategy for this transport.
+    /// </summary>
+    public Func<IServiceProvider, RoutingStrategy>? RoutingStrategyFactory { get; set; }
+
+    /// <summary>
     /// Gets or sets the transport-specific conventions.
     /// </summary>
     public List<IConvention> Conventions { get; set; } = [];

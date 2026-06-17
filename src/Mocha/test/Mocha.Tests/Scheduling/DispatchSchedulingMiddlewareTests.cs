@@ -272,7 +272,7 @@ public class DispatchSchedulingMiddlewareTests
         protected override MessagingTransportConfiguration CreateConfiguration(
             IMessagingSetupContext context) => null!;
 
-        protected override IRoutingStrategy CreateRoutingStrategy() => throw new NotSupportedException();
+        protected override RoutingStrategy CreateRoutingStrategy() => throw new NotSupportedException();
 
         protected override ReceiveEndpoint CreateReceiveEndpoint() => null!;
 

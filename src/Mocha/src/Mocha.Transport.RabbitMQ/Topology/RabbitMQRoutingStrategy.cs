@@ -7,9 +7,10 @@ namespace Mocha.Transport.RabbitMQ;
 /// <summary>
 /// Defines the endpoint and topology layout for the RabbitMQ transport.
 /// </summary>
-public sealed class RabbitMQRoutingStrategy(RabbitMQMessagingTransport transport)
-    : RoutingStrategy(transport)
+public sealed class RabbitMQRoutingStrategy : RoutingStrategy
 {
+    private RabbitMQMessagingTransport RabbitMQTransport => (RabbitMQMessagingTransport)Transport;
+
     /// <inheritdoc />
     public override DispatchEndpointConfiguration? CreateEndpointConfiguration(
         IMessagingConfigurationContext context,
@@ -20,7 +21,7 @@ public sealed class RabbitMQRoutingStrategy(RabbitMQMessagingTransport transport
             return null;
         }
 
-        var resolution = transport.Resolver.ResolveDestination(context.Naming, route);
+        var resolution = RabbitMQTransport.Resolver.ResolveDestination(context.Naming, route);
 
         RabbitMQDispatchEndpointConfiguration configuration;
         if (resolution.Kind == RabbitMQDestinationKind.Queue)
@@ -54,7 +55,7 @@ public sealed class RabbitMQRoutingStrategy(RabbitMQMessagingTransport transport
         Span<Range> ranges = stackalloc Range[2];
         var segmentCount = path.Split(ranges, '/', RemoveEmptyEntries | TrimEntries);
 
-        if (address.Scheme == transport.Schema && address.Host is "")
+        if (address.Scheme == RabbitMQTransport.Schema && address.Host is "")
         {
             if (segmentCount == 1 && path[ranges[0]] is "replies")
             {
@@ -93,7 +94,7 @@ public sealed class RabbitMQRoutingStrategy(RabbitMQMessagingTransport transport
             }
         }
 
-        if (configuration is null && transport.Topology.Address.IsBaseOf(address) && segmentCount == 2)
+        if (configuration is null && RabbitMQTransport.Topology.Address.IsBaseOf(address) && segmentCount == 2)
         {
             var kind = path[ranges[0]];
             var name = path[ranges[1]];
@@ -117,7 +118,7 @@ public sealed class RabbitMQRoutingStrategy(RabbitMQMessagingTransport transport
             }
         }
 
-        var isEffectiveDefault = transport.IsDefaultTransport || context.Transports.Length == 1;
+        var isEffectiveDefault = RabbitMQTransport.IsDefaultTransport || context.Transports.Length == 1;
 
         if (configuration is null && isEffectiveDefault && address is { Scheme: "queue" } && segmentCount == 1)
         {
@@ -396,12 +397,12 @@ public sealed class RabbitMQRoutingStrategy(RabbitMQMessagingTransport transport
 
     private bool? TryGetSatelliteAutoProvision(Uri address)
     {
-        if (transport.Configuration is null)
+        if (RabbitMQTransport.Configuration is null)
         {
             return null;
         }
 
-        foreach (var receiveEndpoint in transport.Configuration.ReceiveEndpoints)
+        foreach (var receiveEndpoint in RabbitMQTransport.Configuration.ReceiveEndpoints)
         {
             if (receiveEndpoint is not RabbitMQReceiveEndpointConfiguration rabbitReceiveEndpoint)
             {

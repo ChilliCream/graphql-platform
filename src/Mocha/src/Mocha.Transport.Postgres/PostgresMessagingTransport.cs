@@ -364,9 +364,9 @@ public sealed class PostgresMessagingTransport : MessagingTransport
     }
 
     /// <inheritdoc />
-    protected override IRoutingStrategy CreateRoutingStrategy()
+    protected override RoutingStrategy CreateRoutingStrategy()
     {
-        return new PostgresRoutingStrategy(this);
+        return new PostgresRoutingStrategy();
     }
 
     /// <summary>

@@ -3,33 +3,48 @@ using static Mocha.InboundRouteKind;
 namespace Mocha;
 
 /// <summary>
-/// Base implementation for transport routing topologies. It owns the shared endpoint layout
+/// Base implementation for transport routing strategies. It owns the shared endpoint layout
 /// discovery algorithm and leaves transport-specific configuration and resource layout to derived
-/// topologies.
+/// strategies.
 /// </summary>
-public abstract class RoutingStrategy(MessagingTransport transport) : IRoutingStrategy
+public abstract class RoutingStrategy
 {
-    /// <summary>
-    /// Gets the transport that owns this topology.
-    /// </summary>
-    protected MessagingTransport Transport => transport;
+    private MessagingTransport? _transport;
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Gets the transport that owns this strategy.
+    /// </summary>
+    protected MessagingTransport Transport
+        => _transport ?? throw new InvalidOperationException("Routing strategy is not initialized.");
+
+    internal void Initialize(MessagingTransport transport)
+    {
+        ArgumentNullException.ThrowIfNull(transport);
+
+        if (_transport is not null)
+        {
+            throw new InvalidOperationException("Routing strategy is already initialized.");
+        }
+
+        _transport = transport;
+
+        OnInitialize(transport);
+    }
+
+    protected virtual void OnInitialize(MessagingTransport transport) { }
+
     public abstract DispatchEndpointConfiguration? CreateEndpointConfiguration(
         IMessagingConfigurationContext context,
         OutboundRoute route);
 
-    /// <inheritdoc />
     public abstract DispatchEndpointConfiguration? CreateEndpointConfiguration(
         IMessagingConfigurationContext context,
         Uri address);
 
-    /// <inheritdoc />
     public abstract ReceiveEndpointConfiguration? CreateEndpointConfiguration(
         IMessagingConfigurationContext context,
         InboundRoute route);
 
-    /// <inheritdoc />
     public virtual void DiscoverEndpoints(IMessagingSetupContext context)
     {
         DiscoverReplyEndpoints(context);
@@ -43,7 +58,6 @@ public abstract class RoutingStrategy(MessagingTransport transport) : IRoutingSt
         DiscoverEndpointTopology(context);
     }
 
-    /// <inheritdoc />
     public virtual void DiscoverTopology(
         IMessagingConfigurationContext context,
         ReceiveEndpoint endpoint,
@@ -51,7 +65,6 @@ public abstract class RoutingStrategy(MessagingTransport transport) : IRoutingSt
     {
     }
 
-    /// <inheritdoc />
     public virtual void DiscoverTopology(
         IMessagingConfigurationContext context,
         DispatchEndpoint endpoint,

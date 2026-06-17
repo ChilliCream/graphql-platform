@@ -417,7 +417,7 @@ public sealed class MessageBusChangeTokenSourceTests
         protected override MessagingTransportConfiguration CreateConfiguration(IMessagingSetupContext context)
             => throw new NotSupportedException();
 
-        protected override IRoutingStrategy CreateRoutingStrategy() => throw new NotSupportedException();
+        protected override RoutingStrategy CreateRoutingStrategy() => throw new NotSupportedException();
 
         protected override ReceiveEndpoint CreateReceiveEndpoint() => throw new NotSupportedException();
 

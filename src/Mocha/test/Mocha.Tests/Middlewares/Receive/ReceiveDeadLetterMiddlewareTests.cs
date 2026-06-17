@@ -614,7 +614,7 @@ public sealed class ReceiveDeadLetterMiddlewareTests : ReceiveMiddlewareTestBase
 
         protected override MessagingTransportConfiguration CreateConfiguration(IMessagingSetupContext context) => null!;
 
-        protected override IRoutingStrategy CreateRoutingStrategy() => throw new NotSupportedException();
+        protected override RoutingStrategy CreateRoutingStrategy() => throw new NotSupportedException();
 
         protected override ReceiveEndpoint CreateReceiveEndpoint() => null!;
 

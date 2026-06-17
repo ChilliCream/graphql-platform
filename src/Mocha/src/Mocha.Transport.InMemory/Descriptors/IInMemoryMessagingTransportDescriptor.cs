@@ -63,6 +63,9 @@ public interface IInMemoryMessagingTransportDescriptor : IMessagingTransportDesc
     /// <inheritdoc />
     new IInMemoryMessagingTransportDescriptor IsDefaultTransport();
 
+    /// <inheritdoc cref="IMessagingTransportDescriptor.UseRoutingStrategy(Func{IServiceProvider, RoutingStrategy})" />
+    new IInMemoryMessagingTransportDescriptor UseRoutingStrategy(Func<IServiceProvider, RoutingStrategy> factory);
+
     /// <inheritdoc />
     new IInMemoryMessagingTransportDescriptor UseDispatch(
         DispatchMiddlewareConfiguration configuration,

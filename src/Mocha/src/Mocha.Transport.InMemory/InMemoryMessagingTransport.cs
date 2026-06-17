@@ -234,9 +234,9 @@ public sealed class InMemoryMessagingTransport : MessagingTransport
     }
 
     /// <inheritdoc />
-    protected override IRoutingStrategy CreateRoutingStrategy()
+    protected override RoutingStrategy CreateRoutingStrategy()
     {
-        return new InMemoryRoutingStrategy(this);
+        return new InMemoryRoutingStrategy();
     }
 
     /// <summary>

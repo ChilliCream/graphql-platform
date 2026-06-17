@@ -6,9 +6,10 @@ namespace Mocha.Transport.InMemory;
 /// <summary>
 /// Defines the endpoint and topology layout for the in-memory transport.
 /// </summary>
-public sealed class InMemoryRoutingStrategy(InMemoryMessagingTransport transport)
-    : RoutingStrategy(transport)
+public sealed class InMemoryRoutingStrategy : RoutingStrategy
 {
+    private InMemoryMessagingTransport InMemoryTransport => (InMemoryMessagingTransport)Transport;
+
     /// <inheritdoc />
     public override DispatchEndpointConfiguration? CreateEndpointConfiguration(
         IMessagingConfigurationContext context,
@@ -19,7 +20,7 @@ public sealed class InMemoryRoutingStrategy(InMemoryMessagingTransport transport
             return null;
         }
 
-        var resolution = transport.Resolver.ResolveDestination(context.Naming, route);
+        var resolution = InMemoryTransport.Resolver.ResolveDestination(context.Naming, route);
 
         InMemoryDispatchEndpointConfiguration configuration;
         if (resolution.Kind == InMemoryDestinationKind.Queue)
@@ -53,7 +54,7 @@ public sealed class InMemoryRoutingStrategy(InMemoryMessagingTransport transport
         Span<Range> ranges = stackalloc Range[2];
         var segmentCount = path.Split(ranges, '/', RemoveEmptyEntries | TrimEntries);
 
-        if (address.Scheme == transport.Schema && address.Host is "")
+        if (address.Scheme == InMemoryTransport.Schema && address.Host is "")
         {
             if (segmentCount == 1 && path[ranges[0]] is "replies")
             {
@@ -91,7 +92,7 @@ public sealed class InMemoryRoutingStrategy(InMemoryMessagingTransport transport
             }
         }
 
-        if (configuration is null && transport.Topology.Address.IsBaseOf(address) && segmentCount == 2)
+        if (configuration is null && InMemoryTransport.Topology.Address.IsBaseOf(address) && segmentCount == 2)
         {
             var kind = path[ranges[0]];
             var name = path[ranges[1]];
@@ -115,7 +116,7 @@ public sealed class InMemoryRoutingStrategy(InMemoryMessagingTransport transport
             }
         }
 
-        var isEffectiveDefault = transport.IsDefaultTransport || context.Transports.Length == 1;
+        var isEffectiveDefault = InMemoryTransport.IsDefaultTransport || context.Transports.Length == 1;
 
         if (configuration is null && isEffectiveDefault && address is { Scheme: "queue" })
         {

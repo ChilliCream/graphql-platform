@@ -90,6 +90,9 @@ public interface IPostgresMessagingTransportDescriptor
     /// <inheritdoc cref="IMessagingTransportDescriptor.IsDefaultTransport()"/>
     new IPostgresMessagingTransportDescriptor IsDefaultTransport();
 
+    /// <inheritdoc cref="IMessagingTransportDescriptor.UseRoutingStrategy(Func{IServiceProvider, RoutingStrategy})"/>
+    new IPostgresMessagingTransportDescriptor UseRoutingStrategy(Func<IServiceProvider, RoutingStrategy> factory);
+
     /// <inheritdoc cref="IMessagingTransportDescriptor.UseDispatch(DispatchMiddlewareConfiguration, string?, string?)"/>
     new IPostgresMessagingTransportDescriptor UseDispatch(
         DispatchMiddlewareConfiguration configuration,

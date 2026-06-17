@@ -69,6 +69,13 @@ public interface IMessagingTransportDescriptor
     IMessagingTransportDescriptor IsDefaultTransport();
 
     /// <summary>
+    /// Sets the routing strategy factory used to create the transport's route and topology layout strategy.
+    /// </summary>
+    /// <param name="factory">The factory that creates a fresh routing strategy instance.</param>
+    /// <returns>The descriptor for method chaining.</returns>
+    IMessagingTransportDescriptor UseRoutingStrategy(Func<IServiceProvider, RoutingStrategy> factory);
+
+    /// <summary>
     /// Adds a dispatch middleware to the transport-scoped outbound pipeline. Optionally positions it
     /// relative to an existing middleware by specifying <paramref name="before"/> or <paramref name="after"/>.
     /// </summary>
@@ -144,6 +151,15 @@ public abstract class MessagingTransportDescriptor<T>(IMessagingSetupContext con
     public IMessagingTransportDescriptor IsDefaultTransport()
     {
         Configuration.IsDefaultTransport = true;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IMessagingTransportDescriptor UseRoutingStrategy(Func<IServiceProvider, RoutingStrategy> factory)
+    {
+        ArgumentNullException.ThrowIfNull(factory);
+
+        Configuration.RoutingStrategyFactory = factory;
         return this;
     }
 

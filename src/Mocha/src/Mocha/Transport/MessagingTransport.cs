@@ -93,7 +93,11 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     /// </summary>
     public IConventionRegistry Conventions { get; protected set; } = null!;
 
-    internal IRoutingStrategy Routing { get; private set; } = null!;
+    /// <summary>
+    /// The routing strategy that resolves the transport's message routes and addresses into receive
+    /// and dispatch endpoint configurations and discovers the endpoints the transport exposes.
+    /// </summary>
+    public RoutingStrategy Routing { get; private set; } = null!;
 
     /// <summary>
     /// Produces a structural description of this transport including its endpoints, topology entities,
@@ -260,10 +264,10 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     protected abstract MessagingTransportConfiguration CreateConfiguration(IMessagingSetupContext context);
 
     /// <summary>
-    /// Creates the routing topology strategy for this transport.
+    /// Creates the routing strategy for this transport.
     /// </summary>
-    /// <returns>The routing topology strategy.</returns>
-    protected abstract IRoutingStrategy CreateRoutingStrategy();
+    /// <returns>The routing strategy.</returns>
+    protected abstract RoutingStrategy CreateRoutingStrategy();
 
     /// <summary>
     /// Connects an outbound route to a dispatch endpoint, creating the endpoint if one does not already

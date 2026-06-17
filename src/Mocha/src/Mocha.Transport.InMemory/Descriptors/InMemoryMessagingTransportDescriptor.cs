@@ -65,6 +65,14 @@ public sealed class InMemoryMessagingTransportDescriptor
     }
 
     /// <inheritdoc />
+    public new IInMemoryMessagingTransportDescriptor UseRoutingStrategy(Func<IServiceProvider, RoutingStrategy> factory)
+    {
+        base.UseRoutingStrategy(factory);
+
+        return this;
+    }
+
+    /// <inheritdoc />
     public new IInMemoryMessagingTransportDescriptor UseDispatch(
         DispatchMiddlewareConfiguration configuration,
         string? before = null,
