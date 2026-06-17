@@ -126,7 +126,7 @@ export function ShareCard({ pageTitle }: ShareCardProps) {
             flexDirection: "column",
             alignItems: "center",
             minWidth: "360px",
-            marginTop: "36px",
+            marginTop: "18px",
           }}
         >
           {/* Divider with fading edges; stretches to the title width (min 360px). */}
@@ -143,7 +143,7 @@ export function ShareCard({ pageTitle }: ShareCardProps) {
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
-              marginTop: "28px",
+              marginTop: "16px",
               fontFamily: "Inter",
               fontSize: "40px",
               fontWeight: 700,

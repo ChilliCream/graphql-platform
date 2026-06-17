@@ -32,23 +32,11 @@ export function Skillz({ className, style }: SkillzProps) {
           <stop offset="0.5" stopColor="#FB522E" />
           <stop offset="1" stopColor="#FFA52B" />
         </linearGradient>
-        <radialGradient id="skillz-sheen" cx="0.5" cy="0" r="0.85">
-          <stop offset="0" stopColor="#ffffff" stopOpacity="0.08" />
-          <stop offset="1" stopColor="#ffffff" stopOpacity="0" />
-        </radialGradient>
       </defs>
-      <rect x="0" y="0" width="64" height="64" rx="7.04" fill="#0c1322" />
-      <rect
-        x="0"
-        y="0"
-        width="64"
-        height="64"
-        rx="7.04"
-        fill="url(#skillz-sheen)"
-      />
       <g transform="translate(5.12 5.12) scale(2.24)">
         <path
           d="M12 1.74 L21.72 7.14 L21.72 16.86 L12 22.26 L2.28 16.86 L2.28 7.14 Z"
+          fill="#0c1322"
           stroke="url(#skillz-brand)"
           strokeWidth="1.3"
           strokeLinecap="round"

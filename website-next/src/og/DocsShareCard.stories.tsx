@@ -43,22 +43,22 @@ function productArgs(slug: string, title: string) {
 
 // A typical doc page title.
 export const Default: Story = {
-  args: productArgs("hotchocolate", "Introduction"),
+  args: productArgs("fusion", "Introduction"),
 };
 
 // A long doc page title, to check wrapping within the frame.
 export const LongTitle: Story = {
   args: productArgs(
-    "hotchocolate",
-    "Migrating from Hot Chocolate 12 to Hot Chocolate 13",
+    "fusion",
+    "Composing a Distributed Schema with Fusion Gateways",
   ),
 };
 
 // A doc page title far too long for the frame, to show how overflow is handled.
 export const OverflowingTitle: Story = {
   args: productArgs(
-    "hotchocolate",
-    "Migrating from Hot Chocolate 12 to Hot Chocolate 13 with Schema Stitching, Type Extensions, and Custom Middleware Pipelines",
+    "fusion",
+    "Composing a Distributed Schema with Fusion Gateways, Source Schemas, Type Extensions, and Custom Resolver Pipelines",
   ),
 };
 

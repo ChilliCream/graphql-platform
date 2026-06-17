@@ -1,5 +1,4 @@
 import { Swirl } from "@/src/icons/Swirl";
-import { ActionLines } from "@/src/og/ActionLines";
 import { PRODUCT_DRINKS } from "@/src/og/productDrinks";
 import { ccAccent, ccBg, ccDarkSurface, ccInk } from "@/src/theme/colors";
 
@@ -21,7 +20,7 @@ type DocsShareCardProps = {
 };
 
 /** Top-right drink icon is sized to this height; width follows the aspect. */
-const ICON_HEIGHT = 240;
+const ICON_HEIGHT = 280;
 
 interface SwirlMark {
   readonly left: string;
@@ -59,7 +58,7 @@ export function DocsShareCard({
   // Icon sits at top:72/right:72; this is its center on the 1200x630 frame.
   const iconCenterX = 1200 - 72 - iconWidth / 2;
   const iconCenterY = 72 + ICON_HEIGHT / 2;
-  const burstSize = ICON_HEIGHT * 2;
+  const glowSize = ICON_HEIGHT * 2;
 
   return (
     <div
@@ -92,19 +91,20 @@ export function DocsShareCard({
           <Swirl style={{ width: size, height: size }} />
         </div>
       ))}
-      {/* Action lines bursting out from the product, centered on the icon. */}
+      {/* Soft glow highlighting the product, centered on the icon. */}
       {drink ? (
         <div
           style={{
             position: "absolute",
             left: `${iconCenterX}px`,
             top: `${iconCenterY}px`,
-            display: "flex",
+            width: glowSize,
+            height: glowSize,
+            borderRadius: "50%",
             transform: "translate(-50%, -50%)",
+            backgroundImage: `radial-gradient(circle, ${rgba(ccAccent, 0.4)} 0%, ${rgba(ccAccent, 0.14)} 34%, ${rgba(ccAccent, 0)} 66%)`,
           }}
-        >
-          <ActionLines size={burstSize} color={rgba(ccAccent, 0.5)} />
-        </div>
+        />
       ) : null}
 
       {drink ? (
@@ -125,7 +125,7 @@ export function DocsShareCard({
         style={{
           display: "flex",
           flexDirection: "column",
-          gap: "20px",
+          gap: "8px",
         }}
       >
         <div
@@ -135,7 +135,7 @@ export function DocsShareCard({
             fontWeight: 700,
             letterSpacing: "2px",
             textTransform: "uppercase",
-            color: ccAccent,
+            color: ccInk,
           }}
         >
           {eyebrow}
