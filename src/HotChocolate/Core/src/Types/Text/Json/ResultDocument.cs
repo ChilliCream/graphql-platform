@@ -711,10 +711,11 @@ public sealed partial class ResultDocument : IDisposable
 
             if (requiredChunkIndex >= data.Length)
             {
-                // Double the tracking array, copy the rented segments, and clear the new slots so
-                // unallocated chunks are recognizable by a null buffer. The arena owns the chunk
-                // memory itself, so only the pooled tracking array is grown here.
-                var nextLength = data.Length * 2;
+                // Grow the tracking array to cover the required chunk, copy the rented segments,
+                // and clear the new slots so unallocated chunks are recognizable by a null buffer.
+                // The arena owns the chunk memory itself, so only the pooled tracking array is
+                // grown here.
+                var nextLength = Math.Max(data.Length * 2, requiredChunkIndex + 1);
                 var newData = s_arrayPool.Rent(nextLength);
                 Array.Copy(data, newData, rented);
                 newData.AsSpan(rented).Clear();
