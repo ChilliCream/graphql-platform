@@ -16,7 +16,7 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
     {
         public void Write()
         {
-            var root = Cursor.Zero;
+            var root = Cursor.CreateZero();
             var row = document._metaDb.Get(root);
 
             if (row.TokenType is ElementTokenType.Null
@@ -37,7 +37,7 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
             // Inline reference resolution
             if (tokenType is ElementTokenType.Reference)
             {
-                cursor = Cursor.FromIndex(row.Location);
+                cursor = new Cursor(row.Location);
                 row = document._metaDb.Get(cursor);
                 tokenType = row.TokenType;
             }
@@ -85,22 +85,28 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
                     break;
 
                 case ElementTokenType.String:
-                {
-                    var value = isSourceResult
-                        ? document._sources[row.SourceDocumentId].ReadRawValue(row.Location, row.SizeOrLength)
-                        : document.ReadRawValue(row);
-                    writer.WriteStringValue(value, skipEscaping: true);
+                    if (isSourceResult)
+                    {
+                        document._sources[row.SourceDocumentId]
+                            .WriteRawStringValueTo(writer, row.Location, row.SizeOrLength);
+                    }
+                    else
+                    {
+                        writer.WriteStringValue(document.ReadRawValue(row), skipEscaping: true);
+                    }
                     break;
-                }
 
                 case ElementTokenType.Number:
-                {
-                    var value = isSourceResult
-                        ? document._sources[row.SourceDocumentId].ReadRawValue(row.Location, row.SizeOrLength)
-                        : document.ReadRawValue(row);
-                    writer.WriteNumberValue(value);
+                    if (isSourceResult)
+                    {
+                        document._sources[row.SourceDocumentId]
+                            .WriteRawNumberValueTo(writer, row.Location, row.SizeOrLength);
+                    }
+                    else
+                    {
+                        writer.WriteNumberValue(document.ReadRawValue(row));
+                    }
                     break;
-                }
 
                 default:
                     throw new NotSupportedException();

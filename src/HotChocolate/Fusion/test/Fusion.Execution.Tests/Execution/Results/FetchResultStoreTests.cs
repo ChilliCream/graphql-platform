@@ -1,5 +1,7 @@
 using System.Text.Json;
+using HotChocolate.Buffers;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Errors;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Text.Json;
@@ -8,8 +10,52 @@ using FusionNameNode = HotChocolate.Fusion.Language.NameNode;
 
 namespace HotChocolate.Fusion.Execution.Results;
 
-public sealed class FetchResultStoreTests
+public sealed class FetchResultStoreTests : FusionTestBase
 {
+    [Fact]
+    public void Reset_Should_ClearAccumulatedErrors_When_ReusedForNextEvent()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                productBySlug(slug: "1") {
+                    id
+                }
+            }
+            """);
+
+        using var initialArena = new MemoryArena();
+        using var store = new FetchResultStore();
+        store.Initialize(
+            initialArena,
+            schema,
+            DefaultErrorHandler.Default,
+            plan.Operation,
+            ErrorHandlingMode.Propagate,
+            includeFlags: 0,
+            deferFlags: 0,
+            pathSegmentLocalPoolCapacity: 16);
+
+        store.AddError(ErrorBuilder.New().SetMessage("event 1").Build());
+        Assert.Collection(
+            store.Errors!,
+            static error => Assert.Equal("event 1", error.Message));
+
+        // act
+        store.Reset(new MemoryArena());
+
+        // assert
+        Assert.Empty(store.Errors!);
+
+        store.AddError(ErrorBuilder.New().SetMessage("event 2").Build());
+        Assert.Collection(
+            store.Errors!,
+            static error => Assert.Equal("event 2", error.Message));
+    }
+
     [Fact]
     public void CreateVariableValueSetsFromSnapshot_Should_MergeForwardedVariables_When_RequirementsAreImported()
     {
