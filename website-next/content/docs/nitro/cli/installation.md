@@ -1,5 +1,6 @@
 ---
 title: Installation
+description: "Install the Nitro CLI as a .NET tool, via npm with `@chillicream/nitro`, through Homebrew, or as pre-built binaries from the GitHub releases page."
 ---
 
 <!-- TODO: document the GitHub Actions and Azure Pipelines tasks for installing/running the Nitro CLI on this page. -->

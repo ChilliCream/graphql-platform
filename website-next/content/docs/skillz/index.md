@@ -1,5 +1,6 @@
 ---
 title: "Introduction"
+description: "skillz is a .NET CLI that installs, updates, and authors Agent Skills: portable SKILL.md files you can share across Claude Code, Cursor, and 50+ agents."
 ---
 
 skillz is the .NET CLI that installs, updates, and authors [Agent Skills](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills): portable `SKILL.md` files that teach an AI coding agent how you work. Stop re-explaining your conventions every session. Package the knowledge once, then hand the same skill to Claude Code, Cursor, GitHub Copilot, and 50+ other agents with a single command.

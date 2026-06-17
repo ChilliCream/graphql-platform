@@ -43,21 +43,21 @@ export function TocDrawer({ children }: { children: ReactNode }) {
 
   return (
     <div
-      className={`fixed inset-0 z-40 2xl:hidden ${open ? "" : "pointer-events-none"}`}
+      className={`fixed inset-0 z-50 2xl:hidden ${open ? "" : "pointer-events-none"}`}
       aria-hidden={!open}
     >
       <div
-        className={`absolute inset-0 bg-cc-black/40 transition-opacity ${
+        className={`bg-cc-black/40 absolute inset-0 transition-opacity ${
           open ? "opacity-100" : "opacity-0"
         }`}
         onClick={() => setOpen(false)}
       />
       <div
-        className={`absolute inset-y-0 right-0 flex w-80 max-w-[85vw] flex-col overflow-y-auto bg-cc-bg shadow-xl transition-transform duration-200 ${
+        className={`bg-cc-bg absolute inset-y-0 right-0 flex w-80 max-w-[85vw] flex-col overflow-y-auto shadow-xl transition-transform duration-200 ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <div className="flex items-center justify-end border-b border-cc-card-border px-3 py-2">
+        <div className="border-cc-card-border flex items-center justify-end border-b px-3 py-2">
           <IconButton
             aria-label="Close table of contents"
             onClick={() => setOpen(false)}

@@ -1,5 +1,6 @@
 ---
 title: "MCP"
+description: "Turn a Hot Chocolate GraphQL server into an MCP server with `AddMcp()` and `MapGraphQLMcp()`, exposing tools and prompts to AI assistants over Streamable HTTP."
 ---
 
 The [Model Context Protocol (MCP)](https://modelcontextprotocol.io) is an open standard that lets AI assistants connect to external systems through a uniform tool and prompt interface. The `HotChocolate.Adapters.Mcp` package turns a Hot Chocolate GraphQL server into an MCP server. You supply tool and prompt definitions through an `IMcpStorage`, and the adapter handles execution, transport, and live updates. Definitions can come from Nitro (file-based authoring with a publish workflow) or from a custom `IMcpStorage` you build (programmatic, database-backed, or any source you choose).
@@ -8,7 +9,7 @@ You wire MCP onto an existing Hot Chocolate server with two calls: `AddMcp()` du
 
 This page covers wiring and configuration. For authoring tools and prompts, see the [Nitro MCP](../../../nitro/adapters/mcp.md) section.
 
-## Prerequisites
+# Prerequisites
 
 You need an existing Hot Chocolate GraphQL server. If you do not have one yet, follow the [Get started with Hot Chocolate](../../get-started-with-graphql-in-net-core.md) tutorial first.
 
@@ -18,7 +19,7 @@ Add the adapter package to the server project:
 dotnet add package HotChocolate.Adapters.Mcp
 ```
 
-## Enabling MCP on the Server
+# Enabling MCP on the Server
 
 Two adapter calls turn a Hot Chocolate server into an MCP server. `AddMcp()` registers the MCP server, schema services, and a startup warmup that loads tool and prompt definitions from storage. `MapGraphQLMcp()` exposes the MCP transport endpoints.
 
@@ -35,7 +36,7 @@ app.MapGraphQLMcp();
 
 The server needs a tool and prompt source. Without one, `MapGraphQLMcp()` throws `InvalidOperationException` during startup. Wire up storage by either [using Nitro](#using-nitro-for-tools-and-prompts) or providing a custom `IMcpStorage`.
 
-## Connecting a Tool and Prompt Source
+# Connecting a Tool and Prompt Source
 
 The adapter does not ship tools or prompts of its own. It asks an `IMcpStorage` implementation for them at startup, and listens for change notifications afterwards. You have two options:
 
@@ -61,7 +62,7 @@ Three overloads cover the common registration patterns:
 
 `IMcpStorage` returns `OperationToolDefinition` and `PromptDefinition` collections, and exposes `IObservable` streams so the server can apply update and remove events without restarting. Reach for this extension point only when you cannot use Nitro, since implementing it correctly involves change diffing, caching, and reactive subscriptions.
 
-## Configuring the MCP Server
+# Configuring the MCP Server
 
 `AddMcp()` accepts two configuration delegates. The first targets `McpServerOptions` (server behavior), the second targets `IMcpServerBuilder` (tool, prompt, and resource registration from the underlying MCP SDK):
 
@@ -81,7 +82,7 @@ builder
 
 Tools registered through `configureServer` appear alongside the GraphQL-derived tools, so you can mix native MCP tools with operation tools in the same server.
 
-## Mapping the MCP Endpoint
+# Mapping the MCP Endpoint
 
 `MapGraphQLMcp()` accepts two optional arguments:
 
@@ -99,11 +100,11 @@ app.MapGraphQLMcp("/graphql/internal/mcp", schemaName: "Internal");
 
 The endpoint speaks Streamable HTTP. POST carries JSON-RPC requests and returns either `text/event-stream` for streaming responses or `202 Accepted` for queued ones.
 
-## Using Nitro for Tools and Prompts
+# Using Nitro for Tools and Prompts
 
 Nitro is the easiest way to manage MCP tools and prompts. You author tools and prompts on disk, upload them as a tagged version of a feature collection with the Nitro CLI, and publish that version to a stage. The server loads the collection from the configured stage and picks up new versions automatically. When Nitro is wired up alongside `AddMcp()`, it registers an `IMcpStorage` for you, so you do not call `AddMcpStorage()` yourself.
 
-### Install the Nitro packages
+## Install the Nitro packages
 
 ```bash
 dotnet add package ChilliCream.Nitro
@@ -112,7 +113,7 @@ dotnet add package ChilliCream.Nitro.HotChocolate
 
 `ChilliCream.Nitro` is the core package and includes a source generator that emits an `AddDefaults()` extension method based on which integration packages are referenced in the project. With `ChilliCream.Nitro.HotChocolate` referenced, `AddDefaults()` calls `AddHotChocolate()` for you.
 
-### Wire Nitro into the server
+## Wire Nitro into the server
 
 Call `AddNitro().AddDefaults()` (or the explicit `AddNitro().AddHotChocolate()`) before configuring the GraphQL server. `AddNitro()` configures the shared connection options (`ApiId`, `ApiKey`, `Stage`) on `NitroServiceOptions`. `ModifyNitroOptions()` on the GraphQL builder configures schema-specific options (MCP, OpenAPI, persisted operations, metrics, and so on):
 
@@ -148,7 +149,7 @@ If you prefer environment variables over inline configuration, set `NITRO_API_ID
 
 > Order matters: `AddNitro().AddDefaults()` (or `AddHotChocolate()`) must run before the GraphQL builder calls so that the Hot Chocolate pipeline picks up the Nitro contributions during registration.
 
-### What you get
+## What you get
 
 With Nitro and MCP both enabled:
 
@@ -160,32 +161,32 @@ With Nitro and MCP both enabled:
 
 For authoring tools and prompts, publishing feature collection versions, and managing stages, see the [Nitro MCP](../../../nitro/adapters/mcp.md) section.
 
-## Troubleshooting
+# Troubleshooting
 
-### `InvalidOperationException: Call AddMcp() when configuring the GraphQL server.`
+## `InvalidOperationException: Call AddMcp() when configuring the GraphQL server.`
 
 `MapGraphQLMcp()` was called but `AddMcp()` was not registered on the GraphQL server builder. Add `.AddMcp()` to the chain that starts with `AddGraphQL()`.
 
-### MCP endpoint returns 404 Not Found
+## MCP endpoint returns 404 Not Found
 
 The route pattern does not match what your client uses. The default is `/graphql/mcp`. If you passed a custom pattern to `MapGraphQLMcp()`, point your client at it.
 
-### `InvalidOperationException: No IMcpStorage is registered for schema '<name>'.`
+## `InvalidOperationException: No IMcpStorage is registered for schema '<name>'.`
 
 Two possible causes:
 
 - **No storage source for that schema.** `AddMcp()` was registered, but no `IMcpStorage` is wired up. Either reference `ChilliCream.Nitro.HotChocolate` and call `AddNitro().AddDefaults()` (or `AddNitro().AddHotChocolate()`), or register a custom storage with `AddMcpStorage(...)`.
 - **Endpoint mapped to the wrong schema.** `MapGraphQLMcp(pattern, schemaName)` was called with a `schemaName` that does not match any schema registered through `AddGraphQL(name)` plus `AddMcp()`. With multiple named schemas, pass the matching name. With a single unnamed schema, omit `schemaName` and the adapter resolves it automatically.
 
-### Tools and prompts list is empty
+## Tools and prompts list is empty
 
 Storage is registered but returned no definitions. With Nitro, ensure a published MCP feature collection version exists for the configured stage and that the API key has read access to it. With a custom `IMcpStorage`, verify that the implementation completes its initial fetch before the warmup task times out and that it returns the expected definitions.
 
-### Nitro logs `MCP integration is disabled because Nitro is not properly configured.`
+## Nitro logs `MCP integration is disabled because Nitro is not properly configured.`
 
 `NitroServiceOptions` is missing one or more of `ApiId`, `ApiKey`, or `Stage`. Set them through the `AddNitro()` configuration delegate or via the `NITRO_API_ID`, `NITRO_API_KEY`, and `NITRO_STAGE` environment variables.
 
-## Next Steps
+# Next Steps
 
 - Author tools and prompts and publish them with Nitro in the [Nitro MCP](../../../nitro/adapters/mcp.md) section.
-- Customize how GraphQL errors surface in MCP tool results with [Error handling](../../guides/error-handling.md).
+- Customize how GraphQL errors surface in MCP tool results with [Errors](../../resolvers/errors.md).

@@ -1,16 +1,17 @@
 ---
 title: "Schema Exposure and Evolution"
+description: "Control client visibility and schema evolution in Fusion with @inaccessible, @internal, @deprecated, @requiresOptIn, and @override field migration."
 ---
 
 Not everything in your source schema should be visible to clients, and not everything should stay the same forever. As your distributed graph grows, you need control over two things: what clients can see today, and how the schema changes over time.
 
 This page covers five directives that handle exposure and evolution. `@inaccessible` and `@internal` control visibility in the composite schema. `@deprecated` and `@requiresOptIn` manage the lifecycle of fields and values. `@override` migrates field ownership between subgraphs. If you have completed the [Getting Started](./getting-started.md) tutorial and worked through [Entities and Lookups](./entities-and-lookups.md), you already used `@internal` on lookup fields. Here, you will see the full picture of visibility control and schema evolution.
 
-## Controlling Client Visibility
+# Controlling Client Visibility
 
 Your source schemas contain fields and types that serve different audiences. Some are for clients, some carry internal data shared between subgraphs, and some are infrastructure that only the gateway uses. Fusion provides two directives for hiding schema elements from the composite schema. They differ in how they interact with composition merging.
 
-### Hidden Fields
+## Hidden Fields
 
 Mark a field or type `@inaccessible` to hide it from the public client-facing composite schema while keeping it available for internal. The element still participates in composition merging and can be referenced by `@require` dependencies in other subgraphs.
 
@@ -65,7 +66,7 @@ The `CANCELLED` value does not appear in the composite schema. Subgraphs can sti
 
 **Constraint:** You cannot mark a required input field as `@inaccessible`. If a client must provide a value, they need to see the field. Composition fails if you try.
 
-### Internal Lookups
+## Internal Lookups
 
 The `@internal` directive is designed for lookups. An internal lookup is a query field that the gateway uses for entity resolution but that clients cannot call. Internal lookups do not participate in composition merging, which means multiple subgraphs can define lookups with the same field name and different argument shapes without causing a conflict. This gives each subgraph the flexibility to resolve an entity in whatever way makes sense for its data, without coordinating field signatures across teams.
 
@@ -128,7 +129,7 @@ public partial class InternalLookups
 
 For a deeper look at internal vs. public lookups, composite keys, and the node pattern, see [Entities and Lookups](./entities-and-lookups.md).
 
-### Choosing Between Hidden and Internal
+## Choosing Between Hidden and Internal
 
 These directives serve different purposes. `@inaccessible` hides data from clients while keeping it available across subgraphs. `@internal` keeps lookups local to one subgraph so they can vary freely without merge conflicts.
 
@@ -142,7 +143,7 @@ These directives serve different purposes. `@inaccessible` hides data from clien
 
 Use `@inaccessible` when the field carries data that other subgraphs need but clients should not see. Use `@internal` on lookups that exist only for gateway entity resolution.
 
-## Deprecating Fields and Values
+# Deprecating Fields and Values
 
 The `@deprecated` directive signals that a field, argument, or enum value is being phased out. Clients see the deprecation reason in introspection, and GraphQL tooling (IDEs, linters, code generators) can warn consumers to migrate away. The field continues to work. Deprecation is a soft signal, not a hard removal.
 
@@ -205,13 +206,13 @@ enum SortOrder {
 
 **Constraint:** You cannot deprecate a non-null argument or input field without a default value. If clients must provide a value, they cannot stop using the field.
 
-### Deprecation Across Subgraphs
+## Deprecation Across Subgraphs
 
 If a shareable field is deprecated in at least one subgraph, it is deprecated in the composite schema. You do not need to deprecate it in every subgraph that defines it. With shared ownership comes the power for any owner to deprecate the field for all clients.
 
 If you only want to remove a shared field from one subgraph, you do not need to deprecate it. Remove the field from that subgraph and the gateway will resolve it from the remaining subgraphs that still provide it.
 
-## Experimental and Preview Features
+# Experimental and Preview Features
 
 The `@requiresOptIn` directive is the counterpart to `@deprecated`. Where `@deprecated` signals that a field is going away, `@requiresOptIn` signals that a field is not yet stable. Fields marked with `@requiresOptIn` are hidden from introspection by default. Clients must explicitly opt in to discover and use them.
 
@@ -256,7 +257,7 @@ The directive is repeatable. A single field can be part of multiple features.
 public decimal? DynamicPrice { get; set; }
 ```
 
-### Enabling Opt-In Support
+## Enabling Opt-In Support
 
 Opt-in features are disabled by default. Enable them in your schema configuration.
 
@@ -271,7 +272,7 @@ builder
     .ModifyOptions(o => o.EnableOptInFeatures = true);
 ```
 
-### Discovering Opt-In Fields
+## Discovering Opt-In Fields
 
 Clients pass the `includeOptIn` argument in introspection queries to discover opt-in fields.
 
@@ -298,7 +299,7 @@ To discover which opt-in features exist in the schema:
 }
 ```
 
-### Feature Stability Levels
+## Feature Stability Levels
 
 You can declare the stability level of each opt-in feature at the schema level. This lets consumers know whether a feature is experimental, preview, or any other stability level you define.
 
@@ -327,15 +328,15 @@ Consumers can query feature stability through introspection:
 }
 ```
 
-### Constraints
+## Constraints
 
 Like `@deprecated`, you cannot apply `@requiresOptIn` to non-null arguments or input fields without a default value. Hiding a required field would break queries that need to provide it.
 
-### Opt-In Across Subgraphs
+## Opt-In Across Subgraphs
 
 If a shareable field is marked `@requiresOptIn` in at least one subgraph, it requires opt-in in the composite schema. To make the field generally available again, every subgraph that defines it must remove the `@requiresOptIn` directive. This is the inverse of `@deprecated`, where a single subgraph can deprecate a field for all clients. With `@requiresOptIn`, a single subgraph can gate a shared field behind opt-in, and it stays gated until all owners agree to remove the restriction.
 
-## Migrating Field Ownership Between Subgraphs
+# Migrating Field Ownership Between Subgraphs
 
 As your system evolves, you may need to move a field from one subgraph to another. A team might split a subgraph, or a field might belong more naturally in a different domain. The `@override` directive migrates field ownership without breaking existing queries.
 
@@ -385,7 +386,7 @@ type Product {
 
 The `from` argument is the subgraph name (from `schema-settings.json`) that originally owned the field.
 
-### Migration Workflow
+## Migration Workflow
 
 1. Add the field to the new subgraph with `[Override(from: "old-subgraph")]`.
 2. Export schemas and compose. Composition validates that the override is valid.
@@ -394,7 +395,7 @@ The `from` argument is the subgraph name (from `schema-settings.json`) that orig
 
 The old resolver stays in place during the transition. Both subgraphs can define the field simultaneously because `[Override]` tells composition which one wins. This avoids duplicate-field errors without requiring `[Shareable]`.
 
-## Next Steps
+# Next Steps
 
 - **Need entity resolution patterns?** See [Entities and Lookups](./entities-and-lookups.md) for public vs. internal lookups, composite keys, and the node pattern.
 - **Need cross-subgraph field dependencies?** See [Data Requirements](./data-requirements-and-mapping.md) for `@require`, `@is`, and FieldSelectionMap patterns.

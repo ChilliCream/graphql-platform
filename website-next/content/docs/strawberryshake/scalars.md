@@ -1,5 +1,6 @@
 ---
 title: "Scalars"
+description: "GraphQL scalars Strawberry Shake supports out of the box, plus custom scalars via `@runtimeType` and `@serializationType` and your own `ScalarSerializer`."
 ---
 
 Strawberry Shake supports the following scalars out of the box:

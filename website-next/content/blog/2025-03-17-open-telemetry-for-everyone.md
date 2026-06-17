@@ -1,5 +1,4 @@
 ---
-path: "/blog/2025/03/17/telemetry"
 date: "2025-03-17"
 title: "Open Telemetry for All Your Services"
 tags: ["nitro", "open-telemetry", "dotnet", "aspnetcore"]

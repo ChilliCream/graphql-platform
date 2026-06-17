@@ -1,5 +1,6 @@
 ---
 title: Command Line
+description: "Manage GraphQL schemas from the CLI with the HotChocolate.AspNetCore.CommandLine package: run schema export for CI/CD pipelines and schema registry workflows."
 ---
 
 The `HotChocolate.AspNetCore.CommandLine` package extends the `IHostBuilder` interface with a command-line interface for managing GraphQL schemas. This extension lets you export schemas directly from the command line, which is useful for CI/CD pipelines and schema registry workflows.

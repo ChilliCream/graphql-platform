@@ -1,5 +1,6 @@
 ---
 title: "Unions"
+description: "Define GraphQL union types in Hot Chocolate with the [UnionType] attribute or marker interfaces, returning one of several object types from a field."
 ---
 
 A GraphQL union represents a set of object types that share no required common fields. Unlike [interfaces](./interfaces.md), union members do not need to declare the same fields. Clients use inline fragments to select fields from each possible type.

@@ -39,7 +39,5 @@ function camelize(prop) {
   if (prop.startsWith("--")) {
     return prop;
   }
-  return prop
-    .toLowerCase()
-    .replace(/-([a-z])/g, (_, ch) => ch.toUpperCase());
+  return prop.toLowerCase().replace(/-([a-z])/g, (_, ch) => ch.toUpperCase());
 }

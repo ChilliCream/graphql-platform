@@ -20,9 +20,7 @@ export function estimateReadingTime(source: string): {
     .replace(/\[([^\]]+)]\([^)]*\)/g, "$1")
     .replace(/[#>*_~|-]+/g, " ");
 
-  const words = text
-    .split(/\s+/)
-    .filter((w) => /[\p{L}\p{N}]/u.test(w)).length;
+  const words = text.split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length;
 
   const minutes = Math.max(1, Math.round(words / WORDS_PER_MINUTE));
   return {

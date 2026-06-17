@@ -1,5 +1,6 @@
 ---
 title: Workspaces
+description: "Workspaces group APIs, documents, and environments within a Nitro organization; switch them in the status bar or create one with nitro workspace create."
 ---
 
 Workspaces are logical groups within an organization. A workspace could represent a team, a department, or a group of APIs that are related to each other.

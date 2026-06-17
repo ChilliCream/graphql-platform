@@ -1,6 +1,6 @@
 ---
 title: "Overview"
-description: "Use the Mocha Mediator to dispatch commands, queries, and notifications within a single process. Source-generated at compile time for zero-reflection dispatch with pre-compiled middleware pipelines."
+description: "Use the Mocha Mediator to dispatch commands, queries, and notifications within a single process using zero-reflection, source-generated dispatch."
 ---
 
 ```csharp

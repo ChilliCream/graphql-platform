@@ -1,5 +1,6 @@
 ---
 title: Introspection
+description: "Control GraphQL introspection in Hot Chocolate: disable __schema and __type fields in production and selectively allow requests with AllowIntrospection."
 ---
 
 Introspection is what enables GraphQL's rich tooling ecosystem and powerful IDEs like [Nitro](/products/nitro) or GraphiQL.

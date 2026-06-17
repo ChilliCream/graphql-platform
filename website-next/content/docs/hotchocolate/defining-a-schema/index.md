@@ -1,5 +1,6 @@
 ---
 title: "Type System"
+description: "Overview of the Hot Chocolate type system: how C# classes map to GraphQL SDL for objects, inputs, enums, interfaces, unions, and scalars in your schema."
 ---
 
 A GraphQL schema defines the contract that clients interact with. It specifies the available operations, selectable fields, accepted arguments, and the structure of responses.

@@ -1,5 +1,6 @@
 ---
 title: "Non-Null"
+description: "How Hot Chocolate maps C# nullable reference types to the GraphQL non-null modifier, with explicit overrides like [GraphQLNonNullType] and non-null list items."
 ---
 
 By default, every GraphQL field can return either its declared type or `null`. The non-null modifier (`!`) tells clients that a field will never be `null`. If a resolver returns `null` for a non-null field, the execution engine raises an error rather than sending unexpected null values to clients.

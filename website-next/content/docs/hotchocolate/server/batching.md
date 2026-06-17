@@ -1,5 +1,6 @@
 ---
 title: Batching
+description: "Execute multiple GraphQL operations in a single HTTP request with Hot Chocolate batching: variable batching, request batching, and streamed batch results."
 ---
 
 Batching lets you send and execute multiple GraphQL operations in a single HTTP request. Hot Chocolate supports two forms of batching: **variable batching** and **request batching**. Both deliver results as a stream, so the client receives each result as soon as it is ready without waiting for the entire batch to complete.

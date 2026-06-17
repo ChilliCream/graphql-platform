@@ -1,5 +1,6 @@
 ---
 title: Instrumentation
+description: "Tap into Hot Chocolate execution events with AddDiagnosticEventListener or enable the built-in OpenTelemetry integration to trace GraphQL requests end to end."
 ---
 
 Hot Chocolate lets you create diagnostic event listeners that tap into internal instrumentation events. You can use any logging or tracing infrastructure you prefer. Hot Chocolate also ships with a built-in OpenTelemetry integration aligned with the [proposed GraphQL semantic conventions](https://github.com/graphql/otel-wg/blob/main/spec).

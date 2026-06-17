@@ -1,5 +1,6 @@
 ---
 title: "Automatic persisted operations"
+description: "Set up automatic persisted operations in Hot Chocolate with UseAutomaticPersistedOperationPipeline so clients can send operation hashes instead of full documents."
 ---
 
 This guide walks you through how automatic persisted operations work and how to set them up with a Hot Chocolate GraphQL server.

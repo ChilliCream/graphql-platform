@@ -1,6 +1,6 @@
 ---
 title: "Pipeline & Middleware"
-description: "Add cross-cutting concerns to the Mocha Mediator dispatch pipeline. Write middleware for logging, validation, transactions, and exception handling. Configure notification publish modes and OpenTelemetry instrumentation."
+description: "Add cross-cutting concerns like logging, validation, and transactions to the Mocha Mediator dispatch pipeline with custom middleware."
 ---
 
 ```csharp

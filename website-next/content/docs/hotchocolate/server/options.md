@@ -1,6 +1,6 @@
 ---
 title: Options Reference
-description: Comprehensive reference for all configuration options in Hot Chocolate, including schema, request, parser, cost, server, socket, subscription, paging, global object identification, and cache control options.
+description: "Comprehensive reference for all Hot Chocolate configuration options, from schema, request, and parser settings to paging and cache control."
 ---
 
 Hot Chocolate provides several option groups that control different aspects of the GraphQL server. You configure them through methods on the `IRequestExecutorBuilder`.

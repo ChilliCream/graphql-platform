@@ -1,5 +1,6 @@
 ---
 title: Migrate Hot Chocolate from 15 to 16
+description: "Walks through upgrading your Hot Chocolate GraphQL server from version 15 to 16, covering eager initialization, service separation, and other breaking changes."
 ---
 
 This guide will walk you through the manual migration steps to update your Hot Chocolate GraphQL server to version 16.
@@ -438,6 +439,32 @@ Deprecating a field now requires the implemented field in the interface to also 
 ## Global ID formatter conditionally added to filter fields
 
 Previously, the global ID input value formatter was added to ID filter fields regardless of whether or not Global Object Identification was enabled. This is now conditional.
+
+## Filter operation limit
+
+Filtering now limits each filter argument to **64** operations by default. This protects the server from very large generated filters, including large `and` or `or` lists passed through variables.
+
+If a client sends more than 64 filter operations in a single filter argument, Hot Chocolate rejects the request before the filter expression is built and returns a GraphQL error with the code `HC0117`.
+
+If your application accepts larger filters, raise the limit on the filtering convention:
+
+```csharp
+builder
+    .AddGraphQL()
+    .AddFiltering(x => x
+        .AddDefaults()
+        .MaxAllowedFilterOperations(256));
+```
+
+To disable this limit, set `MaxAllowedFilterOperations` to `null`:
+
+```csharp
+builder
+    .AddGraphQL()
+    .AddFiltering(x => x
+        .AddDefaults()
+        .MaxAllowedFilterOperations(null));
+```
 
 ## fieldCoordinate renamed to coordinate in error extensions
 

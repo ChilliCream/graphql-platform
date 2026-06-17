@@ -1,5 +1,6 @@
 ---
 title: Operation Pane
+description: "Write and run GraphQL queries, mutations, and subscriptions in Nitro's Operation Pane, with a request editor, run buttons, formatting, and variables panel."
 ---
 
 The Operation Pane provides a comprehensive interface for writing GraphQL queries, mutations, and subscriptions. It offers several features to enhance your development experience.
@@ -32,4 +33,4 @@ The Headers Panel enables you to define headers for your query. You can specify 
 
 # **7. File Upload Panel**
 
-The File Upload Panel provides functionality for uploading files to the GraphQL server. You can specify the file name and contents within this panel. This feature works in conjunction with the `Upload` scalar type, a special type in GraphQL that facilitates file uploads. It follows the multipart form request specification to send files to the GraphQL server. For more details, refer to the [documentation](https://chillicream.com/docs/hotchocolate/v13/server/files) on file uploads in GraphQL.
+The File Upload Panel provides functionality for uploading files to the GraphQL server. You can specify the file name and contents within this panel. This feature works in conjunction with the `Upload` scalar type, a special type in GraphQL that facilitates file uploads. It follows the multipart form request specification to send files to the GraphQL server. For more details, refer to the [documentation](../../hotchocolate/server/files.md) on file uploads in GraphQL.

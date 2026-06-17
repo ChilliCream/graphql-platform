@@ -1,6 +1,14 @@
+import type { Metadata } from "next";
+
 import { Offering } from "@/src/components/Offering";
 import { PageHero } from "@/src/components/PageHero";
 import { Section } from "@/src/components/Section";
+
+export const metadata: Metadata = {
+  title: "Training",
+  description:
+    "Train your team with ChilliCream: corporate GraphQL training and workshops covering Hot Chocolate, ASP.NET Core, React, and Relay, taught by experts.",
+};
 
 interface CorporateService {
   kind: string;

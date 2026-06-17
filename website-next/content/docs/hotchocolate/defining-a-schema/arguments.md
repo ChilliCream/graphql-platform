@@ -1,5 +1,6 @@
 ---
 title: "Arguments"
+description: "Define field arguments in Hot Chocolate: resolver method parameters become GraphQL arguments, with default values, the [ID] attribute, and input object arguments."
 ---
 
 GraphQL arguments let clients pass values to individual fields. In Hot Chocolate, each parameter on a resolver method becomes a field argument in the schema, unless it is a recognized service type (like `CancellationToken` or a registered service).

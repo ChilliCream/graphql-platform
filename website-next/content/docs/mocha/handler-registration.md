@@ -1,6 +1,6 @@
 ---
 title: "Handler Registration"
-description: "How Mocha discovers message bus handlers at compile time using a Roslyn source generator, and how to customize module naming, mix auto and manual registration, and resolve analyzer diagnostics."
+description: "How Mocha discovers message bus handlers at compile time with a Roslyn source generator, and how to customize or mix in manual registration."
 ---
 
 ```csharp

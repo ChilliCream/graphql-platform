@@ -1,10 +1,39 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans:
-    var(--font-inter), ui-sans-serif, system-ui, -apple-system,
-    BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
-    "Noto Sans", sans-serif;
+  /* ---- Font families ----
+     Heading voice is Josefin Sans, self-hosted via `next/font/google`
+     (`--font-josefin-sans`). Body voice is the native system stack.
+     `--font-sans` (Tailwind's `font-sans`) aliases the body voice so existing
+     utilities pick it up. */
+  --font-heading:
+    var(--font-josefin-sans), "Futura", "Trebuchet MS", sans-serif;
+  --font-body:
+    system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-sans: var(--font-body);
+
+  /* ---- Type scale ----
+     Each size ships its paired line-height, so `text-h1` etc. set both. */
+  --text-hero: 6.5rem;
+  --text-hero--line-height: 1;
+  --text-h1: 4.875rem;
+  --text-h1--line-height: 1.05;
+  --text-h2: 3.625rem;
+  --text-h2--line-height: 1.1;
+  --text-h3: 2.75rem;
+  --text-h3--line-height: 1.15;
+  --text-h4: 2rem;
+  --text-h4--line-height: 1.25;
+  --text-h5: 1.5rem;
+  --text-h5--line-height: 1.3;
+  --text-h6: 1.125rem;
+  --text-h6--line-height: 1.4;
+  --text-lead: 2rem;
+  --text-lead--line-height: 1.25;
+  --text-body: 1rem;
+  --text-body--line-height: 1.6;
+  --text-caption: 0.875rem;
+  --text-caption--line-height: 1.5;
 
   /* Disable default Tailwind colors */
   --color-*: initial;
@@ -162,6 +191,10 @@
   body {
     background-color: var(--color-cc-bg);
     color: var(--color-cc-ink);
+    font-family: var(--font-body);
+    font-size: var(--text-body);
+    line-height: 1.6;
+    font-weight: 400;
     min-height: 100vh;
     /* Dark starfield surface. The 9 star layers are viewport-sized and the
        nebula + base gradient are auto; everything is anchored to the viewport
@@ -181,6 +214,31 @@
       auto;
     background-attachment: fixed;
   }
+}
+
+/* ---- Typography helper classes ----
+   Heading-voice display text that sits outside the h1-h6 outline. Sizes/line
+   heights come from the `--text-*` scale; weight and tracking are in the
+   heading voice. */
+.hero {
+  font-family: var(--font-heading);
+  font-size: var(--text-hero);
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.lead {
+  font-family: var(--font-heading);
+  font-size: var(--text-lead);
+  line-height: 1.25;
+  font-weight: 600;
+}
+
+.caption {
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  line-height: 1.5;
 }
 
 /* Dark starfield surface applied to in-flow content wrappers (e.g. the docs
@@ -246,36 +304,78 @@ html[data-smooth-scroll="true"]:has(:target) {
    variables are declared by DocSearch on `:root` (its stylesheet loads
    after this one, so a `:root` override here loses the cascade). Scoping
    to `.DocSearch-Container` beats that with higher specificity and lets
-   descendants inherit via `var()`. Full token list:
+   descendants inherit via `var()`. @docsearch/css v4 added tokens that fall
+   back to the light `:root` defaults when unset, so every token the modal
+   reads is overridden here. Full token list:
    https://docsearch.algolia.com/docs/styling */
 .DocSearch-Container {
   --docsearch-primary-color: var(--color-cc-accent);
   --docsearch-highlight-color: var(--color-cc-accent);
+  --docsearch-focus-color: var(--color-cc-accent);
+  --docsearch-soft-primary-color: rgb(94 234 212 / 0.12);
   --docsearch-text-color: var(--color-cc-ink);
+  --docsearch-secondary-text-color: var(--color-cc-ink-dim);
   --docsearch-muted-color: var(--color-cc-ink-dim);
+  --docsearch-icon-color: var(--color-cc-ink-dim);
+  --docsearch-subtle-color: var(--color-cc-ink-faint);
   --docsearch-container-background: rgb(5 8 15 / 0.7);
-  --docsearch-modal-background: #0c1322;
+  --docsearch-modal-background: var(--color-cc-surface);
   --docsearch-modal-shadow:
     inset 1px 1px 0 0 rgb(245 241 234 / 0.06), 0 12px 32px 0 rgb(0 0 0 / 0.5);
   --docsearch-searchbox-background: rgb(245 241 234 / 0.05);
   --docsearch-searchbox-focus-background: rgb(245 241 234 / 0.08);
   --docsearch-searchbox-shadow: inset 0 0 0 2px var(--color-cc-accent);
   --docsearch-hit-color: rgb(245 241 234 / 0.8);
-  --docsearch-hit-active-color: #ffffff;
   --docsearch-hit-background: rgb(245 241 234 / 0.04);
-  --docsearch-hit-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.3);
-  --docsearch-key-gradient: linear-gradient(
-    -225deg,
-    rgb(245 241 234 / 0.08),
-    rgb(245 241 234 / 0.04)
-  );
-  --docsearch-key-shadow:
-    inset 0 -2px 0 0 rgb(0 0 0 / 0.3),
-    inset 0 0 1px 1px rgb(245 241 234 / 0.06), 0 1px 2px 1px rgb(0 0 0 / 0.3);
-  --docsearch-footer-background: #0b0f1a;
+  --docsearch-hit-highlight-color: rgb(94 234 212 / 0.12);
+  --docsearch-background-color: rgb(245 241 234 / 0.06);
+  --docsearch-key-background: rgb(245 241 234 / 0.06);
+  --docsearch-key-color: var(--color-cc-ink-dim);
+  --docsearch-key-pressed-shadow: inset 0 2px 4px rgb(0 0 0 / 0.4);
+  --docsearch-footer-background: var(--color-cc-bg);
   --docsearch-footer-shadow:
     0 -1px 0 0 rgb(245 241 234 / 0.1), 0 -3px 6px 0 rgb(0 0 0 / 0.2);
   --docsearch-logo-color: var(--color-cc-ink-dim);
+}
+
+.DocSearch-Container .DocSearch-Modal {
+  border: 1px solid rgb(245 241 234 / 0.12);
+}
+
+.DocSearch-Container .DocSearch-Hit-path {
+  color: var(--color-cc-ink-dim);
+}
+
+.DocSearch-Container .DocSearch-Commands,
+.DocSearch-Container .DocSearch-Commands li {
+  color: var(--color-cc-ink);
+}
+
+.DocSearch-Container .DocSearch-Hit[aria-selected="true"] .DocSearch-Hit-icon,
+.DocSearch-Container
+  .DocSearch-Hit[aria-selected="true"]
+  .DocSearch-Hit-action {
+  color: var(--color-cc-ink-dim);
+}
+
+/* Keep search-bar controls at dim ink; override the accent DocSearch applies
+   on :focus-within (magnifier) and :hover (Close) too. */
+.DocSearch-Container .DocSearch-SearchBar-Magnifier,
+.DocSearch-Container .DocSearch-MagnifierLabel,
+.DocSearch-Container .DocSearch-MagnifierLabel svg,
+.DocSearch-Container .DocSearch-Form:focus-within .DocSearch-MagnifierLabel svg,
+.DocSearch-Container .DocSearch-Clear,
+.DocSearch-Container .DocSearch-Close {
+  color: var(--color-cc-ink-dim);
+}
+
+.DocSearch-Container .DocSearch-Action.DocSearch-Close:hover {
+  background: rgb(245 241 234 / 0.08);
+  color: var(--color-cc-ink);
+}
+
+.DocSearch-Container .DocSearch-Clear:hover {
+  color: var(--color-cc-ink);
 }
 
 :where(h1, h2, h3, h4, h5, h6)[id] {
@@ -360,4 +460,69 @@ figure.code-step-dim .shiki-wrapper .line > span:has(.code-step-active) {
 svg[role="graphics-document"][id^="mermaid-"] {
   content-visibility: auto;
   contain-intrinsic-size: auto 32rem;
+}
+
+@media print {
+  :root {
+    --color-cc-ink: #111827;
+    --color-cc-prose: #1f2937;
+    --color-cc-ink-dim: #4b5563;
+    --color-cc-ink-faint: rgba(17, 24, 39, 0.16);
+    --color-cc-hover: transparent;
+    --color-cc-bg: #fff;
+    --color-cc-card-bg: #fff;
+    --color-cc-card-border: rgba(17, 24, 39, 0.25);
+    --color-cc-card-border-hover: rgba(17, 24, 39, 0.25);
+    --color-cc-surface: #fff;
+    --color-cc-accent: #0f766e;
+    --color-cc-accent-hover: #0f766e;
+    --color-cc-nav-text: #1f2937;
+    --color-cc-nav-label: #4b5563;
+    --cc-dark-surface: none;
+  }
+
+  html,
+  body,
+  .cc-content-dark {
+    background: #fff !important;
+  }
+
+  header,
+  footer {
+    display: none !important;
+  }
+
+  /* Overflowing code blocks would otherwise print their scrollbar. */
+  * {
+    scrollbar-width: none;
+  }
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Keep the dark code-block chrome on paper; without this the browser
+     strips the background and the light syntax tokens become unreadable. */
+  .bg-cc-code-bg,
+  .bg-cc-code-bg * {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* Keep code blocks and tables on one page when they fit; anything
+     taller than a page still splits rather than overflow. */
+  figure.bg-cc-code-bg,
+  table {
+    break-inside: avoid;
+  }
+
+  /* Docs: hide the sidebar/TOC rails and their spacer columns so the
+     article spans the full page. */
+  [data-docs-layout],
+  [data-docs-layout] .grid {
+    grid-template-columns: 1fr !important;
+  }
+  [data-docs-layout] aside,
+  [data-docs-layout] .fixed {
+    display: none !important;
+  }
 }

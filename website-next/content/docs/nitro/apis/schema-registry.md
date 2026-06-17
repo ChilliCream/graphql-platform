@@ -1,5 +1,6 @@
 ---
 title: "Schema & Client Registry"
+description: "Store, version, and distribute GraphQL schemas with the Nitro schema registry, validating changes against clients to catch breaking changes in CI/CD."
 ---
 
 ![Image](../../../../public/images/nitro-docs/apis/schema-registry-0.webp)
@@ -64,7 +65,7 @@ One of the simplest ways to extract the schema is by using the `schema export` c
 dotnet run -- schema export --output schema.graphql
 ```
 
-For more details about this command and how to setup the command line extension, please refer to the [Command Line Extension documentation](https://chillicream.com/docs/hotchocolate/v13/server/command-line).
+For more details about this command and how to setup the command line extension, please refer to the [Command Line Extension documentation](../../hotchocolate/server/command-line.md).
 
 ### Utilizing Snapshot Testing
 

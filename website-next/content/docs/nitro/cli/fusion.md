@@ -1,5 +1,6 @@
 ---
 title: fusion Command
+description: "Reference for the `nitro fusion` commands: upload source schemas, publish composed Fusion gateway configurations to a stage, and validate them in CI/CD."
 ---
 
 The `nitro fusion` commands manage [Fusion](../../fusion/index.md) configurations. A Fusion configuration is the composed gateway artifact built from one or more source schemas. Once published to a stage, the gateway loads it and starts serving the federated graph.
@@ -260,6 +261,8 @@ nitro fusion download \
 
 Compose multiple source schemas into a single composite schema and write the result to a Fusion archive.
 
+When `--archive` points at an existing archive, `compose` works incrementally: source schemas already in the archive are carried forward, a `--source-schema-file` whose name matches an existing source schema overrides it, and `--remove-source-schema` drops one. So removing a source schema is `--remove-source-schema <name>`, and replacing or renaming one is `--remove-source-schema <oldName>` together with `--source-schema-file <newFile>`.
+
 ```shell
 nitro fusion compose \
   --source-schema-file "<source-schema-file>" \
@@ -275,6 +278,7 @@ nitro fusion compose \
 | `-e, --env, --environment <environment>`        |                            | Name of the environment used for value substitution in `schema-settings.json` files.                                                                                      |
 | `--enable-global-object-identification`         |                            | Add the `Query.node` field for global object identification.                                                                                                              |
 | `--include-satisfiability-paths`                |                            | Include paths in satisfiability error messages to make composition errors easier to diagnose.                                                                             |
+| `--remove-source-schema <remove-source-schema>` |                            | One or more source schemas to remove from the archive before composing. Cannot be combined with `--watch`.                                                                |
 | `--watch`                                       |                            | Watch source files for changes and recompose automatically.                                                                                                               |
 | `-w, --working-directory <working-directory>`   |                            | Working directory for the command. Used for relative paths and source schema auto-discovery.                                                                              |
 | `--exclude-by-tag <exclude-by-tag>`             |                            | One or more tags to exclude from the composition.                                                                                                                         |
@@ -299,6 +303,23 @@ Auto-discover source schemas from a working directory:
 nitro fusion compose \
   --working-directory ./subgraphs \
   --archive ./gateway.far
+```
+
+Remove a source schema and recompose:
+
+```shell
+nitro fusion compose \
+  --archive ./gateway.far \
+  --remove-source-schema reviews
+```
+
+Replace or rename a source schema (drop the old, add the new):
+
+```shell
+nitro fusion compose \
+  --archive ./gateway.far \
+  --remove-source-schema reviews \
+  --source-schema-file ./reviews-v2/schema.graphqls
 ```
 
 # `nitro fusion settings set`

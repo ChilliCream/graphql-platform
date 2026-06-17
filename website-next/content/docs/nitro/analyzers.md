@@ -1,5 +1,6 @@
 ---
 title: "Analyzers"
+description: "The `ChilliCream.Nitro` Roslyn source generator emits an `AddDefaults()` method that wires up Nitro integration and warns when required packages are missing."
 ---
 
 The `ChilliCream.Nitro` meta-package ships with a Roslyn source generator that simplifies Nitro integration setup. It provides compile-time warnings when required packages are missing and generates an `AddDefaults()` extension method that wires everything up in a single call.

@@ -1,5 +1,6 @@
 ---
 title: Authentication
+description: "Configure Basic Authentication, Bearer Token, or OAuth 2.0 flows in Nitro to fetch tokens and send the Authorization header with your GraphQL requests."
 ---
 
 Nitro offers support for various authentication flows. The following guide details how to use these authentication flows to retrieve a token from an identity server and send the Authorization header to the server.

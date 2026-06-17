@@ -1,5 +1,6 @@
 ---
 title: Subscription
+description: "Manage your Nitro subscription in the management portal: create a Pro plan, change or cancel plans, and handle monthly or annual billing for your organization."
 ---
 
 You can manage your subscriptions directly from the web portal, accessible from [here](https://identity.chillicream.com/Organization), or through Manage Organizations on the client.

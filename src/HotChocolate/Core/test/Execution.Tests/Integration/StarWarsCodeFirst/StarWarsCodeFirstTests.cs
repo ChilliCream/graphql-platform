@@ -822,8 +822,6 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                 """,
                 TestContext.Current.CancellationToken);
 
-        // Get the enumerator before publishing so the consumer is registered
-        // and won't race with event dispatch.
         await using var enumerator = subscriptionResult.ReadResultsAsync().GetAsyncEnumerator(
             TestContext.Current.CancellationToken);
 
@@ -870,6 +868,9 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                 """,
                 TestContext.Current.CancellationToken);
 
+        await using var enumerator = subscriptionResult.ReadResultsAsync().GetAsyncEnumerator(
+            TestContext.Current.CancellationToken);
+
         await executor.ExecuteAsync(
             """
             mutation {
@@ -881,17 +882,10 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
             """,
             TestContext.Current.CancellationToken);
 
-        OperationResult? eventResult = null;
-
-        using (var cts = new CancellationTokenSource(2000))
-        {
-            await foreach (var queryResult in
-                subscriptionResult.ReadResultsAsync().WithCancellation(cts.Token))
-            {
-                eventResult = queryResult;
-                break;
-            }
-        }
+        Assert.True(await enumerator.MoveNextAsync().AsTask().WaitAsync(
+            TimeSpan.FromSeconds(30),
+            TestContext.Current.CancellationToken));
+        var eventResult = enumerator.Current;
 
         snapshot.Add(eventResult);
 
@@ -922,6 +916,9 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                 """,
                 TestContext.Current.CancellationToken);
 
+        await using var enumerator = subscriptionResult.ReadResultsAsync().GetAsyncEnumerator(
+            TestContext.Current.CancellationToken);
+
         await executor.ExecuteAsync(
             """
             mutation {
@@ -933,17 +930,10 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
             """,
             TestContext.Current.CancellationToken);
 
-        OperationResult? eventResult = null;
-
-        using (var cts = new CancellationTokenSource(2000))
-        {
-            await foreach (var queryResult in
-                subscriptionResult.ReadResultsAsync().WithCancellation(cts.Token))
-            {
-                eventResult = queryResult;
-                break;
-            }
-        }
+        Assert.True(await enumerator.MoveNextAsync().AsTask().WaitAsync(
+            TimeSpan.FromSeconds(30),
+            TestContext.Current.CancellationToken));
+        var eventResult = enumerator.Current;
 
         snapshot.Add(eventResult);
 
@@ -980,6 +970,9 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                     .Build(),
                 TestContext.Current.CancellationToken);
 
+        await using var enumerator = subscriptionResult.ReadResultsAsync().GetAsyncEnumerator(
+            TestContext.Current.CancellationToken);
+
         await executor.ExecuteAsync(
             """
             mutation {
@@ -991,17 +984,10 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
             """,
             TestContext.Current.CancellationToken);
 
-        OperationResult? eventResult = null;
-
-        using (var cts = new CancellationTokenSource(2000))
-        {
-            await foreach (var queryResult in
-                subscriptionResult.ReadResultsAsync().WithCancellation(cts.Token))
-            {
-                eventResult = queryResult;
-                break;
-            }
-        }
+        Assert.True(await enumerator.MoveNextAsync().AsTask().WaitAsync(
+            TimeSpan.FromSeconds(30),
+            TestContext.Current.CancellationToken));
+        var eventResult = enumerator.Current;
 
         snapshot.Add(eventResult);
 

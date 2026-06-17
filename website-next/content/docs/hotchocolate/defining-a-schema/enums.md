@@ -1,5 +1,6 @@
 ---
 title: "Enums"
+description: "Define GraphQL enum types in Hot Chocolate: C# enums map automatically, and `EnumType` descriptors let you rename values and control value binding."
 ---
 
 A GraphQL enum is a special scalar restricted to a fixed set of allowed values. Enums work as both input and output types. In C#, a standard `enum` maps directly to a GraphQL enum type.

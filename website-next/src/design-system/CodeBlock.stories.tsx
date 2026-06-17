@@ -38,7 +38,7 @@ export const WithLineHighlights: Story = {
       rendered: await renderBlock(
         "tsx",
         tsxSample,
-        'filename="Counter.tsx" {4,6-7}'
+        'filename="Counter.tsx" {4,6-7}',
       ),
     }),
   ],
@@ -51,22 +51,20 @@ export const WithCodeSteps: Story = {
       rendered: await renderBlock(
         "tsx",
         tsxSample,
-        'filename="Counter.tsx" [[1, 1, "useState"], [1, 4, "useState"], [2, 4, "count"], [2, 6, "count"], [2, 7, "count"], [3, 4, "setCount"], [3, 6, "setCount"], [4, 3, "Counter"]]'
+        'filename="Counter.tsx" [[1, 1, "useState"], [1, 4, "useState"], [2, 4, "count"], [2, 6, "count"], [2, 7, "count"], [3, 4, "setCount"], [3, 6, "setCount"], [4, 3, "Counter"]]',
       ),
     }),
   ],
   render: (_args, ctx) => (
     <div>
       {ctx.loaded.rendered as ReactElement}
-      <p className="my-4 text-base leading-7 text-cc-ink-dim">
+      <p className="text-cc-ink-dim my-4 text-base leading-7">
         Hover each step to highlight the matching tokens above. Inside the{" "}
         <CodeStep step={4}>Counter</CodeStep> component, call{" "}
-        <CodeStep step={1}>useState</CodeStep> to declare local state, read
-        the current value via <CodeStep step={2}>count</CodeStep>, and update
-        it by calling <CodeStep step={3}>setCount</CodeStep> from the click
-        handler.
+        <CodeStep step={1}>useState</CodeStep> to declare local state, read the
+        current value via <CodeStep step={2}>count</CodeStep>, and update it by
+        calling <CodeStep step={3}>setCount</CodeStep> from the click handler.
       </p>
     </div>
   ),
 };
-

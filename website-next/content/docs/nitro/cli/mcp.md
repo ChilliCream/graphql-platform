@@ -1,5 +1,6 @@
 ---
 title: mcp Command
+description: "Manage MCP feature collections with the `nitro mcp` commands: create a collection, upload versioned prompts and tools, validate, and publish to a stage."
 ---
 
 The `nitro mcp` commands manage MCP feature collections. An MCP feature collection bundles a versioned set of prompt and tool definitions that HotChocolate (Fusion) serves to MCP clients on a given stage.
