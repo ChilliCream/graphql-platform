@@ -368,7 +368,7 @@ public sealed class OperationExecutionNode : ExecutionNode
             _subscriptionScope = diagnosticEvents.ExecuteSubscription(context.RequestContext, _subscriptionId);
 
             _clientScope = context.RequestContext.CreateClientScope();
-            _eventEnumerator = context.GetClient(schemaName, request.OperationType)
+            _eventEnumerator = _clientScope.GetClient(schemaName, request.OperationType)
                 .SubscribeAsync(context, request, cancellationToken)
                 .GetAsyncEnumerator(cancellationToken);
         }
