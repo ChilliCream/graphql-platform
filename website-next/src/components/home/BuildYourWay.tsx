@@ -17,7 +17,7 @@ export function BuildYourWay() {
         className="relative overflow-hidden rounded-3xl px-8 py-12 text-[#0b1018] sm:px-12 sm:py-14 lg:px-16"
         style={{ backgroundImage: CARD_GRADIENT }}
       >
-        <div className="flex flex-col items-center gap-10 lg:flex-row lg:gap-16">
+        <div className="flex flex-col items-center gap-10 md:flex-row md:gap-16">
           <CoffeeTray className="h-44 w-auto flex-none drop-shadow-[0_18px_30px_rgba(0,0,0,0.25)] sm:h-52 lg:h-60" />
           <div className="max-w-xl text-center lg:text-left">
             <h2 className="font-heading text-h4 sm:text-h3 leading-[1.1] font-semibold tracking-[-0.01em]">

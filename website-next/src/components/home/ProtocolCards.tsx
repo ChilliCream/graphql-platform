@@ -120,7 +120,7 @@ export function ProtocolCards() {
           fill="none"
           aria-hidden="true"
           preserveAspectRatio="none"
-          className="pointer-events-none absolute inset-0 hidden h-full w-full lg:block"
+          className="pointer-events-none absolute inset-0 hidden h-full w-full md:block"
         >
           {LINKS.map((link) => (
             <path
@@ -134,19 +134,19 @@ export function ProtocolCards() {
         </svg>
 
         <div className="relative px-4 pt-16 pb-20 text-center sm:pt-24 sm:pb-28">
-          <h2 className="font-heading text-cc-ink text-h4 sm:text-h3 leading-[1.1] font-semibold text-balance">
+          <h2 className="font-heading text-cc-ink text-h3 sm:text-h2 leading-[1.1] font-semibold text-balance">
             Choose your Protocol.
             <br />
             One Source of Truth.
           </h2>
-          <p className="text-cc-prose mx-auto mt-5 max-w-2xl text-base text-pretty sm:text-lg">
+          <p className="text-cc-prose mx-auto mt-6 max-w-4xl text-lg text-pretty sm:text-xl">
             Unify all your APIs into a comprehensive company graph, streamlining
             data accessibility and enhancing integration. Transform the way you
             manage and interact with your data.
           </p>
         </div>
 
-        <div className="relative grid grid-cols-2 gap-x-6 gap-y-12 sm:gap-x-10 lg:grid-cols-4">
+        <div className="relative grid grid-cols-2 gap-x-6 gap-y-12 sm:gap-x-10 md:grid-cols-4">
           {PROTOCOLS.map(({ Icon, title, subtitle, tags }) => (
             <div key={title} className="flex flex-col items-center text-center">
               <div className="border-cc-card-border bg-cc-card-bg flex size-20 items-center justify-center rounded-2xl border">

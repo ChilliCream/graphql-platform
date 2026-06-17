@@ -14,7 +14,7 @@ export function LogoCloud() {
       <p className="text-cc-nav-label font-mono text-xs tracking-[0.2em] uppercase">
         Trusted by Enterprises
       </p>
-      <div className="text-cc-ink/85 mt-10 flex flex-wrap items-center justify-center gap-x-16 gap-y-10 sm:mt-14 sm:gap-x-24 lg:gap-x-32">
+      <div className="text-cc-ink/85 mt-10 flex flex-wrap items-center justify-center gap-x-16 gap-y-10 sm:mt-14 sm:gap-x-24 lg:grid lg:grid-cols-3 lg:place-items-center lg:gap-x-8">
         <GalaxusLogo className="h-9 w-auto sm:h-11" />
         <SwissLifeLogo className="h-18 w-auto sm:h-22" />
         <MicrosoftLogo className="h-9 w-auto sm:h-11" />

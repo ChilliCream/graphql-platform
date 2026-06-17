@@ -7,11 +7,11 @@ import { OutlineButton, SolidButton } from "@/src/design-system/Button";
  */
 export function GrabADrink() {
   return (
-    <section className="mx-auto max-w-4xl px-5 py-24 text-center sm:px-12 sm:py-32">
-      <h2 className="hero text-cc-ink text-h2 sm:text-h1 leading-[1.05] font-bold text-balance">
+    <section className="mx-auto max-w-5xl px-5 py-24 text-center sm:px-12 sm:py-32">
+      <h2 className="font-heading text-cc-ink text-h2 sm:text-h1 leading-[1.05] font-semibold text-balance">
         Want to grab a Drink?
       </h2>
-      <p className="text-cc-prose mx-auto mt-6 max-w-2xl text-lg text-pretty sm:text-xl">
+      <p className="text-cc-prose mx-auto mt-6 max-w-4xl text-lg text-pretty sm:text-xl">
         Unify all your APIs into a comprehensive company graph, streamlining
         data accessibility and enhancing integration. Transform the way you
         manage and interact with your data.

@@ -129,12 +129,12 @@ interface StackRowProps {
 function StackRow({ title, diagram, reverse }: StackRowProps) {
   return (
     <div
-      className={`flex flex-col items-center gap-8 lg:gap-20 ${
-        reverse ? "lg:flex-row-reverse" : "lg:flex-row"
+      className={`flex flex-col items-center gap-8 md:gap-20 ${
+        reverse ? "md:flex-row-reverse" : "md:flex-row"
       }`}
     >
-      <div className="max-w-md flex-1 text-center lg:text-left">
-        <h3 className="font-heading text-cc-ink text-h5 sm:text-h4 font-semibold">
+      <div className="max-w-md flex-1 text-center md:text-left">
+        <h3 className="font-heading text-cc-ink text-h4 sm:text-h3 font-semibold">
           {title}
         </h3>
         <p className="text-cc-prose mt-4 text-base/relaxed">
