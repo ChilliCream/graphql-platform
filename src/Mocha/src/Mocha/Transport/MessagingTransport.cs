@@ -42,13 +42,13 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     /// The receive endpoint used to accept reply messages for request/response flows, or
     /// <see langword="null"/> if the transport does not support replies.
     /// </summary>
-    public ReceiveEndpoint? ReplyReceiveEndpoint { get; protected set; }
+    public ReceiveEndpoint? ReplyReceiveEndpoint { get; protected internal set; }
 
     /// <summary>
     /// The dispatch endpoint used to send reply messages back to requestors, or
     /// <see langword="null"/> if the transport does not support replies.
     /// </summary>
-    public DispatchEndpoint? ReplyDispatchEndpoint { get; protected set; }
+    public DispatchEndpoint? ReplyDispatchEndpoint { get; protected internal set; }
 
     private IFeatureCollection? _features;
 
@@ -92,6 +92,8 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     /// The convention registry scoped to this transport, applied during routing and endpoint configuration.
     /// </summary>
     public IConventionRegistry Conventions { get; protected set; } = null!;
+
+    internal IRoutingStrategy Routing { get; private set; } = null!;
 
     /// <summary>
     /// Produces a structural description of this transport including its endpoints, topology entities,
@@ -258,6 +260,12 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     protected abstract MessagingTransportConfiguration CreateConfiguration(IMessagingSetupContext context);
 
     /// <summary>
+    /// Creates the routing topology strategy for this transport.
+    /// </summary>
+    /// <returns>The routing topology strategy.</returns>
+    protected abstract IRoutingStrategy CreateRoutingStrategy();
+
+    /// <summary>
     /// Connects an outbound route to a dispatch endpoint, creating the endpoint if one does not already
     /// exist for the route's resolved configuration name.
     /// </summary>
@@ -352,9 +360,10 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     /// A <see cref="DispatchEndpointConfiguration"/> if the route can be served by this transport;
     /// otherwise <see langword="null"/>.
     /// </returns>
-    public abstract DispatchEndpointConfiguration? CreateEndpointConfiguration(
+    public virtual DispatchEndpointConfiguration? CreateEndpointConfiguration(
         IMessagingConfigurationContext context,
-        OutboundRoute route);
+        OutboundRoute route)
+        => Routing.CreateEndpointConfiguration(context, route);
 
     /// <summary>
     /// Creates the dispatch endpoint configuration for the given destination address, or returns
@@ -366,9 +375,10 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     /// A <see cref="DispatchEndpointConfiguration"/> if the address can be served by this transport;
     /// otherwise <see langword="null"/>.
     /// </returns>
-    public abstract DispatchEndpointConfiguration? CreateEndpointConfiguration(
+    public virtual DispatchEndpointConfiguration? CreateEndpointConfiguration(
         IMessagingConfigurationContext context,
-        Uri address);
+        Uri address)
+        => Routing.CreateEndpointConfiguration(context, address);
 
     /// <summary>
     /// Creates the receive endpoint configuration for the given inbound route, or returns
@@ -380,9 +390,10 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     /// A <see cref="ReceiveEndpointConfiguration"/> if the route can be served by this transport;
     /// otherwise <see langword="null"/>.
     /// </returns>
-    public abstract ReceiveEndpointConfiguration? CreateEndpointConfiguration(
+    public virtual ReceiveEndpointConfiguration? CreateEndpointConfiguration(
         IMessagingConfigurationContext context,
-        InboundRoute route);
+        InboundRoute route)
+        => Routing.CreateEndpointConfiguration(context, route);
 
     /// <summary>
     /// Factory method to create a transport-specific receive endpoint instance.

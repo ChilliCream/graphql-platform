@@ -6,10 +6,10 @@ using CookieCrumble;
 namespace Mocha.Transport.RabbitMQ.Tests.Routing;
 
 /// <summary>
-/// Verifies that <see cref="RabbitMQReceiveEndpointTopologyConvention"/> resolves its chain entry
-/// through the transport destination resolver: it honors an explicit publish exchange, converges with
-/// the producer path on the same entity, fails the build for an underivable consume bind (a per-message
-/// routing key or an explicit queue destination), and never consults the resolver for reply routes.
+/// Verifies that the RabbitMQ routing topology resolves its chain entry through the transport
+/// destination resolver: it honors an explicit publish exchange, converges with the producer path
+/// on the same entity, fails the build for an underivable consume bind (a per-message routing key or
+/// an explicit queue destination), and never consults the resolver for reply routes.
 /// </summary>
 public class RabbitMQReceiveTopologyConventionTests
 {

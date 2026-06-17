@@ -233,6 +233,12 @@ public sealed class InMemoryMessagingTransport : MessagingTransport
         return descriptor.CreateConfiguration();
     }
 
+    /// <inheritdoc />
+    protected override IRoutingStrategy CreateRoutingStrategy()
+    {
+        return new InMemoryRoutingStrategy(this);
+    }
+
     /// <summary>
     /// Creates a new <see cref="InMemoryReceiveEndpoint"/> bound to this transport, which will
     /// receive messages from an in-memory queue without any network I/O.
@@ -251,171 +257,5 @@ public sealed class InMemoryMessagingTransport : MessagingTransport
     protected override DispatchEndpoint CreateDispatchEndpoint()
     {
         return new InMemoryDispatchEndpoint(this);
-    }
-
-    /// <inheritdoc />
-    public override DispatchEndpointConfiguration? CreateEndpointConfiguration(
-        IMessagingConfigurationContext context,
-        OutboundRoute route)
-    {
-        if (route.Kind is not (OutboundRouteKind.Send or OutboundRouteKind.Publish))
-        {
-            return null;
-        }
-
-        var resolution = Resolver.ResolveDestination(context.Naming, route);
-
-        InMemoryDispatchEndpointConfiguration configuration;
-        if (resolution.Kind == InMemoryDestinationKind.Queue)
-        {
-            configuration = new InMemoryDispatchEndpointConfiguration
-            {
-                QueueName = resolution.Name,
-                Name = resolution.EndpointName
-            };
-        }
-        else
-        {
-            configuration = new InMemoryDispatchEndpointConfiguration
-            {
-                TopicName = resolution.Name,
-                Name = resolution.EndpointName
-            };
-        }
-
-        return configuration;
-    }
-
-    /// <inheritdoc />
-    public override DispatchEndpointConfiguration? CreateEndpointConfiguration(
-        IMessagingConfigurationContext context,
-        Uri address)
-    {
-        InMemoryDispatchEndpointConfiguration? configuration = null;
-
-        var path = address.AbsolutePath.AsSpan();
-        Span<Range> ranges = stackalloc Range[2];
-        var segmentCount = path.Split(ranges, '/', RemoveEmptyEntries | TrimEntries);
-
-        if (address.Scheme == Schema && address.Host is "")
-        {
-            if (segmentCount == 1 && path[ranges[0]] is "replies")
-            {
-                var instanceEndpointName = context.Naming.GetInstanceEndpoint(context.Host.InstanceId);
-                configuration = new InMemoryDispatchEndpointConfiguration
-                {
-                    Kind = DispatchEndpointKind.Reply,
-                    // TODO the idea of the reply endpoint is to be able to dispatch to ANY queue.
-                    // so this is technically not correct but it's the easiest way to make the endpoint
-                    // complete
-                    QueueName = instanceEndpointName,
-                    Name = "Replies"
-                };
-            }
-
-            if (segmentCount == 2)
-            {
-                var kind = path[ranges[0]];
-                var name = path[ranges[1]];
-
-                if (kind is "t" && name is var topicName)
-                {
-                    configuration = new InMemoryDispatchEndpointConfiguration
-                    {
-                        TopicName = new string(topicName),
-                        Name = "t/" + new string(topicName)
-                    };
-                }
-
-                if (kind is "q" && name is var queueName)
-                {
-                    configuration = new InMemoryDispatchEndpointConfiguration
-                    {
-                        QueueName = new string(queueName),
-                        Name = "q/" + new string(queueName)
-                    };
-                }
-            }
-        }
-
-        if (configuration is null && _topology.Address.IsBaseOf(address) && segmentCount == 2)
-        {
-            var kind = path[ranges[0]];
-            var name = path[ranges[1]];
-
-            if (kind is "t" && name is var topicName)
-            {
-                configuration = new InMemoryDispatchEndpointConfiguration
-                {
-                    TopicName = new string(topicName),
-                    Name = "t/" + new string(topicName)
-                };
-            }
-
-            if (kind is "q" && name is var queueName)
-            {
-                configuration = new InMemoryDispatchEndpointConfiguration
-                {
-                    QueueName = new string(queueName),
-                    Name = "q/" + new string(queueName)
-                };
-            }
-        }
-
-        var isEffectiveDefault = IsDefaultTransport || context.Transports.Length == 1;
-
-        if (configuration is null && isEffectiveDefault && address is { Scheme: "queue" })
-        {
-            var name =
-                !string.IsNullOrEmpty(address.Host) ? address.Host
-                : segmentCount == 1 ? new string(path[ranges[0]]) : null;
-
-            if (name is not null)
-            {
-                configuration = new InMemoryDispatchEndpointConfiguration { QueueName = name, Name = "q/" + name };
-            }
-        }
-
-        if (configuration is null && isEffectiveDefault && address is { Scheme: "topic" })
-        {
-            var name =
-                !string.IsNullOrEmpty(address.Host) ? address.Host
-                : segmentCount == 1 ? new string(path[ranges[0]]) : null;
-
-            if (name is not null)
-            {
-                configuration = new InMemoryDispatchEndpointConfiguration { TopicName = name, Name = "t/" + name };
-            }
-        }
-
-        return configuration;
-    }
-
-    /// <inheritdoc />
-    public override ReceiveEndpointConfiguration CreateEndpointConfiguration(
-        IMessagingConfigurationContext context,
-        InboundRoute route)
-    {
-        InMemoryReceiveEndpointConfiguration configuration;
-        if (route.Kind == InboundRouteKind.Reply)
-        {
-            var instanceEndpointName = context.Naming.GetInstanceEndpoint(context.Host.InstanceId);
-            configuration = new InMemoryReceiveEndpointConfiguration
-            {
-                Name = "Replies",
-                QueueName = instanceEndpointName,
-                IsTemporary = true,
-                Kind = ReceiveEndpointKind.Reply,
-                AutoProvision = true,
-                ReceiveMiddlewares = [ReplyReceiveMiddleware.Create()]
-            };
-        }
-        else
-        {
-            var queueName = context.Naming.GetReceiveEndpointName(route, ReceiveEndpointKind.Default);
-            configuration = new InMemoryReceiveEndpointConfiguration { Name = queueName, QueueName = queueName };
-        }
-
-        return configuration;
     }
 }

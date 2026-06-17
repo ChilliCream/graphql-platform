@@ -192,7 +192,7 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
     {
         OnDiscoverTopology(context, Configuration);
 
-        Transport.Conventions.DiscoverTopology(context, this, Configuration);
+        Transport.Routing.DiscoverTopology(context, this, Configuration);
     }
 
     /// <summary>

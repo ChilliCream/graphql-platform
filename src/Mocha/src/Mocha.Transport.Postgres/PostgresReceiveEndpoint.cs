@@ -48,26 +48,6 @@ public sealed class PostgresReceiveEndpoint(PostgresMessagingTransport transport
         _maxConcurrency = configuration.MaxConcurrency ?? ReceiveEndpointConfiguration.Defaults.MaxConcurrency;
     }
 
-    protected override void OnDiscoverTopology(
-        IMessagingConfigurationContext context,
-        PostgresReceiveEndpointConfiguration configuration)
-    {
-        if (configuration.QueueName is null)
-        {
-            throw new InvalidOperationException("Queue name is required");
-        }
-
-        var topology = (PostgresMessagingTopology)Transport.Topology;
-
-        topology.AddQueue(
-            new PostgresQueueConfiguration
-            {
-                Name = configuration.QueueName,
-                AutoDelete = Kind == ReceiveEndpointKind.Reply,
-                AutoProvision = configuration.AutoProvision
-            });
-    }
-
     protected override void OnComplete(
         IMessagingConfigurationContext context,
         PostgresReceiveEndpointConfiguration configuration)

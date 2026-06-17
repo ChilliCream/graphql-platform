@@ -306,6 +306,36 @@ builder.Services
 
 Both handlers now consume from the same `combined-orders` queue. Without explicit binding, they would each get their own endpoint.
 
+### Binding by message type
+
+You can also bind handlers to an endpoint by declaring which message types the endpoint receives. This connects all handlers for that message type to the endpoint:
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddEventHandler<OrderPlacedHandler>()
+    .AddEventHandler<OrderAuditHandler>()
+    .AddRabbitMQ(transport =>
+    {
+        transport.BindHandlersExplicitly();
+
+        transport.Endpoint("all-orders")
+            .Receives<OrderPlaced>();
+    });
+```
+
+Both `OrderPlacedHandler` and `OrderAuditHandler` now receive from the `all-orders` endpoint. This is topology-first design: you declare what messages an endpoint handles, and Mocha wires up all registered handlers.
+
+Use `.Handler<T>()` when you know which handler types to bind. Use `.Receives<T>()` when you care about the message type and want all handlers for that type automatically connected. The same endpoint can use both approaches:
+
+```csharp
+transport.Endpoint("orders")
+    .Receives<OrderPlaced>()
+    .Handler<OrderAuditHandler>();
+```
+
+If a message type is declared with `.Receives<T>()` but no handler is registered, Mocha throws an exception at startup.
+
 ## Named endpoints vs. handler claims
 
 You can configure per-endpoint settings in two ways: through a named endpoint, or through `transport.Handler<T>()` which derives the endpoint name from conventions.

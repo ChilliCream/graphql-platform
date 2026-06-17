@@ -38,23 +38,6 @@ public sealed class InMemoryReceiveEndpoint(InMemoryMessagingTransport transport
             ?? ReceiveEndpointConfiguration.Defaults.MaxConcurrency;
     }
 
-    protected override void OnDiscoverTopology(
-        IMessagingConfigurationContext context,
-        InMemoryReceiveEndpointConfiguration configuration)
-    {
-        if (configuration.QueueName is null)
-        {
-            throw new InvalidOperationException("Queue name is required");
-        }
-
-        var topology = (InMemoryMessagingTopology)Transport.Topology;
-
-        if (topology.Queues.FirstOrDefault(q => q.Name == configuration.QueueName) is null)
-        {
-            topology.AddQueue(new InMemoryQueueConfiguration { Name = configuration.QueueName });
-        }
-    }
-
     protected override void OnComplete(
         IMessagingConfigurationContext context,
         InMemoryReceiveEndpointConfiguration configuration)

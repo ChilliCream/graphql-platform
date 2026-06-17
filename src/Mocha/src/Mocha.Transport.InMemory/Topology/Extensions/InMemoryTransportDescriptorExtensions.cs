@@ -9,9 +9,6 @@ public static class InMemoryTransportDescriptorExtensions
         this IInMemoryMessagingTransportDescriptor descriptor)
     {
         descriptor.AddConvention(new InMemoryDefaultReceiveEndpointEndpointConvention());
-        descriptor.AddConvention(new InMemoryReceiveEndpointTopologyConvention());
-        descriptor.AddConvention(new InMemoryDispatchEndpointTopologyConvention());
-
         return descriptor;
     }
 }

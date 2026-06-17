@@ -363,6 +363,12 @@ public sealed class PostgresMessagingTransport : MessagingTransport
         return descriptor.CreateConfiguration();
     }
 
+    /// <inheritdoc />
+    protected override IRoutingStrategy CreateRoutingStrategy()
+    {
+        return new PostgresRoutingStrategy(this);
+    }
+
     /// <summary>
     /// Creates a new <see cref="PostgresReceiveEndpoint"/> bound to this transport.
     /// </summary>
@@ -379,169 +385,6 @@ public sealed class PostgresMessagingTransport : MessagingTransport
     protected override DispatchEndpoint CreateDispatchEndpoint()
     {
         return new PostgresDispatchEndpoint(this);
-    }
-
-    /// <inheritdoc />
-    public override DispatchEndpointConfiguration? CreateEndpointConfiguration(
-        IMessagingConfigurationContext context,
-        OutboundRoute route)
-    {
-        if (route.Kind is not (OutboundRouteKind.Send or OutboundRouteKind.Publish))
-        {
-            return null;
-        }
-
-        var resolution = Resolver.ResolveDestination(context.Naming, route);
-
-        PostgresDispatchEndpointConfiguration configuration;
-        if (resolution.Kind == PostgresDestinationKind.Queue)
-        {
-            configuration = new PostgresDispatchEndpointConfiguration
-            {
-                QueueName = resolution.Name,
-                Name = resolution.EndpointName
-            };
-        }
-        else
-        {
-            configuration = new PostgresDispatchEndpointConfiguration
-            {
-                TopicName = resolution.Name,
-                Name = resolution.EndpointName
-            };
-        }
-
-        return configuration;
-    }
-
-    /// <inheritdoc />
-    public override DispatchEndpointConfiguration? CreateEndpointConfiguration(
-        IMessagingConfigurationContext context,
-        Uri address)
-    {
-        PostgresDispatchEndpointConfiguration? configuration = null;
-
-        var path = address.AbsolutePath.AsSpan();
-        Span<Range> ranges = stackalloc Range[2];
-        var segmentCount = path.Split(ranges, '/', RemoveEmptyEntries | TrimEntries);
-
-        if (address.Scheme == Schema && address.Host is "")
-        {
-            if (segmentCount == 1 && path[ranges[0]] is "replies")
-            {
-                var instanceEndpointName = context.Naming.GetInstanceEndpoint(context.Host.InstanceId);
-                configuration = new PostgresDispatchEndpointConfiguration
-                {
-                    Kind = DispatchEndpointKind.Reply,
-                    QueueName = instanceEndpointName,
-                    Name = "Replies"
-                };
-            }
-
-            if (segmentCount == 2)
-            {
-                var kind = path[ranges[0]];
-                var name = path[ranges[1]];
-
-                if (kind is "t" && name is var topicName)
-                {
-                    configuration = new PostgresDispatchEndpointConfiguration
-                    {
-                        TopicName = new string(topicName),
-                        Name = "t/" + new string(topicName)
-                    };
-                }
-
-                if (kind is "q" && name is var queueName)
-                {
-                    configuration = new PostgresDispatchEndpointConfiguration
-                    {
-                        QueueName = new string(queueName),
-                        Name = "q/" + new string(queueName)
-                    };
-                }
-            }
-        }
-
-        if (configuration is null && _topology.Address.IsBaseOf(address) && segmentCount == 2)
-        {
-            var kind = path[ranges[0]];
-            var name = path[ranges[1]];
-
-            if (kind is "t" && name is var topicName)
-            {
-                configuration = new PostgresDispatchEndpointConfiguration
-                {
-                    TopicName = new string(topicName),
-                    Name = "t/" + new string(topicName)
-                };
-            }
-
-            if (kind is "q" && name is var queueName)
-            {
-                configuration = new PostgresDispatchEndpointConfiguration
-                {
-                    QueueName = new string(queueName),
-                    Name = "q/" + new string(queueName)
-                };
-            }
-        }
-
-        var isEffectiveDefault = IsDefaultTransport || context.Transports.Length == 1;
-
-        if (configuration is null && isEffectiveDefault && address is { Scheme: "queue" })
-        {
-            var name =
-                !string.IsNullOrEmpty(address.Host) ? address.Host
-                : segmentCount == 1 ? new string(path[ranges[0]]) : null;
-
-            if (name is not null)
-            {
-                configuration = new PostgresDispatchEndpointConfiguration { QueueName = name, Name = "q/" + name };
-            }
-        }
-
-        if (configuration is null && isEffectiveDefault && address is { Scheme: "topic" })
-        {
-            var name =
-                !string.IsNullOrEmpty(address.Host) ? address.Host
-                : segmentCount == 1 ? new string(path[ranges[0]]) : null;
-
-            if (name is not null)
-            {
-                configuration = new PostgresDispatchEndpointConfiguration { TopicName = name, Name = "t/" + name };
-            }
-        }
-
-        return configuration;
-    }
-
-    /// <inheritdoc />
-    public override ReceiveEndpointConfiguration CreateEndpointConfiguration(
-        IMessagingConfigurationContext context,
-        InboundRoute route)
-    {
-        PostgresReceiveEndpointConfiguration configuration;
-        if (route.Kind == InboundRouteKind.Reply)
-        {
-            var instanceEndpointName = context.Naming.GetInstanceEndpoint(context.Host.InstanceId);
-            configuration = new PostgresReceiveEndpointConfiguration
-            {
-                Name = "Replies",
-                QueueName = instanceEndpointName,
-                IsTemporary = true,
-                Kind = ReceiveEndpointKind.Reply,
-                AutoProvision = true,
-                ReceiveMiddlewares = [ReplyReceiveMiddleware.Create()]
-            };
-        }
-        else
-        {
-            var queueName = context.Naming.GetReceiveEndpointName(route, ReceiveEndpointKind.Default);
-            configuration = new PostgresReceiveEndpointConfiguration { Name = queueName, QueueName = queueName };
-        }
-
-        return configuration;
     }
 
     /// <summary>

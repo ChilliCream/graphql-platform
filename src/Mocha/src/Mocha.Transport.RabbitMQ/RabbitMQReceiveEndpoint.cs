@@ -35,27 +35,6 @@ public sealed class RabbitMQReceiveEndpoint(RabbitMQMessagingTransport transport
                 ushort.MaxValue);
     }
 
-    protected override void OnDiscoverTopology(
-        IMessagingConfigurationContext context,
-        RabbitMQReceiveEndpointConfiguration configuration)
-    {
-        if (configuration.QueueName is null)
-        {
-            throw new InvalidOperationException("Queue name is required");
-        }
-
-        var topology = (RabbitMQMessagingTopology)Transport.Topology;
-
-        topology.AddQueue(
-            new RabbitMQQueueConfiguration
-            {
-                Name = configuration.QueueName,
-                AutoDelete = Kind == ReceiveEndpointKind.Reply,
-                AutoProvision = configuration.AutoProvision,
-                Provenance = RabbitMQTopologyProvenance.Endpoint
-            });
-    }
-
     protected override void OnComplete(
         IMessagingConfigurationContext context,
         RabbitMQReceiveEndpointConfiguration configuration)
