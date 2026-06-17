@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Features;
 using HotChocolate.Internal;
@@ -85,6 +86,104 @@ internal static class RelayIdFieldHelpers
         configuration.Tasks.Add(configurationTask);
     }
 
+    /// <summary>
+    /// Applies the <see cref="RelayIdFieldExtensions"><c>.ID()</c></see> to an interface
+    /// field descriptor
+    /// </summary>
+    /// <remarks>
+    /// You most likely want to call `<c>.ID()</c>` directly and do not use this helper
+    /// </remarks>
+    internal static void ApplyIdToInterfaceField(
+        InterfaceFieldConfiguration configuration,
+        NodeIdNameDefinitionUnion? nameDefinition = null,
+        TypeReference? dependsOn = null)
+    {
+        // The interface field has no executable pipeline of its own. We build the serializer at
+        // the interface field's completion and let it be copied onto an implementing object field
+        // that inherits the field. The interface type always completes before the implementing
+        // object type's fields are materialized, so the formatter is in place to be copied.
+        var configurationTask = new OnCompleteTypeSystemConfigurationTask(
+            (ctx, def) => AddSerializerToInterfaceField(
+                ctx,
+                (InterfaceFieldConfiguration)def,
+                nameDefinition),
+            configuration,
+            ApplyConfigurationOn.BeforeCompletion,
+            typeReference: dependsOn);
+
+        configuration.Tasks.Add(configurationTask);
+    }
+
+    private static void AddSerializerToInterfaceField(
+        ITypeCompletionContext completionContext,
+        InterfaceFieldConfiguration configuration,
+        NodeIdNameDefinitionUnion? nameDefinition)
+    {
+        // We only encode the value with the interface's type name when the value is produced by
+        // the interface itself (an explicit resolver or a default implementation that is inherited
+        // by the implementing type). When the interface member is abstract the implementing type
+        // supplies the value and must opt into the global id encoding by declaring its own ID field.
+        if (!ResolvesOnInterface(configuration))
+        {
+            return;
+        }
+
+        var typeInspector = completionContext.TypeInspector;
+        IExtendedType? resultType;
+
+        if (configuration.ResultType is not null)
+        {
+            resultType = typeInspector.GetType(configuration.ResultType);
+        }
+        else if ((configuration.ResolverMember ?? configuration.Member) is { } member)
+        {
+            resultType = typeInspector.GetReturnType(member, true);
+        }
+        else if (configuration.Type is ExtendedTypeReference typeReference)
+        {
+            resultType = typeReference.Type;
+        }
+        else
+        {
+            throw ThrowHelper.RelayIdFieldHelpers_NoFieldType(
+                configuration.Name,
+                completionContext.Type);
+        }
+
+        var serializerAccessor = completionContext.DescriptorContext.NodeIdSerializerAccessor;
+
+        var typeName = GetIdTypeName(completionContext, nameDefinition, typeInspector);
+        typeName ??= completionContext.Type.Name;
+        SetSerializerInfos(completionContext.DescriptorContext, typeName, resultType);
+
+        // The formatter captures only the type name and result type, so the same instance can be
+        // copied to and shared by every implementing object field that inherits this field.
+        configuration.FormatterDefinitions.Add(
+            CreateResultFormatter(typeName, resultType, serializerAccessor));
+    }
+
+    /// <summary>
+    /// Determines whether the value of the field is produced by the interface itself (an explicit
+    /// resolver or a default implementation) rather than supplied by the implementing type through
+    /// an abstract interface member.
+    /// </summary>
+    private static bool ResolvesOnInterface(InterfaceFieldConfiguration configuration)
+    {
+        var member = configuration.ResolverMember ?? configuration.Member;
+
+        // An explicit resolver that is not bound to a member always produces the value itself.
+        if (member is null)
+        {
+            return true;
+        }
+
+        var method = member as MethodInfo ?? (member as PropertyInfo)?.GetMethod;
+
+        // A default implementation has a method body (it is not abstract), whereas an abstract
+        // interface member is implemented by the concrete type that supplies the value.
+        return method is { IsAbstract: false };
+    }
+
     internal static void ApplyIdToFieldCore(
         IDescriptor<OutputFieldConfiguration> descriptor,
         NodeIdNameDefinitionUnion? nameDefinition)
@@ -109,6 +208,24 @@ internal static class RelayIdFieldHelpers
                 else
                 {
                     ApplyIdToField(extend.Configuration, nameDefinition);
+                }
+            }
+        }
+        else if (descriptor is IDescriptor<InterfaceFieldConfiguration> interfaceFieldDescriptor)
+        {
+            var extend = interfaceFieldDescriptor.Extend();
+
+            // add serializer if globalID support is enabled.
+            if (extend.Context.Features.Get<NodeSchemaFeature>()?.IsEnabled == true)
+            {
+                if (nameDefinition?.Type != null)
+                {
+                    var dependsOn = extend.Context.TypeInspector.GetTypeRef(nameDefinition.Type);
+                    ApplyIdToInterfaceField(extend.Configuration, nameDefinition, dependsOn);
+                }
+                else
+                {
+                    ApplyIdToInterfaceField(extend.Configuration, nameDefinition);
                 }
             }
         }
