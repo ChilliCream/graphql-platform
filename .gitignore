@@ -39,6 +39,7 @@ src/Mocha/benchmarks/Mocha.Mediator.Benchmarks/Generated/
 # Repo-specific scratch
 .claude/
 .work/
+*.lscache
 Directory.Build.user.props
 appsettings.user.json
 .playwright-mcp/

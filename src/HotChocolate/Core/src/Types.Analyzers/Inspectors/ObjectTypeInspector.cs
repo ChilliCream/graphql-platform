@@ -328,6 +328,9 @@ public class ObjectTypeInspector : ISyntaxInspector
         }
 
         resolverTypeName ??= resolverType.Name;
+        var isConnectionResolver = isBatchResolver
+            ? IsBatchConnectionResolver(compilation, resolverMethod.GetReturnType())
+            : compilation.IsConnectionType(resolverMethod.ReturnType);
 
         return new Resolver(
             resolverTypeName,
@@ -342,10 +345,65 @@ public class ObjectTypeInspector : ISyntaxInspector
                 : compilation.CreateTypeReference(resolverMethod),
             kind: isBatchResolver
                 ? ResolverKind.BatchResolver
-                : compilation.IsConnectionType(resolverMethod.ReturnType)
+                : isConnectionResolver
                     ? ResolverKind.ConnectionResolver
                     : ResolverKind.Default,
+            isConnectionResolver: isConnectionResolver,
             subscribeWith: subscribeWith);
+    }
+
+    private static bool IsBatchConnectionResolver(
+        Compilation compilation,
+        ITypeSymbol? returnType)
+    {
+        if (returnType is null)
+        {
+            return false;
+        }
+
+        return TryGetListElementType(returnType, out var elementType)
+            && compilation.IsConnectionType(elementType);
+    }
+
+    private static bool TryGetListElementType(
+        ITypeSymbol type,
+        [NotNullWhen(true)] out ITypeSymbol? elementType)
+    {
+        if (type is IArrayTypeSymbol arrayType)
+        {
+            elementType = arrayType.ElementType;
+            return true;
+        }
+
+        if (type is INamedTypeSymbol { IsGenericType: true } namedType)
+        {
+            var typeDefinition = namedType.ConstructUnboundGenericType().ToDisplayString();
+
+            if (WellKnownTypes.SupportedListInterfaces.Contains(typeDefinition)
+                || typeDefinition.Equals(WellKnownTypes.EnumerableDefinition, Ordinal))
+            {
+                elementType = namedType.TypeArguments[0];
+                return true;
+            }
+
+            foreach (var interfaceType in namedType.AllInterfaces)
+            {
+                if (!interfaceType.IsGenericType)
+                {
+                    continue;
+                }
+
+                var interfaceTypeDefinition = interfaceType.ConstructUnboundGenericType().ToDisplayString();
+                if (WellKnownTypes.SupportedListInterfaces.Contains(interfaceTypeDefinition))
+                {
+                    elementType = interfaceType.TypeArguments[0];
+                    return true;
+                }
+            }
+        }
+
+        elementType = null;
+        return false;
     }
 
     private static void CollectSubscribeWithNames(

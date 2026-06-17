@@ -19,6 +19,7 @@ public sealed class Resolver
         SchemaTypeReference schemaTypeRef,
         ResolverKind kind = ResolverKind.Default,
         FieldFlags flags = FieldFlags.None,
+        bool isConnectionResolver = false,
         string? subscribeWith = null)
     {
         TypeName = typeName;
@@ -32,6 +33,7 @@ public sealed class Resolver
         Bindings = bindings;
         Kind = kind;
         Flags = flags;
+        IsConnectionResolver = isConnectionResolver;
         SubscribeWith = subscribeWith;
 
         if (description is MethodDescription m && parameters.Length == m.ParameterDescriptions.Length)
@@ -81,6 +83,8 @@ public sealed class Resolver
 
     public ResolverKind Kind { get; }
 
+    public bool IsConnectionResolver { get; }
+
     public FieldFlags Flags { get; }
 
     public ResolverResultKind ResultKind { get; }
@@ -117,5 +121,6 @@ public sealed class Resolver
             schemaTypeRef,
             Kind,
             Flags,
+            IsConnectionResolver,
             SubscribeWith);
 }

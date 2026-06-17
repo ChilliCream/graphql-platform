@@ -289,6 +289,100 @@ internal sealed class BatchResolverTask : IResolverTask
             }
         }
 
+        if (_field.BatchPartitionKeyResolvers.IsEmpty || contexts.Length == 1)
+        {
+            await ExecuteSingleBatchPipelineAsync(contexts, cancellationToken).ConfigureAwait(false);
+        }
+        else
+        {
+            await ExecutePartitionedBatchPipelineAsync(contexts, depth: 0, cancellationToken)
+                .ConfigureAwait(false);
+        }
+    }
+
+    private async ValueTask ExecutePartitionedBatchPipelineAsync(
+        ImmutableArray<IMiddlewareContext> contexts,
+        int depth,
+        CancellationToken cancellationToken)
+    {
+        var partitioners = _field.BatchPartitionKeyResolvers;
+        var partitioner = partitioners[depth];
+        var hasNextLevel = depth + 1 < partitioners.Length;
+        var firstKey = partitioner(contexts[0]);
+        Dictionary<ulong, ImmutableArray<IMiddlewareContext>.Builder>? partitions = null;
+
+        for (var i = 1; i < contexts.Length; i++)
+        {
+            var key = partitioner(contexts[i]);
+
+            if (partitions is null)
+            {
+                if (key == firstKey)
+                {
+                    continue;
+                }
+
+                partitions = [];
+                var firstPartition = ImmutableArray.CreateBuilder<IMiddlewareContext>(i);
+
+                for (var j = 0; j < i; j++)
+                {
+                    firstPartition.Add(contexts[j]);
+                }
+
+                partitions.Add(firstKey, firstPartition);
+            }
+
+            ref var partition = ref CollectionsMarshal.GetValueRefOrAddDefault(
+                partitions,
+                key,
+                out var exists);
+
+            if (!exists)
+            {
+                partition = ImmutableArray.CreateBuilder<IMiddlewareContext>();
+            }
+
+            partition!.Add(contexts[i]);
+        }
+
+        if (partitions is null)
+        {
+            // all-same-key fast path: every context shares firstKey, so no allocation —
+            // recurse on the original array if there's another partitioner level, otherwise dispatch.
+            if (hasNextLevel)
+            {
+                await ExecutePartitionedBatchPipelineAsync(contexts, depth + 1, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            else
+            {
+                await ExecuteSingleBatchPipelineAsync(contexts, cancellationToken).ConfigureAwait(false);
+            }
+            return;
+        }
+
+        foreach (var partition in partitions.Values)
+        {
+            var partitionContexts = partition.ToImmutable();
+
+            if (hasNextLevel && partitionContexts.Length > 1)
+            {
+                await ExecutePartitionedBatchPipelineAsync(
+                    partitionContexts, depth + 1, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                await ExecuteSingleBatchPipelineAsync(partitionContexts, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+        }
+    }
+
+    private async ValueTask ExecuteSingleBatchPipelineAsync(
+        ImmutableArray<IMiddlewareContext> contexts,
+        CancellationToken cancellationToken)
+    {
         await _field.BatchResolver!(contexts).ConfigureAwait(false);
 
         // Post-process results for each context.

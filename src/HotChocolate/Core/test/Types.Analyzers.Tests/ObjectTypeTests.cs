@@ -1113,4 +1113,33 @@ public class ObjectTypeTests
             }
             """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
+
+    [Fact]
+    public async Task BatchResolver_With_Lookup_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Composite;
+
+            namespace TestNamespace;
+
+            public sealed class User
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            [QueryType]
+            internal static partial class Query
+            {
+                [Lookup]
+                [BatchResolver]
+                public static List<User> GetUserById(List<int> id)
+                    => default!;
+            }
+            """).MatchMarkdownAsync();
+    }
 }

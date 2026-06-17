@@ -36,6 +36,11 @@ public sealed class LookupReturnsNonNullableTypeAnalyzer : DiagnosticAnalyzer
             return;
         }
 
+        if (HasBatchResolverAttribute(methodSymbol))
+        {
+            return;
+        }
+
         var returnType = context.Compilation.IsTaskOrValueTask(methodSymbol.ReturnType, out var innerType)
             ? innerType
             : methodSymbol.ReturnType;
@@ -91,6 +96,19 @@ public sealed class LookupReturnsNonNullableTypeAnalyzer : DiagnosticAnalyzer
             propertyDeclaration.Type.GetLocation());
 
         context.ReportDiagnostic(diagnostic);
+    }
+
+    private static bool HasBatchResolverAttribute(IMethodSymbol methodSymbol)
+    {
+        foreach (var attribute in methodSymbol.GetAttributes())
+        {
+            if (attribute.AttributeClass?.ToDisplayString() == WellKnownAttributes.BatchResolverAttribute)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static bool HasLookupAttribute(

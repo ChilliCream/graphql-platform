@@ -145,6 +145,7 @@ public partial class ObjectType
                 if (field.BatchResolver is null && interfaceField.BatchResolver is not null)
                 {
                     field.BatchResolver = interfaceField.BatchResolver;
+                    field.BatchPartitionKeyResolvers = interfaceField.BatchPartitionKeyResolvers;
                     field.SetBatchResolverFlags();
                     inheritedResolver = true;
                 }

@@ -174,6 +174,36 @@ public class LookupReturnsNonNullableTypeAnalyzerTests
     }
 
     [Fact]
+    public async Task Method_BatchResolverNullableListReturn_NoWarning()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            ["""
+            #nullable enable
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Composite;
+            using System.Collections.Generic;
+
+            namespace TestNamespace;
+
+            [QueryType]
+            internal static partial class Query
+            {
+                [Lookup]
+                [BatchResolver]
+                public static List<User?> GetUserById(List<int> id) => default!;
+            }
+
+            public class User
+            {
+                public int Id { get; set; }
+                public string? Name { get; set; }
+            }
+            """],
+            enableAnalyzers: true).MatchMarkdownAsync();
+    }
+
+    [Fact]
     public async Task Method_FullyQualifiedTaskNonNullableReturn_RaisesWarning()
     {
         await TestHelper.GetGeneratedSourceSnapshot(
