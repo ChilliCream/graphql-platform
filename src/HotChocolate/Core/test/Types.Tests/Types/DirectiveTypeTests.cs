@@ -1018,6 +1018,130 @@ public class DirectiveTypeTests : TypeTestBase
     }
 
     [Fact]
+    public void CodeFirst_GenericDirectiveType_DeprecatedAndDirectives_Applied()
+    {
+        // arrange
+        var onDirectiveDefinition = new DirectiveType(d => d
+            .Name("onDirectiveDefinition")
+            .Location(DirectiveLocation.DirectiveDefinition));
+
+        var custom = new DirectiveType<MarkerDirective>(d => d
+            .Name("custom")
+            .Location(DirectiveLocation.Object)
+            .Deprecated("Use something else.")
+            .Directive("onDirectiveDefinition"));
+
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType(c => c
+                .Name("Query")
+                .Directive("custom")
+                .Field("foo")
+                .Type<StringType>()
+                .Resolve("bar"))
+            .AddDirectiveType(onDirectiveDefinition)
+            .AddDirectiveType(custom)
+            .Create();
+
+        // assert
+        var customType = schema.DirectiveTypes["custom"];
+        Assert.True(customType.IsDeprecated);
+        Assert.Equal("Use something else.", customType.DeprecationReason);
+        var directive = Assert.Single(customType.Directives);
+        Assert.Equal("onDirectiveDefinition", directive.Name);
+    }
+
+    [Fact]
+    public void CodeFirst_DirectiveType_TypedDirectiveInstance_Applied()
+    {
+        // arrange
+        var marker = new DirectiveType<MarkerDirective>(d => d
+            .Name("marker")
+            .Location(DirectiveLocation.DirectiveDefinition));
+
+        var custom = new DirectiveType(d => d
+            .Name("custom")
+            .Location(DirectiveLocation.Object)
+            .Directive(new MarkerDirective()));
+
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType(c => c
+                .Name("Query")
+                .Directive("custom")
+                .Field("foo")
+                .Type<StringType>()
+                .Resolve("bar"))
+            .AddDirectiveType(marker)
+            .AddDirectiveType(custom)
+            .Create();
+
+        // assert
+        var customType = schema.DirectiveTypes["custom"];
+        var directive = Assert.Single(customType.Directives);
+        Assert.Equal("marker", directive.Name);
+    }
+
+    [Fact]
+    public void CodeFirst_DirectiveType_TypedDirectiveByType_Applied()
+    {
+        // arrange
+        var marker = new DirectiveType<MarkerDirective>(d => d
+            .Name("marker")
+            .Location(DirectiveLocation.DirectiveDefinition));
+
+        var custom = new DirectiveType(d => d
+            .Name("custom")
+            .Location(DirectiveLocation.Object)
+            .Directive<MarkerDirective>());
+
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType(c => c
+                .Name("Query")
+                .Directive("custom")
+                .Field("foo")
+                .Type<StringType>()
+                .Resolve("bar"))
+            .AddDirectiveType(marker)
+            .AddDirectiveType(custom)
+            .Create();
+
+        // assert
+        var customType = schema.DirectiveTypes["custom"];
+        var directive = Assert.Single(customType.Directives);
+        Assert.Equal("marker", directive.Name);
+    }
+
+    [Fact]
+    public void CodeFirst_DirectiveType_DeprecatedNoReason_UsesDefault()
+    {
+        // arrange
+        var custom = new DirectiveType(d => d
+            .Name("custom")
+            .Location(DirectiveLocation.Object)
+            .Deprecated());
+
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType(c => c
+                .Name("Query")
+                .Directive("custom")
+                .Field("foo")
+                .Type<StringType>()
+                .Resolve("bar"))
+            .AddDirectiveType(custom)
+            .Create();
+
+        // assert
+        var customType = schema.DirectiveTypes["custom"];
+        Assert.True(customType.IsDeprecated);
+        Assert.Equal(
+            DirectiveNames.Deprecated.Arguments.DefaultReason,
+            customType.DeprecationReason);
+    }
+
+    [Fact]
     public void AnnotationBased_ObsoleteDirectiveClass_SetsDeprecation()
     {
         // arrange
@@ -1186,6 +1310,8 @@ public class DirectiveTypeTests : TypeTestBase
 
         public string? Foo { get; }
     }
+
+    public sealed class MarkerDirective;
 
     [Obsolete("Use the replacement directive.")]
     public sealed class OutdatedDirective;
