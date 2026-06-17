@@ -10,9 +10,6 @@ public static class SnapshotValueFormatters
     public static ISnapshotValueFormatter ExecutionResult { get; } =
         new ExecutionResultSnapshotValueFormatter();
 
-    public static ISnapshotValueFormatter ExecutionResultAggregated { get; } =
-        new ExecutionResultSnapshotValueFormatter(alwaysAggregate: true);
-
     public static ISnapshotValueFormatter ExecutionResultStable { get; } =
         new StableExecutionResultSnapshotValueFormatter();
 

@@ -4,10 +4,11 @@ using System.Text.Json.Nodes;
 using CookieCrumble.Formatters;
 using HotChocolate;
 using HotChocolate.Execution;
+using static CookieCrumble.HotChocolate.Formatters.StableSnapshotHelpers;
 
 namespace CookieCrumble.HotChocolate.Formatters;
 
-internal sealed class ExecutionResultSnapshotValueFormatter(bool alwaysAggregate = false)
+internal sealed class ExecutionResultSnapshotValueFormatter
     : SnapshotValueFormatter<IExecutionResult>
 {
     protected override void Format(IBufferWriter<byte> snapshot, IExecutionResult value)
@@ -18,7 +19,7 @@ internal sealed class ExecutionResultSnapshotValueFormatter(bool alwaysAggregate
         }
         else
         {
-            FormatStreamAsync(snapshot, (IResponseStream)value, alwaysAggregate).Wait();
+            FormatStreamAsync(snapshot, (IResponseStream)value).Wait();
         }
     }
 
@@ -34,7 +35,7 @@ internal sealed class ExecutionResultSnapshotValueFormatter(bool alwaysAggregate
         {
             snapshot.Append("```text");
             snapshot.AppendLine();
-            FormatStreamAsync(snapshot, (IResponseStream)value, alwaysAggregate).Wait();
+            FormatStreamAsync(snapshot, (IResponseStream)value).Wait();
         }
 
         snapshot.AppendLine();
@@ -42,65 +43,231 @@ internal sealed class ExecutionResultSnapshotValueFormatter(bool alwaysAggregate
         snapshot.AppendLine();
     }
 
+    // Reconstructs a single, delivery-order-independent view of an incrementally
+    // delivered (@defer/@stream) response: the initial payload's non-protocol
+    // fields plus the `pending`, `incremental`, and `completed` entries collected
+    // across every payload and ordered by `id`. The snapshot is identical whether
+    // the transport bundled the response into one payload or split it across several.
     private static async Task FormatStreamAsync(
         IBufferWriter<byte> snapshot,
-        IResponseStream stream,
-        bool alwaysAggregate)
+        IResponseStream stream)
     {
-        var docs = new List<JsonDocument>();
-        JsonResultPatcher? patcher = null;
-        var first = true;
+        var documents = new List<JsonDocument>();
+        var accumulator = new StreamAccumulator();
 
         try
         {
-            await foreach (var queryResult in stream.ReadResultsAsync().ConfigureAwait(false))
+            await foreach (var result in stream.ReadResultsAsync().ConfigureAwait(false))
             {
-                if (first)
-                {
-                    first = false;
-
-                    // When aggregating, the initial payload seeds the patcher regardless of
-                    // whether more payloads follow. This normalizes a response delivered as a
-                    // single bundled payload to the same merged form as an incrementally
-                    // delivered one, so the snapshot is independent of delivery batching.
-                    if (alwaysAggregate || (queryResult.HasNext ?? false))
-                    {
-                        var doc = JsonDocument.Parse(queryResult.ToJson());
-                        docs.Add(doc);
-
-                        patcher = new JsonResultPatcher();
-                        patcher.SetResponse(doc);
-                        continue;
-                    }
-                }
-
-                if (patcher is null)
-                {
-                    snapshot.Append(queryResult.ToJson());
-                    snapshot.AppendLine();
-                }
-                else
-                {
-                    var doc = JsonDocument.Parse(queryResult.ToJson());
-                    docs.Add(doc);
-
-                    patcher.ApplyPatch(doc);
-                }
+                var document = JsonDocument.Parse(result.ToJson());
+                documents.Add(document);
+                accumulator.AddPayload(document.RootElement);
             }
 
-            if (patcher is not null)
-            {
-                patcher.WriteResponse(snapshot);
-                snapshot.AppendLine();
-            }
+            await using var writer = new Utf8JsonWriter(snapshot, IndentedWriterOptions);
+            WriteEnvelope(writer, accumulator);
+            writer.Flush();
+            snapshot.AppendLine();
         }
         finally
         {
-            foreach (var doc in docs)
+            foreach (var document in documents)
             {
-                doc.Dispose();
+                document.Dispose();
             }
         }
+    }
+
+    private static void WriteEnvelope(Utf8JsonWriter writer, StreamAccumulator accumulator)
+    {
+        writer.WriteStartObject();
+
+        // The initial payload's non-protocol fields (`data`, `errors`, `extensions`) in
+        // their original order; the incremental-delivery fields are rebuilt below.
+        if (accumulator.InitialPayload is { ValueKind: JsonValueKind.Object } initial)
+        {
+            foreach (var property in initial.EnumerateObject())
+            {
+                if (IsStreamField(property.Name))
+                {
+                    continue;
+                }
+
+                writer.WritePropertyName(property.Name);
+                property.Value.WriteTo(writer);
+            }
+        }
+
+        WritePending(writer, accumulator.PendingById);
+        WriteIncremental(writer, accumulator.IncrementalEntries);
+        WriteCompleted(writer, accumulator.CompletedEntries);
+
+        writer.WriteBoolean("hasNext", false);
+
+        writer.WriteEndObject();
+    }
+
+    private static void WritePending(
+        Utf8JsonWriter writer,
+        Dictionary<string, PendingEntry> pendingById)
+    {
+        if (pendingById.Count == 0)
+        {
+            return;
+        }
+
+        var pending = pendingById.Values.ToList();
+        pending.Sort(static (x, y) => CompareIds(x.Id, y.Id));
+
+        writer.WritePropertyName("pending");
+        writer.WriteStartArray();
+
+        foreach (var entry in pending)
+        {
+            writer.WriteStartObject();
+            writer.WriteString("id", entry.Id);
+            writer.WritePropertyName("path");
+            entry.Path.WriteTo(writer);
+
+            if (!string.IsNullOrEmpty(entry.Label))
+            {
+                writer.WriteString("label", entry.Label);
+            }
+
+            writer.WriteEndObject();
+        }
+
+        writer.WriteEndArray();
+    }
+
+    private static void WriteIncremental(
+        Utf8JsonWriter writer,
+        List<IncrementalEntry> entries)
+    {
+        if (entries.Count == 0)
+        {
+            return;
+        }
+
+        // Group by `id` so a stream delivered across several payloads collapses into a
+        // single entry, independent of how many frames the transport used.
+        var order = new List<string>();
+        var byId = new Dictionary<string, List<IncrementalEntry>>();
+
+        foreach (var entry in entries)
+        {
+            if (!byId.TryGetValue(entry.Id, out var group))
+            {
+                group = [];
+                byId.Add(entry.Id, group);
+                order.Add(entry.Id);
+            }
+
+            group.Add(entry);
+        }
+
+        order.Sort(CompareIds);
+
+        writer.WritePropertyName("incremental");
+        writer.WriteStartArray();
+
+        foreach (var id in order)
+        {
+            var group = byId[id];
+
+            writer.WriteStartObject();
+            writer.WriteString("id", id);
+
+            if (group.FirstOrDefault(e => e.SubPath is not null)?.SubPath is { } subPath)
+            {
+                writer.WritePropertyName("subPath");
+                subPath.WriteTo(writer);
+            }
+
+            if (group.Any(e => e.Items is not null))
+            {
+                writer.WritePropertyName("items");
+                writer.WriteStartArray();
+                foreach (var entry in group)
+                {
+                    if (entry.Items is { } items)
+                    {
+                        foreach (var item in items.EnumerateArray())
+                        {
+                            item.WriteTo(writer);
+                        }
+                    }
+                }
+                writer.WriteEndArray();
+            }
+            else if (group.FirstOrDefault(e => e.Data is not null)?.Data is { } data)
+            {
+                writer.WritePropertyName("data");
+                data.WriteTo(writer);
+            }
+
+            WriteMergedErrors(writer, group);
+
+            writer.WriteEndObject();
+        }
+
+        writer.WriteEndArray();
+    }
+
+    private static void WriteCompleted(
+        Utf8JsonWriter writer,
+        List<CompletedEntry> entries)
+    {
+        if (entries.Count == 0)
+        {
+            return;
+        }
+
+        var completed = entries.ToList();
+        completed.Sort(static (x, y) => CompareIds(x.Id, y.Id));
+
+        writer.WritePropertyName("completed");
+        writer.WriteStartArray();
+
+        foreach (var entry in completed)
+        {
+            writer.WriteStartObject();
+            writer.WriteString("id", entry.Id);
+
+            if (entry.Errors is { } errors)
+            {
+                writer.WritePropertyName("errors");
+                errors.WriteTo(writer);
+            }
+
+            writer.WriteEndObject();
+        }
+
+        writer.WriteEndArray();
+    }
+
+    private static void WriteMergedErrors(Utf8JsonWriter writer, List<IncrementalEntry> group)
+    {
+        if (!group.Any(e => e.Errors is not null))
+        {
+            return;
+        }
+
+        writer.WritePropertyName("errors");
+        writer.WriteStartArray();
+
+        foreach (var entry in group)
+        {
+            if (entry.Errors is { } errors)
+            {
+                foreach (var error in errors.EnumerateArray())
+                {
+                    error.WriteTo(writer);
+                }
+            }
+        }
+
+        writer.WriteEndArray();
     }
 }
 
