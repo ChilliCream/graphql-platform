@@ -36,6 +36,18 @@ public class CancellationTests : FusionTestBase
             }
             """);
 
+        // Warm up the gateway so the executor build and request-pipeline JIT happen
+        // outside the tight execution timeout below, leaving the 250ms budget to
+        // measure the subgraph delay rather than first-request cold start. The
+        // introspection field resolves on the gateway and never reaches the subgraph,
+        // so it records no interaction.
+        using (await client.PostAsync(
+            new OperationRequest("{ __typename }"),
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken))
+        {
+        }
+
         // act
         using var result = await client.PostAsync(
             request,
