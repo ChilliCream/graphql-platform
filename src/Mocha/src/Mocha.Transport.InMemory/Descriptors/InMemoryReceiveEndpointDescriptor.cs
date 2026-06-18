@@ -1,3 +1,5 @@
+using Mocha.Features;
+
 namespace Mocha.Transport.InMemory;
 
 internal sealed class InMemoryReceiveEndpointDescriptor
@@ -80,16 +82,22 @@ internal sealed class InMemoryReceiveEndpointDescriptor
         return this;
     }
 
-    public new IInMemoryReceiveEndpointDescriptor FaultEndpoint(string name)
+    public IInMemoryReceiveEndpointDescriptor FaultEndpoint(string name)
     {
-        base.FaultEndpoint(name);
+        var feature = Configuration.Features.GetOrSet<ReceiveFaultEndpointFeature>();
+        feature.Address = new Uri(name);
+        feature.QueueName = null;
+        feature.IsDisabled = false;
 
         return this;
     }
 
-    public new IInMemoryReceiveEndpointDescriptor SkippedEndpoint(string name)
+    public IInMemoryReceiveEndpointDescriptor SkippedEndpoint(string name)
     {
-        base.SkippedEndpoint(name);
+        var feature = Configuration.Features.GetOrSet<ReceiveSkippedEndpointFeature>();
+        feature.Address = new Uri(name);
+        feature.QueueName = null;
+        feature.IsDisabled = false;
 
         return this;
     }

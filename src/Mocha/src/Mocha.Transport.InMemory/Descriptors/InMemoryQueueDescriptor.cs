@@ -1,22 +1,23 @@
+using Mocha.Features;
+
 namespace Mocha.Transport.InMemory;
 
 /// <summary>
-/// Composes a topology queue descriptor with a lazily created receive endpoint. When only infra
-/// methods are called (BindFrom), no endpoint is materialized. Routing methods (Consumer, Handler,
-/// Receives, etc.) trigger lazy endpoint creation via the transport's idempotent <c>Endpoint(name)</c>.
+/// Composes a topology queue descriptor with a lazily created receive endpoint. Topology methods
+/// configure the backing queue, while receive methods materialize an endpoint for the same queue.
 /// </summary>
-internal sealed class InMemoryQueueBuilder : IInMemoryQueueBuilder
+internal sealed class InMemoryQueueDescriptor : IInMemoryQueueDescriptor
 {
     private readonly InMemoryMessagingTransportDescriptor _transport;
     private readonly string _name;
     private InMemoryReceiveEndpointDescriptor? _endpoint;
 
     /// <summary>
-    /// Creates a new builder for the given queue name, eagerly declaring the queue in the topology.
+    /// Creates a new descriptor for the given queue name, eagerly declaring the queue in the topology.
     /// </summary>
     /// <param name="transport">The owning transport descriptor.</param>
     /// <param name="name">The queue name, which also serves as the endpoint identity.</param>
-    internal InMemoryQueueBuilder(InMemoryMessagingTransportDescriptor transport, string name)
+    internal InMemoryQueueDescriptor(InMemoryMessagingTransportDescriptor transport, string name)
     {
         _transport = transport;
         _name = name;
@@ -28,81 +29,114 @@ internal sealed class InMemoryQueueBuilder : IInMemoryQueueBuilder
     /// </summary>
     internal InMemoryReceiveEndpointDescriptor? Endpoint => _endpoint;
 
+    internal string Name => _name;
+
     private InMemoryReceiveEndpointDescriptor EnsureEndpoint()
         => _endpoint ??= (InMemoryReceiveEndpointDescriptor)_transport.Endpoint(_name);
 
+    internal bool TryGetEntityOnlyEndpointToPrune(out InMemoryReceiveEndpointDescriptor? endpoint)
+    {
+        endpoint = _endpoint;
+        if (endpoint is null)
+        {
+            return false;
+        }
+
+        var configuration = endpoint.Configuration;
+        if (configuration.ConsumerIdentities.Count != 0 || configuration.ReceivedMessageTypes.Count != 0)
+        {
+            return false;
+        }
+
+        var queueName = configuration.QueueName ?? configuration.Name ?? string.Empty;
+
+        if (configuration.Features.Get<ReceiveFaultEndpointFeature>()
+            is { Address: not null } or { QueueName: not null } or { IsDisabled: true })
+        {
+            throw ThrowHelper.FaultOrSkippedQueueRequiresConsumingEndpoint("error", queueName);
+        }
+
+        if (configuration.Features.Get<ReceiveSkippedEndpointFeature>()
+            is { Address: not null } or { QueueName: not null } or { IsDisabled: true })
+        {
+            throw ThrowHelper.FaultOrSkippedQueueRequiresConsumingEndpoint("skipped", queueName);
+        }
+
+        return true;
+    }
+
     /// <inheritdoc />
-    public IInMemoryQueueBuilder Handler<THandler>() where THandler : class, IHandler
+    public IInMemoryQueueDescriptor Handler<THandler>() where THandler : class, IHandler
     {
         EnsureEndpoint().Handler<THandler>();
         return this;
     }
 
     /// <inheritdoc />
-    public IInMemoryQueueBuilder Handler(Type handlerType)
+    public IInMemoryQueueDescriptor Handler(Type handlerType)
     {
         EnsureEndpoint().Handler(handlerType);
         return this;
     }
 
     /// <inheritdoc />
-    public IInMemoryQueueBuilder Consumer<TConsumer>() where TConsumer : class, IConsumer
+    public IInMemoryQueueDescriptor Consumer<TConsumer>() where TConsumer : class, IConsumer
     {
         EnsureEndpoint().Consumer<TConsumer>();
         return this;
     }
 
     /// <inheritdoc />
-    public IInMemoryQueueBuilder Consumer(Type consumerType)
+    public IInMemoryQueueDescriptor Consumer(Type consumerType)
     {
         EnsureEndpoint().Consumer(consumerType);
         return this;
     }
 
     /// <inheritdoc />
-    public IInMemoryQueueBuilder Receives<TMessage>()
+    public IInMemoryQueueDescriptor Receives<TMessage>()
     {
         EnsureEndpoint().Receives<TMessage>();
         return this;
     }
 
     /// <inheritdoc />
-    public IInMemoryQueueBuilder Receives(Type messageType)
+    public IInMemoryQueueDescriptor Receives(Type messageType)
     {
         EnsureEndpoint().Receives(messageType);
         return this;
     }
 
     /// <inheritdoc />
-    public IInMemoryQueueBuilder BindImplicitly()
+    public IInMemoryQueueDescriptor BindImplicitly()
     {
         EnsureEndpoint().BindImplicitly();
         return this;
     }
 
     /// <inheritdoc />
-    public IInMemoryQueueBuilder BindExplicitly()
+    public IInMemoryQueueDescriptor BindExplicitly()
     {
         EnsureEndpoint().BindExplicitly();
         return this;
     }
 
     /// <inheritdoc />
-    public IInMemoryQueueBuilder MaxConcurrency(int maxConcurrency)
+    public IInMemoryQueueDescriptor MaxConcurrency(int maxConcurrency)
     {
         EnsureEndpoint().MaxConcurrency(maxConcurrency);
         return this;
     }
 
     /// <inheritdoc />
-    public IInMemoryQueueBuilder Kind(ReceiveEndpointKind kind)
+    public IInMemoryQueueDescriptor Kind(ReceiveEndpointKind kind)
     {
         EnsureEndpoint().Kind(kind);
         return this;
     }
 
     /// <inheritdoc />
-    public IInMemoryQueueBuilder UseReceive(
+    public IInMemoryQueueDescriptor UseReceive(
         ReceiveMiddlewareConfiguration configuration,
         string? before = null,
         string? after = null)
@@ -112,21 +146,21 @@ internal sealed class InMemoryQueueBuilder : IInMemoryQueueBuilder
     }
 
     /// <inheritdoc />
-    public IInMemoryQueueBuilder FaultEndpoint(string name)
+    public IInMemoryQueueDescriptor FaultEndpoint(string name)
     {
         EnsureEndpoint().FaultEndpoint(name);
         return this;
     }
 
     /// <inheritdoc />
-    public IInMemoryQueueBuilder SkippedEndpoint(string name)
+    public IInMemoryQueueDescriptor SkippedEndpoint(string name)
     {
         EnsureEndpoint().SkippedEndpoint(name);
         return this;
     }
 
     /// <inheritdoc />
-    public IInMemoryQueueBuilder BindFrom(Uri source, string? routingKey = null)
+    public IInMemoryQueueDescriptor BindFrom(Uri source, string? routingKey = null)
     {
         ArgumentNullException.ThrowIfNull(source);
 

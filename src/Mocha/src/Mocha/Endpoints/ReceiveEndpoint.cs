@@ -74,24 +74,6 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
     public ReceiveEndpointKind Kind { get; protected set; }
 
     /// <summary>
-    /// Gets the dispatch endpoint to which faulted messages are forwarded.
-    /// </summary>
-    /// <remarks>
-    /// When <see langword="null"/>, faulted messages are not forwarded to an error queue.
-    /// Configured via <see cref="ReceiveEndpointConfiguration.ErrorEndpoint"/>.
-    /// </remarks>
-    public DispatchEndpoint? ErrorEndpoint { get; protected set; }
-
-    /// <summary>
-    /// Gets the dispatch endpoint to which skipped (unrecognized) messages are forwarded.
-    /// </summary>
-    /// <remarks>
-    /// When <see langword="null"/>, skipped messages are not forwarded.
-    /// Configured via <see cref="ReceiveEndpointConfiguration.SkippedEndpoint"/>.
-    /// </remarks>
-    public DispatchEndpoint? SkippedEndpoint { get; protected set; }
-
-    /// <summary>
     /// Gets the feature collection associated with this endpoint for storing extensibility data.
     /// </summary>
     public IFeatureCollection Features { get; } = new FeatureCollection();
@@ -166,14 +148,16 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
 
         Transport.Routing.ConfigureEndpoint(context, configuration);
         Transport.Conventions.Configure(context, Transport, configuration);
-        if (configuration.IsErrorEndpointDisabled)
+        var faultFeature = configuration.Features.Get<ReceiveFaultEndpointFeature>();
+        if (faultFeature is { IsDisabled: true })
         {
-            configuration.ErrorEndpoint = null;
+            faultFeature.Address = null;
         }
 
-        if (configuration.IsSkippedEndpointDisabled)
+        var skippedFeature = configuration.Features.Get<ReceiveSkippedEndpointFeature>();
+        if (skippedFeature is { IsDisabled: true })
         {
-            configuration.SkippedEndpoint = null;
+            skippedFeature.Address = null;
         }
 
         Configuration = configuration;
@@ -234,14 +218,16 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
 
         Address ??= new UriBuilder { Scheme = Transport.Schema, Path = Name }.Uri;
 
-        if (ErrorEndpoint is null && Configuration.ErrorEndpoint is { } errorAddress)
+        var faultFeature = Features.Get<ReceiveFaultEndpointFeature>();
+        if (faultFeature is { Endpoint: null, Address: { } faultAddress })
         {
-            ErrorEndpoint = context.Endpoints.GetOrCreate(context, errorAddress);
+            faultFeature.Endpoint = context.Endpoints.GetOrCreate(context, faultAddress);
         }
 
-        if (SkippedEndpoint is null && Configuration.SkippedEndpoint is { } skippedAddress)
+        var skippedFeature = Features.Get<ReceiveSkippedEndpointFeature>();
+        if (skippedFeature is { Endpoint: null, Address: { } skippedAddress })
         {
-            SkippedEndpoint = context.Endpoints.GetOrCreate(context, skippedAddress);
+            skippedFeature.Endpoint = context.Endpoints.GetOrCreate(context, skippedAddress);
         }
 
         _pipeline = MiddlewareCompiler.CompileReceive(

@@ -36,11 +36,19 @@ public interface IPostgresReceiveEndpointDescriptor : IReceiveEndpointDescriptor
     /// <inheritdoc cref="IReceiveEndpointDescriptor{T}.MaxConcurrency(int)"/>
     new IPostgresReceiveEndpointDescriptor MaxConcurrency(int maxConcurrency);
 
-    /// <inheritdoc cref="IReceiveEndpointDescriptor{T}.FaultEndpoint"/>
-    new IPostgresReceiveEndpointDescriptor FaultEndpoint(string name);
+    /// <summary>
+    /// Sets the address of the fault endpoint where failed messages are forwarded.
+    /// </summary>
+    /// <param name="name">The fault endpoint address.</param>
+    /// <returns>The descriptor for method chaining.</returns>
+    IPostgresReceiveEndpointDescriptor FaultEndpoint(string name);
 
-    /// <inheritdoc cref="IReceiveEndpointDescriptor{T}.SkippedEndpoint"/>
-    new IPostgresReceiveEndpointDescriptor SkippedEndpoint(string name);
+    /// <summary>
+    /// Sets the address of the endpoint where skipped messages are forwarded.
+    /// </summary>
+    /// <param name="name">The skipped endpoint address.</param>
+    /// <returns>The descriptor for method chaining.</returns>
+    IPostgresReceiveEndpointDescriptor SkippedEndpoint(string name);
 
     /// <summary>
     /// Sets the maximum number of messages to fetch per batch.

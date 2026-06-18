@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Mocha.Features;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
 
 namespace Mocha.Transport.RabbitMQ.Tests;
@@ -33,7 +34,9 @@ public class RabbitMQReceiveEndpointTests
         var endpoint = transport.ReceiveEndpoints.OfType<RabbitMQReceiveEndpoint>().First(e => e.Queue.Name == "q");
 
         // assert
-        Assert.Equal("q_error", ((RabbitMQQueue)endpoint.ErrorEndpoint!.Destination).Name);
+        Assert.Equal(
+            "q_error",
+            ((RabbitMQQueue)endpoint.Features.Get<ReceiveFaultEndpointFeature>()!.Endpoint!.Destination).Name);
     }
 
     [Fact]
@@ -48,7 +51,9 @@ public class RabbitMQReceiveEndpointTests
         var endpoint = transport.ReceiveEndpoints.OfType<RabbitMQReceiveEndpoint>().First(e => e.Queue.Name == "q");
 
         // assert
-        Assert.Equal("q_skipped", ((RabbitMQQueue)endpoint.SkippedEndpoint!.Destination).Name);
+        Assert.Equal(
+            "q_skipped",
+            ((RabbitMQQueue)endpoint.Features.Get<ReceiveSkippedEndpointFeature>()!.Endpoint!.Destination).Name);
     }
 
     [Fact]

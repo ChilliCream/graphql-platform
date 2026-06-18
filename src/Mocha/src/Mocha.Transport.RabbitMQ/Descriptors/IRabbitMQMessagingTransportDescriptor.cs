@@ -67,8 +67,8 @@ public interface IRabbitMQMessagingTransportDescriptor
     /// A shape conflict (both declared values differ for the same scalar property) throws <see cref="RabbitMQTopologyShapeConflictException"/>.
     /// </summary>
     /// <param name="name">The queue name.</param>
-    /// <returns>A queue descriptor for further configuration.</returns>
-    IRabbitMQQueueDescriptor DeclareQueue(string name);
+    /// <returns>A queue topology descriptor for further configuration.</returns>
+    IRabbitMQQueueTopologyDescriptor DeclareQueue(string name);
 
     /// <summary>
     /// Declares a new binding between an exchange and a queue in the transport topology.
@@ -124,12 +124,12 @@ public interface IRabbitMQMessagingTransportDescriptor
         where TConsumer : class, IConsumer;
 
     /// <summary>
-    /// Gets or creates a queue builder for the given queue name. The builder composes a topology
-    /// queue descriptor with a lazily created receive endpoint. Infra-only usage (no routing
-    /// method called) produces a declared queue without materializing a receive endpoint. Calling
-    /// this method multiple times with the same name returns the same builder instance.
+    /// Gets or creates a queue descriptor for the given queue name. The descriptor composes a queue
+    /// topology descriptor with a lazily created receive endpoint. Topology-only usage produces a
+    /// declared queue without materializing a receive endpoint. Calling this method multiple times
+    /// with the same name returns the same descriptor instance.
     /// </summary>
     /// <param name="name">The queue name, which also serves as the endpoint identity.</param>
-    /// <returns>A queue builder for further configuration.</returns>
-    IRabbitMQQueueBuilder Queue(string name);
+    /// <returns>A queue descriptor for further configuration.</returns>
+    IRabbitMQQueueDescriptor Queue(string name);
 }

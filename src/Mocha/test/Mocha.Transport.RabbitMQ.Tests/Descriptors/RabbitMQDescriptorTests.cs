@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Mocha.Features;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Descriptors;
@@ -149,8 +150,9 @@ public class RabbitMQDescriptorTests
 
         // assert
         var endpoint = transport.ReceiveEndpoints.OfType<RabbitMQReceiveEndpoint>().Single(e => e.Name == "q");
-        Assert.Equal("rabbitmq:q/Legacy.Orders.V2_error", endpoint.Configuration.ErrorEndpoint?.OriginalString);
-        Assert.False(endpoint.Configuration.IsErrorEndpointDisabled);
+        var feature = endpoint.Configuration.Features.Get<ReceiveFaultEndpointFeature>();
+        Assert.Equal("rabbitmq:q/Legacy.Orders.V2_error", feature?.Address?.OriginalString);
+        Assert.False(feature?.IsDisabled ?? false);
     }
 
     [Fact]
@@ -166,8 +168,12 @@ public class RabbitMQDescriptorTests
 
         // assert
         var endpoint = transport.ReceiveEndpoints.OfType<RabbitMQReceiveEndpoint>().Single(e => e.Name == "q");
-        Assert.Equal("custom-rabbit:q/q_error", endpoint.Configuration.ErrorEndpoint?.OriginalString);
-        Assert.Equal("q_error", ((RabbitMQQueue)endpoint.ErrorEndpoint!.Destination).Name);
+        Assert.Equal(
+            "custom-rabbit:q/q_error",
+            endpoint.Configuration.Features.Get<ReceiveFaultEndpointFeature>()?.Address?.OriginalString);
+        Assert.Equal(
+            "q_error",
+            ((RabbitMQQueue)endpoint.Features.Get<ReceiveFaultEndpointFeature>()!.Endpoint!.Destination).Name);
     }
 
     [Fact]
@@ -189,6 +195,27 @@ public class RabbitMQDescriptorTests
     }
 
     [Fact]
+    public void ReceiveEndpoint_Should_PreserveLaterFaultEndpoint_When_ErrorQueueConfiguredFirst()
+    {
+        // arrange & act
+        var runtime = CreateRuntime(t =>
+        {
+            t.Queue("q").AutoProvision(true).Handler<OrderCreatedHandler>().ErrorQueue("q_error");
+            t.Endpoint("q").FaultEndpoint("rabbitmq:q/other_error");
+        });
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+
+        // assert
+        var endpoint = transport.ReceiveEndpoints.OfType<RabbitMQReceiveEndpoint>().Single(e => e.Name == "q");
+        Assert.Equal(
+            "rabbitmq:q/other_error",
+            endpoint.Configuration.Features.Get<ReceiveFaultEndpointFeature>()?.Address?.OriginalString);
+        Assert.Equal(
+            "other_error",
+            ((RabbitMQQueue)endpoint.Features.Get<ReceiveFaultEndpointFeature>()!.Endpoint!.Destination).Name);
+    }
+
+    [Fact]
     public void ReceiveEndpoint_Should_SetDisableFlag_When_DisableErrorQueueCalled()
     {
         // arrange & act
@@ -198,8 +225,9 @@ public class RabbitMQDescriptorTests
 
         // assert
         var endpoint = transport.ReceiveEndpoints.OfType<RabbitMQReceiveEndpoint>().Single(e => e.Name == "q");
-        Assert.True(endpoint.Configuration.IsErrorEndpointDisabled);
-        Assert.Null(endpoint.Configuration.ErrorEndpoint);
+        var feature = endpoint.Configuration.Features.Get<ReceiveFaultEndpointFeature>();
+        Assert.True(feature?.IsDisabled);
+        Assert.Null(feature?.Address);
     }
 
     [Fact]
@@ -214,10 +242,12 @@ public class RabbitMQDescriptorTests
         var endpoint = transport.ReceiveEndpoints.OfType<RabbitMQReceiveEndpoint>().Single(e => e.Name == "q");
 
         // assert
-        Assert.NotNull(endpoint.Configuration.ErrorEndpoint);
-        Assert.Empty(endpoint.Configuration.ErrorEndpoint!.Query);
-        Assert.NotNull(endpoint.Configuration.SkippedEndpoint);
-        Assert.Empty(endpoint.Configuration.SkippedEndpoint!.Query);
+        var faultFeature = endpoint.Configuration.Features.Get<ReceiveFaultEndpointFeature>();
+        var skippedFeature = endpoint.Configuration.Features.Get<ReceiveSkippedEndpointFeature>();
+        Assert.NotNull(faultFeature?.Address);
+        Assert.Empty(faultFeature!.Address!.Query);
+        Assert.NotNull(skippedFeature?.Address);
+        Assert.Empty(skippedFeature!.Address!.Query);
     }
 
     [Fact]

@@ -8,10 +8,10 @@ namespace Mocha.Transport.RabbitMQ.Tests;
 /// Verifies concrete error and skipped queue configuration: verbatim names, disable flags,
 /// and AutoProvision inheritance and override mechanics.
 /// </summary>
-public class RabbitMQSatelliteTests
+public class RabbitMQFaultAndSkippedQueueTests
 {
     [Fact]
-    public void Describe_Should_RenameErrorSatellite_When_ErrorQueueNamedWithPascalCase()
+    public void Describe_Should_RenameErrorQueue_When_ErrorQueueNamedWithPascalCase()
     {
         // arrange
         // The verbatim name "LEGACY.Orders.Error" must survive unchanged; the naming convention
@@ -34,7 +34,7 @@ public class RabbitMQSatelliteTests
     }
 
     [Fact]
-    public void Describe_Should_OmitErrorSatellite_When_ErrorDisabled()
+    public void Describe_Should_OmitErrorQueue_When_ErrorDisabled()
     {
         // arrange
         // DisableErrorQueue removes the error queue from topology entirely; no entity with
@@ -57,7 +57,7 @@ public class RabbitMQSatelliteTests
     }
 
     [Fact]
-    public void Describe_Should_OmitSkippedSatellite_When_SkippedDisabled()
+    public void Describe_Should_OmitSkippedQueue_When_SkippedDisabled()
     {
         // arrange
         // DisableSkippedQueue removes the skipped queue from topology entirely; no entity
@@ -80,7 +80,7 @@ public class RabbitMQSatelliteTests
     }
 
     [Fact]
-    public void Describe_Should_InheritSatelliteAutoProvision_When_ParentDeclared()
+    public void Describe_Should_InheritFaultAndSkippedQueueAutoProvision_When_ParentDeclared()
     {
         // arrange
         // parentFalse: transport default true, parent queue declared false; error and skipped queues inherit false.
@@ -104,7 +104,7 @@ public class RabbitMQSatelliteTests
     }
 
     [Fact]
-    public void Describe_Should_OverrideSatelliteAutoProvision_When_SatelliteSetExplicitly()
+    public void Describe_Should_OverrideErrorQueueAutoProvision_When_ErrorQueueDeclared()
     {
         // arrange
         // The parent queue declares AutoProvision(false). The error queue is explicitly declared

@@ -36,11 +36,19 @@ public interface IRabbitMQReceiveEndpointDescriptor : IReceiveEndpointDescriptor
     /// <inheritdoc cref="IReceiveEndpointDescriptor{TConfiguration}.MaxConcurrency" />
     new IRabbitMQReceiveEndpointDescriptor MaxConcurrency(int maxConcurrency);
 
-    /// <inheritdoc cref="IReceiveEndpointDescriptor{TConfiguration}.FaultEndpoint" />
-    new IRabbitMQReceiveEndpointDescriptor FaultEndpoint(string name);
+    /// <summary>
+    /// Sets the address of the fault endpoint where failed messages are forwarded.
+    /// </summary>
+    /// <param name="name">The fault endpoint address.</param>
+    /// <returns>The descriptor for method chaining.</returns>
+    IRabbitMQReceiveEndpointDescriptor FaultEndpoint(string name);
 
-    /// <inheritdoc cref="IReceiveEndpointDescriptor{TConfiguration}.SkippedEndpoint" />
-    new IRabbitMQReceiveEndpointDescriptor SkippedEndpoint(string name);
+    /// <summary>
+    /// Sets the address of the endpoint where skipped messages are forwarded.
+    /// </summary>
+    /// <param name="name">The skipped endpoint address.</param>
+    /// <returns>The descriptor for method chaining.</returns>
+    IRabbitMQReceiveEndpointDescriptor SkippedEndpoint(string name);
 
     /// <summary>
     /// Sets the maximum number of unacknowledged messages the broker will deliver to this

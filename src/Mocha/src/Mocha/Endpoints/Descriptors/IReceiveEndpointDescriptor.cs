@@ -80,20 +80,6 @@ public interface IReceiveEndpointDescriptor<out TConfiguration>
     IReceiveEndpointDescriptor<TConfiguration> MaxConcurrency(int maxConcurrency);
 
     /// <summary>
-    /// Sets the address of the fault endpoint where failed messages are forwarded.
-    /// </summary>
-    /// <param name="name">The fault endpoint address.</param>
-    /// <returns>The descriptor instance for method chaining.</returns>
-    IReceiveEndpointDescriptor<TConfiguration> FaultEndpoint(string name);
-
-    /// <summary>
-    /// Sets the address of the endpoint where skipped (unroutable) messages are forwarded.
-    /// </summary>
-    /// <param name="name">The skipped endpoint address.</param>
-    /// <returns>The descriptor instance for method chaining.</returns>
-    IReceiveEndpointDescriptor<TConfiguration> SkippedEndpoint(string name);
-
-    /// <summary>
     /// Adds a receive middleware to this endpoint's receive pipeline. Optionally positions it
     /// relative to an existing middleware by specifying <paramref name="before"/> or <paramref name="after"/>.
     /// </summary>

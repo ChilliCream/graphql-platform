@@ -1,3 +1,4 @@
+using Mocha.Features;
 using Mocha.Middlewares;
 using static System.StringSplitOptions;
 
@@ -177,19 +178,21 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
 
         if (postgresConfiguration is { Kind: ReceiveEndpointKind.Default, QueueName: { } queueName })
         {
+            var faultFeature = postgresConfiguration.Features.GetOrSet<ReceiveFaultEndpointFeature>();
             ConfigureFaultOrSkippedEndpoint(
                 context,
                 queueName,
                 ReceiveEndpointKind.Error,
-                postgresConfiguration.IsErrorEndpointDisabled,
-                endpoint => postgresConfiguration.ErrorEndpoint ??= endpoint);
+                faultFeature,
+                endpoint => faultFeature.Address ??= endpoint);
 
+            var skippedFeature = postgresConfiguration.Features.GetOrSet<ReceiveSkippedEndpointFeature>();
             ConfigureFaultOrSkippedEndpoint(
                 context,
                 queueName,
                 ReceiveEndpointKind.Skipped,
-                postgresConfiguration.IsSkippedEndpointDisabled,
-                endpoint => postgresConfiguration.SkippedEndpoint ??= endpoint);
+                skippedFeature,
+                endpoint => skippedFeature.Address ??= endpoint);
         }
 
         if (Transport.Configuration is PostgresTransportConfiguration postgresConfigurationTransport)
@@ -225,8 +228,8 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
 
         if (postgresEndpoint.Kind == ReceiveEndpointKind.Default)
         {
-            EnsureFaultOrSkippedQueue(context, postgresConfiguration.ErrorEndpoint);
-            EnsureFaultOrSkippedQueue(context, postgresConfiguration.SkippedEndpoint);
+            EnsureFaultOrSkippedQueue(context, postgresConfiguration.Features.Get<ReceiveFaultEndpointFeature>()?.Address);
+            EnsureFaultOrSkippedQueue(context, postgresConfiguration.Features.Get<ReceiveSkippedEndpointFeature>()?.Address);
         }
 
         if (postgresEndpoint.Kind is ReceiveEndpointKind.Reply or ReceiveEndpointKind.Error or ReceiveEndpointKind.Skipped)
@@ -381,15 +384,32 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
         IMessagingConfigurationContext context,
         string queueName,
         ReceiveEndpointKind kind,
-        bool isDisabled,
+        ReceiveFaultEndpointFeature feature,
         Action<Uri> assign)
     {
-        if (isDisabled)
+        if (feature.IsDisabled)
         {
             return;
         }
 
-        var name = context.Naming.GetReceiveEndpointName(queueName, kind);
+        var name = feature.QueueName ?? context.Naming.GetReceiveEndpointName(queueName, kind);
+
+        assign(new Uri($"{Transport.Schema}:q/{name}"));
+    }
+
+    private void ConfigureFaultOrSkippedEndpoint(
+        IMessagingConfigurationContext context,
+        string queueName,
+        ReceiveEndpointKind kind,
+        ReceiveSkippedEndpointFeature feature,
+        Action<Uri> assign)
+    {
+        if (feature.IsDisabled)
+        {
+            return;
+        }
+
+        var name = feature.QueueName ?? context.Naming.GetReceiveEndpointName(queueName, kind);
 
         assign(new Uri($"{Transport.Schema}:q/{name}"));
     }

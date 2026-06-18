@@ -16,26 +16,6 @@ public class ReceiveEndpointConfiguration : MessagingConfiguration
     public ReceiveEndpointKind Kind { get; set; } = ReceiveEndpointKind.Default;
 
     /// <summary>
-    /// Gets or sets the URI of the error/fault endpoint where failed messages are forwarded.
-    /// </summary>
-    public Uri? ErrorEndpoint { get; set; }
-
-    /// <summary>
-    /// Gets or sets whether the default error/fault endpoint route is explicitly disabled.
-    /// </summary>
-    public bool IsErrorEndpointDisabled { get; set; }
-
-    /// <summary>
-    /// Gets or sets the URI of the endpoint where skipped messages are forwarded.
-    /// </summary>
-    public Uri? SkippedEndpoint { get; set; }
-
-    /// <summary>
-    /// Gets or sets whether the default skipped endpoint route is explicitly disabled.
-    /// </summary>
-    public bool IsSkippedEndpointDisabled { get; set; }
-
-    /// <summary>
     /// Gets or sets the list of consumer identity types explicitly bound to this endpoint.
     /// </summary>
     public List<Type> ConsumerIdentities { get; set; } = [];

@@ -1,3 +1,5 @@
+using Mocha.Features;
+
 namespace Mocha.Transport.Postgres;
 
 internal sealed class PostgresReceiveEndpointDescriptor
@@ -91,17 +93,23 @@ internal sealed class PostgresReceiveEndpointDescriptor
     }
 
     /// <inheritdoc />
-    public new IPostgresReceiveEndpointDescriptor FaultEndpoint(string name)
+    public IPostgresReceiveEndpointDescriptor FaultEndpoint(string name)
     {
-        base.FaultEndpoint(name);
+        var feature = Configuration.Features.GetOrSet<ReceiveFaultEndpointFeature>();
+        feature.Address = new Uri(name);
+        feature.QueueName = null;
+        feature.IsDisabled = false;
 
         return this;
     }
 
     /// <inheritdoc />
-    public new IPostgresReceiveEndpointDescriptor SkippedEndpoint(string name)
+    public IPostgresReceiveEndpointDescriptor SkippedEndpoint(string name)
     {
-        base.SkippedEndpoint(name);
+        var feature = Configuration.Features.GetOrSet<ReceiveSkippedEndpointFeature>();
+        feature.Address = new Uri(name);
+        feature.QueueName = null;
+        feature.IsDisabled = false;
 
         return this;
     }

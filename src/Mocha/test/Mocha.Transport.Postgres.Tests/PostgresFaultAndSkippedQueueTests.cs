@@ -8,10 +8,10 @@ namespace Mocha.Transport.Postgres.Tests;
 /// Verifies concrete error and skipped queue configuration for PostgreSQL: verbatim names, disable flags,
 /// and byte-identical output when no fault/skipped queue configuration is changed.
 /// </summary>
-public class PostgresSatelliteTests
+public class PostgresFaultAndSkippedQueueTests
 {
     [Fact]
-    public void Describe_Should_RenameErrorSatellite_When_ErrorQueueNamed()
+    public void Describe_Should_RenameErrorQueue_When_ErrorQueueNamed()
     {
         // arrange
         // The verbatim name "LEGACY.Orders.Error" must survive unchanged; the naming convention
@@ -51,7 +51,7 @@ public class PostgresSatelliteTests
     }
 
     [Fact]
-    public void Describe_Should_OmitErrorSatellite_When_ErrorDisabled()
+    public void Describe_Should_OmitErrorQueue_When_ErrorDisabled()
     {
         // arrange
         // DisableErrorQueue removes the error queue from topology entirely; no queue with

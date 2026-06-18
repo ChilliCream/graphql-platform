@@ -86,20 +86,6 @@ public abstract class ReceiveEndpointDescriptor<T>(IMessagingConfigurationContex
         return this;
     }
 
-    public IReceiveEndpointDescriptor<T> FaultEndpoint(string address)
-    {
-        Configuration.ErrorEndpoint = new Uri(address);
-        Configuration.IsErrorEndpointDisabled = false;
-        return this;
-    }
-
-    public IReceiveEndpointDescriptor<T> SkippedEndpoint(string address)
-    {
-        Configuration.SkippedEndpoint = new Uri(address);
-        Configuration.IsSkippedEndpointDisabled = false;
-        return this;
-    }
-
     public IReceiveEndpointDescriptor<T> UseReceive(
         ReceiveMiddlewareConfiguration configuration,
         string? before = null,

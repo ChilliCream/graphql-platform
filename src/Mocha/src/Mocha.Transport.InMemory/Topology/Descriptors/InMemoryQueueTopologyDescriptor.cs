@@ -3,16 +3,16 @@ namespace Mocha.Transport.InMemory;
 /// <summary>
 /// Descriptor implementation for configuring a InMemory queue.
 /// </summary>
-internal sealed class InMemoryQueueDescriptor
+internal sealed class InMemoryQueueTopologyDescriptor
     : MessagingDescriptorBase<InMemoryQueueConfiguration>
-    , IInMemoryQueueDescriptor
+    , IInMemoryQueueTopologyDescriptor
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="InMemoryQueueDescriptor"/> class.
+    /// Initializes a new instance of the <see cref="InMemoryQueueTopologyDescriptor"/> class.
     /// </summary>
     /// <param name="context">The messaging configuration context.</param>
     /// <param name="name">The initial queue name.</param>
-    public InMemoryQueueDescriptor(IMessagingConfigurationContext context, string name) : base(context)
+    public InMemoryQueueTopologyDescriptor(IMessagingConfigurationContext context, string name) : base(context)
     {
         Configuration = new InMemoryQueueConfiguration { Name = name };
     }
@@ -21,7 +21,7 @@ internal sealed class InMemoryQueueDescriptor
     protected internal override InMemoryQueueConfiguration Configuration { get; protected set; }
 
     /// <inheritdoc />
-    public IInMemoryQueueDescriptor Name(string name)
+    public IInMemoryQueueTopologyDescriptor Name(string name)
     {
         Configuration.Name = name;
         return this;
@@ -39,6 +39,6 @@ internal sealed class InMemoryQueueDescriptor
     /// <param name="context">The messaging configuration context.</param>
     /// <param name="name">The queue name.</param>
     /// <returns>A new queue descriptor.</returns>
-    public static InMemoryQueueDescriptor New(IMessagingConfigurationContext context, string name)
+    public static InMemoryQueueTopologyDescriptor New(IMessagingConfigurationContext context, string name)
         => new(context, name);
 }

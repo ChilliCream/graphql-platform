@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Mocha.Features;
 using Mocha.Transport.Postgres.Tests.Helpers;
 
 namespace Mocha.Transport.Postgres.Tests;
@@ -36,7 +37,7 @@ public class PostgresReceiveEndpointTests
         var endpoint = transport.ReceiveEndpoints.OfType<PostgresReceiveEndpoint>().First(e => e.Queue.Name == "q");
 
         // assert
-        Assert.NotNull(endpoint.ErrorEndpoint);
+        Assert.NotNull(endpoint.Features.Get<ReceiveFaultEndpointFeature>()?.Endpoint);
     }
 
     [Fact]
@@ -54,7 +55,7 @@ public class PostgresReceiveEndpointTests
         var endpoint = transport.ReceiveEndpoints.OfType<PostgresReceiveEndpoint>().First(e => e.Queue.Name == "q");
 
         // assert
-        Assert.NotNull(endpoint.SkippedEndpoint);
+        Assert.NotNull(endpoint.Features.Get<ReceiveSkippedEndpointFeature>()?.Endpoint);
     }
 
     [Fact]

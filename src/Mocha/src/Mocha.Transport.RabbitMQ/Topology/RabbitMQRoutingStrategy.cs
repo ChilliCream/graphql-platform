@@ -192,19 +192,21 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
 
         if (rabbitConfiguration is { Kind: ReceiveEndpointKind.Default, QueueName: { } queueName })
         {
+            var faultFeature = rabbitConfiguration.Features.GetOrSet<ReceiveFaultEndpointFeature>();
             ConfigureFaultOrSkippedEndpoint(
                 context,
                 queueName,
                 ReceiveEndpointKind.Error,
-                rabbitConfiguration.IsErrorEndpointDisabled,
-                endpoint => rabbitConfiguration.ErrorEndpoint ??= endpoint);
+                faultFeature,
+                endpoint => faultFeature.Address ??= endpoint);
 
+            var skippedFeature = rabbitConfiguration.Features.GetOrSet<ReceiveSkippedEndpointFeature>();
             ConfigureFaultOrSkippedEndpoint(
                 context,
                 queueName,
                 ReceiveEndpointKind.Skipped,
-                rabbitConfiguration.IsSkippedEndpointDisabled,
-                endpoint => rabbitConfiguration.SkippedEndpoint ??= endpoint);
+                skippedFeature,
+                endpoint => skippedFeature.Address ??= endpoint);
         }
     }
 
@@ -240,8 +242,14 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
                 rabbitConfiguration.QueueName,
                 rabbitConfiguration);
 
-            EnsureFaultOrSkippedQueue(context, rabbitConfiguration.ErrorEndpoint, inheritedAutoProvision);
-            EnsureFaultOrSkippedQueue(context, rabbitConfiguration.SkippedEndpoint, inheritedAutoProvision);
+            EnsureFaultOrSkippedQueue(
+                context,
+                rabbitConfiguration.Features.Get<ReceiveFaultEndpointFeature>()?.Address,
+                inheritedAutoProvision);
+            EnsureFaultOrSkippedQueue(
+                context,
+                rabbitConfiguration.Features.Get<ReceiveSkippedEndpointFeature>()?.Address,
+                inheritedAutoProvision);
         }
 
         if (rabbitEndpoint.Kind is ReceiveEndpointKind.Reply or ReceiveEndpointKind.Error or ReceiveEndpointKind.Skipped)
@@ -491,15 +499,32 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
         IMessagingConfigurationContext context,
         string queueName,
         ReceiveEndpointKind kind,
-        bool isDisabled,
+        ReceiveFaultEndpointFeature feature,
         Action<Uri> assign)
     {
-        if (isDisabled)
+        if (feature.IsDisabled)
         {
             return;
         }
 
-        var name = context.Naming.GetReceiveEndpointName(queueName, kind);
+        var name = feature.QueueName ?? context.Naming.GetReceiveEndpointName(queueName, kind);
+
+        assign(new Uri($"{Transport.Schema}:q/{name}"));
+    }
+
+    private void ConfigureFaultOrSkippedEndpoint(
+        IMessagingConfigurationContext context,
+        string queueName,
+        ReceiveEndpointKind kind,
+        ReceiveSkippedEndpointFeature feature,
+        Action<Uri> assign)
+    {
+        if (feature.IsDisabled)
+        {
+            return;
+        }
+
+        var name = feature.QueueName ?? context.Naming.GetReceiveEndpointName(queueName, kind);
 
         assign(new Uri($"{Transport.Schema}:q/{name}"));
     }

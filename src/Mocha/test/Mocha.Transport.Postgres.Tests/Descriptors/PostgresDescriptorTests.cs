@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Mocha.Features;
 using Mocha.Transport.Postgres.Tests.Helpers;
 
 namespace Mocha.Transport.Postgres.Tests.Descriptors;
@@ -188,8 +189,9 @@ public class PostgresDescriptorTests
         var endpoint = transport.ReceiveEndpoints
             .OfType<PostgresReceiveEndpoint>()
             .Single(e => e.Queue.Name == "q");
-        Assert.Equal("postgres:q/Legacy.Orders.V2_error", endpoint.Configuration.ErrorEndpoint?.OriginalString);
-        Assert.False(endpoint.Configuration.IsErrorEndpointDisabled);
+        var feature = endpoint.Configuration.Features.Get<ReceiveFaultEndpointFeature>();
+        Assert.Equal("postgres:q/Legacy.Orders.V2_error", feature?.Address?.OriginalString);
+        Assert.False(feature?.IsDisabled ?? false);
     }
 
     [Fact]
@@ -214,8 +216,42 @@ public class PostgresDescriptorTests
         var endpoint = transport.ReceiveEndpoints
             .OfType<PostgresReceiveEndpoint>()
             .Single(e => e.Queue.Name == "q");
-        Assert.Equal("custom-postgres:q/q_error", endpoint.Configuration.ErrorEndpoint?.OriginalString);
-        Assert.Equal("q_error", ((PostgresQueue)endpoint.ErrorEndpoint!.Destination).Name);
+        Assert.Equal(
+            "custom-postgres:q/q_error",
+            endpoint.Configuration.Features.Get<ReceiveFaultEndpointFeature>()?.Address?.OriginalString);
+        Assert.Equal(
+            "q_error",
+            ((PostgresQueue)endpoint.Features.Get<ReceiveFaultEndpointFeature>()!.Endpoint!.Destination).Name);
+    }
+
+    [Fact]
+    public void ReceiveEndpoint_Should_PreserveLaterFaultEndpoint_When_ErrorQueueConfiguredFirst()
+    {
+        // arrange & act
+        var services = new ServiceCollection();
+        services.AddSingleton(new MessageRecorder());
+        var builder = services.AddMessageBus();
+        builder.AddEventHandler<OrderCreatedHandler>();
+        var runtime = builder
+            .AddPostgres(t =>
+            {
+                t.ConnectionString("Host=localhost;Database=mocha_test;Username=test;Password=test");
+                t.Queue("q").ErrorQueue("q_error").Handler<OrderCreatedHandler>();
+                t.Endpoint("q").FaultEndpoint("postgres:q/other_error");
+            })
+            .BuildRuntime();
+        var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
+
+        // assert
+        var endpoint = transport.ReceiveEndpoints
+            .OfType<PostgresReceiveEndpoint>()
+            .Single(e => e.Queue.Name == "q");
+        Assert.Equal(
+            "postgres:q/other_error",
+            endpoint.Configuration.Features.Get<ReceiveFaultEndpointFeature>()?.Address?.OriginalString);
+        Assert.Equal(
+            "other_error",
+            ((PostgresQueue)endpoint.Features.Get<ReceiveFaultEndpointFeature>()!.Endpoint!.Destination).Name);
     }
 
     [Fact]
@@ -239,8 +275,9 @@ public class PostgresDescriptorTests
         var endpoint = transport.ReceiveEndpoints
             .OfType<PostgresReceiveEndpoint>()
             .Single(e => e.Queue.Name == "q");
-        Assert.True(endpoint.Configuration.IsErrorEndpointDisabled);
-        Assert.Null(endpoint.Configuration.ErrorEndpoint);
+        var feature = endpoint.Configuration.Features.Get<ReceiveFaultEndpointFeature>();
+        Assert.True(feature?.IsDisabled);
+        Assert.Null(feature?.Address);
     }
 
     [Fact]

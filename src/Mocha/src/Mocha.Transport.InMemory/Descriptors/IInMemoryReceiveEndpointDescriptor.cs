@@ -33,11 +33,19 @@ public interface IInMemoryReceiveEndpointDescriptor : IReceiveEndpointDescriptor
     /// <inheritdoc />
     new IInMemoryReceiveEndpointDescriptor Kind(ReceiveEndpointKind kind);
 
-    /// <inheritdoc />
-    new IInMemoryReceiveEndpointDescriptor FaultEndpoint(string name);
+    /// <summary>
+    /// Sets the address of the fault endpoint where failed messages are forwarded.
+    /// </summary>
+    /// <param name="name">The fault endpoint address.</param>
+    /// <returns>The descriptor for method chaining.</returns>
+    IInMemoryReceiveEndpointDescriptor FaultEndpoint(string name);
 
-    /// <inheritdoc />
-    new IInMemoryReceiveEndpointDescriptor SkippedEndpoint(string name);
+    /// <summary>
+    /// Sets the address of the endpoint where skipped messages are forwarded.
+    /// </summary>
+    /// <param name="name">The skipped endpoint address.</param>
+    /// <returns>The descriptor for method chaining.</returns>
+    IInMemoryReceiveEndpointDescriptor SkippedEndpoint(string name);
 
     /// <inheritdoc />
     new IInMemoryReceiveEndpointDescriptor MaxConcurrency(int maxConcurrency);

@@ -3,6 +3,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Mocha.Sagas;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
 
+using Mocha.Features;
+
 namespace Mocha.Transport.RabbitMQ.Tests.Descriptors;
 
 /// <summary>
@@ -305,8 +307,9 @@ public class RabbitMQUnifiedQueueTests
             .Single(e => e.Queue.Name == "orders");
 
         // assert: the error queue name is stored verbatim in the route
-        Assert.Equal("rabbitmq:q/LEGACY.Orders.Error", endpoint.Configuration.ErrorEndpoint?.OriginalString);
-        Assert.False(endpoint.Configuration.IsErrorEndpointDisabled);
+        var feature = endpoint.Configuration.Features.Get<ReceiveFaultEndpointFeature>();
+        Assert.Equal("rabbitmq:q/LEGACY.Orders.Error", feature?.Address?.OriginalString);
+        Assert.False(feature?.IsDisabled ?? false);
     }
 
     private static MessagingRuntime CreateRuntime(

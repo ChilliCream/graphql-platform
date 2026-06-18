@@ -45,8 +45,8 @@ public interface IPostgresMessagingTransportDescriptor
     /// Declares a queue in the PostgreSQL topology.
     /// </summary>
     /// <param name="name">The queue name.</param>
-    /// <returns>A descriptor for further configuring the queue.</returns>
-    IPostgresQueueDescriptor DeclareQueue(string name);
+    /// <returns>A queue topology descriptor for further configuring the queue.</returns>
+    IPostgresQueueTopologyDescriptor DeclareQueue(string name);
 
     /// <summary>
     /// Declares a subscription that routes messages from a topic to a queue in the PostgreSQL topology.
@@ -114,12 +114,12 @@ public interface IPostgresMessagingTransportDescriptor
         where TConsumer : class, IConsumer;
 
     /// <summary>
-    /// Gets or creates a queue builder whose identity is the given queue name. The builder eagerly
-    /// declares a queue in the topology and lazily creates a receive endpoint when routing methods
-    /// (Consumer, Handler, Receives, etc.) are called. Calling this method multiple times with the
-    /// same name returns the same builder.
+    /// Gets or creates a queue descriptor whose identity is the given queue name. The descriptor
+    /// eagerly declares a queue in the topology and lazily creates a receive endpoint when routing
+    /// methods (Consumer, Handler, Receives, etc.) are called. Calling this method multiple times
+    /// with the same name returns the same descriptor.
     /// </summary>
     /// <param name="name">The queue name, which also serves as the endpoint identity.</param>
-    /// <returns>A queue builder for further configuration.</returns>
-    IPostgresQueueBuilder Queue(string name);
+    /// <returns>A queue descriptor for further configuration.</returns>
+    IPostgresQueueDescriptor Queue(string name);
 }

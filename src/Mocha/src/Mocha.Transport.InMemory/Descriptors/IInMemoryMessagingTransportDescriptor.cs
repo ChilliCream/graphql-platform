@@ -43,8 +43,8 @@ public interface IInMemoryMessagingTransportDescriptor : IMessagingTransportDesc
     /// Declares a queue in the in-memory topology.
     /// </summary>
     /// <param name="name">The queue name.</param>
-    /// <returns>A descriptor for further configuring the queue.</returns>
-    IInMemoryQueueDescriptor DeclareQueue(string name);
+    /// <returns>A queue topology descriptor for further configuring the queue.</returns>
+    IInMemoryQueueTopologyDescriptor DeclareQueue(string name);
 
     /// <summary>
     /// Declares a binding that routes messages from a topic to a queue in the in-memory topology.
@@ -97,11 +97,11 @@ public interface IInMemoryMessagingTransportDescriptor : IMessagingTransportDesc
         where TConsumer : class, IConsumer;
 
     /// <summary>
-    /// Gets or creates the queue builder for the given queue name. The queue is eagerly declared
-    /// in the topology. If only infra methods are called, no receive endpoint is materialized.
-    /// Calling this method multiple times with the same name returns the same builder.
+    /// Gets or creates the queue descriptor for the given queue name. The queue is eagerly declared
+    /// in the topology. If only topology methods are called, no receive endpoint is materialized.
+    /// Calling this method multiple times with the same name returns the same descriptor.
     /// </summary>
     /// <param name="name">The queue name. Also serves as the endpoint identity.</param>
-    /// <returns>A queue builder for further configuration.</returns>
-    IInMemoryQueueBuilder Queue(string name);
+    /// <returns>A queue descriptor for further configuration.</returns>
+    IInMemoryQueueDescriptor Queue(string name);
 }

@@ -1,3 +1,5 @@
+using Mocha.Features;
+
 namespace Mocha.Transport.RabbitMQ;
 
 /// <summary>
@@ -91,17 +93,23 @@ internal sealed class RabbitMQReceiveEndpointDescriptor
     }
 
     /// <inheritdoc />
-    public new IRabbitMQReceiveEndpointDescriptor FaultEndpoint(string name)
+    public IRabbitMQReceiveEndpointDescriptor FaultEndpoint(string name)
     {
-        base.FaultEndpoint(name);
+        var feature = Configuration.Features.GetOrSet<ReceiveFaultEndpointFeature>();
+        feature.Address = new Uri(name);
+        feature.QueueName = null;
+        feature.IsDisabled = false;
 
         return this;
     }
 
     /// <inheritdoc />
-    public new IRabbitMQReceiveEndpointDescriptor SkippedEndpoint(string name)
+    public IRabbitMQReceiveEndpointDescriptor SkippedEndpoint(string name)
     {
-        base.SkippedEndpoint(name);
+        var feature = Configuration.Features.GetOrSet<ReceiveSkippedEndpointFeature>();
+        feature.Address = new Uri(name);
+        feature.QueueName = null;
+        feature.IsDisabled = false;
 
         return this;
     }

@@ -17,9 +17,8 @@ public sealed class InMemoryMessagingTransportDescriptor
     private readonly List<InMemoryDispatchEndpointDescriptor> _dispatchEndpoints = [];
     private readonly List<InMemoryTopicDescriptor> _exchanges = [];
     private readonly List<InMemoryQueueDescriptor> _queues = [];
+    private readonly List<InMemoryQueueTopologyDescriptor> _queueTopology = [];
     private readonly List<InMemoryBindingDescriptor> _bindings = [];
-    private readonly Dictionary<string, InMemoryQueueBuilder> _queueBuilders =
-        new(StringComparer.Ordinal);
 
     /// <summary>
     /// Creates a new in-memory transport descriptor bound to the specified setup context.
@@ -139,16 +138,17 @@ public sealed class InMemoryMessagingTransportDescriptor
     }
 
     /// <inheritdoc />
-    public IInMemoryQueueBuilder Queue(string name)
+    public IInMemoryQueueDescriptor Queue(string name)
     {
-        if (_queueBuilders.TryGetValue(name, out var existing))
+        var queue = _queues.FirstOrDefault(q => q.Name.EqualsOrdinal(name));
+        if (queue is not null)
         {
-            return existing;
+            return queue;
         }
 
-        var builder = new InMemoryQueueBuilder(this, name);
-        _queueBuilders[name] = builder;
-        return builder;
+        queue = new InMemoryQueueDescriptor(this, name);
+        _queues.Add(queue);
+        return queue;
     }
 
     /// <inheritdoc />
@@ -193,13 +193,13 @@ public sealed class InMemoryMessagingTransportDescriptor
     }
 
     /// <inheritdoc />
-    public IInMemoryQueueDescriptor DeclareQueue(string name)
+    public IInMemoryQueueTopologyDescriptor DeclareQueue(string name)
     {
-        var queue = _queues.FirstOrDefault(q => q.Extend().Configuration.Name.EqualsOrdinal(name));
+        var queue = _queueTopology.FirstOrDefault(q => q.Extend().Configuration.Name.EqualsOrdinal(name));
         if (queue is null)
         {
-            queue = InMemoryQueueDescriptor.New(Context, name);
-            _queues.Add(queue);
+            queue = InMemoryQueueTopologyDescriptor.New(Context, name);
+            _queueTopology.Add(queue);
         }
         return queue;
     }
@@ -228,38 +228,13 @@ public sealed class InMemoryMessagingTransportDescriptor
     public InMemoryTransportConfiguration CreateConfiguration()
     {
         var topics = _exchanges.Select(e => e.CreateConfiguration()).ToList();
-        var queues = _queues.Select(q => q.CreateConfiguration()).ToList();
+        var queues = _queueTopology.Select(q => q.CreateConfiguration()).ToList();
         var bindings = _bindings.Select(b => b.CreateConfiguration()).ToList();
 
-        // Prune endpoints materialized by Queue() builders that ended up entity-only (no consumer,
-        // no Receives). A builder with Endpoint == null never created an endpoint, so nothing to
-        // prune. A builder whose endpoint is entity-only but has fault or skipped routing configured
-        // is an error. Otherwise, remove the phantom endpoint.
-        foreach (var builder in _queueBuilders.Values)
+        foreach (var queue in _queues)
         {
-            var endpoint = builder.Endpoint;
-            if (endpoint is null)
+            if (queue.TryGetEntityOnlyEndpointToPrune(out var endpoint) && endpoint is not null)
             {
-                // Infra-only builder; queue already in topology via DeclareQueue. Nothing to do.
-                continue;
-            }
-
-            var config = endpoint.Configuration;
-            if (config.ConsumerIdentities.Count == 0 && config.ReceivedMessageTypes.Count == 0)
-            {
-                var queueName = config.QueueName ?? config.Name ?? string.Empty;
-
-                if (config.ErrorEndpoint is not null)
-                {
-                    throw ThrowHelper.FaultOrSkippedQueueRequiresConsumingEndpoint("error", queueName);
-                }
-
-                if (config.SkippedEndpoint is not null)
-                {
-                    throw ThrowHelper.FaultOrSkippedQueueRequiresConsumingEndpoint("skipped", queueName);
-                }
-
-                // Entity-only: remove the phantom endpoint from the lifecycle list.
                 _receiveEndpoints.Remove(endpoint);
             }
         }

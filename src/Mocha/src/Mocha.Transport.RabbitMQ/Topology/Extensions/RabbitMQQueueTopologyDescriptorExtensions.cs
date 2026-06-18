@@ -3,7 +3,7 @@ namespace Mocha.Transport.RabbitMQ;
 /// <summary>
 /// Extension methods for RabbitMQ descriptor configuration.
 /// </summary>
-public static class RabbitMQQueueDescriptorExtensions
+public static class RabbitMQQueueTopologyDescriptorExtensions
 {
     /// <summary>
     /// Sets the message time-to-live (TTL) for messages in the queue.
@@ -12,7 +12,7 @@ public static class RabbitMQQueueDescriptorExtensions
     /// <param name="descriptor">The queue descriptor.</param>
     /// <param name="ttl">The time-to-live duration.</param>
     /// <returns>The descriptor for method chaining.</returns>
-    public static IRabbitMQQueueDescriptor MessageTimeToLive(this IRabbitMQQueueDescriptor descriptor, TimeSpan ttl)
+    public static IRabbitMQQueueTopologyDescriptor MessageTimeToLive(this IRabbitMQQueueTopologyDescriptor descriptor, TimeSpan ttl)
     {
         return descriptor.WithArgument("x-message-ttl", (int)ttl.TotalMilliseconds);
     }
@@ -24,7 +24,7 @@ public static class RabbitMQQueueDescriptorExtensions
     /// <param name="descriptor">The queue descriptor.</param>
     /// <param name="expiry">The expiration duration.</param>
     /// <returns>The descriptor for method chaining.</returns>
-    public static IRabbitMQQueueDescriptor Expires(this IRabbitMQQueueDescriptor descriptor, TimeSpan expiry)
+    public static IRabbitMQQueueTopologyDescriptor Expires(this IRabbitMQQueueTopologyDescriptor descriptor, TimeSpan expiry)
     {
         return descriptor.WithArgument("x-expires", (int)expiry.TotalMilliseconds);
     }
@@ -37,8 +37,8 @@ public static class RabbitMQQueueDescriptorExtensions
     /// <param name="messageCount">The maximum number of messages.</param>
     /// <param name="overflowBehaviour">The behavior when the limit is reached (default: DropHead).</param>
     /// <returns>The descriptor for method chaining.</returns>
-    public static IRabbitMQQueueDescriptor MaxLength(
-        this IRabbitMQQueueDescriptor descriptor,
+    public static IRabbitMQQueueTopologyDescriptor MaxLength(
+        this IRabbitMQQueueTopologyDescriptor descriptor,
         int messageCount,
         RabbitMQQueueOverFlowBehavior overflowBehaviour = RabbitMQQueueOverFlowBehavior.DropHead)
     {
@@ -57,8 +57,8 @@ public static class RabbitMQQueueDescriptorExtensions
     /// <param name="messageBytes">The maximum size in bytes.</param>
     /// <param name="overflowBehaviour">The behavior when the limit is reached (default: DropHead).</param>
     /// <returns>The descriptor for method chaining.</returns>
-    public static IRabbitMQQueueDescriptor MaxLengthBytes(
-        this IRabbitMQQueueDescriptor descriptor,
+    public static IRabbitMQQueueTopologyDescriptor MaxLengthBytes(
+        this IRabbitMQQueueTopologyDescriptor descriptor,
         long messageBytes,
         RabbitMQQueueOverFlowBehavior overflowBehaviour = RabbitMQQueueOverFlowBehavior.DropHead)
     {
@@ -76,8 +76,8 @@ public static class RabbitMQQueueDescriptorExtensions
     /// <param name="exchange">The dead letter exchange name.</param>
     /// <param name="routingKey">The routing key for dead lettered messages.</param>
     /// <returns>The descriptor for method chaining.</returns>
-    public static IRabbitMQQueueDescriptor DeadLetter(
-        this IRabbitMQQueueDescriptor descriptor,
+    public static IRabbitMQQueueTopologyDescriptor DeadLetter(
+        this IRabbitMQQueueTopologyDescriptor descriptor,
         string exchange,
         string routingKey)
     {
@@ -92,7 +92,7 @@ public static class RabbitMQQueueDescriptorExtensions
     /// <param name="descriptor">The queue descriptor.</param>
     /// <param name="queueType">The queue type.</param>
     /// <returns>The descriptor for method chaining.</returns>
-    public static IRabbitMQQueueDescriptor QueueType(this IRabbitMQQueueDescriptor descriptor, string queueType)
+    public static IRabbitMQQueueTopologyDescriptor QueueType(this IRabbitMQQueueTopologyDescriptor descriptor, string queueType)
     {
         return descriptor.WithArgument("x-queue-type", queueType);
     }
@@ -104,7 +104,7 @@ public static class RabbitMQQueueDescriptorExtensions
     /// <param name="descriptor">The queue descriptor.</param>
     /// <param name="mode">The queue mode.</param>
     /// <returns>The descriptor for method chaining.</returns>
-    public static IRabbitMQQueueDescriptor QueueMode(this IRabbitMQQueueDescriptor descriptor, RabbitMQQueueMode mode)
+    public static IRabbitMQQueueTopologyDescriptor QueueMode(this IRabbitMQQueueTopologyDescriptor descriptor, RabbitMQQueueMode mode)
     {
         return descriptor.WithArgument("x-queue-mode", mode == RabbitMQQueueMode.Lazy ? "lazy" : "default");
     }
@@ -115,7 +115,7 @@ public static class RabbitMQQueueDescriptorExtensions
     /// </summary>
     /// <param name="descriptor">The queue descriptor.</param>
     /// <returns>The descriptor for method chaining.</returns>
-    public static IRabbitMQQueueDescriptor SingleActiveConsumer(this IRabbitMQQueueDescriptor descriptor)
+    public static IRabbitMQQueueTopologyDescriptor SingleActiveConsumer(this IRabbitMQQueueTopologyDescriptor descriptor)
     {
         return descriptor.WithArgument("x-single-active-consumer", true);
     }
@@ -127,7 +127,7 @@ public static class RabbitMQQueueDescriptorExtensions
     /// <param name="descriptor">The queue descriptor.</param>
     /// <param name="level">The maximum priority level (default: 255).</param>
     /// <returns>The descriptor for method chaining.</returns>
-    public static IRabbitMQQueueDescriptor MaxPriority(this IRabbitMQQueueDescriptor descriptor, int level = 255)
+    public static IRabbitMQQueueTopologyDescriptor MaxPriority(this IRabbitMQQueueTopologyDescriptor descriptor, int level = 255)
     {
         return descriptor.WithArgument("x-max-priority", level);
     }
@@ -139,7 +139,7 @@ public static class RabbitMQQueueDescriptorExtensions
     /// <param name="descriptor">The queue descriptor.</param>
     /// <param name="size">The initial group size (number of replicas).</param>
     /// <returns>The descriptor for method chaining.</returns>
-    public static IRabbitMQQueueDescriptor QuorumInitialGroupSize(this IRabbitMQQueueDescriptor descriptor, int size)
+    public static IRabbitMQQueueTopologyDescriptor QuorumInitialGroupSize(this IRabbitMQQueueTopologyDescriptor descriptor, int size)
     {
         return descriptor.WithArgument("x-quorum-initial-group-size", size);
     }
@@ -151,7 +151,7 @@ public static class RabbitMQQueueDescriptorExtensions
     /// <param name="descriptor">The queue descriptor.</param>
     /// <param name="limit">The maximum number of delivery attempts.</param>
     /// <returns>The descriptor for method chaining.</returns>
-    public static IRabbitMQQueueDescriptor MaxDeliveryLimit(this IRabbitMQQueueDescriptor descriptor, int limit)
+    public static IRabbitMQQueueTopologyDescriptor MaxDeliveryLimit(this IRabbitMQQueueTopologyDescriptor descriptor, int limit)
     {
         return descriptor.WithArgument("x-delivery-limit", limit);
     }

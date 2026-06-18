@@ -3,16 +3,16 @@ namespace Mocha.Transport.RabbitMQ;
 /// <summary>
 /// Descriptor implementation for configuring a RabbitMQ queue.
 /// </summary>
-internal sealed class RabbitMQQueueDescriptor
+internal sealed class RabbitMQQueueTopologyDescriptor
     : MessagingDescriptorBase<RabbitMQQueueConfiguration>
-    , IRabbitMQQueueDescriptor
+    , IRabbitMQQueueTopologyDescriptor
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="RabbitMQQueueDescriptor"/> class.
+    /// Initializes a new instance of the <see cref="RabbitMQQueueTopologyDescriptor"/> class.
     /// </summary>
     /// <param name="context">The messaging configuration context.</param>
     /// <param name="name">The initial queue name.</param>
-    public RabbitMQQueueDescriptor(IMessagingConfigurationContext context, string name) : base(context)
+    public RabbitMQQueueTopologyDescriptor(IMessagingConfigurationContext context, string name) : base(context)
     {
         Configuration = new RabbitMQQueueConfiguration { Name = name, Provenance = RabbitMQTopologyProvenance.Declared };
     }
@@ -21,35 +21,35 @@ internal sealed class RabbitMQQueueDescriptor
     protected internal override RabbitMQQueueConfiguration Configuration { get; protected set; }
 
     /// <inheritdoc />
-    public IRabbitMQQueueDescriptor Name(string name)
+    public IRabbitMQQueueTopologyDescriptor Name(string name)
     {
         Configuration.Name = name;
         return this;
     }
 
     /// <inheritdoc />
-    public IRabbitMQQueueDescriptor Durable(bool durable = true)
+    public IRabbitMQQueueTopologyDescriptor Durable(bool durable = true)
     {
         Configuration.Durable = durable;
         return this;
     }
 
     /// <inheritdoc />
-    public IRabbitMQQueueDescriptor Exclusive(bool exclusive = true)
+    public IRabbitMQQueueTopologyDescriptor Exclusive(bool exclusive = true)
     {
         Configuration.Exclusive = exclusive;
         return this;
     }
 
     /// <inheritdoc />
-    public IRabbitMQQueueDescriptor AutoDelete(bool autoDelete = true)
+    public IRabbitMQQueueTopologyDescriptor AutoDelete(bool autoDelete = true)
     {
         Configuration.AutoDelete = autoDelete;
         return this;
     }
 
     /// <inheritdoc />
-    public IRabbitMQQueueDescriptor WithArgument(string key, object value)
+    public IRabbitMQQueueTopologyDescriptor WithArgument(string key, object value)
     {
         Configuration.Arguments ??= new Dictionary<string, object>();
         Configuration.Arguments[key] = value;
@@ -57,7 +57,7 @@ internal sealed class RabbitMQQueueDescriptor
     }
 
     /// <inheritdoc />
-    public IRabbitMQQueueDescriptor AutoProvision(bool autoProvision = true)
+    public IRabbitMQQueueTopologyDescriptor AutoProvision(bool autoProvision = true)
     {
         Configuration.AutoProvision = autoProvision;
         return this;
@@ -75,6 +75,6 @@ internal sealed class RabbitMQQueueDescriptor
     /// <param name="context">The messaging configuration context.</param>
     /// <param name="name">The queue name.</param>
     /// <returns>A new queue descriptor.</returns>
-    public static RabbitMQQueueDescriptor New(IMessagingConfigurationContext context, string name)
+    public static RabbitMQQueueTopologyDescriptor New(IMessagingConfigurationContext context, string name)
         => new(context, name);
 }

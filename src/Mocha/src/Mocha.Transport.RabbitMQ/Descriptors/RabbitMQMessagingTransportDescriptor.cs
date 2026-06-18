@@ -11,9 +11,8 @@ public sealed class RabbitMQMessagingTransportDescriptor
     private readonly List<RabbitMQDispatchEndpointDescriptor> _dispatchEndpoints = [];
     private readonly List<RabbitMQExchangeDescriptor> _exchanges = [];
     private readonly List<RabbitMQQueueDescriptor> _queues = [];
+    private readonly List<RabbitMQQueueTopologyDescriptor> _queueTopology = [];
     private readonly List<RabbitMQBindingDescriptor> _bindings = [];
-    private readonly Dictionary<string, RabbitMQQueueBuilder> _queueBuilders =
-        new(StringComparer.Ordinal);
 
     /// <summary>
     /// Creates a new RabbitMQ transport descriptor bound to the given setup context.
@@ -198,13 +197,13 @@ public sealed class RabbitMQMessagingTransportDescriptor
     }
 
     /// <inheritdoc />
-    public IRabbitMQQueueDescriptor DeclareQueue(string name)
+    public IRabbitMQQueueTopologyDescriptor DeclareQueue(string name)
     {
-        var queue = _queues.FirstOrDefault(q => q.Extend().Configuration.Name.EqualsOrdinal(name));
+        var queue = _queueTopology.FirstOrDefault(q => q.Extend().Configuration.Name.EqualsOrdinal(name));
         if (queue is null)
         {
-            queue = RabbitMQQueueDescriptor.New(Context, name);
-            _queues.Add(queue);
+            queue = RabbitMQQueueTopologyDescriptor.New(Context, name);
+            _queueTopology.Add(queue);
         }
         return queue;
     }
@@ -218,16 +217,17 @@ public sealed class RabbitMQMessagingTransportDescriptor
     }
 
     /// <inheritdoc />
-    public IRabbitMQQueueBuilder Queue(string name)
+    public IRabbitMQQueueDescriptor Queue(string name)
     {
-        if (_queueBuilders.TryGetValue(name, out var existing))
+        var queue = _queues.FirstOrDefault(q => q.Name.EqualsOrdinal(name));
+        if (queue is not null)
         {
-            return existing;
+            return queue;
         }
 
-        var builder = new RabbitMQQueueBuilder(this, name);
-        _queueBuilders[name] = builder;
-        return builder;
+        queue = new RabbitMQQueueDescriptor(this, name);
+        _queues.Add(queue);
+        return queue;
     }
 
     /// <summary>
@@ -236,45 +236,14 @@ public sealed class RabbitMQMessagingTransportDescriptor
     /// <returns>A fully populated <see cref="RabbitMQTransportConfiguration"/> ready for transport initialization.</returns>
     public RabbitMQTransportConfiguration CreateConfiguration()
     {
-        var schema = Configuration.Schema ?? RabbitMQTransportConfiguration.DefaultSchema;
-        foreach (var builder in _queueBuilders.Values)
-        {
-            builder.MaterializeFaultAndSkippedQueueRoutes(schema);
-        }
-
         var exchanges = _exchanges.Select(e => e.CreateConfiguration()).ToList();
-        var queues = _queues.Select(q => q.CreateConfiguration()).ToList();
+        var queues = _queueTopology.Select(q => q.CreateConfiguration()).ToList();
         var bindings = _bindings.Select(b => b.CreateConfiguration()).ToList();
 
-        // Prune endpoints materialized by Queue() builders that ended up entity-only (no consumer,
-        // no Receives). An entity-only builder with Endpoint == null never created an endpoint, so
-        // nothing to prune. A builder whose endpoint is entity-only but has fault or skipped routing
-        // configured is an error. Otherwise, remove the phantom endpoint.
-        foreach (var builder in _queueBuilders.Values)
+        foreach (var queue in _queues)
         {
-            var endpoint = builder.Endpoint;
-            if (endpoint is null)
+            if (queue.TryGetEntityOnlyEndpointToPrune(out var endpoint) && endpoint is not null)
             {
-                // Infra-only builder; queue already in topology via DeclareQueue. Nothing to do.
-                continue;
-            }
-
-            var config = endpoint.Configuration;
-            if (config.ConsumerIdentities.Count == 0 && config.ReceivedMessageTypes.Count == 0)
-            {
-                var queueName = config.QueueName ?? config.Name ?? string.Empty;
-
-                if (config.ErrorEndpoint is not null || config.IsErrorEndpointDisabled)
-                {
-                    throw ThrowHelper.FaultOrSkippedQueueRequiresConsumingEndpoint("error", queueName);
-                }
-
-                if (config.SkippedEndpoint is not null || config.IsSkippedEndpointDisabled)
-                {
-                    throw ThrowHelper.FaultOrSkippedQueueRequiresConsumingEndpoint("skipped", queueName);
-                }
-
-                // Entity-only: remove the phantom endpoint from the lifecycle list.
                 _receiveEndpoints.Remove(endpoint);
             }
         }
