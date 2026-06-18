@@ -232,19 +232,12 @@ public sealed class OperationExecutionNode : ExecutionNode
                     hasSomeErrors);
                 hasPendingMerge = true;
             }
-            else
+
+            if (hasPendingMerge)
             {
-                pendingMerge = PendingMerge.Empty(
-                    this,
-                    schemaName,
-                    _source,
-                    _resultSelectionSet,
-                    variables,
-                    hasSomeErrors);
-                hasPendingMerge = true;
+                context.EnqueuePendingMerge(pendingMerge);
             }
 
-            context.EnqueuePendingMerge(pendingMerge);
             buffer = null;
             singleResult = null;
         }

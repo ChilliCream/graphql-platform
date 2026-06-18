@@ -49,25 +49,6 @@ internal readonly struct PendingMerge
 
     public bool ContainsErrors { get; }
 
-    public static PendingMerge Empty(
-        ExecutionNode node,
-        string schemaName,
-        SelectionPath sourcePath,
-        ResultSelectionSet resultSelectionSet,
-        ImmutableArray<VariableValues> variableValueSets,
-        bool containsErrors)
-        => new(
-            node,
-            schemaName,
-            sourcePath,
-            resultSelectionSet,
-            variableValueSets,
-            containsErrors,
-            PendingMergeKind.Empty,
-            result: null,
-            buffer: null,
-            count: 0);
-
     public static PendingMerge Single(
         ExecutionNode node,
         string schemaName,
@@ -113,10 +94,6 @@ internal readonly struct PendingMerge
     {
         switch (_kind)
         {
-            case PendingMergeKind.Empty:
-                context.AddPartialResults(SourcePath, [], ResultSelectionSet, ContainsErrors);
-                break;
-
             case PendingMergeKind.Single:
                 context.AddPartialResult(SourcePath, _result!, ResultSelectionSet, ContainsErrors);
                 break;
@@ -166,7 +143,6 @@ internal readonly struct PendingMerge
 
     private enum PendingMergeKind
     {
-        Empty,
         Single,
         Multiple
     }

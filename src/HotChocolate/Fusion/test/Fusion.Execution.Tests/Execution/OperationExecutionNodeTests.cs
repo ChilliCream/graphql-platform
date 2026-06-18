@@ -13,6 +13,29 @@ namespace HotChocolate.Fusion.Execution;
 public sealed class OperationExecutionNodeTests : FusionTestBase
 {
     [Fact]
+    public async Task ExecuteAsync_Should_Succeed_When_SourceSchemaReturnsNoResults()
+    {
+        // arrange
+        var client = new EmptyQueryClient();
+        var executor = await CreateExecutorAsync(client, SupportedOperationType.Query);
+        var request = CreateQueryRequest();
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            request,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var operationResult = result.ExpectOperationResult();
+        Assert.True(operationResult.Data.HasValue);
+
+        if (operationResult.Errors is { } errors)
+        {
+            Assert.Empty(errors);
+        }
+    }
+
+    [Fact]
     public async Task MoveNextAsync_Should_DisposeEventArena_When_EventFailsAfterArenaMinted()
     {
         // arrange
@@ -71,7 +94,9 @@ public sealed class OperationExecutionNodeTests : FusionTestBase
         }
     }
 
-    private static async Task<IRequestExecutor> CreateExecutorAsync(ISourceSchemaClient client)
+    private static async Task<IRequestExecutor> CreateExecutorAsync(
+        ISourceSchemaClient client,
+        SupportedOperationType supportedOperations = SupportedOperationType.Subscription)
     {
         var services = new ServiceCollection();
         services.AddHttpClient();
@@ -97,10 +122,20 @@ public sealed class OperationExecutionNodeTests : FusionTestBase
         FusionSetupUtilities.Configure(
             builder,
             setup => setup.ClientConfigurationModifiers.Add(
-                _ => new TestSubscriptionClientConfiguration("events")));
+                _ => new TestSubscriptionClientConfiguration("events", supportedOperations)));
 
         return await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
     }
+
+    private static IOperationRequest CreateQueryRequest()
+        => OperationRequestBuilder.New()
+            .SetDocument(
+                """
+                query {
+                  field
+                }
+                """)
+            .Build();
 
     private static IOperationRequest CreateSubscriptionRequest()
         => OperationRequestBuilder.New()
@@ -116,7 +151,7 @@ public sealed class OperationExecutionNodeTests : FusionTestBase
     {
         public SourceSchemaClientCapabilities Capabilities => SourceSchemaClientCapabilities.None;
 
-        public IAsyncEnumerable<SourceSchemaResult> ExecuteAsync(
+        public virtual IAsyncEnumerable<SourceSchemaResult> ExecuteAsync(
             OperationPlanContext context,
             SourceSchemaClientRequest request,
             CancellationToken cancellationToken)
@@ -134,6 +169,24 @@ public sealed class OperationExecutionNodeTests : FusionTestBase
             CancellationToken cancellationToken);
 
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+    }
+
+    private sealed class EmptyQueryClient : TestSubscriptionClient
+    {
+        public override async IAsyncEnumerable<SourceSchemaResult> ExecuteAsync(
+            OperationPlanContext context,
+            SourceSchemaClientRequest request,
+            [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            await Task.Yield();
+            yield break;
+        }
+
+        public override IAsyncEnumerable<SourceSchemaResult> SubscribeAsync(
+            OperationPlanContext context,
+            SourceSchemaClientRequest request,
+            CancellationToken cancellationToken)
+            => throw new NotSupportedException();
     }
 
     private sealed class ThrowingSubscriptionClient : TestSubscriptionClient
@@ -196,11 +249,13 @@ public sealed class OperationExecutionNodeTests : FusionTestBase
             => client;
     }
 
-    private sealed class TestSubscriptionClientConfiguration(string name)
+    private sealed class TestSubscriptionClientConfiguration(
+        string name,
+        SupportedOperationType supportedOperations)
         : ISourceSchemaClientConfiguration
     {
         public string Name { get; } = name;
 
-        public SupportedOperationType SupportedOperations => SupportedOperationType.Subscription;
+        public SupportedOperationType SupportedOperations { get; } = supportedOperations;
     }
 }
