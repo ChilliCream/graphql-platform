@@ -15,42 +15,6 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Note: Story = {
-  args: {
-    kind: "note",
-    children: "Useful information that the user should know.",
-  },
-};
-
-export const Tip: Story = {
-  args: {
-    kind: "tip",
-    children: "A helpful suggestion to make the user's life easier.",
-  },
-};
-
-export const Warning: Story = {
-  args: {
-    kind: "warning",
-    children: "Critical content demanding immediate user attention.",
-  },
-};
-
-export const Caution: Story = {
-  args: {
-    kind: "caution",
-    children: "Negative potential consequences of an action.",
-  },
-};
-
-export const Experimental: Story = {
-  args: {
-    kind: "experimental",
-    children:
-      "An unstable feature whose API may change before it is finalized.",
-  },
-};
-
 export const AllKinds: Story = {
   args: { kind: "note", children: "" },
   render: () => (

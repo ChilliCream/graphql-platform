@@ -9,27 +9,6 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Internal: Story = {
-  args: {
-    href: "/docs",
-    children: "Internal link to /docs",
-  },
-};
-
-export const External: Story = {
-  args: {
-    href: "https://chillicream.com",
-    children: "External link (opens in new tab)",
-  },
-};
-
-export const Anchor: Story = {
-  args: {
-    href: "#section-1",
-    children: "Jump to section",
-  },
-};
-
 export const InProse: Story = {
   args: { href: "/docs", children: "" },
   render: () => (

@@ -29,13 +29,13 @@ export const WithImage: Story = {
   },
 };
 
-export const NoImage: Story = {
+export const BrokenImage: Story = {
   args: {
     post: {
       href: "/blog/2024/01/01/example",
-      title: "A post without a featured image still renders cleanly",
+      title: "A post whose featured image fails to load",
       date: "2024-01-01",
-      featuredImage: null,
+      featuredImage: "https://example.com/does-not-exist.jpg",
       author: "Jane Doe",
       authorImageUrl: null,
     },
