@@ -80,11 +80,12 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
 
                 if (kind is "q" && name is var queueName)
                 {
+                    var queueNameValue = new string(queueName);
                     configuration = new RabbitMQDispatchEndpointConfiguration
                     {
-                        QueueName = new string(queueName),
-                        Name = "q/" + new string(queueName),
-                        AutoProvision = TryGetSatelliteAutoProvision(address)
+                        QueueName = queueNameValue,
+                        Name = "q/" + queueNameValue,
+                        AutoProvision = GetQueueAutoProvision(queueNameValue)
                     };
                 }
             }
@@ -106,23 +107,38 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
 
             if (kind is "q" && name is var queueName)
             {
+                var queueNameValue = new string(queueName);
                 configuration = new RabbitMQDispatchEndpointConfiguration
                 {
-                    QueueName = new string(queueName),
-                    Name = "q/" + new string(queueName)
+                    QueueName = queueNameValue,
+                    Name = "q/" + queueNameValue,
+                    AutoProvision = GetQueueAutoProvision(queueNameValue)
                 };
             }
+        }
+
+        if (configuration is null
+            && Transport.Topology.Address.IsBaseOf(address)
+            && TryGetBaseQueueName(address, out var baseQueueName))
+        {
+            configuration = new RabbitMQDispatchEndpointConfiguration
+            {
+                QueueName = baseQueueName,
+                Name = "q/" + baseQueueName,
+                AutoProvision = GetQueueAutoProvision(baseQueueName)
+            };
         }
 
         var isEffectiveDefault = Transport.IsDefaultTransport || context.Transports.Length == 1;
 
         if (configuration is null && isEffectiveDefault && address is { Scheme: "queue" } && segmentCount == 1)
         {
-            var name = path[ranges[0]];
+            var name = new string(path[ranges[0]]);
             configuration = new RabbitMQDispatchEndpointConfiguration
             {
-                QueueName = new string(name),
-                Name = "q/" + new string(name)
+                QueueName = name,
+                Name = "q/" + name,
+                AutoProvision = GetQueueAutoProvision(name)
             };
         }
 
@@ -176,25 +192,18 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
 
         if (rabbitConfiguration is { Kind: ReceiveEndpointKind.Default, QueueName: { } queueName })
         {
-            var declaredQueue = Transport.Configuration is RabbitMQTransportConfiguration rabbitConfigurationTransport
-                ? rabbitConfigurationTransport.Queues.FirstOrDefault(q => q.Name == queueName)
-                : null;
-            var inheritedAutoProvision = declaredQueue?.AutoProvision ?? rabbitConfiguration.AutoProvision;
-
-            MaterializeSatellite(
+            ConfigureFaultOrSkippedEndpoint(
                 context,
-                rabbitConfiguration.ErrorQueue,
                 queueName,
                 ReceiveEndpointKind.Error,
-                inheritedAutoProvision,
+                rabbitConfiguration.IsErrorEndpointDisabled,
                 endpoint => rabbitConfiguration.ErrorEndpoint ??= endpoint);
 
-            MaterializeSatellite(
+            ConfigureFaultOrSkippedEndpoint(
                 context,
-                rabbitConfiguration.SkippedQueue,
                 queueName,
                 ReceiveEndpointKind.Skipped,
-                inheritedAutoProvision,
+                rabbitConfiguration.IsSkippedEndpointDisabled,
                 endpoint => rabbitConfiguration.SkippedEndpoint ??= endpoint);
         }
     }
@@ -224,6 +233,16 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
                 AutoProvision = rabbitConfiguration.AutoProvision,
                 Provenance = RabbitMQTopologyProvenance.Endpoint
             });
+
+        if (rabbitEndpoint.Kind == ReceiveEndpointKind.Default)
+        {
+            var inheritedAutoProvision = GetInheritedQueueAutoProvision(
+                rabbitConfiguration.QueueName,
+                rabbitConfiguration);
+
+            EnsureFaultOrSkippedQueue(context, rabbitConfiguration.ErrorEndpoint, inheritedAutoProvision);
+            EnsureFaultOrSkippedQueue(context, rabbitConfiguration.SkippedEndpoint, inheritedAutoProvision);
+        }
 
         if (rabbitEndpoint.Kind is ReceiveEndpointKind.Reply or ReceiveEndpointKind.Error or ReceiveEndpointKind.Skipped)
         {
@@ -404,33 +423,10 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
         }
     }
 
-    private bool? TryGetSatelliteAutoProvision(Uri address)
-    {
-        if (Transport.Configuration is null)
-        {
-            return null;
-        }
-
-        foreach (var receiveEndpoint in Transport.Configuration.ReceiveEndpoints)
-        {
-            if (receiveEndpoint is not RabbitMQReceiveEndpointConfiguration rabbitReceiveEndpoint)
-            {
-                continue;
-            }
-
-            if (rabbitReceiveEndpoint.ErrorEndpoint == address)
-            {
-                return rabbitReceiveEndpoint.ErrorQueue.AutoProvision;
-            }
-
-            if (rabbitReceiveEndpoint.SkippedEndpoint == address)
-            {
-                return rabbitReceiveEndpoint.SkippedQueue.AutoProvision;
-            }
-        }
-
-        return null;
-    }
+    private bool? GetQueueAutoProvision(string queueName)
+        => _topology.Queues.FirstOrDefault(q => q.Name == queueName)?.AutoProvision
+            ?? (Transport.Configuration as RabbitMQTransportConfiguration)
+                ?.Queues.FirstOrDefault(q => q.Name == queueName)?.AutoProvision;
 
     private static RabbitMQExchangeConfiguration? GetContribution(MessageType messageType, OutboundRouteKind kind)
     {
@@ -491,24 +487,111 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
         }
     }
 
-    private void MaterializeSatellite(
+    private void ConfigureFaultOrSkippedEndpoint(
         IMessagingConfigurationContext context,
-        RabbitMQSatelliteConfiguration satellite,
         string queueName,
         ReceiveEndpointKind kind,
-        bool? inheritedAutoProvision,
+        bool isDisabled,
         Action<Uri> assign)
     {
-        if (satellite.IsDisabled)
+        if (isDisabled)
         {
             return;
         }
 
-        var name = satellite.QueueName ?? context.Naming.GetReceiveEndpointName(queueName, kind);
-
-        satellite.AutoProvision ??= inheritedAutoProvision;
+        var name = context.Naming.GetReceiveEndpointName(queueName, kind);
 
         assign(new Uri($"{Transport.Schema}:q/{name}"));
+    }
+
+    private void EnsureFaultOrSkippedQueue(
+        IMessagingConfigurationContext context,
+        Uri? address,
+        bool? inheritedAutoProvision)
+    {
+        if (address is null || !TryGetQueueName(context, address, out var queueName))
+        {
+            return;
+        }
+
+        var existingQueue = _topology.Queues.FirstOrDefault(q => q.Name == queueName);
+        if (existingQueue?.AutoProvision is not null)
+        {
+            return;
+        }
+
+        _topology.AddQueue(
+            new RabbitMQQueueConfiguration
+            {
+                Name = queueName,
+                AutoProvision = inheritedAutoProvision
+            });
+    }
+
+    private bool? GetInheritedQueueAutoProvision(
+        string queueName,
+        RabbitMQReceiveEndpointConfiguration configuration)
+        => (Transport.Configuration as RabbitMQTransportConfiguration)
+            ?.Queues.FirstOrDefault(q => q.Name == queueName)?.AutoProvision
+            ?? configuration.AutoProvision;
+
+    private bool TryGetQueueName(
+        IMessagingConfigurationContext context,
+        Uri address,
+        out string queueName)
+    {
+        var path = address.AbsolutePath.AsSpan();
+        Span<Range> ranges = stackalloc Range[2];
+        var segmentCount = path.Split(ranges, '/', RemoveEmptyEntries | TrimEntries);
+
+        if (address.Scheme == Transport.Schema && address.Host is "" && segmentCount == 2)
+        {
+            var kind = path[ranges[0]];
+            if (kind is "q")
+            {
+                queueName = new string(path[ranges[1]]);
+                return true;
+            }
+        }
+
+        if (Transport.Topology.Address.IsBaseOf(address) && TryGetBaseQueueName(address, out queueName))
+        {
+            return true;
+        }
+
+        var isEffectiveDefault = Transport.IsDefaultTransport || context.Transports.Length == 1;
+        if (isEffectiveDefault && address is { Scheme: "queue" } && segmentCount == 1)
+        {
+            queueName = new string(path[ranges[0]]);
+            return true;
+        }
+
+        queueName = string.Empty;
+        return false;
+    }
+
+    private bool TryGetBaseQueueName(Uri address, out string queueName)
+    {
+        var relative = Transport.Topology.Address.MakeRelativeUri(address);
+        if (relative.IsAbsoluteUri)
+        {
+            queueName = string.Empty;
+            return false;
+        }
+
+        var relativePath = Uri.UnescapeDataString(relative.GetComponents(UriComponents.Path, UriFormat.Unescaped));
+        var path = relativePath.AsSpan();
+        Span<Range> ranges = stackalloc Range[2];
+        var segmentCount = path.Split(ranges, '/', RemoveEmptyEntries | TrimEntries);
+
+        if (segmentCount == 2 && path[ranges[0]] is "q")
+        {
+            queueName = new string(path[ranges[1]]);
+            return true;
+        }
+
+        queueName = string.Empty;
+        return false;
     }
 
     private static bool HasPerMessageRoutingKey(MessageType messageType)

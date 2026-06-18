@@ -166,6 +166,16 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
 
         Transport.Routing.ConfigureEndpoint(context, configuration);
         Transport.Conventions.Configure(context, Transport, configuration);
+        if (configuration.IsErrorEndpointDisabled)
+        {
+            configuration.ErrorEndpoint = null;
+        }
+
+        if (configuration.IsSkippedEndpointDisabled)
+        {
+            configuration.SkippedEndpoint = null;
+        }
+
         Configuration = configuration;
         Kind = configuration.Kind;
         Name = configuration.Name ?? throw ThrowHelper.EndpointNameRequired();

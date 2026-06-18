@@ -254,7 +254,7 @@ public class RabbitMQUnifiedQueueTests
         Assert.Equal("my-orders", ordersEndpoints[0].Queue.Name);
     }
 
-    // --- Queue shape and satellite configuration via the front-door handle ---
+    // --- Queue shape and fault/skipped queue configuration via the front-door handle ---
 
     [Fact]
     public void Queue_Should_ApplyQueueShapeArguments_When_WithArgumentCalled()
@@ -283,10 +283,10 @@ public class RabbitMQUnifiedQueueTests
     }
 
     [Fact]
-    public void Queue_Should_ConfigureSatelliteViaQueueHandle_When_ErrorQueueCalled()
+    public void Queue_Should_ConfigureErrorQueueViaQueueHandle_When_ErrorQueueCalled()
     {
         // arrange
-        // The ErrorQueue(name) verb on the unified handle must configure the satellite with
+        // The ErrorQueue(name) verb on the unified handle must configure routing with
         // the verbatim name.
         var runtime = CreateRuntime(
             b => b.AddConsumer<OrderSpyConsumer>(),
@@ -304,9 +304,9 @@ public class RabbitMQUnifiedQueueTests
             .OfType<RabbitMQReceiveEndpoint>()
             .Single(e => e.Queue.Name == "orders");
 
-        // assert: the error satellite name is stored verbatim
-        Assert.Equal("LEGACY.Orders.Error", endpoint.Configuration.ErrorQueue.QueueName);
-        Assert.False(endpoint.Configuration.ErrorQueue.IsDisabled);
+        // assert: the error queue name is stored verbatim in the route
+        Assert.Equal("rabbitmq:q/LEGACY.Orders.Error", endpoint.Configuration.ErrorEndpoint?.OriginalString);
+        Assert.False(endpoint.Configuration.IsErrorEndpointDisabled);
     }
 
     private static MessagingRuntime CreateRuntime(

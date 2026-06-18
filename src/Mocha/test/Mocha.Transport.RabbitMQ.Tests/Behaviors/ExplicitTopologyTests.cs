@@ -130,7 +130,7 @@ public class ExplicitTopologyTests
     }
 
     [Fact]
-    public async Task Satellite_Should_ProvisionRenamedErrorQueue_When_ErrorQueueNamed()
+    public async Task ErrorQueue_Should_ProvisionRenamedQueue_When_ErrorQueueNamed()
     {
         // arrange
         // ErrorQueue("custom-orders-error") stores the name verbatim; the default convention
@@ -160,18 +160,18 @@ public class ExplicitTopologyTests
         var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
         // act
-        await messageBus.PublishAsync(new OrderCreated { OrderId = "SAT-RENAME" }, CancellationToken.None);
+        await messageBus.PublishAsync(new OrderCreated { OrderId = "ERROR-RENAME" }, CancellationToken.None);
 
         // assert
         Assert.True(await faultCapture.WaitAsync(s_timeout), "Faulted message did not arrive in the renamed error queue");
-        Assert.Equal("SAT-RENAME", Assert.Single(faultCapture.Messages).OrderId);
+        Assert.Equal("ERROR-RENAME", Assert.Single(faultCapture.Messages).OrderId);
     }
 
     [Fact]
-    public async Task Satellite_Should_OmitErrorQueue_When_ErrorDisabled()
+    public async Task ErrorQueue_Should_BeOmitted_When_ErrorDisabled()
     {
         // arrange
-        // DisableErrorQueue removes the error satellite entirely. When the handler throws, the
+        // DisableErrorQueue removes the error queue entirely. When the handler throws, the
         // fault middleware finds no error endpoint and silently acknowledges the message; no
         // message should arrive in any queue named after the conventional "_error" suffix.
         var faultCapture = new FaultCapture();
@@ -200,12 +200,12 @@ public class ExplicitTopologyTests
         var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
         // act
-        await messageBus.PublishAsync(new OrderCreated { OrderId = "SAT-OMIT" }, CancellationToken.None);
+        await messageBus.PublishAsync(new OrderCreated { OrderId = "ERROR-OMIT" }, CancellationToken.None);
 
-        // assert: no message arrives in the conventional error queue because the satellite is disabled
+        // assert: no message arrives in the conventional error queue because it is disabled
         Assert.False(
             await faultCapture.WaitAsync(TimeSpan.FromSeconds(3)),
-            "A message arrived in the error queue even though the error satellite was disabled");
+            "A message arrived in the error queue even though the error queue was disabled");
     }
 
     [Fact]

@@ -15,14 +15,4 @@ public sealed class RabbitMQReceiveEndpointConfiguration : ReceiveEndpointConfig
     /// Defaults to 100.
     /// </summary>
     public ushort MaxPrefetch { get; set; } = 100;
-
-    /// <summary>
-    /// Gets or sets the configuration for the error queue satellite that handles failed messages.
-    /// </summary>
-    public RabbitMQSatelliteConfiguration ErrorQueue { get; set; } = new();
-
-    /// <summary>
-    /// Gets or sets the configuration for the skipped queue satellite that handles skipped messages.
-    /// </summary>
-    public RabbitMQSatelliteConfiguration SkippedQueue { get; set; } = new();
 }

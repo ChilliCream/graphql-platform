@@ -5,8 +5,8 @@ using Mocha.Transport.Postgres.Tests.Helpers;
 namespace Mocha.Transport.Postgres.Tests;
 
 /// <summary>
-/// Verifies typed satellite queue configuration for PostgreSQL: verbatim names, disable flags,
-/// and byte-identical output when no satellite configuration is changed.
+/// Verifies concrete error and skipped queue configuration for PostgreSQL: verbatim names, disable flags,
+/// and byte-identical output when no fault/skipped queue configuration is changed.
 /// </summary>
 public class PostgresSatelliteTests
 {
@@ -35,8 +35,7 @@ public class PostgresSatelliteTests
     public void Describe_Should_StayByteIdentical_When_EndpointQueueUntouched()
     {
         // arrange
-        // When no satellite configuration is provided the conventional names must be produced,
-        // byte-identical to the pre-typed-satellite output.
+        // When no fault/skipped queue configuration is provided the conventional names must be produced.
         var runtime = CreateRuntime(t =>
         {
             t.BindExplicitly();
@@ -55,7 +54,7 @@ public class PostgresSatelliteTests
     public void Describe_Should_OmitErrorSatellite_When_ErrorDisabled()
     {
         // arrange
-        // DisableErrorQueue removes the error satellite from topology entirely; no queue with
+        // DisableErrorQueue removes the error queue from topology entirely; no queue with
         // the conventional "_error" suffix should appear.
         var runtime = CreateRuntime(t =>
         {

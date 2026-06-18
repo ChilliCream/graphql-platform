@@ -12,6 +12,8 @@ internal sealed class RabbitMQQueueBuilder : IRabbitMQQueueBuilder
     private readonly IRabbitMQQueueDescriptor _queue;
     private readonly string _name;
     private RabbitMQReceiveEndpointDescriptor? _endpoint;
+    private string? _errorQueueName;
+    private string? _skippedQueueName;
 
     /// <summary>
     /// Creates a new builder for the given queue name, eagerly declaring the queue in the topology.
@@ -29,6 +31,25 @@ internal sealed class RabbitMQQueueBuilder : IRabbitMQQueueBuilder
     /// Gets the lazily created receive endpoint, or null if no routing method has been called.
     /// </summary>
     internal RabbitMQReceiveEndpointDescriptor? Endpoint => _endpoint;
+
+    internal void MaterializeFaultAndSkippedQueueRoutes(string schema)
+    {
+        if (_endpoint is null)
+        {
+            return;
+        }
+
+        var configuration = _endpoint.Configuration;
+        if (_errorQueueName is not null && !configuration.IsErrorEndpointDisabled)
+        {
+            configuration.ErrorEndpoint = CreateQueueUri(schema, _errorQueueName);
+        }
+
+        if (_skippedQueueName is not null && !configuration.IsSkippedEndpointDisabled)
+        {
+            configuration.SkippedEndpoint = CreateQueueUri(schema, _skippedQueueName);
+        }
+    }
 
     private RabbitMQReceiveEndpointDescriptor EnsureEndpoint()
         => _endpoint ??= (RabbitMQReceiveEndpointDescriptor)_transport.Endpoint(_name);
@@ -151,6 +172,7 @@ internal sealed class RabbitMQQueueBuilder : IRabbitMQQueueBuilder
     /// <inheritdoc />
     public IRabbitMQQueueBuilder FaultEndpoint(string name)
     {
+        _errorQueueName = null;
         EnsureEndpoint().FaultEndpoint(name);
         return this;
     }
@@ -158,6 +180,7 @@ internal sealed class RabbitMQQueueBuilder : IRabbitMQQueueBuilder
     /// <inheritdoc />
     public IRabbitMQQueueBuilder SkippedEndpoint(string name)
     {
+        _skippedQueueName = null;
         EnsureEndpoint().SkippedEndpoint(name);
         return this;
     }
@@ -165,28 +188,40 @@ internal sealed class RabbitMQQueueBuilder : IRabbitMQQueueBuilder
     /// <inheritdoc />
     public IRabbitMQQueueBuilder ErrorQueue(string name)
     {
-        EnsureEndpoint().Configuration.ErrorQueue.QueueName = name;
+        _errorQueueName = name;
+        var configuration = EnsureEndpoint().Configuration;
+        configuration.IsErrorEndpointDisabled = false;
+        configuration.ErrorEndpoint = null;
         return this;
     }
 
     /// <inheritdoc />
     public IRabbitMQQueueBuilder DisableErrorQueue()
     {
-        EnsureEndpoint().Configuration.ErrorQueue.IsDisabled = true;
+        _errorQueueName = null;
+        var configuration = EnsureEndpoint().Configuration;
+        configuration.IsErrorEndpointDisabled = true;
+        configuration.ErrorEndpoint = null;
         return this;
     }
 
     /// <inheritdoc />
     public IRabbitMQQueueBuilder SkippedQueue(string name)
     {
-        EnsureEndpoint().Configuration.SkippedQueue.QueueName = name;
+        _skippedQueueName = name;
+        var configuration = EnsureEndpoint().Configuration;
+        configuration.IsSkippedEndpointDisabled = false;
+        configuration.SkippedEndpoint = null;
         return this;
     }
 
     /// <inheritdoc />
     public IRabbitMQQueueBuilder DisableSkippedQueue()
     {
-        EnsureEndpoint().Configuration.SkippedQueue.IsDisabled = true;
+        _skippedQueueName = null;
+        var configuration = EnsureEndpoint().Configuration;
+        configuration.IsSkippedEndpointDisabled = true;
+        configuration.SkippedEndpoint = null;
         return this;
     }
 
@@ -212,4 +247,7 @@ internal sealed class RabbitMQQueueBuilder : IRabbitMQQueueBuilder
 
         return this;
     }
+
+    private static Uri CreateQueueUri(string schema, string name)
+        => new($"{schema}:q/{name}");
 }

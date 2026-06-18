@@ -6,16 +6,16 @@ namespace Mocha.Transport.RabbitMQ.Tests.Descriptors;
 
 /// <summary>
 /// Verifies the unified Queue() front-door build-time behavior: an entity-only handle lowers to a
-/// declared queue without entering the receive-endpoint lifecycle, satellites on an entity-only queue
+/// declared queue without entering the receive-endpoint lifecycle, error and skipped queues on an entity-only queue
 /// are a build error, and a configuration that uses no Queue() handle is left byte-identical.
 /// </summary>
 public class RabbitMQQueueFrontDoorLoweringTests
 {
     [Fact]
-    public void Build_Should_Throw_When_SatelliteConfiguredOnEntityOnlyQueue()
+    public void Build_Should_Throw_When_ErrorQueueConfiguredOnEntityOnlyQueue()
     {
         // arrange
-        // An entity-only Queue() handle (no consumer, no Receives) cannot honor an error satellite
+        // An entity-only Queue() handle (no consumer, no Receives) cannot honor an error queue
         // because no consumer processes failed messages, so configuring one is a build error.
         void Build()
         {
@@ -41,7 +41,7 @@ public class RabbitMQQueueFrontDoorLoweringTests
     {
         // arrange
         // An entity-only Queue() handle (no consumer, no Receives) lowers to a declared queue and
-        // produces no receive endpoint (hence no satellites and no instance queue).
+        // produces no receive endpoint, error/skipped queues, or instance queue.
         var runtime = CreateRuntime(
             b => { },
             t =>

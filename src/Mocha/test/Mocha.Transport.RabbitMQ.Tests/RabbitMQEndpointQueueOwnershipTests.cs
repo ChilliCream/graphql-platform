@@ -38,7 +38,7 @@ public class RabbitMQEndpointQueueOwnershipTests
     {
         // arrange
         // Both configurations target the same queue via the Queue() builder. The resulting
-        // topology must contain exactly one queue and one set of satellite queues.
+        // topology must contain exactly one queue and one set of error/skipped queues.
         var withDeclare = CreateRuntime(
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>

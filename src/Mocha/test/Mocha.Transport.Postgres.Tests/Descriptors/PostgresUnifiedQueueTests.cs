@@ -167,7 +167,7 @@ public class PostgresUnifiedQueueTests
     }
 
     [Fact]
-    public void Queue_Should_Throw_When_SatelliteConfiguredOnEntityOnlyQueue()
+    public void Queue_Should_Throw_When_ErrorQueueConfiguredOnEntityOnlyQueue()
     {
         // arrange
         void Build()
@@ -177,14 +177,14 @@ public class PostgresUnifiedQueueTests
                 t =>
                 {
                     t.BindExplicitly();
-                    // No consumer or Receives: entity-only. Configuring an error satellite
+                    // No consumer or Receives: entity-only. Configuring an error queue
                     // on an entity-only queue must fail because there is no consumer to process
                     // the failed messages.
                     t.Queue("audit").ErrorQueue("audit-error");
                 });
         }
 
-        // act & assert: satellite on entity-only queue is a build error
+        // act & assert: error queue routing on an entity-only queue is a build error
         Assert.ThrowsAny<InvalidOperationException>(Build);
     }
 

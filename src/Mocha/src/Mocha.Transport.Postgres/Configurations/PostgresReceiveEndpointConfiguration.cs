@@ -15,16 +15,6 @@ public sealed class PostgresReceiveEndpointConfiguration : ReceiveEndpointConfig
     /// </summary>
     public int? MaxBatchSize { get; set; }
 
-    /// <summary>
-    /// Gets or sets the configuration for the error queue satellite that handles failed messages.
-    /// </summary>
-    public PostgresSatelliteConfiguration ErrorQueue { get; set; } = new();
-
-    /// <summary>
-    /// Gets or sets the configuration for the skipped queue satellite that handles skipped messages.
-    /// </summary>
-    public PostgresSatelliteConfiguration SkippedQueue { get; set; } = new();
-
     public static new class Defaults
     {
         /// <summary>

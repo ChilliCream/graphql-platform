@@ -140,27 +140,27 @@ public interface IRabbitMQQueueBuilder
     IRabbitMQQueueBuilder SkippedEndpoint(string name);
 
     /// <summary>
-    /// Sets the verbatim name of the error queue satellite for this queue's endpoint.
+    /// Sets the verbatim name of the error queue for this queue's endpoint.
     /// </summary>
-    /// <param name="name">The exact queue name to use for the error satellite.</param>
+    /// <param name="name">The exact queue name to use for the error queue.</param>
     /// <returns>The builder for method chaining.</returns>
     IRabbitMQQueueBuilder ErrorQueue(string name);
 
     /// <summary>
-    /// Disables the error queue satellite for this queue's endpoint.
+    /// Disables the error queue for this queue's endpoint.
     /// </summary>
     /// <returns>The builder for method chaining.</returns>
     IRabbitMQQueueBuilder DisableErrorQueue();
 
     /// <summary>
-    /// Sets the verbatim name of the skipped queue satellite for this queue's endpoint.
+    /// Sets the verbatim name of the skipped queue for this queue's endpoint.
     /// </summary>
-    /// <param name="name">The exact queue name to use for the skipped satellite.</param>
+    /// <param name="name">The exact queue name to use for the skipped queue.</param>
     /// <returns>The builder for method chaining.</returns>
     IRabbitMQQueueBuilder SkippedQueue(string name);
 
     /// <summary>
-    /// Disables the skipped queue satellite for this queue's endpoint.
+    /// Disables the skipped queue for this queue's endpoint.
     /// </summary>
     /// <returns>The builder for method chaining.</returns>
     IRabbitMQQueueBuilder DisableSkippedQueue();

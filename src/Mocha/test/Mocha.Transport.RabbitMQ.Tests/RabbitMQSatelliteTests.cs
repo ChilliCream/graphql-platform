@@ -5,7 +5,7 @@ using Mocha.Transport.RabbitMQ.Tests.Helpers;
 namespace Mocha.Transport.RabbitMQ.Tests;
 
 /// <summary>
-/// Verifies typed satellite queue configuration: verbatim names, disable flags,
+/// Verifies concrete error and skipped queue configuration: verbatim names, disable flags,
 /// and AutoProvision inheritance and override mechanics.
 /// </summary>
 public class RabbitMQSatelliteTests
@@ -37,7 +37,7 @@ public class RabbitMQSatelliteTests
     public void Describe_Should_OmitErrorSatellite_When_ErrorDisabled()
     {
         // arrange
-        // DisableErrorQueue removes the error satellite from topology entirely; no entity with
+        // DisableErrorQueue removes the error queue from topology entirely; no entity with
         // the conventional "_error" suffix should appear.
         var runtime = CreateRuntime(
             b => b.AddConsumer<OrderSpyConsumer>(),
@@ -60,7 +60,7 @@ public class RabbitMQSatelliteTests
     public void Describe_Should_OmitSkippedSatellite_When_SkippedDisabled()
     {
         // arrange
-        // DisableSkippedQueue removes the skipped satellite from topology entirely; no entity
+        // DisableSkippedQueue removes the skipped queue from topology entirely; no entity
         // with the conventional "_skipped" suffix should appear.
         var runtime = CreateRuntime(
             b => b.AddConsumer<OrderSpyConsumer>(),
@@ -83,8 +83,8 @@ public class RabbitMQSatelliteTests
     public void Describe_Should_InheritSatelliteAutoProvision_When_ParentDeclared()
     {
         // arrange
-        // parentFalse: transport default true, parent queue declared false; satellites inherit false.
-        // The test mirrors the parallel DeclareQueue test and verifies the satellite-config path.
+        // parentFalse: transport default true, parent queue declared false; error and skipped queues inherit false.
+        // The test verifies convention-created fault/skipped queue topology.
         var runtime = CreateRuntime(
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
@@ -107,9 +107,8 @@ public class RabbitMQSatelliteTests
     public void Describe_Should_OverrideSatelliteAutoProvision_When_SatelliteSetExplicitly()
     {
         // arrange
-        // The parent queue declares AutoProvision(false). A custom convention explicitly sets the
-        // error satellite's AutoProvision to true. The convention runs after the default, which used
-        // ??= to set the inherited value, so the explicit set wins for the error satellite.
+        // The parent queue declares AutoProvision(false). The error queue is explicitly declared
+        // with AutoProvision(true), so the explicit topology value wins.
         var runtime = CreateRuntime(
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
@@ -117,8 +116,8 @@ public class RabbitMQSatelliteTests
                 t.AutoProvision(true);
                 t.BindExplicitly();
                 t.DeclareQueue("orders").AutoProvision(false);
+                t.DeclareQueue("orders_error").AutoProvision(true);
                 t.Queue("orders").Consumer<OrderSpyConsumer>();
-                t.AddConvention(new ErrorSatelliteAutoProvisionOverrideConvention(autoProvision: true));
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
@@ -126,7 +125,7 @@ public class RabbitMQSatelliteTests
         var description = transport.Describe();
 
         // assert
-        // Error satellite: true (explicitly overridden). Main queue and skipped satellite: false
+        // Error queue: true (explicitly declared). Main queue and skipped queue: false
         // (inherited from parent).
         RabbitMQDescribeSnapshot.Create(description).MatchSnapshot();
     }
@@ -150,27 +149,5 @@ public class RabbitMQSatelliteTests
     public sealed class OrderSpyConsumer : IConsumer<OrderCreated>
     {
         public ValueTask ConsumeAsync(IConsumeContext<OrderCreated> context) => default;
-    }
-
-    /// <summary>
-    /// A convention that explicitly sets the error satellite's AutoProvision value,
-    /// overriding the value inherited from the parent queue by the default convention.
-    /// </summary>
-    private sealed class ErrorSatelliteAutoProvisionOverrideConvention : IRabbitMQReceiveEndpointConfigurationConvention
-    {
-        private readonly bool _autoProvision;
-
-        public ErrorSatelliteAutoProvisionOverrideConvention(bool autoProvision)
-        {
-            _autoProvision = autoProvision;
-        }
-
-        public void Configure(
-            IMessagingConfigurationContext context,
-            RabbitMQMessagingTransport transport,
-            RabbitMQReceiveEndpointConfiguration configuration)
-        {
-            configuration.ErrorQueue.AutoProvision = _autoProvision;
-        }
     }
 }

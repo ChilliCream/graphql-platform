@@ -33,7 +33,7 @@ public class RabbitMQReceiveEndpointTests
         var endpoint = transport.ReceiveEndpoints.OfType<RabbitMQReceiveEndpoint>().First(e => e.Queue.Name == "q");
 
         // assert
-        Assert.Equal("q_error", endpoint.Configuration.ErrorQueue.QueueName);
+        Assert.Equal("q_error", ((RabbitMQQueue)endpoint.ErrorEndpoint!.Destination).Name);
     }
 
     [Fact]
@@ -48,7 +48,7 @@ public class RabbitMQReceiveEndpointTests
         var endpoint = transport.ReceiveEndpoints.OfType<RabbitMQReceiveEndpoint>().First(e => e.Queue.Name == "q");
 
         // assert
-        Assert.Equal("q_skipped", endpoint.Configuration.SkippedQueue.QueueName);
+        Assert.Equal("q_skipped", ((RabbitMQQueue)endpoint.SkippedEndpoint!.Destination).Name);
     }
 
     [Fact]

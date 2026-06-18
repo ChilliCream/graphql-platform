@@ -188,8 +188,34 @@ public class PostgresDescriptorTests
         var endpoint = transport.ReceiveEndpoints
             .OfType<PostgresReceiveEndpoint>()
             .Single(e => e.Queue.Name == "q");
-        Assert.Equal("Legacy.Orders.V2_error", endpoint.Configuration.ErrorQueue.QueueName);
-        Assert.False(endpoint.Configuration.ErrorQueue.IsDisabled);
+        Assert.Equal("postgres:q/Legacy.Orders.V2_error", endpoint.Configuration.ErrorEndpoint?.OriginalString);
+        Assert.False(endpoint.Configuration.IsErrorEndpointDisabled);
+    }
+
+    [Fact]
+    public void ReceiveEndpoint_Should_UseConfiguredSchema_When_ErrorQueueConfiguredBeforeSchema()
+    {
+        // arrange & act
+        var services = new ServiceCollection();
+        services.AddSingleton(new MessageRecorder());
+        var builder = services.AddMessageBus();
+        builder.AddEventHandler<OrderCreatedHandler>();
+        var runtime = builder
+            .AddPostgres(t =>
+            {
+                t.ConnectionString("Host=localhost;Database=mocha_test;Username=test;Password=test");
+                t.Queue("q").ErrorQueue("q_error").Handler<OrderCreatedHandler>();
+                t.Schema("custom-postgres");
+            })
+            .BuildRuntime();
+        var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
+
+        // assert
+        var endpoint = transport.ReceiveEndpoints
+            .OfType<PostgresReceiveEndpoint>()
+            .Single(e => e.Queue.Name == "q");
+        Assert.Equal("custom-postgres:q/q_error", endpoint.Configuration.ErrorEndpoint?.OriginalString);
+        Assert.Equal("q_error", ((PostgresQueue)endpoint.ErrorEndpoint!.Destination).Name);
     }
 
     [Fact]
@@ -213,7 +239,8 @@ public class PostgresDescriptorTests
         var endpoint = transport.ReceiveEndpoints
             .OfType<PostgresReceiveEndpoint>()
             .Single(e => e.Queue.Name == "q");
-        Assert.True(endpoint.Configuration.ErrorQueue.IsDisabled);
+        Assert.True(endpoint.Configuration.IsErrorEndpointDisabled);
+        Assert.Null(endpoint.Configuration.ErrorEndpoint);
     }
 
     [Fact]

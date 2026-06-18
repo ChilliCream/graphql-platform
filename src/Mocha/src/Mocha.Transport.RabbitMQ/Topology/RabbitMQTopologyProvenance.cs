@@ -19,7 +19,7 @@ public static class RabbitMQTopologyProvenance
     public const string Convention = "convention";
 
     /// <summary>
-    /// Identifies a resource owned by a receive endpoint, typically a queue or satellite (error/skip queue)
+    /// Identifies a resource owned by a receive endpoint, typically a queue
     /// provisioned during endpoint lifecycle. Resources with this provenance can be merged with declared
     /// entities by identity, where declared properties win and other properties are filled in from the
     /// endpoint-owned entity.

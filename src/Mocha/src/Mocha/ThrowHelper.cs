@@ -190,9 +190,9 @@ internal static class ThrowHelper
             + "Each queue can have at most one receive endpoint. Configure it via 't.Queue(name)...' "
             + "and declare extra queue shape via 't.DeclareQueue(name)' if needed.");
 
-    public static Exception SatelliteRequiresConsumingEndpoint(string satelliteType, string queueName)
+    public static Exception FaultOrSkippedQueueRequiresConsumingEndpoint(string queueType, string queueName)
         => new InvalidOperationException(
-            $"Satellite queue '{queueName}' ({satelliteType}) cannot be configured on an entity-only queue. "
-            + "Satellite queues (error, skipped) can only be configured on a receive endpoint with at least one consumer or Receives<T> declaration. "
+            $"The {queueType} queue for '{queueName}' cannot be configured on an entity-only queue. "
+            + "Error and skipped queues can only be configured on a receive endpoint with at least one consumer or Receives<T> declaration. "
             + "Add a consumer via 'Handler<T>', 'Consumer<T>', or 'Receives<T>' to make this a consuming endpoint.");
 }

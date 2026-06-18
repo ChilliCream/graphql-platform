@@ -12,6 +12,8 @@ internal sealed class PostgresQueueBuilder : IPostgresQueueBuilder
     private readonly IPostgresQueueDescriptor _queue;
     private readonly string _name;
     private PostgresReceiveEndpointDescriptor? _endpoint;
+    private string? _errorQueueName;
+    private string? _skippedQueueName;
 
     /// <summary>
     /// Creates a new builder for the given queue name, eagerly declaring the queue in the topology.
@@ -29,6 +31,25 @@ internal sealed class PostgresQueueBuilder : IPostgresQueueBuilder
     /// Gets the lazily created receive endpoint, or null if no routing method has been called.
     /// </summary>
     internal PostgresReceiveEndpointDescriptor? Endpoint => _endpoint;
+
+    internal void MaterializeFaultAndSkippedQueueRoutes(string schema)
+    {
+        if (_endpoint is null)
+        {
+            return;
+        }
+
+        var configuration = _endpoint.Configuration;
+        if (_errorQueueName is not null && !configuration.IsErrorEndpointDisabled)
+        {
+            configuration.ErrorEndpoint = CreateQueueUri(schema, _errorQueueName);
+        }
+
+        if (_skippedQueueName is not null && !configuration.IsSkippedEndpointDisabled)
+        {
+            configuration.SkippedEndpoint = CreateQueueUri(schema, _skippedQueueName);
+        }
+    }
 
     private PostgresReceiveEndpointDescriptor EnsureEndpoint()
         => _endpoint ??= (PostgresReceiveEndpointDescriptor)_transport.Endpoint(_name);
@@ -137,6 +158,7 @@ internal sealed class PostgresQueueBuilder : IPostgresQueueBuilder
     /// <inheritdoc />
     public IPostgresQueueBuilder FaultEndpoint(string name)
     {
+        _errorQueueName = null;
         EnsureEndpoint().FaultEndpoint(name);
         return this;
     }
@@ -144,6 +166,7 @@ internal sealed class PostgresQueueBuilder : IPostgresQueueBuilder
     /// <inheritdoc />
     public IPostgresQueueBuilder SkippedEndpoint(string name)
     {
+        _skippedQueueName = null;
         EnsureEndpoint().SkippedEndpoint(name);
         return this;
     }
@@ -151,28 +174,40 @@ internal sealed class PostgresQueueBuilder : IPostgresQueueBuilder
     /// <inheritdoc />
     public IPostgresQueueBuilder ErrorQueue(string name)
     {
-        EnsureEndpoint().Configuration.ErrorQueue.QueueName = name;
+        _errorQueueName = name;
+        var configuration = EnsureEndpoint().Configuration;
+        configuration.IsErrorEndpointDisabled = false;
+        configuration.ErrorEndpoint = null;
         return this;
     }
 
     /// <inheritdoc />
     public IPostgresQueueBuilder DisableErrorQueue()
     {
-        EnsureEndpoint().Configuration.ErrorQueue.IsDisabled = true;
+        _errorQueueName = null;
+        var configuration = EnsureEndpoint().Configuration;
+        configuration.IsErrorEndpointDisabled = true;
+        configuration.ErrorEndpoint = null;
         return this;
     }
 
     /// <inheritdoc />
     public IPostgresQueueBuilder SkippedQueue(string name)
     {
-        EnsureEndpoint().Configuration.SkippedQueue.QueueName = name;
+        _skippedQueueName = name;
+        var configuration = EnsureEndpoint().Configuration;
+        configuration.IsSkippedEndpointDisabled = false;
+        configuration.SkippedEndpoint = null;
         return this;
     }
 
     /// <inheritdoc />
     public IPostgresQueueBuilder DisableSkippedQueue()
     {
-        EnsureEndpoint().Configuration.SkippedQueue.IsDisabled = true;
+        _skippedQueueName = null;
+        var configuration = EnsureEndpoint().Configuration;
+        configuration.IsSkippedEndpointDisabled = true;
+        configuration.SkippedEndpoint = null;
         return this;
     }
 
@@ -202,4 +237,7 @@ internal sealed class PostgresQueueBuilder : IPostgresQueueBuilder
 
         return this;
     }
+
+    private static Uri CreateQueueUri(string schema, string name)
+        => new($"{schema}:q/{name}");
 }

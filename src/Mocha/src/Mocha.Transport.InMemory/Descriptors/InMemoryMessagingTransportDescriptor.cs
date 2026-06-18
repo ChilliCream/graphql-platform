@@ -233,8 +233,8 @@ public sealed class InMemoryMessagingTransportDescriptor
 
         // Prune endpoints materialized by Queue() builders that ended up entity-only (no consumer,
         // no Receives). A builder with Endpoint == null never created an endpoint, so nothing to
-        // prune. A builder whose endpoint is entity-only but has satellite config (ErrorEndpoint/
-        // SkippedEndpoint URIs) is an error. Otherwise, remove the phantom endpoint.
+        // prune. A builder whose endpoint is entity-only but has fault or skipped routing configured
+        // is an error. Otherwise, remove the phantom endpoint.
         foreach (var builder in _queueBuilders.Values)
         {
             var endpoint = builder.Endpoint;
@@ -251,12 +251,12 @@ public sealed class InMemoryMessagingTransportDescriptor
 
                 if (config.ErrorEndpoint is not null)
                 {
-                    throw ThrowHelper.SatelliteRequiresConsumingEndpoint("error", queueName);
+                    throw ThrowHelper.FaultOrSkippedQueueRequiresConsumingEndpoint("error", queueName);
                 }
 
                 if (config.SkippedEndpoint is not null)
                 {
-                    throw ThrowHelper.SatelliteRequiresConsumingEndpoint("skipped", queueName);
+                    throw ThrowHelper.FaultOrSkippedQueueRequiresConsumingEndpoint("skipped", queueName);
                 }
 
                 // Entity-only: remove the phantom endpoint from the lifecycle list.

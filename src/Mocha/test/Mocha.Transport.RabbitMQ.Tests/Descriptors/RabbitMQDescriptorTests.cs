@@ -149,8 +149,43 @@ public class RabbitMQDescriptorTests
 
         // assert
         var endpoint = transport.ReceiveEndpoints.OfType<RabbitMQReceiveEndpoint>().Single(e => e.Name == "q");
-        Assert.Equal("Legacy.Orders.V2_error", endpoint.Configuration.ErrorQueue.QueueName);
-        Assert.False(endpoint.Configuration.ErrorQueue.IsDisabled);
+        Assert.Equal("rabbitmq:q/Legacy.Orders.V2_error", endpoint.Configuration.ErrorEndpoint?.OriginalString);
+        Assert.False(endpoint.Configuration.IsErrorEndpointDisabled);
+    }
+
+    [Fact]
+    public void ReceiveEndpoint_Should_UseConfiguredSchema_When_ErrorQueueConfiguredBeforeSchema()
+    {
+        // arrange & act
+        var runtime = CreateRuntime(t =>
+        {
+            t.Queue("q").AutoProvision(true).Handler<OrderCreatedHandler>().ErrorQueue("q_error");
+            t.Schema("custom-rabbit");
+        });
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+
+        // assert
+        var endpoint = transport.ReceiveEndpoints.OfType<RabbitMQReceiveEndpoint>().Single(e => e.Name == "q");
+        Assert.Equal("custom-rabbit:q/q_error", endpoint.Configuration.ErrorEndpoint?.OriginalString);
+        Assert.Equal("q_error", ((RabbitMQQueue)endpoint.ErrorEndpoint!.Destination).Name);
+    }
+
+    [Fact]
+    public void ReceiveEndpoint_Should_PreserveErrorQueueAutoProvisionFalse_When_ErrorQueueDeclared()
+    {
+        // arrange & act
+        var runtime = CreateRuntime(t =>
+        {
+            t.AutoProvision(true);
+            t.DeclareQueue("q_error").AutoProvision(false);
+            t.Queue("q").AutoProvision(true).Handler<OrderCreatedHandler>().ErrorQueue("q_error");
+        });
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+        var topology = (RabbitMQMessagingTopology)transport.Topology;
+
+        // assert
+        var errorQueue = topology.Queues.Single(q => q.Name == "q_error");
+        Assert.Equal(false, errorQueue.AutoProvision);
     }
 
     [Fact]
@@ -163,23 +198,22 @@ public class RabbitMQDescriptorTests
 
         // assert
         var endpoint = transport.ReceiveEndpoints.OfType<RabbitMQReceiveEndpoint>().Single(e => e.Name == "q");
-        Assert.True(endpoint.Configuration.ErrorQueue.IsDisabled);
+        Assert.True(endpoint.Configuration.IsErrorEndpointDisabled);
+        Assert.Null(endpoint.Configuration.ErrorEndpoint);
     }
 
     [Fact]
-    public void ReceiveEndpoint_Should_RejectAutoProvisionUriSuffix_When_SatelliteConfigured()
+    public void ReceiveEndpoint_Should_NotEmbedAutoProvisionQuery_When_DefaultErrorAndSkippedQueuesConfigured()
     {
         // arrange & act
-        // Satellite AutoProvision is carried by the typed RabbitMQSatelliteConfiguration, not by
-        // a ?autoProvision= query string embedded in the satellite queue address URI (D13).
+        // AutoProvision is carried by queue topology, not by a query string embedded in the
+        // error or skipped queue address URI.
         var runtime = CreateRuntime(t =>
             t.Queue("q").AutoProvision(true).Handler<OrderCreatedHandler>());
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
         var endpoint = transport.ReceiveEndpoints.OfType<RabbitMQReceiveEndpoint>().Single(e => e.Name == "q");
 
         // assert
-        // The satellite endpoint URIs must not embed a ?autoProvision= query parameter; the typed
-        // configuration field is the sole carrier of the provisioning decision.
         Assert.NotNull(endpoint.Configuration.ErrorEndpoint);
         Assert.Empty(endpoint.Configuration.ErrorEndpoint!.Query);
         Assert.NotNull(endpoint.Configuration.SkippedEndpoint);

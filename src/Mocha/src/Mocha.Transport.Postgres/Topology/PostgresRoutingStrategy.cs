@@ -177,18 +177,18 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
 
         if (postgresConfiguration is { Kind: ReceiveEndpointKind.Default, QueueName: { } queueName })
         {
-            MaterializeSatellite(
+            ConfigureFaultOrSkippedEndpoint(
                 context,
-                postgresConfiguration.ErrorQueue,
                 queueName,
                 ReceiveEndpointKind.Error,
+                postgresConfiguration.IsErrorEndpointDisabled,
                 endpoint => postgresConfiguration.ErrorEndpoint ??= endpoint);
 
-            MaterializeSatellite(
+            ConfigureFaultOrSkippedEndpoint(
                 context,
-                postgresConfiguration.SkippedQueue,
                 queueName,
                 ReceiveEndpointKind.Skipped,
+                postgresConfiguration.IsSkippedEndpointDisabled,
                 endpoint => postgresConfiguration.SkippedEndpoint ??= endpoint);
         }
 
@@ -222,6 +222,12 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
                 AutoDelete = postgresEndpoint.Kind == ReceiveEndpointKind.Reply,
                 AutoProvision = postgresConfiguration.AutoProvision
             });
+
+        if (postgresEndpoint.Kind == ReceiveEndpointKind.Default)
+        {
+            EnsureFaultOrSkippedQueue(context, postgresConfiguration.ErrorEndpoint);
+            EnsureFaultOrSkippedQueue(context, postgresConfiguration.SkippedEndpoint);
+        }
 
         if (postgresEndpoint.Kind is ReceiveEndpointKind.Reply or ReceiveEndpointKind.Error or ReceiveEndpointKind.Skipped)
         {
@@ -371,20 +377,92 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
         }
     }
 
-    private void MaterializeSatellite(
+    private void ConfigureFaultOrSkippedEndpoint(
         IMessagingConfigurationContext context,
-        PostgresSatelliteConfiguration satellite,
         string queueName,
         ReceiveEndpointKind kind,
+        bool isDisabled,
         Action<Uri> assign)
     {
-        if (satellite.IsDisabled)
+        if (isDisabled)
         {
             return;
         }
 
-        var name = satellite.QueueName ?? context.Naming.GetReceiveEndpointName(queueName, kind);
+        var name = context.Naming.GetReceiveEndpointName(queueName, kind);
 
         assign(new Uri($"{Transport.Schema}:q/{name}"));
+    }
+
+    private void EnsureFaultOrSkippedQueue(IMessagingConfigurationContext context, Uri? address)
+    {
+        if (address is null || !TryGetQueueName(context, address, out var queueName))
+        {
+            return;
+        }
+
+        _topology.AddQueue(new PostgresQueueConfiguration { Name = queueName });
+    }
+
+    private bool TryGetQueueName(
+        IMessagingConfigurationContext context,
+        Uri address,
+        out string queueName)
+    {
+        var path = address.AbsolutePath.AsSpan();
+        Span<Range> ranges = stackalloc Range[2];
+        var segmentCount = path.Split(ranges, '/', RemoveEmptyEntries | TrimEntries);
+
+        if (address.Scheme == Transport.Schema && address.Host is "" && segmentCount == 2)
+        {
+            var kind = path[ranges[0]];
+            if (kind is "q")
+            {
+                queueName = new string(path[ranges[1]]);
+                return true;
+            }
+        }
+
+        if (Transport.Topology.Address.IsBaseOf(address) && TryGetBaseQueueName(address, out queueName))
+        {
+            return true;
+        }
+
+        var isEffectiveDefault = Transport.IsDefaultTransport || context.Transports.Length == 1;
+        if (isEffectiveDefault && address is { Scheme: "queue" })
+        {
+            queueName =
+                !string.IsNullOrEmpty(address.Host) ? address.Host
+                : segmentCount == 1 ? new string(path[ranges[0]]) : string.Empty;
+
+            return queueName.Length > 0;
+        }
+
+        queueName = string.Empty;
+        return false;
+    }
+
+    private bool TryGetBaseQueueName(Uri address, out string queueName)
+    {
+        var relative = Transport.Topology.Address.MakeRelativeUri(address);
+        if (relative.IsAbsoluteUri)
+        {
+            queueName = string.Empty;
+            return false;
+        }
+
+        var relativePath = Uri.UnescapeDataString(relative.GetComponents(UriComponents.Path, UriFormat.Unescaped));
+        var path = relativePath.AsSpan();
+        Span<Range> ranges = stackalloc Range[2];
+        var segmentCount = path.Split(ranges, '/', RemoveEmptyEntries | TrimEntries);
+
+        if (segmentCount == 2 && path[ranges[0]] is "q")
+        {
+            queueName = new string(path[ranges[1]]);
+            return true;
+        }
+
+        queueName = string.Empty;
+        return false;
     }
 }

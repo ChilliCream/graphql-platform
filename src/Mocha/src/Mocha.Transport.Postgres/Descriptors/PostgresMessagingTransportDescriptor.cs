@@ -253,14 +253,20 @@ public sealed class PostgresMessagingTransportDescriptor
     /// <returns>The fully populated transport configuration ready for runtime initialization.</returns>
     public PostgresTransportConfiguration CreateConfiguration()
     {
+        var schema = Configuration.Schema ?? PostgresTransportConfiguration.DefaultSchema;
+        foreach (var builder in _queueBuilders.Values)
+        {
+            builder.MaterializeFaultAndSkippedQueueRoutes(schema);
+        }
+
         var queues = _queues.Select(q => q.CreateConfiguration()).ToList();
         var topics = _topics.Select(e => e.CreateConfiguration()).ToList();
         var subscriptions = _subscriptions.Select(b => b.CreateConfiguration()).ToList();
 
         // Prune endpoints materialized by Queue() builders that ended up entity-only (no consumer,
         // no Receives). An entity-only builder with Endpoint == null never created an endpoint, so
-        // nothing to prune. A builder whose endpoint is entity-only but has satellite config is an
-        // error (satellites need a consuming endpoint). Otherwise, remove the phantom endpoint.
+        // nothing to prune. A builder whose endpoint is entity-only but has fault or skipped routing
+        // configured is an error. Otherwise, remove the phantom endpoint.
         foreach (var builder in _queueBuilders.Values)
         {
             var endpoint = builder.Endpoint;
@@ -275,14 +281,14 @@ public sealed class PostgresMessagingTransportDescriptor
             {
                 var queueName = config.QueueName ?? config.Name ?? string.Empty;
 
-                if (config.ErrorQueue.QueueName is not null || config.ErrorQueue.IsDisabled)
+                if (config.ErrorEndpoint is not null || config.IsErrorEndpointDisabled)
                 {
-                    throw ThrowHelper.SatelliteRequiresConsumingEndpoint("error", queueName);
+                    throw ThrowHelper.FaultOrSkippedQueueRequiresConsumingEndpoint("error", queueName);
                 }
 
-                if (config.SkippedQueue.QueueName is not null || config.SkippedQueue.IsDisabled)
+                if (config.SkippedEndpoint is not null || config.IsSkippedEndpointDisabled)
                 {
-                    throw ThrowHelper.SatelliteRequiresConsumingEndpoint("skipped", queueName);
+                    throw ThrowHelper.FaultOrSkippedQueueRequiresConsumingEndpoint("skipped", queueName);
                 }
 
                 // Entity-only: remove the phantom endpoint from the lifecycle list.
