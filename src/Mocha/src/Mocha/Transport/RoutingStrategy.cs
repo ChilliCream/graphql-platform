@@ -45,6 +45,18 @@ public abstract class RoutingStrategy
         IMessagingConfigurationContext context,
         InboundRoute route);
 
+    public virtual void ConfigureEndpoint(
+        IMessagingConfigurationContext context,
+        ReceiveEndpointConfiguration configuration)
+    {
+    }
+
+    public virtual void ConfigureEndpoint(
+        IMessagingConfigurationContext context,
+        DispatchEndpointConfiguration configuration)
+    {
+    }
+
     public virtual void DiscoverEndpoints(IMessagingSetupContext context)
     {
         DiscoverReplyEndpoints(context);

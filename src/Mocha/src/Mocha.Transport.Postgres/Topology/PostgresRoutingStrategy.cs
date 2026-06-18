@@ -8,12 +8,8 @@ namespace Mocha.Transport.Postgres;
 /// </summary>
 public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingTransport>
 {
-    private PostgresMessagingTopology _topology = null!;
-
-    protected override void OnInitialize(PostgresMessagingTransport transport)
-    {
-        _topology = (PostgresMessagingTopology)transport.Topology;
-    }
+    private PostgresMessagingTopology _topology =>
+        field ??= (PostgresMessagingTopology)Transport.Topology;
 
     /// <inheritdoc />
     public override DispatchEndpointConfiguration? CreateEndpointConfiguration(
@@ -166,6 +162,40 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
 
         var queueName = context.Naming.GetReceiveEndpointName(route, ReceiveEndpointKind.Default);
         return new PostgresReceiveEndpointConfiguration { Name = queueName, QueueName = queueName };
+    }
+
+    public override void ConfigureEndpoint(
+        IMessagingConfigurationContext context,
+        ReceiveEndpointConfiguration configuration)
+    {
+        if (configuration is not PostgresReceiveEndpointConfiguration postgresConfiguration)
+        {
+            return;
+        }
+
+        postgresConfiguration.QueueName ??= postgresConfiguration.Name;
+
+        if (postgresConfiguration is { Kind: ReceiveEndpointKind.Default, QueueName: { } queueName })
+        {
+            MaterializeSatellite(
+                context,
+                postgresConfiguration.ErrorQueue,
+                queueName,
+                ReceiveEndpointKind.Error,
+                endpoint => postgresConfiguration.ErrorEndpoint ??= endpoint);
+
+            MaterializeSatellite(
+                context,
+                postgresConfiguration.SkippedQueue,
+                queueName,
+                ReceiveEndpointKind.Skipped,
+                endpoint => postgresConfiguration.SkippedEndpoint ??= endpoint);
+        }
+
+        if (Transport.Configuration is PostgresTransportConfiguration postgresConfigurationTransport)
+        {
+            postgresConfigurationTransport.Defaults.Endpoint.ApplyTo(postgresConfiguration);
+        }
     }
 
     /// <inheritdoc />
@@ -339,5 +369,22 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
                     Destination = queueName
                 });
         }
+    }
+
+    private void MaterializeSatellite(
+        IMessagingConfigurationContext context,
+        PostgresSatelliteConfiguration satellite,
+        string queueName,
+        ReceiveEndpointKind kind,
+        Action<Uri> assign)
+    {
+        if (satellite.IsDisabled)
+        {
+            return;
+        }
+
+        var name = satellite.QueueName ?? context.Naming.GetReceiveEndpointName(queueName, kind);
+
+        assign(new Uri($"{Transport.Schema}:q/{name}"));
     }
 }

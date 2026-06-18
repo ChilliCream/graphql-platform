@@ -8,12 +8,8 @@ namespace Mocha.Transport.InMemory;
 /// </summary>
 public sealed class InMemoryRoutingStrategy : RoutingStrategy<InMemoryMessagingTransport>
 {
-    private InMemoryMessagingTopology _topology = null!;
-
-    protected override void OnInitialize(InMemoryMessagingTransport transport)
-    {
-        _topology = (InMemoryMessagingTopology)transport.Topology;
-    }
+    private InMemoryMessagingTopology _topology =>
+        field ??= (InMemoryMessagingTopology)Transport.Topology;
 
     /// <inheritdoc />
     public override DispatchEndpointConfiguration? CreateEndpointConfiguration(
@@ -166,6 +162,16 @@ public sealed class InMemoryRoutingStrategy : RoutingStrategy<InMemoryMessagingT
 
         var queueName = context.Naming.GetReceiveEndpointName(route, ReceiveEndpointKind.Default);
         return new InMemoryReceiveEndpointConfiguration { Name = queueName, QueueName = queueName };
+    }
+
+    public override void ConfigureEndpoint(
+        IMessagingConfigurationContext context,
+        ReceiveEndpointConfiguration configuration)
+    {
+        if (configuration is InMemoryReceiveEndpointConfiguration inMemoryConfiguration)
+        {
+            inMemoryConfiguration.QueueName ??= inMemoryConfiguration.Name;
+        }
     }
 
     /// <inheritdoc />

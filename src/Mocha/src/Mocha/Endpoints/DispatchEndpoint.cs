@@ -128,6 +128,7 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
     {
         AssertUninitialized();
 
+        Transport.Routing.ConfigureEndpoint(context, configuration);
         Transport.Conventions.Configure(context, Transport, configuration);
         Configuration = configuration;
         Kind = configuration.Kind;

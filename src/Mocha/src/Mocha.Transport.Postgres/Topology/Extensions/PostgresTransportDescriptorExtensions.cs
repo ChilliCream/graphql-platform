@@ -14,7 +14,6 @@ public static class PostgresTransportDescriptorExtensions
     internal static IPostgresMessagingTransportDescriptor AddDefaults(
         this IPostgresMessagingTransportDescriptor descriptor)
     {
-        descriptor.AddConvention(new PostgresDefaultReceiveEndpointConvention());
         descriptor.UseReceive(PostgresReceiveMiddlewares.Parsing, after: ReceiveMiddlewares.ConcurrencyLimiter.Key);
 
         return descriptor;

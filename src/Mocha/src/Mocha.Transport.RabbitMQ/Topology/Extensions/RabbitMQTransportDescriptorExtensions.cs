@@ -10,7 +10,6 @@ public static class RabbitMQTransportDescriptorExtensions
     internal static IRabbitMQMessagingTransportDescriptor AddDefaults(
         this IRabbitMQMessagingTransportDescriptor descriptor)
     {
-        descriptor.AddConvention(new RabbitMQDefaultReceiveEndpointConvention());
         descriptor
             .UseReceive(RabbitMQReceiveMiddlewares.Acknowledgement, after: ReceiveMiddlewares.ConcurrencyLimiter.Key);
         descriptor

@@ -9,12 +9,8 @@ namespace Mocha.Transport.RabbitMQ;
 /// </summary>
 public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingTransport>
 {
-    private RabbitMQMessagingTopology _topology = null!;
-
-    protected override void OnInitialize(RabbitMQMessagingTransport transport)
-    {
-        _topology = (RabbitMQMessagingTopology)transport.Topology;
-    }
+    private RabbitMQMessagingTopology _topology =>
+        field ??= (RabbitMQMessagingTopology)Transport.Topology;
 
     /// <inheritdoc />
     public override DispatchEndpointConfiguration? CreateEndpointConfiguration(
@@ -165,6 +161,42 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
 
         var queueName = context.Naming.GetReceiveEndpointName(route, ReceiveEndpointKind.Default);
         return new RabbitMQReceiveEndpointConfiguration { Name = queueName, QueueName = queueName };
+    }
+
+    public override void ConfigureEndpoint(
+        IMessagingConfigurationContext context,
+        ReceiveEndpointConfiguration configuration)
+    {
+        if (configuration is not RabbitMQReceiveEndpointConfiguration rabbitConfiguration)
+        {
+            return;
+        }
+
+        rabbitConfiguration.QueueName ??= rabbitConfiguration.Name;
+
+        if (rabbitConfiguration is { Kind: ReceiveEndpointKind.Default, QueueName: { } queueName })
+        {
+            var declaredQueue = Transport.Configuration is RabbitMQTransportConfiguration rabbitConfigurationTransport
+                ? rabbitConfigurationTransport.Queues.FirstOrDefault(q => q.Name == queueName)
+                : null;
+            var inheritedAutoProvision = declaredQueue?.AutoProvision ?? rabbitConfiguration.AutoProvision;
+
+            MaterializeSatellite(
+                context,
+                rabbitConfiguration.ErrorQueue,
+                queueName,
+                ReceiveEndpointKind.Error,
+                inheritedAutoProvision,
+                endpoint => rabbitConfiguration.ErrorEndpoint ??= endpoint);
+
+            MaterializeSatellite(
+                context,
+                rabbitConfiguration.SkippedQueue,
+                queueName,
+                ReceiveEndpointKind.Skipped,
+                inheritedAutoProvision,
+                endpoint => rabbitConfiguration.SkippedEndpoint ??= endpoint);
+        }
     }
 
     /// <inheritdoc />
@@ -457,6 +489,26 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
                     DestinationKind = RabbitMQDestinationKind.Queue
                 });
         }
+    }
+
+    private void MaterializeSatellite(
+        IMessagingConfigurationContext context,
+        RabbitMQSatelliteConfiguration satellite,
+        string queueName,
+        ReceiveEndpointKind kind,
+        bool? inheritedAutoProvision,
+        Action<Uri> assign)
+    {
+        if (satellite.IsDisabled)
+        {
+            return;
+        }
+
+        var name = satellite.QueueName ?? context.Naming.GetReceiveEndpointName(queueName, kind);
+
+        satellite.AutoProvision ??= inheritedAutoProvision;
+
+        assign(new Uri($"{Transport.Schema}:q/{name}"));
     }
 
     private static bool HasPerMessageRoutingKey(MessageType messageType)

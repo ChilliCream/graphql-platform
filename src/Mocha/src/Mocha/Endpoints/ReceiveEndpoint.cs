@@ -164,6 +164,7 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
     {
         AssertUninitialized();
 
+        Transport.Routing.ConfigureEndpoint(context, configuration);
         Transport.Conventions.Configure(context, Transport, configuration);
         Configuration = configuration;
         Kind = configuration.Kind;
