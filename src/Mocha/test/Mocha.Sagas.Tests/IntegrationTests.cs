@@ -52,7 +52,7 @@ public class IntegrationTests
 
         // wait until the first transition is persisted (state == "Triggered") before sending the
         // second event, so the two events are applied to the saga in order
-        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
+        var runtime = provider.GetRequiredService<IMessagingRuntime>();
         var sagaName = runtime.Naming.GetSagaName(typeof(StepThroughSaga));
         var transitionDeadline = DateTime.UtcNow + s_timeout;
         while (storage.Load<StepThroughState>(sagaName, sagaId)?.State != "Triggered"
@@ -105,7 +105,7 @@ public class IntegrationTests
 
         // wait until the saga instance is persisted before sending the timeout, so the
         // SagaTimedOutEvent is applied to the stored instance
-        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
+        var runtime = provider.GetRequiredService<IMessagingRuntime>();
         var sagaName = runtime.Naming.GetSagaName(typeof(TimeoutSaga));
         var persistDeadline = DateTime.UtcNow + s_timeout;
         while (storage.Load<TimeoutState>(sagaName, sagaId) is null && DateTime.UtcNow < persistDeadline)
@@ -157,7 +157,7 @@ public class IntegrationTests
 
         // wait until the saga instance is persisted before sending the timeout, so the
         // SagaTimedOutEvent is applied to the stored instance
-        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
+        var runtime = provider.GetRequiredService<IMessagingRuntime>();
         var sagaName = runtime.Naming.GetSagaName(typeof(TimeoutWithResponseSaga));
         var persistDeadline = DateTime.UtcNow + s_timeout;
         while (storage.Load<TimeoutState>(sagaName, sagaId) is null && DateTime.UtcNow < persistDeadline)
