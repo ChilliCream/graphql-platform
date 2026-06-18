@@ -49,7 +49,7 @@ internal sealed class DeleteApiCommand : Command
         if (!force)
         {
             var confirmed = await console.ConfirmAsync(
-                $"Do you really want to delete API {apiName.AsHighlight()}",
+                Prompts.ConfirmDeleteApi(apiName.AsHighlight()),
                 cancellationToken);
 
             if (!confirmed)
