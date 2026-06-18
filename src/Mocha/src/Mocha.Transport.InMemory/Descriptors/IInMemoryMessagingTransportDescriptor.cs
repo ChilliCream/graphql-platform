@@ -37,7 +37,7 @@ public interface IInMemoryMessagingTransportDescriptor : IMessagingTransportDesc
     /// </summary>
     /// <param name="name">The topic name.</param>
     /// <returns>A descriptor for further configuring the topic.</returns>
-    IInMemoryTopicDescriptor DeclareTopic(string name);
+    IInMemoryTopicTopologyDescriptor DeclareTopic(string name);
 
     /// <summary>
     /// Declares a queue in the in-memory topology.
@@ -52,7 +52,7 @@ public interface IInMemoryMessagingTransportDescriptor : IMessagingTransportDesc
     /// <param name="topic">The source topic name.</param>
     /// <param name="queue">The destination queue name.</param>
     /// <returns>A descriptor for further configuring the binding.</returns>
-    IInMemoryBindingDescriptor DeclareBinding(string topic, string queue);
+    IInMemoryBindingTopologyDescriptor DeclareBinding(string topic, string queue);
 
     /// <inheritdoc />
     new IInMemoryMessagingTransportDescriptor Name(string name);

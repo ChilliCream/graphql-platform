@@ -108,7 +108,6 @@ public interface IInMemoryQueueDescriptor : IMessagingDescriptor<InMemoryQueueDe
     /// transport topology without materializing a receive endpoint.
     /// </summary>
     /// <param name="source">The source URI identifying the topic.</param>
-    /// <param name="routingKey">An optional routing key for the binding.</param>
     /// <returns>The descriptor for method chaining.</returns>
-    IInMemoryQueueDescriptor BindFrom(Uri source, string? routingKey = null);
+    IInMemoryQueueDescriptor BindFrom(Uri source);
 }

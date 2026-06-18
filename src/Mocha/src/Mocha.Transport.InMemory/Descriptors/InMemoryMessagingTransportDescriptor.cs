@@ -17,10 +17,10 @@ public sealed class InMemoryMessagingTransportDescriptor
 {
     private readonly List<InMemoryReceiveEndpointDescriptor> _receiveEndpoints = [];
     private readonly List<InMemoryDispatchEndpointDescriptor> _dispatchEndpoints = [];
-    private readonly List<InMemoryTopicDescriptor> _exchanges = [];
+    private readonly List<InMemoryTopicTopologyDescriptor> _exchanges = [];
     private readonly List<InMemoryQueueDescriptor> _queues = [];
     private readonly List<InMemoryQueueTopologyDescriptor> _queueTopology = [];
-    private readonly List<InMemoryBindingDescriptor> _bindings = [];
+    private readonly List<InMemoryBindingTopologyDescriptor> _bindings = [];
 
     /// <summary>
     /// Creates a new in-memory transport descriptor bound to the specified setup context.
@@ -142,8 +142,7 @@ public sealed class InMemoryMessagingTransportDescriptor
     /// <inheritdoc />
     public IInMemoryQueueDescriptor Queue(string name)
     {
-        var queue = _queues.FirstOrDefault(q =>
-            q.Extend().Configuration.Name.EqualsOrdinal(name));
+        var queue = _queues.FirstOrDefault(q => q.Configuration.Name.EqualsOrdinal(name));
         if (queue is not null)
         {
             return queue;
@@ -157,9 +156,7 @@ public sealed class InMemoryMessagingTransportDescriptor
     /// <inheritdoc />
     public IInMemoryReceiveEndpointDescriptor Endpoint(string name)
     {
-        var endpoint = _receiveEndpoints.FirstOrDefault(e =>
-            e.Extend().Configuration.Name.EqualsOrdinal(name)
-        );
+        var endpoint = _receiveEndpoints.FirstOrDefault(e => e.Configuration.Name.EqualsOrdinal(name));
 
         if (endpoint is null)
         {
@@ -173,7 +170,7 @@ public sealed class InMemoryMessagingTransportDescriptor
     /// <inheritdoc />
     public IInMemoryDispatchEndpointDescriptor DispatchEndpoint(string name)
     {
-        var endpoint = _dispatchEndpoints.FirstOrDefault(e => e.Extend().Configuration.Name.EqualsOrdinal(name));
+        var endpoint = _dispatchEndpoints.FirstOrDefault(e => e.Configuration.Name.EqualsOrdinal(name));
         if (endpoint is null)
         {
             endpoint = InMemoryDispatchEndpointDescriptor.New(Context, name);
@@ -184,12 +181,12 @@ public sealed class InMemoryMessagingTransportDescriptor
     }
 
     /// <inheritdoc />
-    public IInMemoryTopicDescriptor DeclareTopic(string name)
+    public IInMemoryTopicTopologyDescriptor DeclareTopic(string name)
     {
-        var exchange = _exchanges.FirstOrDefault(e => e.Extend().Configuration.Name.EqualsOrdinal(name));
+        var exchange = _exchanges.FirstOrDefault(e => e.Configuration.Name.EqualsOrdinal(name));
         if (exchange is null)
         {
-            exchange = InMemoryTopicDescriptor.New(Context, name);
+            exchange = InMemoryTopicTopologyDescriptor.New(Context, name);
             _exchanges.Add(exchange);
         }
         return exchange;
@@ -198,7 +195,7 @@ public sealed class InMemoryMessagingTransportDescriptor
     /// <inheritdoc />
     public IInMemoryQueueTopologyDescriptor DeclareQueue(string name)
     {
-        var queue = _queueTopology.FirstOrDefault(q => q.Extend().Configuration.Name.EqualsOrdinal(name));
+        var queue = _queueTopology.FirstOrDefault(q => q.Configuration.Name.EqualsOrdinal(name));
         if (queue is null)
         {
             queue = InMemoryQueueTopologyDescriptor.New(Context, name);
@@ -208,16 +205,16 @@ public sealed class InMemoryMessagingTransportDescriptor
     }
 
     /// <inheritdoc />
-    public IInMemoryBindingDescriptor DeclareBinding(string exchange, string queue)
+    public IInMemoryBindingTopologyDescriptor DeclareBinding(string exchange, string queue)
     {
         var binding = _bindings.FirstOrDefault(b =>
-            b.Extend().Configuration.Source.EqualsOrdinal(exchange)
-            && b.Extend().Configuration.Destination.EqualsOrdinal(queue)
+            b.Configuration.Source.EqualsOrdinal(exchange)
+            && b.Configuration.Destination.EqualsOrdinal(queue)
         );
 
         if (binding is null)
         {
-            binding = InMemoryBindingDescriptor.New(Context, exchange, queue);
+            binding = InMemoryBindingTopologyDescriptor.New(Context, exchange, queue);
             _bindings.Add(binding);
         }
 
@@ -233,14 +230,18 @@ public sealed class InMemoryMessagingTransportDescriptor
         foreach (var queue in _queues.Select(q => q.CreateConfiguration()))
         {
             ConfigureQueueTopology(queue);
+            if (IsEntityOnly(queue))
+            {
+                ValidateEntityOnlyQueue(queue);
+                continue;
+            }
+
             ConfigureQueueEndpoint(queue);
         }
 
         var topics = _exchanges.Select(e => e.CreateConfiguration()).ToList();
         var queues = _queueTopology.Select(q => q.CreateConfiguration()).ToList();
         var bindings = _bindings.Select(b => b.CreateConfiguration()).ToList();
-
-        ValidateOneEndpointPerQueue(_receiveEndpoints);
 
         Configuration.Topics = topics;
         Configuration.Queues = queues;
@@ -304,6 +305,33 @@ public sealed class InMemoryMessagingTransportDescriptor
         CopySkippedEndpointFeature(configuration, target);
     }
 
+    private static bool IsEntityOnly(InMemoryQueueDescriptorConfiguration configuration)
+        => configuration.ConsumerIdentities.Count == 0
+            && configuration.ReceivedMessageTypes.Count == 0;
+
+    private static void ValidateEntityOnlyQueue(InMemoryQueueDescriptorConfiguration configuration)
+    {
+        var queueName = configuration.Name!;
+
+        if (HasEndpoint(configuration.Features.Get<ReceiveFaultEndpointFeature>()))
+        {
+            throw ThrowHelper.FaultOrSkippedQueueRequiresConsumingEndpoint("fault", queueName);
+        }
+
+        if (HasEndpoint(configuration.Features.Get<ReceiveSkippedEndpointFeature>()))
+        {
+            throw ThrowHelper.FaultOrSkippedQueueRequiresConsumingEndpoint("skipped", queueName);
+        }
+    }
+
+    private static bool HasEndpoint(ReceiveFaultEndpointFeature? feature)
+        => feature is { IsDisabled: false, Address: not null }
+            or { IsDisabled: false, QueueName: not null };
+
+    private static bool HasEndpoint(ReceiveSkippedEndpointFeature? feature)
+        => feature is { IsDisabled: false, Address: not null }
+            or { IsDisabled: false, QueueName: not null };
+
     private static void CopyFaultEndpointFeature(
         InMemoryQueueDescriptorConfiguration configuration,
         InMemoryReceiveEndpointConfiguration target)
@@ -344,29 +372,6 @@ public sealed class InMemoryMessagingTransportDescriptor
         targetFeature.Address = source.Address;
         targetFeature.QueueName = source.QueueName;
         targetFeature.IsDisabled = source.IsDisabled;
-    }
-
-    private static void ValidateOneEndpointPerQueue(List<InMemoryReceiveEndpointDescriptor> endpoints)
-    {
-        var seen = new Dictionary<string, InMemoryReceiveEndpointDescriptor>(StringComparer.Ordinal);
-        foreach (var endpoint in endpoints)
-        {
-            var queueName = endpoint.Configuration.QueueName;
-            if (queueName is null)
-            {
-                continue;
-            }
-
-            if (seen.TryGetValue(queueName, out var existing))
-            {
-                throw ThrowHelper.TwoReceiveEndpointsShareOneQueue(
-                    queueName,
-                    existing.Configuration.Name ?? queueName,
-                    endpoint.Configuration.Name ?? queueName);
-            }
-
-            seen[queueName] = endpoint;
-        }
     }
 
     /// <summary>

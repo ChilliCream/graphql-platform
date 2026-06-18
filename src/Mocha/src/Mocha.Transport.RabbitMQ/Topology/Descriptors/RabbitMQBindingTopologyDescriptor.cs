@@ -3,14 +3,14 @@ namespace Mocha.Transport.RabbitMQ;
 /// <summary>
 /// Descriptor implementation for configuring a RabbitMQ binding.
 /// </summary>
-internal sealed class RabbitMQBindingDescriptor
+internal sealed class RabbitMQBindingTopologyDescriptor
     : MessagingDescriptorBase<RabbitMQBindingConfiguration>
-    , IRabbitMQBindingDescriptor
+    , IRabbitMQBindingTopologyDescriptor
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="RabbitMQBindingDescriptor"/> class.
+    /// Initializes a new instance of the <see cref="RabbitMQBindingTopologyDescriptor"/> class.
     /// </summary>
-    public RabbitMQBindingDescriptor(IMessagingConfigurationContext context, string source, string destination)
+    public RabbitMQBindingTopologyDescriptor(IMessagingConfigurationContext context, string source, string destination)
         : base(context)
     {
         Configuration = new RabbitMQBindingConfiguration
@@ -25,7 +25,7 @@ internal sealed class RabbitMQBindingDescriptor
     protected internal override RabbitMQBindingConfiguration Configuration { get; protected set; }
 
     /// <inheritdoc />
-    public IRabbitMQBindingDescriptor ToQueue(string queueOrExchangeName)
+    public IRabbitMQBindingTopologyDescriptor ToQueue(string queueOrExchangeName)
     {
         Configuration.Destination = queueOrExchangeName;
         Configuration.DestinationKind = RabbitMQDestinationKind.Queue;
@@ -33,7 +33,7 @@ internal sealed class RabbitMQBindingDescriptor
     }
 
     /// <inheritdoc />
-    public IRabbitMQBindingDescriptor ToExchange(string exchangeName)
+    public IRabbitMQBindingTopologyDescriptor ToExchange(string exchangeName)
     {
         Configuration.Destination = exchangeName;
         Configuration.DestinationKind = RabbitMQDestinationKind.Exchange;
@@ -41,14 +41,14 @@ internal sealed class RabbitMQBindingDescriptor
     }
 
     /// <inheritdoc />
-    public IRabbitMQBindingDescriptor RoutingKey(string routingKey)
+    public IRabbitMQBindingTopologyDescriptor RoutingKey(string routingKey)
     {
         Configuration.RoutingKey = routingKey;
         return this;
     }
 
     /// <inheritdoc />
-    public IRabbitMQBindingDescriptor WithArgument(string key, object value)
+    public IRabbitMQBindingTopologyDescriptor WithArgument(string key, object value)
     {
         Configuration.Arguments ??= new Dictionary<string, object>();
         Configuration.Arguments[key] = value;
@@ -56,7 +56,7 @@ internal sealed class RabbitMQBindingDescriptor
     }
 
     /// <inheritdoc />
-    public IRabbitMQBindingDescriptor AutoProvision(bool autoProvision = true)
+    public IRabbitMQBindingTopologyDescriptor AutoProvision(bool autoProvision = true)
     {
         Configuration.AutoProvision = autoProvision;
         return this;
@@ -75,7 +75,7 @@ internal sealed class RabbitMQBindingDescriptor
     /// <param name="source">The source exchange name.</param>
     /// <param name="destination">The destination queue or exchange name.</param>
     /// <returns>A new binding descriptor.</returns>
-    public static RabbitMQBindingDescriptor New(
+    public static RabbitMQBindingTopologyDescriptor New(
         IMessagingConfigurationContext context,
         string source,
         string destination)

@@ -3,16 +3,16 @@ namespace Mocha.Transport.RabbitMQ;
 /// <summary>
 /// Descriptor implementation for configuring a RabbitMQ exchange.
 /// </summary>
-internal sealed class RabbitMQExchangeDescriptor
+internal sealed class RabbitMQExchangeTopologyDescriptor
     : MessagingDescriptorBase<RabbitMQExchangeConfiguration>
-    , IRabbitMQExchangeDescriptor
+    , IRabbitMQExchangeTopologyDescriptor
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="RabbitMQExchangeDescriptor"/> class.
+    /// Initializes a new instance of the <see cref="RabbitMQExchangeTopologyDescriptor"/> class.
     /// </summary>
     /// <param name="context">The messaging configuration context.</param>
     /// <param name="name">The initial exchange name.</param>
-    public RabbitMQExchangeDescriptor(IMessagingConfigurationContext context, string name) : base(context)
+    public RabbitMQExchangeTopologyDescriptor(IMessagingConfigurationContext context, string name) : base(context)
     {
         Configuration = new RabbitMQExchangeConfiguration { Name = name, Provenance = RabbitMQTopologyProvenance.Declared };
     }
@@ -21,35 +21,35 @@ internal sealed class RabbitMQExchangeDescriptor
     protected internal override RabbitMQExchangeConfiguration Configuration { get; protected set; }
 
     /// <inheritdoc />
-    public IRabbitMQExchangeDescriptor Name(string name)
+    public IRabbitMQExchangeTopologyDescriptor Name(string name)
     {
         Configuration.Name = name;
         return this;
     }
 
     /// <inheritdoc />
-    public IRabbitMQExchangeDescriptor Type(string type)
+    public IRabbitMQExchangeTopologyDescriptor Type(string type)
     {
         Configuration.Type = type;
         return this;
     }
 
     /// <inheritdoc />
-    public IRabbitMQExchangeDescriptor Durable(bool durable = true)
+    public IRabbitMQExchangeTopologyDescriptor Durable(bool durable = true)
     {
         Configuration.Durable = durable;
         return this;
     }
 
     /// <inheritdoc />
-    public IRabbitMQExchangeDescriptor AutoDelete(bool autoDelete = true)
+    public IRabbitMQExchangeTopologyDescriptor AutoDelete(bool autoDelete = true)
     {
         Configuration.AutoDelete = autoDelete;
         return this;
     }
 
     /// <inheritdoc />
-    public IRabbitMQExchangeDescriptor WithArgument(string key, object value)
+    public IRabbitMQExchangeTopologyDescriptor WithArgument(string key, object value)
     {
         Configuration.Arguments ??= new Dictionary<string, object>();
         Configuration.Arguments[key] = value;
@@ -57,7 +57,7 @@ internal sealed class RabbitMQExchangeDescriptor
     }
 
     /// <inheritdoc />
-    public IRabbitMQExchangeDescriptor AutoProvision(bool autoProvision = true)
+    public IRabbitMQExchangeTopologyDescriptor AutoProvision(bool autoProvision = true)
     {
         Configuration.AutoProvision = autoProvision;
         return this;
@@ -75,6 +75,6 @@ internal sealed class RabbitMQExchangeDescriptor
     /// <param name="context">The messaging configuration context.</param>
     /// <param name="name">The exchange name.</param>
     /// <returns>A new exchange descriptor.</returns>
-    public static RabbitMQExchangeDescriptor New(IMessagingConfigurationContext context, string name)
+    public static RabbitMQExchangeTopologyDescriptor New(IMessagingConfigurationContext context, string name)
         => new(context, name);
 }

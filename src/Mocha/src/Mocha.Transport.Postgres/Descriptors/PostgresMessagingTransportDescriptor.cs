@@ -17,10 +17,10 @@ public sealed class PostgresMessagingTransportDescriptor
 {
     private readonly List<PostgresReceiveEndpointDescriptor> _receiveEndpoints = [];
     private readonly List<PostgresDispatchEndpointDescriptor> _dispatchEndpoints = [];
-    private readonly List<PostgresTopicDescriptor> _topics = [];
+    private readonly List<PostgresTopicTopologyDescriptor> _topics = [];
     private readonly List<PostgresQueueDescriptor> _queues = [];
     private readonly List<PostgresQueueTopologyDescriptor> _queueTopology = [];
-    private readonly List<PostgresSubscriptionDescriptor> _subscriptions = [];
+    private readonly List<PostgresSubscriptionTopologyDescriptor> _subscriptions = [];
 
     /// <summary>
     /// Creates a new PostgreSQL transport descriptor bound to the specified setup context.
@@ -192,12 +192,12 @@ public sealed class PostgresMessagingTransportDescriptor
     }
 
     /// <inheritdoc  />
-    public IPostgresTopicDescriptor DeclareTopic(string name)
+    public IPostgresTopicTopologyDescriptor DeclareTopic(string name)
     {
         var topic = _topics.FirstOrDefault(e => e.Extend().Configuration.Name.EqualsOrdinal(name));
         if (topic is null)
         {
-            topic = PostgresTopicDescriptor.New(Context, name);
+            topic = PostgresTopicTopologyDescriptor.New(Context, name);
             _topics.Add(topic);
         }
 
@@ -218,7 +218,7 @@ public sealed class PostgresMessagingTransportDescriptor
     }
 
     /// <inheritdoc  />
-    public IPostgresSubscriptionDescriptor DeclareSubscription(string topic, string queue)
+    public IPostgresSubscriptionTopologyDescriptor DeclareSubscription(string topic, string queue)
     {
         var subscription = _subscriptions.FirstOrDefault(b =>
             b.Extend().Configuration.Source.EqualsOrdinal(topic)
@@ -227,7 +227,7 @@ public sealed class PostgresMessagingTransportDescriptor
 
         if (subscription is null)
         {
-            subscription = PostgresSubscriptionDescriptor.New(Context, topic, queue);
+            subscription = PostgresSubscriptionTopologyDescriptor.New(Context, topic, queue);
             _subscriptions.Add(subscription);
         }
 
@@ -259,6 +259,12 @@ public sealed class PostgresMessagingTransportDescriptor
         foreach (var queue in _queues.Select(q => q.CreateConfiguration()))
         {
             ConfigureQueueTopology(queue);
+            if (IsEntityOnly(queue))
+            {
+                ValidateEntityOnlyQueue(queue);
+                continue;
+            }
+
             ConfigureQueueEndpoint(queue);
         }
 
@@ -267,8 +273,6 @@ public sealed class PostgresMessagingTransportDescriptor
         var subscriptions = _subscriptions.Select(b => b.CreateConfiguration()).ToList();
 
         var receiveEndpoints = _receiveEndpoints.Select(e => e.CreateConfiguration()).ToList();
-
-        ValidateOneEndpointPerQueue(receiveEndpoints);
 
         Configuration.Topics = topics;
         Configuration.Queues = queues;
@@ -338,6 +342,33 @@ public sealed class PostgresMessagingTransportDescriptor
         CopySkippedEndpointFeature(configuration, target);
     }
 
+    private static bool IsEntityOnly(PostgresQueueDescriptorConfiguration configuration)
+        => configuration.ConsumerIdentities.Count == 0
+            && configuration.ReceivedMessageTypes.Count == 0;
+
+    private static void ValidateEntityOnlyQueue(PostgresQueueDescriptorConfiguration configuration)
+    {
+        var queueName = configuration.Name!;
+
+        if (HasEndpoint(configuration.Features.Get<ReceiveFaultEndpointFeature>()))
+        {
+            throw ThrowHelper.FaultOrSkippedQueueRequiresConsumingEndpoint("error", queueName);
+        }
+
+        if (HasEndpoint(configuration.Features.Get<ReceiveSkippedEndpointFeature>()))
+        {
+            throw ThrowHelper.FaultOrSkippedQueueRequiresConsumingEndpoint("skipped", queueName);
+        }
+    }
+
+    private static bool HasEndpoint(ReceiveFaultEndpointFeature? feature)
+        => feature is { IsDisabled: false, Address: not null }
+            or { IsDisabled: false, QueueName: not null };
+
+    private static bool HasEndpoint(ReceiveSkippedEndpointFeature? feature)
+        => feature is { IsDisabled: false, Address: not null }
+            or { IsDisabled: false, QueueName: not null };
+
     private static void CopyFaultEndpointFeature(
         PostgresQueueDescriptorConfiguration configuration,
         PostgresReceiveEndpointConfiguration target)
@@ -392,29 +423,6 @@ public sealed class PostgresMessagingTransportDescriptor
         if (configuration.AutoProvision is { } autoProvision)
         {
             descriptor.AutoProvision(autoProvision);
-        }
-    }
-
-    private static void ValidateOneEndpointPerQueue(List<PostgresReceiveEndpointConfiguration> endpoints)
-    {
-        var seen = new Dictionary<string, PostgresReceiveEndpointConfiguration>(StringComparer.Ordinal);
-        foreach (var endpoint in endpoints)
-        {
-            var queueName = endpoint.QueueName;
-            if (queueName is null)
-            {
-                continue;
-            }
-
-            if (seen.TryGetValue(queueName, out var existing))
-            {
-                throw ThrowHelper.TwoReceiveEndpointsShareOneQueue(
-                    queueName,
-                    existing.Name ?? queueName,
-                    endpoint.Name ?? queueName);
-            }
-
-            seen[queueName] = endpoint;
         }
     }
 

@@ -155,7 +155,6 @@ public interface IPostgresQueueDescriptor : IMessagingDescriptor<PostgresQueueDe
     /// transport topology without materializing a receive endpoint.
     /// </summary>
     /// <param name="source">The source URI identifying the topic.</param>
-    /// <param name="routingKey">An optional routing key for the binding.</param>
     /// <returns>The descriptor for method chaining.</returns>
-    IPostgresQueueDescriptor BindFrom(Uri source, string? routingKey = null);
+    IPostgresQueueDescriptor BindFrom(Uri source);
 }

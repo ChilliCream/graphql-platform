@@ -3,14 +3,14 @@ namespace Mocha.Transport.InMemory;
 /// <summary>
 /// Descriptor implementation for configuring a InMemory binding.
 /// </summary>
-internal sealed class InMemoryBindingDescriptor
+internal sealed class InMemoryBindingTopologyDescriptor
     : MessagingDescriptorBase<InMemoryBindingConfiguration>
-    , IInMemoryBindingDescriptor
+    , IInMemoryBindingTopologyDescriptor
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="InMemoryBindingDescriptor"/> class.
+    /// Initializes a new instance of the <see cref="InMemoryBindingTopologyDescriptor"/> class.
     /// </summary>
-    public InMemoryBindingDescriptor(IMessagingConfigurationContext context, string source, string destination)
+    public InMemoryBindingTopologyDescriptor(IMessagingConfigurationContext context, string source, string destination)
         : base(context)
     {
         Configuration = new InMemoryBindingConfiguration { Source = source, Destination = destination };
@@ -20,14 +20,14 @@ internal sealed class InMemoryBindingDescriptor
     protected internal override InMemoryBindingConfiguration Configuration { get; protected set; }
 
     /// <inheritdoc />
-    public IInMemoryBindingDescriptor Source(string topicName)
+    public IInMemoryBindingTopologyDescriptor Source(string topicName)
     {
         Configuration.Source = topicName;
         return this;
     }
 
     /// <inheritdoc />
-    public IInMemoryBindingDescriptor ToQueue(string queueName)
+    public IInMemoryBindingTopologyDescriptor ToQueue(string queueName)
     {
         Configuration.Destination = queueName;
         Configuration.DestinationKind = InMemoryDestinationKind.Queue;
@@ -35,7 +35,7 @@ internal sealed class InMemoryBindingDescriptor
     }
 
     /// <inheritdoc />
-    public IInMemoryBindingDescriptor ToTopic(string topicName)
+    public IInMemoryBindingTopologyDescriptor ToTopic(string topicName)
     {
         Configuration.Destination = topicName;
         Configuration.DestinationKind = InMemoryDestinationKind.Topic;
@@ -55,7 +55,7 @@ internal sealed class InMemoryBindingDescriptor
     /// <param name="source">The source topic name.</param>
     /// <param name="destination">The destination queue or topic name.</param>
     /// <returns>A new binding descriptor.</returns>
-    public static InMemoryBindingDescriptor New(
+    public static InMemoryBindingTopologyDescriptor New(
         IMessagingConfigurationContext context,
         string source,
         string destination)

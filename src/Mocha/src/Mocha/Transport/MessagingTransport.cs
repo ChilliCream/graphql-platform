@@ -264,12 +264,6 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     protected abstract MessagingTransportConfiguration CreateConfiguration(IMessagingSetupContext context);
 
     /// <summary>
-    /// Creates the routing strategy for this transport.
-    /// </summary>
-    /// <returns>The routing strategy.</returns>
-    protected abstract RoutingStrategy CreateRoutingStrategy();
-
-    /// <summary>
     /// Connects an outbound route to a dispatch endpoint, creating the endpoint if one does not already
     /// exist for the route's resolved configuration name.
     /// </summary>

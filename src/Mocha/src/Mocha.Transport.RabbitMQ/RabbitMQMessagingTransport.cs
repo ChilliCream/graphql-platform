@@ -345,12 +345,6 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
         return descriptor.CreateConfiguration();
     }
 
-    /// <inheritdoc />
-    protected override RoutingStrategy CreateRoutingStrategy()
-    {
-        return new RabbitMQRoutingStrategy();
-    }
-
     /// <summary>
     /// Creates a new <see cref="RabbitMQReceiveEndpoint"/> bound to this transport, which will
     /// consume messages from a RabbitMQ queue via the <see cref="ConsumerManager"/>.

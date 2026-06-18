@@ -39,7 +39,7 @@ public interface IPostgresMessagingTransportDescriptor
     /// </summary>
     /// <param name="name">The topic name.</param>
     /// <returns>A descriptor for further configuring the topic.</returns>
-    IPostgresTopicDescriptor DeclareTopic(string name);
+    IPostgresTopicTopologyDescriptor DeclareTopic(string name);
 
     /// <summary>
     /// Declares a queue in the PostgreSQL topology.
@@ -54,7 +54,7 @@ public interface IPostgresMessagingTransportDescriptor
     /// <param name="topic">The source topic name.</param>
     /// <param name="queue">The destination queue name.</param>
     /// <returns>A descriptor for further configuring the subscription.</returns>
-    IPostgresSubscriptionDescriptor DeclareSubscription(string topic, string queue);
+    IPostgresSubscriptionTopologyDescriptor DeclareSubscription(string topic, string queue);
 
     /// <summary>
     /// Sets the PostgreSQL connection string for this transport.

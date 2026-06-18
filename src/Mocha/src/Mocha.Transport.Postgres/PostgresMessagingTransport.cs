@@ -356,12 +356,6 @@ public sealed class PostgresMessagingTransport : MessagingTransport
         return descriptor.CreateConfiguration();
     }
 
-    /// <inheritdoc />
-    protected override RoutingStrategy CreateRoutingStrategy()
-    {
-        return new PostgresRoutingStrategy();
-    }
-
     /// <summary>
     /// Creates a new <see cref="PostgresReceiveEndpoint"/> bound to this transport.
     /// </summary>

@@ -418,7 +418,7 @@ public class RabbitMQExplicitTopologyTests
         Assert.Equal(RabbitMQTopologyProvenance.Declared, binding.Provenance);
     }
 
-    private static RabbitMQBinding DeclareSingleBinding(Action<IRabbitMQBindingDescriptor> configure)
+    private static RabbitMQBinding DeclareSingleBinding(Action<IRabbitMQBindingTopologyDescriptor> configure)
     {
         var (_, _, topology) = CreateTopology(t =>
         {

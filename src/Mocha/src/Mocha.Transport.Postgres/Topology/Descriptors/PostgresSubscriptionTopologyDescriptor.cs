@@ -3,11 +3,11 @@ namespace Mocha.Transport.Postgres;
 /// <summary>
 /// Descriptor implementation for configuring a PostgreSQL subscription (topic-to-queue binding).
 /// </summary>
-internal sealed class PostgresSubscriptionDescriptor
+internal sealed class PostgresSubscriptionTopologyDescriptor
     : MessagingDescriptorBase<PostgresSubscriptionConfiguration>
-    , IPostgresSubscriptionDescriptor
+    , IPostgresSubscriptionTopologyDescriptor
 {
-    public PostgresSubscriptionDescriptor(
+    public PostgresSubscriptionTopologyDescriptor(
         IMessagingConfigurationContext context,
         string source,
         string destination) : base(context)
@@ -19,7 +19,7 @@ internal sealed class PostgresSubscriptionDescriptor
     protected internal override PostgresSubscriptionConfiguration Configuration { get; protected set; }
 
     /// <inheritdoc />
-    public IPostgresSubscriptionDescriptor AutoProvision(bool autoProvision = true)
+    public IPostgresSubscriptionTopologyDescriptor AutoProvision(bool autoProvision = true)
     {
         Configuration.AutoProvision = autoProvision;
         return this;
@@ -38,7 +38,7 @@ internal sealed class PostgresSubscriptionDescriptor
     /// <param name="source">The source topic name.</param>
     /// <param name="destination">The destination queue name.</param>
     /// <returns>A new subscription descriptor.</returns>
-    public static PostgresSubscriptionDescriptor New(
+    public static PostgresSubscriptionTopologyDescriptor New(
         IMessagingConfigurationContext context,
         string source,
         string destination)

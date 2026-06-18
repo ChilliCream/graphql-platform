@@ -5,12 +5,10 @@ namespace Mocha.Transport.InMemory;
 
 internal static class InMemoryDestinations
 {
-    public static (InMemoryDestinationKind Kind, string Name, string EndpointName) Resolve(
-        string schema,
-        IBusNamingConventions naming,
-        OutboundRoute route)
+    public static InMemoryDestination Resolve(string schema, IBusNamingConventions naming, OutboundRoute route)
     {
-        if (route.HasExplicitDestination && route.Destination is { } destination
+        if (route.HasExplicitDestination
+            && route.Destination is { } destination
             && TryResolveExplicit(schema, destination, out var explicitDestination))
         {
             return explicitDestination;
@@ -19,7 +17,7 @@ internal static class InMemoryDestinations
         return ResolveConvention(naming, route.Kind, route.MessageType);
     }
 
-    public static (InMemoryDestinationKind Kind, string Name, string EndpointName) ResolveConvention(
+    public static InMemoryDestination ResolveConvention(
         IBusNamingConventions naming,
         OutboundRouteKind kind,
         MessageType messageType)
@@ -30,10 +28,7 @@ internal static class InMemoryDestinations
             _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
         };
 
-    public static bool TryResolveSourceTopic(
-        string schema,
-        Uri source,
-        [NotNullWhen(true)] out string? topicName)
+    public static bool TryResolveSourceTopic(string schema, Uri source, [NotNullWhen(true)] out string? topicName)
     {
         if (TryResolveExplicit(schema, source, out var destination)
             && destination.Kind == InMemoryDestinationKind.Topic)
@@ -49,7 +44,7 @@ internal static class InMemoryDestinations
     private static bool TryResolveExplicit(
         string schema,
         Uri destination,
-        out (InMemoryDestinationKind Kind, string Name, string EndpointName) resolution)
+        [NotNullWhen(true)] out InMemoryDestination? resolution)
     {
         var path = destination.AbsolutePath.AsSpan();
         Span<Range> ranges = stackalloc Range[2];
@@ -86,13 +81,13 @@ internal static class InMemoryDestinations
             return true;
         }
 
-        resolution = default;
+        resolution = null;
         return false;
     }
 
-    private static (InMemoryDestinationKind Kind, string Name, string EndpointName) Topic(string name)
-        => (InMemoryDestinationKind.Topic, name, "t/" + name);
+    private static InMemoryDestination Topic(string name) => new(InMemoryDestinationKind.Topic, name, "t/" + name);
 
-    private static (InMemoryDestinationKind Kind, string Name, string EndpointName) Queue(string name)
-        => (InMemoryDestinationKind.Queue, name, "q/" + name);
+    private static InMemoryDestination Queue(string name) => new(InMemoryDestinationKind.Queue, name, "q/" + name);
 }
+
+internal sealed record InMemoryDestination(InMemoryDestinationKind Kind, string Name, string EndpointName);

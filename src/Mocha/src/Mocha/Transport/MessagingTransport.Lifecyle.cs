@@ -28,7 +28,8 @@ public abstract partial class MessagingTransport
         Options = Configuration.Options;
         BindMode = Configuration.BindMode;
         IsDefaultTransport = Configuration.IsDefaultTransport;
-        Routing = Configuration.RoutingStrategyFactory?.Invoke(context.Services) ?? CreateRoutingStrategy();
+        Routing = Configuration.RoutingStrategyFactory?.Invoke(context.Services)
+            ?? throw ThrowHelper.TransportRoutingStrategyRequired();
         Routing.Initialize(this);
 
         _features = Configuration.Features;

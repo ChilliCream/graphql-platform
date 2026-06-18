@@ -139,16 +139,9 @@ internal sealed class InMemoryQueueDescriptor
     }
 
     /// <inheritdoc />
-    public IInMemoryQueueDescriptor BindFrom(Uri source, string? routingKey = null)
+    public IInMemoryQueueDescriptor BindFrom(Uri source)
     {
         ArgumentNullException.ThrowIfNull(source);
-
-        if (routingKey is not null)
-        {
-            throw new InvalidOperationException(
-                "The in-memory transport does not support routing key semantics. "
-                + $"Queue '{Configuration.Name}' cannot use a routing key in BindFrom.");
-        }
 
         Configuration.SourceBindings.Add(source);
         return this;

@@ -57,7 +57,7 @@ public interface IRabbitMQMessagingTransportDescriptor
     /// </summary>
     /// <param name="name">The exchange name.</param>
     /// <returns>An exchange descriptor for further configuration.</returns>
-    IRabbitMQExchangeDescriptor DeclareExchange(string name);
+    IRabbitMQExchangeTopologyDescriptor DeclareExchange(string name);
 
     /// <summary>
     /// Declares or retrieves a queue in the transport topology.
@@ -78,7 +78,7 @@ public interface IRabbitMQMessagingTransportDescriptor
     /// <param name="exchange">The source exchange name.</param>
     /// <param name="queue">The destination queue name.</param>
     /// <returns>A binding descriptor for further configuration.</returns>
-    IRabbitMQBindingDescriptor DeclareBinding(string exchange, string queue);
+    IRabbitMQBindingTopologyDescriptor DeclareBinding(string exchange, string queue);
 
     /// <summary>
     /// Sets whether topology resources should be automatically provisioned on the broker.

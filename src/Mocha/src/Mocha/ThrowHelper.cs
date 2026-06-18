@@ -44,6 +44,9 @@ internal static class ThrowHelper
     public static Exception TransportSchemaRequired()
         => new InvalidOperationException("Transport schema is required");
 
+    public static Exception TransportRoutingStrategyRequired()
+        => new InvalidOperationException("Transport routing strategy is required");
+
     public static Exception TransportAlreadyStarted()
         => new InvalidOperationException("Transport is already started");
 
@@ -175,17 +178,6 @@ internal static class ThrowHelper
         => new InvalidOperationException(
             $"Message type '{messageTypeName}' is already claimed by receive endpoint '{claimingEndpoint}' "
             + $"and cannot be claimed by endpoint '{conflictingEndpoint}'. Each message type can be claimed by at most one endpoint.");
-
-    public static Exception BindFromWithNonNullRoutingKey(string transportName, string messageTypeName, string queueName)
-        => new InvalidOperationException(
-            $"Message type '{messageTypeName}' on {transportName} transport cannot have a non-null routing key "
-            + $"in BindFrom binding to queue '{queueName}'. The {transportName} transport does not support routing keys.");
-
-    public static Exception TwoReceiveEndpointsShareOneQueue(string queueName, string endpoint1, string endpoint2)
-        => new InvalidOperationException(
-            $"Queue '{queueName}' is claimed by both receive endpoint '{endpoint1}' and receive endpoint '{endpoint2}'. "
-            + "Each queue can have at most one receive endpoint. Configure it via 't.Queue(name)...' "
-            + "and declare extra queue shape via 't.DeclareQueue(name)' if needed.");
 
     public static Exception FaultOrSkippedQueueRequiresConsumingEndpoint(string queueType, string queueName)
         => new InvalidOperationException(

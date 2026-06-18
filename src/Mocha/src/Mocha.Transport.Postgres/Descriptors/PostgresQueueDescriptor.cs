@@ -200,17 +200,9 @@ internal sealed class PostgresQueueDescriptor
     }
 
     /// <inheritdoc />
-    public IPostgresQueueDescriptor BindFrom(Uri source, string? routingKey = null)
+    public IPostgresQueueDescriptor BindFrom(Uri source)
     {
         ArgumentNullException.ThrowIfNull(source);
-
-        if (routingKey is not null)
-        {
-            throw ThrowHelper.BindFromWithNonNullRoutingKey(
-                "PostgreSQL",
-                source.ToString(),
-                Configuration.Name!);
-        }
 
         Configuration.SourceBindings.Add(source);
         return this;

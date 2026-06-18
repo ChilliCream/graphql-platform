@@ -3,11 +3,11 @@ namespace Mocha.Transport.Postgres;
 /// <summary>
 /// Descriptor implementation for configuring a PostgreSQL topic.
 /// </summary>
-internal sealed class PostgresTopicDescriptor
+internal sealed class PostgresTopicTopologyDescriptor
     : MessagingDescriptorBase<PostgresTopicConfiguration>
-    , IPostgresTopicDescriptor
+    , IPostgresTopicTopologyDescriptor
 {
-    public PostgresTopicDescriptor(IMessagingConfigurationContext context, string name) : base(context)
+    public PostgresTopicTopologyDescriptor(IMessagingConfigurationContext context, string name) : base(context)
     {
         Configuration = new PostgresTopicConfiguration { Name = name };
     }
@@ -16,14 +16,14 @@ internal sealed class PostgresTopicDescriptor
     protected internal override PostgresTopicConfiguration Configuration { get; protected set; }
 
     /// <inheritdoc />
-    public IPostgresTopicDescriptor Name(string name)
+    public IPostgresTopicTopologyDescriptor Name(string name)
     {
         Configuration.Name = name;
         return this;
     }
 
     /// <inheritdoc />
-    public IPostgresTopicDescriptor AutoProvision(bool autoProvision = true)
+    public IPostgresTopicTopologyDescriptor AutoProvision(bool autoProvision = true)
     {
         Configuration.AutoProvision = autoProvision;
         return this;
@@ -41,6 +41,6 @@ internal sealed class PostgresTopicDescriptor
     /// <param name="context">The messaging configuration context.</param>
     /// <param name="name">The topic name.</param>
     /// <returns>A new topic descriptor.</returns>
-    public static PostgresTopicDescriptor New(IMessagingConfigurationContext context, string name)
+    public static PostgresTopicTopologyDescriptor New(IMessagingConfigurationContext context, string name)
         => new(context, name);
 }

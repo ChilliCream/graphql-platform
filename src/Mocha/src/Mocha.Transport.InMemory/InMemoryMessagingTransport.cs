@@ -226,12 +226,6 @@ public sealed class InMemoryMessagingTransport : MessagingTransport
         return descriptor.CreateConfiguration();
     }
 
-    /// <inheritdoc />
-    protected override RoutingStrategy CreateRoutingStrategy()
-    {
-        return new InMemoryRoutingStrategy();
-    }
-
     /// <summary>
     /// Creates a new <see cref="InMemoryReceiveEndpoint"/> bound to this transport, which will
     /// receive messages from an in-memory queue without any network I/O.

@@ -9,8 +9,7 @@ namespace Mocha.Transport.Postgres;
 /// </summary>
 public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingTransport>
 {
-    private PostgresMessagingTopology _topology =>
-        field ??= (PostgresMessagingTopology)Transport.Topology;
+    private PostgresMessagingTopology _topology => field ??= (PostgresMessagingTopology)Transport.Topology;
 
     /// <inheritdoc />
     public override DispatchEndpointConfiguration? CreateEndpointConfiguration(
@@ -89,7 +88,9 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
             }
         }
 
-        if (configuration is null && Transport.Topology.Address.IsBaseOf(address) && segmentCount == 2)
+        if (configuration is null
+            && Transport.Topology.Address.IsBaseOf(address)
+            && segmentCount == 2)
         {
             var kind = path[ranges[0]];
             var name = path[ranges[1]];
@@ -228,18 +229,25 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
 
         if (postgresEndpoint.Kind == ReceiveEndpointKind.Default)
         {
-            EnsureFaultOrSkippedQueue(context, postgresConfiguration.Features.Get<ReceiveFaultEndpointFeature>()?.Address);
-            EnsureFaultOrSkippedQueue(context, postgresConfiguration.Features.Get<ReceiveSkippedEndpointFeature>()?.Address);
+            EnsureFaultOrSkippedQueue(
+                context,
+                postgresConfiguration.Features.Get<ReceiveFaultEndpointFeature>()?.Address);
+            EnsureFaultOrSkippedQueue(
+                context,
+                postgresConfiguration.Features.Get<ReceiveSkippedEndpointFeature>()?.Address);
         }
 
-        if (postgresEndpoint.Kind is ReceiveEndpointKind.Reply or ReceiveEndpointKind.Error or ReceiveEndpointKind.Skipped)
+        if (postgresEndpoint.Kind
+            is ReceiveEndpointKind.Reply
+                or ReceiveEndpointKind.Error
+                or ReceiveEndpointKind.Skipped)
         {
             return;
         }
 
         var schema = postgresEndpoint.Transport.Schema;
-        var autoBind = (postgresConfiguration.BindMode ?? postgresEndpoint.Transport.BindMode)
-            is MessagingBindMode.Implicit;
+        var autoBind =
+            (postgresConfiguration.BindMode ?? postgresEndpoint.Transport.BindMode) is MessagingBindMode.Implicit;
 
         var routes = context.Router.GetInboundByEndpoint(postgresEndpoint);
         foreach (var route in routes)
@@ -259,7 +267,8 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
                 continue;
             }
 
-            var explicitPublishRoute = context.Router.GetOutboundByMessageType(route.MessageType)
+            var explicitPublishRoute = context
+                .Router.GetOutboundByMessageType(route.MessageType)
                 .FirstOrDefault(r => r is { HasExplicitDestination: true, Kind: OutboundRouteKind.Publish });
             if (explicitPublishRoute is not null)
             {
@@ -328,7 +337,8 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
                     continue;
                 }
 
-                var outboundRoute = context.Router.GetOutboundByMessageType(messageType)
+                var outboundRoute = context
+                    .Router.GetOutboundByMessageType(messageType)
                     .FirstOrDefault(r => r.Kind == kind);
 
                 var destination = outboundRoute is not null
@@ -363,20 +373,15 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
         }
     }
 
-    private static void EnsureSubscription(
-        PostgresMessagingTopology topology,
-        string sourceTopicName,
-        string queueName)
+    private static void EnsureSubscription(PostgresMessagingTopology topology, string sourceTopicName, string queueName)
     {
         if (topology.Subscriptions.FirstOrDefault(s =>
-                s.Source.Name == sourceTopicName && s.Destination.Name == queueName) is null)
+                s.Source.Name == sourceTopicName && s.Destination.Name == queueName
+            )
+            is null)
         {
             topology.AddSubscription(
-                new PostgresSubscriptionConfiguration
-                {
-                    Source = sourceTopicName,
-                    Destination = queueName
-                });
+                new PostgresSubscriptionConfiguration { Source = sourceTopicName, Destination = queueName });
         }
     }
 
@@ -424,10 +429,7 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
         _topology.AddQueue(new PostgresQueueConfiguration { Name = queueName });
     }
 
-    private bool TryGetQueueName(
-        IMessagingConfigurationContext context,
-        Uri address,
-        out string queueName)
+    private bool TryGetQueueName(IMessagingConfigurationContext context, Uri address, out string queueName)
     {
         var path = address.AbsolutePath.AsSpan();
         Span<Range> ranges = stackalloc Range[2];

@@ -5,12 +5,10 @@ namespace Mocha.Transport.RabbitMQ;
 
 internal static class RabbitMQDestinations
 {
-    public static RabbitMQDestination Resolve(
-        string schema,
-        IBusNamingConventions naming,
-        OutboundRoute route)
+    public static RabbitMQDestination Resolve(string schema, IBusNamingConventions naming, OutboundRoute route)
     {
-        if (route.HasExplicitDestination && route.Destination is { } destination
+        if (route.HasExplicitDestination
+            && route.Destination is { } destination
             && TryResolveExplicit(schema, destination, out var explicitDestination))
         {
             return explicitDestination;
@@ -30,10 +28,7 @@ internal static class RabbitMQDestinations
             _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
         };
 
-    public static bool TryResolveSourceExchange(
-        string schema,
-        Uri source,
-        [NotNullWhen(true)] out string? exchangeName)
+    public static bool TryResolveSourceExchange(string schema, Uri source, [NotNullWhen(true)] out string? exchangeName)
     {
         if (TryResolveExplicit(schema, source, out var destination)
             && destination.Kind == RabbitMQDestinationKind.Exchange)
@@ -93,11 +88,7 @@ internal static class RabbitMQDestinations
     private static RabbitMQDestination Exchange(string name)
         => new(RabbitMQDestinationKind.Exchange, name, "e/" + name);
 
-    private static RabbitMQDestination Queue(string name)
-        => new(RabbitMQDestinationKind.Queue, name, "q/" + name);
+    private static RabbitMQDestination Queue(string name) => new(RabbitMQDestinationKind.Queue, name, "q/" + name);
 }
 
-internal sealed record RabbitMQDestination(
-    RabbitMQDestinationKind Kind,
-    string Name,
-    string EndpointName);
+internal sealed record RabbitMQDestination(RabbitMQDestinationKind Kind, string Name, string EndpointName);

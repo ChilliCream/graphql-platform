@@ -5,7 +5,7 @@ namespace Mocha.Transport.Postgres;
 
 internal static class PostgresDestinations
 {
-    public static (PostgresDestinationKind Kind, string Name, string EndpointName) Resolve(
+    public static PostgresDestination Resolve(
         string schema,
         IBusNamingConventions naming,
         OutboundRoute route)
@@ -19,7 +19,7 @@ internal static class PostgresDestinations
         return ResolveConvention(naming, route.Kind, route.MessageType);
     }
 
-    public static (PostgresDestinationKind Kind, string Name, string EndpointName) ResolveConvention(
+    public static PostgresDestination ResolveConvention(
         IBusNamingConventions naming,
         OutboundRouteKind kind,
         MessageType messageType)
@@ -49,7 +49,7 @@ internal static class PostgresDestinations
     private static bool TryResolveExplicit(
         string schema,
         Uri destination,
-        out (PostgresDestinationKind Kind, string Name, string EndpointName) resolution)
+        [NotNullWhen(true)] out PostgresDestination? resolution)
     {
         var path = destination.AbsolutePath.AsSpan();
         Span<Range> ranges = stackalloc Range[2];
@@ -86,16 +86,21 @@ internal static class PostgresDestinations
             return true;
         }
 
-        resolution = default;
+        resolution = null;
         return false;
     }
 
-    private static (PostgresDestinationKind Kind, string Name, string EndpointName) Topic(string name)
-        => (PostgresDestinationKind.Topic, name, "t/" + name);
+    private static PostgresDestination Topic(string name)
+        => new(PostgresDestinationKind.Topic, name, "t/" + name);
 
-    private static (PostgresDestinationKind Kind, string Name, string EndpointName) Queue(string name)
-        => (PostgresDestinationKind.Queue, name, "q/" + name);
+    private static PostgresDestination Queue(string name)
+        => new(PostgresDestinationKind.Queue, name, "q/" + name);
 }
+
+internal sealed record PostgresDestination(
+    PostgresDestinationKind Kind,
+    string Name,
+    string EndpointName);
 
 internal enum PostgresDestinationKind
 {

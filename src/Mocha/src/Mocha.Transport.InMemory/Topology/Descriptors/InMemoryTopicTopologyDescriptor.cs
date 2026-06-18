@@ -3,16 +3,16 @@ namespace Mocha.Transport.InMemory;
 /// <summary>
 /// Descriptor implementation for configuring a InMemory topic.
 /// </summary>
-internal sealed class InMemoryTopicDescriptor
+internal sealed class InMemoryTopicTopologyDescriptor
     : MessagingDescriptorBase<InMemoryTopicConfiguration>
-    , IInMemoryTopicDescriptor
+    , IInMemoryTopicTopologyDescriptor
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="InMemoryTopicDescriptor"/> class.
+    /// Initializes a new instance of the <see cref="InMemoryTopicTopologyDescriptor"/> class.
     /// </summary>
     /// <param name="context">The messaging configuration context.</param>
     /// <param name="name">The initial topic name.</param>
-    public InMemoryTopicDescriptor(IMessagingConfigurationContext context, string name) : base(context)
+    public InMemoryTopicTopologyDescriptor(IMessagingConfigurationContext context, string name) : base(context)
     {
         Configuration = new InMemoryTopicConfiguration { Name = name };
     }
@@ -21,7 +21,7 @@ internal sealed class InMemoryTopicDescriptor
     protected internal override InMemoryTopicConfiguration Configuration { get; protected set; }
 
     /// <inheritdoc />
-    public IInMemoryTopicDescriptor Name(string name)
+    public IInMemoryTopicTopologyDescriptor Name(string name)
     {
         Configuration.Name = name;
         return this;
@@ -39,6 +39,6 @@ internal sealed class InMemoryTopicDescriptor
     /// <param name="context">The messaging configuration context.</param>
     /// <param name="name">The topic name.</param>
     /// <returns>A new topic descriptor.</returns>
-    public static InMemoryTopicDescriptor New(IMessagingConfigurationContext context, string name)
+    public static InMemoryTopicTopologyDescriptor New(IMessagingConfigurationContext context, string name)
         => new(context, name);
 }
