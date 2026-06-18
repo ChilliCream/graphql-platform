@@ -251,10 +251,11 @@ jobs:
             8.x
             9.x
             10.x
+            11.0.100-preview.4.26230.115
 
       - name: Run Build
         id: run-build
-        run: dotnet build ${{ matrix.path }} --framework net10.0 --verbosity q
+        run: dotnet build ${{ matrix.path }} --framework net11.0 --verbosity q
         timeout-minutes: 5
 
       - name: Log in to Docker Hub
@@ -275,7 +276,7 @@ jobs:
         run: >
           dotnet test
           --project ${{ matrix.path }}
-          --framework net10.0
+          --framework net11.0
           --no-build
           --coverage
           --coverage-output-format cobertura
@@ -320,7 +321,7 @@ jobs:
       - name: Install .NET
         uses: actions/setup-dotnet@9a946fdbd5fb07b82b2f5a4466058b876ab72bb2 # v5.3.0
         with:
-          dotnet-version: 10.x
+          dotnet-version: 11.0.100-preview.4.26230.115
 
       - name: Install dotnet-coverage
         run: |

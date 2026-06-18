@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Configurations;
@@ -57,6 +58,18 @@ public class DirectiveTypeDescriptor<T>
     public new IDirectiveTypeDescriptor<T> Description(string value)
     {
         base.Description(value);
+        return this;
+    }
+
+    public new IDirectiveTypeDescriptor<T> Deprecated(string reason)
+    {
+        base.Deprecated(reason);
+        return this;
+    }
+
+    public new IDirectiveTypeDescriptor<T> Deprecated()
+    {
+        base.Deprecated();
         return this;
     }
 
@@ -141,6 +154,26 @@ public class DirectiveTypeDescriptor<T>
     public new IDirectiveTypeDescriptor<T> Internal()
     {
         base.Internal();
+        return this;
+    }
+
+    public new IDirectiveTypeDescriptor<T> Directive<TDirective>(TDirective directiveInstance)
+        where TDirective : class
+    {
+        base.Directive(directiveInstance);
+        return this;
+    }
+
+    public new IDirectiveTypeDescriptor<T> Directive<TDirective>()
+        where TDirective : class, new()
+    {
+        base.Directive<TDirective>();
+        return this;
+    }
+
+    public new IDirectiveTypeDescriptor<T> Directive(string name, params ArgumentNode[] arguments)
+    {
+        base.Directive(name, arguments);
         return this;
     }
 }

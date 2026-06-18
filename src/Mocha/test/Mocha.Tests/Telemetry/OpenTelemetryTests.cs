@@ -171,7 +171,11 @@ public class OpenTelemetryTests
         var traceparent = headers.GetValue(MessageHeaders.Traceparent.Key) as string;
         Assert.NotNull(traceparent);
 
+#if NET11_0_OR_GREATER
+        var expected = $"00-{activity.TraceId.ToHexString()}-{activity.SpanId.ToHexString()}-03";
+#else
         var expected = $"00-{activity.TraceId.ToHexString()}-{activity.SpanId.ToHexString()}-01";
+#endif
         Assert.Equal(expected, traceparent);
     }
 
@@ -288,7 +292,11 @@ public class OpenTelemetryTests
         // assert
         var traceparent = headers.GetValue(MessageHeaders.Traceparent.Key) as string;
         Assert.NotNull(traceparent);
+#if NET11_0_OR_GREATER
+        Assert.EndsWith("-02", traceparent);
+#else
         Assert.EndsWith("-00", traceparent);
+#endif
     }
 
     [Fact]

@@ -524,6 +524,292 @@ public class SchemaFirstTests
             .MatchSnapshotAsync();
     }
 
+    [Fact]
+    public async Task SchemaFirst_DirectivesOnDirectiveDefinition_AreBound()
+    {
+        // arrange
+        const string source =
+            """
+            type Query {
+                field: String
+            }
+
+            directive @onDirectiveDefinition on DIRECTIVE_DEFINITION
+
+            directive @custom @onDirectiveDefinition on OBJECT
+
+            directive @old @deprecated(reason: "Use @custom.") on OBJECT
+            """;
+
+        // act
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(source)
+            .ModifyOptions(o => o.RemoveUnusedTypeSystemDirectives = false)
+            .UseField(next => next)
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        var custom = schema.DirectiveTypes["custom"];
+        var old = schema.DirectiveTypes["old"];
+        var directive = Assert.Single(custom.Directives);
+        Assert.Equal("onDirectiveDefinition", directive.Name);
+        Assert.True(old.IsDeprecated);
+        Assert.Equal("Use @custom.", old.DeprecationReason);
+    }
+
+    [Fact]
+    public void SchemaFirst_DirectiveOnDirectiveDefinitionWrongLocation_Errors()
+    {
+        // arrange
+        const string source =
+            """
+            type Query {
+                field: String
+            }
+
+            directive @onObject on OBJECT
+
+            directive @custom @onObject on OBJECT
+            """;
+
+        // act
+        static void Action() => SchemaBuilder.New()
+            .AddDocumentFromString(source)
+            .Use(next => next)
+            .Create();
+
+        // assert
+        var exception = Assert.Throws<SchemaException>(Action);
+        exception.Errors.Single().ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task SchemaFirst_DirectiveAppliedOnlyToDirectiveDefinition_SurvivesPruning()
+    {
+        // arrange
+        // @custom is applied on Query so it survives pruning; @meta is applied
+        // only to @custom's definition, so it must be kept alive transitively.
+        const string source =
+            """
+            type Query @custom {
+                field: String
+            }
+
+            directive @meta on DIRECTIVE_DEFINITION
+
+            directive @custom @meta on OBJECT
+            """;
+
+        // act
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(source)
+            .UseField(next => next)
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.True(schema.DirectiveTypes.ContainsName("meta"));
+    }
+
+    [Fact]
+    public async Task SchemaFirst_DirectivesOnDirectiveDefinition_RoundTripInSdl()
+    {
+        // arrange
+        // @custom and @old are applied to Query so they survive default
+        // pruning; @onDirectiveDefinition survives transitively via @custom.
+        const string source =
+            """
+            type Query @custom @old {
+                field: String
+            }
+
+            directive @onDirectiveDefinition on DIRECTIVE_DEFINITION
+
+            directive @custom @onDirectiveDefinition on OBJECT
+
+            directive @old @deprecated(reason: "Use @custom.") on OBJECT
+            """;
+
+        // act
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(source)
+            .UseField(next => next)
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task DirectiveType_ToSyntaxNode_IncludesDirectivesAndDeprecated()
+    {
+        // arrange
+        // @old is applied to Query so it survives default pruning.
+        const string source =
+            """
+            type Query @old {
+                field: String
+            }
+
+            directive @old @deprecated(reason: "Use @custom.") on OBJECT
+            """;
+
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(source)
+            .UseField(next => next)
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var sdl = schema.DirectiveTypes["old"].ToString();
+
+        // assert
+        sdl.MatchInlineSnapshot(
+            """
+            directive @old @deprecated(reason: "Use @custom.") on OBJECT
+            """);
+    }
+
+    [Fact]
+    public async Task SchemaFirst_ExtendDirective_MergesDirectivesIntoDefinition()
+    {
+        // arrange
+        // @custom is applied on Query so it survives pruning; the directive
+        // extensions add @onDirectiveDefinition and @deprecated to its definition.
+        const string source =
+            """
+            type Query @custom {
+                field: String
+            }
+
+            directive @onDirectiveDefinition on DIRECTIVE_DEFINITION
+
+            directive @custom on OBJECT
+
+            extend directive @custom @onDirectiveDefinition
+
+            extend directive @custom @deprecated(reason: "Use something else.")
+            """;
+
+        // act
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(source)
+            .UseField(next => next)
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        var custom = schema.DirectiveTypes["custom"];
+        var directive = Assert.Single(custom.Directives);
+        Assert.Equal("onDirectiveDefinition", directive.Name);
+        Assert.True(custom.IsDeprecated);
+        Assert.Equal("Use something else.", custom.DeprecationReason);
+    }
+
+    [Fact]
+    public void SchemaFirst_ExtendDirectiveUnknownTarget_Errors()
+    {
+        // arrange
+        const string source =
+            """
+            type Query {
+                field: String
+            }
+
+            directive @onDirectiveDefinition on DIRECTIVE_DEFINITION
+
+            extend directive @unknown @onDirectiveDefinition
+            """;
+
+        // act
+        static void Action() => SchemaBuilder.New()
+            .AddDocumentFromString(source)
+            .Use(next => next)
+            .Create();
+
+        // assert
+        var exception = Assert.Throws<SchemaException>(Action);
+        exception.Errors.Single().ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public void SchemaFirst_ExtendDirectiveNonRepeatableDuplicate_Errors()
+    {
+        // arrange
+        const string source =
+            """
+            type Query {
+                field: String
+            }
+
+            directive @onDirectiveDefinition on DIRECTIVE_DEFINITION
+
+            directive @custom @onDirectiveDefinition on OBJECT
+
+            extend directive @custom @onDirectiveDefinition
+            """;
+
+        // act
+        static void Action() => SchemaBuilder.New()
+            .AddDocumentFromString(source)
+            .Use(next => next)
+            .Create();
+
+        // assert
+        var exception = Assert.Throws<SchemaException>(Action);
+        exception.Errors.Single().ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public void SchemaFirst_DirectiveDefinitionSelfApplication_Errors()
+    {
+        // arrange
+        const string source =
+            """
+            type Query {
+                field: String
+            }
+
+            directive @custom @custom on DIRECTIVE_DEFINITION
+            """;
+
+        // act
+        static void Action() => SchemaBuilder.New()
+            .AddDocumentFromString(source)
+            .Use(next => next)
+            .Create();
+
+        // assert
+        var exception = Assert.Throws<SchemaException>(Action);
+        exception.Errors.Single().ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public void SchemaFirst_DirectiveDefinitionArgumentSelfApplication_Errors()
+    {
+        // arrange
+        const string source =
+            """
+            type Query {
+                field: String
+            }
+
+            directive @custom(arg: Int @custom) on ARGUMENT_DEFINITION | DIRECTIVE_DEFINITION
+            """;
+
+        // act
+        static void Action() => SchemaBuilder.New()
+            .AddDocumentFromString(source)
+            .Use(next => next)
+            .Create();
+
+        // assert
+        var exception = Assert.Throws<SchemaException>(Action);
+        exception.Errors.Single().ToString().MatchSnapshot();
+    }
+
     public class Query
     {
         public string Hello() => "World";

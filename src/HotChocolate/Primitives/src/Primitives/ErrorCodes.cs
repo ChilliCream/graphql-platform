@@ -260,6 +260,11 @@ public static class ErrorCodes
         public const string UnknownDirectiveArgument = "HC0072";
 
         /// <summary>
+        /// A directive extension targets a directive that is not defined.
+        /// </summary>
+        public const string DirectiveExtensionUnknownTarget = "HC0116";
+
+        /// <summary>
         /// A mutation field must return a value.
         /// </summary>
         public const string MutationMustReturnValue = "HC0089";

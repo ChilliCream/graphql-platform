@@ -2,6 +2,7 @@ using HotChocolate.Diagnostics;
 using HotChocolate.Resolvers;
 using HotChocolate.Transport.Http;
 using Microsoft.Extensions.DependencyInjection;
+using static CookieCrumble.TestEnvironment;
 using static HotChocolate.Fusion.Diagnostics.ActivityTestHelper;
 using OperationRequest = HotChocolate.Transport.OperationRequest;
 
@@ -35,7 +36,7 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
             await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -63,7 +64,7 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
             await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -91,7 +92,7 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
             await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -125,7 +126,7 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
             await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -163,7 +164,7 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
             await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -198,7 +199,7 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
             await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -225,7 +226,7 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
 
             // assert
             await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -265,7 +266,7 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
             await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -304,7 +305,7 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
             await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -343,7 +344,7 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
             await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -375,7 +376,7 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
             await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -409,7 +410,7 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
             await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 

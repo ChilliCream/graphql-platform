@@ -68,7 +68,7 @@ public class PagingHelperPostgreSqlNullableTests(PostgreSqlResource resource)
 
         // Assert
         var snapshot = new Snapshot(
-            postFix: TestEnvironment.TargetFramework == "NET10_0"
+            postFix: TestEnvironment.TargetFramework == "NET10_0" || TestEnvironment.TargetFramework == "NET11_0"
                 ? TestEnvironment.TargetFramework
                 : null);
         snapshot.Add(page1);
@@ -135,7 +135,7 @@ public class PagingHelperPostgreSqlNullableTests(PostgreSqlResource resource)
 
         // Assert
         var snapshot = new Snapshot(
-            postFix: TestEnvironment.TargetFramework == "NET10_0"
+            postFix: TestEnvironment.TargetFramework == "NET10_0" || TestEnvironment.TargetFramework == "NET11_0"
                 ? TestEnvironment.TargetFramework
                 : null);
         snapshot.Add(page1);
@@ -202,7 +202,7 @@ public class PagingHelperPostgreSqlNullableTests(PostgreSqlResource resource)
 
         // Assert
         var snapshot = new Snapshot(
-            postFix: TestEnvironment.TargetFramework == "NET10_0"
+            postFix: TestEnvironment.TargetFramework == "NET10_0" || TestEnvironment.TargetFramework == "NET11_0"
                 ? TestEnvironment.TargetFramework
                 : null);
         snapshot.Add(page1);
@@ -269,7 +269,7 @@ public class PagingHelperPostgreSqlNullableTests(PostgreSqlResource resource)
 
         // Assert
         var snapshot = new Snapshot(
-            postFix: TestEnvironment.TargetFramework == "NET10_0"
+            postFix: TestEnvironment.TargetFramework == "NET10_0" || TestEnvironment.TargetFramework == "NET11_0"
                 ? TestEnvironment.TargetFramework
                 : null);
         snapshot.Add(page1);

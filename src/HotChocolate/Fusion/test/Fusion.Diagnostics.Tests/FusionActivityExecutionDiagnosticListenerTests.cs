@@ -6,6 +6,7 @@ using HotChocolate.PersistedOperations;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
+using static CookieCrumble.TestEnvironment;
 using static HotChocolate.Fusion.Diagnostics.ActivityTestHelper;
 
 namespace HotChocolate.Fusion.Diagnostics;
@@ -41,7 +42,7 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -76,7 +77,7 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -146,7 +147,7 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -182,7 +183,7 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -219,7 +220,7 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -255,7 +256,7 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
                 TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -421,7 +422,7 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -457,7 +458,7 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -489,7 +490,7 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -630,7 +631,7 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -721,7 +722,7 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -756,7 +757,7 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -801,7 +802,7 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             }
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 

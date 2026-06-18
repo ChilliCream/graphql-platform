@@ -125,6 +125,7 @@ jobs:
             8.x
             9.x
             10.x
+            11.0.100-preview.4.26230.115
 
       - name: 🖍️ Stamp template PackageReference versions
         shell: bash
@@ -245,7 +246,7 @@ jobs:
       - name: 🛠 Install .NET
         uses: actions/setup-dotnet@9a946fdbd5fb07b82b2f5a4466058b876ab72bb2 # v5.3.0
         with:
-          dotnet-version: 10.x
+          dotnet-version: 11.0.100-preview.4.26230.115
 
       - name: 📦 Publish binary
         shell: bash
@@ -253,11 +254,11 @@ jobs:
           dotnet publish src/Nitro/CommandLine/src/CommandLine \
             -c Release \
             -r ${{ matrix.rid }} \
-            -f net10.0 \
+            -f net11.0 \
             -o publish \
             --self-contained \
             -p:PublishAot=true \
-            -p:TargetFrameworks=net10.0 \
+            -p:TargetFrameworks=net11.0 \
             -p:RuntimeIdentifiers=${{ matrix.rid }} \
             -p:Version=${GIT_TAG} \
             -p:NitroApiClientId="${NitroApiClientId}" \
@@ -637,7 +638,7 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
-          app-id: ${{ secrets.ACTIONS_APP_ID }}
+          client-id: ${{ secrets.ACTIONS_APP_CLIENT_ID }}
           private-key: ${{ secrets.ACTIONS_APP_PRIVATE_KEY }}
           owner: ChilliCream
           repositories: homebrew-tools
@@ -687,7 +688,7 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
-          app-id: ${{ secrets.ACTIONS_APP_ID }}
+          client-id: ${{ secrets.ACTIONS_APP_CLIENT_ID }}
           private-key: ${{ secrets.ACTIONS_APP_PRIVATE_KEY }}
           owner: ChilliCream
           repositories: ${{ matrix.repo }}
@@ -718,8 +719,8 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
-          app-id: ${{ secrets.ACTIONS_APP_ID }}
-          private-key: ${{ secrets.ACTIONS_APP_PRIVATE_KEY }}
+          client-id: ${{ secrets.CLOUD_ACTIONS_APP_CLIENT_ID }}
+          private-key: ${{ secrets.CLOUD_ACTIONS_APP_PRIVATE_KEY }}
           owner: ChilliCream
           repositories: cloud
 
@@ -731,6 +732,7 @@ jobs:
           version: ${{ needs.compute-release-context.outputs.git_tag }}
           is_stable: ${{ needs.compute-release-context.outputs.is_stable }}
           is_active_major: ${{ needs.compute-release-context.outputs.is_active_major }}
+          triggered_by: ${{ github.actor }}
           token: ${{ steps.app-token.outputs.token }}
 
   update-azure-pipelines-extension:
@@ -744,7 +746,7 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
-          app-id: ${{ secrets.ACTIONS_APP_ID }}
+          client-id: ${{ secrets.ACTIONS_APP_CLIENT_ID }}
           private-key: ${{ secrets.ACTIONS_APP_PRIVATE_KEY }}
           owner: ChilliCream
           repositories: nitro-azure-pipelines-tasks
