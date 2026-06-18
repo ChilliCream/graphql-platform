@@ -40,7 +40,7 @@ internal sealed class ListClientCommand : Command
 
         var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
         var apiId = await console.GetOrPromptForApiIdAsync(
-            "For which API do you want to list the clients?",
+            Prompts.SelectApiForListClients,
             parseResult,
             apisClient,
             sessionService,
