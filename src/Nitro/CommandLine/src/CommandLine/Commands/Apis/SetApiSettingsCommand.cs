@@ -50,14 +50,14 @@ internal sealed class SetApiSettingsApiCommand : Command
             .ConfirmAsync(
                 parseResult,
                 Opt<TreatDangerousAsBreakingOption>.Instance,
-                "Treat dangerous changes as breaking?",
+                Prompts.TreatDangerousChangesAsBreaking,
                 ct);
 
         var allowBreakingSchemaChanges = await console
             .ConfirmAsync(
                 parseResult,
                 Opt<AllowBreakingSchemaChangesOption>.Instance,
-                "Allow breaking schema changes when no client breaks?",
+                Prompts.AllowBreakingSchemaChanges,
                 ct);
 
         await using var activity = console.StartActivity(
