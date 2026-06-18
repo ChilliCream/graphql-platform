@@ -456,6 +456,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     {
         // arrange
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupFusionConfigurationDownload();
         var capturedStream = SetupSchemaValidationMutation();
         SetupSchemaValidationSubscription();
@@ -490,6 +491,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     {
         // arrange
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupLegacyArchiveFile();
         SetupFusionConfigurationDownload();
         var capturedStream = SetupSchemaValidationMutation();
@@ -561,6 +563,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     {
         // arrange
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupLegacyArchiveFile();
         SetupMissingFusionConfigurationDownload();
         var capturedStream = SetupSchemaValidationMutation();
@@ -601,6 +604,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             SourceSchemaReviewsFile,
             SourceSchemaReviewsSettingsFile,
             SourceSchemaReviews);
+        SetupStageCompositionSettings();
         SetupLegacyArchiveFile();
         SetupMissingFusionConfigurationDownload();
         var capturedStream = SetupSchemaValidationMutation();
@@ -638,6 +642,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     {
         // arrange
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupLegacyArchiveFile();
         SetupMissingFusionConfigurationDownload();
         var capturedStream = SetupSchemaValidationMutation();
@@ -678,6 +683,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             SourceSchemaReviewsFile,
             SourceSchemaReviewsSettingsFile,
             SourceSchemaReviews);
+        SetupStageCompositionSettings();
         SetupLegacyArchiveFile();
         SetupMissingFusionConfigurationDownload();
         var capturedStream = SetupSchemaValidationMutation();
@@ -718,6 +724,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         SetupEnvironmentVariable(EnvironmentVariables.Stage, Stage);
 
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupFusionConfigurationDownload();
         var capturedStream = SetupSchemaValidationMutation();
         SetupSchemaValidationSubscription();
@@ -751,6 +758,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     {
         // arrange
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupFusionConfigurationDownload();
         SetupSchemaValidationMutation(error);
 
@@ -784,6 +792,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     {
         // arrange
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupFusionConfigurationDownload();
         SetupSchemaValidationMutationException();
 
@@ -820,6 +829,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     {
         // arrange
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupFusionConfigurationDownload();
         SetupSchemaValidationMutation();
         SetupSchemaValidationSubscription(
@@ -920,6 +930,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     {
         // arrange
         SetupSourceSchemaFileWithInvalidSchema();
+        SetupStageCompositionSettings();
         SetupFusionConfigurationDownload();
 
         // act
