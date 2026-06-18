@@ -99,13 +99,13 @@ function PlanCard({ plan }: { readonly plan: Plan }) {
 
       <Dots />
 
-      <h3 className="font-heading text-cc-ink text-xl font-semibold">
+      <h3 className="font-heading text-cc-heading text-xl font-semibold">
         {plan.name}
       </h3>
       <p className="text-cc-nav-label mt-1 font-mono text-xs">{plan.tagline}</p>
 
       <div className="mt-5 flex items-baseline gap-2">
-        <span className="font-heading text-cc-ink text-h3 font-semibold">
+        <span className="font-heading text-cc-heading text-h3 font-semibold">
           {plan.price}
         </span>
         <span className="text-cc-nav-label font-mono text-xs">
@@ -121,7 +121,7 @@ function PlanCard({ plan }: { readonly plan: Plan }) {
             <span className="text-cc-accent mt-1 flex-none">
               <CheckIcon />
             </span>
-            <span className="text-cc-prose text-sm">{feature}</span>
+            <span className="text-cc-ink text-sm">{feature}</span>
           </li>
         ))}
       </ul>
@@ -148,10 +148,10 @@ function PlanCard({ plan }: { readonly plan: Plan }) {
 export function NitroPricing() {
   return (
     <section className="mx-auto max-w-6xl px-5 py-16 sm:px-12 sm:py-24">
-      <h2 className="font-heading text-cc-ink text-h4 sm:text-h3 text-center font-semibold">
+      <h2 className="font-heading text-cc-heading text-h4 sm:text-h3 text-center font-semibold">
         Brew it your Way
       </h2>
-      <p className="text-cc-prose mx-auto mt-5 max-w-3xl text-center text-base text-pretty sm:text-lg">
+      <p className="text-cc-ink mx-auto mt-5 max-w-3xl text-center text-base text-pretty sm:text-lg">
         Nitro is the Control Plane and CLI that keeps you in control, whether
         you&rsquo;re deploying a new schema, rolling out a new client, or
         gaining insights into your API environments.

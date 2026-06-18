@@ -82,12 +82,12 @@ export function FusionFlow() {
     <section className="mx-auto max-w-6xl px-5 sm:px-12">
       {/* Built apart / queried together */}
       <div className="py-16 text-center sm:py-20">
-        <h2 className="font-heading text-cc-ink text-h2 sm:text-h1 leading-[1.05] font-semibold text-balance">
+        <h2 className="font-heading text-cc-heading text-h2 sm:text-h1 leading-[1.05] font-semibold text-balance">
           Built apart.
           <br />
           Queried together.
         </h2>
-        <p className="text-cc-prose mx-auto mt-6 max-w-4xl text-lg text-pretty sm:text-xl">
+        <p className="text-cc-ink mx-auto mt-6 max-w-4xl text-lg text-pretty sm:text-xl">
           Unify all your APIs into a comprehensive company graph, streamlining
           data accessibility and enhancing integration. Transform the way you
           manage and interact with your data.
@@ -188,10 +188,10 @@ export function FusionFlow() {
         {/* "No matter the format" sits over the stream region. It breaks out of
             the section's max width so the line stays single, as in the design. */}
         <div className="absolute top-[38%] left-1/2 w-screen max-w-[100vw] -translate-x-1/2 -translate-y-1/2 px-4 text-center">
-          <h2 className="font-heading text-cc-ink text-h3 sm:text-h2 font-semibold sm:whitespace-nowrap">
+          <h2 className="font-heading text-cc-heading text-h3 sm:text-h2 font-semibold sm:whitespace-nowrap">
             No Matter the Format. Fusion transforms.
           </h2>
-          <p className="text-cc-prose mx-auto mt-6 max-w-4xl px-4 text-lg text-pretty sm:text-xl">
+          <p className="text-cc-ink mx-auto mt-6 max-w-4xl px-4 text-lg text-pretty sm:text-xl">
             Unify all your APIs into a comprehensive company graph, streamlining
             data accessibility and enhancing integration. Transform the way you
             manage and interact with your data.
@@ -213,10 +213,10 @@ export function FusionFlow() {
       {/* The API that speaks any language */}
       <div className="text-center">
         <GlowBeam />
-        <h2 className="font-heading text-cc-ink text-h3 sm:text-h2 font-semibold text-balance">
+        <h2 className="font-heading text-cc-heading text-h3 sm:text-h2 font-semibold text-balance">
           The API that speaks any Language.
         </h2>
-        <p className="text-cc-prose mx-auto mt-6 max-w-4xl text-lg text-pretty sm:text-xl">
+        <p className="text-cc-ink mx-auto mt-6 max-w-4xl text-lg text-pretty sm:text-xl">
           Unify all your APIs into a comprehensive company graph, streamlining
           data accessibility and enhancing integration. Transform the way you
           manage and interact with your data.

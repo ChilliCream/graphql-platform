@@ -81,7 +81,7 @@ const LINKS = PROTOCOLS.flatMap((card, to) =>
 
 function ProtocolTag({ label }: { readonly label: string }) {
   return (
-    <span className="border-cc-card-border text-cc-ink-dim inline-flex items-center rounded-full border px-3 py-1 font-mono text-[0.7rem] tracking-[0.12em] uppercase">
+    <span className="border-cc-nav-text/30 text-cc-nav-text inline-flex items-center rounded-full border px-3 py-1 font-mono text-[0.7rem] tracking-[0.12em] uppercase">
       {label}
     </span>
   );
@@ -134,12 +134,12 @@ export function ProtocolCards() {
         </svg>
 
         <div className="relative px-4 pt-16 pb-20 text-center sm:pt-24 sm:pb-28">
-          <h2 className="font-heading text-cc-ink text-h3 sm:text-h2 leading-[1.1] font-semibold text-balance">
+          <h2 className="font-heading text-cc-heading text-h3 sm:text-h2 leading-[1.1] font-semibold text-balance">
             Choose your Protocol.
             <br />
             One Source of Truth.
           </h2>
-          <p className="text-cc-prose mx-auto mt-6 max-w-4xl text-lg text-pretty sm:text-xl">
+          <p className="text-cc-ink mx-auto mt-6 max-w-4xl text-lg text-pretty sm:text-xl">
             Unify all your APIs into a comprehensive company graph, streamlining
             data accessibility and enhancing integration. Transform the way you
             manage and interact with your data.
@@ -150,12 +150,12 @@ export function ProtocolCards() {
           {PROTOCOLS.map(({ Icon, title, subtitle, tags }) => (
             <div key={title} className="flex flex-col items-center text-center">
               <div className="border-cc-card-border bg-cc-card-bg flex size-20 items-center justify-center rounded-2xl border">
-                <Icon className="text-cc-nav-text size-9" />
+                <Icon className="text-cc-nav-text size-11" />
               </div>
-              <h3 className="font-heading text-cc-ink mt-5 text-xl font-semibold">
+              <h3 className="font-heading text-cc-heading mt-5 text-xl font-semibold">
                 {title}
               </h3>
-              <p className="text-cc-ink-dim mt-1 text-sm">{subtitle}</p>
+              <p className="text-cc-ink mt-1 text-sm">{subtitle}</p>
               <div className="mt-4 flex flex-wrap justify-center gap-2">
                 {tags.map((tag) => (
                   <ProtocolTag key={tag} label={tag} />

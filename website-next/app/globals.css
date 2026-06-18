@@ -38,8 +38,11 @@
   /* Disable default Tailwind colors */
   --color-*: initial;
 
+  --color-cc-heading: #f5f0ea;
+  --color-cc-ink: #a1a3af;
+
   /* The cc-* colors below are mirrored in src/theme/colors.ts for the OG share cards. */
-  --color-cc-ink: #f5f1ea;
+  /* --color-cc-ink: #f5f1ea; */
   /* Long-form body prose: lighter than `cc-ink-dim` so paragraphs stay readable. */
   --color-cc-prose: rgba(245, 241, 234, 0.8);
   --color-cc-ink-dim: rgba(245, 241, 234, 0.62);

@@ -134,10 +134,10 @@ function StackRow({ title, diagram, reverse }: StackRowProps) {
       }`}
     >
       <div className="max-w-md flex-1 text-center md:text-left">
-        <h3 className="font-heading text-cc-ink text-h4 sm:text-h3 font-semibold">
+        <h3 className="font-heading text-cc-heading text-h4 sm:text-h3 font-semibold">
           {title}
         </h3>
-        <p className="text-cc-prose mt-4 text-base/relaxed">
+        <p className="text-cc-ink mt-4 text-base/relaxed">
           Pick what you need for your stack. Whether you&rsquo;re building a
           monolithic or federated GraphQL API, a message-intensive service, or
           an application, we&rsquo;ve got the right tools for you.
