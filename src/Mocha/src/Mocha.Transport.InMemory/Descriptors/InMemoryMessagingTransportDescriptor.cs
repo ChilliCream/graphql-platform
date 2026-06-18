@@ -1,3 +1,5 @@
+using Mocha.Features;
+
 namespace Mocha.Transport.InMemory;
 
 /// <summary>
@@ -140,13 +142,14 @@ public sealed class InMemoryMessagingTransportDescriptor
     /// <inheritdoc />
     public IInMemoryQueueDescriptor Queue(string name)
     {
-        var queue = _queues.FirstOrDefault(q => q.Name.EqualsOrdinal(name));
+        var queue = _queues.FirstOrDefault(q =>
+            q.Extend().Configuration.Name.EqualsOrdinal(name));
         if (queue is not null)
         {
             return queue;
         }
 
-        queue = new InMemoryQueueDescriptor(this, name);
+        queue = InMemoryQueueDescriptor.New(Context, name);
         _queues.Add(queue);
         return queue;
     }
@@ -227,17 +230,15 @@ public sealed class InMemoryMessagingTransportDescriptor
     /// <returns>The fully populated transport configuration ready for runtime initialization.</returns>
     public InMemoryTransportConfiguration CreateConfiguration()
     {
+        foreach (var queue in _queues.Select(q => q.CreateConfiguration()))
+        {
+            ConfigureQueueTopology(queue);
+            ConfigureQueueEndpoint(queue);
+        }
+
         var topics = _exchanges.Select(e => e.CreateConfiguration()).ToList();
         var queues = _queueTopology.Select(q => q.CreateConfiguration()).ToList();
         var bindings = _bindings.Select(b => b.CreateConfiguration()).ToList();
-
-        foreach (var queue in _queues)
-        {
-            if (queue.TryGetEntityOnlyEndpointToPrune(out var endpoint) && endpoint is not null)
-            {
-                _receiveEndpoints.Remove(endpoint);
-            }
-        }
 
         ValidateOneEndpointPerQueue(_receiveEndpoints);
 
@@ -254,6 +255,95 @@ public sealed class InMemoryMessagingTransportDescriptor
             .ToList();
 
         return Configuration;
+    }
+
+    private void ConfigureQueueTopology(InMemoryQueueDescriptorConfiguration configuration)
+    {
+        DeclareQueue(configuration.Name!);
+
+        var schema = Configuration.Schema ?? InMemoryTransportConfiguration.DefaultSchema;
+        foreach (var source in configuration.SourceBindings)
+        {
+            if (!InMemoryDestinations.TryResolveSourceTopic(schema, source, out var topicName))
+            {
+                throw new InvalidOperationException(
+                    $"BindFrom source '{source}' could not be resolved to an in-memory topic name.");
+            }
+
+            DeclareTopic(topicName);
+            DeclareBinding(topicName, configuration.Name!);
+        }
+    }
+
+    private void ConfigureQueueEndpoint(InMemoryQueueDescriptorConfiguration configuration)
+    {
+        var endpoint = Endpoint(configuration.Name!);
+        var target = endpoint.Extend().Configuration;
+
+        target.ConsumerIdentities.AddRange(configuration.ConsumerIdentities);
+        target.ReceivedMessageTypes.AddRange(configuration.ReceivedMessageTypes);
+
+        if (configuration.BindMode is not null)
+        {
+            target.BindMode ??= configuration.BindMode;
+        }
+
+        if (configuration.Kind is not null && target.Kind == ReceiveEndpointKind.Default)
+        {
+            target.Kind = configuration.Kind.Value;
+        }
+
+        if (configuration.MaxConcurrency is not null)
+        {
+            target.MaxConcurrency ??= configuration.MaxConcurrency;
+        }
+
+        target.ReceiveMiddlewares.AddRange(configuration.ReceiveMiddlewares);
+        target.ReceivePipelineModifiers.AddRange(configuration.ReceivePipelineModifiers);
+        CopyFaultEndpointFeature(configuration, target);
+        CopySkippedEndpointFeature(configuration, target);
+    }
+
+    private static void CopyFaultEndpointFeature(
+        InMemoryQueueDescriptorConfiguration configuration,
+        InMemoryReceiveEndpointConfiguration target)
+    {
+        var source = configuration.Features.Get<ReceiveFaultEndpointFeature>();
+        if (source is null)
+        {
+            return;
+        }
+
+        var targetFeature = target.Features.GetOrSet<ReceiveFaultEndpointFeature>();
+        if (targetFeature is { Address: not null } or { QueueName: not null } or { IsDisabled: true })
+        {
+            return;
+        }
+
+        targetFeature.Address = source.Address;
+        targetFeature.QueueName = source.QueueName;
+        targetFeature.IsDisabled = source.IsDisabled;
+    }
+
+    private static void CopySkippedEndpointFeature(
+        InMemoryQueueDescriptorConfiguration configuration,
+        InMemoryReceiveEndpointConfiguration target)
+    {
+        var source = configuration.Features.Get<ReceiveSkippedEndpointFeature>();
+        if (source is null)
+        {
+            return;
+        }
+
+        var targetFeature = target.Features.GetOrSet<ReceiveSkippedEndpointFeature>();
+        if (targetFeature is { Address: not null } or { QueueName: not null } or { IsDisabled: true })
+        {
+            return;
+        }
+
+        targetFeature.Address = source.Address;
+        targetFeature.QueueName = source.QueueName;
+        targetFeature.IsDisabled = source.IsDisabled;
     }
 
     private static void ValidateOneEndpointPerQueue(List<InMemoryReceiveEndpointDescriptor> endpoints)

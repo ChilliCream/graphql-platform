@@ -5,7 +5,7 @@ namespace Mocha.Transport.RabbitMQ;
 /// a lazily created receive endpoint. Infra-only usage (no consumer or routing method called)
 /// produces a declared queue in the topology without materializing a receive endpoint.
 /// </summary>
-public interface IRabbitMQQueueDescriptor
+public interface IRabbitMQQueueDescriptor : IMessagingDescriptor<RabbitMQQueueDescriptorConfiguration>
 {
     /// <summary>
     /// Sets whether the backing queue survives broker restarts.

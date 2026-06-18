@@ -5,7 +5,7 @@ namespace Mocha.Transport.InMemory;
 /// a lazily created receive endpoint. Infra-only usage (no consumer or routing method called)
 /// produces a declared queue in the topology without materializing a receive endpoint.
 /// </summary>
-public interface IInMemoryQueueDescriptor
+public interface IInMemoryQueueDescriptor : IMessagingDescriptor<InMemoryQueueDescriptorConfiguration>
 {
     /// <summary>
     /// Registers a handler type on this queue's receive endpoint.

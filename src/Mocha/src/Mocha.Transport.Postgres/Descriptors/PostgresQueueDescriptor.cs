@@ -3,157 +3,110 @@ using Mocha.Features;
 namespace Mocha.Transport.Postgres;
 
 /// <summary>
-/// Composes a topology queue descriptor with a lazily created receive endpoint. Topology methods
-/// configure the backing queue, while receive methods materialize an endpoint for the same queue.
+/// Descriptor for configuring a PostgreSQL queue and its receive endpoint.
 /// </summary>
-internal sealed class PostgresQueueDescriptor : IPostgresQueueDescriptor
+internal sealed class PostgresQueueDescriptor
+    : MessagingDescriptorBase<PostgresQueueDescriptorConfiguration>
+    , IPostgresQueueDescriptor
 {
-    private readonly PostgresMessagingTransportDescriptor _transport;
-    private readonly IPostgresQueueTopologyDescriptor _queue;
-    private readonly string _name;
-    private PostgresReceiveEndpointDescriptor? _endpoint;
-
-    /// <summary>
-    /// Creates a new descriptor for the given queue name, eagerly declaring the queue in the topology.
-    /// </summary>
-    /// <param name="transport">The owning transport descriptor.</param>
-    /// <param name="name">The queue name, which also serves as the endpoint identity.</param>
-    internal PostgresQueueDescriptor(PostgresMessagingTransportDescriptor transport, string name)
+    private PostgresQueueDescriptor(IMessagingConfigurationContext context, string name)
+        : base(context)
     {
-        _transport = transport;
-        _name = name;
-        _queue = transport.DeclareQueue(name);
+        Configuration = new PostgresQueueDescriptorConfiguration(name);
     }
 
-    /// <summary>
-    /// Gets the lazily created receive endpoint, or null if no routing method has been called.
-    /// </summary>
-    internal PostgresReceiveEndpointDescriptor? Endpoint => _endpoint;
-
-    internal string Name => _name;
-
-    private PostgresReceiveEndpointDescriptor EnsureEndpoint()
-        => _endpoint ??= (PostgresReceiveEndpointDescriptor)_transport.Endpoint(_name);
-
-    internal bool TryGetEntityOnlyEndpointToPrune(out PostgresReceiveEndpointDescriptor? endpoint)
-    {
-        endpoint = _endpoint;
-        if (endpoint is null)
-        {
-            return false;
-        }
-
-        var configuration = endpoint.Configuration;
-        if (configuration.ConsumerIdentities.Count != 0 || configuration.ReceivedMessageTypes.Count != 0)
-        {
-            return false;
-        }
-
-        var queueName = configuration.QueueName ?? configuration.Name ?? string.Empty;
-
-        if (configuration.Features.Get<ReceiveFaultEndpointFeature>()
-            is { Address: not null } or { QueueName: not null } or { IsDisabled: true })
-        {
-            throw ThrowHelper.FaultOrSkippedQueueRequiresConsumingEndpoint("error", queueName);
-        }
-
-        if (configuration.Features.Get<ReceiveSkippedEndpointFeature>()
-            is { Address: not null } or { QueueName: not null } or { IsDisabled: true })
-        {
-            throw ThrowHelper.FaultOrSkippedQueueRequiresConsumingEndpoint("skipped", queueName);
-        }
-
-        return true;
-    }
+    protected internal override PostgresQueueDescriptorConfiguration Configuration { get; protected set; }
 
     /// <inheritdoc />
     public IPostgresQueueDescriptor AutoProvision(bool autoProvision = true)
     {
-        _queue.AutoProvision(autoProvision);
+        Configuration.Queue.AutoProvision = autoProvision;
         return this;
     }
 
     /// <inheritdoc />
     public IPostgresQueueDescriptor AutoDelete(bool autoDelete = true)
     {
-        _queue.AutoDelete(autoDelete);
+        Configuration.Queue.AutoDelete = autoDelete;
         return this;
     }
 
     /// <inheritdoc />
     public IPostgresQueueDescriptor Handler<THandler>() where THandler : class, IHandler
     {
-        EnsureEndpoint().Handler<THandler>();
+        Configuration.ConsumerIdentities.Add(typeof(THandler));
         return this;
     }
 
     /// <inheritdoc />
     public IPostgresQueueDescriptor Handler(Type handlerType)
     {
-        EnsureEndpoint().Handler(handlerType);
+        Configuration.ConsumerIdentities.Add(handlerType);
         return this;
     }
 
     /// <inheritdoc />
     public IPostgresQueueDescriptor Consumer<TConsumer>() where TConsumer : class, IConsumer
     {
-        EnsureEndpoint().Consumer<TConsumer>();
+        Configuration.ConsumerIdentities.Add(typeof(TConsumer));
         return this;
     }
 
     /// <inheritdoc />
     public IPostgresQueueDescriptor Consumer(Type consumerType)
     {
-        EnsureEndpoint().Consumer(consumerType);
+        ArgumentNullException.ThrowIfNull(consumerType);
+        Configuration.ConsumerIdentities.Add(consumerType);
         return this;
     }
 
     /// <inheritdoc />
     public IPostgresQueueDescriptor Receives<TMessage>()
     {
-        EnsureEndpoint().Receives<TMessage>();
+        Configuration.ReceivedMessageTypes.Add(typeof(TMessage));
         return this;
     }
 
     /// <inheritdoc />
     public IPostgresQueueDescriptor Receives(Type messageType)
     {
-        EnsureEndpoint().Receives(messageType);
+        ArgumentNullException.ThrowIfNull(messageType);
+        Configuration.ReceivedMessageTypes.Add(messageType);
         return this;
     }
 
     /// <inheritdoc />
     public IPostgresQueueDescriptor BindImplicitly()
     {
-        EnsureEndpoint().BindImplicitly();
+        Configuration.BindMode = MessagingBindMode.Implicit;
         return this;
     }
 
     /// <inheritdoc />
     public IPostgresQueueDescriptor BindExplicitly()
     {
-        EnsureEndpoint().BindExplicitly();
+        Configuration.BindMode = MessagingBindMode.Explicit;
         return this;
     }
 
     /// <inheritdoc />
     public IPostgresQueueDescriptor MaxBatchSize(int size)
     {
-        EnsureEndpoint().MaxBatchSize(size);
+        Configuration.MaxBatchSize = size;
         return this;
     }
 
     /// <inheritdoc />
     public IPostgresQueueDescriptor Kind(ReceiveEndpointKind kind)
     {
-        EnsureEndpoint().Kind(kind);
+        Configuration.Kind = kind;
         return this;
     }
 
     /// <inheritdoc />
     public IPostgresQueueDescriptor MaxConcurrency(int maxConcurrency)
     {
-        EnsureEndpoint().MaxConcurrency(maxConcurrency);
+        Configuration.MaxConcurrency = maxConcurrency;
         return this;
     }
 
@@ -163,28 +116,53 @@ internal sealed class PostgresQueueDescriptor : IPostgresQueueDescriptor
         string? before = null,
         string? after = null)
     {
-        EnsureEndpoint().UseReceive(configuration, before, after);
+        if (before is not null && after is not null)
+        {
+            throw ThrowHelper.BeforeAndAfterConflict();
+        }
+
+        if (before is null && after is null)
+        {
+            Configuration.ReceiveMiddlewares.Add(configuration);
+            return this;
+        }
+
+        if (before is not null)
+        {
+            Configuration.ReceivePipelineModifiers.Prepend(configuration, before);
+        }
+        else
+        {
+            Configuration.ReceivePipelineModifiers.Append(configuration, after);
+        }
+
         return this;
     }
 
     /// <inheritdoc />
     public IPostgresQueueDescriptor FaultEndpoint(string name)
     {
-        EnsureEndpoint().FaultEndpoint(name);
+        var feature = Configuration.Features.GetOrSet<ReceiveFaultEndpointFeature>();
+        feature.Address = new Uri(name);
+        feature.QueueName = null;
+        feature.IsDisabled = false;
         return this;
     }
 
     /// <inheritdoc />
     public IPostgresQueueDescriptor SkippedEndpoint(string name)
     {
-        EnsureEndpoint().SkippedEndpoint(name);
+        var feature = Configuration.Features.GetOrSet<ReceiveSkippedEndpointFeature>();
+        feature.Address = new Uri(name);
+        feature.QueueName = null;
+        feature.IsDisabled = false;
         return this;
     }
 
     /// <inheritdoc />
     public IPostgresQueueDescriptor ErrorQueue(string name)
     {
-        var feature = EnsureEndpoint().Configuration.Features.GetOrSet<ReceiveFaultEndpointFeature>();
+        var feature = Configuration.Features.GetOrSet<ReceiveFaultEndpointFeature>();
         feature.IsDisabled = false;
         feature.QueueName = name;
         feature.Address = null;
@@ -194,7 +172,7 @@ internal sealed class PostgresQueueDescriptor : IPostgresQueueDescriptor
     /// <inheritdoc />
     public IPostgresQueueDescriptor DisableErrorQueue()
     {
-        var feature = EnsureEndpoint().Configuration.Features.GetOrSet<ReceiveFaultEndpointFeature>();
+        var feature = Configuration.Features.GetOrSet<ReceiveFaultEndpointFeature>();
         feature.IsDisabled = true;
         feature.QueueName = null;
         feature.Address = null;
@@ -204,7 +182,7 @@ internal sealed class PostgresQueueDescriptor : IPostgresQueueDescriptor
     /// <inheritdoc />
     public IPostgresQueueDescriptor SkippedQueue(string name)
     {
-        var feature = EnsureEndpoint().Configuration.Features.GetOrSet<ReceiveSkippedEndpointFeature>();
+        var feature = Configuration.Features.GetOrSet<ReceiveSkippedEndpointFeature>();
         feature.IsDisabled = false;
         feature.QueueName = name;
         feature.Address = null;
@@ -214,7 +192,7 @@ internal sealed class PostgresQueueDescriptor : IPostgresQueueDescriptor
     /// <inheritdoc />
     public IPostgresQueueDescriptor DisableSkippedQueue()
     {
-        var feature = EnsureEndpoint().Configuration.Features.GetOrSet<ReceiveSkippedEndpointFeature>();
+        var feature = Configuration.Features.GetOrSet<ReceiveSkippedEndpointFeature>();
         feature.IsDisabled = true;
         feature.QueueName = null;
         feature.Address = null;
@@ -231,20 +209,15 @@ internal sealed class PostgresQueueDescriptor : IPostgresQueueDescriptor
             throw ThrowHelper.BindFromWithNonNullRoutingKey(
                 "PostgreSQL",
                 source.ToString(),
-                _name);
+                Configuration.Name!);
         }
 
-        var schema = _transport.Configuration.Schema ?? PostgresTransportConfiguration.DefaultSchema;
-
-        if (!PostgresDestinations.TryResolveSourceTopic(schema, source, out var topicName))
-        {
-            throw new InvalidOperationException(
-                $"BindFrom source '{source}' could not be resolved to a PostgreSQL topic name.");
-        }
-
-        _transport.DeclareTopic(topicName);
-        _transport.DeclareSubscription(topicName, _name);
-
+        Configuration.SourceBindings.Add(source);
         return this;
     }
+
+    public PostgresQueueDescriptorConfiguration CreateConfiguration() => Configuration;
+
+    public static PostgresQueueDescriptor New(IMessagingConfigurationContext context, string name)
+        => new(context, name);
 }

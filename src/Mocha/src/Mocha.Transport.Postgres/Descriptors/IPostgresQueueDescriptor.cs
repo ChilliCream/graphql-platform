@@ -5,7 +5,7 @@ namespace Mocha.Transport.Postgres;
 /// a lazily created receive endpoint. Infra-only usage (no consumer or routing method called)
 /// produces a declared queue in the topology without materializing a receive endpoint.
 /// </summary>
-public interface IPostgresQueueDescriptor
+public interface IPostgresQueueDescriptor : IMessagingDescriptor<PostgresQueueDescriptorConfiguration>
 {
     /// <summary>
     /// Sets whether the backing queue is automatically provisioned in the database.

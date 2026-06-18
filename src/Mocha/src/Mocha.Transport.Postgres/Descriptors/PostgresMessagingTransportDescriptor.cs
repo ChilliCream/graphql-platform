@@ -1,3 +1,5 @@
+using Mocha.Features;
+
 namespace Mocha.Transport.Postgres;
 
 /// <summary>
@@ -235,13 +237,14 @@ public sealed class PostgresMessagingTransportDescriptor
     /// <inheritdoc />
     public IPostgresQueueDescriptor Queue(string name)
     {
-        var queue = _queues.FirstOrDefault(q => q.Name.EqualsOrdinal(name));
+        var queue = _queues.FirstOrDefault(q =>
+            q.Extend().Configuration.Name.EqualsOrdinal(name));
         if (queue is not null)
         {
             return queue;
         }
 
-        queue = new PostgresQueueDescriptor(this, name);
+        queue = PostgresQueueDescriptor.New(Context, name);
         _queues.Add(queue);
         return queue;
     }
@@ -253,26 +256,26 @@ public sealed class PostgresMessagingTransportDescriptor
     /// <returns>The fully populated transport configuration ready for runtime initialization.</returns>
     public PostgresTransportConfiguration CreateConfiguration()
     {
+        foreach (var queue in _queues.Select(q => q.CreateConfiguration()))
+        {
+            ConfigureQueueTopology(queue);
+            ConfigureQueueEndpoint(queue);
+        }
+
         var queues = _queueTopology.Select(q => q.CreateConfiguration()).ToList();
         var topics = _topics.Select(e => e.CreateConfiguration()).ToList();
         var subscriptions = _subscriptions.Select(b => b.CreateConfiguration()).ToList();
 
-        foreach (var queue in _queues)
-        {
-            if (queue.TryGetEntityOnlyEndpointToPrune(out var endpoint) && endpoint is not null)
-            {
-                _receiveEndpoints.Remove(endpoint);
-            }
-        }
+        var receiveEndpoints = _receiveEndpoints.Select(e => e.CreateConfiguration()).ToList();
 
-        ValidateOneEndpointPerQueue(_receiveEndpoints);
+        ValidateOneEndpointPerQueue(receiveEndpoints);
 
         Configuration.Topics = topics;
         Configuration.Queues = queues;
         Configuration.Subscriptions = subscriptions;
 
-        Configuration.ReceiveEndpoints = _receiveEndpoints
-            .Select(ReceiveEndpointConfiguration (e) => e.CreateConfiguration())
+        Configuration.ReceiveEndpoints = receiveEndpoints
+            .Select(ReceiveEndpointConfiguration (e) => e)
             .ToList();
 
         Configuration.DispatchEndpoints = _dispatchEndpoints
@@ -282,12 +285,122 @@ public sealed class PostgresMessagingTransportDescriptor
         return Configuration;
     }
 
-    private static void ValidateOneEndpointPerQueue(List<PostgresReceiveEndpointDescriptor> endpoints)
+    private void ConfigureQueueTopology(PostgresQueueDescriptorConfiguration configuration)
     {
-        var seen = new Dictionary<string, PostgresReceiveEndpointDescriptor>(StringComparer.Ordinal);
+        var queue = DeclareQueue(configuration.Name!);
+        ApplyQueueConfiguration(configuration.Queue, queue);
+
+        var schema = Configuration.Schema ?? PostgresTransportConfiguration.DefaultSchema;
+        foreach (var source in configuration.SourceBindings)
+        {
+            if (!PostgresDestinations.TryResolveSourceTopic(schema, source, out var topicName))
+            {
+                throw new InvalidOperationException(
+                    $"BindFrom source '{source}' could not be resolved to a PostgreSQL topic name.");
+            }
+
+            DeclareTopic(topicName);
+            DeclareSubscription(topicName, configuration.Name!);
+        }
+    }
+
+    private void ConfigureQueueEndpoint(PostgresQueueDescriptorConfiguration configuration)
+    {
+        var endpoint = Endpoint(configuration.Name!);
+        var target = endpoint.Extend().Configuration;
+
+        target.ConsumerIdentities.AddRange(configuration.ConsumerIdentities);
+        target.ReceivedMessageTypes.AddRange(configuration.ReceivedMessageTypes);
+
+        if (configuration.BindMode is not null)
+        {
+            target.BindMode ??= configuration.BindMode;
+        }
+
+        if (configuration.Kind is not null && target.Kind == ReceiveEndpointKind.Default)
+        {
+            target.Kind = configuration.Kind.Value;
+        }
+
+        if (configuration.MaxConcurrency is not null)
+        {
+            target.MaxConcurrency ??= configuration.MaxConcurrency;
+        }
+
+        if (configuration.MaxBatchSize is not null)
+        {
+            target.MaxBatchSize = configuration.MaxBatchSize;
+        }
+
+        target.ReceiveMiddlewares.AddRange(configuration.ReceiveMiddlewares);
+        target.ReceivePipelineModifiers.AddRange(configuration.ReceivePipelineModifiers);
+        CopyFaultEndpointFeature(configuration, target);
+        CopySkippedEndpointFeature(configuration, target);
+    }
+
+    private static void CopyFaultEndpointFeature(
+        PostgresQueueDescriptorConfiguration configuration,
+        PostgresReceiveEndpointConfiguration target)
+    {
+        var source = configuration.Features.Get<ReceiveFaultEndpointFeature>();
+        if (source is null)
+        {
+            return;
+        }
+
+        var targetFeature = target.Features.GetOrSet<ReceiveFaultEndpointFeature>();
+        if (targetFeature is { Address: not null } or { QueueName: not null } or { IsDisabled: true })
+        {
+            return;
+        }
+
+        targetFeature.Address = source.Address;
+        targetFeature.QueueName = source.QueueName;
+        targetFeature.IsDisabled = source.IsDisabled;
+    }
+
+    private static void CopySkippedEndpointFeature(
+        PostgresQueueDescriptorConfiguration configuration,
+        PostgresReceiveEndpointConfiguration target)
+    {
+        var source = configuration.Features.Get<ReceiveSkippedEndpointFeature>();
+        if (source is null)
+        {
+            return;
+        }
+
+        var targetFeature = target.Features.GetOrSet<ReceiveSkippedEndpointFeature>();
+        if (targetFeature is { Address: not null } or { QueueName: not null } or { IsDisabled: true })
+        {
+            return;
+        }
+
+        targetFeature.Address = source.Address;
+        targetFeature.QueueName = source.QueueName;
+        targetFeature.IsDisabled = source.IsDisabled;
+    }
+
+    private static void ApplyQueueConfiguration(
+        PostgresQueueConfiguration configuration,
+        IPostgresQueueTopologyDescriptor descriptor)
+    {
+        if (configuration.AutoDelete is { } autoDelete)
+        {
+            descriptor.AutoDelete(autoDelete);
+        }
+
+        if (configuration.AutoProvision is { } autoProvision)
+        {
+            descriptor.AutoProvision(autoProvision);
+        }
+    }
+
+    private static void ValidateOneEndpointPerQueue(List<PostgresReceiveEndpointConfiguration> endpoints)
+    {
+        var seen = new Dictionary<string, PostgresReceiveEndpointConfiguration>(StringComparer.Ordinal);
         foreach (var endpoint in endpoints)
         {
-            var queueName = endpoint.Configuration.QueueName;
+            var queueName = endpoint.QueueName;
             if (queueName is null)
             {
                 continue;
@@ -297,8 +410,8 @@ public sealed class PostgresMessagingTransportDescriptor
             {
                 throw ThrowHelper.TwoReceiveEndpointsShareOneQueue(
                     queueName,
-                    existing.Configuration.Name ?? queueName,
-                    endpoint.Configuration.Name ?? queueName);
+                    existing.Name ?? queueName,
+                    endpoint.Name ?? queueName);
             }
 
             seen[queueName] = endpoint;
