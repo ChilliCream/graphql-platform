@@ -12,6 +12,11 @@ public static partial class ActivityTestHelper
     private static partial Regex StackTracePathRegex();
     [GeneratedRegex(@"lambda_method\d+", RegexOptions.CultureInvariant)]
     private static partial Regex LambdaMethodRegex();
+    // Async resumption markers depend on whether an await completes synchronously, which the
+    // JIT decides differently under coverage instrumentation. Removing them keeps the snapshot
+    // stable regardless of those JIT/coverage differences.
+    [GeneratedRegex(@"\n--- End of stack trace from previous location ---", RegexOptions.CultureInvariant)]
+    private static partial Regex StackTraceResumptionMarkerRegex();
 
     public static IDisposable CaptureActivities(out Capture activities)
     {
@@ -82,6 +87,8 @@ public static partial class ActivityTestHelper
                     var fileName = System.IO.Path.GetFileName(match.Groups["path"].Value);
                     return $" in {fileName}";
                 });
+
+                scrubbedStackTrace = StackTraceResumptionMarkerRegex().Replace(scrubbedStackTrace, "");
 
                 yield return new KeyValuePair<string, object?>(
                     tag.Key,
