@@ -732,6 +732,7 @@ jobs:
           version: ${{ needs.compute-release-context.outputs.git_tag }}
           is_stable: ${{ needs.compute-release-context.outputs.is_stable }}
           is_active_major: ${{ needs.compute-release-context.outputs.is_active_major }}
+          triggered_by: ${{ github.actor }}
           token: ${{ steps.app-token.outputs.token }}
 
   update-azure-pipelines-extension:
