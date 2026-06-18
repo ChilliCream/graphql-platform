@@ -806,7 +806,7 @@ GraphQL, as Facebook created and used it, was built around flexibility during de
 
 In the build pipeline, operations are stripped from the frontend code and replaced with a unique identifier. The stripped operation documents are stored in an operation store. In production, the frontend sends the unique identifier to the GraphQL server instead of a full operation. The GraphQL server only executes operations stored in the operations store and will deny execution of an arbitrary GraphQL requests.
 
-This is the BEST way to do GraphQL and provides the best approach for schema evolvability, as operations are centrally known and can be statically analyzed. It also ensures that you know the performance characteristics and impact of operations on your backend. With Banana Cake Pop, you can set up a schema registry and an operation store in less than 5 minutes. Have a look [here](https://chillicream.com/docs/bananacakepop/v2/apis/schema-registry) for more information.
+This is the BEST way to do GraphQL and provides the best approach for schema evolvability, as operations are centrally known and can be statically analyzed. It also ensures that you know the performance characteristics and impact of operations on your backend. With Banana Cake Pop, you can set up a schema registry and an operation store in less than 5 minutes. Have a look [here](../docs/nitro/apis/schema-registry.md) for more information.
 
 However, most new developers are not aware of how to do this or do not understand why they should do it in the first place. Another problem is that there is no easy path from an open GraphQL server to a closed system once you have clients working against your API.
 

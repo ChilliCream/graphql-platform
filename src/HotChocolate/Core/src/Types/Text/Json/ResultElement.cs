@@ -98,7 +98,7 @@ public readonly partial struct ResultElement
         {
             CheckValidInstance();
 
-            if (_cursor == ResultDocument.Cursor.Zero)
+            if (_cursor.IsZero)
             {
                 return null;
             }
@@ -116,7 +116,7 @@ public readonly partial struct ResultElement
     {
         get
         {
-            if (_cursor == ResultDocument.Cursor.Zero)
+            if (_cursor.IsZero)
             {
                 return null;
             }
@@ -203,7 +203,7 @@ public readonly partial struct ResultElement
         {
             CheckValidInstance();
 
-            if (_cursor == ResultDocument.Cursor.Zero)
+            if (_cursor.IsZero)
             {
                 return false;
             }

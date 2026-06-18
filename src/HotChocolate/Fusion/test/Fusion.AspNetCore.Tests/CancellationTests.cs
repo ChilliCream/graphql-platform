@@ -36,6 +36,22 @@ public class CancellationTests : FusionTestBase
             }
             """);
 
+        // Warm up the gateway so the executor build and request-pipeline JIT happen
+        // outside the tight execution timeout below, leaving the 250ms budget to
+        // measure the subgraph delay rather than first-request cold start. The
+        // `__typename` meta-field resolves on the gateway and never reaches the
+        // subgraph.
+        using (await client.PostAsync(
+            new OperationRequest("{ __typename }"),
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken))
+        {
+        }
+
+        // Discard any interactions recorded during warm-up so the snapshot reflects
+        // only the measured request.
+        gateway.Interactions.Clear();
+
         // act
         using var result = await client.PostAsync(
             request,

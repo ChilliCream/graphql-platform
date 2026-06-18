@@ -17,6 +17,13 @@ export default function remarkRewriteMdLinks() {
     const cwd = file.cwd ?? process.cwd();
     const appDir = path.join(cwd, "app");
 
+    // Pages authored under content/blog or content/docs must use relative
+    // markdown links, not hard-coded root-absolute /blog/ or /docs/ URLs.
+    const sourceRel = path.relative(cwd, sourcePath).split(path.sep).join("/");
+    const sourceUnderContent = CONTENT_ROOTS.some(
+      (r) => sourceRel === r || sourceRel.startsWith(`${r}/`),
+    );
+
     const publicDir = path.join(cwd, "public");
 
     walk(tree, (node) => {
@@ -60,6 +67,22 @@ export default function remarkRewriteMdLinks() {
       if (node.url.startsWith("/")) {
         const pathPart = node.url.split(/[#?]/, 1)[0];
         const segments = pathPart.split("/").filter(Boolean);
+
+        // Forbid root-absolute /blog/ and /docs/ links in content pages.
+        // Authors must link relatively so the URLs stay verifiable and
+        // survive restructuring (the relative target is rewritten below).
+        if (
+          sourceUnderContent &&
+          (segments[0] === "blog" || segments[0] === "docs")
+        ) {
+          file.fail(
+            `Root-absolute link "${node.url}" is not allowed in content pages — ` +
+              `use a relative markdown link to the target file instead`,
+            node,
+            RULE_ID,
+          );
+          return;
+        }
 
         if (segments[0] === "docs") {
           const subSegments = segments.slice(1);

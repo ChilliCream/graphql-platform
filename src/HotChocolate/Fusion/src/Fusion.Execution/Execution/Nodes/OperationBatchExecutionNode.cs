@@ -88,10 +88,8 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
         try
         {
             var client = context.GetClient(schemaName, operation.Operation.Type);
-            var response = await client.ExecuteAsync(context, request, cancellationToken).ConfigureAwait(false);
-            context.TrackSourceSchemaClientResponse(this, response);
 
-            await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken).ConfigureAwait(false))
+            await foreach (var result in client.ExecuteAsync(context, request, cancellationToken).ConfigureAwait(false))
             {
                 var hasErrors = result.Errors is not null;
                 if (hasErrors)
@@ -164,7 +162,8 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
             receivedResults.AsSpan(0, operationCount).Clear();
             var overallStatus = ExecutionStatus.Success;
 
-            await foreach (var batchResult in client.ExecuteBatchStreamAsync(context, requests, cancellationToken))
+            await foreach (var batchResult in client.ExecuteBatchAsync(context, requests, cancellationToken)
+                .ConfigureAwait(false))
             {
                 var requestIndex = batchResult.RequestIndex;
                 var op = operationByIndex[requestIndex];

@@ -1053,4 +1053,85 @@ public class SchemaSyntaxPrinterTests
               | VARIABLE_DEFINITION
             """);
     }
+
+    [Fact]
+    public void Serialize_DirectiveDefWithDirectivesNoIndent_InOutShouldBeTheSame()
+    {
+        // arrange
+        const string schema =
+            "directive @foo(arg: Int) @tag(name: \"a\") repeatable on OBJECT";
+        var document = Utf8GraphQLParser.Parse(schema);
+
+        // act
+        var result = document.ToString(indented: false);
+
+        // assert
+        Assert.Equal(schema, result);
+    }
+
+    [Fact]
+    public void Serialize_DirectiveExtensionDef_InOutShouldBeTheSame()
+    {
+        // arrange
+        const string schema = "extend directive @foo @a @b(c: 1)";
+        var document = Utf8GraphQLParser.Parse(schema);
+
+        // act
+        var result = document.ToString(indented: false);
+
+        // assert
+        Assert.Equal(schema, result);
+    }
+
+    [Fact]
+    public void Serialize_DirectiveDefWithDirectivesAndExtensionNoIndent_InOutShouldBeTheSame()
+    {
+        // arrange
+        const string schema =
+            "directive @foo(arg: Int) @tag(name: \"a\") repeatable on OBJECT | DIRECTIVE_DEFINITION"
+            + " extend directive @foo @other";
+        var document = Utf8GraphQLParser.Parse(schema);
+
+        // act
+        var result = document.ToString(indented: false);
+
+        // assert
+        Assert.Equal(schema, result);
+    }
+
+    [Fact]
+    public void Serialize_DirectiveDefWithDirectivesAndExtension_OutHasIndentation()
+    {
+        // arrange
+        const string schema =
+            "\"the foo directive\" "
+            + "directive @foo(arg: Int) @tag(name: \"a\") @onDirective "
+            + "repeatable on OBJECT | DIRECTIVE_DEFINITION "
+            + "extend directive @foo @other";
+        var document = Utf8GraphQLParser.Parse(schema);
+
+        // act
+        var result = document.ToString();
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public void Serialize_DirectiveDefWithDirectivesAndExtension_RoundTripsThroughParser()
+    {
+        // arrange
+        const string schema =
+            "\"the foo directive\" "
+            + "directive @foo(arg: Int) @tag(name: \"a\") @onDirective "
+            + "repeatable on OBJECT | DIRECTIVE_DEFINITION "
+            + "extend directive @foo @other";
+        var document = Utf8GraphQLParser.Parse(schema);
+
+        // act
+        var reparsed = Utf8GraphQLParser.Parse(document.ToString(indented: false));
+
+        // assert
+        Assert.True(SyntaxComparer.BySyntax.Equals(document, reparsed));
+    }
 }

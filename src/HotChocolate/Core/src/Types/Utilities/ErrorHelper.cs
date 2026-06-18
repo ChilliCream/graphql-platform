@@ -66,6 +66,13 @@ internal static class ErrorHelper
             .SetSpecifiedBy(TypeKind.Directive)
             .Build();
 
+    public static ISchemaError DirectiveDefinitionSelfApplication(IDirectiveDefinition directiveDefinition)
+        => SchemaErrorBuilder.New()
+            .SetMessage(ErrorHelper_DirectiveDefinitionSelfApplication, directiveDefinition.Name)
+            .SetDirective(directiveDefinition)
+            .SetSpecifiedBy(TypeKind.Directive)
+            .Build();
+
     public static ISchemaError NotTransitivelyImplemented(
         IComplexTypeDefinition type,
         IComplexTypeDefinition implementedType)
