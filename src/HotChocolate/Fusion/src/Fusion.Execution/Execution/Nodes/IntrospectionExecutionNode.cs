@@ -55,7 +55,10 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
         CancellationToken cancellationToken = default)
     {
         var backlog = new Stack<(object? Parent, Selection Selection, SourceResultElementBuilder Result)>();
-        var resultBuilder = new SourceResultDocumentBuilder(context.OperationPlan.Operation, context.IncludeFlags);
+        var resultBuilder = new SourceResultDocumentBuilder(
+            context.Memory,
+            context.OperationPlan.Operation,
+            context.IncludeFlags);
         var root = resultBuilder.Root;
         var index = 0;
 

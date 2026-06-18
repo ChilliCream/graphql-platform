@@ -1,4 +1,6 @@
 using System.Buffers;
+using System.Diagnostics;
+using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Text.Json;
@@ -12,6 +14,7 @@ internal sealed partial class FetchResultStore
     /// Initializes the <see cref="FetchResultStore"/> for a new request.
     /// </summary>
     public void Initialize(
+        IMemoryArena arena,
         ISchemaDefinition schema,
         IErrorHandler errorHandler,
         Operation operation,
@@ -20,9 +23,11 @@ internal sealed partial class FetchResultStore
         ulong deferFlags,
         int pathSegmentLocalPoolCapacity)
     {
+        ArgumentNullException.ThrowIfNull(arena);
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentNullException.ThrowIfNull(operation);
 
+        _arena = arena;
         _schema = schema;
         _errorHandler = errorHandler;
         _operation = operation;
@@ -32,7 +37,7 @@ internal sealed partial class FetchResultStore
         _disposed = false;
 
         _pathPool ??= new PathSegmentLocalPool(pathSegmentLocalPoolCapacity);
-        _result = new CompositeResultDocument(operation, includeFlags, deferFlags, _pathPool);
+        _result = new CompositeResultDocument(arena, operation, includeFlags, deferFlags, _pathPool);
 
         _valueCompletion = new ValueCompletion(
             this,
@@ -44,11 +49,38 @@ internal sealed partial class FetchResultStore
         _memory.Push(_result);
     }
 
-    public void Reset()
+    /// <summary>
+    /// Resets the store for the next subscription event onto <paramref name="arena"/>.
+    /// This rebuilds the pending result document and clears accumulated errors.
+    /// </summary>
+    public void Reset(IMemoryArena arena)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(arena);
 
-        _result = new CompositeResultDocument(_operation, _includeFlags, _deferFlags, _pathPool);
+        // arenas can only be reset in a subscription context,
+        // and only once complete is called on the context.
+        Debug.Assert(
+            _memory.Count <= 1,
+            "Reset expects an empty stack or a single pending seed result. "
+            + "Extra entries mean a prior event's memory owners were not drained by Complete.");
+
+        // The most recent seed result document is untouched at this point (no data has been added
+        // for the current event yet), so it is safe to discard it and rebuild over the new arena.
+        if (_memory.TryPop(out var pending))
+        {
+            pending.Dispose();
+        }
+
+        _arena = arena;
+
+        _result = new CompositeResultDocument(
+            _arena,
+            _operation,
+            _includeFlags,
+            _deferFlags,
+            _pathPool);
+
         _errors?.Clear();
         _pocketedErrors?.Clear();
 
@@ -59,6 +91,8 @@ internal sealed partial class FetchResultStore
             _errorHandlingMode,
             maxDepth: 32);
 
+        // The arena is a disposable instance whose lifetime travels with the result it backs.
+        _memory.Push((IDisposable)arena);
         _memory.Push(_result);
     }
 
@@ -101,6 +135,7 @@ internal sealed partial class FetchResultStore
         _schema = default!;
         _errorHandler = default!;
         _operation = default!;
+        _arena = default!;
     }
 
     private static void TrimOrClearBuffer(ref CompositeResultElement[] buffer, int maxRetainLength)

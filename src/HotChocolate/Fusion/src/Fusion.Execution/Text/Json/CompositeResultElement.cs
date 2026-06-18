@@ -118,7 +118,7 @@ public readonly partial struct CompositeResultElement
         {
             CheckValidInstance();
 
-            if (_cursor == Cursor.Zero)
+            if (_cursor.IsZero)
             {
                 return null;
             }
@@ -136,7 +136,7 @@ public readonly partial struct CompositeResultElement
     {
         get
         {
-            if (_cursor == Cursor.Zero)
+            if (_cursor.IsZero)
             {
                 return null;
             }
@@ -237,7 +237,7 @@ public readonly partial struct CompositeResultElement
         {
             CheckValidInstance();
 
-            if (_cursor == Cursor.Zero)
+            if (_cursor.IsZero)
             {
                 return false;
             }

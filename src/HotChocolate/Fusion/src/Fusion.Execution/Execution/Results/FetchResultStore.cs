@@ -41,6 +41,7 @@ internal sealed partial class FetchResultStore : IDisposable
     private CompositeResultElement[] _collectTargetB = ArrayPool<CompositeResultElement>.Shared.Rent(64);
     private CompositeResultElement[] _collectTargetCombined = ArrayPool<CompositeResultElement>.Shared.Rent(64);
     private PathSegmentLocalPool _pathPool = default!;
+    private IMemoryArena _arena = default!;
     private HashSet<int[]> _seenPaths = new(ReferenceEqualityComparer.Instance);
     private CompositeResultDocument _result = default!;
     private ValueCompletion _valueCompletion = default!;

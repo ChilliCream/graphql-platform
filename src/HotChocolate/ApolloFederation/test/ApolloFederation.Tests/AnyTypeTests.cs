@@ -174,7 +174,7 @@ public class AnyTypeTests
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultValue = resultDocument.Data.GetProperty("first");
         void Error() => type.CoerceOutputValue(representation, resultValue);
 
