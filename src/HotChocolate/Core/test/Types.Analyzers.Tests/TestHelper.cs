@@ -26,7 +26,8 @@ namespace HotChocolate.Types;
 
 internal static partial class TestHelper
 {
-    private static readonly HashSet<string> s_ignoreCodes = ["CS8652", "CS8632", "CS5001", "CS8019"];
+    private static readonly HashSet<string> s_ignoreCodes =
+        ["CS1701", "CS1702", "CS8652", "CS8632", "CS5001", "CS8019"];
 
     public static Snapshot GetGeneratedSourceSnapshot([StringSyntax("csharp")] string sourceText)
         => GetGeneratedSourceSnapshot([sourceText]);
@@ -45,6 +46,8 @@ internal static partial class TestHelper
             .. Net90.References.All,
 #elif NET10_0
             .. Net100.References.All,
+#elif NET11_0
+            .. Net110.References.All,
 #endif
             // HotChocolate.Primitives
             MetadataReference.CreateFromFile(typeof(ITypeSystemMember).Assembly.Location),

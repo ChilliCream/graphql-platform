@@ -45,6 +45,9 @@
     <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
       <TfmSpecificPackageFile Include="$(MSBuildThisFileDirectory)..\..\Tooling\src\dotnet-graphql\bin\$(Configuration)\net10.0\**\*.*" PackagePath="tools/net10" />
     </ItemGroup>
+    <ItemGroup Condition="'$(TargetFramework)' == 'net11.0'">
+      <TfmSpecificPackageFile Include="$(MSBuildThisFileDirectory)..\..\Tooling\src\dotnet-graphql\bin\$(Configuration)\net11.0\**\*.*" PackagePath="tools/net11" />
+    </ItemGroup>
   </Target>
 
 </Project>
