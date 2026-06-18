@@ -16,7 +16,8 @@ public sealed class OutboundRoute
     public bool IsCompleted { get; private set; }
 
     /// <summary>
-    /// Gets a value indicating whether the route's destination was explicitly configured, as opposed to backfilled from the endpoint address.
+    /// Gets a value indicating whether the route's destination was explicitly configured, as
+    /// opposed to backfilled from the endpoint address.
     /// </summary>
     public bool HasExplicitDestination { get; private set; }
 

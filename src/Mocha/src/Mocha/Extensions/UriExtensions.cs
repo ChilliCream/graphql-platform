@@ -3,7 +3,7 @@ namespace Mocha;
 /// <summary>
 /// Provides extension methods for <see cref="Uri"/> objects.
 /// </summary>
-public static class UriExtensions
+internal static class UriExtensions
 {
     /// <summary>
     /// Attempts to extract the resource name from a URI.

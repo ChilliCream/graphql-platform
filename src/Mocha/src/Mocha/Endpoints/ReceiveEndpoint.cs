@@ -148,17 +148,6 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
 
         Transport.Routing.ConfigureEndpoint(context, configuration);
         Transport.Conventions.Configure(context, Transport, configuration);
-        var faultFeature = configuration.Features.Get<ReceiveFaultEndpointFeature>();
-        if (faultFeature is { IsDisabled: true })
-        {
-            faultFeature.Address = null;
-        }
-
-        var skippedFeature = configuration.Features.Get<ReceiveSkippedEndpointFeature>();
-        if (skippedFeature is { IsDisabled: true })
-        {
-            skippedFeature.Address = null;
-        }
 
         Configuration = configuration;
         Kind = configuration.Kind;

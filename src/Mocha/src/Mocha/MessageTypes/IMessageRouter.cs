@@ -353,30 +353,14 @@ public sealed class MessageRouter : IMessageRouter
         ImmutableArray<MessagingTransport> transports,
         OutboundRoute route)
     {
-        if (transports.IsEmpty)
+        if (route.Destination is { Scheme: var scheme })
         {
-            throw ThrowHelper.NoTransportForMessageType(route.MessageType);
-        }
-
-        // Explicit transport scheme: scheme of the destination URI uniquely identifies a transport.
-        if (route.Destination is { } destination)
-        {
-            var scheme = destination.Scheme;
-            MessagingTransport? matched = null;
             foreach (var transport in transports)
             {
                 if (transport.Schema == scheme)
                 {
-                    // Multiple transports with the same schema is not expected in a valid configuration,
-                    // but we return the first match here since schemas are unique by convention.
-                    matched = transport;
-                    break;
+                    return transport;
                 }
-            }
-
-            if (matched is not null)
-            {
-                return matched;
             }
         }
 

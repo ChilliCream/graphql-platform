@@ -83,9 +83,6 @@ internal static class ThrowHelper
     public static Exception EndpointMustBeRegistered()
         => new InvalidOperationException("Endpoint must be registered before adding addresses");
 
-    public static Exception NoTransportForMessageType(MessageType messageType)
-        => new InvalidOperationException($"No transport can handle message type: {messageType}");
-
     public static Exception TransportNotFoundForAddress(string address)
         => new InvalidOperationException($"Transport not found for address {address}");
 
