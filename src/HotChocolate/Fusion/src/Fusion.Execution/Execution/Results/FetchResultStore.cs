@@ -128,6 +128,8 @@ internal sealed partial class FetchResultStore : IDisposable
 
             lock (_lock)
             {
+                var i = 0;
+
                 try
                 {
                     if (rootErrors is not null)
@@ -137,8 +139,7 @@ internal sealed partial class FetchResultStore : IDisposable
                     }
 
                     var resultData = _result.Data;
-
-                    for (var i = 0; i < results.Length; i++)
+                    for (i = 0; i < results.Length; i++)
                     {
                         var result = results[i];
                         _memory.Add(result);
@@ -151,11 +152,17 @@ internal sealed partial class FetchResultStore : IDisposable
                                 errorTriesSpan[i],
                                 resultSelectionSet))
                         {
+                            RegisterRemainingResults(_memory, results, i);
                             return false;
                         }
                     }
 
                     return true;
+                }
+                catch
+                {
+                    RegisterRemainingResults(_memory, results, i);
+                    throw;
                 }
                 finally
                 {
@@ -169,6 +176,22 @@ internal sealed partial class FetchResultStore : IDisposable
             errorTriesSpan.Clear();
             ArrayPool<SourceResultElement>.Shared.Return(dataElements);
             ArrayPool<ErrorTrie?>.Shared.Return(errorTries);
+        }
+
+        static void RegisterRemainingResults(
+            List<IDisposable> _memory,
+            ReadOnlySpan<SourceSchemaResult> results,
+            int i)
+        {
+            i++;
+
+            if (i < results.Length)
+            {
+                for (; i < results.Length; i++)
+                {
+                    _memory.Add(results[i]);
+                }
+            }
         }
     }
 
@@ -189,11 +212,13 @@ internal sealed partial class FetchResultStore : IDisposable
 
             lock (_lock)
             {
+                var i = 0;
+
                 try
                 {
                     var resultData = _result.Data;
 
-                    for (var i = 0; i < results.Length; i++)
+                    for (i = 0; i < results.Length; i++)
                     {
                         var result = results[i];
                         _memory.Add(result);
@@ -206,11 +231,17 @@ internal sealed partial class FetchResultStore : IDisposable
                                 errorTrie: null,
                                 resultSelectionSet))
                         {
+                            RegisterRemainingResults(_memory, results, i);
                             return false;
                         }
                     }
 
                     return true;
+                }
+                catch
+                {
+                    RegisterRemainingResults(_memory, results, i);
+                    throw;
                 }
                 finally
                 {
@@ -222,6 +253,22 @@ internal sealed partial class FetchResultStore : IDisposable
         {
             dataElementsSpan.Clear();
             ArrayPool<SourceResultElement>.Shared.Return(dataElements);
+        }
+
+        static void RegisterRemainingResults(
+            List<IDisposable> _memory,
+            ReadOnlySpan<SourceSchemaResult> results,
+            int i)
+        {
+            i++;
+
+            if (i < results.Length)
+            {
+                for (; i < results.Length; i++)
+                {
+                    _memory.Add(results[i]);
+                }
+            }
         }
     }
 

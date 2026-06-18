@@ -97,20 +97,42 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
                     hasSomeErrors = true;
                 }
 
+                var pendingMerge = default(PendingMerge);
+                var hasPendingMerge = false;
+
                 try
                 {
-                    context.AddPartialResult(
+                    pendingMerge = PendingMerge.Single(
+                        this,
+                        schemaName,
                         operation.Source,
-                        result,
                         operation.ResultSelectionSet,
+                        variables,
+                        result,
                         hasErrors);
+                    hasPendingMerge = true;
+                    context.EnqueuePendingMerge(pendingMerge);
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
+                    if (hasPendingMerge)
+                    {
+                        pendingMerge.DisposeUnmerged();
+                    }
+
                     return ExecutionStatus.Failed;
                 }
                 catch (Exception exception)
                 {
+                    if (hasPendingMerge)
+                    {
+                        pendingMerge.DisposeUnmerged();
+                    }
+                    else
+                    {
+                        result.Dispose();
+                    }
+
                     diagnosticEvents.SourceSchemaStoreError(context, this, schemaName, exception);
                     context.AddErrors(exception, variables, operation.ResultSelectionSet);
                     return ExecutionStatus.Failed;
@@ -156,8 +178,8 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
             var requests = requestBuilder.DrainToImmutable();
 
             // Obtain a transport client for the source schema and stream the batch
-            // response. As each individual result arrives, we merge it into the
-            // result store so downstream nodes can consume the data.
+            // response. As each individual result arrives, we queue its merge for
+            // the executor loop so downstream nodes can consume the data after completion.
             var client = context.GetClient(schemaName, requests[0].OperationType);
             receivedResults.AsSpan(0, operationCount).Clear();
             var overallStatus = ExecutionStatus.Success;
@@ -172,20 +194,42 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
 
                 receivedResults[requestIndex] = true;
 
+                var pendingMerge = default(PendingMerge);
+                var hasPendingMerge = false;
+
                 try
                 {
-                    context.AddPartialResult(
+                    pendingMerge = PendingMerge.Single(
+                        this,
+                        schemaName,
                         op.Source,
-                        result,
                         op.ResultSelectionSet,
+                        variablesByIndex[requestIndex],
+                        result,
                         hasErrors);
+                    hasPendingMerge = true;
+                    context.EnqueuePendingMerge(pendingMerge);
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
+                    if (hasPendingMerge)
+                    {
+                        pendingMerge.DisposeUnmerged();
+                    }
+
                     return ExecutionStatus.Failed;
                 }
                 catch (Exception exception)
                 {
+                    if (hasPendingMerge)
+                    {
+                        pendingMerge.DisposeUnmerged();
+                    }
+                    else
+                    {
+                        result.Dispose();
+                    }
+
                     diagnosticEvents.SourceSchemaStoreError(context, this, schemaName, exception);
                     context.AddErrors(exception, variablesByIndex[requestIndex], op.ResultSelectionSet);
                     overallStatus = ExecutionStatus.Failed;

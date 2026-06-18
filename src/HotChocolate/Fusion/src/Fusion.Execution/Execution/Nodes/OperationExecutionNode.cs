@@ -202,54 +202,81 @@ public sealed class OperationExecutionNode : ExecutionNode
             return ExecutionStatus.Failed;
         }
 
+        var pendingMerge = default(PendingMerge);
+        var hasPendingMerge = false;
+
         try
         {
             if (buffer is not null)
             {
-                context.AddPartialResults(
+                pendingMerge = PendingMerge.Multiple(
+                    this,
+                    schemaName,
                     _source,
-                    buffer.AsSpan(0, index),
                     _resultSelectionSet,
+                    variables,
+                    buffer,
+                    index,
                     hasSomeErrors);
+                hasPendingMerge = true;
             }
             else if (singleResult is not null)
             {
-                var firstResult = singleResult;
-                context.AddPartialResults(
+                pendingMerge = PendingMerge.Single(
+                    this,
+                    schemaName,
                     _source,
-                    MemoryMarshal.CreateReadOnlySpan(ref firstResult, 1),
                     _resultSelectionSet,
+                    variables,
+                    singleResult,
                     hasSomeErrors);
+                hasPendingMerge = true;
             }
-            else
+
+            if (hasPendingMerge)
             {
-                context.AddPartialResults(
-                    _source,
-                    [],
-                    _resultSelectionSet,
-                    hasSomeErrors);
+                context.EnqueuePendingMerge(pendingMerge);
             }
+
+            buffer = null;
+            singleResult = null;
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             // If the execution of the node was cancelled, either the entire request was cancelled
             // or the execution was halted. In both cases we do not want to produce any errors
             // and just exit the node as quickly as possible.
+            if (hasPendingMerge)
+            {
+                pendingMerge.DisposeUnmerged();
+            }
+
             return ExecutionStatus.Failed;
         }
         catch (Exception exception)
         {
-            diagnosticEvents.SourceSchemaStoreError(context, this, schemaName, exception);
-            context.AddErrors(exception, variables, _resultSelectionSet);
-            return ExecutionStatus.Failed;
-        }
-        finally
-        {
-            if (buffer is not null)
+            if (hasPendingMerge)
             {
+                pendingMerge.DisposeUnmerged();
+            }
+            else if (buffer is not null)
+            {
+                foreach (var result in buffer.AsSpan(0, index))
+                {
+                    result?.Dispose();
+                }
+
                 buffer.AsSpan(0, index).Clear();
                 ArrayPool<SourceSchemaResult>.Shared.Return(buffer);
             }
+            else
+            {
+                singleResult?.Dispose();
+            }
+
+            diagnosticEvents.SourceSchemaStoreError(context, this, schemaName, exception);
+            context.AddErrors(exception, variables, _resultSelectionSet);
+            return ExecutionStatus.Failed;
         }
 
         return hasSomeErrors ? ExecutionStatus.PartialSuccess : ExecutionStatus.Success;

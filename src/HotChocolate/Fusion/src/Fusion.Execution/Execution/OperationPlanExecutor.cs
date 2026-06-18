@@ -923,13 +923,27 @@ internal static class OperationPlanExecutor
 
         while (!cancellationToken.IsCancellationRequested && executionState.IsProcessing())
         {
+            while (executionState.TryDequeuePendingMerge(out var merge))
+            {
+                executionState.ApplyMerge(context, merge);
+            }
+
             while (executionState.TryDequeueCompletedResult(out var result))
             {
+                while (executionState.TryDequeuePendingMerge(out var merge))
+                {
+                    executionState.ApplyMerge(context, merge);
+                }
+
+                result = executionState.ApplyPendingMergeFailure(result);
                 var node = plan.GetNodeById(result.Id);
                 executionState.CompleteNode(plan, node, result);
             }
 
-            executionState.EnqueueNextNodes(context, cancellationToken);
+            if (!cancellationToken.IsCancellationRequested)
+            {
+                executionState.EnqueueNextNodes(context, cancellationToken);
+            }
 
             if (cancellationToken.IsCancellationRequested || !executionState.IsProcessing())
             {
@@ -975,13 +989,27 @@ internal static class OperationPlanExecutor
             // as long as there are active nodes that result from processing the current subtree.
             while (!cancellationToken.IsCancellationRequested && executionState.HasActiveNodes())
             {
+                while (executionState.TryDequeuePendingMerge(out var merge))
+                {
+                    executionState.ApplyMerge(context, merge);
+                }
+
                 while (executionState.TryDequeueCompletedResult(out var result))
                 {
+                    while (executionState.TryDequeuePendingMerge(out var merge))
+                    {
+                        executionState.ApplyMerge(context, merge);
+                    }
+
+                    result = executionState.ApplyPendingMergeFailure(result);
                     var node = plan.GetNodeById(result.Id);
                     executionState.CompleteNode(plan, node, result);
                 }
 
-                executionState.EnqueueNextNodes(context, cancellationToken);
+                if (!cancellationToken.IsCancellationRequested)
+                {
+                    executionState.EnqueueNextNodes(context, cancellationToken);
+                }
 
                 if (cancellationToken.IsCancellationRequested || !executionState.HasActiveNodes())
                 {
@@ -1077,13 +1105,27 @@ internal static class OperationPlanExecutor
 
                     while (!eventToken.IsCancellationRequested && executionState.IsProcessing())
                     {
+                        while (executionState.TryDequeuePendingMerge(out var merge))
+                        {
+                            executionState.ApplyMerge(context, merge);
+                        }
+
                         while (executionState.TryDequeueCompletedResult(out var nodeResult))
                         {
+                            while (executionState.TryDequeuePendingMerge(out var merge))
+                            {
+                                executionState.ApplyMerge(context, merge);
+                            }
+
+                            nodeResult = executionState.ApplyPendingMergeFailure(nodeResult);
                             var node = plan.GetNodeById(nodeResult.Id);
                             executionState.CompleteNode(plan, node, nodeResult);
                         }
 
-                        executionState.EnqueueNextNodes(context, eventToken);
+                        if (!eventToken.IsCancellationRequested)
+                        {
+                            executionState.EnqueueNextNodes(context, eventToken);
+                        }
 
                         if (eventToken.IsCancellationRequested || !executionState.IsProcessing())
                         {
