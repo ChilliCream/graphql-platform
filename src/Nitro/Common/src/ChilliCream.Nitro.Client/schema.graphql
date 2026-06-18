@@ -16,6 +16,7 @@ type Query {
   openApiCollectionById(id: ID!): OpenApiCollection
   organizationById(id: ID!): Organization
   stageById(id: ID!): Stage
+  version: String
   workspaceById(workspaceId: ID!): Workspace
 }
 
@@ -273,6 +274,7 @@ type Api implements Node {
     last: Int
   ): SchemaVersionsConnection
   settings: ApiSettings!
+  stage(name: String!): Stage
   stages: [Stage!]!
   version: Version!
   workspace: Workspace

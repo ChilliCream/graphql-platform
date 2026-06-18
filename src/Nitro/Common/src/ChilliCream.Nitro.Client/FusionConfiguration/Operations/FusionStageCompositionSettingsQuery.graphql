@@ -1,8 +1,7 @@
-query FusionStageCompositionSettings($apiId: ID!) {
+query FusionStageCompositionSettings($apiId: ID!, $stageName: String!) {
   node(id: $apiId) {
     ... on Api {
-      stages {
-        name
+      stage(name: $stageName) {
         compositionSettings {
           cacheControlMergeBehavior
           enableGlobalObjectIdentification

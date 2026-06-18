@@ -211,7 +211,7 @@ internal sealed class FusionConfigurationClient(
         string stageName,
         CancellationToken cancellationToken)
     {
-        var result = await apiClient.FusionStageCompositionSettings.ExecuteAsync(apiId, cancellationToken);
+        var result = await apiClient.FusionStageCompositionSettings.ExecuteAsync(apiId, stageName, cancellationToken);
 
         var data = OperationResultHelper.EnsureData(result);
 
@@ -220,9 +220,7 @@ internal sealed class FusionConfigurationClient(
             return null;
         }
 
-        var stage = api.Stages.FirstOrDefault(x => x.Name == stageName);
-
-        if (stage?.CompositionSettings is not { } compositionSettings)
+        if (api.Stage?.CompositionSettings is not { } compositionSettings)
         {
             return null;
         }
