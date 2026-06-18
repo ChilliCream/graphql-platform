@@ -5,7 +5,7 @@ namespace ChilliCream.Nitro.Client.FusionConfiguration;
 /// </summary>
 public sealed record StageCompositionSettings
 {
-    public DirectiveMergeBehavior? CacheControlMergeBehavior { get; init; }
+    public CompositionDirectiveMergeBehavior? CacheControlMergeBehavior { get; init; }
 
     public bool? EnableGlobalObjectIdentification { get; init; }
 
@@ -13,5 +13,5 @@ public sealed record StageCompositionSettings
 
     public bool? RemoveUnreferencedDefinitions { get; init; }
 
-    public DirectiveMergeBehavior? TagMergeBehavior { get; init; }
+    public CompositionDirectiveMergeBehavior? TagMergeBehavior { get; init; }
 }

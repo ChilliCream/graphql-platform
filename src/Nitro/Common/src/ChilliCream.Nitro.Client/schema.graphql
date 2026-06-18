@@ -4899,11 +4899,11 @@ type StageClientsMetrics {
 }
 
 type StageCompositionSettings {
-  cacheControlMergeBehavior: DirectiveMergeBehavior
+  cacheControlMergeBehavior: CompositionDirectiveMergeBehavior
   enableGlobalObjectIdentification: Boolean
   excludeByTag: [String!]
   removeUnreferencedDefinitions: Boolean
-  tagMergeBehavior: DirectiveMergeBehavior
+  tagMergeBehavior: CompositionDirectiveMergeBehavior
 }
 
 type StageErrorsMetrics {
@@ -6806,11 +6806,11 @@ input PartialSchemaRegistrySettingsInput {
 }
 
 input PartialStageCompositionSettingsInput {
-  cacheControlMergeBehavior: DirectiveMergeBehavior
+  cacheControlMergeBehavior: CompositionDirectiveMergeBehavior
   enableGlobalObjectIdentification: Boolean
   excludeByTag: [String!]
   removeUnreferencedDefinitions: Boolean
-  tagMergeBehavior: DirectiveMergeBehavior
+  tagMergeBehavior: CompositionDirectiveMergeBehavior
 }
 
 input PollClientVersionPublishRequestInput {
@@ -6999,8 +6999,9 @@ input UpdatePreferencesInput {
 }
 
 input UpdateStageCompositionSettingsInput {
+  apiId: ID!
   settings: PartialStageCompositionSettingsInput!
-  stageId: ID!
+  stageName: String!
 }
 
 input UpdateStagesInput {
@@ -7198,6 +7199,12 @@ enum AuthorizationEventType {
   TENANT_ACCESS_BYPASSED
 }
 
+enum CompositionDirectiveMergeBehavior {
+  IGNORE
+  INCLUDE
+  INCLUDE_PRIVATE
+}
+
 enum CoordinateKind {
   DIRECTIVE
   DIRECTIVE_ARGUMENT
@@ -7272,12 +7279,6 @@ enum DirectiveLocation {
   UNION
   "Location adjacent to a field."
   VARIABLE_DEFINITION
-}
-
-enum DirectiveMergeBehavior {
-  IGNORE
-  INCLUDE
-  INCLUDE_PRIVATE
 }
 
 enum FusionConfigurationFormat {

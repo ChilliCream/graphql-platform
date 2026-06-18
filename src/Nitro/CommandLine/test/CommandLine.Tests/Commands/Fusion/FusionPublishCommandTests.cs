@@ -1365,7 +1365,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             new StageCompositionSettings
             {
                 ExcludeByTag = ["fromStage"],
-                TagMergeBehavior = DirectiveMergeBehavior.IncludePrivate
+                TagMergeBehavior = CompositionDirectiveMergeBehavior.IncludePrivate
             });
         SetupFusionConfigurationDownloadWithCompositionSettings(
             """

@@ -659,15 +659,15 @@ internal static class FusionPublishHelpers
     }
 
     private static HotChocolate.Fusion.Options.DirectiveMergeBehavior? ToDirectiveMergeBehavior(
-        DirectiveMergeBehavior? behavior)
+        CompositionDirectiveMergeBehavior? behavior)
         => behavior switch
         {
             null => null,
-            DirectiveMergeBehavior.Ignore
+            CompositionDirectiveMergeBehavior.Ignore
                 => HotChocolate.Fusion.Options.DirectiveMergeBehavior.Ignore,
-            DirectiveMergeBehavior.Include
+            CompositionDirectiveMergeBehavior.Include
                 => HotChocolate.Fusion.Options.DirectiveMergeBehavior.Include,
-            DirectiveMergeBehavior.IncludePrivate
+            CompositionDirectiveMergeBehavior.IncludePrivate
                 => HotChocolate.Fusion.Options.DirectiveMergeBehavior.IncludePrivate,
             _ => throw new ArgumentOutOfRangeException(nameof(behavior), behavior, null)
         };
