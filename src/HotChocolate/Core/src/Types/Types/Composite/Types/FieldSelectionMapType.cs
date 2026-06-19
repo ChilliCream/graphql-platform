@@ -96,7 +96,7 @@ public sealed class FieldSelectionMapType : ScalarType<IValueSelectionNode, Stri
     /// <exception cref="FieldSelectionMapSyntaxException">
     /// Thrown when the source text contains invalid field selection syntax.
     /// </exception>
-    internal static IValueSelectionNode ParseValueSelection(string sourceText)
+    private static IValueSelectionNode ParseValueSelection(string sourceText)
         => FieldSelectionMapParser.Parse(sourceText);
 
     /// <summary>
