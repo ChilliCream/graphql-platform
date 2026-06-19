@@ -219,10 +219,10 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
             throw new InvalidOperationException("Queue name is required");
         }
 
-        _topology.AddQueue(
-            new PostgresQueueConfiguration
+        _topology.GetOrAddQueue(
+            postgresConfiguration.QueueName,
+            _ => new PostgresQueueConfiguration
             {
-                Name = postgresConfiguration.QueueName,
                 AutoDelete = postgresEndpoint.Kind == ReceiveEndpointKind.Reply,
                 AutoProvision = postgresConfiguration.AutoProvision,
                 Origin = TopologyOrigin.Endpoint
@@ -316,13 +316,17 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
         if (postgresConfiguration.TopicName is not null
             && _topology.Topics.FirstOrDefault(t => t.Name == postgresConfiguration.TopicName) is null)
         {
-            _topology.AddTopic(new PostgresTopicConfiguration { Name = postgresConfiguration.TopicName });
+            _topology.GetOrAddTopic(
+                postgresConfiguration.TopicName,
+                static _ => new PostgresTopicConfiguration());
         }
 
         if (postgresConfiguration.QueueName is not null
             && _topology.Queues.FirstOrDefault(q => q.Name == postgresConfiguration.QueueName) is null)
         {
-            _topology.AddQueue(new PostgresQueueConfiguration { Name = postgresConfiguration.QueueName });
+            _topology.GetOrAddQueue(
+                postgresConfiguration.QueueName,
+                static _ => new PostgresQueueConfiguration());
         }
 
         if (postgresConfiguration.TopicName is not null
@@ -360,7 +364,7 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
 
                 if (_topology.Topics.FirstOrDefault(t => t.Name == topicName) is null)
                 {
-                    _topology.AddTopic(new PostgresTopicConfiguration { Name = topicName });
+                    _topology.GetOrAddTopic(topicName, static _ => new PostgresTopicConfiguration());
                 }
             }
         }
@@ -370,7 +374,7 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
     {
         if (topology.Topics.FirstOrDefault(e => e.Name == topicName) is null)
         {
-            topology.AddTopic(new PostgresTopicConfiguration { Name = topicName });
+            topology.GetOrAddTopic(topicName, static _ => new PostgresTopicConfiguration());
         }
     }
 
@@ -427,7 +431,9 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
             return;
         }
 
-        _topology.AddQueue(new PostgresQueueConfiguration { Name = queueName, Origin = TopologyOrigin.Endpoint });
+        _topology.GetOrAddQueue(
+            queueName,
+            static _ => new PostgresQueueConfiguration { Origin = TopologyOrigin.Endpoint });
     }
 
     private bool TryGetQueueName(IMessagingConfigurationContext context, Uri address, out string queueName)

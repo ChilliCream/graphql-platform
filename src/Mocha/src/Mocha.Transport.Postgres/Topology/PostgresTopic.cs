@@ -18,7 +18,7 @@ public sealed class PostgresTopic : TopologyResource<PostgresTopicConfiguration>
     /// <summary>
     /// Gets whether this topic should be auto-provisioned in the database.
     /// </summary>
-    public bool? AutoProvision { get; private set; }
+    public bool? AutoProvision { get; internal set; }
 
     /// <summary>
     /// Gets the subscriptions originating from this topic.
@@ -41,26 +41,6 @@ public sealed class PostgresTopic : TopologyResource<PostgresTopicConfiguration>
     internal void AddSubscription(PostgresSubscription subscription)
     {
         ImmutableInterlocked.Update(ref _subscriptions, static (s, sub) => s.Add(sub), subscription);
-    }
-
-    /// <summary>
-    /// Merges an incoming configuration into this entity. AutoProvision strengthens: true wins
-    /// over null or false.
-    /// </summary>
-    /// <param name="configuration">The incoming configuration to merge from.</param>
-    internal void MergeFrom(PostgresTopicConfiguration configuration)
-    {
-        // AutoProvision: strengthen (true wins over null or false).
-        if (AutoProvision is null)
-        {
-            AutoProvision = configuration.AutoProvision;
-        }
-        else if (configuration.AutoProvision == true)
-        {
-            AutoProvision = true;
-        }
-
-        MergeOrigin(configuration);
     }
 
     /// <inheritdoc />

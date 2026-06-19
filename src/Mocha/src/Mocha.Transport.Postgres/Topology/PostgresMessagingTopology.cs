@@ -46,13 +46,29 @@ public sealed class PostgresMessagingTopology(
     /// </summary>
     public PostgresBusDefaults Defaults => defaults;
 
+    public PostgresTopic GetOrAddTopic(
+        string name,
+        Func<string, PostgresTopicConfiguration> factory)
+    {
+        lock (_lock)
+        {
+            var topic = _topics.FirstOrDefault(t => t.Name == name);
+            if (topic is not null)
+            {
+                return topic;
+            }
+
+            var configuration = factory(name);
+            configuration.Name = name;
+            return CreateTopic(configuration);
+        }
+    }
+
     /// <summary>
-    /// Adds a topic to the topology or merges into an existing topic with the same name.
-    /// When a topic with the same name already exists, AutoProvision strengthens: true wins
-    /// over null or false.
+    /// Adds a topic to the topology or applies a contribution to an existing topic with the same name.
     /// </summary>
     /// <param name="configuration">The topic configuration specifying name and provisioning settings.</param>
-    /// <returns>The created or merged topic resource.</returns>
+    /// <returns>The created or updated topic resource.</returns>
     public PostgresTopic AddTopic(PostgresTopicConfiguration configuration)
     {
         lock (_lock)
@@ -60,56 +76,118 @@ public sealed class PostgresMessagingTopology(
             var topic = _topics.FirstOrDefault(t => t.Name == configuration.Name);
             if (topic is not null)
             {
-                topic.MergeFrom(configuration);
+                ApplyTopicContribution(topic, configuration);
                 return topic;
             }
 
-            topic = new PostgresTopic();
+            return CreateTopic(configuration);
+        }
+    }
 
-            configuration.Topology = this;
-            defaults.Topic.ApplyTo(configuration);
-            topic.Initialize(configuration);
+    private PostgresTopic CreateTopic(PostgresTopicConfiguration configuration)
+    {
+        var topic = new PostgresTopic();
 
-            _topics.Add(topic);
+        configuration.Topology = this;
+        defaults.Topic.ApplyTo(configuration);
+        topic.Initialize(configuration);
 
-            topic.Complete();
+        _topics.Add(topic);
 
-            return topic;
+        topic.Complete();
+
+        return topic;
+    }
+
+    public PostgresQueue GetOrAddQueue(
+        string name,
+        Func<string, PostgresQueueConfiguration> factory)
+    {
+        lock (_lock)
+        {
+            var queue = _queues.FirstOrDefault(q => q.Name == name);
+            if (queue is not null)
+            {
+                return queue;
+            }
+
+            var configuration = factory(name);
+            configuration.Name = name;
+            return CreateQueue(configuration);
         }
     }
 
     /// <summary>
-    /// Adds a queue to the topology or merges into an existing queue with the same name.
-    /// When a queue with the same name already exists, AutoProvision strengthens: true wins
-    /// over null or false.
+    /// Adds a queue to the topology or applies a contribution to an existing queue with the same name.
     /// </summary>
     /// <param name="configuration">The queue configuration specifying name, auto-delete, and provisioning settings.</param>
-    /// <returns>The created or merged queue resource.</returns>
+    /// <returns>The created or updated queue resource.</returns>
     public PostgresQueue AddQueue(PostgresQueueConfiguration configuration)
     {
         lock (_lock)
         {
-            configuration.Topology ??= this;
-
             var queue = _queues.FirstOrDefault(q => q.Name == configuration.Name);
             if (queue is not null)
             {
-                queue.MergeFrom(configuration);
+                ApplyQueueContribution(queue, configuration);
                 return queue;
             }
 
-            configuration.Topology = this;
-            defaults.Queue.ApplyTo(configuration);
-
-            queue = new PostgresQueue();
-            queue.Initialize(configuration);
-
-            _queues.Add(queue);
-
-            queue.Complete();
-
-            return queue;
+            return CreateQueue(configuration);
         }
+    }
+
+    private PostgresQueue CreateQueue(PostgresQueueConfiguration configuration)
+    {
+        configuration.Topology = this;
+        defaults.Queue.ApplyTo(configuration);
+
+        var queue = new PostgresQueue();
+        queue.Initialize(configuration);
+
+        _queues.Add(queue);
+
+        queue.Complete();
+
+        return queue;
+    }
+
+    private static void ApplyTopicContribution(PostgresTopic topic, PostgresTopicConfiguration configuration)
+    {
+        StrengthenAutoProvision(
+            topic.AutoProvision,
+            configuration.AutoProvision,
+            value => topic.AutoProvision = value);
+        ApplyOrigin(topic, configuration);
+    }
+
+    private static void ApplyQueueContribution(PostgresQueue queue, PostgresQueueConfiguration configuration)
+    {
+        StrengthenAutoProvision(
+            queue.AutoProvision,
+            configuration.AutoProvision,
+            value => queue.AutoProvision = value);
+        ApplyOrigin(queue, configuration);
+    }
+
+    private static void StrengthenAutoProvision(
+        bool? existing,
+        bool? incoming,
+        Action<bool?> assign)
+    {
+        if (existing is null)
+        {
+            assign(incoming);
+        }
+        else if (incoming == true)
+        {
+            assign(true);
+        }
+    }
+
+    private static void ApplyOrigin(TopologyResource resource, TopologyConfiguration configuration)
+    {
+        resource.Origin = TopologyOrigin.Upgrade(resource.Origin, configuration.Origin);
     }
 
     /// <summary>

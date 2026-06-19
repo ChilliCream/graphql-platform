@@ -47,178 +47,268 @@ public sealed class RabbitMQMessagingTopology(
     public RabbitMQBusDefaults Defaults => defaults;
 
     /// <summary>
-    /// Adds an exchange to the topology or merges into an existing exchange with the same name.
-    /// When an exchange with the same name already exists, the incoming configuration is merged
-    /// using the 3.5 rules: declared non-null scalar wins, convention fills the rest, Arguments
-    /// union per key, AutoProvision strengthens (true wins), origin upgrades convention to
-    /// endpoint to declared. A shape conflict between two declared values throws
-    /// <see cref="RabbitMQTopologyShapeConflictException"/>.
+    /// Gets the exchange with the same name, or creates it from the provided configuration.
+    /// Existing exchanges are returned unchanged.
     /// </summary>
-    /// <param name="configuration">The exchange configuration specifying name, type, durability, and arguments.</param>
-    /// <returns>The created or merged exchange resource.</returns>
-    /// <exception cref="RabbitMQTopologyShapeConflictException">
-    /// Thrown when both the existing and incoming configurations carry explicitly declared values
-    /// for the same scalar property and those values differ.
-    /// </exception>
+    public RabbitMQExchange GetOrAddExchange(
+        string name,
+        Func<string, RabbitMQExchangeConfiguration> factory)
+    {
+        lock (_lock)
+        {
+            var exchange = _exchanges.FirstOrDefault(e => e.Name == name);
+            if (exchange is not null)
+            {
+                return exchange;
+            }
+
+            var configuration = factory(name);
+            configuration.Name = name;
+            return CreateExchange(configuration);
+        }
+    }
+
+    /// <summary>
+    /// Applies an exchange contribution to the topology, merging into an existing exchange when
+    /// another contribution already created the same exchange.
+    /// </summary>
     public RabbitMQExchange AddExchange(RabbitMQExchangeConfiguration configuration)
+        => ApplyExchangeContribution(configuration);
+
+    internal RabbitMQExchange ApplyExchangeContribution(RabbitMQExchangeConfiguration configuration)
     {
         lock (_lock)
         {
             var exchange = _exchanges.FirstOrDefault(e => e.Name == configuration.Name);
             if (exchange is not null)
             {
-                exchange.MergeFrom(configuration);
+                exchange.ApplyContribution(configuration);
                 return exchange;
             }
 
-            exchange = new RabbitMQExchange();
-
-            configuration.Topology = this;
-            defaults.Exchange.ApplyTo(configuration);
-            exchange.Initialize(configuration);
-
-            _exchanges.Add(exchange);
-
-            exchange.Complete();
-
-            return exchange;
+            return CreateExchange(configuration);
         }
     }
 
+    private RabbitMQExchange CreateExchange(RabbitMQExchangeConfiguration configuration)
+    {
+        var exchange = new RabbitMQExchange();
+
+        configuration.Topology = this;
+        defaults.Exchange.ApplyTo(configuration);
+        exchange.Initialize(configuration);
+
+        _exchanges.Add(exchange);
+
+        exchange.Complete();
+
+        return exchange;
+    }
+
     /// <summary>
-    /// Adds a queue to the topology or merges into an existing queue with the same name.
-    /// When a queue with the same name already exists, the incoming configuration is merged
-    /// using the 3.5 rules: declared non-null scalar wins, convention fills the rest, Arguments
-    /// union per key, AutoProvision strengthens (true wins), origin upgrades convention to
-    /// endpoint to declared. A shape conflict between two declared values throws
-    /// <see cref="RabbitMQTopologyShapeConflictException"/>.
+    /// Gets the queue with the same name, or creates it from the provided configuration.
+    /// Existing queues are returned unchanged.
     /// </summary>
-    /// <param name="configuration">The queue configuration specifying name, durability, exclusivity, and arguments.</param>
-    /// <returns>The created or merged queue resource.</returns>
-    /// <exception cref="RabbitMQTopologyShapeConflictException">
-    /// Thrown when both the existing and incoming configurations carry explicitly declared values
-    /// for the same scalar property and those values differ.
-    /// </exception>
-    public RabbitMQQueue AddQueue(RabbitMQQueueConfiguration configuration)
+    public RabbitMQQueue GetOrAddQueue(
+        string name,
+        Func<string, RabbitMQQueueConfiguration> factory)
     {
         lock (_lock)
         {
-            configuration.Topology ??= this;
-
-            var queue = _queues.FirstOrDefault(q => q.Name == configuration.Name);
+            var queue = _queues.FirstOrDefault(q => q.Name == name);
             if (queue is not null)
             {
-                queue.MergeFrom(configuration);
                 return queue;
             }
 
-            configuration.Topology = this;
-
-            defaults.Queue.ApplyTo(configuration);
-
-            queue = new RabbitMQQueue();
-            queue.Initialize(configuration);
-
-            _queues.Add(queue);
-
-            queue.Complete();
-
-            return queue;
+            var configuration = factory(name);
+            configuration.Name = name;
+            return CreateQueue(configuration);
         }
     }
 
     /// <summary>
-    /// Adds a new binding to the topology, connecting a source exchange to a destination queue or exchange.
+    /// Applies a queue contribution to the topology, merging into an existing queue when another
+    /// contribution already created the same queue.
     /// </summary>
-    /// <param name="configuration">The binding configuration specifying source, destination, routing key, and arguments.</param>
-    /// <returns>The created and initialized binding resource.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if the source exchange or destination resource is not found in the topology.</exception>
-    public RabbitMQBinding AddBinding(RabbitMQBindingConfiguration configuration)
+    public RabbitMQQueue AddQueue(RabbitMQQueueConfiguration configuration)
+        => ApplyQueueContribution(configuration);
+
+    internal RabbitMQQueue ApplyQueueContribution(RabbitMQQueueConfiguration configuration)
     {
         lock (_lock)
         {
-            var routingKey = configuration.RoutingKey ?? string.Empty;
-            var arguments = configuration.Arguments?
-                .Select(kv => new KeyValuePair<string, object?>(kv.Key, kv.Value));
-            var existing = _bindings.FirstOrDefault(b =>
-                b.Source.Name == configuration.Source
-                && b.RoutingKey == routingKey
-                && RabbitMQBinding.ArgumentsEqual(b.Arguments, arguments)
-                && MatchesDestination(b, configuration));
-            if (existing is not null)
+            var queue = _queues.FirstOrDefault(q => q.Name == configuration.Name);
+            if (queue is not null)
             {
-                // A repeated declaration of the same binding keeps the stronger metadata so an
-                // explicit auto-provision or a declared origin is not lost to an earlier
-                // convention-created entry.
-                existing.MergeFrom(configuration);
-                return existing;
+                queue.ApplyContribution(configuration);
+                return queue;
             }
 
-            var source = _exchanges.FirstOrDefault(e => e.Name == configuration.Source);
-            if (source is null)
-            {
-                throw new InvalidOperationException($"Source exchange '{configuration.Source}' not found");
-            }
-
-            RabbitMQBinding binding;
-
-            if (configuration.DestinationKind == RabbitMQDestinationKind.Queue)
-            {
-                var destination = _queues.FirstOrDefault(q => q.Name == configuration.Destination);
-                if (destination is null)
-                {
-                    throw new InvalidOperationException($"Destination queue '{configuration.Destination}' not found");
-                }
-
-                var queueBinding = new RabbitMQQueueBinding();
-                configuration.Topology = this;
-                queueBinding.Initialize(configuration);
-                queueBinding.SetDestination(destination);
-                destination.AddBinding(queueBinding);
-
-                binding = queueBinding;
-            }
-            else if (configuration.DestinationKind == RabbitMQDestinationKind.Exchange)
-            {
-                var destination = _exchanges.FirstOrDefault(e => e.Name == configuration.Destination);
-                if (destination is null)
-                {
-                    throw new InvalidOperationException(
-                        $"Destination exchange '{configuration.Destination}' not found");
-                }
-
-                var exchangeBinding = new RabbitMQExchangeBinding();
-                configuration.Topology = this;
-                exchangeBinding.Initialize(configuration);
-                exchangeBinding.SetDestination(destination);
-                destination.AddBinding(exchangeBinding);
-
-                binding = exchangeBinding;
-            }
-            else
-            {
-                throw new InvalidOperationException($"Unknown destination kind: {configuration.DestinationKind}");
-            }
-
-            binding.SetSource(source);
-            source.AddBinding(binding);
-
-            _bindings.Add(binding);
-
-            binding.Complete();
-
-            return binding;
+            return CreateQueue(configuration);
         }
     }
 
-    private static bool MatchesDestination(RabbitMQBinding binding, RabbitMQBindingConfiguration configuration)
+    private RabbitMQQueue CreateQueue(RabbitMQQueueConfiguration configuration)
     {
-        return configuration.DestinationKind switch
+        configuration.Topology = this;
+
+        defaults.Queue.ApplyTo(configuration);
+
+        var queue = new RabbitMQQueue();
+        queue.Initialize(configuration);
+
+        _queues.Add(queue);
+
+        queue.Complete();
+
+        return queue;
+    }
+
+    /// <summary>
+    /// Gets the binding with the same identity, or creates it from the provided configuration.
+    /// Existing bindings are returned unchanged.
+    /// </summary>
+    public RabbitMQBinding GetOrAddBinding(
+        string source,
+        string destination,
+        RabbitMQDestinationKind destinationKind,
+        Func<string, string, RabbitMQDestinationKind, RabbitMQBindingConfiguration> factory)
+    {
+        lock (_lock)
+        {
+            var existing = FindBinding(source, destination, destinationKind);
+            if (existing is not null)
+            {
+                return existing;
+            }
+
+            var configuration = factory(source, destination, destinationKind);
+            configuration.Source = source;
+            configuration.Destination = destination;
+            configuration.DestinationKind = destinationKind;
+            return CreateBinding(configuration);
+        }
+    }
+
+    /// <summary>
+    /// Applies a binding contribution to the topology, merging into an existing binding when another
+    /// contribution already created the same binding.
+    /// </summary>
+    public RabbitMQBinding AddBinding(RabbitMQBindingConfiguration configuration)
+        => ApplyBindingContribution(configuration);
+
+    internal RabbitMQBinding ApplyBindingContribution(RabbitMQBindingConfiguration configuration)
+    {
+        lock (_lock)
+        {
+            var existing = FindBinding(configuration);
+            if (existing is not null)
+            {
+                existing.ApplyContribution(configuration);
+                return existing;
+            }
+
+            return CreateBinding(configuration);
+        }
+    }
+
+    private RabbitMQBinding? FindBinding(RabbitMQBindingConfiguration configuration)
+        => FindBinding(
+            configuration.Source,
+            configuration.Destination,
+            configuration.DestinationKind,
+            configuration.RoutingKey,
+            configuration.Arguments?.Select(kv => new KeyValuePair<string, object?>(kv.Key, kv.Value)));
+
+    private RabbitMQBinding? FindBinding(
+        string source,
+        string destination,
+        RabbitMQDestinationKind destinationKind,
+        string? routingKey = null,
+        IEnumerable<KeyValuePair<string, object?>>? arguments = null)
+    {
+        var normalizedRoutingKey = routingKey ?? string.Empty;
+
+        return _bindings.FirstOrDefault(b =>
+            b.Source.Name == source
+            && b.RoutingKey == normalizedRoutingKey
+            && RabbitMQBinding.ArgumentsEqual(b.Arguments, arguments)
+            && MatchesDestination(b, destination, destinationKind));
+    }
+
+    private RabbitMQBinding CreateBinding(RabbitMQBindingConfiguration configuration)
+    {
+        var source = _exchanges.FirstOrDefault(e => e.Name == configuration.Source);
+        if (source is null)
+        {
+            throw new InvalidOperationException($"Source exchange '{configuration.Source}' not found");
+        }
+
+        RabbitMQBinding binding;
+
+        if (configuration.DestinationKind == RabbitMQDestinationKind.Queue)
+        {
+            var destination = _queues.FirstOrDefault(q => q.Name == configuration.Destination);
+            if (destination is null)
+            {
+                throw new InvalidOperationException($"Destination queue '{configuration.Destination}' not found");
+            }
+
+            var queueBinding = new RabbitMQQueueBinding();
+            configuration.Topology = this;
+            queueBinding.Initialize(configuration);
+            queueBinding.SetDestination(destination);
+            destination.AddBinding(queueBinding);
+
+            binding = queueBinding;
+        }
+        else if (configuration.DestinationKind == RabbitMQDestinationKind.Exchange)
+        {
+            var destination = _exchanges.FirstOrDefault(e => e.Name == configuration.Destination);
+            if (destination is null)
+            {
+                throw new InvalidOperationException(
+                    $"Destination exchange '{configuration.Destination}' not found");
+            }
+
+            var exchangeBinding = new RabbitMQExchangeBinding();
+            configuration.Topology = this;
+            exchangeBinding.Initialize(configuration);
+            exchangeBinding.SetDestination(destination);
+            destination.AddBinding(exchangeBinding);
+
+            binding = exchangeBinding;
+        }
+        else
+        {
+            throw new InvalidOperationException($"Unknown destination kind: {configuration.DestinationKind}");
+        }
+
+        binding.SetSource(source);
+        source.AddBinding(binding);
+
+        _bindings.Add(binding);
+
+        binding.Complete();
+
+        return binding;
+    }
+
+    private static bool MatchesDestination(RabbitMQBinding binding, RabbitMQBindingConfiguration configuration)
+        => MatchesDestination(binding, configuration.Destination, configuration.DestinationKind);
+
+    private static bool MatchesDestination(
+        RabbitMQBinding binding,
+        string destination,
+        RabbitMQDestinationKind destinationKind)
+    {
+        return destinationKind switch
         {
             RabbitMQDestinationKind.Queue =>
-                binding is RabbitMQQueueBinding qb && qb.Destination.Name == configuration.Destination,
+                binding is RabbitMQQueueBinding qb && qb.Destination.Name == destination,
             RabbitMQDestinationKind.Exchange =>
-                binding is RabbitMQExchangeBinding eb && eb.Destination.Name == configuration.Destination,
+                binding is RabbitMQExchangeBinding eb && eb.Destination.Name == destination,
             _ => false
         };
     }

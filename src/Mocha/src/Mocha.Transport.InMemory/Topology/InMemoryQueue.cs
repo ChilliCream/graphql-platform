@@ -41,11 +41,6 @@ public sealed class InMemoryQueue : TopologyResource<InMemoryQueueConfiguration>
         ImmutableInterlocked.Update(ref _bindings, (current) => current.Add(binding));
     }
 
-    internal void MergeFrom(InMemoryQueueConfiguration configuration)
-    {
-        MergeOrigin(configuration);
-    }
-
     /// <summary>
     /// Enqueues a message envelope into this queue for consumption by a receive endpoint.
     /// </summary>

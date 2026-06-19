@@ -80,17 +80,17 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
 
         foreach (var exchange in configuration.Exchanges)
         {
-            _topology.AddExchange(exchange);
+            _topology.ApplyExchangeContribution(exchange);
         }
 
         foreach (var queue in configuration.Queues)
         {
-            _topology.AddQueue(queue);
+            _topology.ApplyQueueContribution(queue);
         }
 
         foreach (var binding in configuration.Bindings)
         {
-            _topology.AddBinding(binding);
+            _topology.ApplyBindingContribution(binding);
         }
 
         Dispatcher = CreateDispatcher(context);

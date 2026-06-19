@@ -24,27 +24,27 @@ public sealed class RabbitMQExchange : TopologyResource<RabbitMQExchangeConfigur
     /// Gets a value indicating whether this exchange is automatically provisioned during topology setup.
     /// When <c>null</c>, the transport-level default is used.
     /// </summary>
-    public bool? AutoProvision { get; private set; }
+    public bool? AutoProvision { get; internal set; }
 
     /// <summary>
     /// Gets the exchange type (e.g., "direct", "fanout", "topic", "headers").
     /// </summary>
-    public string Type { get; private set; } = null!;
+    public string Type { get; internal set; } = null!;
 
     /// <summary>
     /// Gets a value indicating whether this exchange survives broker restarts.
     /// </summary>
-    public bool Durable { get; private set; }
+    public bool Durable { get; internal set; }
 
     /// <summary>
     /// Gets a value indicating whether this exchange is automatically deleted when no longer in use.
     /// </summary>
-    public bool AutoDelete { get; private set; }
+    public bool AutoDelete { get; internal set; }
 
     /// <summary>
     /// Gets the additional exchange arguments for advanced configuration (e.g., alternate-exchange).
     /// </summary>
-    public ImmutableDictionary<string, object?> Arguments { get; private set; } = ImmutableDictionary<string, object?>.Empty;
+    public ImmutableDictionary<string, object?> Arguments { get; internal set; } = ImmutableDictionary<string, object?>.Empty;
 
     /// <summary>
     /// Gets the bindings attached to this exchange (both outgoing and incoming).
@@ -72,82 +72,6 @@ public sealed class RabbitMQExchange : TopologyResource<RabbitMQExchangeConfigur
     internal void AddBinding(RabbitMQBinding binding)
     {
         ImmutableInterlocked.Update(ref _bindings, (current) => current.Add(binding));
-    }
-
-    /// <summary>
-    /// Merges an incoming configuration into this entity, applying the 3.5 merge rules:
-    /// declared non-null scalar wins; convention fills the rest; Arguments union per key;
-    /// AutoProvision strengthens (true wins); origin upgrades convention to endpoint to declared.
-    /// A shape conflict (both sides declared, different scalar value) throws
-    /// <see cref="RabbitMQTopologyShapeConflictException"/>.
-    /// </summary>
-    /// <param name="configuration">The incoming configuration to merge from.</param>
-    /// <exception cref="RabbitMQTopologyShapeConflictException">
-    /// Thrown when both this entity and the incoming configuration carry explicitly declared
-    /// values for the same scalar property and those values differ.
-    /// </exception>
-    internal void MergeFrom(RabbitMQExchangeConfiguration configuration)
-    {
-        var incomingOrigin = configuration.Origin ?? TopologyOrigin.Convention;
-        var existingIsDeclared = Origin == TopologyOrigin.Declared;
-        var incomingIsDeclared = incomingOrigin == TopologyOrigin.Declared;
-
-        // Scalar shape: declared non-null incoming wins; both declared + different = conflict.
-        if (configuration.Type is not null)
-        {
-            if (existingIsDeclared && incomingIsDeclared && Type != configuration.Type)
-            {
-                throw new RabbitMQTopologyShapeConflictException("exchange", Name, "Type", Type, configuration.Type);
-            }
-
-            Type = configuration.Type;
-        }
-
-        if (configuration.Durable is not null)
-        {
-            if (existingIsDeclared && incomingIsDeclared && Durable != configuration.Durable.Value)
-            {
-                throw new RabbitMQTopologyShapeConflictException("exchange", Name, "Durable", Durable, configuration.Durable.Value);
-            }
-
-            Durable = configuration.Durable.Value;
-        }
-
-        if (configuration.AutoDelete is not null)
-        {
-            if (existingIsDeclared && incomingIsDeclared && AutoDelete != configuration.AutoDelete.Value)
-            {
-                throw new RabbitMQTopologyShapeConflictException("exchange", Name, "AutoDelete", AutoDelete, configuration.AutoDelete.Value);
-            }
-
-            AutoDelete = configuration.AutoDelete.Value;
-        }
-
-        // Arguments: union per key; incoming key wins on collision.
-        if (configuration.Arguments is not null)
-        {
-            var builder = Arguments.ToBuilder();
-
-            foreach (var (key, value) in configuration.Arguments)
-            {
-                builder[key] = value;
-            }
-
-            Arguments = builder.ToImmutable();
-        }
-
-        // AutoProvision: strengthen (true wins over null or false).
-        if (AutoProvision is null)
-        {
-            AutoProvision = configuration.AutoProvision;
-        }
-        else if (configuration.AutoProvision == true)
-        {
-            AutoProvision = true;
-        }
-
-        // Origin: upgrade only, never downgrade.
-        MergeOrigin(configuration);
     }
 
     /// <summary>

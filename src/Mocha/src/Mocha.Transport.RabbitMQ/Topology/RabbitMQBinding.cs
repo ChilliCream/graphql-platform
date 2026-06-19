@@ -20,7 +20,7 @@ public abstract class RabbitMQBinding : TopologyResource<RabbitMQBindingConfigur
     /// Gets a value indicating whether this binding is automatically provisioned during topology setup.
     /// When <c>null</c>, the transport-level default is used.
     /// </summary>
-    public bool? AutoProvision { get; protected set; }
+    public bool? AutoProvision { get; internal set; }
 
     /// <summary>
     /// Gets the routing key pattern used to filter messages passing through this binding.
@@ -35,25 +35,6 @@ public abstract class RabbitMQBinding : TopologyResource<RabbitMQBindingConfigur
     internal void SetSource(RabbitMQExchange source)
     {
         Source = source;
-    }
-
-    /// <summary>
-    /// Reconciles this binding with a duplicate declaration, keeping the stronger of the two values.
-    /// An explicit auto-provision value wins over an inherited default, provisioning wins over a
-    /// conflicting opt-out, and a declared origin wins over a framework-generated one.
-    /// </summary>
-    internal void MergeFrom(RabbitMQBindingConfiguration configuration)
-    {
-        if (AutoProvision is null)
-        {
-            AutoProvision = configuration.AutoProvision;
-        }
-        else if (configuration.AutoProvision == true)
-        {
-            AutoProvision = true;
-        }
-
-        MergeOrigin(configuration);
     }
 
     /// <summary>

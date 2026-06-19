@@ -23,7 +23,7 @@ public sealed class PostgresQueue : TopologyResource<PostgresQueueConfiguration>
     /// <summary>
     /// Gets whether this queue should be auto-provisioned in the database.
     /// </summary>
-    public bool? AutoProvision { get; private set; }
+    public bool? AutoProvision { get; internal set; }
 
     /// <summary>
     /// Gets the subscriptions targeting this queue.
@@ -47,26 +47,6 @@ public sealed class PostgresQueue : TopologyResource<PostgresQueueConfiguration>
     internal void AddSubscription(PostgresSubscription subscription)
     {
         ImmutableInterlocked.Update(ref _subscriptions, static (s, sub) => s.Add(sub), subscription);
-    }
-
-    /// <summary>
-    /// Merges an incoming configuration into this entity. AutoProvision strengthens: true wins
-    /// over null or false.
-    /// </summary>
-    /// <param name="configuration">The incoming configuration to merge from.</param>
-    internal void MergeFrom(PostgresQueueConfiguration configuration)
-    {
-        // AutoProvision: strengthen (true wins over null or false).
-        if (AutoProvision is null)
-        {
-            AutoProvision = configuration.AutoProvision;
-        }
-        else if (configuration.AutoProvision == true)
-        {
-            AutoProvision = true;
-        }
-
-        MergeOrigin(configuration);
     }
 
     /// <inheritdoc />

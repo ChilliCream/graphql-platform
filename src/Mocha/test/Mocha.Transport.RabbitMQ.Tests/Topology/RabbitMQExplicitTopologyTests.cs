@@ -364,28 +364,28 @@ public class RabbitMQExplicitTopologyTests
     }
 
     [Fact]
-    public void MergeFrom_Should_AdoptExplicitValue_When_ExistingAutoProvisionIsNull()
+    public void ApplyContribution_Should_AdoptExplicitValue_When_ExistingAutoProvisionIsNull()
     {
         // arrange
         var binding = DeclareSingleBinding(b => { });
 
         // act
-        binding.MergeFrom(new RabbitMQBindingConfiguration { AutoProvision = true });
+        binding.ApplyContribution(new RabbitMQBindingConfiguration { AutoProvision = true });
 
         // assert
         Assert.True(binding.AutoProvision);
     }
 
     [Fact]
-    public void MergeFrom_Should_PreferProvisioning_When_AutoProvisionConflicts()
+    public void ApplyContribution_Should_PreferProvisioning_When_AutoProvisionConflicts()
     {
         // arrange
         var existingOptOut = DeclareSingleBinding(b => b.AutoProvision(false));
         var existingProvision = DeclareSingleBinding(b => b.AutoProvision(true));
 
         // act
-        existingOptOut.MergeFrom(new RabbitMQBindingConfiguration { AutoProvision = true });
-        existingProvision.MergeFrom(new RabbitMQBindingConfiguration { AutoProvision = false });
+        existingOptOut.ApplyContribution(new RabbitMQBindingConfiguration { AutoProvision = true });
+        existingProvision.ApplyContribution(new RabbitMQBindingConfiguration { AutoProvision = false });
 
         // assert - provisioning wins regardless of declaration order
         Assert.True(existingOptOut.AutoProvision);
@@ -393,7 +393,7 @@ public class RabbitMQExplicitTopologyTests
     }
 
     [Fact]
-    public void MergeFrom_Should_UpgradeOrigin_When_DeclaredMergedOntoConvention()
+    public void ApplyContribution_Should_UpgradeOrigin_When_DeclaredMergedOntoConvention()
     {
         // arrange
         // build a framework-generated binding (convention origin) directly in the topology.
@@ -412,7 +412,7 @@ public class RabbitMQExplicitTopologyTests
         Assert.Equal(TopologyOrigin.Convention, binding.Origin);
 
         // act
-        binding.MergeFrom(new RabbitMQBindingConfiguration { Origin = TopologyOrigin.Declared });
+        binding.ApplyContribution(new RabbitMQBindingConfiguration { Origin = TopologyOrigin.Declared });
 
         // assert
         Assert.Equal(TopologyOrigin.Declared, binding.Origin);

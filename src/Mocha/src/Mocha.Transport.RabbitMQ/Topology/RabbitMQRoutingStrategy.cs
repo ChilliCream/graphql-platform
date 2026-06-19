@@ -227,10 +227,10 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
             throw new InvalidOperationException("Queue name is required");
         }
 
-        _topology.AddQueue(
-            new RabbitMQQueueConfiguration
+        _topology.GetOrAddQueue(
+            rabbitConfiguration.QueueName,
+            _ => new RabbitMQQueueConfiguration
             {
-                Name = rabbitConfiguration.QueueName,
                 AutoDelete = rabbitEndpoint.Kind == ReceiveEndpointKind.Reply,
                 AutoProvision = rabbitConfiguration.AutoProvision,
                 Origin = TopologyOrigin.Endpoint
@@ -317,13 +317,11 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
                     )
                     is null)
                 {
-                    _topology.AddBinding(
-                        new RabbitMQBindingConfiguration
-                        {
-                            Source = publishExchangeName,
-                            Destination = sendExchangeName,
-                            DestinationKind = RabbitMQDestinationKind.Exchange
-                        });
+                    _topology.GetOrAddBinding(
+                        publishExchangeName,
+                        sendExchangeName,
+                        RabbitMQDestinationKind.Exchange,
+                        static (_, _, _) => new RabbitMQBindingConfiguration());
                 }
             }
 
@@ -345,16 +343,16 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
 
         if (rabbitConfiguration.ExchangeName is not null)
         {
-            _topology.AddExchange(new RabbitMQExchangeConfiguration { Name = rabbitConfiguration.ExchangeName });
+            _topology.GetOrAddExchange(
+                rabbitConfiguration.ExchangeName,
+                static _ => new RabbitMQExchangeConfiguration());
         }
 
         if (rabbitConfiguration.QueueName is not null)
         {
-            _topology.AddQueue(new RabbitMQQueueConfiguration
-            {
-                Name = rabbitConfiguration.QueueName,
-                AutoProvision = rabbitConfiguration.AutoProvision
-            });
+            _topology.GetOrAddQueue(
+                rabbitConfiguration.QueueName,
+                _ => new RabbitMQQueueConfiguration { AutoProvision = rabbitConfiguration.AutoProvision });
         }
 
         var schema = Transport.Schema;
@@ -388,15 +386,15 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
                     continue;
                 }
 
-                _topology.AddExchange(new RabbitMQExchangeConfiguration { Name = exchangeName });
+                _topology.GetOrAddExchange(
+                    exchangeName,
+                    static _ => new RabbitMQExchangeConfiguration());
 
-                _topology.AddBinding(
-                    new RabbitMQBindingConfiguration
-                    {
-                        Source = rabbitConfiguration.ExchangeName,
-                        Destination = exchangeName,
-                        DestinationKind = RabbitMQDestinationKind.Exchange
-                    });
+                _topology.GetOrAddBinding(
+                    rabbitConfiguration.ExchangeName,
+                    exchangeName,
+                    RabbitMQDestinationKind.Exchange,
+                    static (_, _, _) => new RabbitMQBindingConfiguration());
             }
         }
 
@@ -427,7 +425,7 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
             }
 
             contribution.Name = destination.Name;
-            _topology.AddExchange(contribution);
+            _topology.ApplyExchangeContribution(contribution);
         }
     }
 
@@ -468,7 +466,9 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
     {
         if (topology.Exchanges.FirstOrDefault(e => e.Name == exchangeName) is null)
         {
-            topology.AddExchange(new RabbitMQExchangeConfiguration { Name = exchangeName });
+            topology.GetOrAddExchange(
+                exchangeName,
+                static _ => new RabbitMQExchangeConfiguration());
         }
     }
 
@@ -485,13 +485,11 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
             )
             is null)
         {
-            topology.AddBinding(
-                new RabbitMQBindingConfiguration
-                {
-                    Source = sourceExchangeName,
-                    Destination = queueName,
-                    DestinationKind = RabbitMQDestinationKind.Queue
-                });
+            topology.GetOrAddBinding(
+                sourceExchangeName,
+                queueName,
+                RabbitMQDestinationKind.Queue,
+                static (_, _, _) => new RabbitMQBindingConfiguration());
         }
     }
 
@@ -540,15 +538,16 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
         }
 
         var existingQueue = _topology.Queues.FirstOrDefault(q => q.Name == queueName);
-        if (existingQueue?.AutoProvision is not null)
+        if (existingQueue is not null)
         {
+            existingQueue.ApplyAutoProvisionInheritance(inheritedAutoProvision);
             return;
         }
 
-        _topology.AddQueue(
-            new RabbitMQQueueConfiguration
+        _topology.GetOrAddQueue(
+            queueName,
+            _ => new RabbitMQQueueConfiguration
             {
-                Name = queueName,
                 AutoProvision = inheritedAutoProvision,
                 Origin = TopologyOrigin.Endpoint
             });

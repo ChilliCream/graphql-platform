@@ -193,10 +193,10 @@ public sealed class InMemoryRoutingStrategy : RoutingStrategy<InMemoryMessagingT
 
         if (_topology.Queues.FirstOrDefault(q => q.Name == inMemoryConfiguration.QueueName) is null)
         {
-            _topology.AddQueue(
-                new InMemoryQueueConfiguration
+            _topology.GetOrAddQueue(
+                inMemoryConfiguration.QueueName,
+                static _ => new InMemoryQueueConfiguration
                 {
-                    Name = inMemoryConfiguration.QueueName,
                     Origin = TopologyOrigin.Endpoint
                 });
         }
@@ -274,13 +274,17 @@ public sealed class InMemoryRoutingStrategy : RoutingStrategy<InMemoryMessagingT
         if (inMemoryConfiguration.TopicName is not null
             && _topology.Topics.FirstOrDefault(t => t.Name == inMemoryConfiguration.TopicName) is null)
         {
-            _topology.AddTopic(new InMemoryTopicConfiguration { Name = inMemoryConfiguration.TopicName });
+            _topology.GetOrAddTopic(
+                inMemoryConfiguration.TopicName,
+                static _ => new InMemoryTopicConfiguration());
         }
 
         if (inMemoryConfiguration.QueueName is not null
             && _topology.Queues.FirstOrDefault(q => q.Name == inMemoryConfiguration.QueueName) is null)
         {
-            _topology.AddQueue(new InMemoryQueueConfiguration { Name = inMemoryConfiguration.QueueName });
+            _topology.GetOrAddQueue(
+                inMemoryConfiguration.QueueName,
+                static _ => new InMemoryQueueConfiguration());
         }
     }
 
@@ -288,7 +292,7 @@ public sealed class InMemoryRoutingStrategy : RoutingStrategy<InMemoryMessagingT
     {
         if (topology.Topics.FirstOrDefault(e => e.Name == topicName) is null)
         {
-            topology.AddTopic(new InMemoryTopicConfiguration { Name = topicName });
+            topology.GetOrAddTopic(topicName, static _ => new InMemoryTopicConfiguration());
         }
     }
 
