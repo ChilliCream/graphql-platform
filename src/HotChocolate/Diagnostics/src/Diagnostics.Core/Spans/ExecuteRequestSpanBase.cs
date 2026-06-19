@@ -44,7 +44,9 @@ internal abstract class ExecuteRequestSpanBase(
         if (TryGetOperationInfo(out var operationType, out var operationName))
         {
             operationTypeValue = GraphQL.Operation.TypeValues[operationType];
-            Activity.DisplayName = operationTypeValue;
+            Activity.DisplayName = options.IncludeOperationNameInSpanName && !string.IsNullOrEmpty(operationName)
+                ? $"{operationTypeValue} {operationName}"
+                : operationTypeValue;
             Activity.EnrichOperation(operationType, operationName);
         }
 

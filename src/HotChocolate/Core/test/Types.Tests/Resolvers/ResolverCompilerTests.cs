@@ -1385,7 +1385,7 @@ public class ResolverCompilerTests
             .AddGraphQL()
             .AddQueryType<Resolvers>()
             .ModifyOptions(o => o.SortFieldsByName = true)
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -1397,7 +1397,9 @@ public class ResolverCompilerTests
             .AddGraphQL()
             .AddQueryType<QueryWithScopedExpressionBuilder>()
             .ModifyOptions(o => o.SortFieldsByName = true)
-            .ExecuteRequestAsync("{ bar }")
+            .ExecuteRequestAsync(
+                "{ bar }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -1409,7 +1411,7 @@ public class ResolverCompilerTests
             .AddGraphQL()
             .AddQueryType<QueryWithScopedExpressionBuilder>()
             .ModifyOptions(o => o.SortFieldsByName = true)
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 

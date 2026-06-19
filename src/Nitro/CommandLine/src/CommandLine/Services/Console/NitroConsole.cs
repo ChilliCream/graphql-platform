@@ -15,7 +15,8 @@ internal sealed class NitroConsole(
     private bool _hasWrittenOutput;
 
     public bool IsInteractive =>
-        outConsole.Profile.Capabilities.Interactive
+        IsHumanReadable
+        && outConsole.Profile.Capabilities.Interactive
         && !IsNonInteractiveEnvironment();
 
     public bool IsHumanReadable => _outputFormat is null;

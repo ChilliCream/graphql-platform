@@ -167,6 +167,7 @@ internal static class CompositeSchemaBuilder
                         null,
                         [])
                 },
+                [],
                 new HotChocolate.Language.NameNode[] { new("INLINE_FRAGMENT"), new("FRAGMENT_SPREAD") });
 
             directiveTypes.Add(CreateDirectiveType(deferDirectiveNode));

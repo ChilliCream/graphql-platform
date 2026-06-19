@@ -1,7 +1,6 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
-using Xunit.Abstractions;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 

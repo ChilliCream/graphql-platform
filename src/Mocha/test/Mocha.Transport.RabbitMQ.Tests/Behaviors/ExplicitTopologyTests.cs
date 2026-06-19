@@ -89,6 +89,44 @@ public class ExplicitTopologyTests
         Assert.Equal("ORD-TOPO", message.OrderId);
     }
 
+    [Fact]
+    public async Task PublishAsync_Should_RouteToQueue_When_ExplicitTopologyDeclared_UsingReceives()
+    {
+        // arrange
+        var capture = new OrderCapture();
+        await using var vhost = await _fixture.CreateVhostAsync();
+        await using var bus = await new ServiceCollection()
+            .AddSingleton(vhost.ConnectionFactory)
+            .AddSingleton(capture)
+            .AddMessageBus()
+            .AddConsumer<OrderSpyConsumer>()
+            .AddRabbitMQ(t =>
+            {
+                t.BindHandlersExplicitly();
+                t.DeclareExchange("custom-ex");
+                t.DeclareQueue("custom-q");
+                t.DeclareBinding("custom-ex", "custom-q");
+
+                t.Endpoint("custom-ep").Queue("custom-q")
+                    .Receives<OrderCreated>();
+
+                t.DispatchEndpoint("custom-dispatch").ToExchange("custom-ex").Publish<OrderCreated>();
+            })
+            .BuildTestBusAsync();
+
+        using var scope = bus.Provider.CreateScope();
+        var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-RCV" }, CancellationToken.None);
+
+        // assert
+        Assert.True(await capture.WaitAsync(s_timeout), "Consumer on custom-q did not receive the published message");
+
+        var message = Assert.Single(capture.Messages);
+        Assert.Equal("ORD-RCV", message.OrderId);
+    }
+
     public sealed class OrderCapture
     {
         private readonly SemaphoreSlim _semaphore = new(0);

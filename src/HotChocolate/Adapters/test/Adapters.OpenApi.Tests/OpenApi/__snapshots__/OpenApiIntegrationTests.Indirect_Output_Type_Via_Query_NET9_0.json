@@ -1,0 +1,74 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "HotChocolate.Adapters.OpenApi.Tests | v1",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/indirect-output": {
+      "get": {
+        "operationId": "getIndirect",
+        "responses": {
+          "200": {
+            "description": null,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "required": [
+                    "value",
+                    "middle"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "string"
+                    },
+                    "middle": {
+                      "required": [
+                        "label",
+                        "parent"
+                      ],
+                      "type": "object",
+                      "properties": {
+                        "label": {
+                          "type": "string"
+                        },
+                        "parent": {
+                          "required": [
+                            "value",
+                            "middle"
+                          ],
+                          "type": "object",
+                          "properties": {
+                            "value": {
+                              "type": "string"
+                            },
+                            "middle": {
+                              "required": [
+                                "label"
+                              ],
+                              "type": "object",
+                              "properties": {
+                                "label": {
+                                  "type": "string"
+                                }
+                              },
+                              "nullable": true
+                            }
+                          },
+                          "nullable": true
+                        }
+                      },
+                      "nullable": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": { }
+}

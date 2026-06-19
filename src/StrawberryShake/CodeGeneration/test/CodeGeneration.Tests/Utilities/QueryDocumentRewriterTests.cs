@@ -17,7 +17,7 @@ public class QueryDocumentRewriterTests
                 .AddStarWarsRepositories()
                 .AddGraphQL()
                 .AddStarWars()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema =
             SchemaHelper.Load(

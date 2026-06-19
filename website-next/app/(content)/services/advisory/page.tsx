@@ -1,4 +1,14 @@
+import type { Metadata } from "next";
+
+import { Offering } from "@/src/components/Offering";
+import { OfferingGrid } from "@/src/components/OfferingGrid";
 import { PageHero } from "@/src/components/PageHero";
+
+export const metadata: Metadata = {
+  title: "Advisory",
+  description:
+    "Get quick access to ChilliCream's GraphQL experts: hourly consulting, architecture guidance, code reviews, and full contracting engagements.",
+};
 
 interface InquiryPlan {
   title: string;
@@ -41,35 +51,18 @@ export default function AdvisoryPage() {
         teaser="At ChilliCream, we want you to be successful. From guidance to embedded experts, find the right level for your business."
       />
       <section className="py-8">
-        <div className="grid gap-6 md:grid-cols-2">
+        <OfferingGrid columns="md:grid-cols-2">
           {PLANS.map((plan) => (
-            <div
+            <Offering
               key={plan.title}
-              className="flex flex-col rounded-xl border border-cc-card-border bg-cc-card-bg backdrop-blur-sm p-8 "
-            >
-              <h2 className="text-2xl font-semibold text-cc-ink">
-                {plan.title}
-              </h2>
-              <p className="mt-3 text-sm text-cc-ink-dim">{plan.description}</p>
-              <ul className="mt-6 flex flex-1 flex-col gap-2 text-sm text-cc-ink">
-                {plan.features.map((feature) => (
-                  <li key={feature} className="flex items-start gap-2">
-                    <span aria-hidden className="mt-1 text-fuchsia-400">
-                      ✓
-                    </span>
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              <a
-                href={plan.ctaLink}
-                className="mt-8 inline-flex items-center justify-center rounded-md bg-cc-ink px-6 py-2.5 text-sm font-medium text-[#0c1322] no-underline transition-colors hover:bg-white"
-              >
-                {plan.ctaText}
-              </a>
-            </div>
+              headingLevel="h2"
+              title={plan.title}
+              description={plan.description}
+              perks={plan.features}
+              callToAction={{ title: plan.ctaText, link: plan.ctaLink }}
+            />
           ))}
-        </div>
+        </OfferingGrid>
       </section>
     </>
   );

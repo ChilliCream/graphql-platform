@@ -51,7 +51,7 @@ internal sealed class EditStagesCommand : Command
         parseResult.AssertHasAuthentication(sessionService);
 
         var apiId = await console.GetOrPromptForApiIdAsync(
-            "For which API do you want to edit the stages?",
+            Prompts.SelectApiForEditStages,
             parseResult,
             apisClient,
             sessionService,

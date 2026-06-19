@@ -50,6 +50,6 @@ public class WarmUpGeneratorTests
                     => default;
             }
             """
-        ]).MatchMarkdownAsync();
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 }

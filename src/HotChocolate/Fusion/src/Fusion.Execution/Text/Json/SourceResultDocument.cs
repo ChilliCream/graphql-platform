@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Buffers;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Fusion.Text.Json;
 
@@ -10,23 +11,104 @@ public sealed partial class SourceResultDocument : IDisposable
 {
     private static readonly Encoding s_utf8Encoding = Encoding.UTF8;
     private MetaDb _parsedData;
-    private readonly byte[][] _dataChunks;
+    private readonly MemorySegment[] _segments;
     private readonly int _usedChunks;
-    private readonly bool _pooledMemory;
     private int _disposed;
 
-    private SourceResultDocument(MetaDb parsedData, byte[][] dataChunks, int usedChunks, bool pooledMemory)
+    private SourceResultDocument(MetaDb parsedData, MemorySegment[] segments, int usedChunks)
     {
         _parsedData = parsedData;
-        _dataChunks = dataChunks;
+        _segments = segments;
         _usedChunks = usedChunks;
-        _pooledMemory = pooledMemory;
         Root = new SourceResultElement(this, Cursor.Zero);
     }
 
     internal int Id { get; set; } = -1;
 
     public SourceResultElement Root { get; private set; }
+
+    // A data location packs the chunk index in the high 12 bits and the byte offset within the
+    // chunk in the low 17 bits. The chunk size follows the same geometric schedule as the metadb,
+    // so it is derived from the chunk index (chunk i holds 1 << (10 + Min(i, 7)) bytes). The data
+    // store is written without gaps; a value that does not fit the remaining space of a chunk spans
+    // into the following chunks, and the read path walks the boundaries.
+    private const int DataOffsetBits = 17;
+    private const int DataChunkBits = 12;
+    private const int DataOffsetMask = (1 << DataOffsetBits) - 1;
+    internal const int DataMaxChunks = 1 << DataChunkBits;
+    private const int DataMaxChunkOrdinal = (int)ChunkSize.Size128K;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static int GetDataChunkSize(int chunkIndex)
+        => 1 << (10 + Math.Min(chunkIndex, DataMaxChunkOrdinal));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static int EncodeDataLocation(int chunkIndex, int offset)
+        => (chunkIndex << DataOffsetBits) | offset;
+
+    // The cumulative number of bytes held by all data chunks before a given chunk index, following
+    // the same geometric schedule as the chunks themselves. The ramp (chunks 0..7) is a small
+    // prefix table; from chunk 8 on every chunk holds the same number of bytes, so the tail is
+    // closed-form. This lets a packed location be mapped to the gap-free linear byte position it
+    // represents, which the composite-value readers need to measure the span of an object or array.
+    private static readonly int[] s_dataRampPrefix = BuildDataRampPrefix();
+
+    private static int[] BuildDataRampPrefix()
+    {
+        var prefix = new int[DataMaxChunkOrdinal + 1];
+        var cumulative = 0;
+
+        for (var chunk = 0; chunk < DataMaxChunkOrdinal; chunk++)
+        {
+            prefix[chunk] = cumulative;
+            cumulative += GetDataChunkSize(chunk);
+        }
+
+        prefix[DataMaxChunkOrdinal] = cumulative;
+        return prefix;
+    }
+
+    /// <summary>
+    /// Maps a gap-free linear byte position to the packed data location that represents it.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static int LinearToPacked(long linear)
+    {
+        // Walk the geometric ramp, then close-form the constant-size tail.
+        for (var chunk = 0; chunk < DataMaxChunkOrdinal; chunk++)
+        {
+            var chunkBytes = GetDataChunkSize(chunk);
+
+            if (linear < chunkBytes)
+            {
+                return EncodeDataLocation(chunk, (int)linear);
+            }
+
+            linear -= chunkBytes;
+        }
+
+        var maxChunkBytes = GetDataChunkSize(DataMaxChunkOrdinal);
+        var tailChunk = DataMaxChunkOrdinal + (int)(linear / maxChunkBytes);
+        var tailOffset = (int)(linear % maxChunkBytes);
+        return EncodeDataLocation(tailChunk, tailOffset);
+    }
+
+    /// <summary>
+    /// Maps a packed data location to the gap-free linear byte position it represents.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static long PackedToLinear(int location)
+    {
+        var chunkIndex = location >>> DataOffsetBits;
+        var offset = location & DataOffsetMask;
+
+        var bytesBefore = chunkIndex <= DataMaxChunkOrdinal
+            ? s_dataRampPrefix[chunkIndex]
+            : s_dataRampPrefix[DataMaxChunkOrdinal]
+                + ((long)(chunkIndex - DataMaxChunkOrdinal) * GetDataChunkSize(DataMaxChunkOrdinal));
+
+        return bytesBefore + offset;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal JsonTokenType GetElementTokenType(Cursor cursor)
@@ -103,90 +185,148 @@ public sealed partial class SourceResultDocument : IDisposable
         }
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void WriteRawValueTo(Utf8JsonWriter writer, DbRow row)
-    {
-        if (row.TokenType is JsonTokenType.String)
-        {
-            writer.WriteRawValue(ReadRawValue(row.Location - 1, row.SizeOrLength + 2), skipInputValidation: true);
-            return;
-        }
-
-        writer.WriteRawValue(ReadRawValue(row.Location, row.SizeOrLength), skipInputValidation: true);
-    }
-
     internal void WriteRawValueTo(IBufferWriter<byte> writer, int location, int size)
     {
-        var startChunkIndex = location / JsonMemory.BufferSize;
-        var offsetInStartChunk = location % JsonMemory.BufferSize;
+        var chunkIndex = location >>> DataOffsetBits;
+        var offsetInChunk = location & DataOffsetMask;
+        var bytesRead = 0;
 
-        if (offsetInStartChunk + size <= JsonMemory.BufferSize)
+        var seg = _segments[chunkIndex];
+
+        // Fast path: data fits in a single chunk
+        if (offsetInChunk + size <= seg.Length)
         {
-            var span = writer.GetSpan(size);
-            _dataChunks[startChunkIndex].AsSpan(offsetInStartChunk, size).CopyTo(span);
+            var single = writer.GetSpan(size);
+            seg.Buffer.AsSpan(seg.Offset + offsetInChunk, size).CopyTo(single);
             writer.Advance(size);
             return;
         }
 
-        var bytesRead = 0;
-        var currentLocation = location;
-
         while (bytesRead < size)
         {
-            var chunkIndex = currentLocation / JsonMemory.BufferSize;
-            var offsetInChunk = currentLocation % JsonMemory.BufferSize;
-            var chunk = _dataChunks[chunkIndex];
-
-            var bytesToCopyFromThisChunk = Math.Min(size - bytesRead, JsonMemory.BufferSize - offsetInChunk);
-            var chunkSpan = chunk.AsSpan(offsetInChunk, bytesToCopyFromThisChunk);
+            seg = _segments[chunkIndex];
+            var bytesToCopyFromThisChunk = Math.Min(size - bytesRead, seg.Length - offsetInChunk);
+            var chunkSpan = seg.Buffer.AsSpan(seg.Offset + offsetInChunk, bytesToCopyFromThisChunk);
 
             var span = writer.GetSpan(chunkSpan.Length);
             chunkSpan.CopyTo(span);
             writer.Advance(chunkSpan.Length);
             bytesRead += bytesToCopyFromThisChunk;
-            currentLocation += bytesToCopyFromThisChunk;
+            chunkIndex++;
+            offsetInChunk = 0;
+        }
+    }
+
+    internal void WriteRawStringValueTo(JsonWriter writer, int location, int size)
+    {
+        var startChunkIndex = location >>> DataOffsetBits;
+        var offsetInStartChunk = location & DataOffsetMask;
+
+        var startSeg = _segments[startChunkIndex];
+
+        // Fast path: the value lives in a single chunk and can be written without a copy.
+        if (offsetInStartChunk + size <= startSeg.Length)
+        {
+            writer.WriteStringValue(startSeg.Buffer.AsSpan(startSeg.Offset + offsetInStartChunk, size), skipEscaping: true);
+            return;
+        }
+
+        // The value spans chunks and the writer needs a contiguous span, so a scratch buffer is
+        // gathered from the pool, written, and returned in place of a per-value allocation.
+        var scratch = ArrayPool<byte>.Shared.Rent(size);
+        GatherRawValue(scratch, startChunkIndex, offsetInStartChunk, size);
+        writer.WriteStringValue(scratch.AsSpan(0, size), skipEscaping: true);
+        ArrayPool<byte>.Shared.Return(scratch);
+    }
+
+    internal void WriteRawNumberValueTo(JsonWriter writer, int location, int size)
+    {
+        var startChunkIndex = location >>> DataOffsetBits;
+        var offsetInStartChunk = location & DataOffsetMask;
+
+        var startSeg = _segments[startChunkIndex];
+
+        // Fast path: the value lives in a single chunk and can be written without a copy.
+        if (offsetInStartChunk + size <= startSeg.Length)
+        {
+            writer.WriteNumberValue(startSeg.Buffer.AsSpan(startSeg.Offset + offsetInStartChunk, size));
+            return;
+        }
+
+        // The value spans chunks and the writer needs a contiguous span, so a scratch buffer is
+        // gathered from the pool, written, and returned in place of a per-value allocation.
+        var scratch = ArrayPool<byte>.Shared.Rent(size);
+        GatherRawValue(scratch, startChunkIndex, offsetInStartChunk, size);
+        writer.WriteNumberValue(scratch.AsSpan(0, size));
+        ArrayPool<byte>.Shared.Return(scratch);
+    }
+
+    private void GatherRawValue(byte[] destination, int startChunkIndex, int offsetInStartChunk, int size)
+    {
+        var bytesRead = 0;
+        var chunkIndex = startChunkIndex;
+        var offsetInChunk = offsetInStartChunk;
+
+        while (bytesRead < size)
+        {
+            var seg = _segments[chunkIndex];
+            var bytesToCopyFromThisChunk = Math.Min(size - bytesRead, seg.Length - offsetInChunk);
+            var chunkSpan = seg.Buffer.AsSpan(seg.Offset + offsetInChunk, bytesToCopyFromThisChunk);
+
+            chunkSpan.CopyTo(destination.AsSpan(bytesRead));
+            bytesRead += bytesToCopyFromThisChunk;
+            chunkIndex++;
+            offsetInChunk = 0;
         }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private ReadOnlySpan<byte> ReadRawValue(DbRow row, bool includeQuotes)
     {
-        if (row.IsSimpleValue && includeQuotes && row.TokenType == JsonTokenType.String)
+        // Strings and property names are stored quote-inclusive: the location points at the opening
+        // quote and the size covers both quotes. The unquoted value is obtained by slicing one byte
+        // in on each side, which keeps every stored location pointing at a real byte and avoids any
+        // arithmetic on the packed location.
+        if (!includeQuotes && row.TokenType is JsonTokenType.String or JsonTokenType.PropertyName)
         {
-            // Start one character earlier than the value (the open quote)
-            // End one character after the value (the close quote)
-            return ReadRawValue(row.Location - 1, row.SizeOrLength + 2);
+            return ReadRawValue(row.Location, row.SizeOrLength)[1..^1];
         }
 
         return ReadRawValue(row.Location, row.SizeOrLength);
     }
 
+    /// <summary>
+    /// Reads raw data from the data chunks. Data contained in a single chunk is returned as a
+    /// slice over that chunk; data that spans chunk boundaries is copied into a fresh buffer.
+    /// </summary>
     internal ReadOnlySpan<byte> ReadRawValue(int location, int size)
     {
-        var startChunkIndex = location / JsonMemory.BufferSize;
-        var offsetInStartChunk = location % JsonMemory.BufferSize;
+        var startChunkIndex = location >>> DataOffsetBits;
+        var offsetInStartChunk = location & DataOffsetMask;
 
-        if (offsetInStartChunk + size <= JsonMemory.BufferSize)
+        var startSeg = _segments[startChunkIndex];
+
+        // Fast path: data fits in a single chunk
+        if (offsetInStartChunk + size <= startSeg.Length)
         {
-            return _dataChunks[startChunkIndex].AsSpan(offsetInStartChunk, size);
+            return startSeg.Buffer.AsSpan(startSeg.Offset + offsetInStartChunk, size);
         }
 
         Span<byte> buffer = new byte[size];
         var bytesRead = 0;
-        var currentLocation = location;
+        var chunkIndex = startChunkIndex;
+        var offsetInChunk = offsetInStartChunk;
 
         while (bytesRead < size)
         {
-            var chunkIndex = currentLocation / JsonMemory.BufferSize;
-            var offsetInChunk = currentLocation % JsonMemory.BufferSize;
-            var chunk = _dataChunks[chunkIndex];
-
-            var bytesToCopyFromThisChunk = Math.Min(size - bytesRead, JsonMemory.BufferSize - offsetInChunk);
-            var chunkSpan = chunk.AsSpan(offsetInChunk, bytesToCopyFromThisChunk);
+            var seg = _segments[chunkIndex];
+            var bytesToCopyFromThisChunk = Math.Min(size - bytesRead, seg.Length - offsetInChunk);
+            var chunkSpan = seg.Buffer.AsSpan(seg.Offset + offsetInChunk, bytesToCopyFromThisChunk);
 
             chunkSpan.CopyTo(buffer[bytesRead..]);
             bytesRead += bytesToCopyFromThisChunk;
-            currentLocation += bytesToCopyFromThisChunk;
+            chunkIndex++;
+            offsetInChunk = 0;
         }
 
         return buffer;
@@ -194,31 +334,33 @@ public sealed partial class SourceResultDocument : IDisposable
 
     internal ReadOnlyMemory<byte> ReadRawValueAsMemory(int location, int size)
     {
-        var startChunkIndex = location / JsonMemory.BufferSize;
-        var offsetInStartChunk = location % JsonMemory.BufferSize;
+        var startChunkIndex = location >>> DataOffsetBits;
+        var offsetInStartChunk = location & DataOffsetMask;
 
-        if (offsetInStartChunk + size <= JsonMemory.BufferSize)
+        var startSeg = _segments[startChunkIndex];
+
+        // Fast path: data fits in a single chunk
+        if (offsetInStartChunk + size <= startSeg.Length)
         {
-            return _dataChunks[startChunkIndex].AsMemory(offsetInStartChunk, size);
+            return startSeg.Buffer.AsMemory(startSeg.Offset + offsetInStartChunk, size);
         }
 
         var tempArray = new byte[size];
         var bytesRead = 0;
-        var currentLocation = location;
+        var chunkIndex = startChunkIndex;
+        var offsetInChunk = offsetInStartChunk;
 
         while (bytesRead < size)
         {
-            var chunkIndex = currentLocation / JsonMemory.BufferSize;
-            var offsetInChunk = currentLocation % JsonMemory.BufferSize;
-            var chunk = _dataChunks[chunkIndex];
+            var seg = _segments[chunkIndex];
+            var bytesToCopyFromThisChunk = Math.Min(size - bytesRead, seg.Length - offsetInChunk);
 
-            var bytesToCopyFromThisChunk = Math.Min(size - bytesRead, JsonMemory.BufferSize - offsetInChunk);
-
-            chunk.AsSpan(offsetInChunk, bytesToCopyFromThisChunk)
+            seg.Buffer.AsSpan(seg.Offset + offsetInChunk, bytesToCopyFromThisChunk)
                 .CopyTo(tempArray.AsSpan(bytesRead));
 
             bytesRead += bytesToCopyFromThisChunk;
-            currentLocation += bytesToCopyFromThisChunk;
+            chunkIndex++;
+            offsetInChunk = 0;
         }
 
         return tempArray;
@@ -234,32 +376,13 @@ public sealed partial class SourceResultDocument : IDisposable
 
     public void Dispose()
     {
-        ReturnRentedMemory();
-        GC.SuppressFinalize(this);
-    }
-
-    private void ReturnRentedMemory()
-    {
         if (Interlocked.Exchange(ref _disposed, 1) != 0)
         {
             return;
         }
 
-        if (_pooledMemory)
-        {
-            JsonMemory.Return(JsonMemoryKind.Json, _dataChunks, _usedChunks);
-
-            if (_dataChunks.Length > 1)
-            {
-                _dataChunks.AsSpan(0, _usedChunks).Clear();
-                ArrayPool<byte[]>.Shared.Return(_dataChunks);
-            }
-        }
-
         _parsedData.Dispose();
     }
-
-    ~SourceResultDocument() => ReturnRentedMemory();
 
     public override string ToString()
     {
@@ -272,7 +395,7 @@ public sealed partial class SourceResultDocument : IDisposable
 
         for (var i = 0; i < _usedChunks; i++)
         {
-            totalSize += _dataChunks[i].Length;
+            totalSize += _segments[i].Length;
         }
 
         var buffer = new byte[totalSize];
@@ -280,8 +403,9 @@ public sealed partial class SourceResultDocument : IDisposable
 
         for (var i = 0; i < _usedChunks; i++)
         {
-            _dataChunks[i].CopyTo(buffer, offset);
-            offset += _dataChunks[i].Length;
+            var seg = _segments[i];
+            seg.Buffer.AsSpan(seg.Offset, seg.Length).CopyTo(buffer.AsSpan(offset));
+            offset += seg.Length;
         }
 
         return s_utf8Encoding.GetString(buffer).TrimEnd('\0');

@@ -45,14 +45,16 @@ public class MessageBusSchedulerSignalTests
         var timeProvider = new FakeTimeProvider(s_baseTime);
         using var signal = new MessageBusSchedulerSignal(timeProvider);
         var waitTask = signal.WaitUntilAsync(s_baseTime.AddMinutes(3), CancellationToken.None);
-        await Task.Delay(50);
+        await Task.Delay(50, TestContext.Current.CancellationToken);
         Assert.False(waitTask.IsCompleted);
 
         // act
         timeProvider.Advance(TimeSpan.FromMinutes(3));
 
         // assert
-        var completed = await Task.WhenAny(waitTask, Task.Delay(TimeSpan.FromSeconds(5)));
+        var completed = await Task.WhenAny(
+            waitTask,
+            Task.Delay(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken));
         Assert.Same(waitTask, completed);
     }
 
@@ -63,13 +65,15 @@ public class MessageBusSchedulerSignalTests
         var timeProvider = new FakeTimeProvider(s_baseTime);
         using var signal = new MessageBusSchedulerSignal(timeProvider);
         var waitTask = signal.WaitUntilAsync(s_baseTime.AddYears(1), CancellationToken.None);
-        await Task.Delay(50);
+        await Task.Delay(50, TestContext.Current.CancellationToken);
 
         // act - advance past 5 minutes to prove the delay was capped (not 1 year)
         timeProvider.Advance(TimeSpan.FromMinutes(5));
 
         // assert
-        var completed = await Task.WhenAny(waitTask, Task.Delay(TimeSpan.FromSeconds(5)));
+        var completed = await Task.WhenAny(
+            waitTask,
+            Task.Delay(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken));
         Assert.Same(waitTask, completed);
     }
 
@@ -81,13 +85,15 @@ public class MessageBusSchedulerSignalTests
         using var signal = new MessageBusSchedulerSignal(timeProvider);
         using var cts = new CancellationTokenSource();
         var waitTask = signal.WaitUntilAsync(s_baseTime.AddMinutes(5), cts.Token);
-        await Task.Delay(50);
+        await Task.Delay(50, TestContext.Current.CancellationToken);
 
         // act
         await cts.CancelAsync();
 
         // assert
-        var completed = await Task.WhenAny(waitTask, Task.Delay(TimeSpan.FromSeconds(5)));
+        var completed = await Task.WhenAny(
+            waitTask,
+            Task.Delay(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken));
         Assert.Same(waitTask, completed);
     }
 
@@ -98,13 +104,15 @@ public class MessageBusSchedulerSignalTests
         var timeProvider = new FakeTimeProvider(s_baseTime);
         using var signal = new MessageBusSchedulerSignal(timeProvider);
         var waitTask = signal.WaitUntilAsync(s_baseTime.AddMinutes(5), CancellationToken.None);
-        await Task.Delay(50);
+        await Task.Delay(50, TestContext.Current.CancellationToken);
 
         // act
         signal.Notify(s_baseTime.AddMinutes(3));
 
         // assert - should return promptly, dispatcher will re-query and re-sleep
-        var completed = await Task.WhenAny(waitTask, Task.Delay(TimeSpan.FromSeconds(5)));
+        var completed = await Task.WhenAny(
+            waitTask,
+            Task.Delay(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken));
         Assert.Same(waitTask, completed);
     }
 
@@ -116,13 +124,15 @@ public class MessageBusSchedulerSignalTests
         using var signal = new MessageBusSchedulerSignal(timeProvider);
         using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(300));
         var waitTask = signal.WaitUntilAsync(s_baseTime.AddMinutes(1), cts.Token);
-        await Task.Delay(50);
+        await Task.Delay(50, TestContext.Current.CancellationToken);
 
         // act
         signal.Notify(s_baseTime.AddMinutes(2));
 
         // assert
-        var completed = await Task.WhenAny(waitTask, Task.Delay(TimeSpan.FromSeconds(5)));
+        var completed = await Task.WhenAny(
+            waitTask,
+            Task.Delay(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken));
         Assert.Same(waitTask, completed);
         Assert.True(cts.IsCancellationRequested);
     }
@@ -136,13 +146,15 @@ public class MessageBusSchedulerSignalTests
         var wakeTime = s_baseTime.AddMinutes(3);
         using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(300));
         var waitTask = signal.WaitUntilAsync(wakeTime, cts.Token);
-        await Task.Delay(50);
+        await Task.Delay(50, TestContext.Current.CancellationToken);
 
         // act
         signal.Notify(wakeTime);
 
         // assert
-        var completed = await Task.WhenAny(waitTask, Task.Delay(TimeSpan.FromSeconds(5)));
+        var completed = await Task.WhenAny(
+            waitTask,
+            Task.Delay(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken));
         Assert.Same(waitTask, completed);
         Assert.True(cts.IsCancellationRequested);
     }

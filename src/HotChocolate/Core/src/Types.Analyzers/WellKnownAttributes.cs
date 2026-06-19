@@ -21,8 +21,6 @@ public static class WellKnownAttributes
     public const string SubscriptionAttribute = "HotChocolate.SubscriptionAttribute";
     public const string SubscribeAttribute = "HotChocolate.Types.SubscribeAttribute";
     public const string NodeResolverAttribute = "HotChocolate.Types.Relay.NodeResolverAttribute";
-    public const string IdAttribute = "HotChocolate.Types.Relay.IDAttribute";
-    public const string GenericIdAttribute = "HotChocolate.Types.Relay.IDAttribute`1";
     public const string ParentAttribute = "HotChocolate.ParentAttribute";
     public const string EventMessageAttribute = "HotChocolate.EventMessageAttribute";
     public const string ServiceAttribute = "HotChocolate.ServiceAttribute";

@@ -1,7 +1,18 @@
+import type { Metadata } from "next";
+
 import { ContentSection } from "@/src/components/ContentSection";
 import { PageHero } from "@/src/components/PageHero";
 import { Section } from "@/src/components/Section";
-import { OutlineButton, SolidButton } from "@/src/design-system/Button";
+import { OutlineButton } from "@/src/design-system/Button";
+import { Picture } from "@/src/design-system/Picture";
+
+import { NitroDownload } from "./NitroDownload";
+
+export const metadata: Metadata = {
+  title: "Nitro",
+  description:
+    "Nitro is ChilliCream's GraphQL IDE: explore any GraphQL API with authentication flows, document sync, and subscriptions over SSE and WebSockets.",
+};
 
 const FEATURES: { title: string; description: string }[] = [
   {
@@ -59,10 +70,20 @@ export default function NitroPage() {
         teaser="Next-Level GraphQL IDE for developers. Works with any GraphQL API. Beautiful, fast, and feature-rich."
       />
       <div className="flex flex-wrap justify-center gap-4">
-        <SolidButton href="https://nitro.chillicream.com">
-          Launch Web App
-        </SolidButton>
+        <NitroDownload />
         <OutlineButton href="/docs/nitro">Read the Docs</OutlineButton>
+      </div>
+
+      <div className="mt-20 flex justify-center">
+        <Picture
+          src="/images/nitro/nitro-app.png"
+          alt="Nitro App"
+          width={1451}
+          height={852}
+          sizes="(max-width: 1280px) 100vw, 1200px"
+          priority
+          className="h-auto w-full max-w-[1200px]"
+        />
       </div>
 
       <Section title="Batteries Included">
@@ -70,12 +91,12 @@ export default function NitroPage() {
           {FEATURES.map((feature) => (
             <div
               key={feature.title}
-              className="rounded-xl border border-cc-card-border bg-cc-card-bg backdrop-blur-sm p-6 "
+              className="border-cc-card-border bg-cc-card-bg rounded-xl border p-6 backdrop-blur-sm"
             >
-              <h3 className="text-lg font-semibold text-cc-ink">
+              <h3 className="text-cc-ink text-lg font-semibold">
                 {feature.title}
               </h3>
-              <p className="mt-2 text-sm text-cc-ink-dim">
+              <p className="text-cc-ink-dim mt-2 text-sm">
                 {feature.description}
               </p>
             </div>

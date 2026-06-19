@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using ModelContextProtocol.Client;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using static CookieCrumble.TestEnvironment;
 using static HotChocolate.Diagnostics.ActivityTestHelper;
 
 namespace HotChocolate.Diagnostics;
@@ -23,12 +24,12 @@ public partial class McpAdapterActivityTests
         // arrange
         using var server = CreateServer("query GetBook { book { title } }");
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
-        await mcpClient.ListToolsAsync();
+        await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         using (CaptureActivities(out var activities))
         {
             // act
-            await mcpClient.CallToolAsync("get_book");
+            await mcpClient.CallToolAsync("get_book", cancellationToken: TestContext.Current.CancellationToken);
 
             // assert
             MatchActivitySnapshot(activities);
@@ -41,12 +42,14 @@ public partial class McpAdapterActivityTests
         // arrange
         using var server = CreateServer("query InvalidGraphqlQuery { doesNotExist }");
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
-        await mcpClient.ListToolsAsync();
+        await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         using (CaptureActivities(out var activities))
         {
             // act
-            await mcpClient.CallToolAsync("invalid_graphql_query");
+            await mcpClient.CallToolAsync(
+                "invalid_graphql_query",
+                cancellationToken: TestContext.Current.CancellationToken);
 
             // assert
             MatchActivitySnapshot(activities);
@@ -59,12 +62,12 @@ public partial class McpAdapterActivityTests
         // arrange
         using var server = CreateServer("query GetBook { book { title } }");
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
-        await mcpClient.ListToolsAsync();
+        await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         using (CaptureActivities(out var activities))
         {
             // act
-            await mcpClient.CallToolAsync("does_not_exist");
+            await mcpClient.CallToolAsync("does_not_exist", cancellationToken: TestContext.Current.CancellationToken);
 
             // assert
             MatchActivitySnapshot(activities);
@@ -77,12 +80,12 @@ public partial class McpAdapterActivityTests
         // arrange
         using var server = CreateServer("query GetFaultyBook { faultyBook { title } }");
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
-        await mcpClient.ListToolsAsync();
+        await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         using (CaptureActivities(out var activities))
         {
             // act
-            await mcpClient.CallToolAsync("get_faulty_book");
+            await mcpClient.CallToolAsync("get_faulty_book", cancellationToken: TestContext.Current.CancellationToken);
 
             // assert
             MatchActivitySnapshot(activities);
@@ -95,12 +98,12 @@ public partial class McpAdapterActivityTests
         // arrange
         using var server = CreateServer(prompt: CreateGreetingPrompt());
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
-        await mcpClient.ListPromptsAsync();
+        await mcpClient.ListPromptsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         using (CaptureActivities(out var activities))
         {
             // act
-            await mcpClient.GetPromptAsync("greeting");
+            await mcpClient.GetPromptAsync("greeting", cancellationToken: TestContext.Current.CancellationToken);
 
             // assert
             MatchActivitySnapshot(activities);
@@ -118,7 +121,7 @@ public partial class McpAdapterActivityTests
             Formatting.Indented,
             new StringEnumConverter());
         json = SessionIdRegex().Replace(json, "$1<scrubbed>$2");
-        json.MatchSnapshot();
+        json.MatchSnapshot(Postfix([NET11_0]));
     }
 
     private static PromptDefinition CreateGreetingPrompt()

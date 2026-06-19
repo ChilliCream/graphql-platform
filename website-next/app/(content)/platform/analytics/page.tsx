@@ -1,9 +1,17 @@
-import Image from "next/image";
+import type { Metadata } from "next";
+
+import { Picture } from "@/src/design-system/Picture";
 
 import { ContentSection } from "@/src/components/ContentSection";
 import { NextStepsSection } from "@/src/components/NextStepsSection";
 import { PageHero } from "@/src/components/PageHero";
 import { SolidButton } from "@/src/design-system/Button";
+
+export const metadata: Metadata = {
+  title: "Analytics",
+  description:
+    "Monitor your GraphQL APIs with ChilliCream analytics: real-time insights, throughput and latency metrics, and full OpenTelemetry trace exploration.",
+};
 
 export default function AnalyticsPage() {
   return (
@@ -19,7 +27,7 @@ export default function AnalyticsPage() {
         </SolidButton>
       </div>
       <div className="mt-20 flex justify-center">
-        <Image
+        <Picture
           src="/images/analytics/banner.png"
           alt="Instant Insights. Enhanced Performance."
           width={1200}

@@ -42,7 +42,8 @@ public class IntrospectionTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -80,7 +81,8 @@ public class IntrospectionTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -116,7 +118,8 @@ public class IntrospectionTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -152,7 +155,8 @@ public class IntrospectionTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -188,7 +192,8 @@ public class IntrospectionTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -224,7 +229,8 @@ public class IntrospectionTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -264,7 +270,8 @@ public class IntrospectionTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -304,7 +311,8 @@ public class IntrospectionTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -352,7 +360,8 @@ public class IntrospectionTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -387,7 +396,8 @@ public class IntrospectionTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -422,7 +432,8 @@ public class IntrospectionTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -453,7 +464,8 @@ public class IntrospectionTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result, postFix: fileName);
@@ -480,8 +492,10 @@ public class IntrospectionTests : FusionTestBase
         // act
         using var client = gateway.CreateClient();
 
-        using var result = await client.GetAsync("http://localhost:5000/graphql/schema");
-        var sdl = await result.Content.ReadAsStringAsync();
+        using var result = await client.GetAsync(
+            "http://localhost:5000/graphql/schema",
+            TestContext.Current.CancellationToken);
+        var sdl = await result.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
         // assert
         sdl.MatchSnapshot(extension: ".graphql");

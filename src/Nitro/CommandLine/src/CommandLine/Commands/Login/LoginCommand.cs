@@ -87,7 +87,7 @@ internal sealed class LoginCommand : Command
         var paginationContainer = PaginationContainer.CreateConnectionData(client.SelectWorkspacesAsync);
         var selected = await PagedSelectionPrompt
             .New(paginationContainer)
-            .Title("Which workspace do you want to use as your default?".AsQuestion())
+            .Title(Prompts.SelectDefaultWorkspace.AsQuestion())
             .UseConverter(x => x.Name)
             .RenderAsync(console, cancellationToken);
 
@@ -100,7 +100,7 @@ internal sealed class LoginCommand : Command
             new Workspace(selected.Id, selected.Name),
             cancellationToken);
 
-        console.MarkupLine($"(Workspace: [green]{selected.Name.EscapeMarkup()}[/])");
+        console.OkQuestion(Prompts.SelectDefaultWorkspace, selected.Name);
 
         return ExitCodes.Success;
     }

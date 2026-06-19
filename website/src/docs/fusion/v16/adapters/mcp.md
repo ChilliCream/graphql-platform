@@ -81,6 +81,24 @@ builder
 
 Tools registered through `configureServer` appear alongside the GraphQL-derived tools, so you can mix native MCP tools with operation tools in the same gateway.
 
+## Input Schema References
+
+An operation's variables become a tool's input schema (JSON Schema). When a variable's type is an input object, the adapter emits that type once under `$defs` and references it with `$ref`. References are how a self-referencing input type is represented in a finite schema, for example a filter input whose `and` and `or` fields are lists of the same type.
+
+References are the default and are understood by current MCP clients and agents. Some clients have limited support for JSON Schema references (recursive `$ref` in particular). For those, turn references off with `ModifyMcpToolOptions()`:
+
+```csharp
+builder
+    .AddGraphQLGateway()
+    .AddMcp()
+    .ModifyMcpToolOptions(options =>
+    {
+        options.UseJsonSchemaReferences = false;
+    });
+```
+
+With references disabled, input object types are inlined. Where a type refers to itself, that point is collapsed to a generic object (`{ "type": "object" }`) and the rest of the schema keeps its full structure. Leave references enabled unless a target client cannot resolve `$ref`.
+
 ## Mapping the MCP Endpoint
 
 `MapGraphQLMcp()` accepts two optional arguments:
@@ -184,6 +202,10 @@ Storage is registered but returned no definitions. With Nitro, ensure a publishe
 ### Nitro logs `MCP integration is disabled because Nitro is not properly configured.`
 
 `NitroServiceOptions` is missing one or more of `ApiId`, `ApiKey`, or `Stage`. Set them through the `AddNitro()` configuration delegate or via the `NITRO_API_ID`, `NITRO_API_KEY`, and `NITRO_STAGE` environment variables.
+
+### MCP client rejects or cannot render a tool's input schema
+
+The client may not support JSON Schema references (`$ref`/`$defs`), which the adapter uses for input object types by default. Disable them with `.ModifyMcpToolOptions(options => options.UseJsonSchemaReferences = false)` to inline the schema instead. See [Input Schema References](#input-schema-references).
 
 ## Next Steps
 

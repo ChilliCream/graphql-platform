@@ -29,7 +29,7 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ApiK
               --workspace-id <workspace-id>        The ID of the workspace [env: NITRO_WORKSPACE_ID]
               --stage-condition <stage-condition>  [Preview] Limit the API key to a specific stage name (if not set, the key is valid for all stages)
               --cloud-url <cloud-url>              The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
-              --api-key <api-key>                  The API key used for authentication [env: NITRO_API_KEY]
+              --api-key <api-key>                  The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>                      The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                       Show help and usage information
 
@@ -241,7 +241,7 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ApiK
         command.SelectOption(0); // Api or Workspace
         command.SelectOption(0); // Api 1
 
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();
@@ -263,7 +263,7 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ApiK
         command.Input("integration"); // name
         command.SelectOption(1); // Api or Workspace
 
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();
@@ -286,7 +286,7 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ApiK
         // act
         command.Input(ApiKeyName);
 
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();

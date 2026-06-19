@@ -20,7 +20,7 @@ public class ParentRequiresInterfaceProjectionTests
             .AddType<BrandInterfaceType>()
             .AddType<BrandType>()
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -30,7 +30,8 @@ public class ParentRequiresInterfaceProjectionTests
                 displayName
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -58,7 +59,7 @@ public class ParentRequiresInterfaceProjectionTests
             .AddQueryType<ControlQuery>()
             .AddType<BrandControlType>()
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -68,7 +69,8 @@ public class ParentRequiresInterfaceProjectionTests
                 displayName
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -98,7 +100,7 @@ public class ParentRequiresInterfaceProjectionTests
             .AddType<BrandInterfaceType>()
             .AddType<BrandRedeclaredType>()
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -108,7 +110,8 @@ public class ParentRequiresInterfaceProjectionTests
                 displayName
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -138,7 +141,7 @@ public class ParentRequiresInterfaceProjectionTests
             .AddType<BrandFluentInterfaceType>()
             .AddType<BrandFluentType>()
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -148,7 +151,8 @@ public class ParentRequiresInterfaceProjectionTests
                 displayName
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(

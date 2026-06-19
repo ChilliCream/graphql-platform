@@ -25,7 +25,6 @@
     <Project Path="test/Fusion.Connectors.ApolloFederation.Tests/HotChocolate.Fusion.Connectors.ApolloFederation.Tests.csproj" />
     <Project Path="test/Fusion.Caching.Tests/HotChocolate.Fusion.Caching.Tests.csproj" />
     <Project Path="test/Fusion.Diagnostics.Tests/HotChocolate.Fusion.Diagnostics.Tests.csproj" />
-    <Project Path="test/Fusion.EventSources.Tests/HotChocolate.Fusion.EventSources.Tests.csproj" />
     <Project Path="test/Fusion.Execution.Tests/HotChocolate.Fusion.Execution.Tests.csproj" />
     <Project Path="test/Fusion.Language.Tests/HotChocolate.Fusion.Language.Tests.csproj" />
     <Project Path="test/Fusion.Packaging.Tests/HotChocolate.Fusion.Packaging.Tests.csproj" />

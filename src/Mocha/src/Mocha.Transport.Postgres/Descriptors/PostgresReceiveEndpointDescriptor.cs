@@ -43,6 +43,22 @@ internal sealed class PostgresReceiveEndpointDescriptor
     }
 
     /// <inheritdoc />
+    public new IPostgresReceiveEndpointDescriptor Receives<TMessage>()
+    {
+        base.Receives<TMessage>();
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IPostgresReceiveEndpointDescriptor Receives(Type messageType)
+    {
+        base.Receives(messageType);
+
+        return this;
+    }
+
+    /// <inheritdoc />
     public new IPostgresReceiveEndpointDescriptor Kind(ReceiveEndpointKind kind)
     {
         base.Kind(kind);

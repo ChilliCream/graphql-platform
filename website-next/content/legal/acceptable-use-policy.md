@@ -1,5 +1,6 @@
 ---
 title: "Acceptable Use Policy"
+description: "Read ChilliCream's Acceptable Use Policy describing the permitted and prohibited uses of our websites, products, and services."
 ---
 
 This policy is effective as of 26 August 2021.

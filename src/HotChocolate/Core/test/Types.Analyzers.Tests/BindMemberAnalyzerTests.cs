@@ -34,7 +34,7 @@ public class BindMemberAnalyzerTests
                 public string Name { get; set; }
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -69,7 +69,7 @@ public class BindMemberAnalyzerTests
                 public string Name { get; set; }
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -110,7 +110,7 @@ public class BindMemberAnalyzerTests
                 public string Name { get; set; }
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -145,7 +145,7 @@ public class BindMemberAnalyzerTests
                 public string Name { get; set; }
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -180,7 +180,7 @@ public class BindMemberAnalyzerTests
                 public string Name { get; set; }
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -217,7 +217,7 @@ public class BindMemberAnalyzerTests
                 public string Name { get; set; }
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -252,7 +252,7 @@ public class BindMemberAnalyzerTests
                 public string Name { get; set; }
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -291,7 +291,7 @@ public class BindMemberAnalyzerTests
                 public string Name { get; set; }
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -330,7 +330,7 @@ public class BindMemberAnalyzerTests
                 public string Name { get; set; }
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -381,6 +381,6 @@ public class BindMemberAnalyzerTests
                 public string Name { get; set; }
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 }

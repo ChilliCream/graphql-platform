@@ -48,7 +48,21 @@ const mermaidOptions: RehypeMermaidOptions = {
         stroke-width: 1.5px;
         stroke: var(--color-cc-ink-dim) !important;
       }
-      marker { fill: var(--color-cc-ink-dim) !important; stroke: var(--color-cc-ink-dim) !important; }
+      marker,
+      marker path,
+      .arrowheadPath,
+      #arrowhead path { fill: var(--color-cc-ink-dim) !important; stroke: var(--color-cc-ink-dim) !important; }
+
+      /* Sequence diagram lifelines and message arrows (default to near-black) */
+      .actor-line {
+        stroke: var(--color-cc-ink-dim) !important;
+      }
+      .messageLine0,
+      .messageLine1,
+      line.messageLine0,
+      line.messageLine1 {
+        stroke: var(--color-cc-ink-dim) !important;
+      }
 
       /* All diagram text in cream ink */
       .nodeLabel,
@@ -59,7 +73,8 @@ const mermaidOptions: RehypeMermaidOptions = {
         color: var(--color-cc-ink) !important;
       }
 
-      /* Primary nodes: translucent dark fill, accent border */
+      /* Primary nodes: translucent dark fill, accent border, rounded corners
+         so the boxes read as soft cards rather than hard outlines. */
       .node rect,
       .node circle,
       .node ellipse,
@@ -67,6 +82,30 @@ const mermaidOptions: RehypeMermaidOptions = {
       .node path {
         fill: var(--color-cc-card-bg) !important;
         stroke: var(--color-cc-accent) !important;
+        stroke-width: 1.25px !important;
+        stroke-linejoin: round;
+      }
+      .node rect {
+        rx: 12px !important;
+        ry: 12px !important;
+      }
+
+      /* Sequence diagram actor boxes share the soft-card look of flowchart
+         nodes (base theme defaults them to a bright cream fill). */
+      .actor,
+      rect.actor,
+      .actor-top,
+      .actor-bottom {
+        fill: var(--color-cc-card-bg) !important;
+        stroke: var(--color-cc-accent) !important;
+        stroke-width: 1.25px !important;
+        rx: 12px !important;
+        ry: 12px !important;
+      }
+      text.actor,
+      .actor tspan {
+        fill: var(--color-cc-ink) !important;
+        stroke: none !important;
       }
 
       /* Edge labels sit on the page background so lines don't bleed through.
