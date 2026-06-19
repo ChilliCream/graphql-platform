@@ -316,12 +316,12 @@ public class PagingHelperPostgreSqlNullableTests(PostgreSqlResource resource)
     [Fact]
     public async Task Paging_NullableNavigation_ValueTypeLeaf_Pages_Across_Null_Boundary()
     {
-        // arrange
+        // Arrange
         var connectionString = CreateConnectionString();
         await SeedItemsAsync(connectionString);
         await using var context = new NullableTestsContext(Provider.PostgreSql, connectionString);
 
-        // act
+        // Act
         // Sort by a non-nullable value-type leaf (Detail.Number) behind a nullable
         // navigation; the second page is requested after a null-navigation boundary.
         var arguments = new PagingArguments(2) { NullOrdering = NullOrdering.NativeNullsLast };
@@ -336,7 +336,7 @@ public class PagingHelperPostgreSqlNullableTests(PostgreSqlResource resource)
             .ThenBy(x => x.Id)
             .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
-        // assert
+        // Assert
         Assert.Equal([1, 2], page1.Select(x => x.Id));
         Assert.Equal([3, 4], page2.Select(x => x.Id));
     }
@@ -344,12 +344,12 @@ public class PagingHelperPostgreSqlNullableTests(PostgreSqlResource resource)
     [Fact]
     public async Task Paging_NullableNavigation_ReferenceLeaf_Pages_Across_Null_Boundary()
     {
-        // arrange
+        // Arrange
         var connectionString = CreateConnectionString();
         await SeedItemsAsync(connectionString);
         await using var context = new NullableTestsContext(Provider.PostgreSql, connectionString);
 
-        // act
+        // Act
         // Sort by a non-nullable reference leaf (Detail.Name) behind a nullable
         // navigation; the second page is requested after a null-navigation boundary.
         var arguments = new PagingArguments(2) { NullOrdering = NullOrdering.NativeNullsLast };
@@ -364,7 +364,7 @@ public class PagingHelperPostgreSqlNullableTests(PostgreSqlResource resource)
             .ThenBy(x => x.Id)
             .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
-        // assert
+        // Assert
         Assert.Equal([1, 2], page1.Select(x => x.Id));
         Assert.Equal([3, 4], page2.Select(x => x.Id));
     }

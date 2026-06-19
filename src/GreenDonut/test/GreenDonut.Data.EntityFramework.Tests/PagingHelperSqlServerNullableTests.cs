@@ -269,12 +269,12 @@ public class PagingHelperSqlServerNullableTests(SqlServerResource resource)
     [Fact]
     public async Task Paging_NullableNavigation_ValueTypeLeaf_Pages_Across_Null_Boundary()
     {
-        // arrange
+        // Arrange
         var connectionString = CreateConnectionString();
         await SeedItemsAsync(connectionString);
         await using var context = new NullableTestsContext(Provider.SqlServer, connectionString);
 
-        // act
+        // Act
         // Sort by a non-nullable value-type leaf (Detail.Number) behind a nullable
         // navigation; with nulls first the second page is requested after a
         // null-navigation boundary.
@@ -290,7 +290,7 @@ public class PagingHelperSqlServerNullableTests(SqlServerResource resource)
             .ThenBy(x => x.Id)
             .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
-        // assert
+        // Assert
         Assert.Equal([2, 3], page1.Select(x => x.Id));
         Assert.Equal([4, 1], page2.Select(x => x.Id));
     }
@@ -298,12 +298,12 @@ public class PagingHelperSqlServerNullableTests(SqlServerResource resource)
     [Fact]
     public async Task Paging_NullableNavigation_ReferenceLeaf_Pages_Across_Null_Boundary()
     {
-        // arrange
+        // Arrange
         var connectionString = CreateConnectionString();
         await SeedItemsAsync(connectionString);
         await using var context = new NullableTestsContext(Provider.SqlServer, connectionString);
 
-        // act
+        // Act
         // Sort by a non-nullable reference leaf (Detail.Name) behind a nullable
         // navigation; with nulls first the second page is requested after a
         // null-navigation boundary.
@@ -319,7 +319,7 @@ public class PagingHelperSqlServerNullableTests(SqlServerResource resource)
             .ThenBy(x => x.Id)
             .ToPageAsync(arguments, Xunit.TestContext.Current.CancellationToken);
 
-        // assert
+        // Assert
         Assert.Equal([2, 3], page1.Select(x => x.Id));
         Assert.Equal([4, 1], page2.Select(x => x.Id));
     }
