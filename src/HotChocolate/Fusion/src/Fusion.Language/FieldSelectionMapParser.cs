@@ -291,7 +291,6 @@ public ref struct FieldSelectionMapParser
 
     private IValueNode ParseValueLiteral()
     {
-        // ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault
         switch (_reader.TokenKind)
         {
             case TokenKind.LeftSquareBracket:
