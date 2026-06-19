@@ -143,7 +143,7 @@ function LinkColumn({
 
 function NavLink({ href, children }: { href: string; children: ReactNode }) {
   const className =
-    "text-cc-ink-dim no-underline transition-colors hover:text-cc-accent";
+    "text-cc-ink-dim no-underline transition-colors hover:text-cc-heading";
 
   if (href.startsWith("/")) {
     return (
@@ -183,7 +183,7 @@ function SocialLink({
   children: ReactNode;
 }) {
   const className =
-    "inline-flex items-center justify-center transition-colors hover:text-cc-accent";
+    "inline-flex items-center justify-center transition-colors hover:text-cc-heading";
 
   if (href.startsWith("/")) {
     return (
