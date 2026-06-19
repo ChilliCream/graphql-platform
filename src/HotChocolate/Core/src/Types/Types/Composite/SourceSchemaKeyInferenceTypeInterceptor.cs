@@ -5,6 +5,7 @@ using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
+using StringValueNode = HotChocolate.Language.StringValueNode;
 
 namespace HotChocolate.Types.Composite;
 

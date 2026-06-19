@@ -16,6 +16,7 @@ internal ref struct FieldSelectionMapReader
     private readonly int _maxAllowedTokens;
 
     private int _nextNewLines;
+    private int _nextLineStart;
     private int _tokenCount;
 
     public FieldSelectionMapReader(
@@ -121,6 +122,30 @@ internal ref struct FieldSelectionMapReader
             return true;
         }
 
+        if (code.IsDigitOrMinus())
+        {
+            ReadNumberToken(code);
+
+            return true;
+        }
+
+        if (code.IsQuote())
+        {
+            if (_length > Position + 2
+                && _sourceText[Position + 1].IsQuote()
+                && _sourceText[Position + 2].IsQuote())
+            {
+                Position += 2;
+                ReadBlockStringValueToken();
+            }
+            else
+            {
+                ReadStringValueToken();
+            }
+
+            return true;
+        }
+
         throw new FieldSelectionMapSyntaxException(this, UnexpectedCharacter, code);
     }
 
@@ -161,6 +186,26 @@ internal ref struct FieldSelectionMapReader
             return TokenKind.Name;
         }
 
+        if (code.IsDigitOrMinus())
+        {
+            // The numeric lookahead is approximate. A digit or minus sign begins
+            // either an integer or a float, but the kind cannot be distinguished
+            // without consuming the token, so IntValue stands for any number token.
+            return TokenKind.IntValue;
+        }
+
+        if (code.IsQuote())
+        {
+            if (_length > position + 2
+                && _sourceText[position + 1].IsQuote()
+                && _sourceText[position + 2].IsQuote())
+            {
+                return TokenKind.BlockStringValue;
+            }
+
+            return TokenKind.StringValue;
+        }
+
         throw new FieldSelectionMapSyntaxException(this, UnexpectedCharacter, code);
     }
 
@@ -181,7 +226,7 @@ internal ref struct FieldSelectionMapReader
     {
         if (_nextNewLines > 0)
         {
-            NewLine(_nextNewLines);
+            NewLine(_nextNewLines, _nextLineStart);
             _nextNewLines = 0;
         }
 
@@ -233,13 +278,16 @@ internal ref struct FieldSelectionMapReader
     /// <param name="lines">
     /// The number of lines to skip.
     /// </param>
+    /// <param name="lineStart">
+    /// The source index at which the new line starts.
+    /// </param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void NewLine(int lines)
+    private void NewLine(int lines, int lineStart)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(lines, 1);
 
         Line += lines;
-        LineStart = Position;
+        LineStart = lineStart;
         UpdateColumn();
     }
 
@@ -263,11 +311,13 @@ internal ref struct FieldSelectionMapReader
             CharConstants.Colon => TokenKind.Colon,
             CharConstants.LeftAngleBracket => TokenKind.LeftAngleBracket,
             CharConstants.LeftBrace => TokenKind.LeftBrace,
+            CharConstants.LeftParenthesis => TokenKind.LeftParenthesis,
             CharConstants.LeftSquareBracket => TokenKind.LeftSquareBracket,
             CharConstants.Period => TokenKind.Period,
             CharConstants.Pipe => TokenKind.Pipe,
             CharConstants.RightAngleBracket => TokenKind.RightAngleBracket,
             CharConstants.RightBrace => TokenKind.RightBrace,
+            CharConstants.RightParenthesis => TokenKind.RightParenthesis,
             CharConstants.RightSquareBracket => TokenKind.RightSquareBracket,
             _ => throw new InvalidOperationException(CodeIsNotPunctuator)
         };
@@ -289,6 +339,246 @@ internal ref struct FieldSelectionMapReader
         End = position;
         Value = _sourceText[start..position];
         Position = position;
+    }
+
+    /// <summary>
+    /// Reads int and float value tokens.
+    /// </summary>
+    private void ReadNumberToken(char firstCode)
+    {
+        var start = Position;
+        var code = firstCode;
+        var isFloat = false;
+
+        if (code is CharConstants.Minus)
+        {
+            code = AdvanceAndReadOrThrowInvalidNumber();
+        }
+
+        if (code is '0' && Position + 1 < _length)
+        {
+            code = _sourceText[++Position];
+
+            if (code.IsDigit())
+            {
+                throw new FieldSelectionMapSyntaxException(this, UnexpectedDigit, code);
+            }
+        }
+        else
+        {
+            code = ReadDigits(code);
+        }
+
+        if (code is CharConstants.Period)
+        {
+            isFloat = true;
+            code = AdvanceAndReadOrThrowInvalidNumber();
+            code = ReadDigits(code);
+        }
+
+        if (code is 'e' or 'E')
+        {
+            isFloat = true;
+            code = AdvanceAndReadOrThrowInvalidNumber();
+
+            if (code is '+' or CharConstants.Minus)
+            {
+                code = AdvanceAndReadOrThrowInvalidNumber();
+            }
+
+            code = ReadDigits(code);
+        }
+
+        // A number must not be directly followed by a name start or a period.
+        if (code.IsLetterOrUnderscore() || code == CharConstants.Period)
+        {
+            throw new FieldSelectionMapSyntaxException(this, DisallowedNameCharacterAfterNumber, code);
+        }
+
+        TokenKind = isFloat ? TokenKind.FloatValue : TokenKind.IntValue;
+        Start = start;
+        End = Position;
+        Value = _sourceText[start..Position];
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private char AdvanceAndReadOrThrowInvalidNumber()
+    {
+        if (Position + 1 >= _length)
+        {
+            throw new FieldSelectionMapSyntaxException(this, InvalidNumber, CharConstants.Space);
+        }
+
+        return _sourceText[++Position];
+    }
+
+    private char ReadDigits(char firstCode)
+    {
+        if (!firstCode.IsDigit())
+        {
+            throw new FieldSelectionMapSyntaxException(this, InvalidNumber, firstCode);
+        }
+
+        char code;
+
+        while (true)
+        {
+            if (++Position >= _length)
+            {
+                code = CharConstants.Space;
+                break;
+            }
+
+            code = _sourceText[Position];
+
+            if (!code.IsDigit())
+            {
+                break;
+            }
+        }
+
+        return code;
+    }
+
+    /// <summary>
+    /// Reads string value tokens.
+    /// </summary>
+    private void ReadStringValueToken()
+    {
+        var start = Position;
+
+        while (++Position < _length)
+        {
+            var code = _sourceText[Position];
+
+            switch (code)
+            {
+                case CharConstants.LineFeed:
+                case CharConstants.Return:
+                    throw new FieldSelectionMapSyntaxException(this, UnterminatedString);
+
+                case CharConstants.Quote:
+                    TokenKind = TokenKind.StringValue;
+                    Start = start;
+                    End = Position;
+                    Value = _sourceText[(start + 1)..Position];
+                    Position++;
+                    return;
+
+                case CharConstants.Backslash:
+                    if (Position + 1 >= _length)
+                    {
+                        throw new FieldSelectionMapSyntaxException(this, UnterminatedString);
+                    }
+
+                    code = _sourceText[++Position];
+
+                    if (!code.IsValidEscapeCharacter())
+                    {
+                        throw new FieldSelectionMapSyntaxException(
+                            this,
+                            InvalidCharacterEscapeSequence,
+                            code);
+                    }
+
+                    break;
+
+                default:
+                    // Line feed and carriage return are handled above. Other control
+                    // characters are not valid within a string value.
+                    if (code.IsControlCharacter())
+                    {
+                        throw new FieldSelectionMapSyntaxException(
+                            this,
+                            InvalidCharacterWithinString,
+                            code);
+                    }
+
+                    break;
+            }
+        }
+
+        throw new FieldSelectionMapSyntaxException(this, UnterminatedString);
+    }
+
+    /// <summary>
+    /// Reads block string value tokens.
+    /// </summary>
+    private void ReadBlockStringValueToken()
+    {
+        var start = Position - 2;
+        _nextNewLines = 0;
+
+        while (++Position < _length)
+        {
+            var code = _sourceText[Position];
+
+            switch (code)
+            {
+                case CharConstants.LineFeed:
+                    _nextNewLines++;
+                    // The next line starts at the character following this line feed.
+                    _nextLineStart = Position + 1;
+                    break;
+
+                case CharConstants.Return:
+                    var next = Position + 1;
+
+                    if (next < _length && _sourceText[next] is CharConstants.LineFeed)
+                    {
+                        Position = next;
+                    }
+
+                    _nextNewLines++;
+                    // The next line starts at the character following this line terminator,
+                    // which is the character after the line feed for a "\r\n" pair.
+                    _nextLineStart = Position + 1;
+                    break;
+
+                // Closing triple-quote (""").
+                case CharConstants.Quote:
+                    if (Position + 2 < _length
+                        && _sourceText[Position + 1].IsQuote()
+                        && _sourceText[Position + 2].IsQuote())
+                    {
+                        TokenKind = TokenKind.BlockStringValue;
+                        Start = start;
+                        End = Position + 2;
+                        Value = _sourceText[(start + 3)..Position];
+                        Position = End + 1;
+                        return;
+                    }
+
+                    break;
+
+                // Escaped triple-quote (\""").
+                case CharConstants.Backslash:
+                    if (Position + 3 < _length
+                        && _sourceText[Position + 1].IsQuote()
+                        && _sourceText[Position + 2].IsQuote()
+                        && _sourceText[Position + 3].IsQuote())
+                    {
+                        Position += 3;
+                    }
+
+                    break;
+
+                default:
+                    // Line feed and carriage return are handled above and are allowed
+                    // within a block string. Other control characters are not valid.
+                    if (code.IsControlCharacter())
+                    {
+                        throw new FieldSelectionMapSyntaxException(
+                            this,
+                            InvalidCharacterWithinString,
+                            code);
+                    }
+
+                    break;
+            }
+        }
+
+        throw new FieldSelectionMapSyntaxException(this, UnterminatedString);
     }
 
     /// <summary>

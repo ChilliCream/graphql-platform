@@ -4,6 +4,7 @@ using HotChocolate.Fusion.Language;
 using HotChocolate.Language;
 using HotChocolate.Text.Json;
 using static HotChocolate.Utilities.ThrowHelper;
+using StringValueNode = HotChocolate.Language.StringValueNode;
 
 namespace HotChocolate.Types.Composite;
 
@@ -45,7 +46,7 @@ public sealed class FieldSelectionMapType : ScalarType<IValueSelectionNode, Stri
         {
             return ParseValueSelection(valueLiteral.Value);
         }
-        catch (SyntaxException)
+        catch (Exception ex) when (ex is FieldSelectionMapSyntaxException or ArgumentException)
         {
             throw new SchemaException(
                 SchemaErrorBuilder.New()
@@ -61,7 +62,7 @@ public sealed class FieldSelectionMapType : ScalarType<IValueSelectionNode, Stri
         {
             return ParseValueSelection(inputValue.GetString()!);
         }
-        catch (SyntaxException)
+        catch (Exception ex) when (ex is FieldSelectionMapSyntaxException or ArgumentException)
         {
             throw Scalar_Cannot_CoerceInputValue(this, inputValue);
         }
@@ -84,7 +85,7 @@ public sealed class FieldSelectionMapType : ScalarType<IValueSelectionNode, Stri
     /// <returns>
     /// An <see cref="IValueSelectionNode"/> representing the parsed field selection.
     /// </returns>
-    /// <exception cref="SyntaxException">
+    /// <exception cref="FieldSelectionMapSyntaxException">
     /// Thrown when the source text contains invalid field selection syntax.
     /// </exception>
     internal static IValueSelectionNode ParseValueSelection(string sourceText)
