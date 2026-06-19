@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import { Inter, Josefin_Sans } from "next/font/google";
 import { Analytics } from "@/src/components/Analytics";
 import { AnalyticsScripts } from "@/src/components/AnalyticsScripts";
-import { ChromeGate } from "@/src/components/ChromeGate";
 import { EnableSmoothScroll } from "@/src/components/EnableSmoothScroll";
 import Footer from "@/src/components/Footer";
 import Header from "@/src/components/Header";
@@ -77,13 +76,9 @@ export default function RootLayout({
       <body>
         <AnalyticsScripts />
         <EnableSmoothScroll />
-        <ChromeGate>
-          <Header />
-        </ChromeGate>
+        <Header />
         <main>{children}</main>
-        <ChromeGate>
-          <Footer />
-        </ChromeGate>
+        <Footer />
         <Analytics />
       </body>
     </html>
