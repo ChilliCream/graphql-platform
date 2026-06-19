@@ -347,6 +347,12 @@
     <Project Path="HotChocolate/Utilities/test/Utilities.Tests/HotChocolate.Utilities.Tests.csproj" />
   </Folder>
   <Folder Name="/Mocha/" />
+  <Folder Name="/Mocha/examples/" />
+  <Folder Name="/Mocha/examples/Demo/">
+    <Project Path="Mocha/examples/Demo/Demo.Catalog/Demo.Catalog.csproj" />
+    <Project Path="Mocha/examples/Demo/Demo.Contracts/Demo.Contracts.csproj" />
+    <Project Path="Mocha/examples/Demo/Demo.ServiceDefaults/Demo.ServiceDefaults.csproj" />
+  </Folder>
   <Folder Name="/Mocha/src/">
     <Project Path="Mocha/src/Mocha.Abstractions/Mocha.Abstractions.csproj" />
     <Project Path="Mocha/src/Mocha.Analyzers/Mocha.Analyzers.csproj" />
