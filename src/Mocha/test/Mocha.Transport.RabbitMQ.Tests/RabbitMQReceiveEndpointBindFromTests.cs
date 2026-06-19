@@ -6,7 +6,7 @@ namespace Mocha.Transport.RabbitMQ.Tests;
 
 /// <summary>
 /// Verifies that BindFrom intents declared at queue level and per-type level are materialized
-/// into topology entities with declared provenance during OnDiscoverTopology.
+/// into topology entities with declared origin during OnDiscoverTopology.
 /// </summary>
 public class RabbitMQReceiveEndpointBindFromTests
 {
@@ -15,7 +15,7 @@ public class RabbitMQReceiveEndpointBindFromTests
     {
         // arrange
         // A queue-level BindFrom names a source exchange. OnDiscoverTopology must add the exchange
-        // to the topology and create an exchange-to-queue binding with declared provenance.
+        // to the topology and create an exchange-to-queue binding with declared origin.
         var runtime = CreateRuntime(
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>

@@ -50,7 +50,7 @@ public sealed class RabbitMQMessagingTopology(
     /// Adds an exchange to the topology or merges into an existing exchange with the same name.
     /// When an exchange with the same name already exists, the incoming configuration is merged
     /// using the 3.5 rules: declared non-null scalar wins, convention fills the rest, Arguments
-    /// union per key, AutoProvision strengthens (true wins), provenance upgrades convention to
+    /// union per key, AutoProvision strengthens (true wins), origin upgrades convention to
     /// endpoint to declared. A shape conflict between two declared values throws
     /// <see cref="RabbitMQTopologyShapeConflictException"/>.
     /// </summary>
@@ -89,7 +89,7 @@ public sealed class RabbitMQMessagingTopology(
     /// Adds a queue to the topology or merges into an existing queue with the same name.
     /// When a queue with the same name already exists, the incoming configuration is merged
     /// using the 3.5 rules: declared non-null scalar wins, convention fills the rest, Arguments
-    /// union per key, AutoProvision strengthens (true wins), provenance upgrades convention to
+    /// union per key, AutoProvision strengthens (true wins), origin upgrades convention to
     /// endpoint to declared. A shape conflict between two declared values throws
     /// <see cref="RabbitMQTopologyShapeConflictException"/>.
     /// </summary>
@@ -148,7 +148,7 @@ public sealed class RabbitMQMessagingTopology(
             if (existing is not null)
             {
                 // A repeated declaration of the same binding keeps the stronger metadata so an
-                // explicit auto-provision or a declared provenance is not lost to an earlier
+                // explicit auto-provision or a declared origin is not lost to an earlier
                 // convention-created entry.
                 existing.MergeFrom(configuration);
                 return existing;

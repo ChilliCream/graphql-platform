@@ -6,31 +6,31 @@
       "Kind": "exchange",
       "Name": "mocha.transport.rabbit-m-q.tests.topology.stock-check-started",
       "AutoProvision": true,
-      "Source": "convention"
+      "Origin": "convention"
     },
     {
       "Kind": "exchange",
       "Name": "stock-check-started",
       "AutoProvision": true,
-      "Source": "convention"
+      "Origin": "convention"
     },
     {
       "Kind": "queue",
       "Name": "mocha.transport.rabbit-m-q.tests.order-stock-check-saga",
       "AutoProvision": true,
-      "Source": "endpoint"
+      "Origin": "endpoint"
     },
     {
       "Kind": "queue",
       "Name": "mocha.transport.rabbit-m-q.tests.order-stock-check-saga_error",
       "AutoProvision": true,
-      "Source": "convention"
+      "Origin": "convention"
     },
     {
       "Kind": "queue",
       "Name": "mocha.transport.rabbit-m-q.tests.order-stock-check-saga_skipped",
       "AutoProvision": true,
-      "Source": "convention"
+      "Origin": "convention"
     }
   ],
   "Links": [
@@ -39,14 +39,14 @@
       "From": "rabbitmq://localhost:5672/e/mocha.transport.rabbit-m-q.tests.topology.stock-check-started",
       "To": "rabbitmq://localhost:5672/e/stock-check-started",
       "AutoProvision": true,
-      "Source": "convention"
+      "Origin": "convention"
     },
     {
       "Kind": "bind",
       "From": "rabbitmq://localhost:5672/e/stock-check-started",
       "To": "rabbitmq://localhost:5672/q/mocha.transport.rabbit-m-q.tests.order-stock-check-saga",
       "AutoProvision": true,
-      "Source": "convention"
+      "Origin": "convention"
     }
   ]
 }

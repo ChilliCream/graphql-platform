@@ -275,54 +275,65 @@ public class ReceivesTests
     }
 
     [Fact]
-    public void Receives_Should_Throw_When_TypeIsReplyType()
+    public void Receives_Should_BindNormalRoute_When_TypeAlsoUsedAsRequestResponse()
     {
         // arrange
-        // GetOrderStatus implements IEventRequest<OrderStatusResponse>, so OrderStatusResponse is
-        // a response registration reply type. The route-Kind detection path is covered by the saga
-        // variant below. Both detection paths emit ReceivesReplyType via the same throw site.
+        // OrderStatusResponse is used as the response type for GetOrderStatus and as a normal
+        // published message handled by OrderStatusResponseHandler.
 
         // act
-        var responseRegistrationException = Assert.Throws<InvalidOperationException>(() =>
-            new ServiceCollection()
-                .AddMessageBus()
-                .AddRequestHandler<GetOrderStatusHandler>()
-                .AddInMemory(t =>
-                {
-                    t.BindExplicitly();
-                    t.Queue("orders").Receives<OrderStatusResponse>();
-                })
-                .BuildRuntime());
+        var runtime = new ServiceCollection()
+            .AddMessageBus()
+            .AddRequestHandler<GetOrderStatusHandler>()
+            .AddEventHandler<OrderStatusResponseHandler>()
+            .AddInMemory(t =>
+            {
+                t.BindImplicitly();
+                t.Queue("orders").Receives<OrderStatusResponse>();
+            })
+            .BuildRuntime();
+        var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
 
         // assert
-        Assert.Contains("reply type", responseRegistrationException.Message);
-        Assert.Contains(nameof(OrderStatusResponse), responseRegistrationException.Message);
+        var endpoint = transport.ReceiveEndpoints
+            .OfType<InMemoryReceiveEndpoint>()
+            .Single(e => e.Name == "orders");
+        Assert.Contains(runtime.Router.InboundRoutes, r =>
+            r.Kind == InboundRouteKind.Subscribe
+            && r.MessageType?.RuntimeType == typeof(OrderStatusResponse)
+            && r.Endpoint == endpoint);
     }
 
     [Fact]
-    public void Receives_Should_Throw_When_TypeIsReplyRouteKind()
+    public void Receives_Should_BindNormalRoute_When_TypeAlsoHasReplyRoute()
     {
         // arrange
-        // A saga with OnReply<StockInfoResult> registers an InboundRoute with Kind = Reply for that
-        // type. Receives<StockInfoResult> must fail because reply routes are address-routed.
+        // A saga with OnReply<StockInfoResult> registers a Reply route for the same CLR type.
+        // Receives<StockInfoResult> should bind only the normal Subscribe route.
         var services = new ServiceCollection();
         services.AddInMemorySagas();
         var builder = services.AddMessageBus();
         builder.AddSaga<OrderStockCheckSaga>();
 
         // act
-        var routeKindException = Assert.Throws<InvalidOperationException>(() =>
-            builder
-                .AddInMemory(t =>
-                {
-                    t.BindExplicitly();
-                    t.Queue("orders").Receives<StockInfoResult>();
-                })
-                .BuildRuntime());
+        var runtime = builder
+            .AddEventHandler<StockInfoResultHandler>()
+            .AddInMemory(t =>
+            {
+                t.BindImplicitly();
+                t.Queue("orders").Receives<StockInfoResult>();
+            })
+            .BuildRuntime();
+        var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
 
         // assert
-        Assert.Contains("reply type", routeKindException.Message);
-        Assert.Contains(nameof(StockInfoResult), routeKindException.Message);
+        var endpoint = transport.ReceiveEndpoints
+            .OfType<InMemoryReceiveEndpoint>()
+            .Single(e => e.Name == "orders");
+        Assert.Contains(runtime.Router.InboundRoutes, r =>
+            r.Kind == InboundRouteKind.Subscribe
+            && r.MessageType?.RuntimeType == typeof(StockInfoResult)
+            && r.Endpoint == endpoint);
     }
 
     [Fact]
@@ -391,6 +402,16 @@ public sealed class TestOrderConsumer : IConsumer<OrderCreated>
 file sealed class StockCheckStarted;
 
 file sealed class StockInfoResult;
+
+file sealed class StockInfoResultHandler : IEventHandler<StockInfoResult>
+{
+    public ValueTask HandleAsync(StockInfoResult message, CancellationToken cancellationToken) => default;
+}
+
+file sealed class OrderStatusResponseHandler : IEventHandler<OrderStatusResponse>
+{
+    public ValueTask HandleAsync(OrderStatusResponse message, CancellationToken cancellationToken) => default;
+}
 
 file sealed class GetStockInfoRequest : IEventRequest<StockInfoResult>;
 

@@ -17,7 +17,7 @@ internal sealed class RabbitMQBindingTopologyDescriptor
         {
             Source = source,
             Destination = destination,
-            Provenance = RabbitMQTopologyProvenance.Declared
+            Origin = TopologyOrigin.Declared
         };
     }
 

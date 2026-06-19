@@ -47,6 +47,7 @@ public sealed class InMemoryMessagingTopology(InMemoryMessagingTransport transpo
             var topic = _topics.FirstOrDefault(e => e.Name == configuration.Name);
             if (topic is not null)
             {
+                topic.MergeFrom(configuration);
                 return topic;
             }
 
@@ -77,6 +78,7 @@ public sealed class InMemoryMessagingTopology(InMemoryMessagingTransport transpo
             var queue = _queues.FirstOrDefault(q => q.Name == configuration.Name);
             if (queue is not null)
             {
+                queue.MergeFrom(configuration);
                 return queue;
             }
 

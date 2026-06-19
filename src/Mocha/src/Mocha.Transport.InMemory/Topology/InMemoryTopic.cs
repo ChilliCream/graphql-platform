@@ -37,6 +37,11 @@ public sealed class InMemoryTopic : TopologyResource<InMemoryTopicConfiguration>
         ImmutableInterlocked.Update(ref _bindings, (current) => current.Add(binding));
     }
 
+    internal void MergeFrom(InMemoryTopicConfiguration configuration)
+    {
+        MergeOrigin(configuration);
+    }
+
     /// <summary>
     /// Publishes a message envelope to all bindings attached to this topic, traversing
     /// topic-to-topic bindings recursively while preventing cycles.

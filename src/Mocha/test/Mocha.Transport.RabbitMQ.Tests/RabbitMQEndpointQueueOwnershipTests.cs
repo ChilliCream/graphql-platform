@@ -72,12 +72,12 @@ public class RabbitMQEndpointQueueOwnershipTests
     }
 
     [Fact]
-    public void EndpointQueue_Should_MergeViaProvenanceUpgrade_When_CollidesWithDeclareQueue()
+    public void EndpointQueue_Should_MergeViaOriginUpgrade_When_CollidesWithDeclareQueue()
     {
         // arrange
-        // DeclareQueue adds the queue with Declared provenance and AutoProvision=true.
+        // DeclareQueue adds the queue with Declared origin and AutoProvision=true.
         // The endpoint then calls AddQueue unconditionally; AddQueue merges by identity
-        // and the declared entity's provenance and properties win.
+        // and the declared entity's origin and properties win.
         var runtime = CreateRuntime(
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
@@ -91,8 +91,8 @@ public class RabbitMQEndpointQueueOwnershipTests
         // act
         var queue = topology.Queues.Single(q => q.Name == "orders");
 
-        // assert: declared provenance and AutoProvision survive the endpoint merge
-        Assert.Equal(RabbitMQTopologyProvenance.Declared, queue.Provenance);
+        // assert: declared origin and AutoProvision survive the endpoint merge
+        Assert.Equal(TopologyOrigin.Declared, queue.Origin);
         Assert.True(queue.AutoProvision);
     }
 

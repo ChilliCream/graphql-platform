@@ -9,7 +9,7 @@ internal sealed class PostgresQueueTopologyDescriptor
 {
     public PostgresQueueTopologyDescriptor(IMessagingConfigurationContext context, string name) : base(context)
     {
-        Configuration = new PostgresQueueConfiguration { Name = name };
+        Configuration = new PostgresQueueConfiguration { Name = name, Origin = TopologyOrigin.Declared };
     }
 
     /// <inheritdoc />

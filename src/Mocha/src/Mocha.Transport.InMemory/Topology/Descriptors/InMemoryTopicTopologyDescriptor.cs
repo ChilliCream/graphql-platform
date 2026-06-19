@@ -14,7 +14,7 @@ internal sealed class InMemoryTopicTopologyDescriptor
     /// <param name="name">The initial topic name.</param>
     public InMemoryTopicTopologyDescriptor(IMessagingConfigurationContext context, string name) : base(context)
     {
-        Configuration = new InMemoryTopicConfiguration { Name = name };
+        Configuration = new InMemoryTopicConfiguration { Name = name, Origin = TopologyOrigin.Declared };
     }
 
     /// <inheritdoc />

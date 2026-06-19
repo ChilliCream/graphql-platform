@@ -193,7 +193,12 @@ public sealed class InMemoryRoutingStrategy : RoutingStrategy<InMemoryMessagingT
 
         if (_topology.Queues.FirstOrDefault(q => q.Name == inMemoryConfiguration.QueueName) is null)
         {
-            _topology.AddQueue(new InMemoryQueueConfiguration { Name = inMemoryConfiguration.QueueName });
+            _topology.AddQueue(
+                new InMemoryQueueConfiguration
+                {
+                    Name = inMemoryConfiguration.QueueName,
+                    Origin = TopologyOrigin.Endpoint
+                });
         }
 
         if (inMemoryEndpoint.Kind is ReceiveEndpointKind.Reply or ReceiveEndpointKind.Error or ReceiveEndpointKind.Skipped)

@@ -233,7 +233,7 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
                 Name = rabbitConfiguration.QueueName,
                 AutoDelete = rabbitEndpoint.Kind == ReceiveEndpointKind.Reply,
                 AutoProvision = rabbitConfiguration.AutoProvision,
-                Provenance = RabbitMQTopologyProvenance.Endpoint
+                Origin = TopologyOrigin.Endpoint
             });
 
         if (rabbitEndpoint.Kind == ReceiveEndpointKind.Default)
@@ -461,7 +461,7 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
             AutoDelete = source.AutoDelete,
             Arguments = source.Arguments,
             AutoProvision = source.AutoProvision,
-            Provenance = source.Provenance
+            Origin = source.Origin
         };
 
     private static void EnsureExchange(RabbitMQMessagingTopology topology, string exchangeName)
@@ -549,7 +549,8 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
             new RabbitMQQueueConfiguration
             {
                 Name = queueName,
-                AutoProvision = inheritedAutoProvision
+                AutoProvision = inheritedAutoProvision,
+                Origin = TopologyOrigin.Endpoint
             });
     }
 

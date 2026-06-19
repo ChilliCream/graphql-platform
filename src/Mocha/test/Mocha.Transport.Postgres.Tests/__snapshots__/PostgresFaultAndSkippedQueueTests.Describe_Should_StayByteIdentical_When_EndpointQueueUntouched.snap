@@ -5,35 +5,42 @@
     {
       "Kind": "queue",
       "Name": "orders",
-      "AutoProvision": true
+      "AutoProvision": true,
+      "Origin": "declared"
     },
     {
       "Kind": "queue",
-      "Name": "orders_error"
+      "Name": "orders_error",
+      "Origin": "endpoint"
     },
     {
       "Kind": "queue",
-      "Name": "orders_skipped"
+      "Name": "orders_skipped",
+      "Origin": "endpoint"
     },
     {
       "Kind": "topic",
-      "Name": "mocha.test-helpers.order-created"
+      "Name": "mocha.test-helpers.order-created",
+      "Origin": "convention"
     },
     {
       "Kind": "topic",
-      "Name": "order-created"
+      "Name": "order-created",
+      "Origin": "convention"
     }
   ],
   "Links": [
     {
       "Kind": "subscription",
       "From": "postgres://localhost:5432/t/mocha.test-helpers.order-created",
-      "To": "postgres://localhost:5432/q/orders"
+      "To": "postgres://localhost:5432/q/orders",
+      "Origin": "convention"
     },
     {
       "Kind": "subscription",
       "From": "postgres://localhost:5432/t/order-created",
-      "To": "postgres://localhost:5432/q/orders"
+      "To": "postgres://localhost:5432/q/orders",
+      "Origin": "convention"
     }
   ]
 }

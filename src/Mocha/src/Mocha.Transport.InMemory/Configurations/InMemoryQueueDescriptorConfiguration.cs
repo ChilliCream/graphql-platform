@@ -8,7 +8,7 @@ public sealed class InMemoryQueueDescriptorConfiguration : MessagingConfiguratio
     internal InMemoryQueueDescriptorConfiguration(string name)
     {
         Name = name;
-        Queue = new InMemoryQueueConfiguration { Name = name };
+        Queue = new InMemoryQueueConfiguration { Name = name, Origin = TopologyOrigin.Declared };
     }
 
     /// <summary>

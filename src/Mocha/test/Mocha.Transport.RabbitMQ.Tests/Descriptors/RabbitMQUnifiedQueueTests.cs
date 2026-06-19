@@ -146,7 +146,7 @@ public class RabbitMQUnifiedQueueTests
         // arrange
         // Two paths target the same queue name "orders":
         //   1. t.Queue("orders") unified front door (the primary surface, creates a builder)
-        //   2. t.DeclareQueue("orders") at transport level (declared provenance)
+        //   2. t.DeclareQueue("orders") at transport level (declared origin)
         // The W2b AddQueue merge rules must converge both into exactly one queue entity with no
         // exception. The second DeclareQueue call below also verifies descriptor-level deduplication.
         var runtime = CreateRuntime(

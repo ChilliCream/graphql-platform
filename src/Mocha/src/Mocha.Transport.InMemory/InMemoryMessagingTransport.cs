@@ -85,13 +85,23 @@ public sealed class InMemoryMessagingTransport : MessagingTransport
         foreach (var topic in _topology.Topics)
         {
             entities.Add(
-                new TopologyEntityDescription("topic", topic.Name, topic.Address?.ToString(), "inbound", null));
+                new TopologyEntityDescription(
+                    "topic",
+                    topic.Name,
+                    topic.Address?.ToString(),
+                    "inbound",
+                    new Dictionary<string, object?> { ["origin"] = topic.Origin }));
         }
 
         foreach (var queue in _topology.Queues)
         {
             entities.Add(
-                new TopologyEntityDescription("queue", queue.Name, queue.Address?.ToString(), "outbound", null));
+                new TopologyEntityDescription(
+                    "queue",
+                    queue.Name,
+                    queue.Address?.ToString(),
+                    "outbound",
+                    new Dictionary<string, object?> { ["origin"] = queue.Origin }));
         }
 
         foreach (var binding in _topology.Bindings)
@@ -108,7 +118,7 @@ public sealed class InMemoryMessagingTransport : MessagingTransport
                         _ => null
                     },
                     "forward",
-                    null));
+                    new Dictionary<string, object?> { ["origin"] = binding.Origin }));
         }
 
         var topology = new TopologyDescription(_topology.Address.ToString(), entities, links);

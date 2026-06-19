@@ -27,7 +27,8 @@ internal static partial class PostgresDescribeSnapshot
                 e.Kind,
                 e.Name,
                 e.Properties is not null && e.Properties.TryGetValue("autoProvision", out var ap) ? ap as bool? : null,
-                e.Properties is not null && e.Properties.TryGetValue("autoDelete", out var ad) ? ad as bool? : null))
+                e.Properties is not null && e.Properties.TryGetValue("autoDelete", out var ad) ? ad as bool? : null,
+                e.Properties is not null && e.Properties.TryGetValue("origin", out var origin) ? origin as string : null))
             .OrderBy(e => e.Kind, StringComparer.Ordinal)
             .ThenBy(e => e.Name ?? string.Empty, StringComparer.Ordinal)
             .ToList();
@@ -41,7 +42,8 @@ internal static partial class PostgresDescribeSnapshot
                 l.Kind,
                 l.Source,
                 l.Target,
-                l.Properties is not null && l.Properties.TryGetValue("autoProvision", out var ap) ? ap as bool? : null))
+                l.Properties is not null && l.Properties.TryGetValue("autoProvision", out var ap) ? ap as bool? : null,
+                l.Properties is not null && l.Properties.TryGetValue("origin", out var origin) ? origin as string : null))
             .OrderBy(l => l.From ?? string.Empty, StringComparer.Ordinal)
             .ThenBy(l => l.To ?? string.Empty, StringComparer.Ordinal)
             .ToList();
@@ -83,7 +85,12 @@ internal static partial class PostgresDescribeSnapshot
         List<EntitySnapshot> Entities,
         List<LinkSnapshot> Links);
 
-    private sealed record EntitySnapshot(string Kind, string? Name, bool? AutoProvision, bool? AutoDelete);
+    private sealed record EntitySnapshot(
+        string Kind,
+        string? Name,
+        bool? AutoProvision,
+        bool? AutoDelete,
+        string? Origin);
 
-    private sealed record LinkSnapshot(string Kind, string? From, string? To, bool? AutoProvision);
+    private sealed record LinkSnapshot(string Kind, string? From, string? To, bool? AutoProvision, string? Origin);
 }

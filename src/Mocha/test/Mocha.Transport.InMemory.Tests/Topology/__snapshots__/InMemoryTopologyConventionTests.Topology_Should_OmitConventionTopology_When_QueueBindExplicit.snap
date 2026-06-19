@@ -5,7 +5,8 @@
     {
       "Kind": "queue",
       "Name": "orders",
-      "Flow": "outbound"
+      "Flow": "outbound",
+      "Origin": "declared"
     }
   ],
   "Links": [],

@@ -219,7 +219,11 @@ public sealed class PostgresMessagingTransport : MessagingTransport
                     topic.Name,
                     topic.Address.ToString(),
                     "inbound",
-                    new Dictionary<string, object?> { ["autoProvision"] = topic.AutoProvision }));
+                    new Dictionary<string, object?>
+                    {
+                        ["autoProvision"] = topic.AutoProvision,
+                        ["origin"] = topic.Origin
+                    }));
         }
 
         foreach (var queue in _topology.Queues)
@@ -233,7 +237,8 @@ public sealed class PostgresMessagingTransport : MessagingTransport
                     new Dictionary<string, object?>
                     {
                         ["autoDelete"] = queue.AutoDelete,
-                        ["autoProvision"] = queue.AutoProvision
+                        ["autoProvision"] = queue.AutoProvision,
+                        ["origin"] = queue.Origin
                     }));
         }
 
@@ -246,7 +251,11 @@ public sealed class PostgresMessagingTransport : MessagingTransport
                     subscription.Source.Address.ToString(),
                     subscription.Destination.Address.ToString(),
                     "forward",
-                    new Dictionary<string, object?> { ["autoProvision"] = subscription.AutoProvision }));
+                    new Dictionary<string, object?>
+                    {
+                        ["autoProvision"] = subscription.AutoProvision,
+                        ["origin"] = subscription.Origin
+                    }));
         }
 
         var topology = new TopologyDescription(_topology.Address.ToString(), entities, links);

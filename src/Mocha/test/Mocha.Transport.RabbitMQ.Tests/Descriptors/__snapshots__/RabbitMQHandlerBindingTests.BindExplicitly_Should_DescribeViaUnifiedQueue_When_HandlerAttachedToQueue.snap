@@ -6,31 +6,31 @@
       "Kind": "exchange",
       "Name": "mocha.test-helpers.order-created",
       "AutoProvision": true,
-      "Source": "convention"
+      "Origin": "convention"
     },
     {
       "Kind": "exchange",
       "Name": "order-created",
       "AutoProvision": true,
-      "Source": "convention"
+      "Origin": "convention"
     },
     {
       "Kind": "queue",
       "Name": "my-orders",
       "AutoProvision": true,
-      "Source": "declared"
+      "Origin": "declared"
     },
     {
       "Kind": "queue",
       "Name": "my-orders_error",
       "AutoProvision": true,
-      "Source": "convention"
+      "Origin": "convention"
     },
     {
       "Kind": "queue",
       "Name": "my-orders_skipped",
       "AutoProvision": true,
-      "Source": "convention"
+      "Origin": "convention"
     }
   ],
   "Links": [
@@ -39,7 +39,7 @@
       "From": "rabbitmq://localhost:5672/e/mocha.test-helpers.order-created",
       "To": "rabbitmq://localhost:5672/e/order-created",
       "AutoProvision": true,
-      "Source": "convention"
+      "Origin": "convention"
     }
   ]
 }

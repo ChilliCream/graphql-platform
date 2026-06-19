@@ -14,7 +14,7 @@ internal sealed class InMemoryQueueTopologyDescriptor
     /// <param name="name">The initial queue name.</param>
     public InMemoryQueueTopologyDescriptor(IMessagingConfigurationContext context, string name) : base(context)
     {
-        Configuration = new InMemoryQueueConfiguration { Name = name };
+        Configuration = new InMemoryQueueConfiguration { Name = name, Origin = TopologyOrigin.Declared };
     }
 
     /// <inheritdoc />

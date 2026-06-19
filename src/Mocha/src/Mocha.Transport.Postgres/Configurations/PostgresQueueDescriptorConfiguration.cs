@@ -8,7 +8,7 @@ public sealed class PostgresQueueDescriptorConfiguration : MessagingConfiguratio
     internal PostgresQueueDescriptorConfiguration(string name)
     {
         Name = name;
-        Queue = new PostgresQueueConfiguration { Name = name };
+        Queue = new PostgresQueueConfiguration { Name = name, Origin = TopologyOrigin.Declared };
     }
 
     /// <summary>

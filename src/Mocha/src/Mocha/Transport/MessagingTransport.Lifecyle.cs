@@ -63,11 +63,6 @@ public abstract partial class MessagingTransport
 
             foreach (var messageRuntimeType in endpointConfiguration.ReceivedMessageTypes)
             {
-                if (IsReplyMessageType(context, messageRuntimeType))
-                {
-                    throw ThrowHelper.ReceivesReplyType(messageRuntimeType.FullName ?? messageRuntimeType.Name);
-                }
-
                 var matched = context.Router.InboundRoutes
                     .Where(r => r.Kind is Subscribe or Send or Request
                                 && r.MessageType?.RuntimeType == messageRuntimeType)
@@ -121,32 +116,6 @@ public abstract partial class MessagingTransport
         MarkInitialized();
 
         OnAfterInitialized(context);
-    }
-
-    private static bool IsReplyMessageType(IMessagingSetupContext context, Type messageRuntimeType)
-    {
-        foreach (var route in context.Router.InboundRoutes)
-        {
-            if (route.Kind == Reply && route.MessageType?.RuntimeType == messageRuntimeType)
-            {
-                return true;
-            }
-        }
-
-        foreach (var messageType in context.Messages.MessageTypes)
-        {
-            foreach (var interfaceType in messageType.RuntimeType.GetInterfaces())
-            {
-                if (interfaceType.IsGenericType
-                    && interfaceType.GetGenericTypeDefinition() == typeof(IEventRequest<>)
-                    && interfaceType.GetGenericArguments()[0] == messageRuntimeType)
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
     }
 
     protected virtual void OnBeforeInitialize(IMessagingSetupContext context) { }

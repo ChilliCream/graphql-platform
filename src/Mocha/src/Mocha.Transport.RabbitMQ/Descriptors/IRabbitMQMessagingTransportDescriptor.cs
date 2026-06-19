@@ -52,7 +52,7 @@ public interface IRabbitMQMessagingTransportDescriptor
     /// Declares or retrieves an exchange in the transport topology.
     /// When called multiple times with the same name, the configurations merge using these rules:
     /// declared non-null scalar properties win; convention-generated values fill the rest; arguments merge per key;
-    /// AutoProvision strengthens (true wins); provenance upgrades convention to endpoint to declared.
+    /// AutoProvision strengthens (true wins); origin upgrades convention to endpoint to declared.
     /// A shape conflict (both declared values differ for the same scalar property) throws <see cref="RabbitMQTopologyShapeConflictException"/>.
     /// </summary>
     /// <param name="name">The exchange name.</param>
@@ -63,7 +63,7 @@ public interface IRabbitMQMessagingTransportDescriptor
     /// Declares or retrieves a queue in the transport topology.
     /// When called multiple times with the same name, the configurations merge using these rules:
     /// declared non-null scalar properties win; convention-generated values fill the rest; arguments merge per key;
-    /// AutoProvision strengthens (true wins); provenance upgrades convention to endpoint to declared.
+    /// AutoProvision strengthens (true wins); origin upgrades convention to endpoint to declared.
     /// A shape conflict (both declared values differ for the same scalar property) throws <see cref="RabbitMQTopologyShapeConflictException"/>.
     /// </summary>
     /// <param name="name">The queue name.</param>

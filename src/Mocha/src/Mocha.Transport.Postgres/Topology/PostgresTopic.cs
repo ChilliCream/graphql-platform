@@ -59,6 +59,8 @@ public sealed class PostgresTopic : TopologyResource<PostgresTopicConfiguration>
         {
             AutoProvision = true;
         }
+
+        MergeOrigin(configuration);
     }
 
     /// <inheritdoc />

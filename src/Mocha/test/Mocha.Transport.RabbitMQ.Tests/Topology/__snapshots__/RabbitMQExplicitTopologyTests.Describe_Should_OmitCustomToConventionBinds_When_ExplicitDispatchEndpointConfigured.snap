@@ -6,7 +6,7 @@
       "Kind": "exchange",
       "Name": "custom-ex",
       "AutoProvision": true,
-      "Source": "declared"
+      "Origin": "declared"
     }
   ],
   "Links": []

@@ -12,7 +12,12 @@ internal sealed class PostgresSubscriptionTopologyDescriptor
         string source,
         string destination) : base(context)
     {
-        Configuration = new PostgresSubscriptionConfiguration { Source = source, Destination = destination };
+        Configuration = new PostgresSubscriptionConfiguration
+        {
+            Source = source,
+            Destination = destination,
+            Origin = TopologyOrigin.Declared
+        };
     }
 
     /// <inheritdoc />

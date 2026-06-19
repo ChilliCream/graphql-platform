@@ -12,7 +12,7 @@ internal sealed class RabbitMQPublishExchangeFeature : IRabbitMQExchangeContribu
     /// </summary>
     internal RabbitMQExchangeConfiguration Configuration { get; } = new()
     {
-        Provenance = RabbitMQTopologyProvenance.Declared
+        Origin = TopologyOrigin.Declared
     };
 
     /// <inheritdoc />

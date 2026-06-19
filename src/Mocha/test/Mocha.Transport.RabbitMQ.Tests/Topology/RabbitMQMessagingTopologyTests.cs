@@ -30,7 +30,7 @@ public class RabbitMQMessagingTopologyTests
         {
             Name = "shared-exchange",
             Type = "direct",
-            Provenance = RabbitMQTopologyProvenance.Convention
+            Origin = TopologyOrigin.Convention
         });
 
         var countAfterFirst = topology.Exchanges.Count;
@@ -40,14 +40,14 @@ public class RabbitMQMessagingTopologyTests
         {
             Name = "shared-exchange",
             Durable = false,
-            Provenance = RabbitMQTopologyProvenance.Declared
+            Origin = TopologyOrigin.Declared
         });
 
         // assert: count does not increase; merged properties reflect the rules
         Assert.Equal(countAfterFirst, topology.Exchanges.Count);
         Assert.Equal("direct", merged.Type);
         Assert.False(merged.Durable);
-        Assert.Equal(RabbitMQTopologyProvenance.Declared, merged.Provenance);
+        Assert.Equal(TopologyOrigin.Declared, merged.Origin);
     }
 
     [Fact]
@@ -101,7 +101,7 @@ public class RabbitMQMessagingTopologyTests
         {
             Name = "shared-queue",
             Durable = true,
-            Provenance = RabbitMQTopologyProvenance.Convention
+            Origin = TopologyOrigin.Convention
         });
 
         var countAfterFirst = topology.Queues.Count;
@@ -111,14 +111,14 @@ public class RabbitMQMessagingTopologyTests
         {
             Name = "shared-queue",
             AutoDelete = true,
-            Provenance = RabbitMQTopologyProvenance.Declared
+            Origin = TopologyOrigin.Declared
         });
 
         // assert: count does not increase; merged properties reflect the rules
         Assert.Equal(countAfterFirst, topology.Queues.Count);
         Assert.True(merged.Durable);
         Assert.True(merged.AutoDelete);
-        Assert.Equal(RabbitMQTopologyProvenance.Declared, merged.Provenance);
+        Assert.Equal(TopologyOrigin.Declared, merged.Origin);
     }
 
     [Fact]
@@ -307,7 +307,7 @@ public class RabbitMQMessagingTopologyTests
             Name = "orders",
             Type = "fanout",
             Durable = true,
-            Provenance = RabbitMQTopologyProvenance.Convention
+            Origin = TopologyOrigin.Convention
         });
 
         var countAfterFirst = topology.Exchanges.Count;
@@ -317,13 +317,13 @@ public class RabbitMQMessagingTopologyTests
         {
             Name = "orders",
             Type = "topic",
-            Provenance = RabbitMQTopologyProvenance.Declared
+            Origin = TopologyOrigin.Declared
         });
 
         // assert: declared wins; durable stays from convention fill; count unchanged
         Assert.Equal("topic", result.Type);
         Assert.True(result.Durable);
-        Assert.Equal(RabbitMQTopologyProvenance.Declared, result.Provenance);
+        Assert.Equal(TopologyOrigin.Declared, result.Origin);
         Assert.Equal(countAfterFirst, topology.Exchanges.Count);
     }
 
@@ -337,7 +337,7 @@ public class RabbitMQMessagingTopologyTests
         {
             Name = "events",
             Arguments = new Dictionary<string, object> { ["alternate-exchange"] = "ae" },
-            Provenance = RabbitMQTopologyProvenance.Convention
+            Origin = TopologyOrigin.Convention
         });
 
         // act
@@ -345,7 +345,7 @@ public class RabbitMQMessagingTopologyTests
         {
             Name = "events",
             Arguments = new Dictionary<string, object> { ["x-delayed-type"] = "direct" },
-            Provenance = RabbitMQTopologyProvenance.Declared
+            Origin = TopologyOrigin.Declared
         });
 
         // assert: both argument keys are present
@@ -364,7 +364,7 @@ public class RabbitMQMessagingTopologyTests
             Name = "noop",
             Type = "fanout",
             Durable = true,
-            Provenance = RabbitMQTopologyProvenance.Convention
+            Origin = TopologyOrigin.Convention
         });
 
         var countAfterFirst = topology.Exchanges.Count;
@@ -375,7 +375,7 @@ public class RabbitMQMessagingTopologyTests
             Name = "noop",
             Type = "fanout",
             Durable = true,
-            Provenance = RabbitMQTopologyProvenance.Convention
+            Origin = TopologyOrigin.Convention
         });
 
         // assert: same object returned; count unchanged
@@ -393,7 +393,7 @@ public class RabbitMQMessagingTopologyTests
         {
             Name = "ap-exchange",
             AutoProvision = null,
-            Provenance = RabbitMQTopologyProvenance.Convention
+            Origin = TopologyOrigin.Convention
         });
 
         // act: endpoint brings AutoProvision true
@@ -401,7 +401,7 @@ public class RabbitMQMessagingTopologyTests
         {
             Name = "ap-exchange",
             AutoProvision = true,
-            Provenance = RabbitMQTopologyProvenance.Endpoint
+            Origin = TopologyOrigin.Endpoint
         });
 
         // assert: true wins
@@ -409,7 +409,7 @@ public class RabbitMQMessagingTopologyTests
     }
 
     [Fact]
-    public void AddExchange_Merge_Should_UpgradeProvenance_When_EndpointMergesIntoConvention()
+    public void AddExchange_Merge_Should_UpgradeOrigin_When_EndpointMergesIntoConvention()
     {
         // arrange
         var (_, _, topology) = CreateTopology(_ => { });
@@ -417,22 +417,22 @@ public class RabbitMQMessagingTopologyTests
         topology.AddExchange(new RabbitMQExchangeConfiguration
         {
             Name = "prov-exchange",
-            Provenance = RabbitMQTopologyProvenance.Convention
+            Origin = TopologyOrigin.Convention
         });
 
-        // act: endpoint-provenance arrives
+        // act: endpoint-origin arrives
         var result = topology.AddExchange(new RabbitMQExchangeConfiguration
         {
             Name = "prov-exchange",
-            Provenance = RabbitMQTopologyProvenance.Endpoint
+            Origin = TopologyOrigin.Endpoint
         });
 
-        // assert: provenance upgraded from convention to endpoint
-        Assert.Equal(RabbitMQTopologyProvenance.Endpoint, result.Provenance);
+        // assert: origin upgraded from convention to endpoint
+        Assert.Equal(TopologyOrigin.Endpoint, result.Origin);
     }
 
     [Fact]
-    public void AddExchange_Merge_Should_NeverDowngradeProvenance_When_DeclaredIsFollowedByConvention()
+    public void AddExchange_Merge_Should_NeverDowngradeOrigin_When_DeclaredIsFollowedByConvention()
     {
         // arrange: declared entity exists
         var (_, _, topology) = CreateTopology(_ => { });
@@ -440,18 +440,18 @@ public class RabbitMQMessagingTopologyTests
         topology.AddExchange(new RabbitMQExchangeConfiguration
         {
             Name = "order-exchange",
-            Provenance = RabbitMQTopologyProvenance.Declared
+            Origin = TopologyOrigin.Declared
         });
 
         // act: convention comes in later (e.g., from a convention pass)
         var result = topology.AddExchange(new RabbitMQExchangeConfiguration
         {
             Name = "order-exchange",
-            Provenance = RabbitMQTopologyProvenance.Convention
+            Origin = TopologyOrigin.Convention
         });
 
-        // assert: provenance never downgrades
-        Assert.Equal(RabbitMQTopologyProvenance.Declared, result.Provenance);
+        // assert: origin never downgrades
+        Assert.Equal(TopologyOrigin.Declared, result.Origin);
     }
 
     [Fact]
@@ -464,7 +464,7 @@ public class RabbitMQMessagingTopologyTests
         {
             Name = "mixed-exchange",
             Type = "fanout",
-            Provenance = RabbitMQTopologyProvenance.Endpoint
+            Origin = TopologyOrigin.Endpoint
         });
 
         // act: declared arrives with a different type, which wins
@@ -472,12 +472,12 @@ public class RabbitMQMessagingTopologyTests
         {
             Name = "mixed-exchange",
             Type = "topic",
-            Provenance = RabbitMQTopologyProvenance.Declared
+            Origin = TopologyOrigin.Declared
         });
 
-        // assert: declared type wins; provenance upgraded to declared
+        // assert: declared type wins; origin upgraded to declared
         Assert.Equal("topic", result.Type);
-        Assert.Equal(RabbitMQTopologyProvenance.Declared, result.Provenance);
+        Assert.Equal(TopologyOrigin.Declared, result.Origin);
     }
 
     [Fact]
@@ -490,7 +490,7 @@ public class RabbitMQMessagingTopologyTests
         {
             Name = "conflict-exchange",
             Type = "direct",
-            Provenance = RabbitMQTopologyProvenance.Declared
+            Origin = TopologyOrigin.Declared
         });
 
         // act: second declared exchange with different type
@@ -499,7 +499,7 @@ public class RabbitMQMessagingTopologyTests
             {
                 Name = "conflict-exchange",
                 Type = "topic",
-                Provenance = RabbitMQTopologyProvenance.Declared
+                Origin = TopologyOrigin.Declared
             })
         );
 
@@ -519,7 +519,7 @@ public class RabbitMQMessagingTopologyTests
         {
             Name = "work-queue",
             Arguments = new Dictionary<string, object> { ["x-message-ttl"] = 60000 },
-            Provenance = RabbitMQTopologyProvenance.Convention
+            Origin = TopologyOrigin.Convention
         });
 
         // act: declared adds a different argument key
@@ -527,7 +527,7 @@ public class RabbitMQMessagingTopologyTests
         {
             Name = "work-queue",
             Arguments = new Dictionary<string, object> { ["x-dead-letter-exchange"] = "dlx" },
-            Provenance = RabbitMQTopologyProvenance.Declared
+            Origin = TopologyOrigin.Declared
         });
 
         // assert: both keys present after union
@@ -546,7 +546,7 @@ public class RabbitMQMessagingTopologyTests
             Name = "noop-exchange",
             Type = "direct",
             Durable = true,
-            Provenance = RabbitMQTopologyProvenance.Declared
+            Origin = TopologyOrigin.Declared
         });
 
         var countAfterFirst = topology.Exchanges.Count;
@@ -555,14 +555,14 @@ public class RabbitMQMessagingTopologyTests
         var second = topology.AddExchange(new RabbitMQExchangeConfiguration
         {
             Name = "noop-exchange",
-            Provenance = RabbitMQTopologyProvenance.Convention
+            Origin = TopologyOrigin.Convention
         });
 
         // assert: same instance returned; existing properties unchanged; count stable
         Assert.Same(first, second);
         Assert.Equal("direct", second.Type);
         Assert.True(second.Durable);
-        Assert.Equal(RabbitMQTopologyProvenance.Declared, second.Provenance);
+        Assert.Equal(TopologyOrigin.Declared, second.Origin);
         Assert.Equal(countAfterFirst, topology.Exchanges.Count);
     }
 
@@ -577,7 +577,7 @@ public class RabbitMQMessagingTopologyTests
             Name = "noop-queue",
             Durable = true,
             AutoDelete = false,
-            Provenance = RabbitMQTopologyProvenance.Declared
+            Origin = TopologyOrigin.Declared
         });
 
         var countAfterFirst = topology.Queues.Count;
@@ -586,14 +586,14 @@ public class RabbitMQMessagingTopologyTests
         var second = topology.AddQueue(new RabbitMQQueueConfiguration
         {
             Name = "noop-queue",
-            Provenance = RabbitMQTopologyProvenance.Convention
+            Origin = TopologyOrigin.Convention
         });
 
         // assert: same instance returned; existing properties unchanged; count stable
         Assert.Same(first, second);
         Assert.True(second.Durable);
         Assert.False(second.AutoDelete);
-        Assert.Equal(RabbitMQTopologyProvenance.Declared, second.Provenance);
+        Assert.Equal(TopologyOrigin.Declared, second.Origin);
         Assert.Equal(countAfterFirst, topology.Queues.Count);
     }
 
@@ -607,8 +607,8 @@ public class RabbitMQMessagingTopologyTests
 
         for (var i = 0; i < entityCount; i++)
         {
-            topology.AddExchange(new RabbitMQExchangeConfiguration { Name = $"merge-exchange-{i}", Provenance = RabbitMQTopologyProvenance.Convention });
-            topology.AddQueue(new RabbitMQQueueConfiguration { Name = $"merge-queue-{i}", Provenance = RabbitMQTopologyProvenance.Convention });
+            topology.AddExchange(new RabbitMQExchangeConfiguration { Name = $"merge-exchange-{i}", Origin = TopologyOrigin.Convention });
+            topology.AddQueue(new RabbitMQQueueConfiguration { Name = $"merge-queue-{i}", Origin = TopologyOrigin.Convention });
         }
 
         var countBeforeMerge = topology.Exchanges.Count;
@@ -627,13 +627,13 @@ public class RabbitMQMessagingTopologyTests
                         {
                             Name = $"merge-exchange-{i}",
                             Type = "fanout",
-                            Provenance = RabbitMQTopologyProvenance.Convention
+                            Origin = TopologyOrigin.Convention
                         })),
                         Task.Run(() => topology.AddQueue(new RabbitMQQueueConfiguration
                         {
                             Name = $"merge-queue-{i}",
                             Durable = true,
-                            Provenance = RabbitMQTopologyProvenance.Convention
+                            Origin = TopologyOrigin.Convention
                         }))
                     })
             )

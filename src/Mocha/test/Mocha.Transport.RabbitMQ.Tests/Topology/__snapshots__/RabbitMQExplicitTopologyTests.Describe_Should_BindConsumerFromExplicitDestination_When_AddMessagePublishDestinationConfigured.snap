@@ -6,25 +6,25 @@
       "Kind": "exchange",
       "Name": "custom-routing-exchange",
       "AutoProvision": true,
-      "Source": "convention"
+      "Origin": "convention"
     },
     {
       "Kind": "queue",
       "Name": "mocha.transport.rabbit-m-q.tests.order-spy",
       "AutoProvision": true,
-      "Source": "endpoint"
+      "Origin": "endpoint"
     },
     {
       "Kind": "queue",
       "Name": "mocha.transport.rabbit-m-q.tests.order-spy_error",
       "AutoProvision": true,
-      "Source": "convention"
+      "Origin": "convention"
     },
     {
       "Kind": "queue",
       "Name": "mocha.transport.rabbit-m-q.tests.order-spy_skipped",
       "AutoProvision": true,
-      "Source": "convention"
+      "Origin": "convention"
     }
   ],
   "Links": [
@@ -33,7 +33,7 @@
       "From": "rabbitmq://localhost:5672/e/custom-routing-exchange",
       "To": "rabbitmq://localhost:5672/q/mocha.transport.rabbit-m-q.tests.order-spy",
       "AutoProvision": true,
-      "Source": "convention"
+      "Origin": "convention"
     }
   ]
 }

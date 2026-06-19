@@ -14,7 +14,7 @@ internal sealed class RabbitMQQueueTopologyDescriptor
     /// <param name="name">The initial queue name.</param>
     public RabbitMQQueueTopologyDescriptor(IMessagingConfigurationContext context, string name) : base(context)
     {
-        Configuration = new RabbitMQQueueConfiguration { Name = name, Provenance = RabbitMQTopologyProvenance.Declared };
+        Configuration = new RabbitMQQueueConfiguration { Name = name, Origin = TopologyOrigin.Declared };
     }
 
     /// <inheritdoc />

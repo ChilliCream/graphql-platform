@@ -166,7 +166,7 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
                         ["durable"] = exchange.Durable,
                         ["autoDelete"] = exchange.AutoDelete,
                         ["autoProvision"] = exchange.AutoProvision ?? autoProvision,
-                        ["source"] = exchange.Provenance
+                        ["origin"] = exchange.Origin
                     }));
         }
 
@@ -184,7 +184,7 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
                         ["exclusive"] = queue.Exclusive,
                         ["autoDelete"] = queue.AutoDelete,
                         ["autoProvision"] = queue.AutoProvision ?? autoProvision,
-                        ["source"] = queue.Provenance
+                        ["origin"] = queue.Origin
                     }));
         }
 
@@ -206,7 +206,7 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
                     {
                         ["routingKey"] = string.IsNullOrEmpty(binding.RoutingKey) ? null : binding.RoutingKey,
                         ["autoProvision"] = binding.AutoProvision ?? autoProvision,
-                        ["source"] = binding.Provenance
+                        ["origin"] = binding.Origin
                     }));
         }
 

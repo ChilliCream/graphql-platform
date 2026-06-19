@@ -169,11 +169,6 @@ internal static class ThrowHelper
     public static Exception HostDescriptionMissing()
         => new InvalidOperationException("Host description is missing.");
 
-    public static Exception ReceivesReplyType(string messageTypeName)
-        => new InvalidOperationException(
-            $"Message type '{messageTypeName}' is a reply type and cannot be declared with Receives<T>. "
-            + "Reply routes are address-routed and not subject to auto-binding topology.");
-
     public static Exception ReceivesClaimedType(string messageTypeName, string claimingEndpoint, string conflictingEndpoint)
         => new InvalidOperationException(
             $"Message type '{messageTypeName}' is already claimed by receive endpoint '{claimingEndpoint}' "

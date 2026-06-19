@@ -27,7 +27,7 @@ internal static partial class RabbitMQDescribeSnapshot
                 e.Kind,
                 e.Name,
                 e.Properties is not null && e.Properties.TryGetValue("autoProvision", out var ap) ? ap as bool? : null,
-                e.Properties is not null && e.Properties.TryGetValue("source", out var src) ? src as string : null))
+                e.Properties is not null && e.Properties.TryGetValue("origin", out var origin) ? origin as string : null))
             .OrderBy(e => e.Kind, StringComparer.Ordinal)
             .ThenBy(e => e.Name ?? string.Empty, StringComparer.Ordinal)
             .ToList();
@@ -43,7 +43,7 @@ internal static partial class RabbitMQDescribeSnapshot
                 l.Target,
                 l.Properties is not null && l.Properties.TryGetValue("routingKey", out var rk) ? rk as string : null,
                 l.Properties is not null && l.Properties.TryGetValue("autoProvision", out var ap) ? ap as bool? : null,
-                l.Properties is not null && l.Properties.TryGetValue("source", out var src) ? src as string : null))
+                l.Properties is not null && l.Properties.TryGetValue("origin", out var origin) ? origin as string : null))
             .OrderBy(l => l.From ?? string.Empty, StringComparer.Ordinal)
             .ThenBy(l => l.To ?? string.Empty, StringComparer.Ordinal)
             .ThenBy(l => l.RoutingKey ?? string.Empty, StringComparer.Ordinal)
@@ -86,7 +86,7 @@ internal static partial class RabbitMQDescribeSnapshot
         List<EntitySnapshot> Entities,
         List<LinkSnapshot> Links);
 
-    private sealed record EntitySnapshot(string Kind, string? Name, bool? AutoProvision, string? Source);
+    private sealed record EntitySnapshot(string Kind, string? Name, bool? AutoProvision, string? Origin);
 
     private sealed record LinkSnapshot(
         string Kind,
@@ -94,5 +94,5 @@ internal static partial class RabbitMQDescribeSnapshot
         string? To,
         string? RoutingKey,
         bool? AutoProvision,
-        string? Source);
+        string? Origin);
 }

@@ -65,6 +65,8 @@ public sealed class PostgresQueue : TopologyResource<PostgresQueueConfiguration>
         {
             AutoProvision = true;
         }
+
+        MergeOrigin(configuration);
     }
 
     /// <inheritdoc />

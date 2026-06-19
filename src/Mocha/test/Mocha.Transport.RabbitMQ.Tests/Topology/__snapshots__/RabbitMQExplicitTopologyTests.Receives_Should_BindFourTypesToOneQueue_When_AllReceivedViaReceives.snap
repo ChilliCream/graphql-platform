@@ -6,67 +6,67 @@
       "Kind": "exchange",
       "Name": "item-added",
       "AutoProvision": true,
-      "Source": "convention"
+      "Origin": "convention"
     },
     {
       "Kind": "exchange",
       "Name": "item-removed",
       "AutoProvision": true,
-      "Source": "convention"
+      "Origin": "convention"
     },
     {
       "Kind": "exchange",
       "Name": "mocha.test-helpers.order-created",
       "AutoProvision": true,
-      "Source": "convention"
+      "Origin": "convention"
     },
     {
       "Kind": "exchange",
       "Name": "mocha.transport.rabbit-m-q.tests.topology.item-added",
       "AutoProvision": true,
-      "Source": "convention"
+      "Origin": "convention"
     },
     {
       "Kind": "exchange",
       "Name": "mocha.transport.rabbit-m-q.tests.topology.item-removed",
       "AutoProvision": true,
-      "Source": "convention"
+      "Origin": "convention"
     },
     {
       "Kind": "exchange",
       "Name": "mocha.transport.rabbit-m-q.tests.topology.order-shipped",
       "AutoProvision": true,
-      "Source": "convention"
+      "Origin": "convention"
     },
     {
       "Kind": "exchange",
       "Name": "order-created",
       "AutoProvision": true,
-      "Source": "convention"
+      "Origin": "convention"
     },
     {
       "Kind": "exchange",
       "Name": "order-shipped",
       "AutoProvision": true,
-      "Source": "convention"
+      "Origin": "convention"
     },
     {
       "Kind": "queue",
       "Name": "inventory",
       "AutoProvision": true,
-      "Source": "declared"
+      "Origin": "declared"
     },
     {
       "Kind": "queue",
       "Name": "inventory_error",
       "AutoProvision": true,
-      "Source": "convention"
+      "Origin": "convention"
     },
     {
       "Kind": "queue",
       "Name": "inventory_skipped",
       "AutoProvision": true,
-      "Source": "convention"
+      "Origin": "convention"
     }
   ],
   "Links": [
@@ -75,56 +75,56 @@
       "From": "rabbitmq://localhost:5672/e/item-added",
       "To": "rabbitmq://localhost:5672/q/inventory",
       "AutoProvision": true,
-      "Source": "convention"
+      "Origin": "convention"
     },
     {
       "Kind": "bind",
       "From": "rabbitmq://localhost:5672/e/item-removed",
       "To": "rabbitmq://localhost:5672/q/inventory",
       "AutoProvision": true,
-      "Source": "convention"
+      "Origin": "convention"
     },
     {
       "Kind": "bind",
       "From": "rabbitmq://localhost:5672/e/mocha.test-helpers.order-created",
       "To": "rabbitmq://localhost:5672/e/order-created",
       "AutoProvision": true,
-      "Source": "convention"
+      "Origin": "convention"
     },
     {
       "Kind": "bind",
       "From": "rabbitmq://localhost:5672/e/mocha.transport.rabbit-m-q.tests.topology.item-added",
       "To": "rabbitmq://localhost:5672/e/item-added",
       "AutoProvision": true,
-      "Source": "convention"
+      "Origin": "convention"
     },
     {
       "Kind": "bind",
       "From": "rabbitmq://localhost:5672/e/mocha.transport.rabbit-m-q.tests.topology.item-removed",
       "To": "rabbitmq://localhost:5672/e/item-removed",
       "AutoProvision": true,
-      "Source": "convention"
+      "Origin": "convention"
     },
     {
       "Kind": "bind",
       "From": "rabbitmq://localhost:5672/e/mocha.transport.rabbit-m-q.tests.topology.order-shipped",
       "To": "rabbitmq://localhost:5672/e/order-shipped",
       "AutoProvision": true,
-      "Source": "convention"
+      "Origin": "convention"
     },
     {
       "Kind": "bind",
       "From": "rabbitmq://localhost:5672/e/order-created",
       "To": "rabbitmq://localhost:5672/q/inventory",
       "AutoProvision": true,
-      "Source": "convention"
+      "Origin": "convention"
     },
     {
       "Kind": "bind",
       "From": "rabbitmq://localhost:5672/e/order-shipped",
       "To": "rabbitmq://localhost:5672/q/inventory",
       "AutoProvision": true,
-      "Source": "convention"
+      "Origin": "convention"
     }
   ]
 }

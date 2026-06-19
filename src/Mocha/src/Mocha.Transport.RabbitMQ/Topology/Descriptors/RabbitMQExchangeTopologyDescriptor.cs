@@ -14,7 +14,7 @@ internal sealed class RabbitMQExchangeTopologyDescriptor
     /// <param name="name">The initial exchange name.</param>
     public RabbitMQExchangeTopologyDescriptor(IMessagingConfigurationContext context, string name) : base(context)
     {
-        Configuration = new RabbitMQExchangeConfiguration { Name = name, Provenance = RabbitMQTopologyProvenance.Declared };
+        Configuration = new RabbitMQExchangeConfiguration { Name = name, Origin = TopologyOrigin.Declared };
     }
 
     /// <inheritdoc />

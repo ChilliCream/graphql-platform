@@ -393,10 +393,10 @@ public class RabbitMQExplicitTopologyTests
     }
 
     [Fact]
-    public void MergeFrom_Should_UpgradeProvenance_When_DeclaredMergedOntoConvention()
+    public void MergeFrom_Should_UpgradeOrigin_When_DeclaredMergedOntoConvention()
     {
         // arrange
-        // build a framework-generated binding (convention provenance) directly in the topology.
+        // build a framework-generated binding (convention origin) directly in the topology.
         var (_, _, topology) = CreateTopology(t =>
         {
             t.DeclareExchange("ex");
@@ -407,15 +407,15 @@ public class RabbitMQExplicitTopologyTests
             Source = "ex",
             Destination = "q",
             DestinationKind = RabbitMQDestinationKind.Queue,
-            Provenance = RabbitMQTopologyProvenance.Convention
+            Origin = TopologyOrigin.Convention
         });
-        Assert.Equal(RabbitMQTopologyProvenance.Convention, binding.Provenance);
+        Assert.Equal(TopologyOrigin.Convention, binding.Origin);
 
         // act
-        binding.MergeFrom(new RabbitMQBindingConfiguration { Provenance = RabbitMQTopologyProvenance.Declared });
+        binding.MergeFrom(new RabbitMQBindingConfiguration { Origin = TopologyOrigin.Declared });
 
         // assert
-        Assert.Equal(RabbitMQTopologyProvenance.Declared, binding.Provenance);
+        Assert.Equal(TopologyOrigin.Declared, binding.Origin);
     }
 
     private static RabbitMQBinding DeclareSingleBinding(Action<IRabbitMQBindingTopologyDescriptor> configure)
@@ -620,7 +620,7 @@ public class RabbitMQExplicitTopologyTests
     {
         // arrange
         // Three paths all target the same queue name "orders":
-        //   1. DeclareQueue("orders") at transport level (declared provenance)
+        //   1. DeclareQueue("orders") at transport level (declared origin)
         //   2. Queue("orders") builder (creates queue + lazy endpoint)
         //   3. A second DeclareQueue("orders") with a different AutoProvision flag
         // The descriptor layer deduplicates DeclareQueue calls by name, so the second call returns
@@ -665,9 +665,9 @@ public class RabbitMQExplicitTopologyTests
     {
         // arrange
         // PublishExchange contributes AutoDelete(true) onto the convention publish exchange for
-        // OrderCreated. The receive convention creates the exchange with convention provenance;
+        // OrderCreated. The receive convention creates the exchange with convention origin;
         // the dispatch convention merges the declared contribution via AddExchange, upgrading
-        // provenance to Declared and setting AutoDelete = true.
+        // origin to Declared and setting AutoDelete = true.
         var runtime = CreateRuntime(
             b =>
             {
@@ -685,7 +685,7 @@ public class RabbitMQExplicitTopologyTests
 
         // assert
         Assert.True(exchange.AutoDelete);
-        Assert.Equal(RabbitMQTopologyProvenance.Declared, exchange.Provenance);
+        Assert.Equal(TopologyOrigin.Declared, exchange.Origin);
         RabbitMQDescribeSnapshot.Create(description).MatchSnapshot();
     }
 

@@ -9,7 +9,7 @@ internal sealed class PostgresTopicTopologyDescriptor
 {
     public PostgresTopicTopologyDescriptor(IMessagingConfigurationContext context, string name) : base(context)
     {
-        Configuration = new PostgresTopicConfiguration { Name = name };
+        Configuration = new PostgresTopicConfiguration { Name = name, Origin = TopologyOrigin.Declared };
     }
 
     /// <inheritdoc />

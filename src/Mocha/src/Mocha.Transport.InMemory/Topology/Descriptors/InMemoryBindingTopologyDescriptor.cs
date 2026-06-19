@@ -13,7 +13,12 @@ internal sealed class InMemoryBindingTopologyDescriptor
     public InMemoryBindingTopologyDescriptor(IMessagingConfigurationContext context, string source, string destination)
         : base(context)
     {
-        Configuration = new InMemoryBindingConfiguration { Source = source, Destination = destination };
+        Configuration = new InMemoryBindingConfiguration
+        {
+            Source = source,
+            Destination = destination,
+            Origin = TopologyOrigin.Declared
+        };
     }
 
     /// <inheritdoc />

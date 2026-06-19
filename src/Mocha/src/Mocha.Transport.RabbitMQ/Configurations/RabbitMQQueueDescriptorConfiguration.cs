@@ -11,7 +11,7 @@ public sealed class RabbitMQQueueDescriptorConfiguration : MessagingConfiguratio
         Queue = new RabbitMQQueueConfiguration
         {
             Name = name,
-            Provenance = RabbitMQTopologyProvenance.Declared
+            Origin = TopologyOrigin.Declared
         };
     }
 

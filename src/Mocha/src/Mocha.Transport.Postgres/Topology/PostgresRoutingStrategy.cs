@@ -224,7 +224,8 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
             {
                 Name = postgresConfiguration.QueueName,
                 AutoDelete = postgresEndpoint.Kind == ReceiveEndpointKind.Reply,
-                AutoProvision = postgresConfiguration.AutoProvision
+                AutoProvision = postgresConfiguration.AutoProvision,
+                Origin = TopologyOrigin.Endpoint
             });
 
         if (postgresEndpoint.Kind == ReceiveEndpointKind.Default)
@@ -426,7 +427,7 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
             return;
         }
 
-        _topology.AddQueue(new PostgresQueueConfiguration { Name = queueName });
+        _topology.AddQueue(new PostgresQueueConfiguration { Name = queueName, Origin = TopologyOrigin.Endpoint });
     }
 
     private bool TryGetQueueName(IMessagingConfigurationContext context, Uri address, out string queueName)
