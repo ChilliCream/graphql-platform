@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace GreenDonut.Data.TestContext;
@@ -20,6 +21,8 @@ public class NullableTestsContext(Provider provider, string connectionString) : 
     }
 
     public DbSet<Record> Records { get; set; } = null!;
+
+    public DbSet<Item> Items { get; set; } = null!;
 }
 
 public class Record
@@ -28,6 +31,25 @@ public class Record
     public DateOnly? Date { get; set; }
     public TimeOnly? Time { get; set; }
     public string? String { get; set; }
+}
+
+public class Item
+{
+    [DatabaseGenerated(DatabaseGeneratedOption.None)]
+    public int Id { get; set; }
+
+    public int? DetailId { get; set; }
+
+    public Detail? Detail { get; set; }
+}
+
+public class Detail
+{
+    public int Id { get; set; }
+
+    public int Number { get; set; }
+
+    public string Name { get; set; } = null!;
 }
 
 public enum Provider
