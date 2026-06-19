@@ -1,7 +1,6 @@
 using System.Text.Json;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Language;
-using HotChocolate.Language;
 using HotChocolate.Text.Json;
 using static HotChocolate.Utilities.ThrowHelper;
 using StringValueNode = HotChocolate.Language.StringValueNode;
@@ -42,29 +41,38 @@ public sealed class FieldSelectionMapType : ScalarType<IValueSelectionNode, Stri
     /// <inheritdoc />
     protected override IValueSelectionNode OnCoerceInputLiteral(StringValueNode valueLiteral)
     {
+        if (string.IsNullOrEmpty(valueLiteral.Value))
+        {
+            throw Scalar_Cannot_CoerceInputLiteral(this, valueLiteral);
+        }
+
         try
         {
             return ParseValueSelection(valueLiteral.Value);
         }
-        catch (Exception ex) when (ex is FieldSelectionMapSyntaxException or ArgumentException)
+        catch (FieldSelectionMapSyntaxException ex)
         {
-            throw new SchemaException(
-                SchemaErrorBuilder.New()
-                    .SetMessage("The field selection set syntax is invalid.")
-                    .Build());
+            throw Scalar_Cannot_CoerceInputLiteral(this, valueLiteral, ex);
         }
     }
 
     /// <inheritdoc />
     protected override IValueSelectionNode OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
-        try
-        {
-            return ParseValueSelection(inputValue.GetString()!);
-        }
-        catch (Exception ex) when (ex is FieldSelectionMapSyntaxException or ArgumentException)
+        var sourceText = inputValue.GetString();
+
+        if (string.IsNullOrEmpty(sourceText))
         {
             throw Scalar_Cannot_CoerceInputValue(this, inputValue);
+        }
+
+        try
+        {
+            return ParseValueSelection(sourceText);
+        }
+        catch (FieldSelectionMapSyntaxException ex)
+        {
+            throw Scalar_Cannot_CoerceInputValue(this, inputValue, ex);
         }
     }
 
