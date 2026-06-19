@@ -36,12 +36,14 @@ public class IntegrationTests
                 .BuildServiceProvider();
 
         var cache = services.GetRequiredService<IMemoryCache>();
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         cache.GetOrCreate(documentId, _ => new OperationDocument(document));
 
         // act
-        var result = await executor.ExecuteAsync(OperationRequest.FromId(documentId));
+        var result = await executor.ExecuteAsync(
+            OperationRequest.FromId(documentId),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -71,10 +73,12 @@ public class IntegrationTests
                 .Services
                 .BuildServiceProvider();
 
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync(OperationRequest.FromId("does_not_exist"));
+        var result = await executor.ExecuteAsync(
+            OperationRequest.FromId("does_not_exist"),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();

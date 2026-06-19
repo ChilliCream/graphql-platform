@@ -35,7 +35,8 @@ public class GeoJsonPolygonTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ test { type coordinates bbox crs }}");
+            "{ test { type coordinates bbox crs }}",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -59,7 +60,8 @@ public class GeoJsonPolygonTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ test { ... on Polygon { type coordinates bbox crs }}}");
+            "{ test { ... on Polygon { type coordinates bbox crs }}}",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();

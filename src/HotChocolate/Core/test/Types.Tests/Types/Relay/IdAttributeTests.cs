@@ -83,7 +83,8 @@ public class IdAttributeTests
                                 { "guidId", guidId },
                                 { "customId", customId }
                             })
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -106,7 +107,8 @@ public class IdAttributeTests
                                 interceptedId(id: 1)
                                 interceptedIds(ids: [1, 2])
                             }")
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -156,7 +158,8 @@ public class IdAttributeTests
                                 { "someId", someId },
                                 { "someIntId", someIntId }
                             })
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         new
@@ -216,7 +219,8 @@ public class IdAttributeTests
                                 { "someIntId", someIntId },
                                 { "someNullableIntId", null }
                             })
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         new
@@ -236,7 +240,7 @@ public class IdAttributeTests
             .AddQueryType<Query>()
             .AddType<FooPayload>()
             .AddGlobalObjectIdentification(false)
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var someId = Convert.ToBase64String("Some:1"u8);
         var someIntId = Convert.ToBase64String("Some:1"u8);
@@ -265,7 +269,8 @@ public class IdAttributeTests
                             {"someId", someId },
                             {"someIntId", someIntId}
                         })
-                    .Build());
+                    .Build(),
+                TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -298,7 +303,8 @@ public class IdAttributeTests
                             }
                             """)
                         .SetVariableValues(new Dictionary<string, object?> { { "someId", someId } })
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         new
@@ -335,7 +341,8 @@ public class IdAttributeTests
                             }
                             """)
                         .SetVariableValues(new Dictionary<string, object?> { { "someId", someId } })
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         new
@@ -377,7 +384,8 @@ public class IdAttributeTests
                             {"someId", legacySomeStringId},
                             {"someIntId", legacySomeIntId}
                         })
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         new
@@ -417,7 +425,8 @@ public class IdAttributeTests
                         {
                             {"customId", legacyStronglyTypedId}
                         })
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         new
@@ -436,7 +445,7 @@ public class IdAttributeTests
                 .AddQueryType<Query>()
                 .AddType<FooPayload>()
                 .AddGlobalObjectIdentification(false)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.ToString().MatchSnapshot();
     }
@@ -455,7 +464,7 @@ public class IdAttributeTests
             })
             .AddGlobalObjectIdentification(false)
             .TryAddTypeInterceptor(inspector)
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal(1, inspector.Count);
     }
@@ -481,7 +490,8 @@ public class IdAttributeTests
                                 }
                             }
                             """)
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchInlineSnapshot(
@@ -519,7 +529,8 @@ public class IdAttributeTests
                       byId(id: "invalid")
                       unrelated
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchInlineSnapshot(
@@ -559,7 +570,8 @@ public class IdAttributeTests
                       byId(id: "invalid") @skip(if: true)
                       unrelated
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchInlineSnapshot(

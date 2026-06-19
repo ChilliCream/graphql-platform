@@ -30,6 +30,11 @@ internal static class ThrowHelper
     public static Exception RouteNotInitialized()
         => new InvalidOperationException("Route is not initialized");
 
+    public static Exception NoHandlerForMessageType(Type messageType, string? endpointName)
+        => new InvalidOperationException(
+            $"No handler or consumer handles message type '{messageType.FullName}' "
+            + $"declared on receive endpoint '{endpointName}'.");
+
     public static Exception TransportConfigurationMissing()
         => new InvalidOperationException("Could not create configuration for transport");
 

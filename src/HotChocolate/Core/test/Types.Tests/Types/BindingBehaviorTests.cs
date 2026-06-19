@@ -14,7 +14,7 @@ public class BindingBehaviorTests
                 .AddQueryType()
                 .AddType<Query1>()
                 .ModifyOptions(o => o.DefaultBindingBehavior = BindingBehavior.Explicit)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchInlineSnapshot(
             """
@@ -104,7 +104,7 @@ public class BindingBehaviorTests
                 .AddType<Query3>()
                 .AddType<BookCategory3Type>()
                 .ModifyOptions(o => o.DefaultBindingBehavior = BindingBehavior.Explicit)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchInlineSnapshot(
             """

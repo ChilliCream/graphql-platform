@@ -12,14 +12,14 @@ export function SimilarPosts({ posts }: SimilarPostsProps) {
   }
 
   return (
-    <section className="mt-12 border-t border-cc-card-border pt-10">
+    <section className="border-cc-card-border mt-12 border-t pt-10 print:hidden">
       <div className="mb-6 flex items-baseline justify-between gap-4">
-        <h2 className="m-0 text-2xl font-semibold text-cc-ink">
+        <h2 className="text-cc-ink m-0 text-2xl font-semibold">
           You might also like
         </h2>
         <Link
           href="/blog"
-          className="flex-none text-sm font-medium text-cc-accent no-underline hover:text-cc-accent-hover"
+          className="text-cc-accent hover:text-cc-accent-hover flex-none text-sm font-medium no-underline"
         >
           View all →
         </Link>

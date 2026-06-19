@@ -11,8 +11,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
-    children:
-      "The best way to predict the future is to invent it. — Alan Kay",
+    children: "The best way to predict the future is to invent it. — Alan Kay",
   },
 };
 

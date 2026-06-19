@@ -1,5 +1,6 @@
 import { listBlogPostSummaries } from "@/src/helpers/blogPosts";
 import { SITE_URL } from "@/src/helpers/siteUrl";
+import { getShareImageSrc } from "@/src/image-optimization/manifest";
 
 export const dynamic = "force-static";
 
@@ -14,6 +15,16 @@ function escape(text: string): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&apos;");
+}
+
+function imageMimeType(src: string): string {
+  if (/\.jpe?g$/i.test(src)) {
+    return "image/jpeg";
+  }
+  if (/\.webp$/i.test(src)) {
+    return "image/webp";
+  }
+  return "image/png";
 }
 
 function asRfc822(iso: string): string {
@@ -32,8 +43,11 @@ export function GET() {
     .map((post) => {
       const url = `${SITE_URL}${post.href}`;
       const description = post.description ?? "";
-      const enclosure = post.featuredImage
-        ? `<enclosure url="${SITE_URL}${escape(post.featuredImage)}" type="image/png" />`
+      const shareImage = post.featuredImage
+        ? getShareImageSrc(post.featuredImage)
+        : null;
+      const enclosure = shareImage
+        ? `<enclosure url="${SITE_URL}${escape(shareImage)}" type="${imageMimeType(shareImage)}" />`
         : "";
       const categories = post.tags
         .map((tag) => `<category>${escape(tag)}</category>`)

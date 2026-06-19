@@ -21,6 +21,10 @@ inputs:
   is_active_major:
     description: Whether the release targets the top lane (version.major >= highest stable major). Forwarded to the dispatched workflow.
     required: true
+  triggered_by:
+    description: GitHub username that triggered the release. Forwarded as `triggered_by` only when set; the target workflow must define that input.
+    required: false
+    default: ""
   token:
     description: "Token with `actions: write` on the target repository."
     required: true
@@ -47,13 +51,21 @@ runs:
         VERSION: ${{ inputs.version }}
         IS_STABLE: ${{ inputs.is_stable }}
         IS_ACTIVE_MAJOR: ${{ inputs.is_active_major }}
+        TRIGGERED_BY: ${{ inputs.triggered_by }}
       run: |
         set -euo pipefail
 
-        RUN_URL=$(gh workflow run "$WORKFLOW" --repo "$REPO" --ref "$REF" \
-          -f version="$VERSION" \
-          -f is_stable="$IS_STABLE" \
-          -f is_active_major="$IS_ACTIVE_MAJOR")
+        ARGS=(
+          -f version="$VERSION"
+          -f is_stable="$IS_STABLE"
+          -f is_active_major="$IS_ACTIVE_MAJOR"
+        )
+        # Only forward when set; target workflows that don't define this input would reject it.
+        if [ -n "$TRIGGERED_BY" ]; then
+          ARGS+=(-f triggered_by="$TRIGGERED_BY")
+        fi
+
+        RUN_URL=$(gh workflow run "$WORKFLOW" --repo "$REPO" --ref "$REF" "${ARGS[@]}")
 
         if [ -z "$RUN_URL" ]; then
           echo "::error::Dispatch did not return a run URL. Requires gh >= 2.87.0 against github.com."

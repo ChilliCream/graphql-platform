@@ -85,7 +85,12 @@ public sealed class PlannerEventSourceTests : FusionTestBase
 
         // act
         Assert.ThrowsAny<Exception>(
-            () => planner.CreatePlan(operationId, "hash1234", "hash1234", operation));
+            () => planner.CreatePlan(
+                operationId,
+                "hash1234",
+                "hash1234",
+                operation,
+                TestContext.Current.CancellationToken));
 
         // assert
         var start = listener.Single(PlannerEventSource.PlanStartEventId, operationId);
@@ -177,7 +182,12 @@ public sealed class PlannerEventSourceTests : FusionTestBase
 
         // act
         var error = Assert.Throws<OperationPlannerGuardrailException>(
-            () => planner.CreatePlan(operationId, operationId, "12345678", operation));
+            () => planner.CreatePlan(
+                operationId,
+                operationId,
+                "12345678",
+                operation,
+                TestContext.Current.CancellationToken));
 
         // assert
         Assert.Equal(OperationPlannerGuardrailReason.MaxExpandedNodesExceeded, error.Reason);

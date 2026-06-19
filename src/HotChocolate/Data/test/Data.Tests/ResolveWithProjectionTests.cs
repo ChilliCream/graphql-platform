@@ -16,7 +16,7 @@ public class ResolveWithProjectionTests
             .AddProjections()
             .AddQueryType<Query>()
             .AddType<TenantType>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -28,7 +28,8 @@ public class ResolveWithProjectionTests
                 }
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -60,7 +61,7 @@ public class ResolveWithProjectionTests
             .AddGraphQL()
             .AddQueryType<AsSelectorQuery>()
             .AddType<TenantType>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -72,7 +73,8 @@ public class ResolveWithProjectionTests
                 }
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(

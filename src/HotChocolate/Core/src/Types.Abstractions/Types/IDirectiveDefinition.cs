@@ -16,6 +16,8 @@ namespace HotChocolate.Types;
 public interface IDirectiveDefinition
     : INameProvider
     , IDescriptionProvider
+    , IDeprecationProvider
+    , IDirectivesProvider
     , IFeatureProvider
     , ISyntaxNodeProvider<DirectiveDefinitionNode>
     , ISchemaCoordinateProvider
@@ -46,6 +48,13 @@ public interface IDirectiveDefinition
     /// a type system member.
     /// </summary>
     DirectiveLocation Locations { get; }
+
+    IReadOnlyDirectiveCollection IDirectivesProvider.Directives
+        => EmptyCollections.Directives;
+
+    bool IDeprecationProvider.IsDeprecated => false;
+
+    string? IDeprecationProvider.DeprecationReason => null;
 
     /// <summary>
     /// Creates a <see cref="DirectiveDefinitionNode"/> from the current <see cref="IDirectiveDefinition"/>.

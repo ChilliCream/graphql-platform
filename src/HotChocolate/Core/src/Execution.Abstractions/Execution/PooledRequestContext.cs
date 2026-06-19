@@ -111,6 +111,8 @@ public sealed class PooledRequestContext : RequestContext
         RequestAborted = CancellationToken.None;
         VariableValues = [];
         Result = null;
+        // dispose the arena if it was never detached (error or zero-event paths).
+        TryDetachMemory()?.Dispose();
         _features.Reset();
         ContextData.Clear();
     }

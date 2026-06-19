@@ -12,7 +12,7 @@ public class OffsetPagingNullabilityRegressionTests
         var schema = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var segmentType = schema.Types.GetType<ObjectType>("FoosCollectionSegment");

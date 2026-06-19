@@ -33,13 +33,13 @@ export function MobileNav({ items, demoHref, nitroHref }: MobileNavProps) {
   // Portal the overlay to <body> so it escapes the Header's
   // `backdrop-filter` containing block (which clips `position: fixed`).
   const overlay = open ? (
-    <div className="fixed inset-0 z-50 flex flex-col bg-cc-surface min-[1060px]:hidden">
-      <div className="flex h-18 flex-none items-center justify-between border-b border-cc-white/10 px-4">
+    <div className="bg-cc-surface fixed inset-0 z-50 flex flex-col min-[1060px]:hidden">
+      <div className="border-cc-white/10 flex h-18 flex-none items-center justify-between border-b px-4">
         <Link
           href="/"
           aria-label="ChilliCream Home"
           onClick={() => setOpen(false)}
-          className="flex h-full items-center text-cc-ink"
+          className="text-cc-ink flex h-full items-center"
         >
           <ChilliCream className="h-8 w-8 fill-current" />
         </Link>
@@ -47,7 +47,7 @@ export function MobileNav({ items, demoHref, nitroHref }: MobileNavProps) {
           type="button"
           aria-label="Close navigation menu"
           onClick={() => setOpen(false)}
-          className="flex h-full items-center px-2 text-cc-ink-dim transition-colors hover:text-cc-ink"
+          className="text-cc-ink-dim hover:text-cc-ink flex h-full items-center px-2 transition-colors"
         >
           <XmarkIcon className="h-5 w-5 fill-current" />
         </button>
@@ -58,7 +58,7 @@ export function MobileNav({ items, demoHref, nitroHref }: MobileNavProps) {
             <Link
               href={item.href}
               onClick={() => setOpen(false)}
-              className="flex h-18 w-full items-center border-b border-cc-white/10 px-6 text-lg font-medium text-cc-ink no-underline transition-colors hover:text-cc-accent"
+              className="border-cc-white/10 text-cc-ink hover:text-cc-accent flex h-18 w-full items-center border-b px-6 text-lg font-medium no-underline transition-colors"
             >
               {item.label}
             </Link>
@@ -68,7 +68,7 @@ export function MobileNav({ items, demoHref, nitroHref }: MobileNavProps) {
           <a
             href={demoHref}
             onClick={() => setOpen(false)}
-            className="text-sm font-medium text-cc-ink-dim no-underline transition-colors hover:text-cc-ink"
+            className="text-cc-ink-dim hover:text-cc-ink text-sm font-medium no-underline transition-colors"
           >
             Contact Us
           </a>
@@ -77,7 +77,7 @@ export function MobileNav({ items, demoHref, nitroHref }: MobileNavProps) {
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => setOpen(false)}
-            className="inline-flex h-9.5 items-center rounded-full bg-cc-ink px-7 text-sm font-medium text-cc-surface no-underline transition-colors hover:bg-cc-white"
+            className="bg-cc-ink text-cc-surface hover:bg-cc-white inline-flex h-10 items-center rounded-full px-7 text-sm font-medium no-underline transition-colors"
           >
             Launch
           </a>
@@ -91,14 +91,14 @@ export function MobileNav({ items, demoHref, nitroHref }: MobileNavProps) {
       <div className="flex items-center gap-2 min-[1060px]:hidden">
         <Search
           ariaLabel="Search"
-          className="flex h-full items-center px-2 text-cc-ink-dim transition-colors hover:text-cc-ink"
+          className="text-cc-ink-dim hover:text-cc-ink flex h-full items-center px-2 transition-colors"
         />
         <button
           type="button"
           aria-label="Open navigation menu"
           aria-expanded={open}
           onClick={() => setOpen(true)}
-          className="flex h-full items-center px-2 text-cc-ink-dim transition-colors hover:text-cc-ink"
+          className="text-cc-ink-dim hover:text-cc-ink flex h-full items-center px-2 transition-colors"
         >
           <BarsIcon className="h-5 w-5 fill-current" />
         </button>

@@ -60,5 +60,9 @@ function toEstree(value) {
       })),
     };
   }
-  return { type: "Literal", value: String(value), raw: JSON.stringify(String(value)) };
+  return {
+    type: "Literal",
+    value: String(value),
+    raw: JSON.stringify(String(value)),
+  };
 }

@@ -19,7 +19,7 @@ public class MongoDbRelayTests
             .AddObjectIdConverters()
             .AddGlobalObjectIdentification()
             .AddMongoDbPagingProviders()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -29,13 +29,14 @@ public class MongoDbRelayTests
                    id
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(result)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -49,7 +50,7 @@ public class MongoDbRelayTests
             .AddObjectIdConverters(compressGlobalIds: false)
             .AddGlobalObjectIdentification()
             .AddMongoDbPagingProviders()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -59,13 +60,14 @@ public class MongoDbRelayTests
                    id
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(result)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -79,7 +81,7 @@ public class MongoDbRelayTests
             .AddObjectIdConverters()
             .AddGlobalObjectIdentification()
             .AddMongoDbPagingProviders()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -89,13 +91,14 @@ public class MongoDbRelayTests
                    id
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(result)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -109,7 +112,7 @@ public class MongoDbRelayTests
             .AddObjectIdConverters(compressGlobalIds: false)
             .AddGlobalObjectIdentification()
             .AddMongoDbPagingProviders()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -119,13 +122,14 @@ public class MongoDbRelayTests
                    id
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(result)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     public class Query

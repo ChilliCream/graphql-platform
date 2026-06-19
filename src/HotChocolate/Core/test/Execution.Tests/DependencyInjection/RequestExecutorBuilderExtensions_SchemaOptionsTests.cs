@@ -16,7 +16,7 @@ public class RequestExecutorBuilderExtensionsSchemaOptionsTests
             .AddType<Query>()
             .ModifyOptions(o => o.ValidatePipelineOrder = false)
             .TryAddTypeInterceptor(interceptor)
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.False(interceptor.Options.ValidatePipelineOrder);
     }

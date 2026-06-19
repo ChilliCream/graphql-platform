@@ -25,6 +25,6 @@ public class MessagingMultiInterfaceTests
                     => default;
             }
             """
-        ]).MatchMarkdownAsync();
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 }

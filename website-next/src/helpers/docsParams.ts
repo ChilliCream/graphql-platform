@@ -48,6 +48,24 @@ export function decodeDocId(id: string): string[] {
 }
 
 /**
+ * Synthetic trailing slug segment used to prerender the static 404 pages. A
+ * slug of `["404"]` maps to `/docs/404` and `["hotchocolate", "404"]` to
+ * `/docs/hotchocolate/404`, giving nginx a per-section page to fall back to.
+ */
+export const NOT_FOUND_SEGMENT = "404";
+
+/**
+ * Top-level product directories under `CONTENT_ROOT` (e.g. `hotchocolate`,
+ * `fusion`). Used to prerender a product-aware 404 page for each one.
+ */
+export function listDocProducts(): string[] {
+  return fs
+    .readdirSync(CONTENT_ROOT, { withFileTypes: true })
+    .filter((e) => e.isDirectory())
+    .map((e) => e.name);
+}
+
+/**
  * Resolves a doc slug to its markdown file path relative to `CONTENT_ROOT`,
  * or `null` when no matching file exists.
  */

@@ -12,6 +12,7 @@ const PRODUCTS = [
   { slug: "strawberryshake", label: "Strawberry Shake" },
   { slug: "nitro", label: "Nitro" },
   { slug: "mocha", label: "Mocha" },
+  { slug: "skillz", label: "Skillz" },
 ];
 
 export default function DocsIndex() {
@@ -27,12 +28,10 @@ export default function DocsIndex() {
             <li key={p.slug}>
               <Link
                 href={`/docs/${p.slug}`}
-                className="block rounded-md border border-cc-card-border p-4 text-cc-ink no-underline transition-colors hover:border-cc-accent hover:text-cc-accent"
+                className="border-cc-card-border text-cc-ink hover:border-cc-accent hover:text-cc-accent block rounded-md border p-4 no-underline transition-colors"
               >
                 <div className="font-medium">{p.label}</div>
-                <div className="text-sm text-cc-ink-dim">
-                  /docs/{p.slug}
-                </div>
+                <div className="text-cc-ink-dim text-sm">/docs/{p.slug}</div>
               </Link>
             </li>
           ))}

@@ -19,7 +19,7 @@ public class PageConnectionCompositeSchemaTests
             .AddSourceSchemaDefaults()
             .AddImplementationFirstTypes()
             .AddPagingArguments()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();

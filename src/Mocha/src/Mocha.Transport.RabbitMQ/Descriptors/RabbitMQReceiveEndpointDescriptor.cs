@@ -43,6 +43,22 @@ internal sealed class RabbitMQReceiveEndpointDescriptor
     }
 
     /// <inheritdoc />
+    public new IRabbitMQReceiveEndpointDescriptor Receives<TMessage>()
+    {
+        base.Receives<TMessage>();
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IRabbitMQReceiveEndpointDescriptor Receives(Type messageType)
+    {
+        base.Receives(messageType);
+
+        return this;
+    }
+
+    /// <inheritdoc />
     public new IRabbitMQReceiveEndpointDescriptor Kind(ReceiveEndpointKind kind)
     {
         base.Kind(kind);

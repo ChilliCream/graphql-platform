@@ -6,11 +6,7 @@ type BlogTeaserGridProps = {
 
 export function BlogTeaserGrid({ posts }: BlogTeaserGridProps) {
   if (posts.length === 0) {
-    return (
-      <p className="text-cc-ink-dim">
-        No posts yet. Check back soon.
-      </p>
-    );
+    return <p className="text-cc-ink-dim">No posts yet. Check back soon.</p>;
   }
 
   return (

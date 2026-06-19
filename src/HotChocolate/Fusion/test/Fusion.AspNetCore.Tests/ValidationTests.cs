@@ -35,10 +35,11 @@ public class ValidationTests : FusionTestBase
             """
             { __schema { description } }
             """,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         response.MatchInlineSnapshot(
             """
             {
@@ -87,10 +88,11 @@ public class ValidationTests : FusionTestBase
             """
             { __schema { description } }
             """,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         response.MatchInlineSnapshot(
             """
             {
@@ -148,10 +150,11 @@ public class ValidationTests : FusionTestBase
             """
             { __schema { description } }
             """,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         response.MatchInlineSnapshot(
             """
             {
@@ -197,9 +200,10 @@ public class ValidationTests : FusionTestBase
             """
             { __schema { description } }
             """,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
-        using var response1 = await result1.ReadAsResultAsync();
+        using var response1 = await result1.ReadAsResultAsync(TestContext.Current.CancellationToken);
         snapshot.Add(response1);
 
         var innerClient = gateway.CreateClient();
@@ -210,9 +214,10 @@ public class ValidationTests : FusionTestBase
             """
             { __schema { description } }
             """,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
-        using var response2 = await result2.ReadAsResultAsync();
+        using var response2 = await result2.ReadAsResultAsync(TestContext.Current.CancellationToken);
         snapshot.Add(response2);
 
         // assert

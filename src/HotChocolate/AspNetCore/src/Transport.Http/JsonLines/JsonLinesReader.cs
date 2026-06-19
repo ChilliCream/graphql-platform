@@ -19,7 +19,7 @@ namespace HotChocolate.Transport.Http;
 #endif
 
 #if FUSION
-internal class JsonLinesReader(HttpResponseMessage message) : IAsyncEnumerable<SourceResultDocument>
+internal class JsonLinesReader(HttpResponseMessage message, IMemoryArenaSource arenaSource) : IAsyncEnumerable<SourceResultDocument>
 #else
 internal class JsonLinesReader(HttpResponseMessage message) : IAsyncEnumerable<OperationResult>
 #endif
@@ -73,7 +73,7 @@ internal class JsonLinesReader(HttpResponseMessage message) : IAsyncEnumerable<O
                     if (!IsEmptyLine(line))
                     {
 #if FUSION
-                        yield return ParseDocument(line);
+                        yield return ParseDocument(arenaSource.GetNextArena(), line);
 #else
                         var document = ParseDocument(line);
                         yield return OperationResult.Parse(document);
@@ -98,69 +98,57 @@ internal class JsonLinesReader(HttpResponseMessage message) : IAsyncEnumerable<O
     }
 
 #if FUSION
-    private static SourceResultDocument ParseDocument(ReadOnlySequence<byte> lineBuffer)
+    private static SourceResultDocument ParseDocument(IMemoryArena arena, ReadOnlySequence<byte> lineBuffer)
     {
-        var requiredSize = (int)lineBuffer.Length;
-
-        // Ceiling division to make sure we end up with the right amount of chunks.
-        var chunksNeeded = (requiredSize + JsonMemory.BufferSize - 1) / JsonMemory.BufferSize;
-        var chunks = JsonMemory.RentRange(JsonMemoryKind.Json, chunksNeeded);
+        // Each record is one newline-delimited line. Its content bytes are filled once, directly into
+        // the arena's geometric segments using the same per-record mechanic as the SSE reader, then
+        // parsed in place via ParseFilled so no bytes are copied a second time.
+        var chunks = arena.RentSegmentTable(64);
         var chunkIndex = 0;
-        var chunkPosition = 0;
+        var chunkSize = SourceResultDocument.GetDataChunkSize(chunkIndex);
+        var current = chunks[chunkIndex] = arena.Rent(chunkSize);
+        var currentChunkPosition = 0;
 
-        // Copy lineBuffer data into pre-allocated chunks
-        if (lineBuffer.IsSingleSegment)
+        foreach (var segment in lineBuffer)
         {
-            var span = lineBuffer.First.Span;
-            WriteBytesToChunks(chunks, ref chunkIndex, ref chunkPosition, span);
-        }
-        else
-        {
-            var position = lineBuffer.Start;
-            while (lineBuffer.TryGet(ref position, out var memory))
+            var source = segment.Span;
+            var segmentOffset = 0;
+
+            while (segmentOffset < source.Length)
             {
-                WriteBytesToChunks(chunks, ref chunkIndex, ref chunkPosition, memory.Span);
+                var spaceInCurrentChunk = chunkSize - currentChunkPosition;
+                var bytesToCopy = Math.Min(spaceInCurrentChunk, source.Length - segmentOffset);
+
+                source.Slice(segmentOffset, bytesToCopy).CopyTo(current.Span.Slice(currentChunkPosition));
+                currentChunkPosition += bytesToCopy;
+                segmentOffset += bytesToCopy;
+
+                if (currentChunkPosition == chunkSize)
+                {
+                    if (chunkIndex + 1 >= SourceResultDocument.DataMaxChunks)
+                    {
+                        throw new InvalidOperationException(
+                            "The source result document has exceeded its maximum data capacity.");
+                    }
+
+                    if (chunkIndex + 1 >= chunks.Length)
+                    {
+                        arena.GrowSegmentTable(ref chunks);
+                    }
+
+                    chunkIndex++;
+                    chunkSize = SourceResultDocument.GetDataChunkSize(chunkIndex);
+                    current = chunks[chunkIndex] = arena.Rent(chunkSize);
+                    currentChunkPosition = 0;
+                }
             }
         }
 
-        var lastBufferSize = requiredSize % JsonMemory.BufferSize;
-        if (lastBufferSize == 0 && chunks.Length > 0)
-        {
-            lastBufferSize = JsonMemory.BufferSize;
-        }
-
-        return SourceResultDocument.Parse(
+        return SourceResultDocument.ParseFilled(
+            arena,
             chunks,
-            lastBufferSize,
-            chunksNeeded,
-            pooledMemory: true);
-    }
-
-    private static void WriteBytesToChunks(
-        byte[][] chunks,
-        ref int chunkIndex,
-        ref int chunkPosition,
-        ReadOnlySpan<byte> data)
-    {
-        var dataOffset = 0;
-
-        while (dataOffset < data.Length)
-        {
-            if (chunkPosition >= JsonMemory.BufferSize)
-            {
-                chunkPosition = 0;
-                chunkIndex++;
-            }
-
-            var currentChunk = chunks[chunkIndex];
-            var spaceInChunk = JsonMemory.BufferSize - chunkPosition;
-            var bytesToWrite = Math.Min(spaceInChunk, data.Length - dataOffset);
-
-            data.Slice(dataOffset, bytesToWrite).CopyTo(currentChunk.AsSpan(chunkPosition));
-
-            dataOffset += bytesToWrite;
-            chunkPosition += bytesToWrite;
-        }
+            usedChunks: chunkIndex + 1,
+            lastLength: currentChunkPosition);
     }
 #else
     private static JsonDocumentOwner ParseDocument(ReadOnlySequence<byte> lineBuffer)

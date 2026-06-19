@@ -15,11 +15,13 @@ function languageStory(
   language: string,
   code: string,
   meta?: string,
-  options: { name?: string } = {}
+  options: { name?: string } = {},
 ): Story {
   return {
     ...(options.name ? { name: options.name } : {}),
-    loaders: [async () => ({ rendered: await renderBlock(language, code, meta) })],
+    loaders: [
+      async () => ({ rendered: await renderBlock(language, code, meta) }),
+    ],
     render: (_args, ctx) => ctx.loaded.rendered as ReactElement,
   };
 }
@@ -168,21 +170,21 @@ export const TypeScript: Story = languageStory(
   "tsx",
   tsxSample,
   'filename="Counter.tsx"',
-  { name: "TypeScript" }
+  { name: "TypeScript" },
 );
 
 export const JavaScript: Story = languageStory(
   "jsx",
   jsxSample,
   'filename="Counter.jsx"',
-  { name: "JavaScript" }
+  { name: "JavaScript" },
 );
 
 export const CSharp: Story = languageStory(
   "csharp",
   csharpSample,
   'filename="Query.cs"',
-  { name: "C#" }
+  { name: "C#" },
 );
 
 export const Bash: Story = languageStory("bash", bashSample);
@@ -191,14 +193,14 @@ export const GraphQL: Story = languageStory(
   "graphql",
   graphqlSample,
   'filename="GetBook.graphql"',
-  { name: "GraphQL" }
+  { name: "GraphQL" },
 );
 
 export const SDL: Story = languageStory(
   "sdl",
   sdlSample,
   'filename="schema.graphql"',
-  { name: "SDL" }
+  { name: "SDL" },
 );
 
 export const HTTP: Story = languageStory("http", httpSample, undefined, {
@@ -209,7 +211,7 @@ export const JSON: Story = languageStory(
   "json",
   jsonSample,
   'filename="response.json"',
-  { name: "JSON" }
+  { name: "JSON" },
 );
 
 export const SQL: Story = languageStory("sql", sqlSample, undefined, {
@@ -220,21 +222,21 @@ export const Html: Story = languageStory(
   "html",
   htmlSample,
   'filename="index.html"',
-  { name: "HTML" }
+  { name: "HTML" },
 );
 
 export const Css: Story = languageStory(
   "css",
   cssSample,
   'filename="styles.css"',
-  { name: "CSS" }
+  { name: "CSS" },
 );
 
 export const XML: Story = languageStory(
   "xml",
   xmlSample,
   'filename="library.xml"',
-  { name: "XML" }
+  { name: "XML" },
 );
 
 export const Diff: Story = languageStory("diff", diffSample);
@@ -243,7 +245,7 @@ export const PlainText: Story = languageStory(
   "text",
   "Just some plain text. No syntax highlighting applied.",
   undefined,
-  { name: "Plain Text" }
+  { name: "Plain Text" },
 );
 
 export const Mermaid: Story = languageStory("mermaid", mermaidSample);

@@ -19,11 +19,11 @@ public class HttpGetSchemaMiddlewareTests(TestServerFactory serverFactory) : Ser
         var request = new HttpRequestMessage(HttpMethod.Get, url);
 
         // act
-        var response = await server.CreateClient().SendAsync(request);
+        var response = await server.CreateClient().SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var result = await response.Content.ReadAsStringAsync();
+        var result = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -46,7 +46,7 @@ public class HttpGetSchemaMiddlewareTests(TestServerFactory serverFactory) : Ser
         var request = new HttpRequestMessage(HttpMethod.Get, url);
 
         // act
-        var response = await server.CreateClient().SendAsync(request);
+        var response = await server.CreateClient().SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -75,7 +75,7 @@ public class HttpGetSchemaMiddlewareTests(TestServerFactory serverFactory) : Ser
         var request = new HttpRequestMessage(HttpMethod.Get, url);
 
         // act
-        var response = await server.CreateClient().SendAsync(request);
+        var response = await server.CreateClient().SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -102,7 +102,7 @@ public class HttpGetSchemaMiddlewareTests(TestServerFactory serverFactory) : Ser
         var request = new HttpRequestMessage(HttpMethod.Get, url);
 
         // act
-        var response = await server.CreateClient().SendAsync(request);
+        var response = await server.CreateClient().SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
@@ -117,11 +117,11 @@ public class HttpGetSchemaMiddlewareTests(TestServerFactory serverFactory) : Ser
         var request = new HttpRequestMessage(HttpMethod.Get, url);
 
         // act
-        var response = await server.CreateClient().SendAsync(request);
+        var response = await server.CreateClient().SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var result = await response.Content.ReadAsStringAsync();
+        var result = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -135,11 +135,11 @@ public class HttpGetSchemaMiddlewareTests(TestServerFactory serverFactory) : Ser
         var request = new HttpRequestMessage(HttpMethod.Get, url);
 
         // act
-        var response = await server.CreateClient().SendAsync(request);
+        var response = await server.CreateClient().SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var result = await response.Content.ReadAsStringAsync();
+        var result = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -153,11 +153,11 @@ public class HttpGetSchemaMiddlewareTests(TestServerFactory serverFactory) : Ser
         var request = new HttpRequestMessage(HttpMethod.Get, url);
 
         // act
-        var response = await server.CreateClient().SendAsync(request);
+        var response = await server.CreateClient().SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        var result = await response.Content.ReadAsStringAsync();
+        var result = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         result.MatchSnapshot();
     }
 
@@ -170,11 +170,11 @@ public class HttpGetSchemaMiddlewareTests(TestServerFactory serverFactory) : Ser
         var request = new HttpRequestMessage(HttpMethod.Get, url);
 
         // act
-        var response = await server.CreateClient().SendAsync(request);
+        var response = await server.CreateClient().SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        var result = await response.Content.ReadAsStringAsync();
+        var result = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         result.MatchSnapshot();
     }
 
@@ -187,11 +187,11 @@ public class HttpGetSchemaMiddlewareTests(TestServerFactory serverFactory) : Ser
         var request = new HttpRequestMessage(HttpMethod.Get, url);
 
         // act
-        var response = await server.CreateClient().SendAsync(request);
+        var response = await server.CreateClient().SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        var result = await response.Content.ReadAsStringAsync();
+        var result = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         result.MatchSnapshot();
     }
 
@@ -204,11 +204,11 @@ public class HttpGetSchemaMiddlewareTests(TestServerFactory serverFactory) : Ser
         var request = new HttpRequestMessage(HttpMethod.Get, url);
 
         // act
-        var response = await server.CreateClient().SendAsync(request);
+        var response = await server.CreateClient().SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var result = await response.Content.ReadAsStringAsync();
+        var result = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -222,11 +222,11 @@ public class HttpGetSchemaMiddlewareTests(TestServerFactory serverFactory) : Ser
         var request = new HttpRequestMessage(HttpMethod.Get, url);
 
         // act
-        var response = await server.CreateClient().SendAsync(request);
+        var response = await server.CreateClient().SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var result = await response.Content.ReadAsStringAsync();
+        var result = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         result.MatchSnapshot();
     }
 
@@ -247,11 +247,11 @@ public class HttpGetSchemaMiddlewareTests(TestServerFactory serverFactory) : Ser
         var request = new HttpRequestMessage(HttpMethod.Get, url);
 
         // act
-        var response = await server.CreateClient().SendAsync(request);
+        var response = await server.CreateClient().SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        var result = await response.Content.ReadAsStringAsync();
+        var result = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         result.MatchSnapshot();
     }
 
@@ -272,11 +272,11 @@ public class HttpGetSchemaMiddlewareTests(TestServerFactory serverFactory) : Ser
         var request = new HttpRequestMessage(HttpMethod.Get, url);
 
         // act
-        var response = await server.CreateClient().SendAsync(request);
+        var response = await server.CreateClient().SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var result = await response.Content.ReadAsStringAsync();
+        var result = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         result.MatchSnapshot();
     }
 
@@ -298,11 +298,11 @@ public class HttpGetSchemaMiddlewareTests(TestServerFactory serverFactory) : Ser
         var request = new HttpRequestMessage(HttpMethod.Get, url);
 
         // act
-        var response = await server.CreateClient().SendAsync(request);
+        var response = await server.CreateClient().SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var result = await response.Content.ReadAsStringAsync();
+        var result = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         result.MatchSnapshot();
     }
 

@@ -1,6 +1,23 @@
+import type { Metadata } from "next";
+
 import { type Plan, PlanGrid } from "@/src/components/PlanGrid";
 import { PageHero } from "@/src/components/PageHero";
 import { Section } from "@/src/components/Section";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeaderCell,
+  TableRow,
+} from "@/src/design-system/Table";
+import { CheckIcon } from "@/src/components/CheckIcon";
+
+export const metadata: Metadata = {
+  title: "Support",
+  description:
+    "Get GraphQL support from ChilliCream experts: plans from a free community Slack to enterprise SLAs with dedicated account managers and phone support.",
+};
 
 const SUPPORT_PLANS: Plan[] = [
   {
@@ -97,46 +114,38 @@ export default function SupportPage() {
       </Section>
 
       <Section title="Compare our Support Plans">
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-sm">
-            <thead>
-              <tr className="border-b border-cc-card-border">
-                <th className="px-4 py-3 text-left font-semibold text-cc-ink">
-                  Support
-                </th>
-                {PLAN_NAMES.map((name) => (
-                  <th
-                    key={name}
-                    className="px-4 py-3 text-center font-semibold text-cc-ink"
-                  >
-                    {name}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {COMPARISON.map((row) => (
-                <tr key={row.title} className="border-b border-cc-card-border">
-                  <td className="px-4 py-3 text-cc-ink">{row.title}</td>
-                  {row.values.map((v, i) => (
-                    <td
-                      key={i}
-                      className="px-4 py-3 text-center text-cc-ink"
-                    >
-                      {v === true ? (
-                        <span className="text-fuchsia-400">✓</span>
-                      ) : v === false ? (
-                        <span className="text-cc-ink-faint">—</span>
-                      ) : (
-                        v
-                      )}
-                    </td>
-                  ))}
-                </tr>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableHeaderCell>Support</TableHeaderCell>
+              {PLAN_NAMES.map((name) => (
+                <TableHeaderCell key={name} align="center">
+                  {name}
+                </TableHeaderCell>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {COMPARISON.map((row) => (
+              <TableRow key={row.title}>
+                <TableCell>{row.title}</TableCell>
+                {row.values.map((v, i) => (
+                  <TableCell key={i} align="center">
+                    {v === true ? (
+                      <span className="text-cc-accent inline-flex items-center justify-center">
+                        <CheckIcon />
+                      </span>
+                    ) : v === false ? (
+                      <span className="text-cc-prose">—</span>
+                    ) : (
+                      v
+                    )}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </Section>
     </>
   );

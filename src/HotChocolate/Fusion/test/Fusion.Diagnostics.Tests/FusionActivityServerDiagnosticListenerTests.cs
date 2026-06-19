@@ -2,6 +2,7 @@ using HotChocolate.Diagnostics;
 using HotChocolate.Resolvers;
 using HotChocolate.Transport.Http;
 using Microsoft.Extensions.DependencyInjection;
+using static CookieCrumble.TestEnvironment;
 using static HotChocolate.Fusion.Diagnostics.ActivityTestHelper;
 using OperationRequest = HotChocolate.Transport.OperationRequest;
 
@@ -31,11 +32,11 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
             var request = new OperationRequest("{ sayHello }");
 
             // act
-            using var result = await client.PostAsync(request, s_url);
-            await result.ReadAsResultAsync();
+            using var result = await client.PostAsync(request, s_url, TestContext.Current.CancellationToken);
+            await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -59,11 +60,11 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
             var request = new OperationRequest("{ sayHello }");
 
             // act
-            using var result = await client.PostAsync(request, s_url);
-            await result.ReadAsResultAsync();
+            using var result = await client.PostAsync(request, s_url, TestContext.Current.CancellationToken);
+            await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -87,11 +88,11 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
             var request = new OperationRequest("{ sayHello }");
 
             // act
-            using var result = await client.GetAsync(request, s_url);
-            await result.ReadAsResultAsync();
+            using var result = await client.GetAsync(request, s_url, TestContext.Current.CancellationToken);
+            await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -121,11 +122,11 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
                 variables: new Dictionary<string, object?> { { "name", "World" } });
 
             // act
-            using var result = await client.PostAsync(request, s_url);
-            await result.ReadAsResultAsync();
+            using var result = await client.PostAsync(request, s_url, TestContext.Current.CancellationToken);
+            await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -159,11 +160,11 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
                 variables: new Dictionary<string, object?> { { "name", "World" } });
 
             // act
-            using var result = await client.PostAsync(request, s_url);
-            await result.ReadAsResultAsync();
+            using var result = await client.PostAsync(request, s_url, TestContext.Current.CancellationToken);
+            await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -194,11 +195,11 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
                 extensions: new Dictionary<string, object?> { { "test", "abc" } });
 
             // act
-            using var result = await client.PostAsync(request, s_url);
-            await result.ReadAsResultAsync();
+            using var result = await client.PostAsync(request, s_url, TestContext.Current.CancellationToken);
+            await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -221,11 +222,11 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
             var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost:5000/graphql?sdl");
 
             // act
-            var response = await httpClient.SendAsync(request);
+            var response = await httpClient.SendAsync(request, TestContext.Current.CancellationToken);
 
             // assert
-            await response.Content.ReadAsStringAsync();
-            activities.MatchSnapshot();
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -261,11 +262,11 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
                 """);
 
             // act
-            using var result = await client.PostAsync(request, s_url);
-            await result.ReadAsResultAsync();
+            using var result = await client.PostAsync(request, s_url, TestContext.Current.CancellationToken);
+            await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -300,11 +301,11 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
                 extensions: new Dictionary<string, object?> { { "test", "abc" } });
 
             // act
-            using var result = await client.PostAsync(request, s_url);
-            await result.ReadAsResultAsync();
+            using var result = await client.PostAsync(request, s_url, TestContext.Current.CancellationToken);
+            await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -339,11 +340,11 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
                 extensions: new Dictionary<string, object?> { { "test", "abc" } });
 
             // act
-            using var result = await client.PostAsync(request, s_url);
-            await result.ReadAsResultAsync();
+            using var result = await client.PostAsync(request, s_url, TestContext.Current.CancellationToken);
+            await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -371,11 +372,11 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
             var request = new OperationRequest("{ sayHello }");
 
             // act
-            using var result = await client.PostAsync(request, s_url);
-            await result.ReadAsResultAsync();
+            using var result = await client.PostAsync(request, s_url, TestContext.Current.CancellationToken);
+            await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -405,11 +406,11 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
                 extensions: new Dictionary<string, object?> { { "test", "abc" } });
 
             // act
-            using var result = await client.PostAsync(request, s_url);
-            await result.ReadAsResultAsync();
+            using var result = await client.PostAsync(request, s_url, TestContext.Current.CancellationToken);
+            await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 

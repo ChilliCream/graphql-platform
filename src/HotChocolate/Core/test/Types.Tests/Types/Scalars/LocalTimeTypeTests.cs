@@ -143,7 +143,7 @@ public class LocalTimeTypeTests
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultValue = resultDocument.Data.GetProperty("first");
         type.CoerceOutputValue(time, resultValue);
 
@@ -166,7 +166,7 @@ public class LocalTimeTypeTests
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultValue = resultDocument.Data.GetProperty("first");
         type.CoerceOutputValue(timeOnly, resultValue);
 
@@ -183,7 +183,7 @@ public class LocalTimeTypeTests
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultValue = resultDocument.Data.GetProperty("first");
         type.CoerceOutputValue(timeOnly, resultValue);
 
@@ -199,7 +199,7 @@ public class LocalTimeTypeTests
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultValue = resultDocument.Data.GetProperty("first");
         void Action() => type.CoerceOutputValue(123, resultValue);
 
@@ -274,7 +274,7 @@ public class LocalTimeTypeTests
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryDateTime1>()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -291,7 +291,8 @@ public class LocalTimeTypeTests
                         time(time: "11:22:00")
                     }
                 }
-                """)
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -301,7 +302,7 @@ public class LocalTimeTypeTests
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryDateTime2>()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -318,7 +319,8 @@ public class LocalTimeTypeTests
                         time
                     }
                 }
-                """)
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 

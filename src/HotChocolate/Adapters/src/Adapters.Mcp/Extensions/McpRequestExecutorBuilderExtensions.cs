@@ -43,6 +43,36 @@ public static class McpRequestExecutorBuilderExtensions
     }
 
     /// <summary>
+    /// Modifies the options that control how MCP tools are generated from operations.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
+    /// </param>
+    /// <param name="configure">
+    /// A delegate to modify the <see cref="McpToolOptions"/>.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="builder"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="configure"/> is <c>null</c>.
+    /// </exception>
+    public static IRequestExecutorBuilder ModifyMcpToolOptions(
+        this IRequestExecutorBuilder builder,
+        Action<McpToolOptions> configure)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
+
+        builder.ConfigureSchemaServices(services => services.AddSingleton(configure));
+
+        return builder;
+    }
+
+    /// <summary>
     /// Adds an MCP storage to the schema.
     /// </summary>
     /// <param name="builder">
