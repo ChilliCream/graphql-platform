@@ -37,6 +37,18 @@
       "Name": "order-processor",
       "AutoProvision": true,
       "Source": "declared"
+    },
+    {
+      "Kind": "queue",
+      "Name": "order-processor_error",
+      "AutoProvision": true,
+      "Source": "convention"
+    },
+    {
+      "Kind": "queue",
+      "Name": "order-processor_skipped",
+      "AutoProvision": true,
+      "Source": "convention"
     }
   ],
   "Links": [

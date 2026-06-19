@@ -239,12 +239,6 @@ public sealed class RabbitMQMessagingTransportDescriptor
         foreach (var queue in _queues.Select(q => q.CreateConfiguration()))
         {
             ConfigureQueueTopology(queue);
-            if (IsEntityOnly(queue))
-            {
-                ValidateEntityOnlyQueue(queue);
-                continue;
-            }
-
             ConfigureQueueEndpoint(queue);
         }
 
@@ -325,33 +319,6 @@ public sealed class RabbitMQMessagingTransportDescriptor
         CopyFaultEndpointFeature(configuration, target);
         CopySkippedEndpointFeature(configuration, target);
     }
-
-    private static bool IsEntityOnly(RabbitMQQueueDescriptorConfiguration configuration)
-        => configuration.ConsumerIdentities.Count == 0
-            && configuration.ReceivedMessageTypes.Count == 0;
-
-    private static void ValidateEntityOnlyQueue(RabbitMQQueueDescriptorConfiguration configuration)
-    {
-        var queueName = configuration.Name!;
-
-        if (HasEndpoint(configuration.Features.Get<ReceiveFaultEndpointFeature>()))
-        {
-            throw ThrowHelper.FaultOrSkippedQueueRequiresConsumingEndpoint("error", queueName);
-        }
-
-        if (HasEndpoint(configuration.Features.Get<ReceiveSkippedEndpointFeature>()))
-        {
-            throw ThrowHelper.FaultOrSkippedQueueRequiresConsumingEndpoint("skipped", queueName);
-        }
-    }
-
-    private static bool HasEndpoint(ReceiveFaultEndpointFeature? feature)
-        => feature is { IsDisabled: false, Address: not null }
-            or { IsDisabled: false, QueueName: not null };
-
-    private static bool HasEndpoint(ReceiveSkippedEndpointFeature? feature)
-        => feature is { IsDisabled: false, Address: not null }
-            or { IsDisabled: false, QueueName: not null };
 
     private static void CopyFaultEndpointFeature(
         RabbitMQQueueDescriptorConfiguration configuration,

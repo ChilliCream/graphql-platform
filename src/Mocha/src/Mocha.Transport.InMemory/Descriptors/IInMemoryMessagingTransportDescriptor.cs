@@ -97,9 +97,9 @@ public interface IInMemoryMessagingTransportDescriptor : IMessagingTransportDesc
         where TConsumer : class, IConsumer;
 
     /// <summary>
-    /// Gets or creates the queue descriptor for the given queue name. The queue is eagerly declared
-    /// in the topology. If only topology methods are called, no receive endpoint is materialized.
-    /// Calling this method multiple times with the same name returns the same descriptor.
+    /// Gets or creates the queue descriptor for the given queue name. The queue is declared
+    /// in the topology and has a receive endpoint using the same identity. Calling this method
+    /// multiple times with the same name returns the same descriptor.
     /// </summary>
     /// <param name="name">The queue name. Also serves as the endpoint identity.</param>
     /// <returns>A queue descriptor for further configuration.</returns>

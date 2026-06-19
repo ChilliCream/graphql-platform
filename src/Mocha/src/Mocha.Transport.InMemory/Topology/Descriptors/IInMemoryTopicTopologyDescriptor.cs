@@ -1,14 +1,14 @@
 namespace Mocha.Transport.InMemory;
 
 /// <summary>
-/// Fluent interface for configuring a InMemory exchange.
+/// Fluent interface for configuring an in-memory topic topology entity.
 /// </summary>
 public interface IInMemoryTopicTopologyDescriptor : IMessagingDescriptor<InMemoryTopicConfiguration>
 {
     /// <summary>
-    /// Sets the name of the exchange.
+    /// Sets the name of the topic.
     /// </summary>
-    /// <param name="name">The exchange name.</param>
+    /// <param name="name">The topic name.</param>
     /// <returns>The descriptor for method chaining.</returns>
     IInMemoryTopicTopologyDescriptor Name(string name);
 }

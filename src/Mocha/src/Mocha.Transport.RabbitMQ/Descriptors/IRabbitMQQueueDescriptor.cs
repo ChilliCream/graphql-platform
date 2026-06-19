@@ -1,9 +1,7 @@
 namespace Mocha.Transport.RabbitMQ;
 
 /// <summary>
-/// Fluent descriptor for configuring a RabbitMQ queue that composes a topology queue descriptor with
-/// a lazily created receive endpoint. Infra-only usage (no consumer or routing method called)
-/// produces a declared queue in the topology without materializing a receive endpoint.
+/// Fluent descriptor for configuring a RabbitMQ queue and its receive endpoint.
 /// </summary>
 public interface IRabbitMQQueueDescriptor : IMessagingDescriptor<RabbitMQQueueDescriptorConfiguration>
 {
@@ -167,7 +165,7 @@ public interface IRabbitMQQueueDescriptor : IMessagingDescriptor<RabbitMQQueueDe
 
     /// <summary>
     /// Binds this queue to a source exchange, writing the exchange and binding directly to the
-    /// transport topology without materializing a receive endpoint.
+    /// transport topology.
     /// </summary>
     /// <param name="source">The source URI identifying the exchange.</param>
     /// <param name="routingKey">An optional routing key for the binding.</param>

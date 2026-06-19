@@ -1,9 +1,7 @@
 namespace Mocha.Transport.Postgres;
 
 /// <summary>
-/// Fluent descriptor for configuring a PostgreSQL queue that composes a topology queue descriptor with
-/// a lazily created receive endpoint. Infra-only usage (no consumer or routing method called)
-/// produces a declared queue in the topology without materializing a receive endpoint.
+/// Fluent descriptor for configuring a PostgreSQL queue and its receive endpoint.
 /// </summary>
 public interface IPostgresQueueDescriptor : IMessagingDescriptor<PostgresQueueDescriptorConfiguration>
 {
@@ -152,7 +150,7 @@ public interface IPostgresQueueDescriptor : IMessagingDescriptor<PostgresQueueDe
 
     /// <summary>
     /// Binds this queue to a source topic, writing the topic and subscription directly to the
-    /// transport topology without materializing a receive endpoint.
+    /// transport topology.
     /// </summary>
     /// <param name="source">The source URI identifying the topic.</param>
     /// <returns>The descriptor for method chaining.</returns>

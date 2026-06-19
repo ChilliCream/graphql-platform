@@ -1,47 +1,44 @@
 using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
+using Mocha.Features;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Descriptors;
 
 /// <summary>
-/// Verifies the unified Queue() front-door build-time behavior: an entity-only handle lowers to a
-/// declared queue without entering the receive-endpoint lifecycle, error and skipped queues on an entity-only queue
-/// are a build error, and a configuration that uses no Queue() handle is left byte-identical.
+/// Verifies the unified Queue() front-door build-time behavior and that a configuration
+/// that uses no Queue() handle is left byte-identical.
 /// </summary>
 public class RabbitMQQueueFrontDoorLoweringTests
 {
     [Fact]
-    public void Build_Should_Throw_When_ErrorQueueConfiguredOnEntityOnlyQueue()
+    public void Queue_Should_ConfigureErrorQueue_When_NoConsumerAttached()
     {
         // arrange
-        // An entity-only Queue() handle (no consumer, no Receives) cannot honor an error queue
-        // because no consumer processes failed messages, so configuring one is a build error.
-        void Build()
-        {
-            CreateRuntime(
-                b => { },
-                t =>
-                {
-                    t.BindExplicitly();
-                    t.Queue("audit").ErrorQueue("audit_error");
-                });
-        }
+        var runtime = CreateRuntime(
+            b => { },
+            t =>
+            {
+                t.BindExplicitly();
+                t.Queue("audit").ErrorQueue("audit_error");
+            });
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
         // act
-        var exception = Assert.Throws<InvalidOperationException>(Build);
+        var endpoint = transport.ReceiveEndpoints
+            .OfType<RabbitMQReceiveEndpoint>()
+            .Single(e => e.Queue.Name == "audit");
+        var feature = endpoint.Configuration.Features.Get<ReceiveFaultEndpointFeature>();
 
         // assert
-        Assert.Contains("audit", exception.Message);
-        Assert.Contains("entity-only queue", exception.Message);
+        Assert.Equal("rabbitmq:q/audit_error", feature?.Address?.OriginalString);
+        Assert.False(feature?.IsDisabled ?? false);
     }
 
     [Fact]
-    public void Describe_Should_ShowEntityOnlyQueue_When_QueueWithoutConsumersOrReceives()
+    public void Queue_Should_MaterializeReceiveEndpoint_When_NoConsumersOrReceives()
     {
         // arrange
-        // An entity-only Queue() handle (no consumer, no Receives) lowers to a declared queue and
-        // produces no receive endpoint, error/skipped queues, or instance queue.
         var runtime = CreateRuntime(
             b => { },
             t =>
@@ -52,20 +49,19 @@ public class RabbitMQQueueFrontDoorLoweringTests
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
         // act
-        var description = transport.Describe();
+        var endpoint = transport.ReceiveEndpoints
+            .OfType<RabbitMQReceiveEndpoint>()
+            .SingleOrDefault(e => e.Queue.Name == "audit");
 
-        // assert: no receive endpoint was materialized for the entity-only "audit" queue
-        Assert.DoesNotContain(
-            transport.ReceiveEndpoints.OfType<RabbitMQReceiveEndpoint>(),
-            e => e.Queue.Name == "audit");
-        RabbitMQDescribeSnapshot.Create(description).MatchSnapshot();
+        // assert
+        Assert.NotNull(endpoint);
     }
 
     [Fact]
-    public void Describe_Should_ApplyQuorumArgument_When_EntityOnlyQueueIsQuorum()
+    public void Describe_Should_ApplyQuorumArgument_When_QueueIsQuorum()
     {
         // arrange
-        // The unified handle's Quorum() shape verb sets x-queue-type on the lowered declared queue.
+        // The unified handle's Quorum() shape verb sets x-queue-type on the declared queue.
         var runtime = CreateRuntime(
             b => { },
             t =>

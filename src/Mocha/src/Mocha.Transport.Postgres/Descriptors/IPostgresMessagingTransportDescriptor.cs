@@ -114,10 +114,9 @@ public interface IPostgresMessagingTransportDescriptor
         where TConsumer : class, IConsumer;
 
     /// <summary>
-    /// Gets or creates a queue descriptor whose identity is the given queue name. The descriptor
-    /// eagerly declares a queue in the topology and lazily creates a receive endpoint when routing
-    /// methods (Consumer, Handler, Receives, etc.) are called. Calling this method multiple times
-    /// with the same name returns the same descriptor.
+    /// Gets or creates a queue descriptor whose identity is the given queue name. The queue is
+    /// declared in the topology and has a receive endpoint using the same identity. Calling this
+    /// method multiple times with the same name returns the same descriptor.
     /// </summary>
     /// <param name="name">The queue name, which also serves as the endpoint identity.</param>
     /// <returns>A queue descriptor for further configuration.</returns>

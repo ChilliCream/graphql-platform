@@ -8,7 +8,7 @@ using Mocha.Features;
 namespace Mocha.Transport.RabbitMQ.Tests.Descriptors;
 
 /// <summary>
-/// Verifies the identity, entity-only lowering, convergence, saga placement, and axis-A claim
+/// Verifies the identity, endpoint materialization, convergence, saga placement, and axis-A claim
 /// behavior of the unified <c>t.Queue(name)</c> front door.
 /// </summary>
 public class RabbitMQUnifiedQueueTests
@@ -89,14 +89,12 @@ public class RabbitMQUnifiedQueueTests
         Assert.Equal("my-queue", endpoint.Name);
     }
 
-    // --- Entity-only ---
+    // --- Endpoint materialization ---
 
     [Fact]
-    public void Queue_Should_NotMaterializeReceiveEndpoint_When_NoConsumersOrReceives()
+    public void Queue_Should_MaterializeReceiveEndpoint_When_NoConsumersOrReceives()
     {
         // arrange
-        // An entity-only Queue() handle (no consumer, no Receives) lowers to a declared queue
-        // entity without entering the receive-endpoint lifecycle.
         var runtime = CreateRuntime(
             b => { },
             t =>
@@ -111,16 +109,16 @@ public class RabbitMQUnifiedQueueTests
             .OfType<RabbitMQReceiveEndpoint>()
             .FirstOrDefault(e => e.Queue.Name == "audit");
 
-        // assert: no receive endpoint was created for the entity-only queue
-        Assert.Null(endpoint);
+        // assert
+        Assert.NotNull(endpoint);
     }
 
     [Fact]
     public void Queue_Should_MaterializeReceiveEndpoint_When_ReceivesAdded()
     {
         // arrange
-        // Adding Receives<T>() on a Queue() handle crosses the lazy-materialization threshold:
-        // the handle must produce a receive endpoint. A registered consumer is required so the
+        // Adding Receives<T>() on a Queue() handle must produce a receive endpoint.
+        // A registered consumer is required so the
         // lifecycle validation can connect the declared Receives route to a handler.
         var runtime = CreateRuntime(
             b => b.AddConsumer<OrderSpyConsumer>(),
@@ -179,9 +177,9 @@ public class RabbitMQUnifiedQueueTests
     {
         // arrange
         // A saga that processes OrderStarted events and sends a request (with an OnReply route).
-        // When the saga is combined with a t.Queue("order-processor") entity-only front-door handle,
+        // When the saga is combined with a t.Queue("order-processor") front-door handle,
         // the convention must not emit an exchange chain for the reply type (OrderResult). The start
-        // event exchange chain appears; the entity-only queue declared via Queue() also appears.
+        // event exchange chain appears; the queue declared via Queue() also appears.
         var services = new ServiceCollection();
         services.AddInMemorySagas();
         var builder = services.AddMessageBus();
@@ -191,7 +189,7 @@ public class RabbitMQUnifiedQueueTests
             {
                 t.ConnectionProvider(_ => new StubConnectionProvider());
                 t.BindImplicitly();
-                // t.Queue("order-processor") creates an entity-only dispatch-target queue alongside
+                // t.Queue("order-processor") creates a dispatch-target queue alongside
                 // the saga's auto-discovered consume endpoint.
                 t.Queue("order-processor");
             })
@@ -202,7 +200,7 @@ public class RabbitMQUnifiedQueueTests
         var description = transport.Describe();
 
         // assert: no exchange or binding chain for OrderResult (the reply type) appears; the
-        // entity-only "order-processor" queue and the saga's convention endpoint are both present.
+        // "order-processor" queue and the saga's convention endpoint are both present.
         RabbitMQDescribeSnapshot.Create(description).MatchSnapshot();
     }
 
@@ -263,8 +261,7 @@ public class RabbitMQUnifiedQueueTests
     {
         // arrange
         // WithArgument on the unified handle stores the argument on the queue descriptor.
-        // For entity-only queues the argument appears on the topology queue entity;
-        // for consuming endpoints it flows through the queue descriptor's arguments.
+        // The argument flows through the queue descriptor's arguments.
         var runtime = CreateRuntime(
             b => { },
             t =>
@@ -275,10 +272,10 @@ public class RabbitMQUnifiedQueueTests
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
         var topology = (RabbitMQMessagingTopology)transport.Topology;
 
-        // act: entity-only queue lowers to a topology queue entity with the argument
+        // act
         var queue = topology.Queues.SingleOrDefault(q => q.Name == "audit");
 
-        // assert: the TTL argument was propagated to the lowered queue entity
+        // assert
         Assert.NotNull(queue);
         Assert.True(queue.Arguments.ContainsKey("x-message-ttl"));
         Assert.Equal(30_000, queue.Arguments["x-message-ttl"]);

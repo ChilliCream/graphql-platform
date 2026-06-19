@@ -4,7 +4,7 @@ using Mocha.Transport.InMemory.Tests.Helpers;
 namespace Mocha.Transport.InMemory.Tests.Descriptors;
 
 /// <summary>
-/// Verifies the delivery behavior and entity-only lowering of the unified
+/// Verifies the delivery behavior and endpoint materialization of the unified
 /// <c>t.Queue(name)</c> front door on the in-memory transport.
 /// </summary>
 public class InMemoryUnifiedQueueTests
@@ -44,11 +44,9 @@ public class InMemoryUnifiedQueueTests
     }
 
     [Fact]
-    public void Queue_Should_NotDeliver_When_EntityOnly()
+    public void Queue_Should_MaterializeReceiveEndpoint_When_NoConsumersOrReceives()
     {
         // arrange
-        // An entity-only Queue() handle (no consumer, no Receives) lowers to a declared queue
-        // entity but must not create a receive endpoint.
         var runtime = InMemoryBusFixture.CreateRuntimeWithTransport(
             b => { },
             t =>
@@ -64,10 +62,8 @@ public class InMemoryUnifiedQueueTests
             .OfType<InMemoryReceiveEndpoint>()
             .FirstOrDefault(e => e.Queue.Name == "dispatch-target");
 
-        // assert: no receive endpoint was created for the entity-only queue
-        Assert.Null(endpoint);
-
-        // assert: the queue entity was lowered into the topology
+        // assert
+        Assert.NotNull(endpoint);
         Assert.Contains(topology.Queues, q => q.Name == "dispatch-target");
     }
 

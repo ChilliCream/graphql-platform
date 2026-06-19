@@ -124,10 +124,9 @@ public interface IRabbitMQMessagingTransportDescriptor
         where TConsumer : class, IConsumer;
 
     /// <summary>
-    /// Gets or creates a queue descriptor for the given queue name. The descriptor composes a queue
-    /// topology descriptor with a lazily created receive endpoint. Topology-only usage produces a
-    /// declared queue without materializing a receive endpoint. Calling this method multiple times
-    /// with the same name returns the same descriptor instance.
+    /// Gets or creates a queue descriptor for the given queue name. The queue is declared
+    /// in the topology and has a receive endpoint using the same identity. Calling this method
+    /// multiple times with the same name returns the same descriptor instance.
     /// </summary>
     /// <param name="name">The queue name, which also serves as the endpoint identity.</param>
     /// <returns>A queue descriptor for further configuration.</returns>

@@ -1,10 +1,11 @@
 using Microsoft.Extensions.DependencyInjection;
+using Mocha.Features;
 using Mocha.Transport.Postgres.Tests.Helpers;
 
 namespace Mocha.Transport.Postgres.Tests.Descriptors;
 
 /// <summary>
-/// Verifies the identity, entity-only lowering, and convergence behavior of the
+/// Verifies the identity, endpoint materialization, and convergence behavior of the
 /// unified <c>t.Queue(name)</c> front door on the PostgreSQL transport.
 /// </summary>
 public class PostgresUnifiedQueueTests
@@ -87,10 +88,10 @@ public class PostgresUnifiedQueueTests
         Assert.Single(endpoints);
     }
 
-    // --- Entity-only lowering ---
+    // --- Endpoint materialization ---
 
     [Fact]
-    public void Queue_Should_NotMaterializeReceiveEndpoint_When_NoConsumersOrReceives()
+    public void Queue_Should_MaterializeReceiveEndpoint_When_NoConsumersOrReceives()
     {
         // arrange
         var runtime = CreateRuntime(
@@ -108,8 +109,8 @@ public class PostgresUnifiedQueueTests
             .OfType<PostgresReceiveEndpoint>()
             .FirstOrDefault(e => e.Queue.Name == "dispatch-target");
 
-        // assert: no receive endpoint, but the queue entity exists
-        Assert.Null(endpoint);
+        // assert
+        Assert.NotNull(endpoint);
         Assert.Contains(topology.Queues, q => q.Name == "dispatch-target");
     }
 
@@ -138,8 +139,6 @@ public class PostgresUnifiedQueueTests
         Assert.Equal("my-queue", endpoint.Name);
     }
 
-    // --- Build errors ---
-
     [Fact]
     public void Queue_Should_MergeWithExistingEndpoint_When_SameNameCalledTwice()
     {
@@ -167,25 +166,27 @@ public class PostgresUnifiedQueueTests
     }
 
     [Fact]
-    public void Queue_Should_Throw_When_ErrorQueueConfiguredOnEntityOnlyQueue()
+    public void Queue_Should_ConfigureErrorQueue_When_NoConsumerAttached()
     {
         // arrange
-        void Build()
-        {
-            CreateRuntime(
-                b => { },
-                t =>
-                {
-                    t.BindExplicitly();
-                    // No consumer or Receives: entity-only. Configuring an error queue
-                    // on an entity-only queue must fail because there is no consumer to process
-                    // the failed messages.
-                    t.Queue("audit").ErrorQueue("audit-error");
-                });
-        }
+        var runtime = CreateRuntime(
+            b => { },
+            t =>
+            {
+                t.BindExplicitly();
+                t.Queue("audit").ErrorQueue("audit-error");
+            });
+        var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 
-        // act & assert: error queue routing on an entity-only queue is a build error
-        Assert.ThrowsAny<InvalidOperationException>(Build);
+        // act
+        var endpoint = transport.ReceiveEndpoints
+            .OfType<PostgresReceiveEndpoint>()
+            .Single(e => e.Queue.Name == "audit");
+        var feature = endpoint.Configuration.Features.Get<ReceiveFaultEndpointFeature>();
+
+        // assert
+        Assert.Equal("postgres:q/audit-error", feature?.Address?.OriginalString);
+        Assert.False(feature?.IsDisabled ?? false);
     }
 
     // --- AutoProvision ---
@@ -207,7 +208,7 @@ public class PostgresUnifiedQueueTests
         // act
         var queue = topology.Queues.SingleOrDefault(q => q.Name == "audit");
 
-        // assert: AutoProvision(false) propagated to the lowered queue entity
+        // assert
         Assert.NotNull(queue);
         Assert.Equal(false, queue.AutoProvision);
     }

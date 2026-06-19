@@ -1,7 +1,7 @@
 namespace Mocha.Transport.InMemory;
 
 /// <summary>
-/// Descriptor implementation for configuring a InMemory topic.
+/// Descriptor implementation for configuring an in-memory topic topology entity.
 /// </summary>
 internal sealed class InMemoryTopicTopologyDescriptor
     : MessagingDescriptorBase<InMemoryTopicConfiguration>

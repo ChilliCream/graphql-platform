@@ -178,10 +178,4 @@ internal static class ThrowHelper
         => new InvalidOperationException(
             $"Message type '{messageTypeName}' is already claimed by receive endpoint '{claimingEndpoint}' "
             + $"and cannot be claimed by endpoint '{conflictingEndpoint}'. Each message type can be claimed by at most one endpoint.");
-
-    public static Exception FaultOrSkippedQueueRequiresConsumingEndpoint(string queueType, string queueName)
-        => new InvalidOperationException(
-            $"The {queueType} queue for '{queueName}' cannot be configured on an entity-only queue. "
-            + "Error and skipped queues can only be configured on a receive endpoint with at least one consumer or Receives<T> declaration. "
-            + "Add a consumer via 'Handler<T>', 'Consumer<T>', or 'Receives<T>' to make this a consuming endpoint.");
 }
