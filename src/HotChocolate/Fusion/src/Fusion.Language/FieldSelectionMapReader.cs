@@ -462,9 +462,9 @@ internal ref struct FieldSelectionMapReader
                 case CharConstants.Quote:
                     TokenKind = TokenKind.StringValue;
                     Start = start;
-                    End = Position;
+                    End = Position + 1;
                     Value = _sourceText[(start + 1)..Position];
-                    Position++;
+                    Position = End;
                     return;
 
                 case CharConstants.Backslash:
@@ -545,9 +545,9 @@ internal ref struct FieldSelectionMapReader
                     {
                         TokenKind = TokenKind.BlockStringValue;
                         Start = start;
-                        End = Position + 2;
+                        End = Position + 3;
                         Value = _sourceText[(start + 3)..Position];
-                        Position = End + 1;
+                        Position = End;
                         return;
                     }
 
