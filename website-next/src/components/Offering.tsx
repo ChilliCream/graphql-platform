@@ -6,9 +6,7 @@ import { CheckIcon } from "./CheckIcon";
 
 interface OfferingProps {
   readonly title: string;
-  /** Short, mono-cased caption shown under the title (pricing style). */
-  readonly tagline?: string;
-  /** Longer paragraph shown under the title (services style). */
+  /** Short, mono-cased caption shown under the title. */
   readonly description?: string;
   /** Optional illustration centered at the top of the card. */
   readonly Icon?: ComponentType<{ readonly className?: string }>;
@@ -25,7 +23,6 @@ interface OfferingProps {
 
 export function Offering({
   title,
-  tagline,
   description,
   Icon,
   price,
@@ -37,33 +34,38 @@ export function Offering({
 }: OfferingProps) {
   const CallToActionButton = popular ? SolidButton : OutlineButton;
 
+  // Each section below is one subgrid row. When rendered inside an `OfferingGrid`
+  // the card inherits the grid's row tracks (`grid-template-rows: subgrid`), so a
+  // section (notably the variable-height description) lines up across every card
+  // in the same row, keeping the price, divider, and perks aligned. The row count
+  // must match the number of section cells rendered.
+  const rowCount = 2 + (Icon ? 1 : 0) + (description ? 1 : 0) + (price ? 1 : 0);
+
   return (
     <div
-      className={`relative flex h-full flex-col rounded-3xl border p-6 sm:p-7 ${
+      className={`relative grid h-full grid-rows-subgrid gap-0 rounded-3xl border p-6 sm:p-7 ${
         popular
-          ? "bg-cc-card-bg border-[#06668c]"
+          ? "bg-cc-card-bg border-cc-accent"
           : "border-cc-card-border bg-cc-card-bg/60"
       }`}
+      style={{ gridRow: `span ${rowCount}` }}
     >
       {popular && <PopularBadge />}
 
       {Icon && (
-        <>
-          <div className="flex flex-col items-center text-center">
-            <Icon className="text-cc-ink h-28 w-auto" />
-          </div>
-          <Dots />
-        </>
+        <div className="flex flex-col items-center text-center">
+          <Icon className="text-cc-ink h-28 w-auto" />
+          <Dots className="w-full" />
+        </div>
       )}
 
       <Heading className="font-heading text-cc-heading text-xl font-semibold">
         {title}
       </Heading>
-      {tagline && (
-        <p className="text-cc-nav-label mt-1 font-mono text-xs">{tagline}</p>
-      )}
       {description && (
-        <p className="text-cc-ink-dim mt-3 text-sm">{description}</p>
+        <p className="text-cc-nav-label mt-1 font-mono text-xs">
+          {description}
+        </p>
       )}
 
       {price && (
@@ -79,45 +81,39 @@ export function Offering({
         </div>
       )}
 
-      <Dots />
+      <div className="flex h-full flex-col">
+        <Dots />
+        <ul className="flex flex-1 flex-col gap-3">
+          {perks.map((perk) => (
+            <li key={perk} className="flex items-start gap-3">
+              <span className="text-cc-accent mt-1 flex-none">
+                <CheckIcon />
+              </span>
+              <span className="text-cc-ink text-sm">{perk}</span>
+            </li>
+          ))}
+        </ul>
 
-      <ul className="flex flex-1 flex-col gap-3">
-        {perks.map((perk) => (
-          <li key={perk} className="flex items-start gap-3">
-            <span className="text-cc-accent mt-1 flex-none">
-              <CheckIcon />
-            </span>
-            <span className="text-cc-ink text-sm">{perk}</span>
-          </li>
-        ))}
-      </ul>
-
-      {callToAction && (
-        <CallToActionButton href={callToAction.link} className="mt-7 w-full">
-          {callToAction.title}
-        </CallToActionButton>
-      )}
+        {callToAction && (
+          <CallToActionButton href={callToAction.link} className="mt-7 w-full">
+            {callToAction.title}
+          </CallToActionButton>
+        )}
+      </div>
     </div>
   );
 }
 
-function Dots() {
+function Dots({ className = "" }: { readonly className?: string }) {
   return (
     <div
       aria-hidden="true"
-      className="my-5 border-t border-dashed border-[rgba(245,241,234,0.16)]"
+      className={`border-cc-ink-faint my-5 border-t border-dashed ${className}`}
     />
   );
 }
 
-// "Most Popular" badge: a hexagon (flat top/bottom, triangular ends) drawn
-// without SVG so it scales with its text. `--t` is the tip width. The outline is
-// six gradient "lines" layered on one element, so every edge shares a single
-// coordinate space and the joints meet exactly. A separate clip-path layer fills
-// the interior so it masks the card border passing behind the badge. The three
-// layers carry explicit z-index because clip-path forms a stacking context that
-// would otherwise paint the fill on top of the outline and text.
-const RING_COLOR = "#06668c";
+const RING_COLOR = "var(--color-cc-accent)";
 
 const HEX_CLIP =
   "polygon(0 50%, var(--t) 0, calc(100% - var(--t)) 0, 100% 50%, calc(100% - var(--t)) 100%, var(--t) 100%)";
@@ -150,7 +146,7 @@ function PopularBadge() {
         className="relative z-10 [grid-area:1/1]"
         style={{ background: BADGE_OUTLINE }}
       />
-      <span className="text-cc-nav-label relative z-20 px-7 py-2 font-mono text-[0.65rem] tracking-[0.15em] whitespace-nowrap uppercase [grid-area:1/1]">
+      <span className="text-cc-heading relative z-20 px-7 py-2 font-mono text-[0.65rem] tracking-[0.15em] whitespace-nowrap uppercase [grid-area:1/1]">
         Most Popular
       </span>
     </span>

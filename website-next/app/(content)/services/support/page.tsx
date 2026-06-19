@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
-import { type Plan, PlanGrid } from "@/src/components/PlanGrid";
+import { Offering } from "@/src/components/Offering";
+import { OfferingGrid } from "@/src/components/OfferingGrid";
 import { PageHero } from "@/src/components/PageHero";
 import { Section } from "@/src/components/Section";
 import {
@@ -19,46 +20,51 @@ export const metadata: Metadata = {
     "Get GraphQL support from ChilliCream experts: plans from a free community Slack to enterprise SLAs with dedicated account managers and phone support.",
 };
 
-const SUPPORT_PLANS: Plan[] = [
+const SUPPORT_PLANS = [
   {
     title: "Community",
-    price: 0,
-    period: "month",
+    price: "Free",
     description: "For personal or non-commercial projects, to start hacking.",
-    features: ["Public Slack Channel"],
-    ctaText: "Join Slack",
-    ctaLink: "https://slack.chillicream.com/",
+    perks: ["Public Slack Channel"],
+    callToAction: {
+      title: "Join Slack",
+      link: "https://slack.chillicream.com/",
+    },
   },
   {
     title: "Startup",
-    price: 450,
-    period: "month",
+    price: "$450",
+    priceNote: "per month",
     description:
       "For small teams with moderate bandwidth and projects of low to medium complexity.",
-    features: ["Private Slack Channel", "2 critical incidents"],
-    ctaText: "Contact Us",
-    ctaLink: "/services/support/contact?plan=Startup",
+    perks: ["Private Slack Channel", "2 critical incidents"],
+    callToAction: {
+      title: "Contact Us",
+      link: "/services/support/contact?plan=Startup",
+    },
   },
   {
     title: "Business",
-    price: 1300,
-    period: "month",
+    price: "$1,300",
+    priceNote: "per month",
     description: "For larger teams with business-critical projects.",
-    features: [
+    perks: [
       "Private Slack Channel",
       "5 critical incidents",
       "2 non-critical incidents",
       "Email support",
     ],
-    ctaText: "Contact Us",
-    ctaLink: "/services/support/contact?plan=Business",
+    callToAction: {
+      title: "Contact Us",
+      link: "/services/support/contact?plan=Business",
+    },
   },
   {
     title: "Enterprise",
-    price: "custom",
+    price: "Custom",
     description:
       "For the whole organization, all your teams and business units, and with tailor made SLAs.",
-    features: [
+    perks: [
       "Private Slack Channel",
       "Unlimited critical incidents",
       "10 non-critical incidents",
@@ -66,8 +72,10 @@ const SUPPORT_PLANS: Plan[] = [
       "Dedicated account manager",
       "Status reviews",
     ],
-    ctaText: "Contact Us",
-    ctaLink: "/services/support/contact?plan=Enterprise",
+    callToAction: {
+      title: "Contact Us",
+      link: "/services/support/contact?plan=Enterprise",
+    },
   },
 ];
 
@@ -110,7 +118,11 @@ export default function SupportPage() {
       />
 
       <Section title="Support Plans">
-        <PlanGrid plans={SUPPORT_PLANS} />
+        <OfferingGrid columns="md:grid-cols-2 lg:grid-cols-3">
+          {SUPPORT_PLANS.map((plan) => (
+            <Offering key={plan.title} {...plan} />
+          ))}
+        </OfferingGrid>
       </Section>
 
       <Section title="Compare our Support Plans">

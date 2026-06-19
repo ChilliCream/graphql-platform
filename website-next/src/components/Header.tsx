@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SolidButton } from "@/src/design-system/Button";
 import { Picture } from "@/src/design-system/Picture";
 
 import { getLatestBlogPost } from "@/src/helpers/blogPosts";
@@ -77,14 +78,9 @@ export default async function Header() {
           >
             Contact Us
           </Link>
-          <a
-            href={TOOLS.nitro}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-cc-ink text-cc-surface hover:bg-cc-white inline-flex h-10 items-center rounded-full px-7 text-sm font-medium no-underline transition-colors"
-          >
+          <SolidButton href={TOOLS.nitro} className="h-10 py-0">
             Launch
-          </a>
+          </SolidButton>
           <Search
             ariaLabel="Search"
             className="text-cc-ink-dim hover:text-cc-ink flex h-full cursor-pointer items-center transition-colors"

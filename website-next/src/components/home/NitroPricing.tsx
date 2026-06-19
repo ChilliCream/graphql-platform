@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 
 import { Offering } from "@/src/components/Offering";
+import { OfferingGrid } from "@/src/components/OfferingGrid";
 import { DripBrewer } from "@/src/icons/DripBrewer";
 import { FrenchPress } from "@/src/icons/FrenchPress";
 import { PourOver } from "@/src/icons/PourOver";
@@ -8,7 +9,7 @@ import { PourOver } from "@/src/icons/PourOver";
 interface Plan {
   readonly Icon: ComponentType<{ readonly className?: string }>;
   readonly name: string;
-  readonly tagline: string;
+  readonly description: string;
   readonly price: string;
   readonly priceNote: string;
   readonly features: readonly string[];
@@ -21,7 +22,7 @@ const PLANS: readonly Plan[] = [
   {
     Icon: FrenchPress,
     name: "Shared Instance",
-    tagline: "Shared resources, fully managed",
+    description: "Shared resources, fully managed",
     price: "Free",
     priceNote: "pay-as-you-go",
     features: [
@@ -37,7 +38,7 @@ const PLANS: readonly Plan[] = [
   {
     Icon: DripBrewer,
     name: "Dedicated Instance",
-    tagline: "Dedicated resources, fully managed",
+    description: "Dedicated resources, fully managed",
     price: "$400",
     priceNote: "per month",
     features: [
@@ -54,7 +55,7 @@ const PLANS: readonly Plan[] = [
   {
     Icon: PourOver,
     name: "Self-Hosted",
-    tagline: "Self managed",
+    description: "Self managed",
     price: "Custom",
     priceNote: "talk to us",
     features: [
@@ -86,13 +87,13 @@ export function NitroPricing() {
         gaining insights into your API environments.
       </p>
 
-      <div className="mt-14 grid gap-6 md:grid-cols-3">
+      <OfferingGrid columns="mt-14 md:grid-cols-3">
         {PLANS.map((plan) => (
           <Offering
             key={plan.name}
             Icon={plan.Icon}
             title={plan.name}
-            tagline={plan.tagline}
+            description={plan.description}
             price={plan.price}
             priceNote={plan.priceNote}
             perks={plan.features}
@@ -100,7 +101,7 @@ export function NitroPricing() {
             callToAction={{ title: plan.cta, link: plan.ctaHref }}
           />
         ))}
-      </div>
+      </OfferingGrid>
     </section>
   );
 }

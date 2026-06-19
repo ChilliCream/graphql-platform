@@ -55,6 +55,11 @@ const SOURCES: readonly Source[] = [
 const VIEW = { x: 0, y: 3320, w: 1360, h: 1340 };
 const GLOW = { x: 680, y: 4461.9 };
 
+// Each source's `x` is the design square's anchor, but the stream's descending
+// stem runs 5.3 design units to its left. Centering the bright marker (and its
+// label) on the stem keeps the square square and the stem flush under it.
+const STEM_DX = -5.3;
+
 const pctX = (x: number) => `${((x - VIEW.x) / VIEW.w) * 100}%`;
 const pctY = (y: number) => `${((y - VIEW.y) / VIEW.h) * 100}%`;
 
@@ -163,7 +168,7 @@ export function FusionFlow() {
           {SOURCES.map((s) => (
             <rect
               key={s.label}
-              x={s.x - 11}
+              x={s.x + STEM_DX - 11}
               y={s.y - 1}
               width={22}
               height={22}
@@ -179,7 +184,7 @@ export function FusionFlow() {
           <div
             key={s.label}
             className="text-cc-ink-dim absolute -translate-y-1/2 font-mono text-base leading-none tracking-[0.15em] whitespace-nowrap uppercase sm:text-xl"
-            style={{ left: pctX(s.x + 28), top: pctY(s.y + 10) }}
+            style={{ left: pctX(s.x + STEM_DX + 28), top: pctY(s.y + 10) }}
           >
             {s.label}
           </div>
