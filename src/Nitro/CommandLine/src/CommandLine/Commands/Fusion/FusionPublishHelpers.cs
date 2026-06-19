@@ -498,10 +498,10 @@ internal static class FusionPublishHelpers
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 composeActivity.Fail(
-                    Messages.FailedToDownloadCompositionSettings(stageName));
+                    Messages.FailedToDownloadCompositionSettings(stageName.EscapeMarkup()));
 
                 throw new ExitException(
-                    Messages.FailedToDownloadCompositionSettings(stageName, ex.Message));
+                    Messages.FailedToDownloadCompositionSettings(stageName.EscapeMarkup(), ex.Message.EscapeMarkup()));
             }
 
             compositionSettings = stageCompositionSettings;
@@ -563,6 +563,11 @@ internal static class FusionPublishHelpers
         }
         finally
         {
+            if (existingArchiveStream is not null)
+            {
+                await existingArchiveStream.DisposeAsync();
+            }
+
             if (legacyBuffer is not null)
             {
                 await legacyBuffer.DisposeAsync();
