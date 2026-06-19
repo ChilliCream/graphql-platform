@@ -31,7 +31,7 @@ public class InterfaceFieldProjectionTests : IDisposable
             .AddProjections()
             .ModifyOptions(o => o.DefaultBindingBehavior = BindingBehavior.Explicit)
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -44,7 +44,8 @@ public class InterfaceFieldProjectionTests : IDisposable
                 email
               }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -81,7 +82,7 @@ public class InterfaceFieldProjectionTests : IDisposable
             .AddType<EmployeeType>()
             .ModifyOptions(o => o.DefaultBindingBehavior = BindingBehavior.Explicit)
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -94,7 +95,8 @@ public class InterfaceFieldProjectionTests : IDisposable
                 email
               }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -121,7 +123,7 @@ public class InterfaceFieldProjectionTests : IDisposable
             .Options;
 
         await using var context = new CompanyDbContext(options);
-        await context.Database.EnsureCreatedAsync();
+        await context.Database.EnsureCreatedAsync(Xunit.TestContext.Current.CancellationToken);
 
         context.Employees.Add(
             new Employee
@@ -132,7 +134,7 @@ public class InterfaceFieldProjectionTests : IDisposable
                 Email = "jane@acme.com"
             });
 
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
     }
 
     public void Dispose()

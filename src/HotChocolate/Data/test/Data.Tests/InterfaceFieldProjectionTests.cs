@@ -21,7 +21,7 @@ public class InterfaceFieldProjectionTests
             .AddProjections()
             .ModifyOptions(o => o.DefaultBindingBehavior = BindingBehavior.Explicit)
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -34,7 +34,8 @@ public class InterfaceFieldProjectionTests
                 email
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -67,7 +68,7 @@ public class InterfaceFieldProjectionTests
             .AddType<EmployeeType>()
             .ModifyOptions(o => o.DefaultBindingBehavior = BindingBehavior.Explicit)
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -80,7 +81,8 @@ public class InterfaceFieldProjectionTests
                 email
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
