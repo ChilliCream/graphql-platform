@@ -200,9 +200,17 @@ public sealed class InputParser
     {
         var value = ConvertValue(elementRuntimeType, element, out var conversionException);
 
-        if (conversionException is not null && field is not null)
+        if (conversionException is not null)
         {
-            throw InvalidTypeConversion(type.ElementType, field, path, null, conversionException);
+            if (field is not null)
+            {
+                throw InvalidTypeConversion(type.ElementType, field, path, null, conversionException);
+            }
+
+            // Without a field context (the IType / JsonElement overloads) there is no
+            // coercion error to build, so surface the underlying conversion error
+            // instead of letting the runtime list throw a misleading type-mismatch.
+            throw conversionException;
         }
 
         return value;
