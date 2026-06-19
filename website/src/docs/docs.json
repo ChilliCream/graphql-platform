@@ -769,10 +769,6 @@
             "title": "Migrating",
             "items": [
               {
-                "path": "migrate-from-graphql-dotnet",
-                "title": "Migrate from GraphQL.NET"
-              },
-              {
                 "path": "migrate-from-15-to-16",
                 "title": "Migrate from 15 to 16"
               },
@@ -795,6 +791,10 @@
               {
                 "path": "migrate-from-10-to-11",
                 "title": "Migrate from 10 to 11"
+              },
+              {
+                "path": "migrate-from-graphql-dotnet",
+                "title": "Migrate from GraphQL.NET"
               }
             ]
           }
