@@ -540,7 +540,7 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
         var existingQueue = _topology.Queues.FirstOrDefault(q => q.Name == queueName);
         if (existingQueue is not null)
         {
-            existingQueue.ApplyAutoProvisionInheritance(inheritedAutoProvision);
+            RabbitMQMessagingTopology.ApplyQueueAutoProvisionInheritance(existingQueue, inheritedAutoProvision);
             return;
         }
 

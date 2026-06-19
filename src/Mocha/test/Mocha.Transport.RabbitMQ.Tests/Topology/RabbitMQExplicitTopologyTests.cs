@@ -364,28 +364,46 @@ public class RabbitMQExplicitTopologyTests
     }
 
     [Fact]
-    public void ApplyContribution_Should_AdoptExplicitValue_When_ExistingAutoProvisionIsNull()
+    public void AddBinding_Should_AdoptExplicitValue_When_ExistingAutoProvisionIsNull()
     {
         // arrange
-        var binding = DeclareSingleBinding(b => { });
+        var (_, binding, topology) = DeclareSingleBinding(b => { });
 
         // act
-        binding.ApplyContribution(new RabbitMQBindingConfiguration { AutoProvision = true });
+        topology.AddBinding(new RabbitMQBindingConfiguration
+        {
+            Source = "ex",
+            Destination = "q",
+            DestinationKind = RabbitMQDestinationKind.Queue,
+            AutoProvision = true
+        });
 
         // assert
         Assert.True(binding.AutoProvision);
     }
 
     [Fact]
-    public void ApplyContribution_Should_PreferProvisioning_When_AutoProvisionConflicts()
+    public void AddBinding_Should_PreferProvisioning_When_AutoProvisionConflicts()
     {
         // arrange
-        var existingOptOut = DeclareSingleBinding(b => b.AutoProvision(false));
-        var existingProvision = DeclareSingleBinding(b => b.AutoProvision(true));
+        var (_, existingOptOut, optOutTopology) = DeclareSingleBinding(b => b.AutoProvision(false));
+        var (_, existingProvision, provisionTopology) = DeclareSingleBinding(b => b.AutoProvision(true));
 
         // act
-        existingOptOut.ApplyContribution(new RabbitMQBindingConfiguration { AutoProvision = true });
-        existingProvision.ApplyContribution(new RabbitMQBindingConfiguration { AutoProvision = false });
+        optOutTopology.AddBinding(new RabbitMQBindingConfiguration
+        {
+            Source = "ex",
+            Destination = "q",
+            DestinationKind = RabbitMQDestinationKind.Queue,
+            AutoProvision = true
+        });
+        provisionTopology.AddBinding(new RabbitMQBindingConfiguration
+        {
+            Source = "ex",
+            Destination = "q",
+            DestinationKind = RabbitMQDestinationKind.Queue,
+            AutoProvision = false
+        });
 
         // assert - provisioning wins regardless of declaration order
         Assert.True(existingOptOut.AutoProvision);
@@ -393,7 +411,7 @@ public class RabbitMQExplicitTopologyTests
     }
 
     [Fact]
-    public void ApplyContribution_Should_UpgradeOrigin_When_DeclaredMergedOntoConvention()
+    public void AddBinding_Should_PreserveOrigin_When_DeclaredContributionTargetsConventionBinding()
     {
         // arrange
         // build a framework-generated binding (convention origin) directly in the topology.
@@ -412,22 +430,31 @@ public class RabbitMQExplicitTopologyTests
         Assert.Equal(TopologyOrigin.Convention, binding.Origin);
 
         // act
-        binding.ApplyContribution(new RabbitMQBindingConfiguration { Origin = TopologyOrigin.Declared });
+        topology.AddBinding(new RabbitMQBindingConfiguration
+        {
+            Source = "ex",
+            Destination = "q",
+            DestinationKind = RabbitMQDestinationKind.Queue,
+            Origin = TopologyOrigin.Declared
+        });
 
         // assert
-        Assert.Equal(TopologyOrigin.Declared, binding.Origin);
+        Assert.Equal(TopologyOrigin.Convention, binding.Origin);
     }
 
-    private static RabbitMQBinding DeclareSingleBinding(Action<IRabbitMQBindingTopologyDescriptor> configure)
+    private static (
+        MessagingRuntime Runtime,
+        RabbitMQBinding Binding,
+        RabbitMQMessagingTopology Topology) DeclareSingleBinding(Action<IRabbitMQBindingTopologyDescriptor> configure)
     {
-        var (_, _, topology) = CreateTopology(t =>
+        var (runtime, _, topology) = CreateTopology(t =>
         {
             t.DeclareExchange("ex");
             t.DeclareQueue("q");
             configure(t.DeclareBinding("ex", "q"));
         });
 
-        return topology.Bindings.Single(b => b.Source.Name == "ex");
+        return (runtime, topology.Bindings.Single(b => b.Source.Name == "ex"), topology);
     }
 
     private static (

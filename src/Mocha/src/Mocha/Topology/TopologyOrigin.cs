@@ -23,21 +23,4 @@ public static class TopologyOrigin
 
     internal static string Normalize(string? origin)
         => origin ?? Convention;
-
-    internal static string Upgrade(string existing, string? incoming)
-    {
-        var normalizedIncoming = Normalize(incoming);
-
-        if (existing == Declared)
-        {
-            return existing;
-        }
-
-        if (existing == Endpoint && normalizedIncoming == Convention)
-        {
-            return existing;
-        }
-
-        return normalizedIncoming;
-    }
 }

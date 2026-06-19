@@ -65,7 +65,6 @@ public sealed class InMemoryMessagingTopology(InMemoryMessagingTransport transpo
             var topic = _topics.FirstOrDefault(e => e.Name == configuration.Name);
             if (topic is not null)
             {
-                ApplyOrigin(topic, configuration);
                 return topic;
             }
 
@@ -117,7 +116,6 @@ public sealed class InMemoryMessagingTopology(InMemoryMessagingTransport transpo
             var queue = _queues.FirstOrDefault(q => q.Name == configuration.Name);
             if (queue is not null)
             {
-                ApplyOrigin(queue, configuration);
                 return queue;
             }
 
@@ -137,11 +135,6 @@ public sealed class InMemoryMessagingTopology(InMemoryMessagingTransport transpo
         queue.Complete();
 
         return queue;
-    }
-
-    private static void ApplyOrigin(TopologyResource resource, TopologyConfiguration configuration)
-    {
-        resource.Origin = TopologyOrigin.Upgrade(resource.Origin, configuration.Origin);
     }
 
     /// <summary>

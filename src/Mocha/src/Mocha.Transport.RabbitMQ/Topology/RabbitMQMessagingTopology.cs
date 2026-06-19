@@ -82,7 +82,7 @@ public sealed class RabbitMQMessagingTopology(
             var exchange = _exchanges.FirstOrDefault(e => e.Name == configuration.Name);
             if (exchange is not null)
             {
-                exchange.ApplyContribution(configuration);
+                ApplyExchangeContribution(exchange, configuration);
                 return exchange;
             }
 
@@ -141,7 +141,7 @@ public sealed class RabbitMQMessagingTopology(
             var queue = _queues.FirstOrDefault(q => q.Name == configuration.Name);
             if (queue is not null)
             {
-                queue.ApplyContribution(configuration);
+                ApplyQueueContribution(queue, configuration);
                 return queue;
             }
 
@@ -205,7 +205,7 @@ public sealed class RabbitMQMessagingTopology(
             var existing = FindBinding(configuration);
             if (existing is not null)
             {
-                existing.ApplyContribution(configuration);
+                ApplyBindingContribution(existing, configuration);
                 return existing;
             }
 
@@ -293,6 +293,181 @@ public sealed class RabbitMQMessagingTopology(
         binding.Complete();
 
         return binding;
+    }
+
+    internal static void ApplyQueueAutoProvisionInheritance(RabbitMQQueue queue, bool? autoProvision)
+    {
+        if (queue.AutoProvision is null)
+        {
+            queue.AutoProvision = autoProvision;
+        }
+    }
+
+    private static void ApplyExchangeContribution(
+        RabbitMQExchange exchange,
+        RabbitMQExchangeConfiguration configuration)
+    {
+        var incomingOrigin = configuration.Origin ?? TopologyOrigin.Convention;
+        var existingIsDeclared = exchange.Origin == TopologyOrigin.Declared;
+        var incomingIsDeclared = incomingOrigin == TopologyOrigin.Declared;
+
+        if (configuration.Type is not null)
+        {
+            if (existingIsDeclared && incomingIsDeclared && exchange.Type != configuration.Type)
+            {
+                throw new RabbitMQTopologyShapeConflictException(
+                    "exchange",
+                    exchange.Name,
+                    "Type",
+                    exchange.Type,
+                    configuration.Type);
+            }
+
+            exchange.Type = configuration.Type;
+        }
+
+        if (configuration.Durable is not null)
+        {
+            if (existingIsDeclared && incomingIsDeclared && exchange.Durable != configuration.Durable.Value)
+            {
+                throw new RabbitMQTopologyShapeConflictException(
+                    "exchange",
+                    exchange.Name,
+                    "Durable",
+                    exchange.Durable,
+                    configuration.Durable.Value);
+            }
+
+            exchange.Durable = configuration.Durable.Value;
+        }
+
+        if (configuration.AutoDelete is not null)
+        {
+            if (existingIsDeclared && incomingIsDeclared && exchange.AutoDelete != configuration.AutoDelete.Value)
+            {
+                throw new RabbitMQTopologyShapeConflictException(
+                    "exchange",
+                    exchange.Name,
+                    "AutoDelete",
+                    exchange.AutoDelete,
+                    configuration.AutoDelete.Value);
+            }
+
+            exchange.AutoDelete = configuration.AutoDelete.Value;
+        }
+
+        if (configuration.Arguments is not null)
+        {
+            var builder = exchange.Arguments.ToBuilder();
+
+            foreach (var (key, value) in configuration.Arguments)
+            {
+                builder[key] = value;
+            }
+
+            exchange.Arguments = builder.ToImmutable();
+        }
+
+        StrengthenAutoProvision(
+            exchange.AutoProvision,
+            configuration.AutoProvision,
+            value => exchange.AutoProvision = value);
+    }
+
+    private static void ApplyQueueContribution(
+        RabbitMQQueue queue,
+        RabbitMQQueueConfiguration configuration)
+    {
+        var incomingOrigin = configuration.Origin ?? TopologyOrigin.Convention;
+        var existingIsDeclared = queue.Origin == TopologyOrigin.Declared;
+        var incomingIsDeclared = incomingOrigin == TopologyOrigin.Declared;
+
+        if (configuration.Durable is not null)
+        {
+            if (existingIsDeclared && incomingIsDeclared && queue.Durable != configuration.Durable.Value)
+            {
+                throw new RabbitMQTopologyShapeConflictException(
+                    "queue",
+                    queue.Name,
+                    "Durable",
+                    queue.Durable,
+                    configuration.Durable.Value);
+            }
+
+            queue.Durable = configuration.Durable.Value;
+        }
+
+        if (configuration.Exclusive is not null)
+        {
+            if (existingIsDeclared && incomingIsDeclared && queue.Exclusive != configuration.Exclusive.Value)
+            {
+                throw new RabbitMQTopologyShapeConflictException(
+                    "queue",
+                    queue.Name,
+                    "Exclusive",
+                    queue.Exclusive,
+                    configuration.Exclusive.Value);
+            }
+
+            queue.Exclusive = configuration.Exclusive.Value;
+        }
+
+        if (configuration.AutoDelete is not null)
+        {
+            if (existingIsDeclared && incomingIsDeclared && queue.AutoDelete != configuration.AutoDelete.Value)
+            {
+                throw new RabbitMQTopologyShapeConflictException(
+                    "queue",
+                    queue.Name,
+                    "AutoDelete",
+                    queue.AutoDelete,
+                    configuration.AutoDelete.Value);
+            }
+
+            queue.AutoDelete = configuration.AutoDelete.Value;
+        }
+
+        if (configuration.Arguments is not null)
+        {
+            var builder = queue.Arguments.ToBuilder();
+
+            foreach (var (key, value) in configuration.Arguments)
+            {
+                builder[key] = value;
+            }
+
+            queue.Arguments = builder.ToImmutable();
+        }
+
+        StrengthenAutoProvision(
+            queue.AutoProvision,
+            configuration.AutoProvision,
+            value => queue.AutoProvision = value);
+    }
+
+    private static void ApplyBindingContribution(
+        RabbitMQBinding binding,
+        RabbitMQBindingConfiguration configuration)
+    {
+        StrengthenAutoProvision(
+            binding.AutoProvision,
+            configuration.AutoProvision,
+            value => binding.AutoProvision = value);
+    }
+
+    private static void StrengthenAutoProvision(
+        bool? existing,
+        bool? incoming,
+        Action<bool?> assign)
+    {
+        if (existing is null)
+        {
+            assign(incoming);
+        }
+        else if (incoming == true)
+        {
+            assign(true);
+        }
     }
 
     private static bool MatchesDestination(RabbitMQBinding binding, RabbitMQBindingConfiguration configuration)

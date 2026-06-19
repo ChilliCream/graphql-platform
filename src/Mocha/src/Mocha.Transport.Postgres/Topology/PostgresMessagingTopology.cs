@@ -158,7 +158,6 @@ public sealed class PostgresMessagingTopology(
             topic.AutoProvision,
             configuration.AutoProvision,
             value => topic.AutoProvision = value);
-        ApplyOrigin(topic, configuration);
     }
 
     private static void ApplyQueueContribution(PostgresQueue queue, PostgresQueueConfiguration configuration)
@@ -167,7 +166,6 @@ public sealed class PostgresMessagingTopology(
             queue.AutoProvision,
             configuration.AutoProvision,
             value => queue.AutoProvision = value);
-        ApplyOrigin(queue, configuration);
     }
 
     private static void StrengthenAutoProvision(
@@ -183,11 +181,6 @@ public sealed class PostgresMessagingTopology(
         {
             assign(true);
         }
-    }
-
-    private static void ApplyOrigin(TopologyResource resource, TopologyConfiguration configuration)
-    {
-        resource.Origin = TopologyOrigin.Upgrade(resource.Origin, configuration.Origin);
     }
 
     /// <summary>
