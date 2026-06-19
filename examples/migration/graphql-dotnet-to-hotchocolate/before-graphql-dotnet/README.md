@@ -78,6 +78,7 @@ type Query {
   bookById(id: ID!): Book
   search(term: String!): [SearchResult!]!
   secret: String!        # protected by the "Authenticated" policy
+  booksConnection(first: Int, after: String, last: Int, before: String): BooksConnection
 }
 
 type Mutation {
@@ -182,6 +183,26 @@ mutation {
   }
 }
 ```
+
+### P1: Relay connection pagination (first page)
+
+```graphql
+{ booksConnection(first: 2) { edges { cursor node { id title } } pageInfo { hasNextPage endCursor } } }
+```
+
+Returns the first 2 books with opaque base64 cursors and `pageInfo`. The
+generated connection type is `BooksConnection` and the edge type is `BooksEdge`.
+
+### P2: Relay connection pagination (next page)
+
+Use the `endCursor` returned by P1 as `after`:
+
+```graphql
+{ booksConnection(first: 2, after: "Mg==") { edges { node { id title } } pageInfo { hasNextPage } } }
+```
+
+Returns the next 2 books. The field also supports backward paging via `last`
+and `before`.
 
 ### Q6: protected field without auth (authorization error)
 

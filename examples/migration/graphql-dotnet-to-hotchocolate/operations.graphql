@@ -1,0 +1,128 @@
+# Shared equivalence operations
+#
+# These operations are run against BOTH servers to prove the port behaves the
+# same. Query results (Q1-Q5, P1/P2 node data) are identical. The mutation
+# (M1) and the auth error (Q6) differ in SHAPE by design; those differences are
+# documented in the migration guide.
+#
+# before-graphql-dotnet: http://localhost:5101/graphql
+# after-hotchocolate:    http://localhost:5102/graphql
+#
+# Auth: send header `X-Authenticated: true` to satisfy the `secret` field.
+
+# Q1: object types + nested list, author resolved via DataLoader
+query Q1 {
+  books {
+    id
+    title
+    genre
+    publishedYear
+    author {
+      id
+      name
+    }
+  }
+}
+
+# Q2: argument + input object
+query Q2 {
+  books(filter: { genre: FANTASY }) {
+    title
+    genre
+  }
+}
+
+# Q3: ID argument + nested resolve
+query Q3 {
+  bookById(id: "1") {
+    title
+    author {
+      name
+    }
+  }
+}
+
+# Q4: reverse relation
+query Q4 {
+  authors {
+    name
+    books {
+      title
+    }
+  }
+}
+
+# Q5: union
+query Q5 {
+  search(term: "a") {
+    __typename
+    ... on Book {
+      title
+    }
+    ... on Author {
+      name
+    }
+  }
+}
+
+# M1 (GraphQL.NET shape): flat arguments, returns Book directly
+mutation M1_GraphQLDotNet {
+  addBook(title: "New Book", authorId: "1", genre: SCIENCE, publishedYear: 2024) {
+    id
+    title
+    author {
+      name
+    }
+  }
+}
+
+# M1 (Hot Chocolate shape): mutation conventions wrap input + payload
+mutation M1_HotChocolate {
+  addBook(input: { title: "New Book", authorId: "1", genre: SCIENCE, publishedYear: 2024 }) {
+    book {
+      id
+      title
+      author {
+        name
+      }
+    }
+  }
+}
+
+# Q6: authorization. Without `X-Authenticated: true` this errors; with it, returns a value.
+query Q6 {
+  secret
+}
+
+# P1: cursor pagination, first page
+query P1 {
+  booksConnection(first: 2) {
+    edges {
+      cursor
+      node {
+        id
+        title
+      }
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}
+
+# P2: cursor pagination, next page (replace the cursor with P1's endCursor;
+# note the cursor encoding differs between the two servers)
+query P2 {
+  booksConnection(first: 2, after: "REPLACE_WITH_P1_endCursor") {
+    edges {
+      node {
+        id
+        title
+      }
+    }
+    pageInfo {
+      hasNextPage
+    }
+  }
+}
