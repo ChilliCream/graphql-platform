@@ -85,6 +85,13 @@ file static class NullSafeKeySelector
 {
     public static Delegate Compile(LambdaExpression expression)
     {
+        // Cursor-key selectors take a single entity parameter; fall back for any
+        // other shape rather than assuming the parameter count.
+        if (expression.Parameters.Count != 1)
+        {
+            return expression.Compile();
+        }
+
         var parameter = expression.Parameters[0];
 
         // Drop the outer boxing-to-object conversion (if any); it is re-applied
