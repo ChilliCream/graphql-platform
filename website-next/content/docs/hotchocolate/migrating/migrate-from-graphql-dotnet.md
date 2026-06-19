@@ -1,17 +1,15 @@
 ---
 title: "Migrate from GraphQL.NET"
-description: "Step-by-step guide to migrating a GraphQL.NET server to Hot Chocolate v16, mapping code-first graph types to the annotation-based, source-generated style."
+description: "Step-by-step guide to migrating a GraphQL.NET server to Hot Chocolate."
 ---
 
-This guide walks you through moving a GraphQL.NET (graphql-dotnet) server to Hot Chocolate v16. It is written for teams that built their schema with GraphQL.NET's code-first `*GraphType` classes (`ObjectGraphType<T>`, `InputObjectGraphType<T>`, `UnionGraphType`, and so on) and want to land on Hot Chocolate's annotation-based, source-generated style.
+This guide walks you through moving a GraphQL.NET (graphql-dotnet) server to Hot Chocolate.
 
 # The conceptual shift
 
 In GraphQL.NET code-first you describe your schema by writing graph type classes. A `BookType : ObjectGraphType<Book>` declares each field, its GraphQL type (`NonNullGraphType<IdGraphType>`), and a resolver delegate. The schema is the sum of those graph type objects.
 
 Hot Chocolate flips this around. You write plain C# types (POCOs) and resolver methods, annotate the entry points with attributes (`[QueryType]`, `[ObjectType<T>]`, `[MutationType]`), and Hot Chocolate infers the schema from your C# code. There are no graph type classes to maintain. Most importantly, Hot Chocolate infers nullability from the .NET type system and nullable reference types (NRT): `string` becomes `String!`, `string?` becomes `String`, `int` becomes `Int!`. You describe the shape in idiomatic C# and the schema follows.
-
-This guide leads with the annotation-based style throughout, because it is the closest ergonomic fit for a code-first GraphQL.NET app and it is what both reference apps use. A runnable before/after example accompanies this guide at `examples/migration/graphql-dotnet-to-hotchocolate`, with a `before-graphql-dotnet` project (GraphQL.NET 8) and an `after-hotchocolate` project (Hot Chocolate v16) that expose the same Books/Authors catalog schema. Every code sample below is taken from those apps.
 
 > [!NOTE]
 > Enable nullable reference types (`<Nullable>enable</Nullable>`) before you start. Hot Chocolate reads NRT annotations to decide which fields are non-null. Migrating with NRT disabled silently flips most of your schema to nullable. This is the single biggest migration risk and is covered again under [Behavioral differences and gotchas](#behavioral-differences-and-gotchas).
@@ -177,7 +175,7 @@ public static partial class AuthorType
 
 The `IResolveFieldContext` you reached for in GraphQL.NET (`context.Source`, `context.RequestServices`) is replaced by injected parameters: `[Parent] Author author` for the source object and `BookDataStore store` for a service. There is no attribute on the service parameter; Hot Chocolate resolves it from DI by type. If you need the full context, inject `IResolverContext` instead.
 
-Note the `[GraphQLIgnore]` attribute in the reference app's `Book` POCO. Hot Chocolate exposes public properties by default, so the foreign key `AuthorId` (which should not appear in the schema) is hidden explicitly:
+Note the `[GraphQLIgnore]` attribute on the `Book` POCO. Hot Chocolate exposes public properties by default, so the foreign key `AuthorId` (which should not appear in the schema) is hidden explicitly:
 
 ```csharp
 // Backing foreign key used by the author DataLoader; not exposed in the schema.
@@ -373,7 +371,7 @@ public static IEnumerable<ISearchResult> Search(string term, BookDataStore store
 ```
 
 > [!NOTE]
-> Hot Chocolate only discovers a type if it is referenced from a root or registered explicitly. In the reference apps both `Book` and `Author` are already reachable from the `Query` type, so no extra registration is needed. If a union or interface implementer is never returned directly anywhere else in the schema, register it with `.AddType<TImplementer>()` so it appears as a possible type.
+> Hot Chocolate only discovers a type if it is referenced from a root or registered explicitly. When a type such as `Book` or `Author` is already reachable from the `Query` type, no extra registration is needed. If a union or interface implementer is never returned directly anywhere else in the schema, register it with `.AddType<TImplementer>()` so it appears as a possible type.
 
 # Mutations, mutation conventions, and typed errors
 
@@ -482,7 +480,7 @@ mutation {
 }
 ```
 
-This is intentional and it is the convention that unlocks typed errors. To return a domain error instead of throwing, annotate the resolver with `[Error(typeof(MyException))]` and throw that exception; mutation conventions turn it into an `errors` field on the payload backed by a typed error union. The reference app keeps the mutation simple and does not declare a typed error, but the mechanism is `[Error]` on the mutation method. If you do not want the reshaped payload for a given mutation, you can opt out of conventions, but you then also forgo typed `[Error]` payloads.
+This is intentional and it is the convention that unlocks typed errors. To return a domain error instead of throwing, annotate the resolver with `[Error(typeof(MyException))]` and throw that exception; mutation conventions turn it into an `errors` field on the payload backed by a typed error union. A simple mutation does not need to declare a typed error, but the mechanism to add one is `[Error]` on the mutation method. If you do not want the reshaped payload for a given mutation, you can opt out of conventions, but you then also forgo typed `[Error]` payloads.
 
 # Subscriptions
 
@@ -528,7 +526,7 @@ public static partial class Subscription
 The mutation publishes with the sender shown above (`eventSender.SendAsync(nameof(Subscription.OnBookAdded), book, cancellationToken)`).
 
 > [!NOTE]
-> A subscription provider is mandatory. Hot Chocolate fails at schema build if exactly one provider is not registered. The reference app uses `.AddInMemorySubscriptions()` (suitable for development and single-server deployments). For multi-server deployments use a distributed provider such as `AddRedisSubscriptions`.
+> A subscription provider is mandatory. Hot Chocolate fails at schema build if exactly one provider is not registered. Register `.AddInMemorySubscriptions()` (suitable for development and single-server deployments). For multi-server deployments use a distributed provider such as `AddRedisSubscriptions`.
 
 # DataLoaders
 
@@ -613,7 +611,7 @@ app.MapGraphQL("/graphql");
 The biggest behavioral change here is dependency injection scope. GraphQL.NET shares a single request scope across all sibling resolvers, so a scoped `DbContext` could be touched concurrently by parallel resolvers. Hot Chocolate creates a new scope per async resolver and per DataLoader dispatch by default, which protects non-thread-safe services. If you have code that relies on a shared per-request scoped instance, annotate the resolver with `[UseRequestScope]`, or set `DefaultQueryDependencyInjectionScope = DependencyInjectionScope.Request` globally to restore the GraphQL.NET behavior.
 
 > [!NOTE]
-> Do not constructor-inject request services into your `[QueryType]`/type classes. Those classes behave like singletons. Inject services as resolver-method parameters instead, exactly as the reference app does.
+> Do not constructor-inject request services into your `[QueryType]`/type classes. Those classes behave like singletons. Inject services as resolver-method parameters instead.
 
 # Validation, depth, and cost
 
@@ -640,7 +638,7 @@ Hot Chocolate splits this into two mechanisms:
 +     });
 ```
 
-Note that Hot Chocolate emits a `@cost` directive into the schema by default (visible in the reference app's exported SDL), and cost limits are enforced rather than complexity scores. GraphQL.NET has no public equivalent for custom validation rules in Hot Chocolate v16; rely on the built-in rules plus middleware/directives, and tune the validation surface through `ModifyValidationOptions` and `SetMaxAllowedValidationErrors(n)`.
+Note that Hot Chocolate emits a `@cost` directive into the schema by default (visible in the exported SDL), and cost limits are enforced rather than complexity scores. GraphQL.NET has no public equivalent for custom validation rules in Hot Chocolate; rely on the built-in rules plus middleware/directives, and tune the validation surface through `ModifyValidationOptions` and `SetMaxAllowedValidationErrors(n)`.
 
 # Errors and error filters
 
@@ -662,7 +660,7 @@ Error filters replace the unhandled-exception delegate:
 +             : error);
 ```
 
-You can also implement `IErrorFilter` as a class (it can take constructor dependencies). Filters run in registration order. The practical client impact: drop any reliance on `extensions.codes[]`. In the reference apps the same authorization denial surfaces as `ACCESS_DENIED` with a `codes[]` array in GraphQL.NET, and as a single `extensions.code` of `AUTH_NOT_AUTHENTICATED` in Hot Chocolate.
+You can also implement `IErrorFilter` as a class (it can take constructor dependencies). Filters run in registration order. The practical client impact: drop any reliance on `extensions.codes[]`. The same authorization denial surfaces as `ACCESS_DENIED` with a `codes[]` array in GraphQL.NET, and as a single `extensions.code` of `AUTH_NOT_AUTHENTICATED` in Hot Chocolate.
 
 # Authorization
 
@@ -749,9 +747,9 @@ public static IEnumerable<Book> GetBooksConnection(BookDataStore store)
 
 Three differences are worth flagging:
 
-- **Connection naming.** GraphQL.NET names the connection after the node type (`BooksConnection` here only because the reference app added custom graph types). Hot Chocolate infers the connection name from the field, so `booksConnection` yields `BooksConnection`/`BooksEdge`. Tune with `InferConnectionNameFromField`/`ConnectionName` if you need a specific name.
+- **Connection naming.** GraphQL.NET names the connection after the node type (`BooksConnection` here only because custom graph types were added for it). Hot Chocolate infers the connection name from the field, so `booksConnection` yields `BooksConnection`/`BooksEdge`. Tune with `InferConnectionNameFromField`/`ConnectionName` if you need a specific name.
 - **Backward paging by default.** Hot Chocolate enables backward paging (`last`/`before`) by default (`AllowBackwardPagination = true`). GraphQL.NET is forward-only unless you call `.Bidirectional()`. Set `AllowBackwardPagination = false` to match a forward-only contract.
-- **Cursor format is not portable.** The reference apps return the same node data page-for-page, but the cursor encodings differ (GraphQL.NET uses a 1-based id cursor, `MQ==` = "1"; Hot Chocolate uses a Base64 list index, `MA==` = 0). Persisted client cursors break across the migration. Treat cursors as a fresh start. `totalCount` is also opt-in in Hot Chocolate (`IncludeTotalCount`), off by default.
+- **Cursor format is not portable.** Both styles return the same node data page-for-page, but the cursor encodings differ (GraphQL.NET uses a 1-based id cursor, `MQ==` = "1"; Hot Chocolate uses a Base64 list index, `MA==` = 0). Persisted client cursors break across the migration. Treat cursors as a fresh start. `totalCount` is also opt-in in Hot Chocolate (`IncludeTotalCount`), off by default.
 
 # Behavioral differences and gotchas
 
@@ -769,11 +767,11 @@ Three differences are worth flagging:
 
 # Schema-first option
 
-Hot Chocolate can author schemas SDL-first as well, but this guide leads with the annotation-based style because it is the closest fit for a code-first GraphQL.NET app and what both reference apps use. GraphQL.NET's `Schema.For(sdl)` has no direct one-to-one replacement: migrate schema-first apps to annotation-based types and diff the generated SDL (`GET /graphql?sdl`) against your original schema as a contract check. See the [defining a schema](../defining-a-schema/index.md) documentation for the available authoring styles.
+Hot Chocolate can author schemas SDL-first as well, but this guide leads with the annotation-based style because it is the closest fit for a code-first GraphQL.NET app. GraphQL.NET's `Schema.For(sdl)` has no direct one-to-one replacement: migrate schema-first apps to annotation-based types and diff the generated SDL (`GET /graphql?sdl`) against your original schema as a contract check. See the [defining a schema](../defining-a-schema/index.md) documentation for the available authoring styles.
 
 # API mapping summary
 
-| GraphQL.NET API                                                           | Hot Chocolate v16 API                                                                  |
+| GraphQL.NET API                                                           | Hot Chocolate API                                                                      |
 | ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
 | `new Schema { Query = ... }` / `Schema.For(sdl)`                          | `services.AddGraphQLServer()` + `.AddTypes()`; no `Schema` object                      |
 | `class BookType : ObjectGraphType<Book>`                                  | Plain POCO `Book`; extra fields via `[ObjectType<Book>]` partial class                 |
