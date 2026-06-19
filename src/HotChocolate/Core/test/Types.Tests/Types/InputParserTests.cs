@@ -420,6 +420,77 @@ public class InputParserTests
     }
 
     [Fact]
+    public void Parse_ListOfInputObjects_WithoutRuntimeBinding_ReturnsRuntimeList()
+    {
+        // arrange
+        // LinkInput is bound to the runtime type Link but its fields are not bound
+        // to CLR properties, so each element is materialized as a dictionary.
+        var schema = SchemaBuilder.New()
+            .AddInputObjectType<Link>(d =>
+            {
+                d.Name("LinkInput");
+                d.BindFieldsExplicitly();
+                d.Field("url").Type<StringType>();
+            })
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Create();
+
+        var type = new ListType(schema.Types.GetType<InputObjectType>("LinkInput"));
+
+        var listData = new ListValueNode(
+            new ObjectValueNode(new ObjectFieldNode("url", "https://a")),
+            new ObjectValueNode(new ObjectFieldNode("url", "https://b")));
+
+        // act
+        var parser = new InputParser();
+        var runtimeValue = parser.ParseLiteral(listData, type, Path.Root.Append("root"));
+
+        // assert
+        Assert.Collection(
+            Assert.IsType<List<Link>>(runtimeValue),
+            t => Assert.Equal("https://a", t.Url),
+            t => Assert.Equal("https://b", t.Url));
+    }
+
+    [Fact]
+    public void Deserialize_ListOfInputObjects_WithoutRuntimeBinding_ReturnsRuntimeList()
+    {
+        // arrange
+        // LinkInput is bound to the runtime type Link but its fields are not bound
+        // to CLR properties, so each element is materialized as a dictionary.
+        var schema = SchemaBuilder.New()
+            .AddInputObjectType<Link>(d =>
+            {
+                d.Name("LinkInput");
+                d.BindFieldsExplicitly();
+                d.Field("url").Type<StringType>();
+            })
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Create();
+
+        var type = new ListType(schema.Types.GetType<InputObjectType>("LinkInput"));
+
+        var inputValue = JsonDocument.Parse(
+            """
+            [{ "url": "https://a" }, { "url": "https://b" }]
+            """);
+
+        var context = new Mock<IFeatureProvider>();
+        context.Setup(t => t.Features).Returns(FeatureCollection.Empty);
+
+        // act
+        var parser = new InputParser(new DefaultTypeConverter());
+        var runtimeValue = parser.ParseInputValue(
+            inputValue.RootElement, type, context.Object, Path.Root.Append("root"));
+
+        // assert
+        Assert.Collection(
+            Assert.IsType<List<Link>>(runtimeValue),
+            t => Assert.Equal("https://a", t.Url),
+            t => Assert.Equal("https://b", t.Url));
+    }
+
+    [Fact]
     public async Task Integration_InputObjectDefaultValue_ValueIsInitialized()
     {
         // arrange
@@ -762,5 +833,10 @@ public class InputParserTests
             descriptor.Field("int").Type<IntType>();
             descriptor.Field("bool").Type<BooleanType>();
         }
+    }
+
+    public class Link
+    {
+        public string? Url { get; set; }
     }
 }
