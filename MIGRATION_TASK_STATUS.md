@@ -6,12 +6,16 @@ Last updated: 2026-06-19
 ## Phase 0 — Setup            [x]
 ## Phase 1 — Research         [x]  (7 research-*.md + feature-map.md in .work/migration/)
 ## Phase 2 — GraphQL.NET app  [x]   commit: 5c0eaa57be
-## Phase 3 — Migration guide  [ ]
-## Phase 4 — Port + verify    [~]   commit: 2269ea46db (app done+verified; guide write pending in Phase 3)
+## Phase 3 — Migration guide  [x]   commit: ad5f9ddf8b (registered in docs.json line 772; accuracy-reviewed clean; no em-dashes)
+## Phase 4 — Port + verify    [x]   commit: 2269ea46db (app done+verified)
   - HC port built+ran (5102), Q1-Q5 + P1/P2 node data match before app byte-for-byte.
   - Intentional documented diffs: mutation conventions payload shape, auth error code, cursor encoding, ID/UUID scalars.
   - after-results.md + before-results.md hold captured outputs.
-## Phase 5 — Final review     [ ]
+## Phase 5 — Final review     [x]
+  - Both example apps build clean (net10.0). Guide registered + accuracy-reviewed (no corrections, no em-dashes).
+  - docs.json valid JSON; entry at line 772 (v16 migrating, first item).
+  - Commits on branch tte/graphql-dotnet-migratoin-guide: 5c0eaa57be, 2269ea46db, ad5f9ddf8b.
+  - Note: .work/migration/ artifacts are gitignored (local only), as is examples bin/obj.
 
 ### House style notes (reference guides)
 - Frontmatter: `---\ntitle: ...\n---`
