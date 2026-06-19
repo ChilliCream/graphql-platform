@@ -600,4 +600,34 @@ public sealed class FieldSelectionMapReaderTests
             "Unexpected character `*`.",
             Assert.Throws<FieldSelectionMapSyntaxException>(Act).Message);
     }
+
+    [Theory]
+    [InlineData(" ")]
+    [InlineData(",")]
+    [InlineData(", \n\t")]
+    public void GetNextTokenKind_Should_ReturnEndOfFile_When_OnlyInsignificantCharactersRemain(
+        string sourceText)
+    {
+        // arrange
+        var reader = new FieldSelectionMapReader(sourceText);
+
+        // act
+        var tokenKind = reader.GetNextTokenKind();
+
+        // assert
+        Assert.Equal(FieldSelectionMapTokenKind.EndOfFile, tokenKind);
+    }
+
+    [Fact]
+    public void GetNextTokenKind_Should_SkipLeadingInsignificantCharacters_When_TokenFollows()
+    {
+        // arrange
+        var reader = new FieldSelectionMapReader(" , field");
+
+        // act
+        var tokenKind = reader.GetNextTokenKind();
+
+        // assert
+        Assert.Equal(FieldSelectionMapTokenKind.Name, tokenKind);
+    }
 }

@@ -157,24 +157,26 @@ internal ref struct FieldSelectionMapReader
         }
 
         var position = Position;
-        var code = _sourceText[position];
 
         // Skip insignificant characters.
-        while (position < _length - 1)
-        {
-            if (code
+        while (position < _length
+            && _sourceText[position]
                 is CharConstants.Space
                 or CharConstants.LineFeed
                 or CharConstants.Return
                 or CharConstants.HorizontalTab
                 or CharConstants.Comma)
-            {
-                code = _sourceText[++position];
-                continue;
-            }
-
-            break;
+        {
+            position++;
         }
+
+        // If only insignificant characters remained, there is no next token.
+        if (position >= _length)
+        {
+            return TokenKind.EndOfFile;
+        }
+
+        var code = _sourceText[position];
 
         if (code.IsPunctuator())
         {
