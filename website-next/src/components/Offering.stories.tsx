@@ -1,4 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
+
+import { DripBrewer } from "@/src/icons/DripBrewer";
+import { FrenchPress } from "@/src/icons/FrenchPress";
+
 import { Offering } from "./Offering";
 
 const meta = {
@@ -64,5 +68,64 @@ export const WithoutCallToAction: Story = {
       "Code Review",
       "Best practices education",
     ],
+  },
+};
+
+// Pricing layout: icon, mono tagline, headline price, and a feature list.
+export const PricingPlan: Story = {
+  args: {
+    Icon: FrenchPress,
+    title: "Shared Instance",
+    tagline: "Shared resources, fully managed",
+    price: "Free",
+    priceNote: "pay-as-you-go",
+    perks: [
+      "Multi-tenant cloud region",
+      "1 Schema · 3 Environments",
+      "Up to 5M ops / month included",
+      "Community Slack support",
+    ],
+    callToAction: { title: "Start for Free", link: "/get-started" },
+  },
+};
+
+// The same pricing layout with `popular` enabled: accent ring, solid CTA, and
+// the "Most Popular" badge straddling the top border.
+export const Popular: Story = {
+  args: {
+    Icon: DripBrewer,
+    title: "Dedicated Instance",
+    tagline: "Dedicated resources, fully managed",
+    price: "$400",
+    priceNote: "per month",
+    popular: true,
+    perks: [
+      "Single-tenant cloud region",
+      "Unlimited schemas",
+      "BYOC region · private networking",
+      "99.95% SLA · email + private chat",
+      "SSO, audit log, role-based access",
+    ],
+    callToAction: { title: "Start for Free", link: "/get-started" },
+  },
+};
+
+// Popular highlight on a services-style card (no icon or price) to show the
+// badge works regardless of the card's contents.
+export const PopularServices: Story = {
+  args: {
+    title: "Corporate Training",
+    description:
+      "Get your team trained in GraphQL and any of our products, with a curriculum tailored to their skill level.",
+    popular: true,
+    perks: [
+      "Level up their proficiency",
+      "Catered to different skills",
+      "Get everybody on the same technical page",
+    ],
+    callToAction: {
+      title: "Talk to us",
+      link: "mailto:contact@chillicream.com?subject=Corporate Training",
+    },
   },
 };

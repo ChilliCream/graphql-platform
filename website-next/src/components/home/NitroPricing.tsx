@@ -1,6 +1,6 @@
 import type { ComponentType } from "react";
 
-import { CheckIcon } from "@/src/components/CheckIcon";
+import { Offering } from "@/src/components/Offering";
 import { DripBrewer } from "@/src/icons/DripBrewer";
 import { FrenchPress } from "@/src/icons/FrenchPress";
 import { PourOver } from "@/src/icons/PourOver";
@@ -69,77 +69,6 @@ const PLANS: readonly Plan[] = [
   },
 ];
 
-function Dots() {
-  return (
-    <div
-      aria-hidden="true"
-      className="my-5 border-t border-dashed border-[rgba(245,241,234,0.16)]"
-    />
-  );
-}
-
-function PlanCard({ plan }: { readonly plan: Plan }) {
-  return (
-    <div
-      className={`relative flex flex-col rounded-3xl border p-6 sm:p-7 ${
-        plan.popular
-          ? "border-cc-note/50 bg-cc-card-bg"
-          : "border-cc-card-border bg-cc-card-bg/60"
-      }`}
-    >
-      {plan.popular && (
-        <span className="bg-cc-surface text-cc-nav-label border-cc-card-border absolute -top-3 left-1/2 -translate-x-1/2 rounded-full border px-3 py-1 font-mono text-[0.65rem] tracking-[0.15em] uppercase">
-          Most Popular
-        </span>
-      )}
-
-      <div className="flex flex-col items-center text-center">
-        <plan.Icon className="text-cc-ink h-28 w-auto" />
-      </div>
-
-      <Dots />
-
-      <h3 className="font-heading text-cc-heading text-xl font-semibold">
-        {plan.name}
-      </h3>
-      <p className="text-cc-nav-label mt-1 font-mono text-xs">{plan.tagline}</p>
-
-      <div className="mt-5 flex items-baseline gap-2">
-        <span className="font-heading text-cc-heading text-h3 font-semibold">
-          {plan.price}
-        </span>
-        <span className="text-cc-nav-label font-mono text-xs">
-          {plan.priceNote}
-        </span>
-      </div>
-
-      <Dots />
-
-      <ul className="flex flex-col gap-3">
-        {plan.features.map((feature) => (
-          <li key={feature} className="flex items-start gap-3">
-            <span className="text-cc-accent mt-1 flex-none">
-              <CheckIcon />
-            </span>
-            <span className="text-cc-ink text-sm">{feature}</span>
-          </li>
-        ))}
-      </ul>
-
-      <a
-        href={plan.ctaHref}
-        className={`mt-7 inline-flex w-full items-center justify-center rounded-xl px-6 py-3 text-sm font-medium no-underline transition-colors ${
-          plan.popular
-            ? "bg-[#3a7fc0] text-white hover:bg-[#4a8fd0]"
-            : "text-cc-ink bg-[#2c3a55] hover:bg-[#37486a]"
-        }`}
-      >
-        {plan.cta}
-      </a>
-    </div>
-  );
-}
-
 /**
  * Nitro pricing: three plans framed as coffee brews (French Press, Drip
  * Brewer, Pour-Over). The middle plan is highlighted as the popular pick. Cards
@@ -157,9 +86,19 @@ export function NitroPricing() {
         gaining insights into your API environments.
       </p>
 
-      <div className="mt-14 grid items-start gap-6 md:grid-cols-3">
+      <div className="mt-14 grid gap-6 md:grid-cols-3">
         {PLANS.map((plan) => (
-          <PlanCard key={plan.name} plan={plan} />
+          <Offering
+            key={plan.name}
+            Icon={plan.Icon}
+            title={plan.name}
+            tagline={plan.tagline}
+            price={plan.price}
+            priceNote={plan.priceNote}
+            perks={plan.features}
+            popular={plan.popular}
+            callToAction={{ title: plan.cta, link: plan.ctaHref }}
+          />
         ))}
       </div>
     </section>
