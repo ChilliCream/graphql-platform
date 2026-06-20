@@ -23,7 +23,7 @@ public sealed class PostgresQueue : TopologyResource<PostgresQueueConfiguration>
     /// <summary>
     /// Gets whether this queue should be auto-provisioned in the database.
     /// </summary>
-    public bool? AutoProvision { get; internal set; }
+    public bool? AutoProvision { get; private set; }
 
     /// <summary>
     /// Gets the subscriptions targeting this queue.
