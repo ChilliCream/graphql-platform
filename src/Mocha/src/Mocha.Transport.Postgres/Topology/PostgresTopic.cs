@@ -18,7 +18,7 @@ public sealed class PostgresTopic : TopologyResource<PostgresTopicConfiguration>
     /// <summary>
     /// Gets whether this topic should be auto-provisioned in the database.
     /// </summary>
-    public bool? AutoProvision { get; internal set; }
+    public bool? AutoProvision { get; private set; }
 
     /// <summary>
     /// Gets the subscriptions originating from this topic.
