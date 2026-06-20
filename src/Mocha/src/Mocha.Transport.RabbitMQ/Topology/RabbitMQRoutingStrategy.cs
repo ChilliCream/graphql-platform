@@ -397,70 +397,12 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
                     static (_, _, _) => new RabbitMQBindingConfiguration());
             }
         }
-
-        foreach (var outboundRoute in context.Router.OutboundRoutes)
-        {
-            if (outboundRoute.Endpoint != endpoint)
-            {
-                continue;
-            }
-
-            var messageType = outboundRoute.MessageType;
-            if (messageType is null)
-            {
-                continue;
-            }
-
-            var contribution = GetContribution(messageType, outboundRoute.Kind);
-            if (contribution is null)
-            {
-                continue;
-            }
-
-            var destination = RabbitMQDestinations.Resolve(schema, context.Naming, outboundRoute);
-
-            if (destination.Kind != RabbitMQDestinationKind.Exchange)
-            {
-                continue;
-            }
-
-            contribution.Name = destination.Name;
-            _topology.ApplyExchangeContribution(contribution);
-        }
     }
 
     private bool? GetQueueAutoProvision(string queueName)
         => _topology.Queues.FirstOrDefault(q => q.Name == queueName)?.AutoProvision
             ?? (Transport.Configuration as RabbitMQTransportConfiguration)
                 ?.Queues.FirstOrDefault(q => q.Name == queueName)?.AutoProvision;
-
-    private static RabbitMQExchangeConfiguration? GetContribution(MessageType messageType, OutboundRouteKind kind)
-    {
-        if (kind == OutboundRouteKind.Publish
-            && messageType.Features.TryGet<RabbitMQPublishExchangeFeature>(out var publishFeature))
-        {
-            return CloneConfiguration(publishFeature.Configuration);
-        }
-
-        if (kind == OutboundRouteKind.Send
-            && messageType.Features.TryGet<RabbitMQSendExchangeFeature>(out var sendFeature))
-        {
-            return CloneConfiguration(sendFeature.Configuration);
-        }
-
-        return null;
-    }
-
-    private static RabbitMQExchangeConfiguration CloneConfiguration(RabbitMQExchangeConfiguration source)
-        => new()
-        {
-            Type = source.Type,
-            Durable = source.Durable,
-            AutoDelete = source.AutoDelete,
-            Arguments = source.Arguments,
-            AutoProvision = source.AutoProvision,
-            Origin = source.Origin
-        };
 
     private static void EnsureExchange(RabbitMQMessagingTopology topology, string exchangeName)
     {

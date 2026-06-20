@@ -687,35 +687,6 @@ public class RabbitMQExplicitTopologyTests
             .MatchMarkdown();
     }
 
-    [Fact]
-    public void PublishExchange_Should_OverlayConventionExchange_When_PartialDeclarationGiven()
-    {
-        // arrange
-        // PublishExchange contributes AutoDelete(true) onto the convention publish exchange for
-        // OrderCreated. The receive convention creates the exchange with convention origin;
-        // the dispatch convention merges the declared contribution via AddExchange, upgrading
-        // origin to Declared and setting AutoDelete = true.
-        var runtime = CreateRuntime(
-            b =>
-            {
-                b.AddMessage<OrderCreated>(d => d.PublishExchange(e => e.AutoDelete(true)));
-                b.AddConsumer<OrderSpyConsumer>();
-            },
-            t => t.BindImplicitly());
-        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        var topology = (RabbitMQMessagingTopology)transport.Topology;
-        var publishExchangeName = transport.Naming.GetPublishEndpointName(typeof(OrderCreated));
-
-        // act
-        var description = transport.Describe();
-        var exchange = topology.Exchanges.Single(e => e.Name == publishExchangeName);
-
-        // assert
-        Assert.True(exchange.AutoDelete);
-        Assert.Equal(TopologyOrigin.Declared, exchange.Origin);
-        RabbitMQDescribeSnapshot.Create(description).MatchSnapshot();
-    }
-
     [Fact(Skip = "Placeholder: DeclareQueue conflict via descriptor API needs W2b shape-conflict"
               + " diagnostic wired from the descriptor layer (RabbitMQQueueDescriptor.CreateConfiguration)"
               + " into AddQueue. Today the shape-conflict throw is only reachable via topology.AddQueue"
