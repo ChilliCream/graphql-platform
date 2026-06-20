@@ -22,7 +22,7 @@ public class ErrorQueueTests
             {
                 t.Queue("handler-q")
                     .Handler<ThrowingOrderHandler>()
-                    .FaultEndpoint("memory:///q/handler-q_error");
+                    .FaultEndpoint(new Uri("memory:///q/handler-q_error"));
 
                 t.Queue("handler-q_error")
                     .Consumer<ErrorSpyConsumer>()
@@ -61,7 +61,7 @@ public class ErrorQueueTests
             {
                 t.Queue("payment-q")
                     .Handler<ThrowingPaymentHandler>()
-                    .FaultEndpoint("memory:///q/payment-q_error");
+                    .FaultEndpoint(new Uri("memory:///q/payment-q_error"));
 
                 t.Queue("payment-q_error")
                     .Consumer<ErrorSpySendConsumer>()
@@ -98,7 +98,7 @@ public class ErrorQueueTests
             {
                 t.Queue("handler-q")
                     .Handler<ThrowingOrderHandler>()
-                    .FaultEndpoint("memory:///q/handler-q_error");
+                    .FaultEndpoint(new Uri("memory:///q/handler-q_error"));
 
                 t.Queue("handler-q_error")
                     .Consumer<ErrorSpyConsumer>()

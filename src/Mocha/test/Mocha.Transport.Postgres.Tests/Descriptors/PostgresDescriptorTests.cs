@@ -169,7 +169,7 @@ public class PostgresDescriptorTests
     }
 
     [Fact]
-    public void ReceiveEndpoint_Should_StoreVerbatimName_When_ErrorQueueNamedWithPascalCase()
+    public void ReceiveEndpoint_Should_StoreVerbatimName_When_FaultEndpointUsesQueueUriWithPascalCase()
     {
         // arrange & act
         var services = new ServiceCollection();
@@ -180,7 +180,7 @@ public class PostgresDescriptorTests
             .AddPostgres(t =>
             {
                 t.ConnectionString("Host=localhost;Database=mocha_test;Username=test;Password=test");
-                t.Queue("q").ErrorQueue("Legacy.Orders.V2_error").Handler<OrderCreatedHandler>();
+                t.Queue("q").FaultEndpoint(new Uri("queue:Legacy.Orders.V2_error")).Handler<OrderCreatedHandler>();
             })
             .BuildRuntime();
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
@@ -195,7 +195,7 @@ public class PostgresDescriptorTests
     }
 
     [Fact]
-    public void ReceiveEndpoint_Should_UseLocalQueueUri_When_ErrorQueueConfiguredBeforeSchema()
+    public void ReceiveEndpoint_Should_UseLocalQueueUri_When_FaultEndpointConfiguredBeforeSchema()
     {
         // arrange & act
         var services = new ServiceCollection();
@@ -206,7 +206,7 @@ public class PostgresDescriptorTests
             .AddPostgres(t =>
             {
                 t.ConnectionString("Host=localhost;Database=mocha_test;Username=test;Password=test");
-                t.Queue("q").ErrorQueue("q_error").Handler<OrderCreatedHandler>();
+                t.Queue("q").FaultEndpoint(new Uri("queue:q_error")).Handler<OrderCreatedHandler>();
                 t.Schema("custom-postgres");
             })
             .BuildRuntime();
@@ -225,7 +225,7 @@ public class PostgresDescriptorTests
     }
 
     [Fact]
-    public void ReceiveEndpoint_Should_PreserveLaterFaultEndpoint_When_ErrorQueueConfiguredFirst()
+    public void ReceiveEndpoint_Should_PreserveLaterFaultEndpoint_When_QueueFaultEndpointConfiguredFirst()
     {
         // arrange & act
         var services = new ServiceCollection();
@@ -236,8 +236,8 @@ public class PostgresDescriptorTests
             .AddPostgres(t =>
             {
                 t.ConnectionString("Host=localhost;Database=mocha_test;Username=test;Password=test");
-                t.Queue("q").ErrorQueue("q_error").Handler<OrderCreatedHandler>();
-                t.Endpoint("q").FaultEndpoint("postgres:q/other_error");
+                t.Queue("q").FaultEndpoint(new Uri("queue:q_error")).Handler<OrderCreatedHandler>();
+                t.Endpoint("q").FaultEndpoint(new Uri("postgres:q/other_error"));
             })
             .BuildRuntime();
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
@@ -255,7 +255,7 @@ public class PostgresDescriptorTests
     }
 
     [Fact]
-    public void ReceiveEndpoint_Should_PreserveExtendedFaultAddress_When_ErrorQueueConfiguredFirst()
+    public void ReceiveEndpoint_Should_PreserveExtendedFaultAddress_When_QueueFaultEndpointConfiguredFirst()
     {
         // arrange & act
         var services = new ServiceCollection();
@@ -266,7 +266,7 @@ public class PostgresDescriptorTests
             .AddPostgres(t =>
             {
                 t.ConnectionString("Host=localhost;Database=mocha_test;Username=test;Password=test");
-                var queue = t.Queue("q").ErrorQueue("q_error").Handler<OrderCreatedHandler>();
+                var queue = t.Queue("q").FaultEndpoint(new Uri("queue:q_error")).Handler<OrderCreatedHandler>();
                 queue.Extend().Configuration.Features.GetOrSet<ReceiveFaultEndpointFeature>().Address =
                     new Uri("queue:extended_error");
             })
@@ -286,7 +286,7 @@ public class PostgresDescriptorTests
     }
 
     [Fact]
-    public void ReceiveEndpoint_Should_SetDisableFlag_When_DisableErrorQueueCalled()
+    public void ReceiveEndpoint_Should_SetDisableFlag_When_DisableFaultEndpointCalled()
     {
         // arrange & act
         var services = new ServiceCollection();
@@ -297,7 +297,7 @@ public class PostgresDescriptorTests
             .AddPostgres(t =>
             {
                 t.ConnectionString("Host=localhost;Database=mocha_test;Username=test;Password=test");
-                t.Queue("q").DisableErrorQueue().Handler<OrderCreatedHandler>();
+                t.Queue("q").DisableFaultEndpoint().Handler<OrderCreatedHandler>();
             })
             .BuildRuntime();
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();

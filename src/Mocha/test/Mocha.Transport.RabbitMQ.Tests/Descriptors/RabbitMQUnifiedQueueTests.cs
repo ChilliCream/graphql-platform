@@ -282,11 +282,11 @@ public class RabbitMQUnifiedQueueTests
     }
 
     [Fact]
-    public void Queue_Should_ConfigureErrorQueueViaQueueHandle_When_ErrorQueueCalled()
+    public void Queue_Should_ConfigureFaultEndpointViaQueueHandle_When_FaultEndpointConfigured()
     {
         // arrange
-        // The ErrorQueue(name) verb on the unified handle must configure routing with
-        // the verbatim name.
+        // The FaultEndpoint URI on the unified handle must configure routing with the
+        // verbatim queue name.
         var runtime = CreateRuntime(
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
@@ -294,7 +294,7 @@ public class RabbitMQUnifiedQueueTests
                 t.BindExplicitly();
                 t.Queue("orders")
                     .Consumer<OrderSpyConsumer>()
-                    .ErrorQueue("LEGACY.Orders.Error");
+                    .FaultEndpoint(new Uri("queue:LEGACY.Orders.Error"));
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 

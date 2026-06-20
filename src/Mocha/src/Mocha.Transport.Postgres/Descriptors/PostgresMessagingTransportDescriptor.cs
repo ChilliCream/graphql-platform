@@ -235,8 +235,7 @@ public sealed class PostgresMessagingTransportDescriptor
     /// <inheritdoc />
     public IPostgresQueueDescriptor Queue(string name)
     {
-        var queue = _queues.FirstOrDefault(q =>
-            q.Configuration.Name.EqualsOrdinal(name));
+        var queue = _queues.FirstOrDefault(q => q.Configuration.Name.EqualsOrdinal(name));
         if (queue is not null)
         {
             return queue;

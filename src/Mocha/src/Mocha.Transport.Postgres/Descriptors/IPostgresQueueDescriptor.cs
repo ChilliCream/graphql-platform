@@ -111,42 +111,28 @@ public interface IPostgresQueueDescriptor : IMessagingDescriptor<PostgresQueueDe
     /// <summary>
     /// Sets the fault endpoint address for this queue's receive endpoint.
     /// </summary>
-    /// <param name="name">The fault endpoint address.</param>
+    /// <param name="address">The fault endpoint address.</param>
     /// <returns>The descriptor for method chaining.</returns>
-    IPostgresQueueDescriptor FaultEndpoint(string name);
+    IPostgresQueueDescriptor FaultEndpoint(Uri address);
+
+    /// <summary>
+    /// Disables forwarding failed messages to a fault endpoint.
+    /// </summary>
+    /// <returns>The descriptor for method chaining.</returns>
+    IPostgresQueueDescriptor DisableFaultEndpoint();
 
     /// <summary>
     /// Sets the skipped endpoint address for this queue's receive endpoint.
     /// </summary>
-    /// <param name="name">The skipped endpoint address.</param>
+    /// <param name="address">The skipped endpoint address.</param>
     /// <returns>The descriptor for method chaining.</returns>
-    IPostgresQueueDescriptor SkippedEndpoint(string name);
+    IPostgresQueueDescriptor SkippedEndpoint(Uri address);
 
     /// <summary>
-    /// Sets the verbatim name of the error queue for this queue's endpoint.
-    /// </summary>
-    /// <param name="name">The exact queue name to use for the error queue.</param>
-    /// <returns>The descriptor for method chaining.</returns>
-    IPostgresQueueDescriptor ErrorQueue(string name);
-
-    /// <summary>
-    /// Disables the error queue for this queue's endpoint.
+    /// Disables forwarding skipped messages to a skipped endpoint.
     /// </summary>
     /// <returns>The descriptor for method chaining.</returns>
-    IPostgresQueueDescriptor DisableErrorQueue();
-
-    /// <summary>
-    /// Sets the verbatim name of the skipped queue for this queue's endpoint.
-    /// </summary>
-    /// <param name="name">The exact queue name to use for the skipped queue.</param>
-    /// <returns>The descriptor for method chaining.</returns>
-    IPostgresQueueDescriptor SkippedQueue(string name);
-
-    /// <summary>
-    /// Disables the skipped queue for this queue's endpoint.
-    /// </summary>
-    /// <returns>The descriptor for method chaining.</returns>
-    IPostgresQueueDescriptor DisableSkippedQueue();
+    IPostgresQueueDescriptor DisableSkippedEndpoint();
 
     /// <summary>
     /// Binds this queue to a source topic, writing the topic and subscription directly to the

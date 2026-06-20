@@ -11,7 +11,7 @@ namespace Mocha.Transport.RabbitMQ.Tests;
 public class RabbitMQFaultAndSkippedQueueTests
 {
     [Fact]
-    public void Describe_Should_RenameErrorQueue_When_ErrorQueueNamedWithPascalCase()
+    public void Describe_Should_RenameErrorQueue_When_FaultEndpointUsesQueueUriWithPascalCase()
     {
         // arrange
         // The verbatim name "LEGACY.Orders.Error" must survive unchanged; the naming convention
@@ -22,7 +22,7 @@ public class RabbitMQFaultAndSkippedQueueTests
             {
                 t.BindExplicitly();
                 t.Queue("orders").AutoProvision(true).Consumer<OrderSpyConsumer>()
-                    .ErrorQueue("LEGACY.Orders.Error");
+                    .FaultEndpoint(new Uri("queue:LEGACY.Orders.Error"));
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
@@ -34,10 +34,10 @@ public class RabbitMQFaultAndSkippedQueueTests
     }
 
     [Fact]
-    public void Describe_Should_OmitErrorQueue_When_ErrorDisabled()
+    public void Describe_Should_OmitErrorQueue_When_FaultEndpointDisabled()
     {
         // arrange
-        // DisableErrorQueue removes the error queue from topology entirely; no entity with
+        // DisableFaultEndpoint removes the error queue from topology entirely; no entity with
         // the conventional "_error" suffix should appear.
         var runtime = CreateRuntime(
             b => b.AddConsumer<OrderSpyConsumer>(),
@@ -45,7 +45,7 @@ public class RabbitMQFaultAndSkippedQueueTests
             {
                 t.BindExplicitly();
                 t.Queue("orders").AutoProvision(true).Consumer<OrderSpyConsumer>()
-                    .DisableErrorQueue();
+                    .DisableFaultEndpoint();
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
@@ -57,10 +57,10 @@ public class RabbitMQFaultAndSkippedQueueTests
     }
 
     [Fact]
-    public void Describe_Should_OmitSkippedQueue_When_SkippedDisabled()
+    public void Describe_Should_OmitSkippedQueue_When_SkippedEndpointDisabled()
     {
         // arrange
-        // DisableSkippedQueue removes the skipped queue from topology entirely; no entity
+        // DisableSkippedEndpoint removes the skipped queue from topology entirely; no entity
         // with the conventional "_skipped" suffix should appear.
         var runtime = CreateRuntime(
             b => b.AddConsumer<OrderSpyConsumer>(),
@@ -68,7 +68,7 @@ public class RabbitMQFaultAndSkippedQueueTests
             {
                 t.BindExplicitly();
                 t.Queue("orders").AutoProvision(true).Consumer<OrderSpyConsumer>()
-                    .DisableSkippedQueue();
+                    .DisableSkippedEndpoint();
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 

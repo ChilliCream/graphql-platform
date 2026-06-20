@@ -156,34 +156,22 @@ internal sealed class RabbitMQQueueDescriptor
     }
 
     /// <inheritdoc />
-    public IRabbitMQQueueDescriptor FaultEndpoint(string name)
+    public IRabbitMQQueueDescriptor FaultEndpoint(Uri address)
     {
+        ArgumentNullException.ThrowIfNull(address);
+        if (!address.IsAbsoluteUri)
+        {
+            throw new ArgumentException("The endpoint address must be an absolute URI.", nameof(address));
+        }
+
         var feature = Configuration.Features.GetOrSet<ReceiveFaultEndpointFeature>();
-        feature.Address = new Uri(name);
+        feature.Address = address;
         feature.IsDisabled = false;
         return this;
     }
 
     /// <inheritdoc />
-    public IRabbitMQQueueDescriptor SkippedEndpoint(string name)
-    {
-        var feature = Configuration.Features.GetOrSet<ReceiveSkippedEndpointFeature>();
-        feature.Address = new Uri(name);
-        feature.IsDisabled = false;
-        return this;
-    }
-
-    /// <inheritdoc />
-    public IRabbitMQQueueDescriptor ErrorQueue(string name)
-    {
-        var feature = Configuration.Features.GetOrSet<ReceiveFaultEndpointFeature>();
-        feature.IsDisabled = false;
-        feature.Address = QueueAddress(name);
-        return this;
-    }
-
-    /// <inheritdoc />
-    public IRabbitMQQueueDescriptor DisableErrorQueue()
+    public IRabbitMQQueueDescriptor DisableFaultEndpoint()
     {
         var feature = Configuration.Features.GetOrSet<ReceiveFaultEndpointFeature>();
         feature.IsDisabled = true;
@@ -192,16 +180,22 @@ internal sealed class RabbitMQQueueDescriptor
     }
 
     /// <inheritdoc />
-    public IRabbitMQQueueDescriptor SkippedQueue(string name)
+    public IRabbitMQQueueDescriptor SkippedEndpoint(Uri address)
     {
+        ArgumentNullException.ThrowIfNull(address);
+        if (!address.IsAbsoluteUri)
+        {
+            throw new ArgumentException("The endpoint address must be an absolute URI.", nameof(address));
+        }
+
         var feature = Configuration.Features.GetOrSet<ReceiveSkippedEndpointFeature>();
+        feature.Address = address;
         feature.IsDisabled = false;
-        feature.Address = QueueAddress(name);
         return this;
     }
 
     /// <inheritdoc />
-    public IRabbitMQQueueDescriptor DisableSkippedQueue()
+    public IRabbitMQQueueDescriptor DisableSkippedEndpoint()
     {
         var feature = Configuration.Features.GetOrSet<ReceiveSkippedEndpointFeature>();
         feature.IsDisabled = true;
@@ -222,6 +216,4 @@ internal sealed class RabbitMQQueueDescriptor
 
     public static RabbitMQQueueDescriptor New(IMessagingConfigurationContext context, string name)
         => new(context, name);
-
-    private static Uri QueueAddress(string name) => new($"queue:{name}");
 }

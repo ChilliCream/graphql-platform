@@ -93,21 +93,53 @@ internal sealed class RabbitMQReceiveEndpointDescriptor
     }
 
     /// <inheritdoc />
-    public IRabbitMQReceiveEndpointDescriptor FaultEndpoint(string name)
+    public IRabbitMQReceiveEndpointDescriptor FaultEndpoint(Uri address)
     {
+        ArgumentNullException.ThrowIfNull(address);
+        if (!address.IsAbsoluteUri)
+        {
+            throw new ArgumentException("The endpoint address must be an absolute URI.", nameof(address));
+        }
+
         var feature = Configuration.Features.GetOrSet<ReceiveFaultEndpointFeature>();
-        feature.Address = new Uri(name);
+        feature.Address = address;
         feature.IsDisabled = false;
 
         return this;
     }
 
     /// <inheritdoc />
-    public IRabbitMQReceiveEndpointDescriptor SkippedEndpoint(string name)
+    public IRabbitMQReceiveEndpointDescriptor DisableFaultEndpoint()
+    {
+        var feature = Configuration.Features.GetOrSet<ReceiveFaultEndpointFeature>();
+        feature.Address = null;
+        feature.IsDisabled = true;
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IRabbitMQReceiveEndpointDescriptor SkippedEndpoint(Uri address)
+    {
+        ArgumentNullException.ThrowIfNull(address);
+        if (!address.IsAbsoluteUri)
+        {
+            throw new ArgumentException("The endpoint address must be an absolute URI.", nameof(address));
+        }
+
+        var feature = Configuration.Features.GetOrSet<ReceiveSkippedEndpointFeature>();
+        feature.Address = address;
+        feature.IsDisabled = false;
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IRabbitMQReceiveEndpointDescriptor DisableSkippedEndpoint()
     {
         var feature = Configuration.Features.GetOrSet<ReceiveSkippedEndpointFeature>();
-        feature.Address = new Uri(name);
-        feature.IsDisabled = false;
+        feature.Address = null;
+        feature.IsDisabled = true;
 
         return this;
     }

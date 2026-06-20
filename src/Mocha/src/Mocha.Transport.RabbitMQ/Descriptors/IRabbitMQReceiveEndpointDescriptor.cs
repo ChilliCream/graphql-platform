@@ -39,16 +39,28 @@ public interface IRabbitMQReceiveEndpointDescriptor : IReceiveEndpointDescriptor
     /// <summary>
     /// Sets the address of the fault endpoint where failed messages are forwarded.
     /// </summary>
-    /// <param name="name">The fault endpoint address.</param>
+    /// <param name="address">The fault endpoint address.</param>
     /// <returns>The descriptor for method chaining.</returns>
-    IRabbitMQReceiveEndpointDescriptor FaultEndpoint(string name);
+    IRabbitMQReceiveEndpointDescriptor FaultEndpoint(Uri address);
+
+    /// <summary>
+    /// Disables forwarding failed messages to a fault endpoint.
+    /// </summary>
+    /// <returns>The descriptor for method chaining.</returns>
+    IRabbitMQReceiveEndpointDescriptor DisableFaultEndpoint();
 
     /// <summary>
     /// Sets the address of the endpoint where skipped messages are forwarded.
     /// </summary>
-    /// <param name="name">The skipped endpoint address.</param>
+    /// <param name="address">The skipped endpoint address.</param>
     /// <returns>The descriptor for method chaining.</returns>
-    IRabbitMQReceiveEndpointDescriptor SkippedEndpoint(string name);
+    IRabbitMQReceiveEndpointDescriptor SkippedEndpoint(Uri address);
+
+    /// <summary>
+    /// Disables forwarding skipped messages to a skipped endpoint.
+    /// </summary>
+    /// <returns>The descriptor for method chaining.</returns>
+    IRabbitMQReceiveEndpointDescriptor DisableSkippedEndpoint();
 
     /// <summary>
     /// Sets the maximum number of unacknowledged messages the broker will deliver to this

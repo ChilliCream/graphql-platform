@@ -12,7 +12,7 @@ namespace Mocha.Transport.RabbitMQ.Tests.Descriptors;
 public class RabbitMQQueueFrontDoorLoweringTests
 {
     [Fact]
-    public void Queue_Should_ConfigureErrorQueue_When_NoConsumerAttached()
+    public void Queue_Should_ConfigureFaultEndpoint_When_NoConsumerAttached()
     {
         // arrange
         var runtime = CreateRuntime(
@@ -20,7 +20,7 @@ public class RabbitMQQueueFrontDoorLoweringTests
             t =>
             {
                 t.BindExplicitly();
-                t.Queue("audit").ErrorQueue("audit_error");
+                t.Queue("audit").FaultEndpoint(new Uri("queue:audit_error"));
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 

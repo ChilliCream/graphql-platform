@@ -39,16 +39,28 @@ public interface IPostgresReceiveEndpointDescriptor : IReceiveEndpointDescriptor
     /// <summary>
     /// Sets the address of the fault endpoint where failed messages are forwarded.
     /// </summary>
-    /// <param name="name">The fault endpoint address.</param>
+    /// <param name="address">The fault endpoint address.</param>
     /// <returns>The descriptor for method chaining.</returns>
-    IPostgresReceiveEndpointDescriptor FaultEndpoint(string name);
+    IPostgresReceiveEndpointDescriptor FaultEndpoint(Uri address);
+
+    /// <summary>
+    /// Disables forwarding failed messages to a fault endpoint.
+    /// </summary>
+    /// <returns>The descriptor for method chaining.</returns>
+    IPostgresReceiveEndpointDescriptor DisableFaultEndpoint();
 
     /// <summary>
     /// Sets the address of the endpoint where skipped messages are forwarded.
     /// </summary>
-    /// <param name="name">The skipped endpoint address.</param>
+    /// <param name="address">The skipped endpoint address.</param>
     /// <returns>The descriptor for method chaining.</returns>
-    IPostgresReceiveEndpointDescriptor SkippedEndpoint(string name);
+    IPostgresReceiveEndpointDescriptor SkippedEndpoint(Uri address);
+
+    /// <summary>
+    /// Disables forwarding skipped messages to a skipped endpoint.
+    /// </summary>
+    /// <returns>The descriptor for method chaining.</returns>
+    IPostgresReceiveEndpointDescriptor DisableSkippedEndpoint();
 
     /// <summary>
     /// Sets the maximum number of messages to fetch per batch.

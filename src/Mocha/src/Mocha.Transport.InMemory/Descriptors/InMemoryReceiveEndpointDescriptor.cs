@@ -82,20 +82,50 @@ internal sealed class InMemoryReceiveEndpointDescriptor
         return this;
     }
 
-    public IInMemoryReceiveEndpointDescriptor FaultEndpoint(string name)
+    public IInMemoryReceiveEndpointDescriptor FaultEndpoint(Uri address)
     {
+        ArgumentNullException.ThrowIfNull(address);
+        if (!address.IsAbsoluteUri)
+        {
+            throw new ArgumentException("The endpoint address must be an absolute URI.", nameof(address));
+        }
+
         var feature = Configuration.Features.GetOrSet<ReceiveFaultEndpointFeature>();
-        feature.Address = new Uri(name);
+        feature.Address = address;
         feature.IsDisabled = false;
 
         return this;
     }
 
-    public IInMemoryReceiveEndpointDescriptor SkippedEndpoint(string name)
+    public IInMemoryReceiveEndpointDescriptor DisableFaultEndpoint()
+    {
+        var feature = Configuration.Features.GetOrSet<ReceiveFaultEndpointFeature>();
+        feature.Address = null;
+        feature.IsDisabled = true;
+
+        return this;
+    }
+
+    public IInMemoryReceiveEndpointDescriptor SkippedEndpoint(Uri address)
+    {
+        ArgumentNullException.ThrowIfNull(address);
+        if (!address.IsAbsoluteUri)
+        {
+            throw new ArgumentException("The endpoint address must be an absolute URI.", nameof(address));
+        }
+
+        var feature = Configuration.Features.GetOrSet<ReceiveSkippedEndpointFeature>();
+        feature.Address = address;
+        feature.IsDisabled = false;
+
+        return this;
+    }
+
+    public IInMemoryReceiveEndpointDescriptor DisableSkippedEndpoint()
     {
         var feature = Configuration.Features.GetOrSet<ReceiveSkippedEndpointFeature>();
-        feature.Address = new Uri(name);
-        feature.IsDisabled = false;
+        feature.Address = null;
+        feature.IsDisabled = true;
 
         return this;
     }

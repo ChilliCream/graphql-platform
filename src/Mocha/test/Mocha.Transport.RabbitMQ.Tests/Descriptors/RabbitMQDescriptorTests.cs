@@ -141,11 +141,11 @@ public class RabbitMQDescriptorTests
     }
 
     [Fact]
-    public void ReceiveEndpoint_Should_StoreVerbatimName_When_ErrorQueueNamedWithPascalCase()
+    public void ReceiveEndpoint_Should_StoreVerbatimName_When_FaultEndpointUsesQueueUriWithPascalCase()
     {
         // arrange & act
         var runtime = CreateRuntime(t =>
-            t.Queue("q").AutoProvision(true).Handler<OrderCreatedHandler>().ErrorQueue("Legacy.Orders.V2_error"));
+            t.Queue("q").AutoProvision(true).Handler<OrderCreatedHandler>().FaultEndpoint(new Uri("queue:Legacy.Orders.V2_error")));
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
         // assert
@@ -156,12 +156,12 @@ public class RabbitMQDescriptorTests
     }
 
     [Fact]
-    public void ReceiveEndpoint_Should_UseLocalQueueUri_When_ErrorQueueConfiguredBeforeSchema()
+    public void ReceiveEndpoint_Should_UseLocalQueueUri_When_FaultEndpointConfiguredBeforeSchema()
     {
         // arrange & act
         var runtime = CreateRuntime(t =>
         {
-            t.Queue("q").AutoProvision(true).Handler<OrderCreatedHandler>().ErrorQueue("q_error");
+            t.Queue("q").AutoProvision(true).Handler<OrderCreatedHandler>().FaultEndpoint(new Uri("queue:q_error"));
             t.Schema("custom-rabbit");
         });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
@@ -177,14 +177,14 @@ public class RabbitMQDescriptorTests
     }
 
     [Fact]
-    public void ReceiveEndpoint_Should_PreserveErrorQueueAutoProvisionFalse_When_ErrorQueueDeclared()
+    public void ReceiveEndpoint_Should_PreserveFaultQueueAutoProvisionFalse_When_FaultQueueDeclared()
     {
         // arrange & act
         var runtime = CreateRuntime(t =>
         {
             t.AutoProvision(true);
             t.DeclareQueue("q_error").AutoProvision(false);
-            t.Queue("q").AutoProvision(true).Handler<OrderCreatedHandler>().ErrorQueue("q_error");
+            t.Queue("q").AutoProvision(true).Handler<OrderCreatedHandler>().FaultEndpoint(new Uri("queue:q_error"));
         });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
         var topology = (RabbitMQMessagingTopology)transport.Topology;
@@ -195,13 +195,13 @@ public class RabbitMQDescriptorTests
     }
 
     [Fact]
-    public void ReceiveEndpoint_Should_PreserveLaterFaultEndpoint_When_ErrorQueueConfiguredFirst()
+    public void ReceiveEndpoint_Should_PreserveLaterFaultEndpoint_When_QueueFaultEndpointConfiguredFirst()
     {
         // arrange & act
         var runtime = CreateRuntime(t =>
         {
-            t.Queue("q").AutoProvision(true).Handler<OrderCreatedHandler>().ErrorQueue("q_error");
-            t.Endpoint("q").FaultEndpoint("rabbitmq:q/other_error");
+            t.Queue("q").AutoProvision(true).Handler<OrderCreatedHandler>().FaultEndpoint(new Uri("queue:q_error"));
+            t.Endpoint("q").FaultEndpoint(new Uri("rabbitmq:q/other_error"));
         });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
@@ -216,12 +216,12 @@ public class RabbitMQDescriptorTests
     }
 
     [Fact]
-    public void ReceiveEndpoint_Should_PreserveExtendedFaultAddress_When_ErrorQueueConfiguredFirst()
+    public void ReceiveEndpoint_Should_PreserveExtendedFaultAddress_When_QueueFaultEndpointConfiguredFirst()
     {
         // arrange & act
         var runtime = CreateRuntime(t =>
         {
-            var queue = t.Queue("q").AutoProvision(true).Handler<OrderCreatedHandler>().ErrorQueue("q_error");
+            var queue = t.Queue("q").AutoProvision(true).Handler<OrderCreatedHandler>().FaultEndpoint(new Uri("queue:q_error"));
             queue.Extend().Configuration.Features.GetOrSet<ReceiveFaultEndpointFeature>().Address =
                 new Uri("queue:extended_error");
         });
@@ -238,11 +238,11 @@ public class RabbitMQDescriptorTests
     }
 
     [Fact]
-    public void ReceiveEndpoint_Should_SetDisableFlag_When_DisableErrorQueueCalled()
+    public void ReceiveEndpoint_Should_SetDisableFlag_When_DisableFaultEndpointCalled()
     {
         // arrange & act
         var runtime = CreateRuntime(t =>
-            t.Queue("q").AutoProvision(true).Handler<OrderCreatedHandler>().DisableErrorQueue());
+            t.Queue("q").AutoProvision(true).Handler<OrderCreatedHandler>().DisableFaultEndpoint());
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
         // assert
@@ -253,11 +253,11 @@ public class RabbitMQDescriptorTests
     }
 
     [Fact]
-    public void ReceiveEndpoint_Should_NotEmbedAutoProvisionQuery_When_DefaultErrorAndSkippedQueuesConfigured()
+    public void ReceiveEndpoint_Should_NotEmbedAutoProvisionQuery_When_DefaultFaultAndSkippedEndpointsConfigured()
     {
         // arrange & act
         // AutoProvision is carried by queue topology, not by a query string embedded in the
-        // error or skipped queue address URI.
+        // fault or skipped endpoint address URI.
         var runtime = CreateRuntime(t =>
             t.Queue("q").AutoProvision(true).Handler<OrderCreatedHandler>());
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();

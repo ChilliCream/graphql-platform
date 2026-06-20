@@ -11,7 +11,7 @@ namespace Mocha.Transport.Postgres.Tests;
 public class PostgresFaultAndSkippedQueueTests
 {
     [Fact]
-    public void Describe_Should_RenameErrorQueue_When_ErrorQueueNamed()
+    public void Describe_Should_RenameErrorQueue_When_FaultEndpointUsesQueueUri()
     {
         // arrange
         // The verbatim name "LEGACY.Orders.Error" must survive unchanged; the naming convention
@@ -20,7 +20,7 @@ public class PostgresFaultAndSkippedQueueTests
         {
             t.BindExplicitly();
             t.Queue("orders").AutoProvision(true).Handler<OrderCreatedHandler>()
-                .ErrorQueue("LEGACY.Orders.Error");
+                .FaultEndpoint(new Uri("queue:LEGACY.Orders.Error"));
         });
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 
@@ -51,16 +51,16 @@ public class PostgresFaultAndSkippedQueueTests
     }
 
     [Fact]
-    public void Describe_Should_OmitErrorQueue_When_ErrorDisabled()
+    public void Describe_Should_OmitErrorQueue_When_FaultEndpointDisabled()
     {
         // arrange
-        // DisableErrorQueue removes the error queue from topology entirely; no queue with
+        // DisableFaultEndpoint removes the error queue from topology entirely; no queue with
         // the conventional "_error" suffix should appear.
         var runtime = CreateRuntime(t =>
         {
             t.BindExplicitly();
             t.Queue("orders").AutoProvision(true).Handler<OrderCreatedHandler>()
-                .DisableErrorQueue();
+                .DisableFaultEndpoint();
         });
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 

@@ -140,34 +140,22 @@ internal sealed class PostgresQueueDescriptor
     }
 
     /// <inheritdoc />
-    public IPostgresQueueDescriptor FaultEndpoint(string name)
+    public IPostgresQueueDescriptor FaultEndpoint(Uri address)
     {
+        ArgumentNullException.ThrowIfNull(address);
+        if (!address.IsAbsoluteUri)
+        {
+            throw new ArgumentException("The endpoint address must be an absolute URI.", nameof(address));
+        }
+
         var feature = Configuration.Features.GetOrSet<ReceiveFaultEndpointFeature>();
-        feature.Address = new Uri(name);
+        feature.Address = address;
         feature.IsDisabled = false;
         return this;
     }
 
     /// <inheritdoc />
-    public IPostgresQueueDescriptor SkippedEndpoint(string name)
-    {
-        var feature = Configuration.Features.GetOrSet<ReceiveSkippedEndpointFeature>();
-        feature.Address = new Uri(name);
-        feature.IsDisabled = false;
-        return this;
-    }
-
-    /// <inheritdoc />
-    public IPostgresQueueDescriptor ErrorQueue(string name)
-    {
-        var feature = Configuration.Features.GetOrSet<ReceiveFaultEndpointFeature>();
-        feature.IsDisabled = false;
-        feature.Address = QueueAddress(name);
-        return this;
-    }
-
-    /// <inheritdoc />
-    public IPostgresQueueDescriptor DisableErrorQueue()
+    public IPostgresQueueDescriptor DisableFaultEndpoint()
     {
         var feature = Configuration.Features.GetOrSet<ReceiveFaultEndpointFeature>();
         feature.IsDisabled = true;
@@ -176,16 +164,22 @@ internal sealed class PostgresQueueDescriptor
     }
 
     /// <inheritdoc />
-    public IPostgresQueueDescriptor SkippedQueue(string name)
+    public IPostgresQueueDescriptor SkippedEndpoint(Uri address)
     {
+        ArgumentNullException.ThrowIfNull(address);
+        if (!address.IsAbsoluteUri)
+        {
+            throw new ArgumentException("The endpoint address must be an absolute URI.", nameof(address));
+        }
+
         var feature = Configuration.Features.GetOrSet<ReceiveSkippedEndpointFeature>();
+        feature.Address = address;
         feature.IsDisabled = false;
-        feature.Address = QueueAddress(name);
         return this;
     }
 
     /// <inheritdoc />
-    public IPostgresQueueDescriptor DisableSkippedQueue()
+    public IPostgresQueueDescriptor DisableSkippedEndpoint()
     {
         var feature = Configuration.Features.GetOrSet<ReceiveSkippedEndpointFeature>();
         feature.IsDisabled = true;
@@ -206,6 +200,4 @@ internal sealed class PostgresQueueDescriptor
 
     public static PostgresQueueDescriptor New(IMessagingConfigurationContext context, string name)
         => new(context, name);
-
-    private static Uri QueueAddress(string name) => new($"queue:{name}");
 }

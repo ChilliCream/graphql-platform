@@ -23,11 +23,11 @@ public class RabbitMQReceiveEndpointTests
     }
 
     [Fact]
-    public void ReceiveEndpoint_Should_SetErrorQueueName_When_ErrorQueueConfigured()
+    public void ReceiveEndpoint_Should_SetFaultEndpointDestinationName_When_FaultEndpointConfigured()
     {
         // arrange
         var runtime = CreateRuntime(t =>
-            t.Queue("q").AutoProvision().Handler<OrderCreatedHandler>().ErrorQueue("q_error"));
+            t.Queue("q").AutoProvision().Handler<OrderCreatedHandler>().FaultEndpoint(new Uri("queue:q_error")));
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
         // act
@@ -40,11 +40,11 @@ public class RabbitMQReceiveEndpointTests
     }
 
     [Fact]
-    public void ReceiveEndpoint_Should_SetSkippedQueueName_When_SkippedQueueConfigured()
+    public void ReceiveEndpoint_Should_SetSkippedEndpointDestinationName_When_SkippedEndpointConfigured()
     {
         // arrange
         var runtime = CreateRuntime(t =>
-            t.Queue("q").AutoProvision().Handler<OrderCreatedHandler>().SkippedQueue("q_skipped"));
+            t.Queue("q").AutoProvision().Handler<OrderCreatedHandler>().SkippedEndpoint(new Uri("queue:q_skipped")));
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
         // act

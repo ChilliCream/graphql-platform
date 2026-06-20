@@ -130,12 +130,12 @@ public class ExplicitTopologyTests
     }
 
     [Fact]
-    public async Task ErrorQueue_Should_ProvisionRenamedQueue_When_ErrorQueueNamed()
+    public async Task ErrorQueue_Should_ProvisionRenamedQueue_When_FaultEndpointUsesQueueUri()
     {
         // arrange
-        // ErrorQueue("custom-orders-error") stores the name verbatim; the default convention
-        // must not kebab-case or otherwise transform it. The spy endpoint on that exact name
-        // receives messages forwarded there when the handler throws.
+        // The queue URI stores the name verbatim; the default convention must not kebab-case
+        // or otherwise transform it. The spy endpoint on that exact name receives messages
+        // forwarded there when the handler throws.
         var faultCapture = new FaultCapture();
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var bus = await new ServiceCollection()
@@ -149,7 +149,7 @@ public class ExplicitTopologyTests
                 t.BindExplicitly();
                 t.Queue("main-ep")
                     .Handler<ThrowingOrderHandler>()
-                    .ErrorQueue("custom-orders-error");
+                    .FaultEndpoint(new Uri("queue:custom-orders-error"));
                 t.Queue("custom-orders-error")
                     .Kind(ReceiveEndpointKind.Error)
                     .Consumer<FaultSpyConsumer>();
@@ -168,10 +168,10 @@ public class ExplicitTopologyTests
     }
 
     [Fact]
-    public async Task ErrorQueue_Should_BeOmitted_When_ErrorDisabled()
+    public async Task ErrorQueue_Should_BeOmitted_When_FaultEndpointDisabled()
     {
         // arrange
-        // DisableErrorQueue removes the error queue entirely. When the handler throws, the
+        // DisableFaultEndpoint removes the error queue entirely. When the handler throws, the
         // fault middleware finds no error endpoint and silently acknowledges the message; no
         // message should arrive in any queue named after the conventional "_error" suffix.
         var faultCapture = new FaultCapture();
@@ -187,7 +187,7 @@ public class ExplicitTopologyTests
                 t.BindExplicitly();
                 t.Queue("main-ep")
                     .Handler<ThrowingOrderHandler>()
-                    .DisableErrorQueue();
+                    .DisableFaultEndpoint();
 
                 // Set up the spy on the conventional error queue name to prove nothing arrives there.
                 t.Queue("main-ep_error")

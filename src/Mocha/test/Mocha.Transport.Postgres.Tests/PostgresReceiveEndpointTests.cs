@@ -29,7 +29,7 @@ public class PostgresReceiveEndpointTests
         var runtime = CreateRuntime(t =>
         {
             t.DeclareQueue("q_error");
-            t.Queue("q").Handler<OrderCreatedHandler>().FaultEndpoint("postgres:///q/q_error");
+            t.Queue("q").Handler<OrderCreatedHandler>().FaultEndpoint(new Uri("postgres:///q/q_error"));
         });
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 
@@ -47,7 +47,7 @@ public class PostgresReceiveEndpointTests
         var runtime = CreateRuntime(t =>
         {
             t.DeclareQueue("q_skipped");
-            t.Queue("q").Handler<OrderCreatedHandler>().SkippedEndpoint("postgres:///q/q_skipped");
+            t.Queue("q").Handler<OrderCreatedHandler>().SkippedEndpoint(new Uri("postgres:///q/q_skipped"));
         });
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 

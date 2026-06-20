@@ -166,7 +166,7 @@ public class PostgresUnifiedQueueTests
     }
 
     [Fact]
-    public void Queue_Should_ConfigureErrorQueue_When_NoConsumerAttached()
+    public void Queue_Should_ConfigureFaultEndpoint_When_NoConsumerAttached()
     {
         // arrange
         var runtime = CreateRuntime(
@@ -174,7 +174,7 @@ public class PostgresUnifiedQueueTests
             t =>
             {
                 t.BindExplicitly();
-                t.Queue("audit").ErrorQueue("audit-error");
+                t.Queue("audit").FaultEndpoint(new Uri("queue:audit-error"));
             });
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 

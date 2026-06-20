@@ -99,7 +99,7 @@ public class PostgresDefaultConventionTests
                 t.DeclareQueue("custom-error-q");
                 t.Queue("my-q")
                     .Handler<OrderCreatedHandler>()
-                    .FaultEndpoint("postgres:///q/custom-error-q");
+                    .FaultEndpoint(new Uri("postgres:///q/custom-error-q"));
             })
             .BuildRuntime();
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
