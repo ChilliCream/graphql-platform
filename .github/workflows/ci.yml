@@ -263,7 +263,7 @@ jobs:
             8.x
             9.x
             10.x
-            11.0.100-preview.4.26230.115
+            11.0.100-preview.5.26302.115
 
       - name: Run Build
         id: run-build
@@ -333,7 +333,7 @@ jobs:
       - name: Install .NET
         uses: actions/setup-dotnet@9a946fdbd5fb07b82b2f5a4466058b876ab72bb2 # v5.3.0
         with:
-          dotnet-version: 11.0.100-preview.4.26230.115
+          dotnet-version: 11.0.100-preview.5.26302.115
 
       - name: Install dotnet-coverage
         run: |
