@@ -275,7 +275,7 @@ public class ExplicitTopologyTests
 
         using var scope = bus.Provider.CreateScope();
         var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-        await messageBus.PublishAsync(new OrderCreated { OrderId = "MERGE-THREE-WAY" }, CancellationToken.None);
+        await messageBus.PublishAsync(new OrderCreated { OrderId = "CONVERGE-THREE-WAY" }, CancellationToken.None);
 
         // assert: broker shows exactly one queue named "orders" (no duplicates).
         var ordersQueues = queues.Where(q => q.Name == "orders").ToList();
@@ -284,10 +284,10 @@ public class ExplicitTopologyTests
         // assert: message is delivered, proving the provisioned queue is operational.
         Assert.True(
             await capture.WaitAsync(s_timeout),
-            "Consumer on the merged 'orders' queue did not receive the published message");
+            "Consumer on the converged 'orders' queue did not receive the published message");
 
         var received = Assert.Single(capture.Messages);
-        Assert.Equal("MERGE-THREE-WAY", received.OrderId);
+        Assert.Equal("CONVERGE-THREE-WAY", received.OrderId);
     }
 
     private async Task<List<(string Name, string Type)>> ListQueuesAsync(string vhostName)

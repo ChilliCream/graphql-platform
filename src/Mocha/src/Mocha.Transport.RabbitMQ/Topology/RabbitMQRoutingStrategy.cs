@@ -486,7 +486,7 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
         var existingQueue = _topology.Queues.FirstOrDefault(q => q.Name == queueName);
         if (existingQueue is not null)
         {
-            RabbitMQMessagingTopology.ApplyQueueAutoProvisionInheritance(existingQueue, inheritedAutoProvision);
+            ApplyQueueAutoProvisionInheritance(existingQueue, inheritedAutoProvision);
             return;
         }
 
@@ -497,6 +497,14 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
                 AutoProvision = inheritedAutoProvision,
                 Origin = TopologyOrigin.Endpoint
             });
+    }
+
+    private static void ApplyQueueAutoProvisionInheritance(RabbitMQQueue queue, bool? autoProvision)
+    {
+        if (queue.AutoProvision is null)
+        {
+            queue.AutoProvision = autoProvision;
+        }
     }
 
     private bool? GetInheritedQueueAutoProvision(

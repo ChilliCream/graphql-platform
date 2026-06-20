@@ -69,20 +69,15 @@ public sealed class RabbitMQMessagingTopology(
     }
 
     /// <summary>
-    /// Applies an exchange contribution to the topology, merging into an existing exchange when
-    /// another contribution already created the same exchange.
+    /// Adds an exchange to the topology, or returns the existing exchange with the same name.
     /// </summary>
     public RabbitMQExchange AddExchange(RabbitMQExchangeConfiguration configuration)
-        => ApplyExchangeContribution(configuration);
-
-    internal RabbitMQExchange ApplyExchangeContribution(RabbitMQExchangeConfiguration configuration)
     {
         lock (_lock)
         {
             var exchange = _exchanges.FirstOrDefault(e => e.Name == configuration.Name);
             if (exchange is not null)
             {
-                ApplyExchangeContribution(exchange, configuration);
                 return exchange;
             }
 
@@ -128,20 +123,15 @@ public sealed class RabbitMQMessagingTopology(
     }
 
     /// <summary>
-    /// Applies a queue contribution to the topology, merging into an existing queue when another
-    /// contribution already created the same queue.
+    /// Adds a queue to the topology, or returns the existing queue with the same name.
     /// </summary>
     public RabbitMQQueue AddQueue(RabbitMQQueueConfiguration configuration)
-        => ApplyQueueContribution(configuration);
-
-    internal RabbitMQQueue ApplyQueueContribution(RabbitMQQueueConfiguration configuration)
     {
         lock (_lock)
         {
             var queue = _queues.FirstOrDefault(q => q.Name == configuration.Name);
             if (queue is not null)
             {
-                ApplyQueueContribution(queue, configuration);
                 return queue;
             }
 
@@ -192,20 +182,16 @@ public sealed class RabbitMQMessagingTopology(
     }
 
     /// <summary>
-    /// Applies a binding contribution to the topology, merging into an existing binding when another
-    /// contribution already created the same binding.
+    /// Adds a binding to the topology or updates the existing binding with the same identity.
     /// </summary>
     public RabbitMQBinding AddBinding(RabbitMQBindingConfiguration configuration)
-        => ApplyBindingContribution(configuration);
-
-    internal RabbitMQBinding ApplyBindingContribution(RabbitMQBindingConfiguration configuration)
     {
         lock (_lock)
         {
             var existing = FindBinding(configuration);
             if (existing is not null)
             {
-                ApplyBindingContribution(existing, configuration);
+                MergeBindingConfiguration(existing, configuration);
                 return existing;
             }
 
@@ -295,157 +281,7 @@ public sealed class RabbitMQMessagingTopology(
         return binding;
     }
 
-    internal static void ApplyQueueAutoProvisionInheritance(RabbitMQQueue queue, bool? autoProvision)
-    {
-        if (queue.AutoProvision is null)
-        {
-            queue.AutoProvision = autoProvision;
-        }
-    }
-
-    private static void ApplyExchangeContribution(
-        RabbitMQExchange exchange,
-        RabbitMQExchangeConfiguration configuration)
-    {
-        var incomingOrigin = configuration.Origin ?? TopologyOrigin.Convention;
-        var existingIsDeclared = exchange.Origin == TopologyOrigin.Declared;
-        var incomingIsDeclared = incomingOrigin == TopologyOrigin.Declared;
-
-        if (configuration.Type is not null)
-        {
-            if (existingIsDeclared && incomingIsDeclared && exchange.Type != configuration.Type)
-            {
-                throw new RabbitMQTopologyShapeConflictException(
-                    "exchange",
-                    exchange.Name,
-                    "Type",
-                    exchange.Type,
-                    configuration.Type);
-            }
-
-            exchange.Type = configuration.Type;
-        }
-
-        if (configuration.Durable is not null)
-        {
-            if (existingIsDeclared && incomingIsDeclared && exchange.Durable != configuration.Durable.Value)
-            {
-                throw new RabbitMQTopologyShapeConflictException(
-                    "exchange",
-                    exchange.Name,
-                    "Durable",
-                    exchange.Durable,
-                    configuration.Durable.Value);
-            }
-
-            exchange.Durable = configuration.Durable.Value;
-        }
-
-        if (configuration.AutoDelete is not null)
-        {
-            if (existingIsDeclared && incomingIsDeclared && exchange.AutoDelete != configuration.AutoDelete.Value)
-            {
-                throw new RabbitMQTopologyShapeConflictException(
-                    "exchange",
-                    exchange.Name,
-                    "AutoDelete",
-                    exchange.AutoDelete,
-                    configuration.AutoDelete.Value);
-            }
-
-            exchange.AutoDelete = configuration.AutoDelete.Value;
-        }
-
-        if (configuration.Arguments is not null)
-        {
-            var builder = exchange.Arguments.ToBuilder();
-
-            foreach (var (key, value) in configuration.Arguments)
-            {
-                builder[key] = value;
-            }
-
-            exchange.Arguments = builder.ToImmutable();
-        }
-
-        StrengthenAutoProvision(
-            exchange.AutoProvision,
-            configuration.AutoProvision,
-            value => exchange.AutoProvision = value);
-    }
-
-    private static void ApplyQueueContribution(
-        RabbitMQQueue queue,
-        RabbitMQQueueConfiguration configuration)
-    {
-        var incomingOrigin = configuration.Origin ?? TopologyOrigin.Convention;
-        var existingIsDeclared = queue.Origin == TopologyOrigin.Declared;
-        var incomingIsDeclared = incomingOrigin == TopologyOrigin.Declared;
-
-        if (configuration.Durable is not null)
-        {
-            if (existingIsDeclared && incomingIsDeclared && queue.Durable != configuration.Durable.Value)
-            {
-                throw new RabbitMQTopologyShapeConflictException(
-                    "queue",
-                    queue.Name,
-                    "Durable",
-                    queue.Durable,
-                    configuration.Durable.Value);
-            }
-
-            queue.Durable = configuration.Durable.Value;
-        }
-
-        if (configuration.Exclusive is not null)
-        {
-            if (existingIsDeclared && incomingIsDeclared && queue.Exclusive != configuration.Exclusive.Value)
-            {
-                throw new RabbitMQTopologyShapeConflictException(
-                    "queue",
-                    queue.Name,
-                    "Exclusive",
-                    queue.Exclusive,
-                    configuration.Exclusive.Value);
-            }
-
-            queue.Exclusive = configuration.Exclusive.Value;
-        }
-
-        if (configuration.AutoDelete is not null)
-        {
-            if (existingIsDeclared && incomingIsDeclared && queue.AutoDelete != configuration.AutoDelete.Value)
-            {
-                throw new RabbitMQTopologyShapeConflictException(
-                    "queue",
-                    queue.Name,
-                    "AutoDelete",
-                    queue.AutoDelete,
-                    configuration.AutoDelete.Value);
-            }
-
-            queue.AutoDelete = configuration.AutoDelete.Value;
-        }
-
-        if (configuration.Arguments is not null)
-        {
-            var builder = queue.Arguments.ToBuilder();
-
-            foreach (var (key, value) in configuration.Arguments)
-            {
-                builder[key] = value;
-            }
-
-            queue.Arguments = builder.ToImmutable();
-        }
-
-        StrengthenAutoProvision(
-            queue.AutoProvision,
-            configuration.AutoProvision,
-            value => queue.AutoProvision = value);
-    }
-
-    private static void ApplyBindingContribution(
+    private static void MergeBindingConfiguration(
         RabbitMQBinding binding,
         RabbitMQBindingConfiguration configuration)
     {

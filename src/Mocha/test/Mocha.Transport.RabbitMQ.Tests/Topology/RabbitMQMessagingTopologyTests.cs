@@ -21,12 +21,12 @@ public class RabbitMQMessagingTopologyTests
     }
 
     [Fact]
-    public void AddExchange_Should_MergeProperties_When_DuplicateName()
+    public void AddExchange_Should_ReturnExistingUnchanged_When_DuplicateName()
     {
         // arrange
         var (_, _, topology) = CreateTopology(_ => { });
 
-        topology.AddExchange(new RabbitMQExchangeConfiguration
+        var first = topology.AddExchange(new RabbitMQExchangeConfiguration
         {
             Name = "shared-exchange",
             Type = "direct",
@@ -36,18 +36,19 @@ public class RabbitMQMessagingTopologyTests
         var countAfterFirst = topology.Exchanges.Count;
 
         // act
-        var merged = topology.AddExchange(new RabbitMQExchangeConfiguration
+        var result = topology.AddExchange(new RabbitMQExchangeConfiguration
         {
             Name = "shared-exchange",
             Durable = false,
             Origin = TopologyOrigin.Declared
         });
 
-        // assert: count does not increase; merged properties reflect the rules
+        // assert
+        Assert.Same(first, result);
         Assert.Equal(countAfterFirst, topology.Exchanges.Count);
-        Assert.Equal("direct", merged.Type);
-        Assert.False(merged.Durable);
-        Assert.Equal(TopologyOrigin.Declared, merged.Origin);
+        Assert.Equal("direct", result.Type);
+        Assert.True(result.Durable);
+        Assert.Equal(TopologyOrigin.Convention, result.Origin);
     }
 
     [Fact]
@@ -92,12 +93,12 @@ public class RabbitMQMessagingTopologyTests
     }
 
     [Fact]
-    public void AddQueue_Should_MergeProperties_When_DuplicateName()
+    public void AddQueue_Should_ReturnExistingUnchanged_When_DuplicateName()
     {
         // arrange
         var (_, _, topology) = CreateTopology(_ => { });
 
-        topology.AddQueue(new RabbitMQQueueConfiguration
+        var first = topology.AddQueue(new RabbitMQQueueConfiguration
         {
             Name = "shared-queue",
             Durable = true,
@@ -107,18 +108,19 @@ public class RabbitMQMessagingTopologyTests
         var countAfterFirst = topology.Queues.Count;
 
         // act
-        var merged = topology.AddQueue(new RabbitMQQueueConfiguration
+        var result = topology.AddQueue(new RabbitMQQueueConfiguration
         {
             Name = "shared-queue",
             AutoDelete = true,
             Origin = TopologyOrigin.Declared
         });
 
-        // assert: count does not increase; merged properties reflect the rules
+        // assert
+        Assert.Same(first, result);
         Assert.Equal(countAfterFirst, topology.Queues.Count);
-        Assert.True(merged.Durable);
-        Assert.True(merged.AutoDelete);
-        Assert.Equal(TopologyOrigin.Declared, merged.Origin);
+        Assert.True(result.Durable);
+        Assert.False(result.AutoDelete);
+        Assert.Equal(TopologyOrigin.Convention, result.Origin);
     }
 
     [Fact]
@@ -294,15 +296,15 @@ public class RabbitMQMessagingTopologyTests
         }
     }
 
-    // Merge-matrix tests (8 cases, covering plan section 3.5 rules)
+    // Duplicate exchange tests
 
     [Fact]
-    public void AddExchange_Merge_Should_WinDeclaredOverConvention_When_ScalarsConflict()
+    public void AddExchange_Should_IgnoreIncomingScalars_When_DuplicateName()
     {
-        // arrange: convention creates a fanout exchange first
+        // arrange
         var (_, _, topology) = CreateTopology(_ => { });
 
-        topology.AddExchange(new RabbitMQExchangeConfiguration
+        var first = topology.AddExchange(new RabbitMQExchangeConfiguration
         {
             Name = "orders",
             Type = "fanout",
@@ -312,28 +314,30 @@ public class RabbitMQMessagingTopologyTests
 
         var countAfterFirst = topology.Exchanges.Count;
 
-        // act: declared configuration comes in with different type
+        // act
         var result = topology.AddExchange(new RabbitMQExchangeConfiguration
         {
             Name = "orders",
             Type = "topic",
+            Durable = false,
             Origin = TopologyOrigin.Declared
         });
 
-        // assert: declared wins; durable stays from convention fill; count unchanged
-        Assert.Equal("topic", result.Type);
+        // assert
+        Assert.Same(first, result);
+        Assert.Equal("fanout", result.Type);
         Assert.True(result.Durable);
-        Assert.Equal(TopologyOrigin.Declared, result.Origin);
+        Assert.Equal(TopologyOrigin.Convention, result.Origin);
         Assert.Equal(countAfterFirst, topology.Exchanges.Count);
     }
 
     [Fact]
-    public void AddExchange_Merge_Should_UnionArguments_When_KeysAreDifferent()
+    public void AddExchange_Should_IgnoreIncomingArguments_When_DuplicateName()
     {
         // arrange
         var (_, _, topology) = CreateTopology(_ => { });
 
-        topology.AddExchange(new RabbitMQExchangeConfiguration
+        var first = topology.AddExchange(new RabbitMQExchangeConfiguration
         {
             Name = "events",
             Arguments = new Dictionary<string, object> { ["alternate-exchange"] = "ae" },
@@ -348,55 +352,26 @@ public class RabbitMQMessagingTopologyTests
             Origin = TopologyOrigin.Declared
         });
 
-        // assert: both argument keys are present
+        // assert
+        Assert.Same(first, result);
         Assert.True(result.Arguments.ContainsKey("alternate-exchange"));
-        Assert.True(result.Arguments.ContainsKey("x-delayed-type"));
+        Assert.False(result.Arguments.ContainsKey("x-delayed-type"));
     }
 
     [Fact]
-    public void AddExchange_Merge_Should_ReturnSameInstance_When_ExactDuplicate()
+    public void AddExchange_Should_IgnoreIncomingAutoProvisionAndOrigin_When_DuplicateName()
     {
         // arrange
         var (_, _, topology) = CreateTopology(_ => { });
 
         var first = topology.AddExchange(new RabbitMQExchangeConfiguration
         {
-            Name = "noop",
-            Type = "fanout",
-            Durable = true,
-            Origin = TopologyOrigin.Convention
-        });
-
-        var countAfterFirst = topology.Exchanges.Count;
-
-        // act: identical second declaration (no-op merge)
-        var second = topology.AddExchange(new RabbitMQExchangeConfiguration
-        {
-            Name = "noop",
-            Type = "fanout",
-            Durable = true,
-            Origin = TopologyOrigin.Convention
-        });
-
-        // assert: same object returned; count unchanged
-        Assert.Same(first, second);
-        Assert.Equal(countAfterFirst, topology.Exchanges.Count);
-    }
-
-    [Fact]
-    public void AddExchange_Merge_Should_StrengthenAutoProvision_When_IncomingIsTrue()
-    {
-        // arrange: first entry has AutoProvision null
-        var (_, _, topology) = CreateTopology(_ => { });
-
-        topology.AddExchange(new RabbitMQExchangeConfiguration
-        {
             Name = "ap-exchange",
             AutoProvision = null,
             Origin = TopologyOrigin.Convention
         });
 
-        // act: endpoint brings AutoProvision true
+        // act
         var result = topology.AddExchange(new RabbitMQExchangeConfiguration
         {
             Name = "ap-exchange",
@@ -404,125 +379,26 @@ public class RabbitMQMessagingTopologyTests
             Origin = TopologyOrigin.Endpoint
         });
 
-        // assert: true wins
-        Assert.True(result.AutoProvision);
+        // assert
+        Assert.Same(first, result);
+        Assert.Null(result.AutoProvision);
+        Assert.Equal(TopologyOrigin.Convention, result.Origin);
     }
 
     [Fact]
-    public void AddExchange_Merge_Should_UpgradeOrigin_When_EndpointMergesIntoConvention()
+    public void AddQueue_Should_IgnoreIncomingArguments_When_DuplicateName()
     {
         // arrange
         var (_, _, topology) = CreateTopology(_ => { });
 
-        topology.AddExchange(new RabbitMQExchangeConfiguration
-        {
-            Name = "prov-exchange",
-            Origin = TopologyOrigin.Convention
-        });
-
-        // act: endpoint-origin arrives
-        var result = topology.AddExchange(new RabbitMQExchangeConfiguration
-        {
-            Name = "prov-exchange",
-            Origin = TopologyOrigin.Endpoint
-        });
-
-        // assert: origin upgraded from convention to endpoint
-        Assert.Equal(TopologyOrigin.Endpoint, result.Origin);
-    }
-
-    [Fact]
-    public void AddExchange_Merge_Should_NeverDowngradeOrigin_When_DeclaredIsFollowedByConvention()
-    {
-        // arrange: declared entity exists
-        var (_, _, topology) = CreateTopology(_ => { });
-
-        topology.AddExchange(new RabbitMQExchangeConfiguration
-        {
-            Name = "order-exchange",
-            Origin = TopologyOrigin.Declared
-        });
-
-        // act: convention comes in later (e.g., from a convention pass)
-        var result = topology.AddExchange(new RabbitMQExchangeConfiguration
-        {
-            Name = "order-exchange",
-            Origin = TopologyOrigin.Convention
-        });
-
-        // assert: origin never downgrades
-        Assert.Equal(TopologyOrigin.Declared, result.Origin);
-    }
-
-    [Fact]
-    public void AddExchange_Merge_Should_RespectEndpointOrdering_When_EndpointThenDeclared()
-    {
-        // arrange: endpoint adds exchange first, declared adds it second
-        var (_, _, topology) = CreateTopology(_ => { });
-
-        topology.AddExchange(new RabbitMQExchangeConfiguration
-        {
-            Name = "mixed-exchange",
-            Type = "fanout",
-            Origin = TopologyOrigin.Endpoint
-        });
-
-        // act: declared arrives with a different type, which wins
-        var result = topology.AddExchange(new RabbitMQExchangeConfiguration
-        {
-            Name = "mixed-exchange",
-            Type = "topic",
-            Origin = TopologyOrigin.Declared
-        });
-
-        // assert: declared type wins; origin upgraded to declared
-        Assert.Equal("topic", result.Type);
-        Assert.Equal(TopologyOrigin.Declared, result.Origin);
-    }
-
-    [Fact]
-    public void AddExchange_Merge_Should_ThrowShapeConflict_When_BothDeclaredWithDifferentTypes()
-    {
-        // arrange: first declared exchange
-        var (_, _, topology) = CreateTopology(_ => { });
-
-        topology.AddExchange(new RabbitMQExchangeConfiguration
-        {
-            Name = "conflict-exchange",
-            Type = "direct",
-            Origin = TopologyOrigin.Declared
-        });
-
-        // act: second declared exchange with different type
-        var ex = Assert.Throws<RabbitMQTopologyShapeConflictException>(() =>
-            topology.AddExchange(new RabbitMQExchangeConfiguration
-            {
-                Name = "conflict-exchange",
-                Type = "topic",
-                Origin = TopologyOrigin.Declared
-            })
-        );
-
-        // assert
-        Assert.Equal("exchange", ex.EntityType);
-        Assert.Equal("conflict-exchange", ex.EntityName);
-        Assert.Equal("Type", ex.PropertyName);
-    }
-
-    [Fact]
-    public void AddQueue_Merge_Should_UnionArguments_When_ConventionAndDeclaredEachAddDifferentKeys()
-    {
-        // arrange: convention queue with one argument
-        var (_, _, topology) = CreateTopology(_ => { });
-
-        topology.AddQueue(new RabbitMQQueueConfiguration
+        var first = topology.AddQueue(new RabbitMQQueueConfiguration
         {
             Name = "work-queue",
             Arguments = new Dictionary<string, object> { ["x-message-ttl"] = 60000 },
             Origin = TopologyOrigin.Convention
         });
 
-        // act: declared adds a different argument key
+        // act
         var result = topology.AddQueue(new RabbitMQQueueConfiguration
         {
             Name = "work-queue",
@@ -530,9 +406,10 @@ public class RabbitMQMessagingTopologyTests
             Origin = TopologyOrigin.Declared
         });
 
-        // assert: both keys present after union
+        // assert
+        Assert.Same(first, result);
         Assert.True(result.Arguments.ContainsKey("x-message-ttl"));
-        Assert.True(result.Arguments.ContainsKey("x-dead-letter-exchange"));
+        Assert.False(result.Arguments.ContainsKey("x-dead-letter-exchange"));
     }
 
     [Fact]
@@ -598,21 +475,21 @@ public class RabbitMQMessagingTopologyTests
     }
 
     [Fact]
-    public async Task AddExchangeAndQueue_Should_NotCorrupt_When_ConcurrentMergeAdds()
+    public async Task AddExchangeAndQueue_Should_NotCorrupt_When_ConcurrentDuplicateAdds()
     {
-        // arrange: pre-create entities that will be merged into concurrently
+        // arrange: pre-create entities that will be added again concurrently
         var (_, _, topology) = CreateTopology(_ => { });
 
         const int entityCount = 50;
 
         for (var i = 0; i < entityCount; i++)
         {
-            topology.AddExchange(new RabbitMQExchangeConfiguration { Name = $"merge-exchange-{i}", Origin = TopologyOrigin.Convention });
-            topology.AddQueue(new RabbitMQQueueConfiguration { Name = $"merge-queue-{i}", Origin = TopologyOrigin.Convention });
+            topology.AddExchange(new RabbitMQExchangeConfiguration { Name = $"duplicate-exchange-{i}", Origin = TopologyOrigin.Convention });
+            topology.AddQueue(new RabbitMQQueueConfiguration { Name = $"duplicate-queue-{i}", Origin = TopologyOrigin.Convention });
         }
 
-        var countBeforeMerge = topology.Exchanges.Count;
-        var queueCountBeforeMerge = topology.Queues.Count;
+        var countBeforeDuplicateAdds = topology.Exchanges.Count;
+        var queueCountBeforeDuplicateAdds = topology.Queues.Count;
 
         // act: flood the same names from multiple threads simultaneously
         const int threadsPerEntity = 4;
@@ -625,13 +502,13 @@ public class RabbitMQMessagingTopologyTests
                     {
                         Task.Run(() => topology.AddExchange(new RabbitMQExchangeConfiguration
                         {
-                            Name = $"merge-exchange-{i}",
+                            Name = $"duplicate-exchange-{i}",
                             Type = "fanout",
                             Origin = TopologyOrigin.Convention
                         })),
                         Task.Run(() => topology.AddQueue(new RabbitMQQueueConfiguration
                         {
-                            Name = $"merge-queue-{i}",
+                            Name = $"duplicate-queue-{i}",
                             Durable = true,
                             Origin = TopologyOrigin.Convention
                         }))
@@ -642,8 +519,8 @@ public class RabbitMQMessagingTopologyTests
         await Task.WhenAll(allTasks);
 
         // assert: no new entities created; no duplicates; all original entities still intact
-        Assert.Equal(countBeforeMerge, topology.Exchanges.Count);
-        Assert.Equal(queueCountBeforeMerge, topology.Queues.Count);
+        Assert.Equal(countBeforeDuplicateAdds, topology.Exchanges.Count);
+        Assert.Equal(queueCountBeforeDuplicateAdds, topology.Queues.Count);
 
         var exchangeNames = topology.Exchanges.Select(e => e.Name).ToList();
         Assert.Equal(exchangeNames.Count, exchangeNames.Distinct().Count());

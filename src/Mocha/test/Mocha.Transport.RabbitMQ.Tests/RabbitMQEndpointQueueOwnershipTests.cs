@@ -72,12 +72,11 @@ public class RabbitMQEndpointQueueOwnershipTests
     }
 
     [Fact]
-    public void EndpointQueue_Should_MergeViaOriginUpgrade_When_CollidesWithDeclareQueue()
+    public void EndpointQueue_Should_PreserveDeclaredQueue_When_CollidesWithDeclareQueue()
     {
         // arrange
         // DeclareQueue adds the queue with Declared origin and AutoProvision=true.
-        // The endpoint then calls AddQueue unconditionally; AddQueue merges by identity
-        // and the declared entity's origin and properties win.
+        // The endpoint then materializes the same queue and reuses the declared entity.
         var runtime = CreateRuntime(
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
@@ -91,17 +90,17 @@ public class RabbitMQEndpointQueueOwnershipTests
         // act
         var queue = topology.Queues.Single(q => q.Name == "orders");
 
-        // assert: declared origin and AutoProvision survive the endpoint merge
+        // assert
         Assert.Equal(TopologyOrigin.Declared, queue.Origin);
         Assert.True(queue.AutoProvision);
     }
 
     [Fact]
-    public void EndpointQueue_Should_UnionArguments_When_CollidesWithDeclareQueue()
+    public void EndpointQueue_Should_PreserveDeclaredArguments_When_CollidesWithDeclareQueue()
     {
         // arrange
-        // DeclareQueue adds a queue with a custom argument. The endpoint then calls
-        // AddQueue for the same name; the merge must preserve the declared argument.
+        // DeclareQueue adds a queue with a custom argument. The endpoint then materializes
+        // the same queue and reuses the declared entity.
         var runtime = CreateRuntime(
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
@@ -115,7 +114,7 @@ public class RabbitMQEndpointQueueOwnershipTests
         // act
         var queue = topology.Queues.Single(q => q.Name == "orders");
 
-        // assert: declared argument survives the endpoint merge
+        // assert
         Assert.True(queue.Arguments.ContainsKey("x-dead-letter-exchange"));
         Assert.Equal("orders_dlx", queue.Arguments["x-dead-letter-exchange"]);
     }

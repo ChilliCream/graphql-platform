@@ -411,7 +411,7 @@ public class RabbitMQExplicitTopologyTests
     }
 
     [Fact]
-    public void AddBinding_Should_PreserveOrigin_When_DeclaredContributionTargetsConventionBinding()
+    public void AddBinding_Should_PreserveOrigin_When_DeclaredConfigurationTargetsConventionBinding()
     {
         // arrange
         // build a framework-generated binding (convention origin) directly in the topology.
