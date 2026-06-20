@@ -185,7 +185,7 @@ public class PostgresUnifiedQueueTests
         var feature = endpoint.Configuration.Features.Get<ReceiveFaultEndpointFeature>();
 
         // assert
-        Assert.Equal("postgres:q/audit-error", feature?.Address?.OriginalString);
+        Assert.Equal("queue:audit-error", feature?.Address?.OriginalString);
         Assert.False(feature?.IsDisabled ?? false);
     }
 

@@ -305,7 +305,7 @@ public class RabbitMQUnifiedQueueTests
 
         // assert: the error queue name is stored verbatim in the route
         var feature = endpoint.Configuration.Features.Get<ReceiveFaultEndpointFeature>();
-        Assert.Equal("rabbitmq:q/LEGACY.Orders.Error", feature?.Address?.OriginalString);
+        Assert.Equal("queue:LEGACY.Orders.Error", feature?.Address?.OriginalString);
         Assert.False(feature?.IsDisabled ?? false);
     }
 

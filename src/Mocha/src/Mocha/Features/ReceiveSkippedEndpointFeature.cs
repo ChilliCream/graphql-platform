@@ -11,11 +11,6 @@ public sealed class ReceiveSkippedEndpointFeature
     public Uri? Address { get; set; }
 
     /// <summary>
-    /// Gets or sets the queue name used for forwarding skipped messages.
-    /// </summary>
-    public string? QueueName { get; set; }
-
-    /// <summary>
     /// Gets or sets the dispatch endpoint used to route skipped messages.
     /// </summary>
     public DispatchEndpoint? Endpoint { get; set; }

@@ -505,9 +505,11 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
             return;
         }
 
-        var name = feature.QueueName ?? context.Naming.GetReceiveEndpointName(queueName, kind);
-
-        assign(new Uri($"{Transport.Schema}:q/{name}"));
+        if (feature.Address is null)
+        {
+            var name = context.Naming.GetReceiveEndpointName(queueName, kind);
+            assign(new Uri($"{Transport.Schema}:q/{name}"));
+        }
     }
 
     private void ConfigureFaultOrSkippedEndpoint(
@@ -522,9 +524,11 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
             return;
         }
 
-        var name = feature.QueueName ?? context.Naming.GetReceiveEndpointName(queueName, kind);
-
-        assign(new Uri($"{Transport.Schema}:q/{name}"));
+        if (feature.Address is null)
+        {
+            var name = context.Naming.GetReceiveEndpointName(queueName, kind);
+            assign(new Uri($"{Transport.Schema}:q/{name}"));
+        }
     }
 
     private void EnsureFaultOrSkippedQueue(
@@ -568,6 +572,12 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
         var path = address.AbsolutePath.AsSpan();
         Span<Range> ranges = stackalloc Range[2];
         var segmentCount = path.Split(ranges, '/', RemoveEmptyEntries | TrimEntries);
+
+        if (address.TryGetLocalQueueName(out var localQueueName))
+        {
+            queueName = localQueueName;
+            return true;
+        }
 
         if (address.Scheme == Transport.Schema && address.Host is "" && segmentCount == 2)
         {

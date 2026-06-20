@@ -295,6 +295,7 @@ public sealed class InMemoryMessagingTransportDescriptor
 
         target.ReceiveMiddlewares.AddRange(configuration.ReceiveMiddlewares);
         target.ReceivePipelineModifiers.AddRange(configuration.ReceivePipelineModifiers);
+
         CopyFaultEndpointFeature(configuration, target);
         CopySkippedEndpointFeature(configuration, target);
     }
@@ -310,13 +311,12 @@ public sealed class InMemoryMessagingTransportDescriptor
         }
 
         var targetFeature = target.Features.GetOrSet<ReceiveFaultEndpointFeature>();
-        if (targetFeature is { Address: not null } or { QueueName: not null } or { IsDisabled: true })
+        if (targetFeature is { Address: not null } or { IsDisabled: true })
         {
             return;
         }
 
         targetFeature.Address = source.Address;
-        targetFeature.QueueName = source.QueueName;
         targetFeature.IsDisabled = source.IsDisabled;
     }
 
@@ -331,13 +331,12 @@ public sealed class InMemoryMessagingTransportDescriptor
         }
 
         var targetFeature = target.Features.GetOrSet<ReceiveSkippedEndpointFeature>();
-        if (targetFeature is { Address: not null } or { QueueName: not null } or { IsDisabled: true })
+        if (targetFeature is { Address: not null } or { IsDisabled: true })
         {
             return;
         }
 
         targetFeature.Address = source.Address;
-        targetFeature.QueueName = source.QueueName;
         targetFeature.IsDisabled = source.IsDisabled;
     }
 

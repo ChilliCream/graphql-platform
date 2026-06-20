@@ -144,7 +144,6 @@ internal sealed class PostgresQueueDescriptor
     {
         var feature = Configuration.Features.GetOrSet<ReceiveFaultEndpointFeature>();
         feature.Address = new Uri(name);
-        feature.QueueName = null;
         feature.IsDisabled = false;
         return this;
     }
@@ -154,7 +153,6 @@ internal sealed class PostgresQueueDescriptor
     {
         var feature = Configuration.Features.GetOrSet<ReceiveSkippedEndpointFeature>();
         feature.Address = new Uri(name);
-        feature.QueueName = null;
         feature.IsDisabled = false;
         return this;
     }
@@ -164,8 +162,7 @@ internal sealed class PostgresQueueDescriptor
     {
         var feature = Configuration.Features.GetOrSet<ReceiveFaultEndpointFeature>();
         feature.IsDisabled = false;
-        feature.QueueName = name;
-        feature.Address = null;
+        feature.Address = QueueAddress(name);
         return this;
     }
 
@@ -174,7 +171,6 @@ internal sealed class PostgresQueueDescriptor
     {
         var feature = Configuration.Features.GetOrSet<ReceiveFaultEndpointFeature>();
         feature.IsDisabled = true;
-        feature.QueueName = null;
         feature.Address = null;
         return this;
     }
@@ -184,8 +180,7 @@ internal sealed class PostgresQueueDescriptor
     {
         var feature = Configuration.Features.GetOrSet<ReceiveSkippedEndpointFeature>();
         feature.IsDisabled = false;
-        feature.QueueName = name;
-        feature.Address = null;
+        feature.Address = QueueAddress(name);
         return this;
     }
 
@@ -194,7 +189,6 @@ internal sealed class PostgresQueueDescriptor
     {
         var feature = Configuration.Features.GetOrSet<ReceiveSkippedEndpointFeature>();
         feature.IsDisabled = true;
-        feature.QueueName = null;
         feature.Address = null;
         return this;
     }
@@ -212,4 +206,6 @@ internal sealed class PostgresQueueDescriptor
 
     public static PostgresQueueDescriptor New(IMessagingConfigurationContext context, string name)
         => new(context, name);
+
+    private static Uri QueueAddress(string name) => new($"queue:{name}");
 }

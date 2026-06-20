@@ -165,9 +165,7 @@ public sealed class PostgresMessagingTransportDescriptor
     /// <inheritdoc  />
     public IPostgresReceiveEndpointDescriptor Endpoint(string name)
     {
-        var endpoint = _receiveEndpoints.FirstOrDefault(e =>
-            e.Extend().Configuration.Name.EqualsOrdinal(name)
-        );
+        var endpoint = _receiveEndpoints.FirstOrDefault(e => e.Configuration.Name.EqualsOrdinal(name));
 
         if (endpoint is null)
         {
@@ -181,7 +179,7 @@ public sealed class PostgresMessagingTransportDescriptor
     /// <inheritdoc  />
     public IPostgresDispatchEndpointDescriptor DispatchEndpoint(string name)
     {
-        var endpoint = _dispatchEndpoints.FirstOrDefault(e => e.Extend().Configuration.Name.EqualsOrdinal(name));
+        var endpoint = _dispatchEndpoints.FirstOrDefault(e => e.Configuration.Name.EqualsOrdinal(name));
         if (endpoint is null)
         {
             endpoint = PostgresDispatchEndpointDescriptor.New(Context, name);
@@ -194,7 +192,7 @@ public sealed class PostgresMessagingTransportDescriptor
     /// <inheritdoc  />
     public IPostgresTopicTopologyDescriptor DeclareTopic(string name)
     {
-        var topic = _topics.FirstOrDefault(e => e.Extend().Configuration.Name.EqualsOrdinal(name));
+        var topic = _topics.FirstOrDefault(e => e.Configuration.Name.EqualsOrdinal(name));
         if (topic is null)
         {
             topic = PostgresTopicTopologyDescriptor.New(Context, name);
@@ -207,7 +205,7 @@ public sealed class PostgresMessagingTransportDescriptor
     /// <inheritdoc  />
     public IPostgresQueueTopologyDescriptor DeclareQueue(string name)
     {
-        var queue = _queueTopology.FirstOrDefault(q => q.Extend().Configuration.Name.EqualsOrdinal(name));
+        var queue = _queueTopology.FirstOrDefault(q => q.Configuration.Name.EqualsOrdinal(name));
         if (queue is null)
         {
             queue = PostgresQueueTopologyDescriptor.New(Context, name);
@@ -221,8 +219,8 @@ public sealed class PostgresMessagingTransportDescriptor
     public IPostgresSubscriptionTopologyDescriptor DeclareSubscription(string topic, string queue)
     {
         var subscription = _subscriptions.FirstOrDefault(b =>
-            b.Extend().Configuration.Source.EqualsOrdinal(topic)
-            && b.Extend().Configuration.Destination.EqualsOrdinal(queue)
+            b.Configuration.Source.EqualsOrdinal(topic)
+            && b.Configuration.Destination.EqualsOrdinal(queue)
         );
 
         if (subscription is null)
@@ -238,7 +236,7 @@ public sealed class PostgresMessagingTransportDescriptor
     public IPostgresQueueDescriptor Queue(string name)
     {
         var queue = _queues.FirstOrDefault(q =>
-            q.Extend().Configuration.Name.EqualsOrdinal(name));
+            q.Configuration.Name.EqualsOrdinal(name));
         if (queue is not null)
         {
             return queue;
@@ -347,13 +345,12 @@ public sealed class PostgresMessagingTransportDescriptor
         }
 
         var targetFeature = target.Features.GetOrSet<ReceiveFaultEndpointFeature>();
-        if (targetFeature is { Address: not null } or { QueueName: not null } or { IsDisabled: true })
+        if (targetFeature is { Address: not null } or { IsDisabled: true })
         {
             return;
         }
 
         targetFeature.Address = source.Address;
-        targetFeature.QueueName = source.QueueName;
         targetFeature.IsDisabled = source.IsDisabled;
     }
 
@@ -368,13 +365,12 @@ public sealed class PostgresMessagingTransportDescriptor
         }
 
         var targetFeature = target.Features.GetOrSet<ReceiveSkippedEndpointFeature>();
-        if (targetFeature is { Address: not null } or { QueueName: not null } or { IsDisabled: true })
+        if (targetFeature is { Address: not null } or { IsDisabled: true })
         {
             return;
         }
 
         targetFeature.Address = source.Address;
-        targetFeature.QueueName = source.QueueName;
         targetFeature.IsDisabled = source.IsDisabled;
     }
 

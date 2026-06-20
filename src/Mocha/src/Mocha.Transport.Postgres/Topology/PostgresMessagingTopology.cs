@@ -65,7 +65,7 @@ public sealed class PostgresMessagingTopology(
     }
 
     /// <summary>
-    /// Adds a topic to the topology or applies a contribution to an existing topic with the same name.
+    /// Adds a topic to the topology or returns the existing topic with the same name.
     /// </summary>
     /// <param name="configuration">The topic configuration specifying name and provisioning settings.</param>
     /// <returns>The created or updated topic resource.</returns>
@@ -76,7 +76,6 @@ public sealed class PostgresMessagingTopology(
             var topic = _topics.FirstOrDefault(t => t.Name == configuration.Name);
             if (topic is not null)
             {
-                ApplyTopicContribution(topic, configuration);
                 return topic;
             }
 
@@ -118,7 +117,7 @@ public sealed class PostgresMessagingTopology(
     }
 
     /// <summary>
-    /// Adds a queue to the topology or applies a contribution to an existing queue with the same name.
+    /// Adds a queue to the topology or returns the existing queue with the same name.
     /// </summary>
     /// <param name="configuration">The queue configuration specifying name, auto-delete, and provisioning settings.</param>
     /// <returns>The created or updated queue resource.</returns>
@@ -129,7 +128,6 @@ public sealed class PostgresMessagingTopology(
             var queue = _queues.FirstOrDefault(q => q.Name == configuration.Name);
             if (queue is not null)
             {
-                ApplyQueueContribution(queue, configuration);
                 return queue;
             }
 
@@ -150,37 +148,6 @@ public sealed class PostgresMessagingTopology(
         queue.Complete();
 
         return queue;
-    }
-
-    private static void ApplyTopicContribution(PostgresTopic topic, PostgresTopicConfiguration configuration)
-    {
-        StrengthenAutoProvision(
-            topic.AutoProvision,
-            configuration.AutoProvision,
-            value => topic.AutoProvision = value);
-    }
-
-    private static void ApplyQueueContribution(PostgresQueue queue, PostgresQueueConfiguration configuration)
-    {
-        StrengthenAutoProvision(
-            queue.AutoProvision,
-            configuration.AutoProvision,
-            value => queue.AutoProvision = value);
-    }
-
-    private static void StrengthenAutoProvision(
-        bool? existing,
-        bool? incoming,
-        Action<bool?> assign)
-    {
-        if (existing is null)
-        {
-            assign(incoming);
-        }
-        else if (incoming == true)
-        {
-            assign(true);
-        }
     }
 
     /// <summary>

@@ -11,11 +11,6 @@ public sealed class ReceiveFaultEndpointFeature
     public Uri? Address { get; set; }
 
     /// <summary>
-    /// Gets or sets the queue name of the fault endpoint.
-    /// </summary>
-    public string? QueueName { get; set; }
-
-    /// <summary>
     /// Gets or sets the dispatch endpoint to forward faulted messages to.
     /// </summary>
     public DispatchEndpoint? Endpoint { get; set; }

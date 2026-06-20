@@ -19,37 +19,37 @@ public class PostgresMessagingTopologyTests
     }
 
     [Fact]
-    public void AddTopic_Should_StrengthenAutoProvision_When_DuplicateNameAndAutoProvisionTrue()
+    public void AddTopic_Should_PreserveAutoProvision_When_DuplicateNameAndAutoProvisionTrue()
     {
         // arrange
         var (_, _, topology) = PostgresBusFixture.CreateTopology(_ => { });
         topology.AddTopic(new PostgresTopicConfiguration { Name = "ap-topic", AutoProvision = false });
         var countAfterFirst = topology.Topics.Count;
 
-        // act: second add with AutoProvision = true strengthens; count does not increase
+        // act
         topology.AddTopic(new PostgresTopicConfiguration { Name = "ap-topic", AutoProvision = true });
 
         // assert
         Assert.Equal(countAfterFirst, topology.Topics.Count);
         var topic = Assert.Single(topology.Topics, t => t.Name == "ap-topic");
-        Assert.True(topic.AutoProvision);
+        Assert.False(topic.AutoProvision);
     }
 
     [Fact]
-    public void AddQueue_Should_StrengthenAutoProvision_When_DuplicateNameAndAutoProvisionTrue()
+    public void AddQueue_Should_PreserveAutoProvision_When_DuplicateNameAndAutoProvisionTrue()
     {
         // arrange
         var (_, _, topology) = PostgresBusFixture.CreateTopology(_ => { });
         topology.AddQueue(new PostgresQueueConfiguration { Name = "ap-queue", AutoProvision = false });
         var countAfterFirst = topology.Queues.Count;
 
-        // act: second add with AutoProvision = true strengthens; count does not increase
+        // act
         topology.AddQueue(new PostgresQueueConfiguration { Name = "ap-queue", AutoProvision = true });
 
         // assert
         Assert.Equal(countAfterFirst, topology.Queues.Count);
         var queue = Assert.Single(topology.Queues, q => q.Name == "ap-queue");
-        Assert.True(queue.AutoProvision);
+        Assert.False(queue.AutoProvision);
     }
 
     [Fact]
@@ -256,37 +256,37 @@ public class PostgresMessagingTopologyTests
     }
 
     [Fact]
-    public void AddTopic_Should_FillAutoProvision_When_ExistingIsNullAndIncomingHasValue()
+    public void AddTopic_Should_PreserveAutoProvision_When_ExistingIsNullAndIncomingHasValue()
     {
-        // arrange: first add leaves AutoProvision null
+        // arrange
         var (_, _, topology) = PostgresBusFixture.CreateTopology(_ => { });
         topology.AddTopic(new PostgresTopicConfiguration { Name = "fill-topic" });
         var countAfterFirst = topology.Topics.Count;
 
-        // act: second add provides AutoProvision = false (fills the null)
+        // act
         topology.AddTopic(new PostgresTopicConfiguration { Name = "fill-topic", AutoProvision = false });
 
-        // assert: count does not grow; AutoProvision is now filled
+        // assert
         Assert.Equal(countAfterFirst, topology.Topics.Count);
         var topic = Assert.Single(topology.Topics, t => t.Name == "fill-topic");
-        Assert.False(topic.AutoProvision);
+        Assert.Null(topic.AutoProvision);
     }
 
     [Fact]
-    public void AddQueue_Should_FillAutoProvision_When_ExistingIsNullAndIncomingHasValue()
+    public void AddQueue_Should_PreserveAutoProvision_When_ExistingIsNullAndIncomingHasValue()
     {
-        // arrange: first add leaves AutoProvision null
+        // arrange
         var (_, _, topology) = PostgresBusFixture.CreateTopology(_ => { });
         topology.AddQueue(new PostgresQueueConfiguration { Name = "fill-queue" });
         var countAfterFirst = topology.Queues.Count;
 
-        // act: second add provides AutoProvision = false (fills the null)
+        // act
         topology.AddQueue(new PostgresQueueConfiguration { Name = "fill-queue", AutoProvision = false });
 
-        // assert: count does not grow; AutoProvision is now filled
+        // assert
         Assert.Equal(countAfterFirst, topology.Queues.Count);
         var queue = Assert.Single(topology.Queues, q => q.Name == "fill-queue");
-        Assert.False(queue.AutoProvision);
+        Assert.Null(queue.AutoProvision);
     }
 
     [Fact]

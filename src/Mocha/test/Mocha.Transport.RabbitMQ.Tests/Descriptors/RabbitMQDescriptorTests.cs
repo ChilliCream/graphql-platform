@@ -151,12 +151,12 @@ public class RabbitMQDescriptorTests
         // assert
         var endpoint = transport.ReceiveEndpoints.OfType<RabbitMQReceiveEndpoint>().Single(e => e.Name == "q");
         var feature = endpoint.Configuration.Features.Get<ReceiveFaultEndpointFeature>();
-        Assert.Equal("rabbitmq:q/Legacy.Orders.V2_error", feature?.Address?.OriginalString);
+        Assert.Equal("queue:Legacy.Orders.V2_error", feature?.Address?.OriginalString);
         Assert.False(feature?.IsDisabled ?? false);
     }
 
     [Fact]
-    public void ReceiveEndpoint_Should_UseConfiguredSchema_When_ErrorQueueConfiguredBeforeSchema()
+    public void ReceiveEndpoint_Should_UseLocalQueueUri_When_ErrorQueueConfiguredBeforeSchema()
     {
         // arrange & act
         var runtime = CreateRuntime(t =>
@@ -169,7 +169,7 @@ public class RabbitMQDescriptorTests
         // assert
         var endpoint = transport.ReceiveEndpoints.OfType<RabbitMQReceiveEndpoint>().Single(e => e.Name == "q");
         Assert.Equal(
-            "custom-rabbit:q/q_error",
+            "queue:q_error",
             endpoint.Configuration.Features.Get<ReceiveFaultEndpointFeature>()?.Address?.OriginalString);
         Assert.Equal(
             "q_error",
@@ -212,6 +212,28 @@ public class RabbitMQDescriptorTests
             endpoint.Configuration.Features.Get<ReceiveFaultEndpointFeature>()?.Address?.OriginalString);
         Assert.Equal(
             "other_error",
+            ((RabbitMQQueue)endpoint.Features.Get<ReceiveFaultEndpointFeature>()!.Endpoint!.Destination).Name);
+    }
+
+    [Fact]
+    public void ReceiveEndpoint_Should_PreserveExtendedFaultAddress_When_ErrorQueueConfiguredFirst()
+    {
+        // arrange & act
+        var runtime = CreateRuntime(t =>
+        {
+            var queue = t.Queue("q").AutoProvision(true).Handler<OrderCreatedHandler>().ErrorQueue("q_error");
+            queue.Extend().Configuration.Features.GetOrSet<ReceiveFaultEndpointFeature>().Address =
+                new Uri("queue:extended_error");
+        });
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+
+        // assert
+        var endpoint = transport.ReceiveEndpoints.OfType<RabbitMQReceiveEndpoint>().Single(e => e.Name == "q");
+        Assert.Equal(
+            "queue:extended_error",
+            endpoint.Configuration.Features.Get<ReceiveFaultEndpointFeature>()?.Address?.OriginalString);
+        Assert.Equal(
+            "extended_error",
             ((RabbitMQQueue)endpoint.Features.Get<ReceiveFaultEndpointFeature>()!.Endpoint!.Destination).Name);
     }
 

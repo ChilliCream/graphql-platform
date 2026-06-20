@@ -190,12 +190,12 @@ public class PostgresDescriptorTests
             .OfType<PostgresReceiveEndpoint>()
             .Single(e => e.Queue.Name == "q");
         var feature = endpoint.Configuration.Features.Get<ReceiveFaultEndpointFeature>();
-        Assert.Equal("postgres:q/Legacy.Orders.V2_error", feature?.Address?.OriginalString);
+        Assert.Equal("queue:Legacy.Orders.V2_error", feature?.Address?.OriginalString);
         Assert.False(feature?.IsDisabled ?? false);
     }
 
     [Fact]
-    public void ReceiveEndpoint_Should_UseConfiguredSchema_When_ErrorQueueConfiguredBeforeSchema()
+    public void ReceiveEndpoint_Should_UseLocalQueueUri_When_ErrorQueueConfiguredBeforeSchema()
     {
         // arrange & act
         var services = new ServiceCollection();
@@ -217,7 +217,7 @@ public class PostgresDescriptorTests
             .OfType<PostgresReceiveEndpoint>()
             .Single(e => e.Queue.Name == "q");
         Assert.Equal(
-            "custom-postgres:q/q_error",
+            "queue:q_error",
             endpoint.Configuration.Features.Get<ReceiveFaultEndpointFeature>()?.Address?.OriginalString);
         Assert.Equal(
             "q_error",
@@ -251,6 +251,37 @@ public class PostgresDescriptorTests
             endpoint.Configuration.Features.Get<ReceiveFaultEndpointFeature>()?.Address?.OriginalString);
         Assert.Equal(
             "other_error",
+            ((PostgresQueue)endpoint.Features.Get<ReceiveFaultEndpointFeature>()!.Endpoint!.Destination).Name);
+    }
+
+    [Fact]
+    public void ReceiveEndpoint_Should_PreserveExtendedFaultAddress_When_ErrorQueueConfiguredFirst()
+    {
+        // arrange & act
+        var services = new ServiceCollection();
+        services.AddSingleton(new MessageRecorder());
+        var builder = services.AddMessageBus();
+        builder.AddEventHandler<OrderCreatedHandler>();
+        var runtime = builder
+            .AddPostgres(t =>
+            {
+                t.ConnectionString("Host=localhost;Database=mocha_test;Username=test;Password=test");
+                var queue = t.Queue("q").ErrorQueue("q_error").Handler<OrderCreatedHandler>();
+                queue.Extend().Configuration.Features.GetOrSet<ReceiveFaultEndpointFeature>().Address =
+                    new Uri("queue:extended_error");
+            })
+            .BuildRuntime();
+        var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
+
+        // assert
+        var endpoint = transport.ReceiveEndpoints
+            .OfType<PostgresReceiveEndpoint>()
+            .Single(e => e.Queue.Name == "q");
+        Assert.Equal(
+            "queue:extended_error",
+            endpoint.Configuration.Features.Get<ReceiveFaultEndpointFeature>()?.Address?.OriginalString);
+        Assert.Equal(
+            "extended_error",
             ((PostgresQueue)endpoint.Features.Get<ReceiveFaultEndpointFeature>()!.Endpoint!.Destination).Name);
     }
 

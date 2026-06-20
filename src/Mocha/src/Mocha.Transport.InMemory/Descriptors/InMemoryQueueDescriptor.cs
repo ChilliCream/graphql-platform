@@ -123,7 +123,6 @@ internal sealed class InMemoryQueueDescriptor
     {
         var feature = Configuration.Features.GetOrSet<ReceiveFaultEndpointFeature>();
         feature.Address = new Uri(name);
-        feature.QueueName = null;
         feature.IsDisabled = false;
         return this;
     }
@@ -133,7 +132,6 @@ internal sealed class InMemoryQueueDescriptor
     {
         var feature = Configuration.Features.GetOrSet<ReceiveSkippedEndpointFeature>();
         feature.Address = new Uri(name);
-        feature.QueueName = null;
         feature.IsDisabled = false;
         return this;
     }

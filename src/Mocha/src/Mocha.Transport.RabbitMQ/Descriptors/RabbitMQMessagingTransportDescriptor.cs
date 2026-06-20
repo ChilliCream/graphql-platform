@@ -331,13 +331,12 @@ public sealed class RabbitMQMessagingTransportDescriptor
         }
 
         var targetFeature = target.Features.GetOrSet<ReceiveFaultEndpointFeature>();
-        if (targetFeature is { Address: not null } or { QueueName: not null } or { IsDisabled: true })
+        if (targetFeature is { Address: not null } or { IsDisabled: true })
         {
             return;
         }
 
         targetFeature.Address = source.Address;
-        targetFeature.QueueName = source.QueueName;
         targetFeature.IsDisabled = source.IsDisabled;
     }
 
@@ -352,13 +351,12 @@ public sealed class RabbitMQMessagingTransportDescriptor
         }
 
         var targetFeature = target.Features.GetOrSet<ReceiveSkippedEndpointFeature>();
-        if (targetFeature is { Address: not null } or { QueueName: not null } or { IsDisabled: true })
+        if (targetFeature is { Address: not null } or { IsDisabled: true })
         {
             return;
         }
 
         targetFeature.Address = source.Address;
-        targetFeature.QueueName = source.QueueName;
         targetFeature.IsDisabled = source.IsDisabled;
     }
 

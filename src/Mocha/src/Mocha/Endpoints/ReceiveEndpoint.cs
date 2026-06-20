@@ -210,13 +210,13 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
         var faultFeature = Features.Get<ReceiveFaultEndpointFeature>();
         if (faultFeature is { Endpoint: null, Address: { } faultAddress })
         {
-            faultFeature.Endpoint = context.Endpoints.GetOrCreate(context, faultAddress);
+            faultFeature.Endpoint = context.Endpoints.GetOrCreate(context, ResolveLocalAddress(faultAddress));
         }
 
         var skippedFeature = Features.Get<ReceiveSkippedEndpointFeature>();
         if (skippedFeature is { Endpoint: null, Address: { } skippedAddress })
         {
-            skippedFeature.Endpoint = context.Endpoints.GetOrCreate(context, skippedAddress);
+            skippedFeature.Endpoint = context.Endpoints.GetOrCreate(context, ResolveLocalAddress(skippedAddress));
         }
 
         _pipeline = MiddlewareCompiler.CompileReceive(
@@ -231,6 +231,11 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
             [transport.GetReceivePipelineModifiers(), Configuration.ReceivePipelineModifiers]);
         IsCompleted = true;
     }
+
+    private Uri ResolveLocalAddress(Uri address)
+        => address.TryGetLocalQueueName(out var queueName)
+            ? new Uri($"{Transport.Schema}:q/{queueName}")
+            : address;
 
     /// <summary>
     /// When overridden in a derived class, performs transport-specific completion logic before

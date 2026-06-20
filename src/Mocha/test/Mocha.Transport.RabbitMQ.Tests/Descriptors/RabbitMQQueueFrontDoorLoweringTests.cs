@@ -31,7 +31,7 @@ public class RabbitMQQueueFrontDoorLoweringTests
         var feature = endpoint.Configuration.Features.Get<ReceiveFaultEndpointFeature>();
 
         // assert
-        Assert.Equal("rabbitmq:q/audit_error", feature?.Address?.OriginalString);
+        Assert.Equal("queue:audit_error", feature?.Address?.OriginalString);
         Assert.False(feature?.IsDisabled ?? false);
     }
 
