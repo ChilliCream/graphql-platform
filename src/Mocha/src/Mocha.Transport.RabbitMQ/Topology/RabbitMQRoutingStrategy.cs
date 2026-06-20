@@ -573,12 +573,6 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
         Span<Range> ranges = stackalloc Range[2];
         var segmentCount = path.Split(ranges, '/', RemoveEmptyEntries | TrimEntries);
 
-        if (address.TryGetLocalQueueName(out var localQueueName))
-        {
-            queueName = localQueueName;
-            return true;
-        }
-
         if (address.Scheme == Transport.Schema && address.Host is "" && segmentCount == 2)
         {
             var kind = path[ranges[0]];

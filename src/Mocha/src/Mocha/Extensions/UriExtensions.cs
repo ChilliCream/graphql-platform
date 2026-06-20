@@ -1,5 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace Mocha;
 
 /// <summary>
@@ -7,55 +5,6 @@ namespace Mocha;
 /// </summary>
 internal static class UriExtensions
 {
-    /// <summary>
-    /// Attempts to read a transport-local queue name from a URI such as <c>queue:orders</c>.
-    /// </summary>
-    /// <param name="address">The URI to inspect.</param>
-    /// <param name="name">When successful, contains the queue name; otherwise null.</param>
-    /// <returns>True when the URI represents a local queue name.</returns>
-    public static bool TryGetLocalQueueName(this Uri address, [NotNullWhen(true)] out string? name)
-    {
-        if (address.Scheme is not "queue")
-        {
-            name = null;
-            return false;
-        }
-
-        if (!string.IsNullOrEmpty(address.Host))
-        {
-            name = null;
-            return false;
-        }
-
-        var path = address.AbsolutePath;
-        if (path.Length == 0)
-        {
-            name = null;
-            return false;
-        }
-
-        if (path[0] == '/')
-        {
-            if (path.Length > 1 && path.IndexOf('/', 1) == -1)
-            {
-                name = path[1..];
-                return true;
-            }
-
-            name = null;
-            return false;
-        }
-
-        if (!path.Contains('/'))
-        {
-            name = path;
-            return true;
-        }
-
-        name = null;
-        return false;
-    }
-
     /// <summary>
     /// Attempts to extract the resource name from a URI.
     /// </summary>
