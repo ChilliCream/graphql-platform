@@ -92,7 +92,6 @@ public abstract partial class Saga : IFeatureProvider
                         eventType.FullName,
                         transition.TransitionTo,
                         transition.TransitionKind,
-                        transition.AutoProvision,
                         transition.Publish.IsEmpty
                             ? null
                             : transition

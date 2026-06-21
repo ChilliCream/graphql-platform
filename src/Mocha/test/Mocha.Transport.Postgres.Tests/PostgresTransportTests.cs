@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Mocha.Features;
 using Mocha.Transport.Postgres.Tests.Helpers;
 
 namespace Mocha.Transport.Postgres.Tests;
@@ -584,11 +585,13 @@ public class PostgresTransportTests
         var receiveEndpoint = transport.ReceiveEndpoints.First(e => e.Kind == ReceiveEndpointKind.Default);
 
         // assert
-        Assert.NotNull(receiveEndpoint.ErrorEndpoint);
-        Assert.Contains("_error", receiveEndpoint.ErrorEndpoint!.Name);
+        var faultFeature = receiveEndpoint.Features.Get<ReceiveFaultEndpointFeature>();
+        Assert.NotNull(faultFeature?.Endpoint);
+        Assert.Contains("_error", faultFeature.Endpoint!.Name);
 
-        Assert.NotNull(receiveEndpoint.SkippedEndpoint);
-        Assert.Contains("_skipped", receiveEndpoint.SkippedEndpoint!.Name);
+        var skippedFeature = receiveEndpoint.Features.Get<ReceiveSkippedEndpointFeature>();
+        Assert.NotNull(skippedFeature?.Endpoint);
+        Assert.Contains("_skipped", skippedFeature.Endpoint!.Name);
     }
 
     [Fact]

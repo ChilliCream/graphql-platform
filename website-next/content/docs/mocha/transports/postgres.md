@@ -250,31 +250,9 @@ Each migration is tracked in the migrations table and is idempotent - running th
 > [!WARNING]
 > The advisory lock ID is fixed. If you run multiple independent Mocha transports in the same PostgreSQL cluster with different table prefixes, they share the same advisory lock. This is safe - it serializes migrations but does not block normal message operations.
 
-# Declare custom topology
+# Configure queues
 
-Mocha auto-provisions topology by default. To declare additional topics, queues, or subscriptions:
-
-```csharp
-builder.Services
-    .AddMessageBus()
-    .AddPostgres(transport =>
-    {
-        transport.ConnectionString(connectionString);
-
-        // Declare a topic
-        transport.DeclareTopic("order-events");
-
-        // Declare a queue
-        transport.DeclareQueue("billing-orders");
-
-        // Declare a subscription linking the topic to the queue
-        transport.DeclareSubscription("order-events", "billing-orders");
-    });
-```
-
-All explicitly declared topology is provisioned when the transport starts, before receive endpoints begin consuming.
-
-To configure explicit endpoint-to-queue binding with handler assignment:
+Use `transport.Queue("name")` when you need to customize a PostgreSQL queue. The queue builder is the primary API for queue names, auto-provisioning, auto-delete, handler assignment, source bindings, batch size, concurrency, fault queues, and skipped queues.
 
 ```csharp
 builder.Services
@@ -283,22 +261,64 @@ builder.Services
     .AddPostgres(transport =>
     {
         transport.ConnectionString(connectionString);
-        transport.BindHandlersExplicitly();
+        transport.BindExplicitly();
 
-        // Declare the queue
-        transport.DeclareQueue("process-order");
-
-        // Bind a receive endpoint to the queue with a handler
-        transport.Endpoint("process-order-ep")
-            .Queue("process-order")
+        transport.Queue("process-order")
+            .BindImplicitly()
+            .AutoProvision()
+            .AutoDelete(false)
+            .MaxBatchSize(20)
+            .MaxConcurrency(10)
             .Handler<ProcessOrderCommandHandler>();
-
-        // Configure a dispatch endpoint for sending to the queue
-        transport.DispatchEndpoint("send-demo")
-            .ToQueue("process-order")
-            .Send<ProcessOrderCommand>();
     });
 ```
+
+`BindExplicitly()` at the transport scope means only queues you configure are used for receiving. `BindImplicitly()` on the queue tells Mocha to generate the convention-derived topic subscriptions for the messages handled by that queue.
+
+Calling `Queue("name")` without `Handler<T>()`, `Consumer<T>()`, or `Receives<T>()` declares only the PostgreSQL queue row. Add a handler, consumer, or received message type when the queue should also consume messages.
+
+```csharp
+transport.Queue("audit-log")
+    .AutoProvision(false)
+    .AutoDelete(false);
+```
+
+For custom source topology, bind the queue from a specific topic:
+
+```csharp
+transport.Queue("billing-orders")
+    .BindExplicitly()
+    .BindFrom(new Uri("topic:order-events"))
+    .Handler<OrderPlacedEventHandler>();
+```
+
+`BindExplicitly()` on the queue suppresses convention-derived topic subscriptions for that queue, so only the `BindFrom(...)` sources are used.
+
+# Declare topology resources
+
+Mocha auto-provisions topology from registered handlers and queue builders by default.
+
+> [!CAUTION]
+> Use `DeclareTopic()`, `DeclareQueue()`, and `DeclareSubscription()` only when you need infrastructure topology that is not represented by a queue builder, or when you are aligning with topology managed outside of Mocha. For handler queues, prefer `transport.Queue("name")`.
+
+To declare infrastructure-only topology:
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddPostgres(transport =>
+    {
+        transport.ConnectionString(connectionString);
+
+        transport.DeclareTopic("order-events");
+
+        transport.DeclareQueue("billing-orders");
+
+        transport.DeclareSubscription("order-events", "billing-orders");
+    });
+```
+
+All declared topology is provisioned when the transport starts, before receive endpoints begin consuming.
 
 # Control auto-provisioning
 
@@ -345,9 +365,9 @@ The effective auto-provision value for each resource follows a cascading pattern
 
 When a resource does not specify `AutoProvision`, it inherits the transport-level default. When the transport does not specify `AutoProvision`, it defaults to `true`.
 
-# Batching and concurrency
+# Configure convention endpoints
 
-Customize batch size, concurrency, and handler assignments on receive endpoints:
+Use `transport.Handler<T>()` at the end of the transport configuration when you want to keep the convention-derived queue name and only tune one handler endpoint:
 
 ```csharp
 builder.Services
@@ -356,15 +376,13 @@ builder.Services
     .AddPostgres(transport =>
     {
         transport.ConnectionString(connectionString);
-        transport.BindHandlersExplicitly();
 
-        transport.Endpoint("order-processing")
-            .Queue("orders.processing")
-            .MaxBatchSize(20)
-            .MaxConcurrency(10)
-            .Handler<OrderPlacedEventHandler>();
+        transport.Handler<OrderPlacedEventHandler>()
+            .ConfigureEndpoint(e => e.MaxBatchSize(20).MaxConcurrency(10));
     });
 ```
+
+For full control over the queue name, source bindings, and handler assignment, use `Queue("name")` instead.
 
 **MaxBatchSize** controls how many messages the endpoint reads from the database in a single `SELECT ... FOR UPDATE SKIP LOCKED` query. Default: `10`. Higher values reduce round trips but lock more rows simultaneously.
 
