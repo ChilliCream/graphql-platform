@@ -485,17 +485,31 @@ public static class SchemaFormatter
             IDirectiveDefinition mutableDirective,
             VisitorContext context)
         {
+            VisitDirectives(mutableDirective.Directives, context);
+            var directives = (List<DirectiveNode>)context.Result!;
+
+            directives = ApplyDeprecatedDirective(mutableDirective, directives);
+
+            if (IsTypeExtension(mutableDirective))
+            {
+                context.Result = new DirectiveExtensionNode(
+                    null,
+                    new NameNode(mutableDirective.Name),
+                    directives);
+                return;
+            }
+
             VisitInputFields(mutableDirective.Arguments, context);
             var arguments = (List<InputValueDefinitionNode>)context.Result!;
 
-            context.Result =
-                new DirectiveDefinitionNode(
-                    null,
-                    new NameNode(mutableDirective.Name),
-                    CreateDescription(mutableDirective.Description),
-                    mutableDirective.IsRepeatable,
-                    arguments,
-                    mutableDirective.Locations.ToNameNodes());
+            context.Result = new DirectiveDefinitionNode(
+                null,
+                new NameNode(mutableDirective.Name),
+                CreateDescription(mutableDirective.Description),
+                mutableDirective.IsRepeatable,
+                arguments,
+                directives,
+                mutableDirective.Locations.ToNameNodes());
         }
 
         public override void VisitOutputFields(
@@ -595,7 +609,8 @@ public static class SchemaFormatter
             IDeprecationProvider canBeDeprecated,
             List<DirectiveNode> directives)
         {
-            if (canBeDeprecated.IsDeprecated)
+            if (canBeDeprecated.IsDeprecated
+                && !directives.Any(d => d.Name.Value == DirectiveNames.Deprecated.Name))
             {
                 var deprecateDirective = CreateDeprecatedDirective(canBeDeprecated.DeprecationReason);
 

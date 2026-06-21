@@ -61,7 +61,7 @@ function NavSimple({ item }: { item: NavItem }) {
       <Link
         href={item.href}
         prefetch={false}
-        className="flex items-center px-4 text-sm font-medium text-cc-ink-dim no-underline transition-colors hover:text-cc-ink"
+        className="text-cc-ink-dim hover:text-cc-ink flex items-center px-4 text-sm font-medium no-underline transition-colors"
       >
         {item.label}
       </Link>
@@ -95,7 +95,7 @@ function NavWithSubmenu({
         href={item.href}
         prefetch={false}
         onClick={handleNavigate}
-        className="flex items-center gap-1.5 px-4 text-sm font-medium text-cc-ink-dim no-underline transition-colors hover:text-cc-ink group-hover/nav:text-cc-ink"
+        className="text-cc-ink-dim hover:text-cc-ink group-hover/nav:text-cc-ink flex items-center gap-1.5 px-4 text-sm font-medium no-underline transition-colors"
       >
         {item.label}
         <ChevronDownIcon className="h-3 w-3 fill-current" />
@@ -140,7 +140,7 @@ function SubmenuPanel({
   return (
     <div
       className={[
-        "pointer-events-none invisible absolute left-1/2 top-full -translate-x-1/2 pt-2 opacity-0 transition-[opacity,visibility] duration-200",
+        "pointer-events-none invisible absolute top-full left-1/2 -translate-x-1/2 pt-2 opacity-0 transition-[opacity,visibility] duration-200",
         closed
           ? ""
           : "group-hover/nav:pointer-events-auto group-hover/nav:visible group-hover/nav:opacity-100",
@@ -148,7 +148,7 @@ function SubmenuPanel({
     >
       <div
         className={[
-          "grid gap-8 rounded-lg border border-cc-white/10 bg-cc-surface/95 p-6 shadow-2xl backdrop-blur-md",
+          "border-cc-white/10 bg-cc-surface/95 grid gap-8 rounded-lg border p-6 shadow-2xl backdrop-blur-md",
           showAside ? "grid-cols-[1fr_280px]" : "grid-cols-1",
           item.panelWidth ?? "w-120",
         ].join(" ")}
@@ -186,7 +186,7 @@ function SubGroupBlock({
       <div
         role="heading"
         aria-level={2}
-        className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-cc-ink-dim"
+        className="text-cc-ink-dim mb-3 text-xs font-semibold tracking-[0.18em] uppercase"
       >
         {group.title}
       </div>
@@ -220,17 +220,17 @@ function SubLinkRow({
       prefetch={false}
       onClick={onNavigate}
       {...linkProps}
-      className="group/link flex items-start gap-3 rounded-md px-2 py-2 text-cc-ink-dim no-underline transition-colors hover:bg-cc-hover"
+      className="group/link text-cc-ink-dim hover:bg-cc-hover flex items-start gap-3 rounded-md px-2 py-2 no-underline transition-colors"
     >
       {Icon && (
-        <span className="mt-0.5 flex h-5 w-5 flex-none items-center justify-center text-cc-ink-dim transition-colors group-hover/link:text-cc-ink">
+        <span className="text-cc-ink-dim group-hover/link:text-cc-ink mt-0.5 flex h-5 w-5 flex-none items-center justify-center transition-colors">
           <Icon className="h-4 w-4 fill-current" />
         </span>
       )}
       <div>
-        <div className="text-sm font-medium text-cc-ink">{link.label}</div>
+        <div className="text-cc-ink text-sm font-medium">{link.label}</div>
         {link.description && (
-          <div className="text-xs font-normal text-cc-ink-dim">
+          <div className="text-cc-ink-dim text-xs font-normal">
             {link.description}
           </div>
         )}
@@ -253,7 +253,7 @@ function LatestBlogPanel({
       <div
         role="heading"
         aria-level={2}
-        className="text-xs font-semibold uppercase tracking-[0.18em] text-cc-ink-dim"
+        className="text-cc-ink-dim text-xs font-semibold tracking-[0.18em] uppercase"
       >
         Latest Blog Post
       </div>
@@ -261,15 +261,15 @@ function LatestBlogPanel({
         href={post.href}
         prefetch={false}
         onClick={onNavigate}
-        className="group/blog flex flex-col gap-2 rounded-md text-cc-ink no-underline"
+        className="group/blog text-cc-ink flex flex-col gap-2 rounded-md no-underline"
       >
         {image && (
-          <div className="overflow-hidden rounded-md border border-cc-white/10">
+          <div className="border-cc-white/10 overflow-hidden rounded-md border">
             {image}
           </div>
         )}
-        <div className="text-xs text-cc-ink-dim">{formatDate(post.date)}</div>
-        <div className="text-sm font-medium leading-snug text-cc-ink group-hover/blog:text-cc-accent">
+        <div className="text-cc-ink-dim text-xs">{formatDate(post.date)}</div>
+        <div className="text-cc-ink group-hover/blog:text-cc-accent text-sm leading-snug font-medium">
           {post.title}
         </div>
       </Link>
@@ -283,19 +283,19 @@ function GetInTouchPanel() {
       <div
         role="heading"
         aria-level={2}
-        className="text-xs font-semibold uppercase tracking-[0.18em] text-cc-ink-dim"
+        className="text-cc-ink-dim text-xs font-semibold tracking-[0.18em] uppercase"
       >
         Get in touch
       </div>
-      <div className="flex h-45 items-center justify-center rounded-md border border-cc-white/10 bg-(image:--cc-promo-gradient)">
-        <div className="text-center text-sm font-medium leading-snug text-cc-ink">
+      <div className="border-cc-white/10 flex h-45 items-center justify-center rounded-md border bg-(image:--cc-promo-gradient)">
+        <div className="text-cc-ink text-center text-sm leading-snug font-medium">
           Your technology journey.
           <br />
           Our expertise.
         </div>
       </div>
-      <p className="text-xs leading-relaxed text-cc-ink-dim">
-        <span className="font-semibold text-cc-ink">ChilliCream</span> helps you
+      <p className="text-cc-ink-dim text-xs leading-relaxed">
+        <span className="text-cc-ink font-semibold">ChilliCream</span> helps you
         unlock your full potential, delivering on its promise to transform your
         business.
       </p>

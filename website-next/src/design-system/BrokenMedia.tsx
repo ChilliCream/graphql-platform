@@ -10,9 +10,9 @@ type BrokenMediaProps = {
 export function BrokenMedia({ message, className, style }: BrokenMediaProps) {
   return (
     <span
-      className={`@container flex flex-col items-center justify-center gap-3 overflow-hidden bg-cc-card-bg text-cc-ink-dim ${
+      className={`bg-cc-card-bg text-cc-ink-dim @container flex flex-col items-center justify-center gap-3 overflow-hidden ${
         className ??
-        "my-6 aspect-video w-full rounded-md ring-1 ring-cc-card-border"
+        "ring-cc-card-border my-6 aspect-video w-full rounded-md ring-1"
       }`}
       style={style}
     >

@@ -21,8 +21,22 @@ internal sealed class FusionComposeCommand : Command
         Options.Add(Opt<WatchModeOption>.Instance);
         Options.Add(Opt<WorkingDirectoryOption>.Instance);
         Options.Add(Opt<OptionalExcludeTagListOption>.Instance);
+        Options.Add(Opt<OptionalRemoveSourceSchemaListOption>.Instance);
 
         this.AddGlobalNitroOptions();
+
+        Validators.Add(result =>
+        {
+            var removeSourceSchemas =
+                result.GetValue(Opt<OptionalRemoveSourceSchemaListOption>.Instance);
+            var watchMode = result.GetValue(Opt<WatchModeOption>.Instance);
+
+            if (removeSourceSchemas is { Count: > 0 } && watchMode)
+            {
+                result.AddError(
+                    "The '--remove-source-schema' and '--watch' options cannot be combined.");
+            }
+        });
 
         this.AddExamples(
             """
@@ -56,6 +70,7 @@ internal sealed class FusionComposeCommand : Command
             Opt<IncludeSatisfiabilityPathsOption>.Instance);
         var watchMode = parseResult.GetValue(Opt<WatchModeOption>.Instance);
         var tagsToExclude = parseResult.GetValue(Opt<OptionalExcludeTagListOption>.Instance);
+        var removeSourceSchemas = parseResult.GetValue(Opt<OptionalRemoveSourceSchemaListOption>.Instance) ?? [];
         archiveFile ??= workingDirectory;
 
         if (fileSystem.DirectoryExists(archiveFile))
@@ -67,7 +82,7 @@ internal sealed class FusionComposeCommand : Command
             archiveFile = Path.Combine(workingDirectory, archiveFile);
         }
 
-        if (sourceSchemaFiles.Count == 0)
+        if (sourceSchemaFiles.Count == 0 && removeSourceSchemas.Count == 0)
         {
             sourceSchemaFiles.AddRange(
                 fileSystem.GetFiles(workingDirectory, "*.graphql*", SearchOption.AllDirectories)
@@ -124,6 +139,7 @@ internal sealed class FusionComposeCommand : Command
                     ExcludeByTag = tagsToExclude?.ToHashSet()
                 }
             },
+            removeSourceSchemas,
             cancellationToken);
     }
 
@@ -166,6 +182,7 @@ internal sealed class FusionComposeCommand : Command
                     ExcludeByTag = tagsToExclude?.ToHashSet()
                 }
             },
+            [],
             cancellationToken);
 
         // use a bounded channel to queue composition requests
@@ -371,6 +388,7 @@ internal sealed class FusionComposeCommand : Command
                             ExcludeByTag = tagsToExclude?.ToHashSet()
                         }
                     },
+                    [],
                     cancellationToken);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
@@ -393,6 +411,7 @@ internal sealed class FusionComposeCommand : Command
         string archiveFile,
         string? environment,
         CompositionSettings compositionSettings,
+        IReadOnlyList<string> removeSourceSchemas,
         CancellationToken cancellationToken)
     {
         using var archive = fileSystem.FileExists(archiveFile)
@@ -403,6 +422,27 @@ internal sealed class FusionComposeCommand : Command
 
         try
         {
+            if (removeSourceSchemas.Count > 0)
+            {
+                var existing = (await archive.GetSourceSchemaNamesAsync(cancellationToken))
+                    .ToHashSet(StringComparer.Ordinal);
+
+                var missingSourceSchema =
+                    removeSourceSchemas.FirstOrDefault(name => !existing.Contains(name));
+
+                if (missingSourceSchema is not null)
+                {
+                    console.Error.WriteErrorLine(
+                        Messages.SourceSchemaDoesNotExistInArchive(missingSourceSchema, archiveFile));
+                    return 1;
+                }
+
+                foreach (var name in removeSourceSchemas)
+                {
+                    await archive.RemoveSourceSchemaConfigurationAsync(name, cancellationToken);
+                }
+            }
+
             var sourceSchemas = await FusionCompositionHelpers.ReadSourceSchemasAsync(
                 fileSystem,
                 workingDirectory,

@@ -49,7 +49,7 @@ export function listBlogPosts(): {
       if (!candidate) {
         throw new Error(
           `[blogPaths] Blog directory "${entry.name}" is missing the matching ` +
-            `${entry.name}.md(x) file inside it.`
+            `${entry.name}.md(x) file inside it.`,
         );
       }
       posts.push({ stem: entry.name, parsed, rel: candidate });
@@ -70,7 +70,7 @@ export function listBlogPosts(): {
     if (!parsed) {
       throw new Error(
         `[blogPaths] Invalid blog file "${entry.name}". ` +
-          `Expected name format YYYY-MM-DD-slug.md(x).`
+          `Expected name format YYYY-MM-DD-slug.md(x).`,
       );
     }
     posts.push({ stem, parsed, rel: entry.name });
@@ -101,9 +101,7 @@ export function resolveBlogFile(slug: string[]): string | null {
     `${stem}/${stem}.md`,
     `${stem}/${stem}.mdx`,
   ];
-  return (
-    candidates.find((c) => fs.existsSync(path.join(BLOG_ROOT, c))) ?? null
-  );
+  return candidates.find((c) => fs.existsSync(path.join(BLOG_ROOT, c))) ?? null;
 }
 
 /** Given a path relative to BLOG_ROOT (e.g. "2019-06-05-foo/2019-06-05-foo.md"),

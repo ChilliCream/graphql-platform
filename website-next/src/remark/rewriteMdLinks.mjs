@@ -17,6 +17,13 @@ export default function remarkRewriteMdLinks() {
     const cwd = file.cwd ?? process.cwd();
     const appDir = path.join(cwd, "app");
 
+    // Pages authored under content/blog or content/docs must use relative
+    // markdown links, not hard-coded root-absolute /blog/ or /docs/ URLs.
+    const sourceRel = path.relative(cwd, sourcePath).split(path.sep).join("/");
+    const sourceUnderContent = CONTENT_ROOTS.some(
+      (r) => sourceRel === r || sourceRel.startsWith(`${r}/`),
+    );
+
     const publicDir = path.join(cwd, "public");
 
     walk(tree, (node) => {
@@ -41,7 +48,7 @@ export default function remarkRewriteMdLinks() {
           publicDir,
           cwd,
           file,
-          node
+          node,
         );
         if (publicUrl !== null) {
           node.url = publicUrl;
@@ -61,13 +68,29 @@ export default function remarkRewriteMdLinks() {
         const pathPart = node.url.split(/[#?]/, 1)[0];
         const segments = pathPart.split("/").filter(Boolean);
 
+        // Forbid root-absolute /blog/ and /docs/ links in content pages.
+        // Authors must link relatively so the URLs stay verifiable and
+        // survive restructuring (the relative target is rewritten below).
+        if (
+          sourceUnderContent &&
+          (segments[0] === "blog" || segments[0] === "docs")
+        ) {
+          file.fail(
+            `Root-absolute link "${node.url}" is not allowed in content pages — ` +
+              `use a relative markdown link to the target file instead`,
+            node,
+            RULE_ID,
+          );
+          return;
+        }
+
         if (segments[0] === "docs") {
           const subSegments = segments.slice(1);
           if (subSegments.length === 0) {
             file.fail(
               `Broken root-absolute link "${node.url}" — /docs has no index page`,
               node,
-              RULE_ID
+              RULE_ID,
             );
             return;
           }
@@ -75,7 +98,7 @@ export default function remarkRewriteMdLinks() {
             file.fail(
               `Broken root-absolute link "${node.url}" — no matching file found under docs/`,
               node,
-              RULE_ID
+              RULE_ID,
             );
           }
           return;
@@ -87,7 +110,7 @@ export default function remarkRewriteMdLinks() {
               `Broken root-absolute link "${node.url}" — no matching post found under blog/ ` +
                 `(expected /blog/YYYY-MM-DD-slug)`,
               node,
-              RULE_ID
+              RULE_ID,
             );
           }
           return;
@@ -97,7 +120,7 @@ export default function remarkRewriteMdLinks() {
           file.fail(
             `Broken root-absolute link "${node.url}" — no matching page found in app/`,
             node,
-            RULE_ID
+            RULE_ID,
           );
         }
         return;
@@ -115,19 +138,19 @@ export default function remarkRewriteMdLinks() {
         file.fail(
           `Broken markdown link "${node.url}" — file not found at ${path.relative(cwd, absResolved)}`,
           node,
-          RULE_ID
+          RULE_ID,
         );
       }
 
       const rel = path.relative(cwd, absResolved).split(path.sep).join("/");
       const root = CONTENT_ROOTS.find(
-        (r) => rel === r || rel.startsWith(`${r}/`)
+        (r) => rel === r || rel.startsWith(`${r}/`),
       );
       if (!root) {
         file.fail(
           `Markdown link "${node.url}" resolves outside the content roots (${CONTENT_ROOTS.join(", ")}): ${rel}`,
           node,
-          RULE_ID
+          RULE_ID,
         );
       }
 
@@ -142,7 +165,7 @@ export default function remarkRewriteMdLinks() {
             `Markdown link "${node.url}" resolves to a blog file with an invalid name "${urlRel}". ` +
               `Expected content/blog/YYYY-MM-DD-slug.md or content/blog/YYYY-MM-DD-slug/YYYY-MM-DD-slug.md`,
             node,
-            RULE_ID
+            RULE_ID,
           );
           return;
         }
@@ -181,7 +204,7 @@ function rewritePublicAsset(url, sourceDir, publicDir, cwd, file, node) {
     file.fail(
       `Broken asset link "${url}" — file not found at ${path.relative(cwd, absResolved)}`,
       node,
-      RULE_ID
+      RULE_ID,
     );
     return null;
   }
@@ -271,7 +294,7 @@ function docsFileExists(cwd, subSegments) {
     `${joined}/index.mdx`,
   ];
   return candidates.some((c) =>
-    fs.existsSync(path.join(cwd, "content", "docs", c))
+    fs.existsSync(path.join(cwd, "content", "docs", c)),
   );
 }
 
@@ -291,7 +314,7 @@ function blogsRouteExists(cwd, subSegments) {
     `${stem}/${stem}.mdx`,
   ];
   return candidates.some((c) =>
-    fs.existsSync(path.join(cwd, "content", "blog", c))
+    fs.existsSync(path.join(cwd, "content", "blog", c)),
   );
 }
 

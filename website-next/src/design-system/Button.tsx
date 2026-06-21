@@ -19,8 +19,8 @@ export type ButtonProps = {
 const BASE_CLASSES =
   "inline-flex cursor-pointer items-center justify-center rounded-full px-7 py-3 text-sm font-medium no-underline transition-colors disabled:cursor-not-allowed disabled:opacity-60";
 
-// Filled pill: ink surface with the dark page color as the label.
-const SOLID_CLASSES = "bg-cc-ink text-cc-surface hover:bg-cc-white";
+// Filled pill: light surface with the dark page color as the label.
+const SOLID_CLASSES = "bg-cc-heading text-cc-surface hover:bg-cc-white";
 
 // Outlined pill: hairline border that brightens on hover.
 const OUTLINE_CLASSES =

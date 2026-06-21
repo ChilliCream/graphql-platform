@@ -28,6 +28,8 @@
     <InternalsVisibleTo Include="HotChocolate.Fusion.Connectors.ApolloFederation" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Connectors.ApolloFederation.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Utilities.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Execution.Abstractions.Tests" />
+    <InternalsVisibleTo Include="CookieCrumble.HotChocolate" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">

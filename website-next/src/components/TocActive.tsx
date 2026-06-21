@@ -38,10 +38,10 @@ export function TocActive({ sections }: { sections: SectionDescriptor[] }) {
     const visible = new Set<string>();
 
     function applyActive(activeId: string | null) {
-      const activeSection = activeId ? sectionOf.get(activeId) ?? null : null;
+      const activeSection = activeId ? (sectionOf.get(activeId) ?? null) : null;
 
       for (const link of document.querySelectorAll<HTMLElement>(
-        "[data-toc-link]"
+        "[data-toc-link]",
       )) {
         if (link.dataset.tocLink === activeId) {
           link.dataset.active = "true";
@@ -51,7 +51,7 @@ export function TocActive({ sections }: { sections: SectionDescriptor[] }) {
       }
 
       for (const sectionEl of document.querySelectorAll<HTMLElement>(
-        "[data-toc-section]"
+        "[data-toc-section]",
       )) {
         if (sectionEl.dataset.tocSection === activeSection) {
           sectionEl.dataset.sectionActive = "true";
@@ -60,9 +60,9 @@ export function TocActive({ sections }: { sections: SectionDescriptor[] }) {
         }
       }
 
-      const activeSubtree = activeId ? subtreeOf.get(activeId) ?? null : null;
+      const activeSubtree = activeId ? (subtreeOf.get(activeId) ?? null) : null;
       for (const subtreeEl of document.querySelectorAll<HTMLElement>(
-        "[data-toc-subtree]"
+        "[data-toc-subtree]",
       )) {
         if (subtreeEl.dataset.tocSubtree === activeSubtree) {
           subtreeEl.dataset.subtreeActive = "true";
@@ -82,9 +82,10 @@ export function TocActive({ sections }: { sections: SectionDescriptor[] }) {
       if (!activeId) {
         return;
       }
-      const container = document.querySelector<HTMLElement>("[data-toc-scroll]");
+      const container =
+        document.querySelector<HTMLElement>("[data-toc-scroll]");
       const link = container?.querySelector<HTMLElement>(
-        `[data-toc-link="${CSS.escape(activeId)}"]`
+        `[data-toc-link="${CSS.escape(activeId)}"]`,
       );
       if (!container || !link) {
         return;
@@ -124,7 +125,7 @@ export function TocActive({ sections }: { sections: SectionDescriptor[] }) {
         }
         recompute();
       },
-      { rootMargin: "-80px 0px -70% 0px", threshold: 0 }
+      { rootMargin: "-80px 0px -70% 0px", threshold: 0 },
     );
 
     for (const h of headings) {

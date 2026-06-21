@@ -22,17 +22,17 @@ type NotFoundContentProps = {
 export function NotFoundContent({ secondary = null }: NotFoundContentProps) {
   return (
     <div className="flex min-h-[calc(100vh-72px)] flex-col items-center justify-start px-6 pt-16 pb-16 text-center sm:pt-24">
-      <div className="flex aspect-3/2 w-75 max-w-full items-center justify-center rounded-xl border border-dashed border-cc-card-border text-sm font-medium text-cc-ink-dim sm:w-90">
+      <div className="border-cc-card-border text-cc-ink-dim flex aspect-3/2 w-75 max-w-full items-center justify-center rounded-xl border border-dashed text-sm font-medium sm:w-90">
         [illustration here]
       </div>
 
-      <p className="mt-8 font-mono text-sm font-semibold uppercase tracking-[0.3em] text-cc-ink-dim">
+      <p className="text-cc-ink-dim mt-8 font-mono text-sm font-semibold tracking-[0.3em] uppercase">
         Error 404
       </p>
-      <h1 className="mt-3 text-4xl font-bold tracking-tight text-cc-ink sm:text-5xl">
+      <h1 className="text-cc-ink mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
         Well, that&apos;s a spill.
       </h1>
-      <p className="mt-4 max-w-md text-base leading-7 text-cc-ink-dim">
+      <p className="text-cc-ink-dim mt-4 max-w-md text-base leading-7">
         We knocked this page over and the drink went everywhere. Whatever you
         were looking for isn&apos;t here anymore.
       </p>
@@ -40,14 +40,14 @@ export function NotFoundContent({ secondary = null }: NotFoundContentProps) {
       <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
         <Link
           href="/"
-          className="inline-flex h-11 items-center rounded-md border-2 border-cc-cta bg-cc-cta px-7 text-sm font-medium text-cc-ink no-underline transition-colors hover:bg-cc-cta-hover"
+          className="border-cc-cta bg-cc-cta text-cc-ink hover:bg-cc-cta-hover inline-flex h-11 items-center rounded-md border-2 px-7 text-sm font-medium no-underline transition-colors"
         >
           Take me home
         </Link>
         {secondary ? (
           <Link
             href={secondary.href}
-            className="inline-flex h-11 items-center rounded-md border border-cc-card-border px-7 text-sm font-medium text-cc-ink-dim no-underline transition-colors hover:border-cc-card-border-hover hover:text-cc-ink"
+            className="border-cc-card-border text-cc-ink-dim hover:border-cc-card-border-hover hover:text-cc-ink inline-flex h-11 items-center rounded-md border px-7 text-sm font-medium no-underline transition-colors"
           >
             {secondary.label}
           </Link>

@@ -30,7 +30,7 @@ public class StreamTests
             }",
             TestContext.Current.CancellationToken);
 
-        Assert.IsType<ResponseStream>(result).MatchAggregatedSnapshot();
+        Assert.IsType<ResponseStream>(result).MatchSnapshot();
     }
 
     [Fact]
@@ -55,7 +55,7 @@ public class StreamTests
             }",
             TestContext.Current.CancellationToken);
 
-        Assert.IsType<ResponseStream>(result).MatchAggregatedSnapshot();
+        Assert.IsType<ResponseStream>(result).MatchSnapshot();
     }
 
     [Fact]
@@ -76,7 +76,7 @@ public class StreamTests
             }",
             TestContext.Current.CancellationToken);
 
-        Assert.IsType<ResponseStream>(result).MatchAggregatedSnapshot();
+        Assert.IsType<ResponseStream>(result).MatchSnapshot();
     }
 
     [Fact]
@@ -97,7 +97,7 @@ public class StreamTests
             }",
             TestContext.Current.CancellationToken);
 
-        Assert.IsType<ResponseStream>(result).MatchAggregatedSnapshot();
+        Assert.IsType<ResponseStream>(result).MatchSnapshot();
     }
 
     [Fact]
@@ -120,7 +120,7 @@ public class StreamTests
             """,
             TestContext.Current.CancellationToken);
 
-        Assert.IsType<ResponseStream>(result).MatchAggregatedSnapshot();
+        Assert.IsType<ResponseStream>(result).MatchSnapshot();
     }
 
     [Fact]

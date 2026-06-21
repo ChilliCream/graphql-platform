@@ -44,6 +44,9 @@ internal static class ThrowHelper
     public static Exception TransportSchemaRequired()
         => new InvalidOperationException("Transport schema is required");
 
+    public static Exception TransportRoutingStrategyRequired()
+        => new InvalidOperationException("Transport routing strategy is required");
+
     public static Exception TransportAlreadyStarted()
         => new InvalidOperationException("Transport is already started");
 
@@ -80,11 +83,26 @@ internal static class ThrowHelper
     public static Exception NoTransportForAddress(string address)
         => new InvalidOperationException($"No transport can handle address: {address}");
 
+    public static Exception NoTransportForMessageType(MessageType messageType)
+        => new InvalidOperationException(
+            $"No transport can handle message type '{messageType.RuntimeType.FullName}'.");
+
+    public static InvalidOperationException CannotCreateRabbitMQAutoBind(
+        MessageType messageType,
+        string reason)
+        => new(
+            "Cannot create a RabbitMQ auto-bind for consumed message type "
+            + $"'{messageType.RuntimeType.FullName}' because "
+            + reason
+            + ".");
+
+    public static Exception MultipleDefaultTransports(IEnumerable<string> transportNames)
+        => new InvalidOperationException(
+            $"Multiple transports are flagged as default: {string.Join(", ", transportNames.Select(t => $"'{t}'"))}. "
+            + "Only one transport can be the default. Use IsDefaultTransport() to designate the default.");
+
     public static Exception EndpointMustBeRegistered()
         => new InvalidOperationException("Endpoint must be registered before adding addresses");
-
-    public static Exception NoTransportForMessageType(MessageType messageType)
-        => new InvalidOperationException($"No transport can handle message type: {messageType}");
 
     public static Exception TransportNotFoundForAddress(string address)
         => new InvalidOperationException($"Transport not found for address {address}");
@@ -168,4 +186,9 @@ internal static class ThrowHelper
 
     public static Exception HostDescriptionMissing()
         => new InvalidOperationException("Host description is missing.");
+
+    public static Exception ReceivesClaimedType(string messageTypeName, string claimingEndpoint, string conflictingEndpoint)
+        => new InvalidOperationException(
+            $"Message type '{messageTypeName}' is already claimed by receive endpoint '{claimingEndpoint}' "
+            + $"and cannot be claimed by endpoint '{conflictingEndpoint}'. Each message type can be claimed by at most one endpoint.");
 }

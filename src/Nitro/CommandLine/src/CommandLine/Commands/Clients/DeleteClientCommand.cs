@@ -39,7 +39,7 @@ internal sealed class DeleteClientCommand : Command
 
         parseResult.AssertHasAuthentication(sessionService);
 
-        const string clientMessage = "Which client do you want to delete?";
+        const string clientMessage = Prompts.DeleteClient;
 
         var clientId = parseResult.GetRequiredValueIfNotInteractive(Opt<OptionalIdArgument>.Instance, console);
 
@@ -50,7 +50,7 @@ internal sealed class DeleteClientCommand : Command
             var apiId = await console.PromptForApiIdAsync(
                 apisClient,
                 workspaceId,
-                "For which API do you want to delete a client?",
+                Prompts.SelectApiForDeleteClient,
                 cancellationToken);
 
             var selectedClient = await SelectClientPrompt
@@ -72,7 +72,7 @@ internal sealed class DeleteClientCommand : Command
         if (!force)
         {
             var confirmed = await console.ConfirmAsync(
-                $"Do you want to delete the client with ID {clientId}?".EscapeMarkup(),
+                Prompts.ConfirmDeleteClient(clientId).EscapeMarkup(),
                 cancellationToken);
 
             if (!confirmed)

@@ -143,7 +143,7 @@ public class LocalDateTimeTypeTests
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultValue = resultDocument.Data.GetProperty("first");
         type.CoerceOutputValue(dateTime, resultValue);
 
@@ -166,7 +166,7 @@ public class LocalDateTimeTypeTests
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultValue = resultDocument.Data.GetProperty("first");
         type.CoerceOutputValue(dateTime, resultValue);
 
@@ -183,7 +183,7 @@ public class LocalDateTimeTypeTests
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultValue = resultDocument.Data.GetProperty("first");
         type.CoerceOutputValue(dateTime, resultValue);
 
@@ -199,7 +199,7 @@ public class LocalDateTimeTypeTests
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultValue = resultDocument.Data.GetProperty("first");
         void Action() => type.CoerceOutputValue(123, resultValue);
 
@@ -419,8 +419,8 @@ public class LocalDateTimeTypeTests
             { DateTimeOptions.DefaultInputPrecision, "2023-12-24T15:30:00+05:30" },
             // Invalid separator (space instead of T or t).
             { DateTimeOptions.DefaultInputPrecision, "2023-12-24 15:30:00" },
-            // Invalid hour (25).
-            { DateTimeOptions.DefaultInputPrecision, "2023-12-24T25:00:00" },
+            // Invalid hour (24).
+            { DateTimeOptions.DefaultInputPrecision, "2023-12-24T24:00:00" },
             // Invalid minute (60).
             { DateTimeOptions.DefaultInputPrecision, "2023-12-24T15:60:00" },
             // ReSharper disable once GrammarMistakeInComment

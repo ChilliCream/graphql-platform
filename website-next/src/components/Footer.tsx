@@ -37,11 +37,11 @@ const basicPages: { path: string; title: string }[] = [
 
 export default function Footer() {
   return (
-    <footer className="mt-10 w-full border-t border-cc-card-border bg-cc-card-bg px-4 pt-14 pb-14 text-sm text-cc-ink-dim backdrop-blur-sm">
+    <footer className="border-cc-card-border bg-cc-card-bg text-cc-ink-dim mt-10 w-full border-t px-4 pt-14 pb-14 text-sm backdrop-blur-sm">
       <div className="mx-auto flex max-w-7xl flex-col gap-12 lg:gap-8">
         <Section>
           <div className="flex flex-1 flex-col gap-6">
-            <span className="inline-flex leading-none text-cc-ink">
+            <span className="text-cc-ink inline-flex leading-none">
               <ChilliCreamText className="h-8 w-auto fill-current" />
             </span>
             <address className="not-italic">
@@ -85,7 +85,7 @@ export default function Footer() {
           </div>
         </Section>
         <Section>
-          <nav className="flex flex-row gap-4 text-cc-ink-dim">
+          <nav className="text-cc-ink-dim flex flex-row gap-4">
             <SocialLink href={tools.blog} label="ChilliCream Blog">
               <BlogIcon className="h-6 w-auto fill-current" />
             </SocialLink>
@@ -133,7 +133,7 @@ function LinkColumn({
 }) {
   return (
     <div className="flex min-w-36 flex-col gap-6">
-      <h3 className="flex h-8 items-end text-base font-semibold text-cc-ink">
+      <h3 className="text-cc-ink flex h-8 items-end text-base font-semibold">
         {title}
       </h3>
       <nav className="flex flex-col gap-2.5">{children}</nav>
@@ -143,7 +143,7 @@ function LinkColumn({
 
 function NavLink({ href, children }: { href: string; children: ReactNode }) {
   const className =
-    "text-cc-ink-dim no-underline transition-colors hover:text-cc-accent";
+    "text-cc-ink-dim no-underline transition-colors hover:text-cc-heading";
 
   if (href.startsWith("/")) {
     return (
@@ -183,7 +183,7 @@ function SocialLink({
   children: ReactNode;
 }) {
   const className =
-    "inline-flex items-center justify-center transition-colors hover:text-cc-accent";
+    "inline-flex items-center justify-center transition-colors hover:text-cc-heading";
 
   if (href.startsWith("/")) {
     return (

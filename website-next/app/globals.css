@@ -1,16 +1,48 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans:
-    var(--font-inter), ui-sans-serif, system-ui, -apple-system,
-    BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
-    "Noto Sans", sans-serif;
+  /* ---- Font families ----
+     Heading voice is Josefin Sans, self-hosted via `next/font/google`
+     (`--font-josefin-sans`). Body voice is the native system stack.
+     `--font-sans` (Tailwind's `font-sans`) aliases the body voice so existing
+     utilities pick it up. */
+  --font-heading:
+    var(--font-josefin-sans), "Futura", "Trebuchet MS", sans-serif;
+  --font-body:
+    system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-sans: var(--font-body);
+
+  /* ---- Type scale ----
+     Each size ships its paired line-height, so `text-h1` etc. set both. */
+  --text-hero: 6.5rem;
+  --text-hero--line-height: 1;
+  --text-h1: 4.875rem;
+  --text-h1--line-height: 1.05;
+  --text-h2: 3.625rem;
+  --text-h2--line-height: 1.1;
+  --text-h3: 2.75rem;
+  --text-h3--line-height: 1.15;
+  --text-h4: 2rem;
+  --text-h4--line-height: 1.25;
+  --text-h5: 1.5rem;
+  --text-h5--line-height: 1.3;
+  --text-h6: 1.125rem;
+  --text-h6--line-height: 1.4;
+  --text-lead: 2rem;
+  --text-lead--line-height: 1.25;
+  --text-body: 1rem;
+  --text-body--line-height: 1.6;
+  --text-caption: 0.875rem;
+  --text-caption--line-height: 1.5;
 
   /* Disable default Tailwind colors */
   --color-*: initial;
 
+  --color-cc-heading: #f5f0ea;
+  --color-cc-ink: #a1a3af;
+
   /* The cc-* colors below are mirrored in src/theme/colors.ts for the OG share cards. */
-  --color-cc-ink: #f5f1ea;
+  /* --color-cc-ink: #f5f1ea; */
   /* Long-form body prose: lighter than `cc-ink-dim` so paragraphs stay readable. */
   --color-cc-prose: rgba(245, 241, 234, 0.8);
   --color-cc-ink-dim: rgba(245, 241, 234, 0.62);
@@ -162,6 +194,10 @@
   body {
     background-color: var(--color-cc-bg);
     color: var(--color-cc-ink);
+    font-family: var(--font-body);
+    font-size: var(--text-body);
+    line-height: 1.6;
+    font-weight: 400;
     min-height: 100vh;
     /* Dark starfield surface. The 9 star layers are viewport-sized and the
        nebula + base gradient are auto; everything is anchored to the viewport
@@ -181,6 +217,31 @@
       auto;
     background-attachment: fixed;
   }
+}
+
+/* ---- Typography helper classes ----
+   Heading-voice display text that sits outside the h1-h6 outline. Sizes/line
+   heights come from the `--text-*` scale; weight and tracking are in the
+   heading voice. */
+.hero {
+  font-family: var(--font-heading);
+  font-size: var(--text-hero);
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.lead {
+  font-family: var(--font-heading);
+  font-size: var(--text-lead);
+  line-height: 1.25;
+  font-weight: 600;
+}
+
+.caption {
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  line-height: 1.5;
 }
 
 /* Dark starfield surface applied to in-flow content wrappers (e.g. the docs
@@ -294,7 +355,9 @@ html[data-smooth-scroll="true"]:has(:target) {
 }
 
 .DocSearch-Container .DocSearch-Hit[aria-selected="true"] .DocSearch-Hit-icon,
-.DocSearch-Container .DocSearch-Hit[aria-selected="true"] .DocSearch-Hit-action {
+.DocSearch-Container
+  .DocSearch-Hit[aria-selected="true"]
+  .DocSearch-Hit-action {
   color: var(--color-cc-ink-dim);
 }
 

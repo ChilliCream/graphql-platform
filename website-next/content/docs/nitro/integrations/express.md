@@ -59,7 +59,7 @@ app.use(
   graphqlHTTP({
     schema,
     graphiql: false,
-  })
+  }),
 );
 
 app.listen(3000, () => {
@@ -141,7 +141,7 @@ app.use(
   nitroMiddleware({ mode: "cdn" }), // or nitroMiddleware({ mode: "embedded" }),
   async (req, res) => {
     //... rest of the middleware
-  }
+  },
 );
 
 app.listen(3000, () => {
@@ -162,7 +162,7 @@ const app = express();
 app.use(
   "/graphql",
   nitroMiddleware({ mode: "cdn" }), // or nitroMiddleware({ mode: "embedded" }),
-  graphQLServer
+  graphQLServer,
 );
 
 app.listen(3000, () => {
@@ -186,7 +186,7 @@ app.use(
   graphqlHTTP({
     schema,
     graphiql: false,
-  })
+  }),
 );
 
 app.listen(3000, () => {
@@ -210,7 +210,7 @@ app.use(
   bodyParser.json(),
   expressMiddleware(server, {
     context: async ({ req }) => ({ token: req.headers.token }),
-  })
+  }),
 );
 
 httpServer.listen({ port: 3000 }, () => {

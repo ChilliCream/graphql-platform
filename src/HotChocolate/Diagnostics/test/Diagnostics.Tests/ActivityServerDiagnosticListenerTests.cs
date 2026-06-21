@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Transport.Http;
+using static CookieCrumble.TestEnvironment;
 using static HotChocolate.Diagnostics.ActivityTestHelper;
 using OperationRequest = HotChocolate.Transport.OperationRequest;
 
@@ -33,7 +34,7 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
             await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -59,7 +60,7 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
             await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -85,7 +86,7 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
             await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -112,7 +113,7 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
             await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -143,7 +144,7 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
             await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -171,7 +172,7 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
             await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -192,7 +193,7 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
             await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -221,7 +222,7 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
             });
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -256,7 +257,7 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
             });
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -292,7 +293,7 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
             });
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -324,7 +325,7 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
             await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -356,7 +357,7 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
             await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -386,7 +387,7 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
             await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -413,7 +414,7 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
             await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 

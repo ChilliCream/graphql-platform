@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
@@ -93,7 +94,8 @@ public sealed class OutboxServiceRegistrationTests
     {
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddDbContext<TestDbContext>(o => o.UseNpgsql(ConnectionString));
+        services.AddDbContext<TestDbContext>(o => o.UseNpgsql(ConnectionString)
+            .ConfigureWarnings(w => w.Ignore(CoreEventId.ManyServiceProvidersCreatedWarning)));
 
         // Use a resilient signal to prevent ObjectDisposedException when
         // EF Core shares the internal service provider (and interceptors)

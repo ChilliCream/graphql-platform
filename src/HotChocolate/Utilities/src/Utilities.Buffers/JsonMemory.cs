@@ -130,4 +130,14 @@ internal static class JsonMemory
 
         Log.BufferReturned(kind, chunks.Count);
     }
+
+    public static void Abandon(JsonMemoryKind kind, int count)
+    {
+        // The arrays are intentionally not returned to the pool: they may still be in use by
+        // abandoned work, so they must not be handed to another renter. We only correct the
+        // outstanding-buffer accounting and let the arrays be collected once their holders release
+        // them.
+        s_pool.Abandon(count);
+        Log.BufferAbandoned(kind, count);
+    }
 }

@@ -82,10 +82,10 @@ export function ContentSection({
 function ContentHeader({ title, text }: { title: ReactNode; text: ReactNode }) {
   return (
     <>
-      <h2 className="text-3xl font-semibold tracking-tight text-cc-ink sm:text-4xl">
+      <h2 className="text-cc-ink text-3xl font-semibold tracking-tight sm:text-4xl">
         {title}
       </h2>
-      <div className="mt-4 text-base text-cc-ink-dim sm:text-lg">{text}</div>
+      <div className="text-cc-ink-dim mt-4 text-base sm:text-lg">{text}</div>
     </>
   );
 }

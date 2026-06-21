@@ -13,6 +13,7 @@ using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.WellKnownDirectiveNames;
 using ArgumentNames = HotChocolate.Fusion.WellKnownArgumentNames;
+using StringValueNode = HotChocolate.Language.StringValueNode;
 
 namespace HotChocolate.Fusion;
 

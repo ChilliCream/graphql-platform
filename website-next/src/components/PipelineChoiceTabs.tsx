@@ -1,9 +1,4 @@
-import {
-  Children,
-  isValidElement,
-  type FC,
-  type ReactNode,
-} from "react";
+import { Children, isValidElement, type FC, type ReactNode } from "react";
 import { Tab, Tabs } from "@/src/design-system/Tabs";
 
 type WithChildren = { children?: ReactNode };

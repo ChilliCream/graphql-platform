@@ -504,6 +504,73 @@ public class FusionArchiveTests : IDisposable
     }
 
     [Fact]
+    public async Task RemoveSourceSchema_WithExistingSchema_RemovesSchemaAndMetadata()
+    {
+        // Arrange
+        var schemaContent = "type User { id: ID! }"u8.ToArray();
+        await using var stream = CreateStream();
+        var metadata = new ArchiveMetadata
+        {
+            SupportedGatewayFormats = [new Version("2.0.0")],
+            SourceSchemas = ["schema-a", "schema-b"]
+        };
+
+        using (var archive = FusionArchive.Create(stream, leaveOpen: true))
+        {
+            await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+            await archive.SetSourceSchemaConfigurationAsync(
+                "schema-a",
+                schemaContent,
+                CreateSettingsJson(),
+                cancellationToken: TestContext.Current.CancellationToken);
+            await archive.SetSourceSchemaConfigurationAsync(
+                "schema-b",
+                schemaContent,
+                CreateSettingsJson(),
+                cancellationToken: TestContext.Current.CancellationToken);
+            await archive.CommitAsync(TestContext.Current.CancellationToken);
+        }
+
+        // Act
+        bool removed;
+        stream.Position = 0;
+        using (var updateArchive = FusionArchive.Open(stream, FusionArchiveMode.Update, leaveOpen: true))
+        {
+            removed = await updateArchive.RemoveSourceSchemaConfigurationAsync(
+                "schema-b",
+                TestContext.Current.CancellationToken);
+            await updateArchive.CommitAsync(TestContext.Current.CancellationToken);
+        }
+
+        // Assert
+        stream.Position = 0;
+        using var readArchive = FusionArchive.Open(stream, leaveOpen: true);
+        var names = await readArchive.GetSourceSchemaNamesAsync(TestContext.Current.CancellationToken);
+        var found = await readArchive.TryGetSourceSchemaConfigurationAsync(
+            "schema-b",
+            TestContext.Current.CancellationToken);
+        Assert.True(removed);
+        Assert.Equal(["schema-a"], names);
+        Assert.Null(found);
+    }
+
+    [Fact]
+    public async Task RemoveSourceSchema_WithNonExistentSchema_ReturnsFalse()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+        var metadata = CreateTestMetadata();
+
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+        var removed = await archive.RemoveSourceSchemaConfigurationAsync(
+            "non-existent",
+            TestContext.Current.CancellationToken);
+        Assert.False(removed);
+    }
+
+    [Fact]
     public async Task SignArchive_WithValidCertificate_CreatesSignature()
     {
         // Arrange

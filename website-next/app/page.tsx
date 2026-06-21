@@ -1,17 +1,29 @@
-import Link from "next/link";
 import { FromOurBlog } from "@/src/components/FromOurBlog";
-import { Typography } from "@/src/design-system/Typography";
+import { BuildYourWay } from "@/src/components/home/BuildYourWay";
+import { FusionFlow } from "@/src/components/home/FusionFlow";
+import { GrabADrink } from "@/src/components/home/GrabADrink";
+import { HomeHero } from "@/src/components/home/HomeHero";
+import { LogoCloud } from "@/src/components/home/LogoCloud";
+import { NitroPricing } from "@/src/components/home/NitroPricing";
+import { ProtocolCards } from "@/src/components/home/ProtocolCards";
+import { StackDiagrams } from "@/src/components/home/StackDiagrams";
 
 export default function Home() {
   return (
-    <div className="px-5 py-8 sm:px-12">
-      <div className="mx-auto flex max-w-6xl flex-col gap-12">
-        <section>
-          <Typography variant="body">TODO: Landing page</Typography>
-        </section>
-
-        <FromOurBlog />
+    <>
+      <HomeHero />
+      <LogoCloud />
+      <BuildYourWay />
+      <StackDiagrams />
+      <FusionFlow />
+      <ProtocolCards />
+      <NitroPricing />
+      <GrabADrink />
+      <div className="px-5 py-8 sm:px-12">
+        <div className="mx-auto flex max-w-6xl flex-col gap-12">
+          <FromOurBlog />
+        </div>
       </div>
-    </div>
+    </>
   );
 }

@@ -2,13 +2,13 @@ import type { ReactNode } from "react";
 
 /** Base styling shared by text inputs and textareas. */
 export const controlBaseClasses =
-  "w-full rounded-md border bg-white/5 px-3 py-2 text-sm text-cc-ink focus:outline-hidden focus:ring-2 focus:ring-cc-accent/30 disabled:opacity-60";
+  "w-full rounded-md border bg-white/5 px-3 py-2 text-sm focus:outline-hidden focus:ring-2 disabled:opacity-60";
 
-/** Border + focus classes that switch to an error state when invalid. */
+/** Text, border, and focus classes that switch to an error state when invalid. */
 export function controlBorderClasses(hasError: boolean) {
   return hasError
-    ? "border-red-500 focus:border-red-500"
-    : "border-cc-card-border hover:border-cc-card-border-hover focus:border-cc-accent";
+    ? "text-red-500 placeholder:text-red-400 border-red-500 focus:border-red-500 focus:ring-red-500/30"
+    : "text-cc-ink border-cc-card-border hover:border-cc-card-border-hover focus:border-cc-accent focus:ring-cc-accent/30";
 }
 
 interface FormFieldProps {
@@ -34,9 +34,9 @@ export function FormField({
   return (
     <div className="flex flex-col gap-1">
       {label && (
-        <label htmlFor={htmlFor} className="text-sm font-medium text-cc-ink">
+        <label htmlFor={htmlFor} className="text-cc-ink text-sm font-medium">
           {label}
-          {required && <span className="ml-1 text-cc-accent">*</span>}
+          {required && <span className="text-cc-accent ml-1">*</span>}
         </label>
       )}
       {children}

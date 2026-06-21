@@ -35,8 +35,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 async function rootPages(): Promise<MetadataRoute.Sitemap> {
   const pages = [
     { file: path.join(process.cwd(), "app", "page.tsx"), urlPath: "/" },
-    { file: path.join(process.cwd(), "app", "docs", "page.tsx"), urlPath: "/docs" },
-    { file: path.join(process.cwd(), "app", "blog", "page.tsx"), urlPath: "/blog" },
+    {
+      file: path.join(process.cwd(), "app", "docs", "page.tsx"),
+      urlPath: "/docs",
+    },
+    {
+      file: path.join(process.cwd(), "app", "blog", "page.tsx"),
+      urlPath: "/blog",
+    },
   ];
   return Promise.all(
     pages.map(async ({ file, urlPath }) => ({

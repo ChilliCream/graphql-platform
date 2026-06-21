@@ -16,7 +16,7 @@ yarn
 yarn dev
 ```
 
-## Writing Documentation
+## Authoring Markdown Content
 
 Docs live in `content/docs/<product>/...` as Markdown (`.md`) files and are
 compiled with a custom MDX pipeline (`src/mdx-plugins.ts`). The rules below are
@@ -78,24 +78,27 @@ items:
 
 ### Links
 
-Link directly to the target Markdown file using a **relative filesystem path**.
-The `rewriteMdLinks` remark plugin rewrites these to the correct route at build
-time, and **fails the build on broken links**.
+Link to other docs and blog pages directly by their target Markdown file using a
+**relative filesystem path**. The `rewriteMdLinks` remark plugin rewrites these to
+the correct route at build time, and **fails the build on broken links**.
 
 ```markdown
 [Sibling page](./other-page.md)
+[Sibling blog post](./2026-05-11-hot-chocolate-16.md)
 [Page in another section](../guides/first-party-api.md)
 [Cross-product page](../../hotchocolate/index.md)
 [Deep link with anchor](./other-page.md#a-section)
-[Same-page anchor](#a-section)   <!-- just the hash, no file -->
+[Same-page anchor](#a-section) <!-- just the hash, no file -->
 ```
 
-- Always point at the `.md` file (e.g. `./cli.md`, not `/docs/.../cli`).
+- Always point at the `.md` file (e.g. `./cli.md`, not `/docs/.../cli`; and
+  `./2026-05-11-hot-chocolate-16.md`, not `/blog/2026/05/11/hot-chocolate-16`).
 - For a directory/section landing page, link to its `index.md`
   (e.g. `./guides/index.md`).
 - Same-page anchors are just `#anchor` (no file path).
-- Links to **other doc versions** (not present in this repo) or external sites use
-  absolute URLs, e.g. `https://chillicream.com/docs/hotchocolate/v13/...`.
+- Links to **product/marketing pages** (which have no Markdown source) use a
+  **relative root-relative path**, e.g. `/products/nitro`, not an absolute
+  `https://chillicream.com/products/nitro` URL.
 
 ### Images
 

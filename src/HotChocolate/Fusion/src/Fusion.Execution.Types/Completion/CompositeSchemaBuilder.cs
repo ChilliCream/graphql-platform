@@ -10,6 +10,11 @@ using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using static System.Runtime.InteropServices.ImmutableCollectionsMarshal;
 using static HotChocolate.Types.DirectiveNames;
+using IntValueNode = HotChocolate.Language.IntValueNode;
+using StringValueNode = HotChocolate.Language.StringValueNode;
+using BooleanValueNode = HotChocolate.Language.BooleanValueNode;
+using EnumValueNode = HotChocolate.Language.EnumValueNode;
+using ListValueNode = HotChocolate.Language.ListValueNode;
 
 namespace HotChocolate.Fusion.Types.Completion;
 
@@ -162,6 +167,7 @@ internal static class CompositeSchemaBuilder
                         null,
                         [])
                 },
+                [],
                 new HotChocolate.Language.NameNode[] { new("INLINE_FRAGMENT"), new("FRAGMENT_SPREAD") });
 
             directiveTypes.Add(CreateDirectiveType(deferDirectiveNode));

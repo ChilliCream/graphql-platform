@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using static CookieCrumble.TestEnvironment;
 using static HotChocolate.Diagnostics.ActivityTestHelper;
 
 namespace HotChocolate.Diagnostics;
@@ -35,7 +36,7 @@ public class OpenApiAdapterActivityTests
             await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -58,7 +59,7 @@ public class OpenApiAdapterActivityTests
             await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -84,7 +85,7 @@ public class OpenApiAdapterActivityTests
 
             // assert
             Assert.Equal(System.Net.HttpStatusCode.NotFound, response.StatusCode);
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 
@@ -109,7 +110,7 @@ public class OpenApiAdapterActivityTests
             await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot();
+            activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
 

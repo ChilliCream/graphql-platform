@@ -53,8 +53,7 @@ A GET endpoint that fetches a user by ID:
 
 ```graphql
 "Fetches a user by their id"
-query GetUserById($userId: ID!)
-  @http(method: GET, route: "/users/{userId}") {
+query GetUserById($userId: ID!) @http(method: GET, route: "/users/{userId}") {
   userById(id: $userId) {
     id
     name
@@ -68,7 +67,7 @@ A POST endpoint that creates a user:
 ```graphql
 "Creates a user"
 mutation CreateUser($user: UserInput! @body)
-  @http(method: POST, route: "/users") {
+@http(method: POST, route: "/users") {
   createUser(user: $user) {
     id
     name

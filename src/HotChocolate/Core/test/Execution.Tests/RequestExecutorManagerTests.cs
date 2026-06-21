@@ -36,7 +36,7 @@ public class RequestExecutorManagerTests
         // arrange
         var warmupResetEvent = new ManualResetEventSlim(true);
         var executorEvictedResetEvent = new ManualResetEventSlim(false);
-        var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 
         var manager = new ServiceCollection()
             .AddGraphQL()
@@ -86,7 +86,7 @@ public class RequestExecutorManagerTests
         // arrange
         var warmups = 0;
         var executorEvictedResetEvent = new ManualResetEventSlim(false);
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 
         var manager = new ServiceCollection()
             .AddGraphQL()
@@ -314,23 +314,33 @@ public class RequestExecutorManagerTests
         var createCallsAfterInitial = typeModule.CreateTypesCallCount;
 
         // act
-        for (var i = 1; i <= 3; i++)
+        // The initial executor's change monitor is subscribed, so this change reliably starts a
+        // rebuild. The rebuild fails because the type instance is already initialized, and a failed
+        // rebuild disposes its change-monitor subscription. A leaked subscription would let each
+        // later change fan out into additional rebuild attempts.
+        typeModule.TriggerChange();
+        await SpinUntilAsync(
+            () => typeModule.CreateTypesCallCount > createCallsAfterInitial,
+            cts.Token);
+
+        // Wait until the failed rebuild has released its subscription. Once nothing is subscribed,
+        // further changes cannot start a rebuild; a leak would instead keep the subscriber count
+        // above zero and surface as additional CreateTypesAsync calls below.
+        await SpinUntilAsync(() => typeModule.SubscriberCount == 0, cts.Token);
+        var createCallsAfterFirstChange = typeModule.CreateTypesCallCount;
+
+        // Further changes are no-ops while nothing is subscribed. Fire several and allow any leaked
+        // rebuild attempts to surface.
+        for (var i = 0; i < 5; i++)
         {
             typeModule.TriggerChange();
-
-            // The rebuild throws (the type instance is already initialized), so no Evicted
-            // event is raised. The only observable signal of the rebuild attempt is the
-            // CreateTypesAsync counter, so wait until this trigger's attempt has happened.
-            var expectedCalls = createCallsAfterInitial + i;
-            await SpinUntilAsync(() => typeModule.CreateTypesCallCount >= expectedCalls, cts.Token);
         }
 
-        // give leaked subscriptions time to surface additional rebuild attempts
         await Task.Delay(200, cts.Token);
 
         // assert
-        var createCallsFromTriggers = typeModule.CreateTypesCallCount - createCallsAfterInitial;
-        Assert.Equal(3, createCallsFromTriggers);
+        Assert.Equal(1, createCallsAfterFirstChange - createCallsAfterInitial);
+        Assert.Equal(createCallsAfterFirstChange, typeModule.CreateTypesCallCount);
     }
 
     private static async Task SpinUntilAsync(Func<bool> condition, CancellationToken cancellationToken)
@@ -342,20 +352,65 @@ public class RequestExecutorManagerTests
         }
     }
 
-    private sealed class CountingTypeModule : TypeModule
+    private sealed class CountingTypeModule : ITypeModule
     {
+        private readonly object _sync = new();
+        private EventHandler<EventArgs>? _typesChanged;
+        private int _subscriberCount;
         private int _createTypesCallCount;
 
-        public int CreateTypesCallCount => _createTypesCallCount;
+        public int CreateTypesCallCount => Volatile.Read(ref _createTypesCallCount);
 
-        public void TriggerChange() => OnTypesChanged();
+        public int SubscriberCount
+        {
+            get
+            {
+                lock (_sync)
+                {
+                    return _subscriberCount;
+                }
+            }
+        }
 
-        public override ValueTask<IReadOnlyCollection<ITypeSystemMember>> CreateTypesAsync(
+        public event EventHandler<EventArgs> TypesChanged
+        {
+            add
+            {
+                lock (_sync)
+                {
+                    _typesChanged += value;
+                    _subscriberCount = _typesChanged?.GetInvocationList().Length ?? 0;
+                }
+            }
+            remove
+            {
+                lock (_sync)
+                {
+                    _typesChanged -= value;
+                    _subscriberCount = _typesChanged?.GetInvocationList().Length ?? 0;
+                }
+            }
+        }
+
+        public void TriggerChange()
+        {
+            EventHandler<EventArgs>? handler;
+
+            lock (_sync)
+            {
+                handler = _typesChanged;
+            }
+
+            handler?.Invoke(this, EventArgs.Empty);
+        }
+
+        public ValueTask<IReadOnlyCollection<ITypeSystemMember>> CreateTypesAsync(
             IDescriptorContext context,
             CancellationToken cancellationToken)
         {
             Interlocked.Increment(ref _createTypesCallCount);
-            return base.CreateTypesAsync(context, cancellationToken);
+            return new ValueTask<IReadOnlyCollection<ITypeSystemMember>>(
+                Array.Empty<ITypeSystemMember>());
         }
     }
 

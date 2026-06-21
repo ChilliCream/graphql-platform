@@ -36,7 +36,7 @@ function load(): Record<string, OptimizedImage> | null {
   try {
     const raw = fs.readFileSync(
       path.join(process.cwd(), "public/_optimized/manifest.json"),
-      "utf8"
+      "utf8",
     );
     cache = JSON.parse(raw);
   } catch {
