@@ -167,15 +167,24 @@ internal sealed class DynamicEndpointMiddleware(
             var body = httpContext.Request.BodyReader;
             ReadResult result;
 
-            do
+            while (true)
             {
                 result = await body.ReadAsync(cancellationToken);
-                body.AdvanceTo(result.Buffer.Start, result.Buffer.End);
-            } while (result is { IsCompleted: false, IsCanceled: false });
 
-            if (result.IsCanceled)
-            {
-                throw new OperationCanceledException();
+                if (result.IsCanceled)
+                {
+                    throw new OperationCanceledException();
+                }
+
+                if (result.IsCompleted)
+                {
+                    break;
+                }
+
+                // The complete body is not buffered yet. Mark everything as
+                // examined but consume nothing, then read again. AdvanceTo must be
+                // called here before the next ReadAsync.
+                body.AdvanceTo(result.Buffer.Start, result.Buffer.End);
             }
 
             if (result.Buffer.Length == 0)
@@ -186,6 +195,12 @@ internal sealed class DynamicEndpointMiddleware(
             var jsonValueParser = new JsonValueParser(buffer: variableBuffer);
             var bodyValue = jsonValueParser.Parse(result.Buffer);
             variables[bodyVariable] = bodyValue;
+
+            // Single AdvanceTo for the final ReadAsync, after the parser has
+            // consumed the buffer. The previous implementation also advanced
+            // inside the loop for the completed read, resulting in a second
+            // AdvanceTo with no intervening ReadAsync, which Kestrel rejects with
+            // "No reading operation to complete."
             body.AdvanceTo(result.Buffer.End);
         }
 
