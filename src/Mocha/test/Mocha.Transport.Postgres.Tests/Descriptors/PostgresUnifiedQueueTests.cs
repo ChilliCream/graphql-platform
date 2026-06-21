@@ -6,7 +6,7 @@ namespace Mocha.Transport.Postgres.Tests.Descriptors;
 
 /// <summary>
 /// Verifies the identity, endpoint materialization, and convergence behavior of the
-/// unified <c>t.Queue(name)</c> front door on the PostgreSQL transport.
+/// unified <c>t.Queue(name)</c> API on the PostgreSQL transport.
 /// </summary>
 public class PostgresUnifiedQueueTests
 {
@@ -53,13 +53,13 @@ public class PostgresUnifiedQueueTests
             .OfType<PostgresReceiveEndpoint>()
             .SingleOrDefault(e => e.Queue.Name == "orders");
 
-        // assert: the unified handle materialized exactly one receive endpoint named "orders"
+        // assert: the Queue() API materialized exactly one receive endpoint named "orders"
         Assert.NotNull(endpoint);
         Assert.Equal("orders", endpoint.Queue.Name);
     }
 
     [Fact]
-    public void Queue_Should_ResolveIdenticalHandle_When_CalledTwiceWithSameName()
+    public void Queue_Should_ResolveIdenticalDescriptor_When_CalledTwiceWithSameName()
     {
         // arrange
         // Calling t.Queue("orders") a second time must return the same backing endpoint adapter,

@@ -112,7 +112,7 @@ public class RabbitMQHandlerBindingTests
     public void BindExplicitly_Should_DescribeViaUnifiedQueue_When_HandlerAttachedToQueue()
     {
         // arrange
-        // A handler placed on a unified Queue() front door constitutes an explicit claim.
+        // A handler placed on the unified Queue() API constitutes an explicit claim.
         // With BindExplicitly, no convention exchange-to-queue binds are generated.
         // Type-owned exchanges still appear. The endpoint exists under the declared queue name.
         var runtime = CreateRuntime(

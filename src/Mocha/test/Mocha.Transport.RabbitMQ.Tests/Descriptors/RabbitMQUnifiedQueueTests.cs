@@ -8,7 +8,7 @@ namespace Mocha.Transport.RabbitMQ.Tests.Descriptors;
 
 /// <summary>
 /// Verifies the identity, endpoint materialization, convergence, saga placement, and axis-A claim
-/// behavior of the unified <c>t.Queue(name)</c> front door.
+/// behavior of the unified <c>t.Queue(name)</c> API.
 /// </summary>
 public class RabbitMQUnifiedQueueTests
 {
@@ -30,13 +30,13 @@ public class RabbitMQUnifiedQueueTests
             .OfType<RabbitMQReceiveEndpoint>()
             .SingleOrDefault(e => e.Queue.Name == "orders");
 
-        // assert: the unified handle materialized exactly one receive endpoint named "orders"
+        // assert: the Queue() API materialized exactly one receive endpoint named "orders"
         Assert.NotNull(endpoint);
         Assert.Equal("orders", endpoint.Queue.Name);
     }
 
     [Fact]
-    public void Queue_Should_ResolveIdenticalHandle_When_CalledTwiceWithSameName()
+    public void Queue_Should_ResolveIdenticalDescriptor_When_CalledTwiceWithSameName()
     {
         // arrange
         // Calling t.Queue("orders") a second time must return the same backing endpoint adapter,
@@ -112,7 +112,7 @@ public class RabbitMQUnifiedQueueTests
     public void Queue_Should_MaterializeReceiveEndpoint_When_ReceivesAdded()
     {
         // arrange
-        // Adding Receives<T>() on a Queue() handle must produce a receive endpoint.
+        // Adding Receives<T>() on a Queue() descriptor must produce a receive endpoint.
         // A registered consumer is required so the
         // lifecycle validation can connect the declared Receives route to a handler.
         var runtime = CreateRuntime(
@@ -138,7 +138,7 @@ public class RabbitMQUnifiedQueueTests
     {
         // arrange
         // Two paths target the same queue name "orders":
-        //   1. t.Queue("orders") unified front door (the primary surface, creates a builder)
+        //   1. t.Queue("orders") unified Queue() API (the primary surface, creates a builder)
         //   2. t.DeclareQueue("orders") at transport level (declared origin)
         // Descriptor-level deduplication must converge both into exactly one queue entity with no
         // exception. The second DeclareQueue call below also verifies that path.
@@ -168,7 +168,7 @@ public class RabbitMQUnifiedQueueTests
     {
         // arrange
         // A saga that processes OrderStarted events and sends a request (with an OnReply route).
-        // When the saga is combined with a t.Queue("order-processor") front-door handle,
+        // When the saga is combined with t.Queue("order-processor"),
         // the convention must not emit an exchange chain for the reply type (OrderResult). The start
         // event exchange chain appears; the queue declared via Queue() also appears.
         var services = new ServiceCollection();
@@ -220,7 +220,7 @@ public class RabbitMQUnifiedQueueTests
     public void BindExplicitly_Should_NotAutoDiscoverHandler_When_HandlerAttachedViaQueue()
     {
         // arrange
-        // Under BindExplicitly, a handler registered via the front door must not also
+        // Under BindExplicitly, a handler registered via the Queue() API must not also
         // trigger auto-discovery on a separate convention-named endpoint. Exactly one receive
         // endpoint should exist, holding the queue name specified via Queue().
         var runtime = CreateRuntime(
@@ -247,8 +247,8 @@ public class RabbitMQUnifiedQueueTests
     public void Queue_Should_ApplyQueueShapeArguments_When_WithArgumentCalled()
     {
         // arrange
-        // WithArgument on the unified handle stores the argument on the queue descriptor.
-        // The argument flows through the queue descriptor's arguments.
+        // WithArgument on the Queue() descriptor stores the argument on the backing queue configuration.
+        // The argument flows through the queue configuration's arguments.
         var runtime = CreateRuntime(
             b => { },
             t =>
@@ -269,10 +269,10 @@ public class RabbitMQUnifiedQueueTests
     }
 
     [Fact]
-    public void Queue_Should_ConfigureFaultEndpointViaQueueHandle_When_FaultEndpointConfigured()
+    public void Queue_Should_ConfigureFaultEndpointViaQueueDescriptor_When_FaultEndpointConfigured()
     {
         // arrange
-        // The FaultEndpoint URI on the unified handle must configure routing with the
+        // The FaultEndpoint URI on the Queue() descriptor must configure routing with the
         // verbatim queue name.
         var runtime = CreateRuntime(
             b => b.AddConsumer<OrderSpyConsumer>(),
@@ -319,7 +319,7 @@ public class RabbitMQUnifiedQueueTests
         public ValueTask ConsumeAsync(IConsumeContext<OrderCreated> context) => default;
     }
 
-    // Saga types for the saga front-door test.
+    // Saga types for the Queue() API test.
 
     public sealed class OrderStarted;
 

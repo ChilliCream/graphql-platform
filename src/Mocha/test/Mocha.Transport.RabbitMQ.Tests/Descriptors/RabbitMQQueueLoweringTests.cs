@@ -6,10 +6,10 @@ using Mocha.Transport.RabbitMQ.Tests.Helpers;
 namespace Mocha.Transport.RabbitMQ.Tests.Descriptors;
 
 /// <summary>
-/// Verifies the unified Queue() front-door build-time behavior and that a configuration
-/// that uses no Queue() handle is left byte-identical.
+/// Verifies the unified Queue() API build-time behavior and that a configuration
+/// that uses no Queue() API is left byte-identical.
 /// </summary>
-public class RabbitMQQueueFrontDoorLoweringTests
+public class RabbitMQQueueLoweringTests
 {
     [Fact]
     public void Queue_Should_ConfigureFaultEndpoint_When_NoConsumerAttached()
@@ -61,7 +61,7 @@ public class RabbitMQQueueFrontDoorLoweringTests
     public void Describe_Should_ApplyQuorumArgument_When_QueueIsQuorum()
     {
         // arrange
-        // The unified handle's Quorum() shape verb sets x-queue-type on the declared queue.
+        // The Queue() descriptor's Quorum() shape verb sets x-queue-type on the declared queue.
         var runtime = CreateRuntime(
             b => { },
             t =>
@@ -80,10 +80,10 @@ public class RabbitMQQueueFrontDoorLoweringTests
     }
 
     [Fact]
-    public void Describe_Should_StayByteIdentical_When_ConfigurationUsesNoQueueFrontDoor()
+    public void Describe_Should_StayByteIdentical_When_ConfigurationUsesNoUnifiedQueueApi()
     {
         // arrange
-        // A configuration declared entirely through DeclareQueue()/Endpoint() (no Queue() handle)
+        // A configuration declared entirely through DeclareQueue()/Endpoint() (no Queue() API)
         // must flow through the build code path unchanged.
         var runtime = CreateRuntime(
             b => b.AddConsumer<OrderSpyConsumer>(),

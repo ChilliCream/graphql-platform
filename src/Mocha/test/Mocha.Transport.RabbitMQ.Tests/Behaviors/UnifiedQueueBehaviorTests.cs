@@ -5,8 +5,8 @@ using Mocha.Transport.RabbitMQ.Tests.Helpers;
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
 /// <summary>
-/// End-to-end Docker-gated tests for the unified <c>t.Queue(name)</c> front door.
-/// Verifies that consumer placement via the unified handle routes messages to the consumer.
+/// End-to-end Docker-gated tests for the unified <c>t.Queue(name)</c> API.
+/// Verifies that consumer placement via the Queue() API routes messages to the consumer.
 /// </summary>
 [Collection("RabbitMQ")]
 public class UnifiedQueueBehaviorTests
@@ -23,7 +23,7 @@ public class UnifiedQueueBehaviorTests
     public async Task PublishAsync_Should_RouteToConsumer_When_PlacedViaUnifiedQueue()
     {
         // arrange
-        // The unified Queue() front door places a consumer on the "orders" queue. Publishing
+        // The unified Queue() API places a consumer on the "orders" queue. Publishing
         // an OrderCreated message should deliver to that consumer through the convention exchange
         // chain that binds into the queue automatically (AutoBind defaults to on).
         var capture = new OrderCapture();
@@ -49,7 +49,7 @@ public class UnifiedQueueBehaviorTests
         // assert
         Assert.True(
             await capture.WaitAsync(s_timeout),
-            "Consumer placed via the unified Queue() front door did not receive the published message");
+            "Consumer placed via the unified Queue() API did not receive the published message");
 
         var message = Assert.Single(capture.Messages);
         Assert.Equal("UNIFIED-ROUTE", message.OrderId);
