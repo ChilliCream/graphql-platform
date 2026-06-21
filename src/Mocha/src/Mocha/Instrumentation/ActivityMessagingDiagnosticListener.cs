@@ -124,8 +124,8 @@ internal sealed class ActivityMessagingDiagnosticListener : MessagingDiagnosticE
 
                 _activity
                     .EnrichMessageDefault()
-                    .SetMessageId(_context.MessageId ?? string.Empty)
-                    .SetConversationId(_context.CorrelationId ?? string.Empty)
+                    .SetMessageId(_context.MessageId)
+                    .SetConversationId(_context.ConversationId)
                     .SetConsumerName(consumerName);
 
                 if (batchConsumeContext is not null)
