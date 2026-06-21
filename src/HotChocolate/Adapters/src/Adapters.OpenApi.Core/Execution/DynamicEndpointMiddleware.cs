@@ -171,8 +171,11 @@ internal sealed class DynamicEndpointMiddleware(
             {
                 result = await body.ReadAsync(cancellationToken);
 
-                if (result.IsCanceled) throw new OperationCanceledException();
-                if (result.IsCompleted) break;
+                if (result.IsCanceled)
+                    throw new OperationCanceledException();
+
+                if (result.IsCompleted)
+                    break;
 
                 // More data pending: examine all, consume nothing, read again.
                 body.AdvanceTo(result.Buffer.Start, result.Buffer.End);
