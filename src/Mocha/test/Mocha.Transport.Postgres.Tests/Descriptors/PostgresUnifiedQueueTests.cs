@@ -10,8 +10,6 @@ namespace Mocha.Transport.Postgres.Tests.Descriptors;
 /// </summary>
 public class PostgresUnifiedQueueTests
 {
-    // --- Identity ---
-
     [Fact]
     public void Queue_Should_ResolveSameEndpoint_When_EndpointSharesQueueName()
     {
@@ -88,8 +86,6 @@ public class PostgresUnifiedQueueTests
         Assert.Single(endpoints);
     }
 
-    // --- Endpoint materialization ---
-
     [Fact]
     public void Queue_Should_MaterializeReceiveEndpoint_When_NoConsumersOrReceives()
     {
@@ -113,8 +109,6 @@ public class PostgresUnifiedQueueTests
         Assert.NotNull(endpoint);
         Assert.Contains(topology.Queues, q => q.Name == "dispatch-target");
     }
-
-    // --- Identity guards ---
 
     [Fact]
     public void Queue_Should_SetQueueNameAsEndpointName_When_NoExplicitEndpointName()
@@ -188,8 +182,6 @@ public class PostgresUnifiedQueueTests
         Assert.Equal("queue:audit-error", feature?.Address?.OriginalString);
         Assert.False(feature?.IsDisabled ?? false);
     }
-
-    // --- AutoProvision ---
 
     [Fact]
     public void Queue_Should_PropagateAutoProvision_When_AutoProvisionCalled()

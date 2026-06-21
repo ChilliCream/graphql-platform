@@ -267,7 +267,6 @@ public sealed class RabbitMQMessagingTopology(
         string Destination,
         RabbitMQDestinationKind DestinationKind,
         string RoutingKey,
-        int ArgumentCount,
         ulong ArgumentsHash)
     {
         public static BindingKey Create(RabbitMQBindingConfiguration configuration)
@@ -279,7 +278,6 @@ public sealed class RabbitMQMessagingTopology(
                 configuration.Destination,
                 configuration.DestinationKind,
                 configuration.RoutingKey ?? string.Empty,
-                arguments?.Count ?? 0,
                 HashArguments(arguments));
         }
 

@@ -294,8 +294,6 @@ public class RabbitMQMessagingTopologyTests
         }
     }
 
-    // Duplicate exchange tests
-
     [Fact]
     public void AddExchange_Should_IgnoreIncomingScalars_When_DuplicateName()
     {

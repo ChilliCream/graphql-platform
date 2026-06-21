@@ -5,11 +5,10 @@ using Mocha.Transport.InMemory;
 namespace Mocha.Tests.MessageTypes;
 
 /// <summary>
-/// Verifies the end-to-end neutral-scheme claim and lazy-dispatch-failure rules (D11, W3.13).
-/// Neutral schemes (<c>queue:</c> and <c>topic:</c>) are exclusive to the transport flagged as
-/// the effective default. When no default exists and a neutral-scheme address is used, the error
-/// surfaces at dispatch time via <see cref="IMessagingRuntime.GetDispatchEndpoint"/>, not at build
-/// time, because the claim depends on runtime transport selection.
+/// Verifies the end-to-end neutral-scheme claim and lazy-dispatch-failure rules.
+/// Neutral schemes (<c>queue:</c> and <c>topic:</c>) resolve lazily through
+/// <see cref="IMessagingRuntime.GetDispatchEndpoint"/>. When multiple transports can handle the
+/// same neutral address and none is default, dispatch fails with an ambiguity diagnostic.
 /// </summary>
 public sealed class NeutralSchemeResolutionTests
 {
@@ -37,13 +36,12 @@ public sealed class NeutralSchemeResolutionTests
     }
 
     [Fact]
-    public void Resolve_Should_Throw_When_NeutralSchemeAndNoDefault()
+    public void Resolve_Should_ThrowAmbiguous_When_NeutralSchemeMatchesMultipleTransportsAndNoDefault()
     {
         // arrange
         // Two in-memory transports with no default flag set.
-        // Neither transport claims queue: URIs because neither is the effective default.
         // Build succeeds: neutral-scheme resolution is not validated at build time.
-        // The failure surfaces lazily when the address is first dispatched.
+        // The ambiguity surfaces lazily when the address is first dispatched.
         var services = new ServiceCollection();
         var builder = services.AddMessageBus();
         builder
@@ -61,6 +59,6 @@ public sealed class NeutralSchemeResolutionTests
 
         // assert
         ex.Message.MatchInlineSnapshot(
-            "No transport can handle address: queue:order-commands");
+            "Multiple transports can handle address: queue:order-commands. Matching transports: 'alpha', 'beta'. Mark one as default or use a transport-specific address.");
     }
 }

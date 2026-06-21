@@ -26,8 +26,7 @@ public sealed class MessageBusBuilderTransportValidationTests
         var provider = services.BuildServiceProvider();
 
         // act
-        var ex = Assert.Throws<InvalidOperationException>(
-            () => provider.GetRequiredService<IMessagingRuntime>());
+        var ex = Assert.Throws<InvalidOperationException>(provider.GetRequiredService<IMessagingRuntime>);
 
         // assert
         ex.Message.MatchSnapshot();

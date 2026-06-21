@@ -3,12 +3,6 @@ using Mocha.Transport.RabbitMQ.Tests.Helpers;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Routing;
 
-/// <summary>
-/// Verifies that <see cref="RabbitMQMessagingTransport.CreateEndpointConfiguration(IMessagingConfigurationContext, Uri)"/>
-/// only claims neutral-scheme URIs (<c>queue:</c> and <c>exchange:</c>) when the transport is the
-/// effective default (flagged with <see cref="IRabbitMQMessagingTransportDescriptor.IsDefaultTransport"/>
-/// or sole transport registered), and returns <see langword="null"/> otherwise.
-/// </summary>
 public class RabbitMQNeutralSchemeGatingTests
 {
     [Fact]

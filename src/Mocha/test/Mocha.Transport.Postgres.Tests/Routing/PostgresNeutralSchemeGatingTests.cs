@@ -3,12 +3,6 @@ using Mocha.Transport.Postgres.Tests.Helpers;
 
 namespace Mocha.Transport.Postgres.Tests.Routing;
 
-/// <summary>
-/// Verifies that <see cref="PostgresMessagingTransport.CreateEndpointConfiguration(IMessagingConfigurationContext, Uri)"/>
-/// only claims neutral-scheme URIs (<c>queue:</c> and <c>topic:</c>) when the transport is the
-/// effective default (flagged with <see cref="IPostgresMessagingTransportDescriptor.IsDefaultTransport"/>
-/// or sole transport registered), and returns <see langword="null"/> otherwise.
-/// </summary>
 public class PostgresNeutralSchemeGatingTests
 {
     [Fact]

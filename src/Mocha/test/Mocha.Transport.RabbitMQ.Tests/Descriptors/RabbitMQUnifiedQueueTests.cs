@@ -1,9 +1,8 @@
 using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
+using Mocha.Features;
 using Mocha.Sagas;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
-
-using Mocha.Features;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Descriptors;
 
@@ -13,8 +12,6 @@ namespace Mocha.Transport.RabbitMQ.Tests.Descriptors;
 /// </summary>
 public class RabbitMQUnifiedQueueTests
 {
-    // --- Identity ---
-
     [Fact]
     public void Queue_Should_CreateEndpoint_When_ConsumerAttached()
     {
@@ -89,8 +86,6 @@ public class RabbitMQUnifiedQueueTests
         Assert.Equal("my-queue", endpoint.Name);
     }
 
-    // --- Endpoint materialization ---
-
     [Fact]
     public void Queue_Should_MaterializeReceiveEndpoint_When_NoConsumersOrReceives()
     {
@@ -138,8 +133,6 @@ public class RabbitMQUnifiedQueueTests
         Assert.NotNull(endpoint);
     }
 
-    // --- Convergence ---
-
     [Fact]
     public void QueueEndpointDeclareQueue_Should_ConvergeToOneEntity_When_SameName()
     {
@@ -169,8 +162,6 @@ public class RabbitMQUnifiedQueueTests
         Assert.Single(queues);
         RabbitMQDescribeSnapshot.Create(description).MatchSnapshot();
     }
-
-    // --- Saga ---
 
     [Fact]
     public void SagaEndpoint_Should_Describe_When_ConfiguredViaUnifiedQueue()
@@ -203,8 +194,6 @@ public class RabbitMQUnifiedQueueTests
         // "order-processor" queue and the saga's convention endpoint are both present.
         RabbitMQDescribeSnapshot.Create(description).MatchSnapshot();
     }
-
-    // --- Axis-A claim ---
 
     [Fact]
     public void BindExplicitly_Should_NotThrow_When_HandlerAttachedViaQueue()
@@ -253,8 +242,6 @@ public class RabbitMQUnifiedQueueTests
         Assert.Single(ordersEndpoints);
         Assert.Equal("my-orders", ordersEndpoints[0].Queue.Name);
     }
-
-    // --- Queue shape and fault/skipped queue configuration via the front-door handle ---
 
     [Fact]
     public void Queue_Should_ApplyQueueShapeArguments_When_WithArgumentCalled()

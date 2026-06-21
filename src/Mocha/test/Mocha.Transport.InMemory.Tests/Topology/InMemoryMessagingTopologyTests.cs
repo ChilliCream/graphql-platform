@@ -11,7 +11,7 @@ public class InMemoryMessagingTopologyTests
         // arrange
         var runtime = new ServiceCollection().AddMessageBus().AddInMemory().BuildRuntime();
         var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
-        var topology = transport.Topology as InMemoryMessagingTopology;
+        var topology = (InMemoryMessagingTopology)transport.Topology;
 
         var config = new InMemoryTopicConfiguration { Name = "test-topic" };
 
@@ -29,7 +29,7 @@ public class InMemoryMessagingTopologyTests
         // arrange
         var runtime = new ServiceCollection().AddMessageBus().AddInMemory().BuildRuntime();
         var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
-        var topology = transport.Topology as InMemoryMessagingTopology;
+        var topology = (InMemoryMessagingTopology)transport.Topology;
 
         var config1 = new InMemoryTopicConfiguration { Name = "duplicate-topic" };
         var config2 = new InMemoryTopicConfiguration { Name = "duplicate-topic" };
@@ -51,7 +51,7 @@ public class InMemoryMessagingTopologyTests
         // arrange
         var runtime = new ServiceCollection().AddMessageBus().AddInMemory().BuildRuntime();
         var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
-        var topology = transport.Topology as InMemoryMessagingTopology;
+        var topology = (InMemoryMessagingTopology)transport.Topology;
 
         var config = new InMemoryQueueConfiguration { Name = "test-queue" };
 
@@ -69,7 +69,7 @@ public class InMemoryMessagingTopologyTests
         // arrange
         var runtime = new ServiceCollection().AddMessageBus().AddInMemory().BuildRuntime();
         var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
-        var topology = transport.Topology as InMemoryMessagingTopology;
+        var topology = (InMemoryMessagingTopology)transport.Topology;
 
         var config1 = new InMemoryQueueConfiguration { Name = "duplicate-queue" };
         var config2 = new InMemoryQueueConfiguration { Name = "duplicate-queue" };
@@ -91,7 +91,7 @@ public class InMemoryMessagingTopologyTests
         // arrange
         var runtime = new ServiceCollection().AddMessageBus().AddInMemory().BuildRuntime();
         var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
-        var topology = transport.Topology as InMemoryMessagingTopology;
+        var topology = (InMemoryMessagingTopology)transport.Topology;
 
         topology!.AddTopic(new InMemoryTopicConfiguration { Name = "source-topic" });
         topology.AddQueue(new InMemoryQueueConfiguration { Name = "destination-queue" });
@@ -122,7 +122,7 @@ public class InMemoryMessagingTopologyTests
         // arrange
         var runtime = new ServiceCollection().AddMessageBus().AddInMemory().BuildRuntime();
         var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
-        var topology = transport.Topology as InMemoryMessagingTopology;
+        var topology = (InMemoryMessagingTopology)transport.Topology;
 
         topology!.AddTopic(new InMemoryTopicConfiguration { Name = "source-topic" });
         topology.AddTopic(new InMemoryTopicConfiguration { Name = "destination-topic" });
@@ -153,7 +153,7 @@ public class InMemoryMessagingTopologyTests
         // arrange
         var runtime = new ServiceCollection().AddMessageBus().AddInMemory().BuildRuntime();
         var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
-        var topology = transport.Topology as InMemoryMessagingTopology;
+        var topology = (InMemoryMessagingTopology)transport.Topology;
 
         topology!.AddQueue(new InMemoryQueueConfiguration { Name = "destination-queue" });
 
@@ -176,7 +176,7 @@ public class InMemoryMessagingTopologyTests
         // arrange
         var runtime = new ServiceCollection().AddMessageBus().AddInMemory().BuildRuntime();
         var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
-        var topology = transport.Topology as InMemoryMessagingTopology;
+        var topology = (InMemoryMessagingTopology)transport.Topology;
 
         topology!.AddTopic(new InMemoryTopicConfiguration { Name = "source-topic" });
 
@@ -199,7 +199,7 @@ public class InMemoryMessagingTopologyTests
         // arrange
         var runtime = new ServiceCollection().AddMessageBus().AddInMemory().BuildRuntime();
         var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
-        var topology = transport.Topology as InMemoryMessagingTopology;
+        var topology = (InMemoryMessagingTopology)transport.Topology;
 
         // act
         var topic = topology!.GetTopic("nonexistent-topic");
@@ -214,7 +214,7 @@ public class InMemoryMessagingTopologyTests
         // arrange
         var runtime = new ServiceCollection().AddMessageBus().AddInMemory().BuildRuntime();
         var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
-        var topology = transport.Topology as InMemoryMessagingTopology;
+        var topology = (InMemoryMessagingTopology)transport.Topology;
 
         var addedTopic = topology!.AddTopic(new InMemoryTopicConfiguration { Name = "my-topic" });
 
@@ -232,7 +232,7 @@ public class InMemoryMessagingTopologyTests
         // arrange
         var runtime = new ServiceCollection().AddMessageBus().AddInMemory().BuildRuntime();
         var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
-        var topology = transport.Topology as InMemoryMessagingTopology;
+        var topology = (InMemoryMessagingTopology)transport.Topology;
 
         // act
         var queue = topology!.GetQueue("nonexistent-queue");
@@ -247,7 +247,7 @@ public class InMemoryMessagingTopologyTests
         // arrange
         var runtime = new ServiceCollection().AddMessageBus().AddInMemory().BuildRuntime();
         var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
-        var topology = transport.Topology as InMemoryMessagingTopology;
+        var topology = (InMemoryMessagingTopology)transport.Topology;
 
         var addedQueue = topology!.AddQueue(new InMemoryQueueConfiguration { Name = "my-queue" });
 
@@ -265,7 +265,7 @@ public class InMemoryMessagingTopologyTests
         // arrange
         var runtime = new ServiceCollection().AddMessageBus().AddInMemory().BuildRuntime();
         var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
-        var topology = transport.Topology as InMemoryMessagingTopology;
+        var topology = (InMemoryMessagingTopology)transport.Topology;
 
         // Record initial state - the runtime may pre-create some resources
         var initialTopicCount = topology!.Topics.Count;

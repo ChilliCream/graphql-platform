@@ -4,7 +4,9 @@ using Mocha.Transport.InMemory;
 namespace Mocha.Tests.MessageTypes;
 
 /// <summary>
-/// Tests for the <see cref="OutboundRoute.HasExplicitDestination"/> flag, verifying that it is set only when the destination is explicitly configured and not when backfilled from the endpoint address.
+/// Tests for the <see cref="OutboundRoute.HasExplicitDestination"/> flag, verifying that it is set
+/// only when the destination is explicitly configured and not when backfilled from the endpoint
+/// address.
 /// </summary>
 public class OutboundRouteTests
 {
@@ -32,10 +34,14 @@ public class OutboundRouteTests
 
         // assert
         // The inbound route for ImplicitDestinationEvent is created by the handler
-        var inboundRoute = runtime.Router.InboundRoutes.Single(r => r.MessageType?.RuntimeType == typeof(ImplicitDestinationEvent));
+        Assert.Single(
+            runtime.Router.InboundRoutes,
+            r => r.MessageType?.RuntimeType == typeof(ImplicitDestinationEvent));
 
         // The matching outbound route is created implicitly from the inbound route
-        var outboundRoute = runtime.Router.OutboundRoutes.Single(r => r.MessageType.RuntimeType == typeof(ImplicitDestinationEvent));
+        var outboundRoute = Assert.Single(
+            runtime.Router.OutboundRoutes,
+            r => r.MessageType.RuntimeType == typeof(ImplicitDestinationEvent));
 
         // This outbound route was not explicitly configured, so the flag should be false
         Assert.False(outboundRoute.HasExplicitDestination);

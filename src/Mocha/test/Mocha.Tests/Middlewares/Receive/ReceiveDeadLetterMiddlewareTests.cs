@@ -146,15 +146,16 @@ public sealed class ReceiveDeadLetterMiddlewareTests : ReceiveMiddlewareTestBase
         var transport = new StubTransport();
         SetTransportOptions(transport, new StubTransportOptions());
         var receiveEndpoint = new StubReceiveEndpoint(transport);
-        var faultEndpoint = CreateDispatchEndpoint(transport, _ =>
+        var feature = receiveEndpoint.Features.GetOrSet<ReceiveFaultEndpointFeature>();
+        feature.Endpoint = CreateDispatchEndpoint(transport, _ =>
         {
             faultExecuted = true;
             return ValueTask.CompletedTask;
         });
-        receiveEndpoint.Features.GetOrSet<ReceiveFaultEndpointFeature>().Endpoint = faultEndpoint;
         var pools = new MockMessagingPools(new DispatchContext());
         var services = CreateServices(s => s.AddSingleton<IMessagingPools>(pools));
-        var middleware = ReceiveDeadLetterMiddleware.Create().Middleware(
+        var middlewareFactory = ReceiveDeadLetterMiddleware.Create().Middleware;
+        var middleware = middlewareFactory(
             new ReceiveMiddlewareFactoryContext
             {
                 Services = services,

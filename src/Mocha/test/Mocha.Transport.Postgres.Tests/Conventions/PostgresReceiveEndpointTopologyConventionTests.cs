@@ -6,7 +6,7 @@ using Mocha.Transport.Postgres.Tests.Helpers;
 namespace Mocha.Transport.Postgres.Tests.Conventions;
 
 /// <summary>
-/// Verifies that the PostgreSQL routing topology respects per-route bind-mode gating and the P1
+/// Verifies that the PostgreSQL routing topology respects per-route bind-mode gating and the
 /// reply-route guard: subscriptions are suppressed when bind mode is Explicit while type-owned
 /// topics remain, and reply routes never produce convention topics or subscriptions regardless of
 /// bind mode.

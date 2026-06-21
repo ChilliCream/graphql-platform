@@ -3,11 +3,6 @@ using Mocha.Transport.Postgres.Tests.Helpers;
 
 namespace Mocha.Transport.Postgres.Tests.Routing;
 
-/// <summary>
-/// Verifies that <see cref="PostgresMessagingTransport.CreateEndpointConfiguration(IMessagingConfigurationContext, OutboundRoute)"/>
-/// uses the internal <see cref="PostgresDestinations"/> helper and produces the correct
-/// dispatch endpoint configuration for convention and explicit destinations.
-/// </summary>
 public class PostgresTransportResolverWiringTests
 {
     [Fact]

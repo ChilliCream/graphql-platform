@@ -3,11 +3,6 @@ using Mocha.Transport.RabbitMQ.Tests.Helpers;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Routing;
 
-/// <summary>
-/// Verifies that <see cref="RabbitMQMessagingTransport.CreateEndpointConfiguration(IMessagingConfigurationContext, OutboundRoute)"/>
-/// uses the internal <see cref="RabbitMQDestinations"/> helper and produces the correct
-/// dispatch endpoint configuration for convention, explicit-exchange, and explicit-queue destinations.
-/// </summary>
 public class RabbitMQTransportResolverWiringTests
 {
     [Fact]

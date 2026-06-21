@@ -499,8 +499,8 @@ public sealed class ReceiveFaultMiddlewareTests : ReceiveMiddlewareTestBase
         {
             if (configuration is { Kind: ReceiveEndpointKind.Default, QueueName: { } queueName })
             {
-                configuration.Features.GetOrSet<ReceiveFaultEndpointFeature>().Address ??=
-                    new Uri($"{transport.Schema}:q/{queueName}_error");
+                var feature = configuration.Features.GetOrSet<ReceiveFaultEndpointFeature>();
+                feature.Address ??= new Uri($"{transport.Schema}:q/{queueName}_error");
             }
         }
     }

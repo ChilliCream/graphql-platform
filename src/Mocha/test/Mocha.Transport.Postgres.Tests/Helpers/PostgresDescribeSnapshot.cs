@@ -28,22 +28,23 @@ internal static partial class PostgresDescribeSnapshot
                 e.Name,
                 e.Properties is not null && e.Properties.TryGetValue("autoProvision", out var ap) ? ap as bool? : null,
                 e.Properties is not null && e.Properties.TryGetValue("autoDelete", out var ad) ? ad as bool? : null,
-                e.Properties is not null && e.Properties.TryGetValue("origin", out var origin) ? origin as string : null))
+                e.Properties is not null && e.Properties.TryGetValue("origin", out var origin)
+                    ? origin as string
+                    : null))
             .OrderBy(e => e.Kind, StringComparer.Ordinal)
             .ThenBy(e => e.Name ?? string.Empty, StringComparer.Ordinal)
             .ToList();
 
         var links = (topology?.Links ?? [])
-            .Where(l =>
-                !IsReplyAddress(l.Source)
-                && !IsReplyAddress(l.Target)
-                && !IsReplyAddress(l.Address))
+            .Where(l => !IsReplyAddress(l.Source) && !IsReplyAddress(l.Target) && !IsReplyAddress(l.Address))
             .Select(l => new LinkSnapshot(
                 l.Kind,
                 l.Source,
                 l.Target,
                 l.Properties is not null && l.Properties.TryGetValue("autoProvision", out var ap) ? ap as bool? : null,
-                l.Properties is not null && l.Properties.TryGetValue("origin", out var origin) ? origin as string : null))
+                l.Properties is not null && l.Properties.TryGetValue("origin", out var origin)
+                    ? origin as string
+                    : null))
             .OrderBy(l => l.From ?? string.Empty, StringComparer.Ordinal)
             .ThenBy(l => l.To ?? string.Empty, StringComparer.Ordinal)
             .ToList();

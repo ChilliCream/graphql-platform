@@ -1,5 +1,4 @@
 using Mocha.Features;
-using Mocha.Middlewares;
 using static System.StringSplitOptions;
 
 namespace Mocha.Transport.RabbitMQ;
@@ -261,8 +260,7 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
         var autoBind = (rabbitConfiguration.BindMode ?? rabbitEndpoint.Transport.BindMode)
             is MessagingBindMode.Implicit;
 
-        var routes = context.Router.GetInboundByEndpoint(rabbitEndpoint);
-        foreach (var route in routes)
+        foreach (var route in context.Router.GetInboundByEndpoint(rabbitEndpoint))
         {
             if (route.Kind is InboundRouteKind.Reply)
             {
@@ -274,7 +272,7 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
                 continue;
             }
 
-            if (!autoBind || HasPerMessageRoutingKey(route.MessageType))
+            if (!autoBind || route.MessageType.HasPerMessageRoutingKey())
             {
                 continue;
             }
@@ -545,7 +543,10 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
         queueName = string.Empty;
         return false;
     }
+}
 
-    private static bool HasPerMessageRoutingKey(MessageType messageType)
+file static class Extensions
+{
+    public static bool HasPerMessageRoutingKey(this MessageType messageType)
         => messageType.Features.TryGet<RabbitMQRoutingKeyExtractor>(out _);
 }
