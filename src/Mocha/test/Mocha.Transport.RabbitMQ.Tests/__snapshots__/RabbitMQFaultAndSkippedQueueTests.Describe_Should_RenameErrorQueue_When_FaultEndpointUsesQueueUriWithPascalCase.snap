@@ -16,20 +16,20 @@
     },
     {
       "Kind": "queue",
-      "Name": "orders",
-      "AutoProvision": false,
-      "Origin": "declared"
+      "Name": "LEGACY.Orders.Error",
+      "AutoProvision": true,
+      "Origin": "convention"
     },
     {
       "Kind": "queue",
-      "Name": "orders_error",
+      "Name": "orders",
       "AutoProvision": true,
       "Origin": "declared"
     },
     {
       "Kind": "queue",
       "Name": "orders_skipped",
-      "AutoProvision": false,
+      "AutoProvision": true,
       "Origin": "convention"
     }
   ],

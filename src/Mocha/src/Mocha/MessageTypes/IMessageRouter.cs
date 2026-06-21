@@ -353,6 +353,11 @@ public sealed class MessageRouter : IMessageRouter
         ImmutableArray<MessagingTransport> transports,
         OutboundRoute route)
     {
+        if (transports.IsDefaultOrEmpty)
+        {
+            throw ThrowHelper.NoTransportForMessageType(route.MessageType);
+        }
+
         if (route.Destination is { Scheme: var scheme })
         {
             foreach (var transport in transports)

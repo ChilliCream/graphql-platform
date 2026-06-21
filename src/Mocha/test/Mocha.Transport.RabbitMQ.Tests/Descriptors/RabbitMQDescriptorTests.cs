@@ -305,19 +305,24 @@ public class RabbitMQDescriptorTests
     public void Transport_Should_SetBindModeExplicit_When_BindExplicitlyCalled()
     {
         // arrange & act
-        var runtime = CreateRuntime(t => t.BindExplicitly());
+        var runtime = CreateRuntime(t => t.BindExplicitly(), addDefaultHandler: false);
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
         // assert
         Assert.Equal(MessagingBindMode.Explicit, transport.BindMode);
     }
 
-    private static MessagingRuntime CreateRuntime(Action<IRabbitMQMessagingTransportDescriptor> configure)
+    private static MessagingRuntime CreateRuntime(
+        Action<IRabbitMQMessagingTransportDescriptor> configure,
+        bool addDefaultHandler = true)
     {
         var services = new ServiceCollection();
         services.AddSingleton(new MessageRecorder());
         var builder = services.AddMessageBus();
-        builder.AddEventHandler<OrderCreatedHandler>();
+        if (addDefaultHandler)
+        {
+            builder.AddEventHandler<OrderCreatedHandler>();
+        }
         var runtime = builder
             .AddRabbitMQ(t =>
             {

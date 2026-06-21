@@ -83,6 +83,24 @@ internal static class ThrowHelper
     public static Exception NoTransportForAddress(string address)
         => new InvalidOperationException($"No transport can handle address: {address}");
 
+    public static Exception NoTransportForMessageType(MessageType messageType)
+        => new InvalidOperationException(
+            $"No transport can handle message type '{messageType.RuntimeType.FullName}'.");
+
+    public static InvalidOperationException CannotCreateRabbitMQAutoBind(
+        MessageType messageType,
+        string reason)
+        => new(
+            "Cannot create a RabbitMQ auto-bind for consumed message type "
+            + $"'{messageType.RuntimeType.FullName}' because "
+            + reason
+            + ".");
+
+    public static Exception MultipleDefaultTransports(IEnumerable<string> transportNames)
+        => new InvalidOperationException(
+            $"Multiple transports are flagged as default: {string.Join(", ", transportNames.Select(t => $"'{t}'"))}. "
+            + "Only one transport can be the default. Use IsDefaultTransport() to designate the default.");
+
     public static Exception EndpointMustBeRegistered()
         => new InvalidOperationException("Endpoint must be registered before adding addresses");
 

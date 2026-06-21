@@ -254,18 +254,13 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
                 continue;
             }
 
-            if (route.MessageType is null)
-            {
-                continue;
-            }
-
-            if (!autoBind)
+            if (route.MessageType is not { } messageType)
             {
                 continue;
             }
 
             var explicitPublishRoute = context
-                .Router.GetOutboundByMessageType(route.MessageType)
+                .Router.GetOutboundByMessageType(messageType)
                 .FirstOrDefault(r => r is { HasExplicitDestination: true, Kind: OutboundRouteKind.Publish });
             if (explicitPublishRoute is not null)
             {
@@ -277,23 +272,31 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
                 }
 
                 EnsureTopic(_topology, destination.Name);
-                EnsureSubscription(_topology, destination.Name, postgresConfiguration.QueueName);
+                if (autoBind)
+                {
+                    EnsureSubscription(_topology, destination.Name, postgresConfiguration.QueueName);
+                }
 
                 continue;
             }
 
-            var publishTopicName = context.Naming.GetPublishEndpointName(route.MessageType.RuntimeType);
+            var publishTopicName = context.Naming.GetPublishEndpointName(messageType.RuntimeType);
             EnsureTopic(_topology, publishTopicName);
 
-            var sendTopicName = context.Naming.GetSendEndpointName(route.MessageType.RuntimeType);
+            var sendTopicName = context.Naming.GetSendEndpointName(messageType.RuntimeType);
             if (sendTopicName != publishTopicName)
             {
                 EnsureTopic(_topology, sendTopicName);
-
-                EnsureSubscription(_topology, publishTopicName, postgresConfiguration.QueueName);
+                if (autoBind)
+                {
+                    EnsureSubscription(_topology, publishTopicName, postgresConfiguration.QueueName);
+                }
             }
 
-            EnsureSubscription(_topology, sendTopicName, postgresConfiguration.QueueName);
+            if (autoBind)
+            {
+                EnsureSubscription(_topology, sendTopicName, postgresConfiguration.QueueName);
+            }
         }
     }
 

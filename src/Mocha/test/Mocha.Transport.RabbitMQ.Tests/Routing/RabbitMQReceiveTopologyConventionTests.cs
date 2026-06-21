@@ -80,23 +80,27 @@ public class RabbitMQReceiveTopologyConventionTests
     }
 
     [Fact]
-    public void DiscoverTopology_Should_FailBuild_When_ConsumedTypeHasExplicitQueueDestination()
+    public void DiscoverTopology_Should_AllowExplicitQueueDestination_When_ConsumedTypeHasExplicitQueueDestination()
     {
-        // arrange
-        // an explicit queue destination on a consumed type has no exchange chain to bind into the
-        // endpoint queue, so the build must fail instead of guessing.
-        // act
-        var ex = Record.Exception(() => CreateRuntime(
+        // arrange & act
+        // An explicit queue destination is valid. The receive convention must not try to
+        // synthesize a queue bind from it because there is no exchange source.
+        var runtime = CreateRuntime(
             b =>
             {
                 b.AddConsumer<OrderSpyConsumer>();
                 b.AddMessage<OrderCreated>(d => d.Publish(r => r.ToRabbitMQQueue("orders-queue")));
             },
-            t => t.BindImplicitly()));
+            t => t.BindImplicitly());
+        var (topology, consumerQueueName) = ResolveConsumerQueue(runtime);
+        var endpoint = Assert.IsType<RabbitMQDispatchEndpoint>(
+            runtime.GetPublishEndpoint(runtime.GetMessageType(typeof(OrderCreated))));
 
         // assert
-        Assert.IsType<InvalidOperationException>(ex);
-        Assert.Contains(typeof(OrderCreated).FullName!, ex.Message);
+        Assert.Equal("orders-queue", endpoint.Queue?.Name);
+        Assert.DoesNotContain(
+            topology.Bindings.OfType<RabbitMQQueueBinding>(),
+            b => b.Destination.Name == consumerQueueName);
     }
 
     [Fact]
@@ -186,8 +190,7 @@ public class RabbitMQReceiveTopologyConventionTests
             t =>
             {
                 t.BindExplicitly();
-                t.BindExplicitly();
-                t.Queue("orders").Consumer<OrderSpyConsumer>();
+                t.Queue("orders").Consumer<OrderSpyConsumer>().BindExplicitly();
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 

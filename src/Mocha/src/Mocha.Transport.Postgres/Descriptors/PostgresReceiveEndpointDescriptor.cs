@@ -9,7 +9,12 @@ internal sealed class PostgresReceiveEndpointDescriptor
     internal PostgresReceiveEndpointDescriptor(IMessagingConfigurationContext discoveryContext, string name)
         : base(discoveryContext)
     {
-        Configuration = new PostgresReceiveEndpointConfiguration { Name = name, QueueName = name };
+        Configuration = new PostgresReceiveEndpointConfiguration
+        {
+            Name = name,
+            QueueName = name,
+            BindMode = MessagingBindMode.Implicit
+        };
     }
 
     /// <inheritdoc />

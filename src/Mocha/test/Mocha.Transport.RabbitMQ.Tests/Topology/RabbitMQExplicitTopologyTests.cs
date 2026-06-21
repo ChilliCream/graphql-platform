@@ -38,8 +38,7 @@ public class RabbitMQExplicitTopologyTests
             t =>
             {
                 t.BindExplicitly();
-                t.BindExplicitly();
-                t.Queue("orders").AutoProvision(true).Consumer<OrderSpyConsumer>();
+                t.Queue("orders").AutoProvision(true).Consumer<OrderSpyConsumer>().BindExplicitly();
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
@@ -568,27 +567,33 @@ public class RabbitMQExplicitTopologyTests
     }
 
     [Fact]
-    public void Build_Should_Throw_When_ConsumedTypeHasExplicitQueueDestination()
+    public void Build_Should_Allow_When_ConsumedTypeHasExplicitQueueDestination()
     {
         // arrange
-        // A message type routed to an explicit queue has no exchange chain to bind into the consumer
-        // queue, so the receive convention must fail the build instead of generating a useless bind.
+        // A message type routed to an explicit queue is valid. The receive convention must not
+        // generate a useless bind, but the publish endpoint must still resolve to the queue.
         var services = new ServiceCollection();
         var builder = services.AddMessageBus();
         builder.AddMessage<OrderCreated>(d => d.Publish(r => r.ToRabbitMQQueue("direct-queue")));
         builder.AddConsumer<OrderSpyConsumer>();
 
-        // act & assert
-        var exception = Assert.Throws<InvalidOperationException>(() =>
-            builder
-                .AddRabbitMQ(t =>
-                {
-                    t.ConnectionProvider(_ => new StubConnectionProvider());
-                    t.BindImplicitly();
-                })
-                .BuildRuntime());
+        // act
+        var runtime = builder
+            .AddRabbitMQ(t =>
+            {
+                t.ConnectionProvider(_ => new StubConnectionProvider());
+                t.BindImplicitly();
+            })
+            .BuildRuntime();
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+        var topology = (RabbitMQMessagingTopology)transport.Topology;
+        var endpoint = Assert.IsType<RabbitMQDispatchEndpoint>(
+            runtime.GetPublishEndpoint(runtime.GetMessageType(typeof(OrderCreated))));
 
-        Assert.Contains("OrderCreated", exception.Message);
+        // assert
+        Assert.Equal("direct-queue", endpoint.Queue?.Name);
+        Assert.Contains(topology.Queues, q => q.Name == "direct-queue");
+        Assert.DoesNotContain(topology.Bindings.OfType<RabbitMQQueueBinding>(), b => b.Destination.Name == "direct-queue");
     }
 
     [Fact]

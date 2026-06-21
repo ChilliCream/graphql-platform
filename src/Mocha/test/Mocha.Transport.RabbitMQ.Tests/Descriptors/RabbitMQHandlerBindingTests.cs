@@ -97,7 +97,7 @@ public class RabbitMQHandlerBindingTests
             t =>
             {
                 t.BindExplicitly();
-                t.Queue("orders").AutoProvision(true).Consumer<OrderSpyConsumer>();
+                t.Queue("orders").AutoProvision(true).Consumer<OrderSpyConsumer>().BindExplicitly();
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
@@ -120,7 +120,7 @@ public class RabbitMQHandlerBindingTests
             t =>
             {
                 t.BindExplicitly();
-                t.Queue("my-orders").Handler<OrderCreatedHandler>();
+                t.Queue("my-orders").Handler<OrderCreatedHandler>().BindExplicitly();
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 

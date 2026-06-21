@@ -307,10 +307,7 @@ public sealed class PostgresMessagingTransportDescriptor
         target.ConsumerIdentities.AddRange(configuration.ConsumerIdentities);
         target.ReceivedMessageTypes.AddRange(configuration.ReceivedMessageTypes);
 
-        if (configuration.BindMode is not null)
-        {
-            target.BindMode ??= configuration.BindMode;
-        }
+        target.BindMode = configuration.BindMode ?? target.BindMode ?? MessagingBindMode.Implicit;
 
         if (configuration.Kind is not null && target.Kind == ReceiveEndpointKind.Default)
         {

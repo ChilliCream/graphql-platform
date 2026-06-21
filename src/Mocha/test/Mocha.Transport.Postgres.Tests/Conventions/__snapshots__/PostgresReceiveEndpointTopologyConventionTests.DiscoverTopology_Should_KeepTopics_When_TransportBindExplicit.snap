@@ -28,5 +28,18 @@
       "Origin": "convention"
     }
   ],
-  "Links": []
+  "Links": [
+    {
+      "Kind": "subscription",
+      "From": "postgres://localhost:5432/t/mocha.test-helpers.order-created",
+      "To": "postgres://localhost:5432/q/orders",
+      "Origin": "convention"
+    },
+    {
+      "Kind": "subscription",
+      "From": "postgres://localhost:5432/t/order-created",
+      "To": "postgres://localhost:5432/q/orders",
+      "Origin": "convention"
+    }
+  ]
 }

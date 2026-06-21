@@ -263,17 +263,24 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
                 continue;
             }
 
-            if (route.MessageType is null)
+            if (route.MessageType is not { } messageType)
             {
                 continue;
             }
 
-            if (!autoBind || route.MessageType.HasPerMessageRoutingKey())
+            if (messageType.HasPerMessageRoutingKey())
             {
+                if (autoBind)
+                {
+                    throw ThrowHelper.CannotCreateRabbitMQAutoBind(
+                        messageType,
+                        "it has a per-message routing key");
+                }
+
                 continue;
             }
 
-            var explicitPublishRoute = context.Router.GetOutboundByMessageType(route.MessageType)
+            var explicitPublishRoute = context.Router.GetOutboundByMessageType(messageType)
                 .FirstOrDefault(r => r is { HasExplicitDestination: true, Kind: OutboundRouteKind.Publish });
 
             if (explicitPublishRoute is not null)
@@ -286,7 +293,11 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
                 }
 
                 _topology.EnsureExchange(destination.Name);
-                _topology.EnsureExchangeToQueueBinding(destination.Name, rabbitConfiguration.QueueName);
+
+                if (autoBind)
+                {
+                    _topology.EnsureExchangeToQueueBinding(destination.Name, rabbitConfiguration.QueueName);
+                }
 
                 continue;
             }
@@ -295,10 +306,10 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
             // exchange into the receive queue. This keeps Publish<T> and Send<T> converged on the
             // same queue while still allowing separate publish and send exchange names.
             // Example: publish/order-created -> send/order-created -> queue/orders.
-            var publishExchangeName = context.Naming.GetPublishEndpointName(route.MessageType.RuntimeType);
+            var publishExchangeName = context.Naming.GetPublishEndpointName(messageType.RuntimeType);
             _topology.EnsureExchange(publishExchangeName);
 
-            var sendExchangeName = context.Naming.GetSendEndpointName(route.MessageType.RuntimeType);
+            var sendExchangeName = context.Naming.GetSendEndpointName(messageType.RuntimeType);
             if (sendExchangeName != publishExchangeName)
             {
                 _topology.EnsureExchange(sendExchangeName);
@@ -310,7 +321,10 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
                     static (_, _, _) => new RabbitMQBindingConfiguration());
             }
 
-            _topology.EnsureExchangeToQueueBinding(sendExchangeName, rabbitConfiguration.QueueName);
+            if (autoBind)
+            {
+                _topology.EnsureExchangeToQueueBinding(sendExchangeName, rabbitConfiguration.QueueName);
+            }
         }
     }
 
@@ -468,8 +482,7 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
             queueName,
             _ => new RabbitMQQueueConfiguration
             {
-                AutoProvision = inheritedAutoProvision,
-                Origin = TopologyOrigin.Endpoint
+                AutoProvision = inheritedAutoProvision
             });
     }
 

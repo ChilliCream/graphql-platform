@@ -12,7 +12,12 @@ internal sealed class RabbitMQReceiveEndpointDescriptor
     private RabbitMQReceiveEndpointDescriptor(IMessagingConfigurationContext discoveryContext, string name)
         : base(discoveryContext)
     {
-        Configuration = new RabbitMQReceiveEndpointConfiguration { Name = name, QueueName = name };
+        Configuration = new RabbitMQReceiveEndpointConfiguration
+        {
+            Name = name,
+            QueueName = name,
+            BindMode = MessagingBindMode.Implicit
+        };
     }
 
     /// <inheritdoc />
