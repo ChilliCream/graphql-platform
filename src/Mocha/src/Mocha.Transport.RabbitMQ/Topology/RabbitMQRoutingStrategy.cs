@@ -128,9 +128,7 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
             };
         }
 
-        var isEffectiveDefault = Transport.IsDefaultTransport || context.Transports.Length == 1;
-
-        if (configuration is null && isEffectiveDefault && address is { Scheme: "queue" } && segmentCount == 1)
+        if (configuration is null && address is { Scheme: "queue" } && segmentCount == 1)
         {
             var name = new string(path[ranges[0]]);
             configuration = new RabbitMQDispatchEndpointConfiguration
@@ -141,7 +139,7 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
             };
         }
 
-        if (configuration is null && isEffectiveDefault && address is { Scheme: "exchange" } && segmentCount == 1)
+        if (configuration is null && address is { Scheme: "exchange" } && segmentCount == 1)
         {
             var name = path[ranges[0]];
 
@@ -242,11 +240,9 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
                 rabbitConfiguration);
 
             EnsureFaultOrSkippedQueue(
-                context,
                 rabbitConfiguration.Features.Get<ReceiveFaultEndpointFeature>()?.Address,
                 inheritedAutoProvision);
             EnsureFaultOrSkippedQueue(
-                context,
                 rabbitConfiguration.Features.Get<ReceiveSkippedEndpointFeature>()?.Address,
                 inheritedAutoProvision);
         }
@@ -289,8 +285,8 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
                     continue;
                 }
 
-                EnsureExchange(_topology, destination.Name);
-                EnsureExchangeToQueueBinding(_topology, destination.Name, rabbitConfiguration.QueueName);
+                _topology.EnsureExchange(destination.Name);
+                _topology.EnsureExchangeToQueueBinding(destination.Name, rabbitConfiguration.QueueName);
 
                 continue;
             }
@@ -300,12 +296,12 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
             // same queue while still allowing separate publish and send exchange names.
             // Example: publish/order-created -> send/order-created -> queue/orders.
             var publishExchangeName = context.Naming.GetPublishEndpointName(route.MessageType.RuntimeType);
-            EnsureExchange(_topology, publishExchangeName);
+            _topology.EnsureExchange(publishExchangeName);
 
             var sendExchangeName = context.Naming.GetSendEndpointName(route.MessageType.RuntimeType);
             if (sendExchangeName != publishExchangeName)
             {
-                EnsureExchange(_topology, sendExchangeName);
+                _topology.EnsureExchange(sendExchangeName);
 
                 _topology.EnsureBinding(
                     publishExchangeName,
@@ -314,7 +310,7 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
                     static (_, _, _) => new RabbitMQBindingConfiguration());
             }
 
-            EnsureExchangeToQueueBinding(_topology, sendExchangeName, rabbitConfiguration.QueueName);
+            _topology.EnsureExchangeToQueueBinding(sendExchangeName, rabbitConfiguration.QueueName);
         }
     }
 
@@ -454,11 +450,10 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
     }
 
     private void EnsureFaultOrSkippedQueue(
-        IMessagingConfigurationContext context,
         Uri? address,
         bool? inheritedAutoProvision)
     {
-        if (address is null || !TryGetQueueName(context, address, out var queueName))
+        if (address is null || !TryGetQueueName(address, out var queueName))
         {
             return;
         }
@@ -486,7 +481,6 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
             ?? configuration.AutoProvision;
 
     private bool TryGetQueueName(
-        IMessagingConfigurationContext context,
         Uri address,
         out string queueName)
     {
@@ -509,8 +503,7 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
             return true;
         }
 
-        var isEffectiveDefault = Transport.IsDefaultTransport || context.Transports.Length == 1;
-        if (isEffectiveDefault && address is { Scheme: "queue" } && segmentCount == 1)
+        if (address is { Scheme: "queue" } && segmentCount == 1)
         {
             queueName = new string(path[ranges[0]]);
             return true;
@@ -549,4 +542,28 @@ file static class Extensions
 {
     public static bool HasPerMessageRoutingKey(this MessageType messageType)
         => messageType.Features.TryGet<RabbitMQRoutingKeyExtractor>(out _);
+
+    public static void EnsureExchange(
+        this RabbitMQMessagingTopology topology,
+        string exchangeName)
+    {
+        if (topology.Exchanges.FirstOrDefault(e => e.Name == exchangeName) is null)
+        {
+            topology.GetOrAddExchange(
+                exchangeName,
+                static _ => new RabbitMQExchangeConfiguration());
+        }
+    }
+
+    public static void EnsureExchangeToQueueBinding(
+        this RabbitMQMessagingTopology topology,
+        string sourceExchangeName,
+        string queueName)
+    {
+        topology.EnsureBinding(
+            sourceExchangeName,
+            queueName,
+            RabbitMQDestinationKind.Queue,
+            static (_, _, _) => new RabbitMQBindingConfiguration());
+    }
 }

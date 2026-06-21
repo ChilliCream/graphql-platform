@@ -6,7 +6,7 @@ namespace Mocha.Tests.MessageTypes;
 /// <summary>
 /// Tests for <see cref="MessageRouter.GetEndpoint"/> transport selection logic,
 /// covering the deterministic routing rules defined in W3: flagged default, sole transport,
-/// ambiguity error, and scheme-qualified destination.
+/// first transport fallback, and scheme-qualified destination.
 /// </summary>
 public class MessageRouterTransportSelectionTests
 {
@@ -45,20 +45,20 @@ public class MessageRouterTransportSelectionTests
     }
 
     [Fact]
-    public void GetEndpoint_Should_Throw_When_NoDefaultAndMultipleTransports()
+    public void GetEndpoint_Should_RouteToFirstTransport_When_NoDefaultAndMultipleTransports()
     {
         // arrange
-        // Two transports with no default; ambiguous dispatch must fail loudly at dispatch time.
+        // Two transports with no default; implicit routing falls back to the first registered transport.
         var runtime = CreateRuntime(b => b
             .AddInMemory(t => t.Name("alpha").Schema("alpha"))
             .AddInMemory(t => t.Name("beta").Schema("beta")));
         var messageType = runtime.GetMessageType(typeof(AmbiguousEvent));
 
-        // act & assert
-        var ex = Assert.Throws<InvalidOperationException>(() => runtime.GetPublishEndpoint(messageType));
-        Assert.Contains("No default transport is set", ex.Message);
-        Assert.Contains("'alpha'", ex.Message);
-        Assert.Contains("'beta'", ex.Message);
+        // act
+        var endpoint = runtime.GetPublishEndpoint(messageType);
+
+        // assert
+        Assert.Equal("alpha", endpoint.Transport.Name);
     }
 
     [Fact]

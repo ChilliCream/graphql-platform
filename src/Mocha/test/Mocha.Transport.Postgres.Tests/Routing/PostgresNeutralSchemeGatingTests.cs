@@ -10,7 +10,7 @@ public class PostgresNeutralSchemeGatingTests
     {
         // arrange
         // Two Postgres transports; the one under test carries IsDefaultTransport().
-        // queue: is the cross-transport neutral scheme; the default transport must claim it.
+        // queue: is a neutral scheme supported by Postgres transports.
         var runtime = CreateRuntime(b => b
             .AddPostgres(t =>
             {
@@ -35,12 +35,11 @@ public class PostgresNeutralSchemeGatingTests
     }
 
     [Fact]
-    public void NeutralScheme_Should_NotBeClaimed_When_TransportIsNotDefault()
+    public void NeutralScheme_Should_BeClaimable_When_TransportIsNotDefault()
     {
         // arrange
-        // Two Postgres transports; the one under test is NOT the default.
-        // A non-default transport must not claim queue: URIs; it would route messages to
-        // the wrong database when the caller intended to address the default transport.
+        // Two Postgres transports; the one under test is not the default. It still advertises
+        // capability, while EndpointRouter decides whether this candidate is selected.
         var runtime = CreateRuntime(b => b
             .AddPostgres(t =>
             {
@@ -61,7 +60,7 @@ public class PostgresNeutralSchemeGatingTests
         var configuration = secondary.CreateEndpointConfiguration(runtime, new Uri("queue:order-commands"));
 
         // assert
-        Assert.Null(configuration);
+        Assert.NotNull(configuration);
     }
 
     [Fact]
@@ -93,10 +92,10 @@ public class PostgresNeutralSchemeGatingTests
     }
 
     [Fact]
-    public void TopicScheme_Should_NotBeClaimed_When_TransportIsNotDefault()
+    public void TopicScheme_Should_BeClaimable_When_TransportIsNotDefault()
     {
         // arrange
-        // A non-default Postgres transport must not claim topic: URIs.
+        // A non-default Postgres transport still supports topic: URIs.
         var runtime = CreateRuntime(b => b
             .AddPostgres(t =>
             {
@@ -117,7 +116,7 @@ public class PostgresNeutralSchemeGatingTests
         var configuration = secondary.CreateEndpointConfiguration(runtime, new Uri("topic:orders"));
 
         // assert
-        Assert.Null(configuration);
+        Assert.NotNull(configuration);
     }
 
     private const string DummyConnectionString =

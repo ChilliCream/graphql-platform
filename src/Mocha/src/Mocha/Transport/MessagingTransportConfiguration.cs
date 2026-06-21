@@ -27,11 +27,10 @@ public abstract class MessagingTransportConfiguration : MessagingConfiguration
 
     /// <summary>
     /// Gets or sets a value indicating whether this is the default transport for routing when
-    /// multiple transports are registered.  In multi-transport applications, exactly one transport
-    /// must be marked as the default; the default transport is used as the fallback destination
-    /// when no explicit transport is specified. If no transport is marked as default in a
-    /// multi-transport setup, or if a scheme-qualified destination claims ambiguously, the build
-    /// will fail. Single-transport applications do not require this flag to be set.
+    /// multiple transports are registered. In multi-transport applications, the default transport is
+    /// used as the fallback destination when no explicit transport is specified. If no transport is
+    /// marked as default and multiple transports can handle an address, the first matching transport
+    /// is used. Single-transport applications do not require this flag to be set.
     /// </summary>
     public bool IsDefaultTransport { get; set; }
 

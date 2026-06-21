@@ -10,7 +10,7 @@ public class RabbitMQNeutralSchemeGatingTests
     {
         // arrange
         // Two RabbitMQ transports; the one under test carries IsDefaultTransport().
-        // queue: is the cross-transport neutral scheme; the default transport must claim it.
+        // queue: is a neutral scheme supported by RabbitMQ transports.
         var runtime = CreateRuntime(b => b
             .AddRabbitMQ(t =>
             {
@@ -35,12 +35,11 @@ public class RabbitMQNeutralSchemeGatingTests
     }
 
     [Fact]
-    public void NeutralScheme_Should_NotBeClaimed_When_TransportIsNotDefault()
+    public void NeutralScheme_Should_BeClaimable_When_TransportIsNotDefault()
     {
         // arrange
-        // Two RabbitMQ transports; the one under test is NOT the default.
-        // A non-default transport must not claim queue: URIs; it would route messages to
-        // the wrong broker when the caller intended to address the default transport.
+        // Two RabbitMQ transports; the one under test is not the default. It still advertises
+        // capability, while EndpointRouter decides whether this candidate is selected.
         var runtime = CreateRuntime(b => b
             .AddRabbitMQ(t =>
             {
@@ -61,7 +60,7 @@ public class RabbitMQNeutralSchemeGatingTests
         var configuration = secondary.CreateEndpointConfiguration(runtime, new Uri("queue:order-commands"));
 
         // assert
-        Assert.Null(configuration);
+        Assert.NotNull(configuration);
     }
 
     [Fact]
@@ -95,10 +94,10 @@ public class RabbitMQNeutralSchemeGatingTests
     }
 
     [Fact]
-    public void QueueAndExchangeScheme_Should_NotBeClaimed_When_TransportIsNotDefault()
+    public void QueueAndExchangeScheme_Should_BeClaimable_When_TransportIsNotDefault()
     {
         // arrange
-        // A non-default RabbitMQ transport must not claim queue: or exchange: URIs.
+        // A non-default RabbitMQ transport still supports queue: and exchange: URIs.
         var runtime = CreateRuntime(b => b
             .AddRabbitMQ(t =>
             {
@@ -120,8 +119,8 @@ public class RabbitMQNeutralSchemeGatingTests
         var exchangeConfig = secondary.CreateEndpointConfiguration(runtime, new Uri("exchange:orders"));
 
         // assert
-        Assert.Null(queueConfig);
-        Assert.Null(exchangeConfig);
+        Assert.NotNull(queueConfig);
+        Assert.NotNull(exchangeConfig);
     }
 
     private static MessagingRuntime CreateRuntime(Action<IMessageBusHostBuilder> configure)

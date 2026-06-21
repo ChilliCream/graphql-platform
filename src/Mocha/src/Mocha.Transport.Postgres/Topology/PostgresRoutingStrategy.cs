@@ -114,9 +114,7 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
             }
         }
 
-        var isEffectiveDefault = Transport.IsDefaultTransport || context.Transports.Length == 1;
-
-        if (configuration is null && isEffectiveDefault && address is { Scheme: "queue" })
+        if (configuration is null && address is { Scheme: "queue" })
         {
             var name =
                 !string.IsNullOrEmpty(address.Host) ? address.Host
@@ -128,7 +126,7 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
             }
         }
 
-        if (configuration is null && isEffectiveDefault && address is { Scheme: "topic" })
+        if (configuration is null && address is { Scheme: "topic" })
         {
             var name =
                 !string.IsNullOrEmpty(address.Host) ? address.Host
@@ -231,10 +229,8 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
         if (postgresEndpoint.Kind == ReceiveEndpointKind.Default)
         {
             EnsureFaultOrSkippedQueue(
-                context,
                 postgresConfiguration.Features.Get<ReceiveFaultEndpointFeature>()?.Address);
             EnsureFaultOrSkippedQueue(
-                context,
                 postgresConfiguration.Features.Get<ReceiveSkippedEndpointFeature>()?.Address);
         }
 
@@ -428,9 +424,9 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
         }
     }
 
-    private void EnsureFaultOrSkippedQueue(IMessagingConfigurationContext context, Uri? address)
+    private void EnsureFaultOrSkippedQueue(Uri? address)
     {
-        if (address is null || !TryGetQueueName(context, address, out var queueName))
+        if (address is null || !TryGetQueueName(address, out var queueName))
         {
             return;
         }
@@ -440,7 +436,7 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
             static _ => new PostgresQueueConfiguration { Origin = TopologyOrigin.Endpoint });
     }
 
-    private bool TryGetQueueName(IMessagingConfigurationContext context, Uri address, out string queueName)
+    private bool TryGetQueueName(Uri address, out string queueName)
     {
         var path = address.AbsolutePath.AsSpan();
         Span<Range> ranges = stackalloc Range[2];
@@ -461,8 +457,7 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
             return true;
         }
 
-        var isEffectiveDefault = Transport.IsDefaultTransport || context.Transports.Length == 1;
-        if (isEffectiveDefault && address is { Scheme: "queue" })
+        if (address is { Scheme: "queue" })
         {
             queueName =
                 !string.IsNullOrEmpty(address.Host) ? address.Host

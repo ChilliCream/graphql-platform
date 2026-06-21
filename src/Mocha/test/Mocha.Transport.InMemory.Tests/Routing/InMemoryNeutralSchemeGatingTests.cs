@@ -5,9 +5,8 @@ namespace Mocha.Transport.InMemory.Tests.Routing;
 
 /// <summary>
 /// Verifies that <see cref="InMemoryMessagingTransport.CreateEndpointConfiguration(IMessagingConfigurationContext, Uri)"/>
-/// only claims neutral-scheme URIs (<c>queue:</c> and <c>topic:</c>) when the transport is the
-/// effective default (flagged with <see cref="IInMemoryMessagingTransportDescriptor.IsDefaultTransport"/>
-/// or sole transport registered), and returns <see langword="null"/> otherwise.
+/// can describe supported neutral-scheme URIs (<c>queue:</c> and <c>topic:</c>). The central
+/// endpoint router applies the cross-transport selection rules.
 /// </summary>
 public class InMemoryNeutralSchemeGatingTests
 {
@@ -16,7 +15,7 @@ public class InMemoryNeutralSchemeGatingTests
     {
         // arrange
         // Two in-memory transports; the one under test carries IsDefaultTransport().
-        // queue: is the cross-transport neutral scheme; the default transport must claim it.
+        // queue: is a neutral scheme supported by in-memory transports.
         var runtime = CreateRuntime(b => b
             .AddInMemory(t =>
             {
@@ -39,12 +38,11 @@ public class InMemoryNeutralSchemeGatingTests
     }
 
     [Fact]
-    public void NeutralScheme_Should_NotBeClaimed_When_TransportIsNotDefault()
+    public void NeutralScheme_Should_BeClaimable_When_TransportIsNotDefault()
     {
         // arrange
-        // Two in-memory transports; the one under test is NOT the default.
-        // A non-default transport must not claim queue: URIs; it would silently absorb
-        // messages the caller intended for the default transport.
+        // Two in-memory transports; the one under test is not the default. It still advertises
+        // capability, while EndpointRouter decides whether this candidate is selected.
         var runtime = CreateRuntime(b => b
             .AddInMemory(t =>
             {
@@ -63,7 +61,7 @@ public class InMemoryNeutralSchemeGatingTests
         var configuration = secondary.CreateEndpointConfiguration(runtime, new Uri("queue:order-commands"));
 
         // assert
-        Assert.Null(configuration);
+        Assert.NotNull(configuration);
     }
 
     [Fact]
@@ -95,10 +93,10 @@ public class InMemoryNeutralSchemeGatingTests
     }
 
     [Fact]
-    public void QueueAndTopicScheme_Should_NotBeClaimed_When_TransportIsNotDefault()
+    public void QueueAndTopicScheme_Should_BeClaimable_When_TransportIsNotDefault()
     {
         // arrange
-        // A non-default in-memory transport must not claim queue: or topic: URIs.
+        // A non-default in-memory transport still supports queue: and topic: URIs.
         var runtime = CreateRuntime(b => b
             .AddInMemory(t =>
             {
@@ -118,8 +116,8 @@ public class InMemoryNeutralSchemeGatingTests
         var topicConfig = secondary.CreateEndpointConfiguration(runtime, new Uri("topic:orders"));
 
         // assert
-        Assert.Null(queueConfig);
-        Assert.Null(topicConfig);
+        Assert.NotNull(queueConfig);
+        Assert.NotNull(topicConfig);
     }
 
     private static MessagingRuntime CreateRuntime(Action<IMessageBusHostBuilder> configure)

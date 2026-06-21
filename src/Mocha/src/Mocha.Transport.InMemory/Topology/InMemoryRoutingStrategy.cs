@@ -112,9 +112,7 @@ public sealed class InMemoryRoutingStrategy : RoutingStrategy<InMemoryMessagingT
             }
         }
 
-        var isEffectiveDefault = Transport.IsDefaultTransport || context.Transports.Length == 1;
-
-        if (configuration is null && isEffectiveDefault && address is { Scheme: "queue" })
+        if (configuration is null && address is { Scheme: "queue" })
         {
             var name =
                 !string.IsNullOrEmpty(address.Host) ? address.Host
@@ -126,7 +124,7 @@ public sealed class InMemoryRoutingStrategy : RoutingStrategy<InMemoryMessagingT
             }
         }
 
-        if (configuration is null && isEffectiveDefault && address is { Scheme: "topic" })
+        if (configuration is null && address is { Scheme: "topic" })
         {
             var name =
                 !string.IsNullOrEmpty(address.Host) ? address.Host
