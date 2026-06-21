@@ -24,27 +24,27 @@ public sealed class RabbitMQExchange : TopologyResource<RabbitMQExchangeConfigur
     /// Gets a value indicating whether this exchange is automatically provisioned during topology setup.
     /// When <c>null</c>, the transport-level default is used.
     /// </summary>
-    public bool? AutoProvision { get; internal set; }
+    public bool? AutoProvision { get; private set; }
 
     /// <summary>
     /// Gets the exchange type (e.g., "direct", "fanout", "topic", "headers").
     /// </summary>
-    public string Type { get; internal set; } = null!;
+    public string Type { get; private set; } = null!;
 
     /// <summary>
     /// Gets a value indicating whether this exchange survives broker restarts.
     /// </summary>
-    public bool Durable { get; internal set; }
+    public bool Durable { get; private set; }
 
     /// <summary>
     /// Gets a value indicating whether this exchange is automatically deleted when no longer in use.
     /// </summary>
-    public bool AutoDelete { get; internal set; }
+    public bool AutoDelete { get; private set; }
 
     /// <summary>
     /// Gets the additional exchange arguments for advanced configuration (e.g., alternate-exchange).
     /// </summary>
-    public ImmutableDictionary<string, object?> Arguments { get; internal set; } = ImmutableDictionary<string, object?>.Empty;
+    public ImmutableDictionary<string, object?> Arguments { get; private set; } = ImmutableDictionary<string, object?>.Empty;
 
     /// <summary>
     /// Gets the bindings attached to this exchange (both outgoing and incoming).

@@ -256,7 +256,7 @@ public class RabbitMQExplicitTopologyTests
     }
 
     [Fact]
-    public void DeclareBinding_Should_RetainAllBindings_When_IdenticalHeaderArguments()
+    public void DeclareBinding_Should_Deduplicate_When_IdenticalHeaderArguments()
     {
         // arrange & act
         var (_, _, topology) = CreateTopology(t =>
@@ -265,6 +265,54 @@ public class RabbitMQExplicitTopologyTests
             t.DeclareQueue("q");
             t.DeclareBinding("headers-ex", "q").Match(RabbitMQBindingMatchType.All).WithArgument("region", "eu");
             t.DeclareBinding("headers-ex", "q").Match(RabbitMQBindingMatchType.All).WithArgument("region", "eu");
+        });
+
+        // assert
+        Assert.Single(topology.Bindings, b => b.Source.Name == "headers-ex");
+    }
+
+    [Fact]
+    public void DeclareBinding_Should_Deduplicate_When_HeaderArgumentsDifferOnlyByOrder()
+    {
+        // arrange & act
+        var (_, _, topology) = CreateTopology(t =>
+        {
+            t.DeclareExchange("headers-ex").Type("headers");
+            t.DeclareQueue("q");
+            t.DeclareBinding("headers-ex", "q").WithArgument("region", "eu").WithArgument("tenant", "a");
+            t.DeclareBinding("headers-ex", "q").WithArgument("tenant", "a").WithArgument("region", "eu");
+        });
+
+        // assert
+        Assert.Single(topology.Bindings, b => b.Source.Name == "headers-ex");
+    }
+
+    [Fact]
+    public void DeclareBinding_Should_Deduplicate_When_ByteArrayArgumentsHaveSameContent()
+    {
+        // arrange & act
+        var (_, _, topology) = CreateTopology(t =>
+        {
+            t.DeclareExchange("headers-ex").Type("headers");
+            t.DeclareQueue("q");
+            t.DeclareBinding("headers-ex", "q").WithArgument("payload", new byte[] { 1, 2, 3 });
+            t.DeclareBinding("headers-ex", "q").WithArgument("payload", new byte[] { 1, 2, 3 });
+        });
+
+        // assert
+        Assert.Single(topology.Bindings, b => b.Source.Name == "headers-ex");
+    }
+
+    [Fact]
+    public void DeclareBinding_Should_RetainAllBindings_When_ByteArrayArgumentsDifferByContent()
+    {
+        // arrange & act
+        var (_, _, topology) = CreateTopology(t =>
+        {
+            t.DeclareExchange("headers-ex").Type("headers");
+            t.DeclareQueue("q");
+            t.DeclareBinding("headers-ex", "q").WithArgument("payload", new byte[] { 1, 2, 3 });
+            t.DeclareBinding("headers-ex", "q").WithArgument("payload", new byte[] { 1, 2, 4 });
         });
 
         // assert

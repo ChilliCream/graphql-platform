@@ -29,27 +29,27 @@ public sealed class RabbitMQQueue : TopologyResource<RabbitMQQueueConfiguration>
     /// Gets a value indicating whether this queue is automatically provisioned during topology setup.
     /// When <c>null</c>, the transport-level default is used.
     /// </summary>
-    public bool? AutoProvision { get; internal set; }
+    public bool? AutoProvision { get; private set; }
 
     /// <summary>
     /// Gets a value indicating whether this queue survives broker restarts.
     /// </summary>
-    public bool Durable { get; internal set; }
+    public bool Durable { get; private set; }
 
     /// <summary>
     /// Gets a value indicating whether this queue is exclusive to the connection that created it.
     /// </summary>
-    public bool Exclusive { get; internal set; }
+    public bool Exclusive { get; private set; }
 
     /// <summary>
     /// Gets a value indicating whether this queue is automatically deleted when no longer in use.
     /// </summary>
-    public bool AutoDelete { get; internal set; }
+    public bool AutoDelete { get; private set; }
 
     /// <summary>
     /// Gets the additional queue arguments for advanced configuration (e.g., x-message-ttl, x-max-length).
     /// </summary>
-    public ImmutableDictionary<string, object?> Arguments { get; internal set; } = ImmutableDictionary<string, object?>.Empty;
+    public ImmutableDictionary<string, object?> Arguments { get; private set; } = ImmutableDictionary<string, object?>.Empty;
 
     protected override void OnInitialize(RabbitMQQueueConfiguration configuration)
     {
@@ -74,7 +74,6 @@ public sealed class RabbitMQQueue : TopologyResource<RabbitMQQueueConfiguration>
         ImmutableInterlocked.Update(ref _bindings, (current) => current.Add(binding));
     }
 
-    // TODO: this is a bit lost here
     /// <summary>
     /// Declares this queue on the broker using the specified channel.
     /// </summary>

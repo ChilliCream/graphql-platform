@@ -1,3 +1,8 @@
+using System.Buffers.Binary;
+using System.Globalization;
+using System.IO.Hashing;
+using System.Text;
+
 namespace Mocha.Transport.RabbitMQ;
 
 /// <summary>
@@ -167,20 +172,13 @@ public sealed class RabbitMQMessagingTopology(
     {
         lock (_lock)
         {
-            var key = CreateBindingKey(source, destination, destinationKind);
-
-            if (_bindingsByKey.TryGetValue(key, out _))
-            {
-                return;
-            }
-
             var configuration = factory(source, destination, destinationKind);
             configuration.Source = source;
             configuration.Destination = destination;
             configuration.DestinationKind = destinationKind;
 
-            if (TryCreateBindingKey(configuration, out key)
-                && _bindingsByKey.TryGetValue(key, out _))
+            var key = BindingKey.Create(configuration);
+            if (_bindingsByKey.TryGetValue(key, out _))
             {
                 return;
             }
@@ -196,38 +194,14 @@ public sealed class RabbitMQMessagingTopology(
     {
         lock (_lock)
         {
-            if (TryCreateBindingKey(configuration, out var key)
-                && _bindingsByKey.TryGetValue(key, out _))
+            var key = BindingKey.Create(configuration);
+            if (_bindingsByKey.TryGetValue(key, out _))
             {
                 return;
             }
 
             CreateBinding(configuration);
         }
-    }
-
-    private static BindingKey CreateBindingKey(
-        string source,
-        string destination,
-        RabbitMQDestinationKind destinationKind)
-        => new(source, destination, destinationKind, string.Empty);
-
-    private static bool TryCreateBindingKey(
-        RabbitMQBindingConfiguration configuration,
-        out BindingKey key)
-    {
-        if (configuration.Arguments is { Count: > 0 })
-        {
-            key = default;
-            return false;
-        }
-
-        key = new(
-            configuration.Source,
-            configuration.Destination,
-            configuration.DestinationKind,
-            configuration.RoutingKey ?? string.Empty);
-        return true;
     }
 
     private void CreateBinding(RabbitMQBindingConfiguration configuration)
@@ -282,10 +256,8 @@ public sealed class RabbitMQMessagingTopology(
         source.AddBinding(binding);
 
         _bindings.Add(binding);
-        if (TryCreateBindingKey(configuration, out var key))
-        {
-            _bindingsByKey.Add(key, binding);
-        }
+
+        _bindingsByKey.Add(BindingKey.Create(configuration), binding);
 
         binding.Complete();
     }
@@ -294,5 +266,96 @@ public sealed class RabbitMQMessagingTopology(
         string Source,
         string Destination,
         RabbitMQDestinationKind DestinationKind,
-        string RoutingKey);
+        string RoutingKey,
+        int ArgumentCount,
+        ulong ArgumentsHash)
+    {
+        public static BindingKey Create(RabbitMQBindingConfiguration configuration)
+        {
+            var arguments = configuration.Arguments;
+
+            return new(
+                configuration.Source,
+                configuration.Destination,
+                configuration.DestinationKind,
+                configuration.RoutingKey ?? string.Empty,
+                arguments?.Count ?? 0,
+                HashArguments(arguments));
+        }
+
+        private static ulong HashArguments(IDictionary<string, object>? arguments)
+        {
+            if (arguments is not { Count: > 0 })
+            {
+                return 0;
+            }
+
+            var hash = new XxHash64();
+            AppendInt32(ref hash, arguments.Count);
+
+            foreach (var (key, value) in arguments.OrderBy(kv => kv.Key, StringComparer.Ordinal))
+            {
+                AppendString(ref hash, key);
+                AppendValue(ref hash, value);
+            }
+
+            return hash.GetCurrentHashAsUInt64();
+        }
+
+        private static void AppendValue(ref XxHash64 hash, object? value)
+        {
+            if (value is null)
+            {
+                AppendByte(ref hash, 0);
+                return;
+            }
+
+            if (value is byte[] bytes)
+            {
+                AppendByte(ref hash, 1);
+                AppendBytes(ref hash, bytes);
+                return;
+            }
+
+            AppendByte(ref hash, 2);
+            AppendString(ref hash, value.GetType().FullName ?? value.GetType().Name);
+            AppendString(ref hash, Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty);
+        }
+
+        private static void AppendString(ref XxHash64 hash, string value)
+        {
+            var maxByteCount = Encoding.UTF8.GetMaxByteCount(value.Length);
+
+            if (maxByteCount <= 256)
+            {
+                Span<byte> buffer = stackalloc byte[maxByteCount];
+                var bytesWritten = Encoding.UTF8.GetBytes(value, buffer);
+                AppendBytes(ref hash, buffer[..bytesWritten]);
+            }
+            else
+            {
+                AppendBytes(ref hash, Encoding.UTF8.GetBytes(value));
+            }
+        }
+
+        private static void AppendBytes(ref XxHash64 hash, ReadOnlySpan<byte> bytes)
+        {
+            AppendInt32(ref hash, bytes.Length);
+            hash.Append(bytes);
+        }
+
+        private static void AppendInt32(ref XxHash64 hash, int value)
+        {
+            Span<byte> buffer = stackalloc byte[4];
+            BinaryPrimitives.WriteInt32LittleEndian(buffer, value);
+            hash.Append(buffer);
+        }
+
+        private static void AppendByte(ref XxHash64 hash, byte value)
+        {
+            Span<byte> buffer = stackalloc byte[1];
+            buffer[0] = value;
+            hash.Append(buffer);
+        }
+    }
 }

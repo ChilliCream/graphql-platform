@@ -195,6 +195,24 @@ public class RabbitMQDescriptorTests
     }
 
     [Fact]
+    public void ReceiveEndpoint_Should_PreserveFaultQueueAutoProvisionNull_When_FaultQueueDeclared()
+    {
+        // arrange & act
+        var runtime = CreateRuntime(t =>
+        {
+            t.AutoProvision(true);
+            t.DeclareQueue("q_error");
+            t.Queue("q").AutoProvision(true).Handler<OrderCreatedHandler>().FaultEndpoint(new Uri("queue:q_error"));
+        });
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+        var topology = (RabbitMQMessagingTopology)transport.Topology;
+
+        // assert
+        var errorQueue = topology.Queues.Single(q => q.Name == "q_error");
+        Assert.Null(errorQueue.AutoProvision);
+    }
+
+    [Fact]
     public void ReceiveEndpoint_Should_PreserveLaterFaultEndpoint_When_QueueFaultEndpointConfiguredFirst()
     {
         // arrange & act
