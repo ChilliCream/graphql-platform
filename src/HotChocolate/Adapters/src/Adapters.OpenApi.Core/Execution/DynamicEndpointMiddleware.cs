@@ -178,6 +178,7 @@ internal sealed class DynamicEndpointMiddleware(
                 // read is advanced once below, after the parser consumes it.
                 if (!result.IsCompleted)
                     body.AdvanceTo(result.Buffer.Start, result.Buffer.End);
+
             } while (!result.IsCompleted);
 
             if (result.Buffer.Length == 0)
